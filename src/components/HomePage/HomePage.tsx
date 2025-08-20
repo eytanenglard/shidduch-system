@@ -35,6 +35,7 @@ export default function HomePage({ dict }: HomePageProps) {
 
   useEffect(() => {
     const handleScroll = () => {
+      // המצב isScrolled ישמש אך ורק עבור ה-StickyNav
       setIsScrolled(window.scrollY > 10);
     };
 
@@ -60,15 +61,11 @@ export default function HomePage({ dict }: HomePageProps) {
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden">
-      <div
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
-          isScrolled
-            ? 'opacity-0 -translate-y-full pointer-events-none'
-            : 'opacity-100'
-        }`}
-      ></div>
+      {/* ✨ 1. הסרנו את ה-div הריק והמיותר שהתנגש עם ה-Navbar הראשי */}
 
-      <StickyNav navLinks={navLinks} session={session} />
+      {/* ✨ 2. העברנו את מצב הגלילה כ-prop לקומפוננטת ה-StickyNav */}
+      {/* (יתכן שתצטרך לעדכן את StickyNav כך שישתמש ב-prop זה כדי לשלוט בנראות שלו) */}
+      <StickyNav navLinks={navLinks} session={session} isVisible={isScrolled} />
 
       <HeroSection
         session={session}
@@ -77,19 +74,18 @@ export default function HomePage({ dict }: HomePageProps) {
       />
       <ValuePropositionSection dict={dict.valueProposition} />
 
-      {/* ✨ 2. העברת המילון לרכיבים המעודכנים */}
       <OurMethodSection dict={dict.ourMethod} />
       <HowItWorksSection dict={dict.howItWorks} />
 
-      <MatchmakerTeamSection />
-      <SuccessStoriesSection />
-      <FAQSection />
-      <PrivacyAssuranceSection />
-      <CTASection />
-      <FooterSection />
+      <MatchmakerTeamSection dict={dict.matchmakerTeam} />
+      <SuccessStoriesSection dict={dict.successStories} />
+      <FAQSection dict={dict.faq} />
+      <PrivacyAssuranceSection dict={dict.privacyAssurance} />
+      <CTASection dict={dict.cta} />
+      <FooterSection dict={dict.footer} />
 
-      <ChatWidget />
-      <CookieBanner />
+      <ChatWidget dict={dict.chatWidget} />
+      <CookieBanner dict={dict.cookieBanner} />
     </div>
   );
 }

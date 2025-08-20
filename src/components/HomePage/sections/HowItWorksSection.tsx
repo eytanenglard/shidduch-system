@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import { usePathname } from 'next/navigation';
-import type { HowItWorksDict } from '@/types/dictionary';
+import type { HowItWorksDict, SuggestionsCardDict } from '@/types/dictionary';
 
 
 interface HowItWorksProps {

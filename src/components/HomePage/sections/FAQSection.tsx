@@ -1,4 +1,5 @@
 // src/components/HomePage/sections/FAQSection.tsx
+'use client';
 
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
@@ -15,10 +16,16 @@ import {
   HelpCircle,
   FileText,
 } from 'lucide-react';
+import type { FaqDict } from '@/types/dictionary';
 
-const FAQSection: React.FC = () => {
+// --- Type Definition for Component Props ---
+interface FAQProps {
+  dict: FaqDict;
+}
+
+const FAQSection: React.FC<FAQProps> = ({ dict }) => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.1 });
+  const isInView = useInView(ref, { once: true, amount: 0.05 });
 
   // Animation variants
   const containerVariants = {
@@ -82,39 +89,24 @@ const FAQSection: React.FC = () => {
     },
   };
 
-  const faqData = [
+  const faqIcons = [
     {
-      question: 'מה המחיר של השירות?',
-      answer:
-        'כחלק מתקופת ההשקה והרצון שלנו לבנות קהילה איכותית, השירות כרגע מוצע במודל סמלי של 10 ש"ח לחודש (או ללא עלות, בהתאם לתקופה). חשוב להדגיש: בשלב זה, אין אצלנו "דמי הצלחה" כלל, גם אם תתארסו דרכנו. המטרה שלנו היא לאפשר לכם להכיר את הגישה הייחודית שלנו ללא מחסומים. בעתיד, ייתכן ונעבור למודל שיכלול דמי הצלחה, אך כל שינוי כזה יהיה כפוף לעדכון תנאי השימוש ולקבלת הסכמתכם המחודשת.',
       icon: <Sparkles className="w-5 h-5" />,
       color: 'from-amber-500 to-orange-500',
     },
     {
-      question: 'האם השירות מתאים לכל הזרמים?',
-      answer:
-        'הגישה שלנו מבוססת על הבנת הניואנסים הדקים של עולם הערכים והאמונה. כרגע, המומחיות העיקרית שלנו מתמקדת בקהילה הדתית-לאומית, בדגש על קהלים אקדמאיים ואנשים איכותיים המחפשים קשר רציני. אנו פועלים כל הזמן להרחיב את מעגלי ההיכרות ולהתאים את המערכת לקהלים נוספים בעתיד.',
       icon: <Users className="w-5 h-5" />,
       color: 'from-purple-500 to-indigo-500',
     },
     {
-      question: 'כיצד נשמרת הפרטיות שלי?',
-      answer:
-        'פרטיות היא ערך עליון והתחייבות מוחלטת שלנו. הפרופיל שלך גלוי אך ורק לצוות השדכנים המצומצם שמטפל בך. פרטים אישיים ותמונות נחשפים לצד השני רק לאחר שקיבלנו את אישורך המפורש לכל הצעה. המידע שלך לעולם לא יימכר או ישותף עם גורם חיצוני. אתם בשליטה מלאה על הסיפור שלכם.',
       icon: <Shield className="w-5 h-5" />,
       color: 'from-cyan-500 to-blue-500',
     },
     {
-      question: 'השאלון שלכם נראה מעמיק, האם הוא באמת הכרחי?',
-      answer:
-        'בהחלט, והוא היתרון הגדול ביותר שלכם. השאלון הוא לא "טופס", אלא "מסע היכרות" מודרך הבוחן חמישה עולמות מרכזיים בחייכם. ההשקעה הקצרה הזו בהתחלה היא מה שמאפשר לנו ולטכנולוגיה שלנו להכיר אתכם באמת, לחסוך לכם זמן יקר על הצעות לא רלוונטיות, ולהגיש לכם התאמות שמבוססות על עומק וערכים משותפים, ולא רק על פרטים שטחיים.',
       icon: <FileText className="w-5 h-5" />,
       color: 'from-pink-500 to-rose-500',
     },
     {
-      question: 'כמה זמן לוקח למצוא התאמה?',
-      answer:
-        'זו השאלה החשובה ביותר, והתשובה הכנה היא שאין לוח זמנים לאהבה. אבל מה אנחנו כן יכולים להבטיח? תהליך יעיל וממוקד. במקום אינסוף דייטים לא רלוונטיים, תקבלו מספר מצומצם של הצעות איכותיות, מנומקות ומותאמות אישית. המטרה שלנו היא שהמסע שלכם יהיה משמעותי, ולא ארוך מהנדרש.',
       icon: <Clock className="w-5 h-5" />,
       color: 'from-emerald-500 to-teal-500',
     },
@@ -129,7 +121,6 @@ const FAQSection: React.FC = () => {
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      {/* רקע דקורטיבי מתקדם */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-cyan-200/30 to-blue-300/20 rounded-full blur-3xl animate-float-slow"></div>
         <div
@@ -142,7 +133,6 @@ const FAQSection: React.FC = () => {
         ></div>
         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:30px_30px]"></div>
 
-        {/* גלים דקורטיביים */}
         <svg
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 1000 1000"
@@ -169,20 +159,19 @@ const FAQSection: React.FC = () => {
       </div>
 
       <div className="max-w-4xl mx-auto relative">
-        {/* כותרת מעוצבת */}
         <motion.div className="text-center mb-16" variants={headerVariants}>
-          {/* Badge מעוצב */}
           <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-8 py-4 shadow-lg border border-white/60 mb-8">
             <HelpCircle className="w-6 h-6 text-cyan-600" />
             <span className="text-cyan-700 font-semibold text-lg">
-              מידע חשוב עבורכם
+              {dict.header}
             </span>
           </div>
 
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800 mb-6 leading-tight">
-            כל מה ש
+            {dict.title_part1}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-purple-600">
-              חשוב לדעת
+              {' '}
+              {dict.title_highlight}
             </span>
           </h2>
 
@@ -193,57 +182,47 @@ const FAQSection: React.FC = () => {
           </div>
 
           <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-            שקיפות היא הבסיס לאמון. ריכזנו כאן תשובות לשאלות הנפוצות ביותר, כדי
-            שתוכלו להתחיל את המסע בלב שקט ועם כל המידע.
+            {dict.subtitle}
           </p>
         </motion.div>
 
-        {/* FAQ Items עם עיצוב מתקדם */}
         <motion.div className="relative mb-16" variants={faqContainerVariants}>
-          {/* רקע לכרטיס */}
           <div className="absolute inset-0 -m-4 bg-white/60 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40"></div>
 
           <div className="relative p-8 md:p-12">
             <div className="space-y-1">
-              {faqData.map((item, index) => (
+              {dict.questions.map((item, index) => (
                 <motion.div
-                  key={index}
+                  key={item.question}
                   variants={faqItemVariants}
                   whileHover={{ x: 4 }}
                   transition={{ duration: 0.2 }}
                   className="group"
                 >
-                  {/* כרטיס FAQ מעוצב */}
                   <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100/80 hover:border-gray-200 transition-all duration-300 hover:shadow-lg overflow-hidden">
                     <div className="relative">
-                      {/* סרט צבעוני בחלק העליון */}
                       <div
-                        className={`h-1 bg-gradient-to-r ${item.color} opacity-60 group-hover:opacity-100 transition-opacity duration-300`}
+                        className={`h-1 bg-gradient-to-r ${faqIcons[index % faqIcons.length].color} opacity-60 group-hover:opacity-100 transition-opacity duration-300`}
                       ></div>
-
-                      {/* האייקון והשאלה */}
                       <div className="p-6">
                         <div className="flex items-center gap-4 mb-4">
                           <div
-                            className={`p-3 rounded-full bg-gradient-to-r ${item.color} text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                            className={`p-3 rounded-full bg-gradient-to-r ${faqIcons[index % faqIcons.length].color} text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}
                           >
-                            {item.icon}
+                            {faqIcons[index % faqIcons.length].icon}
                           </div>
                           <h3 className="text-xl font-bold text-gray-800 flex-1">
                             {item.question}
                           </h3>
                         </div>
-
-                        {/* התשובה */}
                         <div className="relative">
+                          {/* Note: Passing empty question to FAQItem as the title is already displayed above */}
                           <FAQItem question="" answer={item.answer} />
                         </div>
                       </div>
-
-                      {/* עיטור תחתון */}
                       <div className="absolute bottom-0 right-0 w-32 h-32 opacity-5">
                         <div
-                          className={`w-full h-full bg-gradient-to-tl ${item.color} rounded-full transform translate-x-16 translate-y-16`}
+                          className={`w-full h-full bg-gradient-to-tl ${faqIcons[index % faqIcons.length].color} rounded-full transform translate-x-16 translate-y-16`}
                         ></div>
                       </div>
                     </div>
@@ -254,16 +233,13 @@ const FAQSection: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Contact Block מעוצב */}
         <motion.div
           className="relative text-center"
           variants={contactBlockVariants}
         >
-          {/* רקע גרדיאנט */}
           <div className="absolute inset-0 -m-8 bg-gradient-to-br from-cyan-500/10 via-purple-500/5 to-pink-500/10 rounded-3xl backdrop-blur-sm border border-white/30"></div>
 
           <div className="relative max-w-2xl mx-auto p-12">
-            {/* אייקון מרכזי */}
             <motion.div
               className="inline-block mb-6 p-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full shadow-xl"
               whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
@@ -273,16 +249,15 @@ const FAQSection: React.FC = () => {
             </motion.div>
 
             <h3 className="text-3xl font-bold text-gray-800 mb-4">
-              עדיין יש לכם
+              {dict.contact_block.title_part1}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-purple-600">
                 {' '}
-                שאלה?
+                {dict.contact_block.title_highlight}
               </span>
             </h3>
 
             <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-              אנחנו כאן כדי לעזור. צוות השדכנים שלנו ישמח לענות על כל שאלה באופן
-              אישי ולהכיר אתכם טוב יותר.
+              {dict.contact_block.subtitle}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -296,7 +271,7 @@ const FAQSection: React.FC = () => {
                     className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-8 py-4 text-lg font-semibold group"
                   >
                     <span className="flex items-center gap-3">
-                      בואו נכיר
+                      {dict.contact_block.button}
                       <ArrowLeft className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </span>
                   </Button>
@@ -305,7 +280,9 @@ const FAQSection: React.FC = () => {
 
               <div className="flex items-center gap-3 text-gray-600">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="font-medium">זמינים עבורכם • תגובה מהירה</span>
+                <span className="font-medium">
+                  {dict.contact_block.availability}
+                </span>
               </div>
             </div>
           </div>

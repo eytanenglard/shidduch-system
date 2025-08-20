@@ -6,8 +6,14 @@ import Link from 'next/link';
 import { Button } from './button';
 import { Shield, X, Cookie } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { CookieBannerDict } from '@/types/dictionary';
 
-const CookieBanner = () => {
+// --- Type Definition for Component Props ---
+interface CookieBannerProps {
+  dict: CookieBannerDict;
+}
+
+const CookieBanner: React.FC<CookieBannerProps> = ({ dict }) => {
   const [consent, setConsent] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -15,7 +21,6 @@ const CookieBanner = () => {
     const storedConsent = localStorage.getItem('cookie_consent');
     setConsent(storedConsent);
 
-    // הצגת הבאנר עם עיכוב קצר לטעינה חלקה יותר
     if (!storedConsent) {
       const timer = setTimeout(() => setIsVisible(true), 1000);
       return () => clearTimeout(timer);
@@ -26,6 +31,7 @@ const CookieBanner = () => {
     setConsent('true');
     localStorage.setItem('cookie_consent', 'true');
     setIsVisible(false);
+    // Reload to apply analytics scripts if they depend on consent
     window.location.reload();
   };
 
@@ -39,7 +45,6 @@ const CookieBanner = () => {
     setIsVisible(false);
   };
 
-  // אם המשתמש כבר בחר, אל תציג את הבאנר
   if (consent === 'true' || consent === 'false') {
     return null;
   }
@@ -59,7 +64,6 @@ const CookieBanner = () => {
           }}
           className="fixed bottom-0 left-0 right-0 z-[100] pointer-events-none"
         >
-          {/* רקע מטושטש */}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/95 via-slate-800/90 to-transparent backdrop-blur-md pointer-events-none" />
 
           <div className="relative pointer-events-auto">
@@ -70,24 +74,20 @@ const CookieBanner = () => {
                 transition={{ delay: 0.2 }}
                 className="relative bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-6 md:p-8"
               >
-                {/* רקע דקורטיבי */}
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-50/80 via-white/90 to-pink-50/80 rounded-2xl" />
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-200/20 to-transparent rounded-full transform translate-x-16 -translate-y-16" />
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-200/20 to-transparent rounded-full transform -translate-x-12 translate-y-12" />
 
-                {/* כפתור סגירה */}
                 <button
                   onClick={handleDismiss}
                   className="absolute top-4 left-4 p-2 rounded-full bg-gray-100/80 hover:bg-gray-200/80 transition-colors duration-200 group"
-                  aria-label="סגור באנר קוקיז"
+                  aria-label={dict.aria_close}
                 >
                   <X className="w-4 h-4 text-gray-600 group-hover:text-gray-800" />
                 </button>
 
                 <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-                  {/* אייקון ותוכן */}
                   <div className="lg:col-span-2 flex items-start gap-4">
-                    {/* אייקון מעוצב */}
                     <motion.div
                       initial={{ rotate: -10, scale: 0.8 }}
                       animate={{ rotate: 0, scale: 1 }}
@@ -109,7 +109,7 @@ const CookieBanner = () => {
                         className="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2"
                       >
                         <Shield className="w-5 h-5 text-cyan-600" />
-                        פרטיות ושקיפות
+                        {dict.title}
                       </motion.h3>
 
                       <motion.p
@@ -118,22 +118,18 @@ const CookieBanner = () => {
                         transition={{ delay: 0.5 }}
                         className="text-gray-700 leading-relaxed text-sm md:text-base"
                       >
-                        אנו משתמשים ב&quot;עוגיות&quot; (Cookies), כולל אלו של
-                        Google Analytics, כדי לשפר את חווית הגלישה שלך ולנתח את
-                        תנועת הגולשים באתר. המידע נאסף באופן אנונימי. למידע
-                        נוסף, אנא עיין/י ב
+                        {dict.text_part1}
                         <Link
                           href="/legal/privacy-policy"
                           className="text-cyan-600 hover:text-cyan-700 font-medium mx-1 underline decoration-2 underline-offset-2 hover:decoration-cyan-700 transition-colors"
                         >
-                          מדיניות הפרטיות
+                          {dict.privacy_policy_link}
                         </Link>
-                        שלנו.
+                        {dict.text_part2}
                       </motion.p>
                     </div>
                   </div>
 
-                  {/* כפתורי פעולה */}
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -145,7 +141,7 @@ const CookieBanner = () => {
                       className="relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group flex-1 lg:flex-none"
                     >
                       <span className="relative z-10 font-semibold">
-                        מסכים/ה
+                        {dict.accept_button}
                       </span>
                       <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </Button>
@@ -155,12 +151,11 @@ const CookieBanner = () => {
                       variant="outline"
                       className="border-2 border-gray-300 text-gray-700 bg-white/80 hover:bg-gray-50 hover:border-gray-400 rounded-xl transition-all duration-300 flex-1 lg:flex-none"
                     >
-                      <span className="font-medium">מסרב/ת</span>
+                      <span className="font-medium">{dict.decline_button}</span>
                     </Button>
                   </motion.div>
                 </div>
 
-                {/* קו דקורטיבי תחתון */}
                 <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-cyan-400 via-pink-400 to-cyan-400 rounded-full" />
               </motion.div>
             </div>

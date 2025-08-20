@@ -1,14 +1,14 @@
 ################################################################################
-# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions
-# Generated on: 2025-08-19 15:34:15
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions
+# Generated on: 2025-08-20 17:33:31
 ################################################################################
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\MatchSuggestionsContainer.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\MatchSuggestionsContainer.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/MatchSuggestionsContainer.tsx
@@ -60,8 +60,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-// קומפוננטת מסך הטעינה המשופר, כפי שהוצע על ידי ה-AI
-const LoadingSkeleton: React.FC = () => (
+// ייבוא הטיפוס של המילון
+import type { SuggestionsContainerDict } from '@/types/dictionary';
+
+// קומפוננטת מסך הטעינה המשופר, המקבלת את התרגומים
+const LoadingSkeleton: React.FC<{
+  dict: SuggestionsContainerDict['loading'];
+}> = ({ dict }) => (
   <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20">
     <div className="container mx-auto px-4 py-8">
       {/* Hero Skeleton */}
@@ -139,10 +144,10 @@ const LoadingSkeleton: React.FC = () => (
 
             <div className="space-y-3">
               <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-cyan-600 to-emerald-600 bg-clip-text text-transparent">
-                טוען את ההצעות שלך...
+                {dict.title}
               </h3>
               <p className="text-gray-600 max-w-md leading-relaxed">
-                אנחנו מכינים עבורך את ההצעות המתאימות ביותר
+                {dict.subtitle}
               </p>
             </div>
 
@@ -162,14 +167,20 @@ const LoadingSkeleton: React.FC = () => (
   </div>
 );
 
-// קומפוננטת סטטיסטיקות מפושטת ונקייה עם עיצוב חדש
+// קומפוננטת סטטיסטיקות המקבלת את התרגומים
 const WelcomeStats: React.FC<{
   activeSuggestions: ExtendedMatchSuggestion[];
   historySuggestions: ExtendedMatchSuggestion[];
   pendingCount: number;
   userId: string;
-}> = ({ activeSuggestions, historySuggestions, pendingCount, userId }) => {
-  const totalSuggestions = activeSuggestions.length + historySuggestions.length;
+  dict: SuggestionsContainerDict['stats'];
+}> = ({
+  activeSuggestions,
+  historySuggestions,
+  pendingCount,
+  userId,
+  dict,
+}) => {
   const approvedCount = [...activeSuggestions, ...historySuggestions].filter(
     (s) =>
       s.status === 'FIRST_PARTY_APPROVED' ||
@@ -186,26 +197,26 @@ const WelcomeStats: React.FC<{
 
   const stats = [
     {
-      label: 'הצעות חדשות',
+      label: dict.new,
       value: activeSuggestions.length,
       icon: <Sparkles className="w-5 h-5" />,
       color: 'from-cyan-500 to-blue-500',
-      description: 'ממתינות לתשובתך',
+      description: dict.newDesc,
     },
     {
-      label: 'התור שלך',
+      label: dict.yourTurn,
       value: myTurnCount,
       icon: <Zap className="w-5 h-5" />,
       color: 'from-orange-500 to-amber-500',
-      description: 'דורשות החלטה ממך',
+      description: dict.yourTurnDesc,
       pulse: myTurnCount > 0,
     },
     {
-      label: 'אושרו',
+      label: dict.approved,
       value: approvedCount,
       icon: <CheckCircle className="w-5 h-5" />,
       color: 'from-emerald-500 to-green-500',
-      description: 'הצעות שאושרו',
+      description: dict.approvedDesc,
     },
   ];
 
@@ -218,10 +229,10 @@ const WelcomeStats: React.FC<{
           </div>
         </div>
         <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-cyan-600 to-emerald-600 bg-clip-text text-transparent mb-3">
-          ההצעות שלך
+          {dict.title}
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          כל הצעה היא הזדמנות שנבחרה בקפידה עבורך על ידי הצוות שלנו.
+          {dict.subtitle}
         </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -266,14 +277,17 @@ const WelcomeStats: React.FC<{
   );
 };
 
+// עדכון ה-Props של הרכיב הראשי
 interface MatchSuggestionsContainerProps {
   userId: string;
   className?: string;
+  dict: SuggestionsContainerDict;
 }
 
 const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   userId,
   className,
+  dict,
 }) => {
   // States
   const [activeSuggestions, setActiveSuggestions] = useState<
@@ -290,14 +304,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const [hasNewSuggestions, setHasNewSuggestions] = useState(false);
   const [isUserInActiveProcess, setIsUserInActiveProcess] = useState(false);
 
-  // --- START: State חדש לניהול חלון האישור ---
+  // State חדש לניהול חלון האישור
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [suggestionForAction, setSuggestionForAction] =
     useState<ExtendedMatchSuggestion | null>(null);
   const [actionType, setActionType] = useState<'approve' | 'decline' | null>(
     null
   );
-  // --- END: State חדש ---
 
   // Calculate counts
   const pendingCount = activeSuggestions.filter(
@@ -350,8 +363,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           activeData.suggestions.length > activeSuggestions.length
         ) {
           setHasNewSuggestions(true);
-          toast.success('התקבלו הצעות שידוך חדשות!', {
-            description: 'בדוק את ההצעות החדשות שמחכות לך',
+          toast.success(dict.toasts.newSuggestionsTitle, {
+            description: dict.toasts.newSuggestionsDescription,
             duration: 5000,
           });
         }
@@ -361,19 +374,20 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
       } catch (error) {
         console.error('Error loading suggestions:', error);
         setError(
-          `אירעה שגיאה בטעינת ההצעות: ${
-            error instanceof Error ? error.message : 'שגיאה לא ידועה'
-          }`
+          dict.main.errorLoading.replace(
+            '{error}',
+            error instanceof Error ? error.message : dict.main.unknownError
+          )
         );
-        toast.error('שגיאה בטעינת ההצעות', {
-          description: 'נסה לרענן את הדף או פנה לתמיכה',
+        toast.error(dict.toasts.errorTitle, {
+          description: dict.toasts.errorDescription,
         });
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
       }
     },
-    [activeSuggestions.length]
+    [activeSuggestions.length, dict]
   );
 
   // Handle suggestion status change (This is now the central logic)
@@ -399,43 +413,43 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         await fetchSuggestions(false);
 
         const statusMessages: Record<string, string> = {
-          FIRST_PARTY_APPROVED: 'אישרת את ההצעה בהצלחה',
-          SECOND_PARTY_APPROVED: 'אישרת את ההצעה בהצלחה',
-          FIRST_PARTY_DECLINED: 'דחית את ההצעה בהצלחה',
-          SECOND_PARTY_DECLINED: 'דחית את ההצעה בהצלחה',
+          FIRST_PARTY_APPROVED: dict.toasts.approvedSuccess,
+          SECOND_PARTY_APPROVED: dict.toasts.approvedSuccess,
+          FIRST_PARTY_DECLINED: dict.toasts.declinedSuccess,
+          SECOND_PARTY_DECLINED: dict.toasts.declinedSuccess,
         };
 
         let description: string;
         if (newStatus === 'FIRST_PARTY_APPROVED') {
-          description =
-            'באישורך, ההצעה נשלחה לצד השני. אם גם הצד השני יאשר, פרטי הקשר המלאים שלכם יוחלפו.';
+          description = dict.toasts.approvedFirstPartyDesc;
         } else if (newStatus === 'SECOND_PARTY_APPROVED') {
-          description =
-            'מעולה! כעת, מאחר ושניכם אישרתם, פרטי הקשר שלך יישלחו לצד הראשון ופרטיו יישלחו אליך.';
+          description = dict.toasts.approvedSecondPartyDesc;
         } else if (newStatus.includes('DECLINED')) {
-          description = 'תודה על המשוב - זה עוזר לנו להציע התאמות טובות יותר';
+          description = dict.toasts.declinedDesc;
         } else {
-          description = 'השדכן יקבל הודעה ויתקדם עם התהליך';
+          description = dict.toasts.matchmakerNotified;
         }
 
-        toast.success(statusMessages[newStatus] || 'הסטטוס עודכן בהצלחה', {
-          description,
-        });
+        toast.success(
+          statusMessages[newStatus] || dict.toasts.statusUpdateSuccess,
+          {
+            description,
+          }
+        );
       } catch (error) {
         console.error('Error updating suggestion status:', error);
         toast.error(
-          `אירעה שגיאה בעדכון הסטטוס: ${
-            error instanceof Error ? error.message : 'שגיאה לא ידועה'
-          }`
+          dict.toasts.statusUpdateError.replace(
+            '{error}',
+            error instanceof Error ? error.message : dict.main.unknownError
+          )
         );
       }
     },
-    [fetchSuggestions]
+    [fetchSuggestions, dict]
   );
 
-  // --- START: פונקציות חדשות לניהול הדיאלוג ---
-
-  // פונקציה שמופעלת מהילדים כדי לבקש פתיחת דיאלוג
+  // פונקציות חדשות לניהול הדיאלוג
   const handleRequestAction = useCallback(
     (suggestion: ExtendedMatchSuggestion, action: 'approve' | 'decline') => {
       setSuggestionForAction(suggestion);
@@ -445,7 +459,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     []
   );
 
-  // פונקציה שמופעלת בלחיצה על "אישור" בתוך הדיאלוג
   const handleConfirmAction = useCallback(async () => {
     if (!suggestionForAction || !actionType) return;
 
@@ -461,16 +474,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         : 'SECOND_PARTY_DECLINED';
     }
 
-    // קריאה לפונקציה המרכזית שמעדכנת סטטוס
     await handleStatusChange(suggestionForAction.id, newStatus);
 
-    // סגירת הדיאלוג ואיפוס ה-state
     setShowConfirmDialog(false);
     setSuggestionForAction(null);
     setActionType(null);
   }, [suggestionForAction, actionType, userId, handleStatusChange]);
-
-  // --- END: פונקציות חדשות ---
 
   // Initial load and periodic refresh
   useEffect(() => {
@@ -519,14 +528,14 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   // Handle manual refresh
   const handleRefresh = useCallback(async () => {
     await fetchSuggestions(false);
-    toast.success('הנתונים עודכנו בהצלחה', {
-      description: 'כל ההצעות עודכנו למצב הנוכחי',
+    toast.success(dict.toasts.refreshSuccessTitle, {
+      description: dict.toasts.refreshSuccessDescription,
     });
-  }, [fetchSuggestions]);
+  }, [fetchSuggestions, dict]);
 
   // אם נמצא במצב טעינה, הצג את מסך הטעינה המשופר
   if (isLoading) {
-    return <LoadingSkeleton />;
+    return <LoadingSkeleton dict={dict.loading} />;
   }
 
   return (
@@ -542,6 +551,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           historySuggestions={historySuggestions}
           pendingCount={pendingCount}
           userId={userId}
+          dict={dict.stats}
         />
 
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden">
@@ -554,7 +564,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onClick={handleRefresh}
                   disabled={isRefreshing}
                   className="rounded-full h-10 w-10 hover:bg-cyan-100 transition-colors"
-                  aria-label="רענן הצעות"
+                  aria-label={dict.main.refreshAriaLabel}
                 >
                   <RefreshCw
                     className={cn(
@@ -567,13 +577,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 {hasNewSuggestions && (
                   <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse">
                     <Bell className="w-3 h-3 ml-1" />
-                    הצעות חדשות
+                    {dict.main.newSuggestions}
                   </Badge>
                 )}
               </div>
               <div className="text-center flex-grow">
                 <CardTitle className="text-xl font-bold text-gray-800">
-                  ניהול ההצעות
+                  {dict.main.title}
                 </CardTitle>
               </div>
               <div className="w-16"></div> {/* Spacer */}
@@ -594,7 +604,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                     className="relative flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                   >
                     <Target className="w-5 h-5 text-purple-500" />
-                    <span>פעילות</span>
+                    <span>{dict.main.tabs.active}</span>
                     {activeSuggestions.length > 0 && (
                       <Badge className="bg-purple-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
                         {activeSuggestions.length}
@@ -608,7 +618,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                       className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                     >
                       <Zap className="w-5 h-5 text-orange-500" />
-                      <span>התור שלך</span>
+                      <span>{dict.main.tabs.urgent}</span>
                       <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6 animate-pulse shadow-lg">
                         {myTurnCount}
                       </Badge>
@@ -620,7 +630,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                     className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                   >
                     <History className="w-5 h-5 text-gray-500" />
-                    <span>היסטוריה</span>
+                    <span>{dict.main.tabs.history}</span>
                     {historySuggestions.length > 0 && (
                       <Badge className="bg-gray-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
                         {historySuggestions.length}
@@ -698,17 +708,19 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold text-center">
               {actionType === 'approve'
-                ? 'אישור הצעת השידוך'
-                : 'דחיית הצעת השידוך'}
+                ? dict.dialogs.approveTitle
+                : dict.dialogs.declineTitle}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
               {actionType === 'approve'
-                ? 'אישור הצעה הוא צעד מרגש. האם אתה בטוח שברצונך להתקדם? לאחר האישור, השדכן יקבל הודעה וימשיך בתהליך עבורכם.'
-                : 'כל תשובה מקדמת אותך. האם אתה בטוח שברצונך לדחות הצעה זו? המשוב שלך חשוב מאוד ויעזור לנו לדייק את החיפוש עבורך.'}
+                ? dict.dialogs.approveDescription
+                : dict.dialogs.declineDescription}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3">
-            <AlertDialogCancel className="rounded-xl">ביטול</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">
+              {dict.dialogs.cancel}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmAction}
               className={cn(
@@ -721,12 +733,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               {actionType === 'approve' ? (
                 <>
                   <CheckCircle className="w-4 h-4 ml-2" />
-                  אישור ההצעה
+                  {dict.dialogs.confirmApproval}
                 </>
               ) : (
                 <>
                   <XCircle className="w-4 h-4 ml-2" />
-                  דחיית ההצעה
+                  {dict.dialogs.confirmDecline}
                 </>
               )}
             </AlertDialogAction>
@@ -741,12 +753,12 @@ export default MatchSuggestionsContainer;
 --- End of Content for MatchSuggestionsContainer.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\suggestions_contents.txt
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\suggestions_contents.txt
 --------------------------------------------------------------------------------
 [This is the output log file itself. Content not included.]
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\types.ts
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\types.ts
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/types.ts
@@ -815,11 +827,11 @@ export interface ExtendedMatchSuggestion
 --- End of Content for types.ts ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\cards
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\cards
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\cards\MinimalSuggestionCard.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\cards\MinimalSuggestionCard.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/cards/MinimalSuggestionCard.tsx
@@ -860,7 +872,8 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { getRelativeCloudinaryPath, getInitials } from "@/lib/utils";import {
+import { getRelativeCloudinaryPath, getInitials } from '@/lib/utils';
+import {
   getEnhancedStatusInfo,
   getPartyIndicator,
 } from '@/lib/utils/suggestionUtils';
@@ -918,7 +931,6 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   const mainImage = targetParty.images?.find((img) => img.isMain);
   const age = calculateAge(targetParty.profile.birthDate);
 
-  // Use the enhanced status info
   const statusInfo = getEnhancedStatusInfo(suggestion.status, isFirstParty);
   const partyIndicator = getPartyIndicator(suggestion.status, isFirstParty);
 
@@ -929,26 +941,25 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
     hasDeadline &&
     subDays(new Date(suggestion.decisionDeadline!), 2) < new Date();
 
-  // Truncate matching reason for the teaser
   const reasonTeaser = suggestion.matchingReason
     ? suggestion.matchingReason.length > 100
       ? `${suggestion.matchingReason.substring(0, 100)}...`
       : suggestion.matchingReason
     : 'השדכן/ית זיהו פוטנציאל מיוחד שכדאי לבדוק!';
 
+  const handleCardClick = () => {
+    onClick(suggestion);
+  };
+
   return (
+    // ACCESSIBILITY UPDATE: The `onClick` handler has been removed from the main Card component.
+    // This prevents nesting interactive elements and makes the card a presentational container.
     <Card
       className={cn(
-        'group w-full rounded-2xl overflow-hidden shadow-lg border-0 bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-1 cursor-pointer',
+        'group w-full rounded-2xl overflow-hidden shadow-lg border-0 bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-1',
         isUrgent && 'ring-2 ring-orange-300 ring-opacity-60',
         className
       )}
-      onClick={(e) => {
-        // Allow clicking the card to open details, but not if a button was clicked
-        if (!(e.target as Element).closest('button')) {
-          onClick(suggestion);
-        }
-      }}
     >
       {/* Header עם מידע השדכן ו-STATUS ENHANCED */}
       <div className="relative p-4 bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-cyan-100/50">
@@ -979,7 +990,9 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 statusInfo.pulse && 'animate-pulse'
               )}
             >
-              <statusInfo.icon className="w-3 h-3" />
+              {/* ACCESSIBILITY UPDATE: Added sr-only text for context and aria-hidden for the decorative icon. */}
+              <statusInfo.icon className="w-3 h-3" aria-hidden="true" />
+              <span className="sr-only">סטטוס: </span>
               <span>{statusInfo.shortLabel}</span>
             </Badge>
 
@@ -991,8 +1004,10 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                   partyIndicator.className
                 )}
               >
+                {/* ACCESSIBILITY UPDATE: Added sr-only text for context and aria-hidden for the decorative icon. */}
+                <span className="sr-only">התור של: </span>
                 {partyIndicator.text === 'תורך!' && (
-                  <Zap className="w-2.5 h-2.5 ml-1" />
+                  <Zap className="w-2.5 h-2.5 ml-1" aria-hidden="true" />
                 )}
                 {partyIndicator.text}
               </Badge>
@@ -1010,119 +1025,128 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
         )}
       </div>
 
-      {/* Image Section */}
-      <div className="relative h-64">
-        {mainImage?.url ? (
-          <Image
-            src={getRelativeCloudinaryPath(mainImage.url)}
-            alt={`תמונה של ${targetParty.firstName}`}
-            fill
-            className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-            <User className="w-20 h-20 text-slate-400" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+      {/* ACCESSIBILITY UPDATE: The main image and title block now becomes a single, accessible <button> to open the details view. */}
+      {/* This provides a clear, keyboard-focusable target. */}
+      <button
+        type="button"
+        onClick={handleCardClick}
+        aria-label={`צפה בפרטים המלאים של ${targetParty.firstName}`}
+        className="block w-full text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+      >
+        {/* Image Section */}
+        <div className="relative h-64">
+          {mainImage?.url ? (
+            <Image
+              src={getRelativeCloudinaryPath(mainImage.url)}
+              alt={`תמונה של ${targetParty.firstName}`}
+              fill
+              className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+              <User className="w-20 h-20 text-slate-400" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-        {/* Name and Age overlay */}
-        <div className="absolute bottom-4 right-4 left-4 text-white">
-          <div className="flex items-end justify-between">
-            <div>
-              <h3 className="text-2xl font-bold tracking-tight [text-shadow:0_2px_8px_rgba(0,0,0,0.8)]">
-                {targetParty.firstName}
-              </h3>
-              {age && (
-                <p className="text-lg font-medium text-white/90 [text-shadow:0_1px_4px_rgba(0,0,0,0.8)]">
-                  {age}
+          {/* Name and Age overlay */}
+          <div className="absolute bottom-4 right-4 left-4 text-white">
+            <div className="flex items-end justify-between">
+              <div>
+                <h3 className="text-2xl font-bold tracking-tight [text-shadow:0_2px_8px_rgba(0,0,0,0.8)]">
+                  {targetParty.firstName}
+                </h3>
+                {age && (
+                  <p className="text-lg font-medium text-white/90 [text-shadow:0_1px_4px_rgba(0,0,0,0.8)]">
+                    {age}
+                  </p>
+                )}
+              </div>
+              <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </button>
+
+      {/* ACCESSIBILITY UPDATE: The content area is wrapped in a div with an onClick to preserve the large clickable area for mouse users, without creating nested interactive elements. */}
+      <div onClick={handleCardClick} className="cursor-pointer">
+        <CardContent className="p-5 space-y-4">
+          {/* Enhanced Status Description */}
+          {statusInfo.description && (
+            <div className="p-3 bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg border border-slate-200">
+              <div className="flex items-start gap-2">
+                <statusInfo.icon className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                  {statusInfo.description}
                 </p>
-              )}
+              </div>
+            </div>
+          )}
+
+          {/* Core Info Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {targetParty.profile.city && (
+              <div className="flex items-center gap-2 p-2 bg-cyan-50/50 rounded-lg border border-cyan-100/50">
+                <MapPin className="w-4 h-4 text-cyan-600 flex-shrink-0" />
+                <span className="text-sm font-medium text-gray-700 truncate">
+                  {targetParty.profile.city}
+                </span>
+              </div>
+            )}
+            {targetParty.profile.occupation && (
+              <div className="flex items-center gap-2 p-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50">
+                <Briefcase className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span className="text-sm font-medium text-gray-700 truncate">
+                  {targetParty.profile.occupation}
+                </span>
+              </div>
+            )}
+            {targetParty.profile.religiousLevel && (
+              <div className="flex items-center gap-2 p-2 bg-blue-50/50 rounded-lg border border-blue-100/50">
+                <Scroll className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                <span className="text-sm font-medium text-gray-700 truncate">
+                  {targetParty.profile.religiousLevel}
+                </span>
+              </div>
+            )}
+            {targetParty.profile.education && (
+              <div className="flex items-center gap-2 p-2 bg-green-50/50 rounded-lg border border-green-100/50">
+                <BookOpen className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <span className="text-sm font-medium text-gray-700 truncate">
+                  {targetParty.profile.education}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Matchmaker's reasoning highlight */}
+          <div className="relative p-4 bg-gradient-to-r from-cyan-50/50 to-blue-50/50 border border-cyan-100/50 rounded-xl">
+            <div className="flex items-start gap-3">
+              <Quote className="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0" />
+              <div className="flex-1">
+                <h4 className="text-sm font-bold text-cyan-800 mb-1">
+                  למה זו התאמה מיוחדת?
+                </h4>
+                <p className="text-sm text-cyan-700 leading-relaxed">
+                  {reasonTeaser}
+                </p>
+              </div>
             </div>
 
-            {/* אייקון מיוחד */}
-            <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
+            <div className="absolute top-0 right-0 w-6 h-6 bg-gradient-to-br from-cyan-200/50 to-blue-200/50 rounded-bl-xl"></div>
           </div>
-        </div>
+
+          {/* CTA hint */}
+          <div className="text-center py-2">
+            <p className="text-xs text-gray-500 font-medium">
+              לחץ לפרטים מלאים ועוד תובנות
+            </p>
+          </div>
+        </CardContent>
       </div>
-
-      <CardContent className="p-5 space-y-4">
-        {/* Enhanced Status Description */}
-        {statusInfo.description && (
-          <div className="p-3 bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg border border-slate-200">
-            <div className="flex items-start gap-2">
-              <statusInfo.icon className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-slate-700 font-medium leading-relaxed">
-                {statusInfo.description}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Core Info Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {targetParty.profile.city && (
-            <div className="flex items-center gap-2 p-2 bg-cyan-50/50 rounded-lg border border-cyan-100/50">
-              <MapPin className="w-4 h-4 text-cyan-600 flex-shrink-0" />
-              <span className="text-sm font-medium text-gray-700 truncate">
-                {targetParty.profile.city}
-              </span>
-            </div>
-          )}
-          {targetParty.profile.occupation && (
-            <div className="flex items-center gap-2 p-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50">
-              <Briefcase className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <span className="text-sm font-medium text-gray-700 truncate">
-                {targetParty.profile.occupation}
-              </span>
-            </div>
-          )}
-          {targetParty.profile.religiousLevel && (
-            <div className="flex items-center gap-2 p-2 bg-blue-50/50 rounded-lg border border-blue-100/50">
-              <Scroll className="w-4 h-4 text-blue-600 flex-shrink-0" />
-              <span className="text-sm font-medium text-gray-700 truncate">
-                {targetParty.profile.religiousLevel}
-              </span>
-            </div>
-          )}
-          {targetParty.profile.education && (
-            <div className="flex items-center gap-2 p-2 bg-green-50/50 rounded-lg border border-green-100/50">
-              <BookOpen className="w-4 h-4 text-green-600 flex-shrink-0" />
-              <span className="text-sm font-medium text-gray-700 truncate">
-                {targetParty.profile.education}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Matchmaker's reasoning highlight */}
-        <div className="relative p-4 bg-gradient-to-r from-cyan-50/50 to-blue-50/50 border border-cyan-100/50 rounded-xl">
-          <div className="flex items-start gap-3">
-            <Quote className="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0" />
-            <div className="flex-1">
-              <h4 className="text-sm font-bold text-cyan-800 mb-1">
-                למה זו התאמה מיוחדת?
-              </h4>
-              <p className="text-sm text-cyan-700 leading-relaxed">
-                {reasonTeaser}
-              </p>
-            </div>
-          </div>
-
-          {/* זווית עיצובית */}
-          <div className="absolute top-0 right-0 w-6 h-6 bg-gradient-to-br from-cyan-200/50 to-blue-200/50 rounded-bl-xl"></div>
-        </div>
-
-        {/* CTA hint */}
-        <div className="text-center py-2">
-          <p className="text-xs text-gray-500 font-medium">
-            לחץ לפרטים מלאים ועוד תובנות
-          </p>
-        </div>
-      </CardContent>
 
       {!isHistory && (
         <CardFooter className="p-4 bg-gradient-to-r from-gray-50/50 to-slate-50/50 border-t border-gray-100">
@@ -1210,7 +1234,7 @@ export default MinimalSuggestionCard;
 --- End of Content for MinimalSuggestionCard.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\cards\SuggestionQuickView.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\cards\SuggestionQuickView.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/cards/SuggestionQuickView.tsx
@@ -1391,19 +1415,19 @@ export default SuggestionQuickView;
 --- End of Content for SuggestionQuickView.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\compatibility
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\compatibility
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\compatibility\MatchCompatibilityView.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\compatibility\MatchCompatibilityView.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/compatibility/MatchCompatibilityView.tsx
 
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import {
   Heart,
   User,
@@ -1421,10 +1445,10 @@ import {
   Target,
   Users,
   Calendar,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { PartyInfo } from "../types";
-import type { UserProfile } from "@/types/next-auth";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { PartyInfo } from '../types';
+import type { UserProfile } from '@/types/next-auth';
 
 interface CompatibilityItem {
   criterion: string;
@@ -1455,12 +1479,15 @@ const calculateAge = (birthDate?: Date | string | null): number | null => {
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
 
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
     return age >= 0 ? age : null;
   } catch (error) {
-    console.error("Error calculating age:", error);
+    console.error('Error calculating age:', error);
     return null;
   }
 };
@@ -1501,49 +1528,60 @@ const CompatibilityCard: React.FC<{
 }> = ({ item, index, firstParty, secondParty }) => {
   const importanceColor = getImportanceColor(item.importance);
   const categoryColor = getCategoryColor(item.category);
-  
+
   return (
-    <Card className={cn(
-      "border-0 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden bg-gradient-to-br",
-      categoryColor
-    )}>
+    <Card
+      className={cn(
+        'border-0 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden bg-gradient-to-br',
+        categoryColor
+      )}
+    >
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
           {/* Icon */}
-          <div className={cn(
-            "flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br text-white flex items-center justify-center shadow-md",
-            item.compatible 
-              ? "from-emerald-500 to-green-500" 
-              : "from-red-400 to-rose-500"
-          )}>
+          <div
+            className={cn(
+              'flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br text-white flex items-center justify-center shadow-md',
+              item.compatible
+                ? 'from-emerald-500 to-green-500'
+                : 'from-red-400 to-rose-500'
+            )}
+          >
             {item.icon}
           </div>
-          
+
           {/* Content */}
           <div className="flex-1 space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-bold text-gray-800 text-base">{item.criterion}</h4>
-                  <Badge 
-                    variant="outline" 
+                  <h4 className="font-bold text-gray-800 text-base">
+                    {item.criterion}
+                  </h4>
+                  <Badge
+                    variant="outline"
                     className={cn(
-                      "text-xs px-2 py-0.5 font-semibold border-0 text-white",
+                      'text-xs px-2 py-0.5 font-semibold border-0 text-white',
                       importanceColor
                     )}
                   >
-                    {item.importance === 'high' ? 'חשוב' : 
-                     item.importance === 'medium' ? 'בינוני' : 'נמוך'}
+                    {item.importance === 'high'
+                      ? 'חשוב'
+                      : item.importance === 'medium'
+                        ? 'בינוני'
+                        : 'נמוך'}
                   </Badge>
                 </div>
-                <p className={cn(
-                  "text-sm font-medium leading-relaxed",
-                  item.compatible ? "text-emerald-700" : "text-red-700"
-                )}>
+                <p
+                  className={cn(
+                    'text-sm font-medium leading-relaxed',
+                    item.compatible ? 'text-emerald-700' : 'text-red-700'
+                  )}
+                >
                   {item.reason}
                 </p>
               </div>
-              
+
               <div className="flex-shrink-0">
                 {item.compatible ? (
                   <CheckCircle className="w-6 h-6 text-emerald-500" />
@@ -1561,7 +1599,7 @@ const CompatibilityCard: React.FC<{
                     {firstParty.firstName}
                   </div>
                   <div className="font-semibold text-gray-800 text-sm">
-                    {item.first ?? "לא צוין"}
+                    {item.first ?? 'לא צוין'}
                   </div>
                 </div>
                 <div className="text-center bg-white/60 backdrop-blur-sm rounded-lg p-2">
@@ -1569,7 +1607,7 @@ const CompatibilityCard: React.FC<{
                     {secondParty.firstName}
                   </div>
                   <div className="font-semibold text-gray-800 text-sm">
-                    {item.second ?? "לא צוין"}
+                    {item.second ?? 'לא צוין'}
                   </div>
                 </div>
               </div>
@@ -1589,36 +1627,61 @@ const CategorySection: React.FC<{
   firstParty: PartyInfo;
   secondParty: PartyInfo;
 }> = ({ title, icon: Icon, items, color, firstParty, secondParty }) => {
-  const compatibleCount = items.filter(item => item.compatible).length;
-  const compatibilityRate = items.length > 0 ? (compatibleCount / items.length) * 100 : 0;
-  
+  const compatibleCount = items.filter((item) => item.compatible).length;
+  const compatibilityRate =
+    items.length > 0 ? (compatibleCount / items.length) * 100 : 0;
+
   if (items.length === 0) return null;
-  
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className={cn("p-2 rounded-lg bg-gradient-to-r text-white shadow-md", color)}>
+          <div
+            className={cn(
+              'p-2 rounded-lg bg-gradient-to-r text-white shadow-md',
+              color
+            )}
+          >
             <Icon className="w-5 h-5" />
           </div>
           <div>
             <h3 className="text-lg font-bold text-gray-800">{title}</h3>
-            <p className="text-sm text-gray-600">{compatibleCount} מתוך {items.length} קריטריונים תואמים</p>
+            <p className="text-sm text-gray-600">
+              {compatibleCount} מתוך {items.length} קריטריונים תואמים
+            </p>
           </div>
         </div>
         <div className="text-center">
-          <div className={cn("text-2xl font-bold", compatibilityRate >= 70 ? "text-emerald-600" : compatibilityRate >= 50 ? "text-amber-600" : "text-red-600")}>
+          <div
+            className={cn(
+              'text-2xl font-bold',
+              compatibilityRate >= 70
+                ? 'text-emerald-600'
+                : compatibilityRate >= 50
+                  ? 'text-amber-600'
+                  : 'text-red-600'
+            )}
+          >
             {Math.round(compatibilityRate)}%
           </div>
           <div className="text-xs text-gray-500">התאמה</div>
         </div>
       </div>
-      
-      <div className="grid gap-4">
+
+      <ul className="grid gap-4">
         {items.map((item, index) => (
-          <CompatibilityCard key={index} item={item} index={index} firstParty={firstParty} secondParty={secondParty} />
+          <li key={index}>
+            <CompatibilityCard
+              key={index}
+              item={item}
+              index={index}
+              firstParty={firstParty}
+              secondParty={secondParty}
+            />
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 };
@@ -1633,7 +1696,7 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
   // If either profile is null, we cannot perform the analysis and should return early.
   if (!firstParty.profile || !secondParty.profile) {
     return (
-      <Card className={cn("shadow-xl border-0 overflow-hidden", className)}>
+      <Card className={cn('shadow-xl border-0 overflow-hidden', className)}>
         <CardHeader className="bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-gray-100">
           <CardTitle className="flex items-center gap-3 text-2xl">
             <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg">
@@ -1647,9 +1710,12 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
         <CardContent className="p-8">
           <div className="text-center py-12">
             <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">לא ניתן לחשב התאמה</h3>
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">
+              לא ניתן לחשב התאמה
+            </h3>
             <p className="text-gray-500 max-w-md mx-auto">
-              אחד או יותר מהפרופילים אינם מלאים ולכן לא ניתן לבצע ניתוח התאמה מפורט.
+              אחד או יותר מהפרופילים אינם מלאים ולכן לא ניתן לבצע ניתוח התאמה
+              מפורט.
             </p>
           </div>
         </CardContent>
@@ -1660,23 +1726,30 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
   // After the guard clause, TypeScript knows .profile is non-null.
   const firstProfile = firstParty.profile;
   const secondProfile = secondParty.profile;
-  
+
   const firstPartyAge = calculateAge(firstProfile.birthDate);
   const secondPartyAge = calculateAge(secondProfile.birthDate);
 
   // Helper functions
-  const isWithinRange = (value: number | null | undefined, min: number | null | undefined, max: number | null | undefined): boolean => {
+  const isWithinRange = (
+    value: number | null | undefined,
+    min: number | null | undefined,
+    max: number | null | undefined
+  ): boolean => {
     if (value == null) return false;
     const minOk = min == null || value >= min;
     const maxOk = max == null || value <= max;
     return minOk && maxOk;
-  }
+  };
 
-  const isInPreferredList = (value: string | null | undefined, preferredList: string[] | null | undefined): boolean => {
+  const isInPreferredList = (
+    value: string | null | undefined,
+    preferredList: string[] | null | undefined
+  ): boolean => {
     if (value == null) return false;
     if (preferredList == null || preferredList.length === 0) return true;
     return preferredList.includes(value);
-  }
+  };
 
   // Calculate compatibility items
   const calculateCompatibilityItems = (): CompatibilityItem[] => {
@@ -1698,14 +1771,16 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
 
       const compatible = firstAgePreferenceMatch && secondAgePreferenceMatch;
       items.push({
-        criterion: "גיל",
+        criterion: 'גיל',
         icon: <User className="w-6 h-6" />,
         compatible,
-        reason: compatible ? "התאמה הדדית בציפיות הגיל" : "אי התאמה בציפיות הגיל",
+        reason: compatible
+          ? 'התאמה הדדית בציפיות הגיל'
+          : 'אי התאמה בציפיות הגיל',
         first: firstPartyAge,
         second: secondPartyAge,
         importance: 'high',
-        category: 'basic'
+        category: 'basic',
       });
     }
 
@@ -1725,16 +1800,19 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
         secondProfile.preferredHeightMax
       );
 
-      const compatible = firstHeightPreferenceMatch && secondHeightPreferenceMatch;
+      const compatible =
+        firstHeightPreferenceMatch && secondHeightPreferenceMatch;
       items.push({
-        criterion: "גובה",
+        criterion: 'גובה',
         icon: <TrendingUp className="w-6 h-6" />,
         compatible,
-        reason: compatible ? "התאמה הדדית בציפיות הגובה" : "אי התאמה בציפיות הגובה",
+        reason: compatible
+          ? 'התאמה הדדית בציפיות הגובה'
+          : 'אי התאמה בציפיות הגובה',
         first: `${firstHeight} ס"מ`,
         second: `${secondHeight} ס"מ`,
         importance: 'medium',
-        category: 'basic'
+        category: 'basic',
       });
     }
 
@@ -1752,16 +1830,19 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
         secondProfile.preferredLocations
       );
 
-      const compatible = firstLocationPreferenceMatch && secondLocationPreferenceMatch;
+      const compatible =
+        firstLocationPreferenceMatch && secondLocationPreferenceMatch;
       items.push({
-        criterion: "מקום מגורים",
+        criterion: 'מקום מגורים',
         icon: <MapPin className="w-6 h-6" />,
         compatible,
-        reason: compatible ? "התאמה הדדית בהעדפות מיקום" : "אי התאמה בהעדפות מיקום",
+        reason: compatible
+          ? 'התאמה הדדית בהעדפות מיקום'
+          : 'אי התאמה בהעדפות מיקום',
         first: firstCity,
         second: secondCity,
         importance: 'high',
-        category: 'lifestyle'
+        category: 'lifestyle',
       });
     }
 
@@ -1779,16 +1860,19 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
         secondProfile.preferredReligiousLevels
       );
 
-      const compatible = firstReligiousPreferenceMatch && secondReligiousPreferenceMatch;
+      const compatible =
+        firstReligiousPreferenceMatch && secondReligiousPreferenceMatch;
       items.push({
-        criterion: "רמה דתית",
+        criterion: 'רמה דתית',
         icon: <Scroll className="w-6 h-6" />,
         compatible,
-        reason: compatible ? "התאמה הדדית בהעדפות רמה דתית" : "אי התאמה בהעדפות רמה דתית",
+        reason: compatible
+          ? 'התאמה הדדית בהעדפות רמה דתית'
+          : 'אי התאמה בהעדפות רמה דתית',
         first: firstReligious,
         second: secondReligious,
         importance: 'high',
-        category: 'values'
+        category: 'values',
       });
     }
 
@@ -1806,16 +1890,19 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
         secondProfile.preferredEducation
       );
 
-      const compatible = firstEducationPreferenceMatch && secondEducationPreferenceMatch;
+      const compatible =
+        firstEducationPreferenceMatch && secondEducationPreferenceMatch;
       items.push({
-        criterion: "השכלה",
+        criterion: 'השכלה',
         icon: <GraduationCap className="w-6 h-6" />,
         compatible,
-        reason: compatible ? "התאמה הדדית בהעדפות השכלה" : "אי התאמה בהעדפות השכלה",
+        reason: compatible
+          ? 'התאמה הדדית בהעדפות השכלה'
+          : 'אי התאמה בהעדפות השכלה',
         first: firstEdu,
         second: secondEdu,
         importance: 'medium',
-        category: 'preferences'
+        category: 'preferences',
       });
     }
 
@@ -1833,16 +1920,19 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
         secondProfile.preferredOccupations
       );
 
-      const compatible = firstOccupationPreferenceMatch && secondOccupationPreferenceMatch;
+      const compatible =
+        firstOccupationPreferenceMatch && secondOccupationPreferenceMatch;
       items.push({
-        criterion: "תעסוקה",
+        criterion: 'תעסוקה',
         icon: <BookOpen className="w-6 h-6" />,
         compatible,
-        reason: compatible ? "התאמה הדדית בהעדפות תעסוקה" : "אי התאמה בהעדפות תעסוקה",
+        reason: compatible
+          ? 'התאמה הדדית בהעדפות תעסוקה'
+          : 'אי התאמה בהעדפות תעסוקה',
         first: firstOcc,
         second: secondOcc,
         importance: 'medium',
-        category: 'lifestyle'
+        category: 'lifestyle',
       });
     }
 
@@ -1852,14 +1942,14 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     if (firstOrigin != null && secondOrigin != null) {
       const sameOrigin = firstOrigin === secondOrigin;
       items.push({
-        criterion: "מוצא",
+        criterion: 'מוצא',
         icon: <Home className="w-6 h-6" />,
         compatible: true,
-        reason: sameOrigin ? "מוצא זהה" : "מוצא שונה - מעשיר את הקשר",
+        reason: sameOrigin ? 'מוצא זהה' : 'מוצא שונה - מעשיר את הקשר',
         first: firstOrigin,
         second: secondOrigin,
         importance: 'low',
-        category: 'values'
+        category: 'values',
       });
     }
 
@@ -1868,20 +1958,23 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     const secondLang = secondProfile.nativeLanguage;
     if (firstLang != null && secondLang != null) {
       const nativeMatch = firstLang === secondLang;
-      const firstSpeaksSecondNative = firstProfile.additionalLanguages?.includes(secondLang) ?? false;
-      const secondSpeaksFirstNative = secondProfile.additionalLanguages?.includes(firstLang) ?? false;
+      const firstSpeaksSecondNative =
+        firstProfile.additionalLanguages?.includes(secondLang) ?? false;
+      const secondSpeaksFirstNative =
+        secondProfile.additionalLanguages?.includes(firstLang) ?? false;
 
-      const sharedLanguage = nativeMatch || firstSpeaksSecondNative || secondSpeaksFirstNative;
+      const sharedLanguage =
+        nativeMatch || firstSpeaksSecondNative || secondSpeaksFirstNative;
 
       items.push({
-        criterion: "שפה",
+        criterion: 'שפה',
         icon: <Languages className="w-6 h-6" />,
         compatible: sharedLanguage,
-        reason: sharedLanguage ? "יש שפה משותפת" : "אין שפה משותפת מוכרת",
+        reason: sharedLanguage ? 'יש שפה משותפת' : 'אין שפה משותפת מוכרת',
         first: firstLang,
         second: secondLang,
         importance: 'medium',
-        category: 'lifestyle'
+        category: 'lifestyle',
       });
     }
 
@@ -1889,33 +1982,44 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
   };
 
   const compatibilityItems = calculateCompatibilityItems();
-  const compatibleCount = compatibilityItems.filter(item => item.compatible).length;
-  const compatibilityScore = compatibilityItems.length > 0 
-    ? Math.round((compatibleCount / compatibilityItems.length) * 100) 
-    : 0;
+  const compatibleCount = compatibilityItems.filter(
+    (item) => item.compatible
+  ).length;
+  const compatibilityScore =
+    compatibilityItems.length > 0
+      ? Math.round((compatibleCount / compatibilityItems.length) * 100)
+      : 0;
 
   // Group items by category
-  const basicItems = compatibilityItems.filter(item => item.category === 'basic');
-  const lifestyleItems = compatibilityItems.filter(item => item.category === 'lifestyle');
-  const valuesItems = compatibilityItems.filter(item => item.category === 'values');
-  const preferencesItems = compatibilityItems.filter(item => item.category === 'preferences');
+  const basicItems = compatibilityItems.filter(
+    (item) => item.category === 'basic'
+  );
+  const lifestyleItems = compatibilityItems.filter(
+    (item) => item.category === 'lifestyle'
+  );
+  const valuesItems = compatibilityItems.filter(
+    (item) => item.category === 'values'
+  );
+  const preferencesItems = compatibilityItems.filter(
+    (item) => item.category === 'preferences'
+  );
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-emerald-600";
-    if (score >= 60) return "text-cyan-600";
-    if (score >= 40) return "text-amber-600";
-    return "text-red-600";
+    if (score >= 80) return 'text-emerald-600';
+    if (score >= 60) return 'text-cyan-600';
+    if (score >= 40) return 'text-amber-600';
+    return 'text-red-600';
   };
 
   const getScoreDescription = (score: number) => {
-    if (score >= 80) return "התאמה מעולה";
-    if (score >= 60) return "התאמה טובה";
-    if (score >= 40) return "התאמה בינונית";
-    return "התאמה מאתגרת";
+    if (score >= 80) return 'התאמה מעולה';
+    if (score >= 60) return 'התאמה טובה';
+    if (score >= 40) return 'התאמה בינונית';
+    return 'התאמה מאתגרת';
   };
 
   return (
-    <Card className={cn("shadow-xl border-0 overflow-hidden", className)}>
+    <Card className={cn('shadow-xl border-0 overflow-hidden', className)}>
       <CardHeader className="bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-gray-100">
         <CardTitle className="flex items-center gap-3 text-2xl">
           <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg">
@@ -1938,7 +2042,12 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
               <div className="flex items-center justify-center gap-3">
                 <Star className="w-8 h-8 text-yellow-500 fill-current" />
                 <div>
-                  <div className={cn("text-4xl font-bold", getScoreColor(compatibilityScore))}>
+                  <div
+                    className={cn(
+                      'text-4xl font-bold',
+                      getScoreColor(compatibilityScore)
+                    )}
+                  >
                     {compatibilityScore}%
                   </div>
                   <div className="text-lg font-semibold text-gray-700">
@@ -1946,11 +2055,14 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
                   </div>
                 </div>
               </div>
-              
+
               <Progress value={compatibilityScore} className="h-3" />
-              
+
               <div className="flex justify-between text-sm text-gray-600">
-                <span>{compatibleCount} מתוך {compatibilityItems.length} קריטריונים תואמים</span>
+                <span>
+                  {compatibleCount} מתוך {compatibilityItems.length} קריטריונים
+                  תואמים
+                </span>
                 <span>ציון כללי: {compatibilityScore}%</span>
               </div>
             </div>
@@ -2002,7 +2114,9 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
         ) : (
           <div className="text-center py-12">
             <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">אין מספיק נתונים</h3>
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">
+              אין מספיק נתונים
+            </h3>
             <p className="text-gray-500 max-w-md mx-auto">
               לא נמצא מספיק מידע משותף כדי לבצע ניתוח התאמה מפורט
             </p>
@@ -2021,7 +2135,9 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
                   <h3 className="font-bold text-cyan-800 text-lg mb-2">
                     נימוק השדכן להצעה
                   </h3>
-                  <p className="text-cyan-700 leading-relaxed">{matchingReason}</p>
+                  <p className="text-cyan-700 leading-relaxed">
+                    {matchingReason}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -2036,7 +2152,7 @@ export default MatchCompatibilityView;
 --- End of Content for MatchCompatibilityView.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\compatibility\UserAiAnalysisDisplay.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\compatibility\UserAiAnalysisDisplay.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/compatibility/UserAiAnalysisDisplay.tsx
@@ -2287,10 +2403,13 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
         iconColorClass="text-emerald-600"
         bgColorClass="bg-gradient-to-br from-emerald-50/80 to-green-50/60"
       >
-        <div className="space-y-4">
+        <ul className="space-y-4">
           {analysis.compatibilityPoints.length > 0 ? (
             analysis.compatibilityPoints.map((point, index) => (
-              <CompatibilityPoint key={index} point={point} index={index} />
+              // Each item is now a <li>
+              <li key={index}>
+                <CompatibilityPoint point={point} index={index} />
+              </li>
             ))
           ) : (
             <div className="text-center py-8 text-gray-500">
@@ -2298,7 +2417,7 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
               <p>לא נמצאו נקודות חיבור ספציפיות בניתוח</p>
             </div>
           )}
-        </div>
+        </ul>
       </Section>
 
       {/* Points to Consider */}
@@ -2329,14 +2448,13 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
         iconColorClass="text-blue-600"
         bgColorClass="bg-gradient-to-br from-blue-50/80 to-cyan-50/60"
       >
-        <div className="space-y-3">
+        <ul className="space-y-3">
           {analysis.suggestedConversationStarters.length > 0 ? (
             analysis.suggestedConversationStarters.map((starter, index) => (
-              <ConversationStarter
-                key={index}
-                starter={starter}
-                index={index}
-              />
+              // Each item is now a <li>
+              <li key={index}>
+                <ConversationStarter starter={starter} index={index} />
+              </li>
             ))
           ) : (
             <div className="text-center py-8 text-gray-500">
@@ -2344,7 +2462,7 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
               <p>לא נמצאו הצעות ספציפיות לפתיחת שיחה</p>
             </div>
           )}
-        </div>
+        </ul>
       </Section>
 
       {/* Bottom Note */}
@@ -2368,11 +2486,11 @@ export default UserAiAnalysisDisplay;
 --- End of Content for UserAiAnalysisDisplay.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\dialogs
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\dialogs
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\dialogs\AskMatchmakerDialog.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\dialogs\AskMatchmakerDialog.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/dialogs/AskMatchmakerDialog.tsx
@@ -2709,7 +2827,7 @@ export default AskMatchmakerDialog;
 --- End of Content for AskMatchmakerDialog.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\dialogs\UserAiAnalysisDialog.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\dialogs\UserAiAnalysisDialog.tsx
 --------------------------------------------------------------------------------
 Content:
 // File: src/app/components/suggestions/dialogs/UserAiAnalysisDialog.tsx
@@ -3167,11 +3285,11 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
 --- End of Content for UserAiAnalysisDialog.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\inquiries
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\inquiries
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\inquiries\InquiryThreadView.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\inquiries\InquiryThreadView.tsx
 --------------------------------------------------------------------------------
 Content:
 // FILENAME: src/app/components/suggestions/inquiries/InquiryThreadView.tsx
@@ -3586,6 +3704,8 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
       <div
         ref={scrollAreaRef}
         className="flex-1 p-6 space-y-6 scrollbar-elegant overflow-y-auto"
+        aria-live="polite"
+        aria-atomic="false" // This ensures only new additions are announced
       >
         {isLoading ? (
           Array.from({ length: 2 }).map((_, i) => (
@@ -3683,11 +3803,11 @@ export default InquiryThreadView;
 --- End of Content for InquiryThreadView.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\list
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\list
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\list\SuggestionsList.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\list\SuggestionsList.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/list/SuggestionsList.tsx
@@ -4359,11 +4479,11 @@ export default SuggestionsList;
 --- End of Content for SuggestionsList.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\modals
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\modals
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\modals\SuggestionDetailsModal.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\modals\SuggestionDetailsModal.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/modals/SuggestionDetailsModal.tsx
@@ -4915,14 +5035,12 @@ const EnhancedQuickActions: React.FC<{
   onAskQuestion,
 }) => (
   <div
-    // --- START OF CHANGE ---
     // The class 'overflow-hidden' was removed from here.
     // 'z-10' was added to ensure it sits on top of the scrollable content.
     className={cn(
       'flex-shrink-0 bg-gradient-to-r from-white via-purple-50/50 to-pink-50/50 backdrop-blur-sm border-t border-purple-100 transition-all duration-500 ease-in-out relative z-10',
       isExpanded ? 'p-4 md:p-6' : 'py-3 px-4 md:px-6'
     )}
-    // --- END OF CHANGE ---
   >
     <div className="absolute inset-0 bg-gradient-to-r from-purple-100/20 via-pink-100/20 to-blue-100/20"></div>
     <div className="max-w-4xl mx-auto relative z-10">
@@ -5495,11 +5613,11 @@ export default SuggestionDetailsModal;
 --- End of Content for SuggestionDetailsModal.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\presentation
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\presentation
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\presentation\CompatibilityHighlights.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\presentation\CompatibilityHighlights.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/presentation/CompatibilityHighlights.tsx
@@ -5583,7 +5701,7 @@ export default CompatibilityHighlights;
 --- End of Content for CompatibilityHighlights.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\presentation\MatchPresentationView.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\presentation\MatchPresentationView.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/presentation/MatchPresentationView.tsx
@@ -5843,7 +5961,7 @@ export default MatchPresentationView;
 --- End of Content for MatchPresentationView.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\presentation\MatchmakerRationale.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\presentation\MatchmakerRationale.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/presentation/MatchmakerRationale.tsx
@@ -5921,11 +6039,11 @@ export default MatchmakerRationale;
 --- End of Content for MatchmakerRationale.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\timeline
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\timeline
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions\timeline\SuggestionTimeline.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\timeline\SuggestionTimeline.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/timeline/SuggestionTimeline.tsx

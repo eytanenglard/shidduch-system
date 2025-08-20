@@ -1,30 +1,32 @@
 // src/components/HomePage/sections/SuccessStoriesSection.tsx
+'use client';
 
-// שינוי 1: הוספנו את useState ואת AnimatePresence
 import React, { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import TestimonialCard from '../components/TestimonialCard';
 import { Button } from '@/components/ui/button';
-// הסרנו את Link כי הכפתור כבר לא מוביל לדף אחר
 import { ArrowLeft } from 'lucide-react';
+import type { SuccessStoriesDict } from '@/types/dictionary';
 
-const SuccessStoriesSection: React.FC = () => {
+// --- Type Definition for Component Props ---
+interface SuccessStoriesProps {
+  dict: SuccessStoriesDict;
+}
+
+const SuccessStoriesSection: React.FC<SuccessStoriesProps> = ({ dict }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.01 });
 
-  // שינוי 2: הוספנו state לניהול ההודעה שתוצג בלחיצה
   const [showComingSoon, setShowComingSoon] = useState(false);
 
-  // שינוי 3: פונקציה שתופעל בלחיצה על הכפתור
   const handleMoreStoriesClick = () => {
     setShowComingSoon(true);
-    // נגרום להודעה להיעלם אוטומטית אחרי 3.5 שניות
     setTimeout(() => {
       setShowComingSoon(false);
     }, 3500);
   };
 
-  // Animation variants (no changes needed here)
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -63,21 +65,6 @@ const SuccessStoriesSection: React.FC = () => {
     },
   };
 
-  const testimonials = [
-    {
-      text: 'תמיד חלמתי על שותף לחיים עם שאיפות ערכיות דומות – להקים בית של חסד, ציונות ותורה. NeshamaTech חיברו אותי לאדם שחולם בדיוק את אותו החלום. זה חיבור של נשמה ומטרה.',
-      author: 'שרה, ירושלים',
-      result: 'נשואים + 1',
-      color: 'green' as const,
-    },
-    {
-      text: 'הקסם של NeshamaTech הוא ביכולת לראות מעבר לפרטים היבשים. איתן והמערכת זיהו את החיבור העמוק בערכי המשפחה ובווייב הכללי שלנו. זו התאמה שמרגישה כמו בית מהרגע הראשון.',
-      author: 'מרים, ירוחם',
-      result: 'נשואים',
-      color: 'orange' as const,
-    },
-  ];
-
   return (
     <motion.section
       ref={ref}
@@ -95,10 +82,10 @@ const SuccessStoriesSection: React.FC = () => {
           variants={headerVariants}
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-            סיפורים שמתחילים
+            {dict.title_part1}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600">
               {' '}
-              בנשמה
+              {dict.title_highlight}
             </span>
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-teal-600 mx-auto rounded-full mb-6" />
@@ -106,9 +93,7 @@ const SuccessStoriesSection: React.FC = () => {
             className="text-lg text-gray-600 max-w-3xl mx-auto"
             variants={headerVariants}
           >
-            כשאנחנו מדברים על &apos;חיבור אמיתי&apos;, אנחנו מתכוונים בדיוק לזה.
-            כל אחד מהסיפורים האלה התחיל בהקשבה עמוקה לצרכים ולערכים של שני
-            אנשים. אנו אסירי תודה על הזכות ללוות אותם בדרכם.
+            {dict.subtitle}
           </motion.p>
         </motion.div>
 
@@ -116,9 +101,9 @@ const SuccessStoriesSection: React.FC = () => {
           className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto"
           variants={containerVariants}
         >
-          {testimonials.map((testimonial, index) => (
+          {dict.stories.map((testimonial, index) => (
             <motion.div
-              key={index}
+              key={testimonial.author}
               variants={cardVariants}
               whileHover={{
                 y: -8,
@@ -129,13 +114,14 @@ const SuccessStoriesSection: React.FC = () => {
                 text={testimonial.text}
                 author={testimonial.author}
                 result={testimonial.result}
-                color={testimonial.color}
+                color={
+                  testimonial.color as 'cyan' | 'green' | 'orange' | 'pink'
+                }
               />
             </motion.div>
           ))}
         </motion.div>
 
-        {/* --- START: שינוי 4 - עדכון אזור הכפתור והוספת ההודעה --- */}
         <div className="mt-16 text-center">
           <motion.div
             variants={{
@@ -147,19 +133,17 @@ const SuccessStoriesSection: React.FC = () => {
               },
             }}
           >
-            {/* הסרנו את ה-Link והוספנו onClick */}
             <Button
               onClick={handleMoreStoriesClick}
               variant="outline"
               size="lg"
               className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl group"
             >
-              <span>לעוד סיפורי הצלחה</span>
+              <span>{dict.more_stories_button}</span>
               <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </motion.div>
 
-          {/* מיכל להודעה, כדי למנוע קפיצות בתוכן שמתחתיו */}
           <div className="mt-4 h-6">
             <AnimatePresence>
               {showComingSoon && (
@@ -170,13 +154,12 @@ const SuccessStoriesSection: React.FC = () => {
                   transition={{ duration: 0.3 }}
                   className="text-cyan-700 font-medium"
                 >
-                  בקרוב נעלה סיפורי הצלחה נוספים, הישארו מעודכנים!
+                  {dict.coming_soon_message}
                 </motion.p>
               )}
             </AnimatePresence>
           </div>
         </div>
-        {/* --- END: סוף האזור המעודכן --- */}
 
         <motion.div
           className="mt-8 text-center"

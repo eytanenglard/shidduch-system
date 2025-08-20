@@ -1,0 +1,55 @@
+{
+  "container": {
+    "loading": {
+      "title": "טוען את ההצעות שלך...",
+      "subtitle": "אנחנו מכינים עבורך את ההצעות המתאימות ביותר"
+    },
+    "stats": {
+      "title": "ההצעות שלך",
+      "subtitle": "כל הצעה היא הזדמנות שנבחרה בקפידה עבורך על ידי הצוות שלנו.",
+      "new": "הצעות חדשות",
+      "newDesc": "ממתינות לתשובתך",
+      "yourTurn": "התור שלך",
+      "yourTurnDesc": "דורשות החלטה ממך",
+      "approved": "אושרו",
+      "approvedDesc": "הצעות שאושרו"
+    },
+    "main": {
+      "title": "ניהול ההצעות",
+      "refreshAriaLabel": "רענן הצעות",
+      "newSuggestions": "הצעות חדשות",
+      "tabs": {
+        "active": "פעילות",
+        "urgent": "התור שלך",
+        "history": "היסטוריה"
+      },
+      "errorLoading": "אירעה שגיאה בטעינת ההצעות: {error}",
+      "unknownError": "שגיאה לא ידועה"
+    },
+    "dialogs": {
+      "approveTitle": "אישור הצעת השידוך",
+      "declineTitle": "דחיית הצעת השידוך",
+      "approveDescription": "אישור הצעה הוא צעד מרגש. האם אתה בטוח שברצונך להתקדם? לאחר האישור, השדכן יקבל הודעה וימשיך בתהליך עבורכם.",
+      "declineDescription": "כל תשובה מקדמת אותך. האם אתה בטוח שברצונך לדחות הצעה זו? המשוב שלך חשוב מאוד ויעזור לנו לדייק את החיפוש עבורך.",
+      "cancel": "ביטול",
+      "confirmApproval": "אישור ההצעה",
+      "confirmDecline": "דחיית ההצעה"
+    },
+    "toasts": {
+      "errorTitle": "שגיאה בטעינת ההצעות",
+      "errorDescription": "נסה לרענן את הדף או פנה לתמיכה",
+      "newSuggestionsTitle": "התקבלו הצעות שידוך חדשות!",
+      "newSuggestionsDescription": "בדוק את ההצעות החדשות שמחכות לך",
+      "statusUpdateSuccess": "הסטטוס עודכן בהצלחה",
+      "statusUpdateError": "אירעה שגיאה בעדכון הסטטוס: {error}",
+      "approvedSuccess": "אישרת את ההצעה בהצלחה",
+      "approvedFirstPartyDesc": "באישורך, ההצעה נשלחה לצד השני. אם גם הצד השני יאשר, פרטי הקשר המלאים שלכם יוחלפו.",
+      "approvedSecondPartyDesc": "מעולה! כעת, מאחר ושניכם אישרתם, פרטי הקשר שלך יישלחו לצד הראשון ופרטיו יישלחו אליך.",
+      "declinedSuccess": "דחית את ההצעה בהצלחה",
+      "declinedDesc": "תודה על המשוב - זה עוזר לנו להציע התאמות טובות יותר",
+      "matchmakerNotified": "השדכן יקבל הודעה ויתקדם עם התהליך",
+      "refreshSuccessTitle": "הנתונים עודכנו בהצלחה",
+      "refreshSuccessDescription": "כל ההצעות עודכנו למצב הנוכחי"
+    }
+  }
+}

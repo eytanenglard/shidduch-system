@@ -1,0 +1,231 @@
+{
+  "card": {
+    "suggestedBy": "Suggestion from",
+    "yourTurn": "Your Turn!",
+    "urgent": "Urgent",
+    "viewDetailsAria": "View full details for {{name}}",
+    "whySpecial": "Why is this a special match?",
+    "reasonTeaserDefault": "The matchmaker identified special potential worth exploring!",
+    "clickForDetails": "Click for full details and more insights",
+    "buttons": {
+      "decline": "Not for me",
+      "approve": "I'm interested!",
+      "approveDisabledTooltip": "Cannot approve a new suggestion while another is in an active process.",
+      "askMatchmaker": "Ask Matchmaker",
+      "viewDetails": "View Details"
+    }
+  },
+  "modal": {
+    "header": {
+      "title": "An Offer Chosen Especially For You",
+      "subtitleLine1": "We thought of you when we saw this profile.",
+      "subtitleLine2": "We believe there's a real foundation here for a meaningful connection.",
+      "suggestedBy": "Suggestion from",
+      "discoverMore": "Discover More →",
+      "ageInYears": "{{age}} years old",
+      "matchStoryTitle": "The Story Behind the Match",
+      "matchStorySubtitle1": "We listen to what's important to you, even between the lines.",
+      "matchStorySubtitle2": "Here are some of the connections we identified.",
+      "viewFullProfile": "View Full Profile",
+      "iHaveQuestions": "I Have Questions",
+      "matchmakerInsight": "💭 The Professional Insight",
+      "whyYou": "Why this is a fit for you:",
+      "ourConnection": "The connection we see:",
+      "whatsNextTitle": "What Now? The Decision is Yours",
+      "whatsNextSubtitle1": "Every decision you make is the right step on your journey.",
+      "whatsNextSubtitle2": "Take your time, and choose what feels right to you.",
+      "bestTimeIsNow": "The best time is now",
+      "toFullProfile": "To the Full Profile"
+    },
+    "tabs": {
+      "presentation": "Impressive Presentation",
+      "presentationShort": "Intro",
+      "profile": "Full Profile",
+      "profileShort": "Profile",
+      "compatibility": "Compatibility Analysis",
+      "compatibilityShort": "Analysis",
+      "details": "Details & Comms",
+      "detailsShort": "Details",
+      "fullscreen": "Enter Fullscreen",
+      "exitFullscreen": "Exit Fullscreen"
+    },
+    "actions": {
+      "titleExpanded": "✨ This is the key moment - what's your decision?",
+      "titleCollapsed": "🎯 Quick Actions",
+      "subtitle": "Every decision is a new opportunity",
+      "approve": "💝 I'm interested!",
+      "sending": "Sending...",
+      "updating": "Updating...",
+      "ask": "🤔 Ask the Matchmaker",
+      "decline": "😔 Not for me right now",
+      "reminder": "Remember: Every decision moves us one step closer to finding your perfect match."
+    },
+    "profile": {
+      "loading": "Loading detailed profile...",
+      "loadingDescription": "This might take a few seconds",
+      "errorTitle": "Error Loading Profile",
+      "errorDescription": "We couldn't load the profile. Please contact the matchmaker for assistance.",
+      "contactMatchmaker": "Contact Matchmaker"
+    },
+    "aiAnalysisCta": {
+      "title": "🔮 Want a Deeper Look?",
+      "description": "Our smart AI can analyze all the data and provide you with professional insights on connection potential, strengths, and even conversation starters.",
+      "feature1": "Deep Analysis",
+      "feature2": "Connection Points",
+      "feature3": "Personal Guidance",
+      "button": "AI-Powered Compatibility Analysis"
+    }
+  },
+  "aiAnalysis": {
+    "dialogTitle": "Smart Compatibility Analysis",
+    "loadingTitle": "Analyzing deep compatibility...",
+    "loadingDescription": "We are examining dozens of parameters to provide you with a comprehensive and accurate picture.",
+    "loadingSteps": {
+      "step1": "Processing Profiles",
+      "step2": "Examining Values",
+      "step3": "Measuring Compatibility",
+      "step4": "Offering Insights",
+      "step5": "Finalizing Analysis"
+    },
+    "errorTitle": "Something went wrong...",
+    "errorAlertTitle": "We couldn't complete the analysis",
+    "errorAlertDescription": "We apologize for the issue. Please try again or contact support.",
+    "retryButton": "Try Again",
+    "tabs": {
+      "summary": "Summary & Connection",
+      "consider": "Points to Consider",
+      "conversation": "Conversation Topics"
+    },
+    "summaryTab": {
+      "strengthTitle": "Strengths and Connection Points"
+    },
+    "considerTab": {
+      "title": "Points for Thought and Open Conversation"
+    },
+    "conversationTab": {
+      "title": "Recommended Conversation Starters"
+    },
+    "importantNote": "Important Note",
+    "noteText": "Remember, this analysis is a tool and a recommendation only. It's designed to highlight points for thought and spark conversation. True chemistry and deep connection are formed in human interaction.",
+    "backButton": "Back"
+  },
+   "list": {
+    "emptyState": {
+      "noResultsTitle": "No Results Found",
+      "noHistoryTitle": "No Suggestions in History",
+      "noActiveTitle": "Suggestions Are On Their Way",
+      "noResultsDescription": "Try changing your search or filter criteria to find what you're looking for.",
+      "noHistoryDescription": "When you have completed suggestions, they will appear here.",
+      "noActiveDescription": "Our matchmakers are currently working on finding the perfect matches for you.",
+      "clearFilters": "Clear Filters"
+    },
+    "stats": {
+      "showing": "Currently Showing",
+      "total": "Total Suggestions",
+      "pending": "Pending",
+      "progress": "Progress Rate"
+    },
+    "controls": {
+      "searchPlaceholder": "Search by name, city, or profession...",
+      "filterLabel": "Filter Suggestions",
+      "filterAll": "All",
+      "filterPending": "Pending Response",
+      "filterAccepted": "Accepted",
+      "filterDeclined": "Declined",
+      "filterContactShared": "Contact Shared",
+      "sortPlaceholder": "Sort by",
+      "sortNewest": "Newest",
+      "sortOldest": "Oldest",
+      "sortDeadline": "Deadline",
+      "sortPriority": "Priority"
+    },
+    "activeFilters": {
+      "title": "Active filters:",
+      "search": "Search:",
+      "clearAll": "Clear All"
+    },
+    "resultsCount": {
+      "showingSingle": "Showing {{count}} suggestion of {{total}}",
+      "showingMultiple": "Showing {{count}} suggestions of {{total}}",
+      "qualityMatches": "Quality matches for you"
+    }
+  },
+    "container": {
+    "loading": {
+      "title": "Loading your suggestions...",
+      "subtitle": "We are preparing the most suitable suggestions for you"
+    },
+    "stats": {
+      "title": "Your Suggestions",
+      "subtitle": "Each suggestion is an opportunity carefully selected for you by our team.",
+      "new": "New Suggestions",
+      "newDesc": "Awaiting your response",
+      "yourTurn": "Your Turn",
+      "yourTurnDesc": "Require a decision from you",
+      "approved": "Approved",
+      "approvedDesc": "Suggestions that were approved"
+    },
+    "main": {
+      "title": "Manage Suggestions",
+      "refreshAriaLabel": "Refresh suggestions",
+      "newSuggestions": "New Suggestions",
+      "tabs": {
+        "active": "Active",
+        "urgent": "Your Turn",
+        "history": "History"
+      },
+      "errorLoading": "An error occurred while loading suggestions: {{error}}",
+      "unknownError": "Unknown error"
+    },
+    "dialogs": {
+      "approveTitle": "Confirm Match Suggestion",
+      "declineTitle": "Decline Match Suggestion",
+      "approveDescription": "Approving a suggestion is an exciting step. Are you sure you want to proceed? After confirmation, the matchmaker will be notified and will continue the process for you.",
+      "declineDescription": "Every answer moves you forward. Are you sure you want to decline this suggestion? Your feedback is very important and will help us refine the search for you.",
+      "cancel": "Cancel",
+      "confirmApproval": "Confirm Approval",
+      "confirmDecline": "Confirm Decline"
+    },
+    "toasts": {
+      "errorTitle": "Error loading suggestions",
+      "errorDescription": "Try refreshing the page or contact support",
+      "newSuggestionsTitle": "New match suggestions received!",
+      "newSuggestionsDescription": "Check out the new suggestions waiting for you",
+      "statusUpdateSuccess": "Status updated successfully",
+      "statusUpdateError": "Error updating status: {{error}}",
+      "approvedSuccess": "You've approved the suggestion",
+      "approvedFirstPartyDesc": "With your approval, the suggestion has been sent to the other party. If they also approve, your contact details will be exchanged.",
+      "approvedSecondPartyDesc": "Great! Now that you've both approved, your contact details will be sent to the first party, and theirs to you.",
+      "declinedSuccess": "You've declined the suggestion",
+      "declinedDesc": "Thank you for the feedback - it helps us provide better matches",
+      "matchmakerNotified": "The matchmaker will be notified and will proceed with the process",
+      "refreshSuccessTitle": "Data refreshed successfully",
+      "refreshSuccessDescription": "All suggestions have been updated to the current state"
+    }
+  },
+  "presentation": {
+    "hero": {
+      "title": "A Special Suggestion Is on Its Way...",
+      "matchmakerThoughts": "Thoughts from the matchmaker, {{name}}:"
+    },
+    "peek": {
+      "opportunity": "An opportunity to meet",
+      "age": ", {{age}}",
+      "notSpecified": "Not specified",
+      "viewProfileButton": "To the Full Profile"
+    },
+    "ingredients": {
+      "title": "Key Ingredients for a Successful Match",
+      "values": "Values & Worldview",
+      "personality": "Personality Connection",
+      "background": "Background & Lifestyle",
+      "spark": "A Special Spark",
+      "matchmakerNotes": "Details from the matchmaker:"
+    },
+    "aiCta": {
+      "title": "Want a Second Opinion?",
+      "description": "Get an in-depth, AI-based analysis of connection points, growth potential, and even ideas for conversation starters.",
+      "button": "AI-Powered Compatibility Analysis"
+    }
+  }
+}

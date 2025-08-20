@@ -1,12 +1,19 @@
 // src/components/HomePage/sections/PrivacyAssuranceSection.tsx
+'use client';
 
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Lock } from 'lucide-react';
+import type { PrivacyAssuranceDict } from '@/types/dictionary';
 
-const PrivacyAssuranceSection: React.FC = () => {
+// --- Type Definition for Component Props ---
+interface PrivacyAssuranceProps {
+  dict: PrivacyAssuranceDict;
+}
+
+const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({ dict }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
@@ -78,14 +85,6 @@ const PrivacyAssuranceSection: React.FC = () => {
     },
   };
 
-  // UPDATED Privacy Features
-  const privacyFeatures = [
-    'הפרופיל שלכם גלוי אך ורק לצוות השדכנים האישי שלכם, מה שמבטיח דיסקרטיות מלאה.',
-    'כל שיחה וכל פרט שאתם חולקים איתנו נשמרים בינינו, באמצעות טכנולוגיות אבטחה מתקדמות.',
-    'המידע שלכם הוא קודש. הוא לעולם לא יימכר או ישותף עם אף גורם מחוץ למערכת. זו הבטחה.',
-    'אתם בשליטה מלאה. שום פרט לא ייחשף בפני הצעה פוטנציאלית ללא אישורכם המפורש.',
-  ];
-
   return (
     <motion.section
       ref={ref}
@@ -105,18 +104,16 @@ const PrivacyAssuranceSection: React.FC = () => {
           <motion.div variants={fadeInLeft}>
             <div className="mb-8 text-center md:text-right">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-                המרחב הבטוח שלכם
+                {dict.title}
               </h2>
               <div className="w-24 h-1 bg-cyan-500/50 rounded-full mb-6 mx-auto md:mr-0"></div>
               <p className="text-lg text-white/80 mb-6 mx-auto md:mx-0 max-w-md">
-                בעולם השידוכים, אמון ודיסקרטיות הם הבסיס להכל. בנינו את המערכת
-                שלנו סביב העיקרון הזה, כדי שתוכלו להרגיש בטוחים ונינוחים לאורך
-                כל הדרך.
+                {dict.subtitle}
               </p>
             </div>
 
             <motion.div className="space-y-4" variants={staggeredListVariants}>
-              {privacyFeatures.map((feature, index) => (
+              {dict.features.map((feature, index) => (
                 <motion.div
                   key={index}
                   className="flex items-start"
@@ -157,16 +154,15 @@ const PrivacyAssuranceSection: React.FC = () => {
                 </motion.div>
 
                 <h3 className="text-xl font-bold mb-4 text-center text-white">
-                  ההבטחה שלנו לפרטיות
+                  {dict.card_title}
                 </h3>
 
                 <p className="text-white/80 text-center mb-6">
-                  אנו מתחייבים לשמור על כבודכם ועל המידע האישי שלכם, וליצור
-                  סביבה בטוחה ומכבדת למציאת הזיווג הנכון.
+                  {dict.card_text}
                 </p>
 
                 <div className="text-center">
-                  <Link href="/privacy">
+                  <Link href="/legal/privacy-policy">
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -175,7 +171,7 @@ const PrivacyAssuranceSection: React.FC = () => {
                         variant="outline"
                         className="border-2 border-cyan-400/50 bg-cyan-500/20 text-white hover:bg-cyan-500/30 transition-all duration-300 rounded-xl"
                       >
-                        קראו את מדיניות הפרטיות
+                        {dict.card_button}
                       </Button>
                     </motion.div>
                   </Link>

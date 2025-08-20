@@ -10,10 +10,17 @@ import {
   Mail,
   Heart,
 } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import type { ChatWidgetDict } from '@/types/dictionary'; // <-- ייבוא הטיפוס
 
-// --- Types ---
+// --- Type Definitions ---
+interface ChatWidgetProps {
+  dict: ChatWidgetDict; // <-- הגדרת prop חדש
+}
+
 interface ActionButton {
   type: 'email';
   label: string;
@@ -29,40 +36,10 @@ interface ChatMessage {
 
 type ChatMode = 'question' | 'gatheringEmail' | 'composingEmail';
 
-// --- START: Updated prompt questions ---
-const promptQuestions = [
-  'מה העלות של השירות?',
-  'במה אתם שונים מאפליקקציות?',
-  'איך שומרים על הפרטיות שלי?',
-  'איך עובד תהליך ההתאמה?',
-];
-// --- END: Updated prompt questions ---
-
 const EMAIL_REGEX = /\S+@\S+\.\S+/;
 
-// --- START: Updated brand texts ---
-const TEXTS = {
-  welcome:
-    'שלום, אנחנו NeshamaTech. אנו יודעים שהדרך לזוגיות משמעותית יכולה להיות מאתגרת. לכן יצרנו תהליך המשלב טכנולוגיה מתקדמת עם ליווי אישי וחם, כדי להעניק לכם חוויה דיסקרטית, מכבדת ויעילה. במה נוכל לעזור?',
-  limitReached:
-    'הגעת למגבלת 10 השאלות בשיחה זו. כדי שנוכל להעניק לך מענה אישי ומעמיק, נשמח להמשיך את השיחה במייל. השאר/י פנייה והצוות שלנו יחזור אליך.',
-  switchToEmailPrompt:
-    'בשמחה. כדי שנוכל לחזור אליך עם תשובה אישית מהצוות, אנא רשום/י את כתובת המייל שלך. הפרטים יישמרו בדיסקרטיות מלאה.',
-  composeEmailPrompt:
-    'מעולה. כעת, כתוב/י את פנייתך ואחד מאנשי הצוות שלנו יחזור אליך באופן אישי.',
-  emailError: 'נראה שכתובת המייל אינה תקינה. אנא בדקו ונסו שוב.',
-  genericError:
-    'אנו מתנצלים, אירעה שגיאה טכנית קלה. אנא נסו לרענן או לחזור בעוד מספר רגעים. תמיד אפשר גם לפנות אלינו ישירות במייל.',
-  sendEmailError:
-    'אנו מתנצלים, אירעה שגיאה בשליחת המייל. אנא נסו שוב, או פנו אלינו ישירות לכתובת jewish.matchpoint@gmail.com.',
-  placeholderDefault: 'שאלו אותנו על הגישה שלנו...',
-  placeholderGatheringEmail: 'הכניסו את כתובת המייל שלכם...',
-  placeholderComposingEmail: 'כתבו את הודעתכם כאן...',
-  placeholderLimitReached: 'מגבלת השאלות הושגה. המשיכו במייל.',
-};
-// --- END: Updated brand texts ---
-
-export default function ChatWidget() {
+export default function ChatWidget({ dict }: ChatWidgetProps) {
+  // <-- קבלת ה-prop
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -103,14 +80,14 @@ export default function ChatWidget() {
       setTimeout(() => {
         const welcomeMessage: ChatMessage = {
           sender: 'bot',
-          text: TEXTS.welcome,
+          text: dict.texts.welcome, // <-- שימוש במילון
           timestamp: new Date(),
         };
         setMessages([welcomeMessage]);
         setIsLoading(false);
       }, 800);
     }
-  }, [isOpen, messages.length]);
+  }, [isOpen, messages.length, dict.texts.welcome]);
 
   useEffect(() => {
     if (
@@ -125,12 +102,14 @@ export default function ChatWidget() {
   }, [isOpen, messages]);
 
   const clearError = () => setError(null);
+  const pathname = usePathname();
+  const locale = pathname.split('/')[1] || 'he'; // קובע את השפה הנוכחית
 
   const switchToEmailMode = () => {
     setChatMode('gatheringEmail');
     const emailModeMessage: ChatMessage = {
       sender: 'bot',
-      text: TEXTS.switchToEmailPrompt,
+      text: dict.texts.switchToEmailPrompt, // <-- שימוש במילון
       timestamp: new Date(),
     };
     setMessages((prev) => [...prev, emailModeMessage]);
@@ -146,8 +125,8 @@ export default function ChatWidget() {
     if (userMessageCount >= 10 && !isLimitReached) {
       const limitMessage: ChatMessage = {
         sender: 'bot',
-        text: TEXTS.limitReached,
-        actions: [{ type: 'email', label: 'שלחו פנייה במייל לצוות' }],
+        text: dict.texts.limitReached, // <-- שימוש במילון
+        actions: [{ type: 'email', label: dict.email_action_button }], // <-- שימוש במילון
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, limitMessage]);
@@ -170,7 +149,7 @@ export default function ChatWidget() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: questionText }),
+        body: JSON.stringify({ message: questionText, locale }), // <-- השינוי כאן
       });
 
       if (!response.ok) throw new Error(`Server error: ${response.status}`);
@@ -190,7 +169,7 @@ export default function ChatWidget() {
       }, 1000);
     } catch (error) {
       console.error('Chat error:', error);
-      setError(TEXTS.genericError);
+      setError(dict.texts.genericError); // <-- שימוש במילון
       setIsLoading(false);
     }
   };
@@ -201,7 +180,7 @@ export default function ChatWidget() {
 
     if (chatMode === 'gatheringEmail') {
       if (!EMAIL_REGEX.test(inputValue)) {
-        setError(TEXTS.emailError);
+        setError(dict.texts.emailError); // <-- שימוש במילון
         return;
       }
 
@@ -213,7 +192,7 @@ export default function ChatWidget() {
       };
       const confirmEmailMessage: ChatMessage = {
         sender: 'bot',
-        text: TEXTS.composeEmailPrompt,
+        text: dict.texts.composeEmailPrompt, // <-- שימוש במילון
         timestamp: new Date(),
       };
 
@@ -263,7 +242,7 @@ export default function ChatWidget() {
         }, 1000);
       } catch (error) {
         console.error('Email error:', error);
-        setError(TEXTS.sendEmailError);
+        setError(dict.texts.sendEmailError); // <-- שימוש במילון
         setIsLoading(false);
       }
     }
@@ -280,14 +259,14 @@ export default function ChatWidget() {
   };
 
   const getPlaceholderText = () => {
-    if (isLimitReached) return TEXTS.placeholderLimitReached;
+    if (isLimitReached) return dict.texts.placeholderLimitReached;
     switch (chatMode) {
       case 'gatheringEmail':
-        return TEXTS.placeholderGatheringEmail;
+        return dict.texts.placeholderGatheringEmail;
       case 'composingEmail':
-        return TEXTS.placeholderComposingEmail;
+        return dict.texts.placeholderComposingEmail;
       default:
-        return TEXTS.placeholderDefault;
+        return dict.texts.placeholderDefault;
     }
   };
 
@@ -321,10 +300,9 @@ export default function ChatWidget() {
           {!isOpen && (
             <div className="absolute inset-0 rounded-full bg-cyan-400 opacity-20 animate-ping" />
           )}
-          {/* --- START: Updated Icon Button Code --- */}
           <Button
             id="onboarding-target-chat-widget"
-            aria-label={isOpen ? 'סגור צאט' : 'פתח צאט'}
+            aria-label={isOpen ? dict.aria_close : dict.aria_open} // <-- שימוש במילון
             aria-expanded={isOpen}
             aria-controls="chat-panel"
             size="icon"
@@ -340,7 +318,6 @@ export default function ChatWidget() {
               </div>
             )}
           </Button>
-          {/* --- END: Updated Icon Button Code --- */}
         </div>
       </div>
 
@@ -370,19 +347,16 @@ export default function ChatWidget() {
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border border-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3
-                id="chat-panel-title"
-                className="font-bold text-lg truncate"
-              >
-                NeshamaTech
+              <h3 id="chat-panel-title" className="font-bold text-lg truncate">
+                {dict.header_title} {/* <-- שימוש במילון */}
               </h3>
               <p className="text-sm opacity-90 truncate">
-                העוזר האישי שלכם
+                {dict.header_subtitle} {/* <-- שימוש במילון */}
               </p>
             </div>
           </div>
           <div className="text-xs opacity-75 bg-white/10 px-3 py-1.5 rounded-full shrink-0">
-            מקוון
+            {dict.header_status} {/* <-- שימוש במילון */}
           </div>
         </div>
 
@@ -443,7 +417,7 @@ export default function ChatWidget() {
                         onClick={switchToEmailMode}
                       >
                         <Mail className="w-5 h-5 ml-2" />
-                        {action.label}
+                        {dict.email_action_button} {/* <-- שימוש במילון */}
                       </Button>
                     ))}
                   </div>
@@ -470,19 +444,23 @@ export default function ChatWidget() {
               <div className="pt-3 mr-14">
                 <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
                   <Sparkles className="w-4 h-4 text-cyan-500" />
-                  <span>אולי תרצו לשאול על:</span>
+                  <span>{dict.prompt_header}</span> {/* <-- שימוש במילון */}
                 </div>
                 <div className="flex flex-wrap gap-2.5">
-                  {promptQuestions.map((q) => (
-                    <Button
-                      key={q}
-                      variant="outline"
-                      className="rounded-full text-sm h-auto py-3 px-4 bg-white hover:bg-cyan-50 border-cyan-200 text-cyan-700 transition-all duration-200 hover:shadow-sm touch-manipulation min-h-[44px]"
-                      onClick={() => submitQuestion(q)}
-                    >
-                      {q}
-                    </Button>
-                  ))}
+                  {dict.prompt_questions.map(
+                    (
+                      q // <-- שימוש במילון
+                    ) => (
+                      <Button
+                        key={q}
+                        variant="outline"
+                        className="rounded-full text-sm h-auto py-3 px-4 bg-white hover:bg-cyan-50 border-cyan-200 text-cyan-700 transition-all duration-200 hover:shadow-sm touch-manipulation min-h-[44px]"
+                        onClick={() => submitQuestion(q)}
+                      >
+                        {q}
+                      </Button>
+                    )
+                  )}
                 </div>
               </div>
             )}
@@ -511,7 +489,7 @@ export default function ChatWidget() {
                 className="text-sm text-cyan-600 hover:text-cyan-800 h-auto p-2 underline-offset-4 touch-manipulation min-h-[44px]"
                 onClick={switchToEmailMode}
               >
-                צריכים מענה אישי יותר? שלחו פנייה לצוות
+                {dict.email_link_button} {/* <-- שימוש במילון */}
               </Button>
             </div>
           )}

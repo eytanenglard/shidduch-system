@@ -5,7 +5,7 @@
 import { usePathname } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import { Toaster } from 'sonner';
-import { ReactNode, useState, useEffect } from 'react'; // ✨ 1. ייבוא Hooks
+import { ReactNode, useState, useEffect } from 'react';
 
 type NavbarDict = {
   myMatches: string;
@@ -20,7 +20,6 @@ type Dictionary = {
   navbar: NavbarDict;
 };
 
-
 interface AppContentProps {
   children: ReactNode;
   dict: Dictionary;
@@ -28,54 +27,62 @@ interface AppContentProps {
 
 export default function AppContent({ children, dict }: AppContentProps) {
   const pathname = usePathname();
-  
-  // ✨ 2. הוספת state לניהול נראות ה-Navbar הגלובלי
   const [isMainNavbarVisible, setIsMainNavbarVisible] = useState(true);
 
-  // בודקים אם אנחנו בדף הבית. הנתיבים יהיו /he, /en, או פשוט /
-  const locale = pathname.split('/')[1];
-  const isHomePage = pathname === `/${locale}` || pathname === '/';
-
-  // ✨ 3. הוספת useEffect לניהול נראות ה-Navbar בגלילה
+  // ✨ לוגיקה משוכתבת ומדויקת בתוך useEffect
   useEffect(() => {
+    // בודקים אם אנחנו בדף הבית. הנתיבים יכולים להיות /he, /en, או פשוט /
+    const locale = pathname.split('/')[1];
+    const isHomePage =
+      pathname === `/${locale}` || (pathname === '/' && !locale);
+
+    // מקרה 1: אם אנחנו לא בדף הבית
+    if (!isHomePage) {
+      // קובעים שה-Navbar תמיד יהיה גלוי
+      setIsMainNavbarVisible(true);
+      // חשוב: אנחנו לא מוסיפים שום event listener, ולכן אין צורך בפונקציית ניקוי.
+      // יוצאים מהאפקט כאן.
+      return;
+    }
+
+    // מקרה 2: אם אנחנו כן בדף הבית - כאן נטפל בלוגיקת הגלילה
     const handleScroll = () => {
-      // אם אנחנו לא בדף הבית, ה-Navbar תמיד גלוי
-      if (!isHomePage) {
-        setIsMainNavbarVisible(true);
-        return;
-      }
-      // אם אנחנו כן בדף הבית, ה-Navbar נעלם אחרי גלילה קטנה
+      // ה-Navbar יהיה גלוי רק בחלק העליון ביותר של הדף
       setIsMainNavbarVisible(window.scrollY <= 10);
     };
 
+    // מוסיפים את ה-event listener
     window.addEventListener('scroll', handleScroll, { passive: true });
-    // הפעלה ראשונית כדי לקבוע את המצב ההתחלתי
-    handleScroll(); 
+    // מפעילים פעם אחת בהתחלה כדי לקבוע מצב ראשוני נכון
+    handleScroll();
 
-    // ניקוי ה-event listener כשהרכיב יורד
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [pathname, isHomePage]); // המערך הזה יגרום לאפקט לרוץ מחדש אם הנתיב משתנה
+    // ✨ פונקציית ניקוי קריטית ✨
+    // פונקציה זו תרוץ אוטומטית כאשר ה-pathname משתנה (כלומר, כשמנווטים לעמוד אחר).
+    // היא מסירה את ה-event listener ומבטיחה שהוא לא ישפיע על עמודים אחרים.
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [pathname]); // האפקט ירוץ מחדש בכל פעם שהנתיב משתנה
 
-  // לוגיקה ישנה להסתרת ה-Navbar (למשל, בשאלון)
+  // לוגיקה להסתרה ידנית של ה-Navbar (למשל, בשאלון)
   const isNavbarManuallyHidden = pathname.includes('/questionnaire');
 
   return (
     <div className="flex flex-col min-h-screen">
       <Toaster position="top-center" richColors />
-      
-      {/* ✨ 4. עטיפת ה-Navbar ב-div שמנהל את האנימציה */}
+
       {!isNavbarManuallyHidden && (
-         <div
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
-              isMainNavbarVisible
-                ? 'opacity-100'
-                : 'opacity-0 -translate-y-full pointer-events-none'
-            }`}
-          >
-            <Navbar dict={dict.navbar} />
-         </div>
+        <div
+          className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
+            isMainNavbarVisible
+              ? 'opacity-100'
+              : 'opacity-0 -translate-y-full pointer-events-none'
+          }`}
+        >
+          <Navbar dict={dict.navbar} />
+        </div>
       )}
-      
+
       <main className="flex-grow">{children}</main>
     </div>
   );

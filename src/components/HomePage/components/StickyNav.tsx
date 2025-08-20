@@ -1,3 +1,5 @@
+// src/components/HomePage/components/StickyNav.tsx
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -18,9 +20,11 @@ export interface NavLink {
   label: string;
 }
 
+// ✨ 1. עדכון הממשק כך שיקבל את ה-prop החדש
 interface StickyNavProps {
   navLinks: NavLink[];
-  session: Session | null; // הוסף שורה זו
+  session: Session | null;
+  isVisible: boolean; // הוספנו את isVisible
 }
 
 // ======================== קומפוננטת הלוגו המעודכנת ========================
@@ -44,8 +48,8 @@ const StickyLogo = () => {
       </div>
       <span
         className="
-        text-xl 
-        font-bold 
+        text-xl
+        font-bold
         bg-gradient-to-r from-teal-600 via-orange-500 to-amber-400
         text-transparent bg-clip-text
         bg-size-200 bg-pos-0 group-hover:bg-pos-100
@@ -59,8 +63,14 @@ const StickyLogo = () => {
 };
 // ========================================================================
 
-const StickyNav: React.FC<StickyNavProps> = ({ navLinks, session }) => {
-  const [isSticky, setIsSticky] = useState(false);
+// ✨ 2. עדכון חתימת הקומפוננטה כך שתקבל את isVisible
+const StickyNav: React.FC<StickyNavProps> = ({
+  navLinks,
+  session,
+  isVisible,
+}) => {
+  // ✨ 3. הסרת המצב הפנימי isSticky - הקומפוננטה נשלטת עכשיו מבחוץ
+  // const [isSticky, setIsSticky] = useState(false);
   const [activeSection, setActiveSection] = useState('');
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const [mobileNavState, setMobileNavState] = useState<'open' | 'closed'>(
@@ -80,7 +90,8 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks, session }) => {
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      setIsSticky(currentScrollY > 10);
+      // ✨ 4. הסרנו את השורה שקובעת את isSticky - זה מגיע עכשיו מ-props
+      // setIsSticky(currentScrollY > 10);
 
       lastScrollY.current = currentScrollY;
 
@@ -121,11 +132,9 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks, session }) => {
     e.preventDefault();
     const element = document.querySelector(href);
     if (element) {
-      // ===== שינוי מרכזי: תיקון המרחק לגלילה חלקה ומדויקת =====
-      // המרחק מחושב כך שהכותרת תמיד תופיע מתחת לתפריט הניווט ולא תוסתר על ידו.
-      const navHeight = isMobile ? 64 : 80; // גובה הניווט בפועל
-      const topOffset = isMobile ? 80 : 0; // המרחק מהחלק העליון במצב מובייל (5rem)
-      const padding = 30; // מרווח נוסף לנוחות צפייה
+      const navHeight = isMobile ? 64 : 80;
+      const topOffset = isMobile ? 80 : 0;
+      const padding = 30;
       const headerOffset = navHeight + topOffset + padding;
 
       const elementPosition = element.getBoundingClientRect().top;
@@ -175,7 +184,8 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks, session }) => {
   return (
     <>
       <AnimatePresence>
-        {isSticky && (
+        {/* ✨ 5. שימוש ב-isVisible שהתקבל מבחוץ במקום ב-isSticky הפנימי */}
+        {isVisible && (
           <motion.header
             variants={navVariants}
             initial="hidden"
@@ -276,7 +286,8 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks, session }) => {
       </AnimatePresence>
 
       <AnimatePresence>
-        {isMobile && isSticky && !isNavOpen && (
+        {/* ✨ 6. וכנ"ל כאן, שימוש ב-isVisible */}
+        {isMobile && isVisible && !isNavOpen && (
           <motion.div
             initial={{ scale: 0, opacity: 0, y: 50 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}

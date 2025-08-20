@@ -26,8 +26,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
-import type { OurMethodDict, WorldDict  } from '@/types/dictionary';
-
+import type { OurMethodDict, WorldDict } from '@/types/dictionary';
 
 interface OurMethodProps {
   dict: OurMethodDict;
@@ -43,7 +42,10 @@ interface WorldData extends WorldDict {
 }
 // --- END: Type Definitions ---
 
-const MatchingConstellation: React.FC<{ dict: OurMethodDict['constellation'], locale: string }> = ({ dict, locale }) => {
+const MatchingConstellation: React.FC<{
+  dict: OurMethodDict['constellation'];
+  locale: string;
+}> = ({ dict, locale }) => {
   const [hoveredWorld, setHoveredWorld] = useState<number | null>(null);
   const [selectedWorld, setSelectedWorld] = useState<number>(1);
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(true);
@@ -69,24 +71,49 @@ const MatchingConstellation: React.FC<{ dict: OurMethodDict['constellation'], lo
   const worlds: WorldData[] = useMemo(
     () => [
       {
-        id: 1, icon: <User className="w-6 h-6 md:w-8 md:h-8" />, ...dict.worlds[0],
-        color: 'from-sky-400 to-blue-500', gradientFrom: '#38bdf8', gradientTo: '#3b82f6', angle: -72,
+        id: 1,
+        icon: <User className="w-6 h-6 md:w-8 md:h-8" />,
+        ...dict.worlds[0],
+        color: 'from-sky-400 to-blue-500',
+        gradientFrom: '#38bdf8',
+        gradientTo: '#3b82f6',
+        angle: -72,
       },
       {
-        id: 2, icon: <Heart className="w-6 h-6 md:w-8 md:h-8" />, ...dict.worlds[1],
-        color: 'from-rose-400 to-pink-500', gradientFrom: '#fb7185', gradientTo: '#ec4899', angle: -144,
+        id: 2,
+        icon: <Heart className="w-6 h-6 md:w-8 md:h-8" />,
+        ...dict.worlds[1],
+        color: 'from-rose-400 to-pink-500',
+        gradientFrom: '#fb7185',
+        gradientTo: '#ec4899',
+        angle: -144,
       },
       {
-        id: 3, icon: <Users className="w-6 h-6 md:w-8 md:h-8" />, ...dict.worlds[2],
-        color: 'from-emerald-400 to-teal-500', gradientFrom: '#34d399', gradientTo: '#14b8a6', angle: 144,
+        id: 3,
+        icon: <Users className="w-6 h-6 md:w-8 md:h-8" />,
+        ...dict.worlds[2],
+        color: 'from-emerald-400 to-teal-500',
+        gradientFrom: '#34d399',
+        gradientTo: '#14b8a6',
+        angle: 144,
       },
       {
-        id: 4, icon: <UserCheck className="w-6 h-6 md:w-8 md:h-8" />, ...dict.worlds[3],
-        color: 'from-violet-400 to-purple-500', gradientFrom: '#a78bfa', gradientTo: '#8b5cf6', angle: 72,
+        id: 4,
+        icon: <UserCheck className="w-6 h-6 md:w-8 md:h-8" />,
+        ...dict.worlds[3],
+        color: 'from-violet-400 to-purple-500',
+        gradientFrom: '#a78bfa',
+        gradientTo: '#8b5cf6',
+        angle: 72,
       },
       {
-        id: 5, icon: <Scroll className="w-6 h-6 md:w-8 md:h-8" />, ...dict.worlds[4],
-        color: 'from-amber-400 to-orange-500', gradientFrom: '#fbbf24', gradientTo: '#f97316', angle: 0,
+        id: 5,
+        icon: <Scroll className="w-6 h-6 md:w-8 md:h-8" />,
+        ...dict.worlds[4],
+        color: 'from-amber-400 to-orange-500',
+        gradientFrom: '#fbbf24',
+        gradientTo: '#f97316',
+        angle: 0,
       },
     ],
     [dict.worlds]
@@ -136,7 +163,7 @@ const MatchingConstellation: React.FC<{ dict: OurMethodDict['constellation'], lo
     y2: number;
     opacity: number;
   }
-  
+
   const generateConstellationLines = (): ConstellationLine[] => {
     const lines: ConstellationLine[] = [];
     const { center, radius } = dimensions;
@@ -231,7 +258,8 @@ const MatchingConstellation: React.FC<{ dict: OurMethodDict['constellation'], lo
         <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 md:mb-6 leading-tight px-4">
           {dict.title_part1}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-violet-600">
-            {' '}{dict.title_part2}{' '}
+            {' '}
+            {dict.title_part2}{' '}
           </span>
         </h3>
         <p className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed px-4">
@@ -616,8 +644,9 @@ const MatchingConstellation: React.FC<{ dict: OurMethodDict['constellation'], lo
                     <div className="w-2 h-2 rounded-full bg-gradient-to-r from-gray-400 to-gray-500 mt-3 flex-shrink-0"></div>
                     <div>
                       <h5 className="font-semibold text-gray-800 mb-2">
-                        למשל, אנו שואלים:
+                        {dict.example_header}
                       </h5>
+
                       <p className="text-gray-600 italic text-sm md:text-base">
                         &quot;{displayedWorld.personalExample}&quot;
                       </p>
@@ -629,8 +658,9 @@ const MatchingConstellation: React.FC<{ dict: OurMethodDict['constellation'], lo
                     <CheckCircle className="w-5 h-5 text-violet-600 mt-1 flex-shrink-0" />
                     <div>
                       <h5 className="font-semibold text-violet-800 mb-2">
-                        התובנה שלנו:
+                        {dict.insight_header}
                       </h5>
+
                       <p className="text-violet-700 text-sm md:text-base">
                         {displayedWorld.insight}
                       </p>
@@ -639,7 +669,8 @@ const MatchingConstellation: React.FC<{ dict: OurMethodDict['constellation'], lo
                 </div>
                 <div className="mt-6 md:mt-8 flex items-center gap-2">
                   <span className="text-sm text-gray-500 ml-3">
-                    מימד {displayedWorld.id} מתוך {worlds.length}
+                    {dict.dimension_prefix} {displayedWorld.id}{' '}
+                    {dict.dimension_suffix} {worlds.length}
                   </span>
                   {worlds.map((world) => (
                     <button
@@ -653,7 +684,6 @@ const MatchingConstellation: React.FC<{ dict: OurMethodDict['constellation'], lo
               </div>
             </motion.div>
           </AnimatePresence>
-       
         </motion.div>
       </div>
 
