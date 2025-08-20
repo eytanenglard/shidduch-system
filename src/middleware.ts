@@ -1,207 +1,164 @@
-// src/middleware.ts - VERSION WITH I18N, AUTH, AND RATE LIMITING
+// middleware.ts - VERSION WITH RATE LIMITING FOR HEROKU
 
-import { withAuth } from 'next-auth/middleware';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import type { NextRequestWithAuth } from 'next-auth/middleware';
-import { UserStatus } from '@prisma/client';
-import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
+import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
+import type { NextRequest } from 'next/server'; // Import NextRequest
+import type { NextRequestWithAuth } from "next-auth/middleware";
+import { UserStatus } from "@prisma/client";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
-// --- START: I18N Imports & Config ---
-import { i18n, type Locale } from '../i18n-config';
-import { match as matchLocale } from '@formatjs/intl-localematcher';
-import Negotiator from 'negotiator';
-// --- END: I18N Imports & Config ---
-
-
-// --- START: Rate Limiting Configuration (ללא שינוי) ---
+// --- START: Rate Limiting Configuration ---
+// Check if environment variables are set
 if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-  console.error("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set in the environment");
+    console.error("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set in the environment");
 }
+
+// Create a new Redis client instance.
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
+
+// Create a new ratelimiter, that allows 10 requests per 10 seconds
 const ratelimit = new Ratelimit({
   redis: redis,
-  limiter: Ratelimit.slidingWindow(10, '10 s'),
+  limiter: Ratelimit.slidingWindow(10, '10 s'), // Allow 10 requests per 10 seconds. Adjust as needed.
   analytics: true,
-  prefix: 'ratelimit_matchpoint',
+  prefix: 'ratelimit_matchpoint', // Unique prefix for your app
 });
 // --- END: Rate Limiting Configuration ---
 
-
-// --- START: I18N Locale Detection Function ---
-function getLocale(request: NextRequest): string | undefined {
-  const negotiatorHeaders: Record<string, string> = {};
-  request.headers.forEach((value, key) => (negotiatorHeaders[key] = value));
-
-  const locales: string[] = [...i18n.locales];
-  const languages = new Negotiator({ headers: negotiatorHeaders }).languages(locales);
-  const locale = matchLocale(languages, locales, i18n.defaultLocale);
-  return locale;
-}
-// --- END: I18N Locale Detection Function ---
-
-
-// --- START: Path Definitions (ללא שינוי) ---
+// Paths accessible without any authentication
 const publicPaths = [
   '/',
   '/auth/signin',
   '/auth/register',
   '/contact',
   '/questionnaire',
-  '/auth/forgot-password',
-  '/api/auth/request-password-reset',
-  '/auth/reset-password',
-  '/api/auth/reset-password',
-  '/auth/setup-account',
-  '/api/auth/complete-setup',
-  '/auth/accept-invitation',
+  // --- START: FIX FOR FORGOT/RESET PASSWORD ---
+  '/auth/forgot-password',    // Page for the "Forgot Password" form
+  '/api/auth/request-password-reset',// API to handle the forgot password request
+  '/auth/reset-password',     // Page for the "Reset Password" form (from email link)
+  '/api/auth/reset-password', // API to handle the actual password reset
+  // --- END: FIX FOR FORGOT/RESET PASSWORD ---
+  '/auth/setup-account',       // Page for user to set password from invite
+  '/api/auth/complete-setup',   // API to process the password setup
+  '/auth/accept-invitation',    // Page for a generic invitation
   '/api/auth/callback/google',
   '/api/uploadthing',
-  '/legal/privacy-policy',
-  '/legal/terms-of-service',
-  '/auth/error',
-  '/api/auth/session',
+   '/legal/privacy-policy',           // <--- הוסף
+  '/legal/terms-of-service',         // <--- הוסף
+  '/auth/error',                     // <--- הוסף אם דף השגיאה צריך להיות ציבורי          // <--- הוסף
+'/api/auth/session',
 ];
+
+// Paths accessible *after login* but *before* completion.
 const allowedWhileIncompleteOrUnverifiedPaths = [
   '/auth/register',
   '/auth/verify-phone',
   '/api/user/accept-terms',
-  '/settings',
-  '/api/auth/delete',
-  '/api/auth/send-verification',
-  '/api/auth/initiate-password-change',
+  '/settings',                  // The account settings page itself
+  '/api/auth/delete',                   // The API endpoint for account deletion
+  '/api/auth/send-verification',        // To allow resending verification emails from the settings page
+  '/api/auth/initiate-password-change', // To allow password changes
   '/api/auth/complete-password-change',
   '/api/auth/verify-phone-code',
   '/api/auth/resend-phone-code',
   '/api/auth/update-and-resend-code',
   '/auth/update-phone',
-  '/api/auth/session',
+    '/api/auth/session',
 ];
+
+// --- NEW: Add the chat API path to a separate constant for rate limiting ---
 const rateLimitedPaths = [
-  '/api/chat',
-  '/api/contact',
+    '/api/chat',
+    '/api/contact',
 ];
-// --- END: Path Definitions ---
 
-
-// --- Main Middleware Logic wrapped by withAuth ---
 export default withAuth(
   async function middleware(req: NextRequestWithAuth) {
-    const pathname = req.nextUrl.pathname;
-    
-    // --- ✨ START: I18N ROUTING LOGIC (RUNS FIRST) ---
-    // שלב 1: לבדוק אם הנתיב הוא נכס סטטי או API שאין לתרגם
-    const isAssetOrApi = pathname.startsWith('/api/') || 
-                         pathname.startsWith('/_next/') || 
-                         pathname.includes('/favicon.ico') ||
-                         pathname.startsWith('/assets/') ||
-                         pathname.startsWith('/images/');
+    const path = req.nextUrl.pathname;
+    const isApiRoute = path.startsWith('/api/');
 
-    // שלב 2: לבדוק אם הנתיב הנוכחי חסר קידומת שפה (למשל, /he או /en)
-    const pathnameIsMissingLocale = i18n.locales.every(
-      (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
-    );
-
-    // שלב 3: אם חסרה קידומת שפה וזה לא נכס סטטי/API, בצע הפנייה
-    if (pathnameIsMissingLocale && !isAssetOrApi) {
-      const locale = getLocale(req); // זיהוי השפה המועדפת
-      
-      // הפנייה לכתובת ה-URL הנכונה עם קידומת השפה
-      return NextResponse.redirect(
-        new URL(`/${locale}${pathname}`, req.url)
-      );
-    }
-    // --- ✨ END: I18N ROUTING LOGIC ---
-
-
-    // --- ✨ START: EXTRACT LOCALE FOR REDIRECTS ---
-    // מכאן והלאה, אנו מניחים שלנתיב יש קידומת שפה. נחלץ אותה.
-    const locale = pathname.split('/')[1] || i18n.defaultLocale;
-    // --- ✨ END: EXTRACT LOCALE FOR REDIRECTS ---
-
-    
-    const isApiRoute = pathname.startsWith('/api/');
-
-    // --- START: Rate Limiting Logic (ללא שינוי) ---
-    if (process.env.NODE_ENV === 'production' && rateLimitedPaths.some(p => pathname.endsWith(p))) {
+    // --- START: Rate Limiting Logic (נשאר ללא שינוי) ---
+    if (process.env.NODE_ENV === 'production' && rateLimitedPaths.some(p => path.startsWith(p))) {
         const token = req.nextauth.token;
         const identifier = token?.id || req.ip || '127.0.0.1';
         
         try {
             const { success, limit, remaining, reset } = await ratelimit.limit(identifier);
+
             if (!success) {
-                console.warn(`[RateLimit PROD] Blocked request for identifier: ${identifier}.`);
-                return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+                console.warn(`[RateLimit PROD] Blocked request for identifier: ${identifier}. Remaining: ${remaining}/${limit}. Resets in: ${new Date(reset).toLocaleTimeString()}`);
+                return NextResponse.json({ error: 'יותר מדי בקשות, אנא המתן מספר שניות ונסה שוב.' }, { status: 429 });
             }
         } catch (error) {
-            console.error("[RateLimit ERROR] Failed to connect to Upstash Redis.", error);
+            console.error("[RateLimit ERROR] Failed to connect to Upstash Redis. Allowing request to pass to avoid blocking app.", error);
         }
     }
     // --- END: Rate Limiting Logic ---
 
     const token = req.nextauth.token;
 
-    // Helper function להסרת קידומת השפה מהנתיב לצורך בדיקות ההרשאות
-const getPathWithoutLocale = (currentPath: string) => {
-  const parts = currentPath.split('/');
-  if (i18n.locales.includes(parts[1] as Locale)) { // <-- השורה המתוקנת
-    parts.splice(1, 1);
-    return parts.join('/') || '/';
-  }
-  return currentPath;
-};
-
-    
-    const pathWithoutLocale = getPathWithoutLocale(pathname);
-
+    // Helper function (נשאר ללא שינוי)
     const isPathAllowed = (allowedPaths: string[], currentPath: string): boolean => {
-      return allowedPaths.some(allowedPath => currentPath.startsWith(allowedPath));
+        return allowedPaths.some(allowedPath => {
+            if (currentPath === allowedPath) return true;
+            if (allowedPath.endsWith('/*') && currentPath.startsWith(allowedPath.slice(0, -2))) return true;
+            if (currentPath.startsWith(allowedPath) && (currentPath.length === allowedPath.length || currentPath.charAt(allowedPath.length) === '/')) return true;
+            return false;
+        });
     };
 
     // --- Scenario 1: No token (משתמש לא מחובר) ---
     if (!token) {
         const allPublicPaths = [...publicPaths, ...rateLimitedPaths];
-        const isPublic = isPathAllowed(allPublicPaths, pathWithoutLocale);
+        const isPublic = isPathAllowed(allPublicPaths, path);
 
+        // אם הדף אינו ציבורי והמשתמש לא מחובר, הפנה להתחברות
         if (!isPublic) {
             if (isApiRoute) {
                 return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
             }
-            // ✨ עדכון: הפנייה לדף ההתחברות עם קידומת השפה הנכונה
-            const signInUrl = new URL(`/${locale}/auth/signin`, req.url);
-            signInUrl.searchParams.set('callbackUrl', req.url);
+            const signInUrl = new URL('/auth/signin', req.url);
+            signInUrl.searchParams.set('callbackUrl', req.url); // שמור את הדף שאליו ניסה להגיע
             return NextResponse.redirect(signInUrl);
         }
+        // אם הדף ציבורי, אפשר לו להמשיך
         return NextResponse.next();
     }
 
     // --- Scenario 2: Token exists (משתמש מחובר) ---
+    // קודם כל, נחשב האם המשתמש צריך להשלים פרטים בפרופיל
     const needsEmailVerification = token.status === UserStatus.PENDING_EMAIL_VERIFICATION && !token.isVerified;
     const needsProfileCompletion = !token.isProfileComplete;
     const needsPhoneVerification = !token.isPhoneVerified;
     const needsTermsAcceptance = !token.termsAndPrivacyAcceptedAt;
     const overallNeedsCompletion = needsEmailVerification || needsProfileCompletion || needsPhoneVerification || needsTermsAcceptance;
-    
-    const isAuthPage = pathWithoutLocale.startsWith('/auth/signin') || pathWithoutLocale.startsWith('/auth/register');
 
+    const isAuthPage = path.startsWith('/auth/signin') || path.startsWith('/auth/register');
+
+    // חלק א': מה לעשות אם המשתמש המחובר נמצא בדף התחברות או הרשמה
     if (isAuthPage) {
+        // אם הפרופיל שלו מלא (לא צריך להשלים כלום), הפנה אותו לדף הפרופיל
         if (!overallNeedsCompletion) {
-            // ✨ עדכון: הפנייה לדף הפרופיל עם קידומת השפה
-            return NextResponse.redirect(new URL(`/${locale}/profile`, req.url));
+            return NextResponse.redirect(new URL('/profile', req.url));
         }
-        if (pathWithoutLocale.startsWith('/auth/signin')) {
-             // ✨ עדכון: הפנייה לדף ההרשמה עם קידומת השפה
-             return NextResponse.redirect(new URL(`/${locale}/auth/register`, req.url));
+        
+        // אם הוא כן צריך להשלים פרטים והוא מנסה לגשת לדף ההתחברות,
+        // עדיף להפנות אותו לדף ההרשמה שבו מתבצעת השלמת הפרטים.
+        if (path.startsWith('/auth/signin')) {
+             return NextResponse.redirect(new URL('/auth/register', req.url));
         }
+        
+        // אם הוא כבר בדף ההרשמה, תן לו להישאר שם
         return NextResponse.next();
     }
 
+    // חלק ב': מה לעשות אם משתמש עם פרופיל חסר מנסה לגשת לדף מוגן
     const allAllowedWhileIncomplete = [...publicPaths, ...allowedWhileIncompleteOrUnverifiedPaths, ...rateLimitedPaths];
-    const isAllowedForIncompleteUser = isPathAllowed(allAllowedWhileIncomplete, pathWithoutLocale);
+    const isAllowedForIncompleteUser = isPathAllowed(allAllowedWhileIncomplete, path);
 
     if (overallNeedsCompletion && !isAllowedForIncompleteUser) {
         let reason = '';
@@ -210,29 +167,51 @@ const getPathWithoutLocale = (currentPath: string) => {
         else if (needsProfileCompletion) reason = 'complete_profile';
         else if (needsPhoneVerification) reason = 'verify_phone';
 
+        // עבור קריאות API, החזר שגיאת JSON
         if (isApiRoute) {
-            return NextResponse.json({ error: `Action required: ${reason}.` }, { status: 403 });
+            return NextResponse.json({
+                error: `Action required: ${reason}. Please complete your profile/verification.`,
+                reason: reason,
+            }, { status: 403 });
         }
-        
-        // ✨ עדכון: הפנייה לדף ההרשמה עם קידומת השפה
-        const redirectUrl = new URL(`/${locale}/auth/register`, req.url);
+
+        // עבור דפי האתר, הפנה לדף המרכזי להשלמת פרטים
+        const redirectTo = '/auth/register';
+        const redirectUrl = new URL(redirectTo, req.url);
         if (reason) redirectUrl.searchParams.set('reason', reason);
         return NextResponse.redirect(redirectUrl);
     }
 
+    // אם כל התנאים עברו, זה אומר שהמשתמש מורשה לגשת לדף המבוקש
     return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: () => {
-        // מכיוון שהלוגיקה הראשית מטפלת בכל, נאשר כאן תמיד
-        // כדי שהמידלוור הראשי שלנו ירוץ תמיד.
-        return true; 
+      authorized: ({ token, req }) => {
+        const path = req.nextUrl.pathname;
+        
+        const isPathAllowed = (allowedPaths: string[], currentPath: string): boolean => {
+            return allowedPaths.some(allowedPath => {
+                if (currentPath === allowedPath) return true;
+                if (allowedPath.endsWith('/*') && currentPath.startsWith(allowedPath.slice(0, -2))) return true;
+                if (currentPath.startsWith(allowedPath) && (currentPath.length === allowedPath.length || currentPath.charAt(allowedPath.length) === '/')) return true;
+                return false;
+            });
+        };
+        
+        const allPublicPaths = [...publicPaths, ...rateLimitedPaths];
+        const isPublic = isPathAllowed(allPublicPaths, path);
+
+        // אם הדף הוא ציבורי, תמיד לאשר גישה
+        if (isPublic) {
+          return true;
+        }
+        
+        // אם הדף לא ציבורי, אשר גישה רק אם יש token
+        return !!token;
       },
     },
     pages: {
-        // הערה: נתיבים אלה הם סטטיים. הלוגיקה הראשית שלנו דואגת
-        // להפניות הדינמיות עם השפה הנכונה, כך שזה בסדר להשאיר אותם כך.
         signIn: '/auth/signin',
         error: '/auth/error',
     }
@@ -240,10 +219,9 @@ const getPathWithoutLocale = (currentPath: string) => {
 );
 
 
+// We keep the main matcher as it is. It's broad, and we filter inside the middleware.
 export const config = {
-  // עדכון ה-matcher כדי שיתעלם מנתיבי API, נכסים סטטיים, וכו'.
-  // זה מונע מהמידלוור לרוץ על בקשות לא רלוונטיות ומשפר ביצועים.
   matcher: [
-    '/((?!api|_next/static|_next/image|assets|images|favicon.ico|sw.js|site.webmanifest).*)',
+    '/((?!_next/static|_next/image|favicon.ico|assets|images|sw.js|site.webmanifest).*)',
   ],
 };
