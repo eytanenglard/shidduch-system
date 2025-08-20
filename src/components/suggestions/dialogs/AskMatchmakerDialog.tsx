@@ -1,6 +1,6 @@
 // src/app/components/suggestions/dialogs/AskMatchmakerDialog.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -24,116 +24,61 @@ import {
   Calendar,
   Lightbulb,
   Clock,
-  User,
   Sparkles,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import type { AskMatchmakerDict } from '@/types/dictionary';
 
 interface AskMatchmakerDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (question: string) => Promise<void>;
   matchmakerName?: string;
-  suggestionId?: string;
+  dict: AskMatchmakerDict;
 }
 
-interface QuestionTopic {
-  id: string;
-  label: string;
-  icon: React.ElementType;
-  color: string;
-  description: string;
-  questions: string[];
-}
+const iconMap: { [key: string]: React.ElementType } = {
+  values: Heart,
+  family: Users,
+  career: BookOpen,
+  personality: Sparkles,
+  future: Calendar,
+  other: Lightbulb,
+};
 
-const questionTopics: QuestionTopic[] = [
-  {
-    id: 'values',
-    label: 'ערכים ואמונות',
-    icon: Heart,
-    color: 'from-cyan-500 to-blue-500',
-    description: 'שאלות על השקפת עולם ומערכת ערכים',
-    questions: [
-      'האם יש משהו שחשוב לדעת לגבי השקפת העולם שלו/ה?',
-      'מה מידת החשיבות שהוא/היא מייחס/ת לנושאים דתיים?',
-      'האם יש לו/ה קווים אדומים בנושאי השקפה?',
-      'איך הוא/היא רואה את התפקיד של המסורת בחיי היומיום?',
-    ],
-  },
-  {
-    id: 'family',
-    label: 'משפחה ורקע',
-    icon: Users,
-    color: 'from-emerald-500 to-green-500',
-    description: 'שאלות על המשפחה והרקע האישי',
-    questions: [
-      'איך ניתן לתאר את המשפחה שלו/ה?',
-      'האם יש דברים חשובים לדעת לגבי המשפחה?',
-      'מה חשוב לו/ה בנושא בניית משפחה?',
-      'איך הקשר שלו/ה עם המשפחה המורחבת?',
-    ],
-  },
-  {
-    id: 'career',
-    label: 'תעסוקה ולימודים',
-    icon: BookOpen,
-    color: 'from-blue-500 to-cyan-500',
-    description: 'שאלות על קריירה והשכלה',
-    questions: [
-      'מה התוכניות המקצועיות שלו/ה לטווח הארוך?',
-      'האם הוא/היא מעוניין/ת בשינוי תעסוקתי?',
-      'איך הוא/היא רואה את האיזון בין קריירה ומשפחה?',
-      'מה התחומים שמעניינים אותו/ה ללימוד נוסף?',
-    ],
-  },
-  {
-    id: 'personality',
-    label: 'אופי ומזג',
-    icon: Sparkles,
-    color: 'from-pink-500 to-rose-500',
-    description: 'שאלות על אישיות ותכונות אופי',
-    questions: [
-      'איך היית מתאר/ת את האופי שלו/ה?',
-      'מה הן התכונות החזקות ביותר שלו/ה?',
-      'האם יש משהו שכדאי לדעת לגבי המזג?',
-      'איך הוא/היא מתמודל/ת עם לחץ ואתגרים?',
-    ],
-  },
-  {
-    id: 'future',
-    label: 'תוכניות לעתיד',
-    icon: Calendar,
-    color: 'from-amber-500 to-orange-500',
-    description: 'שאלות על חזון ותוכניות עתידיות',
-    questions: [
-      'מה החלומות שלו/ה לטווח הארוך?',
-      'האם יש לו/ה תוכניות לשינוי מקום מגורים?',
-      'מה החזון שלו/ה לחיי המשפחה?',
-      'איך הוא/היא רואה את החיים שלו/ה בעוד 10 שנים?',
-    ],
-  },
-  {
-    id: 'other',
-    label: 'שאלה אחרת',
-    icon: Lightbulb,
-    color: 'from-gray-500 to-slate-500',
-    description: 'שאלה ספציפית או נושא אחר',
-    questions: ['יש לי שאלה ספציפית...'],
-  },
-];
+const colorMap: { [key: string]: string } = {
+  values: 'from-cyan-500 to-blue-500',
+  family: 'from-emerald-500 to-green-500',
+  career: 'from-blue-500 to-cyan-500',
+  personality: 'from-pink-500 to-rose-500',
+  future: 'from-amber-500 to-orange-500',
+  other: 'from-gray-500 to-slate-500',
+};
 
 export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
   isOpen,
   onClose,
   onSubmit,
   matchmakerName,
+  dict,
 }) => {
   const [question, setQuestion] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+
+  const questionTopics = useMemo(() => {
+    return Object.keys(dict.topics).map((key) => ({
+      id: key,
+      label: dict.topics[key as keyof typeof dict.topics].label,
+      description: dict.topics[key as keyof typeof dict.topics].description,
+      questions: dict.topics[key as keyof typeof dict.topics].questions,
+      icon: iconMap[key],
+      color: colorMap[key],
+    }));
+  }, [dict.topics]);
 
   const handleSubmit = async () => {
     if (!question.trim()) return;
@@ -147,7 +92,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
       onClose();
     } catch (error) {
       console.error('Error submitting question:', error);
-      setError('אירעה שגיאה בשליחת השאלה. אנא נסה שוב מאוחר יותר.');
+      setError(dict.errorSubmitting);
     } finally {
       setIsSubmitting(false);
     }
@@ -161,11 +106,13 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
   };
 
   const selectedTopicData = questionTopics.find((t) => t.id === selectedTopic);
+  const dialogTitle = matchmakerName
+    ? dict.title.replace('{{name}}', matchmakerName)
+    : dict.titleDefault;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 border-0 shadow-2xl rounded-3xl bg-white overflow-hidden z-[9999]">
-        {/* Header */}
         <DialogHeader className="px-8 py-6 bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-gray-100">
           <div className="flex items-center gap-4 mb-4">
             <Avatar className="w-16 h-16 border-4 border-white shadow-lg">
@@ -175,20 +122,19 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             </Avatar>
             <div className="flex-1">
               <DialogTitle className="text-2xl font-bold text-gray-800 mb-1">
-                שאלה ל{matchmakerName ? ` ${matchmakerName}` : 'שדכן'}
+                {dialogTitle}
               </DialogTitle>
               <DialogDescription className="text-gray-600 text-base">
-                השדכן/ית זמין/ה לענות על כל שאלה שיש לך לגבי המועמד/ת
+                {dict.description}
               </DialogDescription>
             </div>
             <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-md px-3 py-1">
               <Clock className="w-3 h-3 ml-1" />
-              זמין/ה עכשיו
+              {dict.statusBadge}
             </Badge>
           </div>
         </DialogHeader>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
           {error && (
             <Alert variant="destructive" className="border-red-200 bg-red-50">
@@ -199,14 +145,13 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             </Alert>
           )}
 
-          {/* Topic Selection */}
           <div className="space-y-4">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                איזה נושא מעניין אותך?
+                {dict.topicSelect.title}
               </h3>
               <p className="text-sm text-gray-600">
-                בחר קטגוריה כדי לקבל שאלות לדוגמה
+                {dict.topicSelect.subtitle}
               </p>
             </div>
 
@@ -243,14 +188,16 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             </div>
           </div>
 
-          {/* Sample Questions */}
           {selectedTopicData && (
             <Card className="bg-gradient-to-r from-cyan-50/50 to-emerald-50/50 border-cyan-200/50">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <selectedTopicData.icon className="w-5 h-5 text-cyan-600" />
                   <h4 className="font-semibold text-cyan-800">
-                    שאלות לדוגמה - {selectedTopicData.label}
+                    {dict.sampleQuestions.title.replace(
+                      '{{topic}}',
+                      selectedTopicData.label
+                    )}
                   </h4>
                 </div>
                 <div className="space-y-2 max-h-32 overflow-y-auto scrollbar-elegant">
@@ -269,29 +216,32 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             </Card>
           )}
 
-          {/* Question Input */}
           <div className="space-y-3">
             <Label
               htmlFor="question"
               className="text-base font-semibold text-gray-800"
             >
-              שאלתך
+              {dict.input.label}
             </Label>
             <Textarea
               id="question"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="כתוב כאן את שאלתך... השדכן/ית ישמח/תשמח לעזור ולהשיב"
+              placeholder={dict.input.placeholder}
               className="min-h-[120px] text-right border-gray-200 focus:border-cyan-300 focus:ring-cyan-200 rounded-xl text-base leading-relaxed resize-none"
             />
             <div className="flex justify-between items-center text-xs text-gray-500">
-              <span>{question.length}/500 תווים</span>
-              <span>השאלה תישלח ישירות לשדכן/ית</span>
+              <span>
+                {dict.input.charCount.replace(
+                  '{{count}}',
+                  question.length.toString()
+                )}
+              </span>
+              <span>{dict.input.info}</span>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
         <DialogFooter className="px-8 py-6 border-t border-gray-100 bg-gray-50/50">
           <div className="flex gap-3 w-full">
             <Button
@@ -301,7 +251,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
               disabled={isSubmitting}
               className="flex-1 border-gray-200 hover:bg-gray-50 rounded-xl font-medium"
             >
-              ביטול
+              {dict.buttons.cancel}
             </Button>
             <Button
               type="submit"
@@ -312,12 +262,12 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
               {isSubmitting ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin ml-2" />
-                  שולח...
+                  {dict.buttons.submitting}
                 </>
               ) : (
                 <>
                   <Send className="w-4 h-4 ml-2" />
-                  שלח שאלה
+                  {dict.buttons.submit}
                 </>
               )}
             </Button>

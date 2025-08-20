@@ -20,11 +20,10 @@ import {
   TrendingUp,
   Target,
   Users,
-  Calendar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { PartyInfo } from '../types';
-import type { UserProfile } from '@/types/next-auth';
+import type { SuggestionsCompatibilityDict } from '@/types/dictionary';
 
 interface CompatibilityItem {
   criterion: string;
@@ -42,19 +41,17 @@ interface MatchCompatibilityProps {
   secondParty: PartyInfo;
   matchingReason?: string | null;
   className?: string;
+  dict: SuggestionsCompatibilityDict;
 }
 
 const calculateAge = (birthDate?: Date | string | null): number | null => {
   if (!birthDate) return null;
-
   try {
     const today = new Date();
     const birth = new Date(birthDate);
     if (isNaN(birth.getTime())) return null;
-
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-
     if (
       monthDiff < 0 ||
       (monthDiff === 0 && today.getDate() < birth.getDate())
@@ -98,10 +95,10 @@ const getCategoryColor = (category: string) => {
 
 const CompatibilityCard: React.FC<{
   item: CompatibilityItem;
-  index: number;
   firstParty: PartyInfo;
   secondParty: PartyInfo;
-}> = ({ item, index, firstParty, secondParty }) => {
+  dict: SuggestionsCompatibilityDict;
+}> = ({ item, firstParty, secondParty, dict }) => {
   const importanceColor = getImportanceColor(item.importance);
   const categoryColor = getCategoryColor(item.category);
 
@@ -114,7 +111,6 @@ const CompatibilityCard: React.FC<{
     >
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
-          {/* Icon */}
           <div
             className={cn(
               'flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br text-white flex items-center justify-center shadow-md',
@@ -125,8 +121,6 @@ const CompatibilityCard: React.FC<{
           >
             {item.icon}
           </div>
-
-          {/* Content */}
           <div className="flex-1 space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
@@ -142,10 +136,10 @@ const CompatibilityCard: React.FC<{
                     )}
                   >
                     {item.importance === 'high'
-                      ? 'חשוב'
+                      ? dict.importance.high
                       : item.importance === 'medium'
-                        ? 'בינוני'
-                        : 'נמוך'}
+                        ? dict.importance.medium
+                        : dict.importance.low}
                   </Badge>
                 </div>
                 <p
@@ -157,7 +151,6 @@ const CompatibilityCard: React.FC<{
                   {item.reason}
                 </p>
               </div>
-
               <div className="flex-shrink-0">
                 {item.compatible ? (
                   <CheckCircle className="w-6 h-6 text-emerald-500" />
@@ -166,8 +159,6 @@ const CompatibilityCard: React.FC<{
                 )}
               </div>
             </div>
-
-            {/* Details */}
             {(item.first != null || item.second != null) && (
               <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/50">
                 <div className="text-center bg-white/60 backdrop-blur-sm rounded-lg p-2">
@@ -175,7 +166,7 @@ const CompatibilityCard: React.FC<{
                     {firstParty.firstName}
                   </div>
                   <div className="font-semibold text-gray-800 text-sm">
-                    {item.first ?? 'לא צוין'}
+                    {item.first ?? dict.card.notSpecified}
                   </div>
                 </div>
                 <div className="text-center bg-white/60 backdrop-blur-sm rounded-lg p-2">
@@ -183,7 +174,7 @@ const CompatibilityCard: React.FC<{
                     {secondParty.firstName}
                   </div>
                   <div className="font-semibold text-gray-800 text-sm">
-                    {item.second ?? 'לא צוין'}
+                    {item.second ?? dict.card.notSpecified}
                   </div>
                 </div>
               </div>
@@ -202,7 +193,8 @@ const CategorySection: React.FC<{
   color: string;
   firstParty: PartyInfo;
   secondParty: PartyInfo;
-}> = ({ title, icon: Icon, items, color, firstParty, secondParty }) => {
+  dict: SuggestionsCompatibilityDict;
+}> = ({ title, icon: Icon, items, color, firstParty, secondParty, dict }) => {
   const compatibleCount = items.filter((item) => item.compatible).length;
   const compatibilityRate =
     items.length > 0 ? (compatibleCount / items.length) * 100 : 0;
@@ -224,7 +216,9 @@ const CategorySection: React.FC<{
           <div>
             <h3 className="text-lg font-bold text-gray-800">{title}</h3>
             <p className="text-sm text-gray-600">
-              {compatibleCount} מתוך {items.length} קריטריונים תואמים
+              {dict.categorySubtitle
+                .replace('{{compatibleCount}}', compatibleCount.toString())
+                .replace('{{totalCount}}', items.length.toString())}
             </p>
           </div>
         </div>
@@ -241,19 +235,17 @@ const CategorySection: React.FC<{
           >
             {Math.round(compatibilityRate)}%
           </div>
-          <div className="text-xs text-gray-500">התאמה</div>
+          <div className="text-xs text-gray-500">{dict.compatibilityLabel}</div>
         </div>
       </div>
-
       <ul className="grid gap-4">
         {items.map((item, index) => (
           <li key={index}>
             <CompatibilityCard
-              key={index}
               item={item}
-              index={index}
               firstParty={firstParty}
               secondParty={secondParty}
+              dict={dict}
             />
           </li>
         ))}
@@ -267,9 +259,8 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
   secondParty,
   matchingReason,
   className,
+  dict,
 }) => {
-  // FIX: Add a guard clause to handle the possibility of null profiles.
-  // If either profile is null, we cannot perform the analysis and should return early.
   if (!firstParty.profile || !secondParty.profile) {
     return (
       <Card className={cn('shadow-xl border-0 overflow-hidden', className)}>
@@ -279,7 +270,7 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
               <Heart className="w-6 h-6" />
             </div>
             <div>
-              <span className="font-bold text-gray-800">ניתוח התאמה</span>
+              <span className="font-bold text-gray-800">{dict.mainTitle}</span>
             </div>
           </CardTitle>
         </CardHeader>
@@ -287,11 +278,10 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
           <div className="text-center py-12">
             <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-gray-400" />
             <h3 className="text-lg font-semibold text-gray-600 mb-2">
-              לא ניתן לחשב התאמה
+              {dict.errorTitle}
             </h3>
             <p className="text-gray-500 max-w-md mx-auto">
-              אחד או יותר מהפרופילים אינם מלאים ולכן לא ניתן לבצע ניתוח התאמה
-              מפורט.
+              {dict.errorDescription}
             </p>
           </div>
         </CardContent>
@@ -299,14 +289,12 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     );
   }
 
-  // After the guard clause, TypeScript knows .profile is non-null.
   const firstProfile = firstParty.profile;
   const secondProfile = secondParty.profile;
 
   const firstPartyAge = calculateAge(firstProfile.birthDate);
   const secondPartyAge = calculateAge(secondProfile.birthDate);
 
-  // Helper functions
   const isWithinRange = (
     value: number | null | undefined,
     min: number | null | undefined,
@@ -327,32 +315,29 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     return preferredList.includes(value);
   };
 
-  // Calculate compatibility items
   const calculateCompatibilityItems = (): CompatibilityItem[] => {
     const items: CompatibilityItem[] = [];
 
-    // Age compatibility
+    // Age
     if (firstPartyAge != null && secondPartyAge != null) {
-      const firstAgePreferenceMatch = isWithinRange(
-        secondPartyAge,
-        firstProfile.preferredAgeMin,
-        firstProfile.preferredAgeMax
-      );
-
-      const secondAgePreferenceMatch = isWithinRange(
-        firstPartyAge,
-        secondProfile.preferredAgeMin,
-        secondProfile.preferredAgeMax
-      );
-
-      const compatible = firstAgePreferenceMatch && secondAgePreferenceMatch;
+      const compatible =
+        isWithinRange(
+          secondPartyAge,
+          firstProfile.preferredAgeMin,
+          firstProfile.preferredAgeMax
+        ) &&
+        isWithinRange(
+          firstPartyAge,
+          secondProfile.preferredAgeMin,
+          secondProfile.preferredAgeMax
+        );
       items.push({
-        criterion: 'גיל',
+        criterion: dict.criteria.age,
         icon: <User className="w-6 h-6" />,
         compatible,
         reason: compatible
-          ? 'התאמה הדדית בציפיות הגיל'
-          : 'אי התאמה בציפיות הגיל',
+          ? dict.reasons.mutualMatch.replace('{{criterion}}', dict.criteria.age)
+          : dict.reasons.mismatch.replace('{{criterion}}', dict.criteria.age),
         first: firstPartyAge,
         second: secondPartyAge,
         importance: 'high',
@@ -360,195 +345,204 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
       });
     }
 
-    // Height compatibility
-    const firstHeight = firstProfile.height;
-    const secondHeight = secondProfile.height;
-    if (firstHeight != null && secondHeight != null) {
-      const firstHeightPreferenceMatch = isWithinRange(
-        secondHeight,
-        firstProfile.preferredHeightMin,
-        firstProfile.preferredHeightMax
-      );
-
-      const secondHeightPreferenceMatch = isWithinRange(
-        firstHeight,
-        secondProfile.preferredHeightMin,
-        secondProfile.preferredHeightMax
-      );
-
+    // Height
+    if (firstProfile.height != null && secondProfile.height != null) {
       const compatible =
-        firstHeightPreferenceMatch && secondHeightPreferenceMatch;
+        isWithinRange(
+          secondProfile.height,
+          firstProfile.preferredHeightMin,
+          firstProfile.preferredHeightMax
+        ) &&
+        isWithinRange(
+          firstProfile.height,
+          secondProfile.preferredHeightMin,
+          secondProfile.preferredHeightMax
+        );
       items.push({
-        criterion: 'גובה',
+        criterion: dict.criteria.height,
         icon: <TrendingUp className="w-6 h-6" />,
         compatible,
         reason: compatible
-          ? 'התאמה הדדית בציפיות הגובה'
-          : 'אי התאמה בציפיות הגובה',
-        first: `${firstHeight} ס"מ`,
-        second: `${secondHeight} ס"מ`,
+          ? dict.reasons.mutualMatch.replace(
+              '{{criterion}}',
+              dict.criteria.height
+            )
+          : dict.reasons.mismatch.replace(
+              '{{criterion}}',
+              dict.criteria.height
+            ),
+        first: `${firstProfile.height} ${dict.unitCm}`,
+        second: `${secondProfile.height} ${dict.unitCm}`,
         importance: 'medium',
         category: 'basic',
       });
     }
 
-    // Location compatibility
-    const firstCity = firstProfile.city;
-    const secondCity = secondProfile.city;
-    if (firstCity != null && secondCity != null) {
-      const firstLocationPreferenceMatch = isInPreferredList(
-        secondCity,
-        firstProfile.preferredLocations
-      );
-
-      const secondLocationPreferenceMatch = isInPreferredList(
-        firstCity,
-        secondProfile.preferredLocations
-      );
-
+    // Location
+    if (firstProfile.city != null && secondProfile.city != null) {
       const compatible =
-        firstLocationPreferenceMatch && secondLocationPreferenceMatch;
+        isInPreferredList(
+          secondProfile.city,
+          firstProfile.preferredLocations
+        ) &&
+        isInPreferredList(firstProfile.city, secondProfile.preferredLocations);
       items.push({
-        criterion: 'מקום מגורים',
+        criterion: dict.criteria.location,
         icon: <MapPin className="w-6 h-6" />,
         compatible,
         reason: compatible
-          ? 'התאמה הדדית בהעדפות מיקום'
-          : 'אי התאמה בהעדפות מיקום',
-        first: firstCity,
-        second: secondCity,
+          ? dict.reasons.mutualMatch.replace(
+              '{{criterion}}',
+              dict.criteria.location
+            )
+          : dict.reasons.mismatch.replace(
+              '{{criterion}}',
+              dict.criteria.location
+            ),
+        first: firstProfile.city,
+        second: secondProfile.city,
         importance: 'high',
         category: 'lifestyle',
       });
     }
 
-    // Religious level compatibility
-    const firstReligious = firstProfile.religiousLevel;
-    const secondReligious = secondProfile.religiousLevel;
-    if (firstReligious != null && secondReligious != null) {
-      const firstReligiousPreferenceMatch = isInPreferredList(
-        secondReligious,
-        firstProfile.preferredReligiousLevels
-      );
-
-      const secondReligiousPreferenceMatch = isInPreferredList(
-        firstReligious,
-        secondProfile.preferredReligiousLevels
-      );
-
+    // Religious Level
+    if (
+      firstProfile.religiousLevel != null &&
+      secondProfile.religiousLevel != null
+    ) {
       const compatible =
-        firstReligiousPreferenceMatch && secondReligiousPreferenceMatch;
+        isInPreferredList(
+          secondProfile.religiousLevel,
+          firstProfile.preferredReligiousLevels
+        ) &&
+        isInPreferredList(
+          firstProfile.religiousLevel,
+          secondProfile.preferredReligiousLevels
+        );
       items.push({
-        criterion: 'רמה דתית',
+        criterion: dict.criteria.religiousLevel,
         icon: <Scroll className="w-6 h-6" />,
         compatible,
         reason: compatible
-          ? 'התאמה הדדית בהעדפות רמה דתית'
-          : 'אי התאמה בהעדפות רמה דתית',
-        first: firstReligious,
-        second: secondReligious,
+          ? dict.reasons.mutualMatch.replace(
+              '{{criterion}}',
+              dict.criteria.religiousLevel
+            )
+          : dict.reasons.mismatch.replace(
+              '{{criterion}}',
+              dict.criteria.religiousLevel
+            ),
+        first: firstProfile.religiousLevel,
+        second: secondProfile.religiousLevel,
         importance: 'high',
         category: 'values',
       });
     }
 
-    // Education compatibility
-    const firstEdu = firstProfile.education;
-    const secondEdu = secondProfile.education;
-    if (firstEdu != null && secondEdu != null) {
-      const firstEducationPreferenceMatch = isInPreferredList(
-        secondEdu,
-        firstProfile.preferredEducation
-      );
-
-      const secondEducationPreferenceMatch = isInPreferredList(
-        firstEdu,
-        secondProfile.preferredEducation
-      );
-
+    // Education
+    if (firstProfile.education != null && secondProfile.education != null) {
       const compatible =
-        firstEducationPreferenceMatch && secondEducationPreferenceMatch;
+        isInPreferredList(
+          secondProfile.education,
+          firstProfile.preferredEducation
+        ) &&
+        isInPreferredList(
+          firstProfile.education,
+          secondProfile.preferredEducation
+        );
       items.push({
-        criterion: 'השכלה',
+        criterion: dict.criteria.education,
         icon: <GraduationCap className="w-6 h-6" />,
         compatible,
         reason: compatible
-          ? 'התאמה הדדית בהעדפות השכלה'
-          : 'אי התאמה בהעדפות השכלה',
-        first: firstEdu,
-        second: secondEdu,
+          ? dict.reasons.mutualMatch.replace(
+              '{{criterion}}',
+              dict.criteria.education
+            )
+          : dict.reasons.mismatch.replace(
+              '{{criterion}}',
+              dict.criteria.education
+            ),
+        first: firstProfile.education,
+        second: secondProfile.education,
         importance: 'medium',
         category: 'preferences',
       });
     }
 
-    // Occupation compatibility
-    const firstOcc = firstProfile.occupation;
-    const secondOcc = secondProfile.occupation;
-    if (firstOcc != null && secondOcc != null) {
-      const firstOccupationPreferenceMatch = isInPreferredList(
-        secondOcc,
-        firstProfile.preferredOccupations
-      );
-
-      const secondOccupationPreferenceMatch = isInPreferredList(
-        firstOcc,
-        secondProfile.preferredOccupations
-      );
-
+    // Occupation
+    if (firstProfile.occupation != null && secondProfile.occupation != null) {
       const compatible =
-        firstOccupationPreferenceMatch && secondOccupationPreferenceMatch;
+        isInPreferredList(
+          secondProfile.occupation,
+          firstProfile.preferredOccupations
+        ) &&
+        isInPreferredList(
+          firstProfile.occupation,
+          secondProfile.preferredOccupations
+        );
       items.push({
-        criterion: 'תעסוקה',
+        criterion: dict.criteria.occupation,
         icon: <BookOpen className="w-6 h-6" />,
         compatible,
         reason: compatible
-          ? 'התאמה הדדית בהעדפות תעסוקה'
-          : 'אי התאמה בהעדפות תעסוקה',
-        first: firstOcc,
-        second: secondOcc,
+          ? dict.reasons.mutualMatch.replace(
+              '{{criterion}}',
+              dict.criteria.occupation
+            )
+          : dict.reasons.mismatch.replace(
+              '{{criterion}}',
+              dict.criteria.occupation
+            ),
+        first: firstProfile.occupation,
+        second: secondProfile.occupation,
         importance: 'medium',
         category: 'lifestyle',
       });
     }
 
-    // Origin compatibility
-    const firstOrigin = firstProfile.origin;
-    const secondOrigin = secondProfile.origin;
-    if (firstOrigin != null && secondOrigin != null) {
-      const sameOrigin = firstOrigin === secondOrigin;
+    // Origin
+    if (firstProfile.origin != null && secondProfile.origin != null) {
       items.push({
-        criterion: 'מוצא',
+        criterion: dict.criteria.origin,
         icon: <Home className="w-6 h-6" />,
         compatible: true,
-        reason: sameOrigin ? 'מוצא זהה' : 'מוצא שונה - מעשיר את הקשר',
-        first: firstOrigin,
-        second: secondOrigin,
+        reason:
+          firstProfile.origin === secondProfile.origin
+            ? dict.reasons.sameOrigin
+            : dict.reasons.differentOrigin,
+        first: firstProfile.origin,
+        second: secondProfile.origin,
         importance: 'low',
         category: 'values',
       });
     }
 
-    // Language compatibility
-    const firstLang = firstProfile.nativeLanguage;
-    const secondLang = secondProfile.nativeLanguage;
-    if (firstLang != null && secondLang != null) {
-      const nativeMatch = firstLang === secondLang;
-      const firstSpeaksSecondNative =
-        firstProfile.additionalLanguages?.includes(secondLang) ?? false;
-      const secondSpeaksFirstNative =
-        secondProfile.additionalLanguages?.includes(firstLang) ?? false;
-
+    // Language
+    if (
+      firstProfile.nativeLanguage != null &&
+      secondProfile.nativeLanguage != null
+    ) {
       const sharedLanguage =
-        nativeMatch || firstSpeaksSecondNative || secondSpeaksFirstNative;
-
+        firstProfile.nativeLanguage === secondProfile.nativeLanguage ||
+        (firstProfile.additionalLanguages?.includes(
+          secondProfile.nativeLanguage
+        ) ??
+          false) ||
+        (secondProfile.additionalLanguages?.includes(
+          firstProfile.nativeLanguage
+        ) ??
+          false);
       items.push({
-        criterion: 'שפה',
+        criterion: dict.criteria.language,
         icon: <Languages className="w-6 h-6" />,
         compatible: sharedLanguage,
-        reason: sharedLanguage ? 'יש שפה משותפת' : 'אין שפה משותפת מוכרת',
-        first: firstLang,
-        second: secondLang,
+        reason: sharedLanguage
+          ? dict.reasons.sharedLanguage
+          : dict.reasons.noSharedLanguage,
+        first: firstProfile.nativeLanguage,
+        second: secondProfile.nativeLanguage,
         importance: 'medium',
         category: 'lifestyle',
       });
@@ -566,7 +560,6 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
       ? Math.round((compatibleCount / compatibilityItems.length) * 100)
       : 0;
 
-  // Group items by category
   const basicItems = compatibilityItems.filter(
     (item) => item.category === 'basic'
   );
@@ -588,10 +581,10 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
   };
 
   const getScoreDescription = (score: number) => {
-    if (score >= 80) return 'התאמה מעולה';
-    if (score >= 60) return 'התאמה טובה';
-    if (score >= 40) return 'התאמה בינונית';
-    return 'התאמה מאתגרת';
+    if (score >= 80) return dict.overallScore.descriptionExcellent;
+    if (score >= 60) return dict.overallScore.descriptionGood;
+    if (score >= 40) return dict.overallScore.descriptionModerate;
+    return dict.overallScore.descriptionChallenging;
   };
 
   return (
@@ -602,16 +595,15 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
             <Heart className="w-6 h-6" />
           </div>
           <div>
-            <span className="font-bold text-gray-800">ניתוח התאמה מפורט</span>
+            <span className="font-bold text-gray-800">{dict.mainTitle}</span>
             <p className="text-sm text-gray-600 font-normal mt-1">
-              ניתוח מעמיק של נקודות החיבור והאתגרים הפוטנציאליים
+              {dict.mainSubtitle}
             </p>
           </div>
         </CardTitle>
       </CardHeader>
 
       <CardContent className="p-8 space-y-8">
-        {/* Overall Score */}
         <Card className="border-0 shadow-lg bg-gradient-to-r from-slate-50 to-gray-50">
           <CardContent className="p-6">
             <div className="text-center space-y-4">
@@ -631,15 +623,22 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
                   </div>
                 </div>
               </div>
-
               <Progress value={compatibilityScore} className="h-3" />
-
               <div className="flex justify-between text-sm text-gray-600">
                 <span>
-                  {compatibleCount} מתוך {compatibilityItems.length} קריטריונים
-                  תואמים
+                  {dict.overallScore.progressText
+                    .replace('{{compatibleCount}}', compatibleCount.toString())
+                    .replace(
+                      '{{totalCount}}',
+                      compatibilityItems.length.toString()
+                    )}
                 </span>
-                <span>ציון כללי: {compatibilityScore}%</span>
+                <span>
+                  {dict.overallScore.overallScoreLabel.replace(
+                    '{{score}}',
+                    compatibilityScore.toString()
+                  )}
+                </span>
               </div>
             </div>
           </CardContent>
@@ -647,59 +646,55 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
 
         {compatibilityItems.length > 0 ? (
           <div className="space-y-8">
-            {/* Basic Info */}
             <CategorySection
-              title="מידע בסיסי"
+              title={dict.categoryTitles.basic}
               icon={User}
               items={basicItems}
               color="from-cyan-500 to-blue-500"
               firstParty={firstParty}
               secondParty={secondParty}
+              dict={dict}
             />
-
-            {/* Values */}
             <CategorySection
-              title="ערכים והשקפה"
+              title={dict.categoryTitles.values}
               icon={Heart}
               items={valuesItems}
               color="from-emerald-500 to-green-500"
               firstParty={firstParty}
               secondParty={secondParty}
+              dict={dict}
             />
-
-            {/* Lifestyle */}
             <CategorySection
-              title="סגנון חיים"
+              title={dict.categoryTitles.lifestyle}
               icon={Target}
               items={lifestyleItems}
               color="from-blue-500 to-cyan-500"
               firstParty={firstParty}
               secondParty={secondParty}
+              dict={dict}
             />
-
-            {/* Preferences */}
             <CategorySection
-              title="העדפות אישיות"
+              title={dict.categoryTitles.preferences}
               icon={Star}
               items={preferencesItems}
               color="from-green-500 to-emerald-500"
               firstParty={firstParty}
               secondParty={secondParty}
+              dict={dict}
             />
           </div>
         ) : (
           <div className="text-center py-12">
             <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-gray-400" />
             <h3 className="text-lg font-semibold text-gray-600 mb-2">
-              אין מספיק נתונים
+              {dict.noDataTitle}
             </h3>
             <p className="text-gray-500 max-w-md mx-auto">
-              לא נמצא מספיק מידע משותף כדי לבצע ניתוח התאמה מפורט
+              {dict.noDataDescription}
             </p>
           </div>
         )}
 
-        {/* Matchmaker Rationale */}
         {matchingReason && (
           <Card className="border-0 shadow-lg bg-gradient-to-r from-cyan-50 to-emerald-50">
             <CardContent className="p-6">
@@ -709,7 +704,7 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-cyan-800 text-lg mb-2">
-                    נימוק השדכן להצעה
+                    {dict.matchmakerRationaleTitle}
                   </h3>
                   <p className="text-cyan-700 leading-relaxed">
                     {matchingReason}

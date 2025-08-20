@@ -1,7 +1,7 @@
 // src/app/components/suggestions/cards/SuggestionQuickView.tsx
 
-import React from "react";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Heart,
   User,
@@ -14,19 +14,22 @@ import {
   MessageCircle,
   CheckCircle,
   XCircle,
-} from "lucide-react";
-import type { ExtendedMatchSuggestion } from "../types";
+} from 'lucide-react';
+import type { ExtendedMatchSuggestion } from '../types';
+import type { SuggestionsQuickViewDict } from '@/types/dictionary'; // ✨ Import dictionary type
 
 interface SuggestionQuickViewProps {
   suggestion: ExtendedMatchSuggestion;
   userId?: string;
-  onAction: (action: "approve" | "reject" | "ask" | "view") => void;
+  onAction: (action: 'approve' | 'reject' | 'ask' | 'view') => void;
+  dict: SuggestionsQuickViewDict; // ✨ Add dict prop
 }
 
 const SuggestionQuickView: React.FC<SuggestionQuickViewProps> = ({
   suggestion,
   userId,
   onAction,
+  dict, // ✨ Destructure dict
 }) => {
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -38,9 +41,6 @@ const SuggestionQuickView: React.FC<SuggestionQuickViewProps> = ({
       : suggestion.firstParty.profile
     : suggestion.secondParty.profile;
 
-  // --- SOLUTION: Add this guard clause ---
-  // If there's no profile, don't render anything.
-  // This tells TypeScript that in the code that follows, 'profile' is guaranteed to exist.
   if (!profile) {
     return null;
   }
@@ -52,10 +52,11 @@ const SuggestionQuickView: React.FC<SuggestionQuickViewProps> = ({
     >
       <div className="flex-1 space-y-4 text-right overflow-y-auto max-h-96">
         <div className="grid grid-cols-2 gap-3">
-          {/* Now all these accesses are safe */}
           {profile.height && (
             <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
-              <span>{profile.height} ס״מ</span>
+              <span>
+                {profile.height} {dict.unitCm}
+              </span>
               <User className="w-4 h-4" />
             </div>
           )}
@@ -84,7 +85,7 @@ const SuggestionQuickView: React.FC<SuggestionQuickViewProps> = ({
 
         {profile.about && (
           <div className="border-t border-gray-100 pt-3">
-            <h4 className="text-sm font-medium mb-1">אודות:</h4>
+            <h4 className="text-sm font-medium mb-1">{dict.aboutTitle}</h4>
             <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
               {profile.about}
             </p>
@@ -93,7 +94,7 @@ const SuggestionQuickView: React.FC<SuggestionQuickViewProps> = ({
 
         {suggestion.matchingReason && (
           <div className="border-t border-gray-100 pt-3">
-            <h4 className="text-sm font-medium mb-1">סיבת ההצעה:</h4>
+            <h4 className="text-sm font-medium mb-1">{dict.reasonTitle}</h4>
             <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
               {suggestion.matchingReason}
             </p>
@@ -120,9 +121,11 @@ const SuggestionQuickView: React.FC<SuggestionQuickViewProps> = ({
           <div className="border-t border-gray-100 pt-3">
             <div className="flex items-center justify-end gap-2 text-sm text-yellow-600">
               <span>
-                נדרשת תשובה עד{" "}
-                {new Date(suggestion.decisionDeadline).toLocaleDateString(
-                  "he-IL"
+                {dict.deadlineText.replace(
+                  '{{date}}',
+                  new Date(suggestion.decisionDeadline).toLocaleDateString(
+                    'he-IL'
+                  )
                 )}
               </span>
               <Clock className="w-4 h-4" />
@@ -135,37 +138,37 @@ const SuggestionQuickView: React.FC<SuggestionQuickViewProps> = ({
         <Button
           variant="default"
           className="w-full"
-          onClick={() => onAction("view")}
+          onClick={() => onAction('view')}
         >
           <Eye className="w-4 h-4 ml-2" />
-          צפייה בפרופיל
+          {dict.buttons.viewProfile}
         </Button>
 
         <Button
           variant="default"
           className="w-full bg-green-600 hover:bg-green-700"
-          onClick={() => onAction("approve")}
+          onClick={() => onAction('approve')}
         >
           <CheckCircle className="w-4 h-4 ml-2" />
-          אישור הצעה
+          {dict.buttons.approve}
         </Button>
 
         <Button
           variant="outline"
           className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={() => onAction("reject")}
+          onClick={() => onAction('reject')}
         >
           <XCircle className="w-4 h-4 ml-2" />
-          דחיית הצעה
+          {dict.buttons.decline}
         </Button>
 
         <Button
           variant="outline"
           className="w-full"
-          onClick={() => onAction("ask")}
+          onClick={() => onAction('ask')}
         >
           <MessageCircle className="w-4 h-4 ml-2" />
-          שאלה לשדכן
+          {dict.buttons.ask}
         </Button>
       </div>
     </div>

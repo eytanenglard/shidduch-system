@@ -381,6 +381,8 @@ export type SuggestionsModalDict = {
   };
 };
 
+// No changes needed in SuggestionsDictionary, as SuggestionsModalDict is already there.
+
 export type AiAnalysisDict = {
   dialogTitle: string;
   loadingTitle: string;
@@ -520,6 +522,12 @@ export type SuggestionsDictionary = {
   aiAnalysis: AiAnalysisDict;
   list: SuggestionsListDict;
   presentation: SuggestionsPresentationDict;
+    quickView: SuggestionsQuickViewDict; 
+  compatibility: SuggestionsCompatibilityDict; // <-- Add this line
+  askMatchmaker: AskMatchmakerDict; // <-- Add this line
+  inquiryThread: InquiryThreadDict; // <-- Add this line
+  timeline: SuggestionTimelineDict; // <-- Add this line
+
 };
 
 // ======================================================================== //
@@ -585,3 +593,179 @@ export type MetadataDict = {
   title: string;
   description: string;
 };
+
+export type SuggestionsQuickViewDict = {
+  unitCm: string;
+  aboutTitle: string;
+  reasonTitle: string;
+  deadlineText: string; // e.g., "Response needed by {{date}}"
+  buttons: {
+    viewProfile: string;
+    approve: string;
+    decline: string;
+    ask: string;
+  };
+};
+
+export type SuggestionsCompatibilityDict = {
+  mainTitle: string;
+  mainSubtitle: string;
+  errorTitle: string;
+  errorDescription: string;
+  noDataTitle: string;
+  noDataDescription: string;
+  overallScore: {
+    cardTitle: string;
+    score: string;
+    descriptionExcellent: string;
+    descriptionGood: string;
+    descriptionModerate: string;
+    descriptionChallenging: string;
+    progressText: string; // e.g., "{{compatibleCount}} of {{totalCount}} criteria match"
+    overallScoreLabel: string; // e.g., "Overall Score: {{score}}%"
+  };
+  categoryTitles: {
+    basic: string;
+    lifestyle: string;
+    values: string;
+    preferences: string;
+  };
+  categorySubtitle: string; // e.g., "{{compatibleCount}} of {{totalCount}} compatible"
+  compatibilityLabel: string; // "Compatibility"
+  importance: {
+    high: string;
+    medium: string;
+    low: string;
+  };
+  card: {
+    notSpecified: string;
+  };
+  criteria: {
+    age: string;
+    height: string;
+    location: string;
+    religiousLevel: string;
+    education: string;
+    occupation: string;
+    origin: string;
+    language: string;
+  };
+  reasons: {
+    mutualMatch: string; // "Mutual match in {{criterion}} expectations"
+    mismatch: string; // "Mismatch in {{criterion}} expectations"
+    sameOrigin: string;
+    differentOrigin: string;
+    sharedLanguage: string;
+    noSharedLanguage: string;
+  };
+  matchmakerRationaleTitle: string;
+  unitCm: string;
+};
+
+type QuestionTopicDict = {
+  label: string;
+  description: string;
+  questions: string[];
+};
+
+// Add this new type definition before the SuggestionsDictionary type
+export type AskMatchmakerDict = {
+  title: string; // "Question for {{name}}" or "Question for the Matchmaker"
+  titleDefault: string; // "Question for the Matchmaker"
+  description: string;
+  statusBadge: string;
+  errorSubmitting: string;
+  topicSelect: {
+    title: string;
+    subtitle: string;
+  };
+  sampleQuestions: {
+    title: string; // "Sample Questions - {{topic}}"
+  };
+  input: {
+    label: string;
+    placeholder: string;
+    charCount: string; // "{{count}}/500 characters"
+    info: string;
+  };
+  buttons: {
+    cancel: string;
+    submit: string;
+    submitting: string;
+  };
+  topics: {
+    values: QuestionTopicDict;
+    family: QuestionTopicDict;
+    career: QuestionTopicDict;
+    personality: QuestionTopicDict;
+    future: QuestionTopicDict;
+    other: QuestionTopicDict;
+  };
+};
+
+export type InquiryThreadDict = {
+  title: string;
+  subtitle: string;
+  status: {
+    pending: string;
+    answered: string;
+    closed: string;
+  };
+  answerBadge: string;
+  loadingError: string;
+  retryButton: string;
+  emptyState: {
+    title: string;
+    description: string;
+  };
+  composer: {
+    label: string;
+    placeholder: string;
+    charCount: string; // e.g., "{{count}}/500"
+    sendButton: string;
+    sendingButton: string;
+  };
+  replyForm: {
+    title: string;
+    placeholder: string;
+    sendButton: string;
+    sendingButton: string;
+  };
+  toasts: {
+    sendSuccessTitle: string;
+    sendSuccessDescription: string;
+    sendError: string;
+    replySuccess: string;
+    replyError: string;
+  };
+  invalidDate: string;
+};
+export type SuggestionTimelineDict = {
+  title: string;
+  subtitle: string;
+  emptyState: {
+    title: string;
+    description: string;
+  };
+  latestBadge: string;
+  summary: {
+    totalSteps: string;
+    activeDays: string;
+    approvals: string;
+    currentStatus: string;
+  };
+  statuses: {
+    [key in MatchSuggestionStatus]: {
+      label: string;
+      description: string;
+    };
+  };
+};
+
+export type MatchSuggestionStatus = 
+  | 'DRAFT' | 'PENDING_FIRST_PARTY' | 'FIRST_PARTY_APPROVED' | 'FIRST_PARTY_DECLINED'
+  | 'PENDING_SECOND_PARTY' | 'SECOND_PARTY_APPROVED' | 'SECOND_PARTY_DECLINED'
+  | 'AWAITING_MATCHMAKER_APPROVAL' | 'CONTACT_DETAILS_SHARED' | 'AWAITING_FIRST_DATE_FEEDBACK'
+  | 'THINKING_AFTER_DATE' | 'PROCEEDING_TO_SECOND_DATE' | 'ENDED_AFTER_FIRST_DATE'
+  | 'MEETING_PENDING' | 'MEETING_SCHEDULED' | 'MATCH_APPROVED' | 'MATCH_DECLINED'
+  | 'DATING' | 'ENGAGED' | 'MARRIED' | 'EXPIRED' | 'CLOSED' | 'CANCELLED';

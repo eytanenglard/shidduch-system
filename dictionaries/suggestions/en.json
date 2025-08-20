@@ -68,7 +68,7 @@
       "viewDetails": "View Details"
     }
   },
-  "modal": {
+"modal": {
     "header": {
       "title": "An Offer Chosen Especially For You",
       "subtitleLine1": "We thought of you when we saw this profile.",
@@ -233,6 +233,233 @@
       "personalNoteTitle": "Why I thought this is a great fit for you",
       "generalReasonTitle": "The general connection we see",
       "noReasonText": "The matchmaker trusts the data to speak for itself."
+    }
+  },
+    "quickView": {
+    "unitCm": "cm",
+    "aboutTitle": "About:",
+    "reasonTitle": "Reason for Suggestion:",
+    "deadlineText": "Response needed by {{date}}",
+    "buttons": {
+      "viewProfile": "View Profile",
+      "approve": "Approve Suggestion",
+      "decline": "Decline Suggestion",
+      "ask": "Ask Matchmaker"
+    }
+  },
+    "compatibility": {
+    "mainTitle": "Detailed Compatibility Analysis",
+    "mainSubtitle": "An in-depth analysis of connection points and potential challenges",
+    "errorTitle": "Cannot Calculate Compatibility",
+    "errorDescription": "One or more profiles are incomplete, so a detailed compatibility analysis cannot be performed.",
+    "noDataTitle": "Not Enough Data",
+    "noDataDescription": "Not enough shared information was found to perform a detailed compatibility analysis.",
+    "overallScore": {
+      "cardTitle": "Compatibility Summary",
+      "score": "Compatibility Score",
+      "descriptionExcellent": "Excellent Match",
+      "descriptionGood": "Good Match",
+      "descriptionModerate": "Moderate Match",
+      "descriptionChallenging": "Challenging Match",
+      "progressText": "{{compatibleCount}} of {{totalCount}} criteria match",
+      "overallScoreLabel": "Overall Score: {{score}}%"
+    },
+    "categoryTitles": {
+      "basic": "Basic Information",
+      "lifestyle": "Lifestyle",
+      "values": "Values & Outlook",
+      "preferences": "Personal Preferences"
+    },
+    "categorySubtitle": "{{compatibleCount}} of {{totalCount}} criteria match",
+    "compatibilityLabel": "Compatibility",
+    "importance": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "card": {
+      "notSpecified": "Not specified"
+    },
+    "criteria": {
+      "age": "Age",
+      "height": "Height",
+      "location": "Location",
+      "religiousLevel": "Religious Level",
+      "education": "Education",
+      "occupation": "Occupation",
+      "origin": "Origin",
+      "language": "Language"
+    },
+    "reasons": {
+      "mutualMatch": "Mutual match in {{criterion}} expectations",
+      "mismatch": "Mismatch in {{criterion}} expectations",
+      "sameOrigin": "Same origin",
+      "differentOrigin": "Different origin - enriches the connection",
+      "sharedLanguage": "Shared language exists",
+      "noSharedLanguage": "No known shared language"
+    },
+    "matchmakerRationaleTitle": "Matchmaker's Rationale",
+    "unitCm": "cm"
+  },
+    "askMatchmaker": {
+    "title": "Question for {{name}}",
+    "titleDefault": "Question for the Matchmaker",
+    "description": "The matchmaker is available to answer any questions you have about the candidate.",
+    "statusBadge": "Available Now",
+    "errorSubmitting": "An error occurred while sending the question. Please try again later.",
+    "topicSelect": {
+      "title": "What topic are you interested in?",
+      "subtitle": "Select a category to get sample questions"
+    },
+    "sampleQuestions": {
+      "title": "Sample Questions - {{topic}}"
+    },
+    "input": {
+      "label": "Your Question",
+      "placeholder": "Write your question here... The matchmaker will be happy to help and respond.",
+      "charCount": "{{count}}/500 characters",
+      "info": "The question will be sent directly to the matchmaker."
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "submit": "Send Question",
+      "submitting": "Sending..."
+    },
+    "topics": {
+      "values": {
+        "label": "Values & Beliefs",
+        "description": "Questions about worldview and value system",
+        "questions": [
+          "Is there anything important to know about their worldview?",
+          "How much importance do they place on religious topics?",
+          "Do they have any red lines on matters of belief?",
+          "How do they see the role of tradition in daily life?"
+        ]
+      },
+      "family": {
+        "label": "Family & Background",
+        "description": "Questions about family and personal background",
+        "questions": [
+          "How would you describe their family?",
+          "Are there important things to know about the family?",
+          "What is important to them regarding building a family?",
+          "What is their relationship with their extended family like?"
+        ]
+      },
+      "career": {
+        "label": "Career & Studies",
+        "description": "Questions about career and education",
+        "questions": [
+          "What are their long-term professional plans?",
+          "Are they interested in a career change?",
+          "How do they see the balance between career and family?",
+          "What fields are they interested in for further study?"
+        ]
+      },
+      "personality": {
+        "label": "Character & Temperament",
+        "description": "Questions about personality and character traits",
+        "questions": [
+          "How would you describe their character?",
+          "What are their strongest traits?",
+          "Is there anything worth knowing about their temperament?",
+          "How do they handle stress and challenges?"
+        ]
+      },
+      "future": {
+        "label": "Future Plans",
+        "description": "Questions about vision and future plans",
+        "questions": [
+          "What are their long-term dreams?",
+          "Do they have plans to move?",
+          "What is their vision for family life?",
+          "How do they see their life in 10 years?"
+        ]
+      },
+      "other": {
+        "label": "Other Question",
+        "description": "A specific question or another topic",
+        "questions": [
+          "I have a specific question..."
+        ]
+      }
+    }
+  },
+    "inquiryThread": {
+    "title": "Conversation with the Matchmaker",
+    "subtitle": "Ask questions and get professional answers",
+    "status": {
+      "pending": "Awaiting Answer",
+      "answered": "Answered",
+      "closed": "Closed"
+    },
+    "answerBadge": "Answer",
+    "loadingError": "An error occurred while loading inquiries",
+    "retryButton": "Try Again",
+    "emptyState": {
+      "title": "Start a Conversation with the Matchmaker",
+      "description": "Have questions about the candidate? The matchmaker is here to help."
+    },
+    "composer": {
+      "label": "New Question for the Matchmaker",
+      "placeholder": "Write your question here...",
+      "charCount": "{{count}}/500",
+      "sendButton": "Send Question",
+      "sendingButton": "Sending..."
+    },
+    "replyForm": {
+      "title": "Reply to Question:",
+      "placeholder": "Write your answer here...",
+      "sendButton": "Send Answer",
+      "sendingButton": "Sending..."
+    },
+    "toasts": {
+      "sendSuccessTitle": "Question sent successfully",
+      "sendSuccessDescription": "The matchmaker will be notified and will get back to you soon.",
+      "sendError": "Error sending the question.",
+      "replySuccess": "Answer sent successfully!",
+      "replyError": "Error sending the answer."
+    },
+    "invalidDate": "Invalid date"
+  },
+    "timeline": {
+    "title": "Suggestion Timeline",
+    "subtitle": "Track the progress of the suggestion over time",
+    "emptyState": {
+      "title": "No History Available",
+      "description": "No actions have been taken on this suggestion yet."
+    },
+    "latestBadge": "Now",
+    "summary": {
+      "totalSteps": "Total Steps",
+      "activeDays": "Active Days",
+      "approvals": "Approvals",
+      "currentStatus": "Current Status"
+    },
+      "statuses": {
+      "DRAFT": { "label": "Draft", "description": "The suggestion is being prepared by the matchmaker." },
+      "PENDING_FIRST_PARTY": { "label": "Pending Party 1", "description": "Awaiting approval from the first party." },
+      "FIRST_PARTY_APPROVED": { "label": "Party 1 Approved", "description": "The first party approved. Awaiting the second party." },
+      "FIRST_PARTY_DECLINED": { "label": "Party 1 Declined", "description": "The first party declined the suggestion." },
+      "PENDING_SECOND_PARTY": { "label": "Pending Party 2", "description": "Awaiting approval from the second party." },
+      "SECOND_PARTY_APPROVED": { "label": "Party 2 Approved", "description": "The second party approved. Awaiting the next step." },
+      "SECOND_PARTY_DECLINED": { "label": "Party 2 Declined", "description": "The second party declined the suggestion." },
+      "AWAITING_MATCHMAKER_APPROVAL": { "label": "Awaiting Matchmaker", "description": "Both parties approved, awaiting matchmaker's final approval." },
+      "CONTACT_DETAILS_SHARED": { "label": "Contact Details Shared", "description": "Contact details have been exchanged. Good luck!" },
+      "AWAITING_FIRST_DATE_FEEDBACK": { "label": "Awaiting Feedback", "description": "The meeting took place, awaiting feedback." },
+      "THINKING_AFTER_DATE": { "label": "Thinking", "description": "One or both parties are considering the next step." },
+      "PROCEEDING_TO_SECOND_DATE": { "label": "Proceeding to 2nd Date", "description": "Both parties are interested in a second date." },
+      "ENDED_AFTER_FIRST_DATE": { "label": "Ended After 1st Date", "description": "The connection will not continue after the first meeting." },
+      "MEETING_PENDING": { "label": "Scheduling Meeting", "description": "The parties are in the process of scheduling a meeting." },
+      "MEETING_SCHEDULED": { "label": "Meeting Scheduled", "description": "A first meeting has been scheduled." },
+      "MATCH_APPROVED": { "label": "Match Approved", "description": "The match was approved by the matchmaker. The process is moving forward." },
+      "MATCH_DECLINED": { "label": "Match Declined", "description": "The match was declined by the matchmaker." },
+      "DATING": { "label": "Dating", "description": "The parties are officially dating." },
+      "ENGAGED": { "label": "Engaged", "description": "Congratulations! The couple is engaged." },
+      "MARRIED": { "label": "Married", "description": "Mazel Tov! The couple got married." },
+      "EXPIRED": { "label": "Expired", "description": "The time to decide on the suggestion has passed." },
+      "CLOSED": { "label": "Closed", "description": "The suggestion process has ended." },
+      "CANCELLED": { "label": "Cancelled", "description": "The suggestion was cancelled." }
     }
   }
 }

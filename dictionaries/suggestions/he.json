@@ -68,7 +68,7 @@
       "viewDetails": "צפה בפרטים"
     }
   },
-  "modal": {
+   "modal": {
     "header": {
       "title": "הצעה שנבחרה במיוחד עבורך",
       "subtitleLine1": "חשבנו עליך כשראינו את הפרופיל הזה.",
@@ -233,6 +233,233 @@
       "personalNoteTitle": "למה חשבתי שזה מתאים במיוחד עבורך",
       "generalReasonTitle": "החיבור הכללי שאנו רואים",
       "noReasonText": "השדכן/ית סומך/ת על הנתונים שידברו בעד עצמם."
+    }
+  },
+    "quickView": {
+    "unitCm": "ס״מ",
+    "aboutTitle": "אודות:",
+    "reasonTitle": "סיבת ההצעה:",
+    "deadlineText": "נדרשת תשובה עד {{date}}",
+    "buttons": {
+      "viewProfile": "צפייה בפרופיל",
+      "approve": "אישור הצעה",
+      "decline": "דחיית הצעה",
+      "ask": "שאלה לשדכן"
+    }
+  },
+    "compatibility": {
+    "mainTitle": "ניתוח התאמה מפורט",
+    "mainSubtitle": "ניתוח מעמיק של נקודות החיבור והאתגרים הפוטנציאליים",
+    "errorTitle": "לא ניתן לחשב התאמה",
+    "errorDescription": "אחד או יותר מהפרופילים אינם מלאים ולכן לא ניתן לבצע ניתוח התאמה מפורט.",
+    "noDataTitle": "אין מספיק נתונים",
+    "noDataDescription": "לא נמצא מספיק מידע משותף כדי לבצע ניתוח התאמה מפורט",
+    "overallScore": {
+      "cardTitle": "סיכום התאמה",
+      "score": "ציון התאמה",
+      "descriptionExcellent": "התאמה מעולה",
+      "descriptionGood": "התאמה טובה",
+      "descriptionModerate": "התאמה בינונית",
+      "descriptionChallenging": "התאמה מאתגרת",
+      "progressText": "{{compatibleCount}} מתוך {{totalCount}} קריטריונים תואמים",
+      "overallScoreLabel": "ציון כללי: {{score}}%"
+    },
+    "categoryTitles": {
+      "basic": "מידע בסיסי",
+      "lifestyle": "סגנון חיים",
+      "values": "ערכים והשקפה",
+      "preferences": "העדפות אישיות"
+    },
+    "categorySubtitle": "{{compatibleCount}} מתוך {{totalCount}} קריטריונים תואמים",
+    "compatibilityLabel": "התאמה",
+    "importance": {
+      "high": "חשוב",
+      "medium": "בינוני",
+      "low": "נמוך"
+    },
+    "card": {
+      "notSpecified": "לא צוין"
+    },
+    "criteria": {
+      "age": "גיל",
+      "height": "גובה",
+      "location": "מקום מגורים",
+      "religiousLevel": "רמה דתית",
+      "education": "השכלה",
+      "occupation": "תעסוקה",
+      "origin": "מוצא",
+      "language": "שפה"
+    },
+    "reasons": {
+      "mutualMatch": "התאמה הדדית בציפיות {{criterion}}",
+      "mismatch": "אי התאמה בציפיות {{criterion}}",
+      "sameOrigin": "מוצא זהה",
+      "differentOrigin": "מוצא שונה - מעשיר את הקשר",
+      "sharedLanguage": "יש שפה משותפת",
+      "noSharedLanguage": "אין שפה משותפת מוכרת"
+    },
+    "matchmakerRationaleTitle": "נימוק השדכן להצעה",
+    "unitCm": "ס\"מ"
+  },
+    "askMatchmaker": {
+    "title": "שאלה ל{{name}}",
+    "titleDefault": "שאלה לשדכן",
+    "description": "השדכן/ית זמין/ה לענות על כל שאלה שיש לך לגבי המועמד/ת",
+    "statusBadge": "זמין/ה עכשיו",
+    "errorSubmitting": "אירעה שגיאה בשליחת השאלה. אנא נסה שוב מאוחר יותר.",
+    "topicSelect": {
+      "title": "איזה נושא מעניין אותך?",
+      "subtitle": "בחר קטגוריה כדי לקבל שאלות לדוגמה"
+    },
+    "sampleQuestions": {
+      "title": "שאלות לדוגמה - {{topic}}"
+    },
+    "input": {
+      "label": "שאלתך",
+      "placeholder": "כתוב כאן את שאלתך... השדכן/ית ישמח/תשמח לעזור ולהשיב",
+      "charCount": "{{count}}/500 תווים",
+      "info": "השאלה תישלח ישירות לשדכן/ית"
+    },
+    "buttons": {
+      "cancel": "ביטול",
+      "submit": "שלח שאלה",
+      "submitting": "שולח..."
+    },
+    "topics": {
+      "values": {
+        "label": "ערכים ואמונות",
+        "description": "שאלות על השקפת עולם ומערכת ערכים",
+        "questions": [
+          "האם יש משהו שחשוב לדעת לגבי השקפת העולם שלו/ה?",
+          "מה מידת החשיבות שהוא/היא מייחס/ת לנושאים דתיים?",
+          "האם יש לו/ה קווים אדומים בנושאי השקפה?",
+          "איך הוא/היא רואה את התפקיד של המסורת בחיי היומיום?"
+        ]
+      },
+      "family": {
+        "label": "משפחה ורקע",
+        "description": "שאלות על המשפחה והרקע האישי",
+        "questions": [
+          "איך ניתן לתאר את המשפחה שלו/ה?",
+          "האם יש דברים חשובים לדעת לגבי המשפחה?",
+          "מה חשוב לו/ה בנושא בניית משפחה?",
+          "איך הקשר שלו/ה עם המשפחה המורחבת?"
+        ]
+      },
+      "career": {
+        "label": "תעסוקה ולימודים",
+        "description": "שאלות על קריירה והשכלה",
+        "questions": [
+          "מה התוכניות המקצועיות שלו/ה לטווח הארוך?",
+          "האם הוא/היא מעוניין/ת בשינוי תעסוקתי?",
+          "איך הוא/היא רואה את האיזון בין קריירה ומשפחה?",
+          "מה התחומים שמעניינים אותו/ה ללימוד נוסף?"
+        ]
+      },
+      "personality": {
+        "label": "אופי ומזג",
+        "description": "שאלות על אישיות ותכונות אופי",
+        "questions": [
+          "איך היית מתאר/ת את האופי שלו/ה?",
+          "מה הן התכונות החזקות ביותר שלו/ה?",
+          "האם יש משהו שכדאי לדעת לגבי המזג?",
+          "איך הוא/היא מתמודל/ת עם לחץ ואתגרים?"
+        ]
+      },
+      "future": {
+        "label": "תוכניות לעתיד",
+        "description": "שאלות על חזון ותוכניות עתידיות",
+        "questions": [
+          "מה החלומות שלו/ה לטווח הארוך?",
+          "האם יש לו/ה תוכניות לשינוי מקום מגורים?",
+          "מה החזון שלו/ה לחיי המשפחה?",
+          "איך הוא/היא רואה את החיים שלו/ה בעוד 10 שנים?"
+        ]
+      },
+      "other": {
+        "label": "שאלה אחרת",
+        "description": "שאלה ספציפית או נושא אחר",
+        "questions": [
+          "יש לי שאלה ספציפית..."
+        ]
+      }
+    }
+  },
+    "inquiryThread": {
+    "title": "שיחה עם השדכן",
+    "subtitle": "שאל שאלות וקבל תשובות מקצועיות",
+    "status": {
+      "pending": "ממתין לתשובה",
+      "answered": "נענה",
+      "closed": "סגור"
+    },
+    "answerBadge": "תשובה",
+    "loadingError": "אירעה שגיאה בטעינת השאלות",
+    "retryButton": "נסה שוב",
+    "emptyState": {
+      "title": "התחל שיחה עם השדכן",
+      "description": "יש לך שאלות על המועמד/ת? השדכן כאן כדי לעזור."
+    },
+    "composer": {
+      "label": "שאלה חדשה לשדכן",
+      "placeholder": "כתוב כאן את שאלתך...",
+      "charCount": "{{count}}/500",
+      "sendButton": "שלח שאלה",
+      "sendingButton": "שולח..."
+    },
+    "replyForm": {
+      "title": "מענה לשאלה:",
+      "placeholder": "כתוב כאן את תשובתך...",
+      "sendButton": "שלח תשובה",
+      "sendingButton": "שולח..."
+    },
+    "toasts": {
+      "sendSuccessTitle": "השאלה נשלחה בהצלחה",
+      "sendSuccessDescription": "השדכן יקבל הודעה ויחזור אליך בהקדם",
+      "sendError": "אירעה שגיאה בשליחת השאלה",
+      "replySuccess": "התשובה נשלחה בהצלחה!",
+      "replyError": "שגיאה בשליחת התשובה."
+    },
+    "invalidDate": "תאריך לא תקין"
+  },
+    "timeline": {
+    "title": "מסלול ההצעה",
+    "subtitle": "עקוב אחר התקדמות ההצעה לאורך זמן",
+    "emptyState": {
+      "title": "אין היסטוריה זמינה",
+      "description": "עדיין לא בוצעו פעולות על ההצעה הזו"
+    },
+    "latestBadge": "עכשיו",
+    "summary": {
+      "totalSteps": "שלבים סה״כ",
+      "activeDays": "ימים פעילים",
+      "approvals": "אישורים",
+      "currentStatus": "סטטוס נוכחי"
+    },
+     "statuses": {
+      "DRAFT": { "label": "טיוטה", "description": "ההצעה בהכנה על ידי השדכן." },
+      "PENDING_FIRST_PARTY": { "label": "ממתין לצד א'", "description": "ההצעה נשלחה וממתינה לאישור מהצד הראשון." },
+      "FIRST_PARTY_APPROVED": { "label": "צד א' אישר", "description": "הצד הראשון אישר את ההצעה. ממתינים לצד השני." },
+      "FIRST_PARTY_DECLINED": { "label": "צד א' דחה", "description": "הצד הראשון בחר לדחות את ההצעה." },
+      "PENDING_SECOND_PARTY": { "label": "ממתין לצד ב'", "description": "ההצעה נשלחה וממתינה לאישור מהצד השני." },
+      "SECOND_PARTY_APPROVED": { "label": "צד ב' אישר", "description": "הצד השני אישר את ההצעה. ממתינים לשלב הבא." },
+      "SECOND_PARTY_DECLINED": { "label": "צד ב' דחה", "description": "הצד השני בחר לדחות את ההצעה." },
+      "AWAITING_MATCHMAKER_APPROVAL": { "label": "ממתין לשדכן", "description": "שני הצדדים אישרו, ממתינים לאישור סופי מהשדכן." },
+      "CONTACT_DETAILS_SHARED": { "label": "פרטים הועברו", "description": "פרטי הקשר הוחלפו בין שני הצדדים. בהצלחה!" },
+      "AWAITING_FIRST_DATE_FEEDBACK": { "label": "ממתין למשוב", "description": "הפגישה התקיימה, ממתינים למשוב מהצדדים." },
+      "THINKING_AFTER_DATE": { "label": "מתלבטים", "description": "אחד הצדדים או שניהם מתלבטים לגבי המשך הקשר." },
+      "PROCEEDING_TO_SECOND_DATE": { "label": "ממשיכים לפגישה שניה", "description": "שני הצדדים מעוניינים להמשיך לפגישה נוספת." },
+      "ENDED_AFTER_FIRST_DATE": { "label": "הסתיים לאחר פגישה", "description": "הקשר לא ימשיך לאחר הפגישה הראשונה." },
+      "MEETING_PENDING": { "label": "תיאום פגישה", "description": "הצדדים נמצאים בתהליך תיאום פגישה ראשונה." },
+      "MEETING_SCHEDULED": { "label": "נקבעה פגישה", "description": "פגישה ראשונה נקבעה בין הצדדים." },
+      "MATCH_APPROVED": { "label": "שידוך אושר", "description": "השידוך אושר על ידי השדכן. התהליך מתקדם." },
+      "MATCH_DECLINED": { "label": "שידוך נדחה", "description": "השידוך נדחה על ידי השדכן." },
+      "DATING": { "label": "יוצאים", "description": "הקשר התקדם והצדדים יוצאים באופן רשמי." },
+      "ENGAGED": { "label": "מאורסים", "description": "מזל טוב! הזוג התארס." },
+      "MARRIED": { "label": "נשואים", "description": "בניין עדי עד! הזוג התחתן." },
+      "EXPIRED": { "label": "פג תוקף", "description": "הזמן להחלטה על ההצעה עבר." },
+      "CLOSED": { "label": "סגור", "description": "תהליך ההצעה הסתיים." },
+      "CANCELLED": { "label": "בוטל", "description": "ההצעה בוטלה." }
     }
   }
 }

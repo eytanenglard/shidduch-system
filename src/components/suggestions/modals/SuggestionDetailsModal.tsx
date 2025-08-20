@@ -30,48 +30,28 @@ import {
   ChevronUp,
   Scroll as ScrollIcon,
   GitCompareArrows,
-  Star,
   Eye,
   Calendar,
   ArrowRight,
   Users,
   Target,
   Lightbulb,
-  Gift,
-  Phone,
-  MessageSquare,
-  Crown,
-  Zap,
+  Puzzle,
   Telescope,
   ChevronDown,
-  BookOpen,
-  Home,
-  Music,
-  Camera,
-  Coffee,
-  Globe,
+  Rocket,
+  Sunrise,
+  Mountain,
+  Timer,
   Maximize,
   Minimize,
   AlertTriangle,
   Bot,
   PartyPopper,
-  Flame,
-  TrendingUp,
-  Timer,
-  Compass,
-  Shield,
-  Handshake,
-  Diamond,
-  Gem,
-  Award,
-  Trophy,
   Wand2,
-  Fingerprint,
-  Puzzle,
+  TrendingUp,
   Network,
-  Rocket,
-  Sunrise,
-  Mountain,
+  Compass,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -88,9 +68,9 @@ import { ProfileCard } from '@/components/profile';
 import SuggestionTimeline from '../timeline/SuggestionTimeline';
 import InquiryThreadView from '../inquiries/InquiryThreadView';
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
-import { DialogBody as AiAnalysisBody } from '../dialogs/UserAiAnalysisDialog';
+import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog'; // Import the whole component
 import type { ExtendedMatchSuggestion } from '../types';
-import type { SuggestionsDictionary } from '@/types/dictionary'; // ✨ Import dictionary type
+import type { SuggestionsDictionary } from '@/types/dictionary';
 
 interface SuggestionDetailsModalProps {
   suggestion: ExtendedMatchSuggestion | null;
@@ -104,54 +84,20 @@ interface SuggestionDetailsModalProps {
   questionnaire: QuestionnaireResponse | null;
   isDemo?: boolean;
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
-  dict: SuggestionsDictionary; // ✨ Add full suggestions dict prop
+  dict: SuggestionsDictionary;
 }
 
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const checkDevice = () => {
-      const isMobileDevice =
-        window.innerWidth < 768 ||
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-          navigator.userAgent
-        );
-      setIsMobile(isMobileDevice);
+      setIsMobile(window.innerWidth < 768);
     };
     checkDevice();
     window.addEventListener('resize', checkDevice);
-    window.addEventListener('orientationchange', checkDevice);
-    return () => {
-      window.removeEventListener('resize', checkDevice);
-      window.removeEventListener('orientationchange', checkDevice);
-    };
+    return () => window.removeEventListener('resize', checkDevice);
   }, []);
   return isMobile;
-};
-
-const useViewportHeight = () => {
-  const [viewportHeight, setViewportHeight] = useState(() =>
-    typeof window !== 'undefined' ? window.innerHeight : 0
-  );
-  useEffect(() => {
-    const updateHeight = () => {
-      if (window.visualViewport) {
-        setViewportHeight(window.visualViewport.height);
-      } else {
-        setViewportHeight(window.innerHeight);
-      }
-    };
-    updateHeight();
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', updateHeight);
-      return () =>
-        window.visualViewport?.removeEventListener('resize', updateHeight);
-    } else {
-      window.addEventListener('resize', updateHeight);
-      return () => window.removeEventListener('resize', updateHeight);
-    }
-  }, []);
-  return viewportHeight;
 };
 
 const useFullscreenModal = (isOpen: boolean) => {
@@ -178,7 +124,7 @@ const EnhancedHeroSection: React.FC<{
   matchingReason?: string | null;
   onViewProfile: () => void;
   onStartConversation: () => void;
-  dict: SuggestionsDictionary['modal']['header']; // ✨ Updated prop type
+  dict: SuggestionsDictionary['modal']['header'];
 }> = ({
   matchmaker,
   targetParty,
@@ -194,65 +140,17 @@ const EnhancedHeroSection: React.FC<{
     : null;
   const mainImage = targetParty.images?.find((img) => img.isMain)?.url;
 
-  interface ExcitementFactor {
-    icon: React.ElementType;
-    label: string;
-    value: string;
-    color: string;
-    glow: string;
-  }
-
-  const getExcitementFactors = (): ExcitementFactor[] => {
-    const factors: ExcitementFactor[] = [];
-    if (targetParty.profile?.religiousLevel)
-      factors.push({
-        icon: ScrollIcon,
-        label: 'השקפת עולם',
-        value: targetParty.profile.religiousLevel,
-        color: 'from-purple-500 to-violet-600',
-        glow: 'shadow-purple-200',
-      });
-    if (targetParty.profile?.city)
-      factors.push({
-        icon: MapPin,
-        label: 'אזור מגורים',
-        value: targetParty.profile.city,
-        color: 'from-emerald-500 to-green-600',
-        glow: 'shadow-emerald-200',
-      });
-    if (targetParty.profile?.education)
-      factors.push({
-        icon: GraduationCap,
-        label: 'רקע והשכלה',
-        value: targetParty.profile.education,
-        color: 'from-blue-500 to-cyan-600',
-        glow: 'shadow-blue-200',
-      });
-    if (targetParty.profile?.occupation)
-      factors.push({
-        icon: Briefcase,
-        label: 'תחום עיסוק',
-        value: targetParty.profile.occupation,
-        color: 'from-amber-500 to-orange-600',
-        glow: 'shadow-amber-200',
-      });
-    return factors;
-  };
-  const excitementFactors = getExcitementFactors();
-
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 overflow-hidden">
+      {/* Background elements */}
       <div className="absolute inset-0">
         <div className="absolute top-10 right-10 w-72 h-72 bg-gradient-to-br from-purple-200/40 to-pink-200/40 rounded-full blur-3xl animate-float"></div>
         <div
           className="absolute bottom-10 left-10 w-64 h-64 bg-gradient-to-br from-cyan-200/40 to-blue-200/40 rounded-full blur-2xl animate-float"
           style={{ animationDelay: '2s' }}
         ></div>
-        <div
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-emerald-200/20 to-green-200/20 rounded-full blur-3xl animate-float"
-          style={{ animationDelay: '4s' }}
-        ></div>
       </div>
+
       <div className="relative z-10 p-4 md:p-8 lg:p-12">
         <div className="text-center mb-8 lg:mb-12">
           <div className="inline-flex items-center gap-2 mb-6 p-3 bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-purple-100 animate-fade-in-up">
@@ -287,6 +185,7 @@ const EnhancedHeroSection: React.FC<{
             </p>
           </div>
         </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
           <div
             className="relative group animate-fade-in-up"
@@ -298,7 +197,7 @@ const EnhancedHeroSection: React.FC<{
                 {mainImage ? (
                   <Image
                     src={getRelativeCloudinaryPath(mainImage)}
-                    alt={`תמונה של ${targetParty.firstName}`}
+                    alt={`Image of ${targetParty.firstName}`}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                     sizes="(max-width: 1024px) 100vw, 50vw"
@@ -335,89 +234,25 @@ const EnhancedHeroSection: React.FC<{
                         </Button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      {targetParty.profile?.city && (
-                        <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg">
-                          <MapPin className="w-4 h-4 text-emerald-600" />
-                          <span className="font-medium text-gray-700">
-                            {targetParty.profile.city}
-                          </span>
-                        </div>
-                      )}
-                      {targetParty.profile?.occupation && (
-                        <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
-                          <Briefcase className="w-4 h-4 text-blue-600" />
-                          <span className="font-medium text-gray-700 truncate">
-                            {targetParty.profile.occupation}
-                          </span>
-                        </div>
-                      )}
-                    </div>
                   </div>
                 </div>
               </div>
             </Card>
           </div>
+
           <div
             className="space-y-8 animate-fade-in-up"
             style={{ animationDelay: '2s' }}
           >
             <Card className="border-0 shadow-2xl bg-gradient-to-br from-purple-50 via-pink-50 to-white overflow-hidden">
               <CardContent className="p-8 relative">
+                {/* Decorative elements */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-2xl"></div>
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-blue-200/30 to-cyan-200/30 rounded-full blur-xl"></div>
                 <div className="relative z-10">
-                  <div className="text-center mb-8">
-                    <div className="inline-flex items-center gap-2 mb-4">
-                      <Trophy className="w-8 h-8 text-yellow-500" />
-                      <Diamond className="w-6 h-6 text-purple-500" />
-                      <Gem className="w-7 h-7 text-pink-500" />
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4 leading-tight">
-                      {dict.matchStoryTitle}
-                    </h2>
-                    <p className="text-lg text-gray-700 leading-relaxed">
-                      {dict.matchStorySubtitle1}
-                      <br />
-                      {dict.matchStorySubtitle2}
-                    </p>
-                  </div>
-                  {excitementFactors.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                      {excitementFactors.map((factor, index) => (
-                        <div
-                          key={index}
-                          className={cn(
-                            'relative p-4 bg-white/80 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group',
-                            factor.glow
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={cn(
-                                'w-12 h-12 rounded-full bg-gradient-to-r text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform',
-                                factor.color
-                              )}
-                            >
-                              <factor.icon className="w-6 h-6" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-bold text-gray-800 text-sm mb-1">
-                                {factor.label}
-                              </p>
-                              <p className="text-gray-600 text-xs leading-relaxed">
-                                {factor.value}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="absolute top-1 right-1">
-                            <div className="w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-ping"></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4 leading-tight text-center">
+                    {dict.matchStoryTitle}
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                     <Button
                       onClick={onViewProfile}
                       size="lg"
@@ -433,7 +268,7 @@ const EnhancedHeroSection: React.FC<{
                       size="lg"
                       className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50 shadow-lg rounded-xl h-14 font-bold text-base transform hover:scale-105 transition-all"
                     >
-                      <MessageSquare className="w-5 h-5 ml-2" />
+                      <MessageCircle className="w-5 h-5 ml-2" />
                       {dict.iHaveQuestions}
                     </Button>
                   </div>
@@ -443,90 +278,49 @@ const EnhancedHeroSection: React.FC<{
             {(personalNote || matchingReason) && (
               <Card className="border-0 shadow-xl bg-gradient-to-br from-cyan-50 to-blue-50 overflow-hidden">
                 <CardContent className="p-6 relative">
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 rounded-full blur-xl"></div>
-                  <div className="relative z-10">
-                    <div className="flex items-start gap-4">
-                      <div className="p-4 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg flex-shrink-0">
-                        <Lightbulb className="w-7 h-7" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-4">
-                          <h3 className="font-bold text-cyan-800 text-xl">
-                            {dict.matchmakerInsight}
-                          </h3>
+                  <div className="flex items-start gap-4">
+                    <div className="p-4 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg flex-shrink-0">
+                      <Lightbulb className="w-7 h-7" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-cyan-800 text-xl mb-4">
+                        {dict.matchmakerInsight}
+                      </h3>
+                      {personalNote && (
+                        <div className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-cyan-100">
+                          <div className="flex items-start gap-2">
+                            <Quote className="w-5 h-5 text-cyan-500 mt-1 flex-shrink-0" />
+                            <div>
+                              <h4 className="font-semibold text-cyan-800 mb-2">
+                                {dict.whyYou}
+                              </h4>
+                              <p className="text-cyan-900 leading-relaxed italic font-medium">
+                                “{personalNote}”
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                        {personalNote && (
-                          <div className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-cyan-100">
-                            <div className="flex items-start gap-2">
-                              <Quote className="w-5 h-5 text-cyan-500 mt-1 flex-shrink-0" />
-                              <div>
-                                <h4 className="font-semibold text-cyan-800 mb-2">
-                                  {dict.whyYou}
-                                </h4>
-                                <p className="text-cyan-900 leading-relaxed italic font-medium">
-                                  “{personalNote}”
-                                </p>
-                              </div>
+                      )}
+                      {matchingReason && (
+                        <div className="p-4 bg-white/70 rounded-xl shadow-inner border border-blue-100">
+                          <div className="flex items-start gap-2">
+                            <Puzzle className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
+                            <div>
+                              <h4 className="font-semibold text-blue-800 mb-2">
+                                {dict.ourConnection}
+                              </h4>
+                              <p className="text-blue-900 leading-relaxed font-medium">
+                                “{matchingReason}”
+                              </p>
                             </div>
                           </div>
-                        )}
-                        {matchingReason && (
-                          <div className="p-4 bg-white/70 rounded-xl shadow-inner border border-blue-100">
-                            <div className="flex items-start gap-2">
-                              <Puzzle className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
-                              <div>
-                                <h4 className="font-semibold text-blue-800 mb-2">
-                                  {dict.ourConnection}
-                                </h4>
-                                <p className="text-blue-900 leading-relaxed font-medium">
-                                  “{matchingReason}”
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
             )}
-            <Card className="border-0 shadow-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white overflow-hidden">
-              <CardContent className="p-6 text-center relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 to-cyan-600/20"></div>
-                <div className="relative z-10">
-                  <div className="flex justify-center mb-4">
-                    <div className="flex items-center gap-2">
-                      <Rocket className="w-8 h-8 animate-bounce" />
-                      <Sunrise className="w-6 h-6" />
-                      <Mountain className="w-7 h-7" />
-                    </div>
-                  </div>
-                  <h3 className="text-2xl font-bold mb-3">
-                    {dict.whatsNextTitle}
-                  </h3>
-                  <p className="text-emerald-100 text-lg leading-relaxed mb-4">
-                    {dict.whatsNextSubtitle1}
-                    <br />
-                    {dict.whatsNextSubtitle2}
-                  </p>
-                  <div className="flex flex-col items-center gap-4">
-                    <Badge className="bg-white/20 text-white border-white/30 px-4 py-2 text-base">
-                      <Timer className="w-4 h-4 ml-2" />
-                      {dict.bestTimeIsNow}
-                    </Badge>
-                    <Button
-                      onClick={onViewProfile}
-                      variant="link"
-                      className="text-white hover:text-emerald-100 font-bold mt-2"
-                    >
-                      {dict.toFullProfile}{' '}
-                      <ArrowRight className="w-4 h-4 mr-2" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
@@ -542,7 +336,7 @@ const EnhancedQuickActions: React.FC<{
   onApprove: () => void;
   onDecline: () => void;
   onAskQuestion: () => void;
-  dict: SuggestionsDictionary['modal']['actions']; // ✨ Updated prop type
+  dict: SuggestionsDictionary['modal']['actions'];
 }> = ({
   isExpanded,
   onToggleExpand,
@@ -559,7 +353,6 @@ const EnhancedQuickActions: React.FC<{
       isExpanded ? 'p-4 md:p-6' : 'py-3 px-4 md:px-6'
     )}
   >
-    <div className="absolute inset-0 bg-gradient-to-r from-purple-100/20 via-pink-100/20 to-blue-100/20"></div>
     <div className="max-w-4xl mx-auto relative z-10">
       <div
         className="flex justify-between items-center cursor-pointer group"
@@ -594,30 +387,24 @@ const EnhancedQuickActions: React.FC<{
         <div className="mt-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 gap-4 md:flex md:gap-6">
             {canAct && (
-              <div className="relative md:flex-1">
-                <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 to-green-500 rounded-2xl blur opacity-60 animate-pulse"></div>
-                <Button
-                  className="relative w-full bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-2xl h-16 font-bold text-lg transform hover:scale-105 overflow-hidden"
-                  disabled={isSubmitting}
-                  onClick={onApprove}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity"></div>
-                  {isSubmitting ? (
-                    <div className="flex items-center">
-                      <Loader2 className="w-6 h-6 animate-spin ml-3" />
-                      <span>{dict.sending}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center relative z-10">
-                      <div className="flex items-center gap-3">
-                        <Heart className="w-6 h-6 animate-pulse" />
-                        <span>{dict.approve}</span>
-                        <Sparkles className="w-5 h-5" />
-                      </div>
-                    </div>
-                  )}
-                </Button>
-              </div>
+              <Button
+                className="relative w-full md:flex-1 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-2xl h-16 font-bold text-lg transform hover:scale-105"
+                disabled={isSubmitting}
+                onClick={onApprove}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-6 h-6 animate-spin ml-3" />
+                    <span>{dict.sending}</span>
+                  </>
+                ) : (
+                  <>
+                    <Heart className="w-6 h-6 animate-pulse ml-3" />
+                    <span>{dict.approve}</span>
+                    <Sparkles className="w-5 h-5 ml-2" />
+                  </>
+                )}
+              </Button>
             )}
             <Button
               variant="outline"
@@ -625,39 +412,35 @@ const EnhancedQuickActions: React.FC<{
               disabled={isSubmitting}
               className="w-full md:flex-1 border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 rounded-2xl h-16 font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
             >
-              <div className="flex items-center justify-center gap-3">
-                <MessageCircle className="w-6 h-6" />
-                <span>{dict.ask}</span>
-              </div>
+              <MessageCircle className="w-6 h-6 ml-3" />
+              <span>{dict.ask}</span>
             </Button>
             {canAct && (
               <Button
                 variant="ghost"
-                className="w-full md:flex-1 text-gray-600 hover:bg-gray-100 hover:text-gray-700 transition-all duration-300 rounded-2xl h-16 font-bold text-lg md:border-2 md:border-gray-200 md:shadow-lg md:hover:border-gray-300 transform hover:scale-105"
+                className="w-full md:flex-1 text-gray-600 hover:bg-gray-100 hover:text-gray-700 transition-all duration-300 rounded-2xl h-16 font-bold text-lg transform hover:scale-105"
                 disabled={isSubmitting}
                 onClick={onDecline}
               >
                 {isSubmitting ? (
-                  <div className="flex items-center">
+                  <>
                     <Loader2 className="w-5 h-5 animate-spin ml-2" />
                     <span>{dict.updating}</span>
-                  </div>
+                  </>
                 ) : (
-                  <div className="flex items-center justify-center gap-3">
-                    <XCircle className="w-5 h-5" />
+                  <>
+                    <XCircle className="w-5 h-5 ml-3" />
                     <span>{dict.decline}</span>
-                  </div>
+                  </>
                 )}
               </Button>
             )}
           </div>
           {canAct && (
-            <div className="mt-4 text-center">
-              <p className="text-sm text-gray-600 leading-relaxed">
-                <span className="font-semibold text-purple-600">💡 זכור:</span>{' '}
-                {dict.reminder}
-              </p>
-            </div>
+            <p className="mt-4 text-center text-sm text-gray-600 leading-relaxed">
+              <span className="font-semibold text-purple-600">💡</span>{' '}
+              {dict.reminder}
+            </p>
           )}
         </div>
       )}
@@ -673,7 +456,7 @@ const EnhancedTabsSection: React.FC<{
   onToggleFullscreen: () => void;
   isMobile: boolean;
   isTransitioning?: boolean;
-  dict: SuggestionsDictionary['modal']['tabs']; // ✨ Updated prop type
+  dict: SuggestionsDictionary['modal']['tabs'];
 }> = ({
   activeTab,
   onTabChange,
@@ -689,47 +472,35 @@ const EnhancedTabsSection: React.FC<{
       <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-sm rounded-3xl p-2 h-20 shadow-xl border-2 border-purple-100 overflow-hidden">
         <TabsTrigger
           value="presentation"
-          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 to-pink-600/0 group-data-[state=active]:from-purple-600/20 group-data-[state=active]:to-pink-600/20 transition-all"></div>
-          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
-          <span className="relative z-10">
-            <span className="hidden sm:inline">{dict.presentation}</span>
-            <span className="sm:hidden">{dict.presentationShort}</span>
-          </span>
+          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
+          <span className="hidden sm:inline">{dict.presentation}</span>
+          <span className="sm:hidden">{dict.presentationShort}</span>
         </TabsTrigger>
         <TabsTrigger
           value="profile"
-          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/0 to-green-600/0 group-data-[state=active]:from-emerald-600/20 group-data-[state=active]:to-green-600/20 transition-all"></div>
-          <User className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
-          <span className="relative z-10">
-            <span className="hidden sm:inline">{dict.profile}</span>
-            <span className="sm:hidden">{dict.profileShort}</span>
-          </span>
+          <User className="w-5 h-5 sm:w-6 sm:h-6" />
+          <span className="hidden sm:inline">{dict.profile}</span>
+          <span className="sm:hidden">{dict.profileShort}</span>
         </TabsTrigger>
         <TabsTrigger
           value="compatibility"
-          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-cyan-600/0 group-data-[state=active]:from-blue-600/20 group-data-[state=active]:to-cyan-600/20 transition-all"></div>
-          <GitCompareArrows className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
-          <span className="relative z-10">
-            <span className="hidden sm:inline">{dict.compatibility}</span>
-            <span className="sm:hidden">{dict.compatibilityShort}</span>
-          </span>
+          <GitCompareArrows className="w-5 h-5 sm:w-6 sm:h-6" />
+          <span className="hidden sm:inline">{dict.compatibility}</span>
+          <span className="sm:hidden">{dict.compatibilityShort}</span>
         </TabsTrigger>
         <TabsTrigger
           value="details"
-          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-gray-500 data-[state=active]:to-slate-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-gray-500 data-[state=active]:to-slate-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-600/0 to-slate-600/0 group-data-[state=active]:from-gray-600/20 group-data-[state=active]:to-slate-600/20 transition-all"></div>
-          <Info className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
-          <span className="relative z-10">
-            <span className="hidden sm:inline">{dict.details}</span>
-            <span className="sm:hidden">{dict.detailsShort}</span>
-          </span>
+          <Info className="w-5 h-5 sm:w-6 sm:h-6" />
+          <span className="hidden sm:inline">{dict.details}</span>
+          <span className="sm:hidden">{dict.detailsShort}</span>
         </TabsTrigger>
       </TabsList>
       <div className="flex items-center gap-2 ml-4">
@@ -741,7 +512,7 @@ const EnhancedTabsSection: React.FC<{
                   variant="ghost"
                   size="icon"
                   onClick={onToggleFullscreen}
-                  className="rounded-full h-12 w-12 text-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all hover:scale-110 fullscreen-button icon-transition"
+                  className="rounded-full h-12 w-12 text-blue-500 hover:text-blue-600 hover:bg-blue-50"
                   disabled={isTransitioning}
                 >
                   {isFullscreen ? (
@@ -761,7 +532,7 @@ const EnhancedTabsSection: React.FC<{
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="rounded-full h-12 w-12 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all hover:scale-110"
+          className="rounded-full h-12 w-12 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
         >
           <X className="w-6 h-6" />
         </Button>
@@ -786,50 +557,17 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
-  const [isShowingAiAnalysis, setIsShowingAiAnalysis] = useState(false);
 
   const isMobile = useIsMobile();
-  const viewportHeight = useViewportHeight();
   const { isFullscreen, isTransitioning, toggleFullscreen } =
     useFullscreenModal(isOpen);
-
-  useEffect(() => {
-    if (isOpen) {
-      setActiveTab('presentation');
-      setIsActionsExpanded(false);
-      setIsShowingAiAnalysis(false);
-      if (isMobile || isFullscreen) {
-        document.body.style.overflow = 'hidden';
-        document.documentElement.style.overflow = 'hidden';
-        if (isMobile) {
-          document.documentElement.style.setProperty(
-            '--vh',
-            `${viewportHeight * 0.01}px`
-          );
-        }
-      }
-    } else {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-      document.documentElement.style.removeProperty('--vh');
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-      document.documentElement.style.removeProperty('--vh');
-    };
-  }, [isOpen, suggestion?.id, isMobile, isFullscreen, viewportHeight]);
-
   const searchParams = useSearchParams();
 
   useEffect(() => {
     if (isOpen) {
       const view = searchParams.get('view');
-      if (view === 'chat') {
-        setActiveTab('details');
-      } else {
-        setActiveTab('presentation');
-      }
+      setActiveTab(view === 'chat' ? 'details' : 'presentation');
+      setIsActionsExpanded(false);
     }
   }, [isOpen, searchParams, suggestion?.id]);
 
@@ -851,7 +589,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       },
     };
   }, [targetParty]);
-
   const canActOnSuggestion =
     (isFirstParty && suggestion?.status === 'PENDING_FIRST_PARTY') ||
     (!isFirstParty && suggestion?.status === 'PENDING_SECOND_PARTY');
@@ -860,21 +597,15 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     if (!suggestion) return;
     setIsSubmitting(true);
     try {
-      const response = await fetch(
-        `/api/suggestions/${suggestion.id}/inquiries`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question }),
-        }
-      );
-      if (!response.ok) throw new Error('Failed to send inquiry.');
-      toast.success('🚀 שאלתך נשלחה בהצלחה!', {
-        description: 'השדכן יחזור אליך עם תשובה בהקדם',
+      await fetch(`/api/suggestions/${suggestion.id}/inquiries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question }),
       });
+      toast.success('Question sent!');
       setShowAskDialog(false);
     } catch (error) {
-      toast.error('אירעה שגיאה בשליחת השאלה.');
+      toast.error('Failed to send question.');
     } finally {
       setIsSubmitting(false);
     }
@@ -892,15 +623,13 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   };
 
   const getModalClasses = () => {
-    const baseClasses =
+    const base =
       'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out';
-    if (isMobile) {
-      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0`;
-    } else if (isFullscreen) {
-      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !translate-x-0 !translate-y-0 !transform-none`;
-    } else {
-      return `${baseClasses} md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl`;
-    }
+    if (isMobile)
+      return `${base} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0`;
+    if (isFullscreen)
+      return `${base} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0`;
+    return `${base} md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl`;
   };
 
   return (
@@ -910,207 +639,162 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
           className={cn(getModalClasses())}
           dir="rtl"
           onOpenAutoFocus={(e) => e.preventDefault()}
-          data-fullscreen={isFullscreen}
-          data-mobile={isMobile}
-          style={
-            isFullscreen && !isMobile
-              ? {
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  width: '100vw',
-                  height: '100vh',
-                  maxWidth: 'none',
-                  maxHeight: 'none',
-                  borderRadius: 0,
-                  margin: 0,
-                  transform: 'none',
-                }
-              : undefined
-          }
         >
-          {isShowingAiAnalysis ? (
-            <div className="flex-grow min-h-0 flex flex-col">
-              <AiAnalysisBody
-                suggestedUserId={targetParty.id}
-                currentUserName={
-                  isFirstParty
-                    ? suggestion.firstParty.firstName
-                    : suggestion.secondParty.firstName
-                }
-                suggestedUserName={targetParty.firstName}
-                isDemo={isDemo}
-                demoAnalysisData={demoAnalysisData}
-                onOpenChange={(open) => {
-                  if (!open) setIsShowingAiAnalysis(false);
-                }}
-                dict={dict.aiAnalysis}
+          <ScrollArea className="flex-grow min-h-0 modal-scroll">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="h-full"
+            >
+              <EnhancedTabsSection
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                onClose={onClose}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={toggleFullscreen}
+                isMobile={isMobile}
+                isTransitioning={isTransitioning}
+                dict={dict.modal.tabs}
               />
-            </div>
-          ) : (
-            <>
-              <ScrollArea className="flex-grow min-h-0 modal-scroll">
-                <Tabs
-                  value={activeTab}
-                  onValueChange={setActiveTab}
-                  className="h-full"
-                >
-                  <EnhancedTabsSection
-                    activeTab={activeTab}
-                    onTabChange={setActiveTab}
-                    onClose={onClose}
-                    isFullscreen={isFullscreen}
-                    onToggleFullscreen={!isMobile ? toggleFullscreen : () => {}}
-                    isMobile={isMobile}
-                    isTransitioning={isTransitioning}
-                    dict={dict.modal.tabs}
+              <TabsContent value="presentation" className="mt-0">
+                <EnhancedHeroSection
+                  matchmaker={suggestion.matchmaker}
+                  targetParty={targetParty}
+                  personalNote={
+                    isFirstParty
+                      ? suggestion.firstPartyNotes
+                      : suggestion.secondPartyNotes
+                  }
+                  matchingReason={suggestion.matchingReason}
+                  onViewProfile={() => setActiveTab('profile')}
+                  onStartConversation={() => setShowAskDialog(true)}
+                  dict={dict.modal.header}
+                />
+              </TabsContent>
+              <TabsContent
+                value="profile"
+                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50"
+              >
+                {isQuestionnaireLoading ? (
+                  <div className="flex justify-center items-center h-64">
+                    <div className="text-center">
+                      <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
+                      <p className="text-lg font-semibold text-gray-700">
+                        {dict.modal.profile.loading}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        {dict.modal.profile.loadingDescription}
+                      </p>
+                    </div>
+                  </div>
+                ) : profileWithUser ? (
+                  <ProfileCard
+                    profile={profileWithUser}
+                    isProfileComplete={targetParty.isProfileComplete}
+                    images={targetParty.images}
+                    questionnaire={questionnaire}
+                    viewMode="candidate"
                   />
-                  <TabsContent value="presentation" className="mt-0">
-                    <EnhancedHeroSection
-                      matchmaker={suggestion.matchmaker}
-                      targetParty={targetParty}
-                      personalNote={
-                        isFirstParty
-                          ? suggestion.firstPartyNotes
-                          : suggestion.secondPartyNotes
-                      }
-                      matchingReason={suggestion.matchingReason}
-                      onViewProfile={() => setActiveTab('profile')}
-                      onStartConversation={() => setShowAskDialog(true)}
-                      dict={dict.modal.header}
-                    />
-                  </TabsContent>
-                  <TabsContent
-                    value="profile"
-                    className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50"
-                  >
-                    {isQuestionnaireLoading ? (
-                      <div className="flex justify-center items-center h-64">
-                        <div className="text-center">
-                          <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-                          <p className="text-lg font-semibold text-gray-700">
-                            {dict.modal.profile.loading}
-                          </p>
-                          <p className="text-sm text-gray-500 mt-2">
-                            {dict.modal.profile.loadingDescription}
-                          </p>
-                        </div>
-                      </div>
-                    ) : profileWithUser ? (
-                      <ProfileCard
-                        profile={profileWithUser}
-                        isProfileComplete={targetParty.isProfileComplete}
-                        images={targetParty.images}
-                        questionnaire={questionnaire}
-                        viewMode="candidate"
-                      />
-                    ) : (
-                      <div className="text-center p-12">
-                        <div className="w-24 h-24 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
-                          <AlertTriangle className="w-12 h-12 text-red-500" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                          {dict.modal.profile.errorTitle}
-                        </h3>
-                        <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
-                          {dict.modal.profile.errorDescription}
-                        </p>
-                        <Button
-                          onClick={() => setShowAskDialog(true)}
-                          className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                        >
-                          <MessageCircle className="w-4 h-4 ml-2" />
-                          {dict.modal.profile.contactMatchmaker}
-                        </Button>
-                      </div>
-                    )}
-                  </TabsContent>
-                  <TabsContent
-                    value="compatibility"
-                    className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50"
-                  >
-                    <div className="flex flex-col items-center justify-center h-full min-h-[600px] text-center space-y-8 p-6">
-                      <div className="relative">
-                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center mx-auto shadow-2xl">
-                          <Bot className="w-16 h-16 text-blue-500" />
-                        </div>
-                        <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
-                          <Wand2 className="w-6 h-6 text-white" />
-                        </div>
-                      </div>
-                      <div className="space-y-4 max-w-2xl">
-                        <h3 className="text-3xl font-bold text-gray-800">
-                          {dict.modal.aiAnalysisCta.title}
-                        </h3>
-                        <p className="text-xl text-gray-600 leading-relaxed">
-                          {dict.modal.aiAnalysisCta.description}
-                        </p>
-                        <div className="flex items-center justify-center gap-4 text-sm text-gray-500 font-medium">
-                          <div className="flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4" />
-                            <span>{dict.modal.aiAnalysisCta.feature1}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Network className="w-4 h-4" />
-                            <span>{dict.modal.aiAnalysisCta.feature2}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Compass className="w-4 h-4" />
-                            <span>{dict.modal.aiAnalysisCta.feature3}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        onClick={() => setIsShowingAiAnalysis(true)}
-                        className="relative overflow-hidden group bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border-2 border-blue-200 text-blue-700 hover:from-blue-100 hover:to-pink-100 hover:border-blue-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent transform -translate-x-full group-hover:animate-shimmer" />
-                        <div className="relative z-10 flex items-center gap-3">
-                          <div className="relative">
-                            <Brain className="w-6 h-6 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110 text-blue-600" />
-                            <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-purple-500 opacity-0 group-hover:opacity-100" />
-                          </div>
-                          <span className="text-lg font-bold">
-                            {dict.modal.aiAnalysisCta.button}
-                          </span>
-                        </div>
-                      </Button>
+                ) : (
+                  <div className="text-center p-12">
+                    <div className="w-24 h-24 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
+                      <AlertTriangle className="w-12 h-12 text-red-500" />
                     </div>
-                  </TabsContent>
-                  <TabsContent
-                    value="details"
-                    className="mt-0 p-6 md:p-8 space-y-8 bg-gradient-to-br from-slate-50 to-gray-50"
-                  >
-                    <div className="max-w-6xl mx-auto space-y-8">
-                      <SuggestionTimeline
-                        statusHistory={suggestion.statusHistory}
-                      />
-                      <InquiryThreadView
-                        suggestionId={suggestion.id}
-                        userId={userId}
-                        showComposer={true}
-                        isDemo={isDemo}
-                      />
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                      {dict.modal.profile.errorTitle}
+                    </h3>
+                    <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
+                      {dict.modal.profile.errorDescription}
+                    </p>
+                    <Button
+                      onClick={() => setShowAskDialog(true)}
+                      className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                    >
+                      <MessageCircle className="w-4 h-4 ml-2" />
+                      {dict.modal.profile.contactMatchmaker}
+                    </Button>
+                  </div>
+                )}
+              </TabsContent>
+              <TabsContent
+                value="compatibility"
+                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50"
+              >
+                <div className="flex flex-col items-center justify-center h-full min-h-[600px] text-center space-y-8 p-6">
+                  <div className="relative">
+                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center mx-auto shadow-2xl">
+                      <Bot className="w-16 h-16 text-blue-500" />
                     </div>
-                  </TabsContent>
-                </Tabs>
-              </ScrollArea>
-              <EnhancedQuickActions
-                isExpanded={isActionsExpanded}
-                onToggleExpand={() => setIsActionsExpanded((prev) => !prev)}
-                canAct={canActOnSuggestion}
-                isSubmitting={isSubmitting}
-                onApprove={handleApprove}
-                onDecline={handleDecline}
-                onAskQuestion={() => setShowAskDialog(true)}
-                dict={dict.modal.actions}
-              />
-            </>
-          )}
+                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                      <Wand2 className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="space-y-4 max-w-2xl">
+                    <h3 className="text-3xl font-bold text-gray-800">
+                      {dict.modal.aiAnalysisCta.title}
+                    </h3>
+                    <p className="text-xl text-gray-600 leading-relaxed">
+                      {dict.modal.aiAnalysisCta.description}
+                    </p>
+                    <div className="flex items-center justify-center gap-4 text-sm text-gray-500 font-medium">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4" />
+                        <span>{dict.modal.aiAnalysisCta.feature1}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Network className="w-4 h-4" />
+                        <span>{dict.modal.aiAnalysisCta.feature2}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Compass className="w-4 h-4" />
+                        <span>{dict.modal.aiAnalysisCta.feature3}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <UserAiAnalysisDialog
+                    suggestedUserId={targetParty.id}
+                    dict={dict.aiAnalysis}
+                    isDemo={isDemo}
+                    demoAnalysisData={demoAnalysisData}
+                    currentUserName={
+                      isFirstParty
+                        ? suggestion.firstParty.firstName
+                        : suggestion.secondParty.firstName
+                    }
+                    suggestedUserName={targetParty.firstName}
+                  />
+                </div>
+              </TabsContent>
+              <TabsContent
+                value="details"
+                className="mt-0 p-6 md:p-8 space-y-8 bg-gradient-to-br from-slate-50 to-gray-50"
+              >
+                <div className="max-w-6xl mx-auto space-y-8">
+                  <SuggestionTimeline
+                    statusHistory={suggestion.statusHistory}
+                    dict={dict.timeline}
+                  />
+                  <InquiryThreadView
+                    suggestionId={suggestion.id}
+                    userId={userId}
+                    showComposer={true}
+                    isDemo={isDemo}
+                    dict={dict.inquiryThread}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+          </ScrollArea>
+          <EnhancedQuickActions
+            isExpanded={isActionsExpanded}
+            onToggleExpand={() => setIsActionsExpanded((prev) => !prev)}
+            canAct={canActOnSuggestion}
+            isSubmitting={isSubmitting}
+            onApprove={handleApprove}
+            onDecline={handleDecline}
+            onAskQuestion={() => setShowAskDialog(true)}
+            dict={dict.modal.actions}
+          />
         </DialogContent>
       </Dialog>
       <AskMatchmakerDialog
@@ -1118,7 +802,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         onClose={() => setShowAskDialog(false)}
         onSubmit={handleSendQuestion}
         matchmakerName={`${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`}
-        suggestionId={suggestion.id}
+        dict={dict.askMatchmaker}
       />
     </>
   );

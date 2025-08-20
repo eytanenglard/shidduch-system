@@ -224,42 +224,66 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
     if (filterOption !== 'all') {
       switch (filterOption) {
         case 'pending':
-          result = result.filter(s => s.status === 'PENDING_FIRST_PARTY' || s.status === 'PENDING_SECOND_PARTY');
+          result = result.filter(
+            (s) =>
+              s.status === 'PENDING_FIRST_PARTY' ||
+              s.status === 'PENDING_SECOND_PARTY'
+          );
           break;
         case 'accepted':
-          result = result.filter(s => s.status === 'FIRST_PARTY_APPROVED' || s.status === 'SECOND_PARTY_APPROVED');
+          result = result.filter(
+            (s) =>
+              s.status === 'FIRST_PARTY_APPROVED' ||
+              s.status === 'SECOND_PARTY_APPROVED'
+          );
           break;
         case 'declined':
-          result = result.filter(s => s.status === 'FIRST_PARTY_DECLINED' || s.status === 'SECOND_PARTY_DECLINED');
+          result = result.filter(
+            (s) =>
+              s.status === 'FIRST_PARTY_DECLINED' ||
+              s.status === 'SECOND_PARTY_DECLINED'
+          );
           break;
         case 'contact_shared':
-          result = result.filter(s => s.status === 'CONTACT_DETAILS_SHARED');
+          result = result.filter((s) => s.status === 'CONTACT_DETAILS_SHARED');
           break;
       }
     }
 
     switch (sortOption) {
       case 'newest':
-        result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        result.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
         break;
       case 'oldest':
-        result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        result.sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
         break;
       case 'deadline':
         result.sort((a, b) => {
           if (!a.decisionDeadline) return 1;
           if (!b.decisionDeadline) return -1;
-          return new Date(a.decisionDeadline).getTime() - new Date(b.decisionDeadline).getTime();
+          return (
+            new Date(a.decisionDeadline).getTime() -
+            new Date(b.decisionDeadline).getTime()
+          );
         });
         break;
       case 'priority':
         const priorityOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
-        result.sort((a, b) => (priorityOrder[a.priority as keyof typeof priorityOrder] || 4) - (priorityOrder[b.priority as keyof typeof priorityOrder] || 4));
+        result.sort(
+          (a, b) =>
+            (priorityOrder[a.priority as keyof typeof priorityOrder] || 4) -
+            (priorityOrder[b.priority as keyof typeof priorityOrder] || 4)
+        );
         break;
     }
     setFilteredSuggestions(result);
   }, [initialSuggestions, searchQuery, sortOption, filterOption, userId]);
-
 
   const handleOpenDetails = (suggestion: ExtendedMatchSuggestion) => {
     setSelectedSuggestion(suggestion);
@@ -281,13 +305,18 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
     if (!selectedSuggestion) return;
     try {
       // API call logic remains the same
-      const response = await fetch(`/api/suggestions/${selectedSuggestion.id}/inquiries`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: questionText }),
-      });
+      const response = await fetch(
+        `/api/suggestions/${selectedSuggestion.id}/inquiries`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: questionText }),
+        }
+      );
       if (!response.ok) throw new Error('Failed to send inquiry');
-      toast.success('השאלה נשלחה בהצלחה לשדכן', { description: 'השדכן יחזור אליך עם תשובה בהקדם' });
+      toast.success('השאלה נשלחה בהצלחה לשדכן', {
+        description: 'השדכן יחזור אליך עם תשובה בהקדם',
+      });
       setShowAskDialog(false);
     } catch (error) {
       toast.error('אירעה שגיאה בשליחת השאלה');
@@ -349,23 +378,64 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                     </DropdownMenuLabel>
                     <DropdownMenuGroup>
                       <DropdownMenuItem onClick={() => setFilterOption('all')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'all' ? 'opacity-100' : 'opacity-0')} />
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'all' ? 'opacity-100' : 'opacity-0'
+                          )}
+                        />
                         {dict.list.controls.filterAll}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterOption('pending')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'pending' ? 'opacity-100' : 'opacity-0')} />
+                      <DropdownMenuItem
+                        onClick={() => setFilterOption('pending')}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'pending'
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
                         {dict.list.controls.filterPending}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterOption('accepted')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'accepted' ? 'opacity-100' : 'opacity-0')} />
+                      <DropdownMenuItem
+                        onClick={() => setFilterOption('accepted')}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'accepted'
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
                         {dict.list.controls.filterAccepted}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterOption('declined')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'declined' ? 'opacity-100' : 'opacity-0')} />
+                      <DropdownMenuItem
+                        onClick={() => setFilterOption('declined')}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'declined'
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
                         {dict.list.controls.filterDeclined}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterOption('contact_shared')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'contact_shared' ? 'opacity-100' : 'opacity-0')} />
+                      <DropdownMenuItem
+                        onClick={() => setFilterOption('contact_shared')}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'contact_shared'
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
                         {dict.list.controls.filterContactShared}
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
@@ -376,20 +446,34 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   onValueChange={(value) => setSortOption(value as SortOption)}
                 >
                   <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-purple-300 rounded-xl">
-                    <SelectValue placeholder={dict.list.controls.sortPlaceholder} />
+                    <SelectValue
+                      placeholder={dict.list.controls.sortPlaceholder}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="newest">
-                      <div className="flex items-center gap-2"><SortDesc className="h-4 w-4" />{dict.list.controls.sortNewest}</div>
+                      <div className="flex items-center gap-2">
+                        <SortDesc className="h-4 w-4" />
+                        {dict.list.controls.sortNewest}
+                      </div>
                     </SelectItem>
                     <SelectItem value="oldest">
-                      <div className="flex items-center gap-2"><SortAsc className="h-4 w-4" />{dict.list.controls.sortOldest}</div>
+                      <div className="flex items-center gap-2">
+                        <SortAsc className="h-4 w-4" />
+                        {dict.list.controls.sortOldest}
+                      </div>
                     </SelectItem>
                     <SelectItem value="deadline">
-                      <div className="flex items-center gap-2"><Calendar className="h-4 w-4" />{dict.list.controls.sortDeadline}</div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        {dict.list.controls.sortDeadline}
+                      </div>
                     </SelectItem>
                     <SelectItem value="priority">
-                      <div className="flex items-center gap-2"><Filter className="h-4 w-4" />{dict.list.controls.sortPriority}</div>
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        {dict.list.controls.sortPriority}
+                      </div>
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -397,23 +481,56 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
               </div>
               {(searchQuery || filterOption !== 'all') && (
                 <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                  <span className="text-sm text-gray-500 font-medium">{dict.list.activeFilters.title}</span>
+                  <span className="text-sm text-gray-500 font-medium">
+                    {dict.list.activeFilters.title}
+                  </span>
                   {searchQuery && (
-                    <Badge variant="outline" className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200">
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200"
+                    >
                       {dict.list.activeFilters.search} {searchQuery}
-                      <Button variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => setSearchQuery('')}><XCircle className="h-3 w-3" /></Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
+                        onClick={() => setSearchQuery('')}
+                      >
+                        <XCircle className="h-3 w-3" />
+                      </Button>
                     </Badge>
                   )}
                   {filterOption !== 'all' && (
-                    <Badge variant="outline" className="flex items-center gap-1 bg-pink-50 text-pink-700 border-pink-200">
-                      {filterOption === 'pending' && dict.list.controls.filterPending}
-                      {filterOption === 'accepted' && dict.list.controls.filterAccepted}
-                      {filterOption === 'declined' && dict.list.controls.filterDeclined}
-                      {filterOption === 'contact_shared' && dict.list.controls.filterContactShared}
-                      <Button variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => setFilterOption('all')}><XCircle className="h-3 w-3" /></Button>
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 bg-pink-50 text-pink-700 border-pink-200"
+                    >
+                      {filterOption === 'pending' &&
+                        dict.list.controls.filterPending}
+                      {filterOption === 'accepted' &&
+                        dict.list.controls.filterAccepted}
+                      {filterOption === 'declined' &&
+                        dict.list.controls.filterDeclined}
+                      {filterOption === 'contact_shared' &&
+                        dict.list.controls.filterContactShared}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
+                        onClick={() => setFilterOption('all')}
+                      >
+                        <XCircle className="h-3 w-3" />
+                      </Button>
                     </Badge>
                   )}
-                  <Button variant="ghost" size="sm" className="text-xs text-gray-500 hover:text-gray-700" onClick={clearFilters}>{dict.list.activeFilters.clearAll}</Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                    onClick={clearFilters}
+                  >
+                    {dict.list.activeFilters.clearAll}
+                  </Button>
                 </div>
               )}
             </div>
@@ -423,14 +540,19 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         <div className="flex justify-between items-center text-sm text-gray-600">
           <span>
             {filteredSuggestions.length === 1
-              ? dict.list.resultsCount.showingSingle.replace('{{count}}', '1').replace('{{total}}', initialSuggestions.length.toString())
-              : dict.list.resultsCount.showingMultiple.replace('{{count}}', filteredSuggestions.length.toString()).replace('{{total}}', initialSuggestions.length.toString())
-            }
+              ? dict.list.resultsCount.showingSingle
+                  .replace('{{count}}', '1')
+                  .replace('{{total}}', initialSuggestions.length.toString())
+              : dict.list.resultsCount.showingMultiple
+                  .replace('{{count}}', filteredSuggestions.length.toString())
+                  .replace('{{total}}', initialSuggestions.length.toString())}
           </span>
           {filteredSuggestions.length > 0 && (
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-purple-500" />
-              <span className="font-medium">{dict.list.resultsCount.qualityMatches}</span>
+              <span className="font-medium">
+                {dict.list.resultsCount.qualityMatches}
+              </span>
             </div>
           )}
         </div>
@@ -443,9 +565,23 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
             dict={dict.list.emptyState}
           />
         ) : (
-          <div className={cn(viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-6', 'animate-fade-in-up')}>
+          <div
+            className={cn(
+              viewMode === 'grid'
+                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                : 'space-y-6',
+              'animate-fade-in-up'
+            )}
+          >
             {filteredSuggestions.map((suggestion, index) => (
-              <div key={suggestion.id} className="animate-scale-in" style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'both' }}>
+              <div
+                key={suggestion.id}
+                className="animate-scale-in"
+                style={{
+                  animationDelay: `${index * 100}ms`,
+                  animationFillMode: 'both',
+                }}
+              >
                 <MinimalSuggestionCard
                   suggestion={suggestion}
                   userId={userId}
@@ -455,7 +591,10 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   onDecline={() => handleStatusAction(suggestion, 'decline')}
                   isHistory={isHistory}
                   isApprovalDisabled={isUserInActiveProcess}
-                  className={cn('card-hover-elegant', viewMode === 'list' ? 'flex' : '')}
+                  className={cn(
+                    'card-hover-elegant',
+                    viewMode === 'list' ? 'flex' : ''
+                  )}
                   dict={dict.card} // ✨ Pass card dict down
                 />
               </div>
@@ -470,7 +609,9 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         isOpen={!!selectedSuggestion && !showAskDialog}
         onClose={() => setSelectedSuggestion(null)}
         onActionRequest={onActionRequest}
-        questionnaire={selectedSuggestion?.secondParty?.questionnaireResponses?.[0] || null}
+        questionnaire={
+          selectedSuggestion?.secondParty?.questionnaireResponses?.[0] || null
+        }
         dict={dict} // ✨ Pass full suggestions dict to modal
       />
 
@@ -479,8 +620,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         onClose={() => setShowAskDialog(false)}
         onSubmit={handleSendQuestion}
         matchmakerName={selectedSuggestion?.matchmaker.firstName}
-        suggestionId={selectedSuggestion?.id}
-        // Assuming AskMatchmakerDialog will also be internationalized later
+        dict={dict.askMatchmaker} // הנחה שסוג המילון יועבר בצורה תקינה
       />
     </>
   );
