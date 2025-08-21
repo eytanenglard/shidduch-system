@@ -143,6 +143,623 @@ import { languageOptions } from '@/lib/languageOptions';
 import type { Candidate } from '@/components/matchmaker/new/types/candidates';
 
 import NewSuggestionForm from '@/components/matchmaker/suggestions/NewSuggestionForm';
+import { ProfileCardDict } from '@/types/dictionary';
+
+const createMaritalStatusMap = (
+  dict: ProfileCardDict['options']['maritalStatus']
+) => ({
+  single: {
+    label: dict.single,
+    shortLabel: 'רווק',
+    icon: Heart,
+    color: 'text-rose-600',
+  },
+  divorced: {
+    label: dict.divorced,
+    shortLabel: 'גרוש',
+    icon: Sunrise,
+    color: 'text-amber-600',
+  },
+  widowed: {
+    label: dict.widowed,
+    shortLabel: 'אלמן',
+    icon: Stars,
+    color: 'text-purple-600',
+  },
+  annulled: {
+    label: dict.annulled,
+    shortLabel: 'מוכן לאהבה',
+    icon: Rainbow,
+    color: 'text-pink-600',
+  },
+  any: {
+    label: 'פתוח/ה לכל האפשרויות',
+    shortLabel: 'פתוח',
+    icon: Sparkles,
+    color: 'text-indigo-600',
+  },
+});
+
+const createReligiousLevelMap = (
+  dict: ProfileCardDict['options']['religiousLevel']
+) => ({
+  charedi: {
+    label: dict.charedi,
+    shortLabel: 'חרדי',
+    icon: BookMarked,
+    color: 'text-indigo-700',
+  },
+  charedi_modern: {
+    label: dict.charedi_modern,
+    shortLabel: 'חרדי מודרני',
+    icon: BookOpen,
+    color: 'text-indigo-600',
+  },
+  dati_leumi_torani: {
+    label: dict.dati_leumi_torani,
+    shortLabel: 'דתי תורני',
+    icon: Star,
+    color: 'text-blue-700',
+  },
+  dati_leumi_liberal: {
+    label: dict.dati_leumi_liberal,
+    shortLabel: 'דתי ליברלי',
+    icon: Flower,
+    color: 'text-blue-600',
+  },
+  dati_leumi_standard: {
+    label: dict.dati_leumi_standard,
+    shortLabel: 'דתי לאומי',
+    icon: Crown,
+    color: 'text-blue-600',
+  },
+  masorti_strong: {
+    label: dict.masorti_strong,
+    shortLabel: 'מסורתי חזק',
+    icon: TreePine,
+    color: 'text-emerald-700',
+  },
+  masorti_light: {
+    label: dict.masorti_light,
+    shortLabel: 'מסורתי קל',
+    icon: Wind,
+    color: 'text-emerald-600',
+  },
+  secular_traditional_connection: {
+    label: dict.secular_traditional_connection,
+    shortLabel: 'חילוני עם זיקה',
+    icon: Waves,
+    color: 'text-cyan-600',
+  },
+  secular: {
+    label: dict.secular,
+    shortLabel: 'חילוני',
+    icon: Sunrise,
+    color: 'text-orange-600',
+  },
+  spiritual_not_religious: {
+    label: dict.spiritual_not_religious,
+    shortLabel: 'רוחני',
+    icon: Sparkle,
+    color: 'text-purple-600',
+  },
+  other: {
+    label: dict.other,
+    shortLabel: 'ייחודי',
+    icon: Rainbow,
+    color: 'text-pink-600',
+  },
+  no_preference: {
+    label: dict.other,
+    shortLabel: 'פתוח',
+    icon: Globe,
+    color: 'text-gray-600',
+  },
+});
+
+const createReligiousJourneyMap = (
+  dict: ProfileCardDict['options']['religiousJourney']
+) => ({
+  BORN_INTO_CURRENT_LIFESTYLE: {
+    label: dict.BORN_INTO_CURRENT_LIFESTYLE,
+    shortLabel: 'גדלתי דתי',
+    icon: Home,
+    color: 'text-blue-600',
+  },
+  BORN_SECULAR: {
+    label: dict.BORN_SECULAR,
+    shortLabel: 'גדלתי חילוני',
+    icon: Sun,
+    color: 'text-orange-600',
+  },
+  BAAL_TESHUVA: {
+    label: dict.BAAL_TESHUVA,
+    shortLabel: 'חוזר בתשובה',
+    icon: Sparkles,
+    color: 'text-purple-600',
+  },
+  DATLASH: {
+    label: dict.DATLASH,
+    shortLabel: 'דתל"ש',
+    icon: ArrowLeft,
+    color: 'text-gray-600',
+  },
+  CONVERT: {
+    label: dict.CONVERT,
+    shortLabel: 'גיורת',
+    icon: Star,
+    color: 'text-amber-600',
+  },
+  IN_PROCESS: {
+    label: dict.IN_PROCESS,
+    shortLabel: 'בתהליך',
+    icon: Compass,
+    color: 'text-teal-600',
+  },
+  OTHER: {
+    label: dict.OTHER,
+    shortLabel: 'אחר',
+    icon: InfoIcon,
+    color: 'text-pink-600',
+  },
+  no_preference: {
+    label: 'ללא העדפה למסע הדתי',
+    shortLabel: 'ללא העדפה',
+    icon: Globe,
+    color: 'text-gray-500',
+  },
+});
+
+const createEducationLevelMap = (
+  dict: ProfileCardDict['options']['educationLevel']
+) => ({
+  high_school: {
+    label: dict.high_school,
+    shortLabel: 'תיכון',
+    icon: School,
+    color: 'text-blue-600',
+  },
+  vocational: {
+    label: dict.vocational,
+    shortLabel: 'מקצועי',
+    icon: Award,
+    color: 'text-green-600',
+  },
+  academic_student: {
+    label: dict.academic_student,
+    shortLabel: 'סטודנט',
+    icon: BookOpen,
+    color: 'text-orange-600',
+  },
+  academic_ba: {
+    label: dict.academic_ba,
+    shortLabel: 'ב.א',
+    icon: GraduationCap,
+    color: 'text-purple-600',
+  },
+  academic_ma: {
+    label: dict.academic_ma,
+    shortLabel: 'מ.א',
+    icon: Star,
+    color: 'text-indigo-600',
+  },
+  academic_phd: {
+    label: dict.academic_phd,
+    shortLabel: 'דוקטור',
+    icon: Crown,
+    color: 'text-rose-600',
+  },
+  yeshiva_seminary: {
+    label: dict.yeshiva_seminary,
+    shortLabel: 'תורני',
+    icon: BookMarked,
+    color: 'text-amber-600',
+  },
+  other: {
+    label: dict.other,
+    shortLabel: 'ייחודי',
+    icon: Sparkles,
+    color: 'text-pink-600',
+  },
+  'ללא העדפה': {
+    label: 'הכל פתוח',
+    shortLabel: 'פתוח',
+    icon: Globe,
+    color: 'text-gray-600',
+  },
+});
+
+const createServiceTypeMap = (
+  dict: ProfileCardDict['options']['serviceType']
+) => ({
+  MILITARY_COMBATANT: {
+    label: dict.MILITARY_COMBATANT,
+    shortLabel: 'לוחם',
+    icon: Award,
+    color: 'text-red-600',
+  },
+  MILITARY_SUPPORT: {
+    label: dict.MILITARY_SUPPORT,
+    shortLabel: 'תומך',
+    icon: Users,
+    color: 'text-orange-600',
+  },
+  MILITARY_OFFICER: {
+    label: dict.MILITARY_OFFICER,
+    shortLabel: 'קצין',
+    icon: Crown,
+    color: 'text-purple-600',
+  },
+  MILITARY_INTELLIGENCE_CYBER_TECH: {
+    label: dict.MILITARY_INTELLIGENCE_CYBER_TECH,
+    shortLabel: 'טכנולוגיה',
+    icon: Zap,
+    color: 'text-blue-600',
+  },
+  NATIONAL_SERVICE_ONE_YEAR: {
+    label: dict.NATIONAL_SERVICE_ONE_YEAR,
+    shortLabel: 'שירות לאומי',
+    icon: Heart,
+    color: 'text-pink-600',
+  },
+  NATIONAL_SERVICE_TWO_YEARS: {
+    label: dict.NATIONAL_SERVICE_TWO_YEARS,
+    shortLabel: 'שירות מורחב',
+    icon: Stars,
+    color: 'text-rose-600',
+  },
+  HESDER_YESHIVA: {
+    label: dict.HESDER_YESHIVA,
+    shortLabel: 'הסדר',
+    icon: BookMarked,
+    color: 'text-indigo-600',
+  },
+  YESHIVA_ONLY_POST_HS: {
+    label: dict.YESHIVA_ONLY_POST_HS,
+    shortLabel: 'תורני',
+    icon: BookOpen,
+    color: 'text-amber-600',
+  },
+  PRE_MILITARY_ACADEMY_AND_SERVICE: {
+    label: dict.PRE_MILITARY_ACADEMY_AND_SERVICE,
+    shortLabel: 'מכינה',
+    icon: GraduationCap,
+    color: 'text-green-600',
+  },
+  EXEMPTED: {
+    label: dict.EXEMPTED,
+    shortLabel: 'פטור',
+    icon: Shield,
+    color: 'text-gray-600',
+  },
+  CIVILIAN_SERVICE: {
+    label: dict.CIVILIAN_SERVICE,
+    shortLabel: 'אזרחי',
+    icon: Users2,
+    color: 'text-teal-600',
+  },
+  OTHER: {
+    label: dict.OTHER,
+    shortLabel: 'ייחודי',
+    icon: Sparkles,
+    color: 'text-purple-600',
+  },
+});
+
+const createHeadCoveringMap = (
+  dict: ProfileCardDict['options']['headCovering']
+) => ({
+  FULL_COVERAGE: {
+    label: dict.FULL_COVERAGE,
+    shortLabel: 'מלא',
+    icon: Crown,
+    color: 'text-purple-600',
+  },
+  PARTIAL_COVERAGE: {
+    label: dict.PARTIAL_COVERAGE,
+    shortLabel: 'חלקי',
+    icon: Flower,
+    color: 'text-pink-600',
+  },
+  HAT_BERET: {
+    label: dict.HAT_BERET,
+    shortLabel: 'כובע',
+    icon: Sun,
+    color: 'text-orange-600',
+  },
+  SCARF_ONLY_SOMETIMES: {
+    label: dict.SCARF_ONLY_SOMETIMES,
+    shortLabel: 'לאירועים',
+    icon: Sparkle,
+    color: 'text-rose-600',
+  },
+  NONE: {
+    label: dict.NONE,
+    shortLabel: 'ללא',
+    icon: Wind,
+    color: 'text-blue-600',
+  },
+  any: {
+    label: 'גמיש/ה',
+    shortLabel: 'גמיש',
+    icon: Rainbow,
+    color: 'text-indigo-600',
+  },
+});
+
+const createKippahTypeMap = (
+  dict: ProfileCardDict['options']['kippahType']
+) => ({
+  BLACK_VELVET: {
+    label: dict.BLACK_VELVET,
+    shortLabel: 'קטיפה',
+    icon: Crown,
+    color: 'text-indigo-700',
+  },
+  KNITTED_SMALL: {
+    label: dict.KNITTED_SMALL,
+    shortLabel: 'סרוגה קטנה',
+    icon: Star,
+    color: 'text-blue-600',
+  },
+  KNITTED_LARGE: {
+    label: dict.KNITTED_LARGE,
+    shortLabel: 'סרוגה גדולה',
+    icon: Stars,
+    color: 'text-blue-700',
+  },
+  CLOTH: {
+    label: dict.CLOTH,
+    shortLabel: 'בד',
+    icon: Flower,
+    color: 'text-green-600',
+  },
+  BRESLEV: {
+    label: dict.BRESLEV,
+    shortLabel: 'ברסלב',
+    icon: Sparkle,
+    color: 'text-purple-600',
+  },
+  NONE_AT_WORK_OR_CASUAL: {
+    label: dict.NONE_AT_WORK_OR_CASUAL,
+    shortLabel: 'לא בעבודה',
+    icon: Briefcase,
+    color: 'text-gray-600',
+  },
+  NONE_USUALLY: {
+    label: dict.NONE_USUALLY,
+    shortLabel: 'לרוב לא',
+    icon: Wind,
+    color: 'text-gray-500',
+  },
+  OTHER: {
+    label: dict.OTHER,
+    shortLabel: 'ייחודי',
+    icon: Rainbow,
+    color: 'text-pink-600',
+  },
+  any: {
+    label: 'גמיש',
+    shortLabel: 'גמיש',
+    icon: Globe,
+    color: 'text-teal-600',
+  },
+});
+
+const createCharacterTraitMap = (
+  dict: ProfileCardDict['options']['traits']
+) => ({
+  empathetic: {
+    label: dict.empathetic,
+    shortLabel: 'אמפתי',
+    icon: Heart,
+    color: 'text-rose-600',
+  },
+  driven: {
+    label: dict.driven,
+    shortLabel: 'שאפתן',
+    icon: Zap,
+    color: 'text-orange-600',
+  },
+  optimistic: {
+    label: dict.optimistic,
+    shortLabel: 'אופטימי',
+    icon: Sunrise,
+    color: 'text-yellow-600',
+  },
+  family_oriented: {
+    label: dict.family_oriented,
+    shortLabel: 'משפחתי',
+    icon: Users2,
+    color: 'text-pink-600',
+  },
+  intellectual: {
+    label: dict.intellectual,
+    shortLabel: 'אינטלקטואל',
+    icon: BookOpen,
+    color: 'text-indigo-600',
+  },
+  organized: {
+    label: dict.organized,
+    shortLabel: 'מאורגן',
+    icon: CheckCircle,
+    color: 'text-green-600',
+  },
+  calm: {
+    label: dict.calm,
+    shortLabel: 'רגוע',
+    icon: Waves,
+    color: 'text-blue-600',
+  },
+  humorous: {
+    label: dict.humorous,
+    shortLabel: 'מצחיק',
+    icon: Smile,
+    color: 'text-purple-600',
+  },
+  sociable: {
+    label: dict.sociable,
+    shortLabel: 'חברותי',
+    icon: Users,
+    color: 'text-cyan-600',
+  },
+  sensitive: {
+    label: dict.sensitive,
+    shortLabel: 'רגיש',
+    icon: Flower,
+    color: 'text-pink-600',
+  },
+  independent: {
+    label: dict.independent,
+    shortLabel: 'עצמאי',
+    icon: Crown,
+    color: 'text-amber-600',
+  },
+  creative: {
+    label: dict.creative,
+    shortLabel: 'יצירתי',
+    icon: Palette,
+    color: 'text-rose-600',
+  },
+  honest: {
+    label: dict.honest,
+    shortLabel: 'כן וישר',
+    icon: Star,
+    color: 'text-blue-600',
+  },
+  responsible: {
+    label: dict.responsible,
+    shortLabel: 'אחראי',
+    icon: Award,
+    color: 'text-green-600',
+  },
+  easy_going: {
+    label: dict.easy_going,
+    shortLabel: 'זורם',
+    icon: Wind,
+    color: 'text-teal-600',
+  },
+  no_strong_preference: {
+    label: 'פתוח/ה לגילוי',
+    shortLabel: 'פתוח',
+    icon: Compass,
+    color: 'text-gray-600',
+  },
+});
+
+const createHobbiesMap = (dict: ProfileCardDict['options']['hobbies']) => ({
+  travel: {
+    label: dict.travel,
+    shortLabel: 'טיולים',
+    icon: Compass,
+    color: 'text-green-600',
+  },
+  sports: {
+    label: dict.sports,
+    shortLabel: 'ספורט',
+    icon: Zap,
+    color: 'text-orange-600',
+  },
+  reading: {
+    label: dict.reading,
+    shortLabel: 'קריאה',
+    icon: BookOpen,
+    color: 'text-indigo-600',
+  },
+  cooking_baking: {
+    label: dict.cooking_baking,
+    shortLabel: 'בישול',
+    icon: Coffee,
+    color: 'text-amber-600',
+  },
+  music_playing_instrument: {
+    label: dict.music_playing_instrument,
+    shortLabel: 'מוזיקה',
+    icon: Music,
+    color: 'text-purple-600',
+  },
+  art_crafts: {
+    label: dict.art_crafts,
+    shortLabel: 'אומנות',
+    icon: Palette,
+    color: 'text-pink-600',
+  },
+  volunteering: {
+    label: dict.volunteering,
+    shortLabel: 'התנדבות',
+    icon: Heart,
+    color: 'text-rose-600',
+  },
+  learning_courses: {
+    label: dict.learning_courses,
+    shortLabel: 'למידה',
+    icon: GraduationCap,
+    color: 'text-blue-600',
+  },
+  board_games_puzzles: {
+    label: dict.board_games_puzzles,
+    shortLabel: 'משחקים',
+    icon: Play,
+    color: 'text-cyan-600',
+  },
+  movies_theater: {
+    label: dict.movies_theater,
+    shortLabel: 'סרטים',
+    icon: Camera,
+    color: 'text-red-600',
+  },
+  dancing: {
+    label: dict.dancing,
+    shortLabel: 'ריקוד',
+    icon: Sparkle,
+    color: 'text-pink-600',
+  },
+  writing: {
+    label: dict.writing,
+    shortLabel: 'כתיבה',
+    icon: Edit3,
+    color: 'text-gray-600',
+  },
+  nature_hiking: {
+    label: dict.nature_hiking,
+    shortLabel: 'טבע',
+    icon: TreePine,
+    color: 'text-green-600',
+  },
+  photography: {
+    label: dict.photography,
+    shortLabel: 'צילום',
+    icon: Camera,
+    color: 'text-blue-600',
+  },
+  no_strong_preference: {
+    label: 'פתוח/ה לגילוי יחד',
+    shortLabel: 'פתוח',
+    icon: Rainbow,
+    color: 'text-gray-600',
+  },
+});
+
+const createContactPreferenceMap = () => ({
+  direct: {
+    label: 'ישירות',
+    shortLabel: 'ישירות',
+    icon: PhoneIcon,
+    color: 'text-green-600',
+  },
+  matchmaker: {
+    label: 'דרך השדכן/ית',
+    shortLabel: 'דרך שדכן',
+    icon: Users,
+    color: 'text-purple-600',
+  },
+  both: {
+    label: 'גמיש/ה',
+    shortLabel: 'גמיש',
+    icon: MessageSquare,
+    color: 'text-blue-600',
+  },
+});
 
 // Enhanced Interfaces with Responsive Support
 interface CreateSuggestionData {
@@ -405,805 +1022,6 @@ type ThemeType = {
     soft: string;
     softSm: string;
   };
-};
-
-// Enhanced Data & Translation Maps with Responsive Support
-const maritalStatusMap: {
-  [key: string]: {
-    label: string;
-    shortLabel?: string;
-    icon: React.ElementType;
-    color: string;
-    mobileClasses?: string;
-  };
-} = {
-  single: {
-    label: 'רווק/ה',
-    shortLabel: 'רווק',
-    icon: Heart,
-    color: 'text-rose-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  divorced: {
-    label: 'גרוש/ה',
-    shortLabel: 'גרוש',
-    icon: Sunrise,
-    color: 'text-amber-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  widowed: {
-    label: 'אלמן/ה',
-    shortLabel: 'אלמן',
-    icon: Stars,
-    color: 'text-purple-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  annulled: {
-    label: 'מוכן/ה לאהבה חדשה',
-    shortLabel: 'מוכן לאהבה',
-    icon: Rainbow,
-    color: 'text-pink-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  any: {
-    label: 'פתוח/ה לכל האפשרויות',
-    shortLabel: 'פתוח',
-    icon: Sparkles,
-    color: 'text-indigo-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-};
-
-const religiousLevelMap: {
-  [key: string]: {
-    label: string;
-    shortLabel?: string;
-    icon: React.ElementType;
-    color: string;
-    mobileClasses?: string;
-  };
-} = {
-  charedi: {
-    label: 'חרדי/ת',
-    shortLabel: 'חרדי',
-    icon: BookMarked,
-    color: 'text-indigo-700',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  charedi_modern: {
-    label: 'חרדי/ת מודרני/ת',
-    shortLabel: 'חרדי מודרני',
-    icon: BookOpen,
-    color: 'text-indigo-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  dati_leumi_torani: {
-    label: 'דתי/ה לאומי/ת תורני/ת',
-    shortLabel: 'דתי תורני',
-    icon: Star,
-    color: 'text-blue-700',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  dati_leumi_liberal: {
-    label: 'דתי/ה לאומי/ת ליברלי/ת',
-    shortLabel: 'דתי ליברלי',
-    icon: Flower,
-    color: 'text-blue-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  dati_leumi_standard: {
-    label: 'דתי/ה לאומי/ת',
-    shortLabel: 'דתי לאומי',
-    icon: Crown,
-    color: 'text-blue-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  masorti_strong: {
-    label: 'מסורתי/ת (חזק)',
-    shortLabel: 'מסורתי חזק',
-    icon: TreePine,
-    color: 'text-emerald-700',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  masorti_light: {
-    label: 'מסורתי/ת (קל)',
-    shortLabel: 'מסורתי קל',
-    icon: Wind,
-    color: 'text-emerald-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  secular_traditional_connection: {
-    label: 'חילוני/ת עם זיקה',
-    shortLabel: 'חילוני עם זיקה',
-    icon: Waves,
-    color: 'text-cyan-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  secular: {
-    label: 'חילוני/ת',
-    shortLabel: 'חילוני',
-    icon: Sunrise,
-    color: 'text-orange-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  spiritual_not_religious: {
-    label: 'רוחני/ת',
-    shortLabel: 'רוחני',
-    icon: Sparkle,
-    color: 'text-purple-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  other: {
-    label: 'ייחודי/ת',
-    shortLabel: 'ייחודי',
-    icon: Rainbow,
-    color: 'text-pink-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  'לא משנה': {
-    label: 'פתוח/ה לכל השקפה',
-    shortLabel: 'פתוח',
-    icon: Globe,
-    color: 'text-gray-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-};
-
-const religiousJourneyMap: {
-  [key: string]: {
-    label: string;
-    shortLabel?: string;
-    icon: React.ElementType;
-    color: string;
-    mobileClasses?: string;
-  };
-} = {
-  BORN_INTO_CURRENT_LIFESTYLE: {
-    label: 'גדלתי באורח חיים דתי',
-    shortLabel: 'גדלתי דתי',
-    icon: Home,
-    color: 'text-blue-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  BORN_SECULAR: {
-    label: 'גדלתי באורח חיים חילוני',
-    shortLabel: 'גדלתי חילוני',
-    icon: Sun,
-    color: 'text-orange-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  BAAL_TESHUVA: {
-    label: 'חזרתי בתשובה',
-    shortLabel: 'חוזר בתשובה',
-    icon: Sparkles,
-    color: 'text-purple-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  DATLASH: {
-    label: 'יצאתי בשאלה (דתל"ש)',
-    shortLabel: 'דתל"ש',
-    icon: ArrowLeft,
-    color: 'text-gray-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  CONVERT: {
-    label: 'גר/ה / גיורת',
-    shortLabel: 'גיורת',
-    icon: Star,
-    color: 'text-amber-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  IN_PROCESS: {
-    label: 'בתהליך של שינוי/התקרבות',
-    shortLabel: 'בתהליך',
-    icon: Compass,
-    color: 'text-teal-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  OTHER: {
-    label: 'אחר',
-    shortLabel: 'אחר',
-    icon: InfoIcon,
-    color: 'text-pink-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  no_preference: {
-    label: 'ללא העדפה למסע הדתי',
-    shortLabel: 'ללא העדפה',
-    icon: Globe,
-    color: 'text-gray-500',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-};
-
-const educationLevelMap: {
-  [key: string]: {
-    label: string;
-    shortLabel?: string;
-    icon: React.ElementType;
-    color: string;
-    mobileClasses?: string;
-  };
-} = {
-  high_school: {
-    label: 'תיכונית',
-    shortLabel: 'תיכון',
-    icon: School,
-    color: 'text-blue-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  vocational: {
-    label: 'מקצועית',
-    shortLabel: 'מקצועי',
-    icon: Award,
-    color: 'text-green-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  academic_student: {
-    label: 'במהלך לימודים',
-    shortLabel: 'סטודנט',
-    icon: BookOpen,
-    color: 'text-orange-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  academic_ba: {
-    label: 'בוגר/ת תואר ראשון',
-    shortLabel: 'ב.א',
-    icon: GraduationCap,
-    color: 'text-purple-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  academic_ma: {
-    label: 'בוגר/ת תואר שני',
-    shortLabel: 'מ.א',
-    icon: Star,
-    color: 'text-indigo-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  academic_phd: {
-    label: 'דוקטור/ת',
-    shortLabel: 'דוקטור',
-    icon: Crown,
-    color: 'text-rose-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  yeshiva_seminary: {
-    label: 'לימודים תורניים',
-    shortLabel: 'תורני',
-    icon: BookMarked,
-    color: 'text-amber-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  other: {
-    label: 'ייחודי/ת',
-    shortLabel: 'ייחודי',
-    icon: Sparkles,
-    color: 'text-pink-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  'ללא העדפה': {
-    label: 'הכל פתוח',
-    shortLabel: 'פתוח',
-    icon: Globe,
-    color: 'text-gray-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-};
-
-const serviceTypeMap: {
-  [key: string]: {
-    label: string;
-    shortLabel?: string;
-    icon: React.ElementType;
-    color: string;
-    mobileClasses?: string;
-  };
-} = {
-  MILITARY_COMBATANT: {
-    label: 'לוחם/ת',
-    shortLabel: 'לוחם',
-    icon: Award,
-    color: 'text-red-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  MILITARY_SUPPORT: {
-    label: 'תומך/ת לחימה',
-    shortLabel: 'תומך',
-    icon: Users,
-    color: 'text-orange-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  MILITARY_OFFICER: {
-    label: 'קצין/ה',
-    shortLabel: 'קצין',
-    icon: Crown,
-    color: 'text-purple-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  MILITARY_INTELLIGENCE_CYBER_TECH: {
-    label: 'טכנולוגיה ומודיעין',
-    shortLabel: 'טכנולוגיה',
-    icon: Zap,
-    color: 'text-blue-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  NATIONAL_SERVICE_ONE_YEAR: {
-    label: 'שירות לאומי',
-    shortLabel: 'שירות לאומי',
-    icon: Heart,
-    color: 'text-pink-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  NATIONAL_SERVICE_TWO_YEARS: {
-    label: 'שירות לאומי מורחב',
-    shortLabel: 'שירות מורחב',
-    icon: Stars,
-    color: 'text-rose-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  HESDER_YESHIVA: {
-    label: 'ישיבת הסדר',
-    shortLabel: 'הסדר',
-    icon: BookMarked,
-    color: 'text-indigo-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  YESHIVA_ONLY_POST_HS: {
-    label: 'לימודים תורניים',
-    shortLabel: 'תורני',
-    icon: BookOpen,
-    color: 'text-amber-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  PRE_MILITARY_ACADEMY_AND_SERVICE: {
-    label: 'מכינה ושירות',
-    shortLabel: 'מכינה',
-    icon: GraduationCap,
-    color: 'text-green-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  EXEMPTED: {
-    label: 'פטור',
-    shortLabel: 'פטור',
-    icon: Shield,
-    color: 'text-gray-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  CIVILIAN_SERVICE: {
-    label: 'שירות אזרחי',
-    shortLabel: 'אזרחי',
-    icon: Users2,
-    color: 'text-teal-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  OTHER: {
-    label: 'ייחודי',
-    shortLabel: 'ייחודי',
-    icon: Sparkles,
-    color: 'text-purple-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-};
-
-const headCoveringMap: {
-  [key: string]: {
-    label: string;
-    shortLabel?: string;
-    icon: React.ElementType;
-    color: string;
-    mobileClasses?: string;
-  };
-} = {
-  FULL_COVERAGE: {
-    label: 'כיסוי מלא',
-    shortLabel: 'מלא',
-    icon: Crown,
-    color: 'text-purple-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  PARTIAL_COVERAGE: {
-    label: 'כיסוי חלקי',
-    shortLabel: 'חלקי',
-    icon: Flower,
-    color: 'text-pink-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  HAT_BERET: {
-    label: 'כובע/ברט',
-    shortLabel: 'כובע',
-    icon: Sun,
-    color: 'text-orange-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  SCARF_ONLY_SOMETIMES: {
-    label: 'מטפחת לאירועים',
-    shortLabel: 'לאירועים',
-    icon: Sparkle,
-    color: 'text-rose-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  NONE: {
-    label: 'ללא כיסוי',
-    shortLabel: 'ללא',
-    icon: Wind,
-    color: 'text-blue-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  any: {
-    label: 'גמיש/ה',
-    shortLabel: 'גמיש',
-    icon: Rainbow,
-    color: 'text-indigo-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-};
-
-const kippahTypeMap: {
-  [key: string]: {
-    label: string;
-    shortLabel?: string;
-    icon: React.ElementType;
-    color: string;
-    mobileClasses?: string;
-  };
-} = {
-  BLACK_VELVET: {
-    label: 'קטיפה שחורה',
-    shortLabel: 'קטיפה',
-    icon: Crown,
-    color: 'text-indigo-700',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  KNITTED_SMALL: {
-    label: 'סרוגה קטנה',
-    shortLabel: 'סרוגה קטנה',
-    icon: Star,
-    color: 'text-blue-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  KNITTED_LARGE: {
-    label: 'סרוגה גדולה',
-    shortLabel: 'סרוגה גדולה',
-    icon: Stars,
-    color: 'text-blue-700',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  CLOTH: {
-    label: 'בד',
-    shortLabel: 'בד',
-    icon: Flower,
-    color: 'text-green-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  BRESLEV: {
-    label: 'ברסלב',
-    shortLabel: 'ברסלב',
-    icon: Sparkle,
-    color: 'text-purple-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  NONE_AT_WORK_OR_CASUAL: {
-    label: 'לא בעבודה',
-    shortLabel: 'לא בעבודה',
-    icon: Briefcase,
-    color: 'text-gray-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  NONE_USUALLY: {
-    label: 'לרוב לא',
-    shortLabel: 'לרוב לא',
-    icon: Wind,
-    color: 'text-gray-500',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  OTHER: {
-    label: 'ייחודי',
-    shortLabel: 'ייחודי',
-    icon: Rainbow,
-    color: 'text-pink-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  any: {
-    label: 'גמיש',
-    shortLabel: 'גמיש',
-    icon: Globe,
-    color: 'text-teal-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-};
-
-const languageMap = languageOptions.reduce(
-  (acc, lang) => {
-    acc[lang.value] = {
-      label: lang.label,
-      shortLabel:
-        lang.label.length > 8 ? lang.label.substring(0, 8) + '...' : lang.label,
-      icon: Globe,
-      color: 'text-blue-600',
-      mobileClasses: 'text-xs sm:text-sm',
-    };
-    return acc;
-  },
-  {} as {
-    [key: string]: {
-      label: string;
-      shortLabel?: string;
-      icon: React.ElementType;
-      color: string;
-      mobileClasses?: string;
-    };
-  }
-);
-
-const contactPreferenceMap: {
-  [key: string]: {
-    label: string;
-    shortLabel?: string;
-    icon: React.ElementType;
-    color: string;
-    mobileClasses?: string;
-  };
-} = {
-  direct: {
-    label: 'ישירות',
-    shortLabel: 'ישירות',
-    icon: PhoneIcon,
-    color: 'text-green-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  matchmaker: {
-    label: 'דרך השדכן/ית',
-    shortLabel: 'דרך שדכן',
-    icon: Users,
-    color: 'text-purple-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  both: {
-    label: 'גמיש/ה',
-    shortLabel: 'גמיש',
-    icon: MessageSquare,
-    color: 'text-blue-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-};
-
-const characterTraitMap: {
-  [key: string]: {
-    label: string;
-    shortLabel?: string;
-    icon: React.ElementType;
-    color: string;
-    mobileClasses?: string;
-  };
-} = {
-  empathetic: {
-    label: 'אמפתי/ת',
-    shortLabel: 'אמפתי',
-    icon: Heart,
-    color: 'text-rose-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  driven: {
-    label: 'שאפתן/ית',
-    shortLabel: 'שאפתן',
-    icon: Zap,
-    color: 'text-orange-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  optimistic: {
-    label: 'אופטימי/ת',
-    shortLabel: 'אופטימי',
-    icon: Sunrise,
-    color: 'text-yellow-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  family_oriented: {
-    label: 'משפחתי/ת',
-    shortLabel: 'משפחתי',
-    icon: Users2,
-    color: 'text-pink-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  intellectual: {
-    label: 'אינטלקטואל/ית',
-    shortLabel: 'אינטלקטואל',
-    icon: BookOpen,
-    color: 'text-indigo-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  organized: {
-    label: 'מאורגנ/ת',
-    shortLabel: 'מאורגן',
-    icon: CheckCircle,
-    color: 'text-green-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  calm: {
-    label: 'רגוע/ה',
-    shortLabel: 'רגוע',
-    icon: Waves,
-    color: 'text-blue-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  humorous: {
-    label: 'מצחיק/ה',
-    shortLabel: 'מצחיק',
-    icon: Smile,
-    color: 'text-purple-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  sociable: {
-    label: 'חברותי/ת',
-    shortLabel: 'חברותי',
-    icon: Users,
-    color: 'text-cyan-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  sensitive: {
-    label: 'רגיש/ה',
-    shortLabel: 'רגיש',
-    icon: Flower,
-    color: 'text-pink-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  independent: {
-    label: 'עצמאי/ת',
-    shortLabel: 'עצמאי',
-    icon: Crown,
-    color: 'text-amber-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  creative: {
-    label: 'יצירתי/ת',
-    shortLabel: 'יצירתי',
-    icon: Palette,
-    color: 'text-rose-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  honest: {
-    label: 'כן/ה וישר/ה',
-    shortLabel: 'כן וישר',
-    icon: Star,
-    color: 'text-blue-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  responsible: {
-    label: 'אחראי/ת',
-    shortLabel: 'אחראי',
-    icon: Award,
-    color: 'text-green-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  easy_going: {
-    label: 'זורם/ת וקליל/ה',
-    shortLabel: 'זורם',
-    icon: Wind,
-    color: 'text-teal-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  no_strong_preference: {
-    label: 'פתוח/ה לגילוי',
-    shortLabel: 'פתוח',
-    icon: Compass,
-    color: 'text-gray-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-};
-
-const hobbiesMap: {
-  [key: string]: {
-    label: string;
-    shortLabel?: string;
-    icon: React.ElementType;
-    color: string;
-    mobileClasses?: string;
-  };
-} = {
-  travel: {
-    label: 'טיולים',
-    shortLabel: 'טיולים',
-    icon: Compass,
-    color: 'text-green-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  sports: {
-    label: 'ספורט',
-    shortLabel: 'ספורט',
-    icon: Zap,
-    color: 'text-orange-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  reading: {
-    label: 'קריאה',
-    shortLabel: 'קריאה',
-    icon: BookOpen,
-    color: 'text-indigo-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  cooking_baking: {
-    label: 'בישול ואפיה',
-    shortLabel: 'בישול',
-    icon: Coffee,
-    color: 'text-amber-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  music_playing_instrument: {
-    label: 'מוזיקה',
-    shortLabel: 'מוזיקה',
-    icon: Music,
-    color: 'text-purple-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  art_crafts: {
-    label: 'אומנות ויצירה',
-    shortLabel: 'אומנות',
-    icon: Palette,
-    color: 'text-pink-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  volunteering: {
-    label: 'התנדבות',
-    shortLabel: 'התנדבות',
-    icon: Heart,
-    color: 'text-rose-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  learning_courses: {
-    label: 'למידה',
-    shortLabel: 'למידה',
-    icon: GraduationCap,
-    color: 'text-blue-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  board_games_puzzles: {
-    label: 'משחקים',
-    shortLabel: 'משחקים',
-    icon: Play,
-    color: 'text-cyan-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  movies_theater: {
-    label: 'סרטים ותיאטרון',
-    shortLabel: 'סרטים',
-    icon: Camera,
-    color: 'text-red-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  dancing: {
-    label: 'ריקוד',
-    shortLabel: 'ריקוד',
-    icon: Sparkle,
-    color: 'text-pink-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  writing: {
-    label: 'כתיבה',
-    shortLabel: 'כתיבה',
-    icon: Edit3,
-    color: 'text-gray-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  nature_hiking: {
-    label: 'טבע וטיולים',
-    shortLabel: 'טבע',
-    icon: TreePine,
-    color: 'text-green-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  photography: {
-    label: 'צילום',
-    shortLabel: 'צילום',
-    icon: Camera,
-    color: 'text-blue-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  no_strong_preference: {
-    label: 'פתוח/ה לגילוי יחד',
-    shortLabel: 'פתוח',
-    icon: Rainbow,
-    color: 'text-gray-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
 };
 
 // --- Enhanced Helper Functions with Responsive Support ---
@@ -2157,6 +1975,7 @@ interface ProfileCardProps {
   allCandidates?: Candidate[];
   onCreateSuggestion?: (data: CreateSuggestionData) => Promise<void>;
   onClose?: () => void;
+  dict: ProfileCardDict;
 }
 
 const ProfileHeader: React.FC<{
@@ -2171,6 +1990,9 @@ const ProfileHeader: React.FC<{
   onPaletteChange?: (palette: ColorPaletteName) => void;
   THEME: ThemeType;
   compact?: boolean;
+  characterTraitMap: ReturnType<typeof createCharacterTraitMap>;
+  hobbiesMap: ReturnType<typeof createHobbiesMap>;
+  religiousLevelMap: ReturnType<typeof createReligiousLevelMap>;
 }> = ({
   profile,
   age,
@@ -2183,6 +2005,9 @@ const ProfileHeader: React.FC<{
   onPaletteChange,
   THEME,
   compact = false,
+  characterTraitMap,
+  hobbiesMap,
+  religiousLevelMap,
 }) => {
   const personalityHighlights = useMemo(() => {
     const highlights: ExcitementFactor[] = [];
@@ -3105,6 +2930,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   allCandidates = [],
   onCreateSuggestion,
   onClose,
+  dict,
 }) => {
   const profile = useMemo(
     () => ({
@@ -3127,6 +2953,636 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     () => {
       return profile.gender === 'MALE' ? 'masculine' : 'feminine';
     }
+  );
+
+  const maritalStatusMap = useMemo(
+    () => ({
+      single: {
+        label: dict.options.maritalStatus.single,
+        shortLabel: 'רווק',
+        icon: Heart,
+        color: 'text-rose-600',
+      },
+      divorced: {
+        label: dict.options.maritalStatus.divorced,
+        shortLabel: 'גרוש',
+        icon: Sunrise,
+        color: 'text-amber-600',
+      },
+      widowed: {
+        label: dict.options.maritalStatus.widowed,
+        shortLabel: 'אלמן',
+        icon: Stars,
+        color: 'text-purple-600',
+      },
+      annulled: {
+        label: dict.options.maritalStatus.annulled,
+        shortLabel: 'מוכן לאהבה',
+        icon: Rainbow,
+        color: 'text-pink-600',
+      },
+      any: {
+        label: dict.options.maritalStatus.any,
+        shortLabel: 'פתוח',
+        icon: Sparkles,
+        color: 'text-indigo-600',
+      },
+    }),
+    [dict.options.maritalStatus]
+  );
+
+  const religiousLevelMap = useMemo(
+    () => ({
+      charedi: {
+        label: dict.options.religiousLevel.charedi,
+        shortLabel: 'חרדי',
+        icon: BookMarked,
+        color: 'text-indigo-700',
+      },
+      charedi_modern: {
+        label: dict.options.religiousLevel.charedi_modern,
+        shortLabel: 'חרדי מודרני',
+        icon: BookOpen,
+        color: 'text-indigo-600',
+      },
+      dati_leumi_torani: {
+        label: dict.options.religiousLevel.dati_leumi_torani,
+        shortLabel: 'דתי תורני',
+        icon: Star,
+        color: 'text-blue-700',
+      },
+      dati_leumi_liberal: {
+        label: dict.options.religiousLevel.dati_leumi_liberal,
+        shortLabel: 'דתי ליברלי',
+        icon: Flower,
+        color: 'text-blue-600',
+      },
+      dati_leumi_standard: {
+        label: dict.options.religiousLevel.dati_leumi_standard,
+        shortLabel: 'דתי לאומי',
+        icon: Crown,
+        color: 'text-blue-600',
+      },
+      masorti_strong: {
+        label: dict.options.religiousLevel.masorti_strong,
+        shortLabel: 'מסורתי חזק',
+        icon: TreePine,
+        color: 'text-emerald-700',
+      },
+      masorti_light: {
+        label: dict.options.religiousLevel.masorti_light,
+        shortLabel: 'מסורתי קל',
+        icon: Wind,
+        color: 'text-emerald-600',
+      },
+      secular_traditional_connection: {
+        label: dict.options.religiousLevel.secular_traditional_connection,
+        shortLabel: 'חילוני עם זיקה',
+        icon: Waves,
+        color: 'text-cyan-600',
+      },
+      secular: {
+        label: dict.options.religiousLevel.secular,
+        shortLabel: 'חילוני',
+        icon: Sunrise,
+        color: 'text-orange-600',
+      },
+      spiritual_not_religious: {
+        label: dict.options.religiousLevel.spiritual_not_religious,
+        shortLabel: 'רוחני',
+        icon: Sparkle,
+        color: 'text-purple-600',
+      },
+      other: {
+        label: dict.options.religiousLevel.other,
+        shortLabel: 'ייחודי',
+        icon: Rainbow,
+        color: 'text-pink-600',
+      },
+      no_preference: {
+        label: dict.options.religiousLevel.no_preference,
+        shortLabel: 'פתוח',
+        icon: Globe,
+        color: 'text-gray-600',
+      },
+    }),
+    [dict.options.religiousLevel]
+  );
+
+  const religiousJourneyMap = useMemo(
+    () => ({
+      BORN_INTO_CURRENT_LIFESTYLE: {
+        label: dict.options.religiousJourney.BORN_INTO_CURRENT_LIFESTYLE,
+        shortLabel: 'גדלתי דתי',
+        icon: Home,
+        color: 'text-blue-600',
+      },
+      BORN_SECULAR: {
+        label: dict.options.religiousJourney.BORN_SECULAR,
+        shortLabel: 'גדלתי חילוני',
+        icon: Sun,
+        color: 'text-orange-600',
+      },
+      BAAL_TESHUVA: {
+        label: dict.options.religiousJourney.BAAL_TESHUVA,
+        shortLabel: 'חוזר בתשובה',
+        icon: Sparkles,
+        color: 'text-purple-600',
+      },
+      DATLASH: {
+        label: dict.options.religiousJourney.DATLASH,
+        shortLabel: 'דתל"ש',
+        icon: ArrowLeft,
+        color: 'text-gray-600',
+      },
+      CONVERT: {
+        label: dict.options.religiousJourney.CONVERT,
+        shortLabel: 'גיורת',
+        icon: Star,
+        color: 'text-amber-600',
+      },
+      IN_PROCESS: {
+        label: dict.options.religiousJourney.IN_PROCESS,
+        shortLabel: 'בתהליך',
+        icon: Compass,
+        color: 'text-teal-600',
+      },
+      OTHER: {
+        label: dict.options.religiousJourney.OTHER,
+        shortLabel: 'אחר',
+        icon: InfoIcon,
+        color: 'text-pink-600',
+      },
+      no_preference: {
+        label: dict.options.religiousJourney.no_preference,
+        shortLabel: 'ללא העדפה',
+        icon: Globe,
+        color: 'text-gray-500',
+      },
+    }),
+    [dict.options.religiousJourney]
+  );
+
+  const educationLevelMap = useMemo(
+    () => ({
+      high_school: {
+        label: dict.options.educationLevel.high_school,
+        shortLabel: 'תיכון',
+        icon: School,
+        color: 'text-blue-600',
+      },
+      vocational: {
+        label: dict.options.educationLevel.vocational,
+        shortLabel: 'מקצועי',
+        icon: Award,
+        color: 'text-green-600',
+      },
+      academic_student: {
+        label: dict.options.educationLevel.academic_student,
+        shortLabel: 'סטודנט',
+        icon: BookOpen,
+        color: 'text-orange-600',
+      },
+      academic_ba: {
+        label: dict.options.educationLevel.academic_ba,
+        shortLabel: 'ב.א',
+        icon: GraduationCap,
+        color: 'text-purple-600',
+      },
+      academic_ma: {
+        label: dict.options.educationLevel.academic_ma,
+        shortLabel: 'מ.א',
+        icon: Star,
+        color: 'text-indigo-600',
+      },
+      academic_phd: {
+        label: dict.options.educationLevel.academic_phd,
+        shortLabel: 'דוקטור',
+        icon: Crown,
+        color: 'text-rose-600',
+      },
+      yeshiva_seminary: {
+        label: dict.options.educationLevel.yeshiva_seminary,
+        shortLabel: 'תורני',
+        icon: BookMarked,
+        color: 'text-amber-600',
+      },
+      other: {
+        label: dict.options.educationLevel.other,
+        shortLabel: 'ייחודי',
+        icon: Sparkles,
+        color: 'text-pink-600',
+      },
+      no_preference: {
+        label: dict.options.educationLevel.other,
+        shortLabel: 'פתוח',
+        icon: Globe,
+        color: 'text-gray-600',
+      },
+    }),
+    [dict.options.educationLevel]
+  );
+
+  const serviceTypeMap = useMemo(
+    () => ({
+      MILITARY_COMBATANT: {
+        label: dict.options.serviceType.MILITARY_COMBATANT,
+        shortLabel: 'לוחם',
+        icon: Award,
+        color: 'text-red-600',
+      },
+      MILITARY_SUPPORT: {
+        label: dict.options.serviceType.MILITARY_SUPPORT,
+        shortLabel: 'תומך',
+        icon: Users,
+        color: 'text-orange-600',
+      },
+      MILITARY_OFFICER: {
+        label: dict.options.serviceType.MILITARY_OFFICER,
+        shortLabel: 'קצין',
+        icon: Crown,
+        color: 'text-purple-600',
+      },
+      MILITARY_INTELLIGENCE_CYBER_TECH: {
+        label: dict.options.serviceType.MILITARY_INTELLIGENCE_CYBER_TECH,
+        shortLabel: 'טכנולוגיה',
+        icon: Zap,
+        color: 'text-blue-600',
+      },
+      NATIONAL_SERVICE_ONE_YEAR: {
+        label: dict.options.serviceType.NATIONAL_SERVICE_ONE_YEAR,
+        shortLabel: 'שירות לאומי',
+        icon: Heart,
+        color: 'text-pink-600',
+      },
+      NATIONAL_SERVICE_TWO_YEARS: {
+        label: dict.options.serviceType.NATIONAL_SERVICE_TWO_YEARS,
+        shortLabel: 'שירות מורחב',
+        icon: Stars,
+        color: 'text-rose-600',
+      },
+      HESDER_YESHIVA: {
+        label: dict.options.serviceType.HESDER_YESHIVA,
+        shortLabel: 'הסדר',
+        icon: BookMarked,
+        color: 'text-indigo-600',
+      },
+      YESHIVA_ONLY_POST_HS: {
+        label: dict.options.serviceType.YESHIVA_ONLY_POST_HS,
+        shortLabel: 'תורני',
+        icon: BookOpen,
+        color: 'text-amber-600',
+      },
+      PRE_MILITARY_ACADEMY_AND_SERVICE: {
+        label: dict.options.serviceType.PRE_MILITARY_ACADEMY_AND_SERVICE,
+        shortLabel: 'מכינה',
+        icon: GraduationCap,
+        color: 'text-green-600',
+      },
+      EXEMPTED: {
+        label: dict.options.serviceType.EXEMPTED,
+        shortLabel: 'פטור',
+        icon: Shield,
+        color: 'text-gray-600',
+      },
+      CIVILIAN_SERVICE: {
+        label: dict.options.serviceType.CIVILIAN_SERVICE,
+        shortLabel: 'אזרחי',
+        icon: Users2,
+        color: 'text-teal-600',
+      },
+      OTHER: {
+        label: dict.options.serviceType.OTHER,
+        shortLabel: 'ייחודי',
+        icon: Sparkles,
+        color: 'text-purple-600',
+      },
+    }),
+    [dict.options.serviceType]
+  );
+
+  const headCoveringMap = useMemo(
+    () => ({
+      FULL_COVERAGE: {
+        label: dict.options.headCovering.FULL_COVERAGE,
+        shortLabel: 'מלא',
+        icon: Crown,
+        color: 'text-purple-600',
+      },
+      PARTIAL_COVERAGE: {
+        label: dict.options.headCovering.PARTIAL_COVERAGE,
+        shortLabel: 'חלקי',
+        icon: Flower,
+        color: 'text-pink-600',
+      },
+      HAT_BERET: {
+        label: dict.options.headCovering.HAT_BERET,
+        shortLabel: 'כובע',
+        icon: Sun,
+        color: 'text-orange-600',
+      },
+      SCARF_ONLY_SOMETIMES: {
+        label: dict.options.headCovering.SCARF_ONLY_SOMETIMES,
+        shortLabel: 'לאירועים',
+        icon: Sparkle,
+        color: 'text-rose-600',
+      },
+      NONE: {
+        label: dict.options.headCovering.NONE,
+        shortLabel: 'ללא',
+        icon: Wind,
+        color: 'text-blue-600',
+      },
+      any: {
+        label: 'גמיש/ה',
+        shortLabel: 'גמיש',
+        icon: Rainbow,
+        color: 'text-indigo-600',
+      },
+    }),
+    [dict.options.headCovering]
+  );
+
+  const kippahTypeMap = useMemo(
+    () => ({
+      BLACK_VELVET: {
+        label: dict.options.kippahType.BLACK_VELVET,
+        shortLabel: 'קטיפה',
+        icon: Crown,
+        color: 'text-indigo-700',
+      },
+      KNITTED_SMALL: {
+        label: dict.options.kippahType.KNITTED_SMALL,
+        shortLabel: 'סרוגה קטנה',
+        icon: Star,
+        color: 'text-blue-600',
+      },
+      KNITTED_LARGE: {
+        label: dict.options.kippahType.KNITTED_LARGE,
+        shortLabel: 'סרוגה גדולה',
+        icon: Stars,
+        color: 'text-blue-700',
+      },
+      CLOTH: {
+        label: dict.options.kippahType.CLOTH,
+        shortLabel: 'בד',
+        icon: Flower,
+        color: 'text-green-600',
+      },
+      BRESLEV: {
+        label: dict.options.kippahType.BRESLEV,
+        shortLabel: 'ברסלב',
+        icon: Sparkle,
+        color: 'text-purple-600',
+      },
+      NONE_AT_WORK_OR_CASUAL: {
+        label: dict.options.kippahType.NONE_AT_WORK_OR_CASUAL,
+        shortLabel: 'לא בעבודה',
+        icon: Briefcase,
+        color: 'text-gray-600',
+      },
+      NONE_USUALLY: {
+        label: dict.options.kippahType.NONE_USUALLY,
+        shortLabel: 'לרוב לא',
+        icon: Wind,
+        color: 'text-gray-500',
+      },
+      OTHER: {
+        label: dict.options.kippahType.OTHER,
+        shortLabel: 'ייחודי',
+        icon: Rainbow,
+        color: 'text-pink-600',
+      },
+      any: {
+        label: 'גמיש',
+        shortLabel: 'גמיש',
+        icon: Globe,
+        color: 'text-teal-600',
+      },
+    }),
+    [dict.options.kippahType]
+  );
+
+  const contactPreferenceMap = useMemo(
+    () => ({
+      direct: {
+        label: 'ישירות',
+        shortLabel: 'ישירות',
+        icon: PhoneIcon,
+        color: 'text-green-600',
+      },
+      matchmaker: {
+        label: 'דרך השדכן/ית',
+        shortLabel: 'דרך שדכן',
+        icon: Users,
+        color: 'text-purple-600',
+      },
+      both: {
+        label: 'גמיש/ה',
+        shortLabel: 'גמיש',
+        icon: MessageSquare,
+        color: 'text-blue-600',
+      },
+    }),
+    []
+  );
+
+  const characterTraitMap = useMemo(
+    () => ({
+      empathetic: {
+        label: dict.options.traits.empathetic,
+        shortLabel: 'אמפתי',
+        icon: Heart,
+        color: 'text-rose-600',
+      },
+      driven: {
+        label: dict.options.traits.driven,
+        shortLabel: 'שאפתן',
+        icon: Zap,
+        color: 'text-orange-600',
+      },
+      optimistic: {
+        label: dict.options.traits.optimistic,
+        shortLabel: 'אופטימי',
+        icon: Sunrise,
+        color: 'text-yellow-600',
+      },
+      family_oriented: {
+        label: dict.options.traits.family_oriented,
+        shortLabel: 'משפחתי',
+        icon: Users2,
+        color: 'text-pink-600',
+      },
+      intellectual: {
+        label: dict.options.traits.intellectual,
+        shortLabel: 'אינטלקטואל',
+        icon: BookOpen,
+        color: 'text-indigo-600',
+      },
+      organized: {
+        label: dict.options.traits.organized,
+        shortLabel: 'מאורגן',
+        icon: CheckCircle,
+        color: 'text-green-600',
+      },
+      calm: {
+        label: dict.options.traits.calm,
+        shortLabel: 'רגוע',
+        icon: Waves,
+        color: 'text-blue-600',
+      },
+      humorous: {
+        label: dict.options.traits.humorous,
+        shortLabel: 'מצחיק',
+        icon: Smile,
+        color: 'text-purple-600',
+      },
+      sociable: {
+        label: dict.options.traits.sociable,
+        shortLabel: 'חברותי',
+        icon: Users,
+        color: 'text-cyan-600',
+      },
+      sensitive: {
+        label: dict.options.traits.sensitive,
+        shortLabel: 'רגיש',
+        icon: Flower,
+        color: 'text-pink-600',
+      },
+      independent: {
+        label: dict.options.traits.independent,
+        shortLabel: 'עצמאי',
+        icon: Crown,
+        color: 'text-amber-600',
+      },
+      creative: {
+        label: dict.options.traits.creative,
+        shortLabel: 'יצירתי',
+        icon: Palette,
+        color: 'text-rose-600',
+      },
+      honest: {
+        label: dict.options.traits.honest,
+        shortLabel: 'כן וישר',
+        icon: Star,
+        color: 'text-blue-600',
+      },
+      responsible: {
+        label: dict.options.traits.responsible,
+        shortLabel: 'אחראי',
+        icon: Award,
+        color: 'text-green-600',
+      },
+      easy_going: {
+        label: dict.options.traits.easy_going,
+        shortLabel: 'זורם',
+        icon: Wind,
+        color: 'text-teal-600',
+      },
+      no_strong_preference: {
+        label: 'פתוח/ה לגילוי',
+        shortLabel: 'פתוח',
+        icon: Compass,
+        color: 'text-gray-600',
+      },
+    }),
+    [dict.options.traits]
+  );
+
+  const hobbiesMap = useMemo(
+    () => ({
+      travel: {
+        label: dict.options.hobbies.travel,
+        shortLabel: 'טיולים',
+        icon: Compass,
+        color: 'text-green-600',
+      },
+      sports: {
+        label: dict.options.hobbies.sports,
+        shortLabel: 'ספורט',
+        icon: Zap,
+        color: 'text-orange-600',
+      },
+      reading: {
+        label: dict.options.hobbies.reading,
+        shortLabel: 'קריאה',
+        icon: BookOpen,
+        color: 'text-indigo-600',
+      },
+      cooking_baking: {
+        label: dict.options.hobbies.cooking_baking,
+        shortLabel: 'בישול',
+        icon: Coffee,
+        color: 'text-amber-600',
+      },
+      music_playing_instrument: {
+        label: dict.options.hobbies.music_playing_instrument,
+        shortLabel: 'מוזיקה',
+        icon: Music,
+        color: 'text-purple-600',
+      },
+      art_crafts: {
+        label: dict.options.hobbies.art_crafts,
+        shortLabel: 'אומנות',
+        icon: Palette,
+        color: 'text-pink-600',
+      },
+      volunteering: {
+        label: dict.options.hobbies.volunteering,
+        shortLabel: 'התנדבות',
+        icon: Heart,
+        color: 'text-rose-600',
+      },
+      learning_courses: {
+        label: dict.options.hobbies.learning_courses,
+        shortLabel: 'למידה',
+        icon: GraduationCap,
+        color: 'text-blue-600',
+      },
+      board_games_puzzles: {
+        label: dict.options.hobbies.board_games_puzzles,
+        shortLabel: 'משחקים',
+        icon: Play,
+        color: 'text-cyan-600',
+      },
+      movies_theater: {
+        label: dict.options.hobbies.movies_theater,
+        shortLabel: 'סרטים',
+        icon: Camera,
+        color: 'text-red-600',
+      },
+      dancing: {
+        label: dict.options.hobbies.dancing,
+        shortLabel: 'ריקוד',
+        icon: Sparkle,
+        color: 'text-pink-600',
+      },
+      writing: {
+        label: dict.options.hobbies.writing,
+        shortLabel: 'כתיבה',
+        icon: Edit3,
+        color: 'text-gray-600',
+      },
+      nature_hiking: {
+        label: dict.options.hobbies.nature_hiking,
+        shortLabel: 'טבע',
+        icon: TreePine,
+        color: 'text-green-600',
+      },
+      photography: {
+        label: dict.options.hobbies.photography,
+        shortLabel: 'צילום',
+        icon: Camera,
+        color: 'text-blue-600',
+      },
+      no_strong_preference: {
+        label: 'פתוח/ה לגילוי יחד',
+        shortLabel: 'פתוח',
+        icon: Rainbow,
+        color: 'text-gray-600',
+      },
+    }),
+    [dict.options.hobbies]
   );
 
   const activeTabRef = useRef(activeTab);
@@ -4572,6 +5028,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           selectedPalette={selectedPalette}
           THEME={THEME}
           compact={false}
+          characterTraitMap={characterTraitMap}
+          hobbiesMap={hobbiesMap}
+          religiousLevelMap={religiousLevelMap}
         />
         <MobileImageGallery
           orderedImages={orderedImages}
@@ -4608,6 +5067,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             onPaletteChange={setSelectedPalette}
             THEME={THEME}
             compact={true}
+            characterTraitMap={characterTraitMap}
+            hobbiesMap={hobbiesMap}
+            religiousLevelMap={religiousLevelMap}
           />
           <MobileImageGallery
             orderedImages={orderedImages}
@@ -4933,6 +5395,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   selectedPalette={selectedPalette}
                   onPaletteChange={setSelectedPalette}
                   THEME={THEME}
+                  characterTraitMap={characterTraitMap}
+                  hobbiesMap={hobbiesMap}
+                  religiousLevelMap={religiousLevelMap}
                 />
                 <div className="p-4 sm:p-6 overflow-hidden flex max-w-full">
                   <MainContentTabs />

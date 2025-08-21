@@ -1,23 +1,23 @@
 ################################################################################
-# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth
-# Generated on: 2025-08-08 08:13:03
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth
+# Generated on: 2025-08-21 16:36:07
 ################################################################################
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\auth_contents.txt
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\auth_contents.txt
 --------------------------------------------------------------------------------
 [This is the output log file itself. Content not included.]
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\error
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\error
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\error\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\error\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/auth/error/page.tsx
@@ -42,11 +42,11 @@ export default function ErrorPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\forgot-password
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\forgot-password
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\forgot-password\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\forgot-password\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/auth/forgot-password/page.tsx
@@ -71,11 +71,11 @@ export default function ForgotPasswordPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\register
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\register
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\register\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\register\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/auth/register/page.tsx
@@ -103,11 +103,11 @@ export default function RegisterPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\reset-password
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\reset-password
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\reset-password\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\reset-password\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/auth/reset-password/page.tsx
@@ -141,11 +141,11 @@ export default function ResetPasswordPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\setup-account
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\setup-account
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\setup-account\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\setup-account\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/auth/setup-account/page.tsx
@@ -304,11 +304,11 @@ export default function SetupAccountPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\signin
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\signin
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\signin\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\signin\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/auth/signin/page.tsx
@@ -339,11 +339,11 @@ export default function SignInPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\update-phone
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\update-phone
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\update-phone\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\update-phone\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // app/auth/update-phone/page.tsx
@@ -488,11 +488,11 @@ export default UpdatePhonePage;
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\verify-email
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\verify-email
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\verify-email\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\verify-email\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/auth/verify-email/page.tsx
@@ -517,11 +517,11 @@ export default function VerifyEmailPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\verify-phone
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\verify-phone
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\verify-phone\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\verify-phone\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // app/auth/verify-phone/page.tsx

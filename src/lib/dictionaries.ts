@@ -1,9 +1,6 @@
-// src/lib/dictionaries.ts
-
 import 'server-only';
 import type { Locale } from '../../i18n-config';
-// ✅ ייבוא הטיפוס המלא והמדויק
-import type { Dictionary, HomePageDictionary } from '@/types/dictionary';
+import type { Dictionary } from '@/types/dictionary';
 
 const mainDictionaries = {
   en: () => import('../../dictionaries/en.json').then((module) => module.default),
@@ -15,24 +12,35 @@ const suggestionsDictionaries = {
   he: () => import('../../dictionaries/suggestions/he.json').then((module) => module.default),
 };
 
-/**
- * פונקציה אסינכרונית לקבלת המילון המלא עבור שפה ספציפית,
- * המורכב ממספר קבצי JSON.
- * @param locale - קוד השפה ('he' או 'en')
- * @returns {Promise<HomePageDictionary>} - ✅ שינוי: מחזירים טיפוס שתואם לדף הבית
- */
-export const getDictionary = async (locale: Locale): Promise<HomePageDictionary> => {
+const questionnaireDictionaries = {
+  en: () => import('../../dictionaries/questionnaire/en.json').then((module) => module.default),
+  he: () => import('../../dictionaries/questionnaire/he.json').then((module) => module.default),
+};
+
+// --- START: הוספת טוען למילוני הפרופיל ---
+const profileDictionaries = {
+  en: () => import('../../dictionaries/profile/en.json').then((module) => module.default),
+  he: () => import('../../dictionaries/profile/he.json').then((module) => module.default),
+};
+// --- END: הוספת טוען למילוני הפרופיל ---
+
+export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
   const targetLocale = mainDictionaries[locale] ? locale : 'he';
 
-  const [main, suggestions] = await Promise.all([
+  // --- START: עדכון Promise.all לכלול את מילון הפרופיל ---
+  const [main, suggestions, questionnaire, profilePage] = await Promise.all([
     mainDictionaries[targetLocale](),
     suggestionsDictionaries[targetLocale](),
+    questionnaireDictionaries[targetLocale](),
+    profileDictionaries[targetLocale](), // טעינת המילון החדש
   ]);
+  // --- END: עדכון Promise.all ---
 
-  // ✅ מאחדים את כל המילונים לאובייקט אחד שתואם ל-HomePageDictionary
-  //    זה פותר את שגיאת הטיפוסים.
+  // איחוד כל המילונים לאובייקט אחד
   return {
-    ...main, // main מכיל עכשיו את navbar, heroSection, ..., וגם demoProfileCard
+    ...main,
     suggestions,
-  } as HomePageDictionary; // Cast to ensure type safety
+    questionnaire,
+    profilePage, // הוספת מפתח הפרופיל
+  } as Dictionary;
 };

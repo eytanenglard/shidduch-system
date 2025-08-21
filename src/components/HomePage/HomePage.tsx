@@ -22,7 +22,7 @@ import Navbar from '../layout/Navbar';
 import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
 import CookieBanner from '../ui/CookieBanner';
-import type { HomePageDictionary } from '@/types/dictionary';
+import type { Dictionary } from '@/types/dictionary';
 import { generateDemoData } from './components/demo-data';
 
 // ✅ 1. הגדרת הטיפוס עבור נתוני הדמו
@@ -30,7 +30,7 @@ type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
 
 // ✅ 2. עדכון הממשק של ה-props כך שיכלול גם את demoData
 interface HomePageProps {
-  dict: HomePageDictionary;
+  dict: Dictionary;
   demoData: DemoData;
 }
 

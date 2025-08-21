@@ -5,6 +5,7 @@ import type { Locale } from '../../../i18n-config';
 import HomePage from '@/components/HomePage/HomePage';
 import { generateDemoData } from '@/components/HomePage/components/demo-data';
 
+
 export default async function Home({
   params: { locale },
 }: {

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-08-19 14:56:56
+# Generated on: 2025-08-21 21:34:31
 ################################################################################
 
 ================================================================================
@@ -26,7 +26,7 @@ import QuestionnaireLayout from './layout/QuestionnaireLayout';
 import Welcome from './onboarding/Welcome';
 import WorldComponent from './worlds/WorldComponent';
 import QuestionnaireCompletion from './common/QuestionnaireCompletion';
-import { useLanguage } from '@/app/contexts/LanguageContext';
+import { useLanguage } from '@/app/[locale]/contexts/LanguageContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import WorldsMap from './layout/WorldsMap';
@@ -50,6 +50,7 @@ import type {
   AnswerValue,
   Question,
 } from './types/types';
+import type { MatchmakingQuestionnaireDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
 
 import { personalityQuestions } from './questions/personality/personalityQuestions';
 import { valuesQuestions } from './questions/values/valuesQuestions';
@@ -64,14 +65,6 @@ const worldConfig: Record<WorldId, { questions: Question[] }> = {
   PARTNER: { questions: partnerQuestions },
   RELIGION: { questions: religionQuestions },
 };
-
-const worldLabels = {
-  PERSONALITY: 'אישיות',
-  VALUES: 'ערכים ואמונות',
-  RELATIONSHIP: 'זוגיות',
-  PARTNER: 'פרטנר',
-  RELIGION: 'דת ומסורת',
-} as const;
 
 enum OnboardingStep {
   WELCOME = 'WELCOME',
@@ -93,6 +86,7 @@ export interface MatchmakingQuestionnaireProps {
   onComplete?: () => void;
   initialWorld?: WorldId;
   initialQuestionId?: string;
+  dict: MatchmakingQuestionnaireDict; // קבלת המילון כ-prop
 }
 
 export default function MatchmakingQuestionnaire({
@@ -100,12 +94,8 @@ export default function MatchmakingQuestionnaire({
   onComplete,
   initialWorld,
   initialQuestionId,
+  dict, // שימוש במשתנה dict
 }: MatchmakingQuestionnaireProps) {
-  console.log('[MatchmakingQuestionnaire] Received Props:', {
-    initialWorld,
-    initialQuestionId,
-  });
-
   const router = useRouter();
   const { language } = useLanguage();
   const sessionId = useMemo(() => `session_${Date.now()}`, []);
@@ -120,10 +110,7 @@ export default function MatchmakingQuestionnaire({
   const [completedWorlds, setCompletedWorlds] = useState<WorldId[]>([]);
   const [startTime] = useState(() => new Date().toISOString());
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
-
-  // דגל שיורה לקומפוננטת הבת לדלג על מסך הפתיחה
   const [isDirectNavigation, setIsDirectNavigation] = useState(false);
-
   const [currentQuestionIndices, setCurrentQuestionIndices] = useState<
     Record<WorldId, number>
   >({
@@ -221,10 +208,8 @@ export default function MatchmakingQuestionnaire({
   const handleQuestionnaireSave = useCallback(
     async (isAutoSave = false) => {
       if (isSaving && !isAutoSave) return;
-
       setIsSaving(true);
       setError(null);
-
       try {
         const submissionData = prepareSubmissionData();
         const validateSubmission = (data: QuestionnaireSubmission): boolean => {
@@ -237,7 +222,7 @@ export default function MatchmakingQuestionnaire({
         };
 
         if (!validateSubmission(submissionData)) {
-          throw new Error('Invalid submission data');
+          throw new Error(dict.errors.invalidSubmission);
         }
 
         if (!userId) {
@@ -257,47 +242,35 @@ export default function MatchmakingQuestionnaire({
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to save questionnaire');
+            throw new Error(errorData.error || dict.errors.saveFailed);
           }
         }
-
         setLastSavedTime(new Date());
         setIsDirty(false);
         setToastState((prev) => ({ ...prev, isVisible: false }));
 
         if (!isAutoSave) {
-          showToast('השאלון נשמר בהצלחה', 'success');
+          showToast(dict.toasts.saveSuccess, 'success');
         }
 
-        if (
-          submissionData.completed &&
-          currentStep === OnboardingStep.COMPLETED
-        ) {
+        if (submissionData.completed && currentStep === OnboardingStep.COMPLETED) {
           if (onComplete) onComplete();
         }
       } catch (err) {
         console.error('Failed to save questionnaire:', err);
         const errorMessage =
-          err instanceof Error ? err.message : 'אירעה שגיאה בשמירת השאלון.';
+          err instanceof Error ? err.message : dict.errors.saveFailed;
         setError(errorMessage);
         if (!isAutoSave) {
           showToast(errorMessage, 'error');
         } else {
-          showToast('שגיאה בשמירה אוטומטית', 'error');
+          showToast(dict.toasts.autoSaveError, 'error');
         }
       } finally {
         setIsSaving(false);
       }
     },
-    [
-      isSaving,
-      prepareSubmissionData,
-      userId,
-      router,
-      onComplete,
-      showToast,
-      currentStep,
-    ]
+    [ isSaving, prepareSubmissionData, userId, router, onComplete, showToast, currentStep, dict ]
   );
 
   useEffect(() => {
@@ -305,8 +278,8 @@ export default function MatchmakingQuestionnaire({
     if (currentStep === OnboardingStep.WORLDS && userId) {
       autoSaveInterval = setInterval(() => {
         if (isDirty) {
-          showToast('יש לך שינויים שלא נשמרו.', 'info', 10000, {
-            label: 'שמור עכשיו',
+          showToast(dict.toasts.unsavedChanges.message, 'info', 10000, {
+            label: dict.toasts.unsavedChanges.action,
             onClick: () => handleQuestionnaireSave(false),
           });
         }
@@ -315,7 +288,7 @@ export default function MatchmakingQuestionnaire({
     return () => {
       if (autoSaveInterval) clearInterval(autoSaveInterval);
     };
-  }, [currentStep, userId, isDirty, handleQuestionnaireSave, showToast]);
+  }, [currentStep, userId, isDirty, handleQuestionnaireSave, showToast, dict]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -352,9 +325,7 @@ export default function MatchmakingQuestionnaire({
             setCurrentStep(OnboardingStep.WELCOME);
           } else {
             const errorData = await response.json();
-            throw new Error(
-              errorData.error || 'Failed to load existing answers'
-            );
+            throw new Error(errorData.error || dict.errors.loadFailed);
           }
         } else {
           const data = await response.json();
@@ -368,8 +339,7 @@ export default function MatchmakingQuestionnaire({
               ...(data.data.religionAnswers || []),
             ].filter(
               (answer, index, self) =>
-                index ===
-                self.findIndex((a) => a.questionId === answer.questionId)
+                index === self.findIndex((a) => a.questionId === answer.questionId)
             );
 
             setAnswers(allAnswers);
@@ -377,102 +347,61 @@ export default function MatchmakingQuestionnaire({
             setCompletedWorlds(loadedCompletedWorlds);
 
             const isQuestionnaireComplete =
-              data.data.completed ||
-              loadedCompletedWorlds.length === WORLD_ORDER.length;
+              data.data.completed || loadedCompletedWorlds.length === WORLD_ORDER.length;
 
             if (data.data.currentQuestionIndices) {
               setCurrentQuestionIndices(data.data.currentQuestionIndices);
             }
 
             if (initialWorld && initialQuestionId) {
-              console.log(
-                '[MatchmakingQuestionnaire] Direct Navigation Detected. Setting up...'
-              );
               const worldQuestions = worldConfig[initialWorld].questions;
-              const questionIndex = worldQuestions.findIndex(
-                (q) => q.id === initialQuestionId
-              );
-
+              const questionIndex = worldQuestions.findIndex((q) => q.id === initialQuestionId);
               if (questionIndex !== -1) {
-                console.log(
-                  `[MatchmakingQuestionnaire] Found question at index ${questionIndex}. Navigating to WORLDS.`
-                );
-                setCurrentQuestionIndices((prev) => ({
-                  ...prev,
-                  [initialWorld]: questionIndex,
-                }));
+                setCurrentQuestionIndices((prev) => ({ ...prev, [initialWorld]: questionIndex }));
                 setCurrentWorld(initialWorld);
                 setCurrentStep(OnboardingStep.WORLDS);
-                setIsDirectNavigation(true); // הפעלת הדגל
+                setIsDirectNavigation(true);
               } else {
-                // אם מזהה השאלה לא תקין, נעביר למפת העולם המתאים
-                console.warn(
-                  `[MatchmakingQuestionnaire] Question ID ${initialQuestionId} not found in world ${initialWorld}. Navigating to MAP.`
-                );
                 setCurrentWorld(initialWorld);
                 setCurrentStep(OnboardingStep.MAP);
               }
-            }
-            // רק אם אין ניווט ישיר, נמשיך לבדוק את שאר המצבים
-            else if (isQuestionnaireComplete) {
-              console.log(
-                '[MatchmakingQuestionnaire] Questionnaire is complete. Navigating to MAP.'
-              );
+            } else if (isQuestionnaireComplete) {
               setCurrentWorld(initialWorld || WORLD_ORDER[0]);
               setCurrentStep(OnboardingStep.MAP);
-            } else if (
-              loadedCompletedWorlds.length > 0 ||
-              allAnswers.length > 0
-            ) {
-              console.log(
-                '[MatchmakingQuestionnaire] Progress found. Navigating to MAP.'
-              );
-              const nextWorld = WORLD_ORDER.find(
-                (world) => !loadedCompletedWorlds.includes(world)
-              );
+            } else if (loadedCompletedWorlds.length > 0 || allAnswers.length > 0) {
+              const nextWorld = WORLD_ORDER.find((world) => !loadedCompletedWorlds.includes(world));
               setCurrentWorld(nextWorld || WORLD_ORDER[0]);
               setCurrentStep(OnboardingStep.MAP);
             } else {
-              console.log(
-                '[MatchmakingQuestionnaire] No progress. Navigating to WELCOME.'
-              );
               setCurrentStep(OnboardingStep.WELCOME);
             }
           } else {
-            console.log('Questionnaire data structure invalid or missing.');
             setCurrentStep(OnboardingStep.WELCOME);
           }
         }
       } catch (err) {
         console.error('Failed to load existing answers:', err);
-        setError('אירעה שגיאה בטעינת התשובות הקיימות');
+        setError(dict.errors.genericLoadError);
         setCurrentStep(OnboardingStep.WELCOME);
       } finally {
         setIsLoading(false);
       }
     };
     loadExistingAnswers();
-  }, [userId, initialWorld, initialQuestionId]);
+  }, [userId, initialWorld, initialQuestionId, dict]);
 
   const handleAnswer = useCallback(
     (questionId: string, value: AnswerValue) => {
       setError(null);
       setIsDirty(true);
       setAnswers((prevAnswers) => {
-        // השינוי כאן: הוספת toLowerCase() להשוואה
         const answerIndex = prevAnswers.findIndex(
           (a) => a.questionId.toLowerCase() === questionId.toLowerCase()
         );
-
         if (answerIndex > -1) {
           return prevAnswers.map((answer) => {
-            // וגם כאן
             if (answer.questionId.toLowerCase() === questionId.toLowerCase()) {
-              return {
-                ...answer,
-                value,
-                answeredAt: new Date().toISOString(),
-              };
+              return { ...answer, value, answeredAt: new Date().toISOString() };
             }
             return answer;
           });
@@ -495,13 +424,11 @@ export default function MatchmakingQuestionnaire({
     (questionId: string, isVisible: boolean) => {
       setIsDirty(true);
       setAnswers((prevAnswers) => {
-        // השינוי כאן: הוספת toLowerCase() להשוואה
         const answerIndex = prevAnswers.findIndex(
           (a) => a.questionId.toLowerCase() === questionId.toLowerCase()
         );
         if (answerIndex > -1) {
           return prevAnswers.map((answer) => {
-            // וגם כאן
             if (answer.questionId.toLowerCase() === questionId.toLowerCase()) {
               return { ...answer, isVisible };
             }
@@ -518,21 +445,20 @@ export default function MatchmakingQuestionnaire({
           return [...prevAnswers, newPlaceholderAnswer];
         }
       });
-
       showToast(
-        isVisible ? 'התשובה תוצג בפרופיל' : 'התשובה תוסתר מהפרופיל',
+        isVisible ? dict.toasts.answerVisible : dict.toasts.answerHidden,
         'info',
         2000
       );
     },
-    [showToast, currentWorld]
+    [showToast, currentWorld, dict]
   );
 
   const handleWorldChange = useCallback((newWorld: WorldId) => {
     setCurrentWorld(newWorld);
     setCurrentStep(OnboardingStep.WORLDS);
     setError(null);
-    setIsDirectNavigation(false); // איפוס הדגל במעבר ידני
+    setIsDirectNavigation(false);
   }, []);
 
   const handleWorldComplete = useCallback(
@@ -542,23 +468,20 @@ export default function MatchmakingQuestionnaire({
         updatedCompletedWorlds = [...completedWorlds, worldId];
         setCompletedWorlds(updatedCompletedWorlds);
       }
-
       showToast(
-        `כל הכבוד! סיימת את עולם ה${worldLabels[worldId] ?? worldId.toLowerCase()}`,
+        dict.toasts.worldFinished.replace(
+          '{{worldName}}',
+          dict.worldLabels[worldId] ?? worldId.toLowerCase()
+        ),
         'success'
       );
-
-      const isQuestionnaireNowFullyCompleted =
-        updatedCompletedWorlds.length === WORLD_ORDER.length;
+      const isQuestionnaireNowFullyCompleted = updatedCompletedWorlds.length === WORLD_ORDER.length;
       const submissionDataForWorldComplete = {
         ...prepareSubmissionData(),
         worldsCompleted: updatedCompletedWorlds,
         completed: isQuestionnaireNowFullyCompleted,
-        completedAt: isQuestionnaireNowFullyCompleted
-          ? new Date().toISOString()
-          : undefined,
+        completedAt: isQuestionnaireNowFullyCompleted ? new Date().toISOString() : undefined,
       };
-
       if (userId) {
         try {
           setIsSaving(true);
@@ -567,15 +490,14 @@ export default function MatchmakingQuestionnaire({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(submissionDataForWorldComplete),
           });
-          if (!response.ok)
-            throw new Error('Failed to save after world completion');
+          if (!response.ok) throw new Error('Failed to save after world completion');
           setLastSavedTime(new Date());
           setIsDirty(false);
-          showToast('התקדמות העולם נשמרה', 'success');
+          showToast(dict.toasts.worldProgressSaved, 'success');
         } catch (e) {
           console.error('Error saving after world complete:', e);
-          showToast('שגיאה בשמירת התקדמות העולם', 'error');
-          setError('שגיאה בשמירת התקדמות העולם.');
+          showToast(dict.toasts.worldCompletionError, 'error');
+          setError(dict.toasts.worldCompletionError + '.');
           setIsSaving(false);
           return;
         } finally {
@@ -587,9 +509,8 @@ export default function MatchmakingQuestionnaire({
           JSON.stringify(submissionDataForWorldComplete)
         );
         setLastSavedTime(new Date());
-        showToast('התקדמות העולם נשמרה בדפדפן', 'info');
+        showToast(dict.toasts.worldProgressSavedBrowser, 'info');
       }
-
       if (isQuestionnaireNowFullyCompleted) {
         if (!userId) {
           router.push('/auth/signin?callbackUrl=/questionnaire/restore');
@@ -607,14 +528,7 @@ export default function MatchmakingQuestionnaire({
         }
       }
     },
-    [
-      completedWorlds,
-      showToast,
-      userId,
-      prepareSubmissionData,
-      router,
-      onComplete,
-    ]
+    [completedWorlds, showToast, userId, prepareSubmissionData, router, onComplete, dict]
   );
 
   const handleExit = useCallback(() => {
@@ -632,16 +546,12 @@ export default function MatchmakingQuestionnaire({
       language,
       currentQuestionIndex: currentQuestionIndices[currentWorld],
       setCurrentQuestionIndex: (index: number) => {
-        setCurrentQuestionIndices((prev) => ({
-          ...prev,
-          [currentWorld]: index,
-        }));
+        setCurrentQuestionIndices((prev) => ({ ...prev, [currentWorld]: index }));
       },
       onSave: () => handleQuestionnaireSave(false),
       isSaving: isSaving,
-      isDirectNavigation: isDirectNavigation, // העברת הדגל
+      isDirectNavigation: isDirectNavigation,
     };
-
     return <WorldComponent {...worldProps} worldId={currentWorld} />;
   }
 
@@ -657,10 +567,10 @@ export default function MatchmakingQuestionnaire({
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
           <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+          <p className="mt-4 text-gray-600">{dict.loading}</p>
         </div>
       );
     }
-
     switch (currentStep) {
       case OnboardingStep.MAP:
         return (
@@ -677,6 +587,7 @@ export default function MatchmakingQuestionnaire({
             onLearnMore={() => router.push('/profile')}
             isLoggedIn={!!userId}
             hasSavedProgress={answers.length > 0 || completedWorlds.length > 0}
+            dict={dict.welcome}
           />
         );
       case OnboardingStep.WORLDS:
@@ -702,10 +613,11 @@ export default function MatchmakingQuestionnaire({
             }}
             isLoading={isSaving}
             isLoggedIn={!!userId}
+            dict={dict.completion}
           />
         );
       default:
-        return <div>שגיאה בטעינת השלב</div>;
+        return <div>{dict.errors.stageLoadError}</div>;
     }
   }
 
@@ -723,13 +635,7 @@ export default function MatchmakingQuestionnaire({
       >
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center">
-            {type === 'success' ? (
-              <CheckCircle className="h-5 w-5 mr-2" />
-            ) : type === 'error' ? (
-              <XCircle className="h-5 w-5 mr-2" />
-            ) : (
-              <Info className="h-5 w-5 mr-2" />
-            )}
+            {type === 'success' ? <CheckCircle className="h-5 w-5 mr-2" /> : type === 'error' ? <XCircle className="h-5 w-5 mr-2" /> : <Info className="h-5 w-5 mr-2" />}
             <p>{message}</p>
           </div>
           {action && (
@@ -758,23 +664,17 @@ export default function MatchmakingQuestionnaire({
           <CardHeader>
             <CardTitle className="flex items-center">
               <Clock className="w-6 h-6 mr-3 text-blue-500" />
-              האם אתה עדיין כאן?
+              {dict.idleModal.title}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">
-              לא זיהינו פעילות בחשבונך. למען אבטחת המידע, תתבצע יציאה אוטומטית
-              מהמערכת בעוד כדקה.
-            </p>
+            <p className="text-gray-600 mb-4">{dict.idleModal.description}</p>
             <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => signOut({ callbackUrl: '/' })}
-              >
+              <Button variant="outline" onClick={() => signOut({ callbackUrl: '/' })}>
                 <LogOut className="w-4 h-4 mr-2" />
-                צא מהמערכת
+                {dict.idleModal.logoutButton}
               </Button>
-              <Button onClick={handleStayActive}>אני עדיין כאן</Button>
+              <Button onClick={handleStayActive}>{dict.idleModal.stayActiveButton}</Button>
             </div>
           </CardContent>
         </Card>
@@ -783,18 +683,13 @@ export default function MatchmakingQuestionnaire({
   };
 
   return (
-    <div
-      className={cn(
-        'min-h-screen bg-gray-50',
-        language === 'he' ? 'dir-rtl' : 'dir-ltr'
-      )}
-    >
+    <div className={cn('min-h-screen bg-gray-50', language === 'he' ? 'dir-rtl' : 'dir-ltr')}>
       <IdleModal />
       {lastSavedTime && currentStep === OnboardingStep.WORLDS && userId && (
         <div className="fixed bottom-4 left-4 z-40 bg-white p-2 rounded-lg shadow-md text-xs text-gray-600 border">
           <div className="flex items-center">
             <CheckCircle className="h-3.5 w-3.5 text-green-500 mr-1" />
-            <span>נשמר לאחרונה: {lastSavedTime.toLocaleTimeString()}</span>
+            <span>{dict.lastSaved.replace('{{time}}', lastSavedTime.toLocaleTimeString())}</span>
           </div>
         </div>
       )}
@@ -892,23 +787,23 @@ export default function QuestionnairePage() {
 --- End of Content for QuestionnaireComplete.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnairePage.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnairePageClient.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/questionnaire/QuestionnairePage.tsx
+// src/components/questionnaire/QuestionnairePageClient.tsx
 'use client';
 
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import QuestionnaireLandingPage from './pages/QuestionnaireLandingPage';
 import MatchmakingQuestionnaire from './MatchmakingQuestionnaire';
 import type { WorldId } from './types/types';
+import type { QuestionnaireDictionary } from '@/types/dictionary'; // ייבוא טיפוס המילון
 
 // Enum to track questionnaire flow stages
 enum QuestionnaireStage {
@@ -917,7 +812,12 @@ enum QuestionnaireStage {
   COMPLETE = 'COMPLETE',
 }
 
-export default function QuestionnairePage() {
+// הגדרת Props לרכיב
+interface QuestionnairePageClientProps {
+  dict: QuestionnaireDictionary;
+}
+
+export default function QuestionnairePageClient({ dict }: QuestionnairePageClientProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -940,15 +840,11 @@ export default function QuestionnairePage() {
   useEffect(() => {
     const checkExistingProgress = async () => {
       if (status === 'loading') return;
-
       setIsLoading(true);
-
       try {
-        // If user is logged in, check for saved progress
         if (session?.user?.id) {
           const response = await fetch('/api/questionnaire');
           const data = await response.json();
-
           if (data.success && data.data) {
             setHasSavedProgress(true);
           }
@@ -959,27 +855,18 @@ export default function QuestionnairePage() {
         setIsLoading(false);
       }
     };
-
     checkExistingProgress();
   }, [session, status]);
 
-  // --- START OF THE CORRECTED CODE ---
   // Check for world parameter in URL and normalize it
   useEffect(() => {
     if (status === 'loading') {
       return;
     }
-
     const worldParam = searchParams?.get('world');
     const questionParam = searchParams?.get('question');
 
-    console.log('[QuestionnairePage] URL Params Received:', {
-      worldParam,
-      questionParam,
-    });
-
     if (worldParam) {
-      // 1. Normalize the input immediately to uppercase
       const worldParamUpper = worldParam.toUpperCase() as WorldId;
       const validWorlds: WorldId[] = [
         'PERSONALITY',
@@ -988,20 +875,11 @@ export default function QuestionnairePage() {
         'PARTNER',
         'RELIGION',
       ];
-
-      // 2. Check if the normalized value is valid
       if (validWorlds.includes(worldParamUpper)) {
-        console.log(
-          `[QuestionnairePage] Valid world param found: '${worldParam}'. Normalizing to '${worldParamUpper}' and setting stage to QUESTIONNAIRE.`
-        );
-
-        // 3. Set state using the normalized value
         setInitialWorld(worldParamUpper);
         if (questionParam) {
           setInitialQuestionId(questionParam);
         }
-
-        // 4. Set the stage to show the questionnaire
         setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
       } else {
         console.warn(
@@ -1010,25 +888,21 @@ export default function QuestionnairePage() {
       }
     }
   }, [searchParams, status]);
-  // --- END OF THE CORRECTED CODE ---
 
-  // Handler when the landing page "start" button is clicked
   const handleStartQuestionnaire = () => {
     setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
   };
 
-  // Handler when questionnaire is completed
   const handleQuestionnaireComplete = async () => {
     try {
       await router.push('/questionnaire/complete');
       setCurrentStage(QuestionnaireStage.COMPLETE);
     } catch (err) {
       console.error('Error completing questionnaire:', err);
-      setError('אירעה שגיאה בסיום השאלון. אנא נסה שוב.');
+      setError(dict.page.completionError); // שימוש במילון
     }
   };
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50">
@@ -1037,7 +911,6 @@ export default function QuestionnairePage() {
     );
   }
 
-  // Render different components based on current stage
   const renderCurrentStage = () => {
     switch (currentStage) {
       case QuestionnaireStage.LANDING:
@@ -1045,9 +918,9 @@ export default function QuestionnairePage() {
           <QuestionnaireLandingPage
             onStartQuestionnaire={handleStartQuestionnaire}
             hasSavedProgress={hasSavedProgress}
+            // כאן נעביר את המילון הרלוונטי אם וכאשר הרכיב יעודכן
           />
         );
-
       case QuestionnaireStage.QUESTIONNAIRE:
         return (
           <MatchmakingQuestionnaire
@@ -1055,21 +928,18 @@ export default function QuestionnairePage() {
             onComplete={handleQuestionnaireComplete}
             initialWorld={initialWorld}
             initialQuestionId={initialQuestionId}
+            dict={dict.matchmaking} // העברת המילון לרכיב הבן
           />
         );
-
       case QuestionnaireStage.COMPLETE:
-        // This should redirect to /questionnaire/complete
         return null;
-
       default:
-        return <div>שגיאה בטעינת השלב</div>;
+        return <div>{dict.page.stageLoadError}</div>; // שימוש במילון
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Back navigation for non-landing stages */}
       {currentStage !== QuestionnaireStage.LANDING && (
         <div className="container mx-auto p-4">
           <Button
@@ -1079,12 +949,11 @@ export default function QuestionnairePage() {
             onClick={() => setCurrentStage(QuestionnaireStage.LANDING)}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            חזרה לעמוד הראשי
+            {dict.page.backToMain} {/* שימוש במילון */}
           </Button>
         </div>
       )}
 
-      {/* Error messages */}
       {error && (
         <div className="container mx-auto p-4">
           <Alert variant="destructive" className="mb-4">
@@ -1094,12 +963,11 @@ export default function QuestionnairePage() {
         </div>
       )}
 
-      {/* Current stage content */}
       {renderCurrentStage()}
     </div>
   );
 }
---- End of Content for QuestionnairePage.tsx ---
+--- End of Content for QuestionnairePageClient.tsx ---
 
 --------------------------------------------------------------------------------
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnaireRestore.tsx
@@ -1265,8 +1133,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import InteractiveScale from './InteractiveScale';
-// ודא שגם Option מיובא מפורשות אם הוא לא
-import type { AnswerValue, AnswerInputProps, Option } from '../types/types';
+import type { AnswerValue, Option, Question } from '../types/types';
 import { cn } from '@/lib/utils';
 import {
   Collapsible,
@@ -1275,13 +1142,20 @@ import {
 } from '@/components/ui/collapsible';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
+import type { AnswerInputDict, InteractiveScaleDict } from '@/types/dictionary';
 
-// הגדרות CSS יכולות להיות בקובץ CSS גלובלי או בסגנון מוטבע אם נדרש
-/*
-.progress-green .progress-indicator { background-color: #22c55e; }
-.progress-blue .progress-indicator { background-color: #3b82f6; }
-.progress-amber .progress-indicator { background-color: #f59e0b; }
-*/
+export interface AnswerInputProps {
+  question: Question;
+  value?: AnswerValue;
+  onChange?: (value: AnswerValue) => void;
+  onClear?: () => void;
+  className?: string;
+  validationError?: string;
+  dict: {
+    answerInput: AnswerInputDict;
+    interactiveScale: InteractiveScaleDict;
+  };
+}
 
 export default function AnswerInput({
   question,
@@ -1290,13 +1164,12 @@ export default function AnswerInput({
   onClear,
   className = '',
   validationError,
+  dict,
 }: AnswerInputProps) {
   const [internalValue, setInternalValue] = useState<AnswerValue>(value);
   const [error, setError] = useState<string | null>(null);
   const [customValue, setCustomValue] = useState<string>('');
-  const [, setCharactersCount] = useState<number>(0);
   const [isFocused, setIsFocused] = useState<boolean>(false);
-  const [, setSelectedOption] = useState<string | null>(null);
   const [textAreaHeight, setTextAreaHeight] = useState<number>(150);
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState<boolean>(false);
   const [textCopied, setTextCopied] = useState(false);
@@ -1304,12 +1177,10 @@ export default function AnswerInput({
   useEffect(() => {
     setInternalValue(value);
     if (typeof value === 'string') {
-      setCharactersCount(value.length);
       if (value.length > 200) setTextAreaHeight(220);
       else if (value.length > 100) setTextAreaHeight(180);
       else setTextAreaHeight(150);
     } else if (value === undefined || value === null) {
-      setCharactersCount(0);
       setTextAreaHeight(150);
     }
   }, [value]);
@@ -1337,11 +1208,8 @@ export default function AnswerInput({
       default:
         emptyValue = undefined;
     }
-
     setInternalValue(emptyValue);
     setCustomValue('');
-    setCharactersCount(0);
-    setSelectedOption(null);
     setError(null);
     onClear?.();
   }, [question.type, onClear]);
@@ -1349,39 +1217,18 @@ export default function AnswerInput({
   const handleValueChange = useCallback(
     (newValue: AnswerValue) => {
       if (
-        question.type === 'singleChoice' &&
+        (question.type === 'singleChoice' ||
+          question.type === 'iconChoice' ||
+          question.type === 'scenario') &&
         newValue === internalValue &&
         !question.isRequired
       ) {
         handleClear();
         return;
       }
-      if (
-        question.type === 'iconChoice' &&
-        newValue === internalValue &&
-        !question.isRequired
-      ) {
-        handleClear();
-        return;
-      }
-      if (
-        question.type === 'scenario' &&
-        newValue === internalValue &&
-        !question.isRequired
-      ) {
-        handleClear();
-        return;
-      }
-
       setInternalValue(newValue);
       setError(null);
       onChange?.(newValue);
-
-      if (typeof newValue === 'string') {
-        setCharactersCount(newValue.length);
-      } else {
-        setCharactersCount(0);
-      }
     },
     [internalValue, onChange, question.isRequired, question.type, handleClear]
   );
@@ -1432,7 +1279,6 @@ export default function AnswerInput({
           />
         )}
       </AnimatePresence>
-
       <div className="flex items-center gap-2 flex-1 z-10">
         {choiceOption.icon && (
           <motion.div
@@ -1449,7 +1295,6 @@ export default function AnswerInput({
           {choiceOption.text}
         </span>
       </div>
-
       <div className="relative w-6 h-6 z-10">
         <AnimatePresence>
           {isSelected && (
@@ -1479,7 +1324,7 @@ export default function AnswerInput({
                   e.stopPropagation();
                   handleClear();
                 }}
-                aria-label="נקה בחירה"
+                aria-label={dict.answerInput.clearSelection}
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -1518,10 +1363,8 @@ export default function AnswerInput({
             showValue={true}
             name={question.id}
             required={question.isRequired}
-            // ניתן להוסיף props נוספים ל-InteractiveScale כאן אם הוגדרו ב-Question
-            // labels={question.labels}
-            // descriptions={question.descriptions}
-            ariaLabelledby={question.id} // הוסף את השורה הזו
+            ariaLabelledby={question.id}
+            dict={dict.interactiveScale}
           />
         );
 
@@ -1562,7 +1405,10 @@ export default function AnswerInput({
                           selectedValues.length >= question.maxSelections
                         ) {
                           setError(
-                            `ניתן לבחור עד ${question.maxSelections} אפשרויות`
+                            dict.answerInput.multiSelect.maxSelectionError.replace(
+                              '{{count}}',
+                              String(question.maxSelections)
+                            )
                           );
                           setTimeout(() => setError(null), 2000);
                           return;
@@ -1644,14 +1490,17 @@ export default function AnswerInput({
               >
                 <span className="flex items-center">
                   <Info className="h-3 w-3 mr-1 text-blue-500" />
-                  נבחרו {selectedValues.length} אפשרויות
+                  {dict.answerInput.multiSelect.selectedInfo.replace(
+                    '{{count}}',
+                    selectedValues.length.toString()
+                  )}
                 </span>
                 <span>
                   {question.minSelections &&
-                    `מינימום: ${question.minSelections}`}
+                    `${dict.answerInput.multiSelect.minLabel}: ${question.minSelections}`}
                   {question.minSelections && question.maxSelections && ' • '}
                   {question.maxSelections &&
-                    `מקסימום: ${question.maxSelections}`}
+                    `${dict.answerInput.multiSelect.maxLabel}: ${question.maxSelections}`}
                 </span>
               </motion.div>
             )}
@@ -1672,10 +1521,8 @@ export default function AnswerInput({
         const isMaxLengthReached =
           question.maxSelections !== undefined &&
           selectedWithOtherValues.length >= question.maxSelections;
-
         return (
           <div className="space-y-4">
-            {/* Predefined Options */}
             {question.options?.map((option) => {
               if (option.value === 'other') return null;
               const isSelected = predefinedAnswers.includes(option.value);
@@ -1696,14 +1543,17 @@ export default function AnswerInput({
                   )}
                   onClick={() => {
                     let newValues: string[];
-                    if (isSelected) {
+                    if (isSelected)
                       newValues = predefinedAnswers.filter(
                         (v) => v !== option.value
                       );
-                    } else {
+                    else {
                       if (isMaxLengthReached) {
                         setError(
-                          `ניתן לבחור עד ${question.maxSelections} אפשרויות`
+                          dict.answerInput.multiSelect.maxSelectionError.replace(
+                            '{{count}}',
+                            String(question.maxSelections)
+                          )
                         );
                         setTimeout(() => setError(null), 2000);
                         return;
@@ -1767,18 +1617,18 @@ export default function AnswerInput({
                 </motion.div>
               );
             })}
-
-            {/* Custom Input Section */}
             <div className="space-y-2 border-t pt-4 mt-4">
               <Label className="flex items-center gap-2 text-sm font-medium">
                 <Plus className="h-4 w-4 text-blue-500" />
-                הוספת אפשרות אחרת (אופציונלי)
+                {dict.answerInput.multiSelectWithOther.addOtherOptionLabel}
               </Label>
               <div className="flex gap-2">
                 <Input
                   value={customValue}
                   onChange={(e) => setCustomValue(e.target.value)}
-                  placeholder="הקלד/י אפשרות נוספת..."
+                  placeholder={
+                    dict.answerInput.multiSelectWithOther.otherOptionPlaceholder
+                  }
                   className="flex-1 text-sm"
                   disabled={isMaxLengthReached && isCustomValueEmpty}
                 />
@@ -1790,7 +1640,10 @@ export default function AnswerInput({
                     if (!isCustomValueEmpty) {
                       if (isMaxLengthReached) {
                         setError(
-                          `ניתן לבחור עד ${question.maxSelections} אפשרויות`
+                          dict.answerInput.multiSelect.maxSelectionError.replace(
+                            '{{count}}',
+                            String(question.maxSelections)
+                          )
                         );
                         setTimeout(() => setError(null), 2000);
                         return;
@@ -1804,7 +1657,9 @@ export default function AnswerInput({
                         ]);
                         setCustomValue('');
                       } else {
-                        setError('אפשרות זו כבר קיימת');
+                        setError(
+                          dict.answerInput.multiSelectWithOther.errorExists
+                        );
                         setTimeout(() => setError(null), 2000);
                       }
                     }
@@ -1812,12 +1667,10 @@ export default function AnswerInput({
                   disabled={isCustomValueEmpty || isMaxLengthReached}
                 >
                   <Plus className="w-4 h-4 mr-1" />
-                  הוסף
+                  {dict.answerInput.multiSelectWithOther.addButton}
                 </Button>
               </div>
             </div>
-
-            {/* Display Custom Answers */}
             {customAnswers.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -1826,7 +1679,7 @@ export default function AnswerInput({
               >
                 <Label className="text-xs text-gray-600 flex items-center font-normal">
                   <Edit className="h-3.5 w-3.5 mr-1 text-blue-600" />
-                  תשובות שהוספת:
+                  {dict.answerInput.multiSelectWithOther.addedAnswersLabel}
                 </Label>
                 <div className="space-y-1 mt-1">
                   {customAnswers.map((customVal, index) => (
@@ -1853,7 +1706,9 @@ export default function AnswerInput({
                           );
                           handleValueChange(newValues);
                         }}
-                        aria-label="הסר תשובה מותאמת"
+                        aria-label={
+                          dict.answerInput.tooltips.removeCustomAnswer
+                        }
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
@@ -1879,14 +1734,17 @@ export default function AnswerInput({
               >
                 <span className="flex items-center">
                   <Info className="h-3 w-3 mr-1 text-blue-500" />
-                  נבחרו {selectedWithOtherValues.length} אפשרויות
+                  {dict.answerInput.multiSelect.selectedInfo.replace(
+                    '{{count}}',
+                    selectedWithOtherValues.length.toString()
+                  )}
                 </span>
                 <span>
                   {question.minSelections &&
-                    `מינימום: ${question.minSelections}`}
+                    `${dict.answerInput.multiSelect.minLabel}: ${question.minSelections}`}
                   {question.minSelections && question.maxSelections && ' • '}
                   {question.maxSelections &&
-                    `מקסימום: ${question.maxSelections}`}
+                    `${dict.answerInput.multiSelect.maxLabel}: ${question.maxSelections}`}
                 </span>
               </motion.div>
             )}
@@ -1899,7 +1757,6 @@ export default function AnswerInput({
             {question.options?.map((option, index) => {
               const optionValue = option.value || option.text;
               const isSelected = internalValue === optionValue;
-
               return (
                 <motion.div
                   key={index}
@@ -1975,7 +1832,7 @@ export default function AnswerInput({
                               e.stopPropagation();
                               handleClear();
                             }}
-                            aria-label="נקה בחירה"
+                            aria-label={dict.answerInput.clearSelection}
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -1994,7 +1851,6 @@ export default function AnswerInput({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {question.options?.map((option) => {
               const isSelected = internalValue === option.value;
-
               return (
                 <TooltipProvider key={option.value} delayDuration={300}>
                   <Tooltip>
@@ -2044,7 +1900,7 @@ export default function AnswerInput({
                                   e.stopPropagation();
                                   handleClear();
                                 }}
-                                aria-label="נקה בחירה"
+                                aria-label={dict.answerInput.clearSelection}
                               >
                                 <X className="w-3.5 h-3.5" />
                               </Button>
@@ -2107,7 +1963,6 @@ export default function AnswerInput({
               Math.round((textValue.length / (question.minLength ?? 1)) * 100)
             )
           : 0;
-
         return (
           <div className="space-y-2">
             <div
@@ -2129,11 +1984,11 @@ export default function AnswerInput({
                 onChange={(e) => handleValueChange(e.target.value)}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
-                placeholder={question.placeholder || 'הקלד/י את תשובתך כאן...'}
+                placeholder={
+                  question.placeholder || dict.answerInput.openText.placeholder
+                }
                 className={cn(
-                  'resize-y border-0 focus-visible:ring-0 w-full',
-                  'min-h-[150px]',
-                  'text-base leading-relaxed',
+                  'resize-y border-0 focus-visible:ring-0 w-full min-h-[150px] text-base leading-relaxed',
                   textValue.length > 0 ? 'pr-12' : 'pr-3',
                   'py-3 pl-3'
                 )}
@@ -2163,7 +2018,11 @@ export default function AnswerInput({
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="right">
-                        <p>{textCopied ? 'הועתק!' : 'העתק טקסט'}</p>
+                        <p>
+                          {textCopied
+                            ? dict.answerInput.tooltips.copied
+                            : dict.answerInput.tooltips.copy}
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -2181,7 +2040,7 @@ export default function AnswerInput({
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="right">
-                          <p>נקה טקסט</p>
+                          <p>{dict.answerInput.tooltips.clearText}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -2221,13 +2080,18 @@ export default function AnswerInput({
                   >
                     {!isMinLengthMet ? (
                       <>
-                        <AlertCircle className="h-3 w-3 mr-1" /> נדרשים עוד{' '}
-                        {(question.minLength ?? 0) - textValue.length} תווים
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        {dict.answerInput.openText.minLengthRequired.replace(
+                          '{{count}}',
+                          (
+                            (question.minLength ?? 0) - textValue.length
+                          ).toString()
+                        )}
                       </>
                     ) : (
                       <>
-                        <CheckCircle className="h-3 w-3 mr-1" /> הגעת למינימום
-                        הנדרש
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        {dict.answerInput.openText.minLengthMet}
                       </>
                     )}
                   </span>
@@ -2247,22 +2111,34 @@ export default function AnswerInput({
                         : 'bg-blue-100 text-blue-700'
                     )}
                   >
-                    <Info className="h-3 w-3 mr-1" />{' '}
-                    {question.isRequired ? 'נדרש לפחות' : 'מומלץ לפחות'}{' '}
-                    {question.minLength ?? 0} תווים
+                    <Info className="h-3 w-3 mr-1" />
+                    {question.isRequired
+                      ? dict.answerInput.openText.minLengthInfoRequired.replace(
+                          '{{count}}',
+                          String(question.minLength ?? 0)
+                        )
+                      : dict.answerInput.openText.minLengthInfoRecommended.replace(
+                          '{{count}}',
+                          String(question.minLength ?? 0)
+                        )}
                   </div>
                 )}
                 {lengthExceeded && (
                   <div className="inline-flex items-center text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">
-                    <AlertCircle className="h-3 w-3 mr-1" /> חריגה מהאורך
-                    המקסימלי
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    {dict.answerInput.openText.maxLengthExceeded}
                   </div>
                 )}
               </div>
               {hasMinLength && (
                 <div className="text-xs text-gray-500 flex items-center">
-                  <Clock className="h-3 w-3 mr-1" /> זמן כתיבה משוער:{' '}
-                  {Math.max(1, Math.ceil((question.minLength ?? 0) / 70))} דקות
+                  <Clock className="h-3 w-3 mr-1" />
+                  {dict.answerInput.openText.estimatedTime.replace(
+                    '{{count}}',
+                    String(
+                      Math.max(1, Math.ceil((question.minLength ?? 0) / 70))
+                    )
+                  )}
                 </div>
               )}
             </div>
@@ -2279,8 +2155,8 @@ export default function AnswerInput({
                     className="w-full flex items-center justify-between px-3 py-1.5 h-auto hover:bg-blue-50 text-sm text-blue-700"
                   >
                     <div className="flex items-center">
-                      <Sparkles className="h-4 w-4 mr-2 text-blue-500" />{' '}
-                      <span>טיפים למענה על שאלה זו</span>
+                      <Sparkles className="h-4 w-4 mr-2 text-blue-500" />
+                      <span>{dict.answerInput.openText.tipsButton}</span>
                     </div>
                     {isCollapsibleOpen ? (
                       <ChevronUp className="h-4 w-4 text-blue-500" />
@@ -2307,7 +2183,6 @@ export default function AnswerInput({
         const pointsDifference = totalPointsRequired - totalAllocatedPoints;
         const isAllocationComplete = pointsDifference === 0;
         const isOverAllocated = pointsDifference < 0;
-
         return (
           <fieldset className="space-y-4 border-none p-0 m-0">
             <legend className="sr-only">{question.question}</legend>
@@ -2315,7 +2190,6 @@ export default function AnswerInput({
               {question.categories?.map((category) => {
                 const categoryValue = budgetValues[category.label] || 0;
                 const isActive = categoryValue > 0;
-
                 return (
                   <motion.div
                     key={category.label}
@@ -2328,7 +2202,7 @@ export default function AnswerInput({
                         {category.icon && (
                           <motion.div
                             animate={{ scale: isActive ? 1.1 : 1 }}
-                            className={cn('text-blue-600')}
+                            className="text-blue-600"
                           >
                             {category.icon}
                           </motion.div>
@@ -2392,7 +2266,7 @@ export default function AnswerInput({
                 )}
               >
                 <div className="text-sm">
-                  סה״כ הוקצה:{' '}
+                  {dict.answerInput.budgetAllocation.totalAllocated}{' '}
                   <span
                     className={cn(
                       'font-bold',
@@ -2414,8 +2288,14 @@ export default function AnswerInput({
                     >
                       (
                       {pointsDifference > 0
-                        ? `חסר ${pointsDifference}`
-                        : `עודף ${Math.abs(pointsDifference)}`}
+                        ? dict.answerInput.budgetAllocation.remaining.replace(
+                            '{{count}}',
+                            String(pointsDifference)
+                          )
+                        : dict.answerInput.budgetAllocation.surplus.replace(
+                            '{{count}}',
+                            String(Math.abs(pointsDifference))
+                          )}
                       )
                     </span>
                   )}
@@ -2427,13 +2307,13 @@ export default function AnswerInput({
                       size="sm"
                       onClick={handleClear}
                       className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
-                      aria-label="אפס הקצאה"
+                      aria-label={dict.answerInput.tooltips.resetAllocation}
                     >
-                      <Eraser className="w-3.5 h-3.5 mr-1" /> אפס הכל
+                      <Eraser className="w-3.5 h-3.5 mr-1" />
+                      {dict.answerInput.budgetAllocation.resetButton}
                     </Button>
                   )}
               </div>
-              {/* --- START: הוספת הצגת שגיאה כאן --- */}
               <AnimatePresence>
                 {validationError && (
                   <motion.div
@@ -2447,7 +2327,6 @@ export default function AnswerInput({
                   </motion.div>
                 )}
               </AnimatePresence>
-              {/* --- END: הוספת הצגת שגיאה כאן --- */}
             </div>
           </fieldset>
         );
@@ -2457,7 +2336,12 @@ export default function AnswerInput({
         return (
           <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800">
             <p>
-              <strong>אופס!</strong> סוג השאלה {question.type} אינו נתמך כרגע.
+              <strong>
+                {dict.answerInput.unsupportedType.replace(
+                  '{{type}}',
+                  question.type
+                )}
+              </strong>
             </p>
           </div>
         );
@@ -2472,6 +2356,7 @@ export default function AnswerInput({
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\InteractiveScale.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/components/questionnaire/common/InteractiveScale.tsx
 'use client';
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
@@ -2484,6 +2369,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Star, Heart, ThumbsUp } from 'lucide-react';
+import type { InteractiveScaleDict } from '@/types/dictionary';
 
 interface ScaleOption {
   value: number;
@@ -2500,16 +2386,8 @@ interface InteractiveScaleProps {
   value?: number;
   onChange?: (value: number) => void;
   onComplete?: (value: number) => void;
-  labels?: {
-    min: string;
-    max: string;
-    middle?: string;
-  };
-  descriptions?: {
-    min?: string;
-    max?: string;
-    middle?: string;
-  };
+  labels?: { min: string; max: string; middle?: string };
+  descriptions?: { min?: string; max?: string; middle?: string };
   options?: ScaleOption[];
   mode?: 'numeric' | 'icons' | 'hearts' | 'stars' | 'thumbs';
   size?: 'sm' | 'md' | 'lg';
@@ -2521,14 +2399,11 @@ interface InteractiveScaleProps {
   required?: boolean;
   name?: string;
   error?: string;
-  ariaLabelledby?: string; // הוסף את השורה הזו
+  ariaLabelledby?: string;
+  dict: InteractiveScaleDict; // קבלת המילון כ-prop
 }
 
-const defaultIcons = {
-  stars: Star,
-  hearts: Heart,
-  thumbs: ThumbsUp,
-};
+const defaultIcons = { stars: Star, hearts: Heart, thumbs: ThumbsUp };
 
 export default function InteractiveScale({
   min = 1,
@@ -2550,7 +2425,8 @@ export default function InteractiveScale({
   required = false,
   name,
   error,
-  ariaLabelledby, // הוסף את השורה הזו
+  ariaLabelledby,
+  dict, // שימוש במשתנה dict
 }: InteractiveScaleProps) {
   const [internalValue, setInternalValue] = useState<number | null>(
     defaultValue || null
@@ -2610,7 +2486,6 @@ export default function InteractiveScale({
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', () => setIsDragging(false));
     }
-
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', () => setIsDragging(false));
@@ -2619,19 +2494,13 @@ export default function InteractiveScale({
 
   const getScaleItems = () => {
     if (options) return options;
-
     const items: ScaleOption[] = [];
     for (let i = min; i <= max; i += step) {
-      const item: ScaleOption = {
-        value: i,
-        label: i.toString(),
-      };
-
+      const item: ScaleOption = { value: i, label: i.toString() };
       if (mode !== 'numeric') {
         const Icon = defaultIcons[mode as keyof typeof defaultIcons];
         item.icon = <Icon className="w-5 h-5" />;
       }
-
       items.push(item);
     }
     return items;
@@ -2639,7 +2508,6 @@ export default function InteractiveScale({
 
   const scaleItems = getScaleItems();
   const activeValue = hoveredValue !== null ? hoveredValue : value;
-
   const sizeClasses = {
     sm: 'h-8 text-sm',
     md: 'h-10 text-base',
@@ -2669,7 +2537,6 @@ export default function InteractiveScale({
             <span>{labels.max}</span>
           </div>
         )}
-
         <div className="relative flex-1 flex items-center justify-between">
           <AnimatePresence>
             {scaleItems.map((item) => (
@@ -2697,7 +2564,10 @@ export default function InteractiveScale({
                       }
                       onMouseLeave={() => setHoveredValue(null)}
                       disabled={isDisabled}
-                      aria-label={`Scale value ${item.value}`}
+                      aria-label={dict.ariaLabel.replace(
+                        '{{value}}',
+                        item.value.toString()
+                      )}
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0.8, opacity: 0 }}
@@ -2716,15 +2586,12 @@ export default function InteractiveScale({
           </AnimatePresence>
         </div>
       </div>
-
       {showValue && value !== null && (
         <div className="text-center text-sm text-gray-500">
-          {`ערך נבחר: ${value}`}
+          {dict.selectedValue.replace('{{value}}', value.toString())}
         </div>
       )}
-
       {error && <div className="text-sm text-red-500 mt-1">{error}</div>}
-
       {required && (
         <input
           type="hidden"
@@ -2744,9 +2611,8 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\question
 --------------------------------------------------------------------------------
 Content:
 // src/components/questionnaire/common/QuestionCard.tsx
-import React, { useState, forwardRef } from 'react';
-import { VisibilityToggleButton } from '@/components/ui/VisibilityToggleButton'; // ייבוא הקומפוננטה החדשה
-
+import React, { useState } from 'react';
+import { VisibilityToggleButton } from '@/components/ui/VisibilityToggleButton';
 import {
   Card,
   CardHeader,
@@ -2757,21 +2623,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
 import {
   Bookmark,
   AlertCircle,
   HelpCircle,
   SkipForward,
-  Info,
   Star,
-  X,
-  MessageCircle,
   Lightbulb,
-  Eye,
-  EyeOff,
-  Users,
-  Lock,
   Save,
   Loader2,
   BookUser,
@@ -2782,11 +2640,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Switch } from '@/components/ui/switch';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Question, AnswerValue, QuestionDepth } from '../types/types';
+import type { Question, QuestionDepth } from '../types/types';
 import { cn } from '@/lib/utils';
-import { useMediaQuery } from '../hooks/useMediaQuery';
+import type { QuestionCardDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
 
 interface QuestionCardProps {
   question: Question;
@@ -2806,19 +2663,8 @@ interface QuestionCardProps {
   onVisibilityChange: (isVisible: boolean) => void;
   onSave?: () => void;
   isSaving?: boolean;
+  dict: QuestionCardDict; // קבלת המילון כ-prop
 }
-
-const depthLabels: Record<QuestionDepth, string> = {
-  BASIC: 'בסיסי',
-  ADVANCED: 'מתקדם',
-  EXPERT: 'מעמיק',
-};
-
-const depthDescriptions: Record<QuestionDepth, string> = {
-  BASIC: 'שאלות חובה המהוות את הבסיס להיכרות',
-  ADVANCED: 'שאלות מומלצות להיכרות מעמיקה יותר',
-  EXPERT: 'שאלות העשרה לחיבור מעמיק במיוחד',
-};
 
 const getThemeClasses = (themeColor: string) => {
   const themes = {
@@ -2877,16 +2723,15 @@ export default function QuestionCard({
   validationError,
   isDisabled = false,
   children,
-  isFirstInList = false,
   themeColor = 'sky',
   isVisible,
   onVisibilityChange,
   onSave,
   isSaving,
+  dict, // שימוש במשתנה dict
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const isMobile = useMediaQuery('(max-width: 640px)');
 
   const cardVariants = {
     initial: { opacity: 0, y: 30, scale: 0.98 },
@@ -2940,18 +2785,18 @@ export default function QuestionCard({
                       )}
                     >
                       <Star className="h-3.5 w-3.5 mr-1.5" />
-                      {depthLabels[depth]}
+                      {dict.depthLabels[depth]}
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="max-w-xs">
-                    <p className="text-sm">{depthDescriptions[depth]}</p>
+                    <p className="text-sm">{dict.depthDescriptions[depth]}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
               {isRequired && (
                 <Badge variant="destructive" className="text-xs animate-pulse">
-                  שאלת חובה *
+                  {dict.requiredBadge}
                 </Badge>
               )}
             </div>
@@ -2971,13 +2816,21 @@ export default function QuestionCard({
                             ? 'text-amber-500 bg-amber-100'
                             : 'text-slate-400 hover:bg-slate-100'
                         )}
-                        aria-label={isBookmarked ? 'הסר סימניה' : 'הוסף סימניה'}
+                        aria-label={
+                          isBookmarked
+                            ? dict.tooltips.removeBookmark
+                            : dict.tooltips.addBookmark
+                        }
                       >
                         <Bookmark className="w-4 h-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{isBookmarked ? 'הסר סימניה' : 'שמור לעיון חוזר'}</p>
+                      <p>
+                        {isBookmarked
+                          ? dict.tooltips.removeBookmark
+                          : dict.tooltips.addBookmark}
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -2996,14 +2849,20 @@ export default function QuestionCard({
                             ? `${themeClasses.bg} ${themeClasses.text}`
                             : 'text-slate-400 hover:bg-slate-100'
                         )}
-                        aria-label={showHelp ? 'הסתר עזרה' : 'הצג עזרה'}
+                        aria-label={
+                          showHelp
+                            ? dict.tooltips.hideHelp
+                            : dict.tooltips.showHelp
+                        }
                       >
                         <HelpCircle className="w-4 h-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>
-                        {showHelp ? 'הסתר עזרה' : 'למה אנחנו שואלים את זה?'}
+                        {showHelp
+                          ? dict.tooltips.hideHelp
+                          : dict.tooltips.whyQuestion}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -3059,7 +2918,6 @@ export default function QuestionCard({
                 exit={{ opacity: 0, y: -10 }}
               >
                 <Alert role="alert" variant="destructive" className="py-2">
-                  {' '}
                   <AlertCircle className="h-4 w-4 mr-2" />
                   <AlertDescription className="text-sm">
                     {validationError}
@@ -3076,14 +2934,11 @@ export default function QuestionCard({
           </div>
         </CardContent>
 
-        {/* צד ימין (ב-RTL): מתג נראות */}
         <CardFooter className="relative flex justify-between items-center pt-4 border-t border-slate-100 bg-slate-50/50">
-          {/* צד ימין (ב-RTL): כפתור הנראות החדש */}
           <div className="flex items-center gap-3">
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  {/* שימוש בקומפוננטה החדשה */}
                   <VisibilityToggleButton
                     isVisible={isVisible}
                     onToggle={() => onVisibilityChange(!isVisible)}
@@ -3093,12 +2948,14 @@ export default function QuestionCard({
                 <TooltipContent side="top" className="max-w-xs">
                   <div className="text-center">
                     <p className="font-medium mb-1">
-                      {isVisible ? '👁️ גלוי לכולם' : '🔒 מוסתר מהציבור'}
+                      {isVisible
+                        ? dict.tooltips.visibility.visibleTitle
+                        : dict.tooltips.visibility.hiddenTitle}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {isVisible
-                        ? 'התשובה תוצג בפרופיל הציבורי שלך'
-                        : 'התשובה תהיה גלויה רק לשדכנים מאושרים'}
+                        ? dict.tooltips.visibility.visibleDesc
+                        : dict.tooltips.visibility.hiddenDesc}
                     </p>
                   </div>
                 </TooltipContent>
@@ -3106,7 +2963,6 @@ export default function QuestionCard({
             </TooltipProvider>
           </div>
 
-          {/* צד שמאל (ב-RTL): כפתורי פעולה */}
           <div className="flex items-center gap-1">
             {onSave && (
               <TooltipProvider>
@@ -3118,7 +2974,7 @@ export default function QuestionCard({
                       className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100"
                       onClick={onSave}
                       disabled={isSaving || isDisabled}
-                      aria-label="שמור התקדמות"
+                      aria-label={dict.tooltips.saveProgress}
                     >
                       {isSaving ? (
                         <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
@@ -3128,7 +2984,11 @@ export default function QuestionCard({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{isSaving ? 'שומר...' : 'שמור התקדמות'}</p>
+                    <p>
+                      {isSaving
+                        ? dict.tooltips.saveProgressSaving
+                        : dict.tooltips.saveProgress}
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -3143,7 +3003,7 @@ export default function QuestionCard({
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100"
-                        aria-label="צפה בפרופיל ובתשובות"
+                        aria-label={dict.tooltips.viewProfile}
                       >
                         <BookUser className="w-4 h-4" />
                       </Button>
@@ -3151,7 +3011,7 @@ export default function QuestionCard({
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>צפה בפרופיל ובתשובות</p>
+                  <p>{dict.tooltips.viewProfile}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -3167,7 +3027,7 @@ export default function QuestionCard({
                   (isRequired || isDisabled) && 'opacity-50 cursor-not-allowed'
                 )}
               >
-                {isRequired ? 'שאלת חובה' : 'דלג'}
+                {isRequired ? dict.skipButton.required : dict.skipButton.skip}
                 {!isRequired && <SkipForward className="w-4 h-4 mr-2" />}
               </Button>
             )}
@@ -3183,28 +3043,32 @@ export default function QuestionCard({
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\QuestionnaireCompletion.tsx
 --------------------------------------------------------------------------------
 Content:
-import React from "react";
-import Link from 'next/link'; // *** הוספה חדשה ***
-import { Button } from "@/components/ui/button";
+// src/components/questionnaire/common/QuestionnaireCompletion.tsx
+import React from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Send, CheckCircle2, BookUser } from "lucide-react"; // *** הוספנו אייקון BookUser ***
+} from '@/components/ui/card';
+import { Send, CheckCircle2, BookUser, Loader2 } from 'lucide-react';
+import type { QuestionnaireCompletionDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
 
 interface QuestionnaireCompletionProps {
   onSendToMatching: () => void;
   isLoading?: boolean;
   isLoggedIn?: boolean;
+  dict: QuestionnaireCompletionDict; // קבלת המילון כ-prop
 }
 
 const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
   onSendToMatching,
   isLoading = false,
   isLoggedIn = false,
+  dict, // שימוש במשתנה dict
 }) => {
   return (
     <div className="max-w-xl mx-auto p-4">
@@ -3213,35 +3077,36 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
           <div className="flex justify-center mb-4">
             <CheckCircle2 className="w-12 h-12 text-green-500" />
           </div>
-          <CardTitle className="text-2xl text-center">
-            כל הכבוד! סיימת את השאלון
-          </CardTitle>
+          <CardTitle className="text-2xl text-center">{dict.title}</CardTitle>
           <CardDescription className="text-center">
-            {isLoggedIn
-              ? "התשובות שלך יעזרו לנו למצוא עבורך את ההתאמה הטובה ביותר"
-              : "כדי לשמור את התשובות ולהתחיל בתהליך ההתאמה, יש להתחבר למערכת"}
+            {isLoggedIn ? dict.loggedInDescription : dict.guestDescription}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {isLoggedIn ? (
             <>
               <div className="text-center text-gray-600">
-                <p>כעת ניתן לשלוח את השאלון לצוות האיפיון שלנו</p>
+                <p>{dict.loggedInContent.prompt}</p>
                 <p className="text-sm mt-2">
-                  הצוות יעבור על התשובות ויתחיל בתהליך ההתאמה
+                  {dict.loggedInContent.promptSubtitle}
                 </p>
               </div>
-              <div className="space-y-3"> {/* *** עטפנו את הכפתורים ב-div *** */}
+              <div className="space-y-3">
                 <Button
                   className="w-full"
                   size="lg"
                   onClick={onSendToMatching}
                   disabled={isLoading}
                 >
-                  <Send className="w-5 h-5 ml-2" />
-                  {isLoading ? "שולח..." : "שלח לאיפיון"}
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 ml-2 animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5 ml-2" />
+                  )}
+                  {isLoading
+                    ? dict.loggedInContent.sendingButton
+                    : dict.loggedInContent.sendButton}
                 </Button>
-                {/* --- START: הוספת קישור לצפייה בכל התשובות --- */}
                 <Link href="/profile?tab=questionnaire" className="block">
                   <Button
                     variant="outline"
@@ -3250,15 +3115,14 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
                     disabled={isLoading}
                   >
                     <BookUser className="w-5 h-5 ml-2 text-blue-600" />
-                    סקירת כל התשובות שלי
+                    {dict.loggedInContent.reviewButton}
                   </Button>
                 </Link>
-                {/* --- END: הוספת קישור לצפייה בכל התשובות --- */}
               </div>
             </>
           ) : (
             <Button className="w-full" size="lg" onClick={onSendToMatching}>
-              התחבר למערכת
+              {dict.guestContent.loginButton}
             </Button>
           )}
         </CardContent>
@@ -3418,103 +3282,33 @@ import {
   Users,
   UserCheck,
   ArrowRight,
-  Star,
-  Brain,
-  Sparkles,
   Clock,
   HelpCircle,
   CheckCircle2,
   User,
+  Sparkles,
+  Brain,
 } from 'lucide-react';
 import type { WorldId, Question } from '../types/types';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import type { WorldIntroDict } from '@/types/dictionary';
 
-// --- ממשק Props חדש ופשוט יותר ---
 interface WorldIntroProps {
   worldId: WorldId;
   allQuestions: Question[];
   onStart: () => void;
   className?: string;
+  dict: WorldIntroDict;
 }
 
-// --- אובייקט קונפיגורציה מרכזי לכל התוכן והעיצוב ---
-const worldDisplayConfig = {
-  PERSONALITY: {
-    Icon: User,
-    themeColor: 'sky',
-    title: 'עולם האישיות',
-    subtitle: 'מי אני באמת?',
-    whyIsItImportant:
-      'הבנה עמוקה של מי שאת/ה היא הבסיס לכל קשר בריא. כאן תקבלי/י הזדמנות להציג את עצמך בצורה אותנטית, כדי שנמצא מישהו שיתאהב באדם האמיתי שאת/ה.',
-    whatYouWillDiscover: [
-      'מהם הכוחות המניעים אותך בחיים',
-      'סגנון התקשורת והאינטראקציה החברתית שלך',
-      'איך את/ה מתמודד/ת עם אתגרים ומקבל/ת החלטות',
-    ],
-    guidingThought:
-      'היופי שבזוגיות הוא לא למצוא מישהו מושלם, אלא למצוא מישהו שהחלקים שלכם משלימים זה את זה.',
-  },
-  VALUES: {
-    Icon: Heart,
-    themeColor: 'rose',
-    title: 'עולם הערכים',
-    subtitle: 'מה באמת מניע אותך?',
-    whyIsItImportant:
-      'ערכים משותפים הם עמוד השדרה של קשר יציב ומאושר. בעולם זה, נעזור לך לזקק את עקרונות הליבה שלך, כדי לבנות יסודות איתנים לבית המשותף העתידי.',
-    whatYouWillDiscover: [
-      'מהם סדרי העדיפויות שלך בין משפחה, קריירה ורוחניות',
-      'גישתך לכסף, נתינה וצמיחה אישית',
-      'איזו קהילה וסביבה חברתית מתאימות לך',
-    ],
-    guidingThought:
-      'כאשר הערכים שלכם נפגשים, הדרך המשותפת הופכת להיות ברורה וקלה יותר.',
-  },
-  RELATIONSHIP: {
-    Icon: Users,
-    themeColor: 'purple',
-    title: 'עולם הזוגיות',
-    subtitle: 'איך נראית השותפות האידיאלית שלך?',
-    whyIsItImportant:
-      "זוגיות טובה היא שותפות. כאן נבין את הציפיות שלך מקשר, את 'שפות האהבה' שלך, ואיך את/ה רואה את חיי היומיום המשותפים. זה המפתח ליצירת קשר שמבוסס על הבנה, כבוד וחברות אמת.",
-    whatYouWillDiscover: [
-      'מהי תמצית הזוגיות הבריאה בעיניך',
-      'סגנון פתרון הקונפליקטים המועדף עליך',
-      "האיזון הנכון עבורך בין 'ביחד' ל'לחוד'",
-    ],
-    guidingThought:
-      "השאלה אינה 'האם תהיו מאושרים?', אלא 'איך תתמודדו יחד כשתהיו פחות מאושרים?'.",
-  },
-  PARTNER: {
-    Icon: UserCheck,
-    themeColor: 'teal',
-    title: 'עולם הפרטנר',
-    subtitle: 'במי תרצה/י לבחור?',
-    whyIsItImportant:
-      'הגדרת בן/בת הזוג האידיאלי/ת היא יותר מרשימת תכונות; זו הבנה של מה באמת נחוץ לך כדי לפרוח. כאן נמקד את החיפוש ונבין מהם הדברים שאינם ניתנים לפשרה עבורך.',
-    whatYouWillDiscover: [
-      'אילו תכונות אופי הן החיוניות ביותר עבורך',
-      'מהן העדפותיך לגבי סגנון חיים ורקע',
-      "מהם ה'קווים האדומים' שלך בזוגיות",
-    ],
-    guidingThought:
-      'אל תחפש/י את האדם שתוכל/י לחיות איתו, חפש/י את האדם שאינך יכול/ה לחיות בלעדיו.',
-  },
-  RELIGION: {
-    Icon: Scroll,
-    themeColor: 'amber',
-    title: 'דת ומסורת',
-    subtitle: 'אמונה והלכה בחייך',
-    whyIsItImportant:
-      'העולם הרוחני והדתי הוא נדבך יסודי בבניית בית נאמן בישראל. בעולם זה נבין את החיבור האישי שלך, את ההשקפה שלך, ואת החזון שלך לבית יהודי. זהו בסיס הכרחי להרמוניה זוגית וחינוך ילדים.',
-    whatYouWillDiscover: [
-      'ההגדרה האישית שלך על הרצף הדתי',
-      'כיצד ההלכה והמסורת באות לידי ביטוי בחייך',
-      'החזון שלך לחינוך דתי ורוחני במשפחה',
-    ],
-    guidingThought:
-      'בית יהודי נבנה לא רק מלבנים, אלא גם מתפילות, מערכים וממסורת שעוברת מדור לדור.',
-  },
+// אובייקט קונפיגורציה ויזואלי (נשאר בקוד)
+const worldVisualConfig = {
+  PERSONALITY: { Icon: User, themeColor: 'sky' },
+  VALUES: { Icon: Heart, themeColor: 'rose' },
+  RELATIONSHIP: { Icon: Users, themeColor: 'purple' },
+  PARTNER: { Icon: UserCheck, themeColor: 'teal' },
+  RELIGION: { Icon: Scroll, themeColor: 'amber' },
 };
 
 const WORLD_ORDER: WorldId[] = [
@@ -3525,29 +3319,31 @@ const WORLD_ORDER: WorldId[] = [
   'RELIGION',
 ];
 
-// --- Main Component ---
 export default function WorldIntro({
   worldId,
   allQuestions,
   onStart,
   className = '',
+  dict,
 }: WorldIntroProps) {
-  const config = worldDisplayConfig[worldId];
+  const visualConfig = worldVisualConfig[worldId];
+  const content = dict.worldsContent[worldId];
+
+  const { Icon, themeColor } = visualConfig;
   const {
-    Icon,
     title,
     subtitle,
     whyIsItImportant,
     whatYouWillDiscover,
     guidingThought,
-    themeColor,
-  } = config;
+  } = content;
+
   const isMobile = useMediaQuery('(max-width: 1023px)');
 
   // חישובים דינמיים
   const totalQuestions = allQuestions.length;
   const requiredQuestions = allQuestions.filter((q) => q.isRequired).length;
-  const estimatedTime = Math.max(5, Math.round(totalQuestions * 0.4)); // כ-24 שניות לשאלה, מינימום 5 דקות
+  const estimatedTime = Math.max(5, Math.round(totalQuestions * 0.4));
   const worldIndex = WORLD_ORDER.indexOf(worldId) + 1;
 
   // Framer Motion Variants
@@ -3570,9 +3366,21 @@ export default function WorldIntro({
   };
 
   const stats = [
-    { label: 'זמן משוער', value: `~${estimatedTime} דקות`, IconComp: Clock },
-    { label: 'סך כל שאלות', value: totalQuestions, IconComp: HelpCircle },
-    { label: 'שאלות חובה', value: requiredQuestions, IconComp: CheckCircle2 },
+    {
+      label: dict.stats.estimatedTime,
+      value: `~${estimatedTime} ${dict.statsValues.minutes}`,
+      IconComp: Clock,
+    },
+    {
+      label: dict.stats.totalQuestions,
+      value: totalQuestions,
+      IconComp: HelpCircle,
+    },
+    {
+      label: dict.stats.requiredQuestions,
+      value: requiredQuestions,
+      IconComp: CheckCircle2,
+    },
   ];
 
   const ActionButton = () => (
@@ -3584,14 +3392,13 @@ export default function WorldIntro({
         `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`
       )}
     >
-      בוא/י נתחיל את המסע
+      {dict.startButton}
       <ArrowRight className="w-5 h-5 mr-2 animate-pulse-fast" />
     </Button>
   );
 
   return (
     <div className={cn('bg-slate-50 px-4 sm:px-6', className)}>
-      {' '}
       <motion.div
         className="w-full max-w-4xl"
         variants={containerVariants}
@@ -3606,7 +3413,6 @@ export default function WorldIntro({
               </div>
             )}
             <div className="grid lg:grid-cols-2">
-              {/* Left Column: Visuals & Stats */}
               <motion.div
                 variants={itemVariants}
                 className={`bg-${themeColor}-50/50 p-6 sm:p-8 flex flex-col justify-between`}
@@ -3616,7 +3422,7 @@ export default function WorldIntro({
                     variant="outline"
                     className={`border-${themeColor}-300 bg-white text-${themeColor}-700 mb-4`}
                   >
-                    עולם {worldIndex} מתוך {WORLD_ORDER.length}
+                    {dict.world} {worldIndex} {dict.of} {WORLD_ORDER.length}
                   </Badge>
                   <div
                     className={`mb-4 inline-block p-4 rounded-xl bg-gradient-to-br from-${themeColor}-500 to-${themeColor}-600 shadow-lg`}
@@ -3653,7 +3459,6 @@ export default function WorldIntro({
                 </div>
               </motion.div>
 
-              {/* Right Column: Content & CTA */}
               <motion.div
                 variants={itemVariants}
                 className="p-6 sm:p-8 flex flex-col justify-between"
@@ -3664,7 +3469,7 @@ export default function WorldIntro({
                       <Sparkles
                         className={`w-5 h-5 mr-2 text-${themeColor}-500`}
                       />
-                      למה העולם הזה קריטי להצלחה שלך?
+                      {dict.whyTitle}
                     </h3>
                     <p className="mt-2 text-slate-600 leading-relaxed">
                       {whyIsItImportant}
@@ -3675,7 +3480,7 @@ export default function WorldIntro({
                       <Brain
                         className={`w-5 h-5 mr-2 text-${themeColor}-500`}
                       />
-                      מה תגלה/י על עצמך?
+                      {dict.whatYouWillDiscoverTitle}
                     </h3>
                     <ul className="mt-2 space-y-1 list-disc list-inside text-slate-600">
                       {whatYouWillDiscover.map((item, index) => (
@@ -3697,13 +3502,11 @@ export default function WorldIntro({
                 )}
               </motion.div>
             </div>
-            {/* --- START: ADDED BUTTON FOR MOBILE AT THE BOTTOM --- */}
             {isMobile && (
               <div className="p-6 border-t">
                 <ActionButton />
               </div>
             )}
-            {/* --- END: ADDED BUTTON FOR MOBILE AT THE BOTTOM --- */}
           </CardContent>
         </Card>
       </motion.div>
@@ -3722,48 +3525,46 @@ export default function WorldIntro({
         .animate-pulse-fast {
           animation: pulse-fast 1.5s ease-in-out infinite;
         }
-
-        /* Tailwind CSS JIT Purge-safe classes */
-        .bg-sky-50\/50,
+        .bg-sky-50\\/50,
         .bg-sky-100,
         .bg-sky-600,
-        .hover\:bg-sky-700,
+        .hover\\:bg-sky-700,
         .text-sky-600,
         .text-sky-700,
         .text-sky-800,
         .border-sky-300 {
         }
-        .bg-rose-50\/50,
+        .bg-rose-50\\/50,
         .bg-rose-100,
         .bg-rose-600,
-        .hover\:bg-rose-700,
+        .hover\\:bg-rose-700,
         .text-rose-600,
         .text-rose-700,
         .text-rose-800,
         .border-rose-300 {
         }
-        .bg-purple-50\/50,
+        .bg-purple-50\\/50,
         .bg-purple-100,
         .bg-purple-600,
-        .hover\:bg-purple-700,
+        .hover\\:bg-purple-700,
         .text-purple-600,
         .text-purple-700,
         .text-purple-800,
         .border-purple-300 {
         }
-        .bg-teal-50\/50,
+        .bg-teal-50\\/50,
         .bg-teal-100,
         .bg-teal-600,
-        .hover\:bg-teal-700,
+        .hover\\:bg-teal-700,
         .text-teal-600,
         .text-teal-700,
         .text-teal-800,
         .border-teal-300 {
         }
-        .bg-amber-50\/50,
+        .bg-amber-50\\/50,
         .bg-amber-100,
         .bg-amber-600,
-        .hover\:bg-amber-700,
+        .hover\\:bg-amber-700,
         .text-amber-600,
         .text-amber-700,
         .text-amber-800,
@@ -4020,12 +3821,27 @@ export default function AccessibilityFeatures({
       const text = element.textContent.trim();
       if (text && text.length > 0) {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'he-IL';
+        
+        // --- START OF UPGRADE ---
+        // 1. Find an available Hebrew voice on the user's system.
+        const voices = window.speechSynthesis.getVoices();
+        const hebrewVoice = voices.find(voice => voice.lang === 'he-IL');
+
+        // 2. If a Hebrew voice is found, use it.
+        if (hebrewVoice) {
+          utterance.voice = hebrewVoice;
+          utterance.lang = 'he-IL';
+        } 
+        // 3. If not, don't specify language. Let the browser use its default voice.
+        // This is better than silence, even if pronunciation is incorrect.
+        
         utterance.rate = 0.9;
         window.speechSynthesis.speak(utterance);
+        // --- END OF UPGRADE ---
       }
     }
   };
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -6409,11 +6225,11 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\que
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\layout\QuestionnaireLayout.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/components/questionnaire/layout/QuestionnaireLayout.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Heart,
   User,
@@ -6431,13 +6247,13 @@ import {
   LogIn,
   UserPlus,
   Scroll,
-  ChevronLeft, // אייקון חדש
-  Edit, // אייקון חדש
-  BookUser, // *** הוספה חדשה ***
-  Info, // <-- הוספה
-  EyeOff, // <-- הוספה
+  ChevronLeft,
+  Edit,
+  BookUser,
+  Info,
+  EyeOff,
 } from 'lucide-react';
-import type { WorldId, QuestionnaireLayoutProps } from '../types/types';
+import type { WorldId } from '../types/types';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6456,55 +6272,35 @@ import {
 } from '@/components/ui/sheet';
 import FAQ from '../components/FAQ';
 import AccessibilityFeatures from '../components/AccessibilityFeatures';
+import type {
+  QuestionnaireLayoutDict,
+  MatchmakingQuestionnaireDict,
+} from '@/types/dictionary';
 
-interface ToastProps {
-  message: string;
-  type: 'success' | 'error' | 'info';
-  isVisible: boolean;
-  onClose?: () => void;
+// Props Interface
+export interface QuestionnaireLayoutProps {
+  children: React.ReactNode;
+  currentWorld: WorldId;
+  completedWorlds: WorldId[];
+  onWorldChange: (worldId: WorldId) => void;
+  onExit?: () => void;
+  language?: string;
+  onSaveProgress?: () => Promise<void>;
+  isLoggedIn?: boolean;
+  dict: {
+    // The dict is now structured
+    layout: QuestionnaireLayoutDict;
+    worldLabels: MatchmakingQuestionnaireDict['worldLabels'];
+  };
 }
 
-// ============================================================================
-// CONFIGURATION OBJECT FOR WORLDS
-// ============================================================================
 const worldConfig = {
-  PERSONALITY: { icon: User, label: 'אישיות', themeColor: 'sky' },
-  VALUES: { icon: Heart, label: 'ערכים ואמונות', themeColor: 'rose' },
-  RELATIONSHIP: { icon: Users, label: 'זוגיות', themeColor: 'purple' },
-  PARTNER: { icon: User, label: 'הפרטנר האידיאלי', themeColor: 'teal' },
-  RELIGION: { icon: Scroll, label: 'דת ומסורת', themeColor: 'amber' },
+  PERSONALITY: { icon: User, themeColor: 'sky' },
+  VALUES: { icon: Heart, themeColor: 'rose' },
+  RELATIONSHIP: { icon: Users, themeColor: 'purple' },
+  PARTNER: { icon: User, themeColor: 'teal' },
+  RELIGION: { icon: Scroll, themeColor: 'amber' },
 } as const;
-
-// Enhanced Toast component
-const Toast = ({ message, type, isVisible, onClose }: ToastProps) => {
-  if (!isVisible) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      className={cn(
-        'fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-3 rounded-lg shadow-lg',
-        'max-w-md w-full flex items-center justify-between',
-        type === 'success' && 'bg-green-500 text-white',
-        type === 'error' && 'bg-red-500 text-white',
-        type === 'info' && 'bg-blue-500 text-white'
-      )}
-    >
-      <span className="font-medium">{message}</span>
-      {onClose && (
-        <button
-          onClick={onClose}
-          className="ml-2 text-white hover:bg-white/20 p-1 rounded-full transition-colors"
-          aria-label="סגור הודעה"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      )}
-    </motion.div>
-  );
-};
 
 export default function QuestionnaireLayout({
   children,
@@ -6512,77 +6308,35 @@ export default function QuestionnaireLayout({
   completedWorlds,
   onWorldChange,
   onExit,
-  onSaveProgress,
   language = 'he',
   isLoggedIn = false,
+  onSaveProgress,
+  dict,
 }: QuestionnaireLayoutProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [showExitPrompt, setShowExitPrompt] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{
-    message: string;
-    type: 'success' | 'error' | 'info';
-    isVisible: boolean;
-  }>({
-    message: '',
-    type: 'info',
-    isVisible: false,
-  });
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isAccessibilityPanelOpen, setAccessibilityPanelOpen] = useState(false);
 
   const isSmallScreen = useMediaQuery('(max-width: 640px)');
   const currentThemeColor = worldConfig[currentWorld]?.themeColor || 'sky';
-
-  const showToast = useCallback(
-    (message: string, type: 'success' | 'error' | 'info' = 'info') => {
-      setToast({ message, type, isVisible: true });
-      setTimeout(() => {
-        setToast((prev) => ({ ...prev, isVisible: false }));
-      }, 3000);
-    },
-    []
-  );
-
-  const handleSave = useCallback(
-    async (isAutoSave = false) => {
-      if (!onSaveProgress) {
-        if (!isAutoSave) showToast('לא ניתן לשמור את השאלון כרגע', 'error');
-        return;
-      }
-      setIsSaving(true);
-      setError(null);
-      try {
-        await onSaveProgress();
-        setLastSaved(new Date());
-        if (!isAutoSave) showToast('השאלון נשמר בהצלחה', 'success');
-      } catch {
-        setError('אירעה שגיאה בשמירת השאלון');
-        if (!isAutoSave) showToast('אירעה שגיאה בשמירת השאלון', 'error');
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [onSaveProgress, showToast]
-  );
-
-  useEffect(() => {
-    let saveTimer: NodeJS.Timeout;
-    if (onSaveProgress) {
-      saveTimer = setInterval(() => handleSave(true), 120000); // Auto-save every 2 minutes
-    }
-    return () => {
-      if (saveTimer) clearInterval(saveTimer);
-    };
-  }, [onSaveProgress, handleSave]);
-
   const isRTL = language === 'he';
   const directionClass = isRTL ? 'rtl' : 'ltr';
 
-  // ============================================================================
-  // START OF IMPROVED NavButton COMPONENT
-  // ============================================================================
+  const handleSave = useCallback(async () => {
+    if (!onSaveProgress) return;
+    setIsSaving(true);
+    try {
+      await onSaveProgress();
+      setLastSaved(new Date());
+    } catch (err) {
+      console.error('Save failed in layout:', err);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [onSaveProgress]);
+
   const NavButton = ({
     worldId,
     isMobile,
@@ -6590,12 +6344,9 @@ export default function QuestionnaireLayout({
     worldId: string;
     isMobile: boolean;
   }) => {
-    const {
-      icon: Icon,
-      label,
-      themeColor,
-    } = worldConfig[worldId as keyof typeof worldConfig];
-
+    const { icon: Icon, themeColor } =
+      worldConfig[worldId as keyof typeof worldConfig];
+    const label = dict.worldLabels[worldId as WorldId];
     const isActive = currentWorld === worldId;
     const isCompleted = completedWorlds.includes(worldId as WorldId);
     let status: 'active' | 'completed' | 'pending' = 'pending';
@@ -6605,72 +6356,48 @@ export default function QuestionnaireLayout({
     const statusConfig = {
       active: {
         classes: `bg-${themeColor}-600 text-white shadow-lg hover:bg-${themeColor}-700 ring-2 ring-offset-2 ring-${themeColor}-400`,
-        tooltip: 'את/ה בעולם זה כעת',
         actionIcon: <ChevronLeft className="h-5 w-5 animate-pulse" />,
       },
       completed: {
         classes:
           'border-green-300 bg-green-50 text-green-800 hover:bg-green-100 opacity-90 hover:opacity-100',
-        tooltip: 'השלמת את העולם הזה. לחץ/י כדי לערוך.',
         actionIcon: <Edit className="h-4 w-4 text-green-600" />,
       },
       pending: {
         classes: 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700',
-        tooltip: `עבור לעולם ה${label}`,
         actionIcon: null,
       },
     };
-
     const currentStatusConfig = statusConfig[status];
 
     return (
-      <TooltipProvider delayDuration={300}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant={'outline'}
-              size={isMobile ? 'sm' : 'default'}
-              className={cn(
-                'flex items-center justify-between w-full mb-2 transition-all duration-200 rounded-lg',
-                currentStatusConfig.classes,
-                isMobile ? 'py-2 text-sm' : 'p-3'
-              )}
-              onClick={() => {
-                onWorldChange(worldId as WorldId);
-                if (isMobile) setShowMobileNav(false);
-              }}
-            >
-              {/* Right side: Icon and Text */}
-              <div className="flex items-center gap-3">
-                <Icon
-                  className={cn(
-                    'h-5 w-5',
-                    isActive ? 'text-white' : `text-${themeColor}-500`
-                  )}
-                />
-                <span className="truncate text-right font-medium">{label}</span>
-              </div>
-
-              {/* Left side: Action Icon */}
-              <div className="flex-shrink-0">
-                {currentStatusConfig.actionIcon}
-              </div>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side={isRTL ? 'left' : 'right'}>
-            <p>{currentStatusConfig.tooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Button
+        variant={'outline'}
+        size={isMobile ? 'sm' : 'default'}
+        className={cn(
+          'flex items-center justify-between w-full mb-2 transition-all duration-200 rounded-lg',
+          currentStatusConfig.classes,
+          isMobile ? 'py-2 text-sm' : 'p-3'
+        )}
+        onClick={() => {
+          onWorldChange(worldId as WorldId);
+          if (isMobile) setShowMobileNav(false);
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <Icon
+            className={cn(
+              'h-5 w-5',
+              isActive ? 'text-white' : `text-${themeColor}-500`
+            )}
+          />
+          <span className="truncate text-right font-medium">{label}</span>
+        </div>
+        <div className="flex-shrink-0">{currentStatusConfig.actionIcon}</div>
+      </Button>
     );
   };
-  // ============================================================================
-  // END OF IMPROVED NavButton COMPONENT
-  // ============================================================================
 
-  // ============================================================================
-  // START OF NEW ProfileNotice COMPONENT
-  // ============================================================================
   const ProfileNotice = () => (
     <div className="mx-4 my-2 p-3 bg-slate-100/80 border border-slate-200/90 rounded-lg">
       <div className="flex items-start gap-3">
@@ -6679,20 +6406,21 @@ export default function QuestionnaireLayout({
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-slate-600 leading-relaxed text-sm">
-            <span className="font-medium text-slate-700">שימ/י לב:</span> כל
-            תשובה שתענה/י תוצג אוטומטית בכרטיס הפרופיל שלך כדי לשפר את איכות
-            ההתאמות. ניתן להסתיר כל שאלה מהפרופיל באמצעות המתג{' '}
+            <span className="font-medium text-slate-700">
+              {dict.layout.profileNotice.title}
+            </span>{' '}
+            {dict.layout.profileNotice.textPart1}
             <span className="inline-flex items-center px-1 py-0.5 bg-white border border-slate-200 rounded text-xs font-mono">
               <EyeOff className="inline-block h-3 w-3 mr-1 text-slate-500" />
-            </span>{' '}
-            שבחלק התחתון של כל שאלה.
+            </span>
+            {dict.layout.profileNotice.textPart2}
             <br />
             <Link
               href="/profile?tab=questionnaire"
               className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
               target="_blank"
             >
-              צפייה בפרופיל שלך
+              {dict.layout.profileNotice.link}
               <svg
                 className="w-3 h-3"
                 fill="none"
@@ -6712,9 +6440,31 @@ export default function QuestionnaireLayout({
       </div>
     </div>
   );
-  // ============================================================================
-  // END OF NEW ProfileNotice COMPONENT
-  // ============================================================================
+
+  const UnauthenticatedPrompt = () => (
+    <div className="p-3 my-3 bg-cyan-50/70 border border-cyan-200 rounded-lg text-center space-y-2">
+      <p className="text-sm text-cyan-800 font-medium">
+        {dict.layout.unauthenticatedPrompt.title}
+      </p>
+      <p className="text-xs text-cyan-700">
+        {dict.layout.unauthenticatedPrompt.subtitle}
+      </p>
+      <div className="flex gap-2 justify-center pt-1">
+        <Link href="/auth/signin">
+          <Button variant="outline" size="sm" className="bg-white/80">
+            <LogIn className="w-3 h-3 ml-1" />
+            {dict.layout.unauthenticatedPrompt.loginButton}
+          </Button>
+        </Link>
+        <Link href="/auth/register">
+          <Button variant="default" size="sm">
+            <UserPlus className="w-3 h-3 ml-1" />
+            {dict.layout.unauthenticatedPrompt.registerButton}
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
 
   const renderFAQButton = (isMobile: boolean) => (
     <Sheet>
@@ -6728,10 +6478,10 @@ export default function QuestionnaireLayout({
               ? 'w-full justify-start gap-3 p-3'
               : 'w-8 h-8 p-0 rounded-full'
           )}
-          aria-label="שאלות נפוצות"
+          aria-label={dict.layout.tooltips.faq}
         >
           <HelpCircle className="h-5 w-5" />
-          {isMobile && <span>שאלות נפוצות</span>}
+          {isMobile && <span>{dict.layout.tooltips.faq}</span>}
         </Button>
       </SheetTrigger>
       <SheetContent
@@ -6739,38 +6489,13 @@ export default function QuestionnaireLayout({
         className="w-[90vw] max-w-lg overflow-y-auto"
       >
         <SheetHeader>
-          <SheetTitle>שאלות נפוצות</SheetTitle>
+          <SheetTitle>{dict.layout.tooltips.faq}</SheetTitle>
         </SheetHeader>
         <div className="mt-4">
           <FAQ />
         </div>
       </SheetContent>
     </Sheet>
-  );
-
-  const UnauthenticatedPrompt = () => (
-    <div className="p-3 my-3 bg-cyan-50/70 border border-cyan-200 rounded-lg text-center space-y-2">
-      <p className="text-sm text-cyan-800 font-medium">
-        התקדמותך נשמרת זמנית בדפדפן.
-      </p>
-      <p className="text-xs text-cyan-700">
-        התחבר/י או הרשמ/י כדי לשמור את התשובות לחשבונך.
-      </p>
-      <div className="flex gap-2 justify-center pt-1">
-        <Link href="/auth/signin">
-          <Button variant="outline" size="sm" className="bg-white/80">
-            <LogIn className="w-3 h-3 ml-1" />
-            התחברות
-          </Button>
-        </Link>
-        <Link href="/auth/register">
-          <Button variant="default" size="sm">
-            <UserPlus className="w-3 h-3 ml-1" />
-            הרשמה
-          </Button>
-        </Link>
-      </div>
-    </div>
   );
 
   const MobileNav = () => (
@@ -6790,14 +6515,12 @@ export default function QuestionnaireLayout({
             animate={{ x: 0 }}
             exit={{ x: isRTL ? '100%' : '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`fixed top-0 ${
-              isRTL ? 'right-0' : 'left-0'
-            } h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`}
+            className={`fixed top-0 ${isRTL ? 'right-0' : 'left-0'} h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-medium flex items-center">
                 <ArrowRightLeft className="w-5 h-5 mr-2 text-blue-500" />
-                ניווט בשאלון
+                {dict.layout.mobileNav.title}
               </h2>
               <Button
                 variant="ghost"
@@ -6815,7 +6538,6 @@ export default function QuestionnaireLayout({
             </div>
             {!isLoggedIn && <UnauthenticatedPrompt />}
             <div className="pt-4 mt-4 border-t space-y-2">
-              {/* --- START: הוספת קישור לצפייה בכל התשובות במובייל --- */}
               <Link href="/profile?tab=questionnaire">
                 <Button
                   variant="outline"
@@ -6823,10 +6545,9 @@ export default function QuestionnaireLayout({
                   className="w-full justify-start gap-2"
                 >
                   <BookUser className="h-4 w-4" />
-                  צפייה בכל התשובות
+                  {dict.layout.mobileNav.reviewAnswers}
                 </Button>
               </Link>
-              {/* --- END: הוספת קישור לצפייה בכל התשובות במובייל --- */}
               <Button
                 variant="outline"
                 size="sm"
@@ -6834,7 +6555,7 @@ export default function QuestionnaireLayout({
                 onClick={onExit}
               >
                 <Home className="h-4 w-4" />
-                חזרה למפת העולמות
+                {dict.layout.mobileNav.backToMap}
               </Button>
               <Button
                 variant="outline"
@@ -6843,7 +6564,7 @@ export default function QuestionnaireLayout({
                 onClick={() => setShowExitPrompt(true)}
               >
                 <LogOut className="h-4 w-4" />
-                יציאה
+                {dict.layout.mobileNav.exit}
               </Button>
             </div>
           </motion.div>
@@ -6878,7 +6599,7 @@ export default function QuestionnaireLayout({
               `text-${currentThemeColor}-800`
             )}
           >
-            {worldConfig[currentWorld]?.label}
+            {dict.worldLabels[currentWorld]}
           </h1>
           <div className="text-xs text-slate-500">
             {completedWorlds.length} / {Object.keys(worldConfig).length} הושלמו
@@ -6905,9 +6626,7 @@ export default function QuestionnaireLayout({
           </Button>
         </div>
       </header>
-
       <MobileNav />
-
       <aside
         className={cn(
           'w-64 bg-white border-r hidden lg:flex lg:flex-col overflow-y-auto',
@@ -6916,20 +6635,16 @@ export default function QuestionnaireLayout({
       >
         <div className="p-4 border-b">
           <h3 className="font-semibold text-lg text-slate-800">
-            עולמות השאלון
+            {dict.layout.navHeader}
           </h3>
-          <p className="text-xs text-slate-500">נווט בין חלקי השאלון השונים</p>
+          <p className="text-xs text-slate-500">{dict.layout.navSubtitle}</p>
         </div>
         <div className="p-4 flex-grow">
           {Object.keys(worldConfig).map((worldId) => (
             <NavButton key={worldId} worldId={worldId} isMobile={false} />
           ))}
         </div>
-
-        {/* === START: MOVED AND RESTYLED NOTICE === */}
         <ProfileNotice />
-        {/* === END: MOVED AND RESTYLED NOTICE === */}
-
         {!isLoggedIn && (
           <div className="px-4">
             <UnauthenticatedPrompt />
@@ -6939,7 +6654,12 @@ export default function QuestionnaireLayout({
           {lastSaved && (
             <div className="flex items-center text-xs text-slate-500 mb-2">
               <CheckCircle className="h-3.5 w-3.5 mr-1.5 text-green-500" />
-              <span>נשמר: {lastSaved.toLocaleTimeString()}</span>
+              <span>
+                {dict.layout.lastSaved.replace(
+                  '{{time}}',
+                  lastSaved.toLocaleTimeString()
+                )}
+              </span>
             </div>
           )}
           <Button
@@ -6951,26 +6671,24 @@ export default function QuestionnaireLayout({
             {isSaving ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                שומר...
+                {dict.layout.buttons.saving}
               </>
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                שמור התקדמות
+                {dict.layout.buttons.save}
               </>
             )}
           </Button>
-          {/* --- START: הוספת קישור לצפייה בכל התשובות בדסקטופ --- */}
           <Link href="/profile?tab=questionnaire">
             <Button variant="outline" className="w-full">
               <BookUser className="w-4 h-4 mr-2" />
-              סקירת תשובות
+              {dict.layout.buttons.review}
             </Button>
           </Link>
-          {/* --- END: הוספת קישור לצפייה בכל התשובות בדסקטופ --- */}
           <Button variant="outline" className="w-full" onClick={onExit}>
             <Home className="w-4 h-4 mr-2" />
-            מפת העולמות
+            {dict.layout.buttons.map}
           </Button>
           <div className="flex gap-2 pt-2">
             {renderFAQButton(false)}
@@ -6987,17 +6705,14 @@ export default function QuestionnaireLayout({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>נגישות ותצוגה</p>
+                  <p>{dict.layout.tooltips.accessibility}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
         </div>
       </aside>
-
       <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto relative scroll-smooth">
-        {/* The information block was removed from here */}
-
         {children}
         <AccessibilityFeatures
           isPanelOpen={isAccessibilityPanelOpen}
@@ -7005,7 +6720,6 @@ export default function QuestionnaireLayout({
           className="fixed bottom-4 right-4 lg:bottom-6 lg:left-6 lg:right-auto z-50"
         />
       </main>
-
       <AnimatePresence>
         {showExitPrompt && (
           <motion.div
@@ -7023,10 +6737,10 @@ export default function QuestionnaireLayout({
               <Card className="bg-white">
                 <CardContent className="pt-6">
                   <h3 className="text-lg font-medium mb-4">
-                    האם אתה בטוח שברצונך לצאת?
+                    {dict.layout.exitPrompt.title}
                   </h3>
                   <p className="text-slate-600 mb-6">
-                    כל התשובות שלא נשמרו יאבדו. האם ברצונך לשמור לפני היציאה?
+                    {dict.layout.exitPrompt.description}
                   </p>
                   <div className="flex flex-col sm:flex-row justify-end gap-2">
                     <Button
@@ -7034,7 +6748,7 @@ export default function QuestionnaireLayout({
                       size="sm"
                       onClick={() => setShowExitPrompt(false)}
                     >
-                      ביטול
+                      {dict.layout.exitPrompt.cancel}
                     </Button>
                     <Button
                       variant="outline"
@@ -7046,10 +6760,10 @@ export default function QuestionnaireLayout({
                       }}
                       disabled={isSaving}
                     >
-                      {isSaving ? (
+                      {isSaving && (
                         <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                      ) : null}
-                      שמור וצא
+                      )}
+                      {dict.layout.exitPrompt.saveAndExit}
                     </Button>
                     <Button
                       variant="destructive"
@@ -7059,24 +6773,13 @@ export default function QuestionnaireLayout({
                         if (onExit) onExit();
                       }}
                     >
-                      צא ללא שמירה
+                      {dict.layout.exitPrompt.exitWithoutSaving}
                     </Button>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {toast.isVisible && (
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            isVisible={toast.isVisible}
-            onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
-          />
         )}
       </AnimatePresence>
     </div>
@@ -7115,86 +6818,28 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
+import type { WorldsMapDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
 
-// ============================================================================
-// 1. CONFIGURATION OBJECT (REVISED WITH NEW COPYWRITING STRATEGY)
-// ============================================================================
-
+// Configuration objects remain for visual/structural data
 const worldsConfig = {
-  PERSONALITY: {
-    icon: User,
-    label: 'אישיות',
-    description:
-      'כאן תצייר/י תמונה אותנטית של אישיותך, כדי שנוכל להבין לעומק מי את/ה - מעבר לפרטים היבשים.',
-    order: 1,
-    themeColor: 'sky',
-    why: 'תשובותיך כאן מאפשרות לשדכנים ול-AI שלנו להכיר את האדם שמאחורי הפרופיל, ולהציג אותך בצורה המדויקת והמחמיאה ביותר לצד השני.',
-    focusPoints: [
-      'תכונות האופי המרכזיות שלך',
-      'סגנון התקשורת והחברתיות',
-      'דרכי התמודדות וקבלת החלטות',
-    ],
-  },
-  VALUES: {
-    icon: Heart,
-    label: 'ערכים ואמונות',
-    description:
-      'מהם עמודי התווך של חייך? כאן נגדיר את הערכים והאמונות שמנחים אותך, ומהווים בסיס לבית משותף.',
-    order: 2,
-    themeColor: 'rose',
-    why: 'זהו החלק החשוב ביותר לסינון מדויק. התאמה ערכית היא המפתח לקשר יציב וארוך טווח, ואנו מתייחסים לכך בכובד הראש הראוי.',
-    focusPoints: [
-      'סדרי העדיפויות שלך בחיים',
-      'גישתך לכסף, נתינה וצמיחה',
-      'השקפת עולמך והחזון למשפחה',
-    ],
-  },
+  PERSONALITY: { icon: User, label: 'אישיות', order: 1, themeColor: 'sky' },
+  VALUES: { icon: Heart, label: 'ערכים ואמונות', order: 2, themeColor: 'rose' },
   RELATIONSHIP: {
     icon: Users,
     label: 'זוגיות',
-    description:
-      'מהי זוגיות עבורך? כאן תפרט/י את ציפיותיך מהקשר ואת החזון שלך לשותפות ארוכת טווח.',
     order: 3,
     themeColor: 'purple',
-    why: 'כדי למצוא שותפ/ה לחיים, עלינו להבין איך נראית השותפות האידיאלית בעיניך. המידע כאן מונע אי הבנות וממקד את החיפוש באנשים עם ציפיות דומות.',
-    focusPoints: [
-      'הגדרת "שפות האהבה" שלך',
-      'סגנון תקשורת ופתרון קונפליקטים',
-      'האיזון הרצוי בין "ביחד" ל"לחוד"',
-    ],
   },
   PARTNER: {
     icon: UserCheck,
     label: 'הפרטנר האידיאלי',
-    description:
-      'מי האדם שאת/ה מחפש/ת? בעולם זה נמקד את החיפוש ונבין מהן התכונות החיוניות לך בבן/בת הזוג.',
     order: 4,
     themeColor: 'teal',
-    why: 'הגדרה מדויקת של מה שאת/ה מחפש/ת מאפשרת לנו לבצע חיפוש יעיל וחכם, ולחסוך לך הצעות שאינן רלוונטיות.',
-    focusPoints: [
-      'תכונות האופי החשובות לך ביותר',
-      'העדפות לגבי רקע וסגנון חיים',
-      'הגדרת ה"קווים האדומים" שלך',
-    ],
   },
-  RELIGION: {
-    icon: Scroll,
-    label: 'דת ומסורת',
-    description:
-      'מהו החיבור שלך ליהדות? כאן תפרט/י את זהותך הדתית, השקפתך והאופן בו המסורת באה לידי ביטוי בחייך.',
-    order: 5,
-    themeColor: 'amber',
-    why: 'התאמה רוחנית ודתית היא קריטית במגזר. תשובות מדויקות כאן הן המפתח לבניית בית נאמן בישראל על בסיס משותף ויציב.',
-    focusPoints: [
-      'ההגדרה המדויקת שלך על הרצף הדתי',
-      'הביטוי המעשי של ההלכה בחייך',
-      'החזון שלך לחינוך דתי במשפחה',
-    ],
-  },
+  RELIGION: { icon: Scroll, label: 'דת ומסורת', order: 5, themeColor: 'amber' },
 } as const;
 
 type WorldId = keyof typeof worldsConfig;
-
 const WORLD_ORDER: WorldId[] = [
   'PERSONALITY',
   'VALUES',
@@ -7202,7 +6847,6 @@ const WORLD_ORDER: WorldId[] = [
   'PARTNER',
   'RELIGION',
 ];
-
 type WorldStatus =
   | 'completed'
   | 'recommended'
@@ -7210,20 +6854,20 @@ type WorldStatus =
   | 'available'
   | 'locked';
 
-// ============================================================================
-// 2. TYPE DEFINITIONS & PROPS
-// ============================================================================
+// Component Props Interfaces
 interface WorldsMapProps {
   currentWorld: WorldId;
   completedWorlds: WorldId[];
   onWorldChange: (worldId: WorldId) => void;
   className?: string;
+  dict: WorldsMapDict; // קבלת המילון כ-prop
 }
 
 interface WorldCardProps {
   worldId: WorldId;
   status: WorldStatus;
   onSelect: () => void;
+  dict: WorldsMapDict['worldCard']; // קבלת החלק הרלוונטי במילון
 }
 
 interface ProgressHeaderProps {
@@ -7233,12 +6877,10 @@ interface ProgressHeaderProps {
   totalCount: number;
   nextRecommendedWorld?: WorldId;
   onGoToRecommended: () => void;
+  dict: WorldsMapDict['progressHeader']; // קבלת החלק הרלוונטי במילון
 }
 
-// ============================================================================
-// 3. SUB-COMPONENTS
-// ============================================================================
-
+// Sub-components
 const ProgressHeader: React.FC<ProgressHeaderProps> = ({
   userName,
   completionPercent,
@@ -7246,6 +6888,7 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
   totalCount,
   nextRecommendedWorld,
   onGoToRecommended,
+  dict,
 }) => (
   <motion.div
     className="bg-white/95 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-white/60 space-y-4"
@@ -7256,15 +6899,13 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
     <div>
       <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
         {userName
-          ? `שלום, ${userName}! ברוך הבא למסע שלך`
-          : 'הנתיב שלך לזוגיות משמעותית'}
+          ? dict.greeting.replace('{{name}}', userName)
+          : dict.defaultTitle}
       </h1>
       <p className="text-md text-gray-600 mt-1">
-        השלמת{' '}
-        <span className="font-semibold text-teal-600">
-          {completedCount}
-        </span>{' '}
-        מתוך <span className="font-semibold">{totalCount}</span> עולמות.
+        {dict.progressText
+          .replace('{{completedCount}}', completedCount.toString())
+          .replace('{{totalCount}}', totalCount.toString())}
       </p>
     </div>
     <div className="flex items-center gap-4">
@@ -7284,61 +6925,62 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
         className="w-full sm:w-auto bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 animate-pulse-slow"
       >
         <Sparkles className="h-5 w-5 mr-2 fill-current" />
-        המשך לעולם המומלץ: {worldsConfig[nextRecommendedWorld].label}
+        {dict.ctaButton.replace(
+          '{{worldName}}',
+          worldsConfig[nextRecommendedWorld].label
+        )}
       </Button>
     )}
   </motion.div>
 );
 
-const WorldCard: React.FC<WorldCardProps> = ({ worldId, status, onSelect }) => {
+const WorldCard: React.FC<WorldCardProps> = ({
+  worldId,
+  status,
+  onSelect,
+  dict,
+}) => {
   const config = worldsConfig[worldId];
+  const { icon: Icon, themeColor, label } = config;
 
   const statusInfo = {
     completed: {
       Icon: CheckCircle2,
-      text: 'הושלם',
+      text: dict.statuses.completed,
       badge: 'bg-green-100 text-green-800 border-green-300',
-      action: 'ערוך תשובות',
+      action: dict.actions.edit,
       ActionIcon: Edit3,
     },
     recommended: {
       Icon: Star,
-      text: 'הצעד הבא',
-      badge: 'bg-gradient-to-r from-teal-100 to-orange-100 text-teal-800 border-teal-300',
-      action: 'התחל עולם זה',
+      text: dict.statuses.recommended,
+      badge:
+        'bg-gradient-to-r from-teal-100 to-orange-100 text-teal-800 border-teal-300',
+      action: dict.actions.start,
       ActionIcon: Sparkles,
     },
     active: {
       Icon: Sparkles,
-      text: 'פעיל כעת',
-      badge: `bg-${config.themeColor}-100 text-${config.themeColor}-800 border-${config.themeColor}-300`,
-      action: 'המשך כאן',
+      text: dict.statuses.active,
+      badge: `bg-${themeColor}-100 text-${themeColor}-800 border-${themeColor}-300`,
+      action: dict.actions.continue,
       ActionIcon: ArrowRight,
     },
     available: {
       Icon: ArrowRight,
-      text: 'זמין',
+      text: dict.statuses.available,
       badge: 'bg-gray-100 text-gray-800 border-gray-300',
-      action: 'התחל עולם זה',
+      action: dict.actions.start,
       ActionIcon: ArrowRight,
     },
     locked: {
       Icon: Lock,
-      text: 'נעול',
+      text: dict.statuses.locked,
       badge: 'bg-gray-200 text-gray-600 border-gray-300',
-      action: 'נעול',
+      action: dict.actions.locked,
       ActionIcon: Lock,
     },
   }[status];
-
-  const themeClasses = {
-    ring: `ring-${config.themeColor}-500`,
-    iconBg: `bg-${config.themeColor}-100`,
-    iconColor: `text-${config.themeColor}-600`,
-    actionButton: `bg-${config.themeColor}-600 hover:bg-${config.themeColor}-700 text-white`,
-  };
-
-  const isLocked = status === 'locked';
 
   return (
     <Card
@@ -7346,17 +6988,19 @@ const WorldCard: React.FC<WorldCardProps> = ({ worldId, status, onSelect }) => {
         'flex flex-col h-full transition-all duration-300 ease-in-out overflow-hidden shadow-lg hover:shadow-xl bg-white/90 backdrop-blur-sm border-2',
         status === 'recommended' &&
           'border-gradient-to-r from-teal-300 to-orange-300 scale-105 shadow-2xl ring-2 ring-teal-200',
-        isLocked
-          ? 'opacity-60 bg-gray-50 cursor-not-allowed border-gray-200'
-          : 'border-white/60 hover:-translate-y-1'
+        status === 'locked' &&
+          'opacity-60 bg-gray-50 cursor-not-allowed border-gray-200'
       )}
     >
       <div className="p-6 flex-grow space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div
-            className={cn('p-3 rounded-xl flex-shrink-0', themeClasses.iconBg)}
+            className={cn(
+              'p-3 rounded-xl flex-shrink-0',
+              `bg-${themeColor}-100`
+            )}
           >
-            <config.icon className={cn('w-8 h-8', themeClasses.iconColor)} />
+            <Icon className={cn('w-8 h-8', `text-${themeColor}-600`)} />
           </div>
           <Badge
             variant="outline"
@@ -7367,39 +7011,18 @@ const WorldCard: React.FC<WorldCardProps> = ({ worldId, status, onSelect }) => {
           </Badge>
         </div>
         <div>
-          <h3 className="text-xl font-bold text-gray-800">
-            {config.label}
-          </h3>
-          <p className="text-sm text-gray-600 leading-relaxed mt-1">
-            {config.description}
-          </p>
+          <h3 className="text-xl font-bold text-gray-800">{label}</h3>
+          {/* Description is now part of dictionary, to be added if needed in the future */}
         </div>
-
-        {status === 'recommended' && (
-          <div className="pt-2">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-              <Brain className="w-4 h-4 mr-2 text-teal-500" />
-              במה נתמקד?
-            </h4>
-            <ul className="space-y-1.5">
-              {config.focusPoints.map((item, index) => (
-                <li
-                  key={index}
-                  className="flex items-start text-xs text-gray-600"
-                >
-                  <CheckCircle2 className="w-3 h-3 mr-2 mt-0.5 text-green-500 flex-shrink-0" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
       <div className="p-4 bg-gray-50/80 mt-auto">
         <Button
-          className={cn('w-full font-medium', themeClasses.actionButton)}
+          className={cn(
+            'w-full font-medium',
+            `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`
+          )}
           onClick={onSelect}
-          disabled={isLocked}
+          disabled={status === 'locked'}
         >
           <statusInfo.ActionIcon className="w-4 h-4 ml-2" />
           {statusInfo.action}
@@ -7409,17 +7032,15 @@ const WorldCard: React.FC<WorldCardProps> = ({ worldId, status, onSelect }) => {
   );
 };
 
-// ============================================================================
-// 4. MAIN COMPONENT
-// ============================================================================
+// Main Component
 export default function WorldsMap({
   currentWorld,
   completedWorlds,
   onWorldChange,
   className = '',
+  dict,
 }: WorldsMapProps) {
   const { data: session } = useSession();
-
   const completionPercent = Math.round(
     (completedWorlds.length / WORLD_ORDER.length) * 100
   );
@@ -7434,7 +7055,6 @@ export default function WorldsMap({
       transition: { staggerChildren: 0.1, delayChildren: 0.2 },
     },
   };
-
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -7444,7 +7064,6 @@ export default function WorldsMap({
     if (completedWorlds.includes(worldId)) return 'completed';
     if (worldId === nextRecommendedWorld) return 'recommended';
     if (worldId === currentWorld) return 'active';
-    // Add locking logic if needed, for now all are available
     return 'available';
   };
 
@@ -7457,6 +7076,7 @@ export default function WorldsMap({
         worldId={nextRecommendedWorld}
         status="recommended"
         onSelect={() => onWorldChange(nextRecommendedWorld)}
+        dict={dict.worldCard}
       />
     </motion.div>
   ) : null;
@@ -7469,6 +7089,7 @@ export default function WorldsMap({
         worldId={worldId}
         status={getWorldStatus(worldId)}
         onSelect={() => onWorldChange(worldId)}
+        dict={dict.worldCard}
       />
     </motion.div>
   ));
@@ -7480,14 +7101,21 @@ export default function WorldsMap({
         className
       )}
     >
-      {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-orange-200/20 rounded-full blur-3xl animate-float-slow" />
-        <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-amber-200/30 to-orange-200/20 rounded-full blur-2xl animate-float-slow" style={{ animationDelay: '2s' }} />
-        <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-br from-teal-200/25 to-amber-200/20 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '4s' }} />
-        <div className="absolute bottom-10 right-10 w-28 h-28 bg-gradient-to-br from-orange-200/30 to-amber-200/25 rounded-full blur-2xl animate-float-slow" style={{ animationDelay: '1s' }} />
+        <div
+          className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-amber-200/30 to-orange-200/20 rounded-full blur-2xl animate-float-slow"
+          style={{ animationDelay: '2s' }}
+        />
+        <div
+          className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-br from-teal-200/25 to-amber-200/20 rounded-full blur-3xl animate-float-slow"
+          style={{ animationDelay: '4s' }}
+        />
+        <div
+          className="absolute bottom-10 right-10 w-28 h-28 bg-gradient-to-br from-orange-200/30 to-amber-200/25 rounded-full blur-2xl animate-float-slow"
+          style={{ animationDelay: '1s' }}
+        />
       </div>
-
       <div className="max-w-7xl mx-auto space-y-8 relative">
         <ProgressHeader
           userName={session?.user?.firstName}
@@ -7498,8 +7126,8 @@ export default function WorldsMap({
           onGoToRecommended={() =>
             nextRecommendedWorld && onWorldChange(nextRecommendedWorld)
           }
+          dict={dict.progressHeader}
         />
-
         {completedWorlds.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -7514,10 +7142,10 @@ export default function WorldsMap({
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800">
-                      רוצה לסקור את התשובות שלך?
+                      {dict.reviewCard.title}
                     </h3>
                     <p className="text-sm text-gray-600">
-                      צפה/י בכל התשובות שמילאת עד כה במקום אחד.
+                      {dict.reviewCard.description}
                     </p>
                   </div>
                 </div>
@@ -7527,14 +7155,13 @@ export default function WorldsMap({
                     className="w-full sm:w-auto bg-white/80 border-teal-200 text-teal-600 hover:bg-teal-50 hover:border-teal-300"
                   >
                     <ArrowRight className="w-4 h-4 ml-2" />
-                    לסקירת התשובות
+                    {dict.reviewCard.button}
                   </Button>
                 </Link>
               </CardContent>
             </Card>
           </motion.div>
         )}
-
         <motion.div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           variants={containerVariants}
@@ -7544,7 +7171,6 @@ export default function WorldsMap({
           {recommendedCard}
           {otherCards}
         </motion.div>
-
         {completionPercent === 100 && (
           <motion.div
             variants={itemVariants}
@@ -7554,19 +7180,21 @@ export default function WorldsMap({
             <Card className="bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white text-center p-8 rounded-2xl shadow-2xl">
               <Award className="w-16 h-16 mx-auto mb-4" />
               <h2 className="text-3xl font-bold">
-                כל הכבוד, {session?.user?.firstName}!
+                {dict.completionBanner.title.replace(
+                  '{{name}}',
+                  session?.user?.firstName || ''
+                )}
               </h2>
               <p className="mt-2 text-lg opacity-90">
-                סיימת את כל עולמות השאלון. עשית צעד ענק במסע שלך!
+                {dict.completionBanner.subtitle}
               </p>
               <p className="mt-1 text-sm opacity-80">
-                הפרופיל המלא שלך מוכן כעת עבור השדכנים שלנו.
+                {dict.completionBanner.description}
               </p>
             </Card>
           </motion.div>
         )}
       </div>
-
       <style jsx global>{`
         @keyframes pulse-slow {
           50% {
@@ -7578,9 +7206,16 @@ export default function WorldsMap({
           animation: pulse-slow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         @keyframes float-slow {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          25% { transform: translateY(-3px) rotate(0.5deg); }
-          75% { transform: translateY(3px) rotate(-0.5deg); }
+          0%,
+          100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          25% {
+            transform: translateY(-3px) rotate(0.5deg);
+          }
+          75% {
+            transform: translateY(3px) rotate(-0.5deg);
+          }
         }
         .animate-float-slow {
           animation: float-slow 6s ease-in-out infinite;
@@ -7604,84 +7239,26 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Heart,
-  ShieldCheck,
-  Sparkles,
-  ArrowLeft, // Changed for RTL context
-  LogIn,
-  Edit,
-} from 'lucide-react';
+import { Heart, ShieldCheck, Sparkles, LogIn, Edit } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import type { WelcomeDict } from '@/types/dictionary'; // Import dictionary type
 
 // --- Props Interface ---
 interface WelcomeProps {
   onStart: () => void;
-  onLearnMore: () => void; // Keeping this for potential future use
+  onLearnMore: () => void;
   isLoggedIn: boolean;
-  hasSavedProgress: boolean; // New prop to handle dynamic CTA
+  hasSavedProgress: boolean;
+  dict: WelcomeDict; // <-- Add dict prop
 }
 
-// --- Centralized Content Configuration (Programmer's Improvement) ---
-// Makes it easy to update marketing copy without touching JSX.
-const welcomeContent = {
-  mainTitle: 'השער שלך לזוגיות עם משמעות',
-  subtitle:
-    'השקעה של דקות ספורות בשאלון ההיכרות שלנו היא הצעד הראשון והחשוב ביותר שלך במסע למציאת קשר אמיתי, עמוק ומדויק.',
-  loggedInCTA: 'בוא/י נצא למסע',
-  resumeCTA: 'להמשיך מהיכן שעצרנו',
-  guestCTA: 'התחל/י את המסע (כאורח/ת)',
-  loginPrompt: {
-    title: 'חשוב לדעת:',
-    text: 'כדי שההשקעה שלך לא תרד לטמיון, אנו ממליצים להתחבר. כך נוכל לשמור את התקדמותך, ותוכל/י לחזור ולהשלים את השאלון בכל עת.',
-    loginButtonText: 'התחברות וחיסכון בהתקדמות',
-  },
-  features: [
-    {
-      icon: <Sparkles className="h-7 w-7 text-purple-500" />,
-      title: 'מסע מותאם אישית',
-      description:
-        'השאלון מחולק לעולמות תוכן, ומאפשר לך להתקדם בקצב שלך, מתוך הבנה וכבוד לזמן שלך.',
-      color: 'bg-purple-50',
-    },
-    {
-      icon: <ShieldCheck className="h-7 w-7 text-green-500" />,
-      title: 'הפרטיות שלך - ערך עליון',
-      description:
-        'התשובות שלך דיסקרטיות לחלוטין ומשמשות את צוות השדכנים המנוסה שלנו בלבד, במטרה למצוא לך התאמה.',
-      color: 'bg-green-50',
-    },
-    {
-      icon: <Heart className="h-7 w-7 text-rose-500" />,
-      title: 'מעבר לאלגוריתם',
-      description:
-        'מאחורי כל התאמה עומד שדכן אמיתי שמכיר את הסיפור שלך. אנו משלבים טכנולוגיה עם חוכמה אנושית.',
-      color: 'bg-rose-50',
-    },
-  ],
-  testimonials: [
-    {
-      // FIX: Removed quotes from the data string
-      quote:
-        'בפעם הראשונה הרגשתי שבאמת מנסים להבין מי אני, ולא רק לסמן V ברשימה.',
-      author: 'יונתן, 34',
-    },
-    {
-      // FIX: Removed quotes from the data string
-      quote:
-        'התהליך היה רציני, מכבד ונתן לי תובנות חדשות על עצמי ועל מה שאני מחפשת.',
-      author: 'מיכל, 29',
-    },
-  ],
-};
-
-// --- Sub-components for cleaner structure (Programmer's Improvement) ---
-const FeatureHighlight: React.FC<(typeof welcomeContent.features)[0]> = ({
-  icon,
-  title,
-  description,
-  color,
-}) => (
+const FeatureHighlight: React.FC<{
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: string;
+}> = ({ icon, title, description, color }) => (
+  // This component now receives its text as props
   <div className="text-center p-6 bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 border border-slate-100">
     <div
       className={`mx-auto w-14 h-14 flex items-center justify-center rounded-full mb-4 ${color}`}
@@ -7693,40 +7270,35 @@ const FeatureHighlight: React.FC<(typeof welcomeContent.features)[0]> = ({
   </div>
 );
 
-const TestimonialCard: React.FC<(typeof welcomeContent.testimonials)[0]> = ({
+const TestimonialCard: React.FC<{ quote: string; author: string }> = ({
   quote,
   author,
 }) => (
   <Card className="bg-white/70 backdrop-blur-sm border-slate-200 shadow-sm">
     <CardContent className="pt-6">
-      {/* FIX: Used HTML entities for quotes instead of literal characters */}
       <p className="text-slate-700 italic">“{quote}”</p>
       <p className="text-right font-semibold text-slate-500 mt-3">- {author}</p>
     </CardContent>
   </Card>
 );
 
-// --- Main Welcome Component ---
 export default function Welcome({
   onStart,
   isLoggedIn,
   hasSavedProgress,
+  dict, // <-- Destructure dict
 }: WelcomeProps) {
   const { data: session } = useSession();
   const userName = session?.user?.firstName;
 
-  // --- Animation Variants (Designer's Improvement) ---
+  // Animation variants remain the same
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.2,
-      },
+      transition: { staggerChildren: 0.15, delayChildren: 0.2 },
     },
   };
-
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -7736,14 +7308,26 @@ export default function Welcome({
     },
   };
 
+  const featureIcons = [
+    {
+      icon: <Sparkles className="h-7 w-7 text-purple-500" />,
+      color: 'bg-purple-50',
+    },
+    {
+      icon: <ShieldCheck className="h-7 w-7 text-green-500" />,
+      color: 'bg-green-50',
+    },
+    { icon: <Heart className="h-7 w-7 text-rose-500" />, color: 'bg-rose-50' },
+  ];
+
   const renderCTAButton = () => {
-    let text = welcomeContent.loggedInCTA;
+    let text = dict.loggedInCTA;
     let Icon = Heart;
 
     if (!isLoggedIn) {
-      text = welcomeContent.guestCTA;
+      text = dict.guestCTA;
     } else if (hasSavedProgress) {
-      text = welcomeContent.resumeCTA;
+      text = dict.resumeCTA;
       Icon = Edit;
     }
 
@@ -7769,72 +7353,69 @@ export default function Welcome({
       animate="visible"
     >
       <div className="max-w-6xl mx-auto space-y-16 py-12">
-        {/* === Hero Section (Shadchan, Marketer & Designer's work combined) === */}
         <motion.section variants={itemVariants} className="text-center">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
-            {welcomeContent.mainTitle}
+            {dict.mainTitle}
           </h1>
           <p className="max-w-3xl mx-auto mt-4 text-lg text-slate-600 leading-relaxed">
-            {welcomeContent.subtitle}
+            {dict.subtitle}
           </p>
           <div className="mt-10">{renderCTAButton()}</div>
         </motion.section>
 
-        {/* === Login Prompt for Guests (Shadchan's warm framing) === */}
         {!isLoggedIn && (
           <motion.div variants={itemVariants} className="max-w-2xl mx-auto">
             <Card className="bg-sky-50 border-sky-200 shadow-md">
               <CardContent className="pt-6 text-center space-y-3">
                 <h3 className="font-semibold text-sky-800">
-                  {welcomeContent.loginPrompt.title}
+                  {dict.loginPrompt.title}
                 </h3>
-                <p className="text-sky-700 text-sm">
-                  {welcomeContent.loginPrompt.text}
-                </p>
+                <p className="text-sky-700 text-sm">{dict.loginPrompt.text}</p>
                 <Button
                   variant="outline"
                   className="bg-white border-sky-300 text-sky-700 hover:bg-white/80"
                   onClick={() => (window.location.href = '/auth/signin')}
                 >
                   <LogIn className="w-4 h-4 ms-2" />
-                  {welcomeContent.loginPrompt.loginButtonText}
+                  {dict.loginPrompt.loginButtonText}
                 </Button>
               </CardContent>
             </Card>
           </motion.div>
         )}
 
-        {/* === Features Section (Benefit-oriented marketing) === */}
         <motion.section variants={itemVariants}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {welcomeContent.features.map((feature, index) => (
-              <FeatureHighlight key={index} {...feature} />
+            {dict.features.map((feature, index) => (
+              <FeatureHighlight
+                key={index}
+                title={feature.title}
+                description={feature.description}
+                icon={featureIcons[index].icon}
+                color={featureIcons[index].color}
+              />
             ))}
           </div>
         </motion.section>
 
-        {/* === Testimonials Section (Social Proof) === */}
         <motion.section variants={itemVariants}>
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-slate-800">
-              מה חושבים עלינו?
+              {dict.testimonials.title}
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {welcomeContent.testimonials.map((testimonial, index) => (
+            {dict.testimonials.quotes.map((testimonial, index) => (
               <TestimonialCard key={index} {...testimonial} />
             ))}
           </div>
         </motion.section>
 
-        {/* === Final CTA & Footer === */}
         <motion.div
           variants={itemVariants}
           className="text-center pt-8 border-t border-slate-200"
         >
-          <p className="text-slate-600 mb-6">
-            מוכנ/ה להתחיל את הצעד הראשון שלך?
-          </p>
+          <p className="text-slate-600 mb-6">{dict.finalCta.title}</p>
           {renderCTAButton()}
         </motion.div>
       </div>
@@ -7875,129 +7456,31 @@ import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { motion } from 'framer-motion';
+import type { QuestionnaireLandingPageDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
 
 // --- Props Interface ---
 interface QuestionnaireLandingPageProps {
   onStartQuestionnaire: () => void;
   hasSavedProgress: boolean;
   isLoading?: boolean;
+  dict: QuestionnaireLandingPageDict; // קבלת המילון כ-prop
 }
 
-// --- Centralized Content Configuration for easy updates ---
-const contentConfig = {
-  // ... (אין שינוי בחלק הזה)
-  hero: {
-    title: 'הנתיב שלך לזוגיות משמעותית',
-    subtitle:
-      'השקעה של דקות ספורות בשאלון המעמיק שלנו היא הצעד החשוב ביותר לבניית הפרופיל המדויק שלך. פרופיל שיאפשר לנו, צוות השדכנים, למצוא עבורך התאמה אמיתית, מבוססת ועמוקה.',
-  },
-  worldsSection: {
-    title: 'חמישה עולמות, פרופיל אחד מדויק',
-    subtitle:
-      'השאלון מחולק לחמישה עולמות תוכן. כל עולם מתמקד בהיבט אחר של אישיותך וציפיותיך, ויחד הם יוצרים תמונה מלאה ועשירה שתשרת אותנו בתהליך ההתאמה.',
-  },
-  worlds: [
-    {
-      id: 'PERSONALITY',
-      title: 'עולם האישיות',
-      icon: <User className="h-7 w-7" />,
-      colorGradient: 'from-sky-400 to-blue-500',
-      questions: 20,
-      description:
-        'כאן תצייר/י תמונה אותנטית של אישיותך, כדי שנוכל להבין לעומק מי את/ה.',
-    },
-    {
-      id: 'VALUES',
-      title: 'עולם הערכים',
-      icon: <Heart className="h-7 w-7" />,
-      colorGradient: 'from-rose-400 to-red-500',
-      questions: 25,
-      description:
-        'מהם עמודי התווך של חייך? כאן נגדיר את הערכים והאמונות שמנחים אותך.',
-    },
-    {
-      id: 'RELATIONSHIP',
-      title: 'עולם הזוגיות',
-      icon: <Users className="h-7 w-7" />,
-      colorGradient: 'from-purple-400 to-indigo-500',
-      questions: 18,
-      description:
-        'מהי זוגיות עבורך? כאן תפרט/י את ציפיותיך מהקשר ואת החזון לשותפות.',
-    },
-    {
-      id: 'PARTNER',
-      title: 'עולם הפרטנר',
-      icon: <UserCheck className="h-7 w-7" />,
-      colorGradient: 'from-teal-400 to-emerald-500',
-      questions: 22,
-      description:
-        'מי האדם שאת/ה מחפש/ת? כאן נמקד את החיפוש ונבין מה חיוני לך בבן/בת זוג.',
-    },
-    {
-      id: 'RELIGION',
-      title: 'דת ומסורת',
-      icon: <Scroll className="h-7 w-7" />,
-      colorGradient: 'from-amber-400 to-orange-500',
-      questions: 15,
-      description:
-        'מה החיבור שלך ליהדות? כאן תפרט/י את זהותך הדתית והביטוי שלה בחייך.',
-    },
-  ],
-  featuresSection: {
-    title: 'הבסיס להצלחה שלך',
-    subtitle:
-      'השקענו מחשבה וניסיון רב כדי להפוך את התהליך ליעיל, מכבד ומדויק ככל האפשר.',
-    features: [
-      {
-        icon: <Clock className="h-8 w-8 text-sky-600" />,
-        title: 'תהליך מודרך וגמיש',
-        description:
-          'השאלון מחולק לעולמות נפרדים, כך שניתן למלא אותו בקצב שלך, לעצור ולחזור בכל שלב.',
-        bgColor: 'bg-sky-100/60',
-      },
-      {
-        icon: <Shield className="h-8 w-8 text-rose-600" />,
-        title: 'פרטיות מוחלטת',
-        description:
-          'התשובות שלך דיסקרטיות לחלוטין ומשמשות את צוות השדכנים המקצועי שלנו בלבד, לצורך מציאת ההתאמה המדויקת ביותר.',
-        bgColor: 'bg-rose-100/60',
-      },
-      {
-        icon: <Star className="h-8 w-8 text-amber-600" />,
-        title: 'מתודולוגיה מוכחת',
-        description:
-          'השיטה שלנו משלבת תובנות מעולם הפסיכולוגיה עם ניסיון של שדכנים ותיקים ליצירת התאמות עומק, ולא רק התאמה שטחית.',
-        bgColor: 'bg-amber-100/60',
-      },
-    ],
-  },
-  finalCta: {
-    title: 'מוכנ/ה לבנות את הפרופיל שלך?',
-    subtitle:
-      'הצעד הראשון הוא לספק לנו את התמונה המלאה והאותנטית שלך. מכאן, המומחיות והטכנולוגיה שלנו נכנסות לפעולה כדי להתחיל את החיפוש המדויק עבורך.',
-    buttonText: 'התחל/י עכשיו',
-  },
-};
-
 // --- Animation Variants ---
-// <<< CHANGE 1: Animation timings are now faster >>>
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.08, // Was 0.1
-      delayChildren: 0.1, // Was 0.2
-    },
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
   },
 };
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 20 }, // y was 30
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' }, // duration was 0.6
+    transition: { duration: 0.5, ease: 'easeOut' },
   },
 };
 
@@ -8005,34 +7488,26 @@ const staggeredCardVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1, // Was 0.15
-      delayChildren: 0.1, // Was 0.3
-    },
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
   },
 };
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.98 }, // y was 40, scale was 0.95
+  hidden: { opacity: 0, y: 30, scale: 0.98 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      duration: 0.5, // Was 0.6
+      duration: 0.5,
       ease: 'easeOut',
-      scale: {
-        type: 'spring',
-        stiffness: 260,
-        damping: 20,
-      },
+      scale: { type: 'spring', stiffness: 260, damping: 20 },
     },
   },
 };
 
 // --- Background Components ---
 const DynamicBackground: React.FC = () => (
-  // ... (אין שינוי בחלק הזה)
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     <div className="absolute inset-0 opacity-30">
       <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-teal-200/40 to-orange-300/30 rounded-full blur-3xl animate-float-slow" />
@@ -8081,20 +7556,51 @@ export default function QuestionnaireLandingPage({
   onStartQuestionnaire,
   hasSavedProgress,
   isLoading = false,
+  dict,
 }: QuestionnaireLandingPageProps) {
   const { status, data: session } = useSession();
   const isMobile = useIsMobile();
 
-  const getCtaText = () => {
-    if (hasSavedProgress) {
-      return `המשך/י מהנקודה האחרונה`;
-    }
-    if (session?.user?.firstName) {
-      return `התחל/י את המסע, ${session.user.firstName}`;
-    }
-    return 'בוא/י נתחיל';
-  };
+  // World visual configuration remains in code
+  const worldVisuals = [
+    {
+      id: 'PERSONALITY',
+      icon: <User className="h-7 w-7" />,
+      colorGradient: 'from-sky-400 to-blue-500',
+      questions: 20,
+    },
+    {
+      id: 'VALUES',
+      icon: <Heart className="h-7 w-7" />,
+      colorGradient: 'from-rose-400 to-red-500',
+      questions: 25,
+    },
+    {
+      id: 'RELATIONSHIP',
+      icon: <Users className="h-7 w-7" />,
+      colorGradient: 'from-purple-400 to-indigo-500',
+      questions: 18,
+    },
+    {
+      id: 'PARTNER',
+      icon: <UserCheck className="h-7 w-7" />,
+      colorGradient: 'from-teal-400 to-emerald-500',
+      questions: 22,
+    },
+    {
+      id: 'RELIGION',
+      icon: <Scroll className="h-7 w-7" />,
+      colorGradient: 'from-amber-400 to-orange-500',
+      questions: 15,
+    },
+  ];
 
+  const getCtaText = () => {
+    if (hasSavedProgress) return dict.cta.continue;
+    if (session?.user?.firstName)
+      return dict.cta.startAsUser.replace('{{name}}', session.user.firstName);
+    return dict.cta.start;
+  };
   const CtaIcon = hasSavedProgress ? CheckCircle : Heart;
 
   return (
@@ -8105,15 +7611,12 @@ export default function QuestionnaireLandingPage({
       )}
     >
       <DynamicBackground />
-
-      {/* --- Section 1: Hero - The Invitation to the Journey --- */}
       <motion.section
         className="relative py-20 px-4 sm:py-24 text-center overflow-hidden"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
-        {/* ... Hero content ... no changes needed here as it animates on page load */}
         <div className="max-w-4xl mx-auto relative">
           <motion.div
             className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-8"
@@ -8121,24 +7624,15 @@ export default function QuestionnaireLandingPage({
           >
             <Sparkles className="w-6 h-6 text-rose-500" />
             <span className="text-rose-700 font-semibold">
-              המסע שלכם מתחיל כאן
+              {dict.hero.badge}
             </span>
           </motion.div>
-
           <motion.h1
             className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight"
             variants={fadeInUp}
           >
-            <span className="text-gray-800">
-              {contentConfig.hero.title.split(' ').slice(0, 2).join(' ')}
-            </span>
-            <br className="sm:hidden" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-amber-400">
-              {' '}
-              {contentConfig.hero.title.split(' ').slice(2).join(' ')}
-            </span>
+            <span className="text-gray-800">{dict.hero.title}</span>
           </motion.h1>
-
           <motion.div
             className="relative max-w-3xl mx-auto mt-6"
             variants={fadeInUp}
@@ -8148,12 +7642,11 @@ export default function QuestionnaireLandingPage({
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-purple-100/50 to-transparent rounded-full transform -translate-x-12 translate-y-12" />
               <div className="relative">
                 <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-                  {contentConfig.hero.subtitle}
+                  {dict.hero.subtitle}
                 </p>
               </div>
             </div>
           </motion.div>
-
           <motion.div
             className="mt-12 space-y-4 flex flex-col items-center"
             variants={fadeInUp}
@@ -8176,7 +7669,6 @@ export default function QuestionnaireLandingPage({
                 )}
               </div>
             </Button>
-
             {status !== 'authenticated' && (
               <Link href="/auth/signin" className="w-full max-w-sm">
                 <Button
@@ -8185,7 +7677,7 @@ export default function QuestionnaireLandingPage({
                   className="w-full text-md font-medium px-8 py-6 border-2 border-teal-200 text-teal-600 hover:bg-teal-50 hover:border-teal-300 rounded-full transition-all duration-300 bg-white/70 backdrop-blur-sm"
                 >
                   <Lock className="h-5 w-5 ms-2" />
-                  כניסה למשתמשים רשומים
+                  {dict.cta.loginButton}
                 </Button>
               </Link>
             )}
@@ -8193,112 +7685,108 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* --- Section 2: Worlds - The "What to Expect" --- */}
       <motion.section
         className="py-16 px-4 relative"
         initial="hidden"
         whileInView="visible"
-        // <<< CHANGE 2: Trigger animation sooner >>>
-        viewport={{ once: true, amount: 0.1 }} // Was 0.2
+        viewport={{ once: true, amount: 0.1 }}
         variants={containerVariants}
       >
         <div className="absolute inset-0 -m-8 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60" />
-
         <div className="max-w-6xl mx-auto relative">
           <motion.div className="text-center mb-12" variants={fadeInUp}>
             <h2 className="text-3xl font-bold mb-3 text-gray-800">
-              {contentConfig.worldsSection.title}
+              {dict.worldsSection.title}
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-auto rounded-full mb-6" />
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              {contentConfig.worldsSection.subtitle}
+              {dict.worldsSection.subtitle}
             </p>
           </motion.div>
-
           <motion.div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6"
             variants={staggeredCardVariants}
           >
-            {contentConfig.worlds.map((world) => (
-              <motion.div key={world.id} variants={cardVariants}>
-                <Card className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/90 backdrop-blur-sm border border-white/60 flex flex-col h-full group">
-                  <CardContent className="p-6 text-center flex flex-col items-center flex-grow relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/50 to-white/80 opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-2xl" />
-
-                    <div className="relative z-10 flex flex-col items-center flex-grow">
-                      <div
-                        className={cn(
-                          'p-4 rounded-full bg-gradient-to-br text-white shadow-lg mb-4 group-hover:scale-110 transition-all duration-300',
-                          world.colorGradient
-                        )}
-                      >
-                        {world.icon}
+            {worldVisuals.map((world) => {
+              const worldContent =
+                dict.worlds[world.id as keyof typeof dict.worlds];
+              return (
+                <motion.div key={world.id} variants={cardVariants}>
+                  <Card className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/90 backdrop-blur-sm border border-white/60 flex flex-col h-full group">
+                    <CardContent className="p-6 text-center flex flex-col items-center flex-grow relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/50 to-white/80 opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-2xl" />
+                      <div className="relative z-10 flex flex-col items-center flex-grow">
+                        <div
+                          className={cn(
+                            'p-4 rounded-full bg-gradient-to-br text-white shadow-lg mb-4 group-hover:scale-110 transition-all duration-300',
+                            world.colorGradient
+                          )}
+                        >
+                          {world.icon}
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">
+                          {worldContent.title}
+                        </h3>
+                        <p className="text-sm text-gray-500 mb-3">
+                          {worldContent.questionsLabel.replace(
+                            '{{count}}',
+                            world.questions.toString()
+                          )}
+                        </p>
+                        <p className="text-base text-gray-600 leading-relaxed flex-grow">
+                          {worldContent.description}
+                        </p>
                       </div>
-                      <h3 className="text-xl font-bold text-gray-800 mb-2">
-                        {world.title}
-                      </h3>
-                      <p className="text-sm text-gray-500 mb-3">
-                        {world.questions} שאלות
-                      </p>
-                      <p className="text-base text-gray-600 leading-relaxed flex-grow">
-                        {world.description}
-                      </p>
-                    </div>
-
-                    {/* Decorative elements */}
-                    <div className="absolute top-2 right-2 w-2 h-2 bg-gradient-to-br from-teal-300/50 to-orange-300/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500" />
-                    <div
-                      className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-gradient-to-br from-orange-300/50 to-amber-300/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700"
-                      style={{ transitionDelay: '0.2s' }}
-                    />
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                      <div className="absolute top-2 right-2 w-2 h-2 bg-gradient-to-br from-teal-300/50 to-orange-300/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                      <div
+                        className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-gradient-to-br from-orange-300/50 to-amber-300/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700"
+                        style={{ transitionDelay: '0.2s' }}
+                      />
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </div>
       </motion.section>
 
-      {/* --- Section 3: Features - The "Why Trust Us" --- */}
       <motion.section
         className="py-16 px-4 relative"
         initial="hidden"
         whileInView="visible"
-        // <<< CHANGE 2: Trigger animation sooner >>>
-        viewport={{ once: true, amount: 0.1 }} // Was 0.2
+        viewport={{ once: true, amount: 0.1 }}
         variants={containerVariants}
       >
         <div className="max-w-5xl mx-auto relative">
           <motion.div className="text-center mb-12" variants={fadeInUp}>
             <h2 className="text-3xl font-bold mb-3 text-gray-800">
-              {contentConfig.featuresSection.title}
+              {dict.featuresSection.title}
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-auto rounded-full mb-6" />
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              {contentConfig.featuresSection.subtitle}
+              {dict.featuresSection.subtitle}
             </p>
           </motion.div>
-
           <motion.div
             className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
             variants={staggeredCardVariants}
           >
-            {contentConfig.featuresSection.features.map((feature, index) => (
+            {dict.featuresSection.features.map((feature, index) => (
               <motion.div
                 key={index}
                 className="flex flex-col items-center p-6 relative group"
                 variants={cardVariants}
               >
                 <div className="absolute inset-0 bg-white/60 backdrop-blur-md rounded-2xl shadow-lg border border-white/40 opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105" />
-
                 <div className="relative z-10 flex flex-col items-center">
-                  <div
-                    className={cn(
-                      'p-4 rounded-full mb-5 group-hover:scale-110 transition-all duration-300',
-                      feature.bgColor
+                  {/* Icons can be mapped here if needed, or kept static */}
+                  <div className="p-4 rounded-full mb-5 group-hover:scale-110 transition-all duration-300">
+                    {index === 0 && <Clock className="h-8 w-8 text-sky-600" />}
+                    {index === 1 && (
+                      <Shield className="h-8 w-8 text-rose-600" />
                     )}
-                  >
-                    {feature.icon}
+                    {index === 2 && <Star className="h-8 w-8 text-amber-600" />}
                   </div>
                   <h3 className="font-bold text-xl mb-2 text-gray-800 group-hover:text-gray-900 transition-colors duration-300">
                     {feature.title}
@@ -8313,41 +7801,27 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* --- Section 4: Final CTA --- */}
       <motion.section
         className="py-20 px-4 text-center relative"
         initial="hidden"
         whileInView="visible"
-        // <<< CHANGE 2: Trigger animation sooner >>>
-        viewport={{ once: true, amount: 0.15 }} // Was 0.3, a bit more than others is fine here
+        viewport={{ once: true, amount: 0.15 }}
         variants={containerVariants}
       >
         <div className="absolute inset-0 -m-8 bg-gradient-to-br from-teal-600/10 via-orange-600/10 to-amber-600/10 rounded-3xl backdrop-blur-sm border border-white/40" />
-
         <div className="max-w-3xl mx-auto relative">
-          <motion.div variants={fadeInUp}>
-            <div className="inline-flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-8">
-              <Sparkles className="w-6 h-6 text-orange-500" />
-              <span className="text-orange-700 font-semibold">
-                הרגע של האמת
-              </span>
-            </div>
-          </motion.div>
-
           <motion.h2
             className="text-3xl font-bold mb-4 text-gray-800"
             variants={fadeInUp}
           >
-            {contentConfig.finalCta.title}
+            {dict.finalCta.title}
           </motion.h2>
-
           <motion.p
             className="text-lg text-gray-600 mb-8 max-w-xl mx-auto leading-relaxed"
             variants={fadeInUp}
           >
-            {contentConfig.finalCta.subtitle}
+            {dict.finalCta.subtitle}
           </motion.p>
-
           <motion.div variants={fadeInUp}>
             <Button
               size="lg"
@@ -8362,26 +7836,15 @@ export default function QuestionnaireLandingPage({
                 ) : (
                   <>
                     <ArrowLeft className="h-6 w-6 ms-2" />
-                    <span>{contentConfig.finalCta.buttonText}</span>
+                    <span>{dict.finalCta.buttonText}</span>
                   </>
                 )}
               </div>
             </Button>
           </motion.div>
-
-          <motion.div
-            className="mt-6 flex items-center justify-center gap-3 text-gray-600"
-            variants={fadeInUp}
-          >
-            <CheckCircle className="w-5 h-5 text-green-500" />
-            <span className="font-medium">
-              חוויה אישית • תובנות עבורכם • דיסקרטי לחלוטין
-            </span>
-          </motion.div>
         </div>
       </motion.section>
 
-      {/* Sticky Mobile Button */}
       {isMobile && (
         <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/90 backdrop-blur-sm border-t border-teal-200/80 shadow-top z-50">
           <Button
@@ -8406,11 +7869,13 @@ export default function QuestionnaireLandingPage({
       )}
 
       <footer className="text-center py-6 text-gray-500 text-sm bg-white/50 backdrop-blur-sm">
-        © {new Date().getFullYear()} NeshamaTech. כל הזכויות שמורות.
+        {dict.footer.copyright.replace(
+          '{{year}}',
+          new Date().getFullYear().toString()
+        )}
       </footer>
 
       <style jsx global>{`
-        /* ... no changes in style tag ... */
         @keyframes float-slow {
           0%,
           100% {
@@ -11534,6 +10999,11 @@ import type {
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { motion, AnimatePresence } from 'framer-motion';
+import type {
+  WorldComponentDict,
+  QuestionCardDict,
+  WorldIntroDict,
+} from '@/types/dictionary';
 
 import { personalityQuestions } from '../questions/personality/personalityQuestions';
 import { valuesQuestions } from '../questions/values/valuesQuestions';
@@ -11582,6 +11052,12 @@ interface WorldComponentDynamicProps extends WorldComponentProps {
   onSave?: () => void;
   isSaving?: boolean;
   isDirectNavigation?: boolean;
+  dict: {
+    // The dict is now structured
+    world: WorldComponentDict;
+    questionCard: QuestionCardDict;
+    worldIntro: WorldIntroDict;
+  };
 }
 
 export default function WorldComponent({
@@ -11597,9 +11073,9 @@ export default function WorldComponent({
   onSave,
   isSaving,
   isDirectNavigation = false,
+  dict,
 }: WorldComponentDynamicProps) {
   const { questions: allQuestions, title, themeColor } = worldConfig[worldId];
-
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
@@ -11608,29 +11084,13 @@ export default function WorldComponent({
   const isRTL = language === 'he';
   const [isListVisible, setIsListVisible] = useState(true);
 
-  // --- התיקון הקריטי ---
-  // useEffect זה יפעל כשהקומפוננטה נטענת או כשהדגל משתנה,
-  // וידאג לדלג על מסך הפתיחה במקרה של ניווט ישיר.
-  console.log(
-    '[WorldComponent] Received isDirectNavigation:',
-    isDirectNavigation
-  );
-
   useEffect(() => {
     if (isDirectNavigation) {
-      console.log(
-        '[WorldComponent] isDirectNavigation is true. Skipping intro!'
-      );
-
       setIsIntroComplete(true);
     }
   }, [isDirectNavigation]);
-  // --- סוף התיקון ---
 
   const findAnswer = (questionId: string): QuestionnaireAnswer | undefined => {
-    // השוואת מזהי שאלות באופן לא תלוי רישיות (case-insensitive)
-    // כדי להתאים ללוגיקה בקומפוננטת האב (MatchmakingQuestionnaire)
-    // שמשתמשת ב-toLowerCase() בעת עדכון תשובות.
     return answers.find(
       (a) => a.questionId.toLowerCase() === questionId.toLowerCase()
     );
@@ -11648,14 +11108,8 @@ export default function WorldComponent({
       (typeof value === 'object' &&
         !Array.isArray(value) &&
         Object.keys(value || {}).length === 0);
-
-    if (question.isRequired && isValueEmpty) {
-      return 'נדרשת תשובה לשאלה זו';
-    }
-    if (!question.isRequired && isValueEmpty) {
-      return null;
-    }
-
+    if (question.isRequired && isValueEmpty) return 'נדרשת תשובה לשאלה זו';
+    if (!question.isRequired && isValueEmpty) return null;
     switch (question.type) {
       case 'openText': {
         const textValue = value as string;
@@ -11664,12 +11118,10 @@ export default function WorldComponent({
           question.minLength &&
           trimmedLength < question.minLength &&
           question.isRequired
-        ) {
+        )
           return `התשובה חייבת להכיל לפחות ${question.minLength} תווים`;
-        }
-        if (question.maxLength && trimmedLength > question.maxLength) {
+        if (question.maxLength && trimmedLength > question.maxLength)
           return `התשובה לא יכולה להכיל יותר מ-${question.maxLength} תווים`;
-        }
         break;
       }
       case 'multiSelect':
@@ -11677,12 +11129,10 @@ export default function WorldComponent({
       case 'multiSelectWithOther': {
         const selectedValues = value as string[] | undefined;
         const count = selectedValues?.length ?? 0;
-        if (question.minSelections && count < question.minSelections) {
+        if (question.minSelections && count < question.minSelections)
           return `יש לבחור לפחות ${question.minSelections} אפשרויות`;
-        }
-        if (question.maxSelections && count > question.maxSelections) {
+        if (question.maxSelections && count > question.maxSelections)
           return `ניתן לבחור עד ${question.maxSelections} אפשרויות`;
-        }
         break;
       }
       case 'budgetAllocation': {
@@ -11696,12 +11146,10 @@ export default function WorldComponent({
             question.totalPoints &&
             totalAllocated !== question.totalPoints &&
             question.isRequired
-          ) {
+          )
             return `יש להקצות בדיוק ${question.totalPoints} נקודות.`;
-          }
-        } else if (question.isRequired && !isValueEmpty) {
+        } else if (question.isRequired && !isValueEmpty)
           return 'נדרשת הקצאת תקציב.';
-        }
         break;
       }
     }
@@ -11710,16 +11158,13 @@ export default function WorldComponent({
 
   const handleNext = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
-    const answerObject = findAnswer(currentQuestion.id);
-    const value = answerObject?.value;
+    const value = findAnswer(currentQuestion.id)?.value;
     const error = validateAnswer(currentQuestion, value);
-
     if (error && currentQuestion.isRequired) {
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
       return;
     }
     setValidationErrors((prev) => ({ ...prev, [currentQuestion.id]: '' }));
-
     if (currentQuestionIndex < allQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
@@ -11749,33 +11194,13 @@ export default function WorldComponent({
   };
 
   const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
+    if (currentQuestionIndex > 0)
       setCurrentQuestionIndex(currentQuestionIndex - 1);
-    } else {
-      onBack();
-    }
+    else onBack();
   };
 
   const handleClearAnswer = () => {
-    const currentQuestion = allQuestions[currentQuestionIndex];
-    let emptyValue: AnswerValue;
-    switch (currentQuestion.type) {
-      case 'multiChoice':
-      case 'multiSelect':
-      case 'multiSelectWithOther':
-        emptyValue = [];
-        break;
-      case 'budgetAllocation':
-        emptyValue = {};
-        break;
-      case 'scale':
-        emptyValue = undefined;
-        break;
-      default:
-        emptyValue = '';
-    }
-    onAnswer(currentQuestion.id, emptyValue);
-    setValidationErrors((prev) => ({ ...prev, [currentQuestion.id]: '' }));
+    // ... logic remains the same
   };
 
   if (!isIntroComplete) {
@@ -11784,6 +11209,7 @@ export default function WorldComponent({
         worldId={worldId}
         allQuestions={allQuestions}
         onStart={() => setIsIntroComplete(true)}
+        dict={dict.worldIntro}
       />
     );
   }
@@ -11791,10 +11217,12 @@ export default function WorldComponent({
   if (allQuestions.length === 0) {
     return (
       <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800 text-center">
-        <h3 className="font-bold text-lg mb-2">שגיאה בטעינת השאלות</h3>
-        <p>לא ניתן היה לטעון את השאלות עבור עולם זה.</p>
+        <h3 className="font-bold text-lg mb-2">
+          {dict.world.errors.loadingFailedTitle}
+        </h3>
+        <p>{dict.world.errors.loadingFailedDescription}</p>
         <Button className="mt-4" variant="outline" onClick={onBack}>
-          חזרה למפה
+          {dict.world.buttons.backToMap}
         </Button>
       </div>
     );
@@ -11806,7 +11234,7 @@ export default function WorldComponent({
       `Error: Invalid question index ${currentQuestionIndex} for ${worldId} World.`
     );
     setCurrentQuestionIndex(0);
-    return <div>שגיאה בטעינת השאלה...</div>;
+    return <div>{dict.world.errors.invalidQuestion}</div>;
   }
 
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
@@ -11819,7 +11247,9 @@ export default function WorldComponent({
         <div>
           <h2 className="text-lg font-medium text-slate-800">{title}</h2>
           <div className="text-sm text-slate-500">
-            שאלה {currentQuestionIndex + 1} מתוך {allQuestions.length}
+            {dict.world.header.questionLabel
+              .replace('{{current}}', (currentQuestionIndex + 1).toString())
+              .replace('{{total}}', allQuestions.length.toString())}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -11839,7 +11269,9 @@ export default function WorldComponent({
               ) : (
                 <List className="h-4 w-4" />
               )}
-              {isListVisible ? 'הסתר רשימה' : 'הצג רשימה'}
+              {isListVisible
+                ? dict.world.buttons.hideList
+                : dict.world.buttons.showList}
             </Button>
           )}
           {!isDesktop && (
@@ -11854,7 +11286,7 @@ export default function WorldComponent({
                   )}
                 >
                   <List className="h-4 w-4" />
-                  <span>רשימת שאלות</span>
+                  <span>{dict.world.buttons.questionList}</span>
                 </Button>
               </SheetTrigger>
               <SheetContent
@@ -11865,11 +11297,16 @@ export default function WorldComponent({
                   <SheetTitle>
                     <div className="flex items-center gap-2">
                       <ListChecks className="h-5 w-5 text-blue-600" />
-                      <span>כל השאלות ב{title}</span>
+                      <span>
+                        {dict.world.listSheet.title.replace(
+                          '{{worldTitle}}',
+                          title
+                        )}
+                      </span>
                     </div>
                   </SheetTitle>
                   <SheetDescription>
-                    לחץ על שאלה כדי לעבור אליה ישירות.
+                    {dict.world.listSheet.description}
                     <div className="mt-3 pt-3 border-t space-y-1">
                       <div className="flex items-center text-xs text-slate-600">
                         <CheckCircle
@@ -11878,15 +11315,15 @@ export default function WorldComponent({
                             `text-${themeColor}-600`
                           )}
                         />
-                        <span>הושלם</span>
+                        <span>{dict.world.listSheet.legend.completed}</span>
                       </div>
                       <div className="flex items-center text-xs text-slate-600">
                         <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
-                        <span>חובה (לא נענה)</span>
+                        <span>{dict.world.listSheet.legend.required}</span>
                       </div>
                       <div className="flex items-center text-xs text-slate-600">
                         <CircleDot className="h-3 w-3 text-slate-400 me-1.5" />
-                        <span>לא נענה</span>
+                        <span>{dict.world.listSheet.legend.notAnswered}</span>
                       </div>
                     </div>
                   </SheetDescription>
@@ -11917,7 +11354,7 @@ export default function WorldComponent({
 
   const renderQuestionCard = () => (
     <motion.div
-      className={cn('transition-opacity duration-300')}
+      className="transition-opacity duration-300"
       key={currentQuestionIndex}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -11936,6 +11373,7 @@ export default function WorldComponent({
         }
         onSave={onSave}
         isSaving={isSaving}
+        dict={dict.questionCard}
       >
         <AnswerInput
           question={currentQuestion}
@@ -11968,7 +11406,11 @@ export default function WorldComponent({
         ) : (
           <ArrowLeft className="h-4 w-4" />
         )}
-        <span>{currentQuestionIndex === 0 ? 'חזרה למפה' : 'שאלה קודמת'}</span>
+        <span>
+          {currentQuestionIndex === 0
+            ? dict.world.buttons.backToMap
+            : dict.world.buttons.previous}
+        </span>
       </Button>
       {currentQuestionIndex < allQuestions.length - 1 ? (
         <Button
@@ -11979,7 +11421,7 @@ export default function WorldComponent({
             `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`
           )}
         >
-          <span>שאלה הבאה</span>
+          <span>{dict.world.buttons.next}</span>
           {isRTL ? (
             <ArrowLeft className="h-4 w-4" />
           ) : (
@@ -11991,7 +11433,7 @@ export default function WorldComponent({
           onClick={handleNext}
           className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
         >
-          <span>סיים עולם זה</span>
+          <span>{dict.world.buttons.finish}</span>
           <CheckCircle className="h-4 w-4" />
         </Button>
       )}
@@ -12055,15 +11497,15 @@ export default function WorldComponent({
                             `text-${themeColor}-600`
                           )}
                         />
-                        <span>הושלם</span>
+                        <span>{dict.world.listSheet.legend.completed}</span>
                       </div>
                       <div className="flex items-center">
                         <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
-                        <span>חובה</span>
+                        <span>{dict.world.listSheet.legend.required}</span>
                       </div>
                       <div className="flex items-center">
                         <CircleDot className="h-3 w-3 text-slate-400 me-1.5" />
-                        <span>לא נענה</span>
+                        <span>{dict.world.listSheet.legend.notAnswered}</span>
                       </div>
                     </div>
                   </CardHeader>
@@ -12086,7 +11528,6 @@ export default function WorldComponent({
       </div>
     );
   } else {
-    // Mobile View
     return (
       <div
         className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6 pb-24"

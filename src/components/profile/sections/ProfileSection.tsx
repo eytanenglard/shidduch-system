@@ -7,7 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Gender,
   AvailabilityStatus,
@@ -56,140 +56,7 @@ import { languageOptions } from '@/lib/languageOptions';
 import { toast } from 'sonner';
 import Autocomplete from 'react-google-autocomplete';
 import { Switch } from '@/components/ui/switch';
-
-const maritalStatusOptions = [
-  { value: 'single', label: 'רווק/ה' },
-  { value: 'divorced', label: 'גרוש/ה' },
-  { value: 'widowed', label: 'אלמן/ה' },
-  { value: 'annulled', label: 'נישואין שבוטלו' },
-];
-
-const religiousLevelOptions = [
-  { value: 'charedi', label: 'חרדי/ת' },
-  { value: 'charedi_modern', label: 'חרדי/ת מודרני/ת' },
-  { value: 'dati_leumi_torani', label: 'דתי/ה לאומי/ת תורני/ת' },
-  { value: 'dati_leumi_liberal', label: 'דתי/ה לאומי/ת ליברלי/ת' },
-  { value: 'dati_leumi_standard', label: 'דתי/ה לאומי/ת (סטנדרטי)' },
-  { value: 'masorti_strong', label: 'מסורתי/ת (קרוב/ה לדת)' },
-  { value: 'masorti_light', label: 'מסורתי/ת (קשר קל למסורת)' },
-  { value: 'secular_traditional_connection', label: 'חילוני/ת עם זיקה למסורת' },
-  { value: 'secular', label: 'חילוני/ת' },
-  { value: 'spiritual_not_religious', label: 'רוחני/ת (לאו דווקא דתי/ה)' },
-  { value: 'other', label: "אחר (נא לפרט ב'אודות')" },
-];
-const religiousJourneyOptions = [
-  {
-    value: 'BORN_INTO_CURRENT_LIFESTYLE',
-    label: 'גדלתי בסביבה דומה להגדרתי כיום',
-  },
-  { value: 'BORN_SECULAR', label: 'גדלתי בסביבה חילונית' },
-  { value: 'BAAL_TESHUVA', label: 'חזרתי בתשובה' },
-  { value: 'DATLASH', label: 'יצאתי בשאלה (דתל"ש)' },
-  { value: 'CONVERT', label: 'גר/ה / גיורת' },
-  { value: 'IN_PROCESS', label: 'בתהליך של שינוי / התלבטות' },
-  { value: 'OTHER', label: 'אחר (נא לפרט בהערות)' },
-];
-
-const educationLevelOptions = [
-  { value: 'high_school', label: 'תיכונית' },
-  { value: 'vocational', label: 'מקצועית / תעודה' },
-  { value: 'academic_student', label: 'סטודנט/ית לתואר' },
-  { value: 'academic_ba', label: 'תואר ראשון (BA/BSc)' },
-  { value: 'academic_ma', label: 'תואר שני (MA/MSc)' },
-  { value: 'academic_phd', label: 'דוקטורט (PhD)' },
-  { value: 'yeshiva_seminary', label: 'לימודים תורניים (ישיבה/מדרשה/כולל)' },
-  { value: 'other', label: 'אחר' },
-];
-
-const serviceTypeOptions = [
-  { value: ServiceType.MILITARY_COMBATANT, label: 'צבאי - לוחם/ת' },
-  { value: ServiceType.MILITARY_SUPPORT, label: 'צבאי - תומכ/ת לחימה' },
-  { value: ServiceType.MILITARY_OFFICER, label: 'צבאי - קצונה' },
-  {
-    value: ServiceType.MILITARY_INTELLIGENCE_CYBER_TECH,
-    label: 'צבאי - מודיעין/סייבר/טכנולוגי',
-  },
-  { value: ServiceType.NATIONAL_SERVICE_ONE_YEAR, label: 'שירות לאומי - שנה' },
-  {
-    value: ServiceType.NATIONAL_SERVICE_TWO_YEARS,
-    label: 'שירות לאומי - שנתיים',
-  },
-  { value: ServiceType.HESDER_YESHIVA, label: 'ישיבת הסדר' },
-  {
-    value: ServiceType.YESHIVA_ONLY_POST_HS,
-    label: 'ישיבה גבוהה / מדרשה (ללא שירות צבאי/לאומי)',
-  },
-  {
-    value: ServiceType.PRE_MILITARY_ACADEMY_AND_SERVICE,
-    label: 'מכינה קדם-צבאית ושירות',
-  },
-  { value: ServiceType.EXEMPTED, label: 'פטור משירות' },
-  { value: ServiceType.CIVILIAN_SERVICE, label: 'שירות אזרחי' },
-  { value: ServiceType.OTHER, label: 'אחר / לא רלוונטי' },
-];
-
-const headCoveringOptions = [
-  { value: HeadCoveringType.FULL_COVERAGE, label: 'כיסוי ראש מלא' },
-  { value: HeadCoveringType.PARTIAL_COVERAGE, label: 'כיסוי ראש חלקי' },
-  { value: HeadCoveringType.HAT_BERET, label: 'כובע / ברט' },
-  {
-    value: HeadCoveringType.SCARF_ONLY_SOMETIMES,
-    label: 'מטפחת (רק באירועים/בית כנסת)',
-  },
-  { value: HeadCoveringType.NONE, label: 'ללא כיסוי ראש' },
-];
-
-const kippahTypeOptions = [
-  { value: KippahType.BLACK_VELVET, label: 'קטיפה שחורה' },
-  { value: KippahType.KNITTED_SMALL, label: 'סרוגה קטנה' },
-  { value: KippahType.KNITTED_LARGE, label: 'סרוגה גדולה' },
-  { value: KippahType.CLOTH, label: 'בד' },
-  { value: KippahType.BRESLEV, label: 'ברסלב (לבנה גדולה)' },
-  { value: KippahType.NONE_AT_WORK_OR_CASUAL, label: 'לא בעבודה / ביומיום' },
-  { value: KippahType.NONE_USUALLY, label: 'לרוב לא חובש' },
-  { value: KippahType.OTHER, label: 'אחר' },
-];
-
-const characterTraitsOptions = [
-  { value: 'empathetic', label: 'אמפתי/ת', icon: Heart },
-  { value: 'driven', label: 'שאפתן/ית', icon: Briefcase },
-  { value: 'optimistic', label: 'אופטימי/ת', icon: Smile },
-  { value: 'family_oriented', label: 'משפחתי/ת', icon: Users },
-  { value: 'intellectual', label: 'אינטלקטואל/ית', icon: BookOpen },
-  { value: 'organized', label: 'מאורגנ/ת', icon: Palette },
-  { value: 'calm', label: 'רגוע/ה', icon: Heart },
-  { value: 'humorous', label: 'בעל/ת חוש הומור', icon: Smile },
-  { value: 'sociable', label: 'חברותי/ת', icon: Users },
-  { value: 'sensitive', label: 'רגיש/ה', icon: Heart },
-  { value: 'independent', label: 'עצמאי/ת', icon: MapPin },
-  { value: 'creative', label: 'יצירתי/ת', icon: Palette },
-  { value: 'honest', label: 'כן/ה וישר/ה', icon: Shield },
-  { value: 'responsible', label: 'אחראי/ת', icon: Shield },
-  { value: 'easy_going', label: 'זורם/ת וקליל/ה', icon: Smile },
-];
-
-const hobbiesOptions = [
-  { value: 'travel', label: 'טיולים', icon: MapPin },
-  { value: 'sports', label: 'ספורט', icon: Briefcase },
-  { value: 'reading', label: 'קריאה', icon: BookOpen },
-  { value: 'cooking_baking', label: 'בישול/אפיה', icon: Palette },
-  { value: 'music_playing_instrument', label: 'מוזיקה/נגינה', icon: Languages },
-  { value: 'art_crafts', label: 'אומנות/יצירה', icon: Palette },
-  { value: 'volunteering', label: 'התנדבות', icon: Heart },
-  { value: 'learning_courses', label: 'למידה/קורסים', icon: BookOpen },
-  { value: 'board_games_puzzles', label: 'משחקי קופסא/פאזלים', icon: Smile },
-  { value: 'movies_theater', label: 'סרטים/תיאטרון', icon: Smile },
-  { value: 'dancing', label: 'ריקוד', icon: Users },
-  { value: 'writing', label: 'כתיבה', icon: BookOpen },
-  { value: 'nature_hiking', label: 'טבע/טיולים רגליים', icon: MapPin },
-  { value: 'photography', label: 'צילום', icon: Palette },
-];
-
-const preferredMatchmakerGenderOptions = [
-  { value: 'MALE', label: 'משדך' },
-  { value: 'FEMALE', label: 'שדכנית' },
-  { value: 'NONE', label: 'ללא העדפה' },
-];
+import { ProfileSectionDict } from '@/types/dictionary';
 
 interface ProfileSectionProps {
   profile: UserProfile | null;
@@ -197,6 +64,7 @@ interface ProfileSectionProps {
   setIsEditing: (value: boolean) => void;
   viewOnly?: boolean;
   onSave: (data: Partial<UserProfile>) => void;
+  dict: ProfileSectionDict;
 }
 
 const ensureDateObject = (
@@ -221,6 +89,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   setIsEditing,
   viewOnly = false,
   onSave,
+  dict,
 }) => {
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [loading, setLoading] = useState(true);
@@ -229,13 +98,127 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   const [cityInputValue, setCityInputValue] = useState('');
   const [aliyaCountryInputValue, setAliyaCountryInputValue] = useState('');
 
+  const characterTraitsOptions = useMemo(
+    () =>
+      Object.entries(dict.options.traits).map(([value, label]) => ({
+        value,
+        label,
+        icon:
+          {
+            empathetic: Heart,
+            driven: Briefcase,
+            optimistic: Smile,
+            family_oriented: Users,
+            intellectual: BookOpen,
+            organized: Palette,
+            calm: Heart,
+            humorous: Smile,
+            sociable: Users,
+            sensitive: Heart,
+            independent: MapPin,
+            creative: Palette,
+            honest: Shield,
+            responsible: Shield,
+            easy_going: Smile,
+          }[value] || Smile,
+      })),
+    [dict.options.traits]
+  );
+
+  const hobbiesOptions = useMemo(
+    () =>
+      Object.entries(dict.options.hobbies).map(([value, label]) => ({
+        value,
+        label,
+        icon:
+          {
+            travel: MapPin,
+            sports: Briefcase,
+            reading: BookOpen,
+            cooking_baking: Palette,
+            music_playing_instrument: Languages,
+            art_crafts: Palette,
+            volunteering: Heart,
+            learning_courses: BookOpen,
+            board_games_puzzles: Smile,
+            movies_theater: Smile,
+            dancing: Users,
+            writing: BookOpen,
+            nature_hiking: MapPin,
+            photography: Palette,
+          }[value] || Smile,
+      })),
+    [dict.options.hobbies]
+  );
+
+  const maritalStatusOptions = useMemo(
+    () =>
+      Object.entries(dict.options.maritalStatus).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    [dict.options.maritalStatus]
+  );
+  const religiousLevelOptions = useMemo(
+    () =>
+      Object.entries(dict.options.religiousLevel).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    [dict.options.religiousLevel]
+  );
+  const religiousJourneyOptions = useMemo(
+    () =>
+      Object.entries(dict.options.religiousJourney).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    [dict.options.religiousJourney]
+  );
+  const educationLevelOptions = useMemo(
+    () =>
+      Object.entries(dict.options.educationLevel).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    [dict.options.educationLevel]
+  );
+  const serviceTypeOptions = useMemo(
+    () =>
+      Object.entries(dict.options.serviceType).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    [dict.options.serviceType]
+  );
+  const headCoveringOptions = useMemo(
+    () =>
+      Object.entries(dict.options.headCovering).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    [dict.options.headCovering]
+  );
+  const kippahTypeOptions = useMemo(
+    () =>
+      Object.entries(dict.options.kippahType).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    [dict.options.kippahType]
+  );
+  const preferredMatchmakerGenderOptions = useMemo(
+    () =>
+      Object.entries(dict.options.matchmakerGender).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    [dict.options.matchmakerGender]
+  );
+
   const initializeFormData = (profileData: UserProfile | null) => {
     let headline = profileData?.profileHeadline || '';
     if (typeof headline === 'object' && headline !== null) {
-      console.warn(
-        'Profile headline from API is an object, resetting to empty string:',
-        headline
-      );
       headline = '';
     }
 
@@ -315,25 +298,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
     if (profileProp) {
       initializeFormData(profileProp);
       setLoading(false);
-    } else {
-      const fetchProfileAndInitialize = async () => {
-        try {
-          const response = await fetch('/api/profile');
-          if (!response.ok) throw new Error('Failed to fetch profile');
-          const data = await response.json();
-          if (data.success && data.profile) {
-            initializeFormData(data.profile);
-          } else {
-            initializeFormData(null);
-          }
-        } catch (error) {
-          console.error('Failed to fetch profile:', error);
-          initializeFormData(null);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchProfileAndInitialize();
     }
   }, [profileProp]);
 
@@ -352,14 +316,16 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       let finalValue: UserProfile[keyof UserProfile] | undefined = undefined;
 
       if (
-        field === 'height' ||
-        field === 'siblings' ||
-        field === 'position' ||
-        field === 'aliyaYear' ||
-        field === 'preferredAgeMin' ||
-        field === 'preferredAgeMax' ||
-        field === 'preferredHeightMin' ||
-        field === 'preferredHeightMax'
+        [
+          'height',
+          'siblings',
+          'position',
+          'aliyaYear',
+          'preferredAgeMin',
+          'preferredAgeMax',
+          'preferredHeightMin',
+          'preferredHeightMax',
+        ].includes(field)
       ) {
         const rawValue = value as string | number;
         if (rawValue === '' || rawValue === null || rawValue === undefined) {
@@ -375,53 +341,19 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           value as string | Date | null | undefined
         ) as UserProfile[typeof field];
       } else if (
-        typeof prev[field] === 'boolean' ||
-        field === 'shomerNegiah' ||
-        field === 'hasChildrenFromPrevious' ||
-        field === 'isProfileVisible' ||
-        field === 'hasMedicalInfo' ||
-        field === 'isMedicalInfoVisible'
+        [
+          'shomerNegiah',
+          'hasChildrenFromPrevious',
+          'isProfileVisible',
+          'hasMedicalInfo',
+          'isMedicalInfoVisible',
+        ].includes(field)
       ) {
         finalValue = value as boolean as UserProfile[typeof field];
-      } else if (Array.isArray(prev[field])) {
-        finalValue = value as string[] as UserProfile[typeof field];
-      } else if (value === '' || value === null) {
-        const nullableStringFields: (keyof UserProfile)[] = [
-          'nativeLanguage',
-          'occupation',
-          'education',
-          'city',
-          'origin',
-          'religiousLevel',
-          'religiousJourney',
-          'about',
-          'parentStatus',
-          'fatherOccupation',
-          'motherOccupation',
-          'serviceDetails',
-          'aliyaCountry',
-          'availabilityNote',
-          'matchingNotes',
-          'educationLevel',
-          'maritalStatus',
-          'serviceType',
-          'headCovering',
-          'kippahType',
-          'preferredMatchmakerGender',
-          'contactPreference',
-          'medicalInfoDetails',
-          'medicalInfoDisclosureTiming',
-          'profileHeadline',
-          'inspiringCoupleStory',
-          'influentialRabbi',
-        ];
-        if (nullableStringFields.includes(field as keyof UserProfile)) {
-          finalValue = undefined;
-        } else {
-          finalValue = value as UserProfile[typeof field];
-        }
       } else {
-        finalValue = value as UserProfile[typeof field];
+        finalValue = (
+          value === '' || value === null ? undefined : value
+        ) as UserProfile[typeof field];
       }
 
       return {
@@ -446,8 +378,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   const handleSave = () => {
     if (formData.about && formData.about.trim().length < 100) {
-      toast.error('שגיאת ולידציה', {
-        description: 'השדה "קצת עליי" חייב להכיל לפחות 100 תווים.',
+      toast.error(dict.toasts.validationErrorTitle, {
+        description: dict.toasts.aboutMinLength.replace('{{count}}', '100'),
         duration: 5000,
       });
       return;
@@ -468,17 +400,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   const renderDisplayValue = (
     value: unknown,
-    placeholder: string = 'לא צוין'
+    placeholder: string = dict.placeholders.notSpecified
   ): React.ReactNode => {
-    if (!value) {
+    if (value === null || value === undefined || value === '') {
       return <span className="italic text-gray-500">{placeholder}</span>;
     }
     if (value instanceof Date && !isNaN(value.getTime())) {
       return new Intl.DateTimeFormat('he-IL').format(value);
-    }
-    if (typeof value === 'object' && value !== null) {
-      console.warn('renderDisplayValue received an object:', value);
-      return <span className="italic text-gray-500">{placeholder}</span>;
     }
     return String(value);
   };
@@ -486,7 +414,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   const renderSelectDisplayValue = (
     value: string | undefined | null,
     options: { value: string; label: string }[],
-    placeholder: string = 'לא צוין'
+    placeholder: string = dict.placeholders.notSpecified
   ) => {
     if (!value) {
       return <span className="italic text-gray-500">{placeholder}</span>;
@@ -501,9 +429,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   const renderBooleanDisplayValue = (
     value: boolean | undefined | null,
-    trueLabel: string = 'כן',
-    falseLabel: string = 'לא',
-    placeholder: string = 'לא צוין'
+    trueLabel: string = dict.cards.family.hasChildrenYes,
+    falseLabel: string = dict.cards.medical.display.no,
+    placeholder: string = dict.placeholders.notSpecified
   ) => {
     if (value === undefined || value === null) {
       return <span className="italic text-gray-500">{placeholder}</span>;
@@ -512,13 +440,17 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   };
 
   if (loading) {
-    return <div role="status" aria-live="polite" className="text-center p-4">טוען נתוני פרופיל...</div>;
+    return (
+      <div role="status" aria-live="polite" className="text-center p-4">
+        {dict.loading}
+      </div>
+    );
   }
 
   const renderMultiSelectBadges = (
     fieldValues: string[] | undefined,
     options: { value: string; label: string; icon?: React.ElementType }[],
-    emptyPlaceholder: string = 'לא נבחרו פריטים.'
+    emptyPlaceholder: string
   ) => {
     if (!fieldValues || fieldValues.length === 0) {
       return <p className="text-sm text-gray-500 italic">{emptyPlaceholder}</p>;
@@ -545,12 +477,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl md:text-2xl font-bold text-slate-800">
-                פרופיל אישי
+                {dict.header.title}
               </h1>
               <p className="text-sm text-slate-500">
                 {isEditing && !viewOnly
-                  ? 'ערוך/י את פרטי הפרופיל שלך.'
-                  : 'פרטי הפרופיל של המועמד/ת.'}
+                  ? dict.header.subtitleEdit
+                  : dict.header.subtitleView}
               </p>
             </div>
             {!viewOnly && (
@@ -563,7 +495,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50"
                   >
                     <Pencil className="w-3.5 h-3.5 ml-1.5" />
-                    עריכה
+                    {dict.buttons.edit}
                   </Button>
                 ) : (
                   <>
@@ -575,7 +507,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50"
                       >
                         <X className="w-3.5 h-3.5 ml-1.5" />
-                        ביטול
+                        {dict.buttons.cancel}
                       </Button>
                       <Button
                         variant="default"
@@ -584,7 +516,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white"
                       >
                         <Save className="w-3.5 h-3.5 ml-1.5" />
-                        שמירה
+                        {dict.buttons.save}
                       </Button>
                     </div>
                   </>
@@ -602,14 +534,17 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <CardHeader className="bg-gradient-to-r from-cyan-50/40 to-pink-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <UserCircle className="w-5 h-5 text-cyan-700" />
                 <CardTitle className="text-base font-semibold text-gray-700">
-                  פרטים אישיים ודמוגרפיים
+                  {dict.cards.personal.title}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 md:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
                   <div>
-                    <Label htmlFor="gender" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      מגדר
+                    <Label
+                      htmlFor="gender"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.personal.genderLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
@@ -618,29 +553,39 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('gender', value as Gender)
                         }
                       >
-                        <SelectTrigger id="gender" className="h-9 text-sm focus:ring-cyan-500">
-                          <SelectValue placeholder="בחר/י מגדר" />
+                        <SelectTrigger
+                          id="gender"
+                          className="h-9 text-sm focus:ring-cyan-500"
+                        >
+                          <SelectValue
+                            placeholder={dict.cards.personal.genderPlaceholder}
+                          />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="MALE">זכר</SelectItem>
-                          <SelectItem value="FEMALE">נקבה</SelectItem>
+                          <SelectItem value="MALE">
+                            {dict.options.gender.MALE}
+                          </SelectItem>
+                          <SelectItem value="FEMALE">
+                            {dict.options.gender.FEMALE}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderDisplayValue(
-                          formData.gender === 'MALE'
-                            ? 'זכר'
-                            : formData.gender === 'FEMALE'
-                              ? 'נקבה'
-                              : undefined
+                          formData.gender
+                            ? dict.options.gender[formData.gender]
+                            : undefined
                         )}
                       </p>
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="birthDate" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      תאריך לידה
+                    <Label
+                      htmlFor="birthDate"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.personal.birthDateLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
@@ -665,8 +610,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="height" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      גובה (סמ)
+                    <Label
+                      htmlFor="height"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.personal.heightLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
@@ -675,21 +623,24 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         value={formData.height ?? ''}
                         onChange={(e) => handleChange('height', e.target.value)}
                         className="h-9 text-sm focus:ring-cyan-500"
-                        placeholder="גובה בסמ"
+                        placeholder={dict.cards.personal.heightPlaceholder}
                         min="100"
                         max="250"
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderDisplayValue(
-                          formData.height ? `${formData.height} ס"מ` : undefined
+                          formData.height ? `${formData.height} cm` : undefined
                         )}
                       </p>
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="city-autocomplete" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      עיר מגורים
+                    <Label
+                      htmlFor="city-autocomplete"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.personal.cityLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Autocomplete
@@ -720,7 +671,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           componentRestrictions: { country: 'il' },
                         }}
                         className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
-                        placeholder="התחל/י להקליד שם עיר..."
+                        placeholder={dict.cards.personal.cityPlaceholder}
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
@@ -729,15 +680,18 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="origin" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      מוצא / עדה
+                    <Label
+                      htmlFor="origin"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.personal.originLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
                         id="origin"
                         value={formData.origin || ''}
                         onChange={(e) => handleChange('origin', e.target.value)}
-                        placeholder="לדוגמה: אשכנזי, ספרדי"
+                        placeholder={dict.cards.personal.originPlaceholder}
                         className="h-9 text-sm focus:ring-cyan-500"
                       />
                     ) : (
@@ -747,8 +701,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="aliyaCountry-autocomplete" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      מדינת עלייה
+                    <Label
+                      htmlFor="aliyaCountry-autocomplete"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.personal.aliyaCountryLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Autocomplete
@@ -783,20 +740,25 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           types: ['country'],
                         }}
                         className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
-                        placeholder="אם רלוונטי, הקלד/י שם מדינה"
+                        placeholder={
+                          dict.cards.personal.aliyaCountryPlaceholder
+                        }
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderDisplayValue(
                           formData.aliyaCountry,
-                          'לא רלוונטי'
+                          dict.placeholders.notRelevant
                         )}
                       </p>
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="aliyaYear" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      שנת עליה
+                    <Label
+                      htmlFor="aliyaYear"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.personal.aliyaYearLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
@@ -807,7 +769,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('aliyaYear', e.target.value)
                         }
                         disabled={!formData.aliyaCountry}
-                        placeholder="אם רלוונטי"
+                        placeholder={dict.cards.personal.aliyaYearPlaceholder}
                         className="h-9 text-sm focus:ring-cyan-500"
                         min="1900"
                         max={new Date().getFullYear()}
@@ -816,14 +778,19 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderDisplayValue(
                           formData.aliyaYear,
-                          formData.aliyaCountry ? 'לא צוינה שנה' : 'לא רלוונטי'
+                          formData.aliyaCountry
+                            ? dict.placeholders.noYear
+                            : dict.placeholders.notRelevant
                         )}
                       </p>
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="nativeLanguage" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      שפת אם
+                    <Label
+                      htmlFor="nativeLanguage"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.personal.nativeLanguageLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
@@ -832,8 +799,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('nativeLanguage', value || undefined)
                         }
                       >
-                        <SelectTrigger id="nativeLanguage" className="h-9 text-sm focus:ring-cyan-500">
-                          <SelectValue placeholder="בחר/י שפת אם" />
+                        <SelectTrigger
+                          id="nativeLanguage"
+                          className="h-9 text-sm focus:ring-cyan-500"
+                        >
+                          <SelectValue
+                            placeholder={
+                              dict.cards.personal.nativeLanguagePlaceholder
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent className="max-h-[200px]">
                           {languageOptions.map((lang) => (
@@ -853,8 +827,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div className="sm:col-span-2 lg:col-span-1">
-                    <Label htmlFor="additionalLanguages" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      שפות נוספות
+                    <Label
+                      htmlFor="additionalLanguages"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.personal.additionalLanguagesLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
@@ -869,8 +846,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           }
                         }}
                       >
-                        <SelectTrigger id="additionalLanguages" className="h-9 text-sm focus:ring-cyan-500">
-                          <SelectValue placeholder="הוסף/י שפה..." />
+                        <SelectTrigger
+                          id="additionalLanguages"
+                          className="h-9 text-sm focus:ring-cyan-500"
+                        >
+                          <SelectValue
+                            placeholder={
+                              dict.cards.personal.additionalLanguagesPlaceholder
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent className="max-h-[200px]">
                           {languageOptions
@@ -912,7 +896,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                   )
                                 }
                                 className="mr-1.5 text-cyan-600 hover:text-cyan-800 text-xs"
-                                aria-label={`הסר ${lang.label}`}
+                                aria-label={dict.cards.personal.removeLanguageLabel.replace(
+                                  '{{lang}}',
+                                  lang.label
+                                )}
                               >
                                 ×
                               </button>
@@ -924,7 +911,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         (!formData.additionalLanguages ||
                           formData.additionalLanguages.length === 0) && (
                           <p className="text-sm text-gray-500 italic">
-                            לא צוינו שפות נוספות.
+                            {dict.cards.personal.noAdditionalLanguages}
                           </p>
                         )}
                     </div>
@@ -937,14 +924,17 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <CardHeader className="bg-gradient-to-r from-purple-50/40 to-indigo-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <Users className="w-5 h-5 text-purple-700" />
                 <CardTitle className="text-base font-semibold text-gray-700">
-                  מצב משפחתי ורקע
+                  {dict.cards.family.title}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 md:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 items-start">
                   <div>
-                    <Label htmlFor="maritalStatus" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      מצב משפחתי
+                    <Label
+                      htmlFor="maritalStatus"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.family.maritalStatusLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
@@ -953,8 +943,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('maritalStatus', value || undefined)
                         }
                       >
-                        <SelectTrigger id="maritalStatus" className="h-9 text-sm focus:ring-cyan-500">
-                          <SelectValue placeholder="בחר/י מצב" />
+                        <SelectTrigger
+                          id="maritalStatus"
+                          className="h-9 text-sm focus:ring-cyan-500"
+                        >
+                          <SelectValue
+                            placeholder={
+                              dict.cards.family.maritalStatusPlaceholder
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           {maritalStatusOptions.map((opt) => (
@@ -982,8 +979,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         isEditing && !viewOnly ? 'sm:pt-5' : 'sm:pt-0'
                       )}
                     >
-                      <Label htmlFor="hasChildrenFromPrevious" className="block mb-1.5 text-xs font-medium text-gray-600">
-                        ילדים מקשר קודם?
+                      <Label
+                        htmlFor="hasChildrenFromPrevious"
+                        className="block mb-1.5 text-xs font-medium text-gray-600"
+                      >
+                        {dict.cards.family.hasChildrenLabel}
                       </Label>
                       {isEditing && !viewOnly ? (
                         <div className="flex items-center space-x-2 rtl:space-x-reverse mt-2">
@@ -1001,7 +1001,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             htmlFor="hasChildrenFromPrevious"
                             className="text-sm font-normal text-gray-700"
                           >
-                            יש ילדים
+                            {dict.cards.family.hasChildrenYes}
                           </Label>
                         </div>
                       ) : (
@@ -1014,8 +1014,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </div>
                   )}
                   <div>
-                    <Label htmlFor="parentStatus" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      מצב הורים
+                    <Label
+                      htmlFor="parentStatus"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.family.parentStatusLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
@@ -1024,7 +1027,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         onChange={(e) =>
                           handleChange('parentStatus', e.target.value)
                         }
-                        placeholder="לדוגמה: נשואים, גרושים"
+                        placeholder={dict.cards.family.parentStatusPlaceholder}
                         className="h-9 text-sm focus:ring-cyan-500"
                       />
                     ) : (
@@ -1035,8 +1038,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   </div>
 
                   <div>
-                    <Label htmlFor="fatherOccupation" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      מקצוע האב
+                    <Label
+                      htmlFor="fatherOccupation"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.family.fatherOccupationLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
@@ -1045,7 +1051,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         onChange={(e) =>
                           handleChange('fatherOccupation', e.target.value)
                         }
-                        placeholder="לדוגמה: מהנדס, עורך דין"
+                        placeholder={
+                          dict.cards.family.fatherOccupationPlaceholder
+                        }
                         className="h-9 text-sm focus:ring-cyan-500"
                       />
                     ) : (
@@ -1056,8 +1064,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   </div>
 
                   <div>
-                    <Label htmlFor="motherOccupation" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      מקצוע האם
+                    <Label
+                      htmlFor="motherOccupation"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.family.motherOccupationLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
@@ -1066,7 +1077,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         onChange={(e) =>
                           handleChange('motherOccupation', e.target.value)
                         }
-                        placeholder="לדוגמה: מורה, רופאה"
+                        placeholder={
+                          dict.cards.family.motherOccupationPlaceholder
+                        }
                         className="h-9 text-sm focus:ring-cyan-500"
                       />
                     ) : (
@@ -1077,8 +1090,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   </div>
 
                   <div>
-                    <Label htmlFor="siblings" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      מספר אחים/אחיות
+                    <Label
+                      htmlFor="siblings"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.family.siblingsLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
@@ -1089,7 +1105,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('siblings', e.target.value)
                         }
                         className="h-9 text-sm focus:ring-cyan-500"
-                        placeholder="כולל אותך"
+                        placeholder={dict.cards.family.siblingsPlaceholder}
                         min="0"
                       />
                     ) : (
@@ -1099,8 +1115,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="position" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      מיקום במשפחה
+                    <Label
+                      htmlFor="position"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.family.positionLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
@@ -1111,7 +1130,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('position', e.target.value)
                         }
                         className="h-9 text-sm focus:ring-cyan-500"
-                        placeholder="לדוגמה: 1 (בכור/ה)"
+                        placeholder={dict.cards.family.positionPlaceholder}
                         min="0"
                       />
                     ) : (
@@ -1128,14 +1147,17 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <CardHeader className="bg-gradient-to-r from-yellow-50/40 to-amber-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <BookOpen className="w-5 h-5 text-amber-700" />
                 <CardTitle className="text-base font-semibold text-gray-700">
-                  דת ואורח חיים
+                  {dict.cards.religion.title}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 md:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 items-start">
                   <div>
-                    <Label htmlFor="religiousLevel" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      רמה דתית
+                    <Label
+                      htmlFor="religiousLevel"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.religion.religiousLevelLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
@@ -1144,8 +1166,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('religiousLevel', value || undefined)
                         }
                       >
-                        <SelectTrigger id="religiousLevel" className="h-9 text-sm focus:ring-cyan-500">
-                          <SelectValue placeholder="בחר/י רמה" />
+                        <SelectTrigger
+                          id="religiousLevel"
+                          className="h-9 text-sm focus:ring-cyan-500"
+                        >
+                          <SelectValue
+                            placeholder={
+                              dict.cards.religion.religiousLevelPlaceholder
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent className="max-h-[250px]">
                           {religiousLevelOptions.map((opt) => (
@@ -1165,8 +1194,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="religiousJourney" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      מסע דתי
+                    <Label
+                      htmlFor="religiousJourney"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.religion.religiousJourneyLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
@@ -1178,8 +1210,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           )
                         }
                       >
-                        <SelectTrigger id="religiousJourney" className="h-9 text-sm focus:ring-cyan-500">
-                          <SelectValue placeholder="בחר/י רקע דתי" />
+                        <SelectTrigger
+                          id="religiousJourney"
+                          className="h-9 text-sm focus:ring-cyan-500"
+                        >
+                          <SelectValue
+                            placeholder={
+                              dict.cards.religion.religiousJourneyPlaceholder
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent className="max-h-[250px]">
                           {religiousJourneyOptions.map((opt) => (
@@ -1193,8 +1232,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderSelectDisplayValue(
                           formData.religiousJourney,
-                          religiousJourneyOptions,
-                          'לא צוין'
+                          religiousJourneyOptions
                         )}
                       </p>
                     )}
@@ -1206,7 +1244,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   >
                     <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                      שומר/ת נגיעה?
+                      {dict.cards.religion.shomerNegiahLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <div className="flex items-center space-x-2 rtl:space-x-reverse mt-2">
@@ -1221,19 +1259,25 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           htmlFor="shomerNegiah"
                           className="text-sm font-normal text-gray-700"
                         >
-                          כן
+                          {dict.cards.religion.shomerNegiahYes}
                         </Label>
                       </div>
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
-                        {renderBooleanDisplayValue(formData.shomerNegiah)}
+                        {renderBooleanDisplayValue(
+                          formData.shomerNegiah,
+                          dict.cards.religion.shomerNegiahYes
+                        )}
                       </p>
                     )}
                   </div>
                   {formData.gender === Gender.FEMALE && (
                     <div>
-                      <Label htmlFor="headCovering" className="block mb-1.5 text-xs font-medium text-gray-600">
-                        כיסוי ראש
+                      <Label
+                        htmlFor="headCovering"
+                        className="block mb-1.5 text-xs font-medium text-gray-600"
+                      >
+                        {dict.cards.religion.headCoveringLabel}
                       </Label>
                       {isEditing && !viewOnly ? (
                         <Select
@@ -1245,8 +1289,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             )
                           }
                         >
-                          <SelectTrigger id="headCovering" className="h-9 text-sm focus:ring-cyan-500">
-                            <SelectValue placeholder="בחר/י סוג כיסוי" />
+                          <SelectTrigger
+                            id="headCovering"
+                            className="h-9 text-sm focus:ring-cyan-500"
+                          >
+                            <SelectValue
+                              placeholder={
+                                dict.cards.religion.headCoveringPlaceholder
+                              }
+                            />
                           </SelectTrigger>
                           <SelectContent>
                             {headCoveringOptions.map((opt) => (
@@ -1261,7 +1312,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           {renderSelectDisplayValue(
                             formData.headCovering,
                             headCoveringOptions,
-                            'ללא'
+                            dict.cards.religion.headCoveringDefault
                           )}
                         </p>
                       )}
@@ -1269,8 +1320,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   )}
                   {formData.gender === Gender.MALE && (
                     <div>
-                      <Label htmlFor="kippahType" className="block mb-1.5 text-xs font-medium text-gray-600">
-                        סוג כיפה
+                      <Label
+                        htmlFor="kippahType"
+                        className="block mb-1.5 text-xs font-medium text-gray-600"
+                      >
+                        {dict.cards.religion.kippahTypeLabel}
                       </Label>
                       {isEditing && !viewOnly ? (
                         <Select
@@ -1282,8 +1336,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             )
                           }
                         >
-                          <SelectTrigger id="kippahType" className="h-9 text-sm focus:ring-cyan-500">
-                            <SelectValue placeholder="בחר/י סוג כיפה" />
+                          <SelectTrigger
+                            id="kippahType"
+                            className="h-9 text-sm focus:ring-cyan-500"
+                          >
+                            <SelectValue
+                              placeholder={
+                                dict.cards.religion.kippahTypePlaceholder
+                              }
+                            />
                           </SelectTrigger>
                           <SelectContent className="max-h-[200px]">
                             {kippahTypeOptions.map((opt) => (
@@ -1298,15 +1359,18 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           {renderSelectDisplayValue(
                             formData.kippahType,
                             kippahTypeOptions,
-                            'ללא'
+                            dict.cards.religion.kippahTypeDefault
                           )}
                         </p>
                       )}
                     </div>
                   )}
                   <div>
-                    <Label htmlFor="preferredMatchmakerGender" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      מגדר שדכן/ית מועדף
+                    <Label
+                      htmlFor="preferredMatchmakerGender"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.religion.matchmakerGenderLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
@@ -1318,13 +1382,22 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           )
                         }
                       >
-                        <SelectTrigger id="preferredMatchmakerGender" className="h-9 text-sm focus:ring-cyan-500">
-                          <SelectValue placeholder="בחר/י העדפה (לא חובה)" />
+                        <SelectTrigger
+                          id="preferredMatchmakerGender"
+                          className="h-9 text-sm focus:ring-cyan-500"
+                        >
+                          <SelectValue
+                            placeholder={
+                              dict.cards.religion.matchmakerGenderPlaceholder
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="MALE">משדך</SelectItem>
-                          <SelectItem value="FEMALE">שדכנית</SelectItem>
-                          <SelectItem value="NONE">ללא העדפה</SelectItem>
+                          {preferredMatchmakerGenderOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     ) : (
@@ -1332,7 +1405,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         {renderSelectDisplayValue(
                           formData.preferredMatchmakerGender,
                           preferredMatchmakerGenderOptions,
-                          'ללא העדפה'
+                          dict.cards.religion.matchmakerGenderDefault
                         )}
                       </p>
                     )}
@@ -1345,22 +1418,24 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       htmlFor="influentialRabbi"
                       className="text-sm font-medium text-gray-700"
                     >
-                      דמות רבנית/רוחנית משפיעה
+                      {dict.cards.religion.influentialRabbiLabel}
                     </Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                            <button type="button" aria-describedby="rabbi-tooltip"><Info className="w-4 h-4 text-gray-400" /></button>
+                          <button
+                            type="button"
+                            aria-describedby="rabbi-tooltip"
+                          >
+                            <Info className="w-4 h-4 text-gray-400" />
+                          </button>
                         </TooltipTrigger>
                         <TooltipContent
                           id="rabbi-tooltip"
                           side="top"
                           className="max-w-xs text-center"
                         >
-                          <p>
-                            ספר/י על דמות (רב, רבנית, הוגה דעות) שהשפיעה על
-                            תפיסת עולמך. זה עוזר לנו להבין את הגוון הרוחני שלך.
-                          </p>
+                          <p>{dict.tooltips.influentialRabbi}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -1373,14 +1448,16 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         handleChange('influentialRabbi', e.target.value)
                       }
                       className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
-                      placeholder="שם הדמות, וכיצד היא השפיעה עליך..."
+                      placeholder={
+                        dict.cards.religion.influentialRabbiPlaceholder
+                      }
                       rows={3}
                     />
                   ) : (
                     <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
                       {renderDisplayValue(
                         formData.influentialRabbi,
-                        'לא צוינה דמות משפיעה.'
+                        dict.cards.religion.influentialRabbiEmpty
                       )}
                     </p>
                   )}
@@ -1394,7 +1471,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <CardHeader className="bg-gradient-to-r from-slate-50/40 to-gray-100/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <Info className="w-5 h-5 text-slate-600" />
                 <CardTitle className="text-base font-semibold text-gray-700">
-                  קצת עלי ומידע נוסף
+                  {dict.cards.about.title}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 md:p-6">
@@ -1405,22 +1482,24 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         htmlFor="profileHeadline"
                         className="text-sm font-medium text-gray-700"
                       >
-                        כותרת פרופיל
+                        {dict.cards.about.headlineLabel}
                       </Label>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <button type="button" aria-describedby="headline-tooltip"><Info className="w-4 h-4 text-gray-400" /></button>
+                            <button
+                              type="button"
+                              aria-describedby="headline-tooltip"
+                            >
+                              <Info className="w-4 h-4 text-gray-400" />
+                            </button>
                           </TooltipTrigger>
                           <TooltipContent
                             id="headline-tooltip"
                             side="top"
                             className="max-w-xs text-center"
                           >
-                            <p>
-                              כתוב/י משפט אחד קליט שמסכם אותך או את מה שאת/ה
-                              מחפש/ת. למשל: &quot;מהנדס ביום, חולם בלילה&quot;.
-                            </p>
+                            <p>{dict.tooltips.headline}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -1433,7 +1512,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('profileHeadline', e.target.value)
                         }
                         className="text-sm focus:ring-cyan-500 rounded-lg"
-                        placeholder="משפט אחד שמסכם אותך..."
+                        placeholder={dict.cards.about.headlinePlaceholder}
                         maxLength={80}
                       />
                     ) : (
@@ -1447,13 +1526,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         ) : (
                           <div className="rounded-lg bg-slate-50 p-3 text-base italic border border-slate-200/80">
                             <p className="font-medium not-italic text-slate-600">
-                              הכותרת היא הפתיח לסיפור שלך.
+                              {dict.cards.about.headlineEmpty.title}
                             </p>
                             <p className="mt-1.5 text-slate-500">
-                              דוגמה קצרה עם עומק:
+                              {dict.cards.about.headlineEmpty.subtitle}
                               <span className="block mt-1 font-semibold text-slate-700">
-                                &quot;מחפש/ת את החיבור הפשוט, לבנות את הדבר
-                                האמיתי.&quot;
+                                {dict.cards.about.headlineEmpty.example}
                               </span>
                             </p>
                           </div>
@@ -1468,12 +1546,16 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         htmlFor="about"
                         className="text-sm font-medium text-gray-700"
                       >
-                        ספר/י קצת על עצמך (תיאור חופשי)
+                        {dict.cards.about.aboutLabel}
                       </Label>
                       <TooltipProvider delayDuration={100}>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <button type="button" aria-describedby="about-tooltip" className="text-gray-400 hover:text-gray-600">
+                            <button
+                              type="button"
+                              aria-describedby="about-tooltip"
+                              className="text-gray-400 hover:text-gray-600"
+                            >
                               <Info className="w-4 h-4" />
                             </button>
                           </TooltipTrigger>
@@ -1483,13 +1565,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             className="max-w-xs text-center"
                           >
                             <p>
-                              כאן המקום שלך לבלוט! ספר/י על עצמך באופן חופשי
-                              וזורם: מה את/ה עושה היום בחיים, תחנות משמעותיות
-                              שעברת, וכמובן - על האופי שלך.
-                              <br />
-                              <strong className="text-cyan-600">
-                                שים/י לב: נדרשים לפחות 100 תווים.
-                              </strong>
+                              {dict.tooltips.about.replace('{{count}}', '100')}
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -1509,7 +1585,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                               ? 'border-red-400 focus:ring-red-300'
                               : ''
                           )}
-                          placeholder="תאר/י את עצמך, מה מאפיין אותך, מה חשוב לך..."
+                          placeholder={dict.cards.about.aboutPlaceholder}
                           rows={5}
                           aria-describedby="about-char-count"
                         />
@@ -1523,7 +1599,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                 : 'text-gray-500'
                             )}
                           >
-                            {formData.about.trim().length} / 100+ תווים
+                            {formData.about.trim().length}
+                            {dict.charCount.replace('{{count}}', '100')}
                           </div>
                         )}
                       </div>
@@ -1531,7 +1608,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[60px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
                         {formData.about || (
                           <span className="text-gray-500 italic">
-                            לא הוזן תיאור אישי.
+                            {dict.cards.about.aboutEmpty}
                           </span>
                         )}
                       </p>
@@ -1544,22 +1621,24 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         htmlFor="inspiringCoupleStory"
                         className="text-sm font-medium text-gray-700"
                       >
-                        הזוג שנותן לי השראה
+                        {dict.cards.about.inspiringCoupleLabel}
                       </Label>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <button type="button" aria-describedby="couple-tooltip"><Info className="w-4 h-4 text-gray-400" /></button>
+                            <button
+                              type="button"
+                              aria-describedby="couple-tooltip"
+                            >
+                              <Info className="w-4 h-4 text-gray-400" />
+                            </button>
                           </TooltipTrigger>
                           <TooltipContent
                             id="couple-tooltip"
                             side="top"
                             className="max-w-xs text-center"
                           >
-                            <p>
-                              חשוב/י על זוג (מהמשפחה, חברים, דמויות היסטוריות)
-                              שהזוגיות שלהם מעוררת בך השראה. מה את/ה לומד/ת מהם?
-                            </p>
+                            <p>{dict.tooltips.inspiringCouple}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -1572,14 +1651,16 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('inspiringCoupleStory', e.target.value)
                         }
                         className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
-                        placeholder="מי הזוג ומה מיוחד בזוגיות שלהם בעיניך..."
+                        placeholder={
+                          dict.cards.about.inspiringCouplePlaceholder
+                        }
                         rows={3}
                       />
                     ) : (
                       <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
                         {renderDisplayValue(
                           formData.inspiringCoupleStory,
-                          'לא צוין זוג מעורר השראה.'
+                          dict.cards.about.inspiringCoupleEmpty
                         )}
                       </p>
                     )}
@@ -1591,12 +1672,16 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         htmlFor="matchingNotes-private"
                         className="text-sm font-medium text-gray-700"
                       >
-                        הערות נוספות לשדכן/ית (לא יוצג לצד השני)
+                        {dict.cards.about.privateNotesLabel}
                       </Label>
                       <TooltipProvider delayDuration={100}>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <button type="button" aria-describedby="private-notes-tooltip" className="text-gray-400 hover:text-gray-600">
+                            <button
+                              type="button"
+                              aria-describedby="private-notes-tooltip"
+                              className="text-gray-400 hover:text-gray-600"
+                            >
                               <Info className="w-4 h-4" />
                             </button>
                           </TooltipTrigger>
@@ -1605,11 +1690,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             side="top"
                             className="max-w-xs text-center"
                           >
-                            <p>
-                              מידע שחשוב לנו לדעת כדי למצוא התאמה טובה, אך לא
-                              תרצה/י שיופיע בפרופיל הגלוי. למשל: נושאים רגישים,
-                              העדפות ספציפיות מאוד, או רקע נוסף.
-                            </p>
+                            <p>{dict.tooltips.privateNotes}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -1622,14 +1703,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('matchingNotes', e.target.value)
                         }
                         className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
-                        placeholder="דברים נוספים שחשוב שהשדכן/ית יידעו עליך..."
+                        placeholder={dict.cards.about.privateNotesPlaceholder}
                         rows={3}
                       />
                     ) : (
                       <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
                         {formData.matchingNotes || (
                           <span className="text-gray-500 italic">
-                            אין הערות נוספות לשדכן/ית.
+                            {dict.cards.about.privateNotesEmpty}
                           </span>
                         )}
                       </p>
@@ -1640,36 +1721,32 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
             </Card>
 
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-red-50/40 to-pink-50/40 border-b border-gray-200/50 p-4">
-                  <fieldset>
-                    <legend className="w-full">
-                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                          <HeartPulse className="w-5 h-5 text-red-700" />
-                          <CardTitle className="text-base font-semibold text-gray-700">
-                            מידע רפואי ורגיש
-                          </CardTitle>
-                          <TooltipProvider delayDuration={100}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button type="button" aria-describedby="medical-tooltip"><Lock className="w-4 h-4 text-gray-400" /></button>
-                              </TooltipTrigger>
-                              <TooltipContent id="medical-tooltip">
-                                <p>
-                                  מידע בחלק זה מיועד לשדכנים בלבד ולא יוצג בפרופיל כברירת
-                                  מחדל.
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                      </div>
-                    </legend>
-                  </fieldset>
-                </CardHeader>
+              <CardHeader className="bg-gradient-to-r from-red-50/40 to-pink-50/40 border-b border-gray-200/50 p-4">
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <HeartPulse className="w-5 h-5 text-red-700" />
+                  <CardTitle className="text-base font-semibold text-gray-700">
+                    {dict.cards.medical.title}
+                  </CardTitle>
+                  <TooltipProvider delayDuration={100}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          aria-describedby="medical-tooltip"
+                        >
+                          <Lock className="w-4 h-4 text-gray-400" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent id="medical-tooltip">
+                        <p>{dict.cards.medical.tooltip}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-4">
                 <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200/80">
-                  אנו מאמינים שקשר בריא נבנה על יושרה ואחריות. חלק זה מאפשר לך
-                  לשתף באופן דיסקרטי מידע רפואי (פיזי או נפשי) רלוונטי, כדי
-                  שנוכל לסייע במציאת התאמה מדויקת ולמנוע עוגמת נפש.
+                  {dict.cards.medical.description}
                 </div>
 
                 {isEditing && !viewOnly ? (
@@ -1686,7 +1763,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         htmlFor="hasMedicalInfo"
                         className="text-sm font-medium text-gray-700 cursor-pointer"
                       >
-                        ישנו מידע רפואי שחשוב שהצוות יידע?
+                        {dict.cards.medical.hasInfoLabel}
                       </Label>
                     </div>
 
@@ -1697,7 +1774,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             htmlFor="medicalInfoDetails"
                             className="block mb-1.5 text-xs font-medium text-gray-600"
                           >
-                            פירוט המידע (יישמר בסודיות מוחלטת)
+                            {dict.cards.medical.detailsLabel}
                           </Label>
                           <Textarea
                             id="medicalInfoDetails"
@@ -1706,7 +1783,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                               handleChange('medicalInfoDetails', e.target.value)
                             }
                             className="text-sm focus:ring-cyan-500 min-h-[100px] rounded-lg"
-                            placeholder="כאן המקום לפרט. למשל: מחלה כרונית, התמודדות נפשית, ענייני פוריות, או כל דבר שמרגיש לך נכון וחשוב לציין."
+                            placeholder={dict.cards.medical.detailsPlaceholder}
                           />
                         </div>
                         <div>
@@ -1714,7 +1791,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             htmlFor="medicalInfoDisclosureTiming"
                             className="block mb-1.5 text-xs font-medium text-gray-600"
                           >
-                            מתי תרצה/י שהמידע ייחשף לצד השני (בתיווך השדכן/ית)?
+                            {dict.cards.medical.timingLabel}
                           </Label>
                           <Select
                             value={formData.medicalInfoDisclosureTiming || ''}
@@ -1725,29 +1802,31 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                               )
                             }
                           >
-                            <SelectTrigger id="medicalInfoDisclosureTiming" className="h-9 text-sm focus:ring-cyan-500">
-                              <SelectValue placeholder="בחר/י תזמון חשיפה" />
+                            <SelectTrigger
+                              id="medicalInfoDisclosureTiming"
+                              className="h-9 text-sm focus:ring-cyan-500"
+                            >
+                              <SelectValue
+                                placeholder={
+                                  dict.cards.medical.timingPlaceholder
+                                }
+                              />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="FROM_THE_START">
-                                מההתחלה (מומלץ לנושאים מהותיים)
-                              </SelectItem>
-                              <SelectItem value="AFTER_FIRST_DATES">
-                                לאחר דייט ראשון או שני
-                              </SelectItem>
-                              <SelectItem value="WHEN_SERIOUS">
-                                כשהקשר הופך לרציני
-                              </SelectItem>
-                              <SelectItem value="IN_COORDINATION_ONLY">
-                                אך ורק בתיאום טלפוני אישי איתי
-                              </SelectItem>
+                              {Object.entries(dict.options.medicalTiming).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {label}
+                                  </SelectItem>
+                                )
+                              )}
                             </SelectContent>
                           </Select>
                         </div>
 
                         <div className="border-t pt-4">
                           <Label className="block mb-2 text-xs font-medium text-gray-600">
-                            הצגה בפרופיל
+                            {dict.cards.medical.visibilityLabel}
                           </Label>
                           <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg">
                             <Switch
@@ -1764,13 +1843,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                 className="text-sm font-medium text-gray-800 cursor-pointer"
                               >
                                 {formData.isMedicalInfoVisible
-                                  ? 'יוצג בפרופיל'
-                                  : 'דיסקרטי (לצוות בלבד)'}
+                                  ? dict.cards.medical.visibilityToggle.visible
+                                  : dict.cards.medical.visibilityToggle.hidden}
                               </Label>
                               <p className="text-xs text-gray-500">
                                 {formData.isMedicalInfoVisible
-                                  ? 'ציון על קיום מידע רפואי יוצג בכרטיס שלך.'
-                                  : 'המידע יישאר חסוי וישמש את השדכנים בלבד.'}
+                                  ? dict.cards.medical.visibilityDescription
+                                      .visible
+                                  : dict.cards.medical.visibilityDescription
+                                      .hidden}
                               </p>
                             </div>
                           </div>
@@ -1782,13 +1863,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   <div className="space-y-4">
                     <div>
                       <p className="block text-xs font-medium text-gray-500">
-                        מידע רפואי ששותף
+                        {dict.cards.medical.display.sharedInfo}
                       </p>
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderBooleanDisplayValue(
                           formData.hasMedicalInfo,
-                          'כן',
-                          'לא'
+                          dict.cards.medical.display.yes,
+                          dict.cards.medical.display.no
                         )}
                       </p>
                     </div>
@@ -1796,47 +1877,32 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <>
                         <div>
                           <p className="block text-xs font-medium text-gray-500">
-                            פרטי המידע
+                            {dict.cards.medical.display.details}
                           </p>
                           <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[40px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
                             {formData.medicalInfoDetails || (
                               <span className="text-gray-500 italic">
-                                לא הוזן פירוט.
+                                {dict.cards.medical.display.noDetails}
                               </span>
                             )}
                           </p>
                         </div>
                         <div>
                           <p className="block text-xs font-medium text-gray-500">
-                            תזמון חשיפה מועדף
+                            {dict.cards.medical.display.timing}
                           </p>
                           <p className="text-sm text-gray-800 font-medium mt-1">
                             {renderSelectDisplayValue(
                               formData.medicalInfoDisclosureTiming,
-                              [
-                                {
-                                  value: 'FROM_THE_START',
-                                  label: 'מההתחלה',
-                                },
-                                {
-                                  value: 'AFTER_FIRST_DATES',
-                                  label: 'לאחר דייטים ראשונים',
-                                },
-                                {
-                                  value: 'WHEN_SERIOUS',
-                                  label: 'כשהקשר רציני',
-                                },
-                                {
-                                  value: 'IN_COORDINATION_ONLY',
-                                  label: 'בתיאום אישי בלבד',
-                                },
-                              ]
+                              Object.entries(dict.options.medicalTiming).map(
+                                ([value, label]) => ({ value, label })
+                              )
                             )}
                           </p>
                         </div>
                         <div>
                           <p className="block text-xs font-medium text-gray-500">
-                            נראות בפרופיל
+                            {dict.cards.medical.display.visibility}
                           </p>
                           <div className="flex items-center gap-2 mt-1">
                             {formData.isMedicalInfoVisible ? (
@@ -1845,7 +1911,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                 className="bg-green-100 text-green-800"
                               >
                                 <Eye className="w-3.5 h-3.5 ml-1.5" />
-                                גלוי בפרופיל
+                                {dict.cards.medical.display.visibleBadge}
                               </Badge>
                             ) : (
                               <Badge
@@ -1853,7 +1919,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                 className="bg-gray-100 text-gray-700"
                               >
                                 <Lock className="w-3.5 h-3.5 ml-1.5" />
-                                דיסקרטי (לצוות בלבד)
+                                {dict.cards.medical.display.hiddenBadge}
                               </Badge>
                             )}
                           </div>
@@ -1869,14 +1935,17 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <CardHeader className="bg-gradient-to-r from-teal-50/40 to-green-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <Briefcase className="w-5 h-5 text-teal-700" />
                 <CardTitle className="text-base font-semibold text-gray-700">
-                  השכלה, עיסוק ושירות
+                  {dict.cards.education.title}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 md:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
                   <div>
-                    <Label htmlFor="educationLevel" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      רמת השכלה
+                    <Label
+                      htmlFor="educationLevel"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.education.levelLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
@@ -1885,8 +1954,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('educationLevel', value || undefined)
                         }
                       >
-                        <SelectTrigger id="educationLevel" className="h-9 text-sm focus:ring-cyan-500">
-                          <SelectValue placeholder="בחר/י רמה" />
+                        <SelectTrigger
+                          id="educationLevel"
+                          className="h-9 text-sm focus:ring-cyan-500"
+                        >
+                          <SelectValue
+                            placeholder={dict.cards.education.levelPlaceholder}
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           {educationLevelOptions.map((opt) => (
@@ -1906,8 +1980,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div className="sm:col-span-2">
-                    <Label htmlFor="education" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      פירוט השכלה (מוסד, תחום)
+                    <Label
+                      htmlFor="education"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.education.detailsLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
@@ -1916,7 +1993,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         onChange={(e) =>
                           handleChange('education', e.target.value)
                         }
-                        placeholder="לדוגמה: אוני' בר אילן, משפטים"
+                        placeholder={dict.cards.education.detailsPlaceholder}
                         className="h-9 text-sm focus:ring-cyan-500"
                       />
                     ) : (
@@ -1926,8 +2003,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div className="sm:col-span-2">
-                    <Label htmlFor="occupation" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      עיסוק נוכחי
+                    <Label
+                      htmlFor="occupation"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.education.occupationLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
@@ -1936,7 +2016,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         onChange={(e) =>
                           handleChange('occupation', e.target.value)
                         }
-                        placeholder="לדוגמה: מורה, מהנדס תוכנה"
+                        placeholder={dict.cards.education.occupationPlaceholder}
                         className="h-9 text-sm focus:ring-cyan-500"
                         maxLength={20}
                       />
@@ -1947,8 +2027,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="serviceType" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      שירות (צבאי/לאומי/אחר)
+                    <Label
+                      htmlFor="serviceType"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.education.serviceTypeLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
@@ -1960,8 +2043,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           )
                         }
                       >
-                        <SelectTrigger id="serviceType" className="h-9 text-sm focus:ring-cyan-500">
-                          <SelectValue placeholder="בחר/י סוג שירות" />
+                        <SelectTrigger
+                          id="serviceType"
+                          className="h-9 text-sm focus:ring-cyan-500"
+                        >
+                          <SelectValue
+                            placeholder={
+                              dict.cards.education.serviceTypePlaceholder
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent className="max-h-[250px]">
                           {serviceTypeOptions.map((opt) => (
@@ -1981,8 +2071,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div className="sm:col-span-2">
-                    <Label htmlFor="serviceDetails" className="block mb-1.5 text-xs font-medium text-gray-600">
-                      פירוט על השירות
+                    <Label
+                      htmlFor="serviceDetails"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.education.serviceDetailsLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
@@ -1991,7 +2084,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         onChange={(e) =>
                           handleChange('serviceDetails', e.target.value)
                         }
-                        placeholder="חיל, יחידה, תפקיד, שם ישיבה/מכינה"
+                        placeholder={
+                          dict.cards.education.serviceDetailsPlaceholder
+                        }
                         className="h-9 text-sm focus:ring-cyan-500"
                       />
                     ) : (
@@ -2008,13 +2103,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <CardHeader className="bg-gradient-to-r from-amber-50/40 to-yellow-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <Smile className="w-5 h-5 text-amber-600" />
                 <CardTitle className="text-base font-semibold text-gray-700">
-                  תכונות אופי ותחביבים
+                  {dict.cards.character.title}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-6">
                 <fieldset>
                   <legend className="block mb-2 text-sm font-medium text-gray-700">
-                    תכונות אופי בולטות (עד 3)
+                    {dict.cards.character.traitsLabel}
                   </legend>
                   {isEditing && !viewOnly ? (
                     <div className="flex flex-wrap gap-2">
@@ -2065,14 +2160,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       {renderMultiSelectBadges(
                         formData.profileCharacterTraits,
                         characterTraitsOptions,
-                        'לא נבחרו תכונות אופי.'
+                        dict.cards.character.traitsEmpty
                       )}
                     </div>
                   )}
                 </fieldset>
                 <fieldset>
                   <legend className="block mb-2 text-sm font-medium text-gray-700">
-                    תחביבים עיקריים (עד 3)
+                    {dict.cards.character.hobbiesLabel}
                   </legend>
                   {isEditing && !viewOnly ? (
                     <div className="flex flex-wrap gap-2">
@@ -2122,7 +2217,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       {renderMultiSelectBadges(
                         formData.profileHobbies,
                         hobbiesOptions,
-                        'לא נבחרו תחביבים.'
+                        dict.cards.character.hobbiesEmpty
                       )}
                     </div>
                   )}
@@ -2143,7 +2238,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-2"
             >
               <X className="w-4 h-4 ml-1.5" />
-              ביטול
+              {dict.buttons.cancel}
             </Button>
             <Button
               variant="default"
@@ -2152,7 +2247,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2"
             >
               <Save className="w-4 h-4 ml-1.5" />
-              שמירת שינויים
+              {dict.buttons.saveChanges}
             </Button>
           </div>
         </div>

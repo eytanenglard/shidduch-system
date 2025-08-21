@@ -1,5 +1,7 @@
-// src/components/shared/profile/utils.ts
+// src/components/profile/utils.ts
 import type { UserProfile } from "@/types/next-auth";
+import { VALIDATION_RULES } from "./constants";
+import { ProfileUtilsDict } from "@/types/dictionary";
 
 export const calculateAge = (birthDate: Date): number => {
   const today = new Date();
@@ -21,12 +23,13 @@ export const formatProfileData = (profile: UserProfile) => {
   };
 };
 
+// The function now returns error keys instead of strings.
+// The component calling it will use the key to get the translated message.
 export const validateProfileData = (data: Partial<UserProfile>) => {
   const errors: Record<string, string> = {};
   
-  // Add validation rules as needed
-  if (data.height && (data.height < 100 || data.height > 250)) {
-    errors.height = "גובה חייב להיות בין 100 ל-250 ס\"מ";
+  if (data.height && (data.height < VALIDATION_RULES.HEIGHT.MIN || data.height > VALIDATION_RULES.HEIGHT.MAX)) {
+    errors.height = "heightRange";
   }
   
   return {

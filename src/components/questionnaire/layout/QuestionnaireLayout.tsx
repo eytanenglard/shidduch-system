@@ -1,8 +1,8 @@
+// src/components/questionnaire/layout/QuestionnaireLayout.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Heart,
   User,
@@ -20,13 +20,13 @@ import {
   LogIn,
   UserPlus,
   Scroll,
-  ChevronLeft, // אייקון חדש
-  Edit, // אייקון חדש
-  BookUser, // *** הוספה חדשה ***
-  Info, // <-- הוספה
-  EyeOff, // <-- הוספה
+  ChevronLeft,
+  Edit,
+  BookUser,
+  Info,
+  EyeOff,
 } from 'lucide-react';
-import type { WorldId, QuestionnaireLayoutProps } from '../types/types';
+import type { WorldId } from '../types/types';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,55 +45,35 @@ import {
 } from '@/components/ui/sheet';
 import FAQ from '../components/FAQ';
 import AccessibilityFeatures from '../components/AccessibilityFeatures';
+import type {
+  QuestionnaireLayoutDict,
+  MatchmakingQuestionnaireDict,
+} from '@/types/dictionary';
 
-interface ToastProps {
-  message: string;
-  type: 'success' | 'error' | 'info';
-  isVisible: boolean;
-  onClose?: () => void;
+// Props Interface
+export interface QuestionnaireLayoutProps {
+  children: React.ReactNode;
+  currentWorld: WorldId;
+  completedWorlds: WorldId[];
+  onWorldChange: (worldId: WorldId) => void;
+  onExit?: () => void;
+  language?: string;
+  onSaveProgress?: () => Promise<void>;
+  isLoggedIn?: boolean;
+  dict: {
+    // The dict is now structured
+    layout: QuestionnaireLayoutDict;
+    worldLabels: MatchmakingQuestionnaireDict['worldLabels'];
+  };
 }
 
-// ============================================================================
-// CONFIGURATION OBJECT FOR WORLDS
-// ============================================================================
 const worldConfig = {
-  PERSONALITY: { icon: User, label: 'אישיות', themeColor: 'sky' },
-  VALUES: { icon: Heart, label: 'ערכים ואמונות', themeColor: 'rose' },
-  RELATIONSHIP: { icon: Users, label: 'זוגיות', themeColor: 'purple' },
-  PARTNER: { icon: User, label: 'הפרטנר האידיאלי', themeColor: 'teal' },
-  RELIGION: { icon: Scroll, label: 'דת ומסורת', themeColor: 'amber' },
+  PERSONALITY: { icon: User, themeColor: 'sky' },
+  VALUES: { icon: Heart, themeColor: 'rose' },
+  RELATIONSHIP: { icon: Users, themeColor: 'purple' },
+  PARTNER: { icon: User, themeColor: 'teal' },
+  RELIGION: { icon: Scroll, themeColor: 'amber' },
 } as const;
-
-// Enhanced Toast component
-const Toast = ({ message, type, isVisible, onClose }: ToastProps) => {
-  if (!isVisible) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      className={cn(
-        'fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-3 rounded-lg shadow-lg',
-        'max-w-md w-full flex items-center justify-between',
-        type === 'success' && 'bg-green-500 text-white',
-        type === 'error' && 'bg-red-500 text-white',
-        type === 'info' && 'bg-blue-500 text-white'
-      )}
-    >
-      <span className="font-medium">{message}</span>
-      {onClose && (
-        <button
-          onClick={onClose}
-          className="ml-2 text-white hover:bg-white/20 p-1 rounded-full transition-colors"
-          aria-label="סגור הודעה"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      )}
-    </motion.div>
-  );
-};
 
 export default function QuestionnaireLayout({
   children,
@@ -101,77 +81,35 @@ export default function QuestionnaireLayout({
   completedWorlds,
   onWorldChange,
   onExit,
-  onSaveProgress,
   language = 'he',
   isLoggedIn = false,
+  onSaveProgress,
+  dict,
 }: QuestionnaireLayoutProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [showExitPrompt, setShowExitPrompt] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{
-    message: string;
-    type: 'success' | 'error' | 'info';
-    isVisible: boolean;
-  }>({
-    message: '',
-    type: 'info',
-    isVisible: false,
-  });
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isAccessibilityPanelOpen, setAccessibilityPanelOpen] = useState(false);
 
   const isSmallScreen = useMediaQuery('(max-width: 640px)');
   const currentThemeColor = worldConfig[currentWorld]?.themeColor || 'sky';
-
-  const showToast = useCallback(
-    (message: string, type: 'success' | 'error' | 'info' = 'info') => {
-      setToast({ message, type, isVisible: true });
-      setTimeout(() => {
-        setToast((prev) => ({ ...prev, isVisible: false }));
-      }, 3000);
-    },
-    []
-  );
-
-  const handleSave = useCallback(
-    async (isAutoSave = false) => {
-      if (!onSaveProgress) {
-        if (!isAutoSave) showToast('לא ניתן לשמור את השאלון כרגע', 'error');
-        return;
-      }
-      setIsSaving(true);
-      setError(null);
-      try {
-        await onSaveProgress();
-        setLastSaved(new Date());
-        if (!isAutoSave) showToast('השאלון נשמר בהצלחה', 'success');
-      } catch {
-        setError('אירעה שגיאה בשמירת השאלון');
-        if (!isAutoSave) showToast('אירעה שגיאה בשמירת השאלון', 'error');
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [onSaveProgress, showToast]
-  );
-
-  useEffect(() => {
-    let saveTimer: NodeJS.Timeout;
-    if (onSaveProgress) {
-      saveTimer = setInterval(() => handleSave(true), 120000); // Auto-save every 2 minutes
-    }
-    return () => {
-      if (saveTimer) clearInterval(saveTimer);
-    };
-  }, [onSaveProgress, handleSave]);
-
   const isRTL = language === 'he';
   const directionClass = isRTL ? 'rtl' : 'ltr';
 
-  // ============================================================================
-  // START OF IMPROVED NavButton COMPONENT
-  // ============================================================================
+  const handleSave = useCallback(async () => {
+    if (!onSaveProgress) return;
+    setIsSaving(true);
+    try {
+      await onSaveProgress();
+      setLastSaved(new Date());
+    } catch (err) {
+      console.error('Save failed in layout:', err);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [onSaveProgress]);
+
   const NavButton = ({
     worldId,
     isMobile,
@@ -179,12 +117,9 @@ export default function QuestionnaireLayout({
     worldId: string;
     isMobile: boolean;
   }) => {
-    const {
-      icon: Icon,
-      label,
-      themeColor,
-    } = worldConfig[worldId as keyof typeof worldConfig];
-
+    const { icon: Icon, themeColor } =
+      worldConfig[worldId as keyof typeof worldConfig];
+    const label = dict.worldLabels[worldId as WorldId];
     const isActive = currentWorld === worldId;
     const isCompleted = completedWorlds.includes(worldId as WorldId);
     let status: 'active' | 'completed' | 'pending' = 'pending';
@@ -194,72 +129,48 @@ export default function QuestionnaireLayout({
     const statusConfig = {
       active: {
         classes: `bg-${themeColor}-600 text-white shadow-lg hover:bg-${themeColor}-700 ring-2 ring-offset-2 ring-${themeColor}-400`,
-        tooltip: 'את/ה בעולם זה כעת',
         actionIcon: <ChevronLeft className="h-5 w-5 animate-pulse" />,
       },
       completed: {
         classes:
           'border-green-300 bg-green-50 text-green-800 hover:bg-green-100 opacity-90 hover:opacity-100',
-        tooltip: 'השלמת את העולם הזה. לחץ/י כדי לערוך.',
         actionIcon: <Edit className="h-4 w-4 text-green-600" />,
       },
       pending: {
         classes: 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700',
-        tooltip: `עבור לעולם ה${label}`,
         actionIcon: null,
       },
     };
-
     const currentStatusConfig = statusConfig[status];
 
     return (
-      <TooltipProvider delayDuration={300}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant={'outline'}
-              size={isMobile ? 'sm' : 'default'}
-              className={cn(
-                'flex items-center justify-between w-full mb-2 transition-all duration-200 rounded-lg',
-                currentStatusConfig.classes,
-                isMobile ? 'py-2 text-sm' : 'p-3'
-              )}
-              onClick={() => {
-                onWorldChange(worldId as WorldId);
-                if (isMobile) setShowMobileNav(false);
-              }}
-            >
-              {/* Right side: Icon and Text */}
-              <div className="flex items-center gap-3">
-                <Icon
-                  className={cn(
-                    'h-5 w-5',
-                    isActive ? 'text-white' : `text-${themeColor}-500`
-                  )}
-                />
-                <span className="truncate text-right font-medium">{label}</span>
-              </div>
-
-              {/* Left side: Action Icon */}
-              <div className="flex-shrink-0">
-                {currentStatusConfig.actionIcon}
-              </div>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side={isRTL ? 'left' : 'right'}>
-            <p>{currentStatusConfig.tooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Button
+        variant={'outline'}
+        size={isMobile ? 'sm' : 'default'}
+        className={cn(
+          'flex items-center justify-between w-full mb-2 transition-all duration-200 rounded-lg',
+          currentStatusConfig.classes,
+          isMobile ? 'py-2 text-sm' : 'p-3'
+        )}
+        onClick={() => {
+          onWorldChange(worldId as WorldId);
+          if (isMobile) setShowMobileNav(false);
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <Icon
+            className={cn(
+              'h-5 w-5',
+              isActive ? 'text-white' : `text-${themeColor}-500`
+            )}
+          />
+          <span className="truncate text-right font-medium">{label}</span>
+        </div>
+        <div className="flex-shrink-0">{currentStatusConfig.actionIcon}</div>
+      </Button>
     );
   };
-  // ============================================================================
-  // END OF IMPROVED NavButton COMPONENT
-  // ============================================================================
 
-  // ============================================================================
-  // START OF NEW ProfileNotice COMPONENT
-  // ============================================================================
   const ProfileNotice = () => (
     <div className="mx-4 my-2 p-3 bg-slate-100/80 border border-slate-200/90 rounded-lg">
       <div className="flex items-start gap-3">
@@ -268,20 +179,21 @@ export default function QuestionnaireLayout({
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-slate-600 leading-relaxed text-sm">
-            <span className="font-medium text-slate-700">שימ/י לב:</span> כל
-            תשובה שתענה/י תוצג אוטומטית בכרטיס הפרופיל שלך כדי לשפר את איכות
-            ההתאמות. ניתן להסתיר כל שאלה מהפרופיל באמצעות המתג{' '}
+            <span className="font-medium text-slate-700">
+              {dict.layout.profileNotice.title}
+            </span>{' '}
+            {dict.layout.profileNotice.textPart1}
             <span className="inline-flex items-center px-1 py-0.5 bg-white border border-slate-200 rounded text-xs font-mono">
               <EyeOff className="inline-block h-3 w-3 mr-1 text-slate-500" />
-            </span>{' '}
-            שבחלק התחתון של כל שאלה.
+            </span>
+            {dict.layout.profileNotice.textPart2}
             <br />
             <Link
               href="/profile?tab=questionnaire"
               className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
               target="_blank"
             >
-              צפייה בפרופיל שלך
+              {dict.layout.profileNotice.link}
               <svg
                 className="w-3 h-3"
                 fill="none"
@@ -301,9 +213,31 @@ export default function QuestionnaireLayout({
       </div>
     </div>
   );
-  // ============================================================================
-  // END OF NEW ProfileNotice COMPONENT
-  // ============================================================================
+
+  const UnauthenticatedPrompt = () => (
+    <div className="p-3 my-3 bg-cyan-50/70 border border-cyan-200 rounded-lg text-center space-y-2">
+      <p className="text-sm text-cyan-800 font-medium">
+        {dict.layout.unauthenticatedPrompt.title}
+      </p>
+      <p className="text-xs text-cyan-700">
+        {dict.layout.unauthenticatedPrompt.subtitle}
+      </p>
+      <div className="flex gap-2 justify-center pt-1">
+        <Link href="/auth/signin">
+          <Button variant="outline" size="sm" className="bg-white/80">
+            <LogIn className="w-3 h-3 ml-1" />
+            {dict.layout.unauthenticatedPrompt.loginButton}
+          </Button>
+        </Link>
+        <Link href="/auth/register">
+          <Button variant="default" size="sm">
+            <UserPlus className="w-3 h-3 ml-1" />
+            {dict.layout.unauthenticatedPrompt.registerButton}
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
 
   const renderFAQButton = (isMobile: boolean) => (
     <Sheet>
@@ -317,10 +251,10 @@ export default function QuestionnaireLayout({
               ? 'w-full justify-start gap-3 p-3'
               : 'w-8 h-8 p-0 rounded-full'
           )}
-          aria-label="שאלות נפוצות"
+          aria-label={dict.layout.tooltips.faq}
         >
           <HelpCircle className="h-5 w-5" />
-          {isMobile && <span>שאלות נפוצות</span>}
+          {isMobile && <span>{dict.layout.tooltips.faq}</span>}
         </Button>
       </SheetTrigger>
       <SheetContent
@@ -328,38 +262,13 @@ export default function QuestionnaireLayout({
         className="w-[90vw] max-w-lg overflow-y-auto"
       >
         <SheetHeader>
-          <SheetTitle>שאלות נפוצות</SheetTitle>
+          <SheetTitle>{dict.layout.tooltips.faq}</SheetTitle>
         </SheetHeader>
         <div className="mt-4">
           <FAQ />
         </div>
       </SheetContent>
     </Sheet>
-  );
-
-  const UnauthenticatedPrompt = () => (
-    <div className="p-3 my-3 bg-cyan-50/70 border border-cyan-200 rounded-lg text-center space-y-2">
-      <p className="text-sm text-cyan-800 font-medium">
-        התקדמותך נשמרת זמנית בדפדפן.
-      </p>
-      <p className="text-xs text-cyan-700">
-        התחבר/י או הרשמ/י כדי לשמור את התשובות לחשבונך.
-      </p>
-      <div className="flex gap-2 justify-center pt-1">
-        <Link href="/auth/signin">
-          <Button variant="outline" size="sm" className="bg-white/80">
-            <LogIn className="w-3 h-3 ml-1" />
-            התחברות
-          </Button>
-        </Link>
-        <Link href="/auth/register">
-          <Button variant="default" size="sm">
-            <UserPlus className="w-3 h-3 ml-1" />
-            הרשמה
-          </Button>
-        </Link>
-      </div>
-    </div>
   );
 
   const MobileNav = () => (
@@ -379,14 +288,12 @@ export default function QuestionnaireLayout({
             animate={{ x: 0 }}
             exit={{ x: isRTL ? '100%' : '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`fixed top-0 ${
-              isRTL ? 'right-0' : 'left-0'
-            } h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`}
+            className={`fixed top-0 ${isRTL ? 'right-0' : 'left-0'} h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-medium flex items-center">
                 <ArrowRightLeft className="w-5 h-5 mr-2 text-blue-500" />
-                ניווט בשאלון
+                {dict.layout.mobileNav.title}
               </h2>
               <Button
                 variant="ghost"
@@ -404,7 +311,6 @@ export default function QuestionnaireLayout({
             </div>
             {!isLoggedIn && <UnauthenticatedPrompt />}
             <div className="pt-4 mt-4 border-t space-y-2">
-              {/* --- START: הוספת קישור לצפייה בכל התשובות במובייל --- */}
               <Link href="/profile?tab=questionnaire">
                 <Button
                   variant="outline"
@@ -412,10 +318,9 @@ export default function QuestionnaireLayout({
                   className="w-full justify-start gap-2"
                 >
                   <BookUser className="h-4 w-4" />
-                  צפייה בכל התשובות
+                  {dict.layout.mobileNav.reviewAnswers}
                 </Button>
               </Link>
-              {/* --- END: הוספת קישור לצפייה בכל התשובות במובייל --- */}
               <Button
                 variant="outline"
                 size="sm"
@@ -423,7 +328,7 @@ export default function QuestionnaireLayout({
                 onClick={onExit}
               >
                 <Home className="h-4 w-4" />
-                חזרה למפת העולמות
+                {dict.layout.mobileNav.backToMap}
               </Button>
               <Button
                 variant="outline"
@@ -432,7 +337,7 @@ export default function QuestionnaireLayout({
                 onClick={() => setShowExitPrompt(true)}
               >
                 <LogOut className="h-4 w-4" />
-                יציאה
+                {dict.layout.mobileNav.exit}
               </Button>
             </div>
           </motion.div>
@@ -467,7 +372,7 @@ export default function QuestionnaireLayout({
               `text-${currentThemeColor}-800`
             )}
           >
-            {worldConfig[currentWorld]?.label}
+            {dict.worldLabels[currentWorld]}
           </h1>
           <div className="text-xs text-slate-500">
             {completedWorlds.length} / {Object.keys(worldConfig).length} הושלמו
@@ -494,9 +399,7 @@ export default function QuestionnaireLayout({
           </Button>
         </div>
       </header>
-
       <MobileNav />
-
       <aside
         className={cn(
           'w-64 bg-white border-r hidden lg:flex lg:flex-col overflow-y-auto',
@@ -505,20 +408,16 @@ export default function QuestionnaireLayout({
       >
         <div className="p-4 border-b">
           <h3 className="font-semibold text-lg text-slate-800">
-            עולמות השאלון
+            {dict.layout.navHeader}
           </h3>
-          <p className="text-xs text-slate-500">נווט בין חלקי השאלון השונים</p>
+          <p className="text-xs text-slate-500">{dict.layout.navSubtitle}</p>
         </div>
         <div className="p-4 flex-grow">
           {Object.keys(worldConfig).map((worldId) => (
             <NavButton key={worldId} worldId={worldId} isMobile={false} />
           ))}
         </div>
-
-        {/* === START: MOVED AND RESTYLED NOTICE === */}
         <ProfileNotice />
-        {/* === END: MOVED AND RESTYLED NOTICE === */}
-
         {!isLoggedIn && (
           <div className="px-4">
             <UnauthenticatedPrompt />
@@ -528,7 +427,12 @@ export default function QuestionnaireLayout({
           {lastSaved && (
             <div className="flex items-center text-xs text-slate-500 mb-2">
               <CheckCircle className="h-3.5 w-3.5 mr-1.5 text-green-500" />
-              <span>נשמר: {lastSaved.toLocaleTimeString()}</span>
+              <span>
+                {dict.layout.lastSaved.replace(
+                  '{{time}}',
+                  lastSaved.toLocaleTimeString()
+                )}
+              </span>
             </div>
           )}
           <Button
@@ -540,26 +444,24 @@ export default function QuestionnaireLayout({
             {isSaving ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                שומר...
+                {dict.layout.buttons.saving}
               </>
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                שמור התקדמות
+                {dict.layout.buttons.save}
               </>
             )}
           </Button>
-          {/* --- START: הוספת קישור לצפייה בכל התשובות בדסקטופ --- */}
           <Link href="/profile?tab=questionnaire">
             <Button variant="outline" className="w-full">
               <BookUser className="w-4 h-4 mr-2" />
-              סקירת תשובות
+              {dict.layout.buttons.review}
             </Button>
           </Link>
-          {/* --- END: הוספת קישור לצפייה בכל התשובות בדסקטופ --- */}
           <Button variant="outline" className="w-full" onClick={onExit}>
             <Home className="w-4 h-4 mr-2" />
-            מפת העולמות
+            {dict.layout.buttons.map}
           </Button>
           <div className="flex gap-2 pt-2">
             {renderFAQButton(false)}
@@ -576,17 +478,14 @@ export default function QuestionnaireLayout({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>נגישות ותצוגה</p>
+                  <p>{dict.layout.tooltips.accessibility}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
         </div>
       </aside>
-
       <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto relative scroll-smooth">
-        {/* The information block was removed from here */}
-
         {children}
         <AccessibilityFeatures
           isPanelOpen={isAccessibilityPanelOpen}
@@ -594,7 +493,6 @@ export default function QuestionnaireLayout({
           className="fixed bottom-4 right-4 lg:bottom-6 lg:left-6 lg:right-auto z-50"
         />
       </main>
-
       <AnimatePresence>
         {showExitPrompt && (
           <motion.div
@@ -612,10 +510,10 @@ export default function QuestionnaireLayout({
               <Card className="bg-white">
                 <CardContent className="pt-6">
                   <h3 className="text-lg font-medium mb-4">
-                    האם אתה בטוח שברצונך לצאת?
+                    {dict.layout.exitPrompt.title}
                   </h3>
                   <p className="text-slate-600 mb-6">
-                    כל התשובות שלא נשמרו יאבדו. האם ברצונך לשמור לפני היציאה?
+                    {dict.layout.exitPrompt.description}
                   </p>
                   <div className="flex flex-col sm:flex-row justify-end gap-2">
                     <Button
@@ -623,7 +521,7 @@ export default function QuestionnaireLayout({
                       size="sm"
                       onClick={() => setShowExitPrompt(false)}
                     >
-                      ביטול
+                      {dict.layout.exitPrompt.cancel}
                     </Button>
                     <Button
                       variant="outline"
@@ -635,10 +533,10 @@ export default function QuestionnaireLayout({
                       }}
                       disabled={isSaving}
                     >
-                      {isSaving ? (
+                      {isSaving && (
                         <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                      ) : null}
-                      שמור וצא
+                      )}
+                      {dict.layout.exitPrompt.saveAndExit}
                     </Button>
                     <Button
                       variant="destructive"
@@ -648,24 +546,13 @@ export default function QuestionnaireLayout({
                         if (onExit) onExit();
                       }}
                     >
-                      צא ללא שמירה
+                      {dict.layout.exitPrompt.exitWithoutSaving}
                     </Button>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {toast.isVisible && (
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            isVisible={toast.isVisible}
-            onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
-          />
         )}
       </AnimatePresence>
     </div>

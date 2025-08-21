@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Heart,
   X,
@@ -21,16 +21,17 @@ import {
   Coffee,
   Bookmark,
   ExternalLink,
-} from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+} from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
+import type { MatchResultCardDict } from '@/types/dictionary'; // Import dictionary type
 
 interface MatchTrait {
   name: string;
@@ -41,12 +42,12 @@ interface MatchTrait {
 interface CommonInterest {
   name: string;
   category:
-    | "hobby"
-    | "value"
-    | "lifestyle"
-    | "religion"
-    | "education"
-    | "other";
+    | 'hobby'
+    | 'value'
+    | 'lifestyle'
+    | 'religion'
+    | 'education'
+    | 'other';
   icon?: React.ReactNode;
 }
 
@@ -55,7 +56,7 @@ interface MatchResultCardProps {
   name: string;
   age: number;
   location: string;
-  distance?: number; // בקילומטרים
+  distance?: number;
   profileImage?: string;
   matchPercentage: number;
   occupation?: string;
@@ -73,6 +74,7 @@ interface MatchResultCardProps {
   onViewProfile?: (id: string) => void;
   onBookmark?: (id: string, bookmarked: boolean) => void;
   isPremium?: boolean;
+  dict: MatchResultCardDict; // Use the specific dictionary type
 }
 
 export default function MatchResultCard({
@@ -98,67 +100,72 @@ export default function MatchResultCard({
   onViewProfile,
   onBookmark,
   isPremium = false,
+  dict,
 }: MatchResultCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(bookmarked);
   const [showConfirmReject, setShowConfirmReject] = useState(false);
 
-  // מיפוי אייקון לקטגוריות תחומי עניין משותפים
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case "hobby":
+      case 'hobby':
         return <Music className="h-3.5 w-3.5" />;
-      case "value":
+      case 'value':
         return <Heart className="h-3.5 w-3.5" />;
-      case "lifestyle":
+      case 'lifestyle':
         return <Coffee className="h-3.5 w-3.5" />;
-      case "religion":
+      case 'religion':
         return <BookOpen className="h-3.5 w-3.5" />;
-      case "education":
+      case 'education':
         return <GraduationCap className="h-3.5 w-3.5" />;
       default:
         return <Star className="h-3.5 w-3.5" />;
     }
   };
 
-  // פורמט לזמן פעילות אחרונה
   const formatLastActive = (date?: Date) => {
-    if (!date) return "לא ידוע";
-
+    if (!date) return dict.lastActiveFormat.unknown;
     const now = new Date();
     const diffInDays = Math.floor(
       (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
     );
-
-    if (diffInDays === 0) return "היום";
-    if (diffInDays === 1) return "אתמול";
-    if (diffInDays < 7) return `לפני ${diffInDays} ימים`;
-    if (diffInDays < 30) return `לפני ${Math.floor(diffInDays / 7)} שבועות`;
-    return `לפני ${Math.floor(diffInDays / 30)} חודשים`;
+    if (diffInDays === 0) return dict.lastActiveFormat.today;
+    if (diffInDays === 1) return dict.lastActiveFormat.yesterday;
+    if (diffInDays < 7)
+      return dict.lastActiveFormat.daysAgo.replace(
+        '{{count}}',
+        diffInDays.toString()
+      );
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    if (diffInDays < 30)
+      return dict.lastActiveFormat.weeksAgo.replace(
+        '{{count}}',
+        diffInWeeks.toString()
+      );
+    const diffInMonths = Math.floor(diffInDays / 30);
+    return dict.lastActiveFormat.monthsAgo.replace(
+      '{{count}}',
+      diffInMonths.toString()
+    );
   };
 
-  // טיפול בשמירה במועדפים
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
-    if (onBookmark) {
-      onBookmark(id, !isBookmarked);
-    }
+    if (onBookmark) onBookmark(id, !isBookmarked);
   };
 
-  // קביעת צבע לפי אחוז התאמה
   const getMatchColor = () => {
-    if (matchPercentage >= 90) return "from-green-400 to-emerald-500";
-    if (matchPercentage >= 80) return "from-emerald-400 to-green-500";
-    if (matchPercentage >= 70) return "from-blue-400 to-blue-500";
-    if (matchPercentage >= 60) return "from-blue-400 to-cyan-500";
-    return "from-cyan-400 to-blue-500";
+    if (matchPercentage >= 90) return 'from-green-400 to-emerald-500';
+    if (matchPercentage >= 80) return 'from-emerald-400 to-green-500';
+    if (matchPercentage >= 70) return 'from-blue-400 to-blue-500';
+    if (matchPercentage >= 60) return 'from-blue-400 to-cyan-500';
+    return 'from-cyan-400 to-blue-500';
   };
 
-  // אנימציות
   const expandVariants = {
     hidden: { height: 0, opacity: 0 },
     visible: {
-      height: "auto",
+      height: 'auto',
       opacity: 1,
       transition: {
         height: { duration: 0.3 },
@@ -170,23 +177,20 @@ export default function MatchResultCard({
   return (
     <Card
       className={cn(
-        "overflow-hidden transition-all border",
-        isExpanded ? "shadow-md" : "shadow-sm hover:shadow-md",
-        isPremium ? "border-amber-200" : "border-blue-100",
+        'overflow-hidden transition-all border',
+        isExpanded ? 'shadow-md' : 'shadow-sm hover:shadow-md',
+        isPremium ? 'border-amber-200' : 'border-blue-100',
         className
       )}
     >
-      {/* Premium Badge */}
       {isPremium && (
         <div className="absolute top-0 left-0 bg-gradient-to-r from-amber-400 to-amber-600 text-white px-2 py-0.5 text-xs rounded-br-md z-10">
           <Sparkles className="h-3 w-3 inline-block mr-1" />
-          התאמה מומלצת
+          {dict.premiumBadge}
         </div>
       )}
 
-      {/* Top Section */}
       <div className="p-4 flex md:flex-row flex-col gap-4">
-        {/* Image */}
         <div className="relative">
           <Avatar className="w-24 h-24 rounded-lg border-2 border-white shadow-sm">
             <AvatarImage src={profileImage} alt={name} />
@@ -194,22 +198,22 @@ export default function MatchResultCard({
               {name.charAt(0)}
             </AvatarFallback>
           </Avatar>
-
-          {/* Match Percentage */}
           <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2">
             <Badge
               className={cn(
-                "rounded-full bg-gradient-to-r px-2 text-white border-0 shadow-sm",
+                'rounded-full bg-gradient-to-r px-2 text-white border-0 shadow-sm',
                 getMatchColor()
               )}
             >
               <Sparkles className="h-3 w-3 mr-1" />
-              {matchPercentage}% התאמה
+              {dict.matchPercentageBadge.replace(
+                '{{percentage}}',
+                matchPercentage.toString()
+              )}
             </Badge>
           </div>
         </div>
 
-        {/* Basic Info */}
         <div className="flex-1 space-y-2">
           <div className="flex justify-between items-start">
             <div>
@@ -222,7 +226,6 @@ export default function MatchResultCard({
                 {distance && <span className="mr-1">({distance} קמ)</span>}
               </div>
             </div>
-
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -230,8 +233,8 @@ export default function MatchResultCard({
                     variant="ghost"
                     size="icon"
                     className={cn(
-                      "h-8 w-8 rounded-full",
-                      isBookmarked ? "text-amber-500" : "text-gray-400"
+                      'h-8 w-8 rounded-full',
+                      isBookmarked ? 'text-amber-500' : 'text-gray-400'
                     )}
                     onClick={handleBookmark}
                   >
@@ -239,13 +242,16 @@ export default function MatchResultCard({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{isBookmarked ? "הסר ממועדפים" : "הוסף למועדפים"}</p>
+                  <p>
+                    {isBookmarked
+                      ? dict.tooltips.removeFromBookmarks
+                      : dict.tooltips.addToBookmarks}
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
 
-          {/* Occupation + Education */}
           <div className="space-y-1">
             {occupation && (
               <div className="flex items-center text-sm text-gray-600">
@@ -253,7 +259,6 @@ export default function MatchResultCard({
                 {occupation}
               </div>
             )}
-
             {education && (
               <div className="flex items-center text-sm text-gray-600">
                 <GraduationCap className="h-3.5 w-3.5 mr-1 text-gray-500" />
@@ -262,7 +267,6 @@ export default function MatchResultCard({
             )}
           </div>
 
-          {/* Common Interests Preview */}
           {commonInterests.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-1">
               {commonInterests.slice(0, 3).map((interest, index) => (
@@ -277,7 +281,6 @@ export default function MatchResultCard({
                   </span>
                 </Badge>
               ))}
-
               {commonInterests.length > 3 && (
                 <Badge
                   variant="outline"
@@ -291,7 +294,6 @@ export default function MatchResultCard({
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="px-4 pb-3 flex gap-2 justify-center">
         {onReject &&
           (showConfirmReject ? (
@@ -302,7 +304,7 @@ export default function MatchResultCard({
                 className="flex-1"
                 onClick={() => onReject(id)}
               >
-                לאשר דחייה
+                {dict.buttons.confirmReject}
               </Button>
               <Button
                 variant="outline"
@@ -310,7 +312,7 @@ export default function MatchResultCard({
                 className="flex-1"
                 onClick={() => setShowConfirmReject(false)}
               >
-                בטל
+                {dict.buttons.cancel}
               </Button>
             </>
           ) : (
@@ -321,10 +323,9 @@ export default function MatchResultCard({
               onClick={() => setShowConfirmReject(true)}
             >
               <X className="h-4 w-4 mr-1" />
-              לא מתאים
+              {dict.buttons.reject}
             </Button>
           ))}
-
         {onAccept && (
           <Button
             variant="default"
@@ -333,10 +334,9 @@ export default function MatchResultCard({
             onClick={() => onAccept(id)}
           >
             <Heart className="h-4 w-4 mr-1" />
-            מעוניין/ת
+            {dict.buttons.accept}
           </Button>
         )}
-
         {conversationStarted && onMessage && (
           <Button
             variant="default"
@@ -345,12 +345,11 @@ export default function MatchResultCard({
             onClick={() => onMessage(id)}
           >
             <MessageCircle className="h-4 w-4 mr-1" />
-            המשך שיחה
+            {dict.buttons.continueChat}
           </Button>
         )}
       </div>
 
-      {/* Expand/Collapse Button */}
       <div className="px-4 pb-2 text-center">
         <Button
           variant="ghost"
@@ -361,18 +360,17 @@ export default function MatchResultCard({
           {isExpanded ? (
             <>
               <ChevronsUp className="h-3.5 w-3.5 mr-1" />
-              הסתר פרטים נוספים
+              {dict.buttons.hideMore}
             </>
           ) : (
             <>
               <ChevronsDown className="h-3.5 w-3.5 mr-1" />
-              הצג פרטים נוספים
+              {dict.buttons.showMore}
             </>
           )}
         </Button>
       </div>
 
-      {/* Expanded Content */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -383,27 +381,23 @@ export default function MatchResultCard({
             className="border-t border-gray-100"
           >
             <CardContent className="p-4 space-y-5">
-              {/* About Section */}
               {about && (
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium flex items-center">
                     <User className="h-4 w-4 mr-1 text-blue-500" />
-                    קצת על {name}
+                    {dict.sections.about.replace('{{name}}', name)}
                   </h4>
                   <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md border">
                     {about}
                   </p>
                 </div>
               )}
-
-              {/* Match Traits */}
               {matchTraits.length > 0 && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium flex items-center">
                     <Sparkles className="h-4 w-4 mr-1 text-blue-500" />
-                    תחומי התאמה בולטים
+                    {dict.sections.topMatches}
                   </h4>
-
                   <div className="space-y-2">
                     {matchTraits.map((trait, index) => (
                       <TooltipProvider key={index}>
@@ -419,19 +413,24 @@ export default function MatchResultCard({
                               <Progress
                                 value={trait.score}
                                 className={cn(
-                                  "h-2",
+                                  'h-2',
                                   trait.score >= 80
-                                    ? "[--progress-foreground:theme(colors.green.500)]"
+                                    ? '[--progress-foreground:theme(colors.green.500)]'
                                     : trait.score >= 60
-                                    ? "[--progress-foreground:theme(colors.blue.500)]"
-                                    : "[--progress-foreground:theme(colors.blue.400)]"
+                                      ? '[--progress-foreground:theme(colors.blue.500)]'
+                                      : '[--progress-foreground:theme(colors.blue.400)]'
                                 )}
                               />
                             </div>
                           </TooltipTrigger>
                           {trait.description && (
                             <TooltipContent side="top" className="max-w-xs">
-                              <p>{trait.description}</p>
+                              <p>
+                                {dict.tooltips.traitDescription.replace(
+                                  '{{description}}',
+                                  trait.description
+                                )}
+                              </p>
                             </TooltipContent>
                           )}
                         </Tooltip>
@@ -440,28 +439,25 @@ export default function MatchResultCard({
                   </div>
                 </div>
               )}
-
-              {/* All Common Interests */}
               {commonInterests.length > 0 && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium flex items-center">
                     <Heart className="h-4 w-4 mr-1 text-blue-500" />
-                    תחומי עניין משותפים
+                    {dict.sections.commonInterests}
                   </h4>
-
                   <div className="flex flex-wrap gap-2">
                     {commonInterests.map((interest, index) => (
                       <Badge
                         key={index}
                         variant="outline"
                         className={cn(
-                          "bg-blue-50 text-blue-700 border-blue-200",
-                          interest.category === "value" &&
-                            "bg-pink-50 text-pink-700 border-pink-200",
-                          interest.category === "religion" &&
-                            "bg-purple-50 text-purple-700 border-purple-200",
-                          interest.category === "education" &&
-                            "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          'bg-blue-50 text-blue-700 border-blue-200',
+                          interest.category === 'value' &&
+                            'bg-pink-50 text-pink-700 border-pink-200',
+                          interest.category === 'religion' &&
+                            'bg-purple-50 text-purple-700 border-purple-200',
+                          interest.category === 'education' &&
+                            'bg-emerald-50 text-emerald-700 border-emerald-200'
                         )}
                       >
                         {interest.icon || getCategoryIcon(interest.category)}
@@ -471,17 +467,16 @@ export default function MatchResultCard({
                   </div>
                 </div>
               )}
-
-              {/* Last Active */}
               {lastActive && (
                 <div className="text-sm text-gray-500 flex items-center">
                   <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                  פעילות אחרונה: {formatLastActive(lastActive)}
+                  {dict.sections.lastActive.replace(
+                    '{{time}}',
+                    formatLastActive(lastActive)
+                  )}
                 </div>
               )}
             </CardContent>
-
-            {/* Footer */}
             <CardFooter className="px-4 py-3 bg-gray-50 flex justify-between">
               {onViewProfile && (
                 <Button
@@ -491,7 +486,7 @@ export default function MatchResultCard({
                   onClick={() => onViewProfile(id)}
                 >
                   <ExternalLink className="h-4 w-4 mr-1" />
-                  צפייה בפרופיל מלא
+                  {dict.buttons.viewFullProfile}
                 </Button>
               )}
             </CardFooter>

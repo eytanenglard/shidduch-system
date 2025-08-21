@@ -1,14 +1,14 @@
 ################################################################################
-# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth
-# Generated on: 2025-08-19 17:42:05
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
+# Generated on: 2025-08-21 16:37:55
 ################################################################################
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\AuthError.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\AuthError.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/AuthError.tsx
@@ -53,7 +53,7 @@ export default function AuthError() {
 --- End of Content for AuthError.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\ConsentCheckbox.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ConsentCheckbox.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/ConsentCheckbox.tsx
@@ -116,7 +116,7 @@ export default ConsentCheckbox;
 --- End of Content for ConsentCheckbox.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\ForgotPasswordForm.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ForgotPasswordForm.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/ForgotPasswordForm.tsx
@@ -270,7 +270,7 @@ export default function ForgotPasswordForm() {
 --- End of Content for ForgotPasswordForm.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\ProgressBar.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ProgressBar.tsx
 --------------------------------------------------------------------------------
 Content:
 "use client";
@@ -347,7 +347,7 @@ export default ProgressBar;
 --- End of Content for ProgressBar.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\RegisterForm.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\RegisterForm.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/RegisterForm.tsx
@@ -553,9 +553,16 @@ export default function RegisterForm() {
           </label>
           <input
             type="password"
-            name="password" // חשוב שה-name יהיה "password" כדי ש-validatePassword יעבוד עם הערך מה-state. או שנה את validatePassword לקבל את הערך ישירות.
+            name="password"
             id="passwordRegForm"
             required
+            // --- התחל תיקון נגישות ---
+            aria-required="true"
+            aria-describedby={
+              passwordError ? 'password-error' : 'password-hint'
+            }
+            aria-invalid={!!passwordError}
+            // --- סיים תיקון נגישות ---
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
@@ -563,12 +570,18 @@ export default function RegisterForm() {
             }}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
           />
-          <p className="mt-1 text-sm text-gray-500">
+          <p id="password-hint" className="mt-1 text-sm text-gray-500">
             הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה
             באנגלית ומספר.
           </p>
           {passwordError && (
-            <div className="text-red-500 text-sm mt-1">{passwordError}</div>
+            <div
+              id="password-error"
+              role="alert"
+              className="text-red-500 text-sm mt-1"
+            >
+              {passwordError}
+            </div>
           )}
         </div>
         {/* מגדר */}
@@ -760,7 +773,7 @@ export default function RegisterForm() {
 --- End of Content for RegisterForm.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\RegisterSteps.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\RegisterSteps.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/RegisterSteps.tsx
@@ -1279,7 +1292,7 @@ export default function RegisterSteps() {
 --- End of Content for RegisterSteps.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\RegistrationContext.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\RegistrationContext.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/RegistrationContext.tsx
@@ -1591,39 +1604,46 @@ export const useRegistration = (): RegistrationContextType => {
 --- End of Content for RegistrationContext.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\ResetPasswordForm.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ResetPasswordForm.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/ResetPasswordForm.tsx
-"use client";
+'use client';
 
-import { useState, FormEvent, useEffect }
-from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Lock, KeySquare, Loader2, AlertCircle, CheckCircle, Eye, EyeOff, Mail } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import Link from "next/link";
+import { useState, FormEvent, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Lock,
+  KeySquare,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  Eye,
+  EyeOff,
+  Mail,
+} from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import Link from 'next/link';
 
 // Password validation function (similar to your RegisterForm)
 const validatePassword = (value: string): string | null => {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
   if (!passwordRegex.test(value)) {
-    return "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.";
+    return 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.';
   }
   return null;
 };
-
 
 export default function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [email, setEmail] = useState(""); // To prefill if passed, or keep empty
-  const [otp, setOtp] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState(''); // To prefill if passed, or keep empty
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1633,17 +1653,17 @@ export default function ResetPasswordForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
-    const emailFromQuery = searchParams.get("email");
-    const tokenFromQuery = searchParams.get("token"); // If you decide to also prefill OTP via token
+    const emailFromQuery = searchParams.get('email');
+    const tokenFromQuery = searchParams.get('token'); // If you decide to also prefill OTP via token
 
     if (emailFromQuery) {
       setEmail(emailFromQuery);
     }
-    if (tokenFromQuery) { // This 'token' from query is the OTP
+    if (tokenFromQuery) {
+      // This 'token' from query is the OTP
       setOtp(tokenFromQuery);
     }
   }, [searchParams]);
-
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -1653,12 +1673,12 @@ export default function ResetPasswordForm() {
     setSuccessMessage(null);
 
     if (!email) {
-        setError("כתובת המייל חסרה. אנא חזור להתחלה ונסה שנית.");
-        setIsLoading(false);
-        return;
+      setError('כתובת המייל חסרה. אנא חזור להתחלה ונסה שנית.');
+      setIsLoading(false);
+      return;
     }
     if (!otp || otp.length !== 6 || !/^\d+$/.test(otp)) {
-      setError("קוד האימות (OTP) חייב להיות בן 6 ספרות.");
+      setError('קוד האימות (OTP) חייב להיות בן 6 ספרות.');
       setIsLoading(false);
       return;
     }
@@ -1669,36 +1689,37 @@ export default function ResetPasswordForm() {
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("הסיסמאות אינן תואמות.");
+      setError('הסיסמאות אינן תואמות.');
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp, newPassword }),
       });
 
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "אירעה שגיאה באיפוס הסיסמה.");
+        throw new Error(data.error || 'אירעה שגיאה באיפוס הסיסמה.');
       }
 
-      setSuccessMessage(data.message || "הסיסמה אופסה בהצלחה! כעת תוכל להתחבר עם הסיסמה החדשה.");
+      setSuccessMessage(
+        data.message || 'הסיסמה אופסה בהצלחה! כעת תוכל להתחבר עם הסיסמה החדשה.'
+      );
       // Clear fields on success
-      setOtp("");
-      setNewPassword("");
-      setConfirmPassword("");
+      setOtp('');
+      setNewPassword('');
+      setConfirmPassword('');
       // Optionally redirect after a delay or with a button
       setTimeout(() => {
-        router.push("/auth/signin?reset=success");
+        router.push('/auth/signin?reset=success');
       }, 3000);
-
     } catch (err) {
-      setError(err instanceof Error ? err.message : "אירעה שגיאה לא צפויה.");
+      setError(err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.');
     } finally {
       setIsLoading(false);
     }
@@ -1709,41 +1730,49 @@ export default function ResetPasswordForm() {
       <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
       <div className="p-6 sm:p-8">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            איפוס סיסמה
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">איפוס סיסמה</h1>
           <p className="text-gray-600 text-sm">
             הזן את קוד האימות (OTP) שקיבלת במייל ואת הסיסמה החדשה שלך.
           </p>
         </div>
 
         {error && (
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive" className="mb-4" role="alert">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>שגיאה</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-         {passwordError && !error && ( // Show passwordError only if general error is not present
-          <Alert variant="destructive" className="mb-4">
+        {passwordError && !error && (
+          <Alert variant="destructive" className="mb-4" role="alert">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>שגיאת סיסמה</AlertTitle>
-            <AlertDescription>{passwordError}</AlertDescription>
+            <AlertDescription id="password-error-message">
+              {passwordError}
+            </AlertDescription>
           </Alert>
         )}
 
         {successMessage && (
-          <Alert variant="default" className="mb-4 bg-green-50 border-green-200 text-green-700">
+          <Alert
+            variant="default"
+            className="mb-4 bg-green-50 border-green-200 text-green-700"
+          >
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertTitle>הצלחה!</AlertTitle>
-            <AlertDescription>{successMessage} אתה מועבר לדף ההתחברות...</AlertDescription>
+            <AlertDescription>
+              {successMessage} אתה מועבר לדף ההתחברות...
+            </AlertDescription>
           </Alert>
         )}
 
         {!successMessage && ( // Only show form if no success message
           <form onSubmit={handleSubmit} className="space-y-5">
-             <div className="space-y-1">
-              <label htmlFor="email-reset" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-1">
+              <label
+                htmlFor="email-reset"
+                className="block text-sm font-medium text-gray-700"
+              >
                 כתובת מייל (לאימות) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -1756,12 +1785,15 @@ export default function ResetPasswordForm() {
                   placeholder="you@example.com"
                   required
                   className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
-                  disabled={isLoading || !!searchParams.get("email")} // Disable if email came from query
+                  disabled={isLoading || !!searchParams.get('email')} // Disable if email came from query
                 />
               </div>
             </div>
             <div className="space-y-1">
-              <label htmlFor="otp-reset" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="otp-reset"
+                className="block text-sm font-medium text-gray-700"
+              >
                 קוד אימות (OTP) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -1770,7 +1802,9 @@ export default function ResetPasswordForm() {
                   type="text"
                   id="otp-reset"
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                  onChange={(e) =>
+                    setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))
+                  }
                   placeholder="xxxxxx"
                   maxLength={6}
                   required
@@ -1782,48 +1816,69 @@ export default function ResetPasswordForm() {
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="new-password-reset" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="new-password-reset"
+                className="block text-sm font-medium text-gray-700"
+              >
                 סיסמה חדשה <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <Input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   id="new-password-reset"
+                  aria-describedby={
+                    passwordError ? 'password-error-message' : 'password-hint'
+                  }
+                  aria-invalid={!!passwordError}
                   value={newPassword}
                   onChange={(e) => {
                     setNewPassword(e.target.value);
                     const validationErr = validatePassword(e.target.value);
-                    if (e.target.value && validationErr) setPasswordError(validationErr);
+                    if (e.target.value && validationErr)
+                      setPasswordError(validationErr);
                     else setPasswordError(null);
                   }}
                   placeholder="לפחות 8 תווים, אות גדולה, קטנה ומספר"
                   required
                   className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none ${
-                    passwordError ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
+                    passwordError
+                      ? 'border-red-500 focus:ring-red-200'
+                      : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
                   }`}
                   disabled={isLoading}
                 />
-                 <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    aria-label={showPassword ? "הסתר סיסמה" : "הצג סיסמה"}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
                 >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
-              {!passwordError && <p className="mt-1 text-xs text-gray-500">חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.</p>}
+              {!passwordError && (
+                <p id="password-hint" className="mt-1 text-xs text-gray-500">
+                  חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.
+                </p>
+              )}
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="confirm-password-reset" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="confirm-password-reset"
+                className="block text-sm font-medium text-gray-700"
+              >
                 אימות סיסמה חדשה <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <Input
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   id="confirm-password-reset"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -1833,19 +1888,30 @@ export default function ResetPasswordForm() {
                   disabled={isLoading}
                 />
                 <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    aria-label={showConfirmPassword ? "הסתר סיסמה" : "הצג סיסמה"}
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  aria-label={showConfirmPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
                 >
-                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
             </div>
 
             <Button
               type="submit"
-              disabled={isLoading || !!passwordError || !otp || !newPassword || !confirmPassword || newPassword !== confirmPassword}
+              disabled={
+                isLoading ||
+                !!passwordError ||
+                !otp ||
+                !newPassword ||
+                !confirmPassword ||
+                newPassword !== confirmPassword
+              }
               className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-2"
             >
               {isLoading ? (
@@ -1854,7 +1920,7 @@ export default function ResetPasswordForm() {
                   <span>מאפס סיסמה...</span>
                 </>
               ) : (
-                "אפס סיסמה"
+                'אפס סיסמה'
               )}
             </Button>
           </form>
@@ -1875,33 +1941,34 @@ export default function ResetPasswordForm() {
 --- End of Content for ResetPasswordForm.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\SignInForm.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\SignInForm.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/SignInForm.tsx
-"use client";
+'use client';
 
-import { useState, useEffect, FormEvent } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { signIn } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Mail, Lock, AlertCircle, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { useState, useEffect, FormEvent } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label'; // --- התחל תיקון נגישות ---
+import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   useEffect(() => {
-    if (status === "authenticated") {
+    if (status === 'authenticated') {
       // @ts-ignore - אנחנו יודעים שהוספנו את המאפיינים האלה לסשן
       const redirectUrl = session?.redirectUrl || '/profile';
       router.push(redirectUrl);
@@ -1909,21 +1976,21 @@ export default function SignInForm() {
   }, [status, session, router]);
 
   useEffect(() => {
-    const errorMessage = searchParams.get("error");
-    const resetSuccess = searchParams.get("reset");
+    const errorMessage = searchParams.get('error');
+    const resetSuccess = searchParams.get('reset');
 
-    if (resetSuccess === "success") {
-        setError("");
+    if (resetSuccess === 'success') {
+      setError('');
     }
 
     if (errorMessage) {
       switch (errorMessage) {
-        case "CredentialsSignin":
-          setError("אימייל או סיסמה אינם נכונים. אנא נסה שנית.");
+        case 'CredentialsSignin':
+          setError('אימייל או סיסמה אינם נכונים. אנא נסה שנית.');
           break;
-        case "OAuthAccountNotLinked":
+        case 'OAuthAccountNotLinked':
           setError(
-            "חשבון זה כבר מקושר באמצעות ספק אחר. אנא התחבר באמצעות הספק המקורי."
+            'חשבון זה כבר מקושר באמצעות ספק אחר. אנא התחבר באמצעות הספק המקורי.'
           );
           break;
         default:
@@ -1933,7 +2000,7 @@ export default function SignInForm() {
   }, [searchParams]);
 
   useEffect(() => {
-    const emailParam = searchParams.get("email");
+    const emailParam = searchParams.get('email');
     if (emailParam) {
       setEmail(emailParam);
     }
@@ -1941,19 +2008,19 @@ export default function SignInForm() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setIsLoading(true);
 
     if (!email || !password) {
-      setError("אנא הזן אימייל וסיסמה.");
+      setError('אנא הזן אימייל וסיסמה.');
       setIsLoading(false);
       return;
     }
 
-     try {
-      localStorage.setItem("last_user_email", email);
+    try {
+      localStorage.setItem('last_user_email', email);
 
-      const result = await signIn("credentials", {
+      const result = await signIn('credentials', {
         email: email.toLowerCase(),
         password,
         redirect: false,
@@ -1962,15 +2029,15 @@ export default function SignInForm() {
       if (result?.ok && result.url) {
         router.push(result.url);
       } else if (!result?.ok) {
-        if (result?.error === "CredentialsSignin") {
-          setError("אימייל או סיסמה אינם נכונים.");
+        if (result?.error === 'CredentialsSignin') {
+          setError('אימייל או סיסמה אינם נכונים.');
         } else {
-          setError(result?.error || "אירעה שגיאה לא צפויה בהתחברות.");
+          setError(result?.error || 'אירעה שגיאה לא צפויה בהתחברות.');
         }
       }
     } catch (err) {
-      console.error("Unexpected sign-in error in handleSubmit:", err);
-      setError("אירעה שגיאה לא צפויה בהתחברות, נסה שנית.");
+      console.error('Unexpected sign-in error in handleSubmit:', err);
+      setError('אירעה שגיאה לא צפויה בהתחברות, נסה שנית.');
     } finally {
       setIsLoading(false);
     }
@@ -1978,32 +2045,35 @@ export default function SignInForm() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    setError("");
-    localStorage.setItem("google_auth_in_progress", "true");
-    localStorage.setItem("auth_method", "google");
+    setError('');
+    localStorage.setItem('google_auth_in_progress', 'true');
+    localStorage.setItem('auth_method', 'google');
 
     try {
-      await signIn("google");
+      await signIn('google');
     } catch (error) {
-      console.error("Google sign-in error:", error);
-      setError("אירעה שגיאה בהתחברות עם גוגל. נסה שנית.");
+      console.error('Google sign-in error:', error);
+      setError('אירעה שגיאה בהתחברות עם גוגל. נסה שנית.');
       setIsGoogleLoading(false);
     }
   };
 
-  // --- שינוי: מסך טעינה מעוצב ואינפורמטיבי ---
-  // בזמן בדיקת הסשן או לאחר התחברות מוצלחת, הצג את ההודעה הבאה עד להפנייה.
   if (status === 'loading' || status === 'authenticated') {
     return (
-      <div className="flex w-full max-w-md flex-col items-center justify-center rounded-xl bg-white p-8 text-center shadow-xl" style={{ minHeight: '520px' }}>
+      <div
+        className="flex w-full max-w-md flex-col items-center justify-center rounded-xl bg-white p-8 text-center shadow-xl"
+        style={{ minHeight: '520px' }}
+      >
         <div className="mb-4 h-12 w-12">
-            <Loader2 className="h-full w-full animate-spin text-cyan-500" />
+          <Loader2 className="h-full w-full animate-spin text-cyan-500" />
         </div>
         <h2 className="mb-2 text-2xl font-bold text-gray-800">
           {status === 'authenticated' ? 'התחברת בהצלחה!' : 'טוען נתונים...'}
         </h2>
         <p className="text-gray-600">
-          {status === 'authenticated' ? 'אנו מעבירים אותך לאזור האישי שלך. ' : 'אנא המתן בזמן שאנו בודקים את פרטי ההתחברות שלך.'}
+          {status === 'authenticated'
+            ? 'אנו מעבירים אותך לאזור האישי שלך. '
+            : 'אנא המתן בזמן שאנו בודקים את פרטי ההתחברות שלך.'}
         </p>
       </div>
     );
@@ -2024,20 +2094,31 @@ export default function SignInForm() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+          // --- התחל תיקון נגישות ---
+          <div
+            role="alert"
+            className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2"
+          >
             <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-            <p className="text-red-600 text-sm">{error}</p>
+            <p id="form-error-message" className="text-red-600 text-sm">
+              {error}
+            </p>
           </div>
+          // --- סיים תיקון נגישות ---
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 mb-6"
+          aria-describedby={error ? 'form-error-message' : undefined}
+        >
           <div className="space-y-1">
-            <label
+            <Label
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
               אימייל
-            </label>
+            </Label>
             <div className="relative">
               <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
@@ -2050,18 +2131,19 @@ export default function SignInForm() {
                 className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
                 placeholder="you@example.com"
                 required
+                aria-required="true"
                 disabled={isLoading || isGoogleLoading}
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label
+            <Label
               htmlFor="password"
               className="block text-sm font-medium text-gray-700"
             >
               סיסמה
-            </label>
+            </Label>
             <div className="relative">
               <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
@@ -2074,6 +2156,7 @@ export default function SignInForm() {
                 className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
                 placeholder="הסיסמה שלך"
                 required
+                aria-required="true"
                 disabled={isLoading || isGoogleLoading}
               />
             </div>
@@ -2157,7 +2240,7 @@ export default function SignInForm() {
 
         <div className="mt-6 text-center">
           <p className="text-gray-600 text-sm">
-            אין לך חשבון עדיין?{" "}
+            אין לך חשבון עדיין?{' '}
             <Link
               href="/auth/register"
               className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"
@@ -2173,7 +2256,7 @@ export default function SignInForm() {
 --- End of Content for SignInForm.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\VerifyEmailClient.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\VerifyEmailClient.tsx
 --------------------------------------------------------------------------------
 Content:
 // /auth/verify-email/page.tsx
@@ -2531,25 +2614,25 @@ export default function VerifyEmailPage() {
 --- End of Content for VerifyEmailClient.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\auth_contents.txt
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\auth_contents.txt
 --------------------------------------------------------------------------------
 [This is the output log file itself. Content not included.]
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps\BasicInfoStep.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\BasicInfoStep.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/steps/BasicInfoStep.tsx
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRegistration } from "../RegistrationContext";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useState, useEffect } from 'react';
+import { useRegistration } from '../RegistrationContext';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   ArrowLeft,
   ArrowRight,
@@ -2558,13 +2641,13 @@ import {
   Lock,
   AlertCircle,
   Loader2,
-} from "lucide-react";
-import { motion } from "framer-motion";
-import ConsentCheckbox from "../ConsentCheckbox"; // <-- ייבוא הקומפוננטה החדשה
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+import ConsentCheckbox from '../ConsentCheckbox'; // <-- ייבוא הקומפוננטה החדשה
 
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-  return email.trim() !== "" && emailRegex.test(email);
+  return email.trim() !== '' && emailRegex.test(email);
 };
 const isValidPassword = (password: string): boolean => {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
@@ -2575,8 +2658,8 @@ const BasicInfoStep: React.FC = () => {
   const { data, updateField, prevStep, proceedToEmailVerification } =
     useRegistration();
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
-  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [isFormValid, setIsFormValid] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -2597,12 +2680,12 @@ const BasicInfoStep: React.FC = () => {
       data.firstName.trim().length > 0 && data.lastName.trim().length > 0;
 
     setEmailError(
-      data.email.trim() !== "" && !isEmailValid ? "כתובת אימייל לא תקינה" : ""
+      data.email.trim() !== '' && !isEmailValid ? 'כתובת אימייל לא תקינה' : ''
     );
     setPasswordError(
-      data.password.trim() !== "" && !isPasswordValid
-        ? "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
-        : ""
+      data.password.trim() !== '' && !isPasswordValid
+        ? 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר'
+        : ''
     );
 
     setIsFormValid(
@@ -2622,30 +2705,30 @@ const BasicInfoStep: React.FC = () => {
   ]);
 
   const handleEmailBlur = () => {
-    if (data.email.trim() === "") {
-      setEmailError("");
+    if (data.email.trim() === '') {
+      setEmailError('');
     } else if (!isValidEmail(data.email)) {
-      setEmailError("כתובת אימייל לא תקינה");
+      setEmailError('כתובת אימייל לא תקינה');
     } else {
-      setEmailError("");
+      setEmailError('');
     }
   };
   const handlePasswordBlur = () => {
-    if (data.password.trim() === "") {
-      setPasswordError("");
+    if (data.password.trim() === '') {
+      setPasswordError('');
     } else if (!isValidPassword(data.password)) {
       setPasswordError(
-        "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
+        'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר'
       );
     } else {
-      setPasswordError("");
+      setPasswordError('');
     }
   };
 
   const handleRegisterSubmit = async () => {
     setConsentError(null);
     if (!consentChecked) {
-      setConsentError("חובה לאשר את תנאי השימוש ומדיניות הפרטיות.");
+      setConsentError('חובה לאשר את תנאי השימוש ומדיניות הפרטיות.');
       setIsFormValid(false);
       return;
     }
@@ -2661,16 +2744,16 @@ const BasicInfoStep: React.FC = () => {
       !isFirstNameValid ||
       !isLastNameValid
     ) {
-      setApiError("אנא מלא את כל השדות הנדרשים בצורה תקינה.");
-      if (!isEmailValid && data.email.trim() !== "") handleEmailBlur();
-      else if (data.email.trim() === "") setEmailError("שדה אימייל הוא חובה");
-      if (!isPasswordValid && data.password.trim() !== "") handlePasswordBlur();
-      else if (data.password.trim() === "")
-        setPasswordError("שדה סיסמה הוא חובה");
+      setApiError('אנא מלא את כל השדות הנדרשים בצורה תקינה.');
+      if (!isEmailValid && data.email.trim() !== '') handleEmailBlur();
+      else if (data.email.trim() === '') setEmailError('שדה אימייל הוא חובה');
+      if (!isPasswordValid && data.password.trim() !== '') handlePasswordBlur();
+      else if (data.password.trim() === '')
+        setPasswordError('שדה סיסמה הוא חובה');
       return;
     }
     if (emailError || passwordError) {
-      setApiError("אנא תקן את השגיאות המסומנות.");
+      setApiError('אנא תקן את השגיאות המסומנות.');
       return;
     }
 
@@ -2678,9 +2761,9 @@ const BasicInfoStep: React.FC = () => {
     setApiError(null);
 
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: data.email,
           password: data.password,
@@ -2704,17 +2787,17 @@ const BasicInfoStep: React.FC = () => {
         proceedToEmailVerification(result.email);
       } else {
         console.error(
-          "Registration API success but no email returned or success false:",
+          'Registration API success but no email returned or success false:',
           result
         );
         setApiError(
-          result.error || "אירעה שגיאה במעבר לשלב אימות המייל. אנא נסה שנית."
+          result.error || 'אירעה שגיאה במעבר לשלב אימות המייל. אנא נסה שנית.'
         );
       }
     } catch (error) {
-      console.error("Registration API error:", error);
+      console.error('Registration API error:', error);
       setApiError(
-        error instanceof Error ? error.message : "אירעה שגיאה בלתי צפויה בהרשמה"
+        error instanceof Error ? error.message : 'אירעה שגיאה בלתי צפויה בהרשמה'
       );
     } finally {
       setIsLoading(false);
@@ -2739,7 +2822,7 @@ const BasicInfoStep: React.FC = () => {
     >
       {apiError && (
         <motion.div variants={itemVariants}>
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive" className="mb-4" role="alert">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>שגיאה בהרשמה</AlertTitle>
             <AlertDescription>{apiError}</AlertDescription>
@@ -2768,18 +2851,20 @@ const BasicInfoStep: React.FC = () => {
             <input
               type="email"
               id="emailBasic"
+              aria-describedby={emailError ? 'email-error' : undefined}
+              aria-invalid={!!emailError}
               value={data.email}
-              onChange={(e) => updateField("email", e.target.value)}
+              onChange={(e) => updateField('email', e.target.value)}
               onBlur={handleEmailBlur}
               placeholder="you@example.com"
               disabled={isLoading}
               required
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                isLoading ? "bg-gray-100" : ""
+                isLoading ? 'bg-gray-100' : ''
               } ${
                 emailError
-                  ? "border-red-500 focus:ring-red-200"
-                  : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                  ? 'border-red-500 focus:ring-red-200'
+                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
               }`}
             />
             {emailError && !isLoading && (
@@ -2789,7 +2874,13 @@ const BasicInfoStep: React.FC = () => {
             )}
           </div>
           {emailError && (
-            <p className="text-red-500 text-xs mt-1">{emailError}</p>
+            <p
+              id="email-error"
+              role="alert"
+              className="text-red-500 text-xs mt-1"
+            >
+              {emailError}
+            </p>
           )}
         </div>
 
@@ -2804,30 +2895,34 @@ const BasicInfoStep: React.FC = () => {
           <div className="relative">
             <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
-              type={passwordVisible ? "text" : "password"}
+              type={passwordVisible ? 'text' : 'password'}
               id="passwordBasic"
+              aria-describedby={
+                passwordError ? 'password-error' : 'password-hint'
+              }
+              aria-invalid={!!passwordError}
               value={data.password}
-              onChange={(e) => updateField("password", e.target.value)}
+              onChange={(e) => updateField('password', e.target.value)}
               onBlur={handlePasswordBlur}
               placeholder="לפחות 8 תווים"
               disabled={isLoading}
               required
               className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                isLoading ? "bg-gray-100" : ""
+                isLoading ? 'bg-gray-100' : ''
               } ${
                 passwordError
-                  ? "border-red-300 focus:ring-red-200"
-                  : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                  ? 'border-red-300 focus:ring-red-200'
+                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
               }`}
             />
             <button
               type="button"
               onClick={() => setPasswordVisible(!passwordVisible)}
               className="absolute inset-y-0 left-0 flex items-center pl-3 focus:outline-none"
-              aria-label={passwordVisible ? "הסתר סיסמה" : "הצג סיסמה"}
+              aria-label={passwordVisible ? 'הסתר סיסמה' : 'הצג סיסמה'}
             >
               <span className="text-gray-500">
-                {passwordVisible ? "🙈" : "👁️"}
+                {passwordVisible ? '🙈' : '👁️'}
               </span>
             </button>
             {passwordError && !isLoading && (
@@ -2837,10 +2932,16 @@ const BasicInfoStep: React.FC = () => {
             )}
           </div>
           {passwordError && (
-            <p className="text-red-500 text-xs mt-1">{passwordError}</p>
+            <p
+              id="password-error"
+              role="alert"
+              className="text-red-500 text-xs mt-1"
+            >
+              {passwordError}
+            </p>
           )}
           {!passwordError && (
-            <p className="text-gray-500 text-xs mt-1">
+            <p id="password-hint" className="text-gray-500 text-xs mt-1">
               הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה
               באנגלית ומספר.
             </p>
@@ -2861,12 +2962,12 @@ const BasicInfoStep: React.FC = () => {
               type="text"
               id="firstNameBasic"
               value={data.firstName}
-              onChange={(e) => updateField("firstName", e.target.value)}
+              onChange={(e) => updateField('firstName', e.target.value)}
               placeholder="ישראל"
               disabled={isLoading}
               required
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                isLoading ? "bg-gray-100" : ""
+                isLoading ? 'bg-gray-100' : ''
               } border-gray-300 focus:ring-cyan-200 focus:border-cyan-500`}
             />
           </div>
@@ -2886,12 +2987,12 @@ const BasicInfoStep: React.FC = () => {
               type="text"
               id="lastNameBasic"
               value={data.lastName}
-              onChange={(e) => updateField("lastName", e.target.value)}
+              onChange={(e) => updateField('lastName', e.target.value)}
               placeholder="ישראלי"
               disabled={isLoading}
               required
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                isLoading ? "bg-gray-100" : ""
+                isLoading ? 'bg-gray-100' : ''
               } border-gray-300 focus:ring-cyan-200 focus:border-cyan-500`}
             />
           </div>
@@ -2908,7 +3009,7 @@ const BasicInfoStep: React.FC = () => {
           error={consentError}
         />
       </motion.div>
-      
+
       {/* --- START OF CHANGE --- */}
       {/* Marketing Consent Checkbox */}
       <motion.div variants={itemVariants} className="mt-4">
@@ -2948,8 +3049,8 @@ const BasicInfoStep: React.FC = () => {
           className={`flex items-center gap-2 min-w-[200px] justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-opacity
             ${
               isFormValid && !isLoading
-                ? "bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-md hover:shadow-lg"
-                : "bg-gray-300 cursor-not-allowed"
+                ? 'bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-md hover:shadow-lg'
+                : 'bg-gray-300 cursor-not-allowed'
             }`}
         >
           {isLoading ? (
@@ -2973,7 +3074,7 @@ export default BasicInfoStep;
 --- End of Content for BasicInfoStep.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps\CompleteStep.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\CompleteStep.tsx
 --------------------------------------------------------------------------------
 Content:
 "use client";
@@ -3232,21 +3333,21 @@ export default CompleteStep;
 --- End of Content for CompleteStep.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps\EmailVerificationCodeStep.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\EmailVerificationCodeStep.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/steps/EmailVerificationCodeStep.tsx
-"use client";
+'use client';
 
-import { useState, useRef, KeyboardEvent, useEffect, FormEvent } from "react";
-import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react"; // נשאר רק signIn, useSession לא בשימוש ישיר כאן
-import { useRegistration } from "../RegistrationContext";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertCircle, MailCheck, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
-import { Input } from "@/components/ui/input";
+import { useState, useRef, KeyboardEvent, useEffect, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react'; // נשאר רק signIn, useSession לא בשימוש ישיר כאן
+import { useRegistration } from '../RegistrationContext';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, AlertCircle, MailCheck, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Input } from '@/components/ui/input';
 
 const OTP_LENGTH = 6;
 
@@ -3259,7 +3360,7 @@ const EmailVerificationCodeStep: React.FC = () => {
 
   const router = useRouter();
 
-  const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(""));
+  const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(''));
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -3273,10 +3374,10 @@ const EmailVerificationCodeStep: React.FC = () => {
   }, []);
 
   const handleChange = (element: HTMLInputElement, index: number) => {
-    const value = element.value.replace(/[^0-9]/g, "");
+    const value = element.value.replace(/[^0-9]/g, '');
 
     if (value.length > 1 && index < OTP_LENGTH) {
-      const chars = value.split("");
+      const chars = value.split('');
       let currentIdx = index;
       const newOtp = [...otp];
 
@@ -3307,23 +3408,23 @@ const EmailVerificationCodeStep: React.FC = () => {
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key === "Backspace") {
+    if (e.key === 'Backspace') {
       e.preventDefault();
       const newOtp = [...otp];
       if (newOtp[index]) {
-        newOtp[index] = "";
+        newOtp[index] = '';
         setOtp(newOtp);
       } else if (index > 0) {
         if (inputRefs.current[index - 1]) {
           inputRefs.current[index - 1]?.focus();
         }
       }
-    } else if (e.key === "ArrowLeft" && index > 0) {
+    } else if (e.key === 'ArrowLeft' && index > 0) {
       e.preventDefault();
       if (inputRefs.current[index - 1]) {
         inputRefs.current[index - 1]?.focus();
       }
-    } else if (e.key === "ArrowRight" && index < OTP_LENGTH - 1) {
+    } else if (e.key === 'ArrowRight' && index < OTP_LENGTH - 1) {
       e.preventDefault();
       if (inputRefs.current[index + 1]) {
         inputRefs.current[index + 1]?.focus();
@@ -3333,7 +3434,7 @@ const EmailVerificationCodeStep: React.FC = () => {
 
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const enteredCode = otp.join("");
+    const enteredCode = otp.join('');
     if (enteredCode.length !== OTP_LENGTH) {
       setApiError(`הקוד חייב להכיל ${OTP_LENGTH} ספרות.`);
       return;
@@ -3346,12 +3447,12 @@ const EmailVerificationCodeStep: React.FC = () => {
     try {
       // 1. Verify the code with the backend
       console.log(
-        "CLIENT LOG: Submitting OTP to API. Email:",
+        'CLIENT LOG: Submitting OTP to API. Email:',
         registrationData.emailForVerification
       );
-      const response = await fetch("/api/auth/verify-email-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/auth/verify-email-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: registrationData.emailForVerification,
           code: enteredCode,
@@ -3359,56 +3460,56 @@ const EmailVerificationCodeStep: React.FC = () => {
       });
 
       const result = await response.json();
-      console.log("CLIENT LOG: API response for /verify-email-code:", result);
+      console.log('CLIENT LOG: API response for /verify-email-code:', result);
 
       if (!response.ok || !result.success || !result.authToken) {
         throw new Error(
-          result.error || "שגיאה באימות הקוד מה-API או שלא הוחזר טוקן התחברות."
+          result.error || 'שגיאה באימות הקוד מה-API או שלא הוחזר טוקן התחברות.'
         );
       }
 
       const authToken = result.authToken;
       console.log(
-        "CLIENT LOG: Email code verified with API. AuthToken received. Attempting auto-signin..."
+        'CLIENT LOG: Email code verified with API. AuthToken received. Attempting auto-signin...'
       );
 
       // 2. Attempt auto-signin with the received authToken
-      const signInResult = await signIn("email-verified-autologin", {
+      const signInResult = await signIn('email-verified-autologin', {
         authToken: authToken,
         redirect: false, // חשוב! אנחנו נטפל בהפניה ידנית
       });
 
-      console.log("CLIENT LOG: Auto-signin attempt result:", signInResult);
+      console.log('CLIENT LOG: Auto-signin attempt result:', signInResult);
 
       if (signInResult?.ok) {
         // ההתחברות האוטומטית הצליחה, והסשן נוצר/עודכן
         console.log(
-          "CLIENT LOG: Auto-signin successful. Calling completeEmailVerification and navigating to /auth/register."
+          'CLIENT LOG: Auto-signin successful. Calling completeEmailVerification and navigating to /auth/register.'
         );
         completeEmailVerification(); // <-- קריאה לפונקציה מהקונטקסט
-        router.push("/auth/register");
+        router.push('/auth/register');
         // אין צורך לקרוא ל-setIsLoading(false) כאן כי הקומפוננטה תעשה unmount
       } else {
         // ההתחברות האוטומטית נכשלה
-        console.error("CLIENT LOG: Auto-signin failed.", signInResult?.error);
+        console.error('CLIENT LOG: Auto-signin failed.', signInResult?.error);
         setApiError(
           `אימות המייל הצליח, אך נתקלנו בבעיה בהתחברות האוטומטית: ${
-            signInResult?.error || "שגיאה לא ידועה"
+            signInResult?.error || 'שגיאה לא ידועה'
           }. אנא נסה להתחבר ידנית.`
         );
         setIsLoading(false); // אפשר למשתמש לנסות שוב או לנקוט פעולה אחרת
       }
     } catch (error) {
       console.error(
-        "CLIENT LOG: Error during email verification process or auto-signin:",
+        'CLIENT LOG: Error during email verification process or auto-signin:',
         error
       );
       setApiError(
         error instanceof Error
           ? error.message
-          : "אירעה שגיאה בלתי צפויה בתהליך האימות"
+          : 'אירעה שגיאה בלתי צפויה בתהליך האימות'
       );
-      setOtp(new Array(OTP_LENGTH).fill(""));
+      setOtp(new Array(OTP_LENGTH).fill(''));
       if (inputRefs.current[0]) {
         inputRefs.current[0]?.focus();
       }
@@ -3423,32 +3524,32 @@ const EmailVerificationCodeStep: React.FC = () => {
 
     try {
       console.log(
-        "CLIENT LOG: Requesting to resend verification code for email:",
+        'CLIENT LOG: Requesting to resend verification code for email:',
         registrationData.emailForVerification
       );
-      const response = await fetch("/api/auth/resend-verification-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/auth/resend-verification-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: registrationData.emailForVerification }),
       });
       const result = await response.json();
       console.log(
-        "CLIENT LOG: API response for /resend-verification-code:",
+        'CLIENT LOG: API response for /resend-verification-code:',
         result
       );
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || "שגיאה בשליחה חוזרת של הקוד");
+        throw new Error(result.error || 'שגיאה בשליחה חוזרת של הקוד');
       }
-      setResendMessage(result.message || "קוד חדש נשלח בהצלחה.");
-      setOtp(new Array(OTP_LENGTH).fill(""));
+      setResendMessage(result.message || 'קוד חדש נשלח בהצלחה.');
+      setOtp(new Array(OTP_LENGTH).fill(''));
       if (inputRefs.current[0]) {
         inputRefs.current[0]?.focus();
       }
     } catch (error) {
-      console.error("CLIENT LOG: Error during resend code:", error);
+      console.error('CLIENT LOG: Error during resend code:', error);
       setApiError(
-        error instanceof Error ? error.message : "אירעה שגיאה בשליחה חוזרת"
+        error instanceof Error ? error.message : 'אירעה שגיאה בשליחה חוזרת'
       );
     } finally {
       setIsResending(false);
@@ -3457,13 +3558,13 @@ const EmailVerificationCodeStep: React.FC = () => {
 
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     const pasteData = e.clipboardData
-      .getData("text")
-      .replace(/[^0-9]/g, "")
+      .getData('text')
+      .replace(/[^0-9]/g, '')
       .slice(0, OTP_LENGTH);
 
     if (pasteData.length > 0) {
       e.preventDefault();
-      const newOtp = new Array(OTP_LENGTH).fill("");
+      const newOtp = new Array(OTP_LENGTH).fill('');
       for (let i = 0; i < pasteData.length; i++) {
         newOtp[i] = pasteData[i];
       }
@@ -3497,9 +3598,9 @@ const EmailVerificationCodeStep: React.FC = () => {
           אימות כתובת מייל
         </h2>
         <p className="text-gray-600 mt-2 text-sm sm:text-base">
-          שלחנו קוד אימות בן {OTP_LENGTH} ספרות לכתובת{" "}
+          שלחנו קוד אימות בן {OTP_LENGTH} ספרות לכתובת{' '}
           <strong className="font-semibold text-gray-700">
-            {registrationData.emailForVerification || "האימייל שלך"}
+            {registrationData.emailForVerification || 'האימייל שלך'}
           </strong>
           .
           <br />
@@ -3509,7 +3610,7 @@ const EmailVerificationCodeStep: React.FC = () => {
 
       {apiError && (
         <motion.div variants={itemVariants}>
-          <Alert variant="destructive">
+          <Alert variant="destructive" role="alert">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>שגיאה</AlertTitle>
             <AlertDescription>{apiError}</AlertDescription>
@@ -3521,6 +3622,7 @@ const EmailVerificationCodeStep: React.FC = () => {
           <Alert
             variant="default"
             className="bg-green-50 border-green-300 text-green-700"
+            role="status" // status מתאים להודעות הצלחה, alert לשגיאות
           >
             <MailCheck className="h-4 w-4 text-green-600" />
             <AlertTitle>הודעה</AlertTitle>
@@ -3564,7 +3666,7 @@ const EmailVerificationCodeStep: React.FC = () => {
           <Button
             type="submit"
             disabled={
-              isLoading || isResending || otp.join("").length !== OTP_LENGTH
+              isLoading || isResending || otp.join('').length !== OTP_LENGTH
             }
             className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600"
           >
@@ -3574,7 +3676,7 @@ const EmailVerificationCodeStep: React.FC = () => {
                 <span>מאמת ומתחבר...</span>
               </>
             ) : (
-              "אמת קוד והמשך להשלמת פרופיל"
+              'אמת קוד והמשך להשלמת פרופיל'
             )}
           </Button>
         </motion.div>
@@ -3584,7 +3686,7 @@ const EmailVerificationCodeStep: React.FC = () => {
         variants={itemVariants}
         className="text-sm text-gray-500 mt-2"
       >
-        לא קיבלת קוד?{" "}
+        לא קיבלת קוד?{' '}
         <Button
           type="button"
           variant="link"
@@ -3598,7 +3700,7 @@ const EmailVerificationCodeStep: React.FC = () => {
               <span>שולח קוד חדש...</span>
             </>
           ) : (
-            "שלח קוד חדש"
+            'שלח קוד חדש'
           )}
         </Button>
       </motion.div>
@@ -3622,7 +3724,7 @@ export default EmailVerificationCodeStep;
 --- End of Content for EmailVerificationCodeStep.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps\OptionalInfoStep.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\OptionalInfoStep.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/steps/OptionalInfoStep.tsx
@@ -3910,7 +4012,7 @@ const OptionalInfoStep: React.FC = () => {
 
       {error && submissionStatus === 'error' && (
         <motion.div variants={itemVariants}>
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive" className="mb-4" role="alert">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>שגיאה</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
@@ -4036,17 +4138,17 @@ export default OptionalInfoStep;
 --- End of Content for OptionalInfoStep.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps\PersonalDetailsStep.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\PersonalDetailsStep.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/steps/PersonalDetailsStep.tsx
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react"; // הוספת update
-import { useRegistration } from "../RegistrationContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react'; // הוספת update
+import { useRegistration } from '../RegistrationContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   ArrowLeft,
   ArrowRight,
@@ -4056,20 +4158,25 @@ import {
   Edit3,
   Loader2, // הוספת אייקון טעינה
   AlertCircle, // הוספת אייקון לשגיאות
-} from "lucide-react";
-import { Gender } from "@prisma/client";
-import { motion } from "framer-motion";
-import ConsentCheckbox from "../ConsentCheckbox"; // ייבוא קומפוננטת ההסכמה
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // ייבוא רכיבי Alert
+} from 'lucide-react';
+import { Gender } from '@prisma/client';
+import { motion } from 'framer-motion';
+import ConsentCheckbox from '../ConsentCheckbox'; // ייבוא קומפוננטת ההסכמה
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // ייבוא רכיבי Alert
 
 const PersonalDetailsStep: React.FC = () => {
-  const { data: registrationState, updateField, nextStep, prevStep } = useRegistration();
+  const {
+    data: registrationState,
+    updateField,
+    nextStep,
+    prevStep,
+  } = useRegistration();
   const { data: session, update: updateSessionHook } = useSession(); // שימוש ב-update מה-hook
 
-  const [firstNameError, setFirstNameError] = useState("");
-  const [lastNameError, setLastNameError] = useState("");
-  const [phoneError, setPhoneError] = useState("");
-  const [ageError, setAgeError] = useState("");
+  const [firstNameError, setFirstNameError] = useState('');
+  const [lastNameError, setLastNameError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [ageError, setAgeError] = useState('');
   const [isFormValid, setIsFormValid] = useState(false);
 
   // State עבור הסכמה
@@ -4084,13 +4191,13 @@ const PersonalDetailsStep: React.FC = () => {
 
   // פונקציות ולידציה (נשארות זהות)
   const validateFirstName = (name: string): boolean => {
-    const isValid = name.trim() !== "";
-    setFirstNameError(isValid ? "" : "שם פרטי הוא שדה חובה");
+    const isValid = name.trim() !== '';
+    setFirstNameError(isValid ? '' : 'שם פרטי הוא שדה חובה');
     return isValid;
   };
   const validateLastName = (name: string): boolean => {
-    const isValid = name.trim() !== "";
-    setLastNameError(isValid ? "" : "שם משפחה הוא שדה חובה");
+    const isValid = name.trim() !== '';
+    setLastNameError(isValid ? '' : 'שם משפחה הוא שדה חובה');
     return isValid;
   };
   const validatePhone = (phone: string): boolean => {
@@ -4098,16 +4205,16 @@ const PersonalDetailsStep: React.FC = () => {
     const isValid = phoneRegex.test(phone);
     setPhoneError(
       isValid
-        ? ""
-        : phone.trim() === ""
-        ? "מספר טלפון הוא שדה חובה"
-        : "מספר טלפון לא תקין (10 ספרות, מתחיל ב-0)"
+        ? ''
+        : phone.trim() === ''
+          ? 'מספר טלפון הוא שדה חובה'
+          : 'מספר טלפון לא תקין (10 ספרות, מתחיל ב-0)'
     );
     return isValid;
   };
   const validateAge = (birthDate: string): boolean => {
     if (!birthDate) {
-      setAgeError("תאריך לידה הוא שדה חובה");
+      setAgeError('תאריך לידה הוא שדה חובה');
       return false;
     }
     const birthDateObj = new Date(birthDate);
@@ -4121,34 +4228,35 @@ const PersonalDetailsStep: React.FC = () => {
       age--;
     }
     if (age < 18) {
-      setAgeError("גיל מינימלי להרשמה הוא 18");
+      setAgeError('גיל מינימלי להרשמה הוא 18');
       return false;
     } else if (age > 120) {
-      setAgeError("תאריך לידה לא תקין");
+      setAgeError('תאריך לידה לא תקין');
       return false;
     }
-    setAgeError("");
+    setAgeError('');
     return true;
   };
 
   useEffect(() => {
     // אם המשתמש כבר אישר בעבר, נסמן את התיבה
     if (userHasAlreadyConsented) {
-        setConsentChecked(true);
+      setConsentChecked(true);
     }
   }, [userHasAlreadyConsented]);
 
-
   useEffect(() => {
-    const isFirstNameValid = registrationState.firstName.trim() !== "" && !firstNameError;
-    const isLastNameValid = registrationState.lastName.trim() !== "" && !lastNameError;
+    const isFirstNameValid =
+      registrationState.firstName.trim() !== '' && !firstNameError;
+    const isLastNameValid =
+      registrationState.lastName.trim() !== '' && !lastNameError;
     const isPhoneValid =
-      registrationState.phone.trim() !== "" &&
+      registrationState.phone.trim() !== '' &&
       /^0\d{9}$/.test(registrationState.phone) &&
       !phoneError;
-    const isBirthDateValid = registrationState.birthDate !== "" && !ageError;
-    const isGenderValid = registrationState.gender !== "";
-    const isMaritalStatusValid = registrationState.maritalStatus !== "";
+    const isBirthDateValid = registrationState.birthDate !== '' && !ageError;
+    const isGenderValid = registrationState.gender !== '';
+    const isMaritalStatusValid = registrationState.maritalStatus !== '';
 
     // תקינות הטופס תלויה גם באישור התנאים (אם טרם אושרו)
     const consentRequirementMet = userHasAlreadyConsented || consentChecked;
@@ -4186,34 +4294,41 @@ const PersonalDetailsStep: React.FC = () => {
     const lnValid = validateLastName(registrationState.lastName);
     const pValid = validatePhone(registrationState.phone);
     const ageValid = validateAge(registrationState.birthDate);
-    const genderValid = registrationState.gender !== "";
-    const maritalValid = registrationState.maritalStatus !== "";
+    const genderValid = registrationState.gender !== '';
+    const maritalValid = registrationState.maritalStatus !== '';
 
-    if (!fnValid || !lnValid || !pValid || !ageValid || !genderValid || !maritalValid) {
+    if (
+      !fnValid ||
+      !lnValid ||
+      !pValid ||
+      !ageValid ||
+      !genderValid ||
+      !maritalValid
+    ) {
       return; // עצור אם יש שגיאות בשדות
     }
 
     // בדיקה וטיפול בהסכמה אם נדרש
     if (!userHasAlreadyConsented) {
       if (!consentChecked) {
-        setConsentError("חובה לאשר את תנאי השימוש ומדיניות הפרטיות.");
+        setConsentError('חובה לאשר את תנאי השימוש ומדיניות הפרטיות.');
         return;
       }
       setIsSubmittingConsent(true);
       try {
-        const consentResponse = await fetch("/api/user/accept-terms", {
-          method: "POST",
+        const consentResponse = await fetch('/api/user/accept-terms', {
+          method: 'POST',
         });
         const consentResult = await consentResponse.json();
         if (!consentResponse.ok || !consentResult.success) {
-          throw new Error(consentResult.error || "שגיאה באישור התנאים.");
+          throw new Error(consentResult.error || 'שגיאה באישור התנאים.');
         }
         // לאחר אישור מוצלח, עדכן את הסשן (אם צריך)
         await updateSessionHook(); // קריאה לפונקציית העדכון מה-hook
-        console.log("Terms accepted via API, session should be updated.");
+        console.log('Terms accepted via API, session should be updated.');
       } catch (error) {
         setGeneralApiError(
-          error instanceof Error ? error.message : "אירעה שגיאה באישור התנאים."
+          error instanceof Error ? error.message : 'אירעה שגיאה באישור התנאים.'
         );
         setIsSubmittingConsent(false);
         return;
@@ -4265,7 +4380,10 @@ const PersonalDetailsStep: React.FC = () => {
       <motion.div variants={itemVariants} className="space-y-4">
         {/* First Name Field */}
         <div className="space-y-1">
-          <label htmlFor="firstNamePersonal" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="firstNamePersonal"
+            className="block text-sm font-medium text-gray-700"
+          >
             שם פרטי <span className="text-red-500">*</span>
           </label>
           <div className="relative">
@@ -4273,23 +4391,38 @@ const PersonalDetailsStep: React.FC = () => {
             <Input
               type="text"
               id="firstNamePersonal"
+              aria-describedby={firstNameError ? 'firstname-error' : undefined}
+              aria-invalid={!!firstNameError}
               value={registrationState.firstName}
-              onChange={(e) => updateField("firstName", e.target.value)}
+              onChange={(e) => updateField('firstName', e.target.value)}
               onBlur={() => validateFirstName(registrationState.firstName)}
               placeholder="לדוגמה: ישראל"
               required
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                firstNameError ? "border-red-400 focus:ring-red-200" : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                firstNameError
+                  ? 'border-red-400 focus:ring-red-200'
+                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
               }`}
               disabled={isSubmittingConsent}
             />
           </div>
-          {firstNameError && <p className="text-red-500 text-xs mt-1">{firstNameError}</p>}
+          {firstNameError && (
+            <p
+              id="firstname-error"
+              role="alert"
+              className="text-red-500 text-xs mt-1"
+            >
+              {firstNameError}
+            </p>
+          )}
         </div>
 
         {/* Last Name Field */}
         <div className="space-y-1">
-          <label htmlFor="lastNamePersonal" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="lastNamePersonal"
+            className="block text-sm font-medium text-gray-700"
+          >
             שם משפחה <span className="text-red-500">*</span>
           </label>
           <div className="relative">
@@ -4298,22 +4431,29 @@ const PersonalDetailsStep: React.FC = () => {
               type="text"
               id="lastNamePersonal"
               value={registrationState.lastName}
-              onChange={(e) => updateField("lastName", e.target.value)}
+              onChange={(e) => updateField('lastName', e.target.value)}
               onBlur={() => validateLastName(registrationState.lastName)}
               placeholder="לדוגמה: ישראלי"
               required
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                lastNameError ? "border-red-400 focus:ring-red-200" : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                lastNameError
+                  ? 'border-red-400 focus:ring-red-200'
+                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
               }`}
               disabled={isSubmittingConsent}
             />
           </div>
-          {lastNameError && <p className="text-red-500 text-xs mt-1">{lastNameError}</p>}
+          {lastNameError && (
+            <p className="text-red-500 text-xs mt-1">{lastNameError}</p>
+          )}
         </div>
 
         {/* Phone Field */}
         <div className="space-y-1">
-          <label htmlFor="phonePersonal" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="phonePersonal"
+            className="block text-sm font-medium text-gray-700"
+          >
             טלפון נייד <span className="text-red-500">*</span>
           </label>
           <div className="relative">
@@ -4322,18 +4462,22 @@ const PersonalDetailsStep: React.FC = () => {
               type="tel"
               id="phonePersonal"
               value={registrationState.phone}
-              onChange={(e) => updateField("phone", e.target.value)}
+              onChange={(e) => updateField('phone', e.target.value)}
               onBlur={() => validatePhone(registrationState.phone)}
               placeholder=""
               required
               maxLength={10}
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                phoneError ? "border-red-400 focus:ring-red-200" : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                phoneError
+                  ? 'border-red-400 focus:ring-red-200'
+                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
               }`}
               disabled={isSubmittingConsent}
             />
           </div>
-          {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
+          {phoneError && (
+            <p className="text-red-500 text-xs mt-1">{phoneError}</p>
+          )}
         </div>
 
         {/* Gender Field */}
@@ -4342,21 +4486,23 @@ const PersonalDetailsStep: React.FC = () => {
             מגדר <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-2 gap-3 mt-1">
-            {([
-              { value: Gender.MALE, label: "זכר", icon: "👨" },
-              { value: Gender.FEMALE, label: "נקבה", icon: "👩" },
-            ] as const).map((genderOption) => (
+            {(
+              [
+                { value: Gender.MALE, label: 'זכר', icon: '👨' },
+                { value: Gender.FEMALE, label: 'נקבה', icon: '👩' },
+              ] as const
+            ).map((genderOption) => (
               <button
                 key={genderOption.value}
                 type="button"
-                onClick={() => updateField("gender", genderOption.value)}
+                onClick={() => updateField('gender', genderOption.value)}
                 disabled={isSubmittingConsent}
                 className={`flex items-center justify-center gap-2 py-3 rounded-lg border-2 transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed ${
                   registrationState.gender === genderOption.value
                     ? genderOption.value === Gender.MALE
-                      ? "border-cyan-500 bg-cyan-50 text-cyan-700 shadow-md"
-                      : "border-pink-500 bg-pink-50 text-pink-700 shadow-md"
-                    : "border-gray-200 hover:border-gray-300 text-gray-700 bg-white"
+                      ? 'border-cyan-500 bg-cyan-50 text-cyan-700 shadow-md'
+                      : 'border-pink-500 bg-pink-50 text-pink-700 shadow-md'
+                    : 'border-gray-200 hover:border-gray-300 text-gray-700 bg-white'
                 }`}
               >
                 <span className="text-xl">{genderOption.icon}</span>
@@ -4364,12 +4510,17 @@ const PersonalDetailsStep: React.FC = () => {
               </button>
             ))}
           </div>
-          {registrationState.gender === "" && <p className="text-red-500 text-xs mt-1">יש לבחור מגדר</p>}
+          {registrationState.gender === '' && (
+            <p className="text-red-500 text-xs mt-1">יש לבחור מגדר</p>
+          )}
         </div>
 
         {/* Birth Date Field */}
         <div className="space-y-1">
-          <label htmlFor="birthDatePersonal" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="birthDatePersonal"
+            className="block text-sm font-medium text-gray-700"
+          >
             תאריך לידה <span className="text-red-500">*</span>
           </label>
           <div className="relative">
@@ -4379,14 +4530,20 @@ const PersonalDetailsStep: React.FC = () => {
               id="birthDatePersonal"
               value={registrationState.birthDate}
               onChange={(e) => {
-                updateField("birthDate", e.target.value);
+                updateField('birthDate', e.target.value);
                 validateAge(e.target.value);
               }}
               onBlur={() => validateAge(registrationState.birthDate)}
-              max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
+              max={
+                new Date(new Date().setFullYear(new Date().getFullYear() - 18))
+                  .toISOString()
+                  .split('T')[0]
+              }
               required
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                ageError ? "border-red-400 focus:ring-red-200" : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                ageError
+                  ? 'border-red-400 focus:ring-red-200'
+                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
               }`}
               disabled={isSubmittingConsent}
             />
@@ -4396,7 +4553,10 @@ const PersonalDetailsStep: React.FC = () => {
 
         {/* Marital Status Field */}
         <div className="space-y-1">
-          <label htmlFor="maritalStatusPersonal" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="maritalStatusPersonal"
+            className="block text-sm font-medium text-gray-700"
+          >
             מצב משפחתי <span className="text-red-500">*</span>
           </label>
           <div className="relative">
@@ -4404,33 +4564,50 @@ const PersonalDetailsStep: React.FC = () => {
             <select
               id="maritalStatusPersonal"
               value={registrationState.maritalStatus}
-              onChange={(e) => updateField("maritalStatus", e.target.value)}
+              onChange={(e) => updateField('maritalStatus', e.target.value)}
               required
               disabled={isSubmittingConsent}
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none appearance-none bg-white transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${
-                registrationState.maritalStatus === "" && false // Not a real error condition for select, just placeholder
-                  ? "border-red-400 focus:ring-red-200"
-                  : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                registrationState.maritalStatus === '' && false // Not a real error condition for select, just placeholder
+                  ? 'border-red-400 focus:ring-red-200'
+                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
               }`}
             >
-              <option value="" disabled>בחר/י מצב משפחתי...</option>
+              <option value="" disabled>
+                בחר/י מצב משפחתי...
+              </option>
               <option value="רווק/ה">רווק/ה</option>
               <option value="גרוש/ה">גרוש/ה</option>
               <option value="אלמן/ה">אלמן/ה</option>
             </select>
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              <svg
+                className="h-5 w-5 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </div>
           </div>
-          {registrationState.maritalStatus === "" && <p className="text-red-500 text-xs mt-1">יש לבחור מצב משפחתי</p>}
+          {registrationState.maritalStatus === '' && (
+            <p className="text-red-500 text-xs mt-1">יש לבחור מצב משפחתי</p>
+          )}
         </div>
       </motion.div>
 
       {/* Consent Checkbox - מוצג רק אם המשתמש טרם אישר */}
       {!userHasAlreadyConsented && (
-        <motion.div variants={itemVariants} className="mt-6 pt-4 border-t border-gray-100">
+        <motion.div
+          variants={itemVariants}
+          className="mt-6 pt-4 border-t border-gray-100"
+        >
           <ConsentCheckbox
             checked={consentChecked}
             onChange={(isChecked) => {
@@ -4450,7 +4627,11 @@ const PersonalDetailsStep: React.FC = () => {
           onClick={prevStep}
           variant="outline"
           className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"
-          disabled={isSubmittingConsent || (registrationState.step === 0 && !registrationState.isCompletingProfile)}
+          disabled={
+            isSubmittingConsent ||
+            (registrationState.step === 0 &&
+              !registrationState.isCompletingProfile)
+          }
         >
           <ArrowRight className="h-4 w-4" />
           חזרה
@@ -4462,8 +4643,8 @@ const PersonalDetailsStep: React.FC = () => {
           className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all duration-300
             ${
               isFormValid && !isSubmittingConsent
-                ? "bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg hover:shadow-xl transform hover:scale-105"
-                : "bg-gray-300 cursor-not-allowed"
+                ? 'bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg hover:shadow-xl transform hover:scale-105'
+                : 'bg-gray-300 cursor-not-allowed'
             }`}
         >
           {isSubmittingConsent ? (
@@ -4487,7 +4668,7 @@ export default PersonalDetailsStep;
 --- End of Content for PersonalDetailsStep.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps\WelcomeStep.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\WelcomeStep.tsx
 --------------------------------------------------------------------------------
 Content:
 "use client";

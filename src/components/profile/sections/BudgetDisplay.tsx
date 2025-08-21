@@ -1,31 +1,29 @@
-// src/app/components/profile/sections/BudgetDisplay.tsx
-
+// src/components/profile/sections/BudgetDisplay.tsx
 import React from 'react';
-import { Progress } from "@/components/ui/progress";
+import { Progress } from '@/components/ui/progress';
 import { motion } from 'framer-motion';
+import type { BudgetDisplayDict } from '@/types/dictionary';
 
 interface BudgetDisplayProps {
-  // הקומפוננטה מקבלת את הנתונים הגולמיים של התשובה
   data: Record<string, number>;
+  dict: BudgetDisplayDict;
 }
 
-const BudgetDisplay: React.FC<BudgetDisplayProps> = ({ data }) => {
-  // בדיקה שהנתונים תקינים
+const BudgetDisplay: React.FC<BudgetDisplayProps> = ({ data, dict }) => {
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    return <p className="text-sm text-red-500">שגיאה: נתונים לא תקינים לתצוגה.</p>;
+    return <p className="text-sm text-red-500">{dict.errorInvalidData}</p>;
   }
 
-  // 1. המרת האובייקט למערך, סינון ערכים ריקים, ומיון מהגבוה לנמוך
   const sortedEntries = Object.entries(data)
     .filter(([_, value]) => typeof value === 'number' && value > 0)
     .sort(([, a], [, b]) => b - a);
-  
-  // אם אין נתונים להצגה אחרי הסינון
+
   if (sortedEntries.length === 0) {
-    return <p className="text-sm text-gray-500 italic">לא הוקצו ערכים.</p>;
+    return (
+      <p className="text-sm text-gray-500 italic">{dict.noValuesAllocated}</p>
+    );
   }
 
-  // 2. פלטת צבעים דינמית להמחשה ויזואלית
   const colors = [
     'bg-cyan-500',
     'bg-teal-500',
@@ -35,14 +33,11 @@ const BudgetDisplay: React.FC<BudgetDisplayProps> = ({ data }) => {
     'bg-gray-400',
   ];
 
-  // 3. הגדרות אנימציה
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1, // כל פריט יופיע בעיכוב קל
-      },
+      transition: { staggerChildren: 0.1 },
     },
   };
 
@@ -52,7 +47,7 @@ const BudgetDisplay: React.FC<BudgetDisplayProps> = ({ data }) => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="space-y-3 pt-2"
       variants={containerVariants}
       initial="hidden"
@@ -64,10 +59,10 @@ const BudgetDisplay: React.FC<BudgetDisplayProps> = ({ data }) => {
             <span className="font-medium text-gray-700">{label}</span>
             <span className="font-semibold text-cyan-700">{value}%</span>
           </div>
-          <Progress 
-            value={value} 
+          <Progress
+            value={value}
             className="h-2.5 rounded-full bg-gray-200/70"
-            indicatorClassName={colors[index % colors.length]} // בחירת צבע מהפלטה
+            indicatorClassName={colors[index % colors.length]}
           />
         </motion.div>
       ))}

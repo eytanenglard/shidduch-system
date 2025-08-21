@@ -1,4 +1,4 @@
-// src/app/(authenticated)/profile/components/advisor/AIProfileAdvisorDialog.tsx
+// src/app/[locale]/(authenticated)/profile/components/advisor/AIProfileAdvisorDialog.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -10,33 +10,33 @@ import {
   DialogTitle,
   DialogDescription,
   DialogTrigger,
-  DialogClose, // <--- 1. יבוא של קומפוננטת הסגירה
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Sparkles, AlertTriangle, X } from 'lucide-react'; // <--- 2. יבוא של אייקון ה-X
+import { Loader2, Sparkles, AlertTriangle, X } from 'lucide-react';
 import { toast } from 'sonner';
 
-// נייבא את הקומפוננטה שתציג את התוצאות
 import AnalysisResultDisplay from './AnalysisResultDisplay';
 import type { AiProfileAnalysisResult } from '@/lib/services/aiService';
+import { AIAdvisorDialogDict, AnalysisResultDisplayDict } from '@/types/dictionary';
 
 interface AIProfileAdvisorDialogProps {
   userId: string;
+  dict: AIAdvisorDialogDict;
+  analysisDict: AnalysisResultDisplayDict;
 }
 
 export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
   userId,
+  dict,
+  analysisDict
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [analysis, setAnalysis] = useState<AiProfileAnalysisResult | null>(
-    null
-  );
+  const [analysis, setAnalysis] = useState<AiProfileAnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // פונקציה שתופעל כשהמשתמש ילחץ על הכפתור ותתחיל את התהליך
   const handleGetAnalysis = async () => {
-    // אם כבר יש ניתוח, פשוט נפתח את הדיאלוג בלי לקרוא שוב ל-API
     if (analysis) {
       setIsOpen(true);
       return;
@@ -51,22 +51,22 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
         headers: {
           'Content-Type': 'application/json',
         },
-        // אין צורך לשלוח userId, ה-API יקח אותו מהסשן
       });
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || 'שגיאה בקבלת ניתוח הפרופיל.');
+        throw new Error(result.message || 'Error getting profile analysis.');
       }
 
       setAnalysis(result.data);
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.';
+        err instanceof Error ? err.message : 'An unexpected error occurred.';
       setError(errorMessage);
-      toast.error('שגיאה בתהליך הניתוח', {
-        description: errorMessage,
+      // שימוש במבנה ה-toast הנכון
+      toast.error(dict.toast.errorTitle, {
+        description: dict.toast.errorDescription.replace('{{error}}', errorMessage),
       });
     } finally {
       setIsLoading(false);
@@ -75,14 +75,11 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-    // איפוס המצב כאשר הדיאלוג נסגר
     if (!open) {
-      // לא מאפסים את ה-analysis כדי לשמור אותו בזיכרון לפתיחה הבאה
       setError(null);
     }
   };
 
-  // כאשר הדיאלוג נפתח לראשונה (אין עדיין ניתוח) - נפעיל את הפונקציה
   const handleTriggerClick = () => {
     if (!analysis && !isLoading) {
       handleGetAnalysis();
@@ -99,7 +96,7 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
           className="rounded-full border-2 border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:border-purple-400 transition-all duration-300 shadow-sm hover:shadow-lg group w-full max-w-sm"
         >
           <Sparkles className="w-5 h-5 ml-2 text-purple-500 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110" />
-          <span>קבל ניתוח וטיפים לשיפור הפרופיל</span>
+          <span>{dict.triggerButton}</span>
         </Button>
       </DialogTrigger>
 
@@ -107,23 +104,20 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
         className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0"
         dir="rtl"
       >
-        {/* --- 3. הוספת כפתור הסגירה --- */}
         <DialogClose asChild>
           <button className="absolute top-3 left-4 rtl:right-4 rtl:left-auto text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10">
             <X className="h-5 w-5" />
-            <span className="sr-only">סגור</span>
+            <span className="sr-only">{dict.closeButton}</span>
           </button>
         </DialogClose>
-        {/* ----------------------------- */}
 
         <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Sparkles className="w-6 h-6 text-purple-500" />
-            <span>יועץ הפרופיל החכם שלך</span>
+            <span>{dict.dialogTitle}</span>
           </DialogTitle>
           <DialogDescription>
-            ניתוח מבוסס AI שיעזור לך להציג את עצמך בצורה הטובה ביותר ולמצוא
-            התאמות מדויקות יותר.
+            {dict.dialogDescription}
           </DialogDescription>
         </DialogHeader>
 
@@ -136,19 +130,20 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
             >
               <Loader2 className="w-12 h-12 text-purple-500 animate-spin mb-4" />
               <p className="text-lg font-semibold text-gray-700">
-                ה-AI שלנו מנתח את הפרופיל שלך...
+                {dict.loadingTitle}
               </p>
               <p className="text-sm text-gray-500 mt-2">
-                זה עשוי לקחת מספר שניות. תודה על סבלנותך.
+                {dict.loadingDescription}
               </p>
             </div>
           ) : error ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <Alert variant="destructive" className="max-w-md">
                 <AlertTriangle className="h-5 w-5" />
-                <AlertTitle>אופס, משהו השתבש</AlertTitle>
+                {/* שימוש בשדות הנכונים לאלרט */}
+                <AlertTitle>{dict.errorAlertTitle}</AlertTitle>
                 <AlertDescription>
-                  <p>לא הצלחנו להשלים את ניתוח הפרופיל כרגע.</p>
+                  <p>{dict.errorAlertDescription}</p>
                   <p className="text-xs mt-2">{error}</p>
                 </AlertDescription>
               </Alert>
@@ -157,14 +152,14 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                 variant="outline"
                 className="mt-4"
               >
-                נסה שוב
+                {dict.retryButton}
               </Button>
             </div>
           ) : analysis ? (
-            <AnalysisResultDisplay analysis={analysis} />
+            <AnalysisResultDisplay analysis={analysis} dict={analysisDict} />
           ) : (
             <div className="flex items-center justify-center h-full">
-              <p>לחץ על הכפתור כדי להתחיל את הניתוח.</p>
+              <p>{dict.initialState}</p>
             </div>
           )}
         </div>

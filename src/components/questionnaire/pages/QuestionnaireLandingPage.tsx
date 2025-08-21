@@ -22,129 +22,31 @@ import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { motion } from 'framer-motion';
+import type { QuestionnaireLandingPageDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
 
 // --- Props Interface ---
 interface QuestionnaireLandingPageProps {
   onStartQuestionnaire: () => void;
   hasSavedProgress: boolean;
   isLoading?: boolean;
+  dict: QuestionnaireLandingPageDict; // קבלת המילון כ-prop
 }
 
-// --- Centralized Content Configuration for easy updates ---
-const contentConfig = {
-  // ... (אין שינוי בחלק הזה)
-  hero: {
-    title: 'הנתיב שלך לזוגיות משמעותית',
-    subtitle:
-      'השקעה של דקות ספורות בשאלון המעמיק שלנו היא הצעד החשוב ביותר לבניית הפרופיל המדויק שלך. פרופיל שיאפשר לנו, צוות השדכנים, למצוא עבורך התאמה אמיתית, מבוססת ועמוקה.',
-  },
-  worldsSection: {
-    title: 'חמישה עולמות, פרופיל אחד מדויק',
-    subtitle:
-      'השאלון מחולק לחמישה עולמות תוכן. כל עולם מתמקד בהיבט אחר של אישיותך וציפיותיך, ויחד הם יוצרים תמונה מלאה ועשירה שתשרת אותנו בתהליך ההתאמה.',
-  },
-  worlds: [
-    {
-      id: 'PERSONALITY',
-      title: 'עולם האישיות',
-      icon: <User className="h-7 w-7" />,
-      colorGradient: 'from-sky-400 to-blue-500',
-      questions: 20,
-      description:
-        'כאן תצייר/י תמונה אותנטית של אישיותך, כדי שנוכל להבין לעומק מי את/ה.',
-    },
-    {
-      id: 'VALUES',
-      title: 'עולם הערכים',
-      icon: <Heart className="h-7 w-7" />,
-      colorGradient: 'from-rose-400 to-red-500',
-      questions: 25,
-      description:
-        'מהם עמודי התווך של חייך? כאן נגדיר את הערכים והאמונות שמנחים אותך.',
-    },
-    {
-      id: 'RELATIONSHIP',
-      title: 'עולם הזוגיות',
-      icon: <Users className="h-7 w-7" />,
-      colorGradient: 'from-purple-400 to-indigo-500',
-      questions: 18,
-      description:
-        'מהי זוגיות עבורך? כאן תפרט/י את ציפיותיך מהקשר ואת החזון לשותפות.',
-    },
-    {
-      id: 'PARTNER',
-      title: 'עולם הפרטנר',
-      icon: <UserCheck className="h-7 w-7" />,
-      colorGradient: 'from-teal-400 to-emerald-500',
-      questions: 22,
-      description:
-        'מי האדם שאת/ה מחפש/ת? כאן נמקד את החיפוש ונבין מה חיוני לך בבן/בת זוג.',
-    },
-    {
-      id: 'RELIGION',
-      title: 'דת ומסורת',
-      icon: <Scroll className="h-7 w-7" />,
-      colorGradient: 'from-amber-400 to-orange-500',
-      questions: 15,
-      description:
-        'מה החיבור שלך ליהדות? כאן תפרט/י את זהותך הדתית והביטוי שלה בחייך.',
-    },
-  ],
-  featuresSection: {
-    title: 'הבסיס להצלחה שלך',
-    subtitle:
-      'השקענו מחשבה וניסיון רב כדי להפוך את התהליך ליעיל, מכבד ומדויק ככל האפשר.',
-    features: [
-      {
-        icon: <Clock className="h-8 w-8 text-sky-600" />,
-        title: 'תהליך מודרך וגמיש',
-        description:
-          'השאלון מחולק לעולמות נפרדים, כך שניתן למלא אותו בקצב שלך, לעצור ולחזור בכל שלב.',
-        bgColor: 'bg-sky-100/60',
-      },
-      {
-        icon: <Shield className="h-8 w-8 text-rose-600" />,
-        title: 'פרטיות מוחלטת',
-        description:
-          'התשובות שלך דיסקרטיות לחלוטין ומשמשות את צוות השדכנים המקצועי שלנו בלבד, לצורך מציאת ההתאמה המדויקת ביותר.',
-        bgColor: 'bg-rose-100/60',
-      },
-      {
-        icon: <Star className="h-8 w-8 text-amber-600" />,
-        title: 'מתודולוגיה מוכחת',
-        description:
-          'השיטה שלנו משלבת תובנות מעולם הפסיכולוגיה עם ניסיון של שדכנים ותיקים ליצירת התאמות עומק, ולא רק התאמה שטחית.',
-        bgColor: 'bg-amber-100/60',
-      },
-    ],
-  },
-  finalCta: {
-    title: 'מוכנ/ה לבנות את הפרופיל שלך?',
-    subtitle:
-      'הצעד הראשון הוא לספק לנו את התמונה המלאה והאותנטית שלך. מכאן, המומחיות והטכנולוגיה שלנו נכנסות לפעולה כדי להתחיל את החיפוש המדויק עבורך.',
-    buttonText: 'התחל/י עכשיו',
-  },
-};
-
 // --- Animation Variants ---
-// <<< CHANGE 1: Animation timings are now faster >>>
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.08, // Was 0.1
-      delayChildren: 0.1, // Was 0.2
-    },
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
   },
 };
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 20 }, // y was 30
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' }, // duration was 0.6
+    transition: { duration: 0.5, ease: 'easeOut' },
   },
 };
 
@@ -152,34 +54,26 @@ const staggeredCardVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1, // Was 0.15
-      delayChildren: 0.1, // Was 0.3
-    },
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
   },
 };
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.98 }, // y was 40, scale was 0.95
+  hidden: { opacity: 0, y: 30, scale: 0.98 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      duration: 0.5, // Was 0.6
+      duration: 0.5,
       ease: 'easeOut',
-      scale: {
-        type: 'spring',
-        stiffness: 260,
-        damping: 20,
-      },
+      scale: { type: 'spring', stiffness: 260, damping: 20 },
     },
   },
 };
 
 // --- Background Components ---
 const DynamicBackground: React.FC = () => (
-  // ... (אין שינוי בחלק הזה)
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     <div className="absolute inset-0 opacity-30">
       <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-teal-200/40 to-orange-300/30 rounded-full blur-3xl animate-float-slow" />
@@ -228,20 +122,51 @@ export default function QuestionnaireLandingPage({
   onStartQuestionnaire,
   hasSavedProgress,
   isLoading = false,
+  dict,
 }: QuestionnaireLandingPageProps) {
   const { status, data: session } = useSession();
   const isMobile = useIsMobile();
 
-  const getCtaText = () => {
-    if (hasSavedProgress) {
-      return `המשך/י מהנקודה האחרונה`;
-    }
-    if (session?.user?.firstName) {
-      return `התחל/י את המסע, ${session.user.firstName}`;
-    }
-    return 'בוא/י נתחיל';
-  };
+  // World visual configuration remains in code
+  const worldVisuals = [
+    {
+      id: 'PERSONALITY',
+      icon: <User className="h-7 w-7" />,
+      colorGradient: 'from-sky-400 to-blue-500',
+      questions: 20,
+    },
+    {
+      id: 'VALUES',
+      icon: <Heart className="h-7 w-7" />,
+      colorGradient: 'from-rose-400 to-red-500',
+      questions: 25,
+    },
+    {
+      id: 'RELATIONSHIP',
+      icon: <Users className="h-7 w-7" />,
+      colorGradient: 'from-purple-400 to-indigo-500',
+      questions: 18,
+    },
+    {
+      id: 'PARTNER',
+      icon: <UserCheck className="h-7 w-7" />,
+      colorGradient: 'from-teal-400 to-emerald-500',
+      questions: 22,
+    },
+    {
+      id: 'RELIGION',
+      icon: <Scroll className="h-7 w-7" />,
+      colorGradient: 'from-amber-400 to-orange-500',
+      questions: 15,
+    },
+  ];
 
+  const getCtaText = () => {
+    if (hasSavedProgress) return dict.cta.continue;
+    if (session?.user?.firstName)
+      return dict.cta.startAsUser.replace('{{name}}', session.user.firstName);
+    return dict.cta.start;
+  };
   const CtaIcon = hasSavedProgress ? CheckCircle : Heart;
 
   return (
@@ -252,15 +177,12 @@ export default function QuestionnaireLandingPage({
       )}
     >
       <DynamicBackground />
-
-      {/* --- Section 1: Hero - The Invitation to the Journey --- */}
       <motion.section
         className="relative py-20 px-4 sm:py-24 text-center overflow-hidden"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
-        {/* ... Hero content ... no changes needed here as it animates on page load */}
         <div className="max-w-4xl mx-auto relative">
           <motion.div
             className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-8"
@@ -268,24 +190,15 @@ export default function QuestionnaireLandingPage({
           >
             <Sparkles className="w-6 h-6 text-rose-500" />
             <span className="text-rose-700 font-semibold">
-              המסע שלכם מתחיל כאן
+              {dict.hero.badge}
             </span>
           </motion.div>
-
           <motion.h1
             className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight"
             variants={fadeInUp}
           >
-            <span className="text-gray-800">
-              {contentConfig.hero.title.split(' ').slice(0, 2).join(' ')}
-            </span>
-            <br className="sm:hidden" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-amber-400">
-              {' '}
-              {contentConfig.hero.title.split(' ').slice(2).join(' ')}
-            </span>
+            <span className="text-gray-800">{dict.hero.title}</span>
           </motion.h1>
-
           <motion.div
             className="relative max-w-3xl mx-auto mt-6"
             variants={fadeInUp}
@@ -295,12 +208,11 @@ export default function QuestionnaireLandingPage({
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-purple-100/50 to-transparent rounded-full transform -translate-x-12 translate-y-12" />
               <div className="relative">
                 <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-                  {contentConfig.hero.subtitle}
+                  {dict.hero.subtitle}
                 </p>
               </div>
             </div>
           </motion.div>
-
           <motion.div
             className="mt-12 space-y-4 flex flex-col items-center"
             variants={fadeInUp}
@@ -323,7 +235,6 @@ export default function QuestionnaireLandingPage({
                 )}
               </div>
             </Button>
-
             {status !== 'authenticated' && (
               <Link href="/auth/signin" className="w-full max-w-sm">
                 <Button
@@ -332,7 +243,7 @@ export default function QuestionnaireLandingPage({
                   className="w-full text-md font-medium px-8 py-6 border-2 border-teal-200 text-teal-600 hover:bg-teal-50 hover:border-teal-300 rounded-full transition-all duration-300 bg-white/70 backdrop-blur-sm"
                 >
                   <Lock className="h-5 w-5 ms-2" />
-                  כניסה למשתמשים רשומים
+                  {dict.cta.loginButton}
                 </Button>
               </Link>
             )}
@@ -340,112 +251,108 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* --- Section 2: Worlds - The "What to Expect" --- */}
       <motion.section
         className="py-16 px-4 relative"
         initial="hidden"
         whileInView="visible"
-        // <<< CHANGE 2: Trigger animation sooner >>>
-        viewport={{ once: true, amount: 0.1 }} // Was 0.2
+        viewport={{ once: true, amount: 0.1 }}
         variants={containerVariants}
       >
         <div className="absolute inset-0 -m-8 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60" />
-
         <div className="max-w-6xl mx-auto relative">
           <motion.div className="text-center mb-12" variants={fadeInUp}>
             <h2 className="text-3xl font-bold mb-3 text-gray-800">
-              {contentConfig.worldsSection.title}
+              {dict.worldsSection.title}
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-auto rounded-full mb-6" />
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              {contentConfig.worldsSection.subtitle}
+              {dict.worldsSection.subtitle}
             </p>
           </motion.div>
-
           <motion.div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6"
             variants={staggeredCardVariants}
           >
-            {contentConfig.worlds.map((world) => (
-              <motion.div key={world.id} variants={cardVariants}>
-                <Card className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/90 backdrop-blur-sm border border-white/60 flex flex-col h-full group">
-                  <CardContent className="p-6 text-center flex flex-col items-center flex-grow relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/50 to-white/80 opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-2xl" />
-
-                    <div className="relative z-10 flex flex-col items-center flex-grow">
-                      <div
-                        className={cn(
-                          'p-4 rounded-full bg-gradient-to-br text-white shadow-lg mb-4 group-hover:scale-110 transition-all duration-300',
-                          world.colorGradient
-                        )}
-                      >
-                        {world.icon}
+            {worldVisuals.map((world) => {
+              const worldContent =
+                dict.worlds[world.id as keyof typeof dict.worlds];
+              return (
+                <motion.div key={world.id} variants={cardVariants}>
+                  <Card className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/90 backdrop-blur-sm border border-white/60 flex flex-col h-full group">
+                    <CardContent className="p-6 text-center flex flex-col items-center flex-grow relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/50 to-white/80 opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-2xl" />
+                      <div className="relative z-10 flex flex-col items-center flex-grow">
+                        <div
+                          className={cn(
+                            'p-4 rounded-full bg-gradient-to-br text-white shadow-lg mb-4 group-hover:scale-110 transition-all duration-300',
+                            world.colorGradient
+                          )}
+                        >
+                          {world.icon}
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">
+                          {worldContent.title}
+                        </h3>
+                        <p className="text-sm text-gray-500 mb-3">
+                          {worldContent.questionsLabel.replace(
+                            '{{count}}',
+                            world.questions.toString()
+                          )}
+                        </p>
+                        <p className="text-base text-gray-600 leading-relaxed flex-grow">
+                          {worldContent.description}
+                        </p>
                       </div>
-                      <h3 className="text-xl font-bold text-gray-800 mb-2">
-                        {world.title}
-                      </h3>
-                      <p className="text-sm text-gray-500 mb-3">
-                        {world.questions} שאלות
-                      </p>
-                      <p className="text-base text-gray-600 leading-relaxed flex-grow">
-                        {world.description}
-                      </p>
-                    </div>
-
-                    {/* Decorative elements */}
-                    <div className="absolute top-2 right-2 w-2 h-2 bg-gradient-to-br from-teal-300/50 to-orange-300/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500" />
-                    <div
-                      className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-gradient-to-br from-orange-300/50 to-amber-300/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700"
-                      style={{ transitionDelay: '0.2s' }}
-                    />
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                      <div className="absolute top-2 right-2 w-2 h-2 bg-gradient-to-br from-teal-300/50 to-orange-300/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                      <div
+                        className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-gradient-to-br from-orange-300/50 to-amber-300/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700"
+                        style={{ transitionDelay: '0.2s' }}
+                      />
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </div>
       </motion.section>
 
-      {/* --- Section 3: Features - The "Why Trust Us" --- */}
       <motion.section
         className="py-16 px-4 relative"
         initial="hidden"
         whileInView="visible"
-        // <<< CHANGE 2: Trigger animation sooner >>>
-        viewport={{ once: true, amount: 0.1 }} // Was 0.2
+        viewport={{ once: true, amount: 0.1 }}
         variants={containerVariants}
       >
         <div className="max-w-5xl mx-auto relative">
           <motion.div className="text-center mb-12" variants={fadeInUp}>
             <h2 className="text-3xl font-bold mb-3 text-gray-800">
-              {contentConfig.featuresSection.title}
+              {dict.featuresSection.title}
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-auto rounded-full mb-6" />
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              {contentConfig.featuresSection.subtitle}
+              {dict.featuresSection.subtitle}
             </p>
           </motion.div>
-
           <motion.div
             className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
             variants={staggeredCardVariants}
           >
-            {contentConfig.featuresSection.features.map((feature, index) => (
+            {dict.featuresSection.features.map((feature, index) => (
               <motion.div
                 key={index}
                 className="flex flex-col items-center p-6 relative group"
                 variants={cardVariants}
               >
                 <div className="absolute inset-0 bg-white/60 backdrop-blur-md rounded-2xl shadow-lg border border-white/40 opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105" />
-
                 <div className="relative z-10 flex flex-col items-center">
-                  <div
-                    className={cn(
-                      'p-4 rounded-full mb-5 group-hover:scale-110 transition-all duration-300',
-                      feature.bgColor
+                  {/* Icons can be mapped here if needed, or kept static */}
+                  <div className="p-4 rounded-full mb-5 group-hover:scale-110 transition-all duration-300">
+                    {index === 0 && <Clock className="h-8 w-8 text-sky-600" />}
+                    {index === 1 && (
+                      <Shield className="h-8 w-8 text-rose-600" />
                     )}
-                  >
-                    {feature.icon}
+                    {index === 2 && <Star className="h-8 w-8 text-amber-600" />}
                   </div>
                   <h3 className="font-bold text-xl mb-2 text-gray-800 group-hover:text-gray-900 transition-colors duration-300">
                     {feature.title}
@@ -460,41 +367,27 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* --- Section 4: Final CTA --- */}
       <motion.section
         className="py-20 px-4 text-center relative"
         initial="hidden"
         whileInView="visible"
-        // <<< CHANGE 2: Trigger animation sooner >>>
-        viewport={{ once: true, amount: 0.15 }} // Was 0.3, a bit more than others is fine here
+        viewport={{ once: true, amount: 0.15 }}
         variants={containerVariants}
       >
         <div className="absolute inset-0 -m-8 bg-gradient-to-br from-teal-600/10 via-orange-600/10 to-amber-600/10 rounded-3xl backdrop-blur-sm border border-white/40" />
-
         <div className="max-w-3xl mx-auto relative">
-          <motion.div variants={fadeInUp}>
-            <div className="inline-flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-8">
-              <Sparkles className="w-6 h-6 text-orange-500" />
-              <span className="text-orange-700 font-semibold">
-                הרגע של האמת
-              </span>
-            </div>
-          </motion.div>
-
           <motion.h2
             className="text-3xl font-bold mb-4 text-gray-800"
             variants={fadeInUp}
           >
-            {contentConfig.finalCta.title}
+            {dict.finalCta.title}
           </motion.h2>
-
           <motion.p
             className="text-lg text-gray-600 mb-8 max-w-xl mx-auto leading-relaxed"
             variants={fadeInUp}
           >
-            {contentConfig.finalCta.subtitle}
+            {dict.finalCta.subtitle}
           </motion.p>
-
           <motion.div variants={fadeInUp}>
             <Button
               size="lg"
@@ -509,26 +402,15 @@ export default function QuestionnaireLandingPage({
                 ) : (
                   <>
                     <ArrowLeft className="h-6 w-6 ms-2" />
-                    <span>{contentConfig.finalCta.buttonText}</span>
+                    <span>{dict.finalCta.buttonText}</span>
                   </>
                 )}
               </div>
             </Button>
           </motion.div>
-
-          <motion.div
-            className="mt-6 flex items-center justify-center gap-3 text-gray-600"
-            variants={fadeInUp}
-          >
-            <CheckCircle className="w-5 h-5 text-green-500" />
-            <span className="font-medium">
-              חוויה אישית • תובנות עבורכם • דיסקרטי לחלוטין
-            </span>
-          </motion.div>
         </div>
       </motion.section>
 
-      {/* Sticky Mobile Button */}
       {isMobile && (
         <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/90 backdrop-blur-sm border-t border-teal-200/80 shadow-top z-50">
           <Button
@@ -553,11 +435,13 @@ export default function QuestionnaireLandingPage({
       )}
 
       <footer className="text-center py-6 text-gray-500 text-sm bg-white/50 backdrop-blur-sm">
-        © {new Date().getFullYear()} NeshamaTech. כל הזכויות שמורות.
+        {dict.footer.copyright.replace(
+          '{{year}}',
+          new Date().getFullYear().toString()
+        )}
       </footer>
 
       <style jsx global>{`
-        /* ... no changes in style tag ... */
         @keyframes float-slow {
           0%,
           100% {

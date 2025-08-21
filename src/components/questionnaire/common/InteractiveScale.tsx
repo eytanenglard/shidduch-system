@@ -1,3 +1,4 @@
+// src/components/questionnaire/common/InteractiveScale.tsx
 'use client';
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
@@ -10,6 +11,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Star, Heart, ThumbsUp } from 'lucide-react';
+import type { InteractiveScaleDict } from '@/types/dictionary';
 
 interface ScaleOption {
   value: number;
@@ -26,16 +28,8 @@ interface InteractiveScaleProps {
   value?: number;
   onChange?: (value: number) => void;
   onComplete?: (value: number) => void;
-  labels?: {
-    min: string;
-    max: string;
-    middle?: string;
-  };
-  descriptions?: {
-    min?: string;
-    max?: string;
-    middle?: string;
-  };
+  labels?: { min: string; max: string; middle?: string };
+  descriptions?: { min?: string; max?: string; middle?: string };
   options?: ScaleOption[];
   mode?: 'numeric' | 'icons' | 'hearts' | 'stars' | 'thumbs';
   size?: 'sm' | 'md' | 'lg';
@@ -47,14 +41,11 @@ interface InteractiveScaleProps {
   required?: boolean;
   name?: string;
   error?: string;
-  ariaLabelledby?: string; // הוסף את השורה הזו
+  ariaLabelledby?: string;
+  dict: InteractiveScaleDict; // קבלת המילון כ-prop
 }
 
-const defaultIcons = {
-  stars: Star,
-  hearts: Heart,
-  thumbs: ThumbsUp,
-};
+const defaultIcons = { stars: Star, hearts: Heart, thumbs: ThumbsUp };
 
 export default function InteractiveScale({
   min = 1,
@@ -76,7 +67,8 @@ export default function InteractiveScale({
   required = false,
   name,
   error,
-  ariaLabelledby, // הוסף את השורה הזו
+  ariaLabelledby,
+  dict, // שימוש במשתנה dict
 }: InteractiveScaleProps) {
   const [internalValue, setInternalValue] = useState<number | null>(
     defaultValue || null
@@ -136,7 +128,6 @@ export default function InteractiveScale({
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', () => setIsDragging(false));
     }
-
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', () => setIsDragging(false));
@@ -145,19 +136,13 @@ export default function InteractiveScale({
 
   const getScaleItems = () => {
     if (options) return options;
-
     const items: ScaleOption[] = [];
     for (let i = min; i <= max; i += step) {
-      const item: ScaleOption = {
-        value: i,
-        label: i.toString(),
-      };
-
+      const item: ScaleOption = { value: i, label: i.toString() };
       if (mode !== 'numeric') {
         const Icon = defaultIcons[mode as keyof typeof defaultIcons];
         item.icon = <Icon className="w-5 h-5" />;
       }
-
       items.push(item);
     }
     return items;
@@ -165,7 +150,6 @@ export default function InteractiveScale({
 
   const scaleItems = getScaleItems();
   const activeValue = hoveredValue !== null ? hoveredValue : value;
-
   const sizeClasses = {
     sm: 'h-8 text-sm',
     md: 'h-10 text-base',
@@ -195,7 +179,6 @@ export default function InteractiveScale({
             <span>{labels.max}</span>
           </div>
         )}
-
         <div className="relative flex-1 flex items-center justify-between">
           <AnimatePresence>
             {scaleItems.map((item) => (
@@ -223,7 +206,10 @@ export default function InteractiveScale({
                       }
                       onMouseLeave={() => setHoveredValue(null)}
                       disabled={isDisabled}
-                      aria-label={`Scale value ${item.value}`}
+                      aria-label={dict.ariaLabel.replace(
+                        '{{value}}',
+                        item.value.toString()
+                      )}
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0.8, opacity: 0 }}
@@ -242,15 +228,12 @@ export default function InteractiveScale({
           </AnimatePresence>
         </div>
       </div>
-
       {showValue && value !== null && (
         <div className="text-center text-sm text-gray-500">
-          {`ערך נבחר: ${value}`}
+          {dict.selectedValue.replace('{{value}}', value.toString())}
         </div>
       )}
-
       {error && <div className="text-sm text-red-500 mt-1">{error}</div>}
-
       {required && (
         <input
           type="hidden"

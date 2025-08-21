@@ -1,7 +1,6 @@
 // src/components/questionnaire/common/QuestionCard.tsx
-import React, { useState, forwardRef } from 'react';
-import { VisibilityToggleButton } from '@/components/ui/VisibilityToggleButton'; // ייבוא הקומפוננטה החדשה
-
+import React, { useState } from 'react';
+import { VisibilityToggleButton } from '@/components/ui/VisibilityToggleButton';
 import {
   Card,
   CardHeader,
@@ -12,21 +11,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
 import {
   Bookmark,
   AlertCircle,
   HelpCircle,
   SkipForward,
-  Info,
   Star,
-  X,
-  MessageCircle,
   Lightbulb,
-  Eye,
-  EyeOff,
-  Users,
-  Lock,
   Save,
   Loader2,
   BookUser,
@@ -37,11 +28,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Switch } from '@/components/ui/switch';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Question, AnswerValue, QuestionDepth } from '../types/types';
+import type { Question, QuestionDepth } from '../types/types';
 import { cn } from '@/lib/utils';
-import { useMediaQuery } from '../hooks/useMediaQuery';
+import type { QuestionCardDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
 
 interface QuestionCardProps {
   question: Question;
@@ -61,19 +51,8 @@ interface QuestionCardProps {
   onVisibilityChange: (isVisible: boolean) => void;
   onSave?: () => void;
   isSaving?: boolean;
+  dict: QuestionCardDict; // קבלת המילון כ-prop
 }
-
-const depthLabels: Record<QuestionDepth, string> = {
-  BASIC: 'בסיסי',
-  ADVANCED: 'מתקדם',
-  EXPERT: 'מעמיק',
-};
-
-const depthDescriptions: Record<QuestionDepth, string> = {
-  BASIC: 'שאלות חובה המהוות את הבסיס להיכרות',
-  ADVANCED: 'שאלות מומלצות להיכרות מעמיקה יותר',
-  EXPERT: 'שאלות העשרה לחיבור מעמיק במיוחד',
-};
 
 const getThemeClasses = (themeColor: string) => {
   const themes = {
@@ -132,16 +111,15 @@ export default function QuestionCard({
   validationError,
   isDisabled = false,
   children,
-  isFirstInList = false,
   themeColor = 'sky',
   isVisible,
   onVisibilityChange,
   onSave,
   isSaving,
+  dict, // שימוש במשתנה dict
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const isMobile = useMediaQuery('(max-width: 640px)');
 
   const cardVariants = {
     initial: { opacity: 0, y: 30, scale: 0.98 },
@@ -195,18 +173,18 @@ export default function QuestionCard({
                       )}
                     >
                       <Star className="h-3.5 w-3.5 mr-1.5" />
-                      {depthLabels[depth]}
+                      {dict.depthLabels[depth]}
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="max-w-xs">
-                    <p className="text-sm">{depthDescriptions[depth]}</p>
+                    <p className="text-sm">{dict.depthDescriptions[depth]}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
               {isRequired && (
                 <Badge variant="destructive" className="text-xs animate-pulse">
-                  שאלת חובה *
+                  {dict.requiredBadge}
                 </Badge>
               )}
             </div>
@@ -226,13 +204,21 @@ export default function QuestionCard({
                             ? 'text-amber-500 bg-amber-100'
                             : 'text-slate-400 hover:bg-slate-100'
                         )}
-                        aria-label={isBookmarked ? 'הסר סימניה' : 'הוסף סימניה'}
+                        aria-label={
+                          isBookmarked
+                            ? dict.tooltips.removeBookmark
+                            : dict.tooltips.addBookmark
+                        }
                       >
                         <Bookmark className="w-4 h-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{isBookmarked ? 'הסר סימניה' : 'שמור לעיון חוזר'}</p>
+                      <p>
+                        {isBookmarked
+                          ? dict.tooltips.removeBookmark
+                          : dict.tooltips.addBookmark}
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -251,14 +237,20 @@ export default function QuestionCard({
                             ? `${themeClasses.bg} ${themeClasses.text}`
                             : 'text-slate-400 hover:bg-slate-100'
                         )}
-                        aria-label={showHelp ? 'הסתר עזרה' : 'הצג עזרה'}
+                        aria-label={
+                          showHelp
+                            ? dict.tooltips.hideHelp
+                            : dict.tooltips.showHelp
+                        }
                       >
                         <HelpCircle className="w-4 h-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>
-                        {showHelp ? 'הסתר עזרה' : 'למה אנחנו שואלים את זה?'}
+                        {showHelp
+                          ? dict.tooltips.hideHelp
+                          : dict.tooltips.whyQuestion}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -314,7 +306,6 @@ export default function QuestionCard({
                 exit={{ opacity: 0, y: -10 }}
               >
                 <Alert role="alert" variant="destructive" className="py-2">
-                  {' '}
                   <AlertCircle className="h-4 w-4 mr-2" />
                   <AlertDescription className="text-sm">
                     {validationError}
@@ -331,14 +322,11 @@ export default function QuestionCard({
           </div>
         </CardContent>
 
-        {/* צד ימין (ב-RTL): מתג נראות */}
         <CardFooter className="relative flex justify-between items-center pt-4 border-t border-slate-100 bg-slate-50/50">
-          {/* צד ימין (ב-RTL): כפתור הנראות החדש */}
           <div className="flex items-center gap-3">
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  {/* שימוש בקומפוננטה החדשה */}
                   <VisibilityToggleButton
                     isVisible={isVisible}
                     onToggle={() => onVisibilityChange(!isVisible)}
@@ -348,12 +336,14 @@ export default function QuestionCard({
                 <TooltipContent side="top" className="max-w-xs">
                   <div className="text-center">
                     <p className="font-medium mb-1">
-                      {isVisible ? '👁️ גלוי לכולם' : '🔒 מוסתר מהציבור'}
+                      {isVisible
+                        ? dict.tooltips.visibility.visibleTitle
+                        : dict.tooltips.visibility.hiddenTitle}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {isVisible
-                        ? 'התשובה תוצג בפרופיל הציבורי שלך'
-                        : 'התשובה תהיה גלויה רק לשדכנים מאושרים'}
+                        ? dict.tooltips.visibility.visibleDesc
+                        : dict.tooltips.visibility.hiddenDesc}
                     </p>
                   </div>
                 </TooltipContent>
@@ -361,7 +351,6 @@ export default function QuestionCard({
             </TooltipProvider>
           </div>
 
-          {/* צד שמאל (ב-RTL): כפתורי פעולה */}
           <div className="flex items-center gap-1">
             {onSave && (
               <TooltipProvider>
@@ -373,7 +362,7 @@ export default function QuestionCard({
                       className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100"
                       onClick={onSave}
                       disabled={isSaving || isDisabled}
-                      aria-label="שמור התקדמות"
+                      aria-label={dict.tooltips.saveProgress}
                     >
                       {isSaving ? (
                         <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
@@ -383,7 +372,11 @@ export default function QuestionCard({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{isSaving ? 'שומר...' : 'שמור התקדמות'}</p>
+                    <p>
+                      {isSaving
+                        ? dict.tooltips.saveProgressSaving
+                        : dict.tooltips.saveProgress}
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -398,7 +391,7 @@ export default function QuestionCard({
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100"
-                        aria-label="צפה בפרופיל ובתשובות"
+                        aria-label={dict.tooltips.viewProfile}
                       >
                         <BookUser className="w-4 h-4" />
                       </Button>
@@ -406,7 +399,7 @@ export default function QuestionCard({
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>צפה בפרופיל ובתשובות</p>
+                  <p>{dict.tooltips.viewProfile}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -422,7 +415,7 @@ export default function QuestionCard({
                   (isRequired || isDisabled) && 'opacity-50 cursor-not-allowed'
                 )}
               >
-                {isRequired ? 'שאלת חובה' : 'דלג'}
+                {isRequired ? dict.skipButton.required : dict.skipButton.skip}
                 {!isRequired && <SkipForward className="w-4 h-4 mr-2" />}
               </Button>
             )}

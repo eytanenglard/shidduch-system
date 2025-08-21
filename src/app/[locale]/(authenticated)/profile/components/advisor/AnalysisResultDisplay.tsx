@@ -1,4 +1,4 @@
-// src/app/(authenticated)/profile/components/advisor/AnalysisResultDisplay.tsx
+// src/app/[locale]/(authenticated)/profile/components/advisor/AnalysisResultDisplay.tsx
 'use client';
 
 import React from 'react';
@@ -18,12 +18,14 @@ import {
   XCircle,
   User,
   Target,
-} from 'lucide-react'; // הסרתי את 'Camera'
+} from 'lucide-react';
 import { AiProfileAnalysisResult } from '@/lib/services/aiService';
 import { cn } from '@/lib/utils';
+import { AnalysisResultDisplayDict } from '@/types/dictionary';
 
 interface AnalysisResultDisplayProps {
   analysis: AiProfileAnalysisResult;
+  dict: AnalysisResultDisplayDict;
 }
 
 const TipCard: React.FC<{ area: string; tip: string }> = ({ area, tip }) => (
@@ -38,15 +40,18 @@ const TipCard: React.FC<{ area: string; tip: string }> = ({ area, tip }) => (
   </div>
 );
 
-const ReportItem: React.FC<{
+interface ReportItemProps {
   area: string;
   status: 'COMPLETE' | 'PARTIAL' | 'MISSING';
   feedback: string;
-}> = ({ area, status, feedback }) => {
+  dict: AnalysisResultDisplayDict['completeness']['status'];
+}
+
+const ReportItem: React.FC<ReportItemProps> = ({ area, status, feedback, dict }) => {
   const statusConfig = {
-    COMPLETE: { icon: CheckCircle2, color: 'text-green-600', text: 'הושלם' },
-    PARTIAL: { icon: AlertCircle, color: 'text-amber-600', text: 'חלקי' },
-    MISSING: { icon: XCircle, color: 'text-red-600', text: 'חסר' },
+    COMPLETE: { icon: CheckCircle2, color: 'text-green-600', text: dict.complete },
+    PARTIAL: { icon: AlertCircle, color: 'text-amber-600', text: dict.partial },
+    MISSING: { icon: XCircle, color: 'text-red-600', text: dict.missing },
   };
 
   const { icon: Icon, color, text } = statusConfig[status];
@@ -77,18 +82,16 @@ const ReportItem: React.FC<{
 
 const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
   analysis,
+  dict,
 }) => {
   return (
     <div className="w-full">
       <Tabs defaultValue="summary" className="w-full">
-        {/* --- START OF CHANGE --- */}
         <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-slate-200/70 rounded-lg">
-          <TabsTrigger value="summary">סיכום</TabsTrigger>
-          <TabsTrigger value="completeness">השלמת פרופיל</TabsTrigger>
-          <TabsTrigger value="tips">טיפים לשיפור</TabsTrigger>
-          {/* לשונית התמונות הוסרה */}
+          <TabsTrigger value="summary">{dict.tabs.summary}</TabsTrigger>
+          <TabsTrigger value="completeness">{dict.tabs.completeness}</TabsTrigger>
+          <TabsTrigger value="tips">{dict.tabs.tips}</TabsTrigger>
         </TabsList>
-        {/* --- END OF CHANGE --- */}
 
         <div className="mt-4">
           <TabsContent value="summary" className="space-y-4">
@@ -96,10 +99,12 @@ const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <User className="text-blue-500" />
-                  מי אני? (סיכום AI)
+                  {/* תיקון: שימוש בשמות הנכונים מהמילון */}
+                  {dict.summary.myPersonalityTitle}
                 </CardTitle>
                 <CardDescription>
-                  כך ה-AI מבין את האישיות שלך על סמך מה שסיפרת.
+                  {/* תיקון: שימוש בשמות הנכונים מהמילון */}
+                  {dict.summary.myPersonalityDescription}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -112,10 +117,10 @@ const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Target className="text-green-500" />
-                  את מי אני מחפש/ת? (סיכום AI)
+                  {dict.summary.lookingForTitle}
                 </CardTitle>
                 <CardDescription>
-                  סיכום ההעדפות שלך לבן/בת הזוג האידיאלי/ת.
+                  {dict.summary.lookingForDescription}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -131,17 +136,16 @@ const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <CheckCircle2 className="text-indigo-500" />
-                  דוח השלמת פרופיל
+                  {dict.completeness.title}
                 </CardTitle>
                 <CardDescription>
-                  סקירה של החלקים שהושלמו בפרופיל שלך ואלו שעדיין דורשים
-                  התייחסות.
+                  {dict.completeness.description}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="space-y-0 divide-y">
                   {analysis.completenessReport.map((item, index) => (
-                    <ReportItem key={index} {...item} />
+                    <ReportItem key={index} {...item} dict={dict.completeness.status} />
                   ))}
                 </div>
               </CardContent>
@@ -153,11 +157,10 @@ const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Lightbulb className="text-yellow-500" />
-                  המלצות וטיפים לשיפור
+                  {dict.tips.title}
                 </CardTitle>
                 <CardDescription>
-                  הצעות קונקרטיות שיעזרו לך לשדרג את הפרופיל ולמשוך התאמות טובות
-                  יותר.
+                  {dict.tips.description}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -167,11 +170,6 @@ const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* --- START OF CHANGE --- */}
-          {/* כל התוכן של ניתוח התמונות הוסר מכאן */}
-          {/* <TabsContent value="photos"> ... </TabsContent> */}
-          {/* --- END OF CHANGE --- */}
         </div>
       </Tabs>
     </div>

@@ -1,0 +1,803 @@
+{
+  "pageLoader": "טוען פרופיל...",
+  "dashboard": {
+    "loadingData": "טוען נתונים...",
+    "loadError": "שגיאה בטעינת הנתונים: {{error}}",
+    "updateSuccess": "הפרופיל עודכן בהצלחה",
+    "updateError": "שגיאה בעדכון הפרופיל: {{error}}",
+    "previewButton": "תצוגה מקדימה של הפרופיל",
+    "previewLoading": "טוען תצוגה מקדימה...",
+    "viewedPreviewSuccess": "תודה! שלב 'הצפייה בתצוגה' הושלם.",
+    "viewedPreviewError": "שגיאה בעדכון סטטוס הצפייה בתצוגה המקדימה.",
+    "tabs": {
+      "overview": "פרטים כלליים",
+      "photos": "תמונות",
+      "preferences": "העדפות",
+      "questionnaire": "שאלון"
+    },
+    "tabContent": {
+      "loadingOverview": "טוען סקירה כללית...",
+      "loadingPreferences": "טוען העדפות...",
+      "loadingQuestionnaire": "טוען שאלון...",
+      "noQuestionnaire": "לא מולאו תשובות לשאלון.",
+      "fillQuestionnaireLink": "למילוי השאלון"
+    },
+    "checklist": {
+      "welcome": "ברוך הבא, {{firstName}}! בוא נכין את הפרופיל שלך להצלחה",
+      "allComplete": "כל הכבוד, {{firstName}}! הפרופיל שלך מושלם!",
+      "welcomeSubtitle": "השלמת הצעדים הבאים תקדם אותך משמעותית למציאת התאמה.",
+      "allCompleteSubtitle": "השלמת את כל השלבים. פרופיל עשיר הוא המפתח למציאת ההתאמה המדויקת ביותר.",
+      "completionLabel": "השלמת הפרופיל",
+      "expandLabel": "הרחב",
+      "minimizeLabel": "מזער",
+      "missingItemsTitle": "מה חסר להשלמת השלב?",
+      "tasks": {
+        "photos": {
+          "title": "העלאת תמונות",
+          "description": "הכרטיס ביקור הראשוני שלך.",
+          "missing": "נדרשות לפחות 3 תמונות (הועלו: {{count}})"
+        },
+        "personalDetails": {
+          "title": "פרטים אישיים",
+          "description": "הבסיס להכיר אותך לעומק."
+        },
+        "partnerPreferences": {
+          "title": "העדפות התאמה",
+          "description": "לדייק את מי שמחפשים."
+        },
+        "questionnaire": {
+          "title": "שאלון התאמה",
+          "description": "המפתח להתאמות AI."
+        },
+        "review": {
+          "title": "תצוגה מקדימה",
+          "description": "לראות איך אחרים רואים אותך.",
+          "missing": "יש לצפות בתצוגה המקדימה של הפרופיל"
+        }
+      }
+    },
+    "aiAdvisor": {
+      "triggerButton": "קבל ניתוח וטיפים לשיפור הפרופיל",
+      "dialogTitle": "יועץ הפרופיל החכם שלך",
+      "dialogDescription": "ניתוח מבוסס AI שיעזור לך להציג את עצמך בצורה הטובה ביותר ולמצוא התאמות מדויקות יותר.",
+      "closeButton": "סגור",
+      "loadingTitle": "ה-AI שלנו מנתח את הפרופיל שלך...",
+      "loadingDescription": "זה עשוי לקחת מספר שניות. תודה על סבלנותך.",
+      "errorAlertTitle": "אופס, משהו השתבש",
+      "errorAlertDescription": "לא הצלחנו להשלים את ניתוח הפרופיל כרגע.",
+      "retryButton": "נסה שוב",
+      "initialState": "לחץ על הכפתור כדי להתחיל את הניתוח.",
+      "toast": {
+        "errorTitle": "שגיאה בתהליך הניתוח",
+        "errorDescription": "שגיאה בקבלת ניתוח הפרופיל: {{error}}"
+      }
+    },
+  
+    "analysisResult": {
+      "tabs": {
+        "summary": "סיכום",
+        "completeness": "השלמת פרופיל",
+        "tips": "טיפים לשיפור"
+      },
+      "summary": {
+        "myPersonalityTitle": "מי אני? (סיכום AI)",
+        "myPersonalityDescription": "כך ה-AI מבין את האישיות שלך על סמך מה שסיפרת.",
+        "lookingForTitle": "את מי אני מחפש/ת? (סיכום AI)",
+        "lookingForDescription": "סיכום ההעדפות שלך לבן/בת הזוג האידיאלי/ת."
+      },
+      "completeness": {
+        "title": "דוח השלמת פרופיל",
+        "description": "סקירה של החלקים שהושלמו בפרופיל שלך ואלו שעדיין דורשים התייחסות.",
+        "status": {
+          "complete": "הושלם",
+          "partial": "חלקי",
+          "missing": "חסר"
+        }
+      },
+      "tips": {
+        "title": "המלצות וטיפים לשיפור",
+        "description": "הצעות קונקרטיות שיעזרו לך לשדרג את הפרופיל ולמשוך התאמות טובות יותר."
+      }
+    }
+  },
+      "aiAdvisor": {
+      "triggerButton": "קבל ניתוח וטיפים לשיפור הפרופיל",
+      "dialogTitle": "יועץ הפרופיל החכם שלך",
+      "dialogDescription": "ניתוח מבוסס AI שיעזור לך להציג את עצמך בצורה הטובה ביותר ולמצוא התאמות מדויקות יותר.",
+      "closeButton": "סגור",
+      "loadingTitle": "ה-AI שלנו מנתח את הפרופיל שלך...",
+      "loadingDescription": "זה עשוי לקחת מספר שניות. תודה על סבלנותך.",
+      "errorTitle": "אופס, משהו השתבש",
+      "errorAlertTitle": "אופס, משהו השתבש",
+      "errorAlertDescription": "לא הצלחנו להשלים את ניתוח הפרופיל כרגע.",
+      "retryButton": "נסה שוב",
+      "initialState": "לחץ על הכפתור כדי להתחיל את הניתוח.",
+      "toastErrorTitle": "שגיאה בתהליך הניתוח",
+      "toastErrorDescription": "שגיאה בקבלת ניתוח הפרופיל: {{error}}"
+    },
+    "analysisResult": {
+      "tabs": {
+        "summary": "סיכום",
+        "completeness": "השלמת פרופיל",
+        "tips": "טיפים לשיפור"
+      },
+      "summary": {
+        "myPersonalityTitle": "מי אני? (סיכום AI)",
+        "myPersonalityDescription": "כך ה-AI מבין את האישיות שלך על סמך מה שסיפרת.",
+        "lookingForTitle": "את מי אני מחפש/ת? (סיכום AI)",
+        "lookingForDescription": "סיכום ההעדפות שלך לבן/בת הזוג האידיאלי/ת."
+      },
+      "completeness": {
+        "title": "דוח השלמת פרופיל",
+        "description": "סקירה של החלקים שהושלמו בפרופיל שלך ואלו שעדיין דורשים התייחסות.",
+        "status": {
+          "complete": "הושלם",
+          "partial": "חלקי",
+          "missing": "חסר"
+        }
+      },
+      "tips": {
+        "title": "המלצות וטיפים לשיפור",
+        "description": "הצעות קונקרטיות שיעזרו לך לשדרג את הפרופיל ולמשוך התאמות טובות יותר."
+      }
+    },
+     "photosSection": {
+    "title": "תמונות פרופיל",
+    "subtitle": "העלה עד {{maxImages}} תמונות. התמונה הראשית תוצג בכרטיס.",
+    "uploadingMultiple": "מעלה {{count}} תמונות...",
+    "selectForDeletion": "בחר למחיקה",
+    "uploadButton": "העלאת תמונות",
+    "selectionHeader": "{{count}} תמונות נבחרו",
+    "deselectAll": "בטל הכל",
+    "selectAll": "בחר הכל",
+    "deleteSelected": "מחק נבחרים",
+    "setAsMainTooltip": "הפוך לתמונה ראשית",
+    "deleteTooltip": "מחק תמונה",
+    "mainBadge": "ראשי",
+    "uploadPlaceholder": {
+      "title": "העלאת תמונות",
+      "remaining": "עד {{count}} תמונות נוספות",
+      "prompt": "(בחר מספר קבצים)"
+    },
+    "uploadingPlaceholder": "מעלה...",
+    "emptyState": {
+      "title": "אין עדיין תמונות בפרופיל",
+      "description": "תמונות טובות הן הרושם הראשוני שלכם. כדאי להעלות תמונות."
+    },
+    "emptyStateDisabled": {
+      "title": "לא הועלו תמונות לפרופיל זה."
+    },
+    "deleteDialog": {
+      "title": "אישור מחיקת תמונה",
+      "description": "האם למחוק את התמונה לצמיתות? לא ניתן לשחזר פעולה זו.",
+      "cancel": "ביטול",
+      "confirm": "מחק"
+    },
+    "imageViewer": {
+      "closeLabel": "סגור תצוגת תמונה",
+      "altText": "תצוגה מוגדלת של תמונה {{index}}",
+      "prevLabel": "התמונה הקודמת",
+      "nextLabel": "התמונה הבאה",
+      "setMainButton": "הפוך לראשי",
+      "deleteButton": "מחק תמונה",
+      "counter": "{{current}} / {{total}}"
+    },
+    "toasts": {
+      "maxImagesError": "הגעת למספר המקסימלי של תמונות.",
+      "slotsError": "ניתן להעלות עוד {{count}} תמונות בלבד.",
+      "invalidFileTypeError": "קובץ {{fileName}}: סוג קובץ לא חוקי.",
+      "fileTooLargeError": "קובץ {{fileName}}: הקובץ גדול מדי (מקסימום 5MB).",
+      "uploadSuccess": "{{count}} תמונות הועלו בהצלחה!",
+      "uploadError": "שגיאה בהעלאת התמונות.",
+      "selectOneError": "יש לבחור לפחות תמונה אחת למחיקה.",
+      "bulkDeleteSuccess": "{{count}} תמונות נמחקו בהצלחה.",
+      "bulkDeleteError": "שגיאה במחיקת התמונות.",
+      "singleDeleteSuccess": "התמונה נמחקה בהצלחה.",
+      "singleDeleteError": "שגיאה במחיקת התמונה.",
+      "setMainSuccess": "התמונה הראשית עודכנה.",
+      "setMainError": "שגיאה בעדכון התמונה הראשית."
+    },
+    "confirmations": {
+      "bulkDelete": "האם למחוק {{count}} תמונות נבחרות? הפעולה אינה הפיכה."
+    }
+  },
+    "preferencesSection": {
+    "header": {
+      "title": "העדפות התאמה",
+      "subtitleEdit": "ערוך/י את העדפותיך למציאת התאמה.",
+      "subtitleView": "העדפות שהוגדרו לחיפוש התאמה."
+    },
+    "buttons": {
+      "edit": "עריכה",
+      "cancel": "ביטול",
+      "save": "שמירה"
+    },
+    "cards": {
+      "general": {
+        "title": "תיאור כללי והעדפות קשר",
+        "notesLabel": "תיאור כללי על המועמד/ת המבוקש/ת",
+        "notesTooltip": "זהו אחד השדות החשובים ביותר! תאר/י במילים שלך את סוג האדם שאת/ה מחפש/ת. התיאור הזה יעזור לשדכנים להבין את הראש שלך מעבר לנתונים היבשים.",
+        "notesPlaceholder": "פרט/י על סוג האדם שאת/ה מחפש/ת, תכונות חשובות, ציפיות וכו'...",
+        "notesEmpty": "לא הוזן תיאור.",
+        "contactPreferenceLabel": "אופן יצירת קשר מועדף (לאחר אישור הצעה)",
+        "contactPreferencePlaceholder": "בחר/י אפשרות...",
+        "contactPreferenceEmpty": "לא צוין"
+      },
+      "ageAndHeight": {
+        "title": "העדפות גיל וגובה",
+        "ageLegend": "טווח גילאים מועדף",
+        "ageTooltip": "הגדרת טווח גילאים רחב יותר תגדיל את כמות ההצעות שתקבל/י.",
+        "ageMinPlaceholder": "מגיל",
+        "ageMaxPlaceholder": "עד גיל",
+        "ageEmpty": "לא הוגדר טווח גילאים.",
+        "heightLegend": "טווח גבהים מועדף (סמ)",
+        "heightMinPlaceholder": "מ-",
+        "heightMaxPlaceholder": "עד-",
+        "heightEmpty": "לא הוגדר טווח גבהים."
+      },
+      "locationAndReligion": {
+        "title": "מיקום, רמה דתית ואורח חיים",
+        "locationsLabel": "אזורי מגורים מועדפים",
+        "locationsPlaceholder": "הוסף/י עיר...",
+        "locationsRemoveLabel": "הסר את {{loc}}",
+        "locationsEmpty": "לא נבחרו אזורי מגורים.",
+        "religiousLevelsLegend": "רמות דתיות מועדפות",
+        "religiousLevelsTooltip": "מומלץ לבחור 1-3 רמות שמתאימות לך. בחירה רחבה מדי עלולה להוביל להצעות פחות מדויקות.",
+        "religiousLevelsEmpty": "לא נבחרו רמות דתיות.",
+        "religiousJourneysLegend": "העדפה לגבי מסע/רקע דתי",
+        "religiousJourneysEmpty": "לא נבחרו העדפות רקע דתי.",
+        "shomerNegiahLabel": "שמירת נגיעה אצל הצד השני",
+        "shomerNegiahPlaceholder": "בחר/י העדפה...",
+        "headCoveringLegend": "העדפת כיסוי ראש לבת הזוג",
+        "headCoveringEmpty": "לא נבחרו העדפות כיסוי ראש.",
+        "kippahTypeLegend": "העדפת סוג כיפה לבן הזוג",
+        "kippahTypeEmpty": "לא נבחרו העדפות סוג כיפה."
+      },
+      "educationAndCareer": {
+        "title": "השכלה, תעסוקה ושירות",
+        "educationLegend": "רמות השכלה מועדפות",
+        "educationEmpty": "לא נבחרו רמות השכלה.",
+        "occupationLegend": "תחומי עיסוק מועדפים",
+        "occupationEmpty": "לא נבחרו תחומי עיסוק.",
+        "serviceTypeLegend": "סוג שירות מועדף (צבאי/לאומי)",
+        "serviceTypeEmpty": "לא נבחרו העדפות שירות."
+      },
+      "personalBackground": {
+        "title": "רקע אישי ומשפחתי",
+        "maritalStatusLegend": "מצב משפחתי מועדף",
+        "maritalStatusEmpty": "לא נבחרו העדפות למצב משפחתי.",
+        "partnerHasChildrenLabel": "העדפה לגבי ילדים מקשר קודם",
+        "partnerHasChildrenPlaceholder": "בחר/י העדפה...",
+        "originLegend": "מוצא/עדה מועדפים",
+        "originPlaceholder": "הוסף/י מדינת מוצא...",
+        "originRemoveLabel": "הסר את {{origin}}",
+        "originEmpty": "לא נבחרו העדפות מוצא/עדה.",
+        "aliyaStatusLabel": "העדפת סטטוס עליה",
+        "aliyaStatusPlaceholder": "בחר/י העדפה..."
+      },
+      "characterAndInterests": {
+        "title": "אופי ותחומי עניין",
+        "traitsLegend": "תכונות אופי מועדפות (עד 3)",
+        "traitsEmpty": "לא נבחרו תכונות אופי מועדפות.",
+        "hobbiesLegend": "תחביבים מועדפים (עד 3)",
+        "hobbiesEmpty": "לא נבחרו תחביבים מועדפים."
+      }
+    },
+    "options": {
+      "contactPreference": { "direct": "ישירות", "matchmaker": "דרך השדכן/ית", "both": "שתי האפשרויות" },
+      "religiousLevels": { "charedi": "חרדי/ת", "charedi_modern": "חרדי/ת מודרני/ת", "dati_leumi_torani": "דתי/ה לאומי/ת תורני/ת", "dati_leumi_liberal": "דתי/ה לאומי/ת ליברלי/ת", "dati_leumi_standard": "דתי/ה לאומי/ת (סטנדרטי)", "masorti_strong": "מסורתי/ת (קרוב/ה לדת)", "masorti_light": "מסורתי/ת (קשר קל למסורת)", "secular_traditional_connection": "חילוני/ת עם זיקה למסורת", "secular": "חילוני/ת", "spiritual_not_religious": "רוחני/ת (לאו דווקא דתי/ה)", "other": "אחר (נא לפרט ב'אודות')", "no_preference": "ללא העדפה / גמיש" },
+      "religiousJourneys": { "BORN_INTO_CURRENT_LIFESTYLE": "גדל/ה בסביבה דומה", "BORN_SECULAR": "גדל/ה בסביבה חילונית", "BAAL_TESHUVA": "חוזר/ת בתשובה", "DATLASH": "יצא/ה בשאלה (דתל\"ש)", "CONVERT": "גר/ה / גיורת", "IN_PROCESS": "בתהליך שינוי", "no_preference": "ללא העדפה / גמיש" },
+      "shomerNegiah": { "yes": "כן, חשוב לי", "no": "לא, אין העדפה", "flexible": "גמיש/תלוי באדם" },
+      "education": { "high_school": "תיכונית", "vocational": "מקצועית", "academic_student": "במהלך לימודים", "academic_ba": "תואר ראשון", "academic_ma": "תואר שני", "academic_phd": "דוקטורט", "yeshiva_seminary": "לימודים תורניים", "other": "אחר", "no_preference": "ללא העדפה" },
+      "occupation": { "tech": "הייטק וטכנולוגיה", "education": "חינוך והוראה", "medicine": "רפואה ובריאות", "law": "משפטים", "business": "עסקים ופיננסים", "freelance": "עצמאי/ת", "student": "סטודנט/ית", "no_preference": "ללא העדפה" },
+      "serviceTypes": { "MILITARY_COMBATANT": "צבאי - לוחם/ת", "MILITARY_SUPPORT": "צבאי - תומכ/ת לחימה", "MILITARY_OFFICER": "צבאי - קצונה", "MILITARY_INTELLIGENCE_CYBER_TECH": "צבאי - מודיעין/סייבר/טכנולוגי", "NATIONAL_SERVICE_ONE_YEAR": "שירות לאומי - שנה", "NATIONAL_SERVICE_TWO_YEARS": "שירות לאומי - שנתיים", "HESDER_YESHIVA": "ישיבת הסדר", "YESHIVA_ONLY_POST_HS": "ישיבה/מדרשה (ללא שירות)", "PRE_MILITARY_ACADEMY_AND_SERVICE": "מכינה ושירות", "EXEMPTED": "פטור משירות", "CIVILIAN_SERVICE": "שירות אזרחי", "OTHER": "אחר / לא רלוונטי", "no_preference": "ללא העדפה / לא משנה" },
+      "headCovering": { "FULL_COVERAGE": "כיסוי ראש מלא", "PARTIAL_COVERAGE": "כיסוי ראש חלקי", "HAT_BERET": "כובע / ברט", "SCARF_ONLY_SOMETIMES": "מטפחת (לאירועים)", "NONE": "ללא כיסוי ראש", "any": "כל האפשרויות פתוחות" },
+      "kippahType": { "BLACK_VELVET": "קטיפה שחורה", "KNITTED_SMALL": "סרוגה קטנה", "KNITTED_LARGE": "סרוגה גדולה", "CLOTH": "בד", "BRESLEV": "ברסלב", "NONE_AT_WORK_OR_CASUAL": "לא בעבודה/ביומיום", "NONE_USUALLY": "לרוב לא חובש", "OTHER": "אחר", "any": "כל האפשרויות פתוחות" },
+      "maritalStatus": { "single": "רווק/ה", "divorced": "גרוש/ה", "widowed": "אלמן/ה", "annulled": "נישואין שבוטלו", "any": "כל האפשרויות פתוחות" },
+      "partnerHasChildren": { "yes_ok": "כן, זה בסדר גמור", "no_preferred": "מעדיפ/ה שלא יהיו", "does_not_matter": "לא משנה לי" },
+      "aliyaStatus": { "oleh": "עולה חדש/ה", "tzabar": "צבר/ית", "no_preference": "ללא העדפה" },
+      "origins": { "ashkenazi": "אשכנזי/ה", "sephardi": "ספרדי/ה", "mizrachi": "מזרחי/ה", "temani": "תימני/ה", "mixed": "מעורב/ת", "ethiopian": "אתיופי/ה", "no_preference": "ללא העדפה מיוחדת" },
+      "traits": { "empathetic": "אמפתי/ת", "driven": "שאפתן/ית", "optimistic": "אופטימי/ת", "family_oriented": "משפחתי/ת", "intellectual": "אינטלקטואל/ית", "organized": "מאורגנ/ת", "calm": "רגוע/ה", "humorous": "בעל/ת חוש הומור", "sociable": "חברותי/ת", "sensitive": "רגיש/ה", "independent": "עצמאי/ת", "creative": "יצירתי/ת", "honest": "כן/ה וישר/ה", "responsible": "אחראי/ת", "easy_going": "זורם/ת וקליל/ה", "no_strong_preference": "ללא העדפה חזקה" },
+      "hobbies": { "travel": "טיולים", "sports": "ספורט", "reading": "קריאה", "cooking_baking": "בישול/אפיה", "music_playing_instrument": "מוזיקה/נגינה", "art_crafts": "אומנות/יצירה", "volunteering": "התנדבות", "learning_courses": "למידה/קורסים", "board_games_puzzles": "משחקי קופסא/פאזלים", "movies_theater": "סרטים/תיאטרון", "dancing": "ריקוד", "writing": "כתיבה", "nature_hiking": "טבע/טיולים רגליים", "photography": "צילום", "no_strong_preference": "ללא העדפה חזקה" }
+    }
+  },
+    "profileSection": {
+    "loading": "טוען נתוני פרופיל...",
+    "header": {
+      "title": "פרופיל אישי",
+      "subtitleEdit": "ערוך/י את פרטי הפרופיל שלך.",
+      "subtitleView": "פרטי הפרופיל של המועמד/ת."
+    },
+    "buttons": {
+      "edit": "עריכה",
+      "cancel": "ביטול",
+      "save": "שמירה",
+      "saveChanges": "שמירת שינויים"
+    },
+    "cards": {
+      "personal": {
+        "title": "פרטים אישיים ודמוגרפיים",
+        "genderLabel": "מגדר",
+        "genderPlaceholder": "בחר/י מגדר",
+        "birthDateLabel": "תאריך לידה",
+        "heightLabel": "גובה (סמ)",
+        "heightPlaceholder": "גובה בסמ",
+        "cityLabel": "עיר מגורים",
+        "cityPlaceholder": "התחל/י להקליד שם עיר...",
+        "originLabel": "מוצא / עדה",
+        "originPlaceholder": "לדוגמה: אשכנזי, ספרדי",
+        "aliyaCountryLabel": "מדינת עלייה",
+        "aliyaCountryPlaceholder": "אם רלוונטי, הקלד/י שם מדינה",
+        "aliyaYearLabel": "שנת עליה",
+        "aliyaYearPlaceholder": "אם רלוונטי",
+        "nativeLanguageLabel": "שפת אם",
+        "nativeLanguagePlaceholder": "בחר/י שפת אם",
+        "additionalLanguagesLabel": "שפות נוספות",
+        "additionalLanguagesPlaceholder": "הוסף/י שפה...",
+        "noAdditionalLanguages": "לא צוינו שפות נוספות.",
+        "removeLanguageLabel": "הסר {{lang}}"
+      },
+      "family": {
+        "title": "מצב משפחתי ורקע",
+        "maritalStatusLabel": "מצב משפחתי",
+        "maritalStatusPlaceholder": "בחר/י מצב",
+        "hasChildrenLabel": "ילדים מקשר קודם?",
+        "hasChildrenYes": "יש ילדים",
+        "parentStatusLabel": "מצב הורים",
+        "parentStatusPlaceholder": "לדוגמה: נשואים, גרושים",
+        "fatherOccupationLabel": "מקצוע האב",
+        "fatherOccupationPlaceholder": "לדוגמה: מהנדס, עורך דין",
+        "motherOccupationLabel": "מקצוע האם",
+        "motherOccupationPlaceholder": "לדוגמה: מורה, רופאה",
+        "siblingsLabel": "מספר אחים/אחיות",
+        "siblingsPlaceholder": "כולל אותך",
+        "positionLabel": "מיקום במשפחה",
+        "positionPlaceholder": "לדוגמה: 1 (בכור/ה)"
+      },
+      "religion": {
+        "title": "דת ואורח חיים",
+        "religiousLevelLabel": "רמה דתית",
+        "religiousLevelPlaceholder": "בחר/י רמה",
+        "religiousJourneyLabel": "מסע דתי",
+        "religiousJourneyPlaceholder": "בחר/י רקע דתי",
+        "shomerNegiahLabel": "שומר/ת נגיעה?",
+        "shomerNegiahYes": "כן",
+        "headCoveringLabel": "כיסוי ראש",
+        "headCoveringPlaceholder": "בחר/י סוג כיסוי",
+        "headCoveringDefault": "ללא",
+        "kippahTypeLabel": "סוג כיפה",
+        "kippahTypePlaceholder": "בחר/י סוג כיפה",
+        "kippahTypeDefault": "ללא",
+        "matchmakerGenderLabel": "מגדר שדכן/ית מועדף",
+        "matchmakerGenderPlaceholder": "בחר/י העדפה (לא חובה)",
+        "matchmakerGenderDefault": "ללא העדפה",
+        "influentialRabbiLabel": "דמות רבנית/רוחנית משפיעה",
+        "influentialRabbiPlaceholder": "שם הדמות, וכיצד היא השפיעה עליך...",
+        "influentialRabbiEmpty": "לא צוינה דמות משפיעה."
+      },
+      "about": {
+        "title": "קצת עלי ומידע נוסף",
+        "headlineLabel": "כותרת פרופיל",
+        "headlinePlaceholder": "משפט אחד שמסכם אותך...",
+        "headlineEmpty": {
+          "title": "הכותרת היא הפתיח לסיפור שלך.",
+          "subtitle": "דוגמה קצרה עם עומק:",
+          "example": "\"מחפש/ת את החיבור הפשוט, לבנות את הדבר האמיתי.\""
+        },
+        "aboutLabel": "ספר/י קצת על עצמך (תיאור חופשי)",
+        "aboutPlaceholder": "תאר/י את עצמך, מה מאפיין אותך, מה חשוב לך...",
+        "aboutEmpty": "לא הוזן תיאור אישי.",
+        "inspiringCoupleLabel": "הזוג שנותן לי השראה",
+        "inspiringCouplePlaceholder": "מי הזוג ומה מיוחד בזוגיות שלהם בעיניך...",
+        "inspiringCoupleEmpty": "לא צוין זוג מעורר השראה.",
+        "privateNotesLabel": "הערות נוספות לשדכן/ית (לא יוצג לצד השני)",
+        "privateNotesPlaceholder": "דברים נוספים שחשוב שהשדכן/ית יידעו עליך...",
+        "privateNotesEmpty": "אין הערות נוספות לשדכן/ית."
+      },
+      "medical": {
+        "title": "מידע רפואי ורגיש",
+        "tooltip": "מידע בחלק זה מיועד לשדכנים בלבד ולא יוצג בפרופיל כברירת מחדל.",
+        "description": "אנו מאמינים שקשר בריא נבנה על יושרה ואחריות. חלק זה מאפשר לך לשתף באופן דיסקרטי מידע רפואי (פיזי או נפשי) רלוונטי, כדי שנוכל לסייע במציאת התאמה מדויקת ולמנוע עוגמת נפש.",
+        "hasInfoLabel": "ישנו מידע רפואי שחשוב שהצוות יידע?",
+        "detailsLabel": "פירוט המידע (יישמר בסודיות מוחלטת)",
+        "detailsPlaceholder": "כאן המקום לפרט. למשל: מחלה כרונית, התמודדות נפשית, ענייני פוריות, או כל דבר שמרגיש לך נכון וחשוב לציין.",
+        "timingLabel": "מתי תרצה/י שהמידע ייחשף לצד השני (בתיווך השדכן/ית)?",
+        "timingPlaceholder": "בחר/י תזמון חשיפה",
+        "visibilityLabel": "הצגה בפרופיל",
+        "visibilityToggle": {
+          "visible": "יוצג בפרופיל",
+          "hidden": "דיסקרטי (לצוות בלבד)"
+        },
+        "visibilityDescription": {
+          "visible": "ציון על קיום מידע רפואי יוצג בכרטיס שלך.",
+          "hidden": "המידע יישאר חסוי וישמש את השדכנים בלבד."
+        },
+        "display": {
+          "sharedInfo": "מידע רפואי ששותף",
+          "yes": "כן",
+          "no": "לא",
+          "details": "פרטי המידע",
+          "noDetails": "לא הוזן פירוט.",
+          "timing": "תזמון חשיפה מועדף",
+          "visibility": "נראות בפרופיל",
+          "visibleBadge": "גלוי בפרופיל",
+          "hiddenBadge": "דיסקרטי (לצוות בלבד)"
+        }
+      },
+      "education": {
+        "title": "השכלה, עיסוק ושירות",
+        "levelLabel": "רמת השכלה",
+        "levelPlaceholder": "בחר/י רמה",
+        "detailsLabel": "פירוט השכלה (מוסד, תחום)",
+        "detailsPlaceholder": "לדוגמה: אוני' בר אילן, משפטים",
+        "occupationLabel": "עיסוק נוכחי",
+        "occupationPlaceholder": "לדוגמה: מורה, מהנדס תוכנה",
+        "serviceTypeLabel": "שירות (צבאי/לאומי/אחר)",
+        "serviceTypePlaceholder": "בחר/י סוג שירות",
+        "serviceDetailsLabel": "פירוט על השירות",
+        "serviceDetailsPlaceholder": "חיל, יחידה, תפקיד, שם ישיבה/מכינה"
+      },
+      "character": {
+        "title": "תכונות אופי ותחביבים",
+        "traitsLabel": "תכונות אופי בולטות (עד 3)",
+        "traitsEmpty": "לא נבחרו תכונות אופי.",
+        "hobbiesLabel": "תחביבים עיקריים (עד 3)",
+        "hobbiesEmpty": "לא נבחרו תחביבים."
+      }
+    },
+    "placeholders": {
+      "notSpecified": "לא צוין",
+      "notRelevant": "לא רלוונטי",
+      "noYear": "לא צוינה שנה"
+    },
+    "tooltips": {
+      "headline": "כתוב/י משפט אחד קליט שמסכם אותך או את מה שאת/ה מחפש/ת. למשל: \"מהנדס ביום, חולם בלילה\".",
+      "about": "כאן המקום שלך לבלוט! ספר/י על עצמך באופן חופשי וזורם: מה את/ה עושה היום בחיים, תחנות משמעותיות שעברת, וכמובן - על האופי שלך.\nנדרשים לפחות {{count}} תווים.",
+      "inspiringCouple": "חשוב/י על זוג (מהמשפחה, חברים, דמויות היסטוריות) שהזוגיות שלהם מעוררת בך השראה. מה את/ה לומד/ת מהם?",
+      "influentialRabbi": "ספר/י על דמות (רב, רבנית, הוגה דעות) שהשפיעה על תפיסת עולמך. זה עוזר לנו להבין את הגוון הרוחני שלך.",
+      "privateNotes": "מידע שחשוב לנו לדעת כדי למצוא התאמה טובה, אך לא תרצה/י שיופיע בפרופיל הגלוי. למשל: נושאים רגישים, העדפות ספציפיות מאוד, או רקע נוסף."
+    },
+    "toasts": {
+      "validationErrorTitle": "שגיאת ולידציה",
+      "aboutMinLength": "השדה 'קצת עליי' חייב להכיל לפחות {{count}} תווים."
+    },
+    "options": {
+      "gender": {
+        "MALE": "זכר",
+        "FEMALE": "נקבה"
+      },
+      "maritalStatus": {
+        "single": "רווק/ה",
+        "divorced": "גרוש/ה",
+        "widowed": "אלמן/ה",
+        "annulled": "נישואין שבוטלו"
+      },
+      "religiousLevel": {
+        "charedi": "חרדי/ת",
+        "charedi_modern": "חרדי/ת מודרני/ת",
+        "dati_leumi_torani": "דתי/ה לאומי/ת תורני/ת",
+        "dati_leumi_liberal": "דתי/ה לאומי/ת ליברלי/ת",
+        "dati_leumi_standard": "דתי/ה לאומי/ת (סטנדרטי)",
+        "masorti_strong": "מסורתי/ת (קרוב/ה לדת)",
+        "masorti_light": "מסורתי/ת (קשר קל למסורת)",
+        "secular_traditional_connection": "חילוני/ת עם זיקה למסורת",
+        "secular": "חילוני/ת",
+        "spiritual_not_religious": "רוחני/ת (לאו דווקא דתי/ה)",
+        "other": "אחר (נא לפרט ב'אודות')"
+      },
+      "religiousJourney": {
+        "BORN_INTO_CURRENT_LIFESTYLE": "גדלתי בסביבה דומה להגדרתי כיום",
+        "BORN_SECULAR": "גדלתי בסביבה חילונית",
+        "BAAL_TESHUVA": "חזרתי בתשובה",
+        "DATLASH": "יצאתי בשאלה (דתל\"ש)",
+        "CONVERT": "גר/ה / גיורת",
+        "IN_PROCESS": "בתהליך של שינוי / התלבטות",
+        "OTHER": "אחר (נא לפרט בהערות)"
+      },
+      "educationLevel": {
+        "high_school": "תיכונית",
+        "vocational": "מקצועית / תעודה",
+        "academic_student": "סטודנט/ית לתואר",
+        "academic_ba": "תואר ראשון (BA/BSc)",
+        "academic_ma": "תואר שני (MA/MSc)",
+        "academic_phd": "דוקטורט (PhD)",
+        "yeshiva_seminary": "לימודים תורניים (ישיבה/מדרשה/כולל)",
+        "other": "אחר"
+      },
+      "serviceType": {
+        "MILITARY_COMBATANT": "צבאי - לוחם/ת",
+        "MILITARY_SUPPORT": "צבאי - תומכ/ת לחימה",
+        "MILITARY_OFFICER": "צבאי - קצונה",
+        "MILITARY_INTELLIGENCE_CYBER_TECH": "צבאי - מודיעין/סייבר/טכנולוגי",
+        "NATIONAL_SERVICE_ONE_YEAR": "שירות לאומי - שנה",
+        "NATIONAL_SERVICE_TWO_YEARS": "שירות לאומי - שנתיים",
+        "HESDER_YESHIVA": "ישיבת הסדר",
+        "YESHIVA_ONLY_POST_HS": "ישיבה גבוהה / מדרשה (ללא שירות צבאי/לאומי)",
+        "PRE_MILITARY_ACADEMY_AND_SERVICE": "מכינה קדם-צבאית ושירות",
+        "EXEMPTED": "פטור משירות",
+        "CIVILIAN_SERVICE": "שירות אזרחי",
+        "OTHER": "אחר / לא רלוונטי"
+      },
+      "headCovering": {
+        "FULL_COVERAGE": "כיסוי ראש מלא",
+        "PARTIAL_COVERAGE": "כיסוי ראש חלקי",
+        "HAT_BERET": "כובע / ברט",
+        "SCARF_ONLY_SOMETIMES": "מטפחת (רק באירועים/בית כנסת)",
+        "NONE": "ללא כיסוי ראש"
+      },
+      "kippahType": {
+        "BLACK_VELVET": "קטיפה שחורה",
+        "KNITTED_SMALL": "סרוגה קטנה",
+        "KNITTED_LARGE": "סרוגה גדולה",
+        "CLOTH": "בד",
+        "BRESLEV": "ברסלב (לבנה גדולה)",
+        "NONE_AT_WORK_OR_CASUAL": "לא בעבודה / ביומיום",
+        "NONE_USUALLY": "לרוב לא חובש",
+        "OTHER": "אחר"
+      },
+      "matchmakerGender": {
+        "MALE": "משדך",
+        "FEMALE": "שדכנית",
+        "NONE": "ללא העדפה"
+      },
+      "medicalTiming": {
+        "FROM_THE_START": "מההתחלה (מומלץ לנושאים מהותיים)",
+        "AFTER_FIRST_DATES": "לאחר דייט ראשון או שני",
+        "WHEN_SERIOUS": "כשהקשר הופך לרציני",
+        "IN_COORDINATION_ONLY": "אך ורק בתיאום טלפוני אישי איתי"
+      },
+      "traits": {
+        "empathetic": "אמפתי/ת",
+        "driven": "שאפתן/ית",
+        "optimistic": "אופטימי/ת",
+        "family_oriented": "משפחתי/ת",
+        "intellectual": "אינטלקטואל/ית",
+        "organized": "מאורגנ/ת",
+        "calm": "רגוע/ה",
+        "humorous": "בעל/ת חוש הומור",
+        "sociable": "חברותי/ת",
+        "sensitive": "רגיש/ה",
+        "independent": "עצמאי/ת",
+        "creative": "יצירתי/ת",
+        "honest": "כן/ה וישר/ה",
+        "responsible": "אחראי/ת",
+        "easy_going": "זורם/ת וקליל/ה"
+      },
+      "hobbies": {
+        "travel": "טיולים",
+        "sports": "ספורט",
+        "reading": "קריאה",
+        "cooking_baking": "בישול/אפיה",
+        "music_playing_instrument": "מוזיקה/נגינה",
+        "art_crafts": "אומנות/יצירה",
+        "volunteering": "התנדבות",
+        "learning_courses": "למידה/קורסים",
+        "board_games_puzzles": "משחקי קופסא/פאזלים",
+        "movies_theater": "סרטים/תיאטרון",
+        "dancing": "ריקוד",
+        "writing": "כתיבה",
+        "nature_hiking": "טבע/טיולים רגליים",
+        "photography": "צילום"
+      }
+    },
+    "charCount": "/ {{count}}+ תווים"
+  },
+    "profilecard": {
+    "loading": "טוען נתוני פרופיל...",
+    "header": {
+      "title": "פרופיל אישי",
+      "subtitleEdit": "ערוך/י את פרטי הפרופיל שלך.",
+      "subtitleView": "פרטי הפרופיל של המועמד/ת."
+    },
+    "buttons": {
+      "edit": "עריכה",
+      "cancel": "ביטול",
+      "save": "שמירה",
+      "saveChanges": "שמירת שינויים"
+    },
+    "cards": {
+      "personal": {
+        "title": "פרטים אישיים ודמוגרפיים",
+        "genderLabel": "מגדר",
+        "genderPlaceholder": "בחר/י מגדר",
+        "birthDateLabel": "תאריך לידה",
+        "heightLabel": "גובה (סמ)",
+        "heightPlaceholder": "גובה בסמ",
+        "cityLabel": "עיר מגורים",
+        "cityPlaceholder": "התחל/י להקליד שם עיר...",
+        "originLabel": "מוצא / עדה",
+        "originPlaceholder": "לדוגמה: אשכנזי, ספרדי",
+        "aliyaCountryLabel": "מדינת עלייה",
+        "aliyaCountryPlaceholder": "אם רלוונטי, הקלד/י שם מדינה",
+        "aliyaYearLabel": "שנת עליה",
+        "aliyaYearPlaceholder": "אם רלוונטי",
+        "nativeLanguageLabel": "שפת אם",
+        "nativeLanguagePlaceholder": "בחר/י שפת אם",
+        "additionalLanguagesLabel": "שפות נוספות",
+        "additionalLanguagesPlaceholder": "הוסף/י שפה...",
+        "noAdditionalLanguages": "לא צוינו שפות נוספות.",
+        "removeLanguageLabel": "הסר {{lang}}"
+      },
+      "family": {
+        "title": "מצב משפחתי ורקע",
+        "maritalStatusLabel": "מצב משפחתי",
+        "maritalStatusPlaceholder": "בחר/י מצב",
+        "hasChildrenLabel": "ילדים מקשר קודם?",
+        "hasChildrenYes": "יש ילדים",
+        "parentStatusLabel": "מצב הורים",
+        "parentStatusPlaceholder": "לדוגמה: נשואים, גרושים",
+        "fatherOccupationLabel": "מקצוע האב",
+        "fatherOccupationPlaceholder": "לדוגמה: מהנדס, עורך דין",
+        "motherOccupationLabel": "מקצוע האם",
+        "motherOccupationPlaceholder": "לדוגמה: מורה, רופאה",
+        "siblingsLabel": "מספר אחים/אחיות",
+        "siblingsPlaceholder": "כולל אותך",
+        "positionLabel": "מיקום במשפחה",
+        "positionPlaceholder": "לדוגמה: 1 (בכור/ה)"
+      },
+      "religion": {
+        "title": "דת ואורח חיים",
+        "religiousLevelLabel": "רמה דתית",
+        "religiousLevelPlaceholder": "בחר/י רמה",
+        "religiousJourneyLabel": "מסע דתי",
+        "religiousJourneyPlaceholder": "בחר/י רקע דתי",
+        "shomerNegiahLabel": "שומר/ת נגיעה?",
+        "shomerNegiahYes": "כן",
+        "headCoveringLabel": "כיסוי ראש",
+        "headCoveringPlaceholder": "בחר/י סוג כיסוי",
+        "headCoveringDefault": "ללא",
+        "kippahTypeLabel": "סוג כיפה",
+        "kippahTypePlaceholder": "בחר/י סוג כיפה",
+        "kippahTypeDefault": "ללא",
+        "matchmakerGenderLabel": "מגדר שדכן/ית מועדף",
+        "matchmakerGenderPlaceholder": "בחר/י העדפה (לא חובה)",
+        "matchmakerGenderDefault": "ללא העדפה",
+        "influentialRabbiLabel": "דמות רבנית/רוחנית משפיעה",
+        "influentialRabbiPlaceholder": "שם הדמות, וכיצד היא השפיעה עליך...",
+        "influentialRabbiEmpty": "לא צוינה דמות משפיעה."
+      },
+      "about": {
+        "title": "קצת עלי ומידע נוסף",
+        "headlineLabel": "כותרת פרופיל",
+        "headlinePlaceholder": "משפט אחד שמסכם אותך...",
+        "headlineEmpty": {
+          "title": "הכותרת היא הפתיח לסיפור שלך.",
+          "subtitle": "דוגמה קצרה עם עומק:",
+          "example": "\"מחפש/ת את החיבור הפשוט, לבנות את הדבר האמיתי.\""
+        },
+        "aboutLabel": "ספר/י קצת על עצמך (תיאור חופשי)",
+        "aboutPlaceholder": "תאר/י את עצמך, מה מאפיין אותך, מה חשוב לך...",
+        "aboutEmpty": "לא הוזן תיאור אישי.",
+        "inspiringCoupleLabel": "הזוג שנותן לי השראה",
+        "inspiringCouplePlaceholder": "מי הזוג ומה מיוחד בזוגיות שלהם בעיניך...",
+        "inspiringCoupleEmpty": "לא צוין זוג מעורר השראה.",
+        "privateNotesLabel": "הערות נוספות לשדכן/ית (לא יוצג לצד השני)",
+        "privateNotesPlaceholder": "דברים נוספים שחשוב שהשדכן/ית יידעו עליך...",
+        "privateNotesEmpty": "אין הערות נוספות לשדכן/ית."
+      },
+      "medical": {
+        "title": "מידע רפואי ורגיש",
+        "tooltip": "מידע בחלק זה מיועד לשדכנים בלבד ולא יוצג בפרופיל כברירת מחדל.",
+        "description": "אנו מאמינים שקשר בריא נבנה על יושרה ואחריות. חלק זה מאפשר לך לשתף באופן דיסקרטי מידע רפואי (פיזי או נפשי) רלוונטי, כדי שנוכל לסייע במציאת התאמה מדויקת ולמנוע עוגמת נפש.",
+        "hasInfoLabel": "ישנו מידע רפואי שחשוב שהצוות יידע?",
+        "detailsLabel": "פירוט המידע (יישמר בסודיות מוחלטת)",
+        "detailsPlaceholder": "כאן המקום לפרט. למשל: מחלה כרונית, התמודדות נפשית, ענייני פוריות, או כל דבר שמרגיש לך נכון וחשוב לציין.",
+        "timingLabel": "מתי תרצה/י שהמידע ייחשף לצד השני (בתיווך השדכן/ית)?",
+        "timingPlaceholder": "בחר/י תזמון חשיפה",
+        "visibilityLabel": "הצגה בפרופיל",
+        "visibilityToggle": {
+          "visible": "יוצג בפרופיל",
+          "hidden": "דיסקרטי (לצוות בלבד)"
+        },
+        "visibilityDescription": {
+          "visible": "ציון על קיום מידע רפואי יוצג בכרטיס שלך.",
+          "hidden": "המידע יישאר חסוי וישמש את השדכנים בלבד."
+        },
+        "display": {
+          "sharedInfo": "מידע רפואי ששותף",
+          "yes": "כן",
+          "no": "לא",
+          "details": "פרטי המידע",
+          "noDetails": "לא הוזן פירוט.",
+          "timing": "תזמון חשיפה מועדף",
+          "visibility": "נראות בפרופיל",
+          "visibleBadge": "גלוי בפרופיל",
+          "hiddenBadge": "דיסקרטי (לצוות בלבד)"
+        }
+      },
+      "education": {
+        "title": "השכלה, עיסוק ושירות",
+        "levelLabel": "רמת השכלה",
+        "levelPlaceholder": "בחר/י רמה",
+        "detailsLabel": "פירוט השכלה (מוסד, תחום)",
+        "detailsPlaceholder": "לדוגמה: אוני' בר אילן, משפטים",
+        "occupationLabel": "עיסוק נוכחי",
+        "occupationPlaceholder": "לדוגמה: מורה, מהנדס תוכנה",
+        "serviceTypeLabel": "שירות (צבאי/לאומי/אחר)",
+        "serviceTypePlaceholder": "בחר/י סוג שירות",
+        "serviceDetailsLabel": "פירוט על השירות",
+        "serviceDetailsPlaceholder": "חיל, יחידה, תפקיד, שם ישיבה/מכינה"
+      },
+      "character": {
+        "title": "תכונות אופי ותחביבים",
+        "traitsLabel": "תכונות אופי בולטות (עד 3)",
+        "traitsEmpty": "לא נבחרו תכונות אופי.",
+        "hobbiesLabel": "תחביבים עיקריים (עד 3)",
+        "hobbiesEmpty": "לא נבחרו תחביבים."
+      }
+    },
+    "placeholders": {
+      "notSpecified": "לא צוין",
+      "notRelevant": "לא רלוונטי",
+      "noYear": "לא צוינה שנה"
+    },
+    "tooltips": {
+      "headline": "כתוב/י משפט אחד קליט שמסכם אותך או את מה שאת/ה מחפש/ת. למשל: \"מהנדס ביום, חולם בלילה\".",
+      "about": "כאן המקום שלך לבלוט! ספר/י על עצמך באופן חופשי וזורם: מה את/ה עושה היום בחיים, תחנות משמעותיות שעברת, וכמובן - על האופי שלך.\nנדרשים לפחות {{count}} תווים.",
+      "inspiringCouple": "חשוב/י על זוג (מהמשפחה, חברים, דמויות היסטוריות) שהזוגיות שלהם מעוררת בך השראה. מה את/ה לומד/ת מהם?",
+      "influentialRabbi": "ספר/י על דמות (רב, רבנית, הוגה דעות) שהשפיעה על תפיסת עולמך. זה עוזר לנו להבין את הגוון הרוחני שלך.",
+      "privateNotes": "מידע שחשוב לנו לדעת כדי למצוא התאמה טובה, אך לא תרצה/י שיופיע בפרופיל הגלוי. למשל: נושאים רגישים, העדפות ספציפיות מאוד, או רקע נוסף."
+    },
+    "toasts": {
+      "validationErrorTitle": "שגיאת ולידציה",
+      "aboutMinLength": "השדה 'קצת עליי' חייב להכיל לפחות {{count}} תווים."
+    },
+    "options": {
+      "gender": { "MALE": "זכר", "FEMALE": "נקבה" },
+      "maritalStatus": { "single": "רווק/ה", "divorced": "גרוש/ה", "widowed": "אלמן/ה", "annulled": "נישואין שבוטלו" },
+      "religiousLevel": { "charedi": "חרדי/ת", "charedi_modern": "חרדי/ת מודרני/ת", "dati_leumi_torani": "דתי/ה לאומי/ת תורני/ת", "dati_leumi_liberal": "דתי/ה לאומי/ת ליברלי/ת", "dati_leumi_standard": "דתי/ה לאומי/ת (סטנדרטי)", "masorti_strong": "מסורתי/ת (קרוב/ה לדת)", "masorti_light": "מסורתי/ת (קשר קל למסורת)", "secular_traditional_connection": "חילוני/ת עם זיקה למסורת", "secular": "חילוני/ת", "spiritual_not_religious": "רוחני/ת (לאו דווקא דתי/ה)", "other": "אחר (נא לפרט ב'אודות')" },
+      "religiousJourney": { "BORN_INTO_CURRENT_LIFESTYLE": "גדלתי בסביבה דומה להגדרתי כיום", "BORN_SECULAR": "גדלתי בסביבה חילונית", "BAAL_TESHUVA": "חזרתי בתשובה", "DATLASH": "יצאתי בשאלה (דתל\"ש)", "CONVERT": "גר/ה / גיורת", "IN_PROCESS": "בתהליך של שינוי / התלבטות", "OTHER": "אחר (נא לפרט בהערות)" },
+      "educationLevel": { "high_school": "תיכונית", "vocational": "מקצועית / תעודה", "academic_student": "סטודנט/ית לתואר", "academic_ba": "תואר ראשון (BA/BSc)", "academic_ma": "תואר שני (MA/MSc)", "academic_phd": "דוקטורט (PhD)", "yeshiva_seminary": "לימודים תורניים (ישיבה/מדרשה/כולל)", "other": "אחר" },
+      "serviceType": { "MILITARY_COMBATANT": "צבאי - לוחם/ת", "MILITARY_SUPPORT": "צבאי - תומכ/ת לחימה", "MILITARY_OFFICER": "צבאי - קצונה", "MILITARY_INTELLIGENCE_CYBER_TECH": "צבאי - מודיעין/סייבר/טכנולוגי", "NATIONAL_SERVICE_ONE_YEAR": "שירות לאומי - שנה", "NATIONAL_SERVICE_TWO_YEARS": "שירות לאומי - שנתיים", "HESDER_YESHIVA": "ישיבת הסדר", "YESHIVA_ONLY_POST_HS": "ישיבה גבוהה / מדרשה (ללא שירות צבאי/לאומי)", "PRE_MILITARY_ACADEMY_AND_SERVICE": "מכינה קדם-צבאית ושירות", "EXEMPTED": "פטור משירות", "CIVILIAN_SERVICE": "שירות אזרחי", "OTHER": "אחר / לא רלוונטי" },
+      "headCovering": { "FULL_COVERAGE": "כיסוי ראש מלא", "PARTIAL_COVERAGE": "כיסוי ראש חלקי", "HAT_BERET": "כובע / ברט", "SCARF_ONLY_SOMETIMES": "מטפחת (רק באירועים/בית כנסת)", "NONE": "ללא כיסוי ראש" },
+      "kippahType": { "BLACK_VELVET": "קטיפה שחורה", "KNITTED_SMALL": "סרוגה קטנה", "KNITTED_LARGE": "סרוגה גדולה", "CLOTH": "בד", "BRESLEV": "ברסלב (לבנה גדולה)", "NONE_AT_WORK_OR_CASUAL": "לא בעבודה / ביומיום", "NONE_USUALLY": "לרוב לא חובש", "OTHER": "אחר" },
+      "matchmakerGender": { "MALE": "משדך", "FEMALE": "שדכנית", "NONE": "ללא העדפה" },
+      "medicalTiming": { "FROM_THE_START": "מההתחלה (מומלץ לנושאים מהותיים)", "AFTER_FIRST_DATES": "לאחר דייט ראשון או שני", "WHEN_SERIOUS": "כשהקשר הופך לרציני", "IN_COORDINATION_ONLY": "אך ורק בתיאום טלפוני אישי איתי" },
+      "traits": { "empathetic": "אמפתי/ת", "driven": "שאפתן/ית", "optimistic": "אופטימי/ת", "family_oriented": "משפחתי/ת", "intellectual": "אינטלקטואל/ית", "organized": "מאורגנ/ת", "calm": "רגוע/ה", "humorous": "בעל/ת חוש הומור", "sociable": "חברותי/ת", "sensitive": "רגיש/ה", "independent": "עצמאי/ת", "creative": "יצירתי/ת", "honest": "כן/ה וישר/ה", "responsible": "אחראי/ת", "easy_going": "זורם/ת וקליל/ה" },
+      "hobbies": { "travel": "טיולים", "sports": "ספורט", "reading": "קריאה", "cooking_baking": "בישול/אפיה", "music_playing_instrument": "מוזיקה/נגינה", "art_crafts": "אומנות/יצירה", "volunteering": "התנדבות", "learning_courses": "למידה/קורסים", "board_games_puzzles": "משחקי קופסא/פאזלים", "movies_theater": "סרטים/תיאטרון", "dancing": "ריקוד", "writing": "כתיבה", "nature_hiking": "טבע/טיולים רגליים", "photography": "צילום" }
+    },
+    "charCount": "/ {{count}}+ תווים"
+  },
+    "minimalCard": {
+    "nameNotAvailable": "שם לא זמין",
+    "yearsOld": "{{age}} שנים",
+    "profileImageAlt": "תמונת פרופיל",
+    "available": "פנוי/ה להצעות",
+    "inProcess": "בתהליך הכרות"
+  },
+  "statsCard": {
+    "availabilityStatusTitle": "סטטוס פניות",
+    "availabilityValue": {
+      "available": "פנוי/ה",
+      "unavailable": "לא פנוי/ה"
+    }
+  },
+  "visibilityControl": {
+    "tooltip": {
+      "visible": "תשובה זו גלויה למועמדים",
+      "hidden": "תשובה זו מוסתרת מהמועמדים",
+      "actionPrefix": "לחץ כדי",
+      "actionHide": "להסתיר",
+      "actionShow": "להציג"
+    },
+    "srAction": {
+      "hide": "הסתר תוכן",
+      "show": "הצג תוכן"
+    },
+    "ariaLabel": "החלף נראות: כרגע {{status}}"
+  },
+  "budgetDisplay": {
+    "errorInvalidData": "שגיאה: נתונים לא תקינים לתצוגה.",
+    "noValuesAllocated": "לא הוקצו ערכים."
+  },
+  "utils": {
+    "validationErrors": {
+      "heightRange": "גובה חייב להיות בין 100 ל-250 ס\"מ"
+    }
+  }
+
+
+
+
+  
+}

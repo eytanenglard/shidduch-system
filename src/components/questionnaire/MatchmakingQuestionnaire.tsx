@@ -37,6 +37,7 @@ import type {
   AnswerValue,
   Question,
 } from './types/types';
+import type { MatchmakingQuestionnaireDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
 
 import { personalityQuestions } from './questions/personality/personalityQuestions';
 import { valuesQuestions } from './questions/values/valuesQuestions';
@@ -51,14 +52,6 @@ const worldConfig: Record<WorldId, { questions: Question[] }> = {
   PARTNER: { questions: partnerQuestions },
   RELIGION: { questions: religionQuestions },
 };
-
-const worldLabels = {
-  PERSONALITY: 'אישיות',
-  VALUES: 'ערכים ואמונות',
-  RELATIONSHIP: 'זוגיות',
-  PARTNER: 'פרטנר',
-  RELIGION: 'דת ומסורת',
-} as const;
 
 enum OnboardingStep {
   WELCOME = 'WELCOME',
@@ -80,6 +73,7 @@ export interface MatchmakingQuestionnaireProps {
   onComplete?: () => void;
   initialWorld?: WorldId;
   initialQuestionId?: string;
+  dict: MatchmakingQuestionnaireDict; // קבלת המילון כ-prop
 }
 
 export default function MatchmakingQuestionnaire({
@@ -87,12 +81,8 @@ export default function MatchmakingQuestionnaire({
   onComplete,
   initialWorld,
   initialQuestionId,
+  dict, // שימוש במשתנה dict
 }: MatchmakingQuestionnaireProps) {
-  console.log('[MatchmakingQuestionnaire] Received Props:', {
-    initialWorld,
-    initialQuestionId,
-  });
-
   const router = useRouter();
   const { language } = useLanguage();
   const sessionId = useMemo(() => `session_${Date.now()}`, []);
@@ -107,10 +97,7 @@ export default function MatchmakingQuestionnaire({
   const [completedWorlds, setCompletedWorlds] = useState<WorldId[]>([]);
   const [startTime] = useState(() => new Date().toISOString());
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
-
-  // דגל שיורה לקומפוננטת הבת לדלג על מסך הפתיחה
   const [isDirectNavigation, setIsDirectNavigation] = useState(false);
-
   const [currentQuestionIndices, setCurrentQuestionIndices] = useState<
     Record<WorldId, number>
   >({
@@ -208,10 +195,8 @@ export default function MatchmakingQuestionnaire({
   const handleQuestionnaireSave = useCallback(
     async (isAutoSave = false) => {
       if (isSaving && !isAutoSave) return;
-
       setIsSaving(true);
       setError(null);
-
       try {
         const submissionData = prepareSubmissionData();
         const validateSubmission = (data: QuestionnaireSubmission): boolean => {
@@ -224,7 +209,7 @@ export default function MatchmakingQuestionnaire({
         };
 
         if (!validateSubmission(submissionData)) {
-          throw new Error('Invalid submission data');
+          throw new Error(dict.errors.invalidSubmission);
         }
 
         if (!userId) {
@@ -244,47 +229,35 @@ export default function MatchmakingQuestionnaire({
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to save questionnaire');
+            throw new Error(errorData.error || dict.errors.saveFailed);
           }
         }
-
         setLastSavedTime(new Date());
         setIsDirty(false);
         setToastState((prev) => ({ ...prev, isVisible: false }));
 
         if (!isAutoSave) {
-          showToast('השאלון נשמר בהצלחה', 'success');
+          showToast(dict.toasts.saveSuccess, 'success');
         }
 
-        if (
-          submissionData.completed &&
-          currentStep === OnboardingStep.COMPLETED
-        ) {
+        if (submissionData.completed && currentStep === OnboardingStep.COMPLETED) {
           if (onComplete) onComplete();
         }
       } catch (err) {
         console.error('Failed to save questionnaire:', err);
         const errorMessage =
-          err instanceof Error ? err.message : 'אירעה שגיאה בשמירת השאלון.';
+          err instanceof Error ? err.message : dict.errors.saveFailed;
         setError(errorMessage);
         if (!isAutoSave) {
           showToast(errorMessage, 'error');
         } else {
-          showToast('שגיאה בשמירה אוטומטית', 'error');
+          showToast(dict.toasts.autoSaveError, 'error');
         }
       } finally {
         setIsSaving(false);
       }
     },
-    [
-      isSaving,
-      prepareSubmissionData,
-      userId,
-      router,
-      onComplete,
-      showToast,
-      currentStep,
-    ]
+    [ isSaving, prepareSubmissionData, userId, router, onComplete, showToast, currentStep, dict ]
   );
 
   useEffect(() => {
@@ -292,8 +265,8 @@ export default function MatchmakingQuestionnaire({
     if (currentStep === OnboardingStep.WORLDS && userId) {
       autoSaveInterval = setInterval(() => {
         if (isDirty) {
-          showToast('יש לך שינויים שלא נשמרו.', 'info', 10000, {
-            label: 'שמור עכשיו',
+          showToast(dict.toasts.unsavedChanges.message, 'info', 10000, {
+            label: dict.toasts.unsavedChanges.action,
             onClick: () => handleQuestionnaireSave(false),
           });
         }
@@ -302,7 +275,7 @@ export default function MatchmakingQuestionnaire({
     return () => {
       if (autoSaveInterval) clearInterval(autoSaveInterval);
     };
-  }, [currentStep, userId, isDirty, handleQuestionnaireSave, showToast]);
+  }, [currentStep, userId, isDirty, handleQuestionnaireSave, showToast, dict]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -339,9 +312,7 @@ export default function MatchmakingQuestionnaire({
             setCurrentStep(OnboardingStep.WELCOME);
           } else {
             const errorData = await response.json();
-            throw new Error(
-              errorData.error || 'Failed to load existing answers'
-            );
+            throw new Error(errorData.error || dict.errors.loadFailed);
           }
         } else {
           const data = await response.json();
@@ -355,8 +326,7 @@ export default function MatchmakingQuestionnaire({
               ...(data.data.religionAnswers || []),
             ].filter(
               (answer, index, self) =>
-                index ===
-                self.findIndex((a) => a.questionId === answer.questionId)
+                index === self.findIndex((a) => a.questionId === answer.questionId)
             );
 
             setAnswers(allAnswers);
@@ -364,102 +334,61 @@ export default function MatchmakingQuestionnaire({
             setCompletedWorlds(loadedCompletedWorlds);
 
             const isQuestionnaireComplete =
-              data.data.completed ||
-              loadedCompletedWorlds.length === WORLD_ORDER.length;
+              data.data.completed || loadedCompletedWorlds.length === WORLD_ORDER.length;
 
             if (data.data.currentQuestionIndices) {
               setCurrentQuestionIndices(data.data.currentQuestionIndices);
             }
 
             if (initialWorld && initialQuestionId) {
-              console.log(
-                '[MatchmakingQuestionnaire] Direct Navigation Detected. Setting up...'
-              );
               const worldQuestions = worldConfig[initialWorld].questions;
-              const questionIndex = worldQuestions.findIndex(
-                (q) => q.id === initialQuestionId
-              );
-
+              const questionIndex = worldQuestions.findIndex((q) => q.id === initialQuestionId);
               if (questionIndex !== -1) {
-                console.log(
-                  `[MatchmakingQuestionnaire] Found question at index ${questionIndex}. Navigating to WORLDS.`
-                );
-                setCurrentQuestionIndices((prev) => ({
-                  ...prev,
-                  [initialWorld]: questionIndex,
-                }));
+                setCurrentQuestionIndices((prev) => ({ ...prev, [initialWorld]: questionIndex }));
                 setCurrentWorld(initialWorld);
                 setCurrentStep(OnboardingStep.WORLDS);
-                setIsDirectNavigation(true); // הפעלת הדגל
+                setIsDirectNavigation(true);
               } else {
-                // אם מזהה השאלה לא תקין, נעביר למפת העולם המתאים
-                console.warn(
-                  `[MatchmakingQuestionnaire] Question ID ${initialQuestionId} not found in world ${initialWorld}. Navigating to MAP.`
-                );
                 setCurrentWorld(initialWorld);
                 setCurrentStep(OnboardingStep.MAP);
               }
-            }
-            // רק אם אין ניווט ישיר, נמשיך לבדוק את שאר המצבים
-            else if (isQuestionnaireComplete) {
-              console.log(
-                '[MatchmakingQuestionnaire] Questionnaire is complete. Navigating to MAP.'
-              );
+            } else if (isQuestionnaireComplete) {
               setCurrentWorld(initialWorld || WORLD_ORDER[0]);
               setCurrentStep(OnboardingStep.MAP);
-            } else if (
-              loadedCompletedWorlds.length > 0 ||
-              allAnswers.length > 0
-            ) {
-              console.log(
-                '[MatchmakingQuestionnaire] Progress found. Navigating to MAP.'
-              );
-              const nextWorld = WORLD_ORDER.find(
-                (world) => !loadedCompletedWorlds.includes(world)
-              );
+            } else if (loadedCompletedWorlds.length > 0 || allAnswers.length > 0) {
+              const nextWorld = WORLD_ORDER.find((world) => !loadedCompletedWorlds.includes(world));
               setCurrentWorld(nextWorld || WORLD_ORDER[0]);
               setCurrentStep(OnboardingStep.MAP);
             } else {
-              console.log(
-                '[MatchmakingQuestionnaire] No progress. Navigating to WELCOME.'
-              );
               setCurrentStep(OnboardingStep.WELCOME);
             }
           } else {
-            console.log('Questionnaire data structure invalid or missing.');
             setCurrentStep(OnboardingStep.WELCOME);
           }
         }
       } catch (err) {
         console.error('Failed to load existing answers:', err);
-        setError('אירעה שגיאה בטעינת התשובות הקיימות');
+        setError(dict.errors.genericLoadError);
         setCurrentStep(OnboardingStep.WELCOME);
       } finally {
         setIsLoading(false);
       }
     };
     loadExistingAnswers();
-  }, [userId, initialWorld, initialQuestionId]);
+  }, [userId, initialWorld, initialQuestionId, dict]);
 
   const handleAnswer = useCallback(
     (questionId: string, value: AnswerValue) => {
       setError(null);
       setIsDirty(true);
       setAnswers((prevAnswers) => {
-        // השינוי כאן: הוספת toLowerCase() להשוואה
         const answerIndex = prevAnswers.findIndex(
           (a) => a.questionId.toLowerCase() === questionId.toLowerCase()
         );
-
         if (answerIndex > -1) {
           return prevAnswers.map((answer) => {
-            // וגם כאן
             if (answer.questionId.toLowerCase() === questionId.toLowerCase()) {
-              return {
-                ...answer,
-                value,
-                answeredAt: new Date().toISOString(),
-              };
+              return { ...answer, value, answeredAt: new Date().toISOString() };
             }
             return answer;
           });
@@ -482,13 +411,11 @@ export default function MatchmakingQuestionnaire({
     (questionId: string, isVisible: boolean) => {
       setIsDirty(true);
       setAnswers((prevAnswers) => {
-        // השינוי כאן: הוספת toLowerCase() להשוואה
         const answerIndex = prevAnswers.findIndex(
           (a) => a.questionId.toLowerCase() === questionId.toLowerCase()
         );
         if (answerIndex > -1) {
           return prevAnswers.map((answer) => {
-            // וגם כאן
             if (answer.questionId.toLowerCase() === questionId.toLowerCase()) {
               return { ...answer, isVisible };
             }
@@ -505,21 +432,20 @@ export default function MatchmakingQuestionnaire({
           return [...prevAnswers, newPlaceholderAnswer];
         }
       });
-
       showToast(
-        isVisible ? 'התשובה תוצג בפרופיל' : 'התשובה תוסתר מהפרופיל',
+        isVisible ? dict.toasts.answerVisible : dict.toasts.answerHidden,
         'info',
         2000
       );
     },
-    [showToast, currentWorld]
+    [showToast, currentWorld, dict]
   );
 
   const handleWorldChange = useCallback((newWorld: WorldId) => {
     setCurrentWorld(newWorld);
     setCurrentStep(OnboardingStep.WORLDS);
     setError(null);
-    setIsDirectNavigation(false); // איפוס הדגל במעבר ידני
+    setIsDirectNavigation(false);
   }, []);
 
   const handleWorldComplete = useCallback(
@@ -529,23 +455,20 @@ export default function MatchmakingQuestionnaire({
         updatedCompletedWorlds = [...completedWorlds, worldId];
         setCompletedWorlds(updatedCompletedWorlds);
       }
-
       showToast(
-        `כל הכבוד! סיימת את עולם ה${worldLabels[worldId] ?? worldId.toLowerCase()}`,
+        dict.toasts.worldFinished.replace(
+          '{{worldName}}',
+          dict.worldLabels[worldId] ?? worldId.toLowerCase()
+        ),
         'success'
       );
-
-      const isQuestionnaireNowFullyCompleted =
-        updatedCompletedWorlds.length === WORLD_ORDER.length;
+      const isQuestionnaireNowFullyCompleted = updatedCompletedWorlds.length === WORLD_ORDER.length;
       const submissionDataForWorldComplete = {
         ...prepareSubmissionData(),
         worldsCompleted: updatedCompletedWorlds,
         completed: isQuestionnaireNowFullyCompleted,
-        completedAt: isQuestionnaireNowFullyCompleted
-          ? new Date().toISOString()
-          : undefined,
+        completedAt: isQuestionnaireNowFullyCompleted ? new Date().toISOString() : undefined,
       };
-
       if (userId) {
         try {
           setIsSaving(true);
@@ -554,15 +477,14 @@ export default function MatchmakingQuestionnaire({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(submissionDataForWorldComplete),
           });
-          if (!response.ok)
-            throw new Error('Failed to save after world completion');
+          if (!response.ok) throw new Error('Failed to save after world completion');
           setLastSavedTime(new Date());
           setIsDirty(false);
-          showToast('התקדמות העולם נשמרה', 'success');
+          showToast(dict.toasts.worldProgressSaved, 'success');
         } catch (e) {
           console.error('Error saving after world complete:', e);
-          showToast('שגיאה בשמירת התקדמות העולם', 'error');
-          setError('שגיאה בשמירת התקדמות העולם.');
+          showToast(dict.toasts.worldCompletionError, 'error');
+          setError(dict.toasts.worldCompletionError + '.');
           setIsSaving(false);
           return;
         } finally {
@@ -574,9 +496,8 @@ export default function MatchmakingQuestionnaire({
           JSON.stringify(submissionDataForWorldComplete)
         );
         setLastSavedTime(new Date());
-        showToast('התקדמות העולם נשמרה בדפדפן', 'info');
+        showToast(dict.toasts.worldProgressSavedBrowser, 'info');
       }
-
       if (isQuestionnaireNowFullyCompleted) {
         if (!userId) {
           router.push('/auth/signin?callbackUrl=/questionnaire/restore');
@@ -594,14 +515,7 @@ export default function MatchmakingQuestionnaire({
         }
       }
     },
-    [
-      completedWorlds,
-      showToast,
-      userId,
-      prepareSubmissionData,
-      router,
-      onComplete,
-    ]
+    [completedWorlds, showToast, userId, prepareSubmissionData, router, onComplete, dict]
   );
 
   const handleExit = useCallback(() => {
@@ -619,16 +533,12 @@ export default function MatchmakingQuestionnaire({
       language,
       currentQuestionIndex: currentQuestionIndices[currentWorld],
       setCurrentQuestionIndex: (index: number) => {
-        setCurrentQuestionIndices((prev) => ({
-          ...prev,
-          [currentWorld]: index,
-        }));
+        setCurrentQuestionIndices((prev) => ({ ...prev, [currentWorld]: index }));
       },
       onSave: () => handleQuestionnaireSave(false),
       isSaving: isSaving,
-      isDirectNavigation: isDirectNavigation, // העברת הדגל
+      isDirectNavigation: isDirectNavigation,
     };
-
     return <WorldComponent {...worldProps} worldId={currentWorld} />;
   }
 
@@ -644,10 +554,10 @@ export default function MatchmakingQuestionnaire({
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
           <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+          <p className="mt-4 text-gray-600">{dict.loading}</p>
         </div>
       );
     }
-
     switch (currentStep) {
       case OnboardingStep.MAP:
         return (
@@ -664,6 +574,7 @@ export default function MatchmakingQuestionnaire({
             onLearnMore={() => router.push('/profile')}
             isLoggedIn={!!userId}
             hasSavedProgress={answers.length > 0 || completedWorlds.length > 0}
+            dict={dict.welcome}
           />
         );
       case OnboardingStep.WORLDS:
@@ -689,10 +600,11 @@ export default function MatchmakingQuestionnaire({
             }}
             isLoading={isSaving}
             isLoggedIn={!!userId}
+            dict={dict.completion}
           />
         );
       default:
-        return <div>שגיאה בטעינת השלב</div>;
+        return <div>{dict.errors.stageLoadError}</div>;
     }
   }
 
@@ -710,13 +622,7 @@ export default function MatchmakingQuestionnaire({
       >
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center">
-            {type === 'success' ? (
-              <CheckCircle className="h-5 w-5 mr-2" />
-            ) : type === 'error' ? (
-              <XCircle className="h-5 w-5 mr-2" />
-            ) : (
-              <Info className="h-5 w-5 mr-2" />
-            )}
+            {type === 'success' ? <CheckCircle className="h-5 w-5 mr-2" /> : type === 'error' ? <XCircle className="h-5 w-5 mr-2" /> : <Info className="h-5 w-5 mr-2" />}
             <p>{message}</p>
           </div>
           {action && (
@@ -745,23 +651,17 @@ export default function MatchmakingQuestionnaire({
           <CardHeader>
             <CardTitle className="flex items-center">
               <Clock className="w-6 h-6 mr-3 text-blue-500" />
-              האם אתה עדיין כאן?
+              {dict.idleModal.title}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">
-              לא זיהינו פעילות בחשבונך. למען אבטחת המידע, תתבצע יציאה אוטומטית
-              מהמערכת בעוד כדקה.
-            </p>
+            <p className="text-gray-600 mb-4">{dict.idleModal.description}</p>
             <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => signOut({ callbackUrl: '/' })}
-              >
+              <Button variant="outline" onClick={() => signOut({ callbackUrl: '/' })}>
                 <LogOut className="w-4 h-4 mr-2" />
-                צא מהמערכת
+                {dict.idleModal.logoutButton}
               </Button>
-              <Button onClick={handleStayActive}>אני עדיין כאן</Button>
+              <Button onClick={handleStayActive}>{dict.idleModal.stayActiveButton}</Button>
             </div>
           </CardContent>
         </Card>
@@ -770,18 +670,13 @@ export default function MatchmakingQuestionnaire({
   };
 
   return (
-    <div
-      className={cn(
-        'min-h-screen bg-gray-50',
-        language === 'he' ? 'dir-rtl' : 'dir-ltr'
-      )}
-    >
+    <div className={cn('min-h-screen bg-gray-50', language === 'he' ? 'dir-rtl' : 'dir-ltr')}>
       <IdleModal />
       {lastSavedTime && currentStep === OnboardingStep.WORLDS && userId && (
         <div className="fixed bottom-4 left-4 z-40 bg-white p-2 rounded-lg shadow-md text-xs text-gray-600 border">
           <div className="flex items-center">
             <CheckCircle className="h-3.5 w-3.5 text-green-500 mr-1" />
-            <span>נשמר לאחרונה: {lastSavedTime.toLocaleTimeString()}</span>
+            <span>{dict.lastSaved.replace('{{time}}', lastSavedTime.toLocaleTimeString())}</span>
           </div>
         </div>
       )}

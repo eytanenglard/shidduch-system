@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,8 +29,8 @@ import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import type { AccessibilityFeaturesDict } from '@/types/dictionary'; // Import dictionary type
 
-// FIX: Teach TypeScript about the non-standard webkitAudioContext
 declare global {
   interface Window {
     webkitAudioContext: typeof AudioContext;
@@ -41,6 +41,7 @@ interface AccessibilityFeaturesProps {
   className?: string;
   isPanelOpen?: boolean;
   onPanelOpenChange?: (isOpen: boolean) => void;
+  dict: AccessibilityFeaturesDict; // Use the specific dictionary type
 }
 
 interface AccessibilitySettings {
@@ -63,10 +64,18 @@ const defaultSettings: AccessibilitySettings = {
   soundEnabled: true,
 };
 
+const getSettingName = (
+  key: keyof AccessibilitySettings,
+  dict: AccessibilityFeaturesDict
+): string => {
+  return dict.settingNames[key] || key;
+};
+
 export default function AccessibilityFeatures({
   className,
   isPanelOpen,
   onPanelOpenChange,
+  dict,
 }: AccessibilityFeaturesProps) {
   const [settings, setSettings] =
     useState<AccessibilitySettings>(defaultSettings);
@@ -144,54 +153,19 @@ export default function AccessibilityFeatures({
     }
   };
 
-  const updateSetting = <K extends keyof AccessibilitySettings>(
-    key: K,
-    value: AccessibilitySettings[K]
-  ) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
-    setHasChanges(true);
-    if (settings.soundEnabled) playClickSound();
-    showSuccessToast(`הגדרת ${getSettingName(key)} עודכנה`);
-  };
-
-  const getSettingName = (key: keyof AccessibilitySettings): string => {
-    const names = {
-      fontScale: 'גודל הטקסט',
-      contrastMode: 'מצב התצוגה',
-      reducedMotion: 'הפחתת אנימציות',
-      readableMode: 'פונט קריא',
-      bigCursor: 'סמן גדול',
-      textReader: 'הקראת תוכן',
-      soundEnabled: 'צלילים',
-    };
-    return names[key] || key;
-  };
-
-  const showSuccessToast = (message: string) => {
+  const showSuccessToast = useCallback((message: string) => {
     setShowToast({ message, type: 'success', visible: true });
     if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     toastTimeoutRef.current = setTimeout(() => {
       setShowToast((prev) => ({ ...prev, visible: false }));
     }, 2500);
-  };
+  }, []);
 
-  const playClickSound = () => {
+  const playClickSound = useCallback(() => {
     try {
-      // Get the correct AudioContext class, depending on the browser
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) {
-        console.warn('Browser does not support AudioContext.');
-        return;
-      }
-
-      const AudioContextClass =
-        window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextClass) {
-        console.warn('Browser does not support AudioContext.');
-        return;
-      }
-      const audioContext = new AudioContextClass();
-
+      if (!AudioContext) return;
+      const audioContext = new AudioContext();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       oscillator.connect(gainNode);
@@ -207,55 +181,67 @@ export default function AccessibilityFeatures({
     } catch (error) {
       console.log('Could not play sound:', error);
     }
-  };
+  }, []);
 
-  const resetSettings = () => {
-    setSettings(defaultSettings);
-    setHasChanges(false);
-    showSuccessToast('כל ההגדרות אופסו');
-    if (settings.soundEnabled) playClickSound();
-  };
+  const updateSetting = useCallback(
+    <K extends keyof AccessibilitySettings>(
+      key: K,
+      value: AccessibilitySettings[K]
+    ) => {
+      setSettings((prev) => ({ ...prev, [key]: value }));
+      setHasChanges(true);
+      if (settings.soundEnabled) playClickSound();
+      const settingName = getSettingName(key, dict);
+      showSuccessToast(
+        dict.toasts.settingUpdated.replace('{{settingName}}', settingName)
+      );
+    },
+    [settings.soundEnabled, playClickSound, dict, showSuccessToast]
+  );
 
-  const toggleTextReader = () => {
-    const willBeActive = !settings.textReader;
-    updateSetting('textReader', willBeActive);
-    if (willBeActive) {
-      document.addEventListener('click', readSelectedText);
-      showSuccessToast('הקראת תוכן הופעלה - לחץ על טקסט כדי להקריא');
-    } else {
-      document.removeEventListener('click', readSelectedText);
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
-    }
-  };
-
-  const readSelectedText = (e: MouseEvent) => {
+  const readSelectedText = useCallback((e: MouseEvent) => {
     const element = e.target as HTMLElement;
     if (element && element.textContent && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const text = element.textContent.trim();
       if (text && text.length > 0) {
         const utterance = new SpeechSynthesisUtterance(text);
-        
-        // --- START OF UPGRADE ---
-        // 1. Find an available Hebrew voice on the user's system.
         const voices = window.speechSynthesis.getVoices();
-        const hebrewVoice = voices.find(voice => voice.lang === 'he-IL');
-
-        // 2. If a Hebrew voice is found, use it.
+        const hebrewVoice = voices.find((voice) => voice.lang === 'he-IL');
         if (hebrewVoice) {
           utterance.voice = hebrewVoice;
           utterance.lang = 'he-IL';
-        } 
-        // 3. If not, don't specify language. Let the browser use its default voice.
-        // This is better than silence, even if pronunciation is incorrect.
-        
+        }
         utterance.rate = 0.9;
         window.speechSynthesis.speak(utterance);
-        // --- END OF UPGRADE ---
       }
     }
-  };
+  }, []);
 
+  const toggleTextReader = useCallback(() => {
+    const willBeActive = !settings.textReader;
+    updateSetting('textReader', willBeActive);
+    if (willBeActive) {
+      document.addEventListener('click', readSelectedText);
+      showSuccessToast(dict.toasts.readerEnabled);
+    } else {
+      document.removeEventListener('click', readSelectedText);
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+  }, [
+    settings.textReader,
+    updateSetting,
+    readSelectedText,
+    showSuccessToast,
+    dict.toasts.readerEnabled,
+  ]);
+
+  const resetSettings = () => {
+    setSettings(defaultSettings);
+    setHasChanges(false);
+    showSuccessToast(dict.toasts.settingsReset);
+    if (settings.soundEnabled) playClickSound();
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -278,56 +264,30 @@ export default function AccessibilityFeatures({
   useEffect(() => {
     return () => {
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+      document.removeEventListener('click', readSelectedText);
     };
-  }, []);
+  }, [readSelectedText]);
 
-  const contrastOptions: {
-    value: AccessibilitySettings['contrastMode'];
-    label: string;
-    icon: React.ElementType;
-    desc: string;
-  }[] = [
-    { value: 'normal', label: 'רגיל', icon: SunMedium, desc: 'מצב רגיל' },
-    {
-      value: 'high',
-      label: 'ניגודיות',
-      icon: Contrast,
-      desc: 'ניגודיות גבוהה',
-    },
-    { value: 'dark', label: 'חשוך', icon: MoonStar, desc: 'מצב לילה' },
+  const contrastOptions = [
+    { key: 'normal' as const, icon: SunMedium },
+    { key: 'high' as const, icon: Contrast },
+    { key: 'dark' as const, icon: MoonStar },
   ];
 
   const advancedOptions = [
     {
-      key: 'soundEnabled' as const,
-      label: 'צלילי משוב',
+      key: 'sound' as const,
+      setting: 'soundEnabled' as const,
       icon: settings.soundEnabled ? Volume2 : VolumeX,
-      description: 'השמע צלילים קצרים על פעולות ושינויים',
     },
+    { key: 'reader' as const, setting: 'textReader' as const, icon: Speech },
     {
-      key: 'textReader' as const,
-      label: 'הקראת תוכן',
-      icon: Speech,
-      description: 'לחץ על כל טקסט באתר כדי להקריא אותו בקול',
-    },
-    {
-      key: 'bigCursor' as const,
-      label: 'סמן עכבר גדול',
+      key: 'cursor' as const,
+      setting: 'bigCursor' as const,
       icon: MousePointer,
-      description: 'סמן עכבר מוגדל ובולט יותר',
     },
-    {
-      key: 'readableMode' as const,
-      label: 'פונט קריא',
-      icon: Eye,
-      description: 'פונט ברור עם ריווח מוגדל בין האותיות',
-    },
-    {
-      key: 'reducedMotion' as const,
-      label: 'הפחתת אנימציות',
-      icon: Hand,
-      description: 'מפחית תנועות ואנימציות ברחבי האתר',
-    },
+    { key: 'font' as const, setting: 'readableMode' as const, icon: Eye },
+    { key: 'motion' as const, setting: 'reducedMotion' as const, icon: Hand },
   ];
 
   return (
@@ -348,7 +308,9 @@ export default function AccessibilityFeatures({
           )}
           onClick={() => setShowAccessibilityPanel(!showAccessibilityPanel)}
           title={
-            showAccessibilityPanel ? 'סגור הגדרות נגישות' : 'פתח הגדרות נגישות'
+            showAccessibilityPanel
+              ? dict.triggerButton.close
+              : dict.triggerButton.open
           }
         >
           <div className="relative">
@@ -379,20 +341,20 @@ export default function AccessibilityFeatures({
                   <div className="p-1.5 bg-blue-100 rounded-lg">
                     <Settings className="h-4 w-4 text-blue-600" />
                   </div>
-                  הגדרות נגישות
+                  {dict.panelTitle}
                   {hasChanges && (
                     <Badge
                       variant="secondary"
                       className="text-xs bg-blue-100 text-blue-700 border-blue-200"
                     >
                       <Sparkles className="h-3 w-3 mr-1" />
-                      שונה
+                      {dict.changedBadge}
                     </Badge>
                   )}
                 </CardTitle>
               </div>
               <p className="text-xs text-slate-600 mt-1">
-                התאם את האתר לצרכיך האישיים
+                {dict.panelSubtitle}
               </p>
             </CardHeader>
 
@@ -401,7 +363,7 @@ export default function AccessibilityFeatures({
                 <div className="flex justify-between items-center">
                   <Label className="text-sm font-medium flex items-center gap-2">
                     <Type className="h-4 w-4 text-blue-500" />
-                    גודל טקסט
+                    {dict.textSize.title}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Button
@@ -451,50 +413,54 @@ export default function AccessibilityFeatures({
                   className="py-2"
                 />
                 <p className="text-xs text-slate-500">
-                  הגדל או הקטן את גודל הטקסט בכל האתר
+                  {dict.textSize.description}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <Palette className="h-4 w-4 text-blue-500" />
-                  מצב תצוגה ונגישות
+                  {dict.displayMode.title}
                 </Label>
                 <div className="grid grid-cols-3 gap-2">
-                  {contrastOptions.map(({ value, label, icon: Icon, desc }) => (
-                    <Button
-                      key={value}
-                      variant={
-                        settings.contrastMode === value ? 'default' : 'outline'
-                      }
-                      size="sm"
-                      className={cn(
-                        'h-14 flex flex-col gap-1 text-xs transition-all relative',
-                        settings.contrastMode === value
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                          : 'hover:bg-blue-50 border-blue-200'
-                      )}
-                      onClick={() => updateSetting('contrastMode', value)}
-                      title={desc}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span className="font-medium">{label}</span>
-                      {settings.contrastMode === value && (
-                        <div className="absolute top-1 right-1">
-                          <Check className="h-3 w-3" />
-                        </div>
-                      )}
-                    </Button>
-                  ))}
+                  {contrastOptions.map(({ key, icon: Icon }) => {
+                    const optionDict = dict.contrastOptions[key];
+                    return (
+                      <Button
+                        key={key}
+                        variant={
+                          settings.contrastMode === key ? 'default' : 'outline'
+                        }
+                        size="sm"
+                        className={cn(
+                          'h-14 flex flex-col gap-1 text-xs transition-all relative',
+                          settings.contrastMode === key
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                            : 'hover:bg-blue-50 border-blue-200'
+                        )}
+                        onClick={() => updateSetting('contrastMode', key)}
+                        title={optionDict.description}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="font-medium">{optionDict.label}</span>
+                        {settings.contrastMode === key && (
+                          <div className="absolute top-1 right-1">
+                            <Check className="h-3 w-3" />
+                          </div>
+                        )}
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
 
               <div className="space-y-4 pt-2 border-t border-slate-200">
                 <Label className="text-sm font-medium text-slate-700">
-                  הגדרות נוספות
+                  {dict.additionalSettings.title}
                 </Label>
-                {advancedOptions.map(
-                  ({ key, label, icon: Icon, description }) => (
+                {advancedOptions.map(({ key, setting, icon: Icon }) => {
+                  const optionDict = dict.advancedOptions[key];
+                  return (
                     <div
                       key={key}
                       className="setting-card flex items-center justify-between group p-3 rounded-lg"
@@ -503,7 +469,7 @@ export default function AccessibilityFeatures({
                         <div
                           className={cn(
                             'p-2 rounded-lg transition-colors',
-                            settings[key]
+                            settings[setting]
                               ? 'bg-blue-100 text-blue-600'
                               : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-500'
                           )}
@@ -512,23 +478,23 @@ export default function AccessibilityFeatures({
                         </div>
                         <div className="flex-1">
                           <Label className="text-sm font-medium cursor-pointer">
-                            {label}
+                            {optionDict.label}
                           </Label>
                           <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                            {description}
+                            {optionDict.description}
                           </p>
                         </div>
                       </div>
                       <Switch
-                        checked={settings[key]}
+                        checked={settings[setting]}
                         onCheckedChange={(checked) => {
-                          if (key === 'textReader') toggleTextReader();
-                          else updateSetting(key, checked);
+                          if (setting === 'textReader') toggleTextReader();
+                          else updateSetting(setting, checked);
                         }}
                       />
                     </div>
-                  )
-                )}
+                  );
+                })}
               </div>
 
               <div className="pt-4 border-t border-slate-200">
@@ -545,7 +511,7 @@ export default function AccessibilityFeatures({
                   disabled={!hasChanges}
                 >
                   <RefreshCw className="h-4 w-4" />
-                  איפוס כל ההגדרות
+                  {dict.resetButton}
                 </Button>
               </div>
             </CardContent>

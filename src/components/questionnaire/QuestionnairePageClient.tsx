@@ -1,17 +1,17 @@
-// src/components/questionnaire/QuestionnairePage.tsx
+// src/components/questionnaire/QuestionnairePageClient.tsx
 'use client';
 
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import QuestionnaireLandingPage from './pages/QuestionnaireLandingPage';
 import MatchmakingQuestionnaire from './MatchmakingQuestionnaire';
 import type { WorldId } from './types/types';
+import type { QuestionnaireDictionary } from '@/types/dictionary'; // ייבוא טיפוס המילון
 
 // Enum to track questionnaire flow stages
 enum QuestionnaireStage {
@@ -20,7 +20,12 @@ enum QuestionnaireStage {
   COMPLETE = 'COMPLETE',
 }
 
-export default function QuestionnairePage() {
+// הגדרת Props לרכיב
+interface QuestionnairePageClientProps {
+  dict: QuestionnaireDictionary;
+}
+
+export default function QuestionnairePageClient({ dict }: QuestionnairePageClientProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -43,15 +48,11 @@ export default function QuestionnairePage() {
   useEffect(() => {
     const checkExistingProgress = async () => {
       if (status === 'loading') return;
-
       setIsLoading(true);
-
       try {
-        // If user is logged in, check for saved progress
         if (session?.user?.id) {
           const response = await fetch('/api/questionnaire');
           const data = await response.json();
-
           if (data.success && data.data) {
             setHasSavedProgress(true);
           }
@@ -62,27 +63,18 @@ export default function QuestionnairePage() {
         setIsLoading(false);
       }
     };
-
     checkExistingProgress();
   }, [session, status]);
 
-  // --- START OF THE CORRECTED CODE ---
   // Check for world parameter in URL and normalize it
   useEffect(() => {
     if (status === 'loading') {
       return;
     }
-
     const worldParam = searchParams?.get('world');
     const questionParam = searchParams?.get('question');
 
-    console.log('[QuestionnairePage] URL Params Received:', {
-      worldParam,
-      questionParam,
-    });
-
     if (worldParam) {
-      // 1. Normalize the input immediately to uppercase
       const worldParamUpper = worldParam.toUpperCase() as WorldId;
       const validWorlds: WorldId[] = [
         'PERSONALITY',
@@ -91,20 +83,11 @@ export default function QuestionnairePage() {
         'PARTNER',
         'RELIGION',
       ];
-
-      // 2. Check if the normalized value is valid
       if (validWorlds.includes(worldParamUpper)) {
-        console.log(
-          `[QuestionnairePage] Valid world param found: '${worldParam}'. Normalizing to '${worldParamUpper}' and setting stage to QUESTIONNAIRE.`
-        );
-
-        // 3. Set state using the normalized value
         setInitialWorld(worldParamUpper);
         if (questionParam) {
           setInitialQuestionId(questionParam);
         }
-
-        // 4. Set the stage to show the questionnaire
         setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
       } else {
         console.warn(
@@ -113,25 +96,21 @@ export default function QuestionnairePage() {
       }
     }
   }, [searchParams, status]);
-  // --- END OF THE CORRECTED CODE ---
 
-  // Handler when the landing page "start" button is clicked
   const handleStartQuestionnaire = () => {
     setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
   };
 
-  // Handler when questionnaire is completed
   const handleQuestionnaireComplete = async () => {
     try {
       await router.push('/questionnaire/complete');
       setCurrentStage(QuestionnaireStage.COMPLETE);
     } catch (err) {
       console.error('Error completing questionnaire:', err);
-      setError('אירעה שגיאה בסיום השאלון. אנא נסה שוב.');
+      setError(dict.page.completionError); // שימוש במילון
     }
   };
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50">
@@ -140,7 +119,6 @@ export default function QuestionnairePage() {
     );
   }
 
-  // Render different components based on current stage
   const renderCurrentStage = () => {
     switch (currentStage) {
       case QuestionnaireStage.LANDING:
@@ -148,9 +126,9 @@ export default function QuestionnairePage() {
           <QuestionnaireLandingPage
             onStartQuestionnaire={handleStartQuestionnaire}
             hasSavedProgress={hasSavedProgress}
+            // כאן נעביר את המילון הרלוונטי אם וכאשר הרכיב יעודכן
           />
         );
-
       case QuestionnaireStage.QUESTIONNAIRE:
         return (
           <MatchmakingQuestionnaire
@@ -158,21 +136,18 @@ export default function QuestionnairePage() {
             onComplete={handleQuestionnaireComplete}
             initialWorld={initialWorld}
             initialQuestionId={initialQuestionId}
+            dict={dict.matchmaking} // העברת המילון לרכיב הבן
           />
         );
-
       case QuestionnaireStage.COMPLETE:
-        // This should redirect to /questionnaire/complete
         return null;
-
       default:
-        return <div>שגיאה בטעינת השלב</div>;
+        return <div>{dict.page.stageLoadError}</div>; // שימוש במילון
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Back navigation for non-landing stages */}
       {currentStage !== QuestionnaireStage.LANDING && (
         <div className="container mx-auto p-4">
           <Button
@@ -182,12 +157,11 @@ export default function QuestionnairePage() {
             onClick={() => setCurrentStage(QuestionnaireStage.LANDING)}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            חזרה לעמוד הראשי
+            {dict.page.backToMain} {/* שימוש במילון */}
           </Button>
         </div>
       )}
 
-      {/* Error messages */}
       {error && (
         <div className="container mx-auto p-4">
           <Alert variant="destructive" className="mb-4">
@@ -197,7 +171,6 @@ export default function QuestionnairePage() {
         </div>
       )}
 
-      {/* Current stage content */}
       {renderCurrentStage()}
     </div>
   );

@@ -1,0 +1,811 @@
+{
+  "welcome": {
+    "mainTitle": "Your Gateway to a Meaningful Relationship",
+    "subtitle": "Investing a few minutes in our introductory questionnaire is your first and most important step on the journey to finding a real, deep, and precise connection.",
+    "loggedInCTA": "Let's Start the Journey",
+    "resumeCTA": "Continue Where We Left Off",
+    "guestCTA": "Start the Journey (as a guest)",
+    "loginPrompt": {
+      "title": "Important to know:",
+      "text": "To ensure your investment isn't lost, we recommend logging in. This way, we can save your progress, and you can return to complete the questionnaire at any time.",
+      "loginButtonText": "Log In and Save Progress"
+    },
+    "features": [
+      {
+        "title": "A Personalized Journey",
+        "description": "The questionnaire is divided into content worlds, allowing you to progress at your own pace, with understanding and respect for your time."
+      },
+      {
+        "title": "Your Privacy - A Top Priority",
+        "description": "Your answers are completely discreet and are used only by our experienced matchmaking team for the purpose of finding you a match."
+      },
+      {
+        "title": "Beyond the Algorithm",
+        "description": "Behind every match is a real matchmaker who knows your story. We combine technology with human wisdom."
+      }
+    ],
+    "testimonials": {
+      "title": "What People Think of Us",
+      "quotes": [
+        {
+          "quote": "For the first time, I felt they were really trying to understand who I am, not just check a box on a list.",
+          "author": "Jonathan, 34"
+        },
+        {
+          "quote": "The process was serious, respectful, and gave me new insights about myself and what I'm looking for.",
+          "author": "Michal, 29"
+        }
+      ]
+    },
+    "finalCta": {
+      "title": "Ready to take your first step?"
+    }
+  },
+  "worldIntro": {
+    "world": "World",
+    "of": "of",
+    "stats": {
+      "estimatedTime": "Estimated Time",
+      "totalQuestions": "Total Questions",
+      "requiredQuestions": "Required Questions"
+    },
+    "statsValues": {
+      "minutes": "minutes"
+    },
+    "whyTitle": "Why is This World Crucial for Your Success?",
+    "whatYouWillDiscoverTitle": "What Will You Discover About Yourself?",
+    "startButton": "Let's Begin the Journey",
+    "worldsContent": {
+      "PERSONALITY": {
+        "title": "The World of Personality",
+        "subtitle": "Who am I really?",
+        "whyIsItImportant": "A deep understanding of who you are is the foundation of any healthy relationship. Here, you'll have the opportunity to present yourself authentically, so we can find someone who will fall in love with the real you.",
+        "whatYouWillDiscover": [
+          "What are the driving forces in your life",
+          "Your communication style and social interaction",
+          "How you deal with challenges and make decisions"
+        ],
+        "guidingThought": "The beauty of a relationship is not finding someone perfect, but finding someone whose parts complete yours."
+      },
+      "VALUES": {
+        "title": "The World of Values",
+        "subtitle": "What truly motivates you?",
+        "whyIsItImportant": "Shared values are the backbone of a stable and happy relationship. In this world, we will help you distill your core principles to build a solid foundation for your future shared home.",
+        "whatYouWillDiscover": [
+          "Your priorities between family, career, and spirituality",
+          "Your approach to money, giving, and personal growth",
+          "What community and social environment suit you"
+        ],
+        "guidingThought": "When your values meet, the shared path becomes clearer and easier."
+      },
+      "RELATIONSHIP": {
+        "title": "The World of Partnership",
+        "subtitle": "What does your ideal partnership look like?",
+        "whyIsItImportant": "A good relationship is a partnership. Here, we will understand your expectations from a relationship, your 'love languages', and how you envision shared daily life. This is the key to creating a connection based on understanding, respect, and true friendship.",
+        "whatYouWillDiscover": [
+          "The essence of a healthy relationship in your eyes",
+          "Your preferred conflict resolution style",
+          "The right balance for you between 'together' and 'apart'"
+        ],
+        "guidingThought": "The question is not 'Will you be happy?', but 'How will you cope together when you are less happy?'."
+      },
+      "PARTNER": {
+        "title": "The World of the Partner",
+        "subtitle": "Who will you choose?",
+        "whyIsItImportant": "Defining the ideal partner is more than a list of traits; it's an understanding of what you truly need to flourish. Here, we will focus the search and understand what is non-negotiable for you.",
+        "whatYouWillDiscover": [
+          "Which character traits are most essential for you",
+          "Your preferences regarding lifestyle and background",
+          "What your 'red lines' are in a relationship"
+        ],
+        "guidingThought": "Don't look for the person you can live with, look for the person you can't live without."
+      },
+      "RELIGION": {
+        "title": "Religion and Tradition",
+        "subtitle": "Faith and Halacha in your life",
+        "whyIsItImportant": "The spiritual and religious world is a fundamental layer in building a faithful home in Israel. In this world, we will understand your personal connection, your outlook, and your vision for a Jewish home. This is a necessary basis for marital harmony and raising children.",
+        "whatYouWillDiscover": [
+          "Your personal definition on the religious spectrum",
+          "How Halacha and tradition are expressed in your life",
+          "Your vision for religious and spiritual education in the family"
+        ],
+        "guidingThought": "A Jewish home is built not only of bricks, but also of prayers, values, and tradition passed down from generation to generation."
+      }
+    }
+  },
+  "questionCard": {
+    "depthLabels": {
+      "BASIC": "Basic",
+      "ADVANCED": "Advanced",
+      "EXPERT": "Expert"
+    },
+    "depthDescriptions": {
+      "BASIC": "Mandatory questions that form the basis for getting acquainted",
+      "ADVANCED": "Recommended questions for a deeper acquaintance",
+      "EXPERT": "Enrichment questions for a particularly deep connection"
+    },
+    "requiredBadge": "Required *",
+    "tooltips": {
+      "removeBookmark": "Remove bookmark",
+      "addBookmark": "Save for later review",
+      "hideHelp": "Hide help",
+      "showHelp": "Show help",
+      "whyQuestion": "Why are we asking this?",
+      "visibility": {
+        "visibleTitle": "👁️ Visible to all",
+        "hiddenTitle": "🔒 Hidden from the public",
+        "visibleDesc": "The answer will be displayed on your public profile",
+        "hiddenDesc": "The answer will only be visible to approved matchmakers"
+      },
+      "saveProgressSaving": "Saving...",
+      "saveProgress": "Save progress",
+      "viewProfile": "View profile and answers"
+    },
+    "skipButton": {
+      "skip": "Skip",
+      "required": "Required question"
+    }
+  },
+  "completion": {
+    "title": "Well done! You've completed the questionnaire",
+    "loggedInDescription": "Your answers will help us find the best match for you",
+    "guestDescription": "To save your answers and start the matching process, please log in to the system",
+    "loggedInContent": {
+      "prompt": "You can now send the questionnaire to our characterization team",
+      "promptSubtitle": "The team will review your answers and begin the matching process",
+      "sendButton": "Send for Characterization",
+      "sendingButton": "Sending...",
+      "reviewButton": "Review All My Answers"
+    },
+    "guestContent": {
+      "loginButton": "Log in to the system"
+    }
+  },
+  "matchmaking": {
+    "worldLabels": {
+      "PERSONALITY": "Personality",
+      "VALUES": "Values & Beliefs",
+      "RELATIONSHIP": "Partnership",
+      "PARTNER": "Partner",
+      "RELIGION": "Religion & Tradition"
+    },
+    "toasts": {
+      "saveSuccess": "The questionnaire was saved successfully",
+      "autoSaveError": "Error in automatic save",
+      "unsavedChanges": {
+        "message": "You have unsaved changes.",
+        "action": "Save now"
+      },
+      "answerVisible": "The answer will be displayed on the profile",
+      "answerHidden": "The answer will be hidden from the profile",
+      "worldProgressSaved": "World progress has been saved",
+      "worldProgressSavedBrowser": "World progress saved in the browser",
+      "worldCompletionError": "Error saving world progress",
+      "worldFinished": "Well done! You have completed the world of {{worldName}}"
+    },
+    "errors": {
+      "invalidSubmission": "Invalid submission data",
+      "saveFailed": "An error occurred while saving the questionnaire.",
+      "loadFailed": "Failed to load existing answers",
+      "genericLoadError": "An error occurred while loading existing answers",
+      "stageLoadError": "Error loading stage"
+    },
+    "idleModal": {
+      "title": "Are you still here?",
+      "description": "We haven't detected any activity in your account. For security reasons, you will be automatically logged out in about a minute.",
+      "logoutButton": "Log out",
+      "stayActiveButton": "I'm still here"
+    },
+    "lastSaved": "Last saved: {{time}}",
+    "loading": "Loading..."
+  },
+  "page": {
+    "loading": "Loading questionnaire...",
+    "backToMain": "Back to main page",
+    "stageLoadError": "Error loading stage",
+    "completionError": "An error occurred while completing the questionnaire. Please try again."
+  },
+   "landingPage": {
+    "hero": {
+      "badge": "Your Journey Starts Here",
+      "title": "Your Path to a Meaningful Relationship",
+      "subtitle": "Investing a few minutes in our in-depth questionnaire is the most important step in building your accurate profile. A profile that will allow us, the matchmaking team, to find you a real, well-founded, and deep match."
+    },
+    "cta": {
+      "start": "Let's Get Started",
+      "continue": "Continue from Last Time",
+      "startAsUser": "Start the Journey, {{name}}",
+      "loginButton": "Login for Registered Users"
+    },
+    "worldsSection": {
+      "title": "Five Worlds, One Accurate Profile",
+      "subtitle": "The questionnaire is divided into five content worlds. Each world focuses on a different aspect of your personality and expectations, and together they create a complete and rich picture that will serve us in the matching process."
+    },
+    "worlds": {
+      "PERSONALITY": {
+        "title": "World of Personality",
+        "description": "Here you will paint an authentic picture of your personality, so we can deeply understand who you are.",
+        "questionsLabel": "{{count}} questions"
+      },
+      "VALUES": {
+        "title": "World of Values",
+        "description": "What are the pillars of your life? Here we will define the values and beliefs that guide you.",
+        "questionsLabel": "{{count}} questions"
+      },
+      "RELATIONSHIP": {
+        "title": "World of Partnership",
+        "description": "What is a relationship for you? Here you will detail your expectations from the connection and your vision for partnership.",
+        "questionsLabel": "{{count}} questions"
+      },
+      "PARTNER": {
+        "title": "World of the Partner",
+        "description": "Who are you looking for? Here we will focus the search and understand what is essential for you in a partner.",
+        "questionsLabel": "{{count}} questions"
+      },
+      "RELIGION": {
+        "title": "Religion & Tradition",
+        "description": "What is your connection to Judaism? Here you will detail your religious identity and its expression in your life.",
+        "questionsLabel": "{{count}} questions"
+      }
+    },
+    "featuresSection": {
+      "title": "The Foundation for Your Success",
+      "subtitle": "We have invested much thought and experience to make the process as efficient, respectful, and accurate as possible.",
+      "features": [
+        {
+          "title": "Guided and Flexible Process",
+          "description": "The questionnaire is divided into separate worlds, so you can fill it out at your own pace, stop, and return at any stage."
+        },
+        {
+          "title": "Absolute Privacy",
+          "description": "Your answers are completely discreet and are used only by our professional matchmaking team for the purpose of finding the most accurate match."
+        },
+        {
+          "title": "Proven Methodology",
+          "description": "Our method combines insights from psychology with the experience of veteran matchmakers to create deep matches, not just superficial ones."
+        }
+      ]
+    },
+    "finalCta": {
+      "title": "Ready to Build Your Profile?",
+      "subtitle": "The first step is to provide us with your complete and authentic picture. From here, our expertise and technology come into play to start the precise search for you.",
+      "buttonText": "Start Now"
+    },
+    "footer": {
+      "copyright": "© {{year}} NeshamaTech. All rights reserved."
+    }
+  },
+  "worldsMap": {
+    "progressHeader": {
+      "greeting": "Hello, {{name}}! Welcome to your journey",
+      "defaultTitle": "Your Path to a Meaningful Relationship",
+      "progressText": "You have completed {{completedCount}} of {{totalCount}} worlds.",
+      "ctaButton": "Continue to recommended world: {{worldName}}"
+    },
+    "reviewCard": {
+      "title": "Want to review your answers?",
+      "description": "View all the answers you have filled in so far in one place.",
+      "button": "Review Answers"
+    },
+    "worldCard": {
+      "statuses": {
+        "completed": "Completed",
+        "recommended": "Next Step",
+        "active": "Active",
+        "available": "Available",
+        "locked": "Locked"
+      },
+      "actions": {
+        "edit": "Edit Answers",
+        "start": "Start This World",
+        "continue": "Continue Here",
+        "locked": "Locked"
+      }
+    },
+    "completionBanner": {
+      "title": "Congratulations, {{name}}!",
+      "subtitle": "You have completed all the questionnaire worlds. You've taken a huge step on your journey!",
+      "description": "Your full profile is now ready for our matchmakers."
+    }
+  },
+    "layout": {
+    "navHeader": "Questionnaire Worlds",
+    "navSubtitle": "Navigate between the different parts of the questionnaire",
+    "unauthenticatedPrompt": {
+      "title": "Your progress is temporarily saved in the browser.",
+      "subtitle": "Log in or register to save your answers to your account.",
+      "loginButton": "Log In",
+      "registerButton": "Register"
+    },
+    "buttons": {
+      "save": "Save Progress",
+      "saving": "Saving...",
+      "review": "Review Answers",
+      "map": "Map of Worlds"
+    },
+    "lastSaved": "Saved: {{time}}",
+    "exitPrompt": {
+      "title": "Are you sure you want to exit?",
+      "description": "Any unsaved answers will be lost. Would you like to save before exiting?",
+      "cancel": "Cancel",
+      "saveAndExit": "Save and Exit",
+      "exitWithoutSaving": "Exit Without Saving"
+    },
+    "mobileNav": {
+      "title": "Questionnaire Navigation",
+      "backToMap": "Back to Worlds Map",
+      "exit": "Exit",
+      "reviewAnswers": "View All Answers"
+    },
+    "tooltips": {
+      "faq": "Frequently Asked Questions",
+      "accessibility": "Accessibility & Display"
+    },
+    "profileNotice": {
+      "title": "Please note:",
+      "textPart1": "Every answer you provide will automatically be displayed on your profile card to improve match quality. You can hide any question from your profile using the",
+      "textPart2": "toggle at the bottom of each question.",
+      "textPart3": "To view your profile,",
+      "link": "click here"
+    }
+  },
+  "world": {
+    "header": {
+      "questionLabel": "Question {{current}} of {{total}}"
+    },
+    "errors": {
+      "loadingFailedTitle": "Error Loading Questions",
+      "loadingFailedDescription": "The questions for this world could not be loaded.",
+      "invalidQuestion": "Error loading question..."
+    },
+    "buttons": {
+      "backToMap": "Back to Map",
+      "hideList": "Hide List",
+      "showList": "Show List",
+      "questionList": "Question List",
+      "previous": "Previous Question",
+      "next": "Next Question",
+      "finish": "Finish This World"
+    },
+    "listSheet": {
+      "title": "All questions in {{worldTitle}}",
+      "description": "Click on a question to navigate directly to it.",
+      "legend": {
+        "completed": "Completed",
+        "required": "Required (unanswered)",
+        "notAnswered": "Not answered"
+      }
+    }
+  },
+    "answerInput": {
+    "clearSelection": "Clear selection",
+    "tooltips": {
+      "copy": "Copy text",
+      "copied": "Copied!",
+      "clearText": "Clear text",
+      "removeCustomAnswer": "Remove custom answer",
+      "resetAllocation": "Reset allocation"
+    },
+    "multiSelectWithOther": {
+      "addOtherOptionLabel": "Add another option (optional)",
+      "otherOptionPlaceholder": "Type another option...",
+      "addButton": "Add",
+      "addedAnswersLabel": "Your added answers:",
+            "errorExists": "This option already exists"
+
+    },
+    "multiSelect": {
+      "maxSelectionError": "You can select up to {{count}} options",
+      "selectedInfo": "{{count}} options selected",
+      "minLabel": "Minimum",
+      "maxLabel": "Maximum"
+    },
+    "openText": {
+      "placeholder": "Type your answer here...",
+      "minLengthRequired": "{{count}} more characters required",
+      "minLengthMet": "You have reached the required minimum",
+      "maxLengthExceeded": "Maximum length exceeded",
+      "minLengthInfoRequired": "At least {{count}} characters required",
+      "minLengthInfoRecommended": "At least {{count}} characters recommended",
+      "estimatedTime": "Estimated writing time: {{count}} minutes",
+      "tipsButton": "Tips for answering this question"
+    },
+    "budgetAllocation": {
+      "totalAllocated": "Total allocated:",
+      "remaining": "{{count}} remaining",
+      "surplus": "{{count}} surplus",
+      "resetButton": "Reset All"
+    },
+    "unsupportedType": "Oops! Question type '{{type}}' is not currently supported."
+  },
+  "interactiveScale": {
+    "selectedValue": "Selected value: {{value}}",
+    "ariaLabel": "Scale value {{value}}"
+  },
+    "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about the questionnaire and matching process",
+    "searchPlaceholder": "Search for a question...",
+    "popularBadge": "Popular",
+    "emptyState": "No questions found matching your search",
+    "categories": {
+      "all": "All",
+      "process": "Matching Process",
+      "technical": "Technical",
+      "privacy": "Privacy & Security",
+      "results": "Results",
+      "general": "General"
+    },
+    "items": {
+      "save-progress": {
+        "question": "Can I save my progress and continue later?",
+        "answer": [
+          {
+            "type": "p",
+            "content": "Yes, the system automatically saves your progress in the questionnaire. You can return at any time and continue where you left off."
+          },
+          {
+            "type": "tip",
+            "title": "Tip:",
+            "content": "Every time you move to another world or finish a world, the system automatically saves your progress."
+          }
+        ]
+      },
+      "time-to-complete": {
+        "question": "How long does it take to complete the questionnaire?",
+        "answer": [
+          {
+            "type": "p",
+            "content": "The entire questionnaire takes about 30-40 minutes, but you don't need to fill it all out at once. You can complete it in parts. Each world takes about 5-10 minutes."
+          }
+        ]
+      },
+      "required-questions": {
+        "question": "Is it mandatory to answer all questions?",
+        "answer": [
+          {
+            "type": "p",
+            "content": "No, only questions marked with 'Required *' must be answered. These questions are essential for creating a basic matching profile."
+          },
+          {
+            "type": "p",
+            "content": "However, the more questions you answer, the better we can find a match for you."
+          }
+        ]
+      },
+      "how-matching-works": {
+        "question": "How does the matching process work?",
+        "answer": [
+          {
+            "type": "p",
+            "content": "The matching process is based on several steps:"
+          },
+          {
+            "type": "list",
+            "content": [
+              "Filling out the questionnaire and creating a personality and values profile",
+              "Analysis of the answers by a professional team and a computer algorithm",
+              "Identifying potential matches based on numerous criteria",
+              "Presenting top matches to both parties",
+              "In case of mutual agreement, facilitating initial contact"
+            ]
+          }
+        ]
+      },
+      "privacy-info": {
+        "question": "Who can see my answers?",
+        "answer": [
+          {
+            "type": "p",
+            "content": "Your information is kept completely confidential. Only our professional matching team can see your full answers, and only for the purpose of creating matches."
+          },
+          {
+            "type": "info",
+            "content": "When a potential match is presented, the other party only sees general details and common interests, not all your answers."
+          }
+        ]
+      },
+      "edit-answers": {
+        "question": "Can I edit my answers after I'm done?",
+        "answer": [
+          {
+            "type": "p",
+            "content": "Yes, you can always go back and edit your answers. Simply access the questionnaire through your personal profile and select the world you wish to edit. Changing your answers may affect your future matches."
+          }
+        ]
+      },
+      "match-percentage": {
+        "question": "How is the match percentage calculated?",
+        "answer": [
+          {
+            "type": "p",
+            "content": "The match percentage is calculated based on a variety of parameters:"
+          },
+          {
+            "type": "list",
+            "content": [
+              "Compatibility in core values and beliefs",
+              "Lifestyle and future aspirations",
+              "Expectations from family life and partnership",
+              "Common interests",
+              "Emotional and cognitive compatibility"
+            ]
+          },
+          {
+            "type": "star",
+            "content": "A high match percentage indicates good potential for a meaningful relationship, but remember that personal chemistry and an in-person meeting are always the real test!"
+          }
+        ]
+      },
+      "incomplete-questionnaire": {
+        "question": "What happens if I don't complete the entire questionnaire?",
+        "answer": [
+          {
+            "type": "p",
+            "content": "You can start receiving matches even if you haven't completed all the worlds in the questionnaire, provided you have answered the required questions and enough questions to create a basic profile."
+          },
+          {
+            "type": "alert",
+            "content": "However, the more questions you complete, the more accurate the matches you receive will be. It is recommended to complete all questions gradually."
+          }
+        ]
+      },
+      "inactive-account": {
+        "question": "What happens if I'm inactive for an extended period?",
+        "answer": [
+          {
+            "type": "p",
+            "content": "If your account is inactive for 3 months, we will send you an email notification. After 6 months of inactivity, your profile will be set to inactive and will not be shown in new matches. You can always reactivate it by logging into your account."
+          }
+        ]
+      }
+    }
+  },
+    "accessibilityFeatures": {
+    "panelTitle": "Accessibility Settings",
+    "panelSubtitle": "Adjust the site to your personal needs",
+    "changedBadge": "Changed",
+    "triggerButton": {
+      "open": "Open accessibility settings",
+      "close": "Close accessibility settings"
+    },
+    "resetButton": "Reset All Settings",
+    "textSize": {
+      "title": "Text Size",
+      "description": "Increase or decrease the text size throughout the site"
+    },
+    "displayMode": {
+      "title": "Display & Accessibility Mode"
+    },
+    "contrastOptions": {
+      "normal": {
+        "label": "Normal",
+        "description": "Standard display mode"
+      },
+      "high": {
+        "label": "Contrast",
+        "description": "High contrast mode"
+      },
+      "dark": {
+        "label": "Dark",
+        "description": "Night mode"
+      }
+    },
+    "additionalSettings": {
+      "title": "Additional Settings"
+    },
+    "advancedOptions": {
+      "sound": {
+        "label": "Feedback Sounds",
+        "description": "Play short sounds for actions and changes"
+      },
+      "reader": {
+        "label": "Text Reader",
+        "description": "Click any text on the site to have it read aloud"
+      },
+      "cursor": {
+        "label": "Large Cursor",
+        "description": "An enlarged and more prominent mouse cursor"
+      },
+      "font": {
+        "label": "Readable Font",
+        "description": "A clear font with increased letter spacing"
+      },
+      "motion": {
+        "label": "Reduce Animations",
+        "description": "Reduces movements and animations across the site"
+      }
+    },
+    "settingNames": {
+      "fontScale": "Text Size",
+      "contrastMode": "Display Mode",
+      "reducedMotion": "Reduce Animations",
+      "readableMode": "Readable Font",
+      "bigCursor": "Large Cursor",
+      "textReader": "Text Reader",
+      "soundEnabled": "Sounds"
+    },
+    "toasts": {
+      "settingUpdated": "{{settingName}} setting updated",
+      "settingsReset": "All settings have been reset",
+      "readerEnabled": "Text reader enabled - click any text to have it read"
+    }
+  },
+    "questionnaireProgress": {
+    "worldLabels": {
+      "PERSONALITY": "Personality",
+      "VALUES": "Values & Beliefs",
+      "RELATIONSHIP": "Relationship",
+      "PARTNER": "Partner",
+      "RELIGION": "Religion & Tradition"
+    },
+    "mobile": {
+      "title": "Progress",
+      "totalLabel": "Total questions",
+      "requiredLabel": "Required questions",
+      "timeLeftLabel": "Est. time remaining: {{timeLeft}}",
+      "savedLabel": "Saved {{time}}"
+    },
+    "desktop": {
+      "title": "Questionnaire Progress",
+      "subtitle": "Review your progress in the introductory questionnaire",
+      "progressSummaryTitle": "Progress Summary",
+      "achievementsTitle": "Achievements",
+      "worldsTitle": "Worlds",
+      "worldsSubtitle": "Track your progress in the different worlds of the questionnaire",
+      "tooltip": {
+        "progressInfoTitle": "Progress Information",
+        "progressInfoDesc": "This page displays your questionnaire progress, including answered questions, completed worlds, and estimated time remaining.",
+        "completionDetails": "You've completed {{answered}} of {{total}} questions"
+      },
+      "accordion": {
+        "recommendations": "World Recommendations",
+        "timeBreakdown": "Estimated Time Breakdown"
+      }
+    },
+    "statusBadge": {
+      "complete": "Completed",
+      "started": "Started",
+      "progress": "{{progress}}% complete"
+    },
+    "timeStrings": {
+      "lessThanAMinute": "less than a minute",
+      "minutesSuffix": "min",
+      "hours": "hours",
+      "and": "and ",
+      "savedNow": "just now",
+      "savedMinutesAgo": "{{minutes}} minutes ago",
+      "savedHoursAgo": "{{hours}} hours ago",
+      "savedAtTime": "at {{time}}"
+    },
+    "rewards": {
+      "title": "Achievements",
+      "achievedText": "Well done! You've earned the following achievements:",
+      "moreToGo": "Complete {{count}} more achievements!",
+      "prompt": "Answer more questions to earn achievements!",
+      "achievements": {
+        "goal": { "name": "Objective Met", "description": "Completed all required questions" },
+        "halfway": { "name": "Dedicated Learner", "description": "Answered at least half the questions" },
+        "advanced": { "name": "Deep Explorer", "description": "Answered over 80% of the questions" },
+        "complete": { "name": "Completionist", "description": "Answered all questions in the questionnaire" }
+      }
+    },
+    "recommendations": {
+      "title": "Note the recommended order for completing the worlds:",
+      "statuses": {
+        "completed": "Completed",
+        "active": "Active",
+        "pending": "Pending"
+      },
+      "ctaButton": "Go here"
+    },
+    "timeBreakdown": {
+      "title": "Estimated time to complete: {{timeLeft}}",
+      "subtitle": "Time breakdown by worlds:",
+      "statusCompleted": "Completed",
+      "timePerWorld": "~{{time}} minutes"
+    }
+  },
+  "userStats": {
+    "matchStatsCard": {
+      "title": "Match Statistics",
+      "activeMatches": "Active Matches",
+      "pendingMatches": "Pending Review",
+      "matchScore": "Match Score",
+      "daysActive": "Active for {{days}} days",
+      "joinDate": "Joined on {{date}}"
+    },
+    "profileProgressCard": {
+      "title": "Progress & Profile Completion",
+      "profileCompletion": "Profile Completion",
+      "questionsAnswered": "Questions Answered",
+      "outOf": "out of",
+      "completedWorlds": "Completed Worlds:",
+      "activityLevel": "Activity Level:"
+    },
+    "personalityTraitsCard": {
+      "title": "Prominent Personality Traits"
+    },
+    "tooltips": {
+      "traitScore": "Score: {{score}}/100"
+    },
+    "common": {
+      "notAvailable": "Not available"
+    },
+    "worlds": {
+      "PERSONALITY": "Personality",
+      "VALUES": "Values",
+      "RELATIONSHIP": "Relationship",
+      "PARTNER": "Partner",
+      "RELIGION": "Religion"
+    },
+    "activityLevels": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    }
+  },
+    "questionnaireRestore": {
+    "loading": "Loading...",
+    "restoringTitle": "Restoring questionnaire data...",
+    "restoringSubtitle": "Please wait",
+    "error": "An error occurred while restoring your data. Please try again.",
+    "backButton": "Back to Questionnaire"
+  },
+    "questionnaireCompletePage": {
+    "loading": "Loading...",
+    "title": "Thank you for completing the questionnaire!",
+    "successMessage1": "Your answers have been successfully saved.",
+    "successMessage2": "Our team will review your answers and get back to you shortly.",
+    "profilePrompt": "While our team works on finding your matches, you can complete your personal profile.",
+    "continueButton": "Continue to Profile"
+  },
+    "questionsList": {
+    "depthLabels": {
+      "BASIC": "Basic",
+      "ADVANCED": "Advanced",
+      "EXPERT": "Expert"
+    },
+
+    "buttons": {
+      "reject": "Not a fit",
+      "confirmReject": "Confirm Decline",
+      "cancel": "Cancel",
+      "accept": "Interested",
+      "continueChat": "Continue Chat",
+      "showMore": "Show more details",
+      "hideMore": "Hide details",
+      "viewFullProfile": "View Full Profile"
+    },
+    "sections": {
+      "about": "A bit about {{name}}",
+      "topMatches": "Top Matching Areas",
+      "commonInterests": "Common Interests",
+      "lastActive": "Last active: {{time}}"
+    },
+    "lastActiveFormat": {
+      "unknown": "Unknown",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "daysAgo": "{{count}} days ago",
+      "weeksAgo": "{{count}} weeks ago",
+      "monthsAgo": "{{count}} months ago"
+    }
+  },
+
+        "matchResultCard": {
+    "premiumBadge": "Recommended Match",
+    "matchPercentageBadge": "{{percentage}}% Match",
+    "tooltips": {
+      "addToBookmarks": "Add to bookmarks",
+      "removeFromBookmarks": "Remove from bookmarks",
+      "traitDescription": "{{description}}"
+    }
+
+  }
+
+
+
+
+
+}

@@ -1,3 +1,5 @@
+// src/components/profile/sections/PhotosSection.tsx
+
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
@@ -26,12 +28,13 @@ import {
   Upload,
   Trash2,
   X,
-  CheckCircle2, // New Icon
-  MinusSquare, // New Icon
+  CheckCircle2,
+  MinusSquare,
 } from 'lucide-react';
 
 // Types
 import type { UserImage } from '@/types/next-auth';
+import { PhotosSectionDict } from '@/types/dictionary';
 
 interface PhotosSectionProps {
   images: UserImage[];
@@ -40,7 +43,8 @@ interface PhotosSectionProps {
   maxImages?: number;
   onUpload: (files: File[]) => Promise<void>;
   onSetMain: (imageId: string) => Promise<void>;
-  onDelete: (imageIds: string[]) => Promise<void>; // Changed to array
+  onDelete: (imageIds: string[]) => Promise<void>;
+  dict: PhotosSectionDict;
 }
 
 const PhotosSection: React.FC<PhotosSectionProps> = ({
@@ -51,6 +55,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   onUpload,
   onSetMain,
   onDelete,
+  dict,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,8 +67,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<string[]>([]);
-
-  // --- NEW --- State for selection mode
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedImageIds, setSelectedImageIds] = useState<Set<string>>(
     new Set()
@@ -72,23 +75,24 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   const isLoading =
     isExternallyUploading || isProcessing || uploadingFiles.length > 0;
 
-  // --- File Handling and Upload ---
-
   const validateFiles = (
     files: FileList | File[]
   ): { validFiles: File[]; errors: string[] } => {
-    // (Implementation remains the same)
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
     const maxSize = 5 * 1024 * 1024; // 5MB
     const validFiles: File[] = [];
     const errors: string[] = [];
     Array.from(files).forEach((file) => {
       if (!validTypes.includes(file.type)) {
-        errors.push(`קובץ ${file.name}: סוג קובץ לא חוקי.`);
+        errors.push(
+          dict.toasts.invalidFileTypeError.replace('{{fileName}}', file.name)
+        );
         return;
       }
       if (file.size > maxSize) {
-        errors.push(`קובץ ${file.name}: הקובץ גדול מדי (מקסימום 5MB).`);
+        errors.push(
+          dict.toasts.fileTooLargeError.replace('{{fileName}}', file.name)
+        );
         return;
       }
       validFiles.push(file);
@@ -97,31 +101,40 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // (Implementation remains the same)
     const files = e.target.files;
     if (!files || files.length === 0) return;
+
     const remainingSlots = maxImages - images.length;
     if (remainingSlots <= 0) {
-      toast.error('הגעת למספר המקסימלי של תמונות.');
+      toast.error(dict.toasts.maxImagesError);
       return;
     }
     if (files.length > remainingSlots) {
-      toast.error(`ניתן להעלות עוד ${remainingSlots} תמונות בלבד.`);
+      toast.error(
+        dict.toasts.slotsError.replace('{{count}}', remainingSlots.toString())
+      );
       return;
     }
     if (isLoading) return;
+
     const { validFiles, errors } = validateFiles(files);
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
     }
     if (validFiles.length === 0) return;
+
     setUploadingFiles(validFiles.map((f) => f.name));
     try {
       await onUpload(validFiles);
-      toast.success(`${validFiles.length} תמונות הועלו בהצלחה!`);
+      toast.success(
+        dict.toasts.uploadSuccess.replace(
+          '{{count}}',
+          validFiles.length.toString()
+        )
+      );
     } catch (error) {
       console.error('Error during upload process:', error);
-      toast.error('שגיאה בהעלאת התמונות.');
+      toast.error(dict.toasts.uploadError);
     } finally {
       setUploadingFiles([]);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -134,18 +147,16 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     }
   };
 
-  // --- NEW --- Handlers for Selection Mode ---
-
   const handleToggleSelectionMode = () => {
     setSelectionMode((prev) => !prev);
-    setSelectedImageIds(new Set()); // Clear selection when toggling mode
+    setSelectedImageIds(new Set());
   };
 
   const handleSelectAll = () => {
     if (selectedImageIds.size === images.length) {
-      setSelectedImageIds(new Set()); // Deselect all
+      setSelectedImageIds(new Set());
     } else {
-      setSelectedImageIds(new Set(images.map((img) => img.id))); // Select all
+      setSelectedImageIds(new Set(images.map((img) => img.id)));
     }
   };
 
@@ -161,8 +172,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     });
   };
 
-  // --- UPDATED --- Image Click and Deletion Handlers ---
-
   const handleImageClick = (index: number) => {
     if (selectionMode) {
       toggleImageSelection(images[index].id);
@@ -172,36 +181,39 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     }
   };
 
-  // Handles bulk deletion
   const handleBulkDelete = async () => {
     if (selectedImageIds.size === 0) {
-      toast.info('יש לבחור לפחות תמונה אחת למחיקה.');
+      toast.info(dict.toasts.selectOneError);
       return;
     }
 
-    if (
-      !window.confirm(
-        `האם למחוק ${selectedImageIds.size} תמונות נבחרות? הפעולה אינה הפיכה.`
-      )
-    ) {
+    const confirmationMessage = dict.confirmations.bulkDelete.replace(
+      '{{count}}',
+      selectedImageIds.size.toString()
+    );
+    if (!window.confirm(confirmationMessage)) {
       return;
     }
 
     setIsProcessing(true);
     try {
       await onDelete(Array.from(selectedImageIds));
-      toast.success(`${selectedImageIds.size} תמונות נמחקו בהצלחה.`);
+      toast.success(
+        dict.toasts.bulkDeleteSuccess.replace(
+          '{{count}}',
+          selectedImageIds.size.toString()
+        )
+      );
       setSelectionMode(false);
       setSelectedImageIds(new Set());
     } catch (error) {
       console.error('Error during bulk delete:', error);
-      toast.error('שגיאה במחיקת התמונות.');
+      toast.error(dict.toasts.bulkDeleteError);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Requests single image deletion
   const requestDelete = (imageId: string, event?: React.MouseEvent) => {
     event?.stopPropagation();
     if (isLoading) return;
@@ -209,25 +221,22 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     setDeleteConfirmOpen(true);
   };
 
-  // Confirms single image deletion from dialog
   const confirmDelete = async () => {
     if (!imageToDelete || isProcessing) return;
     setIsProcessing(true);
     try {
-      await onDelete([imageToDelete]); // Pass as an array
-      toast.success('התמונה נמחקה בהצלחה.');
+      await onDelete([imageToDelete]);
+      toast.success(dict.toasts.singleDeleteSuccess);
       closeImageViewer();
       setDeleteConfirmOpen(false);
       setImageToDelete(null);
     } catch (error) {
       console.error('Error deleting image:', error);
-      toast.error('שגיאה במחיקת התמונה.');
+      toast.error(dict.toasts.singleDeleteError);
     } finally {
       setIsProcessing(false);
     }
   };
-
-  // --- Viewer and Other Handlers ---
 
   const closeImageViewer = useCallback(() => {
     setShowImageViewer(false);
@@ -254,7 +263,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     showToast = true,
     event?: React.MouseEvent
   ) => {
-    // (Implementation remains the same)
     event?.stopPropagation();
     if (isLoading) return;
     const currentImage = images.find((img) => img.id === imageId);
@@ -262,10 +270,10 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     setIsProcessing(true);
     try {
       await onSetMain(imageId);
-      if (showToast) toast.success('התמונה הראשית עודכנה.');
+      if (showToast) toast.success(dict.toasts.setMainSuccess);
     } catch (error) {
       console.error('Error setting main image:', error);
-      toast.error('שגיאה בעדכון התמונה הראשית.');
+      toast.error(dict.toasts.setMainError);
     } finally {
       setIsProcessing(false);
     }
@@ -291,20 +299,22 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
       dir="rtl"
       className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-8"
     >
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-4 border-b border-gray-200/80">
         {!selectionMode ? (
           <>
             <div className="mb-3 sm:mb-0 text-right">
               <h2 className="text-xl font-semibold text-gray-800">
-                תמונות פרופיל
+                {dict.title}
               </h2>
               <p className="mt-1 text-sm text-gray-600">
-                העלה עד {maxImages} תמונות. התמונה הראשית תוצג בכרטיס.
+                {dict.subtitle.replace('{{maxImages}}', maxImages.toString())}
               </p>
               {uploadingFiles.length > 0 && (
                 <p className="mt-2 text-sm text-cyan-600 font-medium">
-                  מעלה {uploadingFiles.length} תמונות...
+                  {dict.uploadingMultiple.replace(
+                    '{{count}}',
+                    uploadingFiles.length.toString()
+                  )}
                 </p>
               )}
             </div>
@@ -315,7 +325,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                   onClick={handleToggleSelectionMode}
                   className="rounded-full px-4 text-sm"
                 >
-                  בחר למחיקה
+                  {dict.selectForDeletion}
                 </Button>
               )}
               {!disabled && (
@@ -330,7 +340,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                   ) : (
                     <Upload className="w-4 h-4" />
                   )}
-                  <span>העלאת תמונות</span>
+                  <span>{dict.uploadButton}</span>
                 </Button>
               )}
             </div>
@@ -347,7 +357,10 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                 <X className="w-5 h-5" />
               </Button>
               <span className="font-semibold text-gray-700">
-                {selectedImageIds.size} תמונות נבחרו
+                {dict.selectionHeader.replace(
+                  '{{count}}',
+                  selectedImageIds.size.toString()
+                )}
               </span>
             </div>
             <div className="flex gap-2">
@@ -357,8 +370,8 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                 className="rounded-full px-4 text-sm"
               >
                 {selectedImageIds.size === images.length
-                  ? 'בטל הכל'
-                  : 'בחר הכל'}
+                  ? dict.deselectAll
+                  : dict.selectAll}
               </Button>
               <Button
                 variant="destructive"
@@ -371,7 +384,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                 ) : (
                   <Trash2 className="w-4 h-4" />
                 )}
-                מחק נבחרים
+                {dict.deleteSelected}
               </Button>
             </div>
           </div>
@@ -388,7 +401,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
         multiple
       />
 
-      {/* Images Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
         {images.map((image, index) => (
           <div
@@ -398,7 +410,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
             aria-pressed={
               selectionMode ? selectedImageIds.has(image.id) : undefined
             }
-            aria-label={`בחר את תמונה ${index + 1}`}
+            aria-label={`${dict.selectForDeletion} ${index + 1}`}
             className={cn(
               'relative group aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-md transition-all duration-300 ease-in-out',
               selectionMode
@@ -410,14 +422,14 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
             onClick={() => handleImageClick(index)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault(); // מונע גלילה לא רצויה בעת לחיצה על מקש רווח
+                e.preventDefault();
                 handleImageClick(index);
               }
             }}
           >
             <Image
               src={getRelativeCloudinaryPath(image.url)}
-              alt={`תמונת פרופיל ${index + 1}`}
+              alt={`${dict.title} ${index + 1}`}
               fill
               className={cn(
                 'object-cover transition-transform duration-300',
@@ -426,8 +438,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               priority={index < 2}
             />
-
-            {/* Selection Overlay */}
             {selectionMode && (
               <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-opacity opacity-0 group-hover:opacity-100">
                 {selectedImageIds.has(image.id) ? (
@@ -437,8 +447,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                 )}
               </div>
             )}
-
-            {/* Controls Overlay (not in selection mode) */}
             {!disabled && !selectionMode && (
               <div
                 className="absolute top-2 right-2 z-10 flex gap-1.5 opacity-85 group-hover:opacity-100 transition-opacity duration-200"
@@ -453,8 +461,8 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                   )}
                   onClick={(e) => handleSetMainImage(image.id, true, e)}
                   disabled={image.isMain || isLoading}
-                  title={image.isMain ? 'תמונה ראשית' : 'הפוך לתמונה ראשית'}
-                  aria-label={`הפוך את תמונה ${index + 1} לתמונה הראשית`}
+                  title={image.isMain ? dict.mainBadge : dict.setAsMainTooltip}
+                  aria-label={`${dict.setAsMainTooltip} ${index + 1}`}
                 >
                   <Star
                     className={cn(
@@ -471,24 +479,21 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                   className="w-8 h-8 rounded-full shadow-md border border-white/30 bg-black/40 text-white hover:bg-red-600 hover:border-red-700 transition-colors"
                   onClick={(e) => requestDelete(image.id, e)}
                   disabled={isLoading}
-                  title="מחק תמונה"
-                  aria-label={`מחק את תמונה ${index + 1}`}
+                  title={dict.deleteTooltip}
+                  aria-label={`${dict.deleteTooltip} ${index + 1}`}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             )}
-
-            {/* Main Image Badge */}
             {image.isMain && !selectionMode && (
               <Badge className="absolute bottom-2 left-2 rounded-full px-2.5 py-0.5 text-xs font-medium shadow-md text-white bg-gradient-to-r from-cyan-500 to-pink-500 border-none">
-                ראשי
+                {dict.mainBadge}
               </Badge>
             )}
           </div>
         ))}
 
-        {/* Upload Placeholder */}
         {!disabled && !selectionMode && images.length < maxImages && (
           <div
             onClick={triggerFileInput}
@@ -496,18 +501,20 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
           >
             <Upload className="w-8 h-8 text-cyan-500 mb-2 transition-transform group-hover:scale-110" />
             <span className="text-sm font-medium text-cyan-700">
-              העלאת תמונות
+              {dict.uploadPlaceholder.title}
             </span>
             <span className="text-xs text-cyan-600/90 mt-1">
-              עד {getRemainingSlots()} תמונות נוספות
+              {dict.uploadPlaceholder.remaining.replace(
+                '{{count}}',
+                getRemainingSlots().toString()
+              )}
             </span>
             <span className="text-xs text-cyan-500/80 mt-1">
-              (בחר מספר קבצים)
+              {dict.uploadPlaceholder.prompt}
             </span>
           </div>
         )}
 
-        {/* Uploading Files Placeholders */}
         {uploadingFiles.map((_, index) => (
           <div
             key={`uploading-${index}`}
@@ -516,7 +523,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <Loader2 className="w-8 h-8 text-cyan-500 animate-spin mb-2" />
               <span className="text-xs text-gray-600 text-center px-2">
-                מעלה...
+                {dict.uploadingPlaceholder}
               </span>
             </div>
             <div className="absolute bottom-0 left-0 right-0 bg-cyan-500 h-1 animate-pulse"></div>
@@ -524,7 +531,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
         ))}
       </div>
 
-      {/* Empty States */}
       {images.length === 0 &&
         uploadingFiles.length === 0 &&
         !disabled &&
@@ -532,10 +538,10 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
           <div className="text-center py-16 mt-6 bg-gradient-to-br from-cyan-50/20 to-pink-50/20 rounded-xl border border-dashed border-gray-300">
             <Camera className="w-12 h-12 mx-auto text-gray-400/80" />
             <p className="mt-4 text-gray-600 font-medium">
-              אין עדיין תמונות בפרופיל
+              {dict.emptyState.title}
             </p>
             <p className="text-sm text-gray-500 mt-1 px-4">
-              תמונות טובות הן הרושם הראשוני שלכם. כדאי להעלות תמונות.
+              {dict.emptyState.description}
             </p>
           </div>
         )}
@@ -543,12 +549,11 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
         <div className="text-center py-16 mt-6 bg-gray-50/50 rounded-xl border border-gray-200">
           <Camera className="w-12 h-12 mx-auto text-gray-400" />
           <p className="mt-4 text-gray-500 font-medium">
-            לא הועלו תמונות לפרופיל זה.
+            {dict.emptyStateDisabled.title}
           </p>
         </div>
       )}
 
-      {/* Delete Confirmation Dialog (for single delete) */}
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <DialogContent
           className="sm:max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-none p-6"
@@ -556,10 +561,10 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
         >
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-gray-800">
-              אישור מחיקת תמונה
+              {dict.deleteDialog.title}
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600 mt-2">
-              האם למחוק את התמונה לצמיתות? לא ניתן לשחזר פעולה זו.
+              {dict.deleteDialog.description}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 sm:space-x-reverse gap-2">
@@ -570,7 +575,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               disabled={isLoading}
               className="rounded-full px-5"
             >
-              ביטול
+              {dict.deleteDialog.cancel}
             </Button>
             <Button
               type="button"
@@ -584,14 +589,12 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               ) : (
                 <Trash2 className="w-4 h-4 ml-2" />
               )}
-              <span>מחק</span>
+              <span>{dict.deleteDialog.confirm}</span>
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Image Viewer Dialog */}
-      {/* (Viewer implementation remains the same) */}
       <Dialog open={showImageViewer} onOpenChange={setShowImageViewer}>
         <DialogContent
           className="p-0 m-0 w-screen h-screen max-w-none sm:max-w-full sm:h-full bg-black/90 backdrop-blur-sm border-none rounded-none flex items-center justify-center outline-none"
@@ -602,7 +605,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
             size="icon"
             className="absolute top-4 left-4 z-50 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors"
             onClick={closeImageViewer}
-            aria-label="סגור תצוגת תמונה"
+            aria-label={dict.imageViewer.closeLabel}
           >
             <X className="w-6 h-6" />
           </Button>
@@ -613,7 +616,10 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                   src={getRelativeCloudinaryPath(
                     images[selectedViewerIndex].url
                   )}
-                  alt={`תצוגה מוגדלת של תמונה ${selectedViewerIndex + 1}`}
+                  alt={dict.imageViewer.altText.replace(
+                    '{{index}}',
+                    (selectedViewerIndex + 1).toString()
+                  )}
                   fill
                   className="object-contain select-none"
                   sizes="90vw"
@@ -632,7 +638,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                         handlePreviousImage();
                       }}
                       disabled={selectedViewerIndex === 0}
-                      aria-label="התמונה הקודמת"
+                      aria-label={dict.imageViewer.prevLabel}
                     >
                       <ChevronRight className="w-7 h-7" />
                     </Button>
@@ -645,7 +651,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                         handleNextImage();
                       }}
                       disabled={selectedViewerIndex === images.length - 1}
-                      aria-label="התמונה הבאה"
+                      aria-label={dict.imageViewer.nextLabel}
                     >
                       <ChevronLeft className="w-7 h-7" />
                     </Button>
@@ -668,7 +674,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                         disabled={isLoading}
                       >
                         <Star className="w-4 h-4" />
-                        <span>הפוך לראשי</span>
+                        <span>{dict.imageViewer.setMainButton}</span>
                       </Button>
                     )}
                     <Button
@@ -681,13 +687,18 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                       disabled={isLoading}
                     >
                       <Trash2 className="w-4 h-4" />
-                      <span>מחק תמונה</span>
+                      <span>{dict.imageViewer.deleteButton}</span>
                     </Button>
                   </div>
                 )}
                 {images.length > 0 && (
                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-3 py-1 rounded-full text-xs sm:text-sm font-medium select-none">
-                    {selectedViewerIndex + 1} / {images.length}
+                    {dict.imageViewer.counter
+                      .replace(
+                        '{{current}}',
+                        (selectedViewerIndex + 1).toString()
+                      )
+                      .replace('{{total}}', images.length.toString())}
                   </div>
                 )}
               </div>

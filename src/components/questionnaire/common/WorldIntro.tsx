@@ -10,103 +10,33 @@ import {
   Users,
   UserCheck,
   ArrowRight,
-  Star,
-  Brain,
-  Sparkles,
   Clock,
   HelpCircle,
   CheckCircle2,
   User,
+  Sparkles,
+  Brain,
 } from 'lucide-react';
 import type { WorldId, Question } from '../types/types';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import type { WorldIntroDict } from '@/types/dictionary';
 
-// --- ממשק Props חדש ופשוט יותר ---
 interface WorldIntroProps {
   worldId: WorldId;
   allQuestions: Question[];
   onStart: () => void;
   className?: string;
+  dict: WorldIntroDict;
 }
 
-// --- אובייקט קונפיגורציה מרכזי לכל התוכן והעיצוב ---
-const worldDisplayConfig = {
-  PERSONALITY: {
-    Icon: User,
-    themeColor: 'sky',
-    title: 'עולם האישיות',
-    subtitle: 'מי אני באמת?',
-    whyIsItImportant:
-      'הבנה עמוקה של מי שאת/ה היא הבסיס לכל קשר בריא. כאן תקבלי/י הזדמנות להציג את עצמך בצורה אותנטית, כדי שנמצא מישהו שיתאהב באדם האמיתי שאת/ה.',
-    whatYouWillDiscover: [
-      'מהם הכוחות המניעים אותך בחיים',
-      'סגנון התקשורת והאינטראקציה החברתית שלך',
-      'איך את/ה מתמודד/ת עם אתגרים ומקבל/ת החלטות',
-    ],
-    guidingThought:
-      'היופי שבזוגיות הוא לא למצוא מישהו מושלם, אלא למצוא מישהו שהחלקים שלכם משלימים זה את זה.',
-  },
-  VALUES: {
-    Icon: Heart,
-    themeColor: 'rose',
-    title: 'עולם הערכים',
-    subtitle: 'מה באמת מניע אותך?',
-    whyIsItImportant:
-      'ערכים משותפים הם עמוד השדרה של קשר יציב ומאושר. בעולם זה, נעזור לך לזקק את עקרונות הליבה שלך, כדי לבנות יסודות איתנים לבית המשותף העתידי.',
-    whatYouWillDiscover: [
-      'מהם סדרי העדיפויות שלך בין משפחה, קריירה ורוחניות',
-      'גישתך לכסף, נתינה וצמיחה אישית',
-      'איזו קהילה וסביבה חברתית מתאימות לך',
-    ],
-    guidingThought:
-      'כאשר הערכים שלכם נפגשים, הדרך המשותפת הופכת להיות ברורה וקלה יותר.',
-  },
-  RELATIONSHIP: {
-    Icon: Users,
-    themeColor: 'purple',
-    title: 'עולם הזוגיות',
-    subtitle: 'איך נראית השותפות האידיאלית שלך?',
-    whyIsItImportant:
-      "זוגיות טובה היא שותפות. כאן נבין את הציפיות שלך מקשר, את 'שפות האהבה' שלך, ואיך את/ה רואה את חיי היומיום המשותפים. זה המפתח ליצירת קשר שמבוסס על הבנה, כבוד וחברות אמת.",
-    whatYouWillDiscover: [
-      'מהי תמצית הזוגיות הבריאה בעיניך',
-      'סגנון פתרון הקונפליקטים המועדף עליך',
-      "האיזון הנכון עבורך בין 'ביחד' ל'לחוד'",
-    ],
-    guidingThought:
-      "השאלה אינה 'האם תהיו מאושרים?', אלא 'איך תתמודדו יחד כשתהיו פחות מאושרים?'.",
-  },
-  PARTNER: {
-    Icon: UserCheck,
-    themeColor: 'teal',
-    title: 'עולם הפרטנר',
-    subtitle: 'במי תרצה/י לבחור?',
-    whyIsItImportant:
-      'הגדרת בן/בת הזוג האידיאלי/ת היא יותר מרשימת תכונות; זו הבנה של מה באמת נחוץ לך כדי לפרוח. כאן נמקד את החיפוש ונבין מהם הדברים שאינם ניתנים לפשרה עבורך.',
-    whatYouWillDiscover: [
-      'אילו תכונות אופי הן החיוניות ביותר עבורך',
-      'מהן העדפותיך לגבי סגנון חיים ורקע',
-      "מהם ה'קווים האדומים' שלך בזוגיות",
-    ],
-    guidingThought:
-      'אל תחפש/י את האדם שתוכל/י לחיות איתו, חפש/י את האדם שאינך יכול/ה לחיות בלעדיו.',
-  },
-  RELIGION: {
-    Icon: Scroll,
-    themeColor: 'amber',
-    title: 'דת ומסורת',
-    subtitle: 'אמונה והלכה בחייך',
-    whyIsItImportant:
-      'העולם הרוחני והדתי הוא נדבך יסודי בבניית בית נאמן בישראל. בעולם זה נבין את החיבור האישי שלך, את ההשקפה שלך, ואת החזון שלך לבית יהודי. זהו בסיס הכרחי להרמוניה זוגית וחינוך ילדים.',
-    whatYouWillDiscover: [
-      'ההגדרה האישית שלך על הרצף הדתי',
-      'כיצד ההלכה והמסורת באות לידי ביטוי בחייך',
-      'החזון שלך לחינוך דתי ורוחני במשפחה',
-    ],
-    guidingThought:
-      'בית יהודי נבנה לא רק מלבנים, אלא גם מתפילות, מערכים וממסורת שעוברת מדור לדור.',
-  },
+// אובייקט קונפיגורציה ויזואלי (נשאר בקוד)
+const worldVisualConfig = {
+  PERSONALITY: { Icon: User, themeColor: 'sky' },
+  VALUES: { Icon: Heart, themeColor: 'rose' },
+  RELATIONSHIP: { Icon: Users, themeColor: 'purple' },
+  PARTNER: { Icon: UserCheck, themeColor: 'teal' },
+  RELIGION: { Icon: Scroll, themeColor: 'amber' },
 };
 
 const WORLD_ORDER: WorldId[] = [
@@ -117,29 +47,31 @@ const WORLD_ORDER: WorldId[] = [
   'RELIGION',
 ];
 
-// --- Main Component ---
 export default function WorldIntro({
   worldId,
   allQuestions,
   onStart,
   className = '',
+  dict,
 }: WorldIntroProps) {
-  const config = worldDisplayConfig[worldId];
+  const visualConfig = worldVisualConfig[worldId];
+  const content = dict.worldsContent[worldId];
+
+  const { Icon, themeColor } = visualConfig;
   const {
-    Icon,
     title,
     subtitle,
     whyIsItImportant,
     whatYouWillDiscover,
     guidingThought,
-    themeColor,
-  } = config;
+  } = content;
+
   const isMobile = useMediaQuery('(max-width: 1023px)');
 
   // חישובים דינמיים
   const totalQuestions = allQuestions.length;
   const requiredQuestions = allQuestions.filter((q) => q.isRequired).length;
-  const estimatedTime = Math.max(5, Math.round(totalQuestions * 0.4)); // כ-24 שניות לשאלה, מינימום 5 דקות
+  const estimatedTime = Math.max(5, Math.round(totalQuestions * 0.4));
   const worldIndex = WORLD_ORDER.indexOf(worldId) + 1;
 
   // Framer Motion Variants
@@ -162,9 +94,21 @@ export default function WorldIntro({
   };
 
   const stats = [
-    { label: 'זמן משוער', value: `~${estimatedTime} דקות`, IconComp: Clock },
-    { label: 'סך כל שאלות', value: totalQuestions, IconComp: HelpCircle },
-    { label: 'שאלות חובה', value: requiredQuestions, IconComp: CheckCircle2 },
+    {
+      label: dict.stats.estimatedTime,
+      value: `~${estimatedTime} ${dict.statsValues.minutes}`,
+      IconComp: Clock,
+    },
+    {
+      label: dict.stats.totalQuestions,
+      value: totalQuestions,
+      IconComp: HelpCircle,
+    },
+    {
+      label: dict.stats.requiredQuestions,
+      value: requiredQuestions,
+      IconComp: CheckCircle2,
+    },
   ];
 
   const ActionButton = () => (
@@ -176,14 +120,13 @@ export default function WorldIntro({
         `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`
       )}
     >
-      בוא/י נתחיל את המסע
+      {dict.startButton}
       <ArrowRight className="w-5 h-5 mr-2 animate-pulse-fast" />
     </Button>
   );
 
   return (
     <div className={cn('bg-slate-50 px-4 sm:px-6', className)}>
-      {' '}
       <motion.div
         className="w-full max-w-4xl"
         variants={containerVariants}
@@ -198,7 +141,6 @@ export default function WorldIntro({
               </div>
             )}
             <div className="grid lg:grid-cols-2">
-              {/* Left Column: Visuals & Stats */}
               <motion.div
                 variants={itemVariants}
                 className={`bg-${themeColor}-50/50 p-6 sm:p-8 flex flex-col justify-between`}
@@ -208,7 +150,7 @@ export default function WorldIntro({
                     variant="outline"
                     className={`border-${themeColor}-300 bg-white text-${themeColor}-700 mb-4`}
                   >
-                    עולם {worldIndex} מתוך {WORLD_ORDER.length}
+                    {dict.world} {worldIndex} {dict.of} {WORLD_ORDER.length}
                   </Badge>
                   <div
                     className={`mb-4 inline-block p-4 rounded-xl bg-gradient-to-br from-${themeColor}-500 to-${themeColor}-600 shadow-lg`}
@@ -245,7 +187,6 @@ export default function WorldIntro({
                 </div>
               </motion.div>
 
-              {/* Right Column: Content & CTA */}
               <motion.div
                 variants={itemVariants}
                 className="p-6 sm:p-8 flex flex-col justify-between"
@@ -256,7 +197,7 @@ export default function WorldIntro({
                       <Sparkles
                         className={`w-5 h-5 mr-2 text-${themeColor}-500`}
                       />
-                      למה העולם הזה קריטי להצלחה שלך?
+                      {dict.whyTitle}
                     </h3>
                     <p className="mt-2 text-slate-600 leading-relaxed">
                       {whyIsItImportant}
@@ -267,7 +208,7 @@ export default function WorldIntro({
                       <Brain
                         className={`w-5 h-5 mr-2 text-${themeColor}-500`}
                       />
-                      מה תגלה/י על עצמך?
+                      {dict.whatYouWillDiscoverTitle}
                     </h3>
                     <ul className="mt-2 space-y-1 list-disc list-inside text-slate-600">
                       {whatYouWillDiscover.map((item, index) => (
@@ -289,13 +230,11 @@ export default function WorldIntro({
                 )}
               </motion.div>
             </div>
-            {/* --- START: ADDED BUTTON FOR MOBILE AT THE BOTTOM --- */}
             {isMobile && (
               <div className="p-6 border-t">
                 <ActionButton />
               </div>
             )}
-            {/* --- END: ADDED BUTTON FOR MOBILE AT THE BOTTOM --- */}
           </CardContent>
         </Card>
       </motion.div>
@@ -314,48 +253,46 @@ export default function WorldIntro({
         .animate-pulse-fast {
           animation: pulse-fast 1.5s ease-in-out infinite;
         }
-
-        /* Tailwind CSS JIT Purge-safe classes */
-        .bg-sky-50\/50,
+        .bg-sky-50\\/50,
         .bg-sky-100,
         .bg-sky-600,
-        .hover\:bg-sky-700,
+        .hover\\:bg-sky-700,
         .text-sky-600,
         .text-sky-700,
         .text-sky-800,
         .border-sky-300 {
         }
-        .bg-rose-50\/50,
+        .bg-rose-50\\/50,
         .bg-rose-100,
         .bg-rose-600,
-        .hover\:bg-rose-700,
+        .hover\\:bg-rose-700,
         .text-rose-600,
         .text-rose-700,
         .text-rose-800,
         .border-rose-300 {
         }
-        .bg-purple-50\/50,
+        .bg-purple-50\\/50,
         .bg-purple-100,
         .bg-purple-600,
-        .hover\:bg-purple-700,
+        .hover\\:bg-purple-700,
         .text-purple-600,
         .text-purple-700,
         .text-purple-800,
         .border-purple-300 {
         }
-        .bg-teal-50\/50,
+        .bg-teal-50\\/50,
         .bg-teal-100,
         .bg-teal-600,
-        .hover\:bg-teal-700,
+        .hover\\:bg-teal-700,
         .text-teal-600,
         .text-teal-700,
         .text-teal-800,
         .border-teal-300 {
         }
-        .bg-amber-50\/50,
+        .bg-amber-50\\/50,
         .bg-amber-100,
         .bg-amber-600,
-        .hover\:bg-amber-700,
+        .hover\\:bg-amber-700,
         .text-amber-600,
         .text-amber-700,
         .text-amber-800,

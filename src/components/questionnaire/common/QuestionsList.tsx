@@ -3,8 +3,13 @@ import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CheckCircle, AlertCircle, Circle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Question, QuestionnaireAnswer, AnswerValue } from '../types/types';
+import type {
+  Question,
+  QuestionnaireAnswer,
+  AnswerValue,
+} from '../types/types';
 import { Badge } from '@/components/ui/badge';
+import type { QuestionsListDict } from '@/types/dictionary'; // Import dictionary type
 
 interface QuestionsListProps {
   allQuestions: Question[];
@@ -14,7 +19,8 @@ interface QuestionsListProps {
   language?: string;
   className?: string;
   onClose?: () => void;
-  themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber'; // NEW: Added theme color prop
+  themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
+  dict: QuestionsListDict; // Use the specific dictionary type
 }
 
 const QuestionsList: React.FC<QuestionsListProps> = ({
@@ -25,7 +31,8 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
   language = 'he',
   className = '',
   onClose,
-  themeColor = 'sky', // Default theme color
+  themeColor = 'sky',
+  dict,
 }) => {
   const isRTL = language === 'he';
 
@@ -37,7 +44,12 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
     if (answer === undefined || answer === null) return false;
     if (typeof answer === 'string' && answer.trim() === '') return false;
     if (Array.isArray(answer) && answer.length === 0) return false;
-    if (typeof answer === 'object' && !Array.isArray(answer) && Object.keys(answer).length === 0) return false;
+    if (
+      typeof answer === 'object' &&
+      !Array.isArray(answer) &&
+      Object.keys(answer).length === 0
+    )
+      return false;
     return true;
   };
 
@@ -45,7 +57,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
     setCurrentQuestionIndex(index);
     onClose?.();
   };
-  
+
   const themeClasses = {
     text: `text-${themeColor}-700`,
     bgSoft: `bg-${themeColor}-50`,
@@ -54,15 +66,14 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
     icon: `text-${themeColor}-600`,
   };
 
-  const depthLabels = { BASIC: 'בסיסי', ADVANCED: 'מתקדם', EXPERT: 'מעמיק' };
-
   return (
     <ScrollArea className={cn('h-full', className)}>
-      {/* NEW: Relative container for the timeline pseudo-element */}
       <div className="relative space-y-2 p-2" dir={isRTL ? 'rtl' : 'ltr'}>
-        {/* NEW: Timeline connecting line */}
-        <div className="absolute top-0 bottom-0 w-0.5 bg-slate-200" style={isRTL ? { right: '1.625rem' } : { left: '1.625rem' }}></div>
-        
+        <div
+          className="absolute top-0 bottom-0 w-0.5 bg-slate-200"
+          style={isRTL ? { right: '1.625rem' } : { left: '1.625rem' }}
+        ></div>
+
         {allQuestions.map((q, index) => {
           const answer = findAnswer(q.id);
           const isAnswered = isAnswerNotEmpty(answer);
@@ -71,9 +82,11 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
           let StatusIcon;
           let itemClasses = 'bg-white hover:bg-slate-50 border-slate-200';
           let textClasses = 'text-slate-700';
-          
+
           if (isAnswered) {
-            StatusIcon = <CheckCircle className={cn("h-5 w-5", themeClasses.icon)} />;
+            StatusIcon = (
+              <CheckCircle className={cn('h-5 w-5', themeClasses.icon)} />
+            );
           } else if (q.isRequired) {
             StatusIcon = <AlertCircle className="h-5 w-5 text-red-500" />;
           } else {
@@ -81,7 +94,9 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
           }
 
           if (isCurrent) {
-            StatusIcon = <Sparkles className={cn("h-5 w-5", themeClasses.icon)} />;
+            StatusIcon = (
+              <Sparkles className={cn('h-5 w-5', themeClasses.icon)} />
+            );
             itemClasses = `${themeClasses.bgSoft} ${themeClasses.border} ring-2 ${themeClasses.ring}`;
             textClasses = `${themeClasses.text} font-semibold`;
           }
@@ -97,21 +112,24 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
               onClick={() => handleItemClick(index)}
               aria-current={isCurrent ? 'step' : undefined}
             >
-              {/* Status Icon with timeline dot */}
               <div className="flex-shrink-0 z-10 bg-white rounded-full p-1">
-                 {StatusIcon}
+                {StatusIcon}
               </div>
 
-              {/* Content */}
               <div className={cn('flex-1 min-w-0 ml-3', textClasses)}>
-                <p className="text-sm leading-relaxed" style={{ whiteSpace: 'normal' }}>
+                <p
+                  className="text-sm leading-relaxed"
+                  style={{ whiteSpace: 'normal' }}
+                >
                   <span className="font-medium">{index + 1}. </span>
                   {q.question}
                 </p>
-                {/* REFINED: Badge styling */}
                 <div className="mt-2">
-                  <Badge variant="outline" className="text-xs font-normal bg-white">
-                    {depthLabels[q.depth]}
+                  <Badge
+                    variant="outline"
+                    className="text-xs font-normal bg-white"
+                  >
+                    {dict.depthLabels[q.depth]}
                   </Badge>
                 </div>
               </div>

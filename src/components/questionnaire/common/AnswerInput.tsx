@@ -32,8 +32,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import InteractiveScale from './InteractiveScale';
-// ודא שגם Option מיובא מפורשות אם הוא לא
-import type { AnswerValue, AnswerInputProps, Option } from '../types/types';
+import type { AnswerValue, Option, Question } from '../types/types';
 import { cn } from '@/lib/utils';
 import {
   Collapsible,
@@ -42,13 +41,20 @@ import {
 } from '@/components/ui/collapsible';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
+import type { AnswerInputDict, InteractiveScaleDict } from '@/types/dictionary';
 
-// הגדרות CSS יכולות להיות בקובץ CSS גלובלי או בסגנון מוטבע אם נדרש
-/*
-.progress-green .progress-indicator { background-color: #22c55e; }
-.progress-blue .progress-indicator { background-color: #3b82f6; }
-.progress-amber .progress-indicator { background-color: #f59e0b; }
-*/
+export interface AnswerInputProps {
+  question: Question;
+  value?: AnswerValue;
+  onChange?: (value: AnswerValue) => void;
+  onClear?: () => void;
+  className?: string;
+  validationError?: string;
+  dict: {
+    answerInput: AnswerInputDict;
+    interactiveScale: InteractiveScaleDict;
+  };
+}
 
 export default function AnswerInput({
   question,
@@ -57,13 +63,12 @@ export default function AnswerInput({
   onClear,
   className = '',
   validationError,
+  dict,
 }: AnswerInputProps) {
   const [internalValue, setInternalValue] = useState<AnswerValue>(value);
   const [error, setError] = useState<string | null>(null);
   const [customValue, setCustomValue] = useState<string>('');
-  const [, setCharactersCount] = useState<number>(0);
   const [isFocused, setIsFocused] = useState<boolean>(false);
-  const [, setSelectedOption] = useState<string | null>(null);
   const [textAreaHeight, setTextAreaHeight] = useState<number>(150);
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState<boolean>(false);
   const [textCopied, setTextCopied] = useState(false);
@@ -71,12 +76,10 @@ export default function AnswerInput({
   useEffect(() => {
     setInternalValue(value);
     if (typeof value === 'string') {
-      setCharactersCount(value.length);
       if (value.length > 200) setTextAreaHeight(220);
       else if (value.length > 100) setTextAreaHeight(180);
       else setTextAreaHeight(150);
     } else if (value === undefined || value === null) {
-      setCharactersCount(0);
       setTextAreaHeight(150);
     }
   }, [value]);
@@ -104,11 +107,8 @@ export default function AnswerInput({
       default:
         emptyValue = undefined;
     }
-
     setInternalValue(emptyValue);
     setCustomValue('');
-    setCharactersCount(0);
-    setSelectedOption(null);
     setError(null);
     onClear?.();
   }, [question.type, onClear]);
@@ -116,39 +116,18 @@ export default function AnswerInput({
   const handleValueChange = useCallback(
     (newValue: AnswerValue) => {
       if (
-        question.type === 'singleChoice' &&
+        (question.type === 'singleChoice' ||
+          question.type === 'iconChoice' ||
+          question.type === 'scenario') &&
         newValue === internalValue &&
         !question.isRequired
       ) {
         handleClear();
         return;
       }
-      if (
-        question.type === 'iconChoice' &&
-        newValue === internalValue &&
-        !question.isRequired
-      ) {
-        handleClear();
-        return;
-      }
-      if (
-        question.type === 'scenario' &&
-        newValue === internalValue &&
-        !question.isRequired
-      ) {
-        handleClear();
-        return;
-      }
-
       setInternalValue(newValue);
       setError(null);
       onChange?.(newValue);
-
-      if (typeof newValue === 'string') {
-        setCharactersCount(newValue.length);
-      } else {
-        setCharactersCount(0);
-      }
     },
     [internalValue, onChange, question.isRequired, question.type, handleClear]
   );
@@ -199,7 +178,6 @@ export default function AnswerInput({
           />
         )}
       </AnimatePresence>
-
       <div className="flex items-center gap-2 flex-1 z-10">
         {choiceOption.icon && (
           <motion.div
@@ -216,7 +194,6 @@ export default function AnswerInput({
           {choiceOption.text}
         </span>
       </div>
-
       <div className="relative w-6 h-6 z-10">
         <AnimatePresence>
           {isSelected && (
@@ -246,7 +223,7 @@ export default function AnswerInput({
                   e.stopPropagation();
                   handleClear();
                 }}
-                aria-label="נקה בחירה"
+                aria-label={dict.answerInput.clearSelection}
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -285,10 +262,8 @@ export default function AnswerInput({
             showValue={true}
             name={question.id}
             required={question.isRequired}
-            // ניתן להוסיף props נוספים ל-InteractiveScale כאן אם הוגדרו ב-Question
-            // labels={question.labels}
-            // descriptions={question.descriptions}
-            ariaLabelledby={question.id} // הוסף את השורה הזו
+            ariaLabelledby={question.id}
+            dict={dict.interactiveScale}
           />
         );
 
@@ -329,7 +304,10 @@ export default function AnswerInput({
                           selectedValues.length >= question.maxSelections
                         ) {
                           setError(
-                            `ניתן לבחור עד ${question.maxSelections} אפשרויות`
+                            dict.answerInput.multiSelect.maxSelectionError.replace(
+                              '{{count}}',
+                              String(question.maxSelections)
+                            )
                           );
                           setTimeout(() => setError(null), 2000);
                           return;
@@ -411,14 +389,17 @@ export default function AnswerInput({
               >
                 <span className="flex items-center">
                   <Info className="h-3 w-3 mr-1 text-blue-500" />
-                  נבחרו {selectedValues.length} אפשרויות
+                  {dict.answerInput.multiSelect.selectedInfo.replace(
+                    '{{count}}',
+                    selectedValues.length.toString()
+                  )}
                 </span>
                 <span>
                   {question.minSelections &&
-                    `מינימום: ${question.minSelections}`}
+                    `${dict.answerInput.multiSelect.minLabel}: ${question.minSelections}`}
                   {question.minSelections && question.maxSelections && ' • '}
                   {question.maxSelections &&
-                    `מקסימום: ${question.maxSelections}`}
+                    `${dict.answerInput.multiSelect.maxLabel}: ${question.maxSelections}`}
                 </span>
               </motion.div>
             )}
@@ -439,10 +420,8 @@ export default function AnswerInput({
         const isMaxLengthReached =
           question.maxSelections !== undefined &&
           selectedWithOtherValues.length >= question.maxSelections;
-
         return (
           <div className="space-y-4">
-            {/* Predefined Options */}
             {question.options?.map((option) => {
               if (option.value === 'other') return null;
               const isSelected = predefinedAnswers.includes(option.value);
@@ -463,14 +442,17 @@ export default function AnswerInput({
                   )}
                   onClick={() => {
                     let newValues: string[];
-                    if (isSelected) {
+                    if (isSelected)
                       newValues = predefinedAnswers.filter(
                         (v) => v !== option.value
                       );
-                    } else {
+                    else {
                       if (isMaxLengthReached) {
                         setError(
-                          `ניתן לבחור עד ${question.maxSelections} אפשרויות`
+                          dict.answerInput.multiSelect.maxSelectionError.replace(
+                            '{{count}}',
+                            String(question.maxSelections)
+                          )
                         );
                         setTimeout(() => setError(null), 2000);
                         return;
@@ -534,18 +516,18 @@ export default function AnswerInput({
                 </motion.div>
               );
             })}
-
-            {/* Custom Input Section */}
             <div className="space-y-2 border-t pt-4 mt-4">
               <Label className="flex items-center gap-2 text-sm font-medium">
                 <Plus className="h-4 w-4 text-blue-500" />
-                הוספת אפשרות אחרת (אופציונלי)
+                {dict.answerInput.multiSelectWithOther.addOtherOptionLabel}
               </Label>
               <div className="flex gap-2">
                 <Input
                   value={customValue}
                   onChange={(e) => setCustomValue(e.target.value)}
-                  placeholder="הקלד/י אפשרות נוספת..."
+                  placeholder={
+                    dict.answerInput.multiSelectWithOther.otherOptionPlaceholder
+                  }
                   className="flex-1 text-sm"
                   disabled={isMaxLengthReached && isCustomValueEmpty}
                 />
@@ -557,7 +539,10 @@ export default function AnswerInput({
                     if (!isCustomValueEmpty) {
                       if (isMaxLengthReached) {
                         setError(
-                          `ניתן לבחור עד ${question.maxSelections} אפשרויות`
+                          dict.answerInput.multiSelect.maxSelectionError.replace(
+                            '{{count}}',
+                            String(question.maxSelections)
+                          )
                         );
                         setTimeout(() => setError(null), 2000);
                         return;
@@ -571,7 +556,9 @@ export default function AnswerInput({
                         ]);
                         setCustomValue('');
                       } else {
-                        setError('אפשרות זו כבר קיימת');
+                        setError(
+                          dict.answerInput.multiSelectWithOther.errorExists
+                        );
                         setTimeout(() => setError(null), 2000);
                       }
                     }
@@ -579,12 +566,10 @@ export default function AnswerInput({
                   disabled={isCustomValueEmpty || isMaxLengthReached}
                 >
                   <Plus className="w-4 h-4 mr-1" />
-                  הוסף
+                  {dict.answerInput.multiSelectWithOther.addButton}
                 </Button>
               </div>
             </div>
-
-            {/* Display Custom Answers */}
             {customAnswers.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -593,7 +578,7 @@ export default function AnswerInput({
               >
                 <Label className="text-xs text-gray-600 flex items-center font-normal">
                   <Edit className="h-3.5 w-3.5 mr-1 text-blue-600" />
-                  תשובות שהוספת:
+                  {dict.answerInput.multiSelectWithOther.addedAnswersLabel}
                 </Label>
                 <div className="space-y-1 mt-1">
                   {customAnswers.map((customVal, index) => (
@@ -620,7 +605,9 @@ export default function AnswerInput({
                           );
                           handleValueChange(newValues);
                         }}
-                        aria-label="הסר תשובה מותאמת"
+                        aria-label={
+                          dict.answerInput.tooltips.removeCustomAnswer
+                        }
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
@@ -646,14 +633,17 @@ export default function AnswerInput({
               >
                 <span className="flex items-center">
                   <Info className="h-3 w-3 mr-1 text-blue-500" />
-                  נבחרו {selectedWithOtherValues.length} אפשרויות
+                  {dict.answerInput.multiSelect.selectedInfo.replace(
+                    '{{count}}',
+                    selectedWithOtherValues.length.toString()
+                  )}
                 </span>
                 <span>
                   {question.minSelections &&
-                    `מינימום: ${question.minSelections}`}
+                    `${dict.answerInput.multiSelect.minLabel}: ${question.minSelections}`}
                   {question.minSelections && question.maxSelections && ' • '}
                   {question.maxSelections &&
-                    `מקסימום: ${question.maxSelections}`}
+                    `${dict.answerInput.multiSelect.maxLabel}: ${question.maxSelections}`}
                 </span>
               </motion.div>
             )}
@@ -666,7 +656,6 @@ export default function AnswerInput({
             {question.options?.map((option, index) => {
               const optionValue = option.value || option.text;
               const isSelected = internalValue === optionValue;
-
               return (
                 <motion.div
                   key={index}
@@ -742,7 +731,7 @@ export default function AnswerInput({
                               e.stopPropagation();
                               handleClear();
                             }}
-                            aria-label="נקה בחירה"
+                            aria-label={dict.answerInput.clearSelection}
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -761,7 +750,6 @@ export default function AnswerInput({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {question.options?.map((option) => {
               const isSelected = internalValue === option.value;
-
               return (
                 <TooltipProvider key={option.value} delayDuration={300}>
                   <Tooltip>
@@ -811,7 +799,7 @@ export default function AnswerInput({
                                   e.stopPropagation();
                                   handleClear();
                                 }}
-                                aria-label="נקה בחירה"
+                                aria-label={dict.answerInput.clearSelection}
                               >
                                 <X className="w-3.5 h-3.5" />
                               </Button>
@@ -874,7 +862,6 @@ export default function AnswerInput({
               Math.round((textValue.length / (question.minLength ?? 1)) * 100)
             )
           : 0;
-
         return (
           <div className="space-y-2">
             <div
@@ -896,11 +883,11 @@ export default function AnswerInput({
                 onChange={(e) => handleValueChange(e.target.value)}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
-                placeholder={question.placeholder || 'הקלד/י את תשובתך כאן...'}
+                placeholder={
+                  question.placeholder || dict.answerInput.openText.placeholder
+                }
                 className={cn(
-                  'resize-y border-0 focus-visible:ring-0 w-full',
-                  'min-h-[150px]',
-                  'text-base leading-relaxed',
+                  'resize-y border-0 focus-visible:ring-0 w-full min-h-[150px] text-base leading-relaxed',
                   textValue.length > 0 ? 'pr-12' : 'pr-3',
                   'py-3 pl-3'
                 )}
@@ -930,7 +917,11 @@ export default function AnswerInput({
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="right">
-                        <p>{textCopied ? 'הועתק!' : 'העתק טקסט'}</p>
+                        <p>
+                          {textCopied
+                            ? dict.answerInput.tooltips.copied
+                            : dict.answerInput.tooltips.copy}
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -948,7 +939,7 @@ export default function AnswerInput({
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="right">
-                          <p>נקה טקסט</p>
+                          <p>{dict.answerInput.tooltips.clearText}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -988,13 +979,18 @@ export default function AnswerInput({
                   >
                     {!isMinLengthMet ? (
                       <>
-                        <AlertCircle className="h-3 w-3 mr-1" /> נדרשים עוד{' '}
-                        {(question.minLength ?? 0) - textValue.length} תווים
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        {dict.answerInput.openText.minLengthRequired.replace(
+                          '{{count}}',
+                          (
+                            (question.minLength ?? 0) - textValue.length
+                          ).toString()
+                        )}
                       </>
                     ) : (
                       <>
-                        <CheckCircle className="h-3 w-3 mr-1" /> הגעת למינימום
-                        הנדרש
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        {dict.answerInput.openText.minLengthMet}
                       </>
                     )}
                   </span>
@@ -1014,22 +1010,34 @@ export default function AnswerInput({
                         : 'bg-blue-100 text-blue-700'
                     )}
                   >
-                    <Info className="h-3 w-3 mr-1" />{' '}
-                    {question.isRequired ? 'נדרש לפחות' : 'מומלץ לפחות'}{' '}
-                    {question.minLength ?? 0} תווים
+                    <Info className="h-3 w-3 mr-1" />
+                    {question.isRequired
+                      ? dict.answerInput.openText.minLengthInfoRequired.replace(
+                          '{{count}}',
+                          String(question.minLength ?? 0)
+                        )
+                      : dict.answerInput.openText.minLengthInfoRecommended.replace(
+                          '{{count}}',
+                          String(question.minLength ?? 0)
+                        )}
                   </div>
                 )}
                 {lengthExceeded && (
                   <div className="inline-flex items-center text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">
-                    <AlertCircle className="h-3 w-3 mr-1" /> חריגה מהאורך
-                    המקסימלי
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    {dict.answerInput.openText.maxLengthExceeded}
                   </div>
                 )}
               </div>
               {hasMinLength && (
                 <div className="text-xs text-gray-500 flex items-center">
-                  <Clock className="h-3 w-3 mr-1" /> זמן כתיבה משוער:{' '}
-                  {Math.max(1, Math.ceil((question.minLength ?? 0) / 70))} דקות
+                  <Clock className="h-3 w-3 mr-1" />
+                  {dict.answerInput.openText.estimatedTime.replace(
+                    '{{count}}',
+                    String(
+                      Math.max(1, Math.ceil((question.minLength ?? 0) / 70))
+                    )
+                  )}
                 </div>
               )}
             </div>
@@ -1046,8 +1054,8 @@ export default function AnswerInput({
                     className="w-full flex items-center justify-between px-3 py-1.5 h-auto hover:bg-blue-50 text-sm text-blue-700"
                   >
                     <div className="flex items-center">
-                      <Sparkles className="h-4 w-4 mr-2 text-blue-500" />{' '}
-                      <span>טיפים למענה על שאלה זו</span>
+                      <Sparkles className="h-4 w-4 mr-2 text-blue-500" />
+                      <span>{dict.answerInput.openText.tipsButton}</span>
                     </div>
                     {isCollapsibleOpen ? (
                       <ChevronUp className="h-4 w-4 text-blue-500" />
@@ -1074,7 +1082,6 @@ export default function AnswerInput({
         const pointsDifference = totalPointsRequired - totalAllocatedPoints;
         const isAllocationComplete = pointsDifference === 0;
         const isOverAllocated = pointsDifference < 0;
-
         return (
           <fieldset className="space-y-4 border-none p-0 m-0">
             <legend className="sr-only">{question.question}</legend>
@@ -1082,7 +1089,6 @@ export default function AnswerInput({
               {question.categories?.map((category) => {
                 const categoryValue = budgetValues[category.label] || 0;
                 const isActive = categoryValue > 0;
-
                 return (
                   <motion.div
                     key={category.label}
@@ -1095,7 +1101,7 @@ export default function AnswerInput({
                         {category.icon && (
                           <motion.div
                             animate={{ scale: isActive ? 1.1 : 1 }}
-                            className={cn('text-blue-600')}
+                            className="text-blue-600"
                           >
                             {category.icon}
                           </motion.div>
@@ -1159,7 +1165,7 @@ export default function AnswerInput({
                 )}
               >
                 <div className="text-sm">
-                  סה״כ הוקצה:{' '}
+                  {dict.answerInput.budgetAllocation.totalAllocated}{' '}
                   <span
                     className={cn(
                       'font-bold',
@@ -1181,8 +1187,14 @@ export default function AnswerInput({
                     >
                       (
                       {pointsDifference > 0
-                        ? `חסר ${pointsDifference}`
-                        : `עודף ${Math.abs(pointsDifference)}`}
+                        ? dict.answerInput.budgetAllocation.remaining.replace(
+                            '{{count}}',
+                            String(pointsDifference)
+                          )
+                        : dict.answerInput.budgetAllocation.surplus.replace(
+                            '{{count}}',
+                            String(Math.abs(pointsDifference))
+                          )}
                       )
                     </span>
                   )}
@@ -1194,13 +1206,13 @@ export default function AnswerInput({
                       size="sm"
                       onClick={handleClear}
                       className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
-                      aria-label="אפס הקצאה"
+                      aria-label={dict.answerInput.tooltips.resetAllocation}
                     >
-                      <Eraser className="w-3.5 h-3.5 mr-1" /> אפס הכל
+                      <Eraser className="w-3.5 h-3.5 mr-1" />
+                      {dict.answerInput.budgetAllocation.resetButton}
                     </Button>
                   )}
               </div>
-              {/* --- START: הוספת הצגת שגיאה כאן --- */}
               <AnimatePresence>
                 {validationError && (
                   <motion.div
@@ -1214,7 +1226,6 @@ export default function AnswerInput({
                   </motion.div>
                 )}
               </AnimatePresence>
-              {/* --- END: הוספת הצגת שגיאה כאן --- */}
             </div>
           </fieldset>
         );
@@ -1224,7 +1235,12 @@ export default function AnswerInput({
         return (
           <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800">
             <p>
-              <strong>אופס!</strong> סוג השאלה {question.type} אינו נתמך כרגע.
+              <strong>
+                {dict.answerInput.unsupportedType.replace(
+                  '{{type}}',
+                  question.type
+                )}
+              </strong>
             </p>
           </div>
         );

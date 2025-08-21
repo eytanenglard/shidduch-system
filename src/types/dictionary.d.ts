@@ -142,27 +142,7 @@ export type HowItWorksDict = {
   };
 };
 
-// --- The Master Dictionary Type for HomePage (remains for context) ---
-export type HomePageDictionary = {
-    metadata: MetadataDict; // <-- הוסף את השורה הזו
 
-  navbar: NavbarDict;
-  heroSection: HeroSectionDict;
-  valueProposition: ValuePropositionDict;
-  ourMethod: OurMethodDict;
-  howItWorks: HowItWorksDict;
-  matchmakerTeam: MatchmakerTeamDict;
-  successStories: SuccessStoriesDict;
-  faq: FaqDict;
-  privacyAssurance: PrivacyAssuranceDict;
-  cta: CtaDict;
-  footer: FooterDict;
-  chatWidget: ChatWidgetDict;
-  cookieBanner: CookieBannerDict;
-  suggestions: SuggestionsDictionary;
-  demoProfileCard: DemoProfileCardDict;
-
-};
 
 type TeamMemberDict = {
   name: string;
@@ -555,9 +535,13 @@ export type Dictionary = {
   chatWidget: ChatWidgetDict;
   cookieBanner: CookieBannerDict;
     metadata: MetadataDict;
+      questionnaire: QuestionnaireDictionary; 
+
+  demoProfileCard: DemoProfileCardDict;
 
   // New, namespaced key for the modular dictionary
   suggestions: SuggestionsDictionary;
+  profilePage: ProfilePageDictionary;
 };
 
 
@@ -795,3 +779,1444 @@ export type MatchSuggestionStatus =
   };
   tablistLabel: string;
 };
+
+// ======================================================================== //
+// ✨ START: NEW TYPES FOR QUESTIONNAIRE FEATURE ✨
+// ======================================================================== //
+
+export type WelcomeDict = {
+  mainTitle: string;
+  subtitle: string;
+  loggedInCTA: string;
+  resumeCTA: string;
+  guestCTA: string;
+  loginPrompt: {
+    title: string;
+    text: string;
+    loginButtonText: string;
+  };
+  features: {
+    title: string;
+    description: string;
+  }[];
+  testimonials: {
+    title: string;
+    quotes: {
+      quote: string;
+      author: string;
+    }[];
+  };
+  finalCta: {
+    title: string;
+  };
+};
+
+export type WorldIntroDict = {
+  world: string;
+  of: string;
+  stats: {
+    estimatedTime: string;
+    totalQuestions: string;
+    requiredQuestions: string;
+    
+  };
+  statsValues: {
+    minutes: string;
+  };
+  whyTitle: string;
+  whatYouWillDiscoverTitle: string;
+  startButton: string;
+  worldsContent: {
+    [key in WorldId]: {
+      title: string;
+      subtitle: string;
+      whyIsItImportant: string;
+      whatYouWillDiscover: string[];
+      guidingThought: string;
+    };
+  };
+};
+
+export type QuestionCardDict = {
+  depthLabels: {
+    BASIC: string;
+    ADVANCED: string;
+    EXPERT: string;
+  };
+  depthDescriptions: {
+    BASIC: string;
+    ADVANCED: string;
+    EXPERT: string;
+  };
+  requiredBadge: string;
+  tooltips: {
+    removeBookmark: string;
+    addBookmark: string;
+    hideHelp: string;
+    showHelp: string;
+    whyQuestion: string;
+    visibility: {
+      visibleTitle: string;
+      hiddenTitle: string;
+      visibleDesc: string;
+      hiddenDesc: string;
+    };
+    saveProgressSaving: string;
+    saveProgress: string;
+    viewProfile: string;
+  };
+  skipButton: {
+    skip: string;
+    required: string;
+  };
+};
+
+export type QuestionnaireCompletionDict = {
+  title: string;
+  loggedInDescription: string;
+  guestDescription: string;
+  loggedInContent: {
+    prompt: string;
+    promptSubtitle: string;
+    sendButton: string;
+    sendingButton: string;
+    reviewButton: string;
+  };
+  guestContent: {
+    loginButton: string;
+  };
+};
+
+export type MatchmakingQuestionnaireDict = {
+  worldLabels: {
+    [key in WorldId]: string;
+  };
+  toasts: {
+    saveSuccess: string;
+    autoSaveError: string;
+    unsavedChanges: {
+      message: string;
+      action: string;
+    };
+    answerVisible: string;
+    answerHidden: string;
+    worldProgressSaved: string;
+    worldProgressSavedBrowser: string;
+    worldCompletionError: string;
+    worldFinished: string; // e.g., "כל הכבוד! סיימת את עולם ה{{worldName}}"
+  };
+  errors: {
+    invalidSubmission: string;
+    saveFailed: string;
+    loadFailed: string;
+    genericLoadError: string;
+    stageLoadError: string;
+  };
+  idleModal: {
+    title: string;
+    description: string;
+    logoutButton: string;
+    stayActiveButton: string;
+  };
+  lastSaved: string; // e.g., "נשמר לאחרונה: {{time}}"
+  loading: string;
+};
+
+export type QuestionnairePageDict = {
+  loading: string;
+  backToMain: string;
+  stageLoadError: string;
+  completionError: string;
+};
+
+// Main dictionary for the questionnaire feature
+export type QuestionnaireDictionary = {
+  welcome: WelcomeDict;
+  worldIntro: WorldIntroDict;
+  questionCard: QuestionCardDict;
+  completion: QuestionnaireCompletionDict;
+  matchmaking: MatchmakingQuestionnaireDict;
+  page: QuestionnairePageDict;
+    landingPage: QuestionnaireLandingPageDict; // <-- הוספה
+  worldsMap: WorldsMapDict; // <-- הוספה
+   layout: QuestionnaireLayoutDict;
+  world: WorldComponentDict;
+    answerInput: AnswerInputDict;
+  interactiveScale: InteractiveScaleDict;
+  faq: FaqDict; // <-- הוספה
+  accessibilityFeatures: AccessibilityFeaturesDict; // <-- הוספה
+  questionnaireProgress: QuestionnaireProgressDict; // <-- הוספה
+  userStats: UserStatsDict; // <-- הוספה
+  questionnaireRestore: QuestionnaireRestoreDict; // <-- הוספה
+  questionnaireCompletePage: QuestionnaireCompletePageDict; // <-- הוספה
+  questionsList: QuestionsListDict; // <-- הוספה
+  matchResultCard: MatchResultCardDict; // <-- הוספה
+
+  // Add other component dictionaries here as needed
+};
+
+export type QuestionsListDict = {
+  depthLabels: {
+    BASIC: string;
+    ADVANCED: string;
+    EXPERT: string;
+  };
+};
+
+// ======================================================================== //
+// ✨ END: NEW TYPES FOR QUESTIONNAIRE FEATURE ✨
+// ======================================================================== //
+
+// START: Additions for QuestionnaireComplete.tsx
+export type QuestionnaireCompletePageDict = {
+  loading: string;
+  title: string;
+  successMessage1: string;
+  successMessage2: string;
+  profilePrompt: string;
+  continueButton: string;
+};
+// END: Additions for QuestionnaireComplete.tsx
+
+
+// START: Additions for QuestionnaireRestore.tsx
+export type QuestionnaireRestoreDict = {
+  loading: string;
+  restoringTitle: string;
+  restoringSubtitle: string;
+  error: string;
+  backButton: string;
+};
+// END: Additions for QuestionnaireRestore.tsx
+
+// START: Additions for UserStats.tsx
+export type UserStatsDict = {
+  matchStatsCard: {
+    title: string;
+    activeMatches: string;
+    pendingMatches: string;
+    matchScore: string;
+    daysActive: string; // Placeholder: {{days}}
+    joinDate: string; // Placeholder: {{date}}
+  };
+  profileProgressCard: {
+    title: string;
+    profileCompletion: string;
+    questionsAnswered: string;
+    outOf: string;
+    completedWorlds: string;
+    activityLevel: string;
+  };
+  personalityTraitsCard: {
+    title: string;
+  };
+  tooltips: {
+    traitScore: string; // Placeholder: {{score}}
+  };
+  common: {
+    notAvailable: string;
+  };
+  worlds: {
+    [key in 'PERSONALITY' | 'VALUES' | 'RELATIONSHIP' | 'PARTNER' | 'RELIGION']: string;
+  };
+  activityLevels: {
+    high: string;
+    medium: string;
+    low: string;
+  };
+};
+// END: Additions for UserStats.tsx
+
+// src/types/dictionary.d.ts
+
+// --- טיפוסים חדשים עבור עמוד הפרופיל ---
+
+export type ProfileChecklistDict = {
+  welcome: string; // Placeholder: {{firstName}}
+  allComplete: string; // Placeholder: {{firstName}}
+  welcomeSubtitle: string;
+  allCompleteSubtitle: string;
+  completionLabel: string;
+  expandLabel: string;
+  minimizeLabel: string;
+  missingItemsTitle: string;
+  tasks: {
+    photos: {
+      title: string;
+      description:string;
+      missing: string; // Placeholder: {{count}}
+    };
+    personalDetails: {
+      title: string;
+      description: string;
+    };
+    partnerPreferences: {
+      title: string;
+      description: string;
+    };
+    questionnaire: {
+      title: string;
+      description: string;
+    };
+    review: {
+      title: string;
+      description: string;
+      missing: string;
+    };
+  };
+};
+export type PhotosSectionDict = {
+  title: string;
+  subtitle: string; // Placeholder: {{maxImages}}
+  uploadingMultiple: string; // Placeholder: {{count}}
+  selectForDeletion: string;
+  uploadButton: string;
+  selectionHeader: string; // Placeholder: {{count}}
+  deselectAll: string;
+  selectAll: string;
+  deleteSelected: string;
+  setAsMainTooltip: string;
+  deleteTooltip: string;
+  mainBadge: string;
+  uploadPlaceholder: {
+    title: string;
+    remaining: string; // Placeholder: {{count}}
+    prompt: string;
+  };
+  uploadingPlaceholder: string;
+  emptyState: {
+    title: string;
+    description: string;
+  };
+  emptyStateDisabled: {
+    title: string;
+  };
+  deleteDialog: {
+    title: string;
+    description: string;
+    cancel: string;
+    confirm: string;
+  };
+  imageViewer: {
+    closeLabel: string;
+    altText: string; // Placeholder: {{index}}
+    prevLabel: string;
+    nextLabel: string;
+    setMainButton: string;
+    deleteButton: string;
+    counter: string; // Placeholders: {{current}}, {{total}}
+  };
+  toasts: {
+    maxImagesError: string;
+    slotsError: string; // Placeholder: {{count}}
+    invalidFileTypeError: string; // Placeholder: {{fileName}}
+    fileTooLargeError: string; // Placeholder: {{fileName}}
+    uploadSuccess: string; // Placeholder: {{count}}
+    uploadError: string;
+    selectOneError: string;
+    bulkDeleteSuccess: string; // Placeholder: {{count}}
+    bulkDeleteError: string;
+    singleDeleteSuccess: string;
+    singleDeleteError: string;
+    setMainSuccess: string;
+    setMainError: string;
+  };
+  confirmations: {
+    bulkDelete: string; // Placeholder: {{count}}
+  };
+};
+
+
+export type AIAdvisorDialogDict = {
+  triggerButton: string;
+  dialogTitle: string;
+  dialogDescription: string;
+  closeButton: string;
+  loadingTitle: string;
+  loadingDescription: string;
+  // שדות ייעודיים לאלרט השגיאה שמופיע בתוך הדיאלוג
+  errorAlertTitle: string; 
+  errorAlertDescription: string;
+  retryButton: string;
+  initialState: string;
+  // אובייקט ייעודי להודעות ה-toast שקופצות
+  toast: {
+    errorTitle: string;
+    errorDescription: string; // Placeholder: {{error}}
+  };
+};
+
+
+export type AnalysisResultDisplayDict = {
+  tabs: {
+    summary: string;
+    completeness: string;
+    tips: string;
+  };
+  summary: {
+    myPersonalityTitle: string;
+    myPersonalityDescription: string;
+    lookingForTitle: string;
+    lookingForDescription: string;
+  };
+  completeness: {
+    title: string;
+    description: string;
+    status: {
+      complete: string;
+      partial: string;
+      missing: string;
+    };
+  };
+  tips: {
+    title: string;
+    description: string;
+  };
+};
+
+export type UnifiedProfileDashboardDict = {
+  loadingData: string;
+  loadError: string; // Placeholder: {{error}}
+  updateSuccess: string;
+  updateError: string; // Placeholder: {{error}}
+  previewButton: string;
+  previewLoading: string;
+  viewedPreviewSuccess: string;
+  viewedPreviewError: string;
+  tabs: {
+    overview: string;
+    photos: string;
+    preferences: string;
+    questionnaire: string;
+  };
+  tabContent: {
+    loadingOverview: string;
+    loadingPreferences: string;
+    loadingQuestionnaire: string;
+    noQuestionnaire: string;
+    fillQuestionnaireLink: string;
+  };
+  checklist: ProfileChecklistDict;
+  aiAdvisor: AIAdvisorDialogDict;
+  analysisResult: AnalysisResultDisplayDict;
+  
+};
+export type PreferencesSectionDict = {
+  header: {
+    title: string;
+    subtitleEdit: string;
+    subtitleView: string;
+  };
+  buttons: {
+    edit: string;
+    cancel: string;
+    save: string;
+  };
+  cards: {
+    general: {
+      title: string;
+      notesLabel: string;
+      notesTooltip: string;
+      notesPlaceholder: string;
+      notesEmpty: string;
+      contactPreferenceLabel: string;
+      contactPreferencePlaceholder: string;
+      contactPreferenceEmpty: string;
+    };
+    ageAndHeight: {
+      title: string;
+      ageLegend: string;
+      ageTooltip: string;
+      ageMinPlaceholder: string;
+      ageMaxPlaceholder: string;
+      ageEmpty: string;
+      heightLegend: string;
+      heightMinPlaceholder: string;
+      heightMaxPlaceholder: string;
+      heightEmpty: string;
+    };
+    locationAndReligion: {
+      title: string;
+      locationsLabel: string;
+      locationsPlaceholder: string;
+      locationsRemoveLabel: string; // Placeholder: {{loc}}
+      locationsEmpty: string;
+      religiousLevelsLegend: string;
+      religiousLevelsTooltip: string;
+      religiousLevelsEmpty: string;
+      religiousJourneysLegend: string;
+      religiousJourneysEmpty: string;
+      shomerNegiahLabel: string;
+      shomerNegiahPlaceholder: string;
+      headCoveringLegend: string;
+      headCoveringEmpty: string;
+      kippahTypeLegend: string;
+      kippahTypeEmpty: string;
+    };
+    educationAndCareer: {
+      title: string;
+      educationLegend: string;
+      educationEmpty: string;
+      occupationLegend: string;
+      occupationEmpty: string;
+      serviceTypeLegend: string;
+      serviceTypeEmpty: string;
+    };
+    personalBackground: {
+      title: string;
+      maritalStatusLegend: string;
+      maritalStatusEmpty: string;
+      partnerHasChildrenLabel: string;
+      partnerHasChildrenPlaceholder: string;
+      originLegend: string;
+      originPlaceholder: string;
+      originRemoveLabel: string; // Placeholder: {{origin}}
+      originEmpty: string;
+      aliyaStatusLabel: string;
+      aliyaStatusPlaceholder: string;
+    };
+    characterAndInterests: {
+      title: string;
+      traitsLegend: string;
+      traitsEmpty: string;
+      hobbiesLegend: string;
+      hobbiesEmpty: string;
+    };
+  };
+  options: {
+    // We will store all select/multi-select options here
+    contactPreference: { direct: string; matchmaker: string; both: string; };
+    religiousLevels: { [key: string]: string };
+    religiousJourneys: { [key: string]: string };
+    shomerNegiah: { yes: string; no: string; flexible: string; };
+    education: { [key: string]: string };
+    occupation: { [key: string]: string };
+    serviceTypes: { [key: string]: string };
+    headCovering: { [key: string]: string };
+    kippahType: { [key: string]: string };
+    maritalStatus: { [key: string]: string };
+    partnerHasChildren: { yes_ok: string; no_preferred: string; does_not_matter: string; };
+    aliyaStatus: { oleh: string; tzabar: string; no_preference: string; };
+    origins: { [key: string]: string };
+    traits: { [key: string]: string };
+    hobbies: { [key: string]: string };
+  };
+};
+type FaqAnswerPart = {
+  type: 'p' | 'list' | 'tip' | 'info' | 'star' | 'alert';
+  title?: string;
+  content: string | string[];
+};
+
+type FaqItemDict = {
+  question: string;
+  answer: FaqAnswerPart[];
+};
+
+export type FaqDict = {
+  title: string;
+  subtitle: string;
+  searchPlaceholder: string;
+  popularBadge: string;
+  emptyState: string;
+  categories: {
+    all: string;
+    process: string;
+    technical: string;
+    privacy: string;
+    results: string;
+    general: string;
+  };
+  items: {
+    'save-progress': FaqItemDict;
+    'time-to-complete': FaqItemDict;
+    'required-questions': FaqItemDict;
+    'how-matching-works': FaqItemDict;
+    'privacy-info': FaqItemDict;
+    'edit-answers': FaqItemDict;
+    'match-percentage': FaqItemDict;
+    'incomplete-questionnaire': FaqItemDict;
+    'inactive-account': FaqItemDict;
+  };
+};
+// END: Additions for FAQ.tsx
+
+// --- טיפוס-על המאגד את כל מילוני הפרופיל ---
+export type ProfilePageDictionary = {
+  pageLoader: string;
+  dashboard: UnifiedProfileDashboardDict;
+    photosSection: PhotosSectionDict; // הוספת הטיפוס החדש
+  preferencesSection: PreferencesSectionDict; // הוספת הטיפוס החדש
+  profileSection: ProfileSectionDict; // This line is added
+  profileCard: ProfileCardDict; // This line is added
+  minimalCard: MinimalCardDict;
+  statsCard: StatsCardDict;
+  visibilityControl: VisibilityControlDict;
+  budgetDisplay: BudgetDisplayDict;
+  utils: ProfileUtilsDict;
+  // כאן יתווספו מילונים עבור רכיבים נוספים כמו ProfileSection, PreferencesSection וכו'
+};
+
+// START: Additions for QuestionnaireProgress.tsx
+type AchievementDict = {
+  name: string;
+  description: string;
+};
+
+export type QuestionnaireProgressDict = {
+  worldLabels: { [key in 'PERSONALITY' | 'VALUES' | 'RELATIONSHIP' | 'PARTNER' | 'RELATIONSHIP']: string };
+  mobile: {
+    title: string;
+    totalLabel: string;
+    requiredLabel: string;
+    timeLeftLabel: string;
+    savedLabel: string;
+  };
+  desktop: {
+    title: string;
+    subtitle: string;
+    progressSummaryTitle: string;
+    achievementsTitle: string;
+    worldsTitle: string;
+    worldsSubtitle: string;
+    tooltip: {
+      progressInfoTitle: string;
+      progressInfoDesc: string;
+      completionDetails: string; // Placeholder: {{answered}}, {{total}}
+    };
+    accordion: {
+      recommendations: string;
+      timeBreakdown: string;
+    };
+  };
+  statusBadge: {
+    complete: string;
+    started: string;
+    progress: string; // Placeholder: {{progress}}
+  };
+  timeStrings: {
+    lessThanAMinute: string;
+    minutesSuffix: string;
+    hours: string;
+    and: string;
+    savedNow: string;
+    savedMinutesAgo: string; // Placeholder: {{minutes}}
+    savedHoursAgo: string; // Placeholder: {{hours}}
+    savedAtTime: string; // Placeholder: {{time}}
+  };
+  rewards: {
+    title: string;
+    achievedText: string;
+    moreToGo: string; // Placeholder: {{count}}
+    prompt: string;
+    achievements: {
+      goal: AchievementDict;
+      halfway: AchievementDict;
+      advanced: AchievementDict;
+      complete: AchievementDict;
+    };
+  };
+  recommendations: {
+    title: string;
+    statuses: {
+      completed: string;
+      active: string;
+      pending: string;
+    };
+    ctaButton: string;
+  };
+  timeBreakdown: {
+    title: string; // Placeholder: {{timeLeft}}
+    subtitle: string;
+    statusCompleted: string;
+    timePerWorld: string; // Placeholder: {{time}}
+  };
+};
+// END: Additions for QuestionnaireProgress.tsx
+
+export type QuestionnaireLandingPageDict = {
+  hero: {
+    badge: string;
+    title: string;
+    subtitle: string;
+  };
+  cta: {
+    start: string;
+    continue: string;
+    startAsUser: string; // "{{name}}, התחל/י את המסע"
+    loginButton: string;
+  };
+  worldsSection: {
+    title: string;
+    subtitle: string;
+  };
+  worlds: {
+    [key in WorldId]: {
+      title: string;
+      description: string;
+      questionsLabel: string; // "e.g., "{{count}} שאלות"
+    };
+  };
+  featuresSection: {
+    title: string;
+    subtitle: string;
+    features: {
+      title: string;
+      description: string;
+    }[];
+  };
+  finalCta: {
+    title: string;
+    subtitle: string;
+    buttonText: string;
+  };
+  footer: {
+    copyright: string; // e.g., "© {{year}} NeshamaTech. כל הזכויות שמורות."
+  };
+};
+
+export type WorldsMapDict = {
+  progressHeader: {
+    greeting: string; // e.g., "שלום, {{name}}! ברוך הבא למסע שלך"
+    defaultTitle: string;
+    progressText: string; // e.g., "השלמת {{completedCount}} מתוך {{totalCount}} עולמות."
+    ctaButton: string; // e.g., "המשך לעולם המומלץ: {{worldName}}"
+  };
+  reviewCard: {
+    title: string;
+    description: string;
+    button: string;
+  };
+  worldCard: {
+    statuses: {
+      completed: string;
+      recommended: string;
+      active: string;
+      available: string;
+      locked: string;
+    };
+    actions: {
+      edit: string;
+      start: string;
+      continue: string;
+      locked: string;
+    };
+  };
+  completionBanner: {
+    title: string; // e.g., "כל הכבוד, {{name}}!"
+    subtitle: string;
+    description: string;
+  };
+};
+export type QuestionnaireLayoutDict = {
+  navHeader: string;
+  navSubtitle: string;
+  unauthenticatedPrompt: {
+    title: string;
+    subtitle: string;
+    loginButton: string;
+    registerButton: string;
+  };
+  buttons: {
+    save: string;
+    saving: string;
+    review: string;
+    map: string;
+  };
+  lastSaved: string; // e.g., "נשמר: {{time}}"
+  exitPrompt: {
+    title: string;
+    description: string;
+    cancel: string;
+    saveAndExit: string;
+    exitWithoutSaving: string;
+  };
+  mobileNav: {
+    title: string;
+    backToMap: string;
+    exit: string;
+    reviewAnswers: string;
+  };
+  tooltips: {
+    faq: string;
+    accessibility: string;
+  };
+  profileNotice: {
+    title: string;
+    textPart1: string;
+    textPart2: string;
+    textPart3: string;
+    link: string;
+  };
+};
+
+export type WorldComponentDict = {
+  header: {
+    questionLabel: string; // e.g., "שאלה {{current}} מתוך {{total}}"
+  };
+  errors: {
+    loadingFailedTitle: string;
+    loadingFailedDescription: string;
+    invalidQuestion: string;
+  };
+  buttons: {
+    backToMap: string;
+    hideList: string;
+    showList: string;
+    questionList: string;
+    previous: string;
+    next: string;
+    finish: string;
+  };
+  listSheet: {
+    title: string; // e.g., "כל השאלות ב{{worldTitle}}"
+    description: string;
+    legend: {
+      completed: string;
+      required: string;
+      notAnswered: string;
+    };
+  };
+};
+
+export type AIAdvisorDialogDict = {
+  triggerButton: string;
+  dialogTitle: string;
+  dialogDescription: string;
+  closeButton: string;
+  loadingTitle: string;
+  loadingDescription: string;
+  // שדה יחיד לכותרת שגיאה כללית
+  errorTitle: string; 
+  // שדה יחיד לתיאור השגיאה באלרט
+  errorAlertDescription: string; 
+  retryButton: string;
+  initialState: string;
+  // שדות ייעודיים להודעת ה-toast
+  toastErrorTitle: string; 
+  toastErrorDescription: string; // Placeholder: {{error}}
+};
+
+
+export type AnalysisResultDisplayDict = {
+  tabs: {
+    summary: string;
+    completeness: string;
+    tips: string;
+  };
+  summary: {
+    // השמות הנכונים הם myPersonality...
+    myPersonalityTitle: string;
+    myPersonalityDescription: string;
+    lookingForTitle: string;
+    lookingForDescription: string;
+  };
+  completeness: {
+    title: string;
+    description: string;
+    status: {
+      complete: string;
+      partial: string;
+      missing: string;
+    };
+  };
+  tips: {
+    title: string;
+    description: string;
+  };
+
+ };
+ export type AnswerInputDict = {
+  clearSelection: string;
+  tooltips: {
+    copy: string;
+    copied: string;
+    clearText: string;
+    removeCustomAnswer: string;
+    resetAllocation: string;
+  };
+  multiSelectWithOther: {
+    addOtherOptionLabel: string;
+    otherOptionPlaceholder: string;
+    addButton: string;
+    addedAnswersLabel: string;
+    errorExists: string;
+  };
+  multiSelect: {
+    maxSelectionError: string; // e.g., "ניתן לבחור עד {{count}} אפשרויות"
+    selectedInfo: string; // e.g., "נבחרו {{count}} אפשרויות"
+    minLabel: string; // e.g., "מינימום"
+    maxLabel: string; // e.g., "מקסימום"
+  };
+  openText: {
+    placeholder: string;
+    minLengthRequired: string; // e.g., "נדרשים עוד {{count}} תווים"
+    minLengthMet: string;
+    maxLengthExceeded: string;
+    minLengthInfoRequired: string; // e.g., "נדרש לפחות {{count}} תווים"
+    minLengthInfoRecommended: string; // e.g., "מומלץ לפחות {{count}} תווים"
+    estimatedTime: string; // e.g., "זמן כתיבה משוער: {{count}} דקות"
+    tipsButton: string;
+  };
+  budgetAllocation: {
+    totalAllocated: string; // e.g., "סה״כ הוקצה:"
+    remaining: string; // e.g., "חסר {{count}}"
+    surplus: string; // e.g., "עודף {{count}}"
+    resetButton: string;
+  };
+  unsupportedType: string; // e.g., "אופס! סוג השאלה {{type}} אינו נתמך כרגע."
+};
+
+export type InteractiveScaleDict = {
+  selectedValue: string; // e.g., "ערך נבחר: {{value}}"
+  ariaLabel: string; // e.g., "Scale value {{value}}"
+};
+
+
+// START: Additions for AccessibilityFeatures.tsx
+type ContrastOptionDict = {
+  label: string;
+  description: string;
+};
+
+type AdvancedOptionDict = {
+  label: string;
+  description: string;
+};
+
+export type AccessibilityFeaturesDict = {
+  panelTitle: string;
+  panelSubtitle: string;
+  changedBadge: string;
+  triggerButton: {
+    open: string;
+    close: string;
+  };
+  resetButton: string;
+  textSize: {
+    title: string;
+    description: string;
+  };
+  displayMode: {
+    title: string;
+  };
+  contrastOptions: {
+    normal: ContrastOptionDict;
+    high: ContrastOptionDict;
+    dark: ContrastOptionDict;
+  };
+  additionalSettings: {
+    title: string;
+  };
+  advancedOptions: {
+    sound: AdvancedOptionDict;
+    reader: AdvancedOptionDict;
+    cursor: AdvancedOptionDict;
+    font: AdvancedOptionDict;
+    motion: AdvancedOptionDict;
+  };
+  settingNames: {
+    [key in 'fontScale' | 'contrastMode' | 'reducedMotion' | 'readableMode' | 'bigCursor' | 'textReader' | 'soundEnabled']: string;
+  };
+  toasts: {
+    settingUpdated: string; // Placeholder: {{settingName}}
+    settingsReset: string;
+    readerEnabled: string;
+  };
+};
+// END: Additions for AccessibilityFeatures.tsx
+
+export type ProfileSectionDict = {
+  loading: string;
+  header: {
+    title: string;
+    subtitleEdit: string;
+    subtitleView: string;
+  };
+  buttons: {
+    edit: string;
+    cancel: string;
+    save: string;
+    saveChanges: string;
+  };
+  cards: {
+    personal: {
+      title: string;
+      genderLabel: string;
+      genderPlaceholder: string;
+      birthDateLabel: string;
+      heightLabel: string;
+      heightPlaceholder: string;
+      cityLabel: string;
+      cityPlaceholder: string;
+      originLabel: string;
+      originPlaceholder: string;
+      aliyaCountryLabel: string;
+      aliyaCountryPlaceholder: string;
+      aliyaYearLabel: string;
+      aliyaYearPlaceholder: string;
+      nativeLanguageLabel: string;
+      nativeLanguagePlaceholder: string;
+      additionalLanguagesLabel: string;
+      additionalLanguagesPlaceholder: string;
+      noAdditionalLanguages: string;
+      removeLanguageLabel: string; // Placeholder: {{lang}}
+    };
+    family: {
+      title: string;
+      maritalStatusLabel: string;
+      maritalStatusPlaceholder: string;
+      hasChildrenLabel: string;
+      hasChildrenYes: string;
+      parentStatusLabel: string;
+      parentStatusPlaceholder: string;
+      fatherOccupationLabel: string;
+      fatherOccupationPlaceholder: string;
+      motherOccupationLabel: string;
+      motherOccupationPlaceholder: string;
+      siblingsLabel: string;
+      siblingsPlaceholder: string;
+      positionLabel: string;
+      positionPlaceholder: string;
+    };
+    religion: {
+      title: string;
+      religiousLevelLabel: string;
+      religiousLevelPlaceholder: string;
+      religiousJourneyLabel: string;
+      religiousJourneyPlaceholder: string;
+      shomerNegiahLabel: string;
+      shomerNegiahYes: string;
+      headCoveringLabel: string;
+      headCoveringPlaceholder: string;
+      headCoveringDefault: string;
+      kippahTypeLabel: string;
+      kippahTypePlaceholder: string;
+      kippahTypeDefault: string;
+      matchmakerGenderLabel: string;
+      matchmakerGenderPlaceholder: string;
+      matchmakerGenderDefault: string;
+      influentialRabbiLabel: string;
+      influentialRabbiPlaceholder: string;
+      influentialRabbiEmpty: string;
+    };
+    about: {
+      title: string;
+      headlineLabel: string;
+      headlinePlaceholder: string;
+      headlineEmpty: {
+        title: string;
+        subtitle: string;
+        example: string;
+      };
+      aboutLabel: string;
+      aboutPlaceholder: string;
+      aboutEmpty: string;
+      inspiringCoupleLabel: string;
+      inspiringCouplePlaceholder: string;
+      inspiringCoupleEmpty: string;
+      privateNotesLabel: string;
+      privateNotesPlaceholder: string;
+      privateNotesEmpty: string;
+    };
+    medical: {
+      title: string;
+      tooltip: string;
+      description: string;
+      hasInfoLabel: string;
+      detailsLabel: string;
+      detailsPlaceholder: string;
+      timingLabel: string;
+      timingPlaceholder: string;
+      visibilityLabel: string;
+      visibilityToggle: {
+        visible: string;
+        hidden: string;
+      };
+      visibilityDescription: {
+        visible: string;
+        hidden: string;
+      };
+      display: {
+        sharedInfo: string;
+        yes: string;
+        no: string;
+        details: string;
+        noDetails: string;
+        timing: string;
+        visibility: string;
+        visibleBadge: string;
+        hiddenBadge: string;
+      };
+    };
+    education: {
+      title: string;
+      levelLabel: string;
+      levelPlaceholder: string;
+      detailsLabel: string;
+      detailsPlaceholder: string;
+      occupationLabel: string;
+      occupationPlaceholder: string;
+      serviceTypeLabel: string;
+      serviceTypePlaceholder: string;
+      serviceDetailsLabel: string;
+      serviceDetailsPlaceholder: string;
+    };
+    character: {
+      title: string;
+      traitsLabel: string;
+      traitsEmpty: string;
+      hobbiesLabel: string;
+      hobbiesEmpty: string;
+    };
+  };
+  placeholders: {
+    notSpecified: string;
+    notRelevant: string;
+    noYear: string;
+  };
+  tooltips: {
+    headline: string;
+    about: string; // Placeholder: {{count}}
+    inspiringCouple: string;
+    influentialRabbi: string;
+    privateNotes: string;
+  };
+  toasts: {
+    validationErrorTitle: string;
+    aboutMinLength: string; // Placeholder: {{count}}
+  };
+  options: {
+    gender: {
+      MALE: string;
+      FEMALE: string;
+    };
+    maritalStatus: {
+      single: string;
+      divorced: string;
+      widowed: string;
+      annulled: string;
+    };
+    religiousLevel: {
+      charedi: string;
+      charedi_modern: string;
+      dati_leumi_torani: string;
+      dati_leumi_liberal: string;
+      dati_leumi_standard: string;
+      masorti_strong: string;
+      masorti_light: string;
+      secular_traditional_connection: string;
+      secular: string;
+      spiritual_not_religious: string;
+      other: string;
+    };
+    religiousJourney: {
+      BORN_INTO_CURRENT_LIFESTYLE: string;
+      BORN_SECULAR: string;
+      BAAL_TESHUVA: string;
+      DATLASH: string;
+      CONVERT: string;
+      IN_PROCESS: string;
+      OTHER: string;
+    };
+    educationLevel: {
+      high_school: string;
+      vocational: string;
+      academic_student: string;
+      academic_ba: string;
+      academic_ma: string;
+      academic_phd: string;
+      yeshiva_seminary: string;
+      other: string;
+    };
+    serviceType: { [key in ServiceType]: string };
+    headCovering: { [key in HeadCoveringType]: string };
+    kippahType: { [key in KippahType]: string };
+    matchmakerGender: {
+      MALE: string;
+      FEMALE: string;
+      NONE: string;
+    };
+    medicalTiming: {
+      FROM_THE_START: string;
+      AFTER_FIRST_DATES: string;
+      WHEN_SERIOUS: string;
+      IN_COORDINATION_ONLY: string;
+    };
+    traits: { [key: string]: string };
+    hobbies: { [key: string]: string };
+  };
+  charCount: string; // e.g., " / {{count}}+ characters"
+};
+
+
+export type ProfileCardDict = {
+  loading: string;
+  header: {
+    title: string;
+    subtitleEdit: string;
+    subtitleView: string;
+  };
+  buttons: {
+    edit: string;
+    cancel: string;
+    save: string;
+    saveChanges: string;
+  };
+  cards: {
+    personal: {
+      title: string;
+      genderLabel: string;
+      genderPlaceholder: string;
+      birthDateLabel: string;
+      heightLabel: string;
+      heightPlaceholder: string;
+      cityLabel: string;
+      cityPlaceholder: string;
+      originLabel: string;
+      originPlaceholder: string;
+      aliyaCountryLabel: string;
+      aliyaCountryPlaceholder: string;
+      aliyaYearLabel: string;
+      aliyaYearPlaceholder: string;
+      nativeLanguageLabel: string;
+      nativeLanguagePlaceholder: string;
+      additionalLanguagesLabel: string;
+      additionalLanguagesPlaceholder: string;
+      noAdditionalLanguages: string;
+      removeLanguageLabel: string; // Placeholder: {{lang}}
+    };
+    family: {
+      title: string;
+      maritalStatusLabel: string;
+      maritalStatusPlaceholder: string;
+      hasChildrenLabel: string;
+      hasChildrenYes: string;
+      parentStatusLabel: string;
+      parentStatusPlaceholder: string;
+      fatherOccupationLabel: string;
+      fatherOccupationPlaceholder: string;
+      motherOccupationLabel: string;
+      motherOccupationPlaceholder: string;
+      siblingsLabel: string;
+      siblingsPlaceholder: string;
+      positionLabel: string;
+      positionPlaceholder: string;
+    };
+    religion: {
+      title: string;
+      religiousLevelLabel: string;
+      religiousLevelPlaceholder: string;
+      religiousJourneyLabel: string;
+      religiousJourneyPlaceholder: string;
+      shomerNegiahLabel: string;
+      shomerNegiahYes: string;
+      headCoveringLabel: string;
+      headCoveringPlaceholder: string;
+      headCoveringDefault: string;
+      kippahTypeLabel: string;
+      kippahTypePlaceholder: string;
+      kippahTypeDefault: string;
+      matchmakerGenderLabel: string;
+      matchmakerGenderPlaceholder: string;
+      matchmakerGenderDefault: string;
+      influentialRabbiLabel: string;
+      influentialRabbiPlaceholder: string;
+      influentialRabbiEmpty: string;
+    };
+    about: {
+      title: string;
+      headlineLabel: string;
+      headlinePlaceholder: string;
+      headlineEmpty: {
+        title: string;
+        subtitle: string;
+        example: string;
+      };
+      aboutLabel: string;
+      aboutPlaceholder: string;
+      aboutEmpty: string;
+      inspiringCoupleLabel: string;
+      inspiringCouplePlaceholder: string;
+      inspiringCoupleEmpty: string;
+      privateNotesLabel: string;
+      privateNotesPlaceholder: string;
+      privateNotesEmpty: string;
+    };
+    medical: {
+      title: string;
+      tooltip: string;
+      description: string;
+      hasInfoLabel: string;
+      detailsLabel: string;
+      detailsPlaceholder: string;
+      timingLabel: string;
+      timingPlaceholder: string;
+      visibilityLabel: string;
+      visibilityToggle: {
+        visible: string;
+        hidden: string;
+      };
+      visibilityDescription: {
+        visible: string;
+        hidden: string;
+      };
+      display: {
+        sharedInfo: string;
+        yes: string;
+        no: string;
+        details: string;
+        noDetails: string;
+        timing: string;
+        visibility: string;
+        visibleBadge: string;
+        hiddenBadge: string;
+      };
+    };
+    education: {
+      title: string;
+      levelLabel: string;
+      levelPlaceholder: string;
+      detailsLabel: string;
+      detailsPlaceholder: string;
+      occupationLabel: string;
+      occupationPlaceholder: string;
+      serviceTypeLabel: string;
+      serviceTypePlaceholder: string;
+      serviceDetailsLabel: string;
+      serviceDetailsPlaceholder: string;
+    };
+    character: {
+      title: string;
+      traitsLabel: string;
+      traitsEmpty: string;
+      hobbiesLabel: string;
+      hobbiesEmpty: string;
+    };
+  };
+  placeholders: {
+    notSpecified: string;
+    notRelevant: string;
+    noYear: string;
+  };
+  tooltips: {
+    headline: string;
+    about: string; // Placeholder: {{count}}
+    inspiringCouple: string;
+    influentialRabbi: string;
+    privateNotes: string;
+  };
+  toasts: {
+    validationErrorTitle: string;
+    aboutMinLength: string; // Placeholder: {{count}}
+  };
+  options: {
+    gender: {
+      MALE: string;
+      FEMALE: string;
+    };
+    maritalStatus: { [key: string]: string };
+    religiousLevel: { [key: string]: string };
+    religiousJourney: { [key: string]: string };
+    educationLevel: { [key: string]: string };
+    serviceType: { [key in ServiceType]: string };
+    headCovering: { [key in HeadCoveringType]: string };
+    kippahType: { [key in KippahType]: string };
+    matchmakerGender: {
+      MALE: string;
+      FEMALE: string;
+      NONE: string;
+    };
+    medicalTiming: {
+      FROM_THE_START: string;
+      AFTER_FIRST_DATES: string;
+      WHEN_SERIOUS: string;
+      IN_COORDINATION_ONLY: string;
+    };
+    traits: { [key: string]: string };
+    hobbies: { [key: string]: string };
+  };
+  charCount: string; // e.g., " / {{count}}+ characters"
+};
+
+// START: Additions for MatchResultCard.tsx
+export type MatchResultCardDict = {
+  premiumBadge: string;
+  matchPercentageBadge: string; // Placeholder: {{percentage}}
+  tooltips: {
+    addToBookmarks: string;
+    removeFromBookmarks: string;
+    traitDescription: string; // Placeholder: {{description}}
+  };
+  buttons: {
+    reject: string;
+    confirmReject: string;
+    cancel: string;
+    accept: string;
+    continueChat: string;
+    showMore: string;
+    hideMore: string;
+    viewFullProfile: string;
+  };
+  sections: {
+    about: string; // Placeholder: {{name}}
+    topMatches: string;
+    commonInterests: string;
+    lastActive: string; // Placeholder: {{time}}
+  };
+  lastActiveFormat: {
+    unknown: string;
+    today: string;
+    yesterday: string;
+    daysAgo: string; // Placeholder: {{count}}
+    weeksAgo: string; // Placeholder: {{count}}
+    monthsAgo: string; // Placeholder: {{count}}
+  };
+};
+// END: Additions for MatchResultCard.tsx
+
+// START: Additions for Profile Elements & Utils
+
+export type MinimalCardDict = {
+  nameNotAvailable: string;
+  yearsOld: string; // Placeholder: {{age}}
+  profileImageAlt: string;
+  available: string;
+  inProcess: string;
+};
+
+export type StatsCardDict = {
+  availabilityStatusTitle: string;
+  availabilityValue: {
+    available: string; // e.g., "פנוי/ה"
+    unavailable: string; // e.g., "לא פנוי/ה"
+  };
+};
+
+export type VisibilityControlDict = {
+  tooltip: {
+    visible: string;
+    hidden: string;
+    actionPrefix: string;
+    actionHide: string;
+    actionShow: string;
+  };
+  srAction: {
+    hide: string;
+    show: string;
+  };
+  ariaLabel: string; // Placeholder: {{status}} -> "visible" or "hidden"
+};
+
+export type BudgetDisplayDict = {
+  errorInvalidData: string;
+  noValuesAllocated: string;
+};
+
+export type ProfileUtilsDict = {
+  validationErrors: {
+    heightRange: string;
+  };
+};
+
+// END: Additions for Profile Elements & Utils

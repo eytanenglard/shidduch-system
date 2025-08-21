@@ -124,3 +124,4 @@ export const config = {
     '/((?!api|_next/static|_next/image|assets|images|favicon.ico|sw.js|site.webmanifest).*)',
   ],
 };
+

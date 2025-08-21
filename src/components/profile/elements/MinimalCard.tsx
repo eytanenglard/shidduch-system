@@ -1,4 +1,4 @@
-// src/components/shared/profile/elements/MinimalCard.tsx
+// src/components/profile/elements/MinimalCard.tsx
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,12 +6,14 @@ import { User, MapPin, Scroll, Heart } from "lucide-react";
 import Image from "next/image";
 import { calculateAge } from "../utils";
 import type { UserProfile, UserImage } from "@/types/next-auth";
+import type { MinimalCardDict } from "@/types/dictionary";
 
 interface MinimalCardProps {
   profile: UserProfile;
   mainImage?: UserImage;
   onClick?: () => void;
   className?: string;
+  dict: MinimalCardDict;
 }
 
 const MinimalCard: React.FC<MinimalCardProps> = ({
@@ -19,13 +21,12 @@ const MinimalCard: React.FC<MinimalCardProps> = ({
   mainImage,
   onClick,
   className = "",
+  dict,
 }) => {
   const age = calculateAge(new Date(profile.birthDate));
-
-  // Handle cases where profile.user might be undefined
   const userName = profile.user
     ? `${profile.user.firstName} ${profile.user.lastName}`
-    : "שם לא זמין"; // "Name not available" in Hebrew
+    : dict.nameNotAvailable;
 
   return (
     <Card
@@ -33,12 +34,12 @@ const MinimalCard: React.FC<MinimalCardProps> = ({
       className={`relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow ${className}`}
     >
       <div className="flex gap-4 p-4">
-        {/* תמונת פרופיל */}
+        {/* Profile Image */}
         <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100">
           {mainImage ? (
             <Image
               src={mainImage.url}
-              alt="תמונת פרופיל"
+              alt={dict.profileImageAlt}
               fill
               className="object-cover"
               sizes="96px"
@@ -50,11 +51,13 @@ const MinimalCard: React.FC<MinimalCardProps> = ({
           )}
         </div>
 
-        {/* מידע בסיסי */}
+        {/* Basic Info */}
         <div className="flex-1 space-y-2">
           <div>
             <h3 className="text-lg font-medium">{userName}</h3>
-            <p className="text-sm text-gray-500">{age} שנים</p>
+            <p className="text-sm text-gray-500">
+              {dict.yearsOld.replace('{{age}}', age.toString())}
+            </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -72,17 +75,17 @@ const MinimalCard: React.FC<MinimalCardProps> = ({
             )}
           </div>
 
-          {/* סטטוס זמינות */}
+          {/* Availability Status */}
           <div className="flex items-center gap-2 text-sm">
             {profile.availabilityStatus === "AVAILABLE" ? (
               <Badge variant="success" className="flex items-center gap-1">
                 <Heart className="w-3 h-3" />
-                פנוי/ה להצעות
+                {dict.available}
               </Badge>
             ) : (
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Heart className="w-3 h-3" />
-                בתהליך הכרות
+                {dict.inProcess}
               </Badge>
             )}
           </div>

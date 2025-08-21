@@ -1,29 +1,37 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle2, ArrowRight } from 'lucide-react';
+import type { QuestionnaireCompletePageDict } from '@/types/dictionary'; // Import dictionary type
 
-export default function QuestionnairePage() {
+// --- Props Interface ---
+interface QuestionnaireCompleteProps {
+  dict: QuestionnaireCompletePageDict;
+}
+
+export default function QuestionnaireComplete({
+  dict,
+}: QuestionnaireCompleteProps) {
   const { status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
     }
   }, [status, router]);
 
-  if (status === "loading") {
+  if (status === 'loading') {
     return (
       <div className="container mx-auto py-8 px-4">
         <Card className="max-w-xl mx-auto">
           <CardContent className="p-8">
-            <div className="text-center">טוען...</div>
+            <div className="text-center">{dict.loading}</div>
           </CardContent>
         </Card>
       </div>
@@ -37,28 +45,25 @@ export default function QuestionnairePage() {
           <div className="flex justify-center mb-4">
             <CheckCircle2 className="w-12 h-12 text-green-500" />
           </div>
-          <CardTitle className="text-2xl">תודה על מילוי השאלון!</CardTitle>
+          <CardTitle className="text-2xl">{dict.title}</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-6 pt-4">
           <div className="text-center text-gray-600 space-y-2">
-            <p>התשובות שלך נשמרו בהצלחה במערכת</p>
-            <p>הצוות שלנו יעבור על התשובות ויחזור אליך בהקדם</p>
+            <p>{dict.successMessage1}</p>
+            <p>{dict.successMessage2}</p>
           </div>
 
           <Alert className="bg-blue-50 border-blue-200">
-            <AlertDescription>
-              בזמן שהצוות עובד על ההתאמות עבורך, תוכל/י להשלים את הפרופיל האישי
-              שלך
-            </AlertDescription>
+            <AlertDescription>{dict.profilePrompt}</AlertDescription>
           </Alert>
 
           <div className="flex justify-center pt-4">
             <Button
-              onClick={() => router.push("/profile")}
+              onClick={() => router.push('/profile')}
               className="flex items-center"
             >
-              המשך לפרופיל
+              {dict.continueButton}
               <ArrowRight className="mr-2 h-5 w-5" />
             </Button>
           </div>

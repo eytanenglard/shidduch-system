@@ -1,25 +1,29 @@
-import React from "react";
-import Link from 'next/link'; // *** הוספה חדשה ***
-import { Button } from "@/components/ui/button";
+// src/components/questionnaire/common/QuestionnaireCompletion.tsx
+import React from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Send, CheckCircle2, BookUser } from "lucide-react"; // *** הוספנו אייקון BookUser ***
+} from '@/components/ui/card';
+import { Send, CheckCircle2, BookUser, Loader2 } from 'lucide-react';
+import type { QuestionnaireCompletionDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
 
 interface QuestionnaireCompletionProps {
   onSendToMatching: () => void;
   isLoading?: boolean;
   isLoggedIn?: boolean;
+  dict: QuestionnaireCompletionDict; // קבלת המילון כ-prop
 }
 
 const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
   onSendToMatching,
   isLoading = false,
   isLoggedIn = false,
+  dict, // שימוש במשתנה dict
 }) => {
   return (
     <div className="max-w-xl mx-auto p-4">
@@ -28,35 +32,36 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
           <div className="flex justify-center mb-4">
             <CheckCircle2 className="w-12 h-12 text-green-500" />
           </div>
-          <CardTitle className="text-2xl text-center">
-            כל הכבוד! סיימת את השאלון
-          </CardTitle>
+          <CardTitle className="text-2xl text-center">{dict.title}</CardTitle>
           <CardDescription className="text-center">
-            {isLoggedIn
-              ? "התשובות שלך יעזרו לנו למצוא עבורך את ההתאמה הטובה ביותר"
-              : "כדי לשמור את התשובות ולהתחיל בתהליך ההתאמה, יש להתחבר למערכת"}
+            {isLoggedIn ? dict.loggedInDescription : dict.guestDescription}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {isLoggedIn ? (
             <>
               <div className="text-center text-gray-600">
-                <p>כעת ניתן לשלוח את השאלון לצוות האיפיון שלנו</p>
+                <p>{dict.loggedInContent.prompt}</p>
                 <p className="text-sm mt-2">
-                  הצוות יעבור על התשובות ויתחיל בתהליך ההתאמה
+                  {dict.loggedInContent.promptSubtitle}
                 </p>
               </div>
-              <div className="space-y-3"> {/* *** עטפנו את הכפתורים ב-div *** */}
+              <div className="space-y-3">
                 <Button
                   className="w-full"
                   size="lg"
                   onClick={onSendToMatching}
                   disabled={isLoading}
                 >
-                  <Send className="w-5 h-5 ml-2" />
-                  {isLoading ? "שולח..." : "שלח לאיפיון"}
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 ml-2 animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5 ml-2" />
+                  )}
+                  {isLoading
+                    ? dict.loggedInContent.sendingButton
+                    : dict.loggedInContent.sendButton}
                 </Button>
-                {/* --- START: הוספת קישור לצפייה בכל התשובות --- */}
                 <Link href="/profile?tab=questionnaire" className="block">
                   <Button
                     variant="outline"
@@ -65,15 +70,14 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
                     disabled={isLoading}
                   >
                     <BookUser className="w-5 h-5 ml-2 text-blue-600" />
-                    סקירת כל התשובות שלי
+                    {dict.loggedInContent.reviewButton}
                   </Button>
                 </Link>
-                {/* --- END: הוספת קישור לצפייה בכל התשובות --- */}
               </div>
             </>
           ) : (
             <Button className="w-full" size="lg" onClick={onSendToMatching}>
-              התחבר למערכת
+              {dict.guestContent.loginButton}
             </Button>
           )}
         </CardContent>
