@@ -39,21 +39,21 @@ import type {
   UserImage,
   QuestionnaireResponse,
 } from '@/types/next-auth';
-import { UnifiedProfileDashboardDict } from '@/types/dictionary'; // ייבוא הטיפוס החדש
+import type { ProfilePageDictionary } from '@/types/dictionary'; // <-- שלב 1: ייבוא הטיפוס הנכון
 
 // Props interface for the component, now including the dictionary
 interface UnifiedProfileDashboardProps {
   viewOnly?: boolean;
   userId?: string;
   initialTab?: string;
-  dict: UnifiedProfileDashboardDict; // הוספת המילון כ-prop
+  dict: ProfilePageDictionary; // <-- שלב 1: שימוש בטיפוס הנכון
 }
 
 const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   viewOnly = false,
   userId,
   initialTab = 'overview',
-  dict, // קבלת המילון
+  dict, // קבלת המילון המלא
 }) => {
   const {
     data: session,
@@ -140,7 +140,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         errorMessage = err.message || errorMessage;
       }
       // Use dictionary for error message
-      const translatedError = dict.loadError.replace('{{error}}', errorMessage);
+      const translatedError = dict.dashboard.loadError.replace(
+        '{{error}}',
+        errorMessage
+      );
       setError(translatedError);
       toast.error(translatedError);
     } finally {
@@ -181,12 +184,12 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         }
         setHasSeenPreview(true);
         // Use dictionary for success toast
-        toast.success(dict.viewedPreviewSuccess);
+        toast.success(dict.dashboard.viewedPreviewSuccess);
         await updateSession();
       } catch (error) {
         console.error('Error in handlePreviewClick:', error);
         // Use dictionary for error toast
-        toast.error(dict.viewedPreviewError);
+        toast.error(dict.dashboard.viewedPreviewError);
       }
     }
   };
@@ -206,12 +209,12 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setProfileData(data.profile);
         setIsEditing(false);
         // Use dictionary for success toast
-        toast.success(dict.updateSuccess);
+        toast.success(dict.dashboard.updateSuccess);
         setError('');
       } else {
         const errorMessage = data.message || 'שגיאה בעדכון הפרופיל';
         // Use dictionary for error message and toast
-        const translatedError = dict.updateError.replace(
+        const translatedError = dict.dashboard.updateError.replace(
           '{{error}}',
           errorMessage
         );
@@ -221,7 +224,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     } catch (err) {
       console.error('Save error:', err);
       const errorMessage = 'שגיאה בעדכון הפרופיל';
-      const translatedError = dict.updateError.replace(
+      const translatedError = dict.dashboard.updateError.replace(
         '{{error}}',
         errorMessage
       );
@@ -263,7 +266,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         <div className="flex items-center gap-2 text-lg text-cyan-600">
           <Loader2 className="animate-spin h-6 w-6" />
           {/* Use dictionary for loading text */}
-          <span>{dict.loadingData}</span>
+          <span>{dict.dashboard.loadingData}</span>
         </div>
       </div>
     );
@@ -312,14 +315,14 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 onPreviewClick={handlePreviewClick}
                 questionnaireResponse={questionnaireResponse}
                 // Pass the relevant dictionary part to the child component
-                dict={dict.checklist}
+                dict={dict.dashboard.checklist}
               />
               <div className="my-6 md:my-8 text-center">
                 <AIProfileAdvisorDialog
                   userId={user.id}
                   // Pass the relevant dictionary part to the child component
-                  dict={dict.aiAdvisor}
-                  analysisDict={dict.analysisResult}
+                  dict={dict.dashboard.aiAdvisor}
+                  analysisDict={dict.dashboard.analysisResult}
                 />
               </div>
             </>
@@ -340,7 +343,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                       className="px-8 py-3 text-base sm:text-lg gap-2 rounded-full border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400 transition-all duration-300 shadow-sm hover:shadow-md"
                     >
                       {/* Use dictionary for button text */}
-                      {dict.previewButton}{' '}
+                      {dict.dashboard.previewButton}{' '}
                       <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
                     </Button>
                   </DialogTrigger>
@@ -361,7 +364,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     ) : (
                       <p className="text-center text-gray-500 py-10">
                         {/* Use dictionary for loading text */}
-                        {dict.previewLoading}
+                        {dict.dashboard.previewLoading}
                       </p>
                     )}
                   </DialogContent>
@@ -379,14 +382,16 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
               <ScrollArea dir="rtl" className="w-auto max-w-full">
                 <TabsList className="h-auto p-1.5 bg-white/70 backdrop-blur-sm rounded-full shadow-md gap-1 inline-flex flex-nowrap">
                   <TabsTrigger value="overview">
-                    {dict.tabs.overview}
+                    {dict.dashboard.tabs.overview}
                   </TabsTrigger>
-                  <TabsTrigger value="photos">{dict.tabs.photos}</TabsTrigger>
+                  <TabsTrigger value="photos">
+                    {dict.dashboard.tabs.photos}
+                  </TabsTrigger>
                   <TabsTrigger value="preferences">
-                    {dict.tabs.preferences}
+                    {dict.dashboard.tabs.preferences}
                   </TabsTrigger>
                   <TabsTrigger value="questionnaire">
-                    {dict.tabs.questionnaire}
+                    {dict.dashboard.tabs.questionnaire}
                   </TabsTrigger>
                 </TabsList>
                 <ScrollBar orientation="horizontal" className="mt-1" />
@@ -405,7 +410,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   />
                 ) : (
                   <p className="text-center text-gray-500 py-10">
-                    {dict.tabContent.loadingOverview}
+                    {dict.dashboard.tabContent.loadingOverview}
                   </p>
                 )}
               </TabsContent>
@@ -432,7 +437,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   />
                 ) : (
                   <p className="text-center text-gray-500 py-10">
-                    {dict.tabContent.loadingPreferences}
+                    {dict.dashboard.tabContent.loadingPreferences}
                   </p>
                 )}
               </TabsContent>
@@ -446,8 +451,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 ) : (
                   <div className="text-center py-12 text-gray-500">
                     {isLoading
-                      ? dict.tabContent.loadingQuestionnaire
-                      : dict.tabContent.noQuestionnaire}
+                      ? dict.dashboard.tabContent.loadingQuestionnaire
+                      : dict.dashboard.tabContent.noQuestionnaire}
                     {!isLoading && isOwnProfile && (
                       <Button
                         asChild
@@ -455,7 +460,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                         className="mt-2 text-cyan-600"
                       >
                         <Link href="/questionnaire">
-                          {dict.tabContent.fillQuestionnaireLink}
+                          {dict.dashboard.tabContent.fillQuestionnaireLink}
                         </Link>
                       </Button>
                     )}

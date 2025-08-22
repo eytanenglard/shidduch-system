@@ -1202,15 +1202,8 @@ export type UnifiedProfileDashboardDict = {
   checklist: ProfileChecklistDict;
   aiAdvisor: AIAdvisorDialogDict;
   analysisResult: AnalysisResultDisplayDict;
-  
-  // --- ▼▼▼ להוסיף את 4 השורות האלה ▼▼▼ ---
-  profileCard: ProfileCardDict;
-  photosSection: PhotosSectionDict;
-  preferencesSection: PreferencesSectionDict;
-  profileSection: ProfileSectionDict;
-  // --- ▲▲▲ עד כאן ▲▲▲ ---
-};
 
+};
 export type PreferencesSectionDict = {
   header: {
     title: string;
