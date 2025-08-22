@@ -694,6 +694,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     images={targetParty.images}
                     questionnaire={questionnaire}
                     viewMode="candidate"
+                    dict={dict.profileCard}
                   />
                 ) : (
                   <div className="text-center p-12">

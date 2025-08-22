@@ -40,6 +40,9 @@ import type {
   WorldComponentDict,
   QuestionCardDict,
   WorldIntroDict,
+  AnswerInputDict,
+  InteractiveScaleDict,
+  QuestionsListDict,
 } from '@/types/dictionary';
 
 import { personalityQuestions } from '../questions/personality/personalityQuestions';
@@ -90,10 +93,12 @@ interface WorldComponentDynamicProps extends WorldComponentProps {
   isSaving?: boolean;
   isDirectNavigation?: boolean;
   dict: {
-    // The dict is now structured
     world: WorldComponentDict;
     questionCard: QuestionCardDict;
     worldIntro: WorldIntroDict;
+    answerInput: AnswerInputDict;
+    interactiveScale: InteractiveScaleDict;
+    questionsList: QuestionsListDict;
   };
 }
 
@@ -236,8 +241,8 @@ export default function WorldComponent({
     else onBack();
   };
 
-  const handleClearAnswer = () => {
-    // ... logic remains the same
+  const handleClearAnswer = (questionId: string) => {
+    onAnswer(questionId, undefined);
   };
 
   if (!isIntroComplete) {
@@ -374,6 +379,7 @@ export default function WorldComponent({
                     language={language}
                     themeColor={themeColor}
                     className="h-full"
+                    dict={dict.questionsList}
                   />
                 </div>
               </SheetContent>
@@ -422,10 +428,12 @@ export default function WorldComponent({
             }));
             onAnswer(currentQuestion.id, value);
           }}
-          onClear={handleClearAnswer}
-          language={language}
-          showValidation={!!validationErrors[currentQuestion.id]}
+          onClear={() => handleClearAnswer(currentQuestion.id)}
           validationError={validationErrors[currentQuestion.id]}
+          dict={{
+            answerInput: dict.answerInput,
+            interactiveScale: dict.interactiveScale,
+          }}
         />
       </QuestionCard>
     </motion.div>
@@ -555,6 +563,7 @@ export default function WorldComponent({
                       language={language}
                       themeColor={themeColor}
                       className="h-full"
+                      dict={dict.questionsList}
                     />
                   </CardContent>
                 </Card>

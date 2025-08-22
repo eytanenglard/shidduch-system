@@ -18,14 +18,14 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import type { FaqDict, FaqAnswerPart } from '@/types/dictionary'; // Import dictionary type
+import type { QuestionnaireFaqDict, FaqAnswerPart } from '@/types/dictionary'; // Import dictionary type
 
 interface FAQProps {
   className?: string;
   showSearch?: boolean;
   showCategories?: boolean;
   initialOpenId?: string;
-  dict: FaqDict; // Use the specific dictionary type
+  dict: QuestionnaireFaqDict; // Use the specific dictionary type
 }
 
 // Metadata for FAQs (category, popularity) which is not part of translation

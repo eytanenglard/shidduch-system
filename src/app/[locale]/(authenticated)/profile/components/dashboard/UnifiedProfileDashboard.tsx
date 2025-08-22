@@ -319,6 +319,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   userId={user.id}
                   // Pass the relevant dictionary part to the child component
                   dict={dict.aiAdvisor}
+                  analysisDict={dict.analysisResult}
                 />
               </div>
             </>
@@ -355,6 +356,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                         }
                         className="h-full"
                         onClose={() => setPreviewOpen(false)}
+                        dict={dict.profileCard}
                       />
                     ) : (
                       <p className="text-center text-gray-500 py-10">
@@ -399,6 +401,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     setIsEditing={setIsEditing}
                     onSave={handleSave}
                     viewOnly={viewOnly || !isOwnProfile}
+                    dict={dict.profileSection}
                   />
                 ) : (
                   <p className="text-center text-gray-500 py-10">
@@ -414,6 +417,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   onUpload={handleImageUpload}
                   onSetMain={handleSetMainImage}
                   onDelete={handleDeleteImage}
+                  dict={dict.photosSection}
                 />
               </TabsContent>
               <TabsContent value="preferences">
@@ -424,6 +428,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     setIsEditing={setIsEditing}
                     onChange={handleSave}
                     viewOnly={viewOnly || !isOwnProfile}
+                    dictionary={dict.preferencesSection}
                   />
                 ) : (
                   <p className="text-center text-gray-500 py-10">

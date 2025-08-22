@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries
-# Generated on: 2025-08-21 22:39:06
+# Generated on: 2025-08-22 08:59:48
 ################################################################################
 
 ================================================================================
@@ -1294,7 +1294,7 @@ Content:
     },
     "charCount": "/ {{count}}+ characters"
   },
-    "profilecard": {
+    "profileCard": {
     "loading": "Loading profile data...",
     "header": {
       "title": "Personal Profile",
@@ -1643,8 +1643,8 @@ Content:
         "tips": "טיפים לשיפור"
       },
       "summary": {
-        "personalityTitle": "מי אני? (סיכום AI)",
-        "personalityDescription": "כך ה-AI מבין את האישיות שלך על סמך מה שסיפרת.",
+        "myPersonalityTitle": "מי אני? (סיכום AI)",
+        "myPersonalityDescription": "כך ה-AI מבין את האישיות שלך על סמך מה שסיפרת.",
         "lookingForTitle": "את מי אני מחפש/ת? (סיכום AI)",
         "lookingForDescription": "סיכום ההעדפות שלך לבן/בת הזוג האידיאלי/ת."
       },
@@ -2103,7 +2103,7 @@ Content:
     },
     "charCount": "/ {{count}}+ תווים"
   },
-    "profilecard": {
+    "profileCard": {
     "loading": "טוען נתוני פרופיל...",
     "header": {
       "title": "פרופיל אישי",
@@ -2724,7 +2724,9 @@ Content:
       "addOtherOptionLabel": "Add another option (optional)",
       "otherOptionPlaceholder": "Type another option...",
       "addButton": "Add",
-      "addedAnswersLabel": "Your added answers:"
+      "addedAnswersLabel": "Your added answers:",
+            "errorExists": "This option already exists"
+
     },
     "multiSelect": {
       "maxSelectionError": "You can select up to {{count}} options",
@@ -3125,15 +3127,38 @@ Content:
     }
   },
 
-        "matchResultCard": {
+ "matchResultCard": {
     "premiumBadge": "Recommended Match",
     "matchPercentageBadge": "{{percentage}}% Match",
     "tooltips": {
       "addToBookmarks": "Add to bookmarks",
       "removeFromBookmarks": "Remove from bookmarks",
       "traitDescription": "{{description}}"
+    },
+    "buttons": {
+      "reject": "Not a fit",
+      "confirmReject": "Confirm Decline",
+      "cancel": "Cancel",
+      "accept": "Interested",
+      "continueChat": "Continue Chat",
+      "showMore": "Show more details",
+      "hideMore": "Hide details",
+      "viewFullProfile": "View Full Profile"
+    },
+    "sections": {
+      "about": "A bit about {{name}}",
+      "topMatches": "Top Matching Areas",
+      "commonInterests": "Common Interests",
+      "lastActive": "Last active: {{time}}"
+    },
+    "lastActiveFormat": {
+      "unknown": "Unknown",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "daysAgo": "{{count}} days ago",
+      "weeksAgo": "{{count}} weeks ago",
+      "monthsAgo": "{{count}} months ago"
     }
-
   }
 
 
@@ -3539,7 +3564,8 @@ Content:
       "addOtherOptionLabel": "הוספת אפשרות אחרת (אופציונלי)",
       "otherOptionPlaceholder": "הקלד/י אפשרות נוספת...",
       "addButton": "הוסף",
-      "addedAnswersLabel": "תשובות שהוספת:"
+      "addedAnswersLabel": "תשובות שהוספת:",
+      "errorExists": "אפשרות זו כבר קיימת"
     },
     "multiSelect": {
       "maxSelectionError": "ניתן לבחור עד {{count}} אפשרויות",
@@ -3939,16 +3965,40 @@ Content:
       "monthsAgo": "לפני {{count}} חודשים"
     }
   },
-    "matchResultCard": {
+"matchResultCard": {
     "premiumBadge": "התאמה מומלצת",
     "matchPercentageBadge": "{{percentage}}% התאמה",
     "tooltips": {
       "addToBookmarks": "הוסף למועדפים",
       "removeFromBookmarks": "הסר ממועדפים",
       "traitDescription": "{{description}}"
+    },
+    "buttons": {
+      "reject": "לא מתאים",
+      "confirmReject": "לאשר דחייה",
+      "cancel": "בטל",
+      "accept": "מעוניין/ת",
+      "continueChat": "המשך שיחה",
+      "showMore": "הצג פרטים נוספים",
+      "hideMore": "הסתר פרטים נוספים",
+      "viewFullProfile": "צפייה בפרופיל מלא"
+    },
+    "sections": {
+      "about": "קצת על {{name}}",
+      "topMatches": "תחומי התאמה בולטים",
+      "commonInterests": "תחומי עניין משותפים",
+      "lastActive": "פעילות אחרונה: {{time}}"
+    },
+    "lastActiveFormat": {
+      "unknown": "לא ידוע",
+      "today": "היום",
+      "yesterday": "אתמול",
+      "daysAgo": "לפני {{count}} ימים",
+      "weeksAgo": "לפני {{count}} שבועות",
+      "monthsAgo": "לפני {{count}} חודשים"
     }
-
   }
+
   
 
 

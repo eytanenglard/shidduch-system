@@ -1695,8 +1695,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   */}
                   <DialogContent className="w-screen h-screen sm:w-[95vw] sm:h-[90vh] sm:max-w-6xl p-0 bg-white/95 backdrop-blur-md sm:rounded-3xl shadow-2xl border-none overflow-hidden">
                     {profileData ? (
-                      <ProfileCard
-                        profile={profileData}
+                            profile={profileData}
                         images={images}
                         questionnaire={questionnaireResponse}
                         viewMode="candidate"

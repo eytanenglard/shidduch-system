@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-08-21 21:34:31
+# Generated on: 2025-08-22 09:00:31
 ################################################################################
 
 ================================================================================
@@ -715,32 +715,40 @@ export default function MatchmakingQuestionnaire({
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnaireComplete.tsx
 --------------------------------------------------------------------------------
 Content:
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle2, ArrowRight } from 'lucide-react';
+import type { QuestionnaireCompletePageDict } from '@/types/dictionary'; // Import dictionary type
 
-export default function QuestionnairePage() {
+// --- Props Interface ---
+interface QuestionnaireCompleteProps {
+  dict: QuestionnaireCompletePageDict;
+}
+
+export default function QuestionnaireComplete({
+  dict,
+}: QuestionnaireCompleteProps) {
   const { status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
     }
   }, [status, router]);
 
-  if (status === "loading") {
+  if (status === 'loading') {
     return (
       <div className="container mx-auto py-8 px-4">
         <Card className="max-w-xl mx-auto">
           <CardContent className="p-8">
-            <div className="text-center">טוען...</div>
+            <div className="text-center">{dict.loading}</div>
           </CardContent>
         </Card>
       </div>
@@ -754,28 +762,25 @@ export default function QuestionnairePage() {
           <div className="flex justify-center mb-4">
             <CheckCircle2 className="w-12 h-12 text-green-500" />
           </div>
-          <CardTitle className="text-2xl">תודה על מילוי השאלון!</CardTitle>
+          <CardTitle className="text-2xl">{dict.title}</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-6 pt-4">
           <div className="text-center text-gray-600 space-y-2">
-            <p>התשובות שלך נשמרו בהצלחה במערכת</p>
-            <p>הצוות שלנו יעבור על התשובות ויחזור אליך בהקדם</p>
+            <p>{dict.successMessage1}</p>
+            <p>{dict.successMessage2}</p>
           </div>
 
           <Alert className="bg-blue-50 border-blue-200">
-            <AlertDescription>
-              בזמן שהצוות עובד על ההתאמות עבורך, תוכל/י להשלים את הפרופיל האישי
-              שלך
-            </AlertDescription>
+            <AlertDescription>{dict.profilePrompt}</AlertDescription>
           </Alert>
 
           <div className="flex justify-center pt-4">
             <Button
-              onClick={() => router.push("/profile")}
+              onClick={() => router.push('/profile')}
               className="flex items-center"
             >
-              המשך לפרופיל
+              {dict.continueButton}
               <ArrowRight className="mr-2 h-5 w-5" />
             </Button>
           </div>
@@ -973,17 +978,25 @@ export default function QuestionnairePageClient({ dict }: QuestionnairePageClien
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnaireRestore.tsx
 --------------------------------------------------------------------------------
 Content:
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import type { QuestionnaireRestoreDict } from '@/types/dictionary'; // Import dictionary type
 
-export default function QuestionnaireRestore() {
+// --- Props Interface ---
+interface QuestionnaireRestoreProps {
+  dict: QuestionnaireRestoreDict;
+}
+
+export default function QuestionnaireRestore({
+  dict,
+}: QuestionnaireRestoreProps) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -997,60 +1010,62 @@ export default function QuestionnaireRestore() {
         setIsProcessing(true);
         setError(null);
 
-        const savedData = localStorage.getItem("tempQuestionnaire");
+        const savedData = localStorage.getItem('tempQuestionnaire');
 
         if (!savedData || !session?.user?.id) {
-          router.push("/dashboard");
+          router.push('/dashboard');
           return;
         }
 
         const questionnaireData = JSON.parse(savedData);
         questionnaireData.userId = session.user.id;
 
-        const response = await fetch("/api/questionnaire", {
-          method: "POST",
+        const response = await fetch('/api/questionnaire', {
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify(questionnaireData),
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to save questionnaire");
+          // Developer-facing error can remain in English
+          throw new Error(errorData.message || 'Failed to save questionnaire');
         }
 
-        localStorage.removeItem("tempQuestionnaire");
+        localStorage.removeItem('tempQuestionnaire');
         router.push(
-          questionnaireData.completed ? "/dashboard" : "/questionnaire"
+          questionnaireData.completed ? '/dashboard' : '/questionnaire'
         );
       } catch (err) {
-        console.error("Error restoring questionnaire:", err);
-        setError("אירעה שגיאה בשחזור הנתונים. אנא נסה שוב.");
+        console.error('Error restoring questionnaire:', err);
+        // Set user-facing error from the dictionary
+        setError(dict.error);
       } finally {
         setIsProcessing(false);
       }
     };
 
-    if (session?.user && !isProcessing && status === "authenticated") {
+    if (session?.user && !isProcessing && status === 'authenticated') {
       restoreQuestionnaire();
     }
-  }, [session, router, isProcessing, status]);
+  }, [session, router, isProcessing, status, dict.error]);
 
   const renderContent = () => {
-    if (status === "loading") {
+    if (status === 'loading') {
       return (
         <Card>
           <CardContent className="p-6 text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-            <p className="text-lg">טוען...</p>
+            <p className="text-lg">{dict.loading}</p>
           </CardContent>
         </Card>
       );
     }
 
-    if (status === "unauthenticated") {
-      router.push("/login");
+    if (status === 'unauthenticated') {
+      router.push('/login');
       return null;
     }
 
@@ -1061,8 +1076,8 @@ export default function QuestionnaireRestore() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
           <div className="mt-4 flex justify-center">
-            <Button onClick={() => router.push("/questionnaire")}>
-              חזור לשאלון
+            <Button onClick={() => router.push('/questionnaire')}>
+              {dict.backButton}
             </Button>
           </div>
         </>
@@ -1073,8 +1088,8 @@ export default function QuestionnaireRestore() {
       <Card>
         <CardContent className="p-6 text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-lg">משחזר את נתוני השאלון...</p>
-          <p className="text-sm text-gray-500 mt-2">אנא המתן</p>
+          <p className="text-lg">{dict.restoringTitle}</p>
+          <p className="text-sm text-gray-500 mt-2">{dict.restoringSubtitle}</p>
         </CardContent>
       </Card>
     );
@@ -3143,8 +3158,13 @@ import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CheckCircle, AlertCircle, Circle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Question, QuestionnaireAnswer, AnswerValue } from '../types/types';
+import type {
+  Question,
+  QuestionnaireAnswer,
+  AnswerValue,
+} from '../types/types';
 import { Badge } from '@/components/ui/badge';
+import type { QuestionsListDict } from '@/types/dictionary'; // Import dictionary type
 
 interface QuestionsListProps {
   allQuestions: Question[];
@@ -3154,7 +3174,8 @@ interface QuestionsListProps {
   language?: string;
   className?: string;
   onClose?: () => void;
-  themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber'; // NEW: Added theme color prop
+  themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
+  dict: QuestionsListDict; // Use the specific dictionary type
 }
 
 const QuestionsList: React.FC<QuestionsListProps> = ({
@@ -3165,7 +3186,8 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
   language = 'he',
   className = '',
   onClose,
-  themeColor = 'sky', // Default theme color
+  themeColor = 'sky',
+  dict,
 }) => {
   const isRTL = language === 'he';
 
@@ -3177,7 +3199,12 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
     if (answer === undefined || answer === null) return false;
     if (typeof answer === 'string' && answer.trim() === '') return false;
     if (Array.isArray(answer) && answer.length === 0) return false;
-    if (typeof answer === 'object' && !Array.isArray(answer) && Object.keys(answer).length === 0) return false;
+    if (
+      typeof answer === 'object' &&
+      !Array.isArray(answer) &&
+      Object.keys(answer).length === 0
+    )
+      return false;
     return true;
   };
 
@@ -3185,7 +3212,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
     setCurrentQuestionIndex(index);
     onClose?.();
   };
-  
+
   const themeClasses = {
     text: `text-${themeColor}-700`,
     bgSoft: `bg-${themeColor}-50`,
@@ -3194,15 +3221,14 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
     icon: `text-${themeColor}-600`,
   };
 
-  const depthLabels = { BASIC: 'בסיסי', ADVANCED: 'מתקדם', EXPERT: 'מעמיק' };
-
   return (
     <ScrollArea className={cn('h-full', className)}>
-      {/* NEW: Relative container for the timeline pseudo-element */}
       <div className="relative space-y-2 p-2" dir={isRTL ? 'rtl' : 'ltr'}>
-        {/* NEW: Timeline connecting line */}
-        <div className="absolute top-0 bottom-0 w-0.5 bg-slate-200" style={isRTL ? { right: '1.625rem' } : { left: '1.625rem' }}></div>
-        
+        <div
+          className="absolute top-0 bottom-0 w-0.5 bg-slate-200"
+          style={isRTL ? { right: '1.625rem' } : { left: '1.625rem' }}
+        ></div>
+
         {allQuestions.map((q, index) => {
           const answer = findAnswer(q.id);
           const isAnswered = isAnswerNotEmpty(answer);
@@ -3211,9 +3237,11 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
           let StatusIcon;
           let itemClasses = 'bg-white hover:bg-slate-50 border-slate-200';
           let textClasses = 'text-slate-700';
-          
+
           if (isAnswered) {
-            StatusIcon = <CheckCircle className={cn("h-5 w-5", themeClasses.icon)} />;
+            StatusIcon = (
+              <CheckCircle className={cn('h-5 w-5', themeClasses.icon)} />
+            );
           } else if (q.isRequired) {
             StatusIcon = <AlertCircle className="h-5 w-5 text-red-500" />;
           } else {
@@ -3221,7 +3249,9 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
           }
 
           if (isCurrent) {
-            StatusIcon = <Sparkles className={cn("h-5 w-5", themeClasses.icon)} />;
+            StatusIcon = (
+              <Sparkles className={cn('h-5 w-5', themeClasses.icon)} />
+            );
             itemClasses = `${themeClasses.bgSoft} ${themeClasses.border} ring-2 ${themeClasses.ring}`;
             textClasses = `${themeClasses.text} font-semibold`;
           }
@@ -3237,21 +3267,24 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
               onClick={() => handleItemClick(index)}
               aria-current={isCurrent ? 'step' : undefined}
             >
-              {/* Status Icon with timeline dot */}
               <div className="flex-shrink-0 z-10 bg-white rounded-full p-1">
-                 {StatusIcon}
+                {StatusIcon}
               </div>
 
-              {/* Content */}
               <div className={cn('flex-1 min-w-0 ml-3', textClasses)}>
-                <p className="text-sm leading-relaxed" style={{ whiteSpace: 'normal' }}>
+                <p
+                  className="text-sm leading-relaxed"
+                  style={{ whiteSpace: 'normal' }}
+                >
                   <span className="font-medium">{index + 1}. </span>
                   {q.question}
                 </p>
-                {/* REFINED: Badge styling */}
                 <div className="mt-2">
-                  <Badge variant="outline" className="text-xs font-normal bg-white">
-                    {depthLabels[q.depth]}
+                  <Badge
+                    variant="outline"
+                    className="text-xs font-normal bg-white"
+                  >
+                    {dict.depthLabels[q.depth]}
                   </Badge>
                 </div>
               </div>
@@ -3586,7 +3619,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\question
 Content:
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -3615,8 +3648,8 @@ import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import type { AccessibilityFeaturesDict } from '@/types/dictionary'; // Import dictionary type
 
-// FIX: Teach TypeScript about the non-standard webkitAudioContext
 declare global {
   interface Window {
     webkitAudioContext: typeof AudioContext;
@@ -3627,6 +3660,7 @@ interface AccessibilityFeaturesProps {
   className?: string;
   isPanelOpen?: boolean;
   onPanelOpenChange?: (isOpen: boolean) => void;
+  dict: AccessibilityFeaturesDict; // Use the specific dictionary type
 }
 
 interface AccessibilitySettings {
@@ -3649,10 +3683,18 @@ const defaultSettings: AccessibilitySettings = {
   soundEnabled: true,
 };
 
+const getSettingName = (
+  key: keyof AccessibilitySettings,
+  dict: AccessibilityFeaturesDict
+): string => {
+  return dict.settingNames[key] || key;
+};
+
 export default function AccessibilityFeatures({
   className,
   isPanelOpen,
   onPanelOpenChange,
+  dict,
 }: AccessibilityFeaturesProps) {
   const [settings, setSettings] =
     useState<AccessibilitySettings>(defaultSettings);
@@ -3730,54 +3772,19 @@ export default function AccessibilityFeatures({
     }
   };
 
-  const updateSetting = <K extends keyof AccessibilitySettings>(
-    key: K,
-    value: AccessibilitySettings[K]
-  ) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
-    setHasChanges(true);
-    if (settings.soundEnabled) playClickSound();
-    showSuccessToast(`הגדרת ${getSettingName(key)} עודכנה`);
-  };
-
-  const getSettingName = (key: keyof AccessibilitySettings): string => {
-    const names = {
-      fontScale: 'גודל הטקסט',
-      contrastMode: 'מצב התצוגה',
-      reducedMotion: 'הפחתת אנימציות',
-      readableMode: 'פונט קריא',
-      bigCursor: 'סמן גדול',
-      textReader: 'הקראת תוכן',
-      soundEnabled: 'צלילים',
-    };
-    return names[key] || key;
-  };
-
-  const showSuccessToast = (message: string) => {
+  const showSuccessToast = useCallback((message: string) => {
     setShowToast({ message, type: 'success', visible: true });
     if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     toastTimeoutRef.current = setTimeout(() => {
       setShowToast((prev) => ({ ...prev, visible: false }));
     }, 2500);
-  };
+  }, []);
 
-  const playClickSound = () => {
+  const playClickSound = useCallback(() => {
     try {
-      // Get the correct AudioContext class, depending on the browser
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) {
-        console.warn('Browser does not support AudioContext.');
-        return;
-      }
-
-      const AudioContextClass =
-        window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextClass) {
-        console.warn('Browser does not support AudioContext.');
-        return;
-      }
-      const audioContext = new AudioContextClass();
-
+      if (!AudioContext) return;
+      const audioContext = new AudioContext();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       oscillator.connect(gainNode);
@@ -3793,55 +3800,67 @@ export default function AccessibilityFeatures({
     } catch (error) {
       console.log('Could not play sound:', error);
     }
-  };
+  }, []);
 
-  const resetSettings = () => {
-    setSettings(defaultSettings);
-    setHasChanges(false);
-    showSuccessToast('כל ההגדרות אופסו');
-    if (settings.soundEnabled) playClickSound();
-  };
+  const updateSetting = useCallback(
+    <K extends keyof AccessibilitySettings>(
+      key: K,
+      value: AccessibilitySettings[K]
+    ) => {
+      setSettings((prev) => ({ ...prev, [key]: value }));
+      setHasChanges(true);
+      if (settings.soundEnabled) playClickSound();
+      const settingName = getSettingName(key, dict);
+      showSuccessToast(
+        dict.toasts.settingUpdated.replace('{{settingName}}', settingName)
+      );
+    },
+    [settings.soundEnabled, playClickSound, dict, showSuccessToast]
+  );
 
-  const toggleTextReader = () => {
-    const willBeActive = !settings.textReader;
-    updateSetting('textReader', willBeActive);
-    if (willBeActive) {
-      document.addEventListener('click', readSelectedText);
-      showSuccessToast('הקראת תוכן הופעלה - לחץ על טקסט כדי להקריא');
-    } else {
-      document.removeEventListener('click', readSelectedText);
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
-    }
-  };
-
-  const readSelectedText = (e: MouseEvent) => {
+  const readSelectedText = useCallback((e: MouseEvent) => {
     const element = e.target as HTMLElement;
     if (element && element.textContent && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const text = element.textContent.trim();
       if (text && text.length > 0) {
         const utterance = new SpeechSynthesisUtterance(text);
-        
-        // --- START OF UPGRADE ---
-        // 1. Find an available Hebrew voice on the user's system.
         const voices = window.speechSynthesis.getVoices();
-        const hebrewVoice = voices.find(voice => voice.lang === 'he-IL');
-
-        // 2. If a Hebrew voice is found, use it.
+        const hebrewVoice = voices.find((voice) => voice.lang === 'he-IL');
         if (hebrewVoice) {
           utterance.voice = hebrewVoice;
           utterance.lang = 'he-IL';
-        } 
-        // 3. If not, don't specify language. Let the browser use its default voice.
-        // This is better than silence, even if pronunciation is incorrect.
-        
+        }
         utterance.rate = 0.9;
         window.speechSynthesis.speak(utterance);
-        // --- END OF UPGRADE ---
       }
     }
-  };
+  }, []);
 
+  const toggleTextReader = useCallback(() => {
+    const willBeActive = !settings.textReader;
+    updateSetting('textReader', willBeActive);
+    if (willBeActive) {
+      document.addEventListener('click', readSelectedText);
+      showSuccessToast(dict.toasts.readerEnabled);
+    } else {
+      document.removeEventListener('click', readSelectedText);
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+  }, [
+    settings.textReader,
+    updateSetting,
+    readSelectedText,
+    showSuccessToast,
+    dict.toasts.readerEnabled,
+  ]);
+
+  const resetSettings = () => {
+    setSettings(defaultSettings);
+    setHasChanges(false);
+    showSuccessToast(dict.toasts.settingsReset);
+    if (settings.soundEnabled) playClickSound();
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -3864,56 +3883,30 @@ export default function AccessibilityFeatures({
   useEffect(() => {
     return () => {
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+      document.removeEventListener('click', readSelectedText);
     };
-  }, []);
+  }, [readSelectedText]);
 
-  const contrastOptions: {
-    value: AccessibilitySettings['contrastMode'];
-    label: string;
-    icon: React.ElementType;
-    desc: string;
-  }[] = [
-    { value: 'normal', label: 'רגיל', icon: SunMedium, desc: 'מצב רגיל' },
-    {
-      value: 'high',
-      label: 'ניגודיות',
-      icon: Contrast,
-      desc: 'ניגודיות גבוהה',
-    },
-    { value: 'dark', label: 'חשוך', icon: MoonStar, desc: 'מצב לילה' },
+  const contrastOptions = [
+    { key: 'normal' as const, icon: SunMedium },
+    { key: 'high' as const, icon: Contrast },
+    { key: 'dark' as const, icon: MoonStar },
   ];
 
   const advancedOptions = [
     {
-      key: 'soundEnabled' as const,
-      label: 'צלילי משוב',
+      key: 'sound' as const,
+      setting: 'soundEnabled' as const,
       icon: settings.soundEnabled ? Volume2 : VolumeX,
-      description: 'השמע צלילים קצרים על פעולות ושינויים',
     },
+    { key: 'reader' as const, setting: 'textReader' as const, icon: Speech },
     {
-      key: 'textReader' as const,
-      label: 'הקראת תוכן',
-      icon: Speech,
-      description: 'לחץ על כל טקסט באתר כדי להקריא אותו בקול',
-    },
-    {
-      key: 'bigCursor' as const,
-      label: 'סמן עכבר גדול',
+      key: 'cursor' as const,
+      setting: 'bigCursor' as const,
       icon: MousePointer,
-      description: 'סמן עכבר מוגדל ובולט יותר',
     },
-    {
-      key: 'readableMode' as const,
-      label: 'פונט קריא',
-      icon: Eye,
-      description: 'פונט ברור עם ריווח מוגדל בין האותיות',
-    },
-    {
-      key: 'reducedMotion' as const,
-      label: 'הפחתת אנימציות',
-      icon: Hand,
-      description: 'מפחית תנועות ואנימציות ברחבי האתר',
-    },
+    { key: 'font' as const, setting: 'readableMode' as const, icon: Eye },
+    { key: 'motion' as const, setting: 'reducedMotion' as const, icon: Hand },
   ];
 
   return (
@@ -3934,7 +3927,9 @@ export default function AccessibilityFeatures({
           )}
           onClick={() => setShowAccessibilityPanel(!showAccessibilityPanel)}
           title={
-            showAccessibilityPanel ? 'סגור הגדרות נגישות' : 'פתח הגדרות נגישות'
+            showAccessibilityPanel
+              ? dict.triggerButton.close
+              : dict.triggerButton.open
           }
         >
           <div className="relative">
@@ -3965,20 +3960,20 @@ export default function AccessibilityFeatures({
                   <div className="p-1.5 bg-blue-100 rounded-lg">
                     <Settings className="h-4 w-4 text-blue-600" />
                   </div>
-                  הגדרות נגישות
+                  {dict.panelTitle}
                   {hasChanges && (
                     <Badge
                       variant="secondary"
                       className="text-xs bg-blue-100 text-blue-700 border-blue-200"
                     >
                       <Sparkles className="h-3 w-3 mr-1" />
-                      שונה
+                      {dict.changedBadge}
                     </Badge>
                   )}
                 </CardTitle>
               </div>
               <p className="text-xs text-slate-600 mt-1">
-                התאם את האתר לצרכיך האישיים
+                {dict.panelSubtitle}
               </p>
             </CardHeader>
 
@@ -3987,7 +3982,7 @@ export default function AccessibilityFeatures({
                 <div className="flex justify-between items-center">
                   <Label className="text-sm font-medium flex items-center gap-2">
                     <Type className="h-4 w-4 text-blue-500" />
-                    גודל טקסט
+                    {dict.textSize.title}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Button
@@ -4037,50 +4032,54 @@ export default function AccessibilityFeatures({
                   className="py-2"
                 />
                 <p className="text-xs text-slate-500">
-                  הגדל או הקטן את גודל הטקסט בכל האתר
+                  {dict.textSize.description}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <Palette className="h-4 w-4 text-blue-500" />
-                  מצב תצוגה ונגישות
+                  {dict.displayMode.title}
                 </Label>
                 <div className="grid grid-cols-3 gap-2">
-                  {contrastOptions.map(({ value, label, icon: Icon, desc }) => (
-                    <Button
-                      key={value}
-                      variant={
-                        settings.contrastMode === value ? 'default' : 'outline'
-                      }
-                      size="sm"
-                      className={cn(
-                        'h-14 flex flex-col gap-1 text-xs transition-all relative',
-                        settings.contrastMode === value
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                          : 'hover:bg-blue-50 border-blue-200'
-                      )}
-                      onClick={() => updateSetting('contrastMode', value)}
-                      title={desc}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span className="font-medium">{label}</span>
-                      {settings.contrastMode === value && (
-                        <div className="absolute top-1 right-1">
-                          <Check className="h-3 w-3" />
-                        </div>
-                      )}
-                    </Button>
-                  ))}
+                  {contrastOptions.map(({ key, icon: Icon }) => {
+                    const optionDict = dict.contrastOptions[key];
+                    return (
+                      <Button
+                        key={key}
+                        variant={
+                          settings.contrastMode === key ? 'default' : 'outline'
+                        }
+                        size="sm"
+                        className={cn(
+                          'h-14 flex flex-col gap-1 text-xs transition-all relative',
+                          settings.contrastMode === key
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                            : 'hover:bg-blue-50 border-blue-200'
+                        )}
+                        onClick={() => updateSetting('contrastMode', key)}
+                        title={optionDict.description}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="font-medium">{optionDict.label}</span>
+                        {settings.contrastMode === key && (
+                          <div className="absolute top-1 right-1">
+                            <Check className="h-3 w-3" />
+                          </div>
+                        )}
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
 
               <div className="space-y-4 pt-2 border-t border-slate-200">
                 <Label className="text-sm font-medium text-slate-700">
-                  הגדרות נוספות
+                  {dict.additionalSettings.title}
                 </Label>
-                {advancedOptions.map(
-                  ({ key, label, icon: Icon, description }) => (
+                {advancedOptions.map(({ key, setting, icon: Icon }) => {
+                  const optionDict = dict.advancedOptions[key];
+                  return (
                     <div
                       key={key}
                       className="setting-card flex items-center justify-between group p-3 rounded-lg"
@@ -4089,7 +4088,7 @@ export default function AccessibilityFeatures({
                         <div
                           className={cn(
                             'p-2 rounded-lg transition-colors',
-                            settings[key]
+                            settings[setting]
                               ? 'bg-blue-100 text-blue-600'
                               : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-500'
                           )}
@@ -4098,23 +4097,23 @@ export default function AccessibilityFeatures({
                         </div>
                         <div className="flex-1">
                           <Label className="text-sm font-medium cursor-pointer">
-                            {label}
+                            {optionDict.label}
                           </Label>
                           <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                            {description}
+                            {optionDict.description}
                           </p>
                         </div>
                       </div>
                       <Switch
-                        checked={settings[key]}
+                        checked={settings[setting]}
                         onCheckedChange={(checked) => {
-                          if (key === 'textReader') toggleTextReader();
-                          else updateSetting(key, checked);
+                          if (setting === 'textReader') toggleTextReader();
+                          else updateSetting(setting, checked);
                         }}
                       />
                     </div>
-                  )
-                )}
+                  );
+                })}
               </div>
 
               <div className="pt-4 border-t border-slate-200">
@@ -4131,7 +4130,7 @@ export default function AccessibilityFeatures({
                   disabled={!hasChanges}
                 >
                   <RefreshCw className="h-4 w-4" />
-                  איפוס כל ההגדרות
+                  {dict.resetButton}
                 </Button>
               </div>
             </CardContent>
@@ -4158,7 +4157,7 @@ export default function AccessibilityFeatures({
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\FAQ.tsx
 --------------------------------------------------------------------------------
 Content:
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -4178,207 +4177,108 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-
-interface FAQItem {
-  id: string;
-  question: string;
-  answer: React.ReactNode;
-  category: 'process' | 'technical' | 'privacy' | 'results' | 'general';
-  isPopular?: boolean;
-}
+import type { QuestionnaireFaqDict, FaqAnswerPart } from '@/types/dictionary'; // Import dictionary type
 
 interface FAQProps {
   className?: string;
-  title?: string;
-  subtitle?: string;
   showSearch?: boolean;
   showCategories?: boolean;
   initialOpenId?: string;
-  items?: FAQItem[];
+  dict: QuestionnaireFaqDict; // Use the specific dictionary type
 }
 
-// שאלות נפוצות לדוגמה
-const defaultFAQItems: FAQItem[] = [
-  {
-    id: 'save-progress',
-    question: 'האם אפשר לשמור את ההתקדמות ולהמשיך בפעם אחרת?',
-    answer: (
-      <div className="space-y-2">
-        <p>
-          כן, המערכת שומרת באופן אוטומטי את התקדמותך בשאלון. תוכל/י לחזור בכל עת
-          ולהמשיך מהמקום שבו הפסקת.
-        </p>
-        <div className="flex items-start gap-2 mt-2 p-3 bg-blue-50 rounded-md">
-          <Clock className="h-5 w-5 text-blue-500 mt-0.5" />
-          <div className="text-sm text-blue-700">
-            <p className="font-medium mb-1">עצה:</p>
-            <p>
-              בכל פעם שאתה עובר לעולם אחר או מסיים עולם, המערכת שומרת אוטומטית
-              את התקדמותך.
-            </p>
-          </div>
-        </div>
-      </div>
-    ),
-    category: 'technical',
-    isPopular: true,
-  },
-  {
-    id: 'time-to-complete',
-    question: 'כמה זמן לוקח להשלים את השאלון?',
-    answer: (
-      <p>
-        השאלון כולו אורך כ-30-40 דקות, אך אין צורך למלא הכל ברצף. אפשר למלא חלק
-        בכל פעם. העולמות השונים אורכים כ-5-10 דקות כל אחד.
-      </p>
-    ),
-    category: 'process',
-    isPopular: true,
-  },
-  {
-    id: 'required-questions',
-    question: 'האם חובה לענות על כל השאלות?',
-    answer: (
-      <div className="space-y-2">
-        <p>
-          לא, רק השאלות המסומנות ב-
-          <Badge variant="destructive" className="text-xs">
-            חובה *
-          </Badge>{' '}
-          הן שאלות שחייבים לענות עליהן. שאלות אלו חיוניות ליצירת פרופיל התאמה
-          בסיסי.
-        </p>
-        <p>
-          עם זאת, ככל שתענה/י על יותר שאלות, כך נוכל לעשות התאמה טובה יותר
-          עבורך.
-        </p>
-      </div>
-    ),
-    category: 'process',
-  },
-  {
-    id: 'how-matching-works',
-    question: 'איך עובד תהליך ההתאמה?',
-    answer: (
-      <div className="space-y-3">
-        <p>תהליך ההתאמה מבוסס על מספר שלבים:</p>
-        <ol className="list-decimal mr-5 space-y-1">
-          <li>מילוי השאלון ויצירת פרופיל אישיותי וערכי</li>
-          <li>ניתוח התשובות על ידי צוות מקצועי וגם אלגוריתם ממוחשב</li>
-          <li>איתור התאמות פוטנציאליות על סמך קריטריונים רבים</li>
-          <li>הצגת התאמות מובילות לשני הצדדים</li>
-          <li>במקרה של הסכמה הדדית, תיווך לקשר ראשוני</li>
-        </ol>
-      </div>
-    ),
-    category: 'process',
-    isPopular: true,
-  },
-  {
-    id: 'privacy-info',
-    question: 'מי יכול לראות את התשובות שלי?',
-    answer: (
-      <div className="space-y-2">
-        <p>
-          המידע שלך נשמר בסודיות מוחלטת. רק צוות ההתאמות המקצועי שלנו יכול לראות
-          את התשובות המלאות שלך... לראות את התשובות המלאות שלך, וזאת אך ורק
-          לצורך יצירת התאמות.
-        </p>
-        <div className="flex items-start gap-2 mt-2 p-3 bg-blue-50 rounded-md">
-          <Info className="h-5 w-5 text-blue-500 mt-0.5" />
-          <div className="text-sm text-blue-700">
-            <p>
-              בעת הצגת התאמה פוטנציאלית, הצד השני רואה רק פרטים כלליים ותחומי
-              עניין משותפים, לא את כל התשובות שלך.
-            </p>
-          </div>
-        </div>
-      </div>
-    ),
-    category: 'privacy',
-  },
-  {
-    id: 'edit-answers',
-    question: 'האם ניתן לערוך תשובות אחרי שסיימתי?',
-    answer: (
-      <p>
-        כן, תמיד אפשר לחזור ולערוך את התשובות. פשוט היכנס/י לשאלון דרך הפרופיל
-        האישי ובחר/י את העולם שתרצה/י לערוך. שינוי התשובות עשוי להשפיע על
-        ההתאמות העתידיות שלך.
-      </p>
-    ),
-    category: 'technical',
-  },
-  {
-    id: 'match-percentage',
-    question: 'איך מחושב אחוז ההתאמה?',
-    answer: (
-      <div className="space-y-2">
-        <p>אחוז ההתאמה מחושב על סמך מגוון פרמטרים:</p>
-        <ul className="list-disc mr-5 space-y-1">
-          <li>מידת ההתאמה בערכי ליבה ואמונות</li>
-          <li>סגנון חיים ושאיפות לעתיד</li>
-          <li>ציפיות מחיי משפחה וזוגיות</li>
-          <li>תחומי עניין משותפים</li>
-          <li>התאמה רגשית וקוגניטיבית</li>
-        </ul>
-        <div className="flex items-start gap-2 mt-2 p-3 bg-amber-50 rounded-md border border-amber-100">
-          <Star className="h-5 w-5 text-amber-500 mt-0.5" />
-          <div className="text-sm text-amber-700">
-            <p>
-              אחוז התאמה גבוה מעיד על פוטנציאל טוב לקשר משמעותי, אך זכרו שכימיה
-              אישית ומפגש פנים אל פנים הם תמיד המבחן האמיתי!
-            </p>
-          </div>
-        </div>
-      </div>
-    ),
-    category: 'results',
-  },
-  {
-    id: 'incomplete-questionnaire',
-    question: 'מה קורה אם לא אשלים את כל השאלון?',
-    answer: (
-      <div className="space-y-2">
-        <p>
-          אתה יכול להתחיל לקבל התאמות גם אם לא השלמת את כל העולמות בשאלון, בתנאי
-          שענית על שאלות החובה ועל מספיק שאלות כדי ליצור פרופיל בסיסי.
-        </p>
-        <div className="flex items-start gap-2 mt-2 p-3 bg-red-50 rounded-md border border-red-100">
-          <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
-          <div className="text-sm text-red-700">
-            <p>
-              עם זאת, ככל שתשלים יותר שאלות, כך תגדל הדיוק של ההתאמות שתקבל.
-              מומלץ להשלים את כל השאלות בהדרגה.
-            </p>
-          </div>
-        </div>
-      </div>
-    ),
-    category: 'process',
-  },
-  {
-    id: 'inactive-account',
-    question: 'מה קורה אם אני לא פעיל/ה לתקופה ממושכת?',
-    answer: (
-      <p>
-        אם חשבונך לא יהיה פעיל למשך 3 חודשים, נשלח לך התראה בדואל. לאחר 6 חודשים
-        של חוסר פעילות, הפרופיל שלך יוגדר כלא פעיל ולא יוצג בהתאמות חדשות.
-        תוכל/י תמיד להפעיל אותו מחדש בכניסה לחשבון.
-      </p>
-    ),
-    category: 'general',
-  },
-];
+// Metadata for FAQs (category, popularity) which is not part of translation
+const faqMetadata: {
+  [key: string]: { category: string; isPopular?: boolean };
+} = {
+  'save-progress': { category: 'technical', isPopular: true },
+  'time-to-complete': { category: 'process', isPopular: true },
+  'required-questions': { category: 'process' },
+  'how-matching-works': { category: 'process', isPopular: true },
+  'privacy-info': { category: 'privacy' },
+  'edit-answers': { category: 'technical' },
+  'match-percentage': { category: 'results' },
+  'incomplete-questionnaire': { category: 'process' },
+  'inactive-account': { category: 'general' },
+};
+
+// Helper function to render the answer JSX from dictionary data
+const renderAnswer = (answerParts: FaqAnswerPart[]) => (
+  <div className="space-y-3">
+    {answerParts.map((part, index) => {
+      switch (part.type) {
+        case 'p':
+          return <p key={index}>{part.content}</p>;
+        case 'list':
+          return (
+            <ol key={index} className="list-decimal mr-5 space-y-1">
+              {(part.content as string[]).map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
+            </ol>
+          );
+        case 'tip':
+          return (
+            <div
+              key={index}
+              className="flex items-start gap-2 mt-2 p-3 bg-blue-50 rounded-md"
+            >
+              <Clock className="h-5 w-5 text-blue-500 mt-0.5" />
+              <div className="text-sm text-blue-700">
+                <p className="font-medium mb-1">{part.title}</p>
+                <p>{part.content}</p>
+              </div>
+            </div>
+          );
+        case 'info':
+          return (
+            <div
+              key={index}
+              className="flex items-start gap-2 mt-2 p-3 bg-blue-50 rounded-md"
+            >
+              <Info className="h-5 w-5 text-blue-500 mt-0.5" />
+              <div className="text-sm text-blue-700">
+                <p>{part.content}</p>
+              </div>
+            </div>
+          );
+        case 'star':
+          return (
+            <div
+              key={index}
+              className="flex items-start gap-2 mt-2 p-3 bg-amber-50 rounded-md border border-amber-100"
+            >
+              <Star className="h-5 w-5 text-amber-500 mt-0.5" />
+              <div className="text-sm text-amber-700">
+                <p>{part.content}</p>
+              </div>
+            </div>
+          );
+        case 'alert':
+          return (
+            <div
+              key={index}
+              className="flex items-start gap-2 mt-2 p-3 bg-red-50 rounded-md border border-red-100"
+            >
+              <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+              <div className="text-sm text-red-700">
+                <p>{part.content}</p>
+              </div>
+            </div>
+          );
+        default:
+          return null;
+      }
+    })}
+  </div>
+);
 
 export default function FAQ({
   className,
-  title = 'שאלות נפוצות',
-  subtitle = 'כל מה שחשוב לדעת על השאלון ותהליך ההתאמה',
   showSearch = true,
   showCategories = true,
   initialOpenId,
-  items = defaultFAQItems,
+  dict,
 }: FAQProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -4386,52 +4286,74 @@ export default function FAQ({
     initialOpenId ? [initialOpenId] : []
   );
 
-  // קטגוריות שאלות נפוצות
-  const categories = [
-    {
-      id: 'process',
-      label: 'תהליך ההתאמה',
-      icon: <ArrowRight className="h-4 w-4" />,
-    },
-    {
-      id: 'technical',
-      label: 'טכני',
-      icon: <HelpCircle className="h-4 w-4" />,
-    },
-    {
-      id: 'privacy',
-      label: 'פרטיות ואבטחה',
-      icon: <Info className="h-4 w-4" />,
-    },
-    { id: 'results', label: 'תוצאות', icon: <Star className="h-4 w-4" /> },
-    { id: 'general', label: 'כללי', icon: <Info className="h-4 w-4" /> },
-  ];
+  const faqItems = useMemo(() => {
+    return Object.keys(dict.items).map((id) => {
+      const key = id as keyof typeof dict.items;
+      return {
+        id,
+        question: dict.items[key].question,
+        answer: renderAnswer(dict.items[key].answer),
+        category: faqMetadata[key].category,
+        isPopular: faqMetadata[key].isPopular || false,
+      };
+    });
+  }, [dict.items]);
 
-  // סינון שאלות לפי חיפוש וקטגוריה
-  const filteredItems = items.filter((item) => {
-    const matchesSearch =
-      !searchQuery ||
-      item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (typeof item.answer === 'string' &&
-        item.answer.toLowerCase().includes(searchQuery.toLowerCase()));
+  const categories = useMemo(
+    () => [
+      {
+        id: 'process',
+        label: dict.categories.process,
+        icon: <ArrowRight className="h-4 w-4" />,
+      },
+      {
+        id: 'technical',
+        label: dict.categories.technical,
+        icon: <HelpCircle className="h-4 w-4" />,
+      },
+      {
+        id: 'privacy',
+        label: dict.categories.privacy,
+        icon: <Info className="h-4 w-4" />,
+      },
+      {
+        id: 'results',
+        label: dict.categories.results,
+        icon: <Star className="h-4 w-4" />,
+      },
+      {
+        id: 'general',
+        label: dict.categories.general,
+        icon: <Info className="h-4 w-4" />,
+      },
+    ],
+    [dict.categories]
+  );
 
-    const matchesCategory = !activeCategory || item.category === activeCategory;
+  const filteredItems = useMemo(() => {
+    return faqItems.filter((item) => {
+      const matchesSearch =
+        !searchQuery ||
+        item.question.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return matchesSearch && matchesCategory;
-  });
+      const matchesCategory =
+        !activeCategory || item.category === activeCategory;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [faqItems, searchQuery, activeCategory]);
 
   return (
     <Card className={cn('shadow-sm', className)}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg md:text-xl">{title}</CardTitle>
-        {subtitle && <p className="text-gray-500 text-sm">{subtitle}</p>}
+        <CardTitle className="text-lg md:text-xl">{dict.title}</CardTitle>
+        <p className="text-gray-500 text-sm">{dict.subtitle}</p>
 
-        {/* חיפוש */}
         {showSearch && (
           <div className="relative mt-2">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="חיפוש שאלה..."
+              placeholder={dict.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 bg-gray-50"
@@ -4439,7 +4361,6 @@ export default function FAQ({
           </div>
         )}
 
-        {/* קטגוריות */}
         {showCategories && (
           <div className="flex flex-wrap gap-2 mt-3">
             <Badge
@@ -4447,7 +4368,7 @@ export default function FAQ({
               className="cursor-pointer"
               onClick={() => setActiveCategory(null)}
             >
-              הכל
+              {dict.categories.all}
             </Badge>
 
             {categories.map((category) => (
@@ -4473,7 +4394,7 @@ export default function FAQ({
         {filteredItems.length === 0 ? (
           <div className="text-center py-8">
             <HelpCircle className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-            <p className="text-gray-500">לא נמצאו שאלות שתואמות את החיפוש</p>
+            <p className="text-gray-500">{dict.emptyState}</p>
           </div>
         ) : (
           <Accordion
@@ -4501,7 +4422,7 @@ export default function FAQ({
                         variant="outline"
                         className="bg-amber-50 text-amber-700 border-amber-200 text-xs"
                       >
-                        נפוץ
+                        {dict.popularBadge}
                       </Badge>
                     )}
                   </div>
@@ -4523,11 +4444,11 @@ export default function FAQ({
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\MatchResultCard.tsx
 --------------------------------------------------------------------------------
 Content:
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Heart,
   X,
@@ -4546,16 +4467,17 @@ import {
   Coffee,
   Bookmark,
   ExternalLink,
-} from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+} from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
+import type { MatchResultCardDict } from '@/types/dictionary'; // Import dictionary type
 
 interface MatchTrait {
   name: string;
@@ -4566,12 +4488,12 @@ interface MatchTrait {
 interface CommonInterest {
   name: string;
   category:
-    | "hobby"
-    | "value"
-    | "lifestyle"
-    | "religion"
-    | "education"
-    | "other";
+    | 'hobby'
+    | 'value'
+    | 'lifestyle'
+    | 'religion'
+    | 'education'
+    | 'other';
   icon?: React.ReactNode;
 }
 
@@ -4580,7 +4502,7 @@ interface MatchResultCardProps {
   name: string;
   age: number;
   location: string;
-  distance?: number; // בקילומטרים
+  distance?: number;
   profileImage?: string;
   matchPercentage: number;
   occupation?: string;
@@ -4598,6 +4520,7 @@ interface MatchResultCardProps {
   onViewProfile?: (id: string) => void;
   onBookmark?: (id: string, bookmarked: boolean) => void;
   isPremium?: boolean;
+  dict: MatchResultCardDict; // Use the specific dictionary type
 }
 
 export default function MatchResultCard({
@@ -4623,67 +4546,72 @@ export default function MatchResultCard({
   onViewProfile,
   onBookmark,
   isPremium = false,
+  dict,
 }: MatchResultCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(bookmarked);
   const [showConfirmReject, setShowConfirmReject] = useState(false);
 
-  // מיפוי אייקון לקטגוריות תחומי עניין משותפים
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case "hobby":
+      case 'hobby':
         return <Music className="h-3.5 w-3.5" />;
-      case "value":
+      case 'value':
         return <Heart className="h-3.5 w-3.5" />;
-      case "lifestyle":
+      case 'lifestyle':
         return <Coffee className="h-3.5 w-3.5" />;
-      case "religion":
+      case 'religion':
         return <BookOpen className="h-3.5 w-3.5" />;
-      case "education":
+      case 'education':
         return <GraduationCap className="h-3.5 w-3.5" />;
       default:
         return <Star className="h-3.5 w-3.5" />;
     }
   };
 
-  // פורמט לזמן פעילות אחרונה
   const formatLastActive = (date?: Date) => {
-    if (!date) return "לא ידוע";
-
+    if (!date) return dict.lastActiveFormat.unknown;
     const now = new Date();
     const diffInDays = Math.floor(
       (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
     );
-
-    if (diffInDays === 0) return "היום";
-    if (diffInDays === 1) return "אתמול";
-    if (diffInDays < 7) return `לפני ${diffInDays} ימים`;
-    if (diffInDays < 30) return `לפני ${Math.floor(diffInDays / 7)} שבועות`;
-    return `לפני ${Math.floor(diffInDays / 30)} חודשים`;
+    if (diffInDays === 0) return dict.lastActiveFormat.today;
+    if (diffInDays === 1) return dict.lastActiveFormat.yesterday;
+    if (diffInDays < 7)
+      return dict.lastActiveFormat.daysAgo.replace(
+        '{{count}}',
+        diffInDays.toString()
+      );
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    if (diffInDays < 30)
+      return dict.lastActiveFormat.weeksAgo.replace(
+        '{{count}}',
+        diffInWeeks.toString()
+      );
+    const diffInMonths = Math.floor(diffInDays / 30);
+    return dict.lastActiveFormat.monthsAgo.replace(
+      '{{count}}',
+      diffInMonths.toString()
+    );
   };
 
-  // טיפול בשמירה במועדפים
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
-    if (onBookmark) {
-      onBookmark(id, !isBookmarked);
-    }
+    if (onBookmark) onBookmark(id, !isBookmarked);
   };
 
-  // קביעת צבע לפי אחוז התאמה
   const getMatchColor = () => {
-    if (matchPercentage >= 90) return "from-green-400 to-emerald-500";
-    if (matchPercentage >= 80) return "from-emerald-400 to-green-500";
-    if (matchPercentage >= 70) return "from-blue-400 to-blue-500";
-    if (matchPercentage >= 60) return "from-blue-400 to-cyan-500";
-    return "from-cyan-400 to-blue-500";
+    if (matchPercentage >= 90) return 'from-green-400 to-emerald-500';
+    if (matchPercentage >= 80) return 'from-emerald-400 to-green-500';
+    if (matchPercentage >= 70) return 'from-blue-400 to-blue-500';
+    if (matchPercentage >= 60) return 'from-blue-400 to-cyan-500';
+    return 'from-cyan-400 to-blue-500';
   };
 
-  // אנימציות
   const expandVariants = {
     hidden: { height: 0, opacity: 0 },
     visible: {
-      height: "auto",
+      height: 'auto',
       opacity: 1,
       transition: {
         height: { duration: 0.3 },
@@ -4695,23 +4623,20 @@ export default function MatchResultCard({
   return (
     <Card
       className={cn(
-        "overflow-hidden transition-all border",
-        isExpanded ? "shadow-md" : "shadow-sm hover:shadow-md",
-        isPremium ? "border-amber-200" : "border-blue-100",
+        'overflow-hidden transition-all border',
+        isExpanded ? 'shadow-md' : 'shadow-sm hover:shadow-md',
+        isPremium ? 'border-amber-200' : 'border-blue-100',
         className
       )}
     >
-      {/* Premium Badge */}
       {isPremium && (
         <div className="absolute top-0 left-0 bg-gradient-to-r from-amber-400 to-amber-600 text-white px-2 py-0.5 text-xs rounded-br-md z-10">
           <Sparkles className="h-3 w-3 inline-block mr-1" />
-          התאמה מומלצת
+          {dict.premiumBadge}
         </div>
       )}
 
-      {/* Top Section */}
       <div className="p-4 flex md:flex-row flex-col gap-4">
-        {/* Image */}
         <div className="relative">
           <Avatar className="w-24 h-24 rounded-lg border-2 border-white shadow-sm">
             <AvatarImage src={profileImage} alt={name} />
@@ -4719,22 +4644,22 @@ export default function MatchResultCard({
               {name.charAt(0)}
             </AvatarFallback>
           </Avatar>
-
-          {/* Match Percentage */}
           <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2">
             <Badge
               className={cn(
-                "rounded-full bg-gradient-to-r px-2 text-white border-0 shadow-sm",
+                'rounded-full bg-gradient-to-r px-2 text-white border-0 shadow-sm',
                 getMatchColor()
               )}
             >
               <Sparkles className="h-3 w-3 mr-1" />
-              {matchPercentage}% התאמה
+              {dict.matchPercentageBadge.replace(
+                '{{percentage}}',
+                matchPercentage.toString()
+              )}
             </Badge>
           </div>
         </div>
 
-        {/* Basic Info */}
         <div className="flex-1 space-y-2">
           <div className="flex justify-between items-start">
             <div>
@@ -4747,7 +4672,6 @@ export default function MatchResultCard({
                 {distance && <span className="mr-1">({distance} קמ)</span>}
               </div>
             </div>
-
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -4755,8 +4679,8 @@ export default function MatchResultCard({
                     variant="ghost"
                     size="icon"
                     className={cn(
-                      "h-8 w-8 rounded-full",
-                      isBookmarked ? "text-amber-500" : "text-gray-400"
+                      'h-8 w-8 rounded-full',
+                      isBookmarked ? 'text-amber-500' : 'text-gray-400'
                     )}
                     onClick={handleBookmark}
                   >
@@ -4764,13 +4688,16 @@ export default function MatchResultCard({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{isBookmarked ? "הסר ממועדפים" : "הוסף למועדפים"}</p>
+                  <p>
+                    {isBookmarked
+                      ? dict.tooltips.removeFromBookmarks
+                      : dict.tooltips.addToBookmarks}
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
 
-          {/* Occupation + Education */}
           <div className="space-y-1">
             {occupation && (
               <div className="flex items-center text-sm text-gray-600">
@@ -4778,7 +4705,6 @@ export default function MatchResultCard({
                 {occupation}
               </div>
             )}
-
             {education && (
               <div className="flex items-center text-sm text-gray-600">
                 <GraduationCap className="h-3.5 w-3.5 mr-1 text-gray-500" />
@@ -4787,7 +4713,6 @@ export default function MatchResultCard({
             )}
           </div>
 
-          {/* Common Interests Preview */}
           {commonInterests.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-1">
               {commonInterests.slice(0, 3).map((interest, index) => (
@@ -4802,7 +4727,6 @@ export default function MatchResultCard({
                   </span>
                 </Badge>
               ))}
-
               {commonInterests.length > 3 && (
                 <Badge
                   variant="outline"
@@ -4816,7 +4740,6 @@ export default function MatchResultCard({
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="px-4 pb-3 flex gap-2 justify-center">
         {onReject &&
           (showConfirmReject ? (
@@ -4827,7 +4750,7 @@ export default function MatchResultCard({
                 className="flex-1"
                 onClick={() => onReject(id)}
               >
-                לאשר דחייה
+                {dict.buttons.confirmReject}
               </Button>
               <Button
                 variant="outline"
@@ -4835,7 +4758,7 @@ export default function MatchResultCard({
                 className="flex-1"
                 onClick={() => setShowConfirmReject(false)}
               >
-                בטל
+                {dict.buttons.cancel}
               </Button>
             </>
           ) : (
@@ -4846,10 +4769,9 @@ export default function MatchResultCard({
               onClick={() => setShowConfirmReject(true)}
             >
               <X className="h-4 w-4 mr-1" />
-              לא מתאים
+              {dict.buttons.reject}
             </Button>
           ))}
-
         {onAccept && (
           <Button
             variant="default"
@@ -4858,10 +4780,9 @@ export default function MatchResultCard({
             onClick={() => onAccept(id)}
           >
             <Heart className="h-4 w-4 mr-1" />
-            מעוניין/ת
+            {dict.buttons.accept}
           </Button>
         )}
-
         {conversationStarted && onMessage && (
           <Button
             variant="default"
@@ -4870,12 +4791,11 @@ export default function MatchResultCard({
             onClick={() => onMessage(id)}
           >
             <MessageCircle className="h-4 w-4 mr-1" />
-            המשך שיחה
+            {dict.buttons.continueChat}
           </Button>
         )}
       </div>
 
-      {/* Expand/Collapse Button */}
       <div className="px-4 pb-2 text-center">
         <Button
           variant="ghost"
@@ -4886,18 +4806,17 @@ export default function MatchResultCard({
           {isExpanded ? (
             <>
               <ChevronsUp className="h-3.5 w-3.5 mr-1" />
-              הסתר פרטים נוספים
+              {dict.buttons.hideMore}
             </>
           ) : (
             <>
               <ChevronsDown className="h-3.5 w-3.5 mr-1" />
-              הצג פרטים נוספים
+              {dict.buttons.showMore}
             </>
           )}
         </Button>
       </div>
 
-      {/* Expanded Content */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -4908,27 +4827,23 @@ export default function MatchResultCard({
             className="border-t border-gray-100"
           >
             <CardContent className="p-4 space-y-5">
-              {/* About Section */}
               {about && (
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium flex items-center">
                     <User className="h-4 w-4 mr-1 text-blue-500" />
-                    קצת על {name}
+                    {dict.sections.about.replace('{{name}}', name)}
                   </h4>
                   <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md border">
                     {about}
                   </p>
                 </div>
               )}
-
-              {/* Match Traits */}
               {matchTraits.length > 0 && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium flex items-center">
                     <Sparkles className="h-4 w-4 mr-1 text-blue-500" />
-                    תחומי התאמה בולטים
+                    {dict.sections.topMatches}
                   </h4>
-
                   <div className="space-y-2">
                     {matchTraits.map((trait, index) => (
                       <TooltipProvider key={index}>
@@ -4944,19 +4859,24 @@ export default function MatchResultCard({
                               <Progress
                                 value={trait.score}
                                 className={cn(
-                                  "h-2",
+                                  'h-2',
                                   trait.score >= 80
-                                    ? "[--progress-foreground:theme(colors.green.500)]"
+                                    ? '[--progress-foreground:theme(colors.green.500)]'
                                     : trait.score >= 60
-                                    ? "[--progress-foreground:theme(colors.blue.500)]"
-                                    : "[--progress-foreground:theme(colors.blue.400)]"
+                                      ? '[--progress-foreground:theme(colors.blue.500)]'
+                                      : '[--progress-foreground:theme(colors.blue.400)]'
                                 )}
                               />
                             </div>
                           </TooltipTrigger>
                           {trait.description && (
                             <TooltipContent side="top" className="max-w-xs">
-                              <p>{trait.description}</p>
+                              <p>
+                                {dict.tooltips.traitDescription.replace(
+                                  '{{description}}',
+                                  trait.description
+                                )}
+                              </p>
                             </TooltipContent>
                           )}
                         </Tooltip>
@@ -4965,28 +4885,25 @@ export default function MatchResultCard({
                   </div>
                 </div>
               )}
-
-              {/* All Common Interests */}
               {commonInterests.length > 0 && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium flex items-center">
                     <Heart className="h-4 w-4 mr-1 text-blue-500" />
-                    תחומי עניין משותפים
+                    {dict.sections.commonInterests}
                   </h4>
-
                   <div className="flex flex-wrap gap-2">
                     {commonInterests.map((interest, index) => (
                       <Badge
                         key={index}
                         variant="outline"
                         className={cn(
-                          "bg-blue-50 text-blue-700 border-blue-200",
-                          interest.category === "value" &&
-                            "bg-pink-50 text-pink-700 border-pink-200",
-                          interest.category === "religion" &&
-                            "bg-purple-50 text-purple-700 border-purple-200",
-                          interest.category === "education" &&
-                            "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          'bg-blue-50 text-blue-700 border-blue-200',
+                          interest.category === 'value' &&
+                            'bg-pink-50 text-pink-700 border-pink-200',
+                          interest.category === 'religion' &&
+                            'bg-purple-50 text-purple-700 border-purple-200',
+                          interest.category === 'education' &&
+                            'bg-emerald-50 text-emerald-700 border-emerald-200'
                         )}
                       >
                         {interest.icon || getCategoryIcon(interest.category)}
@@ -4996,17 +4913,16 @@ export default function MatchResultCard({
                   </div>
                 </div>
               )}
-
-              {/* Last Active */}
               {lastActive && (
                 <div className="text-sm text-gray-500 flex items-center">
                   <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                  פעילות אחרונה: {formatLastActive(lastActive)}
+                  {dict.sections.lastActive.replace(
+                    '{{time}}',
+                    formatLastActive(lastActive)
+                  )}
                 </div>
               )}
             </CardContent>
-
-            {/* Footer */}
             <CardFooter className="px-4 py-3 bg-gray-50 flex justify-between">
               {onViewProfile && (
                 <Button
@@ -5016,7 +4932,7 @@ export default function MatchResultCard({
                   onClick={() => onViewProfile(id)}
                 >
                   <ExternalLink className="h-4 w-4 mr-1" />
-                  צפייה בפרופיל מלא
+                  {dict.buttons.viewFullProfile}
                 </Button>
               )}
             </CardFooter>
@@ -5032,10 +4948,10 @@ export default function MatchResultCard({
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\QuestionnaireProgress.tsx
 --------------------------------------------------------------------------------
 Content:
-import React, { useState } from "react";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import React, { useState } from 'react';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import {
   CheckCircle,
   Clock,
@@ -5051,24 +4967,25 @@ import {
   BarChart3,
   ArrowUpRight,
   HelpCircle,
-} from "lucide-react";
-import type { WorldId } from "../types/types";
+} from 'lucide-react';
+import type { WorldId } from '../types/types';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
-import { useMediaQuery } from "../hooks/useMediaQuery";
+} from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
+import type { QuestionnaireProgressDict } from '@/types/dictionary';
 
 interface QuestionnaireProgressProps {
   completedWorlds: WorldId[];
@@ -5078,23 +4995,16 @@ interface QuestionnaireProgressProps {
   answeredQuestions: number;
   requiredQuestions: number;
   answeredRequiredQuestions: number;
-  estimatedTimeLeft?: number; // בדקות
+  estimatedTimeLeft?: number; // in minutes
   lastSaved?: Date | null;
   onWorldChange?: (worldId: WorldId) => void;
   className?: string;
+  dict: QuestionnaireProgressDict;
 }
-
-const worldLabels = {
-  PERSONALITY: "אישיות",
-  VALUES: "ערכים ואמונות",
-  RELATIONSHIP: "זוגיות",
-  PARTNER: "פרטנר",
-  RELIGION: "דת ומסורת",
-};
 
 export default function QuestionnaireProgress({
   completedWorlds,
-  allWorlds = ["PERSONALITY", "VALUES", "RELATIONSHIP", "PARTNER", "RELIGION"],
+  allWorlds = ['PERSONALITY', 'VALUES', 'RELATIONSHIP', 'PARTNER', 'RELIGION'],
   currentWorld,
   totalQuestions,
   answeredQuestions,
@@ -5103,13 +5013,13 @@ export default function QuestionnaireProgress({
   estimatedTimeLeft = 0,
   lastSaved = null,
   onWorldChange,
-  className = "",
+  className = '',
+  dict,
 }: QuestionnaireProgressProps) {
-  // מצב מקומי
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  const isTablet = useMediaQuery("(max-width: 1024px)");
+  const isTablet = useMediaQuery('(max-width: 1024px)');
+  const worldLabels = dict.worldLabels;
 
-  // חישוב אחוזי התקדמות
   const totalCompletion = Math.round(
     (answeredQuestions / totalQuestions) * 100
   );
@@ -5120,54 +5030,58 @@ export default function QuestionnaireProgress({
     (completedWorlds.length / allWorlds.length) * 100
   );
 
-  // מצב התקדמות כולל להצגה למשתמש
-  let progressStatus: "low" | "medium" | "high" | "complete" = "low";
-  if (totalCompletion >= 100) progressStatus = "complete";
-  else if (totalCompletion >= 75) progressStatus = "high";
-  else if (totalCompletion >= 40) progressStatus = "medium";
+  let progressStatus: 'low' | 'medium' | 'high' | 'complete' = 'low';
+  if (totalCompletion >= 100) progressStatus = 'complete';
+  else if (totalCompletion >= 75) progressStatus = 'high';
+  else if (totalCompletion >= 40) progressStatus = 'medium';
 
-  // צבעים המותאמים למצב התקדמות
   const statusColors = {
-    low: "text-amber-600",
-    medium: "text-blue-600",
-    high: "text-blue-700",
-    complete: "text-green-600",
+    low: 'text-amber-600',
+    medium: 'text-blue-600',
+    high: 'text-blue-700',
+    complete: 'text-green-600',
   };
-
   const statusBgColors = {
-    low: "bg-amber-100",
-    medium: "bg-blue-100",
-    high: "bg-blue-100",
-    complete: "bg-green-100",
+    low: 'bg-amber-100',
+    medium: 'bg-blue-100',
+    high: 'bg-blue-100',
+    complete: 'bg-green-100',
   };
 
-  // הופך זמן שנותר בדקות למחרוזת מותאמת
   const formatTimeLeft = (minutes: number): string => {
-    if (minutes < 1) return "פחות מדקה";
-    if (minutes < 60) return `${minutes} דק'`;
+    if (minutes < 1) return dict.timeStrings.lessThanAMinute;
+    if (minutes < 60) return `${minutes} ${dict.timeStrings.minutesSuffix}`;
 
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return `${hours} שעות ${mins > 0 ? `ו-${mins} דק'` : ""}`;
+    return `${hours} ${dict.timeStrings.hours} ${mins > 0 ? `${dict.timeStrings.and}${mins} ${dict.timeStrings.minutesSuffix}` : ''}`;
   };
 
-  // חישוב זמן שמירה אחרון יחסית
   const getRelativeTime = (date: Date): string => {
     const now = new Date();
     const diffInMinutes = Math.floor(
       (now.getTime() - date.getTime()) / (1000 * 60)
     );
-
-    if (diffInMinutes < 1) return "עכשיו";
-    if (diffInMinutes < 60) return `לפני ${diffInMinutes} דקות`;
+    if (diffInMinutes < 1) return dict.timeStrings.savedNow;
+    if (diffInMinutes < 60)
+      return dict.timeStrings.savedMinutesAgo.replace(
+        '{{minutes}}',
+        diffInMinutes.toString()
+      );
 
     const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `לפני ${diffInHours} שעות`;
+    if (diffInHours < 24)
+      return dict.timeStrings.savedHoursAgo.replace(
+        '{{hours}}',
+        diffInHours.toString()
+      );
 
-    return `ב-${date.toLocaleTimeString()}`;
+    return dict.timeStrings.savedAtTime.replace(
+      '{{time}}',
+      date.toLocaleTimeString()
+    );
   };
 
-  // קבל המלצה לעולם הבא שטרם הושלם
   const getNextRecommendedWorld = (): WorldId | null => {
     for (const world of allWorlds) {
       if (!completedWorlds.includes(world) && world !== currentWorld) {
@@ -5177,7 +5091,6 @@ export default function QuestionnaireProgress({
     return null;
   };
 
-  // אקורדיון מונפש
   const AccordionSection = ({
     title,
     icon,
@@ -5195,32 +5108,32 @@ export default function QuestionnaireProgress({
       <div className="border rounded-lg overflow-hidden mb-2">
         <button
           className={cn(
-            "w-full flex items-center justify-between p-3 text-left transition-colors",
+            'w-full flex items-center justify-between p-3 text-left transition-colors',
             isExpanded
-              ? "bg-blue-50 border-blue-200"
-              : "bg-white hover:bg-gray-50"
+              ? 'bg-blue-50 border-blue-200'
+              : 'bg-white hover:bg-gray-50'
           )}
           onClick={() => setExpandedSection(isExpanded ? null : id)}
         >
           <div className="flex items-center">
             <div
               className={cn(
-                "mr-2",
-                isExpanded ? "text-blue-600" : "text-gray-500"
+                'mr-2',
+                isExpanded ? 'text-blue-600' : 'text-gray-500'
               )}
             >
               {icon}
             </div>
             <span
-              className={cn("font-medium", isExpanded ? "text-blue-700" : "")}
+              className={cn('font-medium', isExpanded ? 'text-blue-700' : '')}
             >
               {title}
             </span>
           </div>
           <ChevronRight
             className={cn(
-              "w-5 h-5 transition-transform",
-              isExpanded ? "transform rotate-90 text-blue-600" : "text-gray-400"
+              'w-5 h-5 transition-transform',
+              isExpanded ? 'transform rotate-90 text-blue-600' : 'text-gray-400'
             )}
           />
         </button>
@@ -5229,7 +5142,7 @@ export default function QuestionnaireProgress({
           {isExpanded && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
+              animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
@@ -5241,110 +5154,99 @@ export default function QuestionnaireProgress({
     );
   };
 
-  // קומפוננטה עבור מידע על תגמולים
   const RewardsInfo = () => {
     const achievements = [
       {
-        name: "עמידה ביעד",
+        key: 'goal' as const,
         condition: requiredCompletion >= 100,
         icon: <Award className="h-4 w-4 text-amber-500" />,
-        description: "השלמת את כל שאלות החובה",
       },
       {
-        name: "לומד מצטיין",
+        key: 'halfway' as const,
         condition: totalCompletion >= 50,
         icon: <Star className="h-4 w-4 text-amber-500" />,
-        description: "ענית על לפחות מחצית מהשאלות",
       },
       {
-        name: "חוקר עמוק",
+        key: 'advanced' as const,
         condition: totalCompletion >= 80,
         icon: <TrendingUp className="h-4 w-4 text-amber-500" />,
-        description: "ענית על מעל 80% מהשאלות",
       },
       {
-        name: "שלם ומושלם",
+        key: 'complete' as const,
         condition: totalCompletion >= 100,
         icon: <CheckCircle2 className="h-4 w-4 text-amber-500" />,
-        description: "ענית על כל השאלות בשאלון",
       },
     ];
 
-    // מסנן רק הישגים שהושגו
-    const earnedAchievements = achievements.filter(
-      (achievement) => achievement.condition
-    );
+    const earnedAchievements = achievements.filter((a) => a.condition);
 
     return (
       <div className="space-y-2">
         {earnedAchievements.length > 0 ? (
           <>
             <p className="text-sm text-gray-600 mb-2">
-              כל הכבוד! השגת את ההישגים הבאים:
+              {dict.rewards.achievedText}
             </p>
             <div className="space-y-2">
-              {earnedAchievements.map((achievement, index) => (
-                <div
-                  key={index}
-                  className="flex items-center bg-white p-2 rounded-lg border"
-                >
-                  <div className="mr-2">{achievement.icon}</div>
-                  <div>
-                    <div className="font-medium text-sm">
-                      {achievement.name}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {achievement.description}
+              {earnedAchievements.map((achievement, index) => {
+                const achievementDict =
+                  dict.rewards.achievements[achievement.key];
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center bg-white p-2 rounded-lg border"
+                  >
+                    <div className="mr-2">{achievement.icon}</div>
+                    <div>
+                      <div className="font-medium text-sm">
+                        {achievementDict.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {achievementDict.description}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-
             {earnedAchievements.length < achievements.length && (
               <p className="text-xs text-gray-500 mt-3">
-                השלם עוד {achievements.length - earnedAchievements.length}{" "}
-                הישגים נוספים!
+                {dict.rewards.moreToGo.replace(
+                  '{{count}}',
+                  (achievements.length - earnedAchievements.length).toString()
+                )}
               </p>
             )}
           </>
         ) : (
-          <p className="text-sm text-gray-600">
-            ענה על יותר שאלות כדי לקבל הישגים!
-          </p>
+          <p className="text-sm text-gray-600">{dict.rewards.prompt}</p>
         )}
       </div>
     );
   };
 
-  // המלצות עולמות
   const WorldRecommendations = () => {
     const nextWorld = getNextRecommendedWorld();
-
     return (
       <div className="space-y-3">
-        <p className="text-sm text-gray-600">
-          שים לב לסדר המומלץ של מילוי העולמות:
-        </p>
-
+        <p className="text-sm text-gray-600">{dict.recommendations.title}</p>
         <div className="flex flex-col space-y-1">
           {allWorlds.map((world, index) => {
             const isCompleted = completedWorlds.includes(world);
             const isCurrent = currentWorld === world;
             const isNextRecommended = world === nextWorld;
-
             return (
               <div
                 key={world}
                 className={cn(
-                  "flex items-center justify-between p-2 rounded-lg border",
+                  'flex items-center justify-between p-2 rounded-lg border',
                   isCompleted
-                    ? "bg-green-50 border-green-200"
+                    ? 'bg-green-50 border-green-200'
                     : isCurrent
-                    ? "bg-blue-50 border-blue-200"
-                    : isNextRecommended
-                    ? "bg-amber-50 border-amber-200"
-                    : "bg-white border-gray-200"
+                      ? 'bg-blue-50 border-blue-200'
+                      : isNextRecommended
+                        ? 'bg-amber-50 border-amber-200'
+                        : 'bg-white border-gray-200'
                 )}
               >
                 <div className="flex items-center">
@@ -5353,30 +5255,29 @@ export default function QuestionnaireProgress({
                   </div>
                   <span
                     className={cn(
-                      "font-medium",
+                      'font-medium',
                       isCompleted
-                        ? "text-green-700"
+                        ? 'text-green-700'
                         : isCurrent
-                        ? "text-blue-700"
-                        : isNextRecommended
-                        ? "text-amber-700"
-                        : ""
+                          ? 'text-blue-700'
+                          : isNextRecommended
+                            ? 'text-amber-700'
+                            : ''
                     )}
                   >
-                    {worldLabels[world]}
+                    {worldLabels[world as keyof typeof worldLabels]}
                   </span>
                 </div>
-
                 <div className="flex items-center">
                   {isCompleted ? (
                     <Badge className="bg-green-100 text-green-800 border-0">
                       <CheckCircle2 className="w-3 h-3 mr-1" />
-                      הושלם
+                      {dict.recommendations.statuses.completed}
                     </Badge>
                   ) : isCurrent ? (
                     <Badge className="bg-blue-100 text-blue-800 border-0">
                       <PlayCircle className="w-3 h-3 mr-1" />
-                      פעיל
+                      {dict.recommendations.statuses.active}
                     </Badge>
                   ) : isNextRecommended ? (
                     <Button
@@ -5386,11 +5287,11 @@ export default function QuestionnaireProgress({
                       onClick={() => onWorldChange?.(world)}
                     >
                       <ArrowUpRight className="w-3 h-3 mr-1" />
-                      עבור לכאן
+                      {dict.recommendations.ctaButton}
                     </Button>
                   ) : (
                     <Badge variant="outline" className="text-gray-500 text-xs">
-                      ממתין
+                      {dict.recommendations.statuses.pending}
                     </Badge>
                   )}
                 </div>
@@ -5402,26 +5303,29 @@ export default function QuestionnaireProgress({
     );
   };
 
-  // קומפוננטת חלוקת זמן
   const TimeBreakdown = () => {
     return (
       <div className="space-y-3">
         <div className="text-sm text-gray-600 flex items-center">
           <Timer className="h-4 w-4 mr-1 text-blue-500" />
           <span>
-            זמן משוער להשלמת השאלון: {formatTimeLeft(estimatedTimeLeft)}
+            {dict.timeBreakdown.title.replace(
+              '{{timeLeft}}',
+              formatTimeLeft(estimatedTimeLeft)
+            )}
           </span>
         </div>
-
         <div className="flex flex-col space-y-2">
-          {/* חלוקת זמן לפי עולמות */}
-          <div className="text-xs text-gray-500">חלוקת זמן לפי עולמות:</div>
+          <div className="text-xs text-gray-500">
+            {dict.timeBreakdown.subtitle}
+          </div>
           {allWorlds.map((world) => {
             const isCompleted = completedWorlds.includes(world);
-            const timePerWorld = Math.round(
-              estimatedTimeLeft / (allWorlds.length - completedWorlds.length)
-            );
-
+            const remainingWorlds = allWorlds.length - completedWorlds.length;
+            const timePerWorld =
+              remainingWorlds > 0
+                ? Math.round(estimatedTimeLeft / remainingWorlds)
+                : 0;
             return (
               <div key={world} className="flex items-center justify-between">
                 <span className="text-sm flex items-center">
@@ -5430,15 +5334,20 @@ export default function QuestionnaireProgress({
                   ) : (
                     <Clock className="h-3.5 w-3.5 mr-1 text-blue-400" />
                   )}
-                  {worldLabels[world]}
+                  {worldLabels[world as keyof typeof worldLabels]}
                 </span>
                 <span
                   className={cn(
-                    "text-sm",
-                    isCompleted ? "text-green-600" : "text-gray-600"
+                    'text-sm',
+                    isCompleted ? 'text-green-600' : 'text-gray-600'
                   )}
                 >
-                  {isCompleted ? "הושלם" : `~${timePerWorld} דקות`}
+                  {isCompleted
+                    ? dict.timeBreakdown.statusCompleted
+                    : dict.timeBreakdown.timePerWorld.replace(
+                        '{{time}}',
+                        timePerWorld.toString()
+                      )}
                 </span>
               </div>
             );
@@ -5448,302 +5357,279 @@ export default function QuestionnaireProgress({
     );
   };
 
-  // רנדור מותנה במגבלות מסך
-  const renderMobile = () => {
-    return (
-      <div className="space-y-4">
-        {/* כותרת עם סטטוס התקדמות כולל */}
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium flex items-center">
-            <BarChart3 className="h-5 w-5 mr-2 text-blue-500" />
-            התקדמות
-          </h3>
-          <Badge
-            className={cn(
-              statusBgColors[progressStatus],
-              "text-xs border-0",
-              statusColors[progressStatus]
-            )}
-          >
-            {progressStatus === "complete"
-              ? "הושלם"
-              : totalCompletion <= 5
-              ? "התחלנו"
-              : `${totalCompletion}%`}
-          </Badge>
-        </div>
+  const getProgressBadgeText = () => {
+    if (progressStatus === 'complete') return dict.statusBadge.complete;
+    if (totalCompletion <= 5) return dict.statusBadge.started;
+    return dict.statusBadge.progress.replace(
+      '{{progress}}',
+      totalCompletion.toString()
+    );
+  };
 
-        {/* פרוגרס ברים */}
-        <div className="space-y-2 pt-1">
-          {/* סך התקדמות */}
-          <div className="space-y-1">
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-600">סך הכל שאלות</span>
-              <span className="font-medium">
-                {answeredQuestions} / {totalQuestions}
-              </span>
-            </div>
-            <Progress value={totalCompletion} className="h-2" />
+  const renderMobile = () => (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium flex items-center">
+          <BarChart3 className="h-5 w-5 mr-2 text-blue-500" />
+          {dict.mobile.title}
+        </h3>
+        <Badge
+          className={cn(
+            statusBgColors[progressStatus],
+            'text-xs border-0',
+            statusColors[progressStatus]
+          )}
+        >
+          {getProgressBadgeText()}
+        </Badge>
+      </div>
+      <div className="space-y-2 pt-1">
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-600">{dict.mobile.totalLabel}</span>
+            <span className="font-medium">
+              {answeredQuestions} / {totalQuestions}
+            </span>
           </div>
-
-          {/* שאלות חובה */}
-          <div className="space-y-1">
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-600">שאלות חובה</span>
-              <span
-                className={cn(
-                  "font-medium",
-                  requiredCompletion < 100
-                    ? answeredRequiredQuestions === 0
-                      ? "text-red-600"
-                      : "text-amber-600"
-                    : "text-green-600"
-                )}
-              >
-                {answeredRequiredQuestions} / {requiredQuestions}
-              </span>
-            </div>
-            <Progress
-              value={requiredCompletion}
+          <Progress value={totalCompletion} className="h-2" />
+        </div>
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-600">{dict.mobile.requiredLabel}</span>
+            <span
               className={cn(
-                "h-2",
-                requiredCompletion < 100 ? "bg-gray-100" : ""
+                'font-medium',
+                requiredCompletion < 100
+                  ? answeredRequiredQuestions === 0
+                    ? 'text-red-600'
+                    : 'text-amber-600'
+                  : 'text-green-600'
               )}
-            />
+            >
+              {answeredRequiredQuestions} / {requiredQuestions}
+            </span>
           </div>
-        </div>
-
-        {/* מידע על זמן שנותר ושמירה אחרונה */}
-        <div className="flex flex-col gap-1 text-xs pt-1">
-          {estimatedTimeLeft > 0 && (
-            <div className="flex items-center">
-              <Clock className="h-3.5 w-3.5 mr-1 text-gray-500" />
-              <span className="text-gray-600">
-                זמן משוער שנותר: {formatTimeLeft(estimatedTimeLeft)}
-              </span>
-            </div>
-          )}
-
-          {lastSaved && (
-            <div className="flex items-center">
-              <CheckCircle className="h-3.5 w-3.5 mr-1 text-green-600" />
-              <span className="text-gray-600">
-                נשמר {getRelativeTime(lastSaved)}
-              </span>
-            </div>
-          )}
+          <Progress
+            value={requiredCompletion}
+            className={cn('h-2', requiredCompletion < 100 ? 'bg-gray-100' : '')}
+          />
         </div>
       </div>
-    );
-  };
-
-  // רנדור מורחב למסך גדול
-  const renderDesktop = () => {
-    return (
-      <div className="space-y-6">
-        {/* כותרת עם סטטוס התקדמות כולל */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-xl font-medium">התקדמות השאלון</h3>
-            <p className="text-sm text-gray-500 mt-1">
-              סקירת ההתקדמות שלך בשאלון ההיכרות
-            </p>
+      <div className="flex flex-col gap-1 text-xs pt-1">
+        {estimatedTimeLeft > 0 && (
+          <div className="flex items-center">
+            <Clock className="h-3.5 w-3.5 mr-1 text-gray-500" />
+            <span className="text-gray-600">
+              {dict.mobile.timeLeftLabel.replace(
+                '{{timeLeft}}',
+                formatTimeLeft(estimatedTimeLeft)
+              )}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    className={cn(
-                      statusBgColors[progressStatus],
-                      "text-xs border-0 py-1 px-2",
-                      statusColors[progressStatus]
-                    )}
-                  >
-                    <TrendingUp className="h-3.5 w-3.5 mr-1" />
-                    {progressStatus === "complete"
-                      ? "הושלם"
-                      : totalCompletion <= 5
-                      ? "התחלת"
-                      : `${totalCompletion}% הושלם`}
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    השלמת {answeredQuestions} מתוך {totalQuestions} שאלות
+        )}
+        {lastSaved && (
+          <div className="flex items-center">
+            <CheckCircle className="h-3.5 w-3.5 mr-1 text-green-600" />
+            <span className="text-gray-600">
+              {dict.mobile.savedLabel.replace(
+                '{{time}}',
+                getRelativeTime(lastSaved)
+              )}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderDesktop = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-xl font-medium">{dict.desktop.title}</h3>
+          <p className="text-sm text-gray-500 mt-1">{dict.desktop.subtitle}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  className={cn(
+                    statusBgColors[progressStatus],
+                    'text-xs border-0 py-1 px-2',
+                    statusColors[progressStatus]
+                  )}
+                >
+                  <TrendingUp className="h-3.5 w-3.5 mr-1" />
+                  {getProgressBadgeText()}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {dict.desktop.tooltip.completionDetails
+                    .replace('{{answered}}', answeredQuestions.toString())
+                    .replace('{{total}}', totalQuestions.toString())}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-full"
+                >
+                  <HelpCircle className="h-4 w-4 text-gray-500" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="space-y-1 max-w-xs">
+                  <p className="font-medium">
+                    {dict.desktop.tooltip.progressInfoTitle}
                   </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 rounded-full"
-                  >
-                    <HelpCircle className="h-4 w-4 text-gray-500" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1 max-w-xs">
-                    <p className="font-medium">מידע על התקדמות</p>
-                    <p className="text-xs">
-                      דף זה מציג את התקדמותך בשאלון, כולל שאלות שעליהן ענית,
-                      עולמות שהשלמת והזמן המשוער שנותר.
-                    </p>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-12 gap-4">
-          {/* תיבת פרוגרס ברים ראשית */}
-          <Card className="col-span-12 md:col-span-8">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center">
-                <BarChart3 className="h-5 w-5 mr-2 text-blue-500" />
-                סיכום התקדמות
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* פרוגרס ברים */}
-              <div className="space-y-4 pt-1">
-                {/* סך התקדמות */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 flex items-center">
-                      <Info className="h-3.5 w-3.5 mr-1 text-blue-500" />
-                      סך הכל שאלות
-                    </span>
-                    <span className="font-medium">
-                      {answeredQuestions} / {totalQuestions}
-                    </span>
-                  </div>
-                  <Progress value={totalCompletion} className="h-2" />
+                  <p className="text-xs">
+                    {dict.desktop.tooltip.progressInfoDesc}
+                  </p>
                 </div>
-
-                {/* שאלות חובה */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 flex items-center">
-                      <Star className="h-3.5 w-3.5 mr-1 text-amber-500" />
-                      שאלות חובה
-                    </span>
-                    <span
-                      className={cn(
-                        "font-medium",
-                        requiredCompletion < 100
-                          ? answeredRequiredQuestions === 0
-                            ? "text-red-600"
-                            : "text-amber-600"
-                          : "text-green-600"
-                      )}
-                    >
-                      {answeredRequiredQuestions} / {requiredQuestions}
-                    </span>
-                  </div>
-                  <Progress
-                    value={requiredCompletion}
-                    className={cn(
-                      "h-2",
-                      requiredCompletion < 100 ? "bg-gray-100" : ""
-                    )}
-                  />
-                </div>
-
-                {/* עולמות */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 flex items-center">
-                      <Globe className="h-3.5 w-3.5 mr-1 text-blue-500" />
-                      עולמות
-                    </span>
-                    <span className="font-medium">
-                      {completedWorlds.length} / {allWorlds.length}
-                    </span>
-                  </div>
-                  <Progress value={worldsCompletion} className="h-2" />
-                </div>
-              </div>
-
-              {/* מידע על זמן שנותר ושמירה אחרונה */}
-              <div className="flex justify-between items-center pt-4 mt-2 border-t text-sm">
-                {estimatedTimeLeft > 0 && (
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1 text-blue-500" />
-                    <span className="text-gray-600">
-                      זמן משוער שנותר: {formatTimeLeft(estimatedTimeLeft)}
-                    </span>
-                  </div>
-                )}
-
-                {lastSaved && (
-                  <div className="flex items-center">
-                    <CheckCircle className="h-4 w-4 mr-1 text-green-600" />
-                    <span className="text-gray-600">
-                      נשמר לאחרונה: {lastSaved.toLocaleTimeString()}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* סיכום מצב התקדמות */}
-          <Card className="col-span-12 md:col-span-4">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center">
-                <Award className="h-5 w-5 mr-2 text-amber-500" />
-                הישגים
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <RewardsInfo />
-            </CardContent>
-          </Card>
-
-          {/* מידע מורחב על העולמות */}
-          <Card className="col-span-12">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center">
-                <Globe className="h-5 w-5 mr-2 text-blue-500" />
-              </CardTitle>
-              <CardDescription>
-                מעקב אחר התקדמותך בעולמות השונים של השאלון
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <AccordionSection
-                  title="המלצות עולמות"
-                  icon={<Star className="h-4 w-4" />}
-                  id="worlds-recommendations"
-                >
-                  <WorldRecommendations />
-                </AccordionSection>
-
-                <AccordionSection
-                  title="חלוקת זמן משוערת"
-                  icon={<Clock className="h-4 w-4" />}
-                  id="time-breakdown"
-                >
-                  <TimeBreakdown />
-                </AccordionSection>
-              </div>
-            </CardContent>
-          </Card>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
-    );
-  };
+      <div className="grid grid-cols-12 gap-4">
+        <Card className="col-span-12 md:col-span-8">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <BarChart3 className="h-5 w-5 mr-2 text-blue-500" />
+              {dict.desktop.progressSummaryTitle}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-4 pt-1">
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 flex items-center">
+                    <Info className="h-3.5 w-3.5 mr-1 text-blue-500" />
+                    {dict.mobile.totalLabel}
+                  </span>
+                  <span className="font-medium">
+                    {answeredQuestions} / {totalQuestions}
+                  </span>
+                </div>
+                <Progress value={totalCompletion} className="h-2" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 flex items-center">
+                    <Star className="h-3.5 w-3.5 mr-1 text-amber-500" />
+                    {dict.mobile.requiredLabel}
+                  </span>
+                  <span
+                    className={cn(
+                      'font-medium',
+                      requiredCompletion < 100
+                        ? answeredRequiredQuestions === 0
+                          ? 'text-red-600'
+                          : 'text-amber-600'
+                        : 'text-green-600'
+                    )}
+                  >
+                    {answeredRequiredQuestions} / {requiredQuestions}
+                  </span>
+                </div>
+                <Progress
+                  value={requiredCompletion}
+                  className={cn(
+                    'h-2',
+                    requiredCompletion < 100 ? 'bg-gray-100' : ''
+                  )}
+                />
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 flex items-center">
+                    <Globe className="h-3.5 w-3.5 mr-1 text-blue-500" />
+                    {dict.desktop.worldsTitle}
+                  </span>
+                  <span className="font-medium">
+                    {completedWorlds.length} / {allWorlds.length}
+                  </span>
+                </div>
+                <Progress value={worldsCompletion} className="h-2" />
+              </div>
+            </div>
+            <div className="flex justify-between items-center pt-4 mt-2 border-t text-sm">
+              {estimatedTimeLeft > 0 && (
+                <div className="flex items-center">
+                  <Clock className="h-4 w-4 mr-1 text-blue-500" />
+                  <span className="text-gray-600">
+                    {dict.mobile.timeLeftLabel.replace(
+                      '{{timeLeft}}',
+                      formatTimeLeft(estimatedTimeLeft)
+                    )}
+                  </span>
+                </div>
+              )}
+              {lastSaved && (
+                <div className="flex items-center">
+                  <CheckCircle className="h-4 w-4 mr-1 text-green-600" />
+                  <span className="text-gray-600">
+                    {dict.mobile.savedLabel.replace(
+                      '{{time}}',
+                      lastSaved.toLocaleTimeString()
+                    )}
+                  </span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="col-span-12 md:col-span-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Award className="h-5 w-5 mr-2 text-amber-500" />
+              {dict.desktop.achievementsTitle}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RewardsInfo />
+          </CardContent>
+        </Card>
+        <Card className="col-span-12">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Globe className="h-5 w-5 mr-2 text-blue-500" />
+              {dict.desktop.worldsTitle}
+            </CardTitle>
+            <CardDescription>{dict.desktop.worldsSubtitle}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <AccordionSection
+                title={dict.desktop.accordion.recommendations}
+                icon={<Star className="h-4 w-4" />}
+                id="worlds-recommendations"
+              >
+                <WorldRecommendations />
+              </AccordionSection>
+              <AccordionSection
+                title={dict.desktop.accordion.timeBreakdown}
+                icon={<Clock className="h-4 w-4" />}
+                id="time-breakdown"
+              >
+                <TimeBreakdown />
+              </AccordionSection>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 
   return (
-    <div className={cn("bg-white rounded-lg shadow-sm border p-4", className)}>
+    <div className={cn('bg-white rounded-lg shadow-sm border p-4', className)}>
       {isTablet ? renderMobile() : renderDesktop()}
     </div>
   );
@@ -5754,10 +5640,10 @@ export default function QuestionnaireProgress({
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\UserStats.tsx
 --------------------------------------------------------------------------------
 Content:
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import {
   UserCheck,
   Users,
@@ -5769,31 +5655,33 @@ import {
   Zap,
   Award,
   Star,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
+import type { UserStatsDict } from '@/types/dictionary'; // Import dictionary type
 
 interface UserStatsProps {
   totalQuestionsAnswered: number;
   totalQuestionsCount: number;
-  activeMatches?: number; // מספר התאמות פעילות
-  pendingMatches?: number; // מספר התאמות ממתינות
-  matchScore?: number; // ציון התאמה כללי (0-100)
-  profileCompletion?: number; // אחוז השלמת הפרופיל
-  activeWorldsCompleted?: string[]; // עולמות שהושלמו
+  activeMatches?: number;
+  pendingMatches?: number;
+  matchScore?: number;
+  profileCompletion?: number;
+  activeWorldsCompleted?: string[];
   personalityTraits?: Array<{
     trait: string;
     score: number;
   }>;
-  activityLevel?: "low" | "medium" | "high"; // רמת פעילות המשתמש
-  registrationDate?: Date; // תאריך הרשמה
-  lastActive?: Date; // פעילות אחרונה
+  activityLevel?: 'low' | 'medium' | 'high';
+  registrationDate?: Date;
+  lastActive?: Date;
   className?: string;
+  dict: UserStatsDict; // Use the specific dictionary type
 }
 
 export default function UserStats({
@@ -5805,17 +5693,16 @@ export default function UserStats({
   profileCompletion = 0,
   activeWorldsCompleted = [],
   personalityTraits = [],
-  activityLevel = "medium",
+  activityLevel = 'medium',
   registrationDate,
   className,
+  dict,
 }: UserStatsProps) {
-  // חישוב תאריכים יפים להצגה
   const formatDate = (date?: Date) => {
-    if (!date) return "לא זמין";
-    return date.toLocaleDateString("he-IL");
+    if (!date) return dict.common.notAvailable;
+    return date.toLocaleDateString('he-IL');
   };
 
-  // זמן בשירות
   const getDaysActive = () => {
     if (!registrationDate) return 0;
     const today = new Date();
@@ -5823,55 +5710,61 @@ export default function UserStats({
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  // רמת פעילות בצבע מתאים
   const getActivityLevelColor = () => {
     switch (activityLevel) {
-      case "high":
-        return "text-green-600 bg-green-100";
-      case "medium":
-        return "text-blue-600 bg-blue-100";
-      case "low":
-        return "text-amber-600 bg-amber-100";
+      case 'high':
+        return 'text-green-600 bg-green-100';
+      case 'medium':
+        return 'text-blue-600 bg-blue-100';
+      case 'low':
+        return 'text-amber-600 bg-amber-100';
       default:
-        return "text-gray-600 bg-gray-100";
+        return 'text-gray-600 bg-gray-100';
     }
   };
 
+  const worldConfig = [
+    { id: 'PERSONALITY', color: 'blue' },
+    { id: 'VALUES', color: 'emerald' },
+    { id: 'RELATIONSHIP', color: 'purple' },
+    { id: 'PARTNER', color: 'pink' },
+    { id: 'RELIGION', color: 'indigo' },
+  ];
+
   return (
-    <div className={cn("space-y-4", className)}>
-      {/* כרטיס התאמות */}
+    <div className={cn('space-y-4', className)}>
       <Card className="shadow-sm hover:shadow-md transition-shadow border-blue-100">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center">
             <UserCheck className="h-5 w-5 mr-2 text-blue-500" />
-            סטטיסטיקת התאמות
+            {dict.matchStatsCard.title}
           </CardTitle>
         </CardHeader>
-
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
-            {/* התאמות פעילות */}
             <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
-              <div className="text-xs text-gray-600 mb-1">התאמות פעילות</div>
+              <div className="text-xs text-gray-600 mb-1">
+                {dict.matchStatsCard.activeMatches}
+              </div>
               <div className="flex items-center">
                 <Users className="h-5 w-5 text-blue-600 mr-2" />
                 <span className="text-2xl font-semibold">{activeMatches}</span>
               </div>
             </div>
-
-            {/* ממתינות לאישור */}
             <div className="bg-amber-50 p-3 rounded-lg border border-amber-100">
-              <div className="text-xs text-gray-600 mb-1">ממתינות לבדיקה</div>
+              <div className="text-xs text-gray-600 mb-1">
+                {dict.matchStatsCard.pendingMatches}
+              </div>
               <div className="flex items-center">
                 <Calendar className="h-5 w-5 text-amber-600 mr-2" />
                 <span className="text-2xl font-semibold">{pendingMatches}</span>
               </div>
             </div>
-
-            {/* ציון התאמה */}
             <div className="col-span-2 bg-gray-50 p-3 rounded-lg border">
               <div className="flex justify-between mb-1">
-                <div className="text-xs text-gray-600">ציון התאמה</div>
+                <div className="text-xs text-gray-600">
+                  {dict.matchStatsCard.matchScore}
+                </div>
                 <Badge variant="outline" className="text-xs">
                   {matchScore}%
                 </Badge>
@@ -5879,53 +5772,54 @@ export default function UserStats({
               <Progress
                 value={matchScore}
                 className={cn(
-                  "h-2",
+                  'h-2',
                   matchScore > 70
-                    ? "[--progress-foreground:theme(colors.green.500)]"
-                    : "[--progress-foreground:theme(colors.blue.500)]"
+                    ? '[--progress-foreground:theme(colors.green.500)]'
+                    : '[--progress-foreground:theme(colors.blue.500)]'
                 )}
               />
             </div>
-
-            {/* פעיל מתאריך */}
             <div className="col-span-2 flex justify-between text-sm p-2">
               <div className="flex items-center text-gray-600">
                 <Sparkles className="h-4 w-4 mr-1 text-blue-400" />
-                פעיל {getDaysActive()} ימים
+                {dict.matchStatsCard.daysActive.replace(
+                  '{{days}}',
+                  getDaysActive().toString()
+                )}
               </div>
               <div className="text-gray-600">
-                הצטרפת בתאריך {formatDate(registrationDate)}
+                {dict.matchStatsCard.joinDate.replace(
+                  '{{date}}',
+                  formatDate(registrationDate)
+                )}
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* כרטיס פרופיל והתקדמות */}
       <Card className="shadow-sm hover:shadow-md transition-shadow border-blue-100">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center">
             <BarChart4 className="h-5 w-5 mr-2 text-blue-500" />
-            התקדמות והשלמת פרופיל
+            {dict.profileProgressCard.title}
           </CardTitle>
         </CardHeader>
-
         <CardContent>
           <div className="space-y-4">
-            {/* אחוז השלמת פרופיל */}
             <div className="space-y-1">
               <div className="flex justify-between text-sm">
                 <div className="flex items-center">
                   <CheckCheck className="h-4 w-4 mr-1 text-blue-500" />
-                  השלמת פרופיל
+                  {dict.profileProgressCard.profileCompletion}
                 </div>
                 <Badge
                   variant="outline"
                   className={cn(
-                    "text-xs",
+                    'text-xs',
                     profileCompletion >= 80
-                      ? "border-green-500 text-green-600"
-                      : "border-amber-500 text-amber-600"
+                      ? 'border-green-500 text-green-600'
+                      : 'border-amber-500 text-amber-600'
                   )}
                 >
                   {profileCompletion}%
@@ -5934,25 +5828,24 @@ export default function UserStats({
               <Progress
                 value={profileCompletion}
                 className={cn(
-                  "h-2",
+                  'h-2',
                   profileCompletion < 30
-                    ? "[--progress-foreground:theme(colors.red.500)]"
+                    ? '[--progress-foreground:theme(colors.red.500)]'
                     : profileCompletion < 70
-                    ? "[--progress-foreground:theme(colors.amber.500)]"
-                    : "[--progress-foreground:theme(colors.green.500)]"
+                      ? '[--progress-foreground:theme(colors.amber.500)]'
+                      : '[--progress-foreground:theme(colors.green.500)]'
                 )}
               />
             </div>
-
-            {/* שאלות שנענו */}
             <div className="space-y-1">
               <div className="flex justify-between text-sm">
                 <div className="flex items-center">
                   <Zap className="h-4 w-4 mr-1 text-amber-500" />
-                  שאלות שנענו
+                  {dict.profileProgressCard.questionsAnswered}
                 </div>
                 <span className="text-xs text-gray-600">
-                  {totalQuestionsAnswered} מתוך {totalQuestionsCount}
+                  {totalQuestionsAnswered} {dict.profileProgressCard.outOf}{' '}
+                  {totalQuestionsCount}
                 </span>
               </div>
               <Progress
@@ -5960,27 +5853,20 @@ export default function UserStats({
                 className="h-2"
               />
             </div>
-
-            {/* עולמות פעילים */}
             <div className="pt-2">
               <div className="text-sm mb-2 flex items-center">
                 <Heart className="h-4 w-4 mr-1 text-pink-500" />
-                <span>עולמות שהושלמו:</span>
+                <span>{dict.profileProgressCard.completedWorlds}</span>
               </div>
-
               <div className="flex flex-wrap gap-2">
-                {[
-                  { id: "PERSONALITY", name: "אישיות", color: "blue" },
-                  { id: "VALUES", name: "ערכים", color: "emerald" },
-                  { id: "RELATIONSHIP", name: "זוגיות", color: "purple" },
-                  { id: "PARTNER", name: "פרטנר", color: "pink" },
-                  { id: "RELIGION", name: "דת", color: "indigo" },
-                ].map((world) => {
+                {worldConfig.map((world) => {
                   const isCompleted = activeWorldsCompleted.includes(world.id);
+                  const worldName =
+                    dict.worlds[world.id as keyof typeof dict.worlds];
                   return (
                     <Badge
                       key={world.id}
-                      variant={isCompleted ? "default" : "outline"}
+                      variant={isCompleted ? 'default' : 'outline'}
                       className={
                         isCompleted
                           ? `bg-${world.color}-100 hover:bg-${world.color}-200 text-${world.color}-800 border-${world.color}-200`
@@ -5988,27 +5874,23 @@ export default function UserStats({
                       }
                     >
                       {isCompleted && <CheckCheck className="h-3 w-3 mr-1" />}
-                      {world.name}
+                      {worldName}
                     </Badge>
                   );
                 })}
               </div>
             </div>
-
-            {/* רמת פעילות */}
             {activityLevel && (
               <div className="flex justify-between items-center pt-2 text-sm text-gray-600">
-                <div>רמת פעילות:</div>
+                <div>{dict.profileProgressCard.activityLevel}</div>
                 <Badge
                   variant="outline"
                   className={cn(
-                    "font-normal border-0",
+                    'font-normal border-0',
                     getActivityLevelColor()
                   )}
                 >
-                  {activityLevel === "high" && "גבוהה"}
-                  {activityLevel === "medium" && "בינונית"}
-                  {activityLevel === "low" && "נמוכה"}
+                  {dict.activityLevels[activityLevel]}
                 </Badge>
               </div>
             )}
@@ -6016,16 +5898,14 @@ export default function UserStats({
         </CardContent>
       </Card>
 
-      {/* מאפייני אישיות */}
       {personalityTraits && personalityTraits.length > 0 && (
         <Card className="shadow-sm hover:shadow-md transition-shadow border-blue-100">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
               <Award className="h-5 w-5 mr-2 text-blue-500" />
-              מאפייני אישיות בולטים
+              {dict.personalityTraitsCard.title}
             </CardTitle>
           </CardHeader>
-
           <CardContent>
             <div className="space-y-3">
               {personalityTraits.map((trait, index) => (
@@ -6043,20 +5923,25 @@ export default function UserStats({
                         <Progress
                           value={trait.score}
                           className={cn(
-                            "h-1.5",
-                            "relative overflow-hidden",
-                            "before:absolute before:inset-0 before:bg-gradient-to-r before:from-blue-400",
+                            'h-1.5',
+                            'relative overflow-hidden',
+                            'before:absolute before:inset-0 before:bg-gradient-to-r before:from-blue-400',
                             trait.score < 40
-                              ? "before:to-blue-500"
+                              ? 'before:to-blue-500'
                               : trait.score < 70
-                              ? "before:to-purple-500"
-                              : "before:to-pink-500"
+                                ? 'before:to-purple-500'
+                                : 'before:to-pink-500'
                           )}
                         />
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>ציון: {trait.score}/100</p>
+                      <p>
+                        {dict.tooltips.traitScore.replace(
+                          '{{score}}',
+                          trait.score.toString()
+                        )}
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

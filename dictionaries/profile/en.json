@@ -479,7 +479,7 @@
     },
     "charCount": "/ {{count}}+ characters"
   },
-    "profilecard": {
+    "profileCard": {
     "loading": "Loading profile data...",
     "header": {
       "title": "Personal Profile",

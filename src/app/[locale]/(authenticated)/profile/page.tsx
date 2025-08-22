@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { getDictionary } from "@/lib/dictionaries";
-import { Locale } from "#/i18n-config";
+import { Locale } from "../../../../../i18n-config";
 import ProfilePageClient from "./ProfilePageClient";
 
 // רכיב השרת

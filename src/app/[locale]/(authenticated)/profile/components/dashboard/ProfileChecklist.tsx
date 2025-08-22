@@ -357,7 +357,33 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   }, [user.profile, missingItemsDict]);
 
   const questionnaireProgress = useMemo(() => {
-    // ... logic remains the same ...
+    const getAnswerCountFromJsonArray = (jsonValue: unknown): number => {
+      if (Array.isArray(jsonValue)) return jsonValue.length;
+      return 0;
+    };
+
+    if (!questionnaireResponse) {
+      return (Object.keys(WORLD_NAMES_MAP) as WorldKey[]).map((key) => ({
+        world: WORLD_NAMES_MAP[key],
+        completed: 0,
+        total:
+          QUESTION_COUNTS[key.toUpperCase() as keyof typeof QUESTION_COUNTS],
+        isDone: false,
+      }));
+    }
+
+    const qr = questionnaireResponse;
+    return (Object.keys(WORLD_NAMES_MAP) as WorldKey[]).map((key) => {
+      const uppercaseKey = key.toUpperCase() as keyof typeof QUESTION_COUNTS;
+      const answersFieldKey = `${key}Answers` as keyof QuestionnaireResponse;
+      const completedCount = getAnswerCountFromJsonArray(qr[answersFieldKey]);
+      return {
+        world: WORLD_NAMES_MAP[key],
+        completed: completedCount,
+        total: QUESTION_COUNTS[uppercaseKey],
+        isDone: qr.worldsCompleted?.includes(uppercaseKey) ?? false,
+      };
+    });
   }, [questionnaireResponse]);
 
   const questionnaireCompleted = questionnaireResponse?.completed ?? false;
@@ -419,7 +445,159 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   ];
 
   const completionPercentage = useMemo(() => {
-    // ... logic remains the same ...
+    const QUESTIONNAIRE_WEIGHT = 20;
+    const OTHER_TASKS_WEIGHT = 80;
+
+    const totalQuestions = Object.values(QUESTION_COUNTS).reduce(
+      (sum, count) => sum + count,
+      0
+    );
+    const answeredQuestions = questionnaireProgress.reduce(
+      (sum, world) => sum + world.completed,
+      0
+    );
+    const questionnaireContribution =
+      totalQuestions > 0
+        ? (answeredQuestions / totalQuestions) * QUESTIONNAIRE_WEIGHT
+        : 0;
+
+    const p = user.profile;
+    const otherTasksStatus: boolean[] = [];
+
+    // Task 1: Photos
+    otherTasksStatus.push((user.images?.length ?? 0) >= 3);
+
+    if (p) {
+      // --- START OF UPDATED LOGIC FOR PROGRESS BAR ---
+      // Personal Details Checks
+      otherTasksStatus.push(!!p.profileHeadline);
+      otherTasksStatus.push(!!(p.about && p.about.trim().length >= 100));
+      otherTasksStatus.push(!!p.inspiringCoupleStory);
+      otherTasksStatus.push(!!p.influentialRabbi);
+      otherTasksStatus.push(
+        p.hasMedicalInfo !== null && p.hasMedicalInfo !== undefined
+      );
+      otherTasksStatus.push(!p.hasMedicalInfo || !!p.medicalInfoDetails);
+      otherTasksStatus.push(
+        !p.hasMedicalInfo || !!p.medicalInfoDisclosureTiming
+      );
+      otherTasksStatus.push(!!p.birthDate);
+      otherTasksStatus.push(!!p.height);
+      otherTasksStatus.push(!!p.city);
+      otherTasksStatus.push(!!p.origin);
+      otherTasksStatus.push(!!p.nativeLanguage);
+      otherTasksStatus.push(!p.aliyaCountry || !!p.aliyaYear);
+      otherTasksStatus.push(!!p.maritalStatus);
+      otherTasksStatus.push(
+        !['divorced', 'widowed', 'annulled'].includes(p.maritalStatus || '') ||
+          (p.hasChildrenFromPrevious !== null &&
+            p.hasChildrenFromPrevious !== undefined)
+      );
+      otherTasksStatus.push(!!p.parentStatus);
+      otherTasksStatus.push(!!p.fatherOccupation);
+      otherTasksStatus.push(!!p.motherOccupation);
+      otherTasksStatus.push(p.siblings !== null && p.siblings !== undefined);
+      otherTasksStatus.push(p.position !== null && p.position !== undefined);
+      otherTasksStatus.push(!!p.religiousLevel);
+      otherTasksStatus.push(!!p.religiousJourney);
+      otherTasksStatus.push(
+        p.shomerNegiah !== null && p.shomerNegiah !== undefined
+      );
+      otherTasksStatus.push(!!p.educationLevel);
+      otherTasksStatus.push(!!p.education);
+      otherTasksStatus.push(!!p.occupation);
+      otherTasksStatus.push(!!p.serviceType);
+      otherTasksStatus.push(!!p.serviceDetails);
+      otherTasksStatus.push(
+        !!(p.profileCharacterTraits && p.profileCharacterTraits.length > 0)
+      );
+      otherTasksStatus.push(
+        !!(p.profileHobbies && p.profileHobbies.length > 0)
+      );
+
+      // Partner Preferences Checks
+      otherTasksStatus.push(
+        !!(p.matchingNotes && p.matchingNotes.trim().length > 0)
+      );
+      otherTasksStatus.push(!!p.contactPreference);
+      otherTasksStatus.push(!!(p.preferredAgeMin && p.preferredAgeMax));
+      otherTasksStatus.push(!!(p.preferredHeightMin && p.preferredHeightMax));
+      otherTasksStatus.push(
+        !!(p.preferredLocations && p.preferredLocations.length > 0)
+      );
+      otherTasksStatus.push(
+        !!(p.preferredReligiousLevels && p.preferredReligiousLevels.length > 0)
+      );
+      otherTasksStatus.push(
+        !!(
+          p.preferredReligiousJourneys &&
+          p.preferredReligiousJourneys.length > 0
+        )
+      );
+      otherTasksStatus.push(
+        p.preferredShomerNegiah !== null &&
+          p.preferredShomerNegiah !== undefined
+      );
+      otherTasksStatus.push(
+        !!(p.preferredEducation && p.preferredEducation.length > 0)
+      );
+      otherTasksStatus.push(
+        !!(p.preferredOccupations && p.preferredOccupations.length > 0)
+      );
+      otherTasksStatus.push(
+        !!(p.preferredServiceTypes && p.preferredServiceTypes.length > 0)
+      );
+      otherTasksStatus.push(
+        !!(p.preferredMaritalStatuses && p.preferredMaritalStatuses.length > 0)
+      );
+      otherTasksStatus.push(
+        p.preferredPartnerHasChildren !== null &&
+          p.preferredPartnerHasChildren !== undefined
+      );
+      otherTasksStatus.push(
+        !!(p.preferredOrigins && p.preferredOrigins.length > 0)
+      );
+      otherTasksStatus.push(!!p.preferredAliyaStatus);
+      otherTasksStatus.push(
+        !!(p.preferredCharacterTraits && p.preferredCharacterTraits.length > 0)
+      );
+      otherTasksStatus.push(
+        !!(p.preferredHobbies && p.preferredHobbies.length > 0)
+      );
+
+      // Gender-specific checks
+      if (p.gender === Gender.FEMALE) {
+        otherTasksStatus.push(!!p.headCovering); // personal
+        otherTasksStatus.push(
+          !!(p.preferredKippahTypes && p.preferredKippahTypes.length > 0)
+        ); // preference
+      } else if (p.gender === Gender.MALE) {
+        otherTasksStatus.push(!!p.kippahType); // personal
+        otherTasksStatus.push(
+          !!(p.preferredHeadCoverings && p.preferredHeadCoverings.length > 0)
+        ); // preference
+      }
+      // --- END OF UPDATED LOGIC FOR PROGRESS BAR ---
+    } else {
+      // If no profile, add placeholders for all items
+      const totalProfileFields = 54; // Calculated number of fields including gender-specific ones
+      otherTasksStatus.push(...Array(totalProfileFields).fill(false));
+    }
+
+    // Task 5: Review
+    otherTasksStatus.push(hasSeenPreview);
+
+    const totalOtherTasks = otherTasksStatus.length;
+    const completedOtherTasks = otherTasksStatus.filter(
+      (isCompleted) => isCompleted
+    ).length;
+
+    const otherTasksContribution =
+      totalOtherTasks > 0
+        ? (completedOtherTasks / totalOtherTasks) * OTHER_TASKS_WEIGHT
+        : 0;
+
+    return Math.round(questionnaireContribution + otherTasksContribution);
   }, [user, questionnaireProgress, hasSeenPreview]);
 
   const isAllComplete = completionPercentage >= 100;

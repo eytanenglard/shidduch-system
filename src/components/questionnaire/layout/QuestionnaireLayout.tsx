@@ -48,9 +48,11 @@ import AccessibilityFeatures from '../components/AccessibilityFeatures';
 import type {
   QuestionnaireLayoutDict,
   MatchmakingQuestionnaireDict,
+  QuestionnaireFaqDict,
+  AccessibilityFeaturesDict,
 } from '@/types/dictionary';
 
-// Props Interface
+// Props Interface - Updated to include FAQ and Accessibility dicts
 export interface QuestionnaireLayoutProps {
   children: React.ReactNode;
   currentWorld: WorldId;
@@ -61,9 +63,10 @@ export interface QuestionnaireLayoutProps {
   onSaveProgress?: () => Promise<void>;
   isLoggedIn?: boolean;
   dict: {
-    // The dict is now structured
     layout: QuestionnaireLayoutDict;
     worldLabels: MatchmakingQuestionnaireDict['worldLabels'];
+    faq: QuestionnaireFaqDict; // Added FAQ dictionary
+    accessibilityFeatures: AccessibilityFeaturesDict; // Added Accessibility dictionary
   };
 }
 
@@ -265,7 +268,7 @@ export default function QuestionnaireLayout({
           <SheetTitle>{dict.layout.tooltips.faq}</SheetTitle>
         </SheetHeader>
         <div className="mt-4">
-          <FAQ />
+          <FAQ dict={dict.faq} />
         </div>
       </SheetContent>
     </Sheet>
@@ -491,6 +494,7 @@ export default function QuestionnaireLayout({
           isPanelOpen={isAccessibilityPanelOpen}
           onPanelOpenChange={setAccessibilityPanelOpen}
           className="fixed bottom-4 right-4 lg:bottom-6 lg:left-6 lg:right-auto z-50"
+          dict={dict.accessibilityFeatures}
         />
       </main>
       <AnimatePresence>

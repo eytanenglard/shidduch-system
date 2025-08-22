@@ -4066,6 +4066,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               !Array.isArray(answer.rawValue) ? (
                 <BudgetDisplay
                   data={answer.rawValue as Record<string, number>}
+                  dict={dict.budgetDisplay}
                 />
               ) : (
                 <p

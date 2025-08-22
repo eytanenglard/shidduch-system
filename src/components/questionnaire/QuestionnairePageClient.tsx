@@ -25,7 +25,9 @@ interface QuestionnairePageClientProps {
   dict: QuestionnaireDictionary;
 }
 
-export default function QuestionnairePageClient({ dict }: QuestionnairePageClientProps) {
+export default function QuestionnairePageClient({
+  dict,
+}: QuestionnairePageClientProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -126,6 +128,8 @@ export default function QuestionnairePageClient({ dict }: QuestionnairePageClien
           <QuestionnaireLandingPage
             onStartQuestionnaire={handleStartQuestionnaire}
             hasSavedProgress={hasSavedProgress}
+            dict={dict.landingPage} // <- הוסף את השורה הזו
+
             // כאן נעביר את המילון הרלוונטי אם וכאשר הרכיב יעודכן
           />
         );

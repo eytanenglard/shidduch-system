@@ -791,16 +791,40 @@
       "monthsAgo": "לפני {{count}} חודשים"
     }
   },
-    "matchResultCard": {
+"matchResultCard": {
     "premiumBadge": "התאמה מומלצת",
     "matchPercentageBadge": "{{percentage}}% התאמה",
     "tooltips": {
       "addToBookmarks": "הוסף למועדפים",
       "removeFromBookmarks": "הסר ממועדפים",
       "traitDescription": "{{description}}"
+    },
+    "buttons": {
+      "reject": "לא מתאים",
+      "confirmReject": "לאשר דחייה",
+      "cancel": "בטל",
+      "accept": "מעוניין/ת",
+      "continueChat": "המשך שיחה",
+      "showMore": "הצג פרטים נוספים",
+      "hideMore": "הסתר פרטים נוספים",
+      "viewFullProfile": "צפייה בפרופיל מלא"
+    },
+    "sections": {
+      "about": "קצת על {{name}}",
+      "topMatches": "תחומי התאמה בולטים",
+      "commonInterests": "תחומי עניין משותפים",
+      "lastActive": "פעילות אחרונה: {{time}}"
+    },
+    "lastActiveFormat": {
+      "unknown": "לא ידוע",
+      "today": "היום",
+      "yesterday": "אתמול",
+      "daysAgo": "לפני {{count}} ימים",
+      "weeksAgo": "לפני {{count}} שבועות",
+      "monthsAgo": "לפני {{count}} חודשים"
     }
-
   }
+
   
 
 

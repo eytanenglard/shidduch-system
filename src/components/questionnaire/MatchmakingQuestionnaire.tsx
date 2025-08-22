@@ -37,7 +37,7 @@ import type {
   AnswerValue,
   Question,
 } from './types/types';
-import type { MatchmakingQuestionnaireDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
+import type { QuestionnaireDictionary } from '@/types/dictionary'; // ייבוא טיפוס המילון המלא
 
 import { personalityQuestions } from './questions/personality/personalityQuestions';
 import { valuesQuestions } from './questions/values/valuesQuestions';
@@ -73,7 +73,7 @@ export interface MatchmakingQuestionnaireProps {
   onComplete?: () => void;
   initialWorld?: WorldId;
   initialQuestionId?: string;
-  dict: MatchmakingQuestionnaireDict; // קבלת המילון כ-prop
+  dict: QuestionnaireDictionary; // קבלת המילון המלא כ-prop
 }
 
 export default function MatchmakingQuestionnaire({
@@ -209,7 +209,7 @@ export default function MatchmakingQuestionnaire({
         };
 
         if (!validateSubmission(submissionData)) {
-          throw new Error(dict.errors.invalidSubmission);
+          throw new Error(dict.matchmaking.errors.invalidSubmission);
         }
 
         if (!userId) {
@@ -229,7 +229,9 @@ export default function MatchmakingQuestionnaire({
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || dict.errors.saveFailed);
+            throw new Error(
+              errorData.error || dict.matchmaking.errors.saveFailed
+            );
           }
         }
         setLastSavedTime(new Date());
@@ -237,27 +239,41 @@ export default function MatchmakingQuestionnaire({
         setToastState((prev) => ({ ...prev, isVisible: false }));
 
         if (!isAutoSave) {
-          showToast(dict.toasts.saveSuccess, 'success');
+          showToast(dict.matchmaking.toasts.saveSuccess, 'success');
         }
 
-        if (submissionData.completed && currentStep === OnboardingStep.COMPLETED) {
+        if (
+          submissionData.completed &&
+          currentStep === OnboardingStep.COMPLETED
+        ) {
           if (onComplete) onComplete();
         }
       } catch (err) {
         console.error('Failed to save questionnaire:', err);
         const errorMessage =
-          err instanceof Error ? err.message : dict.errors.saveFailed;
+          err instanceof Error
+            ? err.message
+            : dict.matchmaking.errors.saveFailed;
         setError(errorMessage);
         if (!isAutoSave) {
           showToast(errorMessage, 'error');
         } else {
-          showToast(dict.toasts.autoSaveError, 'error');
+          showToast(dict.matchmaking.toasts.autoSaveError, 'error');
         }
       } finally {
         setIsSaving(false);
       }
     },
-    [ isSaving, prepareSubmissionData, userId, router, onComplete, showToast, currentStep, dict ]
+    [
+      isSaving,
+      prepareSubmissionData,
+      userId,
+      router,
+      onComplete,
+      showToast,
+      currentStep,
+      dict,
+    ]
   );
 
   useEffect(() => {
@@ -265,10 +281,15 @@ export default function MatchmakingQuestionnaire({
     if (currentStep === OnboardingStep.WORLDS && userId) {
       autoSaveInterval = setInterval(() => {
         if (isDirty) {
-          showToast(dict.toasts.unsavedChanges.message, 'info', 10000, {
-            label: dict.toasts.unsavedChanges.action,
-            onClick: () => handleQuestionnaireSave(false),
-          });
+          showToast(
+            dict.matchmaking.toasts.unsavedChanges.message,
+            'info',
+            10000,
+            {
+              label: dict.matchmaking.toasts.unsavedChanges.action,
+              onClick: () => handleQuestionnaireSave(false),
+            }
+          );
         }
       }, 180000);
     }
@@ -312,7 +333,9 @@ export default function MatchmakingQuestionnaire({
             setCurrentStep(OnboardingStep.WELCOME);
           } else {
             const errorData = await response.json();
-            throw new Error(errorData.error || dict.errors.loadFailed);
+            throw new Error(
+              errorData.error || dict.matchmaking.errors.loadFailed
+            );
           }
         } else {
           const data = await response.json();
@@ -326,7 +349,8 @@ export default function MatchmakingQuestionnaire({
               ...(data.data.religionAnswers || []),
             ].filter(
               (answer, index, self) =>
-                index === self.findIndex((a) => a.questionId === answer.questionId)
+                index ===
+                self.findIndex((a) => a.questionId === answer.questionId)
             );
 
             setAnswers(allAnswers);
@@ -334,7 +358,8 @@ export default function MatchmakingQuestionnaire({
             setCompletedWorlds(loadedCompletedWorlds);
 
             const isQuestionnaireComplete =
-              data.data.completed || loadedCompletedWorlds.length === WORLD_ORDER.length;
+              data.data.completed ||
+              loadedCompletedWorlds.length === WORLD_ORDER.length;
 
             if (data.data.currentQuestionIndices) {
               setCurrentQuestionIndices(data.data.currentQuestionIndices);
@@ -342,9 +367,14 @@ export default function MatchmakingQuestionnaire({
 
             if (initialWorld && initialQuestionId) {
               const worldQuestions = worldConfig[initialWorld].questions;
-              const questionIndex = worldQuestions.findIndex((q) => q.id === initialQuestionId);
+              const questionIndex = worldQuestions.findIndex(
+                (q) => q.id === initialQuestionId
+              );
               if (questionIndex !== -1) {
-                setCurrentQuestionIndices((prev) => ({ ...prev, [initialWorld]: questionIndex }));
+                setCurrentQuestionIndices((prev) => ({
+                  ...prev,
+                  [initialWorld]: questionIndex,
+                }));
                 setCurrentWorld(initialWorld);
                 setCurrentStep(OnboardingStep.WORLDS);
                 setIsDirectNavigation(true);
@@ -355,8 +385,13 @@ export default function MatchmakingQuestionnaire({
             } else if (isQuestionnaireComplete) {
               setCurrentWorld(initialWorld || WORLD_ORDER[0]);
               setCurrentStep(OnboardingStep.MAP);
-            } else if (loadedCompletedWorlds.length > 0 || allAnswers.length > 0) {
-              const nextWorld = WORLD_ORDER.find((world) => !loadedCompletedWorlds.includes(world));
+            } else if (
+              loadedCompletedWorlds.length > 0 ||
+              allAnswers.length > 0
+            ) {
+              const nextWorld = WORLD_ORDER.find(
+                (world) => !loadedCompletedWorlds.includes(world)
+              );
               setCurrentWorld(nextWorld || WORLD_ORDER[0]);
               setCurrentStep(OnboardingStep.MAP);
             } else {
@@ -368,7 +403,7 @@ export default function MatchmakingQuestionnaire({
         }
       } catch (err) {
         console.error('Failed to load existing answers:', err);
-        setError(dict.errors.genericLoadError);
+        setError(dict.matchmaking.errors.genericLoadError);
         setCurrentStep(OnboardingStep.WELCOME);
       } finally {
         setIsLoading(false);
@@ -433,7 +468,9 @@ export default function MatchmakingQuestionnaire({
         }
       });
       showToast(
-        isVisible ? dict.toasts.answerVisible : dict.toasts.answerHidden,
+        isVisible
+          ? dict.matchmaking.toasts.answerVisible
+          : dict.matchmaking.toasts.answerHidden,
         'info',
         2000
       );
@@ -456,18 +493,21 @@ export default function MatchmakingQuestionnaire({
         setCompletedWorlds(updatedCompletedWorlds);
       }
       showToast(
-        dict.toasts.worldFinished.replace(
+        dict.matchmaking.toasts.worldFinished.replace(
           '{{worldName}}',
-          dict.worldLabels[worldId] ?? worldId.toLowerCase()
+          dict.matchmaking.worldLabels[worldId] ?? worldId.toLowerCase()
         ),
         'success'
       );
-      const isQuestionnaireNowFullyCompleted = updatedCompletedWorlds.length === WORLD_ORDER.length;
+      const isQuestionnaireNowFullyCompleted =
+        updatedCompletedWorlds.length === WORLD_ORDER.length;
       const submissionDataForWorldComplete = {
         ...prepareSubmissionData(),
         worldsCompleted: updatedCompletedWorlds,
         completed: isQuestionnaireNowFullyCompleted,
-        completedAt: isQuestionnaireNowFullyCompleted ? new Date().toISOString() : undefined,
+        completedAt: isQuestionnaireNowFullyCompleted
+          ? new Date().toISOString()
+          : undefined,
       };
       if (userId) {
         try {
@@ -477,14 +517,15 @@ export default function MatchmakingQuestionnaire({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(submissionDataForWorldComplete),
           });
-          if (!response.ok) throw new Error('Failed to save after world completion');
+          if (!response.ok)
+            throw new Error('Failed to save after world completion');
           setLastSavedTime(new Date());
           setIsDirty(false);
-          showToast(dict.toasts.worldProgressSaved, 'success');
+          showToast(dict.matchmaking.toasts.worldProgressSaved, 'success');
         } catch (e) {
           console.error('Error saving after world complete:', e);
-          showToast(dict.toasts.worldCompletionError, 'error');
-          setError(dict.toasts.worldCompletionError + '.');
+          showToast(dict.matchmaking.toasts.worldCompletionError, 'error');
+          setError(dict.matchmaking.toasts.worldCompletionError + '.');
           setIsSaving(false);
           return;
         } finally {
@@ -496,7 +537,7 @@ export default function MatchmakingQuestionnaire({
           JSON.stringify(submissionDataForWorldComplete)
         );
         setLastSavedTime(new Date());
-        showToast(dict.toasts.worldProgressSavedBrowser, 'info');
+        showToast(dict.matchmaking.toasts.worldProgressSavedBrowser, 'info');
       }
       if (isQuestionnaireNowFullyCompleted) {
         if (!userId) {
@@ -515,7 +556,15 @@ export default function MatchmakingQuestionnaire({
         }
       }
     },
-    [completedWorlds, showToast, userId, prepareSubmissionData, router, onComplete, dict]
+    [
+      completedWorlds,
+      showToast,
+      userId,
+      prepareSubmissionData,
+      router,
+      onComplete,
+      dict,
+    ]
   );
 
   const handleExit = useCallback(() => {
@@ -533,11 +582,22 @@ export default function MatchmakingQuestionnaire({
       language,
       currentQuestionIndex: currentQuestionIndices[currentWorld],
       setCurrentQuestionIndex: (index: number) => {
-        setCurrentQuestionIndices((prev) => ({ ...prev, [currentWorld]: index }));
+        setCurrentQuestionIndices((prev) => ({
+          ...prev,
+          [currentWorld]: index,
+        }));
       },
       onSave: () => handleQuestionnaireSave(false),
       isSaving: isSaving,
       isDirectNavigation: isDirectNavigation,
+      dict: {
+        world: dict.world,
+        questionCard: dict.questionCard,
+        worldIntro: dict.worldIntro,
+        answerInput: dict.answerInput,
+        interactiveScale: dict.interactiveScale,
+        questionsList: dict.questionsList,
+      },
     };
     return <WorldComponent {...worldProps} worldId={currentWorld} />;
   }
@@ -554,7 +614,7 @@ export default function MatchmakingQuestionnaire({
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
           <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
-          <p className="mt-4 text-gray-600">{dict.loading}</p>
+          <p className="mt-4 text-gray-600">{dict.matchmaking.loading}</p>
         </div>
       );
     }
@@ -565,6 +625,7 @@ export default function MatchmakingQuestionnaire({
             currentWorld={currentWorld}
             completedWorlds={completedWorlds}
             onWorldChange={handleWorldChange}
+            dict={dict.worldsMap}
           />
         );
       case OnboardingStep.WELCOME:
@@ -587,6 +648,10 @@ export default function MatchmakingQuestionnaire({
             onSaveProgress={() => handleQuestionnaireSave(false)}
             language={language}
             isLoggedIn={!!userId}
+            dict={{
+              layout: dict.layout,
+              worldLabels: dict.matchmaking.worldLabels,
+            }}
           >
             {renderCurrentWorld()}
           </QuestionnaireLayout>
@@ -604,7 +669,7 @@ export default function MatchmakingQuestionnaire({
           />
         );
       default:
-        return <div>{dict.errors.stageLoadError}</div>;
+        return <div>{dict.matchmaking.errors.stageLoadError}</div>;
     }
   }
 
@@ -622,7 +687,13 @@ export default function MatchmakingQuestionnaire({
       >
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center">
-            {type === 'success' ? <CheckCircle className="h-5 w-5 mr-2" /> : type === 'error' ? <XCircle className="h-5 w-5 mr-2" /> : <Info className="h-5 w-5 mr-2" />}
+            {type === 'success' ? (
+              <CheckCircle className="h-5 w-5 mr-2" />
+            ) : type === 'error' ? (
+              <XCircle className="h-5 w-5 mr-2" />
+            ) : (
+              <Info className="h-5 w-5 mr-2" />
+            )}
             <p>{message}</p>
           </div>
           {action && (
@@ -651,17 +722,24 @@ export default function MatchmakingQuestionnaire({
           <CardHeader>
             <CardTitle className="flex items-center">
               <Clock className="w-6 h-6 mr-3 text-blue-500" />
-              {dict.idleModal.title}
+              {dict.matchmaking.idleModal.title}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">{dict.idleModal.description}</p>
+            <p className="text-gray-600 mb-4">
+              {dict.matchmaking.idleModal.description}
+            </p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => signOut({ callbackUrl: '/' })}>
+              <Button
+                variant="outline"
+                onClick={() => signOut({ callbackUrl: '/' })}
+              >
                 <LogOut className="w-4 h-4 mr-2" />
-                {dict.idleModal.logoutButton}
+                {dict.matchmaking.idleModal.logoutButton}
               </Button>
-              <Button onClick={handleStayActive}>{dict.idleModal.stayActiveButton}</Button>
+              <Button onClick={handleStayActive}>
+                {dict.matchmaking.idleModal.stayActiveButton}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -670,13 +748,23 @@ export default function MatchmakingQuestionnaire({
   };
 
   return (
-    <div className={cn('min-h-screen bg-gray-50', language === 'he' ? 'dir-rtl' : 'dir-ltr')}>
+    <div
+      className={cn(
+        'min-h-screen bg-gray-50',
+        language === 'he' ? 'dir-rtl' : 'dir-ltr'
+      )}
+    >
       <IdleModal />
       {lastSavedTime && currentStep === OnboardingStep.WORLDS && userId && (
         <div className="fixed bottom-4 left-4 z-40 bg-white p-2 rounded-lg shadow-md text-xs text-gray-600 border">
           <div className="flex items-center">
             <CheckCircle className="h-3.5 w-3.5 text-green-500 mr-1" />
-            <span>{dict.lastSaved.replace('{{time}}', lastSavedTime.toLocaleTimeString())}</span>
+            <span>
+              {dict.matchmaking.lastSaved.replace(
+                '{{time}}',
+                lastSavedTime.toLocaleTimeString()
+              )}
+            </span>
           </div>
         </div>
       )}

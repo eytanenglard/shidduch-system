@@ -58,7 +58,10 @@ export default async function RootLayout({
             {/* ✨ 3. מעבירים את המילון כולו כ-prop לרכיב AppContent */}
             <AppContent dict={dictionary}>{children}</AppContent>
           </LanguageProvider>
-          <AccessibilityFeatures />
+          {/* ✨ 4. העברת המילון הרלוונטי לרכיב הנגישות */}
+          <AccessibilityFeatures
+            dict={dictionary.questionnaire.accessibilityFeatures}
+          />
         </Providers>
       </body>
     </html>

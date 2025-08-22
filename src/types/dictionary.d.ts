@@ -511,6 +511,7 @@ export type SuggestionsDictionary = {
   askMatchmaker: AskMatchmakerDict; // <-- Add this line
   inquiryThread: InquiryThreadDict; // <-- Add this line
   timeline: SuggestionTimelineDict; // <-- Add this line
+  profileCard: ProfileCardDict; // הוסף שורה זו
 
 };
 
@@ -943,7 +944,7 @@ export type QuestionnaireDictionary = {
   world: WorldComponentDict;
     answerInput: AnswerInputDict;
   interactiveScale: InteractiveScaleDict;
-  faq: FaqDict; // <-- הוספה
+  faq: QuestionnaireFaqDict; // <-- הוספה
   accessibilityFeatures: AccessibilityFeaturesDict; // <-- הוספה
   questionnaireProgress: QuestionnaireProgressDict; // <-- הוספה
   userStats: UserStatsDict; // <-- הוספה
@@ -1064,6 +1065,8 @@ export type ProfileChecklistDict = {
       missing: string;
     };
   };
+  missingItems: { [key: string]: string }; // <-- הוסף שורה זו
+
 };
 export type PhotosSectionDict = {
   title: string;
@@ -1199,7 +1202,12 @@ export type UnifiedProfileDashboardDict = {
   checklist: ProfileChecklistDict;
   aiAdvisor: AIAdvisorDialogDict;
   analysisResult: AnalysisResultDisplayDict;
-  
+  profileCard: ProfileCardDict; // הוסף שורה זו
+  preferencesSection: PreferencesSectionDict; // הוסף שורה זו
+  profileSection: ProfileSectionDict; // הוסף גם שורה זו עבור השגיאה הבאה
+  photosSection: PhotosSectionDict; // הוסף שורה זו
+
+
 };
 export type PreferencesSectionDict = {
   header: {
@@ -1313,7 +1321,7 @@ type FaqItemDict = {
   answer: FaqAnswerPart[];
 };
 
-export type FaqDict = {
+export type QuestionnaireFaqDict = {
   title: string;
   subtitle: string;
   searchPlaceholder: string;
@@ -1952,6 +1960,8 @@ export type ProfileSectionDict = {
 
 export type ProfileCardDict = {
   loading: string;
+    budgetDisplay: BudgetDisplayDict; // הוסף שורה זו
+
   header: {
     title: string;
     subtitleEdit: string;
