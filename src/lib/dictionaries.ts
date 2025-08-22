@@ -19,12 +19,17 @@ const questionnaireDictionaries = {
   he: () => import('../../dictionaries/questionnaire/he.json').then((module) => module.default),
 };
 
-// --- START: הוספת טוען למילוני הפרופיל (שלב 1) ---
 const profileDictionaries = {
   en: () => import('../../dictionaries/profile/en.json').then((module) => module.default),
   he: () => import('../../dictionaries/profile/he.json').then((module) => module.default),
 };
-// --- END: הוספת טוען למילוני הפרופיל ---
+
+// --- START: הוספת טוען למילון השדכן ---
+const matchmakerDictionaries = {
+  en: () => import('../../dictionaries/matchmaker/en.json').then((module) => module.default),
+  he: () => import('../../dictionaries/matchmaker/he.json').then((module) => module.default),
+};
+// --- END: הוספת טוען למילון השדכן ---
 
 /**
  * פונקציה אסינכרונית לקבלת המילון המלא עבור שפה ספציפית,
@@ -35,22 +40,23 @@ const profileDictionaries = {
 export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
   const targetLocale = mainDictionaries[locale] ? locale : 'he';
 
-  // --- START: עדכון Promise.all (שלב 2) ---
-  const [main, suggestions, questionnaire, profilePage] = await Promise.all([
+  // --- START: עדכון Promise.all ---
+  const [main, suggestions, questionnaire, profilePage, matchmakerPage] = await Promise.all([
     mainDictionaries[targetLocale](),
     suggestionsDictionaries[targetLocale](),
     questionnaireDictionaries[targetLocale](),
-    profileDictionaries[targetLocale](), // הוספת טעינת מילון הפרופיל
+    profileDictionaries[targetLocale](),
+    matchmakerDictionaries[targetLocale](), // הוספת טעינת מילון השדכן
   ]);
   // --- END: עדכון Promise.all ---
 
-  // --- START: עדכון האובייקט המוחזר (שלב 3) ---
-  // מאחדים את כל המילונים לאובייקט אחד שתואם ל-Dictionary
+  // --- START: עדכון האובייקט המוחזר ---
   return {
     ...main,
     suggestions,
     questionnaire,
-    profilePage, // הוספת מפתח הפרופיל החסר
+    profilePage,
+    matchmakerPage, // הוספת מפתח השדכן
   } as Dictionary;
   // --- END: עדכון האובייקט המוחזר ---
 };

@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, {useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -27,6 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 interface ActionsProps {
   candidate: Candidate;
@@ -37,6 +38,7 @@ interface ActionsProps {
   className?: string;
   variant?: 'full' | 'compact' | 'minimal';
   showLabels?: boolean;
+  dict: MatchmakerPageDictionary['candidatesManager']['list']['cardActions'];
 }
 
 const Actions: React.FC<ActionsProps> = ({
@@ -48,11 +50,11 @@ const Actions: React.FC<ActionsProps> = ({
   className,
   variant = 'full',
   showLabels = true,
+  dict,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [activeAction, setActiveAction] = useState<string | null>(null);
 
-  // מונע התפשטות הקליק לכרטיס המינימלי
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
@@ -68,7 +70,7 @@ const Actions: React.FC<ActionsProps> = ({
       return (
         <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg animate-pulse">
           <Sparkles className="w-3 h-3 mr-1" />
-          זמין/ה עכשיו
+          {dict.availableNow}
         </Badge>
       );
     }
@@ -78,42 +80,42 @@ const Actions: React.FC<ActionsProps> = ({
   const actionButtons = [
     {
       id: 'view',
-      label: 'צפייה בפרופיל',
+      label: dict.viewProfile,
       icon: Eye,
       onClick: () => onViewProfile(candidate),
       gradient: 'from-blue-500 to-cyan-500',
       hoverGradient: 'from-blue-600 to-cyan-600',
-      description: 'פתח את הפרופיל המלא',
+      description: dict.viewProfileTooltip,
       primary: true,
     },
     {
       id: 'suggest',
-      label: 'הצעת שידוך',
+      label: dict.suggestMatch,
       icon: Heart,
       onClick: () => onSuggest(candidate),
       gradient: 'from-pink-500 to-rose-500',
       hoverGradient: 'from-pink-600 to-rose-600',
-      description: 'צור הצעת שידוך חדשה',
+      description: dict.suggestMatchTooltip,
       primary: true,
     },
     {
       id: 'invite',
-      label: 'שליחת הזמנה',
+      label: dict.sendInvite,
       icon: Send,
       onClick: () => onInvite(candidate),
       gradient: 'from-purple-500 to-indigo-500',
       hoverGradient: 'from-purple-600 to-indigo-600',
-      description: 'שלח הזמנה למועמד',
+      description: dict.sendInviteTooltip,
       primary: false,
     },
     {
       id: 'availability',
-      label: 'בדיקת זמינות',
+      label: dict.checkAvailability,
       icon: Calendar,
       onClick: () => onCheckAvailability(candidate),
       gradient: 'from-orange-500 to-amber-500',
       hoverGradient: 'from-orange-600 to-amber-600',
-      description: 'בדוק זמינות למפגש',
+      description: dict.checkAvailabilityTooltip,
       primary: false,
     },
   ];
@@ -201,10 +203,8 @@ const Actions: React.FC<ActionsProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Priority Badge */}
       <div className="flex justify-center">{getPriorityBadge()}</div>
 
-      {/* Primary Actions */}
       <div className="grid grid-cols-2 gap-3">
         {actionButtons
           .filter((a) => a.primary)
@@ -221,9 +221,7 @@ const Actions: React.FC<ActionsProps> = ({
                 )}
                 onClick={() => handleActionClick(action.id, action.onClick)}
               >
-                {/* Background animation */}
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-
                 <div className="relative z-10 flex items-center justify-center gap-2">
                   <IconComponent className="w-5 h-5" />
                   {showLabels && (
@@ -235,7 +233,6 @@ const Actions: React.FC<ActionsProps> = ({
           })}
       </div>
 
-      {/* Secondary Actions */}
       <div className="flex gap-2">
         {actionButtons
           .filter((a) => !a.primary)
@@ -254,14 +251,12 @@ const Actions: React.FC<ActionsProps> = ({
                 )}
                 onClick={() => handleActionClick(action.id, action.onClick)}
               >
-                {/* Background animation */}
                 <div
                   className={cn(
                     'absolute inset-0 bg-gradient-to-r transition-all duration-300 opacity-0 group-hover:opacity-100',
                     action.gradient
                   )}
                 ></div>
-
                 <div className="relative z-10 flex items-center justify-center gap-2">
                   <IconComponent className="w-4 h-4" />
                   {showLabels && (
@@ -275,7 +270,6 @@ const Actions: React.FC<ActionsProps> = ({
           })}
       </div>
 
-      {/* Favorite Button */}
       <div className="flex justify-center pt-2">
         <Button
           variant="ghost"
@@ -291,24 +285,23 @@ const Actions: React.FC<ActionsProps> = ({
               isHovered && 'fill-current animate-pulse'
             )}
           />
-          <span className="mr-2 text-sm font-medium">הוסף למועדפים</span>
+          <span className="mr-2 text-sm font-medium">{dict.addToFavorites}</span>
         </Button>
       </div>
 
-      {/* Quick Stats */}
       <div className="pt-3 border-t border-gray-100">
         <div className="flex justify-between items-center text-xs text-gray-500">
           <div className="flex items-center gap-1">
             <Star className="w-3 h-3 text-yellow-500" />
-            <span>דירוג: 4.8</span>
+            <span>{dict.rating}: 4.8</span>
           </div>
           <div className="flex items-center gap-1">
             <Zap className="w-3 h-3 text-blue-500" />
-            <span>התאמה: 95%</span>
+            <span>{dict.matchScore}: 95%</span>
           </div>
           <div className="flex items-center gap-1">
             <MessageCircle className="w-3 h-3 text-green-500" />
-            <span>תגובה: מהירה</span>
+            <span>{dict.response}: {dict.quickResponse}</span>
           </div>
         </div>
       </div>

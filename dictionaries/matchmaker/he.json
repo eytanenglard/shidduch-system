@@ -1,0 +1,363 @@
+{
+  "candidatesManager": {
+    "header": {
+      "title": "ניהול מועמדים",
+      "totalLabel": "סה\"כ",
+      "verifiedLabel": "מאומתים",
+      "profilesCompleteLabel": "% מלאים",
+      "addButton": "הוסף",
+      "refreshButton": "רענן",
+      "expandTooltip": "הרחב כותרת",
+      "collapseTooltip": "צמצם כותרת",
+      "advancedTitle": "ניהול מועמדים מתקדם",
+      "advancedSubtitle": "מערכת ניהול עם AI",
+      "addCandidateButton": "הוסף מועמד",
+      "bulkUpdateDialog": {
+        "title": "אישור עדכון AI כללי",
+        "description": "פעולה זו תעדכן את כל הפרופילים. התהליך ירוץ ברקע. האם להמשיך?",
+        "cancel": "ביטול",
+        "confirm": "כן, הפעל עדכון"
+      },
+      "stats": {
+        "total": "סך הכל",
+        "male": "גברים",
+        "female": "נשים",
+        "verified": "מאומתים",
+        "active": "פעילים",
+        "complete": "מלאים"
+      }
+    },
+    "controls": {
+      "sort": "מיון",
+      "sortBy": "מיון לפי",
+      "filters": "פילטרים",
+      "hideFilters": "הסתר",
+      "mobile": {
+        "split": "מפוצל",
+        "singleCol": "טור אחד",
+        "doubleCol": "שני טורים"
+      }
+    },
+    "sortOptions": {
+      "lastActive": "פעילות אחרונה",
+      "age": "גיל",
+      "name": "שם",
+      "city": "עיר",
+      "religiousLevel": "רמת דתיות",
+      "height": "גובה",
+      "registrationDate": "תאריך הרשמה"
+    },
+    "viewOptions": {
+      "grid": "תצוגת גריד",
+      "list": "תצוגת רשימה"
+    },
+    "searchBar": {
+      "generalPlaceholder": "חיפוש כללי...",
+      "malePlaceholder": "חיפוש מועמדים...",
+      "femalePlaceholder": "חיפוש מועמדות...",
+      "clearTooltip": "נקה חיפוש",
+      "smartSearch": "חיפוש חכם",
+      "resultsCount": "{{count}} תוצאות",
+      "filterResultsPlaceholder": "סנן תוצאות...",
+      "noResultsTitle": "לא נמצאו תוצאות",
+      "noResultsDescription": "נסה לשנות את מונחי החיפוש",
+      "recentSearches": "חיפושים אחרונים",
+      "clearHistory": "נקה היסטוריה",
+      "matchingResults": "תוצאות מתאימות ({{count}})",
+      "tip": "טיפ:",
+      "tipContent": "השתמש במילות מפתח כמו שם, עיר, או תחום עיסוק לחיפוש מדויק יותר",
+      "categories": {
+        "name": "שם",
+        "city": "עיר",
+        "occupation": "תחום עיסוק",
+        "all": "הכל"
+      },
+      "tooltips": {
+        "maleTarget": "מועמדים",
+        "femaleTarget": "מועמדות"
+      }
+    },
+    "activeFilters": {
+      "title": "סינון פעיל",
+      "filterActive": "פילטר 1 פעיל",
+      "filtersActive": "{{count}} פילטרים פעילים",
+      "suggestButton": "הצע פילטרים נוספים",
+      "suggestTooltip": "הצעת פילטרים נוספים המתאימים לתוצאות הנוכחיות",
+      "clearAllButton": "נקה הכל",
+      "clearAllTooltip": "נקה את כל הפילטרים הפעילים",
+      "labels": {
+        "search": "חיפוש: {{query}}",
+        "maleSearch": "חיפוש מועמדים: {{query}}",
+        "femaleSearch": "חיפוש מועמדות: {{query}}",
+        "separateFiltering": "סינון וחיפוש נפרד",
+        "gender": "מגדר: {{gender}}",
+        "genders": {
+          "MALE": "גברים",
+          "FEMALE": "נשים"
+        },
+        "age": "גיל: {{min}}-{{max}}",
+        "ageAbove": "גיל: מעל {{min}}",
+        "ageBelow": "גיל: עד {{max}}",
+        "height": "גובה: {{min}}-{{max}} ס\"מ",
+        "heightAbove": "גובה: מעל {{min}} ס\"מ",
+        "heightBelow": "גובה: עד {{max}} ס\"מ",
+        "religiousLevel": "רמת דתיות: {{level}}",
+        "educationLevel": "השכלה: {{level}}",
+        "city": "עיר: {{city}}",
+        "occupation": "תחום עיסוק: {{occupation}}",
+        "status": "סטטוס: {{status}}",
+        "maritalStatus": "מצב משפחתי: {{status}}",
+        "verifiedOnly": "מאומתים בלבד",
+        "withRecommendations": "עם המלצות",
+        "fullProfile": "פרופיל מלא",
+        "activeToday": "פעילים היום",
+        "activeLast3Days": "פעילים ב-3 ימים אחרונים",
+        "activeLast7Days": "פעילים בשבוע האחרון",
+        "activeLast30Days": "פעילים בחודש האחרון",
+        "activeInDays": "פעילים ב-{{days}} ימים אחרונים"
+      },
+      "summary": {
+        "title": "סינון מתקדם פעיל - {{count}} קריטריונים",
+        "highPriority": "{{count}} חשובים",
+        "mediumPriority": "{{count}} בינוניים"
+      }
+    },
+    "filterPanel": {
+      "header": {
+        "title": "סינון מועמדים מתקדם",
+        "subtitle": "מערכת סינון חכמה עם AI",
+        "resetTooltip": "איפוס כל הפילטרים",
+        "saveTooltip": "שמירת הפילטר הנוכחי"
+      },
+      "popularFilters": {
+        "activeRecently": "פעילים לאחרונה",
+        "verifiedOnly": "מאומתים בלבד",
+        "withRecommendations": "עם המלצות",
+        "availableOnly": "פנויים בלבד",
+        "completeProfiles": "פרופילים מלאים"
+      },
+      "savePreset": {
+        "title": "שם לשמירת הפילטר",
+        "placeholder": "פילטר מותאם אישית",
+        "button": "שמור"
+      },
+      "separateFiltering": {
+        "title": "סינון וחיפוש נפרד לפי מגדר",
+        "description": "סנן מועמדים ומועמדות עם קריטריונים שונים"
+      },
+      "genderFilterPanel": {
+        "maleTitle": "סינון מועמדים",
+        "femaleTitle": "סינון מועמדות",
+        "copyToMale": "העתק למועמדים",
+        "copyToFemale": "העתק למועמדות",
+        "copyTooltip": "העתק הגדרות ל{{gender}}",
+        "ageLabel": "גיל",
+        "heightLabel": "גובה (ס\"מ)",
+        "minLabel": "מינימום",
+        "maxLabel": "מקסימום",
+        "religiousLevelLabel": "רמת דתיות",
+        "cityLabel": "עיר מגורים",
+        "verifiedOnlyLabel": "מאומתים בלבד",
+        "withRecommendationsLabel": "עם המלצות",
+        "fullProfileLabel": "פרופיל מלא",
+        "placeholders": {
+          "selectReligious": "בחר רמת דתיות",
+          "selectCity": "בחר עיר"
+        },
+        "options": {
+          "all": "הכל"
+        }
+      },
+      "tabs": {
+        "basic": "בסיסי",
+        "advanced": "מתקדם",
+        "status": "סטטוס",
+        "saved": "שמורים"
+      },
+      "sections": {
+        "gender": "מגדר",
+        "age": "גיל",
+        "height": "גובה (ס\"מ)"
+      },
+      "buttons": {
+        "male": "גברים",
+        "female": "נשים",
+        "removeSelection": "הסר בחירה",
+        "reset": "איפוס",
+        "save": "שמירת פילטר"
+      },
+      "savedFilters": {
+        "emptyTitle": "אין פילטרים שמורים",
+        "emptyDescription": "שמור את הפילטר הנוכחי ע\"י לחיצה על כפתור השמירה",
+        "saveCurrentButton": "שמור פילטר נוכחי"
+      }
+    },
+  "list": {
+  "quickViewTooltip": "תצוגה מהירה",
+  "editProfileTooltip": "ערוך פרופיל",
+  "emptyState": {
+    "title": "לא נמצאו מועמדים",
+    "description": "נסו להרחיב את החיפוש או להסיר חלק מהמסננים."
+  },
+  "profileDialog": {
+    "title": "פרופיל מועמד",
+    "description": "צפייה בפרטי המועמד",
+    "editButton": "עריכת פרופיל",
+    "viewAsLabel": "בחר תצוגה",
+    "candidateView": "תצוגת מועמד",
+    "matchmakerView": "תצוגת שדכן"
+  },
+  "cardActions": {
+    "availableNow": "זמין/ה עכשיו",
+    "viewProfile": "צפייה בפרופיל",
+    "suggestMatch": "הצעת שידוך",
+    "sendInvite": "שליחת הזמנה",
+    "checkAvailability": "בדיקת זמינות",
+    "viewProfileTooltip": "פתח את הפרופיל המלא",
+    "suggestMatchTooltip": "צור הצעת שידוך חדשה",
+    "sendInviteTooltip": "שלח הזמנה למועמד",
+    "checkAvailabilityTooltip": "בדוק זמינות למפגש",
+    "addToFavorites": "הוסף למועדפים",
+    "rating": "דירוג",
+    "matchScore": "התאמה",
+    "response": "תגובה",
+    "quickResponse": "מהירה"
+  },
+  "minimalCard": {
+    "availability": {
+      "AVAILABLE": "פנוי/ה",
+      "DATING": "בתהליך היכרות",
+      "UNAVAILABLE": "לא פנוי/ה",
+      "UNKNOWN": "לא ידוע"
+    },
+    "aiMatch": "{{score}}% התאמה",
+    "manualEntry": "מועמד ידני",
+    "noImage": "אין תמונה",
+    "yearsSuffix": "שנים",
+    "lastActivePrefix": "פעיל/ה",
+    "qualityScore": "איכות: {{score}}%",
+    "compare": "השוואה",
+    "tooltips": {
+      "editProfile": "עריכת פרופיל",
+      "setAsAiTarget": "בחר כמטרה לחיפוש AI",
+      "clearAiTarget": "בטל בחירת מטרה"
+    }
+  },
+  "quickView": {
+    "availability": {
+      "AVAILABLE": "פנוי/ה",
+      "DATING": "בתהליך היכרות",
+      "UNAVAILABLE": "לא פנוי/ה",
+      "UNKNOWN": "לא ידוע"
+    },
+    "availabilityDescription": {
+      "AVAILABLE": "זמין/ה למפגשים חדשים",
+      "DATING": "כרגע בתהליך היכרות",
+      "UNAVAILABLE": "לא זמין/ה כרגע",
+      "UNKNOWN": "סטטוס לא ידוע"
+    },
+    "manualEntry": "מועמד ידני",
+    "tooltips": {
+      "setAsAiTarget": "בחר כמטרה לחיפוש AI",
+      "clearAiTarget": "בטל בחירת מטרה"
+    },
+    "details": {
+      "years": "שנים",
+      "heightUnit": "ס״ם",
+      "maritalStatus": "מצב משפחתי",
+      "religiousLevel": "רמת דתיות",
+      "manualDescription": "תיאור ידני מהשדכן",
+      "moreInfo": "מידע נוסף",
+      "education": "השכלה",
+      "occupation": "עיסוק",
+      "location": "מיקום",
+      "about": "אודות"
+    },
+    "qualityScore": "איכות פרופיל: {{score}}%",
+    "actions": {
+      "view": "צפייה מלאה",
+      "suggest": "הצעת שידוך",
+      "invite": "שלח הזמנה",
+      "contact": "בדוק זמינות",
+      "edit": "עריכה"
+    },
+    "actionsDescription": {
+      "view": "פתח פרופיל מלא",
+      "suggest": "צור הצעה חדשה",
+      "invite": "הזמן למערכת",
+      "contact": "תיאום פגישה",
+      "edit": "ערוך פרופיל"
+    },
+    "stats": {
+      "rating": "דירוג",
+      "match": "התאמה",
+      "response": "תגובה",
+      "quick": "מהירה"
+    }
+  }
+}
+,
+    "splitView": {
+      "panelHeaders": {
+        "male": {
+          "title": "מועמדים",
+          "subtitle": "{{count}} מועמדים פעילים"
+        },
+        "female": {
+          "title": "מועמדות",
+          "subtitle": "{{count}} מועמדות פעילות"
+        },
+        "targetLabel": "מטרה: {{name}}",
+        "findMatchesButton": "מצא התאמות AI",
+        "searchingButton": "מחפש..."
+      },
+      "mobile": {
+        "tabs": {
+          "male": "מועמדים",
+          "female": "מועמדות"
+        },
+        "splitLabels": {
+          "male": "מועמדים",
+          "female": "מועמדות"
+        }
+      }
+    }
+  }, 
+    "cardActions": {
+    "availableNow": "זמין/ה עכשיו",
+    "viewProfile": "צפייה בפרופיל",
+    "suggestMatch": "הצעת שידוך",
+    "sendInvite": "שליחת הזמנה",
+    "checkAvailability": "בדיקת זמינות",
+    "viewProfileTooltip": "פתח את הפרופיל המלא",
+    "suggestMatchTooltip": "צור הצעת שידוך חדשה",
+    "sendInviteTooltip": "שלח הזמנה למועמד",
+    "checkAvailabilityTooltip": "בדוק זמינות למפגש",
+    "addToFavorites": "הוסף למועדפים",
+    "rating": "דירוג",
+    "matchScore": "התאמה",
+    "response": "תגובה",
+    "quickResponse": "מהירה"
+  },
+  "minimalCard": {
+  "availability": {
+    "AVAILABLE": "פנוי/ה",
+    "DATING": "בתהליך היכרות",
+    "UNAVAILABLE": "לא פנוי/ה",
+    "UNKNOWN": "לא ידוע"
+  },
+  "aiMatch": "{{score}}% התאמה",
+  "manualEntry": "מועמד ידני",
+  "noImage": "אין תמונה",
+  "yearsSuffix": "שנים",
+  "lastActivePrefix": "פעיל/ה",
+  "qualityScore": "איכות: {{score}}%",
+  "compare": "השוואה",
+  "tooltips": {
+    "editProfile": "עריכת פרופיל",
+    "setAsAiTarget": "בחר כמטרה לחיפוש AI",
+    "clearAiTarget": "בטל בחירת מטרה"
+  }
+ }
+
+}

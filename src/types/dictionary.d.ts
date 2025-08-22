@@ -1,4 +1,5 @@
 // src/types/dictionary.ts
+import type { MatchmakerPageDictionary } from './dictionaries/matchmaker';
 
 // --- Navbar ---
 export type NavbarDict = {
@@ -542,7 +543,8 @@ export type Dictionary = {
   // New, namespaced key for the modular dictionary
   suggestions: SuggestionsDictionary;
   profilePage: ProfilePageDictionary;
-  
+    matchmakerPage: MatchmakerPageDictionary;
+
 };
 
 

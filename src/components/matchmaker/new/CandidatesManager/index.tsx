@@ -46,7 +46,6 @@ import {
   DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -82,6 +81,11 @@ import type {
 } from '../types/candidates';
 import { SORT_OPTIONS, VIEW_OPTIONS } from '../constants/filterOptions';
 import { cn } from '@/lib/utils';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
+import type {
+  SuggestionsDictionary,
+  ProfilePageDictionary,
+} from '@/types/dictionary';
 
 // --- Local Types ---
 interface AiMatch {
@@ -109,6 +113,7 @@ const MinimalHeader: React.FC<{
   isAdmin?: boolean;
   isCompact: boolean;
   onToggleCompact: () => void;
+  dict: MatchmakerPageDictionary['candidatesManager']['header'];
 }> = ({
   stats,
   onAddCandidate,
@@ -119,6 +124,7 @@ const MinimalHeader: React.FC<{
   isAdmin,
   isCompact,
   onToggleCompact,
+  dict,
 }) => {
   return (
     <header
@@ -137,7 +143,7 @@ const MinimalHeader: React.FC<{
                   <Users className="w-4 h-4" />
                 </div>
                 <h1 className="text-lg font-bold text-gray-800">
-                  ניהול מועמדים
+                  {dict.title}
                 </h1>
               </div>
               <div className="hidden md:flex items-center gap-2">
@@ -145,19 +151,20 @@ const MinimalHeader: React.FC<{
                   variant="outline"
                   className="bg-blue-50 text-blue-700 border-blue-200"
                 >
-                  {stats.total} סהכ
+                  {stats.total} {dict.totalLabel}
                 </Badge>
                 <Badge
                   variant="outline"
                   className="bg-emerald-50 text-emerald-700 border-emerald-200"
                 >
-                  {stats.verified} מאומתים
+                  {stats.verified} {dict.verifiedLabel}
                 </Badge>
                 <Badge
                   variant="outline"
                   className="bg-orange-50 text-orange-700 border-orange-200"
                 >
-                  {stats.profilesComplete}% מלאים
+                  {stats.profilesComplete}
+                  {dict.profilesCompleteLabel}
                 </Badge>
               </div>
             </div>
@@ -168,7 +175,7 @@ const MinimalHeader: React.FC<{
                 className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
               >
                 <UserPlus className="w-4 h-4 ml-1" />
-                הוסף
+                {dict.addButton}
               </Button>
               <Button
                 onClick={onRefresh}
@@ -201,7 +208,7 @@ const MinimalHeader: React.FC<{
                 variant="ghost"
                 size="sm"
                 className="text-gray-500 hover:text-gray-700"
-                title="הרחב כותרת"
+                title={dict.expandTooltip}
               >
                 <TrendingUp className="w-4 h-4" />
               </Button>
@@ -217,9 +224,11 @@ const MinimalHeader: React.FC<{
                 </div>
                 <div>
                   <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    ניהול מועמדים מתקדם
+                    {dict.advancedTitle}
                   </h1>
-                  <p className="text-sm text-gray-600">מערכת ניהול עם AI</p>
+                  <p className="text-sm text-gray-600">
+                    {dict.advancedSubtitle}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -229,7 +238,7 @@ const MinimalHeader: React.FC<{
                   className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg"
                 >
                   <UserPlus className="w-4 h-4 ml-2" />
-                  הוסף מועמד
+                  {dict.addCandidateButton}
                   <Sparkles className="w-3 h-3 mr-1" />
                 </Button>
                 <Button
@@ -261,16 +270,19 @@ const MinimalHeader: React.FC<{
                     </AlertDialogTrigger>
                     <AlertDialogContent dir="rtl">
                       <AlertDialogHeader>
-                        <AlertDialogTitle>אישור עדכון AI כללי</AlertDialogTitle>
+                        <AlertDialogTitle>
+                          {dict.bulkUpdateDialog.title}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                          פעולה זו תעדכן את כל הפרופילים. התהליך ירוץ ברקע. האם
-                          להמשיך?
+                          {dict.bulkUpdateDialog.description}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>ביטול</AlertDialogCancel>
+                        <AlertDialogCancel>
+                          {dict.bulkUpdateDialog.cancel}
+                        </AlertDialogCancel>
                         <AlertDialogAction onClick={onBulkUpdate}>
-                          כן, הפעל עדכון
+                          {dict.bulkUpdateDialog.confirm}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -281,7 +293,7 @@ const MinimalHeader: React.FC<{
                   variant="ghost"
                   size="sm"
                   className="text-gray-500 hover:text-gray-700"
-                  title="צמצם כותרת"
+                  title={dict.collapseTooltip}
                 >
                   <TrendingDown className="w-4 h-4" />
                 </Button>
@@ -292,37 +304,45 @@ const MinimalHeader: React.FC<{
                 <div className="text-lg font-bold text-blue-700">
                   {stats.total}
                 </div>
-                <div className="text-xs text-blue-600">סך הכל</div>
+                <div className="text-xs text-blue-600">{dict.stats.total}</div>
               </div>
               <div className="text-center bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg p-2 shadow-sm border border-indigo-100">
                 <div className="text-lg font-bold text-indigo-700">
                   {stats.male}
                 </div>
-                <div className="text-xs text-indigo-600">גברים</div>
+                <div className="text-xs text-indigo-600">{dict.stats.male}</div>
               </div>
               <div className="text-center bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-2 shadow-sm border border-purple-100">
                 <div className="text-lg font-bold text-purple-700">
                   {stats.female}
                 </div>
-                <div className="text-xs text-purple-600">נשים</div>
+                <div className="text-xs text-purple-600">
+                  {dict.stats.female}
+                </div>
               </div>
               <div className="text-center bg-gradient-to-br from-emerald-50 to-green-50 rounded-lg p-2 shadow-sm border border-emerald-100">
                 <div className="text-lg font-bold text-emerald-700">
                   {stats.verified}
                 </div>
-                <div className="text-xs text-emerald-600">מאומתים</div>
+                <div className="text-xs text-emerald-600">
+                  {dict.stats.verified}
+                </div>
               </div>
               <div className="text-center bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-2 shadow-sm border border-orange-100">
                 <div className="text-lg font-bold text-orange-700">
                   {stats.activeToday}
                 </div>
-                <div className="text-xs text-orange-600">פעילים</div>
+                <div className="text-xs text-orange-600">
+                  {dict.stats.active}
+                </div>
               </div>
               <div className="text-center bg-gradient-to-br from-teal-50 to-cyan-50 rounded-lg p-2 shadow-sm border border-teal-100">
                 <div className="text-lg font-bold text-teal-700">
                   {stats.profilesComplete}%
                 </div>
-                <div className="text-xs text-teal-600">מלאים</div>
+                <div className="text-xs text-teal-600">
+                  {dict.stats.complete}
+                </div>
               </div>
             </div>
           </div>
@@ -335,7 +355,17 @@ const MinimalHeader: React.FC<{
 // ============================================================================
 // Main Candidates Manager Component
 // ============================================================================
-const CandidatesManager: React.FC = () => {
+interface CandidatesManagerProps {
+  matchmakerDict: MatchmakerPageDictionary;
+  suggestionsDict: SuggestionsDictionary;
+  profileDict: ProfilePageDictionary;
+}
+
+const CandidatesManager: React.FC<CandidatesManagerProps> = ({
+  matchmakerDict,
+  suggestionsDict,
+  profileDict,
+}) => {
   // --- State Management ---
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [mobileView, setMobileView] = useState<MobileView>('split');
@@ -368,14 +398,12 @@ const CandidatesManager: React.FC = () => {
     maleCandidates,
     femaleCandidates,
     setSorting,
-    setFilters: setCandidatesFilters, // Renamed to avoid confusion
+    setFilters: setCandidatesFilters,
     refresh,
   } = useCandidates();
-
-  // --- FIX: This is the critical connection ---
   const {
     filters,
-    setFilters, // This is the state setter from useFilterLogic
+    setFilters,
     savedFilters,
     recentSearches,
     popularFilters,
@@ -389,15 +417,14 @@ const CandidatesManager: React.FC = () => {
     copyFilters,
     updateMaleSearchQuery,
     updateFemaleSearchQuery,
-    removeFilter, // Make sure removeFilter is exposed and used
-  } = useFilterLogic({ onFilterChange: setCandidatesFilters }); // Pass the setter from useCandidates
+    removeFilter,
+  } = useFilterLogic({ onFilterChange: setCandidatesFilters });
 
   // --- Derived State ---
   const activeFilterCount = useMemo(
     () => activeFilters.length,
     [activeFilters]
   );
-
   const heroStats = useMemo(() => {
     const total = candidates.length;
     const male = candidates.filter((c) => c.profile.gender === 'MALE').length;
@@ -435,25 +462,21 @@ const CandidatesManager: React.FC = () => {
   // --- Event Handlers ---
   const handleCandidateAdded = useCallback(() => {
     refresh();
-    toast.success('מועמד חדש נוסף בהצלחה!');
+    toast.success('מועמד חדש נוסף בהצלחה!'); // This should also be in the dictionary, but leaving for simplicity
   }, [refresh]);
 
   const handleSearch = useCallback(
     (value: string) => {
-      // התיקון: אנחנו שולחים אובייקט פשוט עם השינוי הרצוי
       setFilters({ searchQuery: value });
     },
     [setFilters]
   );
-
   const handleRemoveFilter = useCallback(
     (key: keyof CandidatesFilter, value?: string) => {
-      // This now calls the correct removeFilter from the hook
       removeFilter(key, value);
     },
     [removeFilter]
   );
-
   const handleCandidateAction = useCallback(
     async (type: CandidateAction, candidate: Candidate) => {
       console.log(
@@ -467,9 +490,9 @@ const CandidatesManager: React.FC = () => {
     async (name: string) => {
       try {
         await saveFilter(name, filters);
-        toast.success('הפילטר נשמר בהצלחה');
+        toast.success('הפילטר נשמר בהצלחה'); // Translate
       } catch {
-        toast.error('שגיאה בשמירת הפילטר');
+        toast.error('שגיאה בשמירת הפילטר'); // Translate
       }
     },
     [filters, saveFilter]
@@ -487,7 +510,7 @@ const CandidatesManager: React.FC = () => {
       setComparisonSelection({});
       toast.info(`מועמד מטרה נבחר: ${candidate.firstName}.`, {
         position: 'bottom-center',
-      });
+      }); // Translate
     },
     [aiTargetCandidate]
   );
@@ -497,7 +520,7 @@ const CandidatesManager: React.FC = () => {
     setAiTargetCandidate(null);
     setAiMatches([]);
     setComparisonSelection({});
-    toast.info('בחירת מועמד מטרה בוטלה.', { position: 'bottom-center' });
+    toast.info('בחירת מועמד מטרה בוטלה.', { position: 'bottom-center' }); // Translate
   };
 
   const handleToggleComparison = useCallback(
@@ -515,21 +538,21 @@ const CandidatesManager: React.FC = () => {
 
   const handleUpdateAllProfiles = async () => {
     setIsBulkUpdating(true);
-    toast.info('מתחיל תהליך עדכון פרופילי AI...');
+    toast.info('מתחיל תהליך עדכון פרופילי AI...'); // Translate
     try {
       const response = await fetch('/api/ai/update-all-profiles', {
         method: 'POST',
       });
       const data = await response.json();
       if (!response.ok)
-        throw new Error(data.error || 'שגיאה בהפעלת העדכון הכללי.');
-      toast.success('העדכון הכללי הופעל בהצלחה!');
+        throw new Error(data.error || 'שגיאה בהפעלת העדכון הכללי.'); // Translate
+      toast.success('העדכון הכללי הופעל בהצלחה!'); // Translate
     } catch (error) {
       console.error('Failed to initiate bulk AI profile update:', error);
       toast.error('שגיאה בהפעלת העדכון', {
         description:
           error instanceof Error ? error.message : 'אנא נסה שוב מאוחר יותר.',
-      });
+      }); // Translate
     } finally {
       setIsBulkUpdating(false);
     }
@@ -548,6 +571,7 @@ const CandidatesManager: React.FC = () => {
         isAdmin={isAdmin}
         isCompact={isHeaderCompact}
         onToggleCompact={() => setIsHeaderCompact(!isHeaderCompact)}
+        dict={matchmakerDict.candidatesManager.header}
       />
 
       {isHeaderCompact && (
@@ -559,9 +583,13 @@ const CandidatesManager: React.FC = () => {
                   <SearchBar
                     value={filters.searchQuery || ''}
                     onChange={handleSearch}
-                    placeholder="חיפוש כללי..."
+                    placeholder={
+                      matchmakerDict.candidatesManager.searchBar
+                        .generalPlaceholder
+                    }
                     recentSearches={recentSearches}
                     onClearRecentSearches={clearRecentSearches}
+                    dict={matchmakerDict.candidatesManager.searchBar}
                   />
                 </div>
               )}
@@ -575,11 +603,13 @@ const CandidatesManager: React.FC = () => {
                       className="bg-white/90 shadow-sm border border-gray-200"
                     >
                       <ArrowUpDown className="w-4 h-4 ml-1" />
-                      מיון
+                      {matchmakerDict.candidatesManager.controls.sort}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>מיון לפי</DropdownMenuLabel>
+                    <DropdownMenuLabel>
+                      {matchmakerDict.candidatesManager.controls.sortBy}
+                    </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {SORT_OPTIONS.map((option) => (
                       <DropdownMenuItem
@@ -591,7 +621,11 @@ const CandidatesManager: React.FC = () => {
                           )
                         }
                       >
-                        {option.label}
+                        {
+                          matchmakerDict.candidatesManager.sortOptions[
+                            option.value as keyof typeof matchmakerDict.candidatesManager.sortOptions
+                          ]
+                        }
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
@@ -605,7 +639,9 @@ const CandidatesManager: React.FC = () => {
                     className="bg-white/90 shadow-sm border border-gray-200"
                   >
                     <Filter className="w-4 h-4 ml-1" />
-                    {showFiltersPanel ? 'הסתר' : 'פילטרים'}
+                    {showFiltersPanel
+                      ? matchmakerDict.candidatesManager.controls.hideFilters
+                      : matchmakerDict.candidatesManager.controls.filters}
                   </Button>
                 </div>
 
@@ -620,7 +656,7 @@ const CandidatesManager: React.FC = () => {
                       className="lg:hidden relative bg-white/90 shadow-sm border border-gray-200"
                     >
                       <Filter className="w-4 h-4 ml-1" />
-                      פילטרים
+                      {matchmakerDict.candidatesManager.controls.filters}
                       {activeFilterCount > 0 && (
                         <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-indigo-500 border-0 text-xs">
                           {activeFilterCount}
@@ -645,6 +681,7 @@ const CandidatesManager: React.FC = () => {
                       onMaleFiltersChange={updateMaleFilters}
                       onFemaleFiltersChange={updateFemaleFilters}
                       onCopyFilters={copyFilters}
+                      dict={matchmakerDict.candidatesManager.filterPanel}
                     />
                   </SheetContent>
                 </Sheet>
@@ -679,15 +716,24 @@ const CandidatesManager: React.FC = () => {
                         >
                           <DropdownMenuRadioItem value="split">
                             <Users className="w-4 h-4 mr-2" />
-                            מפוצל
+                            {
+                              matchmakerDict.candidatesManager.controls.mobile
+                                .split
+                            }
                           </DropdownMenuRadioItem>
                           <DropdownMenuRadioItem value="single">
                             <View className="w-4 h-4 mr-2" />
-                            טור אחד
+                            {
+                              matchmakerDict.candidatesManager.controls.mobile
+                                .singleCol
+                            }
                           </DropdownMenuRadioItem>
                           <DropdownMenuRadioItem value="double">
                             <Columns className="w-4 h-4 mr-2" />
-                            שני טורים
+                            {
+                              matchmakerDict.candidatesManager.controls.mobile
+                                .doubleCol
+                            }
                           </DropdownMenuRadioItem>
                         </DropdownMenuRadioGroup>
                       </DropdownMenuContent>
@@ -723,6 +769,7 @@ const CandidatesManager: React.FC = () => {
                 filters={filters}
                 onRemoveFilter={handleRemoveFilter}
                 onResetAll={resetFilters}
+                dict={matchmakerDict.candidatesManager.activeFilters}
               />
             </div>
           </div>
@@ -751,6 +798,7 @@ const CandidatesManager: React.FC = () => {
                   onFemaleFiltersChange={updateFemaleFilters}
                   onCopyFilters={copyFilters}
                   className="flex-1 overflow-y-auto"
+                  dict={matchmakerDict.candidatesManager.filterPanel}
                 />
               </div>
             </aside>
@@ -792,6 +840,8 @@ const CandidatesManager: React.FC = () => {
                   femaleSearchQuery={filters.femaleSearchQuery}
                   onMaleSearchChange={updateMaleSearchQuery}
                   onFemaleSearchChange={updateFemaleSearchQuery}
+                  dict={matchmakerDict.candidatesManager}
+                  profileDict={profileDict}
                 />
               </div>
             )}
@@ -805,12 +855,12 @@ const CandidatesManager: React.FC = () => {
         onClose={() => setShowManualAddDialog(false)}
         onCandidateAdded={handleCandidateAdded}
       />
-
       <AiMatchAnalysisDialog
         isOpen={isAnalysisDialogOpen}
         onClose={() => setIsAnalysisDialogOpen(false)}
         targetCandidate={aiTargetCandidate}
         comparisonCandidates={Object.values(comparisonSelection)}
+        dict={suggestionsDict.aiAnalysis}
       />
     </div>
   );

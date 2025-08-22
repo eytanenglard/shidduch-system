@@ -1,0 +1,363 @@
+{
+  "candidatesManager": {
+    "header": {
+      "title": "Candidates Management",
+      "totalLabel": "Total",
+      "verifiedLabel": "Verified",
+      "profilesCompleteLabel": "% Complete",
+      "addButton": "Add",
+      "refreshButton": "Refresh",
+      "expandTooltip": "Expand Header",
+      "collapseTooltip": "Collapse Header",
+      "advancedTitle": "Advanced Candidate Management",
+      "advancedSubtitle": "AI-Powered Management System",
+      "addCandidateButton": "Add Candidate",
+      "bulkUpdateDialog": {
+        "title": "Confirm Global AI Update",
+        "description": "This action will update all profiles. The process will run in the background. Do you want to continue?",
+        "cancel": "Cancel",
+        "confirm": "Yes, start update"
+      },
+      "stats": {
+        "total": "Total",
+        "male": "Men",
+        "female": "Women",
+        "verified": "Verified",
+        "active": "Active",
+        "complete": "Complete"
+      }
+    },
+    "controls": {
+      "sort": "Sort",
+      "sortBy": "Sort by",
+      "filters": "Filters",
+      "hideFilters": "Hide",
+      "mobile": {
+        "split": "Split",
+        "singleCol": "Single Col",
+        "doubleCol": "Double Col"
+      }
+    },
+    "sortOptions": {
+      "lastActive": "Last Active",
+      "age": "Age",
+      "name": "Name",
+      "city": "City",
+      "religiousLevel": "Religious Level",
+      "height": "Height",
+      "registrationDate": "Registration Date"
+    },
+    "viewOptions": {
+      "grid": "Grid View",
+      "list": "List View"
+    },
+    "searchBar": {
+      "generalPlaceholder": "General search...",
+      "malePlaceholder": "Search male candidates...",
+      "femalePlaceholder": "Search female candidates...",
+      "clearTooltip": "Clear search",
+      "smartSearch": "Smart Search",
+      "resultsCount": "{{count}} results",
+      "filterResultsPlaceholder": "Filter results...",
+      "noResultsTitle": "No Results Found",
+      "noResultsDescription": "Try changing your search terms",
+      "recentSearches": "Recent Searches",
+      "clearHistory": "Clear History",
+      "matchingResults": "Matching results ({{count}})",
+      "tip": "Tip:",
+      "tipContent": "Use keywords like name, city, or occupation for more precise results.",
+      "categories": {
+        "name": "Name",
+        "city": "City",
+        "occupation": "Occupation",
+        "all": "All"
+      },
+      "tooltips": {
+        "maleTarget": "Male Candidates",
+        "femaleTarget": "Female Candidates"
+      }
+    },
+    "activeFilters": {
+      "title": "Active Filters",
+      "filterActive": "1 filter active",
+      "filtersActive": "{{count}} filters active",
+      "suggestButton": "Suggest More Filters",
+      "suggestTooltip": "Suggest additional filters based on current results",
+      "clearAllButton": "Clear All",
+      "clearAllTooltip": "Clear all active filters",
+      "labels": {
+        "search": "Search: {{query}}",
+        "maleSearch": "Male Search: {{query}}",
+        "femaleSearch": "Female Search: {{query}}",
+        "separateFiltering": "Separate Filtering",
+        "gender": "Gender: {{gender}}",
+        "genders": {
+          "MALE": "Men",
+          "FEMALE": "Women"
+        },
+        "age": "Age: {{min}}-{{max}}",
+        "ageAbove": "Age: Over {{min}}",
+        "ageBelow": "Age: Up to {{max}}",
+        "height": "Height: {{min}}-{{max}} cm",
+        "heightAbove": "Height: Over {{min}} cm",
+        "heightBelow": "Height: Up to {{max}} cm",
+        "religiousLevel": "Religious Level: {{level}}",
+        "educationLevel": "Education: {{level}}",
+        "city": "City: {{city}}",
+        "occupation": "Occupation: {{occupation}}",
+        "status": "Status: {{status}}",
+        "maritalStatus": "Marital Status: {{status}}",
+        "verifiedOnly": "Verified Only",
+        "withRecommendations": "With Recommendations",
+        "fullProfile": "Full Profile",
+        "activeToday": "Active Today",
+        "activeLast3Days": "Active in last 3 days",
+        "activeLast7Days": "Active in last 7 days",
+        "activeLast30Days": "Active in last 30 days",
+        "activeInDays": "Active in last {{days}} days"
+      },
+      "summary": {
+        "title": "Advanced filtering active - {{count}} criteria",
+        "highPriority": "{{count}} important",
+        "mediumPriority": "{{count}} medium"
+      }
+    },
+    "filterPanel": {
+      "header": {
+        "title": "Advanced Candidate Filtering",
+        "subtitle": "AI-Powered Smart Filtering System",
+        "resetTooltip": "Reset all filters",
+        "saveTooltip": "Save current filter"
+      },
+      "popularFilters": {
+        "activeRecently": "Recently Active",
+        "verifiedOnly": "Verified Only",
+        "withRecommendations": "With Recommendations",
+        "availableOnly": "Available Only",
+        "completeProfiles": "Complete Profiles"
+      },
+      "savePreset": {
+        "title": "Save Filter Preset Name",
+        "placeholder": "Custom filter",
+        "button": "Save"
+      },
+      "separateFiltering": {
+        "title": "Separate Filtering by Gender",
+        "description": "Filter male and female candidates with different criteria"
+      },
+      "genderFilterPanel": {
+        "maleTitle": "Filter Male Candidates",
+        "femaleTitle": "Filter Female Candidates",
+        "copyToMale": "Copy to Males",
+        "copyToFemale": "Copy to Females",
+        "copyTooltip": "Copy settings to {{gender}}",
+        "ageLabel": "Age",
+        "heightLabel": "Height (cm)",
+        "minLabel": "Minimum",
+        "maxLabel": "Maximum",
+        "religiousLevelLabel": "Religious Level",
+        "cityLabel": "City",
+        "verifiedOnlyLabel": "Verified Only",
+        "withRecommendationsLabel": "With Recommendations",
+        "fullProfileLabel": "Full Profile",
+        "placeholders": {
+          "selectReligious": "Select religious level",
+          "selectCity": "Select city"
+        },
+        "options": {
+          "all": "All"
+        }
+      },
+      "tabs": {
+        "basic": "Basic",
+        "advanced": "Advanced",
+        "status": "Status",
+        "saved": "Saved"
+      },
+      "sections": {
+        "gender": "Gender",
+        "age": "Age",
+        "height": "Height (cm)"
+      },
+      "buttons": {
+        "male": "Men",
+        "female": "Women",
+        "removeSelection": "Remove selection",
+        "reset": "Reset",
+        "save": "Save Filter"
+      },
+      "savedFilters": {
+        "emptyTitle": "No Saved Filters",
+        "emptyDescription": "Save the current filter by clicking the save button",
+        "saveCurrentButton": "Save Current Filter"
+      }
+    },
+    "list": {
+  "quickViewTooltip": "Quick View",
+  "editProfileTooltip": "Edit Profile",
+  "emptyState": {
+    "title": "No Candidates Found",
+    "description": "Try expanding your search or removing some filters."
+  },
+  "profileDialog": {
+    "title": "Candidate Profile",
+    "description": "View candidate details",
+    "editButton": "Edit Profile",
+    "viewAsLabel": "Select View",
+    "candidateView": "Candidate View",
+    "matchmakerView": "Matchmaker View"
+  },
+  "cardActions": {
+    "availableNow": "Available Now",
+    "viewProfile": "View Profile",
+    "suggestMatch": "Suggest Match",
+    "sendInvite": "Send Invite",
+    "checkAvailability": "Check Availability",
+    "viewProfileTooltip": "Open the full profile",
+    "suggestMatchTooltip": "Create a new match suggestion",
+    "sendInviteTooltip": "Send an invitation to the candidate",
+    "checkAvailabilityTooltip": "Check availability for a meeting",
+    "addToFavorites": "Add to Favorites",
+    "rating": "Rating",
+    "matchScore": "Match",
+    "response": "Response",
+    "quickResponse": "Quick"
+  },
+  "minimalCard": {
+    "availability": {
+      "AVAILABLE": "Available",
+      "DATING": "Dating",
+      "UNAVAILABLE": "Unavailable",
+      "UNKNOWN": "Unknown"
+    },
+    "aiMatch": "{{score}}% Match",
+    "manualEntry": "Manual Candidate",
+    "noImage": "No Image",
+    "yearsSuffix": "years",
+    "lastActivePrefix": "Active",
+    "qualityScore": "Quality: {{score}}%",
+    "compare": "Compare",
+    "tooltips": {
+      "editProfile": "Edit Profile",
+      "setAsAiTarget": "Set as AI Search Target",
+      "clearAiTarget": "Clear AI Target"
+    }
+  },
+  "quickView": {
+    "availability": {
+      "AVAILABLE": "Available",
+      "DATING": "Dating",
+      "UNAVAILABLE": "Unavailable",
+      "UNKNOWN": "Unknown"
+    },
+    "availabilityDescription": {
+      "AVAILABLE": "Available for new meetings",
+      "DATING": "Currently in a dating process",
+      "UNAVAILABLE": "Currently unavailable",
+      "UNKNOWN": "Status unknown"
+    },
+    "manualEntry": "Manual Entry",
+    "tooltips": {
+      "setAsAiTarget": "Set as AI Search Target",
+      "clearAiTarget": "Clear AI Target"
+    },
+    "details": {
+      "years": "Years",
+      "heightUnit": "cm",
+      "maritalStatus": "Marital Status",
+      "religiousLevel": "Religious Level",
+      "manualDescription": "Matchmaker's Manual Description",
+      "moreInfo": "More Information",
+      "education": "Education",
+      "occupation": "Occupation",
+      "location": "Location",
+      "about": "About"
+    },
+    "qualityScore": "Profile Quality: {{score}}%",
+    "actions": {
+      "view": "Full View",
+      "suggest": "Suggest Match",
+      "invite": "Send Invite",
+      "contact": "Check Availability",
+      "edit": "Edit"
+    },
+    "actionsDescription": {
+      "view": "Open full profile",
+      "suggest": "Create a new suggestion",
+      "invite": "Invite to the system",
+      "contact": "Coordinate a meeting",
+      "edit": "Edit profile"
+    },
+    "stats": {
+      "rating": "Rating",
+      "match": "Match",
+      "response": "Response",
+      "quick": "Quick"
+    }
+  }
+},
+    "splitView": {
+      "panelHeaders": {
+        "male": {
+          "title": "Male Candidates",
+          "subtitle": "{{count}} active candidates"
+        },
+        "female": {
+          "title": "Female Candidates",
+          "subtitle": "{{count}} active candidates"
+        },
+        "targetLabel": "Target: {{name}}",
+        "findMatchesButton": "Find AI Matches",
+        "searchingButton": "Searching..."
+      },
+      "mobile": {
+        "tabs": {
+          "male": "Males",
+          "female": "Females"
+        },
+        "splitLabels": {
+          "male": "Males",
+          "female": "Females"
+        }
+      }
+    }
+  },
+    "cardActions": {
+    "availableNow": "Available Now",
+    "viewProfile": "View Profile",
+    "suggestMatch": "Suggest Match",
+    "sendInvite": "Send Invite",
+    "checkAvailability": "Check Availability",
+    "viewProfileTooltip": "Open the full profile",
+    "suggestMatchTooltip": "Create a new match suggestion",
+    "sendInviteTooltip": "Send an invitation to the candidate",
+    "checkAvailabilityTooltip": "Check availability for a meeting",
+    "addToFavorites": "Add to Favorites",
+    "rating": "Rating",
+    "matchScore": "Match",
+    "response": "Response",
+    "quickResponse": "Quick"
+  },
+  "minimalCard": {
+  "availability": {
+    "AVAILABLE": "Available",
+    "DATING": "Dating",
+    "UNAVAILABLE": "Unavailable",
+    "UNKNOWN": "Unknown"
+  },
+  "aiMatch": "{{score}}% Match",
+  "manualEntry": "Manual Candidate",
+  "noImage": "No Image",
+  "yearsSuffix": "years",
+  "lastActivePrefix": "Active",
+  "qualityScore": "Quality: {{score}}%",
+  "compare": "Compare",
+  "tooltips": {
+    "editProfile": "Edit Profile",
+    "setAsAiTarget": "Set as AI Search Target",
+    "clearAiTarget": "Clear AI Target"
+  }
+}
+
+
+}

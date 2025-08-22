@@ -37,6 +37,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 interface MinimalCandidateCardProps {
   candidate: Candidate;
@@ -45,14 +46,13 @@ interface MinimalCandidateCardProps {
   isHighlighted?: boolean;
   highlightTerm?: string;
   className?: string;
-
-  // --- AI-Related Props ---
   aiScore?: number;
   isAiTarget?: boolean;
   onSetAiTarget?: (candidate: Candidate, e: React.MouseEvent) => void;
   isSelectableForComparison?: boolean;
   isSelectedForComparison?: boolean;
   onToggleComparison?: (candidate: Candidate, e: React.MouseEvent) => void;
+  dict: MatchmakerPageDictionary['candidatesManager']['list']['minimalCard'];
 }
 
 const calculateAge = (birthDate: Date | string): number => {
@@ -79,6 +79,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   isSelectableForComparison = false,
   isSelectedForComparison = false,
   onToggleComparison,
+  dict,
 }) => {
   const mainImage = candidate.images.find((img) => img.isMain);
   const age = calculateAge(candidate.profile.birthDate);
@@ -108,28 +109,28 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
     switch (candidate.profile.availabilityStatus) {
       case 'AVAILABLE':
         return {
-          label: 'פנוי/ה',
+          label: dict.availability.AVAILABLE,
           className:
             'bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 shadow-lg',
           icon: <Sparkles className="w-3 h-3" />,
         };
       case 'DATING':
         return {
-          label: 'בתהליך היכרות',
+          label: dict.availability.DATING,
           className:
             'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg',
           icon: <Heart className="w-3 h-3" />,
         };
       case 'UNAVAILABLE':
         return {
-          label: 'לא פנוי/ה',
+          label: dict.availability.UNAVAILABLE,
           className:
             'bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg',
           icon: <Clock className="w-3 h-3" />,
         };
       default:
         return {
-          label: 'לא ידוע',
+          label: dict.availability.UNKNOWN,
           className:
             'bg-gradient-to-r from-gray-500 to-slate-500 text-white border-0 shadow-lg',
           icon: <User className="w-3 h-3" />,
@@ -175,21 +176,18 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
         )}
         onClick={() => onClick(candidate)}
       >
-        {/* Background Pattern */}
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/50 to-transparent opacity-60"></div>
 
-        {/* Top-left AI Score Badge */}
         {typeof aiScore === 'number' && (
           <div className="absolute top-3 left-3 z-30">
             <Badge className="bg-gradient-to-r from-teal-400 via-cyan-500 to-blue-500 text-white border-0 shadow-xl px-3 py-1.5 text-sm font-bold flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              {aiScore}% התאמה
+              {dict.aiMatch.replace('{{score}}', aiScore.toString())}
               <Zap className="w-3 h-3" />
             </Badge>
           </div>
         )}
 
-        {/* Top-right Badges Area */}
         <div className="absolute top-3 right-3 z-20 flex flex-col gap-2 items-end">
           <Badge
             className={cn(
@@ -204,14 +202,11 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
           {isManualEntry && (
             <Badge className="px-3 py-1.5 text-xs font-bold shadow-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 flex items-center gap-1.5">
               <Edit2 className="w-3 h-3" />
-              מועמד ידני
+              {dict.manualEntry}
             </Badge>
           )}
-
-        
         </div>
 
-        {/* Main Image */}
         <div className="relative h-52 sm:h-60 bg-gradient-to-br from-blue-100 via-purple-50 to-pink-100">
           {mainImage && !imageError ? (
             <>
@@ -230,37 +225,31 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                 onLoad={() => setImageLoaded(true)}
                 onError={() => setImageError(true)}
               />
-
-              {/* Image Overlay Gradient */}
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
-
-              {/* Shimmer Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             </>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
               <div className="text-center">
                 <User className="w-16 h-16 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">אין תמונה</p>
+                <p className="text-sm text-gray-500">{dict.noImage}</p>
               </div>
             </div>
           )}
 
-          {/* Name and Age Overlay */}
           <div className="absolute bottom-0 w-full p-4 text-right">
             <h3 className="font-bold mb-1 text-white drop-shadow-lg text-xl tracking-wide">
               {highlightText(`${candidate.firstName} ${candidate.lastName}`)}
             </h3>
             <div className="flex items-center justify-end gap-3 text-white/95 text-sm">
               <span className="bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm font-medium">
-                {age} שנים
+                {age} {dict.yearsSuffix}
               </span>
               <Calendar className="w-4 h-4" />
             </div>
           </div>
         </div>
 
-        {/* Content Section */}
         <div className="p-5 relative z-10">
           <div className="space-y-3 text-gray-700">
             {isManualEntry && candidate.profile.manualEntryText ? (
@@ -290,11 +279,10 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
               </div>
             )}
 
-            {/* Last Activity */}
             {candidate.profile.lastActive && (
               <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
                 <span className="text-xs text-gray-500">
-                  {`פעיל/ה ${formatDistanceToNow(new Date(candidate.profile.lastActive), { addSuffix: true, locale: he })}`}
+                  {`${dict.lastActivePrefix} ${formatDistanceToNow(new Date(candidate.profile.lastActive), { addSuffix: true, locale: he })}`}
                 </span>
                 <Clock className="w-3 h-3 text-gray-400" />
               </div>
@@ -302,7 +290,6 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
           </div>
         </div>
 
-        {/* Bottom Action Buttons */}
         <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
           {onEdit && (
             <TooltipProvider>
@@ -318,7 +305,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>עריכת פרופיל</p>
+                  <p>{dict.tooltips.editProfile}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -348,22 +335,26 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{isAiTarget ? 'בטל בחירת מטרה' : 'בחר כמטרה לחיפוש AI'}</p>
+                  <p>
+                    {isAiTarget
+                      ? dict.tooltips.clearAiTarget
+                      : dict.tooltips.setAsAiTarget}
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           )}
         </div>
 
-        {/* Quality Score Indicator */}
         <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300">
           <div className="flex items-center gap-1 bg-black/60 text-white px-3 py-1 rounded-full backdrop-blur-sm text-xs font-bold">
             <Award className="w-3 h-3" />
-            <span>איכות: {qualityScore}%</span>
+            <span>
+              {dict.qualityScore.replace('{{score}}', qualityScore.toString())}
+            </span>
           </div>
         </div>
 
-        {/* Comparison Checkbox */}
         {isSelectableForComparison && onToggleComparison && (
           <div
             className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0"
@@ -382,13 +373,12 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                 htmlFor={`compare-${candidate.id}`}
                 className="text-xs font-bold leading-none text-gray-700 cursor-pointer"
               >
-                השוואה
+                {dict.compare}
               </label>
             </div>
           </div>
         )}
 
-        {/* Hover Glow Effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-purple-400/0 to-pink-400/0 group-hover:from-blue-400/10 group-hover:via-purple-400/10 group-hover:to-pink-400/10 transition-all duration-500 pointer-events-none rounded-lg"></div>
       </Card>
     </motion.div>

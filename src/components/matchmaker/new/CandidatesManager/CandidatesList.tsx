@@ -39,6 +39,13 @@ import NewSuggestionForm from '../../suggestions/NewSuggestionForm';
 import MatchmakerEditProfile from '../MatchmakerEditProfile';
 import { cn } from '@/lib/utils';
 
+// --- ייבוא המילונים ---
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
+import type {
+  SuggestionsDictionary,
+  ProfilePageDictionary,
+} from '@/types/dictionary';
+
 interface CreateSuggestionData {
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   firstPartyId: string;
@@ -63,15 +70,16 @@ interface CandidatesListProps {
   isLoading?: boolean;
   className?: string;
   highlightTerm?: string;
-
-  // --- AI-RELATED PROPS ---
   aiTargetCandidate: Candidate | null;
   onSetAiTarget: (candidate: Candidate, e: React.MouseEvent) => void;
   comparisonSelection: Record<string, Candidate>;
   onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
-
-  // --- Prop for QuickView positioning ---
   quickViewSide?: 'left' | 'right' | 'center';
+
+  // --- קבלת המילונים כ-props ---
+  dict: MatchmakerPageDictionary['candidatesManager']['list'];
+  profileDict: ProfilePageDictionary;
+  suggestionsDict: SuggestionsDictionary;
 }
 
 const CandidatesList: React.FC<CandidatesListProps> = ({
@@ -88,8 +96,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   onSetAiTarget,
   comparisonSelection,
   onToggleComparison,
-  // --- Destructure the new prop with a default value ---
   quickViewSide = 'center',
+  dict,
+  profileDict,
+  suggestionsDict,
 }) => {
   // Base states
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
@@ -120,16 +130,13 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-
     return () => {
       window.removeEventListener('resize', checkScreenSize);
     };
   }, []);
 
-  // Close QuickView when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -140,14 +147,12 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         setHoveredCandidate(null);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [hoveredCandidate]);
 
-  // Clean up timeout on unmount
   useEffect(() => {
     return () => {
       if (hoverTimeoutRef.current) {
@@ -156,20 +161,17 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     };
   }, []);
 
-  // Load questionnaire when candidate is selected
   useEffect(() => {
     const loadQuestionnaire = async () => {
       if (!selectedCandidate) {
         setQuestionnaireResponse(null);
         return;
       }
-
       try {
         const response = await fetch(
           `/api/profile/questionnaire?userId=${selectedCandidate.id}`
         );
         const data = await response.json();
-
         if (data.success && data.questionnaireResponse) {
           const formattedQuestionnaire = {
             ...data.questionnaireResponse,
@@ -189,10 +191,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         }
       } catch (error) {
         console.error('Failed to load questionnaire:', error);
-        toast.error('שגיאה בטעינת השאלון');
+        toast.error('שגיאה בטעינת השאלון'); // TODO: Translate
       }
     };
-
     loadQuestionnaire();
   }, [selectedCandidate]);
 
@@ -204,16 +205,11 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            candidateId: candidate.id,
-            email,
-          }),
+          body: JSON.stringify({ candidateId: candidate.id, email }),
         }
       );
-
       if (!response.ok) throw new Error('Failed to send invitation');
-
-      toast.success('ההזמנה נשלחה בהצלחה');
+      toast.success('ההזמנה נשלחה בהצלחה'); // TODO: Translate
       onCandidateAction?.('invite', candidate);
     } catch (error) {
       console.error('Error sending invite:', error);
@@ -228,10 +224,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientId: candidate.id }),
       });
-
       if (!response.ok) throw new Error('Failed to check availability');
-
-      toast.success('בדיקת הזמינות נשלחה');
+      toast.success('בדיקת הזמינות נשלחה'); // TODO: Translate
       onCandidateAction?.('contact', candidate);
     } catch (error) {
       console.error('Error checking availability:', error);
@@ -246,10 +240,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-
       if (!response.ok) throw new Error('Failed to create suggestion');
-
-      toast.success('ההצעה נוצרה בהצלחה');
+      toast.success('ההצעה נוצרה בהצלחה'); // TODO: Translate
       onCandidateAction?.('suggest', dialogCandidate!);
     } catch (error) {
       console.error('Error creating suggestion:', error);
@@ -264,42 +256,26 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   const handleMouseEnter = (candidate: Candidate, e?: React.MouseEvent) => {
     if (isMobile || !e) return;
-
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
-
     const cardElement = e.currentTarget as HTMLElement;
-    const cardRect = cardElement.getBoundingClientRect(); // מיקום הכרטיס על המסך
+    const cardRect = cardElement.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const padding = 20;
-
-    // גובה משוער של החלון המקדים (שמוגבל ב-CSS ל-85vh)
     const quickViewApproxHeight = Math.min(650, viewportHeight * 0.85);
-
     let top;
-
-    // בדיקה: האם הצגת החלון מתחת לכרטיס תגרום לו לחרוג מהמסך?
     if (cardRect.top + quickViewApproxHeight > viewportHeight - padding) {
-      // כן, אין מספיק מקום למטה.
-      // לכן, נמקם את החלון כך שהחלק התחתון שלו יתיישר עם החלק התחתון של הכרטיס.
-      // זה יגרום לו "לקפוץ" כלפי מעלה.
       top = cardElement.offsetTop + cardRect.height - quickViewApproxHeight;
     } else {
-      // לא, יש מספיק מקום. נמקם אותו כרגיל, צמוד לחלק העליון של הכרטיס.
       top = cardElement.offsetTop;
     }
-
-    // נוודא שהחלון לא עולה גבוה מדי ויוצא מראש אזור הגלילה
     const scrollContainer = cardElement.closest('.overflow-y-auto');
     if (scrollContainer) {
       top = Math.max(top, scrollContainer.scrollTop);
     }
-
-    // הלוגיקה למיקום האופקי נשארת כפי שהיא
     let left;
     const quickViewWidth = 420;
-
     switch (quickViewSide) {
       case 'left':
         left = window.innerWidth / 4 - quickViewWidth / 2;
@@ -312,12 +288,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         left = window.innerWidth / 2 - quickViewWidth / 2;
         break;
     }
-
     left = Math.max(
       padding,
       Math.min(left, window.innerWidth - quickViewWidth - padding)
     );
-
     hoverTimeoutRef.current = setTimeout(() => {
       setHoverPosition({ top, left });
       setHoveredCandidate(candidate);
@@ -326,12 +300,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   const handleMouseLeave = () => {
     if (isMobile) return;
-
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
     }
-
     setTimeout(() => {
       if (!quickViewRef.current?.matches(':hover')) {
         setHoveredCandidate(null);
@@ -343,7 +315,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     (action: CandidateAction, candidate: Candidate) => {
       setDialogCandidate(candidate);
       setHoveredCandidate(null);
-
       switch (action) {
         case 'invite':
           setShowInviteDialog(true);
@@ -370,26 +341,19 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   const gridLayoutClass = useMemo(() => {
     if (isMobile) {
-      // Mobile view logic
       return mobileView === 'double'
-        ? 'grid grid-cols-2 gap-2' // Two columns for mobile
-        : 'grid grid-cols-1 gap-3'; // Single column for mobile
+        ? 'grid grid-cols-2 gap-2'
+        : 'grid grid-cols-1 gap-3';
     }
-    // Desktop view logic
     return viewMode === 'grid'
       ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-4'
       : 'space-y-4';
   }, [isMobile, mobileView, viewMode]);
 
-  // Loading states render
   if (isLoading) {
     return (
       <div
-        className={`${
-          viewMode === 'grid'
-            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
-            : 'space-y-4'
-        } ${className || ''}`}
+        className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'} ${className || ''}`}
       >
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="relative">
@@ -407,17 +371,14 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     );
   }
 
-  // Empty state render with improved UI
   if (candidates.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-32 bg-gray-50 rounded-lg border border-dashed border-gray-300 p-4 text-center">
         <UserX className="w-8 h-8 mb-2 text-gray-400" />
         <p className="text-sm font-medium text-gray-500 mb-1">
-          לא נמצאו מועמדים
+          {dict.emptyState.title}
         </p>
-        <p className="text-xs text-gray-400">
-          נסו להרחיב את החיפוש או להסיר חלק מהמסננים.
-        </p>
+        <p className="text-xs text-gray-400">{dict.emptyState.description}</p>
       </div>
     );
   }
@@ -458,6 +419,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               }
               isSelectedForComparison={!!comparisonSelection[candidate.id]}
               onToggleComparison={onToggleComparison}
+              dict={profileDict.minimalCard}
             />
             <button
               className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
@@ -465,8 +427,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 e.stopPropagation();
                 handleAction('edit', candidate);
               }}
-              aria-label="ערוך פרופיל"
-              title="ערוך פרופיל"
+              aria-label={dict.editProfileTooltip}
+              title={dict.editProfileTooltip}
             >
               <Edit className="w-4 h-4" />
             </button>
@@ -477,7 +439,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       {hoveredCandidate && !isMobile && (
         <div
           ref={quickViewRef}
-          className="absolute z-[70]" // z-index גבוה מאוד
+          className="absolute z-[70]"
           style={{
             top: `${hoverPosition.top}px`,
             left: `${hoverPosition.left}px`,
@@ -490,6 +452,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               onAction={(action) => handleAction(action, hoveredCandidate)}
               onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
               isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
+              dict={suggestionsDict.quickView}
             />
           </div>
         </div>
@@ -507,44 +470,49 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle>פרופיל מועמד</DialogTitle>
+              <DialogTitle>{dict.profileDialog.title}</DialogTitle>
               <Button
                 variant="outline"
                 onClick={() => handleAction('edit', selectedCandidate!)}
                 className="flex items-center gap-2"
               >
                 <Edit className="w-4 h-4" />
-                עריכת פרופיל
+                {dict.profileDialog.editButton}
               </Button>
             </div>
-            <DialogDescription>צפייה בפרטי המועמד</DialogDescription>
+            <DialogDescription>
+              {dict.profileDialog.description}
+            </DialogDescription>
             <Select
               value={isMatchmaker ? 'matchmaker' : 'candidate'}
               onValueChange={(value) => setIsMatchmaker(value === 'matchmaker')}
             >
               <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="בחר תצוגה" />
+                <SelectValue placeholder={dict.profileDialog.viewAsLabel} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="candidate">תצוגת מועמד</SelectItem>
-                <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
+                <SelectItem value="candidate">
+                  {dict.profileDialog.candidateView}
+                </SelectItem>
+                <SelectItem value="matchmaker">
+                  {dict.profileDialog.matchmakerView}
+                </SelectItem>
               </SelectContent>
             </Select>
           </DialogHeader>
 
           {selectedCandidate && (
             <div className="space-y-6">
-              {selectedCandidate && (
-                <div className="space-y-6">
-                  <ProfileCard
-                    profile={selectedCandidate.profile}
-                    images={selectedCandidate.images}
-                    questionnaire={questionnaireResponse}
-                    viewMode={isMatchmaker ? 'matchmaker' : 'candidate'}
-                    isProfileComplete={selectedCandidate.isProfileComplete}
-                  />
-                </div>
-              )}
+              {/* --- START OF FIX --- */}
+              <ProfileCard
+                profile={selectedCandidate.profile}
+                images={selectedCandidate.images}
+                questionnaire={questionnaireResponse}
+                viewMode={isMatchmaker ? 'matchmaker' : 'candidate'}
+                isProfileComplete={selectedCandidate.isProfileComplete}
+                dict={profileDict.profileCard}
+              />
+              {/* --- END OF FIX --- */}
             </div>
           )}
         </DialogContent>
@@ -575,14 +543,16 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         isOpen={showSuggestDialog}
         onClose={() => setShowSuggestDialog(false)}
         candidates={allCandidates}
-        selectedCandidate={selectedCandidate}
+        selectedCandidate={dialogCandidate}
         onSubmit={handleCreateSuggestion}
+        dict={suggestionsDict}
       />
 
       <MatchmakerEditProfile
         isOpen={showEditProfileDialog}
         onClose={() => setShowEditProfileDialog(false)}
         candidate={dialogCandidate}
+        dict={profileDict}
       />
     </>
   );
