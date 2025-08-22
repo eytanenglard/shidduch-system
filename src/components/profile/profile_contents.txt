@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile
-# Generated on: 2025-08-22 08:58:06
+# Generated on: 2025-08-22 10:45:17
 ################################################################################
 
 ================================================================================
@@ -4079,6 +4079,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               !Array.isArray(answer.rawValue) ? (
                 <BudgetDisplay
                   data={answer.rawValue as Record<string, number>}
+                  dict={dict.budgetDisplay}
                 />
               ) : (
                 <p

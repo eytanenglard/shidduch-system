@@ -140,7 +140,7 @@ export default function QuestionnairePageClient({
             onComplete={handleQuestionnaireComplete}
             initialWorld={initialWorld}
             initialQuestionId={initialQuestionId}
-            dict={dict.matchmaking} // העברת המילון לרכיב הבן
+            dict={dict} // העברת המילון לרכיב הבן
           />
         );
       case QuestionnaireStage.COMPLETE:

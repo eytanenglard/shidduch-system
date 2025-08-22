@@ -511,7 +511,6 @@ export type SuggestionsDictionary = {
   askMatchmaker: AskMatchmakerDict; // <-- Add this line
   inquiryThread: InquiryThreadDict; // <-- Add this line
   timeline: SuggestionTimelineDict; // <-- Add this line
-  profileCard: ProfileCardDict; // הוסף שורה זו
 
 };
 
@@ -543,6 +542,7 @@ export type Dictionary = {
   // New, namespaced key for the modular dictionary
   suggestions: SuggestionsDictionary;
   profilePage: ProfilePageDictionary;
+  
 };
 
 
@@ -1202,11 +1202,6 @@ export type UnifiedProfileDashboardDict = {
   checklist: ProfileChecklistDict;
   aiAdvisor: AIAdvisorDialogDict;
   analysisResult: AnalysisResultDisplayDict;
-  profileCard: ProfileCardDict; // הוסף שורה זו
-  preferencesSection: PreferencesSectionDict; // הוסף שורה זו
-  profileSection: ProfileSectionDict; // הוסף גם שורה זו עבור השגיאה הבאה
-  photosSection: PhotosSectionDict; // הוסף שורה זו
-
 
 };
 export type PreferencesSectionDict = {
@@ -1585,24 +1580,6 @@ export type WorldComponentDict = {
       notAnswered: string;
     };
   };
-};
-
-export type AIAdvisorDialogDict = {
-  triggerButton: string;
-  dialogTitle: string;
-  dialogDescription: string;
-  closeButton: string;
-  loadingTitle: string;
-  loadingDescription: string;
-  // שדה יחיד לכותרת שגיאה כללית
-  errorTitle: string; 
-  // שדה יחיד לתיאור השגיאה באלרט
-  errorAlertDescription: string; 
-  retryButton: string;
-  initialState: string;
-  // שדות ייעודיים להודעת ה-toast
-  toastErrorTitle: string; 
-  toastErrorDescription: string; // Placeholder: {{error}}
 };
 
 

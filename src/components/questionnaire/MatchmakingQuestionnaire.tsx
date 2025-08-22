@@ -651,6 +651,8 @@ export default function MatchmakingQuestionnaire({
             dict={{
               layout: dict.layout,
               worldLabels: dict.matchmaking.worldLabels,
+              faq: dict.faq,
+              accessibilityFeatures: dict.accessibilityFeatures,
             }}
           >
             {renderCurrentWorld()}

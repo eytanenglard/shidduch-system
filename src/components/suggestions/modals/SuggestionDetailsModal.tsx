@@ -68,9 +68,12 @@ import { ProfileCard } from '@/components/profile';
 import SuggestionTimeline from '../timeline/SuggestionTimeline';
 import InquiryThreadView from '../inquiries/InquiryThreadView';
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
-import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog'; // Import the whole component
+import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
 import type { ExtendedMatchSuggestion } from '../types';
-import type { SuggestionsDictionary } from '@/types/dictionary';
+// =============================    KEY CHANGE #1    =============================
+// ייבאנו את שני הטיפוסים הדרושים למילון
+import type { SuggestionsDictionary, ProfileCardDict } from '@/types/dictionary'; 
+// ==============================================================================
 
 interface SuggestionDetailsModalProps {
   suggestion: ExtendedMatchSuggestion | null;
@@ -84,7 +87,14 @@ interface SuggestionDetailsModalProps {
   questionnaire: QuestionnaireResponse | null;
   isDemo?: boolean;
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
-  dict: SuggestionsDictionary;
+  // =============================    KEY CHANGE #2    =============================
+  // עדכנו את ה-prop כך שיקבל אובייקט המכיל את שני המילונים
+  // שהקומפוננטה הזו צריכה כדי לתפקד ולרנדר את ילדיה.
+  dict: {
+    suggestions: SuggestionsDictionary;
+    profileCard: ProfileCardDict;
+  };
+  // ==============================================================================
 }
 
 const useIsMobile = () => {
@@ -654,7 +664,10 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 onToggleFullscreen={toggleFullscreen}
                 isMobile={isMobile}
                 isTransitioning={isTransitioning}
-                dict={dict.modal.tabs}
+                // =============================    KEY CHANGE #3 (Usage)    =============================
+                // ניגשים למילון דרך המפתח המתאים
+                dict={dict.suggestions.modal.tabs}
+                // ======================================================================================
               />
               <TabsContent value="presentation" className="mt-0">
                 <EnhancedHeroSection
@@ -668,7 +681,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   matchingReason={suggestion.matchingReason}
                   onViewProfile={() => setActiveTab('profile')}
                   onStartConversation={() => setShowAskDialog(true)}
-                  dict={dict.modal.header}
+                  // =============================    KEY CHANGE #3 (Usage)    =============================
+                  dict={dict.suggestions.modal.header}
+                  // ======================================================================================
                 />
               </TabsContent>
               <TabsContent
@@ -680,10 +695,10 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     <div className="text-center">
                       <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
                       <p className="text-lg font-semibold text-gray-700">
-                        {dict.modal.profile.loading}
+                        {dict.suggestions.modal.profile.loading}
                       </p>
                       <p className="text-sm text-gray-500 mt-2">
-                        {dict.modal.profile.loadingDescription}
+                        {dict.suggestions.modal.profile.loadingDescription}
                       </p>
                     </div>
                   </div>
@@ -694,7 +709,10 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     images={targetParty.images}
                     questionnaire={questionnaire}
                     viewMode="candidate"
+                    // =============================    KEY CHANGE #3 (Usage)    =============================
+                    // מעבירים לקומפוננטת הפרופיל את המילון שלה
                     dict={dict.profileCard}
+                    // ======================================================================================
                   />
                 ) : (
                   <div className="text-center p-12">
@@ -702,17 +720,17 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       <AlertTriangle className="w-12 h-12 text-red-500" />
                     </div>
                     <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                      {dict.modal.profile.errorTitle}
+                      {dict.suggestions.modal.profile.errorTitle}
                     </h3>
                     <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
-                      {dict.modal.profile.errorDescription}
+                      {dict.suggestions.modal.profile.errorDescription}
                     </p>
                     <Button
                       onClick={() => setShowAskDialog(true)}
                       className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
                     >
                       <MessageCircle className="w-4 h-4 ml-2" />
-                      {dict.modal.profile.contactMatchmaker}
+                      {dict.suggestions.modal.profile.contactMatchmaker}
                     </Button>
                   </div>
                 )}
@@ -732,29 +750,29 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   </div>
                   <div className="space-y-4 max-w-2xl">
                     <h3 className="text-3xl font-bold text-gray-800">
-                      {dict.modal.aiAnalysisCta.title}
+                      {dict.suggestions.modal.aiAnalysisCta.title}
                     </h3>
                     <p className="text-xl text-gray-600 leading-relaxed">
-                      {dict.modal.aiAnalysisCta.description}
+                      {dict.suggestions.modal.aiAnalysisCta.description}
                     </p>
                     <div className="flex items-center justify-center gap-4 text-sm text-gray-500 font-medium">
                       <div className="flex items-center gap-2">
                         <TrendingUp className="w-4 h-4" />
-                        <span>{dict.modal.aiAnalysisCta.feature1}</span>
+                        <span>{dict.suggestions.modal.aiAnalysisCta.feature1}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Network className="w-4 h-4" />
-                        <span>{dict.modal.aiAnalysisCta.feature2}</span>
+                        <span>{dict.suggestions.modal.aiAnalysisCta.feature2}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Compass className="w-4 h-4" />
-                        <span>{dict.modal.aiAnalysisCta.feature3}</span>
+                        <span>{dict.suggestions.modal.aiAnalysisCta.feature3}</span>
                       </div>
                     </div>
                   </div>
                   <UserAiAnalysisDialog
                     suggestedUserId={targetParty.id}
-                    dict={dict.aiAnalysis}
+                    dict={dict.suggestions.aiAnalysis}
                     isDemo={isDemo}
                     demoAnalysisData={demoAnalysisData}
                     currentUserName={
@@ -773,14 +791,14 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 <div className="max-w-6xl mx-auto space-y-8">
                   <SuggestionTimeline
                     statusHistory={suggestion.statusHistory}
-                    dict={dict.timeline}
+                    dict={dict.suggestions.timeline}
                   />
                   <InquiryThreadView
                     suggestionId={suggestion.id}
                     userId={userId}
                     showComposer={true}
                     isDemo={isDemo}
-                    dict={dict.inquiryThread}
+                    dict={dict.suggestions.inquiryThread}
                   />
                 </div>
               </TabsContent>
@@ -794,7 +812,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
             onApprove={handleApprove}
             onDecline={handleDecline}
             onAskQuestion={() => setShowAskDialog(true)}
-            dict={dict.modal.actions}
+            dict={dict.suggestions.modal.actions}
           />
         </DialogContent>
       </Dialog>
@@ -803,7 +821,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         onClose={() => setShowAskDialog(false)}
         onSubmit={handleSendQuestion}
         matchmakerName={`${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`}
-        dict={dict.askMatchmaker}
+        dict={dict.suggestions.askMatchmaker}
       />
     </>
   );

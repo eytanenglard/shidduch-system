@@ -54,7 +54,15 @@
           "description": "לראות איך אחרים רואים אותך.",
           "missing": "יש לצפות בתצוגה המקדימה של הפרופיל"
         }
-      }
+      },
+        "missingItems": {
+    "photos": "העלה/י לפחות 3 תמונות",
+    "personalDetails": "מלא/י פרטים אישיים חיוניים",
+    "partnerPreferences": "הגדר/י את העדפות בן/בת הזוג",
+    "questionnaire": "השלם/י את שאלון ההתאמה",
+    "review": "צפה/י בתצוגה המקדימה של הפרופיל"
+  }
+
     },
     "aiAdvisor": {
       "triggerButton": "קבל ניתוח וטיפים לשיפור הפרופיל",
@@ -303,6 +311,10 @@
   },
     "profileSection": {
     "loading": "טוען נתוני פרופיל...",
+     "budgetDisplay": {
+    "errorInvalidData": "שגיאה: נתונים לא תקינים לתצוגה.",
+    "noValuesAllocated": "לא הוקצו ערכים."
+  },
     "header": {
       "title": "פרופיל אישי",
       "subtitleEdit": "ערוך/י את פרטי הפרופיל שלך.",
@@ -583,6 +595,10 @@
     "charCount": "/ {{count}}+ תווים"
   },
     "profileCard": {
+      "budgetDisplay": {
+      "errorInvalidData": "שגיאה: נתונים לא תקינים לתצוגה.",
+      "noValuesAllocated": "לא הוקצו ערכים."
+    },
     "loading": "טוען נתוני פרופיל...",
     "header": {
       "title": "פרופיל אישי",
@@ -758,6 +774,7 @@
     },
     "charCount": "/ {{count}}+ תווים"
   },
+  
     "minimalCard": {
     "nameNotAvailable": "שם לא זמין",
     "yearsOld": "{{age}} שנים",

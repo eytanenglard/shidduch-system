@@ -54,9 +54,20 @@
           "description": "See how others see you.",
           "missing": "You must view the profile preview"
         }
+      },
+      "missingItems": {
+        "photos": "Upload at least 3 photos",
+        "personalDetails": "Fill in required personal details",
+        "partnerPreferences": "Set your partner preferences",
+        "questionnaire": "Complete the matchmaking questionnaire",
+        "review": "View your profile preview"
       }
     },
     "aiAdvisor": {
+       "toast": { 
+    "errorTitle": "Analysis Process Error",
+    "errorDescription": "Failed to get profile analysis: {{error}}"
+  },
       "triggerButton": "Get analysis and tips to improve your profile",
       "dialogTitle": "Your Smart Profile Advisor",
       "dialogDescription": "AI-based analysis to help you present yourself in the best way and find more accurate matches.",
@@ -64,10 +75,11 @@
       "loadingTitle": "Our AI is analyzing your profile...",
       "loadingDescription": "This might take a few seconds. Thank you for your patience.",
       "errorTitle": "Oops, something went wrong",
-      "errorDescription": "We couldn't complete the profile analysis right now.",
-      "errorReasonPrefix": "Reason:",
+      "errorAlertDescription": "We couldn't complete the profile analysis right now.",
       "retryButton": "Try Again",
-      "initialState": "Click the button to start the analysis."
+      "initialState": "Click the button to start the analysis.",
+      "toastErrorTitle": "Analysis Process Error",
+      "toastErrorDescription": "Failed to get profile analysis: {{error}}"
     },
     "analysisResult": {
       "tabs": {
@@ -96,49 +108,7 @@
       }
     }
   },
- "aiAdvisor": {
-      "triggerButton": "Get Analysis and Tips to Improve Profile",
-      "dialogTitle": "Your Smart Profile Advisor",
-      "dialogDescription": "AI-based analysis to help you present yourself in the best way and find more accurate matches.",
-      "closeButton": "Close",
-      "loadingTitle": "Our AI is analyzing your profile...",
-      "loadingDescription": "This may take a few seconds. Thank you for your patience.",
-      "errorAlertTitle": "Oops, something went wrong",
-      "errorAlertDescription": "We couldn't complete the profile analysis right now.",
-      "retryButton": "Try Again",
-      "initialState": "Click the button to start the analysis.",
-      "toast": {
-        "errorTitle": "Analysis Process Error",
-        "errorDescription": "Failed to get profile analysis: {{error}}"
-      }
-    },
-    "analysisResult": {
-      "tabs": {
-        "summary": "Summary",
-        "completeness": "Profile Completeness",
-        "tips": "Improvement Tips"
-      },
-      "summary": {
-        "personalityTitle": "Who Am I? (AI Summary)",
-        "personalityDescription": "How the AI understands your personality based on what you've shared.",
-        "lookingForTitle": "Who Am I Looking For? (AI Summary)",
-        "lookingForDescription": "A summary of your preferences for the ideal partner."
-      },
-      "completeness": {
-        "title": "Profile Completeness Report",
-        "description": "An overview of the completed sections of your profile and those that still require attention.",
-        "status": {
-          "complete": "Complete",
-          "partial": "Partial",
-          "missing": "Missing"
-        }
-      },
-      "tips": {
-        "title": "Recommendations and Tips for Improvement",
-        "description": "Concrete suggestions to help you upgrade your profile and attract better matches."
-      }
-    },
-    "photosSection": {
+  "photosSection": {
     "title": "Profile Photos",
     "subtitle": "Upload up to {{maxImages}} photos. The main photo will be displayed on the card.",
     "uploadingMultiple": "Uploading {{count}} photos...",
@@ -198,7 +168,7 @@
       "bulkDelete": "Delete {{count}} selected photos? This action is irreversible."
     }
   },
-    "profileSection": {
+  "profileSection": {
     "loading": "Loading profile data...",
     "header": {
       "title": "Personal Profile",
@@ -479,8 +449,12 @@
     },
     "charCount": "/ {{count}}+ characters"
   },
-    "profileCard": {
+  "profileCard": {
     "loading": "Loading profile data...",
+    "budgetDisplay": {
+      "errorInvalidData": "Error: Invalid data for display.",
+      "noValuesAllocated": "No values allocated."
+    },
     "header": {
       "title": "Personal Profile",
       "subtitleEdit": "Edit your profile details.",
@@ -655,7 +629,7 @@
     },
     "charCount": "/ {{count}}+ characters"
   },
-    "minimalCard": {
+  "minimalCard": {
     "nameNotAvailable": "Name not available",
     "yearsOld": "{{age}} years",
     "profileImageAlt": "Profile picture",
@@ -692,9 +666,4 @@
       "heightRange": "Height must be between 100 and 250 cm"
     }
   }
-
-
-
-
-  }
-
+}
