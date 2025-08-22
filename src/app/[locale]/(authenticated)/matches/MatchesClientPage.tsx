@@ -1,33 +1,60 @@
+// src/app/[locale]/matches/MatchesClientPage.tsx
+
 'use client';
+
 import { useSession } from 'next-auth/react';
 import MatchSuggestionsContainer from '@/components/suggestions/MatchSuggestionsContainer';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { SuggestionsDictionary } from '@/types/dictionary'; // ✨ 1. ייבוא הטיפוס של המילון
+import type {
+  SuggestionsDictionary,
+  ProfileCardDict,
+} from '@/types/dictionary';
 
-// ✨ 2. הגדרת ה-props שהרכיב יקבל
+/**
+ * הממשק (interface) מגדיר את ה-props שהרכיב הזה מקבל.
+ * הוא מצפה לקבל אובייקט 'dict' המכיל את שני מילוני התרגום
+ * הדרושים לו ולרכיבי הילד שלו: מילון ההצעות ומילון כרטיס הפרופיל.
+ */
 interface MatchesClientPageProps {
-  dict: SuggestionsDictionary;
+  suggestionsDict: SuggestionsDictionary;
+  profileCardDict: ProfileCardDict;
 }
 
-// ✨ 3. הרכיב מקבל את המילון (dict) כ-prop
-export default function MatchesClientPage({ dict }: MatchesClientPageProps) {
+/**
+ * רכיב צד-לקוח (Client Component) האחראי על הצגת עמוד ההצעות.
+ * הוא מנהל את אימות המשתמש ומעביר את הנתונים והתרגומים לרכיב התצוגה הראשי.
+ */
+export default function MatchesClientPage({ suggestionsDict, profileCardDict }: MatchesClientPageProps) {
+  // קבלת נתוני המשתמש והסטטוס של החיבור
   const { data: session, status } = useSession();
 
+  // בזמן שהחיבור מתבצע, הצג שלד טעינה (skeleton)
   if (status === 'loading') {
-    // This can be a more sophisticated skeleton component later
     return (
       <div className="container mx-auto p-6 space-y-4">
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-48 w-full rounded-2xl" />
+        <Skeleton className="h-48 w-full rounded-2xl" />
+        <Skeleton className="h-48 w-full rounded-2xl" />
       </div>
     );
   }
 
+  // אם המשתמש אינו מחובר, הצג הודעה מתאימה
   if (!session?.user?.id) {
-    // You might want a more user-friendly message or a redirect
-    return <div>לא מורשה לצפות בדף זה</div>;
+    // ניתן להוסיף כאן רכיב מעוצב יותר או הפנייה לדף ההתחברות
+    return (
+      <div className="container mx-auto p-6 text-center text-red-600">
+        אינך מורשה לצפות בדף זה. יש להתחבר למערכת.
+      </div>
+    );
   }
 
-  // ✨ 4. מעבירים את כל מילון ההצעות (dict) הלאה לקונטיינר הראשי
-  return <MatchSuggestionsContainer userId={session.user.id} dict={dict} />;
+  // אם המשתמש מחובר, רנדר את קונטיינר ההצעות והעבר לו את הנתונים הנדרשים
+  return (
+    <MatchSuggestionsContainer
+      userId={session.user.id}
+      suggestionsDict={suggestionsDict}
+      profileCardDict={profileCardDict}
+    />
+  );
 }

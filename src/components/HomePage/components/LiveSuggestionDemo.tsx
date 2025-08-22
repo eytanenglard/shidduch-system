@@ -11,7 +11,10 @@ import SuggestionDetailsModal from '@/components/suggestions/modals/SuggestionDe
 // ייבוא טיפוסים (Types)
 import type { ExtendedMatchSuggestion } from '@/components/suggestions/types';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
-import type { SuggestionsDictionary } from '@/types/dictionary';
+import type {
+  SuggestionsDictionary,
+  ProfileCardDict,
+} from '@/types/dictionary'; // 1. ייבוא הטיפוס
 
 /**
  * הממשק (interface) המגדיר את ה-props שהקומפוננטה מקבלת.
@@ -22,6 +25,7 @@ interface LiveSuggestionDemoProps {
   userId: string;
   demoAiAnalysis: AiSuggestionAnalysisResult | null;
   suggestionsDict: SuggestionsDictionary; // ✨ prop חדש עבור התרגומים
+  profileCardDict: ProfileCardDict; // 2. הוספת ה-prop לממשק
 }
 
 /**
@@ -34,6 +38,7 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
   userId,
   demoAiAnalysis,
   suggestionsDict, // ✨ קבלת התרגומים מה-props
+  profileCardDict, // 3. קבלת ה-prop
 }) => {
   // ניהול מצב מקומי כדי לדעת אם המודאל פתוח או סגור
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -97,7 +102,10 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
         questionnaire={questionnaireData}
         isDemo={true} // מסמן למודאל להתנהג כמצב הדגמה
         demoAnalysisData={demoAiAnalysis}
-        dict={suggestionsDict} // ✨ העברת אובייקט התרגומים המלא למודאל
+        dict={{
+          suggestions: suggestionsDict,
+          profileCard: profileCardDict,
+        }}
       />
     </div>
   );

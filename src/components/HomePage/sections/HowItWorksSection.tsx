@@ -23,7 +23,11 @@ import {
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import { usePathname } from 'next/navigation';
-import type { HowItWorksDict, SuggestionsDictionary } from '@/types/dictionary';
+import type {
+  HowItWorksDict,
+  SuggestionsDictionary,
+  ProfileCardDict,
+} from '@/types/dictionary'; // 1. ייבוא הטיפוס
 import { generateDemoData } from '../components/demo-data';
 
 type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
@@ -31,6 +35,8 @@ type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
 interface HowItWorksProps {
   dict: HowItWorksDict;
   suggestionsDict: SuggestionsDictionary;
+  profileCardDict: ProfileCardDict; // 2. הוספת ה-prop לממשק
+
   demoData: DemoData; // הוסף את זה
 }
 // --- END: Type Definitions ---
@@ -118,6 +124,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
   dict,
   suggestionsDict,
   demoData,
+  profileCardDict,
 }) => {
   const demoRef = useRef(null);
   const isDemoInView = useInView(demoRef, { once: true, amount: 0.1 });
@@ -262,6 +269,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     userId="visitor-user-id"
                     demoAiAnalysis={demoData.demoAiAnalysisForDaniel}
                     suggestionsDict={suggestionsDict}
+                    profileCardDict={profileCardDict}
                   />
                 </div>
               </div>
@@ -278,6 +286,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     userId="visitor-user-id"
                     demoAiAnalysis={demoData.demoAiAnalysisForNoa}
                     suggestionsDict={suggestionsDict}
+                    profileCardDict={profileCardDict}
                   />
                 </div>
               </div>

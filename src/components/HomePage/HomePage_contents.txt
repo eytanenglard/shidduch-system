@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2025-08-20 21:14:12
+# Generated on: 2025-08-22 13:11:19
 ################################################################################
 
 ================================================================================
@@ -30,25 +30,31 @@ import PrivacyAssuranceSection from './sections/PrivacyAssuranceSection';
 import CTASection from './sections/CTASection';
 import FooterSection from './sections/FooterSection';
 
-// ייבוא רכיבי חיצוניים
+// Import external components
 import Navbar from '../layout/Navbar';
 import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
 import CookieBanner from '../ui/CookieBanner';
-import type { HomePageDictionary } from '@/types/dictionary';
+import type { Dictionary } from '@/types/dictionary';
+import { generateDemoData } from './components/demo-data';
 
+// ✅ 1. הגדרת הטיפוס עבור נתוני הדמו
+type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
+
+// ✅ 2. עדכון הממשק של ה-props כך שיכלול גם את demoData
 interface HomePageProps {
-  dict: HomePageDictionary;
+  dict: Dictionary;
+  demoData: DemoData;
 }
 
-export default function HomePage({ dict }: HomePageProps) {
+export default function HomePage({ dict, demoData }: HomePageProps) {
+  // ✅ 3. קבלת demoData כ-prop
   const { data: session } = useSession();
   const [isVisible, setIsVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      // המצב isScrolled ישמש אך ורק עבור ה-StickyNav
       setIsScrolled(window.scrollY > 10);
     };
 
@@ -74,10 +80,6 @@ export default function HomePage({ dict }: HomePageProps) {
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden">
-      {/* ✨ 1. הסרנו את ה-div הריק והמיותר שהתנגש עם ה-Navbar הראשי */}
-
-      {/* ✨ 2. העברנו את מצב הגלילה כ-prop לקומפוננטת ה-StickyNav */}
-      {/* (יתכן שתצטרך לעדכן את StickyNav כך שישתמש ב-prop זה כדי לשלוט בנראות שלו) */}
       <StickyNav navLinks={navLinks} session={session} isVisible={isScrolled} />
 
       <HeroSection
@@ -88,9 +90,12 @@ export default function HomePage({ dict }: HomePageProps) {
       <ValuePropositionSection dict={dict.valueProposition} />
 
       <OurMethodSection dict={dict.ourMethod} />
-<HowItWorksSection 
-        dict={dict.howItWorks} 
-        suggestionsDict={dict.suggestions} // הוספנו prop חדש
+
+      {/* ✅ 4. העברת demoData לרכיב HowItWorksSection פותרת את שגיאת 'Cannot find name' */}
+      <HowItWorksSection
+        dict={dict.howItWorks}
+        suggestionsDict={dict.suggestions}
+        demoData={demoData}
       />
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
       <SuccessStoriesSection dict={dict.successStories} />
@@ -1379,1028 +1384,285 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
 Content:
 // src/components/HomePage/components/demo-data.ts
 
-// ============================================================================
-// קובץ זה נבנה מחדש כדי לשקף את השאלות המעודכנות והמעמיקות מהשאלון.
-// התשובות של נועה ודניאל הורחבו בכל חמשת העולמות כדי ליצור פרופילים
-// עשירים, אותנטיים וקוהרנטיים, המדגימים את יכולות האיפיון של המערכת.
-// נוספו פרטי רקע, מסלולי לימוד ושירות, וניואנסים אישיים בהשראת דוגמאות.
-// ============================================================================
-
-import type {
-  ExtendedMatchSuggestion,
-  PartyInfo,
-} from '@/components/suggestions/types';
-import type {
-  QuestionnaireResponse as QuestionnaireResponseType,
-  UserProfile,
-  UserImage,
-  FormattedAnswer,
-} from '@/types/next-auth';
+import type { Locale } from '../../../../i18n-config';
+import type { ExtendedMatchSuggestion, PartyInfo } from '@/components/suggestions/types';
+import type { QuestionnaireResponse as QuestionnaireResponseType, UserProfile } from '@/types/next-auth';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
-import {
-  ReligiousJourney,
-  ServiceType,
-  Gender,
-  AvailabilityStatus,
-  KippahType,
-  HeadCoveringType,
-} from '@prisma/client';
+import { ReligiousJourney, ServiceType, Gender, AvailabilityStatus, KippahType, HeadCoveringType } from '@prisma/client';
 
-// ============================================================================
-// --- תשובות שאלון מעודכנות: נועה (הבחורה) ---
-// ============================================================================
-const noaQuestionnaireResponse: QuestionnaireResponseType = {
-  id: 'qr-demo-noa-updated',
-  userId: 'demo-profile-noa',
-  personalityAnswers: {
-    personality_self_portrayal_revised:
-      "אני אדם אופטימי וחיובי, שמאמין שאפשר למצוא את הטוב בכל מצב. אני מאוד יצירתית, מה שבא לידי ביטוי בעבודה ובתחביבים שלי, ויש לי יכולת הקשבה טובה - חברים אומרים שאני 'מכילה'. חשוב לי מאוד לנהל שיחות עומק, אבל אני גם אוהבת לצחוק וליהנות מהדברים הפשוטים.",
-    personality_childhood_nickname:
-      "נוקי. זה קיצור של נועה-מתוקי שאבא שלי המציא. זה נשאר איתי עד היום במשפחה הקרובה וזה תמיד מזכיר לי את הבית החם שגדלתי בו.",
-    personality_core_trait_selection_revised: {
-      'אמפתי/ת ורגיש/ה': 30,
-      'אופטימי/ת ושמח/ה': 25,
-      'יצירתי/ת ומקור/ית': 20,
-      'ישר/ה ואמין/ה': 15,
-      'נדיב/ה ומתחשב/ת': 10,
-    },
-    personality_social_battery_recharge: 'intimate_gathering',
-    personality_biological_clock: 7,
-    personality_good_vs_perfect_day:
-      "יום 'מושלם' זה משהו גדול, אבל יום 'ממש טוב' נבנה מהרבה דברים קטנים: שיחת טלפון טובה עם אמא, פריצת דרך יצירתית בעבודה על עיצוב שעבדתי עליו קשה, טיול ספונטני לים בשקיעה, ולסיים את היום עם שיחה טובה וכוס תה. זו תחושה של סיפוק ושלווה.",
-    personality_vacation_compass: {
-      'בטן-גב, רוגע ושלווה': 30,
-      'עיר תוססת, תרבות ובילויים': 25,
-      'זמן איכות זוגי ורומנטי': 25,
-      'טיולים, טבע והרפתקאות': 20,
-    },
-    personality_daily_structure_revised: 'איזון',
-    personality_plan_change_reaction: 7,
-    personality_stress_management_revised: [
-      'שיחה ופריקה',
-      'עיסוק ביצירה',
-      'יציאה לטבע',
-    ],
-    personality_unproductive_day_feeling: 'חמלה עצמית',
-    personality_failure_lesson:
-      "מכישלון בפרויקט גדול בעבודה למדתי שהערך שלי לא תלוי בהצלחה חיצונית, ושחשוב לבקש עזרה. זה לימד אותי המון על חמלה עצמית ועבודת צוות.",
-    personality_social_situation_revised: 'מצטרף/ת בעדינות',
-    personality_friend_in_crisis: 'תמיכה רגשית',
-    personality_humor_type: ['הומור מצבים (סיטקום)', 'הומור עצמי'],
-    personality_communication_style_revised: {
-      'הקשבה אמפתית': 40,
-      'פתיחות ושיתוף רגשי': 30,
-      'הומור וקלילות': 20,
-      'דיבור ישיר וברור': 10,
-    },
-    personality_primary_motivation_revised: 'יצירת קשרים',
-    personality_strengths_and_weaknesses_revised:
-      'שתי תכונות שאני אוהבת בעצמי הן האופטימיות שלי והיכולת להקשיב באמת. אני מאמינה שאלו כלים שעוזרים לי ולקשרים שלי. התכונה שהייתי רוצה לשפר היא אסרטיביות - לפעמים אני נוטה לרצות אחרים על חשבון הצרכים שלי, ואני לומדת לשים לעצמי גבולות בריאים יותר.',
-  },
-  valuesAnswers: {
-    values_core_identification_revised: {
-      'משפחה וקשרים קרובים': 35,
-      'צמיחה אישית והתפתחות': 20,
-      'יצירתיות וביטוי עצמי': 15,
-      'רוחניות, אמונה ומסורת': 15,
-      'נתינה ותרומה לחברה': 10,
-      'קריירה והגשמה מקצועית': 5,
-    },
-    values_core_elaboration_revised:
-      "הערך הכי חשוב לי הוא כבוד הדדי. בצומת דרכים מקצועי שהיה לי, יכולתי לקחת פרויקט גדול על חשבון קולגה, אבל בחרתי לשתף פעולה. למרות שהרווחתי פחות 'קרדיט' אישי, בנינו יחד משהו טוב יותר ושמרנו על מערכת יחסים בריאה. זו הייתה הוכחה לעצמי שהדרך חשובה לי לא פחות מהתוצאה.",
-    values_childhood_home_atmosphere: "חם, יצירתי ומלא שיחות.",
-    values_quiet_heroes:
-      "סבתא שלי. היא אישה שקטה וחכמה, שתמיד יודעת להגיד את המילה הנכונה ולתת תחושה שהכל יהיה בסדר. היא ההשראה שלי לטוב לב וצניעות.",
-    values_two_job_offers: 'הצעה ב - משמעות ואיזון',
-    values_life_priorities_allocation_revised: {
-      'זוגיות (חיפוש או קשר קיים)': 30,
-      'משפחה (הורים, אחים)': 20,
-      'פנאי, תחביבים וטיפוח עצמי': 20,
-      'קריירה ופרנסה': 15,
-      'חברים וקהילה': 10,
-      'רוחניות ולימוד': 5,
-    },
-    values_health_lifestyle_importance: 7,
-    values_feeling_of_home:
-      "תחושת ביטחון, ריח של עוגה בתנור, והידיעה שיש עם מי לדבר בכנות בסוף היום.",
-    values_definition_of_rich_life:
-      "חיים עשירים הם חיים שמלאים בקשרים עמוקים, חוויות שמרחיבות את הלב, ויצירה שנותנת ביטוי לנשמה. זה עושר של זמן ושל משמעות, לא של חפצים.",
-    values_attitude_towards_money_revised: 'איזון ואחריות',
-    values_lost_wallet:
-      'הדבר הראשון שאעשה זה לפתוח את הארנק כדי לחפש תעודה מזהה. מיד לאחר מכן אחפש את האדם בפייסבוק או בכל דרך אפשרית כדי ליצור קשר ולהחזיר לו את האבדה. אם לא אמצא, אקח את הארנק לתחנת המשטרה הקרובה.',
-    values_giving_tzedaka_importance_revised: 8,
-    values_education_pursuit_revised: 'למידה היא דרך חיים',
-    values_social_political_stance_importance_partner_revised: 4,
-    values_dealing_with_disagreement_partner_revised: 'שיחה והבנה',
-    values_non_negotiable_for_partner_revised:
-      'הדיל ברייקר שלי הוא חוסר כנות וחוסר יכולת לקחת אחריות. השאיפה הגדולה ביותר שלי היא למצוא שותף אמיתי לחיים, שנוכל לצמוח יחד מתוך כבוד, חברות ואהבה.',
-  },
-  relationshipAnswers: {
-    relationship_core_meaning_revised: ['חיבור רגשי עמוק', 'חברות ותמיכה'],
-    relationship_key_feelings_from_partner_revised: [
-      'תמיכה והבנה',
-      'הערכה וכבוד',
-      'קלילות וכיף',
-    ],
-    relationship_love_languages: ['מילים מחזקות', 'זמן איכות'],
-    relationship_communication_ideal_revised: 'רגישות ואמפתיה',
-    relationship_handling_partner_disappointment_revised: 'שיחה מיידית',
-    relationship_repair_mechanism: 'שיחת עיבוד',
-    relationship_meaningful_apology: 'הבעת חרטה והבנה',
-    relationship_silent_treatment_view: 9,
-    relationship_partner_bad_day: 'הקשבה והכלה',
-    relationship_household_philosophy:
-      "אני מאמינה בשותפות מלאה וגמישה, כמו שראיתי בבית הורי, שם אבא איש כספים ואמא אמנית, וכל אחד מביא את החוזקות שלו. לא 'תפקידים' קבועים, אלא צוות שפועל יחד לפי נקודות החוזק והזמן הפנוי. הכל בתקשורת פתוחה.",
-    relationship_daily_togetherness_vs_autonomy_revised: 7,
-    relationship_role_in_growth: 8,
-    relationship_celebrating_success:
-      'הכי חשוב לי זה לחגוג ביחד, אולי בארוחה טובה ואינטימית, ופשוט לדבר על זה. לשמוע אותו מספר על הדרך, על האתגרים ועל תחושת הסיפוק. לחגוג את ההצלחה שלו כאילו היא שלי.',
-    relationship_family_vision_children_revised: 'הורות היא חלק מרכזי',
-    relationship_deal_breaker_summary_final_revised:
-      'הדבר שבלעדיו קשר לא יכול לעבוד עבורי הוא תקשורת פתוחה וכנה. השאיפה הכי גדולה שלי היא לבנות בית שמלא בצחוק, כבוד הדדי, וצמיחה משותפת.',
-  },
-  partnerAnswers: {
-    partner_initial_impression_priorities_revised: [
-      'חיוך ואנרגיה',
-      'כימיה בשיחה',
-      'שנינות ועומק',
-    ],
-    partner_appearance_importance_scale_revised: 6,
-    partner_intelligence_types: {
-      'רגשית (אמפתיה, מודעות)': 40,
-      'יצירתית (הומור, מקוריות)': 30,
-      'חוכמת חיים ("שכל ישר")': 20,
-      'אנליטית (היגיון, ניתוח)': 10,
-      'רוחנית/תורנית (עומק בלימוד)': 0,
-    },
-    partner_core_character_traits_essential_revised: {
-      'חום, אמפתיה וטוב לב': 30,
-      'תקשורת טובה והקשבה': 25,
-      'אופטימיות ושמחת חיים': 20,
-      'יושרה, אמינות וכנות': 15,
-      'בגרות, יציבות ואחריות': 10,
-    },
-    partner_completion_trait:
-      "אני אדם שחושב הרבה ולפעמים מהסס. הייתי שמחה למצוא מישהו קצת יותר החלטי ועם ביטחון, כזה שיעזור לי לפעמים לקפוץ למים ויאזן את הנטייה שלי לחשוב יותר מדי.",
-    partner_lifestyle_pace_preference_revised: 'מאוזן',
-    partner_financial_habits_scale: 6,
-    partner_career_ambition_preference_revised: 'איזון עבודה-חיים',
-    partner_deal_breakers_open_text_revised:
-      'הקו האדום המוחלט שלי הוא ציניות מתנשאת וחוסר כבוד בסיסי לאנשים (למשל, איך שהוא מדבר למלצר). אני לא יכולה להיות עם מישהו שלא יודע לכבד כל אדם באשר הוא.',
-    partner_red_flag_vs_quirk:
-      "דגל אדום זה חוסר היכולת שלו להתנצל או לקחת אחריות. מוזרות חביבה זה שהוא חייב לשתות את הקפה של הבוקר בדיוק באותה שעה, מאותו ספל.",
-    partner_in_laws_conflict: 'גישור ופשרה',
-    partner_must_have_quality_final_revised:
-      'התכונה האחת שעליה הכל עומד היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.',
-  },
-  religionAnswers: {
-    religion_core_feeling_of_faith: 'משמעות ושייכות',
-    religion_my_personal_prayer:
-      "התפילה 'מודה אני'. היא מזכירה לי להתחיל כל יום מחדש בהודיה, בפשטות, בלי ציניות. זה רגע קטן של אמונה טהורה שמכוון לי את כל היום.",
-    religion_rabbinic_guidance_role_revised: 5,
-    religion_shabbat_experience: 'זמן משפחה',
-    religion_daily_spiritual_connection: ['התבוננות בטבע', 'עשיית חסד'],
-    religion_kashrut_observance_details_revised:
-      'אני סומכת על כשרות רבנות, ובחוץ אוכלת במסעדות עם תעודת כשרות. אצל חברים, אם אני יודעת שהמטבח כשר, ארגיש בנוח לאכול.',
-    religion_modesty_personal_approach_revised:
-      'הצניעות שלי באה לידי ביטוי בעיקר בבחירת לבוש מכבד (לובשת גם מכנסיים וגם חצאיות) ובדיבור נקי. אני לא שומרת נגיעה, אבל מאמינה ביצירת קשר ראשוני שמבוסס על היכרות עם האישיות לפני הפיזיות. הגישה שלי היא "פנימיות שמשתקפת בחיצוניות".',
-    religion_secular_culture_scenario: 'סינון ובדיקה',
-    religion_general_culture_consumption: 7,
-    religion_doubts_and_struggles:
-      "כשיש לי שאלות באמונה, אני בדרך כלל פונה פנימה. אני מנסה לקרוא על הנושא, לחשוב עליו, ולדבר עם חברות קרובות. אני מאמינה שספקות הם חלק בריא מאמונה חושבת ולא משהו שצריך לפחד ממנו.",
-    religion_partner_ideal_religious_profile_revised:
-      'מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל. חשוב לי שיהיה מחובר למסורת ולרוחניות, אבל לא בצורה נוקשה. מישהו שיש לו יראת שמיים, אבל גם חי את העולם המודרני ומוצא את האיזון הנכון.',
-    religion_flexibility_religious_differences_partner_revised: 8,
-    religion_gender_roles_philosophy: {
-      'שותפות שוויונית מלאה': 50,
-      'חלוקה גמישה לפי כישרון ורצון': 50,
-    },
-    religion_children_education_religious_vision_revised:
-      'החזון שלי הוא להקים בית שבו ילדים גדלים עם ערכים של נתינה, אהבת התורה וארץ ישראל. חשוב לי שהחינוך יהיה דתי-לאומי פתוח ומאפשר שאלת שאלות, כזה שמצמיח אנשים חושבים, עם יראת שמיים פנימית ועמוקה.',
-  },
-  valuesCompleted: true,
-  personalityCompleted: true,
-  relationshipCompleted: true,
-  partnerCompleted: true,
-  religionCompleted: true,
-  worldsCompleted: [
-    'VALUES',
-    'RELATIONSHIP',
-    'PARTNER',
-    'PERSONALITY',
-    'RELIGION',
-  ],
-  completed: true,
-  startedAt: new Date(),
-  completedAt: new Date(),
-  lastSaved: new Date(),
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  formattedAnswers: {
-    personality: [
-      {
-        questionId: 'personality_core_trait_selection_revised',
-        question: 'כיצד היית מחלק/ת 100% בין תכונות האישיות שלך?',
-        questionType: 'budgetAllocation',
-        rawValue: {
-          'אמפתי/ת ורגיש/ה': 30,
-          'אופטימי/ת ושמח/ה': 25,
-          'יצירתי/ת ומקור/ית': 20,
-          'ישר/ה ואמין/ה': 15,
-          'נדיב/ה ומתחשב/ת': 10,
-        },
-        displayText: "אמפתי/ת ורגיש/ה: 30; אופטימי/ת ושמח/ה: 25; וכו'",
-        isVisible: false,
-        answeredAt: new Date(),
-      },
-    ],
-    values: [
-      {
-        questionId: 'values_core_identification_revised',
-        question: "כיצד היית מחלק/ת 100% 'אנרגיה ערכית'?",
-        questionType: 'budgetAllocation',
-        rawValue: {
-          'משפחה וקשרים קרובים': 35,
-          'צמיחה אישית והתפתחות': 20,
-          'יצירתיות וביטוי עצמי': 15,
-          'רוחניות, אמונה ומסורת': 15,
-          'נתינה ותרומה לחברה': 10,
-          'קריירה והגשמה מקצועית': 5,
-        },
-        displayText: "משפחה וקשרים קרובים: 35; צמיחה אישית: 20; וכו'",
-        isVisible: true,
-        answeredAt: new Date(),
-      },
-    ],
-    relationship: [
-      {
-        questionId: 'relationship_household_philosophy',
-        question: 'מהי הנוסחה לחלוקת אחריות בניהול הבית?',
-        questionType: 'openText',
-        rawValue: "אני מאמינה בשותפות מלאה וגמישה, כמו שראיתי בבית הורי...",
-        displayText: "אני מאמינה בשותפות מלאה וגמישה, כמו שראיתי בבית הורי...",
-        isVisible: true,
-        answeredAt: new Date(),
-      },
-    ],
-    partner: [
-      {
-        questionId: 'partner_core_character_traits_essential_revised',
-        question: "מהן 'אבני היסוד' של האישיות שאת/ה מחפש/ת?",
-        questionType: 'budgetAllocation',
-        rawValue: {
-          'חום, אמפתיה וטוב לב': 30,
-          'תקשורת טובה והקשבה': 25,
-          'אופטימיות ושמחת חיים': 20,
-          'יושרה, אמינות וכנות': 15,
-          'בגרות, יציבות ואחריות': 10,
-        },
-        displayText: 'חום, אמפתיה וטוב לב: 30; תקשורת טובה: 25; וכו\'',
-        isVisible: true,
-        answeredAt: new Date(),
-      },
-    ],
-    religion: [
-      {
-        questionId: 'religion_my_personal_prayer',
-        question: 'מהו קטע התפילה או ההגות שהכי מדבר אליך?',
-        questionType: 'openText',
-        rawValue: "התפילה 'מודה אני'. היא מזכירה לי להתחיל כל יום מחדש בהודיה...",
-        displayText: "התפילה 'מודה אני'. היא מזכירה לי להתחיל כל יום מחדש בהודיה...",
-        isVisible: true,
-        answeredAt: new Date(),
-      },
-    ],
-  },
-
+const getDemoContent = async (locale: Locale) => {
+  if (locale === 'en') {
+    return await import('./demo-content/en');
+  }
+  return await import('./demo-content/he');
 };
 
-// ============================================================================
-// --- פרופיל מלא מעודכן: נועה ---
-// ============================================================================
-const noaProfile: PartyInfo = {
-  id: 'demo-profile-noa',
-  email: 'noa.demo@example.com',
-  firstName: 'נועה',
-  lastName: 'ישראלי',
-  isProfileComplete: true,
-  images: [
-    {
-      id: 'img1',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967771/IMG-20250731-WA0077_ekb71p.jpg',
-      isMain: true,
-      userId: 'demo-profile-noa',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      cloudinaryPublicId: 'dina4_gr0ako',
-    },
-    {
-      id: 'img2',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967772/IMG-20250731-WA0078_l5mhu1.jpg',
-      isMain: false,
-      userId: 'demo-profile-noa',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      cloudinaryPublicId: 'dina4_gr0ako',
-    },
-    {
-      id: 'img3',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967770/IMG-20250731-WA0076_wy6uhe.jpg',
-      isMain: false,
-      userId: 'demo-profile-noa',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      cloudinaryPublicId: 'dina4_gr0ako',
-    },
-  ],
-  profile: {
-    id: 'profile-noa-demo',
-    userId: 'demo-profile-noa',
-    gender: Gender.FEMALE,
-    birthDate: new Date('1996-05-15T00:00:00.000Z'),
-    birthDateIsApproximate: false,
-    nativeLanguage: 'עברית',
-    additionalLanguages: ['אנגלית'],
-    height: 168,
-    maritalStatus: 'single',
-    occupation: 'מעצבת UX/UI בכירה',
-    education: 'תואר ראשון בתקשורת חזותית, בצלאל; בוגרת מדרשת לינדנבאום',
-    educationLevel: 'academic_ba',
-    city: 'תל אביב',
-    origin: 'מעורב (אשכנזי-מזרחי)',
-    religiousLevel: 'dati_leumi_liberal',
-    religiousJourney: ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE,
-    shomerNegiah: false,
-    serviceType: ServiceType.NATIONAL_SERVICE_TWO_YEARS,
-    serviceDetails: 'שירות לאומי משמעותי של שנתיים בעמותת "כנפיים של קרמבו" עם ילדים בעלי צרכים מיוחדים.',
-    manualEntryText: null,
-    headCovering: null,
-    kippahType: null,
-    hasChildrenFromPrevious: false,
-    profileCharacterTraits: ['optimistic', 'creative', 'empathetic'],
-    profileHobbies: ['travel', 'reading', 'art_crafts'],
-    aliyaCountry: null,
-    aliyaYear: null,
-    about:
-      'אופטימית וחובבת שיחות עומק על כוס קפה. מוצאת יופי בדברים הקטנים של החיים, בין אם זה טיול בטבע או פלייליסט טוב. אחרי כמה ניסיונות שלא צלחו, אני יודעת היום טוב יותר מה נכון לי, ומחפשת שותף לדרך, לבנות יחד בית שמלא בצחוק, כבוד הדדי וצמיחה משותפת.',
-    profileHeadline: 'מעצבת את החיים בחיוך, מחפשת שותף להרפתקה.',
-    humorStory: 'פעם ניסיתי להכין חלות לשבת ויצאו לי בייגלה בצורת ענן. מאז אני מבינה שהשאיפה לשלמות היא המתכון הטוב ביותר לצחוק.',
-    inspiringCoupleStory: 'סבא וסבתא שלי. הם היו שונים כמו יום ולילה, אבל תמיד ידעו להקשיב ולצחוק יחד, גם אחרי 60 שנה. הם לימדו אותי שאהבה היא לא למצוא מישהו מושלם, אלא ללמוד לאהוב את חוסר המושלמות.',
-    influentialRabbi: 'הרבנית ימימה מזרחי, שהכניסה לחיי עומק נשי, חשיבה חיובית וחיבור למקורות בצורה נגישה ומעצימה.',
-    parentStatus: 'נשואים באושר',
-    fatherOccupation: 'יועץ פיננסי',
-    motherOccupation: 'אמנית ובעלת סטודיו לקרמיקה',
-    siblings: 2,
-    position: 2,
-    hasMedicalInfo: false,
-    medicalInfoDetails: null,
-    medicalInfoDisclosureTiming: null,
-    isMedicalInfoVisible: false,
-    preferredAgeMin: 28,
-    preferredAgeMax: 35,
-    preferredHeightMin: 175,
-    preferredHeightMax: 190,
-    preferredReligiousLevels: ['dati_leumi_liberal', 'masorti_strong'],
-    preferredLocations: ['תל אביב', 'רמת גן', 'גבעתיים'],
-    preferredEducation: ['אקדמית'],
-    preferredOccupations: ['עצמאי/ת', 'עובד/ת'],
-    contactPreference: 'both',
-    preferredHasChildrenFromPrevious: false,
-    preferredMaritalStatuses: ['single'],
-    preferredShomerNegiah: 'flexible',
-    preferredPartnerHasChildren: 'no_preferred',
-    preferredOrigins: ['no_preference'],
-    preferredServiceTypes: [ServiceType.MILITARY_OFFICER, ServiceType.NATIONAL_SERVICE_TWO_YEARS],
-    preferredHeadCoverings: [],
-    preferredKippahTypes: [KippahType.KNITTED_SMALL, KippahType.KNITTED_LARGE],
-    preferredCharacterTraits: ['humorous', 'driven', 'honest'],
-    preferredHobbies: ['travel', 'music_playing_instrument', 'reading'],
-    preferredAliyaStatus: 'no_preference',
-    preferredReligiousJourneys: [ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE],
-    isProfileVisible: true,
-    preferredMatchmakerGender: null,
-    matchingNotes:
-      'מחפשת מישהו עם ראש פתוח, שאוהב ללמוד ולהתפתח. חשוב לי מאוד חוש הומור טוב ויכולת לנהל שיחות עמוקות. פחות מתחברת לציניות וחשוב לי שיהיה אופטימי וחיובי.',
-    verifiedBy: null,
-    availabilityStatus: AvailabilityStatus.AVAILABLE,
-    availabilityNote: null,
-    availabilityUpdatedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    lastActive: null,
-    hasViewedProfilePreview: false,
-        needsAiProfileUpdate: false,
+export const generateDemoData = async (locale: Locale) => {
+  const content = await getDemoContent(locale);
+  const { femaleProfileContent, maleProfileContent, suggestionContent, aiAnalysisContent } = content;
 
-  },
-  questionnaireResponses: [noaQuestionnaireResponse],
-};
-
-
-
-// ============================================================================
-// --- הצעה מלאה מעודכנת: הצעה של נועה לבחור ---
-// ============================================================================
-export const demoSuggestionDataFemale: ExtendedMatchSuggestion = {
-  id: 'demo-suggestion-homepage-female',
-  matchmakerId: 'matchmaker-demo',
-  firstPartyId: 'visitor-user-id',
-  secondPartyId: 'demo-profile-noa',
-  status: 'PENDING_FIRST_PARTY',
-  priority: 'HIGH',
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  lastActivity: new Date(),
-  category: 'ACTIVE',
-  matchingReason:
-    'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח", ומדברים על בית שמבוסס על "כבוד וצמיחה". אני מאמין שהיציבות והשאיפה למשמעות שלך, יחד עם היצירתיות, האופטימיות והאמפתיה של נועה (שעשתה שירות עם ילדים מיוחדים), יוצרים בסיס מדהים לקשר אמיתי.',
-  firstPartyNotes:
-    'זו הצעה שאני מתרגשת במיוחד להציג לך. נועה היא בחורה איכותית, עם עומק ורגישות שנדיר למצוא. אני חושבת שהיא בדיוק מה שחיפשת.',
-  secondPartyNotes: null,
-  internalNotes: null,
-  followUpNotes: null,
-  responseDeadline: null,
-  decisionDeadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-  lastStatusChange: new Date(),
-  previousStatus: 'DRAFT',
-  firstPartySent: new Date(),
-  firstPartyResponded: null,
-  secondPartySent: null,
-  secondPartyResponded: null,
-  firstMeetingScheduled: null,
-  closedAt: null,
-  matchmaker: { firstName: 'דינה', lastName: 'אנגלרד' },
-  firstParty: {
-    id: 'visitor-user-id',
-    email: 'visitor@example.com',
-    firstName: 'המשתמש',
-    lastName: 'שלנו',
-    isProfileComplete: true,
-    profile: null,
-    images: [],
-  },
-  secondParty: noaProfile,
-  statusHistory: [
-    {
-      id: 'h1f',
-      suggestionId: 'demo-suggestion-homepage-female',
-      status: 'DRAFT',
-      createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
-      notes: 'השדכנית יצרה טיוטת הצעה',
+  const noaQuestionnaireResponse: QuestionnaireResponseType = {
+    id: 'qr-demo-noa-updated', userId: 'demo-profile-noa',
+    personalityAnswers: { personality_self_portrayal_revised: femaleProfileContent.questionnaire.personality_self_portrayal_revised },
+    valuesAnswers: { values_core_elaboration_revised: femaleProfileContent.questionnaire.values_core_elaboration_revised },
+    relationshipAnswers: { relationship_household_philosophy: femaleProfileContent.questionnaire.relationship_household_philosophy },
+    partnerAnswers: { partner_deal_breakers_open_text_revised: femaleProfileContent.questionnaire.partner_deal_breakers_open_text_revised },
+    religionAnswers: { 
+      religion_modesty_personal_approach_revised: femaleProfileContent.questionnaire.religion_modesty_personal_approach_revised,
+      religion_children_education_religious_vision_revised: femaleProfileContent.questionnaire.religion_children_education_religious_vision_revised,
     },
-    {
-      id: 'h2f',
-      suggestionId: 'demo-suggestion-homepage-female',
-      status: 'PENDING_FIRST_PARTY',
-      createdAt: new Date(),
-      notes: 'ההצעה נשלחה אליך לבדיקה ראשונית.',
-    },
-  ],
-};
+    valuesCompleted: true, personalityCompleted: true, relationshipCompleted: true, partnerCompleted: true, religionCompleted: true,
+    worldsCompleted: ['VALUES', 'RELATIONSHIP', 'PARTNER', 'PERSONALITY', 'RELIGION'],
+    completed: true, startedAt: new Date(), completedAt: new Date(), lastSaved: new Date(), createdAt: new Date(), updatedAt: new Date(),
+    formattedAnswers: { personality: [], values: [], relationship: [], partner: [], religion: [] }
+  };
 
-// ============================================================================
-// --- תשובות שאלון מעודכנות: דניאל (הבחור) ---
-// ============================================================================
-const danielQuestionnaireResponse: QuestionnaireResponseType = {
-  id: 'qr-demo-daniel-updated',
-  userId: 'demo-profile-daniel',
-  personalityAnswers: {
-    personality_self_portrayal_revised:
-      "אני אדם של עשייה, אוהב אתגרים ומטרות. חשובה לי מאוד האמינות, ואני תמיד משתדל לעמוד במילה שלי. יש לי צד אנליטי חזק, שקיבלתי מהלימודים בישיבת הגוש ובהנדסה, אבל אני מאזן את זה עם צד יצירתי - אני אוהב לנגן בגיטרה ומתחבר מאוד לעולם החסידות. אני מחפש צמיחה מתמדת, גם בקריירה וגם בחיים האישיים.",
-    personality_childhood_nickname:
-      "לא היה לי כינוי מיוחד, תמיד קראו לי דניאל. אני חושב שזה כי תמיד הייתי ילד די רציני כזה, ממוקד במטרות שלו.",
-    personality_core_trait_selection_revised: {
-      'ישר/ה ואמין/ה': 30,
-      'שאפתנ/ית ובעל/ת מוטיבציה': 25,
-      'אינטליגנט/ית וסקרנ/ית': 20,
-      'אחראי/ת ומאורגנ/ת': 15,
-      'יציב/ה וקרקע/ית': 10,
-    },
-    personality_social_battery_recharge: 'intimate_gathering',
-    personality_biological_clock: 3,
-    personality_good_vs_perfect_day:
-      "יום טוב באמת הוא יום שבו הצלחתי להתקדם משמעותית במטרה שהצבתי לעצמי - בין אם זה בעבודה, בלימודים או בפרויקט אישי. אם הצלחתי גם לשלב בזה אימון טוב ושיחה מעניינת עם חבר, זה כבר יום מצוין.",
-    personality_vacation_compass: {
-      'טיולים, טבע והרפתקאות': 40,
-      'העשרה, למידה ורוחניות': 25,
-      'זמן איכות זוגי ורומנטי': 25,
-      'עיר תוססת, תרבות ובילויים': 10,
-    },
-    personality_daily_structure_revised: 'משימתיות',
-    personality_plan_change_reaction: 3,
-    personality_stress_management_revised: [
-      'תנועה וספורט',
-      'שיחה ופריקה',
-      'התנתקות עם מדיה',
+  const danielQuestionnaireResponse: QuestionnaireResponseType = {
+    id: 'qr-demo-daniel-updated', userId: 'demo-profile-daniel',
+    personalityAnswers: { personality_self_portrayal_revised: maleProfileContent.questionnaire.personality_self_portrayal_revised },
+    valuesAnswers: { values_core_elaboration_revised: maleProfileContent.questionnaire.values_core_elaboration_revised },
+    relationshipAnswers: {}, partnerAnswers: {}, religionAnswers: {},
+    valuesCompleted: true, personalityCompleted: true, relationshipCompleted: true, partnerCompleted: true, religionCompleted: true,
+    worldsCompleted: ['VALUES', 'PERSONALITY', 'PARTNER', 'RELATIONSHIP', 'RELIGION'],
+    completed: true, startedAt: new Date(), completedAt: new Date(), lastSaved: new Date(), createdAt: new Date(), updatedAt: new Date(),
+    formattedAnswers: { personality: [], values: [], relationship: [], partner: [], religion: [] }
+  };
+  
+  const noaProfile: PartyInfo = {
+    id: 'demo-profile-noa', email: 'noa.demo@example.com', firstName: femaleProfileContent.firstName, lastName: femaleProfileContent.lastName, isProfileComplete: true,
+    images: [
+        { id: 'img1', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967771/IMG-20250731-WA0077_ekb71p.jpg', isMain: true, userId: 'demo-profile-noa', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
+        { id: 'img2', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967772/IMG-20250731-WA0078_l5mhu1.jpg', isMain: false, userId: 'demo-profile-noa', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
+        { id: 'img3', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967770/IMG-20250731-WA0076_wy6uhe.jpg', isMain: false, userId: 'demo-profile-noa', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
     ],
-    personality_unproductive_day_feeling: 'ביקורת ופעולה',
-    personality_failure_lesson:
-      "נכשלתי במבחן חשוב בתואר הראשון. זה לימד אותי על החשיבות של התמדה, על היכולת לקום אחרי נפילה, ובעיקר שכישלון הוא לא סוף העולם אלא הזדמנות ללמוד ולהשתפר.",
-    personality_social_situation_revised: 'יוזם/ת ומתחבר/ת',
-    personality_friend_in_crisis: 'פתרון בעיות',
-    personality_humor_type: ['ציני ושנון', 'משחקי מילים'],
-    personality_communication_style_revised: {
-      'דיבור ישיר וברור': 35,
-      'היגיון ועובדות': 30,
-      'הקשבה אמפתית': 20,
-      'פתיחות ושיתוף רגשי': 15,
+    profile: {
+      id: 'profile-noa-demo', userId: 'demo-profile-noa', gender: Gender.FEMALE, birthDate: new Date('1996-05-15T00:00:00.000Z'), height: 168, maritalStatus: 'single',
+      occupation: femaleProfileContent.occupation, education: femaleProfileContent.education, city: femaleProfileContent.city, religiousLevel: femaleProfileContent.religiousLevel,
+      shomerNegiah: false, serviceType: ServiceType.NATIONAL_SERVICE_TWO_YEARS, serviceDetails: femaleProfileContent.serviceDetails, about: femaleProfileContent.about,
+      profileHeadline: femaleProfileContent.profileHeadline, birthDateIsApproximate: false, nativeLanguage: 'עברית', educationLevel: 'academic_ba', origin: 'מעורב (אשכנזי-מזרחי)',
+      religiousJourney: ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE, additionalLanguages: ['אנגלית'], hasChildrenFromPrevious: false, createdAt: new Date(), updatedAt: new Date(),
+      headCovering: null, kippahType: null, manualEntryText: null, profileCharacterTraits: ['optimistic', 'creative', 'empathetic'], profileHobbies: ['travel', 'reading', 'art_crafts'],
+      aliyaCountry: null, aliyaYear: null, humorStory: 'Humor story', inspiringCoupleStory: 'Inspiring couple story', influentialRabbi: 'Influential rabbi',
+      parentStatus: 'נשואים באושר', fatherOccupation: 'יועץ פיננסי', motherOccupation: 'אמנית ובעלת סטודיו לקרמיקה', siblings: 2, position: 2,
+      hasMedicalInfo: false, isMedicalInfoVisible: false, medicalInfoDetails: null, medicalInfoDisclosureTiming: null, preferredAgeMin: 28, preferredAgeMax: 35,
+      preferredHeightMin: 175, preferredHeightMax: 190, preferredReligiousLevels: ['dati_leumi_liberal', 'masorti_strong'], preferredLocations: ['תל אביב', 'רמת גן', 'גבעתיים'],
+      preferredEducation: ['academic_ba'], preferredOccupations: [], contactPreference: 'both', preferredHasChildrenFromPrevious: false, preferredMaritalStatuses: ['single'],
+      preferredShomerNegiah: 'flexible', preferredPartnerHasChildren: 'no_preferred', preferredOrigins: [], preferredServiceTypes: [], preferredHeadCoverings: [],
+      preferredKippahTypes: [], preferredCharacterTraits: [], preferredHobbies: [], preferredAliyaStatus: 'no_preference', preferredReligiousJourneys: [],
+      isProfileVisible: true, preferredMatchmakerGender: null, matchingNotes: '', verifiedBy: null, availabilityStatus: AvailabilityStatus.AVAILABLE,
+      availabilityNote: null, availabilityUpdatedAt: null, lastActive: null, hasViewedProfilePreview: false, needsAiProfileUpdate: false,
     },
-    personality_primary_motivation_revised: 'השגת מטרות',
-    personality_strengths_and_weaknesses_revised:
-      'שתי תכונות חזקות שלי הן שאפתנות ואמינות. אני מציב לעצמי מטרות גבוהות ועובד קשה כדי להשיג אותן, ואני מאמין שאפשר לסמוך על המילה שלי. התחום שאני עובד עליו הוא פתיחות רגשית. בגלל הצד האנליטי שלי, לפעמים לוקח לי זמן לעבד ולשתף ברגשות, ואני משתדל להיות יותר פתוח ונגיש רגשית.',
-  },
-  valuesAnswers: {
-    values_core_identification_revised: {
-      'יושרה, אמינות וכנות': 30,
-      'משפחה וקשרים קרובים': 25,
-      'צמיחה אישית והתפתחות': 20,
-      'קריירה והגשמה מקצועית': 15,
-      'רוחניות, אמונה ומסורת': 10,
-    },
-    values_core_elaboration_revised:
-      "הערך המרכזי שלי הוא אחריות. כששירתי כקצין בהנדסה קרבית, הייתי צריך לקבל החלטה מבצעית מורכבת תחת לחץ. בחרתי בדרך הפעולה הבטוחה יותר, למרות שהיא הייתה פחות 'זוהרת'. זו הייתה החלטה שהתבססה על אחריות לחיי החיילים שלי, והיא חיזקה אצלי את ההבנה שיושרה ואחריות הן מעל הכל.",
-    values_childhood_home_atmosphere: "תומך, אינטלקטואלי ומכוון מטרה.",
-    values_quiet_heroes:
-      "הרב זקס זצ\"ל. היכולת שלו לגשר בין עולמות, להציג מחשבה יהודית עמוקה ורלוונטית, ולהיות איש רוח ומעשה ברמה הגבוהה ביותר היא השראה עצומה עבורי.",
-    values_two_job_offers: 'הצעה א - יוקרה ושכר',
-    values_life_priorities_allocation_revised: {
-      'קריירה ופרנסה': 30,
-      'זוגיות (חיפוש או קשר קיים)': 25,
-      'רוחניות ולימוד': 20,
-      'משפחה (הורים, אחים)': 15,
-      'חברים וקהילה': 10,
-    },
-    values_health_lifestyle_importance: 8,
-    values_feeling_of_home:
-      "סדר וארגון, ספרייה טובה, והרגשה של שותפות ויציבות. מקום שאפשר לחזור אליו בסוף יום עמוס ולהרגיש שקט.",
-    values_definition_of_rich_life:
-      "חיים עשירים הם חיים של משמעות. לקום בבוקר עם מטרה, לבנות משפחה לתפארת, לתרום מהידע והיכולות שלי לחברה, ולהמשיך ללמוד ולהתפתח כל הזמן. העושר הוא בהספק ובהשפעה.",
-    values_attitude_towards_money_revised: 'כלי לביטחון',
-    values_lost_wallet:
-      'אני מיד מנסה לאתר את הבעלים. אם יש תעודה מזהה, אחפש ברשתות החברתיות או אנסה להתקשר אם יש מספר טלפון. אם אין, אשאל אנשים בסביבה אם ראו משהו. אם כל זה לא עובד, אקח את הארנק למשטרה. כסף לא שלי זה לא שלי.',
-    values_giving_tzedaka_importance_revised: 7,
-    values_education_pursuit_revised: 'למידה היא דרך חיים',
-    values_social_political_stance_importance_partner_revised: 7,
-    values_dealing_with_disagreement_partner_revised: 'מציאת בסיס משותף',
-    values_non_negotiable_for_partner_revised:
-      'הערך שאין עליו פשרה הוא יושרה. אני חייב לדעת שאני יכול לסמוך על בת הזוג שלי במאה אחוז. הערך שאני הכי שואף אליו הוא שותפות אמת - הידיעה שאנחנו צוות מול כל מה שהחיים מביאים.',
-  },
-  relationshipAnswers: {
-    relationship_core_meaning_revised: ['חברות ותמיכה', 'צמיחה משותפת'],
-    relationship_key_feelings_from_partner_revised: [
-      'הערכה וכבוד',
-      'ביטחון ואמון',
-      'שותפות אינטלקטואלית',
+    questionnaireResponses: [noaQuestionnaireResponse],
+  };
+
+  const danielProfile: PartyInfo = {
+    id: 'demo-profile-daniel', email: 'daniel.demo@example.com', firstName: maleProfileContent.firstName, lastName: maleProfileContent.lastName, isProfileComplete: true,
+    images: [
+        { id: 'img1m', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0059_mqskdw.jpg', isMain: true, userId: 'demo-profile-daniel', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
+        { id: 'img2m', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0060_ia8nka.jpg', isMain: false, userId: 'demo-profile-daniel', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
+        { id: 'img3m', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0061_aug5ix.jpg', isMain: false, userId: 'demo-profile-daniel', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
     ],
-    relationship_love_languages: ['זמן איכות', 'עזרה מעשית'],
-    relationship_communication_ideal_revised: 'התמקדות בפתרון',
-    relationship_handling_partner_disappointment_revised: 'ניתוח הגיוני',
-    relationship_repair_mechanism: 'פסק זמן',
-    relationship_meaningful_apology: 'לקיחת אחריות',
-    relationship_silent_treatment_view: 8,
-    relationship_partner_bad_day: 'ניתוח ופתרון',
-    relationship_household_philosophy:
-      'אני מאמין בחלוקה לפי חוזקות ויעילות, תוך שקיפות ותיאום. אם צד אחד טוב יותר בבישול והשני בניהול כספים, הגיוני שכל אחד יוביל בתחומו, אבל שניהם צריכים להיות מעורבים ולתמוך. המטרה היא שהבית יתפקד בצורה הכי טובה כצוות.',
-    relationship_daily_togetherness_vs_autonomy_revised: 6,
-    relationship_role_in_growth: 7,
-    relationship_celebrating_success:
-      "אני אוהב לחגוג הצלחות. הייתי מציע לצאת למסעדה טובה, אולי אפילו לתכנן סופ\"ש קצר. חשוב לי להראות לה שאני גאה בה ושמח בהצלחתה, ולתת לה את מלוא תשומת הלב.",
-    relationship_family_vision_children_revised: 'הורות היא חלק מרכזי',
-    relationship_deal_breaker_summary_final_revised:
-      'הדיל ברייקר המוחלט הוא חוסר יושרה. השאיפה הגדולה ביותר היא שותפות אמיתית. הידיעה שיש לי מישהי לצידי, שאנחנו צוות מול כל אתגר, ושדואגים תמיד אחד לשנייה.',
-  },
-  partnerAnswers: {
-    partner_initial_impression_priorities_revised: [
-      'כימיה בשיחה',
-      'שנינות ועומק',
-      'תחושת ביטחון',
-    ],
-    partner_appearance_importance_scale_revised: 7,
-    partner_intelligence_types: {
-      'אנליטית (היגיון, ניתוח)': 35,
-      'חוכמת חיים ("שכל ישר")': 30,
-      'רגשית (אמפתיה, מודעות)': 20,
-      'רוחנית/תורנית (עומק בלימוד)': 10,
-      'יצירתית (הומור, מקוריות)': 5,
+    profile: {
+      id: 'profile-daniel-demo', userId: 'demo-profile-daniel', gender: Gender.MALE, birthDate: new Date('1994-08-20T00:00:00.000Z'), height: 182, maritalStatus: 'single',
+      occupation: maleProfileContent.occupation, education: maleProfileContent.education, city: maleProfileContent.city, religiousLevel: maleProfileContent.religiousLevel,
+      shomerNegiah: true, serviceType: ServiceType.MILITARY_OFFICER, serviceDetails: maleProfileContent.serviceDetails, about: maleProfileContent.about, profileHeadline: maleProfileContent.profileHeadline,
+      birthDateIsApproximate: false, nativeLanguage: 'עברית', additionalLanguages: ['אנגלית'], educationLevel: 'academic_student', origin: 'אנגלו-סקסי',
+      religiousJourney: ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE, kippahType: KippahType.KNITTED_SMALL, hasChildrenFromPrevious: false, createdAt: new Date(), updatedAt: new Date(),
+      headCovering: null, manualEntryText: null, profileCharacterTraits: ['driven', 'honest', 'family_oriented'], profileHobbies: ['travel', 'music_playing_instrument'],
+      aliyaCountry: 'ארה"ב', aliyaYear: 2004, humorStory: 'Humor story', inspiringCoupleStory: 'Inspiring couple story', influentialRabbi: 'Influential rabbi',
+      parentStatus: 'נשואים', fatherOccupation: 'מהנדס תוכנה', motherOccupation: 'רופאת משפחה', siblings: 3, position: 2,
+      hasMedicalInfo: false, isMedicalInfoVisible: false, medicalInfoDetails: null, medicalInfoDisclosureTiming: null, preferredAgeMin: 26, preferredAgeMax: 32,
+      preferredHeightMin: 160, preferredHeightMax: 175, preferredReligiousLevels: ['dati_leumi_torani', 'dati_leumi_standard'], preferredLocations: ['ירושלים והסביבה'],
+      preferredEducation: [], preferredOccupations: [], contactPreference: 'matchmaker', preferredHasChildrenFromPrevious: false, preferredMaritalStatuses: ['single'],
+      preferredShomerNegiah: 'yes', preferredPartnerHasChildren: 'no_preferred', preferredOrigins: [], preferredServiceTypes: [], preferredHeadCoverings: [],
+      preferredKippahTypes: [], preferredCharacterTraits: [], preferredHobbies: [], preferredAliyaStatus: 'no_preference', preferredReligiousJourneys: [],
+      isProfileVisible: true, preferredMatchmakerGender: null, matchingNotes: '', verifiedBy: null, availabilityStatus: AvailabilityStatus.AVAILABLE,
+      availabilityNote: null, availabilityUpdatedAt: null, lastActive: null, hasViewedProfilePreview: false, needsAiProfileUpdate: false,
     },
-    partner_core_character_traits_essential_revised: {
-      'יושרה, אמינות וכנות': 30,
-      'בגרות, יציבות ואחריות': 25,
-      'שאפתנות ומוטיבציה לצמיחה': 20,
-      'אופטימיות ושמחת חיים': 15,
-      'תקשורת טובה והקשבה': 10,
-    },
-    partner_completion_trait:
-      'כאדם שרגיל לתכנן ולפעול בצורה מאוד מובנית, הייתי שמח למצוא מישהי עם יותר ספונטניות וזרימה, כזו שתעזור לי לפעמים לצאת מהקופסה ולהכניס קצת הרפתקנות לחיים.',
-    partner_lifestyle_pace_preference_revised: 'מאוזן',
-    partner_financial_habits_scale: 3,
-    partner_career_ambition_preference_revised: 'שאפתנות ומיקוד',
-    partner_deal_breakers_open_text_revised:
-      'קו אדום עבורי הוא חוסר שאיפה להתפתח ולהשתפר. אני לא מחפש מישהי מושלמת, אבל חשוב לי שתהיה לה מוטיבציה פנימית לצמוח, ללמוד ולהיות גרסה טובה יותר של עצמה. פסיביות וחוסר רצון להתמודד עם אתגרים זה משהו שקשה לי מאוד להתחבר אליו.',
-    partner_red_flag_vs_quirk:
-      "דגל אדום זה חוסר כבוד לזמן של אחרים. מוזרות חביבה זה שהיא חייבת לראות את כל הפרקים של סדרה ברצף בלי הפסקה.",
-    partner_in_laws_conflict: 'נאמנות לזוגיות',
-    partner_must_have_quality_final_revised:
-      "התכונה האחת היא שותפות. אני מחפש מישהי שתהיה 'הצוות' שלי. הידיעה שאנחנו משחקים באותה קבוצה, עם מטרה משותפת, תומכים ומגבים אחד את השנייה, זה הבסיס להכל מבחינתי.",
-  },
-  religionAnswers: {
-    religion_core_feeling_of_faith: 'אתגר וצמיחה',
-    religion_my_personal_prayer:
-      "קטע של הרב זקס שמדבר על 'אמונה כשיחה מתמשכת'. זה מתחבר לי לתפיסה שהאמונה היא לא משהו סטטי, אלא מסע דינמי של שאלה, חיפוש ותשובה, וזה מרתק אותי.",
-    religion_rabbinic_guidance_role_revised: 8,
-    religion_shabbat_experience: 'התעלות רוחנית',
-    religion_daily_spiritual_connection: ['לימוד תורה', 'התבודדות ותפילה אישית'],
-    religion_kashrut_observance_details_revised:
-      'אני מקפיד על כשרות מהדרין. מחוץ לבית אני אוכל רק במקומות עם תעודת כשרות למהדרין. אני לא אוכל בבתים של אחרים אלא אם אני בטוח ברמת הכשרות שלהם.',
-    religion_modesty_personal_approach_revised:
-      'אני שומר נגיעה וזה עיקרון חשוב עבורי. מבחינת צניעות כללית, אני מאמין שהיא צריכה לבוא לידי ביטוי בדיבור מכבד, בהתנהגות ובלבוש, אבל הגישה שלי היא לא של הקפדה על פרטים קטנים אלא על המהות הכללית של כבוד הדדי.',
-    religion_secular_culture_scenario: 'סינון ובדיקה',
-    religion_general_culture_consumption: 5,
-    religion_doubts_and_struggles:
-      "אני רואה בשאלות וספקות הזדמנות להעמיק. כשאלה עולים, אני פונה ללימוד - חוזר למקורות, קורא מאמרים, ומדבר על זה עם הרב שלי או עם חברים מהישיבה. אני לא חושש מהשאלה, אלא מהישארות ללא חיפוש תשובה.",
-    religion_partner_ideal_religious_profile_revised:
-      'מחפש בחורה דתייה-לאומית, שחשוב לה לבנות בית של תורה וערכים, אבל עם ראש פתוח על הכתפיים. מישהי שיודעת לשלב בין קודש לחול, שיש לה שאיפות אישיות ומקצועיות, ושהיא שותפה אמיתית לדרך.',
-    religion_flexibility_religious_differences_partner_revised: 7,
-    religion_gender_roles_philosophy: {
-      'חלוקה גמישה לפי כישרון ורצון': 60,
-      'חלוקה מסורתית מוגדרת': 30,
-      'שותפות שוויונית מלאה': 10,
-    },
-    religion_children_education_religious_vision_revised:
-      'החזון שלי הוא להקים בית שבו ילדים גדלים עם יראת שמיים טבעית, אהבת תורה וחיבור עמוק לארץ ישראל. חשוב לי שהחינוך יהיה פתוח ומאפשר שאלת שאלות, כזה שמצמיח אנשים חושבים ומאמינים.',
-  },
-  valuesCompleted: true,
-  personalityCompleted: true,
-  relationshipCompleted: true,
-  partnerCompleted: true,
-  religionCompleted: true,
-  worldsCompleted: [
-    'VALUES',
-    'PERSONALITY',
-    'PARTNER',
-    'RELATIONSHIP',
-    'RELIGION',
-  ],
-  completed: true,
-  startedAt: new Date(),
-  completedAt: new Date(),
-  lastSaved: new Date(),
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  // --- START: עדכון המבנה של formattedAnswers ---
-  formattedAnswers: {
-    personality: [
-      {
-        questionId: 'personality_core_trait_selection_revised',
-        question: 'כיצד היית מחלק/ת 100% בין תכונות האישיות שלך?',
-        questionType: 'budgetAllocation',
-        rawValue: {
-          'ישר/ה ואמין/ה': 30,
-          'שאפתנ/ית ובעל/ת מוטיבציה': 25,
-          'אינטליגנט/ית וסקרנ/ית': 20,
-          'אחראי/ת ומאורגנ/ת': 15,
-          'יציב/ה וקרקע/ית': 10,
-        },
-        displayText: "ישר/ה ואמין/ה: 30; שאפתנ/ית: 25; וכו'",
-        isVisible: false,
-        answeredAt: new Date(),
-      },
-    ],
-    values: [
-      {
-        questionId: 'values_core_elaboration_revised',
-        question: 'ספר/י על צומת דרכים אחד בחיים שבו הלכת לפי הערך הכי חשוב לך.',
-        questionType: 'openText',
-        rawValue: "הערך המרכזי שלי הוא אחריות. כששירתי כקצין...",
-        displayText: "הערך המרכזי שלי הוא אחריות. כששירתי כקצין...",
-        isVisible: true,
-        answeredAt: new Date(),
-      },
-    ],
-    relationship: [
-      {
-        questionId: 'relationship_key_feelings_from_partner_revised',
-        question: 'מהם שלושת הדברים שהכי חשוב לך להרגיש מבן/בת הזוג?',
-        questionType: 'multiSelect',
-        rawValue: ['הערכה וכבוד', 'ביטחון ואמון', 'שותפות אינטלקטואלית'],
-        displayText: 'הערכה וכבוד, ביטחון ואמון, שותפות אינטלקטואלית',
-        isVisible: true,
-        answeredAt: new Date(),
-      },
-    ],
-    partner: [
-      {
-        questionId: 'partner_intelligence_types',
-        question: "כשאת/ה חושב/ת על 'אינטליגנציה', מה הכי חשוב לך?",
-        questionType: 'budgetAllocation',
-        rawValue: {
-          'אנליטית (היגיון, ניתוח)': 35,
-          'חוכמת חיים ("שכל ישר")': 30,
-          'רגשית (אמפתיה, מודעות)': 20,
-          'רוחנית/תורנית (עומק בלימוד)': 10,
-          'יצירתית (הומור, מקוריות)': 5,
-        },
-        displayText: 'אנליטית: 35; חוכמת חיים: 30; וכו\'',
-        isVisible: true,
-        answeredAt: new Date(),
-      },
-    ],
-    religion: [
-      {
-        questionId: 'religion_children_education_religious_vision_revised',
-        question: 'מהו החזון שלך לאווירה הרוחנית ולחינוך הילדים בבית?',
-        questionType: 'openText',
-        rawValue: 'החזון שלי הוא להקים בית שבו ילדים גדלים עם יראת שמיים טבעית...',
-        displayText: 'החזון שלי הוא להקים בית שבו ילדים גדלים עם יראת שמיים טבעית...',
-        isVisible: true,
-        answeredAt: new Date(),
-      },
-    ],
-  },
+    questionnaireResponses: [danielQuestionnaireResponse],
+  };
 
-};
+  const baseFirstParty: PartyInfo = {
+    id: 'visitor-user-id', email: 'visitor@example.com',
+    firstName: locale === 'he' ? 'המשתמש/ת' : 'Our', lastName: locale === 'he' ? 'שלנו' : 'User',
+    isProfileComplete: true, profile: null, images: [], questionnaireResponses: [],
+  };
 
-// ============================================================================
-// --- פרופיל מלא מעודכן: דניאל ---
-// ============================================================================
-const danielProfile: PartyInfo = {
-  id: 'demo-profile-daniel',
-  email: 'daniel.demo@example.com',
-  firstName: 'דניאל',
-  lastName: 'כהן',
-  isProfileComplete: true,
-  images: [
-    {
-      id: 'img1m',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0059_mqskdw.jpg',
-      isMain: true,
-      userId: 'demo-profile-daniel',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      cloudinaryPublicId: 'eitan_h9ylkc',
-    },
-    {
-      id: 'img2m',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0060_ia8nka.jpg',
-      isMain: false,
-      userId: 'demo-profile-daniel',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      cloudinaryPublicId: 'eitan_h9ylkc',
-    },
-    {
-      id: 'img3m',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0061_aug5ix.jpg',
-      isMain: false,
-      userId: 'demo-profile-daniel',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      cloudinaryPublicId: 'eitan_h9ylkc',
-    },
-    {
-      id: 'img4m',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967650/IMG-20250731-WA0062_i9ylyk.jpg',
-      isMain: false,
-      userId: 'demo-profile-daniel',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      cloudinaryPublicId: 'eitan_h9ylkc',
-    },
-  ],
-  profile: {
-    id: 'profile-daniel-demo',
-    userId: 'demo-profile-daniel',
-    gender: Gender.MALE,
-    birthDate: new Date('1994-08-20T00:00:00.000Z'),
-    birthDateIsApproximate: false,
-    nativeLanguage: 'עברית',
-    additionalLanguages: ['אנגלית'],
-    height: 182,
-    maritalStatus: 'single',
-    occupation: 'מהנדס תוכנה וסטודנט לתואר שני',
-    education: 'בוגר ישיבת הר עציון; תואר ראשון בהנדסת תוכנה, הטכניון',
-    educationLevel: 'academic_student',
-    city: 'ירושלים',
-    origin: 'אנגלו-סקסי',
-    religiousLevel: 'dati_leumi_torani',
-    religiousJourney: ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE,
-    shomerNegiah: true,
-    serviceType: ServiceType.MILITARY_OFFICER,
-    serviceDetails: 'שירות משמעותי כקצין בהנדסה קרבית, מ"מ וסמ"פ.',
-    manualEntryText: null,
-    headCovering: null,
-    kippahType: KippahType.KNITTED_SMALL,
-    hasChildrenFromPrevious: false,
-    profileCharacterTraits: ['driven', 'honest', 'family_oriented'],
-    profileHobbies: ['travel', 'music_playing_instrument', 'learning_courses'],
-    aliyaCountry: 'ארה"ב',
-    aliyaYear: 2004,
-    about:
-      'בחור של אנשים ושל עשייה. אוהב את השילוב בין עולם ההייטק הדינמי לבין קביעת עיתים לתורה. מאמין שצמיחה אמיתית קורית מחוץ לאזור הנוחות, ובשעות הפנאי אוהב לטייל בארץ, לנגן בגיטרה ולבלות זמן איכות עם חברים. מחפש שותפה לחיים, לבנות ביחד בית עם יראת שמיים, פתיחות מחשבתית והרבה שמחה.',
-    profileHeadline: 'מהנדס ביום, לומד תורה בערב. מחפש שותפה לבנות עולם.',
-    humorStory: 'בטיול האחרון שלי בנפאל ניווטתי עם המפה הפוך במשך שעתיים עד שהבנתי למה השמש זורחת מהכיוון הלא נכון. למדתי שגם כשהולכים לאיבוד, העיקר הוא ליהנות מהנוף.',
-    inspiringCoupleStory: 'ההורים שלי. הם עלו לארץ מארה"ב מתוך אידיאל, בנו הכל מאפס ותמיד שמו את המשפחה והערכים במרכז. הם מראים לי כל יום מהי שותפות אמת, תמיכה וצחוק גם מול אתגרים.',
-    influentialRabbi: 'הרב זקס זצ"ל, שהראה לי איך אפשר לשלב עולם אינטלקטואלי רחב עם אמונה עמוקה ורלוונטית לעולם המודרני.',
-    parentStatus: 'נשואים',
-    fatherOccupation: 'מהנדס תוכנה',
-    motherOccupation: 'רופאת משפחה',
-    siblings: 3,
-    position: 2,
-    hasMedicalInfo: false,
-    medicalInfoDetails: null,
-    medicalInfoDisclosureTiming: null,
-    isMedicalInfoVisible: false,
-    preferredAgeMin: 26,
-    preferredAgeMax: 32,
-    preferredHeightMin: 160,
-    preferredHeightMax: 175,
-    preferredReligiousLevels: ['dati_leumi_torani', 'dati_leumi_standard'],
-    preferredLocations: ['ירושלים והסביבה', 'גוש עציון', 'מודיעין והסביבה'],
-    preferredEducation: ['אקדמית', 'תורנית'],
-    preferredOccupations: ['עובד/ת', 'סטודנט/ית'],
-    contactPreference: 'matchmaker',
-    preferredHasChildrenFromPrevious: false,
-    preferredMaritalStatuses: ['single'],
-    preferredShomerNegiah: 'yes',
-    preferredPartnerHasChildren: 'no_preferred',
-    preferredOrigins: ['no_preference'],
-    preferredServiceTypes: [ServiceType.NATIONAL_SERVICE_TWO_YEARS, ServiceType.MILITARY_SUPPORT],
-    preferredHeadCoverings: [HeadCoveringType.PARTIAL_COVERAGE, HeadCoveringType.FULL_COVERAGE, HeadCoveringType.SCARF_ONLY_SOMETIMES],
-    preferredKippahTypes: [],
-    preferredCharacterTraits: ['optimistic', 'empathetic', 'easy_going'],
-    preferredHobbies: ['travel', 'reading', 'cooking_baking'],
-    preferredAliyaStatus: 'no_preference',
-    preferredReligiousJourneys: [ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE, ReligiousJourney.BORN_SECULAR],
-    isProfileVisible: true,
-    preferredMatchmakerGender: null,
-    matchingNotes:
-      'מחפש בחורה עם עומק, שמחה ורצון לבנות בית של תורה וערכים. מישהי שהיא גם חברה טובה, שאפשר לנהל איתה שיחות נפש וגם לצחוק איתה על הכל. חשוב לי שתהיה לה שאיפה להתפתח, גם אישית וגם רוחנית, ושנצעד יחד בדרך משותפת.',
-    verifiedBy: null,
-    availabilityStatus: AvailabilityStatus.AVAILABLE,
-    availabilityNote: null,
-    availabilityUpdatedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    lastActive: null,
-    hasViewedProfilePreview: false,
-        needsAiProfileUpdate: false,
+  const demoSuggestionDataMale: ExtendedMatchSuggestion = {
+    id: 'demo-suggestion-homepage-male', firstPartyId: 'visitor-user-id', secondPartyId: 'demo-profile-daniel', status: 'PENDING_FIRST_PARTY', priority: 'HIGH',
+    matchingReason: suggestionContent.femaleToMaleReason, firstPartyNotes: suggestionContent.femaleToMalePersonalNote, secondPartyNotes: null,
+    internalNotes: null, followUpNotes: null, responseDeadline: null, matchmaker: { firstName: 'איתן', lastName: 'אנגלרד' },
+    secondParty: danielProfile, firstParty: baseFirstParty, matchmakerId: 'matchmaker-demo-2', createdAt: new Date(), updatedAt: new Date(),
+    lastActivity: new Date(), category: 'ACTIVE', decisionDeadline: new Date(), lastStatusChange: new Date(), previousStatus: 'DRAFT',
+    firstPartySent: new Date(), firstPartyResponded: null, secondPartySent: null, secondPartyResponded: null, firstMeetingScheduled: null, closedAt: null,
+    statusHistory: [],
+  };
 
-  },
-  questionnaireResponses: [danielQuestionnaireResponse],
-};
+  const demoSuggestionDataFemale: ExtendedMatchSuggestion = {
+    id: 'demo-suggestion-homepage-female', firstPartyId: 'visitor-user-id', secondPartyId: 'demo-profile-noa', status: 'PENDING_FIRST_PARTY', priority: 'HIGH',
+    matchingReason: suggestionContent.maleToFemaleReason, firstPartyNotes: suggestionContent.maleToFemalePersonalNote, secondPartyNotes: null,
+    internalNotes: null, followUpNotes: null, responseDeadline: null, matchmaker: { firstName: 'דינה', lastName: 'אנגלרד' },
+    secondParty: noaProfile, firstParty: baseFirstParty, matchmakerId: 'matchmaker-demo', createdAt: new Date(), updatedAt: new Date(),
+    lastActivity: new Date(), category: 'ACTIVE', decisionDeadline: new Date(), lastStatusChange: new Date(), previousStatus: 'DRAFT',
+    firstPartySent: new Date(), firstPartyResponded: null, secondPartySent: null, secondPartyResponded: null, firstMeetingScheduled: null, closedAt: null,
+    statusHistory: [],
+  };
+  
+  const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {
+    overallScore: 91, matchTitle: aiAnalysisContent.forMaleTitle, matchSummary: aiAnalysisContent.forMaleSummary,
+    compatibilityPoints: [], pointsToConsider: [], suggestedConversationStarters: [],
+  };
 
+  const demoAiAnalysisForNoa: AiSuggestionAnalysisResult = {
+    overallScore: 91, matchTitle: aiAnalysisContent.forFemaleTitle, matchSummary: aiAnalysisContent.forFemaleSummary,
+    compatibilityPoints: [], pointsToConsider: [], suggestedConversationStarters: [],
+  };
 
-// ============================================================================
-// --- הצעה מלאה מעודכנת: הצעה של דניאל לבחורה ---
-// ============================================================================
-export const demoSuggestionDataMale: ExtendedMatchSuggestion = {
-  id: 'demo-suggestion-homepage-male',
-  matchmakerId: 'matchmaker-demo-2',
-  firstPartyId: 'visitor-user-id',
-  secondPartyId: 'demo-profile-daniel',
-  status: 'PENDING_FIRST_PARTY',
-  priority: 'HIGH',
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  lastActivity: new Date(),
-  category: 'ACTIVE',
-  matchingReason:
-    'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח", ומדברים על בית שמבוסס על "כבוד וצמיחה". אני מאמין שהיציבות והאחריות של דניאל, שניכרות מהשירות שלו כקצין, יחד עם היצירתיות והאופטימיות שלך, יוצרים בסיס מדהים לקשר אמיתי.',
-  firstPartyNotes:
-    'דניאל הוא בחור רציני, ערכי ועם לב זהב. הוא משלב בצורה מרשימה בין עולם התורה (בוגר הגוש) לעולם המעשה (מהנדס בוגר טכניון), ומחפש שותפה אמיתית לחיים. אני חושב שיש לכם הרבה על מה לדבר.',
-  secondPartyNotes: null,
-  internalNotes: null,
-  followUpNotes: null,
-  responseDeadline: null,
-  decisionDeadline: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
-  lastStatusChange: new Date(),
-  previousStatus: 'DRAFT',
-  firstPartySent: new Date(),
-  firstPartyResponded: null,
-  secondPartySent: null,
-  secondPartyResponded: null,
-  firstMeetingScheduled: null,
-  closedAt: null,
-  matchmaker: { firstName: 'איתן', lastName: 'אנגלרד' },
-  firstParty: {
-    id: 'visitor-user-id',
-    email: 'visitor@example.com',
-    firstName: 'המשתמשת',
-    lastName: 'שלנו',
-    isProfileComplete: true,
-    profile: null,
-    images: [],
-  },
-  secondParty: danielProfile,
-  statusHistory: [
-    {
-      id: 'h1m',
-      suggestionId: 'demo-suggestion-homepage-male',
-      status: 'DRAFT',
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      notes: 'השדכן יצר טיוטת הצעה',
-    },
-    {
-      id: 'h2m',
-      suggestionId: 'demo-suggestion-homepage-male',
-      status: 'PENDING_FIRST_PARTY',
-      createdAt: new Date(),
-      notes: 'ההצעה נשלחה אליך לבדיקה ראשונית.',
-    },
-  ],
-};
-
-// ============================================================================
-// --- ניתוחי AI מעודכנים ---
-// ============================================================================
-
-/**
- * ניתוח AI מעודכן עבור ההצעה של דניאל (מה שבחורה רואה)
- */
-export const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {
-  overallScore: 91,
-  matchTitle: 'שותפות של יציבות ויצירתיות',
-  matchSummary:
-    'החיבור בין דניאל לנועה מציג פוטנציאל גבוה במיוחד, המבוסס על איזון מרתק בין ערכי ליבה משותפים לבין אישיות משלימה. השילוב בין האופי המעשי, האחראי והשאפתני של דניאל לבין העומק הרגשי, האופטימיות והיצירתיות של נועה יוצר בסיס איתן לשותפות ארוכת טווח, שבה כל אחד יכול להעניק לשני בדיוק את מה שחסר לו.',
-  compatibilityPoints: [
-    {
-      area: 'ערכי יסוד דומים',
-      explanation:
-        'שניהם רואים ביושרה, כבוד ומשפחה ערכים עליונים. ההגדרה של שניהם ל"שותפות" כערך החשוב ביותר בזוגיות היא נקודת חיבור נדירה וחזקה.',
-    },
-    {
-      area: 'איזון בין קריירה לחיים',
-      explanation:
-        "דניאל מונע מהשגת מטרות, ונועה מיצירת קשרים - שילוב מצוין שיכול לתמוך זה בזו. שניהם גם מבינים את החשיבות של איזון, כפי שעולה מתשובותיהם על 'קצב החיים' ו'ניהול הבית'.",
-    },
-    {
-      area: 'סגנון תקשורת משלים',
-      explanation:
-        "הנטייה של דניאל לפתרון בעיות יכולה להשלים את הנטייה של נועה לתקשורת רגשית. שניהם מחפשים 'שיחות עומק', מה שמעיד על פוטנציאל לתקשורת פתוחה וכנה.",
-    },
-  ],
-  pointsToConsider: [
-    {
-      area: 'שמירת נגיעה',
-      explanation:
-        'דניאל שומר נגיעה ונועה לא. זוהי נקודה מהותית הדורשת שיחה פתוחה ומכבדת כדי להבין את הציפיות והגישות של כל אחד, ולראות אם ניתן לגשר על הפער.',
-    },
-    {
-      area: 'קצב חיים ומיקום',
-      explanation:
-        'החיים בירושלים (דניאל) שונים מהקצב התל אביבי (נועה). זה יכול להוות נקודה למחשבה לגבי התאמת סגנון החיים והעדפות בילוי, אך גם הזדמנות להעשיר זה את עולמה של זו.',
-    },
-  ],
-  suggestedConversationStarters: [
-    "שניכם דיברתם על 'שותפות' כתכונה הכי חשובה. איך הייתם מתארים את היום המושלם שלכם כ'צוות'?",
-    "איך הייתם מתארים את האיזון האידיאלי בין 'אני', 'את/ה' ו'אנחנו' בזוגיות?",
-    'ספרו על חוויה מעצבת שתרמה למי שאתם היום.',
-  ],
-};
-
-/**
- * ניתוח AI מעודכן עבור ההצעה של נועה (מה שבחור רואה)
- */
-export const demoAiAnalysisForNoa: AiSuggestionAnalysisResult = {
-  overallScore: 91,
-  matchTitle: 'חיבור בין אופטימיות לאחריות',
-  matchSummary:
-    'ההתאמה בין נועה לדניאל מבטיחה מאוד ומתבססת על חיבור עמוק ברמת הערכים והאישיות. היצירתיות, הרגישות והאופטימיות של נועה משלימות באופן הרמוני את היציבות, האחריות והנחישות של דניאל, ויוצרות פוטנציאל לזוגיות מאוזנת, תומכת ומלאת תוכן, שבה כל אחד יכול להיות הגרסה הטובה ביותר של עצמו.',
-  compatibilityPoints: [
-    {
-      area: 'ראיית עולם ערכית דומה',
-      explanation:
-        'שניהם רואים בזוגיות שותפות מלאה ובבית מרכז של צמיחה, כבוד ואהבה. ישנה תפיסה דומה לגבי מהות הקשר, חשיבות המשפחה וניהול בית משותף.',
-    },
-    {
-      area: 'פתיחות ורצון לצמוח',
-      explanation:
-        'נועה מחפשת "שותף לדרך", ודניאל מדבר על "לצעוד יחד". ישנה נכונות הדדית למסע משותף של גדילה, מה שמבטיח יכולת להתמודד עם אתגרים.',
-    },
-    {
-      area: 'אינטליגנציה רגשית משלימה',
-      explanation:
-        'הדגש של נועה על "שיחות עומק" והיכולת של דניאל לשלב בין עולם אנליטי לרגשי (נגינה, טבע) מעידים על פוטנציאל גבוה להבנה רגשית הדדית.',
-    },
-  ],
-  pointsToConsider: [
-    {
-      area: 'שמירת נגיעה',
-      explanation:
-        'דניאל שומר נגיעה ונועה לא. זוהי נקודה מהותית הדורשת שיחה פתוחה ומכבדת כדי להבין את הציפיות והגישות של כל אחד.',
-    },
-    {
-      area: 'גישה לכסף',
-      explanation:
-        "דניאל רואה בכסף 'כלי לביטחון', בעוד נועה רואה בו 'איזון ואחריות'. הגישות קרובות אך לא זהות, וידרשו תיאום ציפיות ותקשורת פתוחה.",
-    },
-  ],
-  suggestedConversationStarters: [
-    'מהו הערך שהכי חשוב לך להנחיל בבית שתקים/י, ומדוע?',
-    "מהי בעיניכם 'חלוקת תפקידים' אידיאלית בזוגיות מודרנית?",
-    'איך הייתם מתארים את השבת המושלמת שלכם?',
-  ],
+  return { demoSuggestionDataFemale, demoSuggestionDataMale, demoAiAnalysisForDaniel, demoAiAnalysisForNoa };
 };
 --- End of Content for demo-data.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\demo-content
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\demo-content\en.ts
+--------------------------------------------------------------------------------
+Content:
+// src/components/HomePage/components/demo-content/en.ts
+
+export const femaleProfileContent = {
+  firstName: 'Noa',
+  lastName: 'Israeli',
+  occupation: 'Senior UX/UI Designer',
+  city: 'Tel Aviv',
+  education: 'B.Des in Visual Communication, Bezalel; Graduate of Lindenbaum Midrasha',
+  serviceDetails: 'Meaningful two-year National Service at "Krembo Wings" with children with special needs.',
+  religiousLevel: 'Liberal Orthodox',
+  about: 'An optimist who loves deep conversations over coffee. I find beauty in life\'s small things, whether it\'s a walk in nature or a good playlist. After a few attempts that didn\'t work out, I now know better what\'s right for me, and I\'m looking for a partner for the journey, to build a home together filled with laughter, mutual respect, and shared growth.',
+  profileHeadline: 'Designing life with a smile, looking for a partner for the adventure.',
+  questionnaire: {
+    personality_self_portrayal_revised: "I'm an optimistic and positive person who believes you can find the good in any situation. I'm very creative, which is expressed in my work and hobbies, and I have good listening skills - friends say I'm 'receptive'. I value deep conversations, but I also love to laugh and enjoy the simple things.",
+    personality_good_vs_perfect_day: "A 'perfect' day is a big thing, but a 'really good' day is built from many small things: a good phone call with my mom, a creative breakthrough at work on a design I've been working hard on, a spontaneous trip to the beach at sunset, and ending the day with a good conversation and a cup of tea. It's a feeling of satisfaction and peace.",
+    values_core_elaboration_revised: "The most important value to me is mutual respect. At a professional crossroads, I could have taken a big project at a colleague's expense, but I chose to collaborate. Although I earned less personal 'credit', we built something better together and maintained a healthy relationship. It was proof to myself that the journey is just as important as the destination.",
+    relationship_household_philosophy: "I believe in a full and flexible partnership, like I saw in my parents' home, where my dad is in finance and my mom is an artist, and each brings their strengths. Not fixed 'roles', but a team that works together according to strengths and available time. It's all about open communication.",
+    partner_deal_breakers_open_text_revised: 'My absolute red line is condescending cynicism and a basic lack of respect for people (for example, how he talks to a waiter). I cannot be with someone who doesn\'t know how to respect every person for who they are.',
+    religion_modesty_personal_approach_revised: 'My modesty is mainly expressed in choosing respectful attire (I wear both pants and skirts) and clean speech. I am not shomer negiah, but I believe in creating an initial connection based on getting to know the personality before the physical aspect. My approach is "inner self reflected on the outside".',
+    religion_children_education_religious_vision_revised: 'My vision is to establish a home where children grow up with values of giving, love of Torah, and the Land of Israel. It is important to me that the education be open and allow for questioning, one that nurtures thinking individuals with a deep, internal reverence for God.',
+  },
+  demoQAndA: [
+    {
+      question: 'What is the most important value you want to instill in the home you build?',
+      answer: 'Mutual respect. The ability to truly listen, even when we disagree, and to create a safe space where we can both be our most authentic selves.',
+    },
+    {
+      question: 'How do you see the division of roles in a modern relationship?',
+      answer: "I believe in a full partnership. Not fixed 'roles', but a team that works together. One day I'll be the strong one when he needs support, and another day he'll be there for me. It's all about communication and flexibility.",
+    },
+  ]
+};
+
+export const maleProfileContent = {
+  firstName: 'Daniel',
+  lastName: 'Cohen',
+  occupation: 'Software Engineer & M.Sc. Student',
+  city: 'Jerusalem',
+  education: 'Graduate of Yeshivat Har Etzion; B.Sc. in Software Engineering, Technion',
+  serviceDetails: 'Significant service as an officer in the Combat Engineering Corps, company commander and platoon leader.',
+  religiousLevel: 'Torani Leumi',
+  about: 'A man of people and action. I love the combination of the dynamic high-tech world and setting aside time for Torah study. I believe true growth happens outside the comfort zone. I\'m looking for a life partner to build a home together with reverence for God, open-mindedness, and a lot of joy.',
+  profileHeadline: 'Engineer by day, Torah scholar by night. Seeking a partner to build a world with.',
+  questionnaire: {
+    personality_self_portrayal_revised: "I'm a man of action, I love challenges and goals. Reliability is very important to me, and I always try to stand by my word. I have a strong analytical side, which I got from my studies at Yeshivat HaGush and in engineering, but I balance it with a creative side - I love playing the guitar and connect deeply with the world of Hasidut. I seek constant growth, both in my career and personal life.",
+    values_core_elaboration_revised: "My central value is responsibility. When I served as an officer in the Combat Engineering Corps, I had to make a complex operational decision under pressure. I chose the safer course of action, even though it was less 'glamorous'. It was a decision based on responsibility for the lives of my soldiers, and it reinforced my understanding that integrity and responsibility are above all else.",
+    // More answers can be added as needed
+  }
+};
+
+export const suggestionContent = {
+  femaleToMaleReason: 'What particularly resonated with me in your connection is the rare blend of depth and lightness. You both seek a "partner for the journey" with an "open mind." I believe Daniel\'s stability and responsibility, evident from his service as an officer, combined with your creativity and optimism, create a wonderful foundation for a real connection.',
+  femaleToMalePersonalNote: 'Daniel is a serious, value-driven man with a heart of gold. He impressively combines the world of Torah (a graduate of HaGush) with the world of action (a Technion-educated engineer) and is looking for a true life partner. I think you two have a lot to talk about.',
+  maleToFemaleReason: 'What particularly resonated with me in your connection is the rare blend of depth and lightness. Both of you are looking for a "partner for the journey." I believe your stability and pursuit of meaning, together with Noa\'s creativity, optimism, and empathy (having served with special needs children), create an amazing foundation for a real relationship.',
+  maleToFemalePersonalNote: 'This is a suggestion I am particularly excited to present to you. Noa is a high-quality woman, with a depth and sensitivity that are rare to find. I think she is exactly what you were looking for.',
+};
+
+export const aiAnalysisContent = {
+  forMaleTitle: 'A Partnership of Stability and Creativity',
+  forMaleSummary: 'The connection between Daniel and Noa shows particularly high potential, based on a fascinating balance between shared core values and complementary personalities. The combination of Daniel\'s practical, ambitious nature and Noa\'s emotional depth and creativity creates a solid foundation for a long-term partnership.',
+  forFemaleTitle: 'A Connection of Optimism and Responsibility',
+  forFemaleSummary: 'The match between Noa and Daniel is very promising, based on a deep connection at the level of values and personality. Noa\'s creativity and optimism harmoniously complement Daniel\'s stability and responsibility, creating potential for a balanced and supportive relationship.',
+};
+--- End of Content for en.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\demo-content\he.ts
+--------------------------------------------------------------------------------
+Content:
+// src/components/HomePage/components/demo-content/he.ts
+
+export const femaleProfileContent = {
+  firstName: 'נועה',
+  lastName: 'ישראלי',
+  occupation: 'מעצבת UX/UI בכירה',
+  city: 'תל אביב',
+  education: 'תואר ראשון בתקשורת חזותית, בצלאל; בוגרת מדרשת לינדנבאום',
+  serviceDetails: 'שירות לאומי משמעותי של שנתיים בעמותת "כנפיים של קרמבו" עם ילדים בעלי צרכים מיוחדים.',
+  religiousLevel: 'דתיה ליברלית',
+  about: 'אופטימית וחובבת שיחות עומק על כוס קפה. מוצאת יופי בדברים הקטנים של החיים, בין אם זה טיול בטבע או פלייליסט טוב. אחרי כמה ניסיונות שלא צלחו, אני יודעת היום טוב יותר מה נכון לי, ומחפשת שותף לדרך, לבנות יחד בית שמלא בצחוק, כבוד הדדי וצמיחה משותפת.',
+  profileHeadline: 'מעצבת את החיים בחיוך, מחפשת שותף להרפתקה.',
+  questionnaire: {
+    personality_self_portrayal_revised: "אני אדם אופטימי וחיובי, שמאמין שאפשר למצוא את הטוב בכל מצב. אני מאוד יצירתית, מה שבא לידי ביטוי בעבודה ובתחביבים שלי, ויש לי יכולת הקשבה טובה - חברים אומרים שאני 'מכילה'. חשוב לי מאוד לנהל שיחות עומק, אבל אני גם אוהבת לצחוק וליהנות מהדברים הפשוטים.",
+    personality_good_vs_perfect_day: "יום 'מושלם' זה משהו גדול, אבל יום 'ממש טוב' נבנה מהרבה דברים קטנים: שיחת טלפון טובה עם אמא, פריצת דרך יצירתית בעבודה על עיצוב שעבדתי עליו קשה, טיול ספונטני לים בשקיעה, ולסיים את היום עם שיחה טובה וכוס תה. זו תחושה של סיפוק ושלווה.",
+    values_core_elaboration_revised: "הערך הכי חשוב לי הוא כבוד הדדי. בצומת דרכים מקצועי שהיה לי, יכולתי לקחת פרויקט גדול על חשבון קולגה, אבל בחרתי לשתף פעולה. למרות שהרווחתי פחות 'קרדיט' אישי, בנינו יחד משהו טוב יותר ושמרנו על מערכת יחסים בריאה. זו הייתה הוכחה לעצמי שהדרך חשובה לי לא פחות מהתוצאה.",
+    relationship_household_philosophy: "אני מאמינה בשותפות מלאה וגמישה, כמו שראיתי בבית הורי, שם אבא איש כספים ואמא אמנית, וכל אחד מביא את החוזקות שלו. לא 'תפקידים' קבועים, אלא צוות שפועל יחד לפי נקודות החוזק והזמן הפנוי. הכל בתקשורת פתוחה.",
+    partner_deal_breakers_open_text_revised: 'הקו האדום המוחלט שלי הוא ציניות מתנשאת וחוסר כבוד בסיסי לאנשים (למשל, איך שהוא מדבר למלצר). אני לא יכולה להיות עם מישהו שלא יודע לכבד כל אדם באשר הוא.',
+    religion_modesty_personal_approach_revised: 'הצניעות שלי באה לידי ביטוי בעיקר בבחירת לבוש מכבד (לובשת גם מכנסיים וגם חצאיות) ובדיבור נקי. אני לא שומרת נגיעה, אבל מאמינה ביצירת קשר ראשוני שמבוסס על היכרות עם האישיות לפני הפיזיות. הגישה שלי היא "פנימיות שמשתקפת בחיצוניות".',
+    religion_children_education_religious_vision_revised: 'החזון שלי הוא להקים בית שבו ילדים גדלים עם ערכים של נתינה, אהבת התורה וארץ ישראל. חשוב לי שהחינוך יהיה דתי-לאומי פתוח ומאפשר שאלת שאלות, כזה שמצמיח אנשים חושבים, עם יראת שמיים פנימית ועמוקה.',
+  },
+  demoQAndA: [
+    {
+      question: 'מה הערך החשוב ביותר שתרצי להנחיל בבית שתקימי?',
+      answer: 'כבוד הדדי. היכולת להקשיב באמת, גם כשלא מסכימים, וליצור מרחב בטוח שבו שנינו יכולים להיות הגרסה הכי אותנטית של עצמנו.',
+    },
+    {
+      question: 'איך את רואה את חלוקת התפקידים בזוגיות מודרנית?',
+      answer: "אני מאמינה בשותפות מלאה. לא 'תפקידים' קבועים, אלא צוות שפועל יחד. יום אחד אני אהיה החזקה כשהוא צריך תמיכה, ויום אחר הוא יהיה שם בשבילי. הכל בתקשורת וגמישות.",
+    },
+  ]
+};
+
+export const maleProfileContent = {
+  firstName: 'דניאל',
+  lastName: 'כהן',
+  occupation: 'מהנדס תוכנה וסטודנט לתואר שני',
+  city: 'ירושלים',
+  education: 'בוגר ישיבת הר עציון; תואר ראשון בהנדסת תוכנה, הטכניון',
+  serviceDetails: 'שירות משמעותי כקצין בהנדסה קרבית, מ"מ וסמ"פ.',
+  religiousLevel: 'דתי לאומי תורני',
+  about: 'בחור של אנשים ושל עשייה. אוהב את השילוב בין עולם ההייטק הדינמי לבין קביעת עיתים לתורה. מאמין שצמיחה אמיתית קורית מחוץ לאזור הנוחות. מחפש שותפה לחיים, לבנות ביחד בית עם יראת שמיים, פתיחות מחשבתית והרבה שמחה.',
+  profileHeadline: 'מהנדס ביום, לומד תורה בערב. מחפש שותפה לבנות עולם.',
+  questionnaire: {
+    personality_self_portrayal_revised: "אני אדם של עשייה, אוהב אתגרים ומטרות. חשובה לי מאוד האמינות, ואני תמיד משתדל לעמוד במילה שלי. יש לי צד אנליטי חזק, שקיבלתי מהלימודים בישיבת הגוש ובהנדסה, אבל אני מאזן את זה עם צד יצירתי - אני אוהב לנגן בגיטרה ומתחבר מאוד לעולם החסידות. אני מחפש צמיחה מתמדת, גם בקריירה וגם בחיים האישיים.",
+    values_core_elaboration_revised: "הערך המרכזי שלי הוא אחריות. כששירתי כקצין בהנדסה קרבית, הייתי צריך לקבל החלטה מבצעית מורכבת תחת לחץ. בחרתי בדרך הפעולה הבטוחה יותר, למרות שהיא הייתה פחות 'זוהרת'. זו הייתה החלטה שהתבססה על אחריות לחיי החיילים שלי, והיא חיזקה אצלי את ההבנה שיושרה ואחריות הן מעל הכל.",
+    // ניתן להוסיף עוד תשובות לפי הצורך
+  }
+};
+
+export const suggestionContent = {
+  femaleToMaleReason: 'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח", ומדברים על בית שמבוסס על "כבוד וצמיחה". אני מאמין שהיציבות והאחריות של דניאל, שניכרות מהשירות שלו כקצין, יחד עם היצירתיות והאופטימיות שלך, יוצרים בסיס מדהים לקשר אמיתי.',
+  femaleToMalePersonalNote: 'דניאל הוא בחור רציני, ערכי ועם לב זהב. הוא משלב בצורה מרשימה בין עולם התורה (בוגר הגוש) לעולם המעשה (מהנדס בוגר טכניון), ומחפש שותפה אמיתית לחיים. אני חושב שיש לכם הרבה על מה לדבר.',
+  maleToFemaleReason: 'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח". אני מאמין שהיציבות והשאיפה למשמעות שלך, יחד עם היצירתיות, האופטימיות והאמפתיה של נועה (שעשתה שירות עם ילדים מיוחדים), יוצרים בסיס מדהים לקשר אמיתי.',
+  maleToFemalePersonalNote: 'זו הצעה שאני מתרגשת במיוחד להציג לך. נועה היא בחורה איכותית, עם עומק ורגישות שנדיר למצוא. אני חושבת שהיא בדיוק מה שחיפשת.',
+};
+
+export const aiAnalysisContent = {
+  forMaleTitle: 'שותפות של יציבות ויצירתיות',
+  forMaleSummary: 'החיבור בין דניאל לנועה מציג פוטנציאל גבוה במיוחד, המבוסס על איזון מרתק בין ערכי ליבה משותפים לבין אישיות משלימה. השילוב בין האופי המעשי, האחראי והשאפתני של דניאל לבין העומק הרגשי, האופטימיות והיצירתיות של נועה יוצר בסיס איתן לשותפות ארוכת טווח, שבה כל אחד יכול להעניק לשני בדיוק את מה שחסר לו.',
+  forFemaleTitle: 'חיבור בין אופטימיות לאחריות',
+  forFemaleSummary: 'ההתאמה בין נועה לדניאל מבטיחה מאוד ומתבססת על חיבור עמוק ברמת הערכים והאישיות. היצירתיות, הרגישות והאופטימיות של נועה משלימות באופן הרמוני את היציבות, האחריות והנחישות של דניאל, ויוצרות פוטנציאל לזוגיות מאוזנת, תומכת ומלאת תוכן, שבה כל אחד יכול להיות הגרסה הטובה ביותר של עצמו.',
+};
+--- End of Content for he.ts ---
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\sections
@@ -3822,12 +3084,7 @@ import Image from 'next/image';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
 import Step from '../components/Step';
 import { LiveSuggestionDemo } from '../components/LiveSuggestionDemo';
-import {
-  demoSuggestionDataFemale,
-  demoSuggestionDataMale,
-  demoAiAnalysisForDaniel,
-  demoAiAnalysisForNoa,
-} from '../components/demo-data';
+
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -3845,10 +3102,14 @@ import {
 import { motion, useInView } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import type { HowItWorksDict, SuggestionsDictionary } from '@/types/dictionary';
+import { generateDemoData } from '../components/demo-data';
+
+type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
 
 interface HowItWorksProps {
   dict: HowItWorksDict;
-  suggestionsDict: SuggestionsDictionary; // ✨ קבל את ה-prop החדש
+  suggestionsDict: SuggestionsDictionary;
+  demoData: DemoData; // הוסף את זה
 }
 // --- END: Type Definitions ---
 
@@ -3934,6 +3195,7 @@ const KeyBenefit: React.FC<{
 const HowItWorksSection: React.FC<HowItWorksProps> = ({
   dict,
   suggestionsDict,
+  demoData,
 }) => {
   const demoRef = useRef(null);
   const isDemoInView = useInView(demoRef, { once: true, amount: 0.1 });
@@ -4074,10 +3336,10 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                 <div className="absolute -inset-2 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 rounded-3xl blur-xl" />
                 <div className="relative">
                   <LiveSuggestionDemo
-                    suggestion={demoSuggestionDataMale}
+                    suggestion={demoData.demoSuggestionDataMale}
                     userId="visitor-user-id"
-                    demoAiAnalysis={demoAiAnalysisForDaniel}
-                    suggestionsDict={suggestionsDict} // ✨ העבר אותו הלאה
+                    demoAiAnalysis={demoData.demoAiAnalysisForDaniel}
+                    suggestionsDict={suggestionsDict}
                   />
                 </div>
               </div>
@@ -4090,10 +3352,10 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                 <div className="absolute -inset-2 bg-gradient-to-r from-pink-500/20 via-orange-500/20 to-pink-500/20 rounded-3xl blur-xl" />
                 <div className="relative">
                   <LiveSuggestionDemo
-                    suggestion={demoSuggestionDataFemale}
+                    suggestion={demoData.demoSuggestionDataFemale}
                     userId="visitor-user-id"
-                    demoAiAnalysis={demoAiAnalysisForNoa}
-                    suggestionsDict={suggestionsDict} // ✨ העבר אותו הלאה
+                    demoAiAnalysis={demoData.demoAiAnalysisForNoa}
+                    suggestionsDict={suggestionsDict}
                   />
                 </div>
               </div>

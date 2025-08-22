@@ -82,6 +82,7 @@ export default function HomePage({ dict, demoData }: HomePageProps) {
       <HowItWorksSection
         dict={dict.howItWorks}
         suggestionsDict={dict.suggestions}
+        profileCardDict={dict.profilePage.profileCard}
         demoData={demoData}
       />
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />

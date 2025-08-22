@@ -45,8 +45,10 @@ import SuggestionDetailsModal from '../modals/SuggestionDetailsModal';
 import AskMatchmakerDialog from '../dialogs/AskMatchmakerDialog';
 import { cn } from '@/lib/utils';
 import type { ExtendedMatchSuggestion } from '../types';
-import type { SuggestionsDictionary } from '@/types/dictionary'; // ✨ Import dictionary type
+// ✅ 1. ייבוא הטיפוסים הנדרשים
+import type { SuggestionsDictionary, ProfileCardDict } from '@/types/dictionary';
 
+// ✅ 2. עדכון הממשק לקבל props נפרדים
 interface SuggestionsListProps {
   suggestions: ExtendedMatchSuggestion[];
   userId: string;
@@ -65,7 +67,8 @@ interface SuggestionsListProps {
     suggestion: ExtendedMatchSuggestion,
     action: 'approve' | 'decline'
   ) => void;
-  dict: SuggestionsDictionary; // ✨ Add dict prop
+  suggestionsDict: SuggestionsDictionary;
+  profileCardDict: ProfileCardDict;
 }
 
 type SortOption = 'newest' | 'oldest' | 'deadline' | 'priority';
@@ -183,7 +186,8 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   className,
   onActionRequest,
   isUserInActiveProcess,
-  dict, // ✨ Destructure dict
+  suggestionsDict, // ✅ 3. קבלת ה-props הנפרדים
+  profileCardDict,
 }) => {
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<ExtendedMatchSuggestion | null>(null);
@@ -201,7 +205,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   ).length;
 
   useEffect(() => {
-    // Filtering and sorting logic remains the same
     let result = [...initialSuggestions];
 
     if (searchQuery) {
@@ -304,7 +307,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   const handleSendQuestion = async (questionText: string) => {
     if (!selectedSuggestion) return;
     try {
-      // API call logic remains the same
       const response = await fetch(
         `/api/suggestions/${selectedSuggestion.id}/inquiries`,
         {
@@ -329,7 +331,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   };
 
   if (isLoading) {
-    // Skeleton loading state remains the same
     return (
       <div className={cn('space-y-6', className)}>
         {/* Skeleton content... */}
@@ -345,7 +346,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           filtered={filteredSuggestions.length}
           pending={pendingCount}
           isHistory={isHistory}
-          dict={dict.list.stats}
+          dict={suggestionsDict.list.stats}
         />
 
         <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
@@ -356,7 +357,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
                     type="text"
-                    placeholder={dict.list.controls.searchPlaceholder}
+                    placeholder={suggestionsDict.list.controls.searchPlaceholder}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pr-12 text-right border-gray-200 focus:border-purple-300 focus:ring-purple-200 rounded-xl h-12"
@@ -374,69 +375,28 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel className="text-right">
-                      {dict.list.controls.filterLabel}
+                      {suggestionsDict.list.controls.filterLabel}
                     </DropdownMenuLabel>
                     <DropdownMenuGroup>
                       <DropdownMenuItem onClick={() => setFilterOption('all')}>
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            filterOption === 'all' ? 'opacity-100' : 'opacity-0'
-                          )}
-                        />
-                        {dict.list.controls.filterAll}
+                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'all' ? 'opacity-100' : 'opacity-0')} />
+                        {suggestionsDict.list.controls.filterAll}
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setFilterOption('pending')}
-                      >
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            filterOption === 'pending'
-                              ? 'opacity-100'
-                              : 'opacity-0'
-                          )}
-                        />
-                        {dict.list.controls.filterPending}
+                      <DropdownMenuItem onClick={() => setFilterOption('pending')}>
+                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'pending' ? 'opacity-100' : 'opacity-0')} />
+                        {suggestionsDict.list.controls.filterPending}
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setFilterOption('accepted')}
-                      >
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            filterOption === 'accepted'
-                              ? 'opacity-100'
-                              : 'opacity-0'
-                          )}
-                        />
-                        {dict.list.controls.filterAccepted}
+                      <DropdownMenuItem onClick={() => setFilterOption('accepted')}>
+                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'accepted' ? 'opacity-100' : 'opacity-0')} />
+                        {suggestionsDict.list.controls.filterAccepted}
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setFilterOption('declined')}
-                      >
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            filterOption === 'declined'
-                              ? 'opacity-100'
-                              : 'opacity-0'
-                          )}
-                        />
-                        {dict.list.controls.filterDeclined}
+                      <DropdownMenuItem onClick={() => setFilterOption('declined')}>
+                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'declined' ? 'opacity-100' : 'opacity-0')} />
+                        {suggestionsDict.list.controls.filterDeclined}
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setFilterOption('contact_shared')}
-                      >
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            filterOption === 'contact_shared'
-                              ? 'opacity-100'
-                              : 'opacity-0'
-                          )}
-                        />
-                        {dict.list.controls.filterContactShared}
+                      <DropdownMenuItem onClick={() => setFilterOption('contact_shared')}>
+                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'contact_shared' ? 'opacity-100' : 'opacity-0')} />
+                        {suggestionsDict.list.controls.filterContactShared}
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
                   </DropdownMenuContent>
@@ -446,90 +406,60 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   onValueChange={(value) => setSortOption(value as SortOption)}
                 >
                   <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-purple-300 rounded-xl">
-                    <SelectValue
-                      placeholder={dict.list.controls.sortPlaceholder}
-                    />
+                    <SelectValue placeholder={suggestionsDict.list.controls.sortPlaceholder} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="newest">
                       <div className="flex items-center gap-2">
                         <SortDesc className="h-4 w-4" />
-                        {dict.list.controls.sortNewest}
+                        {suggestionsDict.list.controls.sortNewest}
                       </div>
                     </SelectItem>
                     <SelectItem value="oldest">
                       <div className="flex items-center gap-2">
                         <SortAsc className="h-4 w-4" />
-                        {dict.list.controls.sortOldest}
+                        {suggestionsDict.list.controls.sortOldest}
                       </div>
                     </SelectItem>
                     <SelectItem value="deadline">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        {dict.list.controls.sortDeadline}
+                        {suggestionsDict.list.controls.sortDeadline}
                       </div>
                     </SelectItem>
                     <SelectItem value="priority">
                       <div className="flex items-center gap-2">
                         <Filter className="h-4 w-4" />
-                        {dict.list.controls.sortPriority}
+                        {suggestionsDict.list.controls.sortPriority}
                       </div>
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                {/* View mode toggle remains the same */}
               </div>
               {(searchQuery || filterOption !== 'all') && (
                 <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                  <span className="text-sm text-gray-500 font-medium">
-                    {dict.list.activeFilters.title}
-                  </span>
+                  <span className="text-sm text-gray-500 font-medium">{suggestionsDict.list.activeFilters.title}</span>
                   {searchQuery && (
-                    <Badge
-                      variant="outline"
-                      className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200"
-                    >
-                      {dict.list.activeFilters.search} {searchQuery}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-4 w-4 p-0 hover:bg-transparent"
-                        onClick={() => setSearchQuery('')}
-                      >
+                    <Badge variant="outline" className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200">
+                      {suggestionsDict.list.activeFilters.search} {searchQuery}
+                      <Button variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => setSearchQuery('')}>
                         <XCircle className="h-3 w-3" />
                       </Button>
                     </Badge>
                   )}
                   {filterOption !== 'all' && (
-                    <Badge
-                      variant="outline"
-                      className="flex items-center gap-1 bg-pink-50 text-pink-700 border-pink-200"
-                    >
-                      {filterOption === 'pending' &&
-                        dict.list.controls.filterPending}
-                      {filterOption === 'accepted' &&
-                        dict.list.controls.filterAccepted}
-                      {filterOption === 'declined' &&
-                        dict.list.controls.filterDeclined}
-                      {filterOption === 'contact_shared' &&
-                        dict.list.controls.filterContactShared}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-4 w-4 p-0 hover:bg-transparent"
-                        onClick={() => setFilterOption('all')}
-                      >
+                    <Badge variant="outline" className="flex items-center gap-1 bg-pink-50 text-pink-700 border-pink-200">
+                      {filterOption === 'pending' && suggestionsDict.list.controls.filterPending}
+                      {filterOption === 'accepted' && suggestionsDict.list.controls.filterAccepted}
+                      {filterOption === 'declined' && suggestionsDict.list.controls.filterDeclined}
+                      {filterOption === 'contact_shared' && suggestionsDict.list.controls.filterContactShared}
+                      <Button variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => setFilterOption('all')}>
                         <XCircle className="h-3 w-3" />
                       </Button>
                     </Badge>
                   )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-gray-500 hover:text-gray-700"
-                    onClick={clearFilters}
-                  >
-                    {dict.list.activeFilters.clearAll}
+                  <Button variant="ghost" size="sm" className="text-xs text-gray-500 hover:text-gray-700" onClick={clearFilters}>
+                    {suggestionsDict.list.activeFilters.clearAll}
                   </Button>
                 </div>
               )}
@@ -540,19 +470,13 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         <div className="flex justify-between items-center text-sm text-gray-600">
           <span>
             {filteredSuggestions.length === 1
-              ? dict.list.resultsCount.showingSingle
-                  .replace('{{count}}', '1')
-                  .replace('{{total}}', initialSuggestions.length.toString())
-              : dict.list.resultsCount.showingMultiple
-                  .replace('{{count}}', filteredSuggestions.length.toString())
-                  .replace('{{total}}', initialSuggestions.length.toString())}
+              ? suggestionsDict.list.resultsCount.showingSingle.replace('{{count}}', '1').replace('{{total}}', initialSuggestions.length.toString())
+              : suggestionsDict.list.resultsCount.showingMultiple.replace('{{count}}', filteredSuggestions.length.toString()).replace('{{total}}', initialSuggestions.length.toString())}
           </span>
           {filteredSuggestions.length > 0 && (
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-purple-500" />
-              <span className="font-medium">
-                {dict.list.resultsCount.qualityMatches}
-              </span>
+              <span className="font-medium">{suggestionsDict.list.resultsCount.qualityMatches}</span>
             </div>
           )}
         </div>
@@ -562,7 +486,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
             isFiltered={searchQuery !== '' || filterOption !== 'all'}
             isHistory={isHistory}
             onClearFilters={clearFilters}
-            dict={dict.list.emptyState}
+            dict={suggestionsDict.list.emptyState}
           />
         ) : (
           <div
@@ -595,7 +519,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                     'card-hover-elegant',
                     viewMode === 'list' ? 'flex' : ''
                   )}
-                  dict={dict.card} // ✨ Pass card dict down
+                  dict={suggestionsDict.card}
                 />
               </div>
             ))}
@@ -612,7 +536,11 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         questionnaire={
           selectedSuggestion?.secondParty?.questionnaireResponses?.[0] || null
         }
-        dict={dict} // ✨ Pass full suggestions dict to modal
+        // ✅ 4. העברת שני ה-props ליעד הסופי
+       dict={{
+          suggestions: suggestionsDict,
+          profileCard: profileCardDict,
+        }}
       />
 
       <AskMatchmakerDialog
@@ -620,7 +548,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         onClose={() => setShowAskDialog(false)}
         onSubmit={handleSendQuestion}
         matchmakerName={selectedSuggestion?.matchmaker.firstName}
-        dict={dict.askMatchmaker} // הנחה שסוג המילון יועבר בצורה תקינה
+        dict={suggestionsDict.askMatchmaker}
       />
     </>
   );

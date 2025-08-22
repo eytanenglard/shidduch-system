@@ -39,8 +39,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-// ✨ ייבוא הטיפוס של המילון המלא להצעות
-import type { SuggestionsDictionary } from '@/types/dictionary';
+// ✅ 1. ייבוא הטיפוסים הנדרשים עבור המילונים
+import type { SuggestionsDictionary, ProfileCardDict } from '@/types/dictionary';
 
 const LoadingSkeleton: React.FC<{
   dict: SuggestionsDictionary['container']['loading'];
@@ -243,17 +243,19 @@ const WelcomeStats: React.FC<{
   );
 };
 
-// ✨ עדכון ה-Props של הרכיב הראשי
+// ✅ 2. עדכון הממשק לקבל props נפרדים
 interface MatchSuggestionsContainerProps {
   userId: string;
   className?: string;
-  dict: SuggestionsDictionary;
+  suggestionsDict: SuggestionsDictionary;
+  profileCardDict: ProfileCardDict;
 }
 
 const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   userId,
   className,
-  dict,
+  suggestionsDict,
+  profileCardDict,
 }) => {
   const [activeSuggestions, setActiveSuggestions] = useState<
     ExtendedMatchSuggestion[]
@@ -311,8 +313,9 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           activeData.suggestions.length > activeSuggestions.length
         ) {
           setHasNewSuggestions(true);
-          toast.success(dict.container.toasts.newSuggestionsTitle, {
-            description: dict.container.toasts.newSuggestionsDescription,
+          // ✅ 3. שימוש ב-suggestionsDict במקום dict
+          toast.success(suggestionsDict.container.toasts.newSuggestionsTitle, {
+            description: suggestionsDict.container.toasts.newSuggestionsDescription,
             duration: 5000,
           });
         }
@@ -320,22 +323,24 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         setActiveSuggestions(activeData.suggestions);
         setHistorySuggestions(historyData.suggestions);
       } catch (error) {
+        // ✅ 3. שימוש ב-suggestionsDict במקום dict
         const errorMessage =
           error instanceof Error
             ? error.message
-            : dict.container.main.unknownError;
+            : suggestionsDict.container.main.unknownError;
         setError(
-          dict.container.main.errorLoading.replace('{error}', errorMessage)
+          suggestionsDict.container.main.errorLoading.replace('{error}', errorMessage)
         );
-        toast.error(dict.container.toasts.errorTitle, {
-          description: dict.container.toasts.errorDescription,
+        toast.error(suggestionsDict.container.toasts.errorTitle, {
+          description: suggestionsDict.container.toasts.errorDescription,
         });
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
       }
     },
-    [activeSuggestions.length, dict]
+    // ✅ 3. שימוש ב-suggestionsDict במקום dict
+    [activeSuggestions.length, suggestionsDict]
   );
 
   const handleStatusChange = useCallback(
@@ -359,43 +364,45 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
         await fetchSuggestions(false);
 
+        // ✅ 3. שימוש ב-suggestionsDict במקום dict
         const statusMessages: Record<string, string> = {
-          FIRST_PARTY_APPROVED: dict.container.toasts.approvedSuccess,
-          SECOND_PARTY_APPROVED: dict.container.toasts.approvedSuccess,
-          FIRST_PARTY_DECLINED: dict.container.toasts.declinedSuccess,
-          SECOND_PARTY_DECLINED: dict.container.toasts.declinedSuccess,
+          FIRST_PARTY_APPROVED: suggestionsDict.container.toasts.approvedSuccess,
+          SECOND_PARTY_APPROVED: suggestionsDict.container.toasts.approvedSuccess,
+          FIRST_PARTY_DECLINED: suggestionsDict.container.toasts.declinedSuccess,
+          SECOND_PARTY_DECLINED: suggestionsDict.container.toasts.declinedSuccess,
         };
 
         let description: string;
         if (newStatus === 'FIRST_PARTY_APPROVED') {
-          description = dict.container.toasts.approvedFirstPartyDesc;
+          description = suggestionsDict.container.toasts.approvedFirstPartyDesc;
         } else if (newStatus === 'SECOND_PARTY_APPROVED') {
-          description = dict.container.toasts.approvedSecondPartyDesc;
+          description = suggestionsDict.container.toasts.approvedSecondPartyDesc;
         } else if (newStatus.includes('DECLINED')) {
-          description = dict.container.toasts.declinedDesc;
+          description = suggestionsDict.container.toasts.declinedDesc;
         } else {
-          description = dict.container.toasts.matchmakerNotified;
+          description = suggestionsDict.container.toasts.matchmakerNotified;
         }
 
         toast.success(
           statusMessages[newStatus] ||
-            dict.container.toasts.statusUpdateSuccess,
+            suggestionsDict.container.toasts.statusUpdateSuccess,
           { description }
         );
       } catch (error) {
+        // ✅ 3. שימוש ב-suggestionsDict במקום dict
         const errorMessage =
           error instanceof Error
             ? error.message
-            : dict.container.main.unknownError;
+            : suggestionsDict.container.main.unknownError;
         toast.error(
-          dict.container.toasts.statusUpdateError.replace(
+          suggestionsDict.container.toasts.statusUpdateError.replace(
             '{error}',
             errorMessage
           )
         );
       }
     },
-    [fetchSuggestions, dict]
+    [fetchSuggestions, suggestionsDict]
   );
 
   const handleRequestAction = useCallback(
@@ -467,13 +474,15 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
   const handleRefresh = useCallback(async () => {
     await fetchSuggestions(false);
-    toast.success(dict.container.toasts.refreshSuccessTitle, {
-      description: dict.container.toasts.refreshSuccessDescription,
+    // ✅ 3. שימוש ב-suggestionsDict במקום dict
+    toast.success(suggestionsDict.container.toasts.refreshSuccessTitle, {
+      description: suggestionsDict.container.toasts.refreshSuccessDescription,
     });
-  }, [fetchSuggestions, dict]);
+  }, [fetchSuggestions, suggestionsDict]);
 
   if (isLoading) {
-    return <LoadingSkeleton dict={dict.container.loading} />;
+    // ✅ 3. שימוש ב-suggestionsDict במקום dict
+    return <LoadingSkeleton dict={suggestionsDict.container.loading} />;
   }
 
   return (
@@ -488,7 +497,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           activeSuggestions={activeSuggestions}
           historySuggestions={historySuggestions}
           userId={userId}
-          dict={dict.container.stats}
+          // ✅ 3. שימוש ב-suggestionsDict במקום dict
+          dict={suggestionsDict.container.stats}
         />
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden">
           <CardHeader className="pb-4 bg-gradient-to-r from-white via-cyan-50/30 to-emerald-50/30 border-b border-gray-100">
@@ -500,7 +510,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onClick={handleRefresh}
                   disabled={isRefreshing}
                   className="rounded-full h-10 w-10 hover:bg-cyan-100 transition-colors"
-                  aria-label={dict.container.main.refreshAriaLabel}
+                  // ✅ 3. שימוש ב-suggestionsDict במקום dict
+                  aria-label={suggestionsDict.container.main.refreshAriaLabel}
                 >
                   <RefreshCw
                     className={cn(
@@ -512,13 +523,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 {hasNewSuggestions && (
                   <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse">
                     <Bell className="w-3 h-3 ml-1" />
-                    {dict.container.main.newSuggestions}
+                    {suggestionsDict.container.main.newSuggestions}
                   </Badge>
                 )}
               </div>
               <div className="text-center flex-grow">
                 <CardTitle className="text-xl font-bold text-gray-800">
-                  {dict.container.main.title}
+                  {suggestionsDict.container.main.title}
                 </CardTitle>
               </div>
               <div className="w-16"></div>
@@ -538,7 +549,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                     className="relative flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                   >
                     <Target className="w-5 h-5 text-purple-500" />
-                    <span>{dict.container.main.tabs.active}</span>
+                    <span>{suggestionsDict.container.main.tabs.active}</span>
                     {activeSuggestions.length > 0 && (
                       <Badge className="bg-purple-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
                         {activeSuggestions.length}
@@ -551,7 +562,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                       className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                     >
                       <Zap className="w-5 h-5 text-orange-500" />
-                      <span>{dict.container.main.tabs.urgent}</span>
+                      <span>{suggestionsDict.container.main.tabs.urgent}</span>
                       <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6 animate-pulse shadow-lg">
                         {myTurnCount}
                       </Badge>
@@ -562,7 +573,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                     className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                   >
                     <History className="w-5 h-5 text-gray-500" />
-                    <span>{dict.container.main.tabs.history}</span>
+                    <span>{suggestionsDict.container.main.tabs.history}</span>
                     {historySuggestions.length > 0 && (
                       <Badge className="bg-gray-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
                         {historySuggestions.length}
@@ -593,7 +604,9 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
                   isUserInActiveProcess={isUserInActiveProcess}
-                  dict={dict}
+                  // ✅ 4. העברת שני ה-props הלאה
+                  suggestionsDict={suggestionsDict}
+                  profileCardDict={profileCardDict}
                 />
               </TabsContent>
               <TabsContent value="history" className="space-y-6">
@@ -607,7 +620,9 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
                   isUserInActiveProcess={isUserInActiveProcess}
-                  dict={dict}
+                  // ✅ 4. העברת שני ה-props הלאה
+                  suggestionsDict={suggestionsDict}
+                  profileCardDict={profileCardDict}
                 />
               </TabsContent>
               <TabsContent value="urgent" className="space-y-6">
@@ -626,7 +641,9 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
                   isUserInActiveProcess={isUserInActiveProcess}
-                  dict={dict}
+                  // ✅ 4. העברת שני ה-props הלאה
+                  suggestionsDict={suggestionsDict}
+                  profileCardDict={profileCardDict}
                 />
               </TabsContent>
             </Tabs>
@@ -638,18 +655,18 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold text-center">
               {actionType === 'approve'
-                ? dict.container.dialogs.approveTitle
-                : dict.container.dialogs.declineTitle}
+                ? suggestionsDict.container.dialogs.approveTitle
+                : suggestionsDict.container.dialogs.declineTitle}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
               {actionType === 'approve'
-                ? dict.container.dialogs.approveDescription
-                : dict.container.dialogs.declineDescription}
+                ? suggestionsDict.container.dialogs.approveDescription
+                : suggestionsDict.container.dialogs.declineDescription}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3">
             <AlertDialogCancel className="rounded-xl">
-              {dict.container.dialogs.cancel}
+              {suggestionsDict.container.dialogs.cancel}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmAction}
@@ -663,12 +680,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               {actionType === 'approve' ? (
                 <>
                   <CheckCircle className="w-4 h-4 ml-2" />
-                  {dict.container.dialogs.confirmApproval}
+                  {suggestionsDict.container.dialogs.confirmApproval}
                 </>
               ) : (
                 <>
                   <XCircle className="w-4 h-4 ml-2" />
-                  {dict.container.dialogs.confirmDecline}
+                  {suggestionsDict.container.dialogs.confirmDecline}
                 </>
               )}
             </AlertDialogAction>
