@@ -63,7 +63,7 @@ export type ValuePropositionDict = {
 };
 
 // --- Our Method Section ---
-type WorldDict = {
+export type WorldDict = {
   title: string;
   shortDesc: string;
   fullDescription: string;
