@@ -546,7 +546,12 @@ export type Dictionary = {
     matchmakerPage: MatchmakerPageDictionary;
 
 };
-
+export type {
+  SuggestionsDictionary,
+  QuestionnaireDictionary,
+  ProfilePageDictionary,
+  MatchmakerPageDictionary,
+};
 
 export type SuggestionsPresentationDict = {
   hero: {

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -9,33 +9,32 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import { Loader2, UserPlus, X, UploadCloud, Trash2 } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import Image from "next/image";
-import { Gender } from "@prisma/client";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { Loader2, UserPlus, X, UploadCloud, Trash2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import Image from 'next/image';
+import { Gender } from '@prisma/client';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/date-picker";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@/components/ui/radio-group";
+} from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 interface AddManualCandidateDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onCandidateAdded: () => void;
+  dict: MatchmakerPageDictionary['candidatesManager']['addManualCandidateDialog'];
 }
 
 const MAX_IMAGES = 5;
@@ -43,35 +42,35 @@ const MAX_IMAGE_SIZE_MB = 5;
 
 export const AddManualCandidateDialog: React.FC<
   AddManualCandidateDialogProps
-> = ({ isOpen, onClose, onCandidateAdded }) => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
+> = ({ isOpen, onClose, onCandidateAdded, dict }) => {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
   const [gender, setGender] = useState<Gender | undefined>(undefined);
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
-  const [manualEntryText, setManualEntryText] = useState("");
+  const [manualEntryText, setManualEntryText] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [sendInvite, setSendInvite] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [birthDateInputMode, setBirthDateInputMode] = useState<"date" | "age">(
-    "date"
+  const [birthDateInputMode, setBirthDateInputMode] = useState<'date' | 'age'>(
+    'date'
   );
-  const [ageInput, setAgeInput] = useState<string>("");
+  const [ageInput, setAgeInput] = useState<string>('');
 
   const resetForm = useCallback(() => {
-    setFirstName("");
-    setLastName("");
-    setEmail("");
+    setFirstName('');
+    setLastName('');
+    setEmail('');
     setGender(undefined);
     setBirthDate(undefined);
-    setManualEntryText("");
+    setManualEntryText('');
     setImages([]);
     setImagePreviews([]);
     setSendInvite(false);
     setIsSaving(false);
-    setBirthDateInputMode("date");
-    setAgeInput("");
+    setBirthDateInputMode('date');
+    setAgeInput('');
   }, []);
 
   const handleClose = () => {
@@ -92,11 +91,18 @@ export const AddManualCandidateDialog: React.FC<
             validPreviews.push(URL.createObjectURL(file));
           } else {
             toast.error(
-              `הקובץ ${file.name} גדול מדי (מקסימום ${MAX_IMAGE_SIZE_MB}MB).`
+              dict.fields.photos.fileTooLargeError
+                .replace('{{fileName}}', file.name)
+                .replace('{{maxSize}}', String(MAX_IMAGE_SIZE_MB))
             );
           }
         } else {
-          toast.warning(`ניתן להעלות עד ${MAX_IMAGES} תמונות.`);
+          toast.warning(
+            dict.fields.photos.maxFilesWarning.replace(
+              '{{max}}',
+              String(MAX_IMAGES)
+            )
+          );
         }
       });
 
@@ -106,10 +112,8 @@ export const AddManualCandidateDialog: React.FC<
   };
 
   const removeImage = (index: number) => {
-    const newImages = images.filter((_, i) => i !== index);
-    const newImagePreviews = imagePreviews.filter((_, i) => i !== index);
-    setImages(newImages);
-    setImagePreviews(newImagePreviews);
+    setImages(images.filter((_, i) => i !== index));
+    setImagePreviews(imagePreviews.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -117,96 +121,82 @@ export const AddManualCandidateDialog: React.FC<
     setIsSaving(true);
 
     if (!firstName || !lastName || !gender || !manualEntryText) {
-      toast.error(
-        "נא למלא את כל שדות החובה: שם פרטי, שם משפחה, מין וטקסט חופשי."
-      );
+      toast.error(dict.toasts.error.missingFields);
       setIsSaving(false);
       return;
     }
 
     let finalBirthDate: Date | undefined;
-    let isBirthDateApproximate: boolean = false;
+    let isBirthDateApproximate = false;
 
-    if (birthDateInputMode === "date") {
+    if (birthDateInputMode === 'date') {
       if (!birthDate) {
-        toast.error("נא לבחור תאריך לידה.");
+        toast.error(dict.toasts.error.invalidBirthDate);
         setIsSaving(false);
         return;
       }
       finalBirthDate = birthDate;
-      isBirthDateApproximate = false;
     } else {
       const ageNum = parseInt(ageInput, 10);
       if (isNaN(ageNum) || ageNum <= 0 || ageNum > 120) {
-        toast.error("נא להזין גיל תקין (בין 1 ל-120).");
+        toast.error(dict.toasts.error.invalidAge);
         setIsSaving(false);
         return;
       }
-      const currentYear = new Date().getFullYear();
-      const birthYear = currentYear - ageNum;
+      const birthYear = new Date().getFullYear() - ageNum;
       finalBirthDate = new Date(birthYear, 0, 1);
       isBirthDateApproximate = true;
     }
 
-    if (!finalBirthDate) {
-        toast.error("שגיאה בקביעת תאריך לידה. נא לבדוק את הקלט.");
-        setIsSaving(false);
-        return;
-    }
-
     const formData = new FormData();
-    formData.append("firstName", firstName);
-    formData.append("lastName", lastName);
-    if (email) formData.append("email", email);
-    formData.append("gender", gender);
-    formData.append("birthDate", finalBirthDate.toISOString());
-    formData.append("birthDateIsApproximate", String(isBirthDateApproximate));
-    formData.append("manualEntryText", manualEntryText);
-    images.forEach((image) => {
-      formData.append("images", image);
-    });
+    formData.append('firstName', firstName);
+    formData.append('lastName', lastName);
+    if (email) formData.append('email', email);
+    formData.append('gender', gender);
+    formData.append('birthDate', finalBirthDate.toISOString());
+    formData.append('birthDateIsApproximate', String(isBirthDateApproximate));
+    formData.append('manualEntryText', manualEntryText);
+    images.forEach((image) => formData.append('images', image));
 
     try {
-      const response = await fetch("/api/matchmaker/candidates/manual", {
-        method: "POST",
+      const response = await fetch('/api/matchmaker/candidates/manual', {
+        method: 'POST',
         body: formData,
       });
-
       const result = await response.json();
+      if (!response.ok || !result.success)
+        throw new Error(result.error || dict.toasts.error.general);
 
-      if (response.ok && result.success) {
-        if (sendInvite && email && result.candidate?.id) {
-           const promise = fetch(`/api/matchmaker/candidates/${result.candidate.id}/invite-setup`, {
-               method: 'POST',
-               headers: { 'Content-Type': 'application/json' },
-               body: JSON.stringify({ email }),
-           }).then(async (inviteResponse) => {
-               if (!inviteResponse.ok) {
-                   const errorData = await inviteResponse.json().catch(() => ({}));
-                   throw new Error(errorData.error || 'שליחת ההזמנה נכשלה.');
-               }
-               return inviteResponse.json();
-           });
-
-           toast.promise(promise, {
-               loading: 'מוסיף מועמד ושולח הזמנה...',
-               success: 'המועמד נוסף וההזמנה נשלחה בהצלחה!',
-               error: (err: Error) => `המועמד נוסף, אך שליחת ההזמנה נכשלה: ${err.message}`,
-           });
-        } else {
-            toast.success("המועמד הידני נוסף בהצלחה!");
-        }
-
-        onCandidateAdded();
-        handleClose();
+      if (sendInvite && email && result.candidate?.id) {
+        const promise = fetch(
+          `/api/matchmaker/candidates/${result.candidate.id}/invite-setup`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          }
+        ).then(async (inviteResponse) => {
+          if (!inviteResponse.ok) {
+            const errorData = await inviteResponse.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Invitation failed');
+          }
+          return inviteResponse.json();
+        });
+        toast.promise(promise, {
+          loading: dict.toasts.success.inviteLoading,
+          success: dict.toasts.success.inviteSent,
+          error: (err: Error) =>
+            dict.toasts.success.inviteError.replace('{{error}}', err.message),
+        });
       } else {
-        throw new Error(result.error || "שגיאה בהוספת המועמד.");
+        toast.success(dict.toasts.success.candidateAdded);
       }
+      onCandidateAdded();
+      handleClose();
     } catch (error) {
-      console.error("Error adding manual candidate:", error);
+      console.error('Error adding manual candidate:', error);
       toast.error(
-        "שגיאה בהוספת המועמד: " +
-          (error instanceof Error ? error.message : "שגיאה לא ידועה")
+        `${dict.toasts.error.general}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     } finally {
       setIsSaving(false);
@@ -214,25 +204,28 @@ export const AddManualCandidateDialog: React.FC<
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+      }}
+    >
       <DialogContent className="max-w-2xl">
         <DialogClose asChild>
-          <button className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground p-1">
+          <button className="absolute right-4 top-4 p-1 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
             <X className="h-4 w-4" />
-            <span className="sr-only">סגור</span>
+            <span className="sr-only">{dict.close}</span>
           </button>
         </DialogClose>
-
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-right">
             <UserPlus className="w-6 h-6 text-primary" />
-            הוספת מועמד ידנית
+            {dict.title}
           </DialogTitle>
           <DialogDescription className="text-right">
-            הזן את פרטי המועמד שברצונך להוסיף למערכת באופן ידני.
+            {dict.description}
           </DialogDescription>
         </DialogHeader>
-
         <form
           onSubmit={handleSubmit}
           className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-2 pl-1"
@@ -240,49 +233,49 @@ export const AddManualCandidateDialog: React.FC<
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="firstName" className="text-right block">
-                שם פרטי <span className="text-red-500">*</span>
+                {dict.fields.firstName.label}{' '}
+                <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="firstName"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="לדוגמה: ישראל"
+                placeholder={dict.fields.firstName.placeholder}
                 required
                 dir="rtl"
               />
             </div>
             <div>
               <Label htmlFor="lastName" className="text-right block">
-                שם משפחה <span className="text-red-500">*</span>
+                {dict.fields.lastName.label}{' '}
+                <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="lastName"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                placeholder="לדוגמה: ישראלי"
+                placeholder={dict.fields.lastName.placeholder}
                 required
                 dir="rtl"
               />
             </div>
           </div>
-
           <div>
             <Label htmlFor="email" className="text-right block">
-              כתובת אימייל (אופציונלי)
+              {dict.fields.email.label}
             </Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="לדוגמה: user@example.com"
+              placeholder={dict.fields.email.placeholder}
               dir="ltr"
             />
             <p className="text-xs text-gray-500 mt-1 text-right">
-              אם לא תסופק כתובת אימייל, תיווצר כתובת פנימית עבור המערכת.
+              {dict.fields.email.description}
             </p>
           </div>
-
           <div className="flex items-center space-x-2 rtl:space-x-reverse pt-2">
             <Checkbox
               id="sendInvite"
@@ -294,116 +287,116 @@ export const AddManualCandidateDialog: React.FC<
               htmlFor="sendInvite"
               className={`cursor-pointer transition-colors ${!email ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700'}`}
             >
-              שלח הזמנה למועמד/ת להגדרת חשבון לאחר ההוספה
+              {dict.fields.sendInvite.label}
             </Label>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="gender" className="text-right block">
-                מין <span className="text-red-500">*</span>
+                {dict.fields.gender.label}{' '}
+                <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={gender}
                 onValueChange={(value) => setGender(value as Gender)}
               >
                 <SelectTrigger id="gender" dir="rtl">
-                  <SelectValue placeholder="בחר/י מין" />
+                  <SelectValue placeholder={dict.fields.gender.placeholder} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={Gender.MALE}>זכר</SelectItem>
-                  <SelectItem value={Gender.FEMALE}>נקבה</SelectItem>
+                  <SelectItem value={Gender.MALE}>
+                    {dict.fields.gender.male}
+                  </SelectItem>
+                  <SelectItem value={Gender.FEMALE}>
+                    {dict.fields.gender.female}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
             <div>
               <div>
                 <Label className="text-right block mb-2">
-                  אופן הזנת גיל/תאריך לידה <span className="text-red-500">*</span>
+                  {dict.fields.birthDate.modeLabel}{' '}
+                  <span className="text-red-500">*</span>
                 </Label>
                 <RadioGroup
                   dir="rtl"
                   value={birthDateInputMode}
-                  onValueChange={(value: "date" | "age") => {
-                    setBirthDateInputMode(value);
-                    if (value === "date") {
-                      setAgeInput("");
-                    } else {
-                      setBirthDate(undefined);
-                    }
-                  }}
+                  onValueChange={(value: 'date' | 'age') =>
+                    setBirthDateInputMode(value)
+                  }
                   className="flex space-x-4 rtl:space-x-reverse mb-3"
                 >
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <RadioGroupItem value="date" id="r-date" />
-                    <Label htmlFor="r-date" className="cursor-pointer">לפי תאריך לידה</Label>
+                    <Label htmlFor="r-date" className="cursor-pointer">
+                      {dict.fields.birthDate.dateMode}
+                    </Label>
                   </div>
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <RadioGroupItem value="age" id="r-age" />
-                    <Label htmlFor="r-age" className="cursor-pointer">לפי גיל</Label>
+                    <Label htmlFor="r-age" className="cursor-pointer">
+                      {dict.fields.birthDate.ageMode}
+                    </Label>
                   </div>
                 </RadioGroup>
               </div>
-
-              {birthDateInputMode === "date" ? (
+              {birthDateInputMode === 'date' ? (
                 <div>
                   <Label htmlFor="birthDate" className="text-right block">
-                    תאריך לידה <span className="text-red-500">*</span>
+                    {dict.fields.birthDate.dateLabel}{' '}
+                    <span className="text-red-500">*</span>
                   </Label>
                   <DatePicker
-                    value={
-                      birthDate ? { from: birthDate, to: undefined } : undefined
-                    }
+                    value={birthDate ? { from: birthDate } : undefined}
                     onChange={({ from }) => setBirthDate(from)}
                     isRange={false}
-                    placeholder="בחר תאריך לידה"
+                    placeholder={dict.fields.birthDate.datePlaceholder}
                     className="w-full"
                   />
                 </div>
               ) : (
                 <div>
                   <Label htmlFor="ageInput" className="text-right block">
-                    גיל (משוער) <span className="text-red-500">*</span>
+                    {dict.fields.birthDate.ageLabel}{' '}
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="ageInput"
                     type="number"
                     value={ageInput}
                     onChange={(e) => setAgeInput(e.target.value)}
-                    placeholder="לדוגמה: 25"
-                    required={birthDateInputMode === "age"}
+                    placeholder={dict.fields.birthDate.agePlaceholder}
+                    required={birthDateInputMode === 'age'}
                     dir="rtl"
                     min="1"
                     max="120"
                   />
-                   <p className="text-xs text-gray-500 mt-1 text-right">
-                    יוזן תאריך לידה משוער (1 בינואר של שנת הלידה) בהתאם לגיל שהוזן.
+                  <p className="text-xs text-gray-500 mt-1 text-right">
+                    {dict.fields.birthDate.ageDescription}
                   </p>
                 </div>
               )}
             </div>
           </div>
-
           <div>
             <Label htmlFor="manualEntryText" className="text-right block">
-              טקסט חופשי על המועמד <span className="text-red-500">*</span>
+              {dict.fields.notes.label} <span className="text-red-500">*</span>
             </Label>
             <Textarea
               id="manualEntryText"
               value={manualEntryText}
               onChange={(e) => setManualEntryText(e.target.value)}
-              placeholder="ספר על המועמד, רקע, תכונות, מה מחפש/ת וכו'..."
+              placeholder={dict.fields.notes.placeholder}
               rows={6}
               required
               className="min-h-[100px]"
               dir="rtl"
             />
           </div>
-
           <div>
             <Label htmlFor="image-upload" className="text-right block">
-              תמונות (עד {MAX_IMAGES})
+              {dict.fields.photos.label.replace('{{max}}', String(MAX_IMAGES))}
             </Label>
             <div className="mt-2 flex items-center justify-center w-full">
               <label
@@ -413,10 +406,13 @@ export const AddManualCandidateDialog: React.FC<
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <UploadCloud className="w-8 h-8 mb-2 text-gray-500" />
                   <p className="mb-2 text-sm text-gray-500 text-center">
-                    גרור ושחרר תמונות לכאן, או לחץ לבחירה
+                    {dict.fields.photos.cta}
                   </p>
                   <p className="text-xs text-gray-500">
-                    PNG, JPG, WEBP (עד {MAX_IMAGE_SIZE_MB}MB לתמונה)
+                    {dict.fields.photos.description.replace(
+                      '{{maxSize}}',
+                      String(MAX_IMAGE_SIZE_MB)
+                    )}
                   </p>
                 </div>
                 <Input
@@ -436,11 +432,14 @@ export const AddManualCandidateDialog: React.FC<
                   <div key={index} className="relative group">
                     <Image
                       src={preview}
-                      alt={`תצוגה מקדימה ${index + 1}`}
+                      alt={dict.fields.photos.previewAlt.replace(
+                        '{{index}}',
+                        String(index + 1)
+                      )}
                       width={100}
                       height={100}
                       className="rounded-md object-cover w-full aspect-square"
-                      onLoad={() => URL.revokeObjectURL(preview)} // Clean up object URLs
+                      onLoad={() => URL.revokeObjectURL(preview)}
                     />
                     <Button
                       type="button"
@@ -450,27 +449,36 @@ export const AddManualCandidateDialog: React.FC<
                       onClick={() => removeImage(index)}
                     >
                       <Trash2 className="h-3 w-3" />
-                      <span className="sr-only">הסר תמונה</span>
+                      <span className="sr-only">
+                        {dict.fields.photos.removeLabel}
+                      </span>
                     </Button>
                   </div>
                 ))}
               </div>
             )}
           </div>
-
           <DialogFooter className="pt-4 sm:justify-start">
-            <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
+            <Button
+              type="submit"
+              disabled={isSaving}
+              className="w-full sm:w-auto"
+            >
               {isSaving ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
                 <UserPlus className="w-4 h-4 mr-2" />
               )}
-              {isSaving ? "שומר..." : "הוסף מועמד"}
+              {isSaving ? dict.buttons.adding : dict.buttons.add}
             </Button>
             <DialogClose asChild>
-              <Button variant="outline" type="button" className="w-full sm:w-auto mt-2 sm:mt-0">
+              <Button
+                variant="outline"
+                type="button"
+                className="w-full sm:w-auto mt-2 sm:mt-0"
+              >
                 <X className="w-4 h-4 mr-2" />
-                ביטול
+                {dict.buttons.cancel}
               </Button>
             </DialogClose>
           </DialogFooter>

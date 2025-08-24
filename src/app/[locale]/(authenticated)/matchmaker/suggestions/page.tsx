@@ -1,8 +1,13 @@
+// src/app/[locale]/matchmaker/dashboard/page.tsx
 
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../../i18n-config';
-// ✅ 1. ייבא את רכיב הלקוח החדש שיצרת
-import MatchmakerDashboardPageClient from './MatchmakerDashboardPageClient'; 
+import MatchmakerDashboardPageClient from './MatchmakerDashboardPageClient';
+import type {
+  MatchmakerPageDictionary,
+  SuggestionsDictionary,
+  ProfilePageDictionary,
+} from '@/types/dictionary';
 
 // זהו רכיב שרת (Server Component).
 export default async function SuggestionsPage({
@@ -10,9 +15,15 @@ export default async function SuggestionsPage({
 }: {
   params: { locale: Locale };
 }) {
-  // 2. טוענים את המילון המלא כאן, בצד השרת.
+  // 1. טוענים את המילון המלא כאן, בצד השרת.
   const dictionary = await getDictionary(locale);
 
-  // 3. קוראים לרכיב הלקוח ומעבירים לו את החלק הרלוונטי של המילון כ-prop.
-  return <MatchmakerDashboardPageClient dict={dictionary.suggestions} />;
+  // ✅ 2. קוראים לרכיב הלקוח ומעבירים לו את המילונים כ-props נפרדים.
+  return (
+    <MatchmakerDashboardPageClient
+      suggestionsDict={dictionary.suggestions as SuggestionsDictionary}
+      matchmakerDict={dictionary.matchmakerPage as MatchmakerPageDictionary}
+      profileDict={dictionary.profilePage as ProfilePageDictionary}
+    />
+  );
 }

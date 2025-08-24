@@ -5,9 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import {
-  CheckCircle,
   AlertCircle,
-  XCircle,
   Heart,
   Star,
   Sparkles,
@@ -18,48 +16,50 @@ import {
   Zap,
   Target,
   Trophy,
-  Flame,
   Gift,
 } from 'lucide-react';
 import { calculateMatchScore } from '../utils/matchingAlgorithm';
 import type { Candidate } from '../../new/types/candidates';
 import type { MatchScore } from '../utils/matchingAlgorithm';
 import { cn } from '@/lib/utils';
+import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
 interface MatchPreviewProps {
+  dict: MatchmakerPageDictionary['newSuggestionForm']['matchPreview'];
   firstParty: Candidate;
   secondParty: Candidate;
   className?: string;
 }
 
 const MatchCriteriaCard: React.FC<{
+  dict: MatchmakerPageDictionary['newSuggestionForm']['matchPreview'];
   criterion: {
     name: string;
     score: number;
     reason?: string;
   };
   index: number;
-}> = ({ criterion, index }) => {
+}> = ({ dict, criterion, index }) => {
   const getCriterionInfo = (name: string) => {
     switch (name) {
       case 'age':
         return {
           icon: Target,
-          label: 'גיל',
+          label: dict.criteria.age,
           color: 'from-blue-500 to-cyan-500',
           bgColor: 'from-blue-50 to-cyan-50',
         };
       case 'location':
         return {
           icon: Crown,
-          label: 'מיקום',
+          label: dict.criteria.location,
           color: 'from-green-500 to-emerald-500',
           bgColor: 'from-green-50 to-emerald-50',
         };
       case 'religious':
         return {
           icon: Sparkles,
-          label: 'רמה דתית',
+          label: dict.criteria.religious,
           color: 'from-purple-500 to-pink-500',
           bgColor: 'from-purple-50 to-pink-50',
         };
@@ -80,25 +80,33 @@ const MatchCriteriaCard: React.FC<{
   const getScoreCategory = (score: number) => {
     if (score >= 0.9)
       return {
-        label: 'מושלם',
+        label: dict.scoreCategories.perfect,
         color: 'text-emerald-600',
         bgColor: 'bg-emerald-100',
       };
     if (score >= 0.8)
       return {
-        label: 'מצוין',
+        label: dict.scoreCategories.excellent,
         color: 'text-green-600',
         bgColor: 'bg-green-100',
       };
     if (score >= 0.7)
-      return { label: 'טוב', color: 'text-blue-600', bgColor: 'bg-blue-100' };
+      return {
+        label: dict.scoreCategories.good,
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-100',
+      };
     if (score >= 0.5)
       return {
-        label: 'בינוני',
+        label: dict.scoreCategories.medium,
         color: 'text-yellow-600',
         bgColor: 'bg-yellow-100',
       };
-    return { label: 'נמוך', color: 'text-red-600', bgColor: 'bg-red-100' };
+    return {
+      label: dict.scoreCategories.low,
+      color: 'text-red-600',
+      bgColor: 'bg-red-100',
+    };
   };
 
   const scoreCategory = getScoreCategory(criterion.score);
@@ -116,14 +124,12 @@ const MatchCriteriaCard: React.FC<{
         animationFillMode: 'both',
       }}
     >
-      {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-white/30 to-transparent rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
       </div>
 
       <div className="relative z-10 p-6 space-y-4">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
@@ -148,15 +154,15 @@ const MatchCriteriaCard: React.FC<{
           </Badge>
         </div>
 
-        {/* Score visualization */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-600">התאמה</span>
+            <span className="text-sm font-medium text-gray-600">
+              {dict.scoreLabel}
+            </span>
             <span className="text-2xl font-bold text-gray-800">
               {scorePercentage}%
             </span>
           </div>
-
           <div className="relative">
             <Progress
               value={scorePercentage}
@@ -166,7 +172,6 @@ const MatchCriteriaCard: React.FC<{
           </div>
         </div>
 
-        {/* Reason */}
         {criterion.reason && (
           <div className="p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 shadow-inner">
             <p className="text-sm text-gray-700 leading-relaxed font-medium">
@@ -180,11 +185,11 @@ const MatchCriteriaCard: React.FC<{
 };
 
 const MatchPreview: React.FC<MatchPreviewProps> = ({
+  dict,
   firstParty,
   secondParty,
   className,
 }) => {
-  // Calculate match score using the existing algorithm
   const matchScore: MatchScore | null = calculateMatchScore(
     firstParty.profile,
     secondParty.profile
@@ -205,16 +210,13 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
             </div>
             <div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">
-                לא ניתן לחשב התאמה
+                {dict.errorState.title}
               </h3>
-              <p className="text-gray-600">
-                חסרים נתונים חיוניים לחישוב ההתאמה
-              </p>
+              <p className="text-gray-600">{dict.errorState.description}</p>
             </div>
             <div className="p-4 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-2xl border border-yellow-200">
               <p className="text-sm text-yellow-800 font-medium">
-                אנא ודא שלשני המועמדים יש פרופיל מלא עם תאריך לידה, עיר מגורים
-                ורמה דתית
+                {dict.errorState.suggestion}
               </p>
             </div>
           </div>
@@ -223,57 +225,48 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
     );
   }
 
-  // Determine match quality with enhanced categories
   const getMatchQuality = (score: number) => {
-    if (score >= 95)
-      return {
+    const qualityMap = {
+      perfect: {
         icon: Crown,
-        color: 'text-purple-600',
         bgGradient: 'from-purple-500 to-pink-500',
         bgColor: 'from-purple-50 to-pink-50',
-        text: 'התאמה מושלמת',
-        description: 'זוג אידיאלי עם התאמה יוצאת דופן!',
         animation: 'animate-pulse',
-      };
-    if (score >= 85)
-      return {
+      },
+      excellent: {
         icon: Gem,
-        color: 'text-emerald-600',
         bgGradient: 'from-emerald-500 to-green-500',
         bgColor: 'from-emerald-50 to-green-50',
-        text: 'התאמה מעולה',
-        description: 'זוג עם פוטנציאל גבוה להצלחה',
         animation: '',
-      };
-    if (score >= 75)
-      return {
+      },
+      good: {
         icon: Trophy,
-        color: 'text-blue-600',
         bgGradient: 'from-blue-500 to-cyan-500',
         bgColor: 'from-blue-50 to-cyan-50',
-        text: 'התאמה טובה',
-        description: 'התאמה איכותית עם סיכויים טובים',
         animation: '',
-      };
-    if (score >= 60)
-      return {
+      },
+      medium: {
         icon: Star,
-        color: 'text-yellow-600',
         bgGradient: 'from-yellow-500 to-amber-500',
         bgColor: 'from-yellow-50 to-amber-50',
-        text: 'התאמה בינונית',
-        description: 'יש פוטנציאל, שווה לבדוק',
         animation: '',
-      };
-    return {
-      icon: AlertCircle,
-      color: 'text-red-600',
-      bgGradient: 'from-red-500 to-pink-500',
-      bgColor: 'from-red-50 to-pink-50',
-      text: 'התאמה נמוכה',
-      description: 'התאמה מוגבלת, יש לשקול בזהירות',
-      animation: '',
+      },
+      low: {
+        icon: AlertCircle,
+        bgGradient: 'from-red-500 to-pink-500',
+        bgColor: 'from-red-50 to-pink-50',
+        animation: '',
+      },
     };
+
+    if (score >= 95)
+      return { ...dict.qualityLevels.perfect, ...qualityMap.perfect };
+    if (score >= 85)
+      return { ...dict.qualityLevels.excellent, ...qualityMap.excellent };
+    if (score >= 75) return { ...dict.qualityLevels.good, ...qualityMap.good };
+    if (score >= 60)
+      return { ...dict.qualityLevels.medium, ...qualityMap.medium };
+    return { ...dict.qualityLevels.low, ...qualityMap.low };
   };
 
   const quality = getMatchQuality(matchScore.score);
@@ -288,7 +281,6 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
         className
       )}
     >
-      {/* Animated background */}
       <div className="absolute inset-0">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-3xl animate-float"></div>
         <div
@@ -302,7 +294,6 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
       </div>
 
       <CardContent className="relative z-10 p-8 space-y-8">
-        {/* Header Section */}
         <div className="text-center space-y-6">
           <div className="flex items-center justify-center">
             <div
@@ -315,15 +306,12 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
               <Icon className="w-12 h-12" />
             </div>
           </div>
-
           <div className="space-y-2">
             <h2 className="text-3xl font-bold text-gray-800">{quality.text}</h2>
             <p className="text-lg text-gray-600 leading-relaxed">
               {quality.description}
             </p>
           </div>
-
-          {/* Score display */}
           <div className="relative">
             <div className="flex items-center justify-center gap-4 mb-4">
               <div className="text-center">
@@ -331,12 +319,10 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
                   {Math.round(matchScore.score)}%
                 </div>
                 <p className="text-sm font-medium text-gray-600 mt-1">
-                  ציון התאמה כללי
+                  {dict.generalScoreLabel}
                 </p>
               </div>
             </div>
-
-            {/* Progress Ring */}
             <div className="relative w-32 h-32 mx-auto">
               <svg
                 className="w-32 h-32 transform -rotate-90"
@@ -383,36 +369,34 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
             </div>
           </div>
         </div>
-
-        {/* Match Criteria Section */}
         <div className="space-y-6">
           <div className="text-center">
             <h3 className="text-2xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
               <TrendingUp className="w-6 h-6 text-purple-500" />
-              פירוט קריטריונים
+              {dict.criteriaSection.title}
             </h3>
-            <p className="text-gray-600">ניתוח מפורט של רמות ההתאמה השונות</p>
+            <p className="text-gray-600">{dict.criteriaSection.description}</p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {matchScore.criteria.map((criterion, index) => (
               <div key={criterion.name} className="animate-fade-in-up">
-                <MatchCriteriaCard criterion={criterion} index={index} />
+                <MatchCriteriaCard
+                  dict={dict}
+                  criterion={criterion}
+                  index={index}
+                />
               </div>
             ))}
           </div>
         </div>
-
-        {/* Match Reasons Section */}
         {matchScore.reasons.length > 0 && (
           <div className="space-y-4">
             <div className="text-center">
               <h4 className="text-xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
                 <Heart className="w-5 h-5 text-red-500" />
-                סיבות להתאמה
+                {dict.reasonsSection.title}
               </h4>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {matchScore.reasons.map((reason, index) => (
                 <div
@@ -434,8 +418,6 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
             </div>
           </div>
         )}
-
-        {/* Summary Card */}
         <div className="p-6 bg-white/70 backdrop-blur-sm rounded-2xl border border-white/50 shadow-xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -443,36 +425,42 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
                 <Award className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="text-lg font-bold text-gray-800">סיכום התאמה</h4>
-                <p className="text-gray-600">המלצה מבוססת ניתוח</p>
+                <h4 className="text-lg font-bold text-gray-800">
+                  {dict.summary.title}
+                </h4>
+                <p className="text-gray-600">{dict.summary.description}</p>
               </div>
             </div>
-
             <div className="text-right">
               <div className="flex items-center gap-2">
                 {matchScore.score >= 80 ? (
                   <>
                     <Zap className="w-5 h-5 text-green-500" />
                     <span className="font-bold text-green-600">
-                      מומלץ בחום!
+                      {dict.summary.recommendations.high}
                     </span>
                   </>
                 ) : matchScore.score >= 60 ? (
                   <>
                     <Star className="w-5 h-5 text-blue-500" />
-                    <span className="font-bold text-blue-600">שווה לנסות</span>
+                    <span className="font-bold text-blue-600">
+                      {dict.summary.recommendations.medium}
+                    </span>
                   </>
                 ) : (
                   <>
                     <AlertCircle className="w-5 h-5 text-yellow-500" />
                     <span className="font-bold text-yellow-600">
-                      צריך שיקול
+                      {dict.summary.recommendations.low}
                     </span>
                   </>
                 )}
               </div>
               <p className="text-sm text-gray-500 mt-1">
-                מבוסס על {matchScore.criteria.length} קריטריונים
+                {dict.summary.basedOn.replace(
+                  '{{count}}',
+                  matchScore.criteria.length.toString()
+                )}
               </p>
             </div>
           </div>

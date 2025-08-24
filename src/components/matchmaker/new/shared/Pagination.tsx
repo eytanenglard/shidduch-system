@@ -1,6 +1,5 @@
 // /shared/Pagination.tsx
-"use client";
-
+'use client';
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
@@ -10,13 +9,14 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { 
-  ChevronRight, 
+} from '@/components/ui/select';
+import {
+  ChevronRight,
   ChevronLeft,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
 } from 'lucide-react';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 interface PaginationProps {
   currentPage: number;
@@ -26,6 +26,7 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
   className?: string;
+  dict: MatchmakerPageDictionary['pagination'];
 }
 
 const pageSizeOptions = [10, 20, 50, 100];
@@ -37,13 +38,14 @@ const Pagination: React.FC<PaginationProps> = ({
   totalItems,
   onPageChange,
   onPageSizeChange,
-  className
+  className,
+  dict,
 }) => {
   // Helper to generate page numbers array
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
@@ -72,17 +74,23 @@ const Pagination: React.FC<PaginationProps> = ({
     // Always show last page
     if (totalPages > 1) pages.push(totalPages);
 
+    // --- התיקון כאן ---
     return pages;
   };
 
   const startItem = (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalItems);
+  const resultsText = dict.results
+    .replace('{{start}}', String(startItem))
+    .replace('{{end}}', String(endItem))
+    .replace('{{total}}', String(totalItems));
 
   return (
-    <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 ${className}`}>
-      {/* Page Size Selector */}
+    <div
+      className={`flex flex-col sm:flex-row items-center justify-between gap-4 ${className}`}
+    >
       <div className="flex items-center gap-2 text-sm text-gray-600">
-        <span>הצג</span>
+        <span>{dict.show}</span>
         <Select
           value={pageSize.toString()}
           onValueChange={(value) => onPageSizeChange(Number(value))}
@@ -91,22 +99,18 @@ const Pagination: React.FC<PaginationProps> = ({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {pageSizeOptions.map(size => (
+            {pageSizeOptions.map((size) => (
               <SelectItem key={size} value={size.toString()}>
                 {size}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <span>שורות</span>
+        <span>{dict.rows}</span>
       </div>
 
-      {/* Results Count */}
-      <div className="text-sm text-gray-600">
-        מציג {startItem}-{endItem} מתוך {totalItems} תוצאות
-      </div>
+      <div className="text-sm text-gray-600">{resultsText}</div>
 
-      {/* Page Navigation */}
       <div className="flex items-center gap-1">
         <Button
           variant="outline"
@@ -116,7 +120,6 @@ const Pagination: React.FC<PaginationProps> = ({
         >
           <ChevronsRight className="h-4 w-4" />
         </Button>
-
         <Button
           variant="outline"
           size="icon"
@@ -125,12 +128,11 @@ const Pagination: React.FC<PaginationProps> = ({
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
-
-        {getPageNumbers().map((page, index) => (
+        {getPageNumbers().map((page, index) =>
           typeof page === 'number' ? (
             <Button
               key={index}
-              variant={currentPage === page ? "default" : "outline"}
+              variant={currentPage === page ? 'default' : 'outline'}
               size="sm"
               onClick={() => onPageChange(page)}
               className="hidden sm:inline-flex min-w-[32px]"
@@ -142,8 +144,7 @@ const Pagination: React.FC<PaginationProps> = ({
               {page}
             </span>
           )
-        ))}
-
+        )}
         <Button
           variant="outline"
           size="icon"
@@ -152,7 +153,6 @@ const Pagination: React.FC<PaginationProps> = ({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-
         <Button
           variant="outline"
           size="icon"

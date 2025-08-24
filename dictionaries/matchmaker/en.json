@@ -76,52 +76,281 @@
         "maleTarget": "Male Candidates",
         "femaleTarget": "Female Candidates"
       }
-    },
-    "activeFilters": {
-      "title": "Active Filters",
-      "filterActive": "1 filter active",
-      "filtersActive": "{{count}} filters active",
-      "suggestButton": "Suggest More Filters",
-      "suggestTooltip": "Suggest additional filters based on current results",
-      "clearAllButton": "Clear All",
-      "clearAllTooltip": "Clear all active filters",
-      "labels": {
-        "search": "Search: {{query}}",
-        "maleSearch": "Male Search: {{query}}",
-        "femaleSearch": "Female Search: {{query}}",
-        "separateFiltering": "Separate Filtering",
-        "gender": "Gender: {{gender}}",
-        "genders": {
-          "MALE": "Men",
-          "FEMALE": "Women"
-        },
-        "age": "Age: {{min}}-{{max}}",
-        "ageAbove": "Age: Over {{min}}",
-        "ageBelow": "Age: Up to {{max}}",
-        "height": "Height: {{min}}-{{max}} cm",
-        "heightAbove": "Height: Over {{min}} cm",
-        "heightBelow": "Height: Up to {{max}} cm",
-        "religiousLevel": "Religious Level: {{level}}",
-        "educationLevel": "Education: {{level}}",
-        "city": "City: {{city}}",
-        "occupation": "Occupation: {{occupation}}",
-        "status": "Status: {{status}}",
-        "maritalStatus": "Marital Status: {{status}}",
-        "verifiedOnly": "Verified Only",
-        "withRecommendations": "With Recommendations",
-        "fullProfile": "Full Profile",
-        "activeToday": "Active Today",
-        "activeLast3Days": "Active in last 3 days",
-        "activeLast7Days": "Active in last 7 days",
-        "activeLast30Days": "Active in last 30 days",
-        "activeInDays": "Active in last {{days}} days"
+    }
+,
+    "editProfile": {
+      "deleteConfirmationPhrase": "I confirm deletion",
+      "toasts": {
+        "loadError": "Error loading candidate data",
+        "updateSuccess": "Candidate profile updated successfully",
+        "updateError": "Error updating candidate profile",
+        "uploadSuccessSingle": "Image uploaded successfully",
+        "uploadSuccessMultiple": "{{count}} images uploaded successfully",
+        "uploadError": "One or more images failed to upload",
+        "setMainSuccess": "Main image updated successfully",
+        "setMainError": "Error setting main image",
+        "deleteImageSuccessSingle": "Image deleted successfully",
+        "deleteImageSuccessMultiple": "{{count}} images deleted successfully",
+        "deleteImageError": "Error deleting images",
+        "deleteCandidateErrorConfirmation": "Invalid confirmation",
+        "deleteCandidateErrorDescription": "Please type '{{phrase}}' exactly to confirm deletion.",
+        "deleteCandidateSuccess": "Candidate deleted successfully",
+        "deleteCandidateError": "Error deleting candidate",
+        "sendInviteErrorEmail": "Please enter a valid email address.",
+        "sendInviteErrorGeneral": "Error sending invitation.",
+        "sendInviteSuccess": "Account setup invitation sent successfully!"
       },
-      "summary": {
-        "title": "Advanced filtering active - {{count}} criteria",
-        "highPriority": "{{count}} important",
-        "mediumPriority": "{{count}} medium"
+      "header": {
+        "title": "Edit Profile - {{firstName}} {{lastName}}",
+        "description": "Edit the candidate's details and preferences in the system",
+        "saving": "Saving changes..."
+      },
+      "tabs": {
+        "profile": "Personal Details",
+        "photos": "Photos",
+        "preferences": "Preferences"
+      },
+      "footer": {
+        "tabInfo": {
+          "profile": "Editing personal details",
+          "photos": "Managing photos",
+          "preferences": "Editing preferences"
+        },
+        "buttons": {
+          "sendInvite": "Send Account Management Invite",
+          "deleteCandidate": "Delete Candidate",
+          "close": "Close"
+        }
+      },
+      "inviteDialog": {
+        "title": "Invite Candidate to Manage Account",
+        "description": "Send an invitation to {{fullName}} to set a password and take control of the profile.",
+        "emailLabel": "Email Address",
+        "emailPlaceholder": "user@example.com",
+        "buttons": {
+          "cancel": "Cancel",
+          "send": "Send Invite",
+          "sending": "Sending..."
+        }
+      },
+      "deleteDialog": {
+        "title": "Confirm Candidate Deletion",
+        "description": "Are you sure you want to delete the candidate {{fullName}}?",
+        "irreversible": "This action is irreversible and will remove all candidate data from the system.",
+        "confirmationLabel": "To confirm deletion, please type: \"{{phrase}}\"",
+        "inputPlaceholder": "I confirm deletion",
+        "mismatchError": "The entered text does not match.",
+        "buttons": {
+          "cancel": "Cancel",
+          "delete": "Permanently Delete Candidate",
+          "deleting": "Deleting..."
+        }
       }
-    },
+    }
+,
+    "actionDialogs": {
+      "invite": {
+        "title": "Send Invitation to Candidate",
+        "description": "Send a personal invitation to join the system",
+        "emailLabel": "Email Address",
+        "emailPlaceholder": "Enter email address",
+        "successMessage": "Invitation sent successfully!",
+        "successDescription": "The candidate will receive an email notification",
+        "invalidEmailError": "Invalid email address",
+        "submissionError": "Error sending invitation",
+        "whatsNextTitle": "What happens after sending?",
+        "whatsNextItems": [
+          "The candidate will receive a personal email invitation",
+          "They can register and complete their details",
+          "You will be notified when the candidate joins"
+        ],
+        "buttons": {
+          "cancel": "Cancel",
+          "send": "Send Invite",
+          "sending": "Sending..."
+        }
+      },
+      "availability": {
+        "title": "Check Availability",
+        "description": "Check the candidate's availability for a meeting",
+        "successMessage": "Availability request sent!",
+        "successDescription": "The candidate will be notified and can update their availability",
+        "submissionError": "Error checking availability",
+        "whatsNextTitle": "What does the check include?",
+        "whatsNextItems": [
+          "Sending a notification to the candidate",
+          "A request to update their schedule",
+          "Option to coordinate a meeting",
+          "Update of availability status"
+        ],
+        "messageToSendTitle": "Message to be sent:",
+        "messageContent": "\"Hello {{firstName}}, the matchmaker wishes to check your availability for a meeting. Please update your schedule in the system.\"",
+        "buttons": {
+          "cancel": "Cancel",
+          "check": "Check Availability",
+          "checking": "Checking..."
+        }
+      },
+      "suggest": {
+        "title": "New Match Suggestion",
+        "description": "Create a custom match suggestion",
+        "whatsNextTitle": "Next Step",
+        "whatsNextDescription": "Click 'Continue' to open the full suggestion creation form with all the necessary options and details.",
+        "buttons": {
+          "cancel": "Cancel",
+          "continue": "Continue to Create Suggestion"
+        }
+      }
+    }
+,
+    "addManualCandidateDialog": {
+      "title": "Add Candidate Manually",
+      "description": "Enter the details of the candidate you want to add manually to the system.",
+      "close": "Close",
+      "fields": {
+        "firstName": {
+          "label": "First Name",
+          "placeholder": "e.g., Israel"
+        },
+        "lastName": {
+          "label": "Last Name",
+          "placeholder": "e.g., Israeli"
+        },
+        "email": {
+          "label": "Email Address (Optional)",
+          "placeholder": "e.g., user@example.com",
+          "description": "If no email is provided, an internal system address will be created."
+        },
+        "sendInvite": {
+          "label": "Send an invitation to the candidate to set up an account after adding",
+          "disabledTooltip": "An email address is required to send an invitation"
+        },
+        "gender": {
+          "label": "Gender",
+          "placeholder": "Select gender",
+          "male": "Male",
+          "female": "Female"
+        },
+        "birthDate": {
+          "modeLabel": "Age/Birth Date Entry Mode",
+          "dateMode": "By Birth Date",
+          "ageMode": "By Age",
+          "dateLabel": "Birth Date",
+          "datePlaceholder": "Select birth date",
+          "ageLabel": "Age (Approximate)",
+          "agePlaceholder": "e.g., 25",
+          "ageDescription": "An approximate birth date (Jan 1st of the birth year) will be entered based on the age provided."
+        },
+        "notes": {
+          "label": "Free Text about the Candidate",
+          "placeholder": "Describe the candidate, background, traits, what they are looking for, etc..."
+        },
+        "photos": {
+          "label": "Photos (up to {{max}})",
+          "cta": "Drag & drop photos here, or click to select",
+          "description": "PNG, JPG, WEBP (up to {{maxSize}}MB per image)",
+          "maxFilesWarning": "Can upload up to {{max}} images.",
+          "fileTooLargeError": "File {{fileName}} is too large (max {{maxSize}}MB).",
+          "previewAlt": "Preview {{index}}",
+          "removeLabel": "Remove image"
+        }
+      },
+      "buttons": {
+        "add": "Add Candidate",
+        "adding": "Adding...",
+        "cancel": "Cancel"
+      },
+      "toasts": {
+        "error": {
+          "missingFields": "Please fill all required fields: first name, last name, gender, and free text.",
+          "invalidBirthDate": "Please select a birth date.",
+          "invalidAge": "Please enter a valid age (between 1 and 120).",
+          "general": "Error adding candidate"
+        },
+        "success": {
+          "candidateAdded": "Manual candidate added successfully!",
+          "inviteSent": "Candidate added and invitation sent successfully!",
+          "inviteError": "Candidate added, but sending the invitation failed: {{error}}",
+          "inviteLoading": "Adding candidate and sending invitation..."
+        }
+      }
+    }
+,
+      "savedFilters": {
+        "header": {
+          "title": "Saved Filters",
+          "subtitle": "{{count}} {{label}}",
+          "singleFilter": "saved filter",
+          "multipleFilters": "saved filters"
+        },
+        "filterCard": {
+          "defaultBadge": "Default",
+          "complexity": {
+            "basic": "Basic",
+            "advanced": "Advanced",
+            "complex": "Complex",
+            "expert": "Expert"
+          },
+          "criteria": "{{count}} criteria",
+          "actions": {
+            "edit": "Edit",
+            "setDefault": "Set as Default",
+            "isDefault": "Default",
+            "delete": "Delete"
+          },
+          "summary": {
+            "search": "Search: \"{{query}}\"",
+            "gender": "Gender: {{gender}}",
+            "age": "Age",
+            "ageValue": "{{min}}-{{max}}",
+            "height": "Height",
+            "heightValue": "{{min}}-{{max}}cm",
+            "city": "City: {{city}}",
+            "cities": "{{count}} cities",
+            "religiousLevel": "Religious Level: {{level}}",
+            "educationLevel": "Education: {{level}}",
+            "maritalStatus": "Marital Status: {{status}}",
+            "occupation": "Field: {{occupation}}",
+            "occupations": "{{count}} occupations",
+            "status": "Status: {{status}}",
+            "statuses": {
+              "AVAILABLE": "Available",
+              "DATING": "Dating",
+              "UNAVAILABLE": "Unavailable",
+                        "PAUSED": "Paused",
+          "ENGAGED": "Engaged",
+          "MARRIED": "Married"
+
+            },
+            "verifiedOnly": "Verified Only",
+            "withRecommendations": "With Recommendations",
+            "fullProfile": "Full Profile",
+            "activeToday": "Active Today",
+            "activeLastWeek": "Active this week",
+            "activeLastMonth": "Active this month",
+            "activeInDays": "Active in last {{days}} days",
+            "separateFiltering": "Separate filtering by gender",
+            "andMore": "and {{count}} more criteria",
+            "noCriteria": "Basic filter with no criteria"
+          }
+        },
+        "emptyState": {
+          "title": "No Saved Filters",
+          "description": "Save your current filters to easily access them in the future",
+          "fastSearches": "Fast Searches",
+          "advancedFiltering": "Advanced Filtering",
+          "quickAccess": "Quick Access",
+            "saveCurrentButton": "Save Current Filter"
+
+        },
+        "stats": {
+          "default": "Default",
+          "advanced": "Advanced",
+          "avgCriteria": "Avg. Criteria"
+        }
+      }
+
+,
     "filterPanel": {
       "header": {
         "title": "Advanced Candidate Filtering",
@@ -193,109 +422,109 @@
       }
     },
     "list": {
-  "quickViewTooltip": "Quick View",
-  "editProfileTooltip": "Edit Profile",
-  "emptyState": {
-    "title": "No Candidates Found",
-    "description": "Try expanding your search or removing some filters."
-  },
-  "profileDialog": {
-    "title": "Candidate Profile",
-    "description": "View candidate details",
-    "editButton": "Edit Profile",
-    "viewAsLabel": "Select View",
-    "candidateView": "Candidate View",
-    "matchmakerView": "Matchmaker View"
-  },
-  "cardActions": {
-    "availableNow": "Available Now",
-    "viewProfile": "View Profile",
-    "suggestMatch": "Suggest Match",
-    "sendInvite": "Send Invite",
-    "checkAvailability": "Check Availability",
-    "viewProfileTooltip": "Open the full profile",
-    "suggestMatchTooltip": "Create a new match suggestion",
-    "sendInviteTooltip": "Send an invitation to the candidate",
-    "checkAvailabilityTooltip": "Check availability for a meeting",
-    "addToFavorites": "Add to Favorites",
-    "rating": "Rating",
-    "matchScore": "Match",
-    "response": "Response",
-    "quickResponse": "Quick"
-  },
-  "minimalCard": {
-    "availability": {
-      "AVAILABLE": "Available",
-      "DATING": "Dating",
-      "UNAVAILABLE": "Unavailable",
-      "UNKNOWN": "Unknown"
+      "quickViewTooltip": "Quick View",
+      "editProfileTooltip": "Edit Profile",
+      "emptyState": {
+        "title": "No Candidates Found",
+        "description": "Try expanding your search or removing some filters."
+      },
+      "profileDialog": {
+        "title": "Candidate Profile",
+        "description": "View candidate details",
+        "editButton": "Edit Profile",
+        "viewAsLabel": "Select View",
+        "candidateView": "Candidate View",
+        "matchmakerView": "Matchmaker View"
+      },
+      "cardActions": {
+        "availableNow": "Available Now",
+        "viewProfile": "View Profile",
+        "suggestMatch": "Suggest Match",
+        "sendInvite": "Send Invite",
+        "checkAvailability": "Check Availability",
+        "viewProfileTooltip": "Open the full profile",
+        "suggestMatchTooltip": "Create a new match suggestion",
+        "sendInviteTooltip": "Send an invitation to the candidate",
+        "checkAvailabilityTooltip": "Check availability for a meeting",
+        "addToFavorites": "Add to Favorites",
+        "rating": "Rating",
+        "matchScore": "Match",
+        "response": "Response",
+        "quickResponse": "Quick"
+      },
+      "minimalCard": {
+        "availability": {
+          "AVAILABLE": "Available",
+          "DATING": "Dating",
+          "UNAVAILABLE": "Unavailable",
+          "UNKNOWN": "Unknown"
+        },
+        "aiMatch": "{{score}}% Match",
+        "manualEntry": "Manual Candidate",
+        "noImage": "No Image",
+        "yearsSuffix": "years",
+        "lastActivePrefix": "Active",
+        "qualityScore": "Quality: {{score}}%",
+        "compare": "Compare",
+        "tooltips": {
+          "editProfile": "Edit Profile",
+          "setAsAiTarget": "Set as AI Search Target",
+          "clearAiTarget": "Clear AI Target"
+        }
+      },
+      "quickView": {
+        "availability": {
+          "AVAILABLE": "Available",
+          "DATING": "Dating",
+          "UNAVAILABLE": "Unavailable",
+          "UNKNOWN": "Unknown"
+        },
+        "availabilityDescription": {
+          "AVAILABLE": "Available for new meetings",
+          "DATING": "Currently in a dating process",
+          "UNAVAILABLE": "Currently unavailable",
+          "UNKNOWN": "Status unknown"
+        },
+        "manualEntry": "Manual Entry",
+        "tooltips": {
+          "setAsAiTarget": "Set as AI Search Target",
+          "clearAiTarget": "Clear AI Target"
+        },
+        "details": {
+          "years": "Years",
+          "heightUnit": "cm",
+          "maritalStatus": "Marital Status",
+          "religiousLevel": "Religious Level",
+          "manualDescription": "Matchmaker's Manual Description",
+          "moreInfo": "More Information",
+          "education": "Education",
+          "occupation": "Occupation",
+          "location": "Location",
+          "about": "About"
+        },
+        "qualityScore": "Profile Quality: {{score}}%",
+        "actions": {
+          "view": "Full View",
+          "suggest": "Suggest Match",
+          "invite": "Send Invite",
+          "contact": "Check Availability",
+          "edit": "Edit"
+        },
+        "actionsDescription": {
+          "view": "Open full profile",
+          "suggest": "Create a new suggestion",
+          "invite": "Invite to the system",
+          "contact": "Coordinate a meeting",
+          "edit": "Edit profile"
+        },
+        "stats": {
+          "rating": "Rating",
+          "match": "Match",
+          "response": "Response",
+          "quick": "Quick"
+        }
+      }
     },
-    "aiMatch": "{{score}}% Match",
-    "manualEntry": "Manual Candidate",
-    "noImage": "No Image",
-    "yearsSuffix": "years",
-    "lastActivePrefix": "Active",
-    "qualityScore": "Quality: {{score}}%",
-    "compare": "Compare",
-    "tooltips": {
-      "editProfile": "Edit Profile",
-      "setAsAiTarget": "Set as AI Search Target",
-      "clearAiTarget": "Clear AI Target"
-    }
-  },
-  "quickView": {
-    "availability": {
-      "AVAILABLE": "Available",
-      "DATING": "Dating",
-      "UNAVAILABLE": "Unavailable",
-      "UNKNOWN": "Unknown"
-    },
-    "availabilityDescription": {
-      "AVAILABLE": "Available for new meetings",
-      "DATING": "Currently in a dating process",
-      "UNAVAILABLE": "Currently unavailable",
-      "UNKNOWN": "Status unknown"
-    },
-    "manualEntry": "Manual Entry",
-    "tooltips": {
-      "setAsAiTarget": "Set as AI Search Target",
-      "clearAiTarget": "Clear AI Target"
-    },
-    "details": {
-      "years": "Years",
-      "heightUnit": "cm",
-      "maritalStatus": "Marital Status",
-      "religiousLevel": "Religious Level",
-      "manualDescription": "Matchmaker's Manual Description",
-      "moreInfo": "More Information",
-      "education": "Education",
-      "occupation": "Occupation",
-      "location": "Location",
-      "about": "About"
-    },
-    "qualityScore": "Profile Quality: {{score}}%",
-    "actions": {
-      "view": "Full View",
-      "suggest": "Suggest Match",
-      "invite": "Send Invite",
-      "contact": "Check Availability",
-      "edit": "Edit"
-    },
-    "actionsDescription": {
-      "view": "Open full profile",
-      "suggest": "Create a new suggestion",
-      "invite": "Invite to the system",
-      "contact": "Coordinate a meeting",
-      "edit": "Edit profile"
-    },
-    "stats": {
-      "rating": "Rating",
-      "match": "Match",
-      "response": "Response",
-      "quick": "Quick"
-    }
-  }
-},
     "splitView": {
       "panelHeaders": {
         "male": {
@@ -320,44 +549,1000 @@
           "female": "Females"
         }
       }
+    },
+    "newSuggestionForm": {
+      "title": "Create New Suggestion",
+      "subtitle": "Select a candidate to create a suggestion for"
+    },
+      "aiAnalysis": {
+      "header": {
+        "title": "AI-Powered Match Analysis",
+        "description": "Detailed comparison between candidates",
+        "languageSelectPlaceholder": "Analysis Language",
+        "languages": {
+          "he": "עברית",
+          "en": "English"
+        }
+      },
+      "sidebar": {
+        "title": "Candidates to Compare ({{count}})"
+      },
+      "main": {
+        "selectCandidate": {
+          "title": "Select a Candidate to Compare",
+          "description": "Choose a candidate from the side list (or the dropdown on mobile) to begin the match analysis."
+        },
+        "error": {
+          "title": "Error Analyzing Match",
+          "description": "We were unable to generate an analysis for this pair. Please try again later."
+        }
+      },
+      "miniProfile": {
+        "matchBadge": "{{score}}% Match",
+        "targetBadge": "Target Candidate",
+        "years": "years",
+        "notSpecified": "Not specified"
+      },
+      "tabs": {
+        "summary": "Summary & Strengths",
+        "challenges": "Challenges & Gaps",
+        "comparison": "Data Comparison",
+        "conversation": "Conversation Starters"
+      },
+      "analysis": {
+        "summaryTitle": "Match Summary",
+        "strengthsTitle": "Strengths and Connection Points",
+        "challengesTitle": "Potential Challenges and Gaps",
+        "conversationStartersTitle": "Recommended Conversation Starters"
+      },
+      "comparisonTable": {
+        "criterion": "Criterion",
+        "fields": {
+          "age": "Age",
+          "ageApprox": "(approx.)",
+          "city": "City",
+          "maritalStatus": "Marital Status",
+          "religiousLevel": "Religious Level",
+          "occupation": "Occupation",
+          "education": "Education"
+        }
+      }
+    }
+,
+
+        "stats": {
+      "hero": {
+        "title": "Candidate Statistics",
+        "subtitle": "An overview of candidate data, activity, and advanced business insights"
+      },
+      "mainStats": {
+        "total": {
+          "title": "Total Candidates",
+          "description": "Total active candidates in the system"
+        },
+        "ratio": {
+          "title": "Candidate Ratio",
+          "description": "Men/Women"
+        },
+        "activity": {
+          "title": "Activity Last Week"
+        },
+        "completion": {
+          "title": "Completed Profiles",
+          "description": "{{completed}} out of {{total}}"
+        },
+        "trend": {
+          "increase": "Increase",
+          "decrease": "Decrease",
+          "period": "from last month"
+        }
+      },
+      "tabs": {
+        "demographics": "Demographics",
+        "activity": "Activity",
+        "completion": "Profile Completion"
+      },
+      "charts": {
+        "ageDistribution": {
+          "title": "Age Distribution",
+          "description": "Breakdown of candidates by age group"
+        },
+        "religiousDistribution": {
+          "title": "Religious Level Distribution",
+          "description": "Breakdown of candidates by religious level"
+        },
+        "topCities": {
+          "title": "Top Cities",
+          "description": "The five cities with the most candidates"
+        },
+        "userActivity": {
+          "title": "User Activity",
+          "description": "Current activity data",
+          "weeklyActive": "Active in last week",
+          "monthlyActive": "Active in last month",
+          "avgLogin": "Avg. days between logins",
+          "days": "days"
+        },
+        "activityTrend": {
+          "title": "Weekly Activity Trend",
+          "description": "Activity over the week",
+          "comingSoon": "Data available soon",
+          "subtitle": "Advanced activity trend"
+        },
+        "profileCompletion": {
+          "title": "Profile Completion",
+          "description": "Completion percentages of profile components",
+          "hasPhotos": "Profile Pictures",
+          "isVerified": "Verified Profile",
+          "hasReferences": "References"
+        },
+        "performance": {
+          "title": "Performance Insights",
+          "description": "Advanced business metrics",
+          "qualityRating": "Quality Rating",
+          "satisfaction": "Satisfaction",
+          "monthlyProgress": "This Month's Progress",
+          "newCandidates": "New Candidates",
+          "activity": "Activity",
+          "profileCompletion": "Profile Completions"
+        }
+      }
+    }
+
+  },
+    "statusBadges": {
+    "suggestion": {
+      "DRAFT": "Draft",
+      "PENDING_FIRST_PARTY": "Pending First Party",
+      "FIRST_PARTY_APPROVED": "First Party Approved",
+      "FIRST_PARTY_DECLINED": "First Party Declined",
+      "PENDING_SECOND_PARTY": "Pending Second Party",
+      "SECOND_PARTY_APPROVED": "Second Party Approved",
+      "SECOND_PARTY_DECLINED": "Second Party Declined",
+      "AWAITING_MATCHMAKER_APPROVAL": "Awaiting Matchmaker Approval",
+      "CONTACT_DETAILS_SHARED": "Contact Details Shared",
+      "AWAITING_FIRST_DATE_FEEDBACK": "Awaiting First Date Feedback",
+      "THINKING_AFTER_DATE": "Considering After Date",
+      "PROCEEDING_TO_SECOND_DATE": "Proceeding to Second Date",
+      "ENDED_AFTER_FIRST_DATE": "Ended After First Date",
+      "MEETING_PENDING": "Meeting Pending",
+      "MEETING_SCHEDULED": "Meeting Scheduled",
+      "MATCH_APPROVED": "Match Approved",
+      "MATCH_DECLINED": "Match Declined",
+      "DATING": "Dating",
+      "ENGAGED": "Engaged",
+      "MARRIED": "Married",
+      "EXPIRED": "Expired",
+      "CLOSED": "Closed",
+      "CANCELLED": "Cancelled"
+    },
+    "verification": {
+      "PENDING": "Pending",
+      "COMPLETED": "Completed",
+      "EXPIRED": "Expired",
+      "FAILED": "Failed"
+    },
+    "profile": {
+      "INCOMPLETE": "Incomplete",
+      "PENDING_VERIFICATION": "Pending Verification",
+      "VERIFIED": "Verified",
+      "BLOCKED": "Blocked"
+    },
+    "unknown": "Unknown"
+  },
+    "pagination": {
+    "show": "Show",
+    "rows": "rows",
+    "results": "Showing {{start}}-{{end}} of {{total}} results"
+  },
+    "loadingStates": {
+    "errorTitle": "Error",
+    "retryButton": "Try Again"
+  },
+    "suggestionsDashboard": {
+            "suggestionsList": {
+        "stats": {
+          "total": "Total",
+          "pending": "Pending",
+          "approved": "Approved",
+          "declined": "Declined",
+          "urgent": "Urgent"
+        },
+        "filters": {
+          "searchPlaceholder": "Search by name or city...",
+          "sortPlaceholder": "Sort by...",
+          "sortOptions": {
+            "latest": "Latest",
+            "oldest": "Oldest",
+            "deadline": "By Deadline",
+            "priority": "By Priority"
+          },
+          "filterButton": "Filter",
+          "advancedFilterTitle": "Filter by Status",
+          "statusOptions": {
+            "PENDING_FIRST_PARTY": "Pending Party A",
+            "PENDING_SECOND_PARTY": "Pending Party B",
+            "FIRST_PARTY_APPROVED": "Party A Approved",
+            "SECOND_PARTY_APPROVED": "Party B Approved",
+            "CONTACT_DETAILS_SHARED": "Contacts Shared",
+            "DATING": "Dating"
+          },
+          "clearFiltersButton": "Clear Filters",
+          "viewModes": {
+            "grid": "Grid view",
+            "list": "List view"
+          }
+        },
+        "results": {
+          "summary": "Showing {{count}} {{label}} of {{total}}",
+          "itemLabel_one": "suggestion",
+          "itemLabel_other": "suggestions",
+          "qualityMatches": "Quality Matches"
+        },
+        "emptyState": {
+          "filtered": {
+            "title": "No Results Found",
+            "description": "Try changing your search or filter criteria to find what you're looking for."
+          },
+          "default": {
+            "title": "No Suggestions Yet",
+            "description": "When suggestions are available, they will appear here."
+          },
+          "clearButton": "Clear Filters"
+        },
+        "activeFilters": {
+          "title": "Active Filter:",
+          "searchLabel": "Search: {{query}}",
+          "clearAllButton": "Clear All"
+        },
+        "performance": {
+          "title": "Performance Insights",
+          "description": "{{rate}}% approval rate • {{urgentCount}} urgent • {{pendingCount}} pending",
+          "successLabel": "Success"
+        }
+      }
+,
+      "managerSuggestionsList": {
+        "emptyState": {
+          "title": "No Suggestions Found",
+          "description": "No suggestions were found that match the current filter."
+        },
+        "deleteDialog": {
+          "title": "Are you sure?",
+          "description": "This action will permanently delete the suggestion and it cannot be recovered.",
+          "cancelButton": "Cancel",
+          "confirmButton": "Delete"
+        },
+        "toasts": {
+          "deleteSuccess": "Suggestion deleted successfully",
+          "deleteError": "Error deleting suggestion"
+        }
+      }
+,
+      "messageForm": {
+        "header": {
+          "title": "Send Message",
+          "description": "Message related to the match suggestion between {{party1}} and {{party2}}"
+        },
+        "infoAlert": {
+          "suggestionPrefix": "Suggestion #",
+          "body": "This message will be sent in the context of the active match suggestion.",
+          "statusLabel": "Current Status:",
+          "priorityLabel": "Priority:"
+        },
+        "form": {
+          "recipientLabel": "Send to",
+          "recipientPlaceholder": "Select recipient",
+          "recipientSelectedPrefix": "Message will be sent to",
+          "messageTypeLabel": "Message Type",
+          "messageTypePlaceholder": "Select message type",
+          "messageContentLabel": "Message Content",
+          "signatureNotice": "The system will automatically add a professional signature",
+          "charsCount": "{{count}}/1000 characters"
+        },
+        "partyTypes": {
+          "first": "{{firstName}} {{lastName}} (Party A)",
+          "second": "{{firstName}} {{lastName}} (Party B)",
+          "both": "Both Parties"
+        },
+        "messageTypes": {
+          "message": {
+            "label": "Regular Message",
+            "description": "General personal message",
+            "placeholder": "Personal message to the candidate..."
+          },
+          "reminder": {
+            "label": "Reminder",
+            "description": "A message to remind about the suggestion or a required action",
+            "placeholder": "Reminder message to the candidate regarding the suggestion..."
+          },
+          "update": {
+            "label": "Status Update",
+            "description": "An update on a change in the suggestion's status or new information",
+            "placeholder": "Update regarding the suggestion's status or new information..."
+          }
+        },
+        "preview": {
+          "title": "Preview",
+          "recipientLabel": "To:",
+          "typeLabel": "Type:",
+          "signature": {
+            "greeting": "Best regards,",
+            "team": "The Matchmaking System Team"
+          }
+        },
+        "footer": {
+          "notificationNotice": "Recipients will be notified via email and WhatsApp",
+          "cancelButton": "Cancel",
+          "sendButton": "Send Message",
+          "sendingButton": "Sending..."
+        },
+        "toasts": {
+          "success": "Message sent to {{recipient}}",
+          "successRecipients": {
+            "first": "{{name}}",
+            "second": "{{name}}",
+            "both": "both parties"
+          },
+          "error": "Error sending message"
+        }
+      }
+,
+          "monthlyTrendModal": {
+      "emptyState": {
+        "title": "Not Enough Data",
+        "description": "There is not enough data to display a monthly trend."
+      },
+      "header": {
+        "title": "Detailed Monthly Trend",
+        "subtitle": "In-depth analysis of suggestion performance over time"
+      },
+      "trendCards": {
+        "total": { "title": "Total Suggestions", "description": "{{trend}}" },
+        "active": { "title": "Active Suggestions", "description": "Suggestions in active process" },
+        "pending": { "title": "Pending Approval", "description": "Average response time" },
+        "success": { "title": "Successful Suggestions", "description": "Reached full success" },
+        "trendLabel": {
+          "increase": "Increase from last month",
+          "decrease": "Decrease from last month"
+        }
+      },
+      "charts": {
+        "areaChart": {
+          "title": "Suggestion Trend Over Time",
+          "badge": "{{count}} months"
+        },
+        "pieChart": {
+          "title": "Current Month Distribution",
+          "badge": "{{month}} {{year}}"
+        },
+        "legend": {
+          "active": "Active",
+          "pending": "Pending",
+          "success": "Successes",
+          "declined": "Declined",
+          "total": "Total"
+        },
+        "tooltip": {
+          "monthLabel": "Month: {{label}}"
+        }
+      },
+      "table": {
+        "title": "Full Monthly Breakdown",
+        "exportButton": "Export",
+        "viewAllButton": "View All",
+        "headers": {
+          "month": "Month",
+          "total": "Total",
+          "active": "Active",
+          "pending": "Pending",
+          "success": "Successes",
+          "declined": "Declined"
+        },
+        "currentMonthBadge": "Current"
+      },
+      "insights": {
+        "title": "Key Insights",
+        "subtitle": "Analysis of trends and performance",
+        "growth": {
+          "title": "Growth Trend",
+          "increase": "An increase of {{trend}}% in current suggestions from the previous month",
+          "decrease": "A decrease of {{trend}}% in current suggestions from the previous month"
+        },
+        "successRate": {
+          "title": "Success Rate",
+          "rate": "{{rate}}% of suggestions were successful this month",
+          "noData": "Not enough data to calculate success rate"
+        },
+        "currentActivity": {
+          "title": "Current Activity",
+          "body": "{{count}} suggestions require active handling or are awaiting a response"
+        }
+      }
+    },
+    "heroSection": {
+      "title": "Welcome to the Matchmaker System",
+      "subtitle": "Manage all matchmaking suggestions, track couples' progress, and create perfect matches.",
+      "totalSuggestions": "Total Suggestions",
+      "pendingResponse": "Pending Response",
+      "successfulMatches": "Successful Matches",
+      "successRate": "Success Rate",
+      "newSuggestionButton": "Create New Suggestion",
+      "sparkle": "",
+      "refreshButton": "Refresh Data",
+      "refreshingButton": "Refreshing..."
+    },
+    "enhancedStats": {
+      "totalSuggestions": {
+        "title": "Total Suggestions",
+        "description": "This month"
+      },
+      "pendingResponse": {
+        "title": "Pending Response",
+        "description": "Requires action"
+      },
+      "activeNow": {
+        "title": "Active Now",
+        "description": "In progress"
+      },
+      "successRate": {
+        "title": "Success Rate",
+        "description": "Couples",
+        "couples": "couples"
+      }
+    },
+    "kanban": {
+      "requiresAction": "Requires Action",
+      "pendingResponse": "Pending Response",
+      "inProgress": "In Progress",
+      "history": "History",
+      "noSuggestions": "No Suggestions"
+    },
+    "mobile": {
+      "list": "List",
+      "kanban": "Kanban",
+      "filter": "Filter",
+      "searchPlaceholder": "Search...",
+      "noMatches": {
+        "title": "No Matching Suggestions",
+        "description": "Try changing your search criteria or add a new suggestion."
+      },
+      "newSuggestionButton": "New Suggestion"
+    },
+    "mainContent": {
+      "monthlyTrendButton": "Monthly Trend",
+      "tabs": {
+        "pending": "Pending Approval",
+        "active": "Active",
+        "history": "History"
+      },
+      "loadingText": "Loading suggestions...",
+      "emptyStates": {
+        "pending": {
+          "title": "No suggestions pending approval",
+          "description": "All suggestions have been approved or declined."
+        },
+        "active": {
+          "title": "No active suggestions",
+          "description": "Create a new suggestion to get started."
+        },
+        "history": {
+          "title": "No suggestions in history",
+          "description": "History will be populated as suggestions are completed."
+        }
+      }
+    },
+    "dialogs": {
+      "monthlyTrend": {
+        "title": "Monthly Trend"
+      },
+      "deleteConfirm": {
+        "title": "Are you sure?",
+        "description": "This action will permanently delete the suggestion and it cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      }
+    },
+    "toasts": {
+      "refreshSuccess": "Suggestion data has been updated.",
+      "loadError": "Error loading suggestions.",
+      "createSuccess": "Suggestion created successfully.",
+      "createError": "Error creating suggestion.",
+      "deleteSuccess": "Suggestion deleted successfully.",
+      "deleteError": "An error occurred while performing the action.",
+      "statusUpdateSuccess": "Suggestion status updated successfully.",
+      "statusUpdateError": "Error updating suggestion status.",
+      "updateSuccess": "Suggestion details updated successfully.",
+      "updateError": "Error updating suggestion details.",
+      "messageSentSuccess": "Message sent successfully.",
+      "messageSentError": "Error sending message."
+    },
+ 
+  "actionBar": {
+      "searchPlaceholder": "Search suggestions by name, city, or other info...",
+      "buttons": {
+        "dateRange": "Date Range",
+        "advancedFilters": "Advanced Filters",
+        "clearDate": "Clear",
+        "hideAdvanced": "Hide",
+        "clearAll": "Clear All"
+      },
+      "priorityFilter": {
+        "placeholder": "Priority",
+        "all": "All Priorities",
+        "options": {
+          "URGENT": "Urgent",
+          "HIGH": "High",
+          "MEDIUM": "Medium",
+          "LOW": "Low"
+        }
+      },
+      "advancedFilters": {
+        "title": "Advanced Filters",
+        "statusTitle": "Status",
+        "participantsTitle": "Participants",
+        "sortByTitle": "Sort By",
+        "statusOptions": {
+          "PENDING_FIRST_PARTY": "Pending Party A",
+          "PENDING_SECOND_PARTY": "Pending Party B",
+          "FIRST_PARTY_APPROVED": "Party A Approved",
+          "SECOND_PARTY_APPROVED": "Party B Approved",
+          "DATING": "Dating"
+        },
+        "participantOptions": {
+          "all": "All Participants"
+        },
+        "sortOptions": {
+          "lastActivity": "Last Activity",
+          "createdAt": "Creation Date",
+          "priority": "Priority",
+          "decisionDeadline": "Decision Deadline"
+        }
+      },
+      "activeFilters": {
+        "title": "Active Filters:",
+        "priorityLabel": "Priority",
+        "dateLabel": "Date",
+        "statusLabel": "Status",
+        "statusValues": {
+          "single": "1 status",
+          "multiple": "{{count}} statuses"
+        },
+        "userLabel": "Participant",
+        "userValue": "Specific participant"
+      }
+    },
+    "suggestionCard": {
+      "statuses": {
+        "PENDING_FIRST_PARTY": { "label": "Pending Party A", "shortLabel": "Pending A", "description": "Suggestion sent to the first party, awaiting response." },
+        "PENDING_SECOND_PARTY": { "label": "Pending Party B", "shortLabel": "Pending B", "description": "Party A approved, suggestion sent to the second party." },
+        "FIRST_PARTY_APPROVED": { "label": "Party A Approved", "shortLabel": "A Approved", "description": "The first party has approved the suggestion." },
+        "SECOND_PARTY_APPROVED": { "label": "Party B Approved", "shortLabel": "B Approved", "description": "Both parties have approved the suggestion." },
+        "FIRST_PARTY_DECLINED": { "label": "Party A Declined", "shortLabel": "A Declined", "description": "The first party has declined the suggestion." },
+        "SECOND_PARTY_DECLINED": { "label": "Party B Declined", "shortLabel": "B Declined", "description": "The second party has declined the suggestion." },
+        "CONTACT_DETAILS_SHARED": { "label": "Contact Details Shared", "shortLabel": "Details Shared", "description": "Contact details have been shared between both parties." },
+        "DATING": { "label": "Dating", "shortLabel": "Dating", "description": "The couple is actively dating." },
+        "ENGAGED": { "label": "Engaged", "shortLabel": "Engaged", "description": "The couple is engaged - a great success!" },
+        "MARRIED": { "label": "Married", "shortLabel": "Married", "description": "The couple got married - a perfect match!" },
+        "AWAITING_FIRST_DATE_FEEDBACK": { "label": "Awaiting Date Feedback", "shortLabel": "Feedback", "description": "The first date occurred, awaiting feedback." },
+        "EXPIRED": { "label": "Expired", "shortLabel": "Expired", "description": "Response time has passed without an answer." },
+        "DEFAULT": { "label": "In Progress", "shortLabel": "In Progress", "description": "The suggestion is being handled by the matchmaker." }
+      },
+      "priorities": {
+        "URGENT": { "label": "Urgent" },
+        "HIGH": { "label": "High" },
+        "MEDIUM": { "label": "Medium" },
+        "LOW": { "label": "Low" }
+      },
+      "deadline": {
+        "daysLeft": "{{count}} days left",
+        "lastDay": "Last day!",
+        "noDeadline": "No deadline",
+        "decisionInDays": "{{count}} days to decide",
+        "today": "Today!"
+      },
+      "matchmakerInfo": {
+        "noInfo": "No matchmaker information",
+        "label": "Matchmaker"
+      },
+      "mobile": {
+        "title": "A New Suggestion For You",
+        "urgentTitle": "Urgent - Requires immediate attention!",
+        "connectionPoints": "Key Connection Points",
+        "matchReasonTitle": "Why this is a good match for you:",
+        "viewDetailsButton": "For full details and the complete story",
+        "sentTime": "Sent {{timeAgo}}"
+      },
+      "desktop": {
+        "connectionPoints": "Key Connection Points",
+        "matchReasonTitle": "Reason for match:",
+        "timeline": {
+          "created": "Created",
+          "deadline": "Deadline",
+          "progress": "Progress",
+          "progressCompleted": "{{percent}}% completed"
+        },
+        "partyStatus": {
+          "approved": "Approved the suggestion",
+          "declined": "Declined the suggestion"
+        }
+      },
+      "actions": {
+        "edit": "Edit Suggestion",
+        "sendMessage": "Message",
+        "delete": "Delete Suggestion",
+        "resend": "Resend",
+        "viewDetails": "Details"
+      },
+      "highlights": {
+        "familyValues": "Similar family values",
+        "religiousView": "Compatible religious outlook",
+        "location": "Geographical proximity"
+      }
+    },
+    "editSuggestionForm": {
+      "header": {
+        "title": "Edit Match Suggestion #{{id}}",
+        "description": "Editing details for the suggestion between {{party1}} and {{party2}}",
+        "priorityLabel": "Priority: {{priority}}",
+        "currentStatusLabel": "Current Status: {{status}}"
+      },
+      "infoAlert": {
+        "title": "Current Information:",
+        "createdFor": "The suggestion was created for {{party1}} and {{party2}}.",
+        "status": "Status: {{status}}",
+        "priority": "Priority: {{priority}}"
+      },
+      "sections": {
+        "priority": {
+          "title": "Suggestion Priority",
+          "placeholder": "Select priority"
+        },
+        "statusChange": {
+          "title": "Change Status",
+          "changeButton": "Change Status",
+          "cancelChangeButton": "Cancel Change",
+          "placeholder": "Select new status",
+          "noChangeOption": "No Change",
+          "notesLabel": "Notes for Status Change",
+          "notesPlaceholder": "Optional notes for the status change..."
+        },
+        "decisionDeadline": {
+          "title": "Final Decision Deadline"
+        },
+        "matchingReason": {
+          "title": "Reason for Match",
+          "placeholder": "Detail why there is a match between the candidates..."
+        },
+        "firstPartyNotes": {
+          "title": "Notes for Party A ({{name}})",
+          "placeholder": "Notes to be shown only to Party A..."
+        },
+        "secondPartyNotes": {
+          "title": "Notes for Party B ({{name}})",
+          "placeholder": "Notes to be shown only to Party B..."
+        },
+        "internalNotes": {
+          "title": "Internal Notes",
+          "placeholder": "Internal notes for matchmaker use only..."
+        }
+      },
+      "footer": {
+        "info": "All changes will be saved after clicking \"Save Changes\"",
+        "cancelButton": "Cancel",
+        "saveButton": "Save Changes",
+        "savingButton": "Saving..."
+      },
+      "toasts": {
+        "noSuggestionData": "Suggestion data not found",
+        "updateSuccess": "Suggestion details updated successfully",
+        "updateError": "Error updating suggestion details"
+      },
+      "statusLabels": {
+        "DRAFT": "Draft",
+        "PENDING_FIRST_PARTY": "Pending Party A",
+        "FIRST_PARTY_APPROVED": "Party A Approved",
+        "FIRST_PARTY_DECLINED": "Party A Declined",
+        "PENDING_SECOND_PARTY": "Pending Party B",
+        "SECOND_PARTY_APPROVED": "Party B Approved",
+        "SECOND_PARTY_DECLINED": "Party B Declined",
+        "AWAITING_MATCHMAKER_APPROVAL": "Awaiting Matchmaker Approval",
+        "CONTACT_DETAILS_SHARED": "Contact Details Shared",
+        "AWAITING_FIRST_DATE_FEEDBACK": "Awaiting First Date Feedback",
+        "THINKING_AFTER_DATE": "Thinking After Date",
+        "PROCEEDING_TO_SECOND_DATE": "Proceeding to Second Date",
+        "ENDED_AFTER_FIRST_DATE": "Ended After First Date",
+        "MEETING_PENDING": "Meeting Pending",
+        "MEETING_SCHEDULED": "Meeting Scheduled",
+        "MATCH_APPROVED": "Match Approved",
+        "MATCH_DECLINED": "Match Declined",
+        "DATING": "Dating",
+        "ENGAGED": "Engaged",
+        "MARRIED": "Married",
+        "EXPIRED": "Expired",
+        "CLOSED": "Closed",
+        "CANCELLED": "Cancelled"
+      },
+      "priorityLabels": {
+        "URGENT": "Urgent",
+        "HIGH": "High",
+        "MEDIUM": "Medium",
+        "LOW": "Low"
+      }
+    }
+    
+ },
+    "newSuggestionForm": {
+  "header": {
+    "title": "Create New Match Suggestion",
+    "description": "Select two candidates, analyze the match, and define the suggestion details"
+  },
+  "steps": {
+    "select": { "label": "Select Candidates", "description": "Choose both parties for the suggestion" },
+    "analyze": { "label": "Analyze Match", "description": "Check the compatibility level" },
+    "details": { "label": "Suggestion Details", "description": "Add reasons and details" }
+  },
+  "emptyState": {
+    "title": "Please select both candidates first"
+  },
+  "buttons": {
+    "fullAnalysis": "Full Match Analysis (AI)",
+    "back": "Back",
+    "continue": "Continue",
+    "create": "Create Suggestion",
+    "creating": "Creating Suggestion..."
+  },
+  "footer": {
+    "step": "Step {{current}} of {{total}}",
+    "info": "After creation, the suggestion will appear in Draft status."
+  },
+  "toasts": {
+    "selectParties": "Please select both parties for the suggestion.",
+    "createSuccess": "Suggestion created successfully!",
+    "createError": "Error creating suggestion"
+  },
+      "matchPreview": {
+      "errorState": {
+        "title": "Cannot Calculate Match",
+        "description": "Essential data for calculating the match is missing",
+        "suggestion": "Please ensure both candidates have a complete profile with birth date, city, and religious level"
+      },
+      "qualityLevels": {
+        "perfect": { "text": "Perfect Match", "description": "An ideal pair with exceptional compatibility!" },
+        "excellent": { "text": "Excellent Match", "description": "A pair with high potential for success" },
+        "good": { "text": "Good Match", "description": "A quality match with good prospects" },
+        "medium": { "text": "Medium Match", "description": "There is potential, worth exploring" },
+        "low": { "text": "Low Match", "description": "Limited compatibility, consider with caution" }
+      },
+      "generalScoreLabel": "Overall Match Score",
+      "criteriaSection": {
+        "title": "Criteria Breakdown",
+        "description": "Detailed analysis of the different compatibility levels"
+      },
+      "criteria": {
+        "age": "Age",
+        "location": "Location",
+        "religious": "Religious Level"
+      },
+      "scoreCategories": {
+        "perfect": "Perfect",
+        "excellent": "Excellent",
+        "good": "Good",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "scoreLabel": "Compatibility",
+      "reasonsSection": {
+        "title": "Reasons for Match"
+      },
+      "summary": {
+        "title": "Match Summary",
+        "description": "Analysis-based recommendation",
+        "recommendations": {
+          "high": "Highly Recommended!",
+          "medium": "Worth a Try",
+          "low": "Needs Consideration"
+        },
+        "basedOn": "Based on {{count}} criteria"
+      }
+    },
+    "suggestionDetails": {
+      "priority": {
+        "title": "Suggestion Priority",
+        "description": "Set the importance and urgency level of the suggestion",
+        "label": "Select priority level",
+        "placeholder": "Select priority",
+        "options": {
+          "URGENT": { "title": "Urgent", "description": "Requires immediate attention" },
+          "HIGH": { "title": "High", "description": "Increased priority" },
+          "MEDIUM": { "title": "Medium", "description": "Standard priority" },
+          "LOW": { "title": "Low", "description": "No urgency" }
+        }
+      },
+      "rationale": {
+        "title": "General Matching Rationale",
+        "description": "A detailed reason explaining why there is a match between the parties",
+        "label": "Content will be shown to both parties",
+        "aiButton": "Generate Rationale (AI)",
+        "aiButtonLoading": "Generating...",
+        "placeholder": "General rationale explaining the match...",
+        "aiTip": "💡 <strong>Smart Tip:</strong> Clicking the AI button will automatically fill this field and the personal notes fields with tailored, professional content."
+      },
+      "notes": {
+        "party1Title": "Personal Notes for {{name}}",
+        "party2Title": "Personal Notes for {{name}}",
+        "description": "Personal text highlighting the other party's advantages for them",
+        "party1Label": "Party A in suggestion",
+        "party2Label": "Party B in suggestion",
+        "party1Placeholder": "Personal text highlighting {{otherName}}'s advantages for {{name}}...",
+        "party2Placeholder": "Personal text highlighting {{otherName}}'s advantages for {{name}}..."
+      },
+      "internalNotes": {
+        "title": "Internal Notes",
+        "description": "Notes and instructions for matchmaker staff use only",
+        "secretInfo": "Confidential Info",
+        "visibleTo": "Visible only to matchmakers",
+        "placeholder": "Notes and instructions for internal use only..."
+      },
+      "deadline": {
+        "title": "Decision Deadline",
+        "description": "Set the final date for a response from the parties",
+        "label": "Select a response period",
+        "options": {
+          "3": { "title": "3 Days", "description": "Quick and fast" },
+          "7": { "title": "7 Days", "description": "Short period" },
+          "14": { "title": "14 Days", "description": "Standard period (recommended)" },
+          "30": { "title": "30 Days", "description": "Extended period" }
+        },
+        "infoBox": {
+          "title": "Important Information",
+          "body": "After the selected time period, if no response is received from one of the parties, the suggestion will automatically be moved to 'Expired' status."
+        }
+      },
+      "summary": {
+        "title": "Suggestion Summary",
+        "description": "All details are ready to create the suggestion",
+        "ready": "Ready to Create!",
+        "info": "After creation, the suggestion will be sent automatically to the first party"
+      },
+      "toasts": {
+        "aiLoading": {
+          "title": "AI is drafting the rationales...",
+          "description": "This may take a few seconds"
+        },
+        "aiSuccess": {
+          "title": "Rationales generated successfully!",
+          "description": "All fields have been automatically filled with personalized content"
+        },
+        "aiError": {
+          "title": "Error generating rationales",
+          "description": "Please try again or fill the fields manually"
+        }
+      }
+    }
+
+},
+    "candidateSelector": {
+      "searchPlaceholder": "Search for a candidate...",
+      "commandInputPlaceholder": "Search candidates...",
+      "noResults": {
+        "title": "No Results Found",
+        "description": "Try changing your search terms"
+      },
+      "status": {
+        "blocked": "Blocked",
+        "blockedDescription": "In an active suggestion with {{name}}",
+        "pending": "Pending",
+        "pendingDescription": "Pending suggestion with {{name}}",
+        "available": "Available",
+        "availableDescription": "Available for a new suggestion"
+      },
+      "card": {
+        "cannotSelect": "Cannot be selected",
+        "years": "years"
+      },
+      "selectedDisplay": {
+        "title": "Selected Candidate",
+        "removeButton": "Remove Selection",
+        "viewProfileButton": "View Full Profile"
+      },
+      "toasts": {
+        "cannotSelectError": {
+          "title": "This candidate cannot be selected",
+          "description": "{{name}} is already in an active suggestion with {{withName}}."
+        }
+      }
+  
+
+    },
+    "suggestionDetailsDialog": {
+  "header": {
+    "title": "Suggestion #{{id}}",
+    "subtitle": "{{party1}} & {{party2}}",
+    "fullscreenTooltip": "Fullscreen",
+    "minimizeTooltip": "Minimize"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "party1": "Party A",
+    "party2": "Party B",
+    "timeline": "Timeline",
+    "communication": "Communication",
+    "actions": "Actions"
+  },
+  "overview": {
+    "statusSummaryTitle": "Status Summary",
+    "progressCompleted": "{{percent}}% Completed",
+    "matchmakerLabel": "Matchmaker:",
+    "detailsTitle": "Suggestion Details",
+    "details": {
+      "createdAt": "Creation Date:",
+      "lastActivity": "Last Update:",
+      "priority": "Priority:",
+      "responseDeadline": "Response Deadline:",
+      "decisionDeadline": "Decision Deadline:",
+      "notSet": "Not Set"
+    },
+    "editButton": "Edit Suggestion Details",
+    "partyALabel": "Party A",
+    "partyBLabel": "Party B",
+    "contactButton": "Contact",
+    "reminderButton": "Send Reminder",
+    "reasons": {
+      "matchTitle": "Reason for Match",
+      "internalTitle": "Internal Notes"
+    },
+    "deadlineAlert": {
+      "today": "Today!",
+      "daysLeft": "{{count}} days"
     }
   },
-    "cardActions": {
-    "availableNow": "Available Now",
-    "viewProfile": "View Profile",
-    "suggestMatch": "Suggest Match",
-    "sendInvite": "Send Invite",
-    "checkAvailability": "Check Availability",
-    "viewProfileTooltip": "Open the full profile",
-    "suggestMatchTooltip": "Create a new match suggestion",
-    "sendInviteTooltip": "Send an invitation to the candidate",
-    "checkAvailabilityTooltip": "Check availability for a meeting",
-    "addToFavorites": "Add to Favorites",
-    "rating": "Rating",
-    "matchScore": "Match",
-    "response": "Response",
-    "quickResponse": "Quick"
+  "timeline": {
+    "title": "Suggestion Progress",
+    "noNotes": "No notes"
   },
-  "minimalCard": {
-  "availability": {
-    "AVAILABLE": "Available",
-    "DATING": "Dating",
-    "UNAVAILABLE": "Unavailable",
-    "UNKNOWN": "Unknown"
+  "communication": {
+    "title": "Communication"
   },
-  "aiMatch": "{{score}}% Match",
-  "manualEntry": "Manual Candidate",
-  "noImage": "No Image",
-  "yearsSuffix": "years",
-  "lastActivePrefix": "Active",
-  "qualityScore": "Quality: {{score}}%",
-  "compare": "Compare",
-  "tooltips": {
-    "editProfile": "Edit Profile",
-    "setAsAiTarget": "Set as AI Search Target",
-    "clearAiTarget": "Clear AI Target"
+  "actions": {
+    "title": "Additional Actions",
+    "statusChange": { "title": "Change Status", "description": "Update suggestion status based on progress.", "button": "Change Status" },
+    "edit": { "title": "Edit Suggestion", "description": "Edit details, match reason, and notes.", "button": "Edit Suggestion Details" },
+    "delete": { "title": "Delete Suggestion", "description": "Permanently delete the suggestion from the system.", "button": "Delete Suggestion" }
+  },
+  "statusChangeModal": {
+    "title": "Change Suggestion Status",
+    "currentStatusLabel": "Current Status",
+    "newStatusLabel": "New Status",
+    "newStatusPlaceholder": "Select new status",
+    "notesLabel": "Notes for Change (Optional)",
+    "notesPlaceholder": "Add a note...",
+    "cancelButton": "Cancel",
+    "saveButton": "Save Change",
+    "savingButton": "Updating..."
+  },
+  "toasts": {
+    "statusUpdateError": "Error updating status"
+  },
+  "statusLabels": {
+      "DRAFT": "Draft", "PENDING_FIRST_PARTY": "Pending Party A", "FIRST_PARTY_APPROVED": "Party A Approved",
+      "FIRST_PARTY_DECLINED": "Party A Declined", "PENDING_SECOND_PARTY": "Pending Party B", "SECOND_PARTY_APPROVED": "Party B Approved",
+      "SECOND_PARTY_DECLINED": "Party B Declined", "AWAITING_MATCHMAKER_APPROVAL": "Awaiting Matchmaker Approval", "CONTACT_DETAILS_SHARED": "Contact Details Shared",
+      "AWAITING_FIRST_DATE_FEEDBACK": "Awaiting Date Feedback", "DATING": "Dating", "ENGAGED": "Engaged", "MARRIED": "Married",
+      "EXPIRED": "Expired", "CLOSED": "Closed", "CANCELLED": "Cancelled", "THINKING_AFTER_DATE": "Thinking After Date", "PROCEEDING_TO_SECOND_DATE": "Proceeding to 2nd Date",
+      "ENDED_AFTER_FIRST_DATE": "Ended After 1st Date", "MEETING_PENDING": "Meeting Pending", "MEETING_SCHEDULED": "Meeting Scheduled",
+      "MATCH_APPROVED": "Match Approved", "MATCH_DECLINED": "Match Declined"
+  },
+  "priorityLabels": {
+      "URGENT": "Urgent", "HIGH": "High", "MEDIUM": "Medium", "LOW": "Low"
   }
 }
+
+
+
+
+
+
 
 
 }

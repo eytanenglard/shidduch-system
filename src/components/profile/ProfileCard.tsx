@@ -5510,16 +5510,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           onNavigate={handleDialogNav}
           onImageSelect={setSelectedImageForDialog}
         />
-
-        {viewMode === 'matchmaker' && candidate && (
-          <NewSuggestionForm
-            isOpen={isSuggestDialogOpen}
-            onClose={() => setIsSuggestDialogOpen(false)}
-            candidates={allCandidates}
-            selectedCandidate={candidate}
-            onSubmit={handleCreateSuggestion}
-          />
-        )}
       </Card>
     </TooltipProvider>
   );

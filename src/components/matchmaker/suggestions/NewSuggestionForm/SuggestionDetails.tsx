@@ -42,8 +42,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { NewSuggestionFormData } from './schema';
 import type { Candidate } from '../../new/types/candidates';
 import { cn } from '@/lib/utils';
+import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
 interface SuggestionDetailsProps {
+  dict: MatchmakerPageDictionary['newSuggestionForm']['suggestionDetails'];
   firstParty: Candidate;
   secondParty: Candidate;
 }
@@ -63,14 +65,11 @@ const EnhancedSection: React.FC<{
       className
     )}
   >
-    {/* Background decoration */}
     <div className="absolute inset-0">
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-cyan-200/20 to-blue-200/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-900"></div>
     </div>
-
     <CardContent className="relative z-10 p-8 space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <div
           className={cn(
@@ -94,54 +93,51 @@ const EnhancedSection: React.FC<{
           )}
         </div>
       </div>
-
       {children}
     </CardContent>
   </Card>
 );
 
-const PriorityBadge: React.FC<{ priority: Priority }> = ({ priority }) => {
+const PriorityBadge: React.FC<{
+  priority: Priority;
+  dict: MatchmakerPageDictionary['newSuggestionForm']['suggestionDetails']['priority'];
+}> = ({ priority, dict }) => {
   const getPriorityInfo = (p: Priority) => {
     switch (p) {
       case Priority.URGENT:
         return {
-          label: 'דחוף',
+          label: dict.options.URGENT.title,
           icon: Flame,
           className:
             'bg-gradient-to-r from-red-500 to-pink-500 text-white animate-pulse shadow-xl',
-          description: 'דורש טיפול מיידי!',
         };
       case Priority.HIGH:
         return {
-          label: 'גבוהה',
+          label: dict.options.HIGH.title,
           icon: Star,
           className:
             'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-xl',
-          description: 'עדיפות גבוהה',
         };
       case Priority.MEDIUM:
         return {
-          label: 'רגילה',
+          label: dict.options.MEDIUM.title,
           icon: Target,
           className:
             'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-xl',
-          description: 'עדיפות רגילה',
         };
       case Priority.LOW:
         return {
-          label: 'נמוכה',
+          label: dict.options.LOW.title,
           icon: Shield,
           className:
             'bg-gradient-to-r from-gray-500 to-slate-500 text-white shadow-xl',
-          description: 'עדיפות נמוכה',
         };
       default:
         return {
-          label: 'רגילה',
+          label: dict.options.MEDIUM.title,
           icon: Target,
           className:
             'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-xl',
-          description: 'עדיפות רגילה',
         };
     }
   };
@@ -163,6 +159,7 @@ const PriorityBadge: React.FC<{ priority: Priority }> = ({ priority }) => {
 };
 
 const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
+  dict,
   firstParty,
   secondParty,
 }) => {
@@ -173,16 +170,14 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
     watch,
   } = useFormContext<NewSuggestionFormData>();
   const [isGeneratingRationale, setIsGeneratingRationale] = useState(false);
-
   const priority = watch('priority', Priority.MEDIUM);
 
   const handleGenerateRationale = async () => {
     setIsGeneratingRationale(true);
-    toast.info('ה-AI מנסח את חבילת הנימוקים...', {
-      description: 'זה יכול לקחת כמה שניות',
+    toast.info(dict.toasts.aiLoading.title, {
+      description: dict.toasts.aiLoading.description,
       duration: 3000,
     });
-
     try {
       const response = await fetch('/api/ai/generate-suggestion-rationale', {
         method: 'POST',
@@ -192,16 +187,12 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
           userId2: secondParty.id,
         }),
       });
-
       const data = await response.json();
-
       if (!response.ok || !data.success || !data.rationales) {
-        throw new Error(data.error || 'שגיאה ביצור הנימוקים');
+        throw new Error(data.error || 'Error generating rationale');
       }
-
       const { generalRationale, rationaleForParty1, rationaleForParty2 } =
         data.rationales;
-
       setValue('matchingReason', generalRationale, {
         shouldValidate: true,
         shouldDirty: true,
@@ -214,15 +205,14 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
         shouldValidate: true,
         shouldDirty: true,
       });
-
-      toast.success('הנימוקים נוצרו בהצלחה!', {
-        description: 'כל השדות מולאו באופן אוטומטי עם תוכן מותאם אישית',
+      toast.success(dict.toasts.aiSuccess.title, {
+        description: dict.toasts.aiSuccess.description,
         duration: 5000,
       });
     } catch (error) {
       console.error('Failed to generate rationales:', error);
-      toast.error(error instanceof Error ? error.message : 'שגיאה לא צפויה', {
-        description: 'נסה שוב או מלא את השדות ידנית',
+      toast.error(dict.toasts.aiError.title, {
+        description: dict.toasts.aiError.description,
       });
     } finally {
       setIsGeneratingRationale(false);
@@ -231,21 +221,19 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Priority Section */}
       <EnhancedSection
         icon={Crown}
-        title="עדיפות ההצעה"
-        description="קבע את רמת החשיבות והדחיפות של ההצעה"
+        title={dict.priority.title}
+        description={dict.priority.description}
         gradient="from-purple-500 to-pink-500"
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Label className="text-lg font-semibold text-gray-700">
-              בחר רמת עדיפות
+              {dict.priority.label}
             </Label>
-            <PriorityBadge priority={priority} />
+            <PriorityBadge priority={priority} dict={dict.priority} />
           </div>
-
           <Select
             onValueChange={(value: Priority) =>
               setValue('priority', value, { shouldValidate: true })
@@ -254,15 +242,19 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
             name="priority"
           >
             <SelectTrigger className="h-14 border-2 border-purple-200 hover:border-purple-300 focus:border-purple-500 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg transition-all text-lg">
-              <SelectValue placeholder="בחר/י עדיפות" />
+              <SelectValue placeholder={dict.priority.placeholder} />
             </SelectTrigger>
             <SelectContent className="border-0 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-sm">
               <SelectItem value={Priority.URGENT}>
                 <div className="flex items-center gap-3 py-2">
                   <Flame className="w-5 h-5 text-red-500" />
                   <div>
-                    <div className="font-bold text-red-600">דחופה</div>
-                    <div className="text-xs text-red-500">דורש טיפול מיידי</div>
+                    <div className="font-bold text-red-600">
+                      {dict.priority.options.URGENT.title}
+                    </div>
+                    <div className="text-xs text-red-500">
+                      {dict.priority.options.URGENT.description}
+                    </div>
                   </div>
                 </div>
               </SelectItem>
@@ -270,8 +262,12 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 <div className="flex items-center gap-3 py-2">
                   <Star className="w-5 h-5 text-orange-500" />
                   <div>
-                    <div className="font-bold text-orange-600">גבוהה</div>
-                    <div className="text-xs text-orange-500">עדיפות מוגברת</div>
+                    <div className="font-bold text-orange-600">
+                      {dict.priority.options.HIGH.title}
+                    </div>
+                    <div className="text-xs text-orange-500">
+                      {dict.priority.options.HIGH.description}
+                    </div>
                   </div>
                 </div>
               </SelectItem>
@@ -279,8 +275,12 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 <div className="flex items-center gap-3 py-2">
                   <Target className="w-5 h-5 text-blue-500" />
                   <div>
-                    <div className="font-bold text-blue-600">רגילה</div>
-                    <div className="text-xs text-blue-500">עדיפות סטנדרטית</div>
+                    <div className="font-bold text-blue-600">
+                      {dict.priority.options.MEDIUM.title}
+                    </div>
+                    <div className="text-xs text-blue-500">
+                      {dict.priority.options.MEDIUM.description}
+                    </div>
                   </div>
                 </div>
               </SelectItem>
@@ -288,14 +288,17 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 <div className="flex items-center gap-3 py-2">
                   <Shield className="w-5 h-5 text-gray-500" />
                   <div>
-                    <div className="font-bold text-gray-600">נמוכה</div>
-                    <div className="text-xs text-gray-500">ללא דחיפות</div>
+                    <div className="font-bold text-gray-600">
+                      {dict.priority.options.LOW.title}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {dict.priority.options.LOW.description}
+                    </div>
                   </div>
                 </div>
               </SelectItem>
             </SelectContent>
           </Select>
-
           {errors.priority && (
             <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-200">
               <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -307,17 +310,16 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
         </div>
       </EnhancedSection>
 
-      {/* AI-Generated Matching Reason */}
       <EnhancedSection
         icon={Brain}
-        title="סיבת ההתאמה הכללית"
-        description="נימוק מפורט המסביר מדוע יש התאמה בין הצדדים"
+        title={dict.rationale.title}
+        description={dict.rationale.description}
         gradient="from-emerald-500 to-green-500"
       >
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <Label className="text-lg font-semibold text-gray-700">
-              תוכן יוצג לצדדים
+              {dict.rationale.label}
             </Label>
             <Button
               type="button"
@@ -328,24 +330,22 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
               {isGeneratingRationale ? (
                 <>
                   <Loader2 className="w-5 h-5 ml-2 animate-spin" />
-                  <span>מנסח...</span>
+                  <span>{dict.rationale.aiButtonLoading}</span>
                 </>
               ) : (
                 <>
                   <Wand2 className="w-5 h-5 ml-2 text-yellow-300" />
-                  <span>צור נימוקים (AI)</span>
+                  <span>{dict.rationale.aiButton}</span>
                 </>
               )}
             </Button>
           </div>
-
           <Textarea
             id="matchingReason"
             {...register('matchingReason')}
-            placeholder="נימוק כללי המסביר מדוע יש התאמה בין הצדדים..."
+            placeholder={dict.rationale.placeholder}
             className="min-h-[140px] border-2 border-emerald-200 hover:border-emerald-300 focus:border-emerald-500 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg transition-all text-lg resize-none"
           />
-
           {errors.matchingReason && (
             <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-200">
               <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -354,24 +354,24 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
               </p>
             </div>
           )}
-
           <Alert className="border-0 bg-gradient-to-r from-blue-50 to-cyan-50 shadow-lg rounded-2xl">
             <Sparkles className="h-5 w-5 text-blue-500" />
-            <AlertDescription className="text-blue-800 font-medium leading-relaxed">
-              💡 <strong>טיפ חכם:</strong> לחיצה על כפתור ה-AI תמלא אוטומטית את
-              שדה זה וגם את שדות ההערות האישיות לכל צד עם תוכן מותאם ומקצועי.
-            </AlertDescription>
+            <AlertDescription
+              className="text-blue-800 font-medium leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: dict.rationale.aiTip }}
+            />
           </Alert>
         </div>
       </EnhancedSection>
 
-      {/* Personal Notes for Each Party */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* First Party Notes */}
         <EnhancedSection
           icon={User}
-          title={`הערות אישיות ל${firstParty.firstName}`}
-          description="טקסט אישי המדגיש את היתרונות של הצד השני עבורו"
+          title={dict.notes.party1Title.replace(
+            '{{name}}',
+            firstParty.firstName
+          )}
+          description={dict.notes.description}
           gradient="from-blue-500 to-cyan-500"
           className="lg:col-span-1"
         >
@@ -384,17 +384,19 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 <div className="font-bold text-blue-800">
                   {firstParty.firstName} {firstParty.lastName}
                 </div>
-                <div className="text-sm text-blue-600">צד א&apos; בהצעה</div>
+                <div className="text-sm text-blue-600">
+                  {dict.notes.party1Label}
+                </div>
               </div>
             </div>
-
             <Textarea
               id="firstPartyNotes"
               {...register('firstPartyNotes')}
-              placeholder={`טקסט אישי המדגיש את היתרונות של ${secondParty.firstName} עבור ${firstParty.firstName}...`}
+              placeholder={dict.notes.party1Placeholder
+                .replace('{{otherName}}', secondParty.firstName)
+                .replace('{{name}}', firstParty.firstName)}
               className="min-h-[160px] border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg transition-all text-lg resize-none"
             />
-
             {errors.firstPartyNotes && (
               <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-200">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -405,12 +407,13 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
             )}
           </div>
         </EnhancedSection>
-
-        {/* Second Party Notes */}
         <EnhancedSection
           icon={User}
-          title={`הערות אישיות ל${secondParty.firstName}`}
-          description="טקסט אישי המדגיש את היתרונות של הצד השני עבורה"
+          title={dict.notes.party2Title.replace(
+            '{{name}}',
+            secondParty.firstName
+          )}
+          description={dict.notes.description}
           gradient="from-purple-500 to-pink-500"
           className="lg:col-span-1"
         >
@@ -423,17 +426,19 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 <div className="font-bold text-purple-800">
                   {secondParty.firstName} {secondParty.lastName}
                 </div>
-                <div className="text-sm text-purple-600">צד ב&apos; בהצעה</div>
+                <div className="text-sm text-purple-600">
+                  {dict.notes.party2Label}
+                </div>
               </div>
             </div>
-
             <Textarea
               id="secondPartyNotes"
               {...register('secondPartyNotes')}
-              placeholder={`טקסט אישי המדגיש את היתרונות של ${firstParty.firstName} עבור ${secondParty.firstName}...`}
+              placeholder={dict.notes.party2Placeholder
+                .replace('{{otherName}}', firstParty.firstName)
+                .replace('{{name}}', secondParty.firstName)}
               className="min-h-[160px] border-2 border-purple-200 hover:border-purple-300 focus:border-purple-500 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg transition-all text-lg resize-none"
             />
-
             {errors.secondPartyNotes && (
               <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-200">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -446,11 +451,10 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
         </EnhancedSection>
       </div>
 
-      {/* Internal Notes */}
       <EnhancedSection
         icon={MessageCircle}
-        title="הערות פנימיות"
-        description="הערות והנחיות לשימוש צוות השדכנים בלבד"
+        title={dict.internalNotes.title}
+        description={dict.internalNotes.description}
         gradient="from-amber-500 to-orange-500"
       >
         <div className="space-y-4">
@@ -459,20 +463,20 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
               <Eye className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-bold text-amber-800">מידע סודי</div>
+              <div className="font-bold text-amber-800">
+                {dict.internalNotes.secretInfo}
+              </div>
               <div className="text-sm text-amber-600">
-                נראה רק לצוות השדכנים
+                {dict.internalNotes.visibleTo}
               </div>
             </div>
           </div>
-
           <Textarea
             id="internalNotes"
             {...register('internalNotes')}
-            placeholder="הערות והנחיות לשימוש פנימי בלבד..."
+            placeholder={dict.internalNotes.placeholder}
             className="min-h-[120px] border-2 border-amber-200 hover:border-amber-300 focus:border-amber-500 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg transition-all text-lg resize-none"
           />
-
           {errors.internalNotes && (
             <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-200">
               <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -484,18 +488,16 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
         </div>
       </EnhancedSection>
 
-      {/* Decision Deadline */}
       <EnhancedSection
         icon={Clock}
-        title="תאריך יעד להחלטה"
-        description="קבע את המועד האחרון למתן תגובה מהצדדים"
+        title={dict.deadline.title}
+        description={dict.deadline.description}
         gradient="from-indigo-500 to-purple-500"
       >
         <div className="space-y-4">
           <Label className="text-lg font-semibold text-gray-700">
-            בחר תקופת זמן למענה
+            {dict.deadline.label}
           </Label>
-
           <Select
             onValueChange={(value) => {
               const days = parseInt(value, 10);
@@ -513,8 +515,12 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 <div className="flex items-center gap-3 py-2">
                   <Zap className="w-5 h-5 text-red-500" />
                   <div>
-                    <div className="font-bold text-red-600">3 ימים</div>
-                    <div className="text-xs text-red-500">מהיר וזריז</div>
+                    <div className="font-bold text-red-600">
+                      {dict.deadline.options['3'].title}
+                    </div>
+                    <div className="text-xs text-red-500">
+                      {dict.deadline.options['3'].description}
+                    </div>
                   </div>
                 </div>
               </SelectItem>
@@ -522,8 +528,12 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 <div className="flex items-center gap-3 py-2">
                   <Award className="w-5 h-5 text-orange-500" />
                   <div>
-                    <div className="font-bold text-orange-600">7 ימים</div>
-                    <div className="text-xs text-orange-500">תקופה קצרה</div>
+                    <div className="font-bold text-orange-600">
+                      {dict.deadline.options['7'].title}
+                    </div>
+                    <div className="text-xs text-orange-500">
+                      {dict.deadline.options['7'].description}
+                    </div>
                   </div>
                 </div>
               </SelectItem>
@@ -531,9 +541,11 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 <div className="flex items-center gap-3 py-2">
                   <Target className="w-5 h-5 text-blue-500" />
                   <div>
-                    <div className="font-bold text-blue-600">14 ימים</div>
+                    <div className="font-bold text-blue-600">
+                      {dict.deadline.options['14'].title}
+                    </div>
                     <div className="text-xs text-blue-500">
-                      תקופה סטנדרטית (מומלץ)
+                      {dict.deadline.options['14'].description}
                     </div>
                   </div>
                 </div>
@@ -542,14 +554,17 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 <div className="flex items-center gap-3 py-2">
                   <Shield className="w-5 h-5 text-green-500" />
                   <div>
-                    <div className="font-bold text-green-600">30 ימים</div>
-                    <div className="text-xs text-green-500">תקופה מורחבת</div>
+                    <div className="font-bold text-green-600">
+                      {dict.deadline.options['30'].title}
+                    </div>
+                    <div className="text-xs text-green-500">
+                      {dict.deadline.options['30'].description}
+                    </div>
                   </div>
                 </div>
               </SelectItem>
             </SelectContent>
           </Select>
-
           {errors.decisionDeadline && (
             <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-200">
               <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -558,15 +573,15 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
               </p>
             </div>
           )}
-
           <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100">
             <div className="flex items-start gap-3">
               <Calendar className="w-5 h-5 text-indigo-500 mt-1" />
               <div>
-                <div className="font-bold text-indigo-800 mb-1">מידע חשוב</div>
+                <div className="font-bold text-indigo-800 mb-1">
+                  {dict.deadline.infoBox.title}
+                </div>
                 <p className="text-sm text-indigo-700 leading-relaxed">
-                  לאחר תקופת הזמן שנבחרה, אם לא התקבלה תגובה מאחד הצדדים, ההצעה
-                  תועבר אוטומטית לסטטוס &quot;פג תוקף&quot;.
+                  {dict.deadline.infoBox.body}
                 </p>
               </div>
             </div>
@@ -574,7 +589,6 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
         </div>
       </EnhancedSection>
 
-      {/* Summary Card */}
       <Card className="border-0 shadow-2xl bg-gradient-to-br from-gray-50 via-white to-gray-50 rounded-3xl overflow-hidden">
         <CardContent className="p-8">
           <div className="flex items-center justify-between">
@@ -584,22 +598,21 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-800">
-                  סיכום ההצעה
+                  {dict.summary.title}
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  כל הפרטים מוכנים ליצירת ההצעה
+                  {dict.summary.description}
                 </p>
               </div>
             </div>
-
             <div className="text-center">
               <div className="flex items-center gap-2 mb-2">
                 <Gift className="w-5 h-5 text-purple-500" />
-                <span className="font-bold text-purple-600">מוכן ליצירה!</span>
+                <span className="font-bold text-purple-600">
+                  {dict.summary.ready}
+                </span>
               </div>
-              <p className="text-sm text-gray-500">
-                לאחר יצירת ההצעה, היא תישלח אוטומטי לצד הראשון
-              </p>
+              <p className="text-sm text-gray-500">{dict.summary.info}</p>
             </div>
           </div>
         </CardContent>

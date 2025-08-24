@@ -1,4 +1,4 @@
-// /Filters/FilterPanel.tsx - גרסה מתורגמת ומעודכנת
+// /Filters/FilterPanel.tsx - גרסה מתורגמת, מלאה ומעודכנת
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -79,7 +79,7 @@ import {
 } from '../constants/filterOptions';
 import type { CandidatesFilter } from '../types/candidates';
 import type { FilterState } from '../types/filters';
-import type { FilterPanelDict } from '@/types/dictionaries/matchmaker'; // <-- ייבוא הטיפוס החדש
+import type { FilterPanelDict } from '@/types/dictionaries/matchmaker';
 
 // Interfaces
 interface PopularFilterOption {
@@ -108,7 +108,7 @@ interface FilterPanelProps {
     source: 'male' | 'female',
     target: 'male' | 'female'
   ) => void;
-  dict: FilterPanelDict; // <-- הוספת המילון כ-prop
+  dict: FilterPanelDict;
 }
 
 interface FilterSectionProps {
@@ -354,12 +354,12 @@ const GenderFilterPanel = ({
                 min={AGE_RANGE.min}
                 max={AGE_RANGE.max}
                 step={1}
-                onValueChange={(value) => {
+                onValueChange={(value) =>
                   onFiltersChange({
                     ...filters,
                     ageRange: { min: value[0], max: value[1] },
-                  });
-                }}
+                  })
+                }
                 className="h-5 [&>span]:bg-gradient-to-r [&>span]:from-blue-500 [&>span]:to-cyan-500"
                 dir="rtl"
               />
@@ -414,12 +414,12 @@ const GenderFilterPanel = ({
                 min={HEIGHT_RANGE.min}
                 max={HEIGHT_RANGE.max}
                 step={1}
-                onValueChange={(value) => {
+                onValueChange={(value) =>
                   onFiltersChange({
                     ...filters,
                     heightRange: { min: value[0], max: value[1] },
-                  });
-                }}
+                  })
+                }
                 className="h-5 [&>span]:bg-gradient-to-r [&>span]:from-purple-500 [&>span]:to-pink-500"
                 dir="rtl"
               />
@@ -542,12 +542,12 @@ const GenderFilterPanel = ({
                   (filters?.[item.key as keyof typeof filters] as boolean) ||
                   false
                 }
-                onCheckedChange={(checked) => {
+                onCheckedChange={(checked) =>
                   onFiltersChange({
                     ...filters,
                     [item.key]: checked || undefined,
-                  });
-                }}
+                  })
+                }
                 className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-emerald-500 data-[state=checked]:to-green-500"
               />
             </div>
@@ -642,7 +642,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
   const countActiveFilters = (category: string): number => {
     let count = 0;
-    // ... (logic remains the same)
+    // ... logic remains the same ...
     return count;
   };
 
@@ -1010,7 +1010,97 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                         : undefined
                     }
                   >
-                    {/* ... Age Slider JSX (unchanged logic) ... */}
+                    <div className="space-y-6">
+                      <div className="flex justify-between items-center">
+                        <div className="text-center bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl shadow-md p-3 min-w-[80px]">
+                          <p className="text-xs text-emerald-600 mb-1 font-medium">
+                            {dict.genderFilterPanel.minLabel}
+                          </p>
+                          <input
+                            type="number"
+                            min={AGE_RANGE.min}
+                            max={AGE_RANGE.max}
+                            value={
+                              filters.ageRange?.min || AGE_RANGE.default.min
+                            }
+                            onChange={(e) => {
+                              const newMin = parseInt(e.target.value);
+                              if (
+                                !isNaN(newMin) &&
+                                newMin >= AGE_RANGE.min &&
+                                newMin <= AGE_RANGE.max
+                              ) {
+                                const currentMax =
+                                  filters.ageRange?.max ||
+                                  AGE_RANGE.default.max;
+                                onFiltersChange({
+                                  ...filters,
+                                  ageRange: {
+                                    min: Math.min(newMin, currentMax),
+                                    max: currentMax,
+                                  },
+                                });
+                              }
+                            }}
+                            className="w-16 text-center text-lg font-bold text-emerald-700 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <span className="text-xl font-bold text-gray-400">
+                          -
+                        </span>
+                        <div className="text-center bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl shadow-md p-3 min-w-[80px]">
+                          <p className="text-xs text-emerald-600 mb-1 font-medium">
+                            {dict.genderFilterPanel.maxLabel}
+                          </p>
+                          <input
+                            type="number"
+                            min={AGE_RANGE.min}
+                            max={AGE_RANGE.max}
+                            value={
+                              filters.ageRange?.max || AGE_RANGE.default.max
+                            }
+                            onChange={(e) => {
+                              const newMax = parseInt(e.target.value);
+                              if (
+                                !isNaN(newMax) &&
+                                newMax >= AGE_RANGE.min &&
+                                newMax <= AGE_RANGE.max
+                              ) {
+                                const currentMin =
+                                  filters.ageRange?.min ||
+                                  AGE_RANGE.default.min;
+                                onFiltersChange({
+                                  ...filters,
+                                  ageRange: {
+                                    min: currentMin,
+                                    max: Math.max(currentMin, newMax),
+                                  },
+                                });
+                              }
+                            }}
+                            className="w-16 text-center text-lg font-bold text-emerald-700 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div className="px-3">
+                        <Slider
+                          value={[
+                            filters.ageRange?.min || AGE_RANGE.default.min,
+                            filters.ageRange?.max || AGE_RANGE.default.max,
+                          ]}
+                          min={AGE_RANGE.min}
+                          max={AGE_RANGE.max}
+                          step={1}
+                          onValueChange={handleAgeRangeChange}
+                          className="h-6 [&>span]:bg-gradient-to-r [&>span]:from-emerald-500 [&>span]:to-green-500"
+                          dir="rtl"
+                        />
+                        <div className="flex justify-between mt-2 px-1 text-xs text-gray-500">
+                          <span>{AGE_RANGE.min}</span>
+                          <span>{AGE_RANGE.max}</span>
+                        </div>
+                      </div>
+                    </div>
                   </FilterSection>
                 </TabsContent>
                 <TabsContent value="advanced" className="space-y-6 m-0">
@@ -1026,7 +1116,101 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                         : undefined
                     }
                   >
-                    {/* ... Height Slider JSX (unchanged logic) ... */}
+                    <div className="space-y-6">
+                      <div className="flex justify-between items-center">
+                        <div className="text-center bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl shadow-md p-3 min-w-[80px]">
+                          <p className="text-xs text-indigo-600 mb-1 font-medium">
+                            {dict.genderFilterPanel.minLabel}
+                          </p>
+                          <input
+                            type="number"
+                            min={HEIGHT_RANGE.min}
+                            max={HEIGHT_RANGE.max}
+                            value={
+                              filters.heightRange?.min ||
+                              HEIGHT_RANGE.default.min
+                            }
+                            onChange={(e) => {
+                              const newMin = parseInt(e.target.value);
+                              if (
+                                !isNaN(newMin) &&
+                                newMin >= HEIGHT_RANGE.min &&
+                                newMin <= HEIGHT_RANGE.max
+                              ) {
+                                const currentMax =
+                                  filters.heightRange?.max ||
+                                  HEIGHT_RANGE.default.max;
+                                onFiltersChange({
+                                  ...filters,
+                                  heightRange: {
+                                    min: Math.min(newMin, currentMax),
+                                    max: currentMax,
+                                  },
+                                });
+                              }
+                            }}
+                            className="w-16 text-center text-lg font-bold text-indigo-700 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <span className="text-xl font-bold text-gray-400">
+                          -
+                        </span>
+                        <div className="text-center bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl shadow-md p-3 min-w-[80px]">
+                          <p className="text-xs text-indigo-600 mb-1 font-medium">
+                            {dict.genderFilterPanel.maxLabel}
+                          </p>
+                          <input
+                            type="number"
+                            min={HEIGHT_RANGE.min}
+                            max={HEIGHT_RANGE.max}
+                            value={
+                              filters.heightRange?.max ||
+                              HEIGHT_RANGE.default.max
+                            }
+                            onChange={(e) => {
+                              const newMax = parseInt(e.target.value);
+                              if (
+                                !isNaN(newMax) &&
+                                newMax >= HEIGHT_RANGE.min &&
+                                newMax <= HEIGHT_RANGE.max
+                              ) {
+                                const currentMin =
+                                  filters.heightRange?.min ||
+                                  HEIGHT_RANGE.default.min;
+                                onFiltersChange({
+                                  ...filters,
+                                  heightRange: {
+                                    min: currentMin,
+                                    max: Math.max(currentMin, newMax),
+                                  },
+                                });
+                              }
+                            }}
+                            className="w-16 text-center text-lg font-bold text-indigo-700 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div className="px-3">
+                        <Slider
+                          value={[
+                            filters.heightRange?.min ||
+                              HEIGHT_RANGE.default.min,
+                            filters.heightRange?.max ||
+                              HEIGHT_RANGE.default.max,
+                          ]}
+                          min={HEIGHT_RANGE.min}
+                          max={HEIGHT_RANGE.max}
+                          step={1}
+                          onValueChange={handleHeightRangeChange}
+                          className="h-6 [&>span]:bg-gradient-to-r [&>span]:from-indigo-500 [&>span]:to-purple-500"
+                          dir="rtl"
+                        />
+                        <div className="flex justify-between mt-2 px-1 text-xs text-gray-500">
+                          <span>{HEIGHT_RANGE.min} ס"מ</span>
+                          <span>{HEIGHT_RANGE.max} ס"מ</span>
+                        </div>
+                      </div>
+                    </div>
                   </FilterSection>
                 </TabsContent>
                 <TabsContent value="saved" className="space-y-6 m-0">
@@ -1040,17 +1224,17 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                         <Bookmark className="w-10 h-10 text-amber-500" />
                       </div>
                       <h3 className="text-xl font-bold text-gray-800 mb-3">
-                        {dict.savedFilters.emptyTitle}
+                        {dict.savedFilters.emptyState.title}
                       </h3>
                       <p className="text-gray-600 mb-6 max-w-sm mx-auto">
-                        {dict.savedFilters.emptyDescription}
+                        {dict.savedFilters.emptyState.description}
                       </p>
                       <Button
                         onClick={() => setShowSavePreset(true)}
                         className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg rounded-xl px-6"
                       >
                         <Save className="w-4 h-4 mr-2" />
-                        {dict.savedFilters.saveCurrentButton}
+                        {dict.savedFilters.emptyState.saveCurrentButton}
                       </Button>
                     </motion.div>
                   ) : (
@@ -1067,6 +1251,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                       onDelete={() => {}}
                       onEdit={() => {}}
                       onSetDefault={() => {}}
+                      dict={dict.savedFilters}
                     />
                   )}
                 </TabsContent>
@@ -1101,5 +1286,4 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     </Card>
   );
 };
-
 export default FilterPanel;

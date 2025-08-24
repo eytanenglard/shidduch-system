@@ -48,8 +48,10 @@ import {
 } from 'lucide-react';
 import type { Suggestion } from '@/types/suggestions';
 import { cn } from '@/lib/utils';
+import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
 interface MonthlyTrendModalProps {
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['monthlyTrendModal'];
   suggestions: Suggestion[];
 }
 
@@ -123,9 +125,9 @@ const TrendCard: React.FC<TrendCardProps> = ({
 );
 
 const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
+  dict,
   suggestions,
 }) => {
-  // Group suggestions by month to prepare data for chart
   const monthlyData = useMemo(() => {
     const data = suggestions.reduce(
       (acc, s) => {
@@ -149,7 +151,6 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
         }
 
         acc[key].count += 1;
-
         if (s.category === 'ACTIVE') acc[key].active += 1;
         if (s.category === 'PENDING') acc[key].pending += 1;
         if (['MARRIED', 'ENGAGED'].includes(s.status)) acc[key].success += 1;
@@ -165,7 +166,6 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
       {} as Record<string, MonthlyData>
     );
 
-    // Convert to array and sort by date
     return Object.values(data).sort((a, b) => {
       if (a.year !== b.year) return a.year - b.year;
       const monthA = new Date(
@@ -180,19 +180,15 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
     });
   }, [suggestions]);
 
-  // Calculate trends
   const trends = useMemo(() => {
     if (monthlyData.length < 2)
       return { active: 0, pending: 0, success: 0, total: 0 };
-
     const current = monthlyData[monthlyData.length - 1];
     const previous = monthlyData[monthlyData.length - 2];
-
     const calculateTrend = (current: number, previous: number) => {
       if (previous === 0) return current > 0 ? 100 : 0;
       return Math.round(((current - previous) / previous) * 100);
     };
-
     return {
       active: calculateTrend(current.active, previous.active),
       pending: calculateTrend(current.pending, previous.pending),
@@ -201,36 +197,34 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
     };
   }, [monthlyData]);
 
-  // Chart data
   const chartData = monthlyData.map((month) => ({
     name: `${month.month} ${month.year}`,
-    פעילות: month.active,
-    ממתינות: month.pending,
-    הצלחות: month.success,
-    נדחו: month.declined,
-    'סה״כ': month.count,
+    [dict.charts.legend.active]: month.active,
+    [dict.charts.legend.pending]: month.pending,
+    [dict.charts.legend.success]: month.success,
+    [dict.charts.legend.declined]: month.declined,
   }));
 
   const pieData =
     monthlyData.length > 0
       ? [
           {
-            name: 'פעילות',
+            name: dict.charts.legend.active,
             value: monthlyData[monthlyData.length - 1].active,
             color: '#3B82F6',
           },
           {
-            name: 'ממתינות',
+            name: dict.charts.legend.pending,
             value: monthlyData[monthlyData.length - 1].pending,
             color: '#F59E0B',
           },
           {
-            name: 'הצלחות',
+            name: dict.charts.legend.success,
             value: monthlyData[monthlyData.length - 1].success,
             color: '#10B981',
           },
           {
-            name: 'נדחו',
+            name: dict.charts.legend.declined,
             value: monthlyData[monthlyData.length - 1].declined,
             color: '#EF4444',
           },
@@ -246,18 +240,21 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
           <BarChart3 className="w-12 h-12 text-purple-400" />
         </div>
         <h3 className="text-xl font-bold text-gray-800 mb-2">
-          אין מספיק נתונים
+          {dict.emptyState.title}
         </h3>
-        <p className="text-gray-600">אין מספיק נתונים להצגת מגמה חודשית</p>
+        <p className="text-gray-600">{dict.emptyState.description}</p>
       </div>
     );
   }
 
   const currentMonth = monthlyData[monthlyData.length - 1];
+  const trendLabel =
+    trends.total >= 0
+      ? dict.trendCards.trendLabel.increase
+      : dict.trendCards.trendLabel.decrease;
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-50 via-cyan-50/30 to-emerald-50/20 rounded-3xl"></div>
         <div className="relative z-10 p-8 text-center">
@@ -267,56 +264,49 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
             </div>
           </div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-2">
-            מגמה חודשית מפורטת
+            {dict.header.title}
           </h2>
-          <p className="text-gray-600 text-lg">
-            ניתוח מעמיק של ביצועי ההצעות לאורך זמן
-          </p>
+          <p className="text-gray-600 text-lg">{dict.header.subtitle}</p>
         </div>
       </div>
-
-      {/* Trend Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <TrendCard
-          title="סה״כ הצעות"
+          title={dict.trendCards.total.title}
           value={currentMonth.count}
           trend={trends.total}
           icon={Users}
           gradient="from-blue-500 to-cyan-500"
-          description={`${trends.total >= 0 ? 'גידול' : 'ירידה'} מהחודש הקודם`}
+          description={dict.trendCards.total.description.replace(
+            '{{trend}}',
+            trendLabel
+          )}
         />
-
         <TrendCard
-          title="הצעות פעילות"
+          title={dict.trendCards.active.title}
           value={currentMonth.active}
           trend={trends.active}
           icon={Target}
           gradient="from-green-500 to-emerald-500"
-          description="הצעות בטיפול פעיל"
+          description={dict.trendCards.active.description}
         />
-
         <TrendCard
-          title="ממתינות לאישור"
+          title={dict.trendCards.pending.title}
           value={currentMonth.pending}
           trend={trends.pending}
           icon={Clock}
           gradient="from-yellow-500 to-amber-500"
-          description="זמן תגובה ממוצע"
+          description={dict.trendCards.pending.description}
         />
-
         <TrendCard
-          title="הצעות מוצלחות"
+          title={dict.trendCards.success.title}
           value={currentMonth.success}
           trend={trends.success}
           icon={Crown}
           gradient="from-purple-500 to-pink-500"
-          description="הגיעו להצלחה מלאה"
+          description={dict.trendCards.success.description}
         />
       </div>
-
-      {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Main Trend Chart */}
         <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-white overflow-hidden rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -325,11 +315,14 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
                   <BarChart3 className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-800">
-                  מגמת הצעות לאורך זמן
+                  {dict.charts.areaChart.title}
                 </h3>
               </div>
               <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-3 py-1 rounded-full">
-                {monthlyData.length} חודשים
+                {dict.charts.areaChart.badge.replace(
+                  '{{count}}',
+                  monthlyData.length.toString()
+                )}
               </Badge>
             </div>
             <div className="h-80">
@@ -378,11 +371,13 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
                       boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
                     }}
                     formatter={(value, name) => [value, name]}
-                    labelFormatter={(label) => `חודש: ${label}`}
+                    labelFormatter={(label) =>
+                      dict.charts.tooltip.monthLabel.replace('{{label}}', label)
+                    }
                   />
                   <Area
                     type="monotone"
-                    dataKey="פעילות"
+                    dataKey={dict.charts.legend.active}
                     stroke="#3B82F6"
                     fillOpacity={1}
                     fill="url(#colorActive)"
@@ -390,7 +385,7 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
                   />
                   <Area
                     type="monotone"
-                    dataKey="ממתינות"
+                    dataKey={dict.charts.legend.pending}
                     stroke="#F59E0B"
                     fillOpacity={1}
                     fill="url(#colorPending)"
@@ -398,7 +393,7 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
                   />
                   <Area
                     type="monotone"
-                    dataKey="הצלחות"
+                    dataKey={dict.charts.legend.success}
                     stroke="#10B981"
                     fillOpacity={1}
                     fill="url(#colorSuccess)"
@@ -409,8 +404,6 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
             </div>
           </CardContent>
         </Card>
-
-        {/* Distribution Pie Chart */}
         <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-white overflow-hidden rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -419,11 +412,13 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
                   <PieChartIcon className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-800">
-                  התפלגות החודש הנוכחי
+                  {dict.charts.pieChart.title}
                 </h3>
               </div>
               <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full">
-                {currentMonth.month} {currentMonth.year}
+                {dict.charts.pieChart.badge
+                  .replace('{{month}}', currentMonth.month)
+                  .replace('{{year}}', currentMonth.year.toString())}
               </Badge>
             </div>
             <div className="h-80">
@@ -462,8 +457,6 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
           </CardContent>
         </Card>
       </div>
-
-      {/* Detailed Monthly Breakdown Table */}
       <Card className="border-0 shadow-xl bg-white overflow-hidden rounded-2xl">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
@@ -472,7 +465,7 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
                 <Activity className="w-6 h-6" />
               </div>
               <h3 className="text-xl font-bold text-gray-800">
-                פירוט חודשי מלא
+                {dict.table.title}
               </h3>
             </div>
             <div className="flex gap-2">
@@ -482,7 +475,7 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
                 className="rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50"
               >
                 <Download className="w-4 h-4 ml-2" />
-                ייצוא
+                {dict.table.exportButton}
               </Button>
               <Button
                 variant="outline"
@@ -490,32 +483,31 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
                 className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
               >
                 <Eye className="w-4 h-4 ml-2" />
-                הצג הכל
+                {dict.table.viewAllButton}
               </Button>
             </div>
           </div>
-
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-gradient-to-r from-gray-50 to-slate-50">
                   <th className="p-4 text-right font-bold text-gray-800 border-b border-gray-200 rounded-tr-xl">
-                    חודש
+                    {dict.table.headers.month}
                   </th>
                   <th className="p-4 text-center font-bold text-gray-800 border-b border-gray-200">
-                    סה״כ
+                    {dict.table.headers.total}
                   </th>
                   <th className="p-4 text-center font-bold text-gray-800 border-b border-gray-200">
-                    פעילות
+                    {dict.table.headers.active}
                   </th>
                   <th className="p-4 text-center font-bold text-gray-800 border-b border-gray-200">
-                    ממתינות
+                    {dict.table.headers.pending}
                   </th>
                   <th className="p-4 text-center font-bold text-gray-800 border-b border-gray-200">
-                    הצלחות
+                    {dict.table.headers.success}
                   </th>
                   <th className="p-4 text-center font-bold text-gray-800 border-b border-gray-200 rounded-tl-xl">
-                    נדחו
+                    {dict.table.headers.declined}
                   </th>
                 </tr>
               </thead>
@@ -541,7 +533,7 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
                           </span>
                           {idx === 0 && (
                             <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs px-2 py-1">
-                              נוכחי
+                              {dict.table.currentMonthBadge}
                             </Badge>
                           )}
                         </div>
@@ -593,8 +585,6 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
           </div>
         </CardContent>
       </Card>
-
-      {/* Key Insights */}
       <Card className="border-0 shadow-xl bg-gradient-to-r from-indigo-50 to-purple-50 overflow-hidden rounded-2xl">
         <CardContent className="p-8">
           <div className="flex items-center gap-4 mb-6">
@@ -603,45 +593,61 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
             </div>
             <div>
               <h3 className="text-2xl font-bold text-indigo-800">
-                תובנות מרכזיות
+                {dict.insights.title}
               </h3>
-              <p className="text-indigo-600">ניתוח המגמות והביצועים</p>
+              <p className="text-indigo-600">{dict.insights.subtitle}</p>
             </div>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="p-6 bg-white/70 rounded-xl shadow-lg">
               <div className="flex items-center gap-3 mb-3">
                 <TrendingUp className="w-6 h-6 text-green-500" />
-                <h4 className="font-bold text-gray-800">מגמת צמיחה</h4>
+                <h4 className="font-bold text-gray-800">
+                  {dict.insights.growth.title}
+                </h4>
               </div>
               <p className="text-sm text-gray-700 leading-relaxed">
                 {trends.total >= 0
-                  ? `גידול של ${trends.total}% בכמות ההצעות השוטפות מהחודש הקודם`
-                  : `ירידה של ${Math.abs(trends.total)}% בכמות ההצעות השוטפות מהחודש הקודם`}
+                  ? dict.insights.growth.increase.replace(
+                      '{{trend}}',
+                      trends.total.toString()
+                    )
+                  : dict.insights.growth.decrease.replace(
+                      '{{trend}}',
+                      Math.abs(trends.total).toString()
+                    )}
               </p>
             </div>
-
             <div className="p-6 bg-white/70 rounded-xl shadow-lg">
               <div className="flex items-center gap-3 mb-3">
                 <Award className="w-6 h-6 text-purple-500" />
-                <h4 className="font-bold text-gray-800">אחוז הצלחה</h4>
+                <h4 className="font-bold text-gray-800">
+                  {dict.insights.successRate.title}
+                </h4>
               </div>
               <p className="text-sm text-gray-700 leading-relaxed">
                 {currentMonth.count > 0
-                  ? `${Math.round((currentMonth.success / currentMonth.count) * 100)}% מההצעות הגיעו להצלחה בחודש הנוכחי`
-                  : 'אין מספיק נתונים לחישוב אחוז הצלחה'}
+                  ? dict.insights.successRate.rate.replace(
+                      '{{rate}}',
+                      Math.round(
+                        (currentMonth.success / currentMonth.count) * 100
+                      ).toString()
+                    )
+                  : dict.insights.successRate.noData}
               </p>
             </div>
-
             <div className="p-6 bg-white/70 rounded-xl shadow-lg">
               <div className="flex items-center gap-3 mb-3">
                 <Activity className="w-6 h-6 text-blue-500" />
-                <h4 className="font-bold text-gray-800">פעילות שוטפת</h4>
+                <h4 className="font-bold text-gray-800">
+                  {dict.insights.currentActivity.title}
+                </h4>
               </div>
               <p className="text-sm text-gray-700 leading-relaxed">
-                {currentMonth.active + currentMonth.pending} הצעות זקוקות לטיפול
-                פעיל או המתנה לתגובה
+                {dict.insights.currentActivity.body.replace(
+                  '{{count}}',
+                  (currentMonth.active + currentMonth.pending).toString()
+                )}
               </p>
             </div>
           </div>

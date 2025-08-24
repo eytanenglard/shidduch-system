@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   X,
   Sparkles,
@@ -41,6 +40,7 @@ import {
 import type { Candidate } from '../types/candidates';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 // --- Interfaces ---
 interface AiAnalysis {
@@ -64,6 +64,7 @@ interface AiMatchAnalysisDialogProps {
   onClose: () => void;
   targetCandidate: Candidate | null;
   comparisonCandidates: Candidate[];
+  dict: MatchmakerPageDictionary['candidatesManager']['aiAnalysis'];
 }
 
 // --- Helper Functions ---
@@ -81,9 +82,8 @@ const calculateAge = (birthDate: Date | string): number => {
   if (isNaN(birth.getTime())) return 0;
   let age = today.getFullYear() - birth.getFullYear();
   const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate()))
     age--;
-  }
   return age > 0 ? age : 0;
 };
 
@@ -92,7 +92,8 @@ const MiniProfileHeader: React.FC<{
   candidate: Candidate;
   score?: number;
   isTarget?: boolean;
-}> = ({ candidate, score, isTarget = false }) => {
+  dict: MatchmakerPageDictionary['candidatesManager']['aiAnalysis']['miniProfile'];
+}> = ({ candidate, score, isTarget = false, dict }) => {
   const mainImage = candidate.images?.find((img) => img.isMain);
   const age = calculateAge(candidate.profile.birthDate);
   const initials = getInitials(candidate.firstName, candidate.lastName);
@@ -103,7 +104,7 @@ const MiniProfileHeader: React.FC<{
         {mainImage?.url ? (
           <Image
             src={getRelativeCloudinaryPath(mainImage.url)}
-            alt={`תמונת פרופיל של ${candidate.firstName}`}
+            alt={`Profile picture of ${candidate.firstName}`}
             layout="fill"
             className="object-cover"
             sizes="96px"
@@ -116,35 +117,32 @@ const MiniProfileHeader: React.FC<{
           </div>
         )}
       </div>
-
       {!isTarget && typeof score === 'number' && (
         <Badge className="absolute top-4 left-4 bg-gradient-to-r from-teal-400 to-cyan-500 text-white border-0 shadow-lg px-3 py-1.5 text-sm font-bold flex items-center gap-1.5">
           <Sparkles className="w-4 h-4" />
-          {score}% התאמה
+          {dict.matchBadge.replace('{{score}}', String(score))}
         </Badge>
       )}
-
       {isTarget && (
         <Badge className="absolute top-4 right-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0 shadow-lg px-3 py-1.5 text-sm font-bold flex items-center gap-1.5">
           <Star className="w-4 h-4" />
-          מועמד מטרה
+          {dict.targetBadge}
         </Badge>
       )}
-
       <h3 className="mt-3 text-lg font-bold text-slate-800">
         {candidate.firstName} {candidate.lastName}
       </h3>
       <div className="mt-2 flex justify-center items-center flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
         <div className="flex items-center gap-1">
-          <Cake className="w-3.5 h-3.5 text-slate-400" /> {age} שנים
+          <Cake className="w-3.5 h-3.5 text-slate-400" /> {age} {dict.years}
         </div>
         <div className="flex items-center gap-1">
           <MapPin className="w-3.5 h-3.5 text-slate-400" />{' '}
-          {candidate.profile.city || 'לא צוין'}
+          {candidate.profile.city || dict.notSpecified}
         </div>
         <div className="flex items-center gap-1">
           <BookMarked className="w-3.5 h-3.5 text-slate-400" />{' '}
-          {candidate.profile.religiousLevel || 'לא צוין'}
+          {candidate.profile.religiousLevel || dict.notSpecified}
         </div>
       </div>
     </div>
@@ -176,48 +174,48 @@ const AnalysisItem: React.FC<{
 const ComparisonTable: React.FC<{
   target: Candidate;
   comparison: Candidate;
-}> = ({ target, comparison }) => {
+  dict: MatchmakerPageDictionary['candidatesManager']['aiAnalysis']['comparisonTable'];
+}> = ({ target, comparison, dict }) => {
   const fieldsToCompare = [
     {
       key: 'age',
-      label: 'גיל',
+      label: dict.fields.age,
       formatter: (c: Candidate) =>
-        `${calculateAge(c.profile.birthDate)}${c.profile.birthDateIsApproximate ? ' (משוער)' : ''}`,
+        `${calculateAge(c.profile.birthDate)}${c.profile.birthDateIsApproximate ? ` ${dict.fields.ageApprox}` : ''}`,
     },
     {
       key: 'city',
-      label: 'עיר',
+      label: dict.fields.city,
       formatter: (c: Candidate) => c.profile.city || 'לא צוין',
     },
     {
       key: 'maritalStatus',
-      label: 'מצב משפחתי',
+      label: dict.fields.maritalStatus,
       formatter: (c: Candidate) => c.profile.maritalStatus || 'לא צוין',
     },
     {
       key: 'religiousLevel',
-      label: 'רמה דתית',
+      label: dict.fields.religiousLevel,
       formatter: (c: Candidate) => c.profile.religiousLevel || 'לא צוין',
     },
     {
       key: 'occupation',
-      label: 'עיסוק',
+      label: dict.fields.occupation,
       formatter: (c: Candidate) => c.profile.occupation || 'לא צוין',
     },
     {
       key: 'education',
-      label: 'השכלה',
+      label: dict.fields.education,
       formatter: (c: Candidate) => c.profile.education || 'לא צוין',
     },
   ];
-
   return (
     <div className="overflow-x-auto border rounded-lg">
       <table className="w-full text-sm text-right border-collapse">
         <thead>
           <tr className="bg-slate-50">
             <th className="p-3 font-semibold text-slate-600 border-b border-slate-200">
-              קריטריון
+              {dict.criterion}
             </th>
             <th className="p-3 font-semibold text-slate-600 border-b border-slate-200 text-center">
               {target.firstName}
@@ -275,14 +273,12 @@ const AnalysisSkeleton: React.FC = () => (
   </div>
 );
 
-// --- START OF NEW STRUCTURE ---
-
-// 1. Inner component to hold all logic and complex JSX
 const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
   isOpen,
   onClose,
   targetCandidate,
   comparisonCandidates,
+  dict,
 }) => {
   const [activeComparisonId, setActiveComparisonId] = useState<string | null>(
     null
@@ -300,14 +296,14 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const activeComparisonCandidate = useMemo(() => {
-    return comparisonCandidates.find((c) => c.id === activeComparisonId);
-  }, [activeComparisonId, comparisonCandidates]);
-
-  const activeAnalysis = useMemo(() => {
-    if (!activeComparisonId) return null;
-    return analyses[activeComparisonId] || null;
-  }, [activeComparisonId, analyses]);
+  const activeComparisonCandidate = useMemo(
+    () => comparisonCandidates.find((c) => c.id === activeComparisonId),
+    [activeComparisonId, comparisonCandidates]
+  );
+  const activeAnalysis = useMemo(
+    () => (activeComparisonId ? analyses[activeComparisonId] || null : null),
+    [activeComparisonId, analyses]
+  );
 
   useEffect(() => {
     if (
@@ -328,7 +324,6 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
     ) {
       const fetchAnalysis = async () => {
         setAnalyses((prev) => ({ ...prev, [activeComparisonId]: 'loading' }));
-
         try {
           const response = await fetch('/api/ai/generate-rationale', {
             method: 'POST',
@@ -339,7 +334,6 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
               language: language,
             }),
           });
-
           const data = await response.json();
           if (response.ok && data.success) {
             setAnalyses((prev) => ({
@@ -373,18 +367,20 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
         <div className="flex items-center gap-3">
           <Sparkles className="w-7 h-7 text-teal-500" />
           <div>
-            <DialogTitle className="text-xl">ניתוח התאמה מבוסס AI</DialogTitle>
-            <DialogDescription>השוואה מפורטת בין מועמדים</DialogDescription>
+            <DialogTitle className="text-xl">{dict.header.title}</DialogTitle>
+            <DialogDescription>{dict.header.description}</DialogDescription>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Select value={language} onValueChange={handleLanguageChange}>
             <SelectTrigger className="w-[120px] text-xs h-9">
-              <SelectValue placeholder="שפת ניתוח" />
+              <SelectValue
+                placeholder={dict.header.languageSelectPlaceholder}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="he">עברית</SelectItem>
-              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="he">{dict.header.languages.he}</SelectItem>
+              <SelectItem value="en">{dict.header.languages.en}</SelectItem>
             </SelectContent>
           </Select>
           <DialogClose asChild>
@@ -394,9 +390,7 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
           </DialogClose>
         </div>
       </DialogHeader>
-
       <div className="flex-1 flex flex-col md:flex-row min-h-0">
-        {/* Sidebar (Desktop) or Select (Mobile) */}
         {isMobile ? (
           <div className="p-4 border-b md:hidden">
             <Select
@@ -404,7 +398,9 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
               onValueChange={setActiveComparisonId}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="בחר מועמד להשוואה" />
+                <SelectValue
+                  placeholder={dict.header.languageSelectPlaceholder}
+                />
               </SelectTrigger>
               <SelectContent>
                 {comparisonCandidates.map((c) => (
@@ -418,15 +414,16 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
         ) : (
           <aside className="w-1/4 border-l bg-slate-50/50 flex flex-col flex-shrink-0">
             <h3 className="p-3 text-sm font-semibold text-slate-600 border-b">
-              מועמדים להשוואה ({comparisonCandidates.length})
+              {dict.sidebar.title.replace(
+                '{{count}}',
+                String(comparisonCandidates.length)
+              )}
             </h3>
             <ScrollArea className="flex-1">
               {comparisonCandidates.map((candidate) => {
-                // ================== שינוי 1: חילוץ התמונה לפני השימוש ==================
                 const mainImageUrl = candidate.images?.find(
                   (img) => img.isMain
                 )?.url;
-
                 return (
                   <button
                     key={candidate.id}
@@ -438,7 +435,6 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
                     )}
                   >
                     <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
-                      {/* ================== שינוי 2: שימוש בפונקציית העזר ================== */}
                       {mainImageUrl ? (
                         <Image
                           src={getRelativeCloudinaryPath(mainImageUrl)}
@@ -467,14 +463,14 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
                         {candidate.profile.city}
                       </p>
                     </div>
-                    {activeAnalysis &&
-                      activeAnalysis !== 'error' &&
-                      activeAnalysis !== 'loading' && (
+                    {analyses[candidate.id] &&
+                      analyses[candidate.id] !== 'error' &&
+                      analyses[candidate.id] !== 'loading' && (
                         <Badge
                           variant="secondary"
                           className="bg-teal-100 text-teal-800"
                         >
-                          {(activeAnalysis as AiAnalysis).overallScore}%
+                          {(analyses[candidate.id] as AiAnalysis).overallScore}%
                         </Badge>
                       )}
                   </button>
@@ -483,37 +479,46 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
             </ScrollArea>
           </aside>
         )}
-
-        {/* Main content area */}
         <main className="flex-1 flex flex-col min-h-0 bg-white">
           {!activeComparisonCandidate ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-gray-500">
               <Users className="w-16 h-16 text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold">בחר מועמד/ת להשוואה</h3>
+              <h3 className="text-lg font-semibold">
+                {dict.main.selectCandidate.title}
+              </h3>
               <p className="max-w-xs">
-                בחר מועמד מהרשימה בצד (או מהתפריט הנפתח במובייל) כדי להתחיל
-                בניתוח ההתאמה.
+                {dict.main.selectCandidate.description}
               </p>
             </div>
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 flex-shrink-0">
-                <MiniProfileHeader candidate={targetCandidate} isTarget />
+                <MiniProfileHeader
+                  candidate={targetCandidate}
+                  isTarget
+                  dict={dict.miniProfile}
+                />
                 <MiniProfileHeader
                   candidate={activeComparisonCandidate}
                   score={(activeAnalysis as AiAnalysis)?.overallScore}
+                  dict={dict.miniProfile}
                 />
               </div>
-
               <Tabs
                 defaultValue="summary"
                 className="flex-1 flex flex-col min-h-0"
               >
                 <TabsList className="mx-4 mt-4 bg-slate-100 p-1 rounded-lg">
-                  <TabsTrigger value="summary">סיכום וחוזקות</TabsTrigger>
-                  <TabsTrigger value="challenges">אתגרים ופערים</TabsTrigger>
-                  <TabsTrigger value="comparison">השוואת נתונים</TabsTrigger>
-                  <TabsTrigger value="conversation">נושאים לשיחה</TabsTrigger>
+                  <TabsTrigger value="summary">{dict.tabs.summary}</TabsTrigger>
+                  <TabsTrigger value="challenges">
+                    {dict.tabs.challenges}
+                  </TabsTrigger>
+                  <TabsTrigger value="comparison">
+                    {dict.tabs.comparison}
+                  </TabsTrigger>
+                  <TabsTrigger value="conversation">
+                    {dict.tabs.conversation}
+                  </TabsTrigger>
                 </TabsList>
                 <ScrollArea className="flex-1">
                   <AnimatePresence mode="wait">
@@ -530,11 +535,10 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
                         <div className="text-center py-10">
                           <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
                           <h3 className="font-semibold text-xl text-red-600">
-                            שגיאה בניתוח ההתאמה
+                            {dict.main.error.title}
                           </h3>
                           <p className="text-gray-500 mt-2">
-                            לא הצלחנו להפיק ניתוח עבור זוג זה. אנא נסה שוב מאוחר
-                            יותר.
+                            {dict.main.error.description}
                           </p>
                         </div>
                       )}
@@ -548,8 +552,8 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
                             >
                               <div className="p-4 bg-slate-50/70 rounded-lg border border-slate-200">
                                 <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                                  <Info className="w-5 h-5 text-blue-500" />{' '}
-                                  סיכום ההתאמה
+                                  <Info className="w-5 h-5 text-blue-500" />
+                                  {dict.analysis.summaryTitle}
                                 </h3>
                                 <p className="text-sm text-gray-600 leading-relaxed">
                                   {(activeAnalysis as AiAnalysis).matchSummary}
@@ -557,8 +561,8 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
                               </div>
                               <div>
                                 <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                  <CheckCircle className="w-5 h-5 text-green-500" />{' '}
-                                  נקודות חוזק וחיבור
+                                  <CheckCircle className="w-5 h-5 text-green-500" />
+                                  {dict.analysis.strengthsTitle}
                                 </h3>
                                 <div className="space-y-4">
                                   {(
@@ -580,8 +584,8 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
                             >
                               <div>
                                 <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                  <AlertTriangle className="w-5 h-5 text-amber-500" />{' '}
-                                  אתגרים ופערים פוטנציאליים
+                                  <AlertTriangle className="w-5 h-5 text-amber-500" />
+                                  {dict.analysis.challengesTitle}
                                 </h3>
                                 <div className="space-y-4">
                                   {(
@@ -601,6 +605,7 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
                               <ComparisonTable
                                 target={targetCandidate}
                                 comparison={activeComparisonCandidate}
+                                dict={dict.comparisonTable}
                               />
                             </TabsContent>
                             <TabsContent
@@ -608,8 +613,8 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
                               className="space-y-4 mt-0"
                             >
                               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                <MessageSquare className="w-5 h-5 text-indigo-500" />{' '}
-                                נושאים מומלצים לשיחה
+                                <MessageSquare className="w-5 h-5 text-indigo-500" />
+                                {dict.analysis.conversationStartersTitle}
                               </h3>
                               <ul className="space-y-3 list-inside">
                                 {(
@@ -643,10 +648,8 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
   );
 };
 
-// 2. Exported wrapper component
 export const AiMatchAnalysisDialog = (props: AiMatchAnalysisDialogProps) => {
   const { isOpen, onClose } = props;
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
@@ -658,5 +661,3 @@ export const AiMatchAnalysisDialog = (props: AiMatchAnalysisDialogProps) => {
     </Dialog>
   );
 };
-
-// --- END OF NEW STRUCTURE ---

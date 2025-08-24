@@ -32,21 +32,25 @@ import type { UserProfile, UserImage } from '@/types/next-auth';
 import type { Candidate } from './types/candidates';
 import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
+import type { ProfilePageDictionary } from '@/types/dictionary';
 
 interface MatchmakerEditProfileProps {
   isOpen: boolean;
   onClose: () => void;
   candidate: Candidate | null;
   onCandidateDeleted?: (candidateId: string) => void;
+  dict: MatchmakerPageDictionary['candidatesManager']['editProfile'];
+  profileDict: ProfilePageDictionary;
 }
-
-const DELETE_CANDIDATE_CONFIRMATION_PHRASE = 'אני מאשר מחיקה';
 
 const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   isOpen,
   onClose,
   candidate,
   onCandidateDeleted,
+  dict,
+  profileDict,
 }) => {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';
@@ -59,18 +63,17 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const [images, setImages] = useState<UserImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // States for delete candidate confirmation
   const [isDeleteCandidateDialogOpen, setIsDeleteCandidateDialogOpen] =
     useState(false);
   const [deleteCandidateConfirmText, setDeleteCandidateConfirmText] =
     useState('');
   const [isDeletingCandidate, setIsDeletingCandidate] = useState(false);
 
-  // --- NEW: States for Account Setup Invite ---
   const [isSetupInviteOpen, setIsSetupInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [isSendingInvite, setIsSendingInvite] = useState(false);
-  // --- END NEW ---
+
+  const DELETE_CANDIDATE_CONFIRMATION_PHRASE = dict.deleteConfirmationPhrase;
 
   const fetchProfileData = useCallback(async () => {
     if (!candidate) return;
@@ -84,43 +87,39 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       if (data.success) {
         setProfile(data.profile);
         setImages(data.images || []);
-        // --- NEW: Populate email for invite dialog ---
-        // Check if the email is a real one, not a placeholder
         if (
           candidate.email &&
           !candidate.email.endsWith('@shidduch.placeholder.com')
         ) {
           setInviteEmail(candidate.email);
         } else {
-          setInviteEmail(''); // Clear if it's a placeholder
+          setInviteEmail('');
         }
-        // --- END NEW ---
       } else {
         throw new Error(data.error || 'Failed to load profile data');
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
-      toast.error('שגיאה בטעינת נתוני המועמד');
+      toast.error(dict.toasts.loadError);
     } finally {
       setIsLoading(false);
     }
-  }, [candidate]);
+  }, [candidate, dict.toasts.loadError]);
 
   useEffect(() => {
     if (isOpen && candidate) {
       fetchProfileData();
     } else if (!isOpen) {
+      // Reset state on close
       setProfile(null);
       setImages([]);
       setActiveTab('profile');
       setIsLoading(true);
       setDeleteCandidateConfirmText('');
       setIsDeleteCandidateDialogOpen(false);
-      // --- NEW: Reset invite state on close ---
       setIsSetupInviteOpen(false);
       setInviteEmail('');
       setIsSendingInvite(false);
-      // --- END NEW ---
     }
   }, [isOpen, candidate, fetchProfileData]);
 
@@ -128,20 +127,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     if (!candidate || !profile) return;
     setIsSaving(true);
     try {
-      const cleanedProfile = { ...updatedProfile };
-      if (cleanedProfile.gender === undefined) {
-        /* Keep undefined */
-      }
-      if (cleanedProfile.preferredMatchmakerGender === undefined) {
-        /* Keep undefined */
-      }
-
       const response = await fetch(
         `/api/matchmaker/candidates/${candidate.id}`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(cleanedProfile),
+          body: JSON.stringify(updatedProfile),
         }
       );
       const data = await response.json();
@@ -149,17 +140,16 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         throw new Error(data.error || 'Failed to update profile');
       }
       setProfile(
-        (prevProfile) => ({ ...prevProfile, ...cleanedProfile }) as UserProfile
+        (prevProfile) => ({ ...prevProfile, ...updatedProfile }) as UserProfile
       );
-      toast.success('פרופיל המועמד עודכן בהצלחה', {
+      toast.success(dict.toasts.updateSuccess, {
         position: 'top-center',
         duration: 3000,
       });
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error(
-        'שגיאה בעדכון פרופיל המועמד: ' +
-          (error instanceof Error ? error.message : 'שגיאה לא ידועה'),
+        `${dict.toasts.updateError}: ${error instanceof Error ? error.message : 'Unknown error'}`,
         { duration: 5000 }
       );
     } finally {
@@ -167,51 +157,45 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
-  // --- START OF FIX ---
   const handleImageUpload = async (files: File[]) => {
     if (!candidate) return;
     setIsUploading(true);
-
     const uploadPromises = files.map(async (file) => {
       const formData = new FormData();
       formData.append('image', file);
       formData.append('userId', candidate.id);
-
       const response = await fetch(
         `/api/matchmaker/candidates/${candidate.id}/images`,
         { method: 'POST', body: formData }
       );
-
       const data = await response.json();
       if (!response.ok || !data.success) {
-        // Throw an error with the file name to identify which one failed
         throw new Error(
           `שגיאה בהעלאת הקובץ ${file.name}: ${data.error || 'שגיאת שרת'}`
         );
       }
-      return data.image; // Return the new image object from the server
+      return data.image;
     });
-
     try {
-      // Use Promise.all to upload in parallel
       const newImages = await Promise.all(uploadPromises);
-
-      // Update the state once with all the new images
       setImages((prev) => [...prev, ...newImages]);
       toast.success(
-        `${newImages.length > 1 ? `${newImages.length} תמונות הועלו` : 'התמונה הועלתה'} בהצלחה`
+        newImages.length > 1
+          ? dict.toasts.uploadSuccessMultiple.replace(
+              '{{count}}',
+              String(newImages.length)
+            )
+          : dict.toasts.uploadSuccessSingle
       );
     } catch (error) {
       console.error('Error uploading images:', error);
       toast.error(
-        'אחת או יותר מהתמונות לא הועלו: ' +
-          (error instanceof Error ? error.message : 'שגיאה לא ידועה')
+        `${dict.toasts.uploadError}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     } finally {
       setIsUploading(false);
     }
   };
-  // --- END OF FIX ---
 
   const handleSetMainImage = async (imageId: string) => {
     if (!candidate) return;
@@ -221,78 +205,63 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         { method: 'PATCH' }
       );
       const data = await response.json();
-      if (!response.ok || !data.success) {
+      if (!response.ok || !data.success)
         throw new Error(data.error || 'Failed to set main image');
-      }
       setImages((prev) =>
         prev.map((img) => ({ ...img, isMain: img.id === imageId }))
       );
-      toast.success('התמונה הראשית עודכנה בהצלחה');
+      toast.success(dict.toasts.setMainSuccess);
     } catch (error) {
       console.error('Error setting main image:', error);
-      toast.error('שגיאה בעדכון התמונה הראשית');
+      toast.error(dict.toasts.setMainError);
     }
   };
 
-  // <<<< זה הקוד החדש והמתוקן >>>>
   const handleDeleteImage = async (imageIds: string[]) => {
     if (!candidate || imageIds.length === 0) return;
-    // השתמשתי ב-isUploading כי זה ה-state הקיים, אפשר לשקול לשנות את שמו ל-isProcessingImages
     setIsUploading(true);
-
     try {
-      // בדוק האם התמונה הראשית הנוכחית נמצאת בין התמונות למחיקה
       const currentMainImage = images.find((img) => img.isMain);
       const isMainImageBeingDeleted = currentMainImage
         ? imageIds.includes(currentMainImage.id)
         : false;
-
-      // צור מערך של הבטחות (promises) עבור כל בקשת מחיקה
       const deletePromises = imageIds.map((id) =>
         fetch(`/api/matchmaker/candidates/${candidate.id}/images/${id}`, {
           method: 'DELETE',
         })
       );
-
-      // המתן לסיום כל בקשות המחיקה במקביל
       const responses = await Promise.all(deletePromises);
-
-      // בדוק אם אחת מהבקשות נכשלה
       for (const response of responses) {
-        // סטטוס 204 (No Content) הוא תקין עבור מחיקה
         if (!response.ok && response.status !== 204) {
           const errorData = await response.json().catch(() => null);
           throw new Error(
             errorData?.error ||
-              `שגיאה במחיקת אחת התמונות (סטטוס: ${response.status})`
+              `Error deleting one of the images (status: ${response.status})`
           );
         }
       }
-
-      // כל המחיקות הצליחו, עכשיו נעדכן את ה-state
       const remainingImages = images.filter(
         (img) => !imageIds.includes(img.id)
       );
-
-      // אם התמונה הראשית נמחקה וישנן תמונות אחרות, קדם תמונה חדשה להיות הראשית
       if (isMainImageBeingDeleted && remainingImages.length > 0) {
-        // הפונקציה handleSetMainImage תעדכן את ה-DB ואת ה-state
-        // אנחנו קודם מעדכנים את ה-state המקומי כדי שהיא תעבוד על הרשימה הנכונה
         setImages(remainingImages);
-        await handleSetMainImage(remainingImages[0].id); // הפונקציה הזו תגרום ל-re-render נוסף עם התמונה הראשית המעודכנת
+        await handleSetMainImage(remainingImages[0].id);
       } else {
-        // אם לא, פשוט נסיר את התמונות שנמחקו מה-state
         setImages(remainingImages);
       }
-
       toast.success(
-        `${imageIds.length > 1 ? `${imageIds.length} תמונות נמחקו` : 'התמונה נמחקה'} בהצלחה`,
+        imageIds.length > 1
+          ? dict.toasts.deleteImageSuccessMultiple.replace(
+              '{{count}}',
+              String(imageIds.length)
+            )
+          : dict.toasts.deleteImageSuccessSingle,
         { position: 'top-center' }
       );
     } catch (error) {
       console.error('Error deleting image(s):', error);
       toast.error(
-        error instanceof Error ? error.message : 'שגיאה במחיקת התמונות'
+        error instanceof Error ? error.message : dict.toasts.deleteImageError
       );
     } finally {
       setIsUploading(false);
@@ -302,8 +271,11 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const handleDeleteCandidateRequest = async () => {
     if (!candidate) return;
     if (deleteCandidateConfirmText !== DELETE_CANDIDATE_CONFIRMATION_PHRASE) {
-      toast.error('אישור לא תקין', {
-        description: `נא להקליד "${DELETE_CANDIDATE_CONFIRMATION_PHRASE}" בדיוק כדי לאשר מחיקה.`,
+      toast.error(dict.toasts.deleteCandidateErrorConfirmation, {
+        description: dict.toasts.deleteCandidateErrorDescription.replace(
+          '{{phrase}}',
+          DELETE_CANDIDATE_CONFIRMATION_PHRASE
+        ),
       });
       return;
     }
@@ -314,25 +286,19 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         { method: 'DELETE' }
       );
       const data = await response.json();
-
-      if (!response.ok || !data.success) {
+      if (!response.ok || !data.success)
         throw new Error(data.error || 'Failed to delete candidate profile');
-      }
-
-      toast.success('המועמד נמחק בהצלחה', {
+      toast.success(dict.toasts.deleteCandidateSuccess, {
         position: 'top-center',
         duration: 3000,
       });
-      if (onCandidateDeleted) {
-        onCandidateDeleted(candidate.id);
-      }
+      if (onCandidateDeleted) onCandidateDeleted(candidate.id);
       setIsDeleteCandidateDialogOpen(false);
       onClose();
     } catch (error) {
       console.error('Error deleting candidate:', error);
       toast.error(
-        'שגיאה במחיקת המועמד: ' +
-          (error instanceof Error ? error.message : 'שגיאה לא ידועה'),
+        `${dict.toasts.deleteCandidateError}: ${error instanceof Error ? error.message : 'Unknown error'}`,
         { duration: 5000 }
       );
     } finally {
@@ -340,10 +306,9 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
-  // --- NEW: Handler for sending setup invite ---
   const handleSendSetupInvite = async () => {
     if (!candidate || !inviteEmail) {
-      toast.error('נא להזין כתובת אימייל תקינה.');
+      toast.error(dict.toasts.sendInviteErrorEmail);
       return;
     }
     setIsSendingInvite(true);
@@ -357,21 +322,21 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         }
       );
       const result = await response.json();
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'שגיאה בשליחת ההזמנה.');
-      }
-      toast.success('הזמנה להגדרת חשבון נשלחה בהצלחה!');
+      if (!response.ok || !result.success)
+        throw new Error(result.error || dict.toasts.sendInviteErrorGeneral);
+      toast.success(dict.toasts.sendInviteSuccess);
       setIsSetupInviteOpen(false);
     } catch (error) {
       console.error('Error sending setup invite:', error);
       toast.error(
-        error instanceof Error ? error.message : 'שגיאה בשליחת ההזמנה.'
+        error instanceof Error
+          ? error.message
+          : dict.toasts.sendInviteErrorGeneral
       );
     } finally {
       setIsSendingInvite(false);
     }
   };
-  // --- END NEW ---
 
   if (!candidate && isOpen) return null;
   if (!candidate) return null;
@@ -395,21 +360,22 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 <div className="flex items-center justify-between">
                   <div>
                     <DialogTitle className="text-2xl font-bold text-primary/90">
-                      עריכת פרופיל - {candidate.firstName} {candidate.lastName}
+                      {dict.header.title
+                        .replace('{{firstName}}', candidate.firstName)
+                        .replace('{{lastName}}', candidate.lastName)}
                     </DialogTitle>
                     <DialogDescription className="text-gray-500 mt-1">
-                      עריכת פרטי המועמד והעדפותיו במערכת
+                      {dict.header.description}
                     </DialogDescription>
                   </div>
                   {isSaving && (
                     <div className="flex items-center bg-blue-50 text-blue-700 py-1 px-2 rounded-full text-sm">
                       <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                      שומר שינויים...
+                      {dict.header.saving}
                     </div>
                   )}
                 </div>
               </DialogHeader>
-
               <Tabs
                 value={activeTab}
                 onValueChange={setActiveTab}
@@ -422,25 +388,24 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                       className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white flex items-center gap-2"
                     >
                       <UserCog className="w-4 h-4" />
-                      פרטים אישיים
+                      {dict.tabs.profile}
                     </TabsTrigger>
                     <TabsTrigger
                       value="photos"
                       className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white flex items-center gap-2"
                     >
                       <ImageIcon className="w-4 h-4" />
-                      תמונות
+                      {dict.tabs.photos}
                     </TabsTrigger>
                     <TabsTrigger
                       value="preferences"
                       className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white flex items-center gap-2"
                     >
                       <Sliders className="w-4 h-4" />
-                      העדפות
+                      {dict.tabs.preferences}
                     </TabsTrigger>
                   </TabsList>
                 </div>
-
                 <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                   <TabsContent
                     value="profile"
@@ -453,6 +418,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                           isEditing={isEditing}
                           setIsEditing={setIsEditing}
                           onSave={handleProfileUpdate}
+                          dict={profileDict.profileSection}
                         />
                       </div>
                     ) : (
@@ -474,6 +440,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                         onSetMain={handleSetMainImage}
                         onDelete={handleDeleteImage}
                         maxImages={10}
+                        dict={profileDict.photosSection}
                       />
                     </div>
                   </TabsContent>
@@ -488,6 +455,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                           isEditing={isEditing}
                           setIsEditing={setIsEditing}
                           onChange={handleProfileUpdate}
+                          dictionary={profileDict.preferencesSection}
                         />
                       </div>
                     ) : (
@@ -498,15 +466,14 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                   </TabsContent>
                 </div>
               </Tabs>
-
               <div className="p-4 border-t flex justify-between items-center mt-auto bg-white/80 backdrop-blur-sm sticky bottom-0">
                 <div>
                   <span className="text-sm text-muted-foreground">
                     {activeTab === 'profile'
-                      ? 'עריכת פרטים אישיים'
+                      ? dict.footer.tabInfo.profile
                       : activeTab === 'photos'
-                        ? 'ניהול תמונות'
-                        : 'עריכת העדפות'}
+                        ? dict.footer.tabInfo.photos
+                        : dict.footer.tabInfo.preferences}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -518,7 +485,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                     }
                   >
                     <Send className="w-4 h-4 ml-2" />
-                    שלח הזמנה לניהול החשבון
+                    {dict.footer.buttons.sendInvite}
                   </Button>
                   {isAdmin && (
                     <Button
@@ -528,7 +495,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                       size="sm"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
-                      מחק מועמד
+                      {dict.footer.buttons.deleteCandidate}
                     </Button>
                   )}
                   <Button
@@ -539,7 +506,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                     size="sm"
                   >
                     <X className="w-4 h-4 mr-2" />
-                    סגור
+                    {dict.footer.buttons.close}
                   </Button>
                 </div>
               </div>
@@ -548,30 +515,28 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* --- NEW: Invite Setup Dialog --- */}
       {candidate && (
         <Dialog open={isSetupInviteOpen} onOpenChange={setIsSetupInviteOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>הזמנת מועמד לניהול החשבון</DialogTitle>
+              <DialogTitle>{dict.inviteDialog.title}</DialogTitle>
               <DialogDescription>
-                שלח הזמנה ל
-                <strong>
-                  {candidate.firstName} {candidate.lastName}
-                </strong>{' '}
-                להגדיר סיסמה ולקחת שליטה על הפרופיל.
+                {dict.inviteDialog.description.replace(
+                  '{{fullName}}',
+                  `${candidate.firstName} ${candidate.lastName}`
+                )}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <Label htmlFor="inviteEmail" className="text-right">
-                כתובת אימייל
+                {dict.inviteDialog.emailLabel}
               </Label>
               <Input
                 id="inviteEmail"
                 type="email"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
-                placeholder="user@example.com"
+                placeholder={dict.inviteDialog.emailPlaceholder}
                 className="col-span-3"
                 dir="ltr"
               />
@@ -583,7 +548,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                   variant="secondary"
                   disabled={isSendingInvite}
                 >
-                  ביטול
+                  {dict.inviteDialog.buttons.cancel}
                 </Button>
               </DialogClose>
               <Button
@@ -596,15 +561,15 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 ) : (
                   <Send className="ml-2 h-4 w-4" />
                 )}
-                {isSendingInvite ? 'שולח...' : 'שלח הזמנה'}
+                {isSendingInvite
+                  ? dict.inviteDialog.buttons.sending
+                  : dict.inviteDialog.buttons.send}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
-      {/* --- END NEW --- */}
 
-      {/* Delete Candidate Confirmation Dialog */}
       {candidate && (
         <Dialog
           open={isDeleteCandidateDialogOpen}
@@ -616,22 +581,22 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
             <DialogHeader>
               <DialogTitle className="text-xl flex items-center gap-2 text-red-600">
                 <AlertCircle className="h-5 w-5" />
-                אישור מחיקת מועמד
+                {dict.deleteDialog.title}
               </DialogTitle>
               <DialogDescription>
-                האם אתה בטוח שברצונך למחוק את המועמד{' '}
-                <strong>
-                  {candidate.firstName} {candidate.lastName}
-                </strong>
-                ? פעולה זו הינה בלתי הפיכה ותסיר את כל נתוני המועמד מהמערכת.
+                {dict.deleteDialog.description.replace(
+                  '{{fullName}}',
+                  `${candidate.firstName} ${candidate.lastName}`
+                )}{' '}
+                {dict.deleteDialog.irreversible}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <Label htmlFor="deleteCandidateConfirm" className="text-gray-700">
-                לאישור המחיקה, אנא הקלד:{' '}
-                <strong className="text-red-700">
-                  {DELETE_CANDIDATE_CONFIRMATION_PHRASE}
-                </strong>
+                {dict.deleteDialog.confirmationLabel.replace(
+                  '{{phrase}}',
+                  DELETE_CANDIDATE_CONFIRMATION_PHRASE
+                )}
               </Label>
               <Input
                 id="deleteCandidateConfirm"
@@ -639,14 +604,14 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 onChange={(e) => setDeleteCandidateConfirmText(e.target.value)}
                 disabled={isDeletingCandidate}
                 className="border-gray-300 focus:border-red-500"
-                placeholder={DELETE_CANDIDATE_CONFIRMATION_PHRASE}
+                placeholder={dict.deleteDialog.inputPlaceholder}
                 dir="rtl"
               />
               {deleteCandidateConfirmText &&
                 deleteCandidateConfirmText !==
                   DELETE_CANDIDATE_CONFIRMATION_PHRASE && (
                   <p className="text-xs text-red-600">
-                    הטקסט שהוקלד אינו תואם.
+                    {dict.deleteDialog.mismatchError}
                   </p>
                 )}
             </div>
@@ -660,7 +625,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 disabled={isDeletingCandidate}
                 className="border-gray-300"
               >
-                ביטול
+                {dict.deleteDialog.buttons.cancel}
               </Button>
               <Button
                 variant="destructive"
@@ -674,12 +639,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 {isDeletingCandidate ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    מוחק...
+                    {dict.deleteDialog.buttons.deleting}
                   </span>
                 ) : (
                   <>
                     <Trash2 className="w-4 h-4 mr-2" />
-                    מחק מועמד לצמיתות
+                    {dict.deleteDialog.buttons.delete}
                   </>
                 )}
               </Button>

@@ -72,7 +72,10 @@ import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
 import type { ExtendedMatchSuggestion } from '../types';
 // =============================    KEY CHANGE #1    =============================
 // ייבאנו את שני הטיפוסים הדרושים למילון
-import type { SuggestionsDictionary, ProfileCardDict } from '@/types/dictionary'; 
+import type {
+  SuggestionsDictionary,
+  ProfileCardDict,
+} from '@/types/dictionary';
 // ==============================================================================
 
 interface SuggestionDetailsModalProps {
@@ -632,16 +635,18 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     onClose();
   };
 
+  // src/components/suggestions/modals/SuggestionDetailsModal.tsx
+
   const getModalClasses = () => {
     const base =
       'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out';
     if (isMobile)
-      return `${base} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0`;
+      //  <-- כאן התיקון
+      return `${base} !w-screen !h-[100dvh] !max-w-none !max-h-none !rounded-none`;
     if (isFullscreen)
       return `${base} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0`;
     return `${base} md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl`;
   };
-
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -758,15 +763,21 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     <div className="flex items-center justify-center gap-4 text-sm text-gray-500 font-medium">
                       <div className="flex items-center gap-2">
                         <TrendingUp className="w-4 h-4" />
-                        <span>{dict.suggestions.modal.aiAnalysisCta.feature1}</span>
+                        <span>
+                          {dict.suggestions.modal.aiAnalysisCta.feature1}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Network className="w-4 h-4" />
-                        <span>{dict.suggestions.modal.aiAnalysisCta.feature2}</span>
+                        <span>
+                          {dict.suggestions.modal.aiAnalysisCta.feature2}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Compass className="w-4 h-4" />
-                        <span>{dict.suggestions.modal.aiAnalysisCta.feature3}</span>
+                        <span>
+                          {dict.suggestions.modal.aiAnalysisCta.feature3}
+                        </span>
                       </div>
                     </div>
                   </div>

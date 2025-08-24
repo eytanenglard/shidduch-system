@@ -1,3 +1,5 @@
+// File: src/app/some-path/page.tsx
+
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../../i18n-config';
 import CandidatesManagerClient from './CandidatesManagerClient';
@@ -15,7 +17,6 @@ export default async function ClientsPage({
   return (
     <CandidatesManagerClient
       matchmakerDict={dictionary.matchmakerPage}
-      suggestionsDict={dictionary.suggestions}
       profileDict={dictionary.profilePage}
     />
   );

@@ -23,14 +23,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import type { CandidatesFilter } from '../types/candidates';
 import { cn } from '@/lib/utils';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 interface SavedFilter {
   id: string;
@@ -48,7 +43,107 @@ interface SavedFiltersProps {
   onEdit: (filter: SavedFilter) => void;
   onSetDefault: (filterId: string) => void;
   className?: string;
+  dict: MatchmakerPageDictionary['candidatesManager']['filterPanel']['savedFilters'];
 }
+
+// Enhanced filter summary function outside component for performance
+const formatFilterSummary = (
+  filter: CandidatesFilter,
+  dict: SavedFiltersProps['dict']['filterCard']['summary']
+): string => {
+  const parts: string[] = [];
+
+  if (filter.searchQuery) {
+    parts.push(dict.search.replace('{{query}}', filter.searchQuery));
+  }
+  if (filter.gender) {
+    parts.push(dict.gender.replace('{{gender}}', filter.gender));
+  }
+  if (filter.ageRange) {
+    parts.push(
+      `${dict.age} ${dict.ageValue.replace('{{min}}', String(filter.ageRange.min)).replace('{{max}}', String(filter.ageRange.max))}`
+    );
+  }
+  if (filter.heightRange) {
+    parts.push(
+      `${dict.height} ${dict.heightValue.replace('{{min}}', String(filter.heightRange.min)).replace('{{max}}', String(filter.heightRange.max))}`
+    );
+  }
+  if (filter.cities?.length) {
+    if (filter.cities.length === 1) {
+      parts.push(dict.city.replace('{{city}}', filter.cities[0]));
+    } else {
+      parts.push(
+        dict.cities.replace('{{count}}', String(filter.cities.length))
+      );
+    }
+  }
+  if (filter.religiousLevel) {
+    parts.push(dict.religiousLevel.replace('{{level}}', filter.religiousLevel));
+  }
+  if (filter.educationLevel) {
+    parts.push(dict.educationLevel.replace('{{level}}', filter.educationLevel));
+  }
+  if (filter.maritalStatus) {
+    parts.push(dict.maritalStatus.replace('{{status}}', filter.maritalStatus));
+  }
+  if (filter.occupations?.length) {
+    if (filter.occupations.length === 1) {
+      parts.push(
+        dict.occupation.replace('{{occupation}}', filter.occupations[0])
+      );
+    } else {
+      parts.push(
+        dict.occupations.replace('{{count}}', String(filter.occupations.length))
+      );
+    }
+  }
+  if (filter.availabilityStatus) {
+    const statusKey = filter.availabilityStatus as keyof typeof dict.statuses;
+    parts.push(dict.status.replace('{{status}}', dict.statuses[statusKey]));
+  }
+  if (filter.isVerified) {
+    parts.push(dict.verifiedOnly);
+  }
+  if (filter.hasReferences) {
+    parts.push(dict.withRecommendations);
+  }
+  if (filter.isProfileComplete) {
+    parts.push(dict.fullProfile);
+  }
+  if (filter.lastActiveDays) {
+    let label;
+    switch (filter.lastActiveDays) {
+      case 1:
+        label = dict.activeToday;
+        break;
+      case 7:
+        label = dict.activeLastWeek;
+        break;
+      case 30:
+        label = dict.activeLastMonth;
+        break;
+      default:
+        label = dict.activeInDays.replace(
+          '{{days}}',
+          String(filter.lastActiveDays)
+        );
+    }
+    parts.push(label);
+  }
+  if (filter.separateFiltering) {
+    parts.push(dict.separateFiltering);
+  }
+
+  if (parts.length === 0) {
+    return dict.noCriteria;
+  }
+  if (parts.length <= 3) {
+    return parts.join(' • ');
+  } else {
+    return `${parts.slice(0, 2).join(' • ')} ${dict.andMore.replace('{{count}}', String(parts.length - 2))}`;
+  }
+};
 
 const SavedFilters: React.FC<SavedFiltersProps> = ({
   filters,
@@ -58,8 +153,8 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
   onEdit,
   onSetDefault,
   className,
+  dict,
 }) => {
-  // Format date in Hebrew
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('he-IL', {
       day: 'numeric',
@@ -68,38 +163,40 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
     }).format(date);
   };
 
-  // Get filter complexity score
   const getFilterComplexity = (
     filter: CandidatesFilter
   ): { score: number; label: string; color: string } => {
-    let score = 0;
-
-    if (filter.gender) score += 1;
-    if (filter.ageRange) score += 1;
-    if (filter.heightRange) score += 1;
-    if (filter.cities?.length) score += filter.cities.length;
-    if (filter.occupations?.length) score += filter.occupations.length;
-    if (filter.religiousLevel) score += 1;
-    if (filter.educationLevel) score += 1;
-    if (filter.maritalStatus) score += 1;
-    if (filter.availabilityStatus) score += 1;
-    if (filter.isVerified) score += 1;
-    if (filter.hasReferences) score += 1;
-    if (filter.isProfileComplete) score += 1;
-    if (filter.lastActiveDays) score += 1;
+    let score = Object.keys(filter).filter(
+      (key) => filter[key as keyof CandidatesFilter] !== undefined
+    ).length;
 
     if (score <= 2)
-      return { score, label: 'בסיסי', color: 'from-green-500 to-emerald-500' };
+      return {
+        score,
+        label: dict.filterCard.complexity.basic,
+        color: 'from-green-500 to-emerald-500',
+      };
     if (score <= 5)
-      return { score, label: 'מתקדם', color: 'from-blue-500 to-cyan-500' };
+      return {
+        score,
+        label: dict.filterCard.complexity.advanced,
+        color: 'from-blue-500 to-cyan-500',
+      };
     if (score <= 8)
-      return { score, label: 'מורכב', color: 'from-purple-500 to-pink-500' };
-    return { score, label: 'מקצועי', color: 'from-amber-500 to-orange-500' };
+      return {
+        score,
+        label: dict.filterCard.complexity.complex,
+        color: 'from-purple-500 to-pink-500',
+      };
+    return {
+      score,
+      label: dict.filterCard.complexity.expert,
+      color: 'from-amber-500 to-orange-500',
+    };
   };
 
   return (
     <div className={cn('space-y-4', className)}>
-      {/* Header */}
       <div className="flex items-center justify-between p-4 bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 rounded-2xl shadow-lg border border-gray-100/50">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
@@ -107,28 +204,31 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
           </div>
           <div>
             <h3 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              פילטרים שמורים
+              {dict.header.title}
             </h3>
             <p className="text-sm text-gray-600">
-              {filters.length}{' '}
-              {filters.length === 1 ? 'פילטר שמור' : 'פילטרים שמורים'}
+              {dict.header.subtitle
+                .replace('{{count}}', String(filters.length))
+                .replace(
+                  '{{label}}',
+                  filters.length === 1
+                    ? dict.header.singleFilter
+                    : dict.header.multipleFilters
+                )}
             </p>
           </div>
         </div>
-
         <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-lg px-3 py-1 font-bold">
           {filters.length}
         </Badge>
       </div>
 
-      {/* Filters List */}
       <ScrollArea className="h-[400px] rounded-2xl">
         <div className="space-y-3 p-1">
           <AnimatePresence>
             {filters.map((filter, index) => {
               const complexity = getFilterComplexity(filter.filter);
               const isActive = activeFilterId === filter.id;
-
               return (
                 <motion.div
                   key={filter.id}
@@ -150,7 +250,6 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
                   )}
                   onClick={() => onSelect(filter)}
                 >
-                  {/* Background gradient */}
                   <div
                     className={cn(
                       'absolute inset-0 bg-gradient-to-br transition-opacity duration-300',
@@ -159,12 +258,9 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
                         : 'from-white via-gray-50/30 to-white opacity-95 group-hover:opacity-100'
                     )}
                   />
-
-                  {/* Content */}
                   <div className="relative z-10 p-5">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        {/* Default indicator */}
                         {filter.isDefault && (
                           <motion.div
                             initial={{ scale: 0 }}
@@ -174,8 +270,6 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
                             <Crown className="w-4 h-4" />
                           </motion.div>
                         )}
-
-                        {/* Filter icon based on complexity */}
                         <div
                           className={cn(
                             'p-2 rounded-full text-white shadow-lg bg-gradient-to-r',
@@ -192,18 +286,18 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
                             <Award className="w-4 h-4" />
                           )}
                         </div>
-
                         <div className="flex-1">
                           <h4 className="font-bold text-lg text-gray-800 group-hover:text-purple-700 transition-colors">
                             {filter.name}
                           </h4>
                           <p className="text-sm text-gray-500 mt-1">
-                            {formatFilterSummary(filter.filter)}
+                            {formatFilterSummary(
+                              filter.filter,
+                              dict.filterCard.summary
+                            )}
                           </p>
                         </div>
                       </div>
-
-                      {/* Actions dropdown */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -224,7 +318,9 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
                             className="hover:bg-blue-50 rounded-lg"
                           >
                             <Edit className="mr-2 h-4 w-4 text-blue-600" />
-                            <span className="text-blue-700">עריכה</span>
+                            <span className="text-blue-700">
+                              {dict.filterCard.actions.edit}
+                            </span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => onSetDefault(filter.id)}
@@ -234,8 +330,8 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
                             <Crown className="mr-2 h-4 w-4 text-yellow-600" />
                             <span className="text-yellow-700">
                               {filter.isDefault
-                                ? 'ברירת מחדל'
-                                : 'הגדר כברירת מחדל'}
+                                ? dict.filterCard.actions.isDefault
+                                : dict.filterCard.actions.setDefault}
                             </span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -243,15 +339,14 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
                             className="hover:bg-red-50 rounded-lg"
                           >
                             <Trash className="mr-2 h-4 w-4 text-red-600" />
-                            <span className="text-red-700">מחיקה</span>
+                            <span className="text-red-700">
+                              {dict.filterCard.actions.delete}
+                            </span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-
-                    {/* Filter details */}
                     <div className="space-y-3">
-                      {/* Complexity badge */}
                       <div className="flex items-center justify-between">
                         <Badge
                           className={cn(
@@ -259,58 +354,20 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
                             complexity.color
                           )}
                         >
-                          {complexity.label} • {complexity.score} קריטריונים
+                          {complexity.label} •{' '}
+                          {dict.filterCard.criteria.replace(
+                            '{{count}}',
+                            String(complexity.score)
+                          )}
                         </Badge>
-
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                           <Calendar className="w-3 h-3" />
                           <span>{formatDate(filter.createdAt)}</span>
                         </div>
                       </div>
-
-                      {/* Tags for major filter components */}
-                      <div className="flex flex-wrap gap-2">
-                        {filter.filter.gender && (
-                          <Badge
-                            variant="outline"
-                            className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
-                          >
-                            {filter.filter.gender === 'MALE' ? 'גברים' : 'נשים'}
-                          </Badge>
-                        )}
-                        {filter.filter.ageRange && (
-                          <Badge
-                            variant="outline"
-                            className="bg-green-50 text-green-700 border-green-200 text-xs"
-                          >
-                            גיל {filter.filter.ageRange.min}-
-                            {filter.filter.ageRange.max}
-                          </Badge>
-                        )}
-                        {filter.filter.cities?.length && (
-                          <Badge
-                            variant="outline"
-                            className="bg-purple-50 text-purple-700 border-purple-200 text-xs"
-                          >
-                            {filter.filter.cities.length} ערים
-                          </Badge>
-                        )}
-                        {filter.filter.isVerified && (
-                          <Badge
-                            variant="outline"
-                            className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs"
-                          >
-                            מאומתים
-                          </Badge>
-                        )}
-                      </div>
                     </div>
                   </div>
-
-                  {/* Hover glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-pink-400/0 to-purple-400/0 group-hover:from-purple-400/10 group-hover:via-pink-400/10 group-hover:to-purple-400/10 transition-all duration-500 pointer-events-none rounded-2xl"></div>
-
-                  {/* Active indicator */}
                   {isActive && (
                     <motion.div
                       initial={{ scale: 0 }}
@@ -320,8 +377,6 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
                       <div className="w-full h-full bg-purple-400 rounded-full animate-ping"></div>
                     </motion.div>
                   )}
-
-                  {/* Shimmer effect on hover */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000 rounded-2xl"></div>
                 </motion.div>
               );
@@ -330,7 +385,6 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
         </div>
       </ScrollArea>
 
-      {/* Empty state */}
       {filters.length === 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -341,10 +395,10 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
             <Bookmark className="w-10 h-10 text-purple-400" />
           </div>
           <h3 className="text-xl font-bold text-gray-800 mb-3">
-            אין פילטרים שמורים
+            {dict.emptyState.title}
           </h3>
           <p className="text-gray-600 mb-6 max-w-sm mx-auto">
-            שמור את הפילטרים הנוכחיים כדי לגשת אליהם בקלות בעתיד
+            {dict.emptyState.description}
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
             <Badge
@@ -352,27 +406,26 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
               className="bg-blue-50 text-blue-600 border-blue-200"
             >
               <Star className="w-3 h-3 mr-1" />
-              חיפושים מהירים
+              {dict.emptyState.fastSearches}
             </Badge>
             <Badge
               variant="outline"
               className="bg-purple-50 text-purple-600 border-purple-200"
             >
               <Sparkles className="w-3 h-3 mr-1" />
-              סינון מתקדם
+              {dict.emptyState.advancedFiltering}
             </Badge>
             <Badge
               variant="outline"
               className="bg-green-50 text-green-600 border-green-200"
             >
               <Award className="w-3 h-3 mr-1" />
-              גישה מהירה
+              {dict.emptyState.quickAccess}
             </Badge>
           </div>
         </motion.div>
       )}
 
-      {/* Quick stats */}
       {filters.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -385,7 +438,7 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
               <div className="text-lg font-bold text-indigo-600">
                 {filters.filter((f) => f.isDefault).length}
               </div>
-              <div className="text-xs text-gray-600">ברירת מחדל</div>
+              <div className="text-xs text-gray-600">{dict.stats.default}</div>
             </div>
             <div>
               <div className="text-lg font-bold text-purple-600">
@@ -394,7 +447,7 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
                     .length
                 }
               </div>
-              <div className="text-xs text-gray-600">מתקדמים</div>
+              <div className="text-xs text-gray-600">{dict.stats.advanced}</div>
             </div>
             <div>
               <div className="text-lg font-bold text-pink-600">
@@ -402,123 +455,18 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
                   filters.reduce(
                     (acc, f) => acc + getFilterComplexity(f.filter).score,
                     0
-                  ) / filters.length
+                  ) / (filters.length || 1)
                 )}
               </div>
-              <div className="text-xs text-gray-600">ממוצע קריטריונים</div>
+              <div className="text-xs text-gray-600">
+                {dict.stats.avgCriteria}
+              </div>
             </div>
           </div>
         </motion.div>
       )}
     </div>
   );
-};
-
-// Enhanced filter summary function
-const formatFilterSummary = (filter: CandidatesFilter): string => {
-  const parts: string[] = [];
-
-  if (filter.searchQuery) {
-    parts.push(`חיפוש: "${filter.searchQuery}"`);
-  }
-
-  if (filter.gender) {
-    parts.push(`מגדר: ${filter.gender === 'MALE' ? 'גברים' : 'נשים'}`);
-  }
-
-  if (filter.ageRange) {
-    if (filter.ageRange.min === filter.ageRange.max) {
-      parts.push(`גיל: ${filter.ageRange.min}`);
-    } else {
-      parts.push(`גיל: ${filter.ageRange.min}-${filter.ageRange.max}`);
-    }
-  }
-
-  if (filter.heightRange) {
-    if (filter.heightRange.min === filter.heightRange.max) {
-      parts.push(`גובה: ${filter.heightRange.min}ס״מ`);
-    } else {
-      parts.push(
-        `גובה: ${filter.heightRange.min}-${filter.heightRange.max}ס״מ`
-      );
-    }
-  }
-
-  if (filter.cities?.length) {
-    if (filter.cities.length === 1) {
-      parts.push(`עיר: ${filter.cities[0]}`);
-    } else {
-      parts.push(`ערים: ${filter.cities.length}`);
-    }
-  }
-
-  if (filter.religiousLevel) {
-    parts.push(`רמה דתית: ${filter.religiousLevel}`);
-  }
-
-  if (filter.educationLevel) {
-    parts.push(`השכלה: ${filter.educationLevel}`);
-  }
-
-  if (filter.maritalStatus) {
-    parts.push(`מצב משפחתי: ${filter.maritalStatus}`);
-  }
-
-  if (filter.occupations?.length) {
-    if (filter.occupations.length === 1) {
-      parts.push(`תחום: ${filter.occupations[0]}`);
-    } else {
-      parts.push(`תחומי עיסוק: ${filter.occupations.length}`);
-    }
-  }
-
-  if (filter.availabilityStatus) {
-    const statusLabel =
-      filter.availabilityStatus === 'AVAILABLE'
-        ? 'פנוי/ה'
-        : filter.availabilityStatus === 'DATING'
-          ? 'בהכרות'
-          : 'לא פנוי/ה';
-    parts.push(`סטטוס: ${statusLabel}`);
-  }
-
-  if (filter.isVerified) {
-    parts.push('מאומתים בלבד');
-  }
-
-  if (filter.hasReferences) {
-    parts.push('עם המלצות');
-  }
-
-  if (filter.isProfileComplete) {
-    parts.push('פרופיל מלא');
-  }
-
-  if (filter.lastActiveDays) {
-    if (filter.lastActiveDays === 1) {
-      parts.push('פעילים היום');
-    } else if (filter.lastActiveDays === 7) {
-      parts.push('פעילים השבוע');
-    } else if (filter.lastActiveDays === 30) {
-      parts.push('פעילים החודש');
-    } else {
-      parts.push(`פעילים ב-${filter.lastActiveDays} ימים`);
-    }
-  }
-
-  if (filter.separateFiltering) {
-    parts.push('סינון נפרד לפי מגדר');
-  }
-
-  if (parts.length === 0) {
-    return 'פילטר בסיסי ללא קריטריונים';
-  }
-
-  if (parts.length <= 3) {
-    return parts.join(' • ');
-  } else {
-    return `${parts.slice(0, 2).join(' • ')} ועוד ${parts.length - 2} קריטריונים`;
-  }
 };
 
 export default SavedFilters;

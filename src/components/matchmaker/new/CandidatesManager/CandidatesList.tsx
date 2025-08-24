@@ -38,13 +38,8 @@ import { ActionDialogs } from '../dialogs/ActionDialogs';
 import NewSuggestionForm from '../../suggestions/NewSuggestionForm';
 import MatchmakerEditProfile from '../MatchmakerEditProfile';
 import { cn } from '@/lib/utils';
-
-// --- ייבוא המילונים ---
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
-import type {
-  SuggestionsDictionary,
-  ProfilePageDictionary,
-} from '@/types/dictionary';
+import type { ProfilePageDictionary } from '@/types/dictionary';
 
 interface CreateSuggestionData {
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
@@ -75,11 +70,8 @@ interface CandidatesListProps {
   comparisonSelection: Record<string, Candidate>;
   onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
   quickViewSide?: 'left' | 'right' | 'center';
-
-  // --- קבלת המילונים כ-props ---
-  dict: MatchmakerPageDictionary['candidatesManager']['list'];
+  dict: MatchmakerPageDictionary['candidatesManager'];
   profileDict: ProfilePageDictionary;
-  suggestionsDict: SuggestionsDictionary;
 }
 
 const CandidatesList: React.FC<CandidatesListProps> = ({
@@ -99,8 +91,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   quickViewSide = 'center',
   dict,
   profileDict,
-  suggestionsDict,
 }) => {
+  // ... (כל הלוגיקה הפנימית נשארת זהה) ...
   // Base states
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
     null
@@ -191,7 +183,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         }
       } catch (error) {
         console.error('Failed to load questionnaire:', error);
-        toast.error('שגיאה בטעינת השאלון'); // TODO: Translate
+        toast.error('שגיאה בטעינת השאלון');
       }
     };
     loadQuestionnaire();
@@ -209,7 +201,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         }
       );
       if (!response.ok) throw new Error('Failed to send invitation');
-      toast.success('ההזמנה נשלחה בהצלחה'); // TODO: Translate
+      toast.success('ההזמנה נשלחה בהצלחה');
       onCandidateAction?.('invite', candidate);
     } catch (error) {
       console.error('Error sending invite:', error);
@@ -225,7 +217,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         body: JSON.stringify({ clientId: candidate.id }),
       });
       if (!response.ok) throw new Error('Failed to check availability');
-      toast.success('בדיקת הזמינות נשלחה'); // TODO: Translate
+      toast.success('בדיקת הזמינות נשלחה');
       onCandidateAction?.('contact', candidate);
     } catch (error) {
       console.error('Error checking availability:', error);
@@ -241,7 +233,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         body: JSON.stringify(data),
       });
       if (!response.ok) throw new Error('Failed to create suggestion');
-      toast.success('ההצעה נוצרה בהצלחה'); // TODO: Translate
+      toast.success('ההצעה נוצרה בהצלחה');
       onCandidateAction?.('suggest', dialogCandidate!);
     } catch (error) {
       console.error('Error creating suggestion:', error);
@@ -350,6 +342,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       : 'space-y-4';
   }, [isMobile, mobileView, viewMode]);
 
+
+  // ... (החלק של isLoading ו-candidates.length === 0 נשאר זהה) ...
   if (isLoading) {
     return (
       <div
@@ -376,12 +370,15 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       <div className="flex flex-col items-center justify-center h-32 bg-gray-50 rounded-lg border border-dashed border-gray-300 p-4 text-center">
         <UserX className="w-8 h-8 mb-2 text-gray-400" />
         <p className="text-sm font-medium text-gray-500 mb-1">
-          {dict.emptyState.title}
+          {dict.list.emptyState.title}
         </p>
-        <p className="text-xs text-gray-400">{dict.emptyState.description}</p>
+        <p className="text-xs text-gray-400">
+          {dict.list.emptyState.description}
+        </p>
       </div>
     );
   }
+
 
   return (
     <>
@@ -394,6 +391,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             onMouseLeave={handleMouseLeave}
             onClick={() => handleAction('view', candidate)}
           >
+            {/********** תיקון #1: העברת המילון הנכון ל-MinimalCard **********/}
             <MinimalCard
               candidate={candidate}
               onClick={() => handleAction('view', candidate)}
@@ -419,7 +417,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               }
               isSelectedForComparison={!!comparisonSelection[candidate.id]}
               onToggleComparison={onToggleComparison}
-              dict={profileDict.minimalCard}
+              dict={dict.list.minimalCard} // <--- התיקון כאן
             />
             <button
               className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
@@ -427,8 +425,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 e.stopPropagation();
                 handleAction('edit', candidate);
               }}
-              aria-label={dict.editProfileTooltip}
-              title={dict.editProfileTooltip}
+              aria-label={dict.list.editProfileTooltip}
+              title={dict.list.editProfileTooltip}
             >
               <Edit className="w-4 h-4" />
             </button>
@@ -440,19 +438,16 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         <div
           ref={quickViewRef}
           className="absolute z-[70]"
-          style={{
-            top: `${hoverPosition.top}px`,
-            left: `${hoverPosition.left}px`,
-            width: '420px',
-          }}
+          style={{ top: `${hoverPosition.top}px`, left: `${hoverPosition.left}px`, width: '420px' }}
         >
           <div className="drop-shadow-2xl">
+            {/********** תיקון #2: העברת המילון הנכון ל-QuickView **********/}
             <QuickView
               candidate={hoveredCandidate}
-              onAction={(action) => handleAction(action, hoveredCandidate)}
+              onAction={(action) => handleAction(action as any, hoveredCandidate)} // 'any' to satisfy older component version if needed
               onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
               isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
-              dict={suggestionsDict.quickView}
+              dict={dict.list.quickView} // <--- התיקון כאן
             />
           </div>
         </div>
@@ -460,50 +455,27 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
       <Dialog
         open={!!selectedCandidate}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedCandidate(null);
-            setQuestionnaireResponse(null);
-          }
-        }}
+        onOpenChange={(open) => { if (!open) { setSelectedCandidate(null); setQuestionnaireResponse(null); } }}
       >
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle>{dict.profileDialog.title}</DialogTitle>
-              <Button
-                variant="outline"
-                onClick={() => handleAction('edit', selectedCandidate!)}
-                className="flex items-center gap-2"
-              >
-                <Edit className="w-4 h-4" />
-                {dict.profileDialog.editButton}
+              <DialogTitle>{dict.list.profileDialog.title}</DialogTitle>
+              <Button variant="outline" onClick={() => handleAction('edit', selectedCandidate!)} className="flex items-center gap-2">
+                <Edit className="w-4 h-4" />{dict.list.profileDialog.editButton}
               </Button>
             </div>
-            <DialogDescription>
-              {dict.profileDialog.description}
-            </DialogDescription>
-            <Select
-              value={isMatchmaker ? 'matchmaker' : 'candidate'}
-              onValueChange={(value) => setIsMatchmaker(value === 'matchmaker')}
-            >
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder={dict.profileDialog.viewAsLabel} />
-              </SelectTrigger>
+            <DialogDescription>{dict.list.profileDialog.description}</DialogDescription>
+            <Select value={isMatchmaker ? 'matchmaker' : 'candidate'} onValueChange={(value) => setIsMatchmaker(value === 'matchmaker')}>
+              <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder={dict.list.profileDialog.viewAsLabel} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="candidate">
-                  {dict.profileDialog.candidateView}
-                </SelectItem>
-                <SelectItem value="matchmaker">
-                  {dict.profileDialog.matchmakerView}
-                </SelectItem>
+                <SelectItem value="candidate">{dict.list.profileDialog.candidateView}</SelectItem>
+                <SelectItem value="matchmaker">{dict.list.profileDialog.matchmakerView}</SelectItem>
               </SelectContent>
             </Select>
           </DialogHeader>
-
           {selectedCandidate && (
             <div className="space-y-6">
-              {/* --- START OF FIX --- */}
               <ProfileCard
                 profile={selectedCandidate.profile}
                 images={selectedCandidate.images}
@@ -512,12 +484,12 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 isProfileComplete={selectedCandidate.isProfileComplete}
                 dict={profileDict.profileCard}
               />
-              {/* --- END OF FIX --- */}
             </div>
           )}
         </DialogContent>
       </Dialog>
 
+      {/********** תיקון #3: העברת המילון הנכון ל-ActionDialogs **********/}
       <ActionDialogs
         suggestDialog={{
           isOpen: showSuggestDialog,
@@ -537,22 +509,26 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
           onInvite: handleInvite,
           selectedCandidate: dialogCandidate,
         }}
+        dict={dict.actionDialogs} // <--- התיקון כאן
       />
 
+      {/********** תיקון #4: העברת המילון הנכון ל-NewSuggestionForm **********/}
       <NewSuggestionForm
         isOpen={showSuggestDialog}
         onClose={() => setShowSuggestDialog(false)}
         candidates={allCandidates}
         selectedCandidate={dialogCandidate}
         onSubmit={handleCreateSuggestion}
-        dict={suggestionsDict}
+        dict={dict} // <--- התיקון כאן
       />
 
+      {/********** תיקון #5: העברת המילונים הנכונים ל-MatchmakerEditProfile **********/}
       <MatchmakerEditProfile
         isOpen={showEditProfileDialog}
         onClose={() => setShowEditProfileDialog(false)}
         candidate={dialogCandidate}
-        dict={profileDict}
+        dict={dict.editProfile} // <--- התיקון כאן
+        profileDict={profileDict} // <--- התיקון כאן (הוספנו את המילון השני)
       />
     </>
   );

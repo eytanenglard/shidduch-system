@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 interface ActiveFiltersProps {
   filters: CandidatesFilter;
@@ -20,6 +21,7 @@ interface ActiveFiltersProps {
   onResetAll: () => void;
   onSuggestFilter?: () => void;
   className?: string;
+  dict: MatchmakerPageDictionary['candidatesManager']['activeFilters'];
 }
 
 interface ActiveFilter {
@@ -37,80 +39,91 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
   onResetAll,
   onSuggestFilter,
   className,
+  dict,
 }) => {
   const getActiveFilters = (): ActiveFilter[] => {
     const activeFilters: ActiveFilter[] = [];
 
-    // חיפוש כללי (מופיע רק אם אין סינון נפרד)
     if (!filters.separateFiltering && filters.searchQuery) {
       activeFilters.push({
         key: 'searchQuery',
-        label: `חיפוש: ${filters.searchQuery}`,
+        label: dict.labels.search.replace('{{query}}', filters.searchQuery),
         color: 'primary',
         icon: <Sparkles className="w-3 h-3" />,
         priority: 'high',
       });
     }
 
-    // חיפוש נפרד לגברים (מופיע רק במצב סינון נפרד)
     if (filters.separateFiltering && filters.maleSearchQuery) {
       activeFilters.push({
         key: 'maleSearchQuery',
-        label: `חיפוש מועמדים: ${filters.maleSearchQuery}`,
+        label: dict.labels.maleSearch.replace(
+          '{{query}}',
+          filters.maleSearchQuery
+        ),
         color: 'male',
         icon: <Star className="w-3 h-3" />,
         priority: 'high',
       });
     }
 
-    // חיפוש נפרד לנשים (מופיע רק במצב סינון נפרד)
     if (filters.separateFiltering && filters.femaleSearchQuery) {
       activeFilters.push({
         key: 'femaleSearchQuery',
-        label: `חיפוש מועמדות: ${filters.femaleSearchQuery}`,
+        label: dict.labels.femaleSearch.replace(
+          '{{query}}',
+          filters.femaleSearchQuery
+        ),
         color: 'female',
         icon: <Crown className="w-3 h-3" />,
         priority: 'high',
       });
     }
 
-    // מצב סינון נפרד
     if (filters.separateFiltering) {
       activeFilters.push({
         key: 'separateFiltering',
-        label: `סינון וחיפוש נפרד`,
+        label: dict.labels.separateFiltering,
         color: 'special',
         icon: <Zap className="w-3 h-3" />,
         priority: 'high',
       });
     }
 
-    // Gender
     if (filters.gender) {
+      const genderLabel =
+        filters.gender === 'MALE'
+          ? dict.labels.genders.MALE
+          : dict.labels.genders.FEMALE;
       activeFilters.push({
         key: 'gender',
-        label: `מגדר: ${filters.gender === 'MALE' ? 'גברים' : 'נשים'}`,
+        label: dict.labels.gender.replace('{{gender}}', genderLabel),
         color: filters.gender === 'MALE' ? 'male' : 'female',
         priority: 'high',
       });
     }
 
-    // Age Range
     if (filters.ageRange) {
       const isDefaultMin = filters.ageRange.min === 18;
       const isDefaultMax = filters.ageRange.max === 99;
 
       if (!isDefaultMin || !isDefaultMax) {
-        let label = `גיל: `;
-
+        let label = '';
         if (!isDefaultMin && !isDefaultMax) {
-          label += `${filters.ageRange.min}-${filters.ageRange.max}`;
+          label = dict.labels.age
+            .replace('{{min}}', String(filters.ageRange.min))
+            .replace('{{max}}', String(filters.ageRange.max));
         } else if (!isDefaultMin) {
-          label += `מעל ${filters.ageRange.min}`;
+          label = dict.labels.ageAbove.replace(
+            '{{min}}',
+            String(filters.ageRange.min)
+          );
         } else if (!isDefaultMax) {
-          label += `עד ${filters.ageRange.max}`;
+          label = dict.labels.ageBelow.replace(
+            '{{max}}',
+            String(filters.ageRange.max)
+          );
         }
-
         activeFilters.push({
           key: 'ageRange',
           label,
@@ -120,22 +133,27 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
       }
     }
 
-    // Height Range
     if (filters.heightRange) {
       const isDefaultMin = filters.heightRange.min === 140;
       const isDefaultMax = filters.heightRange.max === 210;
 
       if (!isDefaultMin || !isDefaultMax) {
-        let label = `גובה: `;
-
+        let label = '';
         if (!isDefaultMin && !isDefaultMax) {
-          label += `${filters.heightRange.min}-${filters.heightRange.max} ס"מ`;
+          label = dict.labels.height
+            .replace('{{min}}', String(filters.heightRange.min))
+            .replace('{{max}}', String(filters.heightRange.max));
         } else if (!isDefaultMin) {
-          label += `מעל ${filters.heightRange.min} ס"מ`;
+          label = dict.labels.heightAbove.replace(
+            '{{min}}',
+            String(filters.heightRange.min)
+          );
         } else if (!isDefaultMax) {
-          label += `עד ${filters.heightRange.max} ס"מ`;
+          label = dict.labels.heightBelow.replace(
+            '{{max}}',
+            String(filters.heightRange.max)
+          );
         }
-
         activeFilters.push({
           key: 'heightRange',
           label,
@@ -145,130 +163,125 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
       }
     }
 
-    // Religious Level
     if (filters.religiousLevel) {
       activeFilters.push({
         key: 'religiousLevel',
-        label: `רמת דתיות: ${filters.religiousLevel}`,
+        label: dict.labels.religiousLevel.replace(
+          '{{level}}',
+          filters.religiousLevel
+        ),
         color: 'warning',
         priority: 'medium',
       });
     }
 
-    // Education Level
     if (filters.educationLevel) {
       activeFilters.push({
         key: 'educationLevel',
-        label: `השכלה: ${filters.educationLevel}`,
+        label: dict.labels.educationLevel.replace(
+          '{{level}}',
+          filters.educationLevel
+        ),
         color: 'secondary',
         priority: 'medium',
       });
     }
 
-    // Cities
     filters.cities?.forEach((city) => {
       activeFilters.push({
         key: 'cities',
         value: city,
-        label: `עיר: ${city}`,
+        label: dict.labels.city.replace('{{city}}', city),
         color: 'success',
         priority: 'medium',
       });
     });
 
-    // Occupations
     filters.occupations?.forEach((occupation) => {
       activeFilters.push({
         key: 'occupations',
         value: occupation,
-        label: `תחום עיסוק: ${occupation}`,
+        label: dict.labels.occupation.replace('{{occupation}}', occupation),
         color: 'primary',
         priority: 'medium',
       });
     });
 
-    // Availability Status
     if (filters.availabilityStatus) {
+      const status =
+        filters.availabilityStatus as keyof typeof dict.labels.availability;
       const statusLabel =
-        filters.availabilityStatus === 'AVAILABLE'
-          ? 'פנוי/ה'
-          : filters.availabilityStatus === 'DATING'
-            ? 'בתהליך הכרות'
-            : filters.availabilityStatus === 'UNAVAILABLE'
-              ? 'לא פנוי/ה'
-              : filters.availabilityStatus;
-
+        dict.labels.availability[status] || filters.availabilityStatus;
       activeFilters.push({
         key: 'availabilityStatus',
-        label: `סטטוס: ${statusLabel}`,
+        label: dict.labels.status.replace('{{status}}', statusLabel),
         color:
           filters.availabilityStatus === 'AVAILABLE' ? 'success' : 'warning',
         priority: 'high',
       });
     }
 
-    // Marital Status
     if (filters.maritalStatus) {
       activeFilters.push({
         key: 'maritalStatus',
-        label: `מצב משפחתי: ${filters.maritalStatus}`,
+        label: dict.labels.maritalStatus.replace(
+          '{{status}}',
+          filters.maritalStatus
+        ),
         color: 'secondary',
         priority: 'medium',
       });
     }
 
-    // Verified Filter
-    if (filters.isVerified !== undefined) {
+    if (filters.isVerified) {
       activeFilters.push({
         key: 'isVerified',
-        label: `מאומתים בלבד`,
+        label: dict.labels.verifiedOnly,
         color: 'primary',
         icon: <Star className="w-3 h-3" />,
         priority: 'high',
       });
     }
 
-    // References Filter
-    if (filters.hasReferences !== undefined) {
+    if (filters.hasReferences) {
       activeFilters.push({
         key: 'hasReferences',
-        label: `עם המלצות`,
+        label: dict.labels.withRecommendations,
         color: 'success',
         priority: 'medium',
       });
     }
 
-    // Profile Completeness
-    if (filters.isProfileComplete !== undefined) {
+    if (filters.isProfileComplete) {
       activeFilters.push({
         key: 'isProfileComplete',
-        label: `פרופיל מלא`,
+        label: dict.labels.fullProfile,
         color: 'primary',
         priority: 'medium',
       });
     }
 
-    // Last Activity
-    if (filters.lastActiveDays !== undefined) {
+    if (filters.lastActiveDays) {
       let label: string;
-
       switch (filters.lastActiveDays) {
         case 1:
-          label = 'פעילים היום';
+          label = dict.labels.activeToday;
           break;
         case 3:
-          label = 'פעילים ב-3 ימים אחרונים';
+          label = dict.labels.activeLast3Days;
           break;
         case 7:
-          label = 'פעילים בשבוע האחרון';
+          label = dict.labels.activeLast7Days;
           break;
         case 30:
-          label = 'פעילים בחודש האחרון';
+          label = dict.labels.activeLast30Days;
           break;
         default:
-          label = `פעילים ב-${filters.lastActiveDays} ימים אחרונים`;
+          label = dict.labels.activeInDays.replace(
+            '{{days}}',
+            String(filters.lastActiveDays)
+          );
       }
-
       activeFilters.push({
         key: 'lastActiveDays',
         label,
@@ -318,15 +331,12 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
         hover: 'hover:from-indigo-600 hover:to-purple-600',
       },
     };
-
     return (
       colorSchemes[color as keyof typeof colorSchemes] || colorSchemes.primary
     );
   };
 
   const activeFilters = getActiveFilters();
-
-  // Sort filters by priority
   const sortedFilters = activeFilters.sort((a, b) => {
     const priorityOrder = { high: 3, medium: 2, low: 1 };
     return (
@@ -340,14 +350,11 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
 
   return (
     <div className={cn('relative', className)}>
-      {/* Background decorative elements */}
       <div className="absolute inset-0">
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/20 to-cyan-200/20 rounded-full blur-2xl"></div>
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-xl"></div>
       </div>
-
       <div className="relative z-10 bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 backdrop-blur-sm rounded-2xl p-6 shadow-xl border-0">
-        {/* Header Section */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg">
@@ -355,15 +362,18 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
             </div>
             <div>
               <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                סינון פעיל
+                {dict.title}
               </h3>
               <p className="text-sm text-gray-600 mt-1">
-                {activeFilters.length}{' '}
-                {activeFilters.length === 1 ? 'פילטר פעיל' : 'פילטרים פעילים'}
+                {activeFilters.length === 1
+                  ? dict.filterActive
+                  : dict.filtersActive.replace(
+                      '{{count}}',
+                      String(activeFilters.length)
+                    )}
               </p>
             </div>
           </div>
-
           <div className="flex items-center gap-3">
             {onSuggestFilter && (
               <TooltipProvider>
@@ -376,17 +386,16 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
                       className="bg-gradient-to-r from-emerald-50 to-green-50 hover:from-emerald-100 hover:to-green-100 text-emerald-700 border border-emerald-200 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
                     >
                       <Sparkles className="w-4 h-4 mr-2" />
-                      הצע פילטרים נוספים
+                      {dict.suggestButton}
                       <Zap className="w-3 h-3 ml-1" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>הצעת פילטרים נוספים המתאימים לתוצאות הנוכחיות</p>
+                    <p>{dict.suggestTooltip}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             )}
-
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -397,23 +406,20 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
                     className="bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 text-red-700 border border-red-200 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
-                    נקה הכל
+                    {dict.clearAllButton}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>נקה את כל הפילטרים הפעילים</p>
+                  <p>{dict.clearAllTooltip}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
         </div>
-
-        {/* Filters Grid */}
         <div className="flex flex-wrap gap-3">
           <AnimatePresence mode="popLayout">
             {sortedFilters.map((filter, index) => {
               const colors = getFilterColors(filter.color);
-
               return (
                 <motion.div
                   key={`${filter.key}-${filter.value || index}`}
@@ -464,18 +470,18 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
             })}
           </AnimatePresence>
         </div>
-
-        {/* Summary Footer */}
         {activeFilters.length > 3 && (
           <div className="mt-6 pt-4 border-t border-gray-200/50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Sparkles className="w-4 h-4 text-blue-500" />
                 <span>
-                  סינון מתקדם פעיל - {activeFilters.length} קריטריונים
+                  {dict.summary.title.replace(
+                    '{{count}}',
+                    String(activeFilters.length)
+                  )}
                 </span>
               </div>
-
               <div className="flex items-center gap-1">
                 {activeFilters.filter((f) => f.priority === 'high').length >
                   0 && (
@@ -483,8 +489,13 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
                     variant="outline"
                     className="bg-red-50 text-red-700 border-red-200 text-xs"
                   >
-                    {activeFilters.filter((f) => f.priority === 'high').length}{' '}
-                    חשובים
+                    {dict.summary.highPriority.replace(
+                      '{{count}}',
+                      String(
+                        activeFilters.filter((f) => f.priority === 'high')
+                          .length
+                      )
+                    )}
                   </Badge>
                 )}
                 {activeFilters.filter((f) => f.priority === 'medium').length >
@@ -493,19 +504,19 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
                     variant="outline"
                     className="bg-yellow-50 text-yellow-700 border-yellow-200 text-xs"
                   >
-                    {
-                      activeFilters.filter((f) => f.priority === 'medium')
-                        .length
-                    }{' '}
-                    בינוניים
+                    {dict.summary.mediumPriority.replace(
+                      '{{count}}',
+                      String(
+                        activeFilters.filter((f) => f.priority === 'medium')
+                          .length
+                      )
+                    )}
                   </Badge>
                 )}
               </div>
             </div>
           </div>
         )}
-
-        {/* Floating glow effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-purple-400/5 to-pink-400/5 rounded-2xl pointer-events-none"></div>
       </div>
     </div>

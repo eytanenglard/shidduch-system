@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2025-08-22 13:11:19
+# Generated on: 2025-08-24 10:05:21
 ################################################################################
 
 ================================================================================
@@ -95,6 +95,7 @@ export default function HomePage({ dict, demoData }: HomePageProps) {
       <HowItWorksSection
         dict={dict.howItWorks}
         suggestionsDict={dict.suggestions}
+        profileCardDict={dict.profilePage.profileCard}
         demoData={demoData}
       />
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
@@ -712,7 +713,10 @@ import SuggestionDetailsModal from '@/components/suggestions/modals/SuggestionDe
 // ייבוא טיפוסים (Types)
 import type { ExtendedMatchSuggestion } from '@/components/suggestions/types';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
-import type { SuggestionsDictionary } from '@/types/dictionary';
+import type {
+  SuggestionsDictionary,
+  ProfileCardDict,
+} from '@/types/dictionary'; // 1. ייבוא הטיפוס
 
 /**
  * הממשק (interface) המגדיר את ה-props שהקומפוננטה מקבלת.
@@ -723,6 +727,7 @@ interface LiveSuggestionDemoProps {
   userId: string;
   demoAiAnalysis: AiSuggestionAnalysisResult | null;
   suggestionsDict: SuggestionsDictionary; // ✨ prop חדש עבור התרגומים
+  profileCardDict: ProfileCardDict; // 2. הוספת ה-prop לממשק
 }
 
 /**
@@ -735,6 +740,7 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
   userId,
   demoAiAnalysis,
   suggestionsDict, // ✨ קבלת התרגומים מה-props
+  profileCardDict, // 3. קבלת ה-prop
 }) => {
   // ניהול מצב מקומי כדי לדעת אם המודאל פתוח או סגור
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -798,7 +804,10 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
         questionnaire={questionnaireData}
         isDemo={true} // מסמן למודאל להתנהג כמצב הדגמה
         demoAnalysisData={demoAiAnalysis}
-        dict={suggestionsDict} // ✨ העברת אובייקט התרגומים המלא למודאל
+        dict={{
+          suggestions: suggestionsDict,
+          profileCard: profileCardDict,
+        }}
       />
     </div>
   );
@@ -3101,7 +3110,11 @@ import {
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import { usePathname } from 'next/navigation';
-import type { HowItWorksDict, SuggestionsDictionary } from '@/types/dictionary';
+import type {
+  HowItWorksDict,
+  SuggestionsDictionary,
+  ProfileCardDict,
+} from '@/types/dictionary'; // 1. ייבוא הטיפוס
 import { generateDemoData } from '../components/demo-data';
 
 type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
@@ -3109,6 +3122,8 @@ type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
 interface HowItWorksProps {
   dict: HowItWorksDict;
   suggestionsDict: SuggestionsDictionary;
+  profileCardDict: ProfileCardDict; // 2. הוספת ה-prop לממשק
+
   demoData: DemoData; // הוסף את זה
 }
 // --- END: Type Definitions ---
@@ -3196,6 +3211,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
   dict,
   suggestionsDict,
   demoData,
+  profileCardDict,
 }) => {
   const demoRef = useRef(null);
   const isDemoInView = useInView(demoRef, { once: true, amount: 0.1 });
@@ -3340,6 +3356,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     userId="visitor-user-id"
                     demoAiAnalysis={demoData.demoAiAnalysisForDaniel}
                     suggestionsDict={suggestionsDict}
+                    profileCardDict={profileCardDict}
                   />
                 </div>
               </div>
@@ -3356,6 +3373,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     userId="visitor-user-id"
                     demoAiAnalysis={demoData.demoAiAnalysisForNoa}
                     suggestionsDict={suggestionsDict}
+                    profileCardDict={profileCardDict}
                   />
                 </div>
               </div>

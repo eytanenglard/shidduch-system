@@ -1,3 +1,5 @@
+// File: src/app/components/matchmaker/new/CandidatesManager/SplitView.tsx
+
 'use client';
 
 import React, { useMemo, useEffect, useState } from 'react';
@@ -31,8 +33,6 @@ import SearchBar from '../Filters/SearchBar';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Gender } from '@prisma/client';
-
-// --- ייבוא המילונים ---
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 
@@ -73,7 +73,6 @@ interface SplitViewProps {
   onMaleSearchChange?: (query: string) => void;
   onFemaleSearchChange?: (query: string) => void;
   
-  // --- קבלת המילונים כ-props ---
   dict: MatchmakerPageDictionary['candidatesManager'];
   profileDict: ProfilePageDictionary;
 }
@@ -302,7 +301,7 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
         onSetAiTarget={onSetAiTarget}
         comparisonSelection={comparisonSelection}
         onToggleComparison={onToggleComparison}
-        dict={dict.list}
+        dict={dict}
         profileDict={profileDict}
       />
     );
@@ -377,7 +376,7 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
                 comparisonSelection={comparisonSelection}
                 onToggleComparison={onToggleComparison}
                 quickViewSide="right"
-                dict={dict.list}
+                dict={dict}
                 profileDict={profileDict}
               />
             </div>
@@ -403,7 +402,7 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
                 comparisonSelection={comparisonSelection}
                 onToggleComparison={onToggleComparison}
                 quickViewSide="left"
-                dict={dict.list}
+                dict={dict}
                 profileDict={profileDict}
               />
             </div>

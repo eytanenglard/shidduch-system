@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new
-# Generated on: 2025-08-22 15:49:46
+# Generated on: 2025-08-24 10:21:16
 ################################################################################
 
 ================================================================================
@@ -724,7 +724,7 @@ Content:
 
 'use client';
 
-import React, { useState } from 'react';
+import React, {useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -749,6 +749,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 interface ActionsProps {
   candidate: Candidate;
@@ -759,6 +760,7 @@ interface ActionsProps {
   className?: string;
   variant?: 'full' | 'compact' | 'minimal';
   showLabels?: boolean;
+  dict: MatchmakerPageDictionary['candidatesManager']['list']['cardActions'];
 }
 
 const Actions: React.FC<ActionsProps> = ({
@@ -770,11 +772,11 @@ const Actions: React.FC<ActionsProps> = ({
   className,
   variant = 'full',
   showLabels = true,
+  dict,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [activeAction, setActiveAction] = useState<string | null>(null);
 
-  // מונע התפשטות הקליק לכרטיס המינימלי
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
@@ -790,7 +792,7 @@ const Actions: React.FC<ActionsProps> = ({
       return (
         <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg animate-pulse">
           <Sparkles className="w-3 h-3 mr-1" />
-          זמין/ה עכשיו
+          {dict.availableNow}
         </Badge>
       );
     }
@@ -800,42 +802,42 @@ const Actions: React.FC<ActionsProps> = ({
   const actionButtons = [
     {
       id: 'view',
-      label: 'צפייה בפרופיל',
+      label: dict.viewProfile,
       icon: Eye,
       onClick: () => onViewProfile(candidate),
       gradient: 'from-blue-500 to-cyan-500',
       hoverGradient: 'from-blue-600 to-cyan-600',
-      description: 'פתח את הפרופיל המלא',
+      description: dict.viewProfileTooltip,
       primary: true,
     },
     {
       id: 'suggest',
-      label: 'הצעת שידוך',
+      label: dict.suggestMatch,
       icon: Heart,
       onClick: () => onSuggest(candidate),
       gradient: 'from-pink-500 to-rose-500',
       hoverGradient: 'from-pink-600 to-rose-600',
-      description: 'צור הצעת שידוך חדשה',
+      description: dict.suggestMatchTooltip,
       primary: true,
     },
     {
       id: 'invite',
-      label: 'שליחת הזמנה',
+      label: dict.sendInvite,
       icon: Send,
       onClick: () => onInvite(candidate),
       gradient: 'from-purple-500 to-indigo-500',
       hoverGradient: 'from-purple-600 to-indigo-600',
-      description: 'שלח הזמנה למועמד',
+      description: dict.sendInviteTooltip,
       primary: false,
     },
     {
       id: 'availability',
-      label: 'בדיקת זמינות',
+      label: dict.checkAvailability,
       icon: Calendar,
       onClick: () => onCheckAvailability(candidate),
       gradient: 'from-orange-500 to-amber-500',
       hoverGradient: 'from-orange-600 to-amber-600',
-      description: 'בדוק זמינות למפגש',
+      description: dict.checkAvailabilityTooltip,
       primary: false,
     },
   ];
@@ -923,10 +925,8 @@ const Actions: React.FC<ActionsProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Priority Badge */}
       <div className="flex justify-center">{getPriorityBadge()}</div>
 
-      {/* Primary Actions */}
       <div className="grid grid-cols-2 gap-3">
         {actionButtons
           .filter((a) => a.primary)
@@ -943,9 +943,7 @@ const Actions: React.FC<ActionsProps> = ({
                 )}
                 onClick={() => handleActionClick(action.id, action.onClick)}
               >
-                {/* Background animation */}
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-
                 <div className="relative z-10 flex items-center justify-center gap-2">
                   <IconComponent className="w-5 h-5" />
                   {showLabels && (
@@ -957,7 +955,6 @@ const Actions: React.FC<ActionsProps> = ({
           })}
       </div>
 
-      {/* Secondary Actions */}
       <div className="flex gap-2">
         {actionButtons
           .filter((a) => !a.primary)
@@ -976,14 +973,12 @@ const Actions: React.FC<ActionsProps> = ({
                 )}
                 onClick={() => handleActionClick(action.id, action.onClick)}
               >
-                {/* Background animation */}
                 <div
                   className={cn(
                     'absolute inset-0 bg-gradient-to-r transition-all duration-300 opacity-0 group-hover:opacity-100',
                     action.gradient
                   )}
                 ></div>
-
                 <div className="relative z-10 flex items-center justify-center gap-2">
                   <IconComponent className="w-4 h-4" />
                   {showLabels && (
@@ -997,7 +992,6 @@ const Actions: React.FC<ActionsProps> = ({
           })}
       </div>
 
-      {/* Favorite Button */}
       <div className="flex justify-center pt-2">
         <Button
           variant="ghost"
@@ -1013,24 +1007,23 @@ const Actions: React.FC<ActionsProps> = ({
               isHovered && 'fill-current animate-pulse'
             )}
           />
-          <span className="mr-2 text-sm font-medium">הוסף למועדפים</span>
+          <span className="mr-2 text-sm font-medium">{dict.addToFavorites}</span>
         </Button>
       </div>
 
-      {/* Quick Stats */}
       <div className="pt-3 border-t border-gray-100">
         <div className="flex justify-between items-center text-xs text-gray-500">
           <div className="flex items-center gap-1">
             <Star className="w-3 h-3 text-yellow-500" />
-            <span>דירוג: 4.8</span>
+            <span>{dict.rating}: 4.8</span>
           </div>
           <div className="flex items-center gap-1">
             <Zap className="w-3 h-3 text-blue-500" />
-            <span>התאמה: 95%</span>
+            <span>{dict.matchScore}: 95%</span>
           </div>
           <div className="flex items-center gap-1">
             <MessageCircle className="w-3 h-3 text-green-500" />
-            <span>תגובה: מהירה</span>
+            <span>{dict.response}: {dict.quickResponse}</span>
           </div>
         </div>
       </div>
@@ -1084,6 +1077,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 interface MinimalCandidateCardProps {
   candidate: Candidate;
@@ -1092,14 +1086,13 @@ interface MinimalCandidateCardProps {
   isHighlighted?: boolean;
   highlightTerm?: string;
   className?: string;
-
-  // --- AI-Related Props ---
   aiScore?: number;
   isAiTarget?: boolean;
   onSetAiTarget?: (candidate: Candidate, e: React.MouseEvent) => void;
   isSelectableForComparison?: boolean;
   isSelectedForComparison?: boolean;
   onToggleComparison?: (candidate: Candidate, e: React.MouseEvent) => void;
+  dict: MatchmakerPageDictionary['candidatesManager']['list']['minimalCard'];
 }
 
 const calculateAge = (birthDate: Date | string): number => {
@@ -1126,6 +1119,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   isSelectableForComparison = false,
   isSelectedForComparison = false,
   onToggleComparison,
+  dict,
 }) => {
   const mainImage = candidate.images.find((img) => img.isMain);
   const age = calculateAge(candidate.profile.birthDate);
@@ -1155,28 +1149,28 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
     switch (candidate.profile.availabilityStatus) {
       case 'AVAILABLE':
         return {
-          label: 'פנוי/ה',
+          label: dict.availability.AVAILABLE,
           className:
             'bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 shadow-lg',
           icon: <Sparkles className="w-3 h-3" />,
         };
       case 'DATING':
         return {
-          label: 'בתהליך היכרות',
+          label: dict.availability.DATING,
           className:
             'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg',
           icon: <Heart className="w-3 h-3" />,
         };
       case 'UNAVAILABLE':
         return {
-          label: 'לא פנוי/ה',
+          label: dict.availability.UNAVAILABLE,
           className:
             'bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg',
           icon: <Clock className="w-3 h-3" />,
         };
       default:
         return {
-          label: 'לא ידוע',
+          label: dict.availability.UNKNOWN,
           className:
             'bg-gradient-to-r from-gray-500 to-slate-500 text-white border-0 shadow-lg',
           icon: <User className="w-3 h-3" />,
@@ -1222,21 +1216,18 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
         )}
         onClick={() => onClick(candidate)}
       >
-        {/* Background Pattern */}
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/50 to-transparent opacity-60"></div>
 
-        {/* Top-left AI Score Badge */}
         {typeof aiScore === 'number' && (
           <div className="absolute top-3 left-3 z-30">
             <Badge className="bg-gradient-to-r from-teal-400 via-cyan-500 to-blue-500 text-white border-0 shadow-xl px-3 py-1.5 text-sm font-bold flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              {aiScore}% התאמה
+              {dict.aiMatch.replace('{{score}}', aiScore.toString())}
               <Zap className="w-3 h-3" />
             </Badge>
           </div>
         )}
 
-        {/* Top-right Badges Area */}
         <div className="absolute top-3 right-3 z-20 flex flex-col gap-2 items-end">
           <Badge
             className={cn(
@@ -1251,14 +1242,11 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
           {isManualEntry && (
             <Badge className="px-3 py-1.5 text-xs font-bold shadow-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 flex items-center gap-1.5">
               <Edit2 className="w-3 h-3" />
-              מועמד ידני
+              {dict.manualEntry}
             </Badge>
           )}
-
-        
         </div>
 
-        {/* Main Image */}
         <div className="relative h-52 sm:h-60 bg-gradient-to-br from-blue-100 via-purple-50 to-pink-100">
           {mainImage && !imageError ? (
             <>
@@ -1277,37 +1265,31 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                 onLoad={() => setImageLoaded(true)}
                 onError={() => setImageError(true)}
               />
-
-              {/* Image Overlay Gradient */}
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
-
-              {/* Shimmer Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             </>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
               <div className="text-center">
                 <User className="w-16 h-16 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">אין תמונה</p>
+                <p className="text-sm text-gray-500">{dict.noImage}</p>
               </div>
             </div>
           )}
 
-          {/* Name and Age Overlay */}
           <div className="absolute bottom-0 w-full p-4 text-right">
             <h3 className="font-bold mb-1 text-white drop-shadow-lg text-xl tracking-wide">
               {highlightText(`${candidate.firstName} ${candidate.lastName}`)}
             </h3>
             <div className="flex items-center justify-end gap-3 text-white/95 text-sm">
               <span className="bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm font-medium">
-                {age} שנים
+                {age} {dict.yearsSuffix}
               </span>
               <Calendar className="w-4 h-4" />
             </div>
           </div>
         </div>
 
-        {/* Content Section */}
         <div className="p-5 relative z-10">
           <div className="space-y-3 text-gray-700">
             {isManualEntry && candidate.profile.manualEntryText ? (
@@ -1337,11 +1319,10 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
               </div>
             )}
 
-            {/* Last Activity */}
             {candidate.profile.lastActive && (
               <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
                 <span className="text-xs text-gray-500">
-                  {`פעיל/ה ${formatDistanceToNow(new Date(candidate.profile.lastActive), { addSuffix: true, locale: he })}`}
+                  {`${dict.lastActivePrefix} ${formatDistanceToNow(new Date(candidate.profile.lastActive), { addSuffix: true, locale: he })}`}
                 </span>
                 <Clock className="w-3 h-3 text-gray-400" />
               </div>
@@ -1349,7 +1330,6 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
           </div>
         </div>
 
-        {/* Bottom Action Buttons */}
         <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
           {onEdit && (
             <TooltipProvider>
@@ -1365,7 +1345,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>עריכת פרופיל</p>
+                  <p>{dict.tooltips.editProfile}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -1395,22 +1375,26 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{isAiTarget ? 'בטל בחירת מטרה' : 'בחר כמטרה לחיפוש AI'}</p>
+                  <p>
+                    {isAiTarget
+                      ? dict.tooltips.clearAiTarget
+                      : dict.tooltips.setAsAiTarget}
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           )}
         </div>
 
-        {/* Quality Score Indicator */}
         <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300">
           <div className="flex items-center gap-1 bg-black/60 text-white px-3 py-1 rounded-full backdrop-blur-sm text-xs font-bold">
             <Award className="w-3 h-3" />
-            <span>איכות: {qualityScore}%</span>
+            <span>
+              {dict.qualityScore.replace('{{score}}', qualityScore.toString())}
+            </span>
           </div>
         </div>
 
-        {/* Comparison Checkbox */}
         {isSelectableForComparison && onToggleComparison && (
           <div
             className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0"
@@ -1429,13 +1413,12 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                 htmlFor={`compare-${candidate.id}`}
                 className="text-xs font-bold leading-none text-gray-700 cursor-pointer"
               >
-                השוואה
+                {dict.compare}
               </label>
             </div>
           </div>
         )}
 
-        {/* Hover Glow Effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-purple-400/0 to-pink-400/0 group-hover:from-blue-400/10 group-hover:via-purple-400/10 group-hover:to-pink-400/10 transition-all duration-500 pointer-events-none rounded-lg"></div>
       </Card>
     </motion.div>
@@ -2042,6 +2025,13 @@ import NewSuggestionForm from '../../suggestions/NewSuggestionForm';
 import MatchmakerEditProfile from '../MatchmakerEditProfile';
 import { cn } from '@/lib/utils';
 
+// --- ייבוא המילונים ---
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
+import type {
+  SuggestionsDictionary,
+  ProfilePageDictionary,
+} from '@/types/dictionary';
+
 interface CreateSuggestionData {
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   firstPartyId: string;
@@ -2066,15 +2056,16 @@ interface CandidatesListProps {
   isLoading?: boolean;
   className?: string;
   highlightTerm?: string;
-
-  // --- AI-RELATED PROPS ---
   aiTargetCandidate: Candidate | null;
   onSetAiTarget: (candidate: Candidate, e: React.MouseEvent) => void;
   comparisonSelection: Record<string, Candidate>;
   onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
-
-  // --- Prop for QuickView positioning ---
   quickViewSide?: 'left' | 'right' | 'center';
+
+  // --- קבלת המילונים כ-props ---
+  dict: MatchmakerPageDictionary['candidatesManager']['list'];
+  profileDict: ProfilePageDictionary;
+  suggestionsDict: SuggestionsDictionary;
 }
 
 const CandidatesList: React.FC<CandidatesListProps> = ({
@@ -2091,8 +2082,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   onSetAiTarget,
   comparisonSelection,
   onToggleComparison,
-  // --- Destructure the new prop with a default value ---
   quickViewSide = 'center',
+  dict,
+  profileDict,
+  suggestionsDict,
 }) => {
   // Base states
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
@@ -2123,16 +2116,13 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-
     return () => {
       window.removeEventListener('resize', checkScreenSize);
     };
   }, []);
 
-  // Close QuickView when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -2143,14 +2133,12 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         setHoveredCandidate(null);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [hoveredCandidate]);
 
-  // Clean up timeout on unmount
   useEffect(() => {
     return () => {
       if (hoverTimeoutRef.current) {
@@ -2159,20 +2147,17 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     };
   }, []);
 
-  // Load questionnaire when candidate is selected
   useEffect(() => {
     const loadQuestionnaire = async () => {
       if (!selectedCandidate) {
         setQuestionnaireResponse(null);
         return;
       }
-
       try {
         const response = await fetch(
           `/api/profile/questionnaire?userId=${selectedCandidate.id}`
         );
         const data = await response.json();
-
         if (data.success && data.questionnaireResponse) {
           const formattedQuestionnaire = {
             ...data.questionnaireResponse,
@@ -2192,10 +2177,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         }
       } catch (error) {
         console.error('Failed to load questionnaire:', error);
-        toast.error('שגיאה בטעינת השאלון');
+        toast.error('שגיאה בטעינת השאלון'); // TODO: Translate
       }
     };
-
     loadQuestionnaire();
   }, [selectedCandidate]);
 
@@ -2207,16 +2191,11 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            candidateId: candidate.id,
-            email,
-          }),
+          body: JSON.stringify({ candidateId: candidate.id, email }),
         }
       );
-
       if (!response.ok) throw new Error('Failed to send invitation');
-
-      toast.success('ההזמנה נשלחה בהצלחה');
+      toast.success('ההזמנה נשלחה בהצלחה'); // TODO: Translate
       onCandidateAction?.('invite', candidate);
     } catch (error) {
       console.error('Error sending invite:', error);
@@ -2231,10 +2210,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientId: candidate.id }),
       });
-
       if (!response.ok) throw new Error('Failed to check availability');
-
-      toast.success('בדיקת הזמינות נשלחה');
+      toast.success('בדיקת הזמינות נשלחה'); // TODO: Translate
       onCandidateAction?.('contact', candidate);
     } catch (error) {
       console.error('Error checking availability:', error);
@@ -2249,10 +2226,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-
       if (!response.ok) throw new Error('Failed to create suggestion');
-
-      toast.success('ההצעה נוצרה בהצלחה');
+      toast.success('ההצעה נוצרה בהצלחה'); // TODO: Translate
       onCandidateAction?.('suggest', dialogCandidate!);
     } catch (error) {
       console.error('Error creating suggestion:', error);
@@ -2267,42 +2242,26 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   const handleMouseEnter = (candidate: Candidate, e?: React.MouseEvent) => {
     if (isMobile || !e) return;
-
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
-
     const cardElement = e.currentTarget as HTMLElement;
-    const cardRect = cardElement.getBoundingClientRect(); // מיקום הכרטיס על המסך
+    const cardRect = cardElement.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const padding = 20;
-
-    // גובה משוער של החלון המקדים (שמוגבל ב-CSS ל-85vh)
     const quickViewApproxHeight = Math.min(650, viewportHeight * 0.85);
-
     let top;
-
-    // בדיקה: האם הצגת החלון מתחת לכרטיס תגרום לו לחרוג מהמסך?
     if (cardRect.top + quickViewApproxHeight > viewportHeight - padding) {
-      // כן, אין מספיק מקום למטה.
-      // לכן, נמקם את החלון כך שהחלק התחתון שלו יתיישר עם החלק התחתון של הכרטיס.
-      // זה יגרום לו "לקפוץ" כלפי מעלה.
       top = cardElement.offsetTop + cardRect.height - quickViewApproxHeight;
     } else {
-      // לא, יש מספיק מקום. נמקם אותו כרגיל, צמוד לחלק העליון של הכרטיס.
       top = cardElement.offsetTop;
     }
-
-    // נוודא שהחלון לא עולה גבוה מדי ויוצא מראש אזור הגלילה
     const scrollContainer = cardElement.closest('.overflow-y-auto');
     if (scrollContainer) {
       top = Math.max(top, scrollContainer.scrollTop);
     }
-
-    // הלוגיקה למיקום האופקי נשארת כפי שהיא
     let left;
     const quickViewWidth = 420;
-
     switch (quickViewSide) {
       case 'left':
         left = window.innerWidth / 4 - quickViewWidth / 2;
@@ -2315,12 +2274,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         left = window.innerWidth / 2 - quickViewWidth / 2;
         break;
     }
-
     left = Math.max(
       padding,
       Math.min(left, window.innerWidth - quickViewWidth - padding)
     );
-
     hoverTimeoutRef.current = setTimeout(() => {
       setHoverPosition({ top, left });
       setHoveredCandidate(candidate);
@@ -2329,12 +2286,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   const handleMouseLeave = () => {
     if (isMobile) return;
-
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
     }
-
     setTimeout(() => {
       if (!quickViewRef.current?.matches(':hover')) {
         setHoveredCandidate(null);
@@ -2346,7 +2301,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     (action: CandidateAction, candidate: Candidate) => {
       setDialogCandidate(candidate);
       setHoveredCandidate(null);
-
       switch (action) {
         case 'invite':
           setShowInviteDialog(true);
@@ -2373,26 +2327,19 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   const gridLayoutClass = useMemo(() => {
     if (isMobile) {
-      // Mobile view logic
       return mobileView === 'double'
-        ? 'grid grid-cols-2 gap-2' // Two columns for mobile
-        : 'grid grid-cols-1 gap-3'; // Single column for mobile
+        ? 'grid grid-cols-2 gap-2'
+        : 'grid grid-cols-1 gap-3';
     }
-    // Desktop view logic
     return viewMode === 'grid'
       ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-4'
       : 'space-y-4';
   }, [isMobile, mobileView, viewMode]);
 
-  // Loading states render
   if (isLoading) {
     return (
       <div
-        className={`${
-          viewMode === 'grid'
-            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
-            : 'space-y-4'
-        } ${className || ''}`}
+        className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'} ${className || ''}`}
       >
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="relative">
@@ -2410,17 +2357,14 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     );
   }
 
-  // Empty state render with improved UI
   if (candidates.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-32 bg-gray-50 rounded-lg border border-dashed border-gray-300 p-4 text-center">
         <UserX className="w-8 h-8 mb-2 text-gray-400" />
         <p className="text-sm font-medium text-gray-500 mb-1">
-          לא נמצאו מועמדים
+          {dict.emptyState.title}
         </p>
-        <p className="text-xs text-gray-400">
-          נסו להרחיב את החיפוש או להסיר חלק מהמסננים.
-        </p>
+        <p className="text-xs text-gray-400">{dict.emptyState.description}</p>
       </div>
     );
   }
@@ -2461,6 +2405,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               }
               isSelectedForComparison={!!comparisonSelection[candidate.id]}
               onToggleComparison={onToggleComparison}
+              dict={profileDict.minimalCard}
             />
             <button
               className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
@@ -2468,8 +2413,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 e.stopPropagation();
                 handleAction('edit', candidate);
               }}
-              aria-label="ערוך פרופיל"
-              title="ערוך פרופיל"
+              aria-label={dict.editProfileTooltip}
+              title={dict.editProfileTooltip}
             >
               <Edit className="w-4 h-4" />
             </button>
@@ -2480,7 +2425,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       {hoveredCandidate && !isMobile && (
         <div
           ref={quickViewRef}
-          className="absolute z-[70]" // z-index גבוה מאוד
+          className="absolute z-[70]"
           style={{
             top: `${hoverPosition.top}px`,
             left: `${hoverPosition.left}px`,
@@ -2493,6 +2438,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               onAction={(action) => handleAction(action, hoveredCandidate)}
               onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
               isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
+              dict={suggestionsDict.quickView}
             />
           </div>
         </div>
@@ -2510,45 +2456,49 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle>פרופיל מועמד</DialogTitle>
+              <DialogTitle>{dict.profileDialog.title}</DialogTitle>
               <Button
                 variant="outline"
                 onClick={() => handleAction('edit', selectedCandidate!)}
                 className="flex items-center gap-2"
               >
                 <Edit className="w-4 h-4" />
-                עריכת פרופיל
+                {dict.profileDialog.editButton}
               </Button>
             </div>
-            <DialogDescription>צפייה בפרטי המועמד</DialogDescription>
+            <DialogDescription>
+              {dict.profileDialog.description}
+            </DialogDescription>
             <Select
               value={isMatchmaker ? 'matchmaker' : 'candidate'}
               onValueChange={(value) => setIsMatchmaker(value === 'matchmaker')}
             >
               <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="בחר תצוגה" />
+                <SelectValue placeholder={dict.profileDialog.viewAsLabel} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="candidate">תצוגת מועמד</SelectItem>
-                <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
+                <SelectItem value="candidate">
+                  {dict.profileDialog.candidateView}
+                </SelectItem>
+                <SelectItem value="matchmaker">
+                  {dict.profileDialog.matchmakerView}
+                </SelectItem>
               </SelectContent>
             </Select>
           </DialogHeader>
 
           {selectedCandidate && (
             <div className="space-y-6">
-              {selectedCandidate && (
-                <div className="space-y-6">
-                  <ProfileCard
-                    profile={selectedCandidate.profile}
-                    images={selectedCandidate.images}
-                    questionnaire={questionnaireResponse}
-                    viewMode={isMatchmaker ? 'matchmaker' : 'candidate'}
-                    isProfileComplete={selectedCandidate.isProfileComplete}
-                  
-                  />
-                </div>
-              )}
+              {/* --- START OF FIX --- */}
+              <ProfileCard
+                profile={selectedCandidate.profile}
+                images={selectedCandidate.images}
+                questionnaire={questionnaireResponse}
+                viewMode={isMatchmaker ? 'matchmaker' : 'candidate'}
+                isProfileComplete={selectedCandidate.isProfileComplete}
+                dict={profileDict.profileCard}
+              />
+              {/* --- END OF FIX --- */}
             </div>
           )}
         </DialogContent>
@@ -2579,14 +2529,16 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         isOpen={showSuggestDialog}
         onClose={() => setShowSuggestDialog(false)}
         candidates={allCandidates}
-        selectedCandidate={selectedCandidate}
+        selectedCandidate={dialogCandidate}
         onSubmit={handleCreateSuggestion}
+        dict={suggestionsDict}
       />
 
       <MatchmakerEditProfile
         isOpen={showEditProfileDialog}
         onClose={() => setShowEditProfileDialog(false)}
         candidate={dialogCandidate}
+        dict={profileDict}
       />
     </>
   );

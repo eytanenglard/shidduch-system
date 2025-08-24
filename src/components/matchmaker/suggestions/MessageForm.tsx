@@ -1,3 +1,5 @@
+// src/components/matchmaker/suggestions/MessageForm.tsx
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -21,7 +23,6 @@ import { toast } from 'sonner';
 import {
   MessageCircle,
   Send,
-  AlertCircle,
   Users,
   User,
   Clock,
@@ -37,6 +38,7 @@ import type { Suggestion } from '@/types/suggestions';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
+import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
 interface MessageFormProps {
   isOpen: boolean;
@@ -48,6 +50,7 @@ interface MessageFormProps {
     messageType: 'message' | 'reminder' | 'update';
     messageContent: string;
   }) => Promise<void>;
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['messageForm'];
 }
 
 const MessageForm: React.FC<MessageFormProps> = ({
@@ -55,6 +58,7 @@ const MessageForm: React.FC<MessageFormProps> = ({
   onClose,
   suggestion,
   onSend,
+  dict,
 }) => {
   const [partyType, setPartyType] = useState<'first' | 'second' | 'both'>(
     'both'
@@ -70,7 +74,6 @@ const MessageForm: React.FC<MessageFormProps> = ({
 
     try {
       setIsSubmitting(true);
-
       await onSend({
         suggestionId: suggestion.id,
         partyType,
@@ -78,98 +81,91 @@ const MessageForm: React.FC<MessageFormProps> = ({
         messageContent,
       });
 
+      let recipientText = '';
+      if (partyType === 'first') {
+        recipientText = dict.toasts.successRecipients.first.replace(
+          '{{name}}',
+          suggestion.firstParty.firstName
+        );
+      } else if (partyType === 'second') {
+        recipientText = dict.toasts.successRecipients.second.replace(
+          '{{name}}',
+          suggestion.secondParty.firstName
+        );
+      } else {
+        recipientText = dict.toasts.successRecipients.both;
+      }
       toast.success(
-        `ההודעה נשלחה ${
-          partyType === 'first'
-            ? `ל${suggestion.firstParty.firstName}`
-            : partyType === 'second'
-              ? `ל${suggestion.secondParty.firstName}`
-              : 'לשני הצדדים'
-        }`
+        dict.toasts.success.replace('{{recipient}}', recipientText)
       );
 
-      // Reset form
       setMessageContent('');
       setPartyType('both');
       setMessageType('message');
       onClose();
     } catch (error) {
-      toast.error('שגיאה בשליחת ההודעה');
+      toast.error(dict.toasts.error);
       console.error('Error sending message:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getMessagePlaceholder = () => {
-    switch (messageType) {
-      case 'reminder':
-        return 'הודעת תזכורת למועמד/ת לגבי ההצעה...';
-      case 'update':
-        return 'עדכון לגבי סטטוס ההצעה או מידע חדש...';
-      default:
-        return 'הודעה אישית למועמד/ת...';
-    }
+  const getMessageTypeInfo = (type: 'message' | 'reminder' | 'update') => {
+    const infoMap = {
+      message: {
+        icon: MessageCircle,
+        color: 'from-purple-500 to-pink-500',
+        bgColor: 'from-purple-50 to-pink-50',
+      },
+      reminder: {
+        icon: Clock,
+        color: 'from-yellow-500 to-amber-500',
+        bgColor: 'from-yellow-50 to-amber-50',
+      },
+      update: {
+        icon: Info,
+        color: 'from-blue-500 to-cyan-500',
+        bgColor: 'from-blue-50 to-cyan-50',
+      },
+    };
+    return {
+      label: dict.messageTypes[type].label,
+      description: dict.messageTypes[type].description,
+      placeholder: dict.messageTypes[type].placeholder,
+      ...infoMap[type],
+    };
   };
 
-  const getMessageTypeInfo = (type: string) => {
-    switch (type) {
-      case 'reminder':
-        return {
-          label: 'תזכורת',
-          icon: Clock,
-          color: 'from-yellow-500 to-amber-500',
-          bgColor: 'from-yellow-50 to-amber-50',
-          description: 'הודעה להזכרה על ההצעה או פעולה נדרשת',
-        };
-      case 'update':
-        return {
-          label: 'עדכון סטטוס',
-          icon: Info,
-          color: 'from-blue-500 to-cyan-500',
-          bgColor: 'from-blue-50 to-cyan-50',
-          description: 'עדכון על שינוי במצב ההצעה או מידע חדש',
-        };
-      default:
-        return {
-          label: 'הודעה רגילה',
-          icon: MessageCircle,
-          color: 'from-purple-500 to-pink-500',
-          bgColor: 'from-purple-50 to-pink-50',
-          description: 'הודעה אישית כללית',
-        };
-    }
-  };
-
-  const getPartyTypeInfo = (type: string) => {
-    switch (type) {
-      case 'first':
-        return {
-          label: `${suggestion?.firstParty.firstName} ${suggestion?.firstParty.lastName} (צד א')`,
-          icon: User,
-          color: 'from-green-500 to-emerald-500',
-        };
-      case 'second':
-        return {
-          label: `${suggestion?.secondParty.firstName} ${suggestion?.secondParty.lastName} (צד ב')`,
-          icon: User,
-          color: 'from-blue-500 to-cyan-500',
-        };
-      default:
-        return {
-          label: 'שני הצדדים',
-          icon: Users,
-          color: 'from-purple-500 to-pink-500',
-        };
-    }
+  const getPartyTypeInfo = (type: 'first' | 'second' | 'both') => {
+    const infoMap = {
+      first: { icon: User, color: 'from-green-500 to-emerald-500' },
+      second: { icon: User, color: 'from-blue-500 to-cyan-500' },
+      both: { icon: Users, color: 'from-purple-500 to-pink-500' },
+    };
+    const labels = {
+      first: dict.partyTypes.first
+        .replace('{{firstName}}', suggestion?.firstParty.firstName || '')
+        .replace('{{lastName}}', suggestion?.firstParty.lastName || ''),
+      second: dict.partyTypes.second
+        .replace('{{firstName}}', suggestion?.secondParty.firstName || '')
+        .replace('{{lastName}}', suggestion?.secondParty.lastName || ''),
+      both: dict.partyTypes.both,
+    };
+    return {
+      label: labels[type],
+      ...infoMap[type],
+    };
   };
 
   if (!suggestion) return null;
 
-  const messageTypeInfo = getMessageTypeInfo(messageType);
-  const partyTypeInfo = getPartyTypeInfo(partyType);
-  const MessageTypeIcon = messageTypeInfo.icon;
-  const PartyTypeIcon = partyTypeInfo.icon;
+  const currentMessageTypeInfo = getMessageTypeInfo(messageType);
+  const currentPartyTypeInfo = getPartyTypeInfo(partyType);
+  const MessageTypeIcon = currentMessageTypeInfo.icon;
+  const PartyTypeIcon = currentPartyTypeInfo.icon;
+  const fullParty1Name = `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`;
+  const fullParty2Name = `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -177,11 +173,10 @@ const MessageForm: React.FC<MessageFormProps> = ({
         className="max-w-4xl border-0 shadow-2xl rounded-3xl p-0 overflow-hidden"
         dir="rtl"
       >
-        {/* Hero Header */}
         <div
           className={cn(
             'relative overflow-hidden bg-gradient-to-br',
-            messageTypeInfo.bgColor,
+            currentMessageTypeInfo.bgColor,
             'border-b border-gray-100'
           )}
         >
@@ -189,7 +184,6 @@ const MessageForm: React.FC<MessageFormProps> = ({
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-white/30 to-transparent rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-2xl"></div>
           </div>
-
           <div className="relative z-10 p-8">
             <DialogHeader>
               <div className="flex items-center justify-between mb-4">
@@ -199,18 +193,15 @@ const MessageForm: React.FC<MessageFormProps> = ({
                   </div>
                   <div>
                     <DialogTitle className="text-3xl font-bold text-gray-800">
-                      שליחת הודעה
+                      {dict.header.title}
                     </DialogTitle>
                     <DialogDescription className="text-lg text-gray-600 mt-1">
-                      שליחת הודעה הקשורה להצעת השידוך בין{' '}
-                      {suggestion.firstParty.firstName}{' '}
-                      {suggestion.firstParty.lastName} ל
-                      {suggestion.secondParty.firstName}{' '}
-                      {suggestion.secondParty.lastName}
+                      {dict.header.description
+                        .replace('{{party1}}', fullParty1Name)
+                        .replace('{{party2}}', fullParty2Name)}
                     </DialogDescription>
                   </div>
                 </div>
-
                 <Button
                   variant="ghost"
                   size="icon"
@@ -220,57 +211,54 @@ const MessageForm: React.FC<MessageFormProps> = ({
                   <X className="w-6 h-6" />
                 </Button>
               </div>
-
               <div className="flex items-center gap-4">
                 <Badge
                   className={cn(
                     'px-4 py-2 font-bold shadow-lg bg-gradient-to-r text-white',
-                    messageTypeInfo.color
+                    currentMessageTypeInfo.color
                   )}
                 >
                   <MessageTypeIcon className="w-4 h-4 ml-2" />
-                  {messageTypeInfo.label}
+                  {currentMessageTypeInfo.label}
                 </Badge>
-
                 <Badge
                   className={cn(
                     'px-4 py-2 font-bold shadow-lg bg-gradient-to-r text-white',
-                    partyTypeInfo.color
+                    currentPartyTypeInfo.color
                   )}
                 >
                   <PartyTypeIcon className="w-4 h-4 ml-2" />
-                  {partyTypeInfo.label}
+                  {currentPartyTypeInfo.label}
                 </Badge>
               </div>
             </DialogHeader>
           </div>
         </div>
-
         <div className="p-8 space-y-8">
-          {/* Suggestion Info Alert */}
           <Alert className="border-0 bg-gradient-to-r from-indigo-50 to-purple-50 shadow-lg rounded-2xl">
             <Heart className="h-5 w-5 text-indigo-500" />
             <AlertDescription className="text-indigo-800 font-medium">
-              <strong>הצעה #{suggestion.id.slice(-8)}:</strong> הודעה זו תישלח
-              במסגרת הצעת השידוך הפעילה.
+              <strong>
+                {dict.infoAlert.suggestionPrefix}
+                {suggestion.id.slice(-8)}:
+              </strong>{' '}
+              {dict.infoAlert.body}
               <br />
-              <strong>סטטוס נוכחי:</strong> {suggestion.status} •{' '}
-              <strong>עדיפות:</strong> {suggestion.priority}
+              <strong>{dict.infoAlert.statusLabel}</strong> {suggestion.status}{' '}
+              • <strong>{dict.infoAlert.priorityLabel}</strong>{' '}
+              {suggestion.priority}
             </AlertDescription>
           </Alert>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Recipient Selection */}
             <div className="p-6 bg-white rounded-2xl shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg">
                   <Users className="w-5 h-5" />
                 </div>
                 <Label className="text-lg font-bold text-gray-800">
-                  שלח אל
+                  {dict.form.recipientLabel}
                 </Label>
               </div>
-
               <Select
                 value={partyType}
                 onValueChange={(value) =>
@@ -278,70 +266,51 @@ const MessageForm: React.FC<MessageFormProps> = ({
                 }
               >
                 <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-green-300 focus:border-green-500 rounded-xl transition-all">
-                  <SelectValue placeholder="בחר נמען" />
+                  <SelectValue placeholder={dict.form.recipientPlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="first">
                     <div className="flex items-center gap-3">
                       <User className="w-4 h-4 text-green-500" />
-                      <div className="text-right">
-                        <div className="font-medium">
-                          {suggestion.firstParty.firstName}{' '}
-                          {suggestion.firstParty.lastName}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          (צד א&apos;)
-                        </div>{' '}
-                      </div>
+                      {getPartyTypeInfo('first').label}
                     </div>
                   </SelectItem>
                   <SelectItem value="second">
                     <div className="flex items-center gap-3">
                       <User className="w-4 h-4 text-blue-500" />
-                      <div className="text-right">
-                        <div className="font-medium">
-                          {suggestion.secondParty.firstName}{' '}
-                          {suggestion.secondParty.lastName}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          (צד ב&apos;)
-                        </div>{' '}
-                      </div>
+                      {getPartyTypeInfo('second').label}
                     </div>
                   </SelectItem>
                   <SelectItem value="both">
                     <div className="flex items-center gap-3">
                       <Users className="w-4 h-4 text-purple-500" />
-                      <div className="font-medium">שני הצדדים</div>
+                      {getPartyTypeInfo('both').label}
                     </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
-
               <div className="mt-3 p-3 bg-green-50 rounded-xl">
                 <p className="text-sm text-green-700">
                   <PartyTypeIcon className="w-4 h-4 inline ml-1" />
-                  ההודעה תישלח ל{partyTypeInfo.label}
+                  {dict.form.recipientSelectedPrefix}{' '}
+                  {currentPartyTypeInfo.label}
                 </p>
               </div>
             </div>
-
-            {/* Message Type */}
             <div className="p-6 bg-white rounded-2xl shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center gap-3 mb-4">
                 <div
                   className={cn(
                     'p-2 rounded-full bg-gradient-to-r text-white shadow-lg',
-                    messageTypeInfo.color
+                    currentMessageTypeInfo.color
                   )}
                 >
                   <MessageTypeIcon className="w-5 h-5" />
                 </div>
                 <Label className="text-lg font-bold text-gray-800">
-                  סוג ההודעה
+                  {dict.form.messageTypeLabel}
                 </Label>
               </div>
-
               <Select
                 value={messageType}
                 onValueChange={(value) =>
@@ -349,93 +318,74 @@ const MessageForm: React.FC<MessageFormProps> = ({
                 }
               >
                 <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 rounded-xl transition-all">
-                  <SelectValue placeholder="בחר סוג הודעה" />
+                  <SelectValue placeholder={dict.form.messageTypePlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="message">
                     <div className="flex items-center gap-3">
                       <MessageCircle className="w-4 h-4 text-purple-500" />
-                      <div className="text-right">
-                        <div className="font-medium">הודעה רגילה</div>
-                        <div className="text-xs text-gray-500">
-                          הודעה אישית כללית
-                        </div>
-                      </div>
+                      {dict.messageTypes.message.label}
                     </div>
                   </SelectItem>
                   <SelectItem value="reminder">
                     <div className="flex items-center gap-3">
                       <Clock className="w-4 h-4 text-yellow-500" />
-                      <div className="text-right">
-                        <div className="font-medium">תזכורת</div>
-                        <div className="text-xs text-gray-500">
-                          הזכרה על פעולה נדרשת
-                        </div>
-                      </div>
+                      {dict.messageTypes.reminder.label}
                     </div>
                   </SelectItem>
                   <SelectItem value="update">
                     <div className="flex items-center gap-3">
                       <Info className="w-4 h-4 text-blue-500" />
-                      <div className="text-right">
-                        <div className="font-medium">עדכון סטטוס</div>
-                        <div className="text-xs text-gray-500">
-                          עדכון על שינוי במצב
-                        </div>
-                      </div>
+                      {dict.messageTypes.update.label}
                     </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
-
               <div
                 className={cn(
                   'mt-3 p-3 rounded-xl bg-gradient-to-r',
-                  messageTypeInfo.bgColor
+                  currentMessageTypeInfo.bgColor
                 )}
               >
                 <p
                   className="text-sm font-medium"
-                  style={{ color: messageTypeInfo.color.split(' ')[1] }}
+                  style={{ color: currentMessageTypeInfo.color.split(' ')[1] }}
                 >
                   <MessageTypeIcon className="w-4 h-4 inline ml-1" />
-                  {messageTypeInfo.description}
+                  {currentMessageTypeInfo.description}
                 </p>
               </div>
             </div>
           </div>
-
-          {/* Message Content */}
           <div className="p-6 bg-white rounded-2xl shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg">
                 <Mail className="w-5 h-5" />
               </div>
               <Label className="text-lg font-bold text-gray-800">
-                תוכן ההודעה
+                {dict.form.messageContentLabel}
               </Label>
             </div>
-
             <Textarea
               value={messageContent}
               onChange={(e) => setMessageContent(e.target.value)}
-              placeholder={getMessagePlaceholder()}
+              placeholder={currentMessageTypeInfo.placeholder}
               className="h-48 border-2 border-gray-200 focus:border-indigo-400 rounded-xl transition-all resize-none text-lg"
               dir="rtl"
             />
-
             <div className="mt-3 flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Sparkles className="w-4 h-4" />
-                <span>המערכת תוסיף אוטומטית חתימה מקצועית</span>
+                <span>{dict.form.signatureNotice}</span>
               </div>
               <div className="text-sm text-gray-500">
-                {messageContent.length}/1000 תווים
+                {dict.form.charsCount.replace(
+                  '{{count}}',
+                  messageContent.length.toString()
+                )}
               </div>
             </div>
           </div>
-
-          {/* Preview Section */}
           {messageContent.trim() && (
             <div className="p-6 bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl border-2 border-gray-200">
               <div className="flex items-center gap-3 mb-4">
@@ -443,32 +393,31 @@ const MessageForm: React.FC<MessageFormProps> = ({
                   <Zap className="w-5 h-5" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">
-                  תצוגה מקדימה
+                  {dict.preview.title}
                 </h3>
               </div>
-
               <div className="bg-white p-4 rounded-xl border-2 border-gray-100 shadow-inner">
                 <div className="text-sm text-gray-600 mb-2">
-                  אל: {partyTypeInfo.label} • סוג: {messageTypeInfo.label}
+                  {dict.preview.recipientLabel} {currentPartyTypeInfo.label} •{' '}
+                  {dict.preview.typeLabel} {currentMessageTypeInfo.label}
                 </div>
                 <div className="text-gray-800 leading-relaxed whitespace-pre-wrap">
                   {messageContent}
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
-                  בברכה,
+                  {dict.preview.signature.greeting}
                   <br />
-                  צוות מערכת השידוכים
+                  {dict.preview.signature.team}
                 </div>
               </div>
             </div>
           )}
         </div>
-
         <DialogFooter className="p-8 border-t border-gray-100 bg-gradient-to-r from-gray-50 to-slate-50">
           <div className="flex justify-between w-full items-center">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Bell className="w-4 h-4" />
-              <span>הנמענים יקבלו התראה באימייל ובוואטסאפ</span>
+              <span>{dict.footer.notificationNotice}</span>
             </div>
             <div className="flex gap-4">
               <Button
@@ -477,7 +426,7 @@ const MessageForm: React.FC<MessageFormProps> = ({
                 disabled={isSubmitting}
                 className="px-8 py-3 border-2 border-gray-300 hover:bg-gray-50 rounded-xl transition-all"
               >
-                ביטול
+                {dict.footer.cancelButton}
               </Button>
               <Button
                 onClick={handleSubmit}
@@ -487,12 +436,12 @@ const MessageForm: React.FC<MessageFormProps> = ({
                 {isSubmitting ? (
                   <>
                     <Send className="w-5 h-5 ml-2 animate-pulse" />
-                    שולח...
+                    {dict.footer.sendingButton}
                   </>
                 ) : (
                   <>
                     <Send className="w-5 h-5 ml-2" />
-                    שלח הודעה
+                    {dict.footer.sendButton}
                   </>
                 )}
               </Button>

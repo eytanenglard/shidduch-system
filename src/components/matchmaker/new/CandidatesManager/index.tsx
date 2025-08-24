@@ -82,10 +82,7 @@ import type {
 import { SORT_OPTIONS, VIEW_OPTIONS } from '../constants/filterOptions';
 import { cn } from '@/lib/utils';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
-import type {
-  SuggestionsDictionary,
-  ProfilePageDictionary,
-} from '@/types/dictionary';
+import type { ProfilePageDictionary } from '@/types/dictionary';
 
 // --- Local Types ---
 interface AiMatch {
@@ -357,13 +354,11 @@ const MinimalHeader: React.FC<{
 // ============================================================================
 interface CandidatesManagerProps {
   matchmakerDict: MatchmakerPageDictionary;
-  suggestionsDict: SuggestionsDictionary;
   profileDict: ProfilePageDictionary;
 }
 
 const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   matchmakerDict,
-  suggestionsDict,
   profileDict,
 }) => {
   // --- State Management ---
@@ -462,7 +457,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   // --- Event Handlers ---
   const handleCandidateAdded = useCallback(() => {
     refresh();
-    toast.success('מועמד חדש נוסף בהצלחה!'); // This should also be in the dictionary, but leaving for simplicity
+    toast.success('מועמד חדש נוסף בהצלחה!');
   }, [refresh]);
 
   const handleSearch = useCallback(
@@ -490,9 +485,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     async (name: string) => {
       try {
         await saveFilter(name, filters);
-        toast.success('הפילטר נשמר בהצלחה'); // Translate
+        toast.success('הפילטר נשמר בהצלחה');
       } catch {
-        toast.error('שגיאה בשמירת הפילטר'); // Translate
+        toast.error('שגיאה בשמירת הפילטר');
       }
     },
     [filters, saveFilter]
@@ -510,7 +505,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
       setComparisonSelection({});
       toast.info(`מועמד מטרה נבחר: ${candidate.firstName}.`, {
         position: 'bottom-center',
-      }); // Translate
+      });
     },
     [aiTargetCandidate]
   );
@@ -520,7 +515,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     setAiTargetCandidate(null);
     setAiMatches([]);
     setComparisonSelection({});
-    toast.info('בחירת מועמד מטרה בוטלה.', { position: 'bottom-center' }); // Translate
+    toast.info('בחירת מועמד מטרה בוטלה.', { position: 'bottom-center' });
   };
 
   const handleToggleComparison = useCallback(
@@ -538,21 +533,21 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
 
   const handleUpdateAllProfiles = async () => {
     setIsBulkUpdating(true);
-    toast.info('מתחיל תהליך עדכון פרופילי AI...'); // Translate
+    toast.info('מתחיל תהליך עדכון פרופילי AI...');
     try {
       const response = await fetch('/api/ai/update-all-profiles', {
         method: 'POST',
       });
       const data = await response.json();
       if (!response.ok)
-        throw new Error(data.error || 'שגיאה בהפעלת העדכון הכללי.'); // Translate
-      toast.success('העדכון הכללי הופעל בהצלחה!'); // Translate
+        throw new Error(data.error || 'שגיאה בהפעלת העדכון הכללי.');
+      toast.success('העדכון הכללי הופעל בהצלחה!');
     } catch (error) {
       console.error('Failed to initiate bulk AI profile update:', error);
       toast.error('שגיאה בהפעלת העדכון', {
         description:
           error instanceof Error ? error.message : 'אנא נסה שוב מאוחר יותר.',
-      }); // Translate
+      });
     } finally {
       setIsBulkUpdating(false);
     }
@@ -854,13 +849,14 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         isOpen={showManualAddDialog}
         onClose={() => setShowManualAddDialog(false)}
         onCandidateAdded={handleCandidateAdded}
+        dict={matchmakerDict.candidatesManager.addManualCandidateDialog} // <--- הוספת השורה הזו
       />
       <AiMatchAnalysisDialog
         isOpen={isAnalysisDialogOpen}
         onClose={() => setIsAnalysisDialogOpen(false)}
         targetCandidate={aiTargetCandidate}
         comparisonCandidates={Object.values(comparisonSelection)}
-        dict={suggestionsDict.aiAnalysis}
+        dict={matchmakerDict.candidatesManager.aiAnalysis}
       />
     </div>
   );

@@ -39,12 +39,9 @@ import {
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
-  Area,
-  AreaChart,
 } from 'recharts';
 import { cn } from '@/lib/utils';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 interface StatCardProps {
   title: string;
@@ -58,11 +55,13 @@ interface StatCardProps {
   className?: string;
   gradient: string;
   iconColor: string;
+  dict: MatchmakerPageDictionary['candidatesManager']['stats']['mainStats']['trend'];
 }
 
 interface CandidatesStatsProps {
   candidates: Candidate[];
   className?: string;
+  dict: MatchmakerPageDictionary['candidatesManager']['stats'];
 }
 
 const CHART_COLORS = [
@@ -76,15 +75,6 @@ const CHART_COLORS = [
   '#84CC16', // ליים
 ];
 
-const GRADIENT_COLORS = [
-  'from-blue-500 to-cyan-500',
-  'from-purple-500 to-pink-500',
-  'from-green-500 to-emerald-500',
-  'from-orange-500 to-amber-500',
-  'from-red-500 to-pink-500',
-  'from-indigo-500 to-purple-500',
-];
-
 const StatCard: React.FC<StatCardProps> = ({
   title,
   value,
@@ -94,6 +84,7 @@ const StatCard: React.FC<StatCardProps> = ({
   className,
   gradient,
   iconColor,
+  dict,
 }) => (
   <Card
     className={cn(
@@ -102,7 +93,6 @@ const StatCard: React.FC<StatCardProps> = ({
     )}
   >
     <CardContent className="p-6 relative">
-      {/* Background decorative elements */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-2xl opacity-50"></div>
 
       <div className="flex items-start justify-between relative z-10">
@@ -135,7 +125,7 @@ const StatCard: React.FC<StatCardProps> = ({
           )}
           {trend && (
             <p className="text-xs text-gray-400">
-              {trend.isPositive ? 'עלייה' : 'ירידה'} מהחודש שעבר
+              {trend.isPositive ? dict.increase : dict.decrease} {dict.period}
             </p>
           )}
         </div>
@@ -196,6 +186,7 @@ const EnhancedChartCard: React.FC<{
 const CandidatesStats: React.FC<CandidatesStatsProps> = ({
   candidates,
   className,
+  dict,
 }) => {
   const {
     stats,
@@ -218,9 +209,7 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
 
   return (
     <div className={cn('space-y-8', className)}>
-      {/* Hero Section */}
       <div className="relative min-h-[200px] bg-gradient-to-br from-purple-50 via-cyan-50/30 to-emerald-50/20 overflow-hidden rounded-3xl shadow-2xl p-8">
-        {/* Background decorative elements */}
         <div className="absolute inset-0">
           <div className="absolute top-10 right-10 w-64 h-64 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl animate-float"></div>
           <div
@@ -236,62 +225,57 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
             </div>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4">
-            סטטיסטיקות מועמדים
+            {dict.hero.title}
           </h1>
           <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
-            מבט כולל על נתוני המועמדים, פעילות ותובנות עסקיות מתקדמות
+            {dict.hero.subtitle}
           </p>
         </div>
       </div>
 
-      {/* סטטיסטיקות עיקריות */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="סה״כ מועמדים"
+          title={dict.mainStats.total.title}
           value={stats.gender.total}
           icon={<Users className="w-8 h-8" />}
-          description="סה״כ מועמדים פעילים במערכת"
+          description={dict.mainStats.total.description}
           gradient="from-blue-500 to-cyan-500"
           iconColor="text-white"
-          trend={{
-            value: 12,
-            isPositive: true,
-          }}
+          trend={{ value: 12, isPositive: true }}
+          dict={dict.mainStats.trend}
         />
         <StatCard
-          title="יחס מועמדים/ות"
+          title={dict.mainStats.ratio.title}
           value={genderRatio.formattedRatio}
           icon={<UserCheck className="w-8 h-8" />}
-          description="גברים/נשים"
+          description={dict.mainStats.ratio.description}
           gradient="from-purple-500 to-pink-500"
           iconColor="text-white"
+          dict={dict.mainStats.trend}
         />
         <StatCard
-          title="פעילות בשבוע האחרון"
+          title={dict.mainStats.activity.title}
           value={`${activeUsers}%`}
           icon={<Clock className="w-8 h-8" />}
           gradient="from-green-500 to-emerald-500"
           iconColor="text-white"
-          trend={{
-            value: 8,
-            isPositive: true,
-          }}
+          trend={{ value: 8, isPositive: true }}
+          dict={dict.mainStats.trend}
         />
         <StatCard
-          title="פרופילים מלאים"
+          title={dict.mainStats.completion.title}
           value={`${completionStats.percentage}%`}
           icon={<CheckCircle className="w-8 h-8" />}
-          description={`${completionStats.completed} מתוך ${stats.gender.total}`}
+          description={dict.mainStats.completion.description
+            .replace('{{completed}}', completionStats.completed.toString())
+            .replace('{{total}}', stats.gender.total.toString())}
           gradient="from-orange-500 to-amber-500"
           iconColor="text-white"
-          trend={{
-            value: 5,
-            isPositive: true,
-          }}
+          trend={{ value: 5, isPositive: true }}
+          dict={dict.mainStats.trend}
         />
       </div>
 
-      {/* טאבים לניתוחים מתקדמים */}
       <Tabs defaultValue="demographics" className="w-full">
         <TabsList className="bg-purple-50/50 rounded-2xl p-1.5 h-auto shadow-lg border border-white/50 grid w-full grid-cols-3">
           <TabsTrigger
@@ -299,31 +283,29 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
             className="flex items-center gap-2 rounded-xl transition-all duration-300 py-3 hover:scale-105 data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold"
           >
             <Users className="w-5 h-5" />
-            דמוגרפיה
+            {dict.tabs.demographics}
           </TabsTrigger>
           <TabsTrigger
             value="activity"
             className="flex items-center gap-2 rounded-xl transition-all duration-300 py-3 hover:scale-105 data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold"
           >
             <Activity className="w-5 h-5" />
-            פעילות
+            {dict.tabs.activity}
           </TabsTrigger>
           <TabsTrigger
             value="completion"
             className="flex items-center gap-2 rounded-xl transition-all duration-300 py-3 hover:scale-105 data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold"
           >
             <Target className="w-5 h-5" />
-            שלמות פרופילים
+            {dict.tabs.completion}
           </TabsTrigger>
         </TabsList>
 
-        {/* דמוגרפיה */}
         <TabsContent value="demographics" className="mt-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* התפלגות גילאים */}
             <EnhancedChartCard
-              title="התפלגות גילאים"
-              description="פילוח המועמדים לפי קבוצות גיל"
+              title={dict.charts.ageDistribution.title}
+              description={dict.charts.ageDistribution.description}
               gradient="from-blue-500 to-cyan-500"
               icon={<Users className="w-6 h-6" />}
             >
@@ -369,10 +351,9 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
               </ResponsiveContainer>
             </EnhancedChartCard>
 
-            {/* התפלגות דתית */}
             <EnhancedChartCard
-              title="התפלגות רמת דתיות"
-              description="פילוח המועמדים לפי רמת דתיות"
+              title={dict.charts.religiousDistribution.title}
+              description={dict.charts.religiousDistribution.description}
               gradient="from-purple-500 to-pink-500"
               icon={<Heart className="w-6 h-6" />}
             >
@@ -410,10 +391,9 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
               </ResponsiveContainer>
             </EnhancedChartCard>
 
-            {/* מיקומים מובילים */}
             <EnhancedChartCard
-              title="ערים מובילות"
-              description="החמש ערים עם הכי הרבה מועמדים"
+              title={dict.charts.topCities.title}
+              description={dict.charts.topCities.description}
               gradient="from-green-500 to-emerald-500"
               icon={<MapPin className="w-6 h-6" />}
             >
@@ -455,12 +435,11 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
           </div>
         </TabsContent>
 
-        {/* פעילות */}
         <TabsContent value="activity" className="mt-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <EnhancedChartCard
-              title="פעילות משתמשים"
-              description="נתוני פעילות עדכניים"
+              title={dict.charts.userActivity.title}
+              description={dict.charts.userActivity.description}
               gradient="from-orange-500 to-amber-500"
               icon={<Activity className="w-6 h-6" />}
             >
@@ -469,7 +448,7 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
                   <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-100">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-orange-800">
-                        פעילים בשבוע האחרון
+                        {dict.charts.userActivity.weeklyActive}
                       </span>
                       <TrendingUp className="w-4 h-4 text-orange-600" />
                     </div>
@@ -477,11 +456,10 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
                       {activityTrend.weekly}
                     </span>
                   </div>
-
                   <div className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl border border-amber-100">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-amber-800">
-                        פעילים בחודש האחרון
+                        {dict.charts.userActivity.monthlyActive}
                       </span>
                       <Activity className="w-4 h-4 text-amber-600" />
                     </div>
@@ -490,45 +468,44 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
                     </span>
                   </div>
                 </div>
-
                 <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-100">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-yellow-800">
-                      ממוצע ימים בין התחברויות
+                      {dict.charts.userActivity.avgLogin}
                     </span>
                     <Clock className="w-4 h-4 text-yellow-600" />
                   </div>
                   <span className="text-2xl font-bold text-yellow-900">
-                    {activityTrend.average} ימים
+                    {activityTrend.average} {dict.charts.userActivity.days}
                   </span>
                 </div>
               </div>
             </EnhancedChartCard>
 
-            {/* Additional Activity Chart */}
             <EnhancedChartCard
-              title="טרנד פעילות שבועי"
-              description="פעילות לאורך השבוע"
+              title={dict.charts.activityTrend.title}
+              description={dict.charts.activityTrend.description}
               gradient="from-indigo-500 to-purple-500"
               icon={<Star className="w-6 h-6" />}
             >
               <div className="flex items-center justify-center h-64 text-gray-500">
                 <div className="text-center">
                   <Sparkles className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
-                  <p>נתונים זמינים בקרוב</p>
-                  <p className="text-sm">טרנד פעילות מתקדם</p>
+                  <p>{dict.charts.activityTrend.comingSoon}</p>
+                  <p className="text-sm">
+                    {dict.charts.activityTrend.subtitle}
+                  </p>
                 </div>
               </div>
             </EnhancedChartCard>
           </div>
         </TabsContent>
 
-        {/* שלמות פרופילים */}
         <TabsContent value="completion" className="mt-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <EnhancedChartCard
-              title="שלמות פרופילים"
-              description="אחוזי השלמה של רכיבי הפרופיל"
+              title={dict.charts.profileCompletion.title}
+              description={dict.charts.profileCompletion.description}
               gradient="from-red-500 to-pink-500"
               icon={<Target className="w-6 h-6" />}
             >
@@ -540,34 +517,34 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
                         <ImageIcon className="w-4 h-4" />
                       </div>
                       <span className="font-medium text-gray-800">
-                        תמונות פרופיל
+                        {dict.charts.profileCompletion.hasPhotos}
                       </span>
                     </div>
                     <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-sm px-3 py-1 font-bold">
                       {stats.completion.percentages.hasPhotos}%
                     </Badge>
                   </div>
-
                   <div className="flex items-center justify-between p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl border border-pink-100 hover:shadow-md transition-all duration-300">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg">
                         <CheckCircle className="w-4 h-4" />
                       </div>
                       <span className="font-medium text-gray-800">
-                        פרופיל מאומת
+                        {dict.charts.profileCompletion.isVerified}
                       </span>
                     </div>
                     <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 shadow-sm px-3 py-1 font-bold">
                       {stats.completion.percentages.isVerified}%
                     </Badge>
                   </div>
-
                   <div className="flex items-center justify-between p-4 bg-gradient-to-r from-rose-50 to-red-50 rounded-xl border border-rose-100 hover:shadow-md transition-all duration-300">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-full bg-gradient-to-r from-rose-500 to-red-500 text-white shadow-lg">
                         <Users className="w-4 h-4" />
                       </div>
-                      <span className="font-medium text-gray-800">המלצות</span>
+                      <span className="font-medium text-gray-800">
+                        {dict.charts.profileCompletion.hasReferences}
+                      </span>
                     </div>
                     <Badge className="bg-gradient-to-r from-rose-500 to-red-500 text-white border-0 shadow-sm px-3 py-1 font-bold">
                       {stats.completion.percentages.hasReferences}%
@@ -577,10 +554,9 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
               </div>
             </EnhancedChartCard>
 
-            {/* Performance Insights */}
             <EnhancedChartCard
-              title="תובנות ביצועים"
-              description="מדדים עסקיים מתקדמים"
+              title={dict.charts.performance.title}
+              description={dict.charts.performance.description}
               gradient="from-emerald-500 to-green-500"
               icon={<Award className="w-6 h-6" />}
             >
@@ -591,34 +567,42 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
                     <div className="text-2xl font-bold text-emerald-800">
                       A+
                     </div>
-                    <div className="text-sm text-emerald-600">דירוג איכות</div>
+                    <div className="text-sm text-emerald-600">
+                      {dict.charts.performance.qualityRating}
+                    </div>
                   </div>
-
                   <div className="text-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
                     <Zap className="w-8 h-8 mx-auto mb-2 text-green-600" />
                     <div className="text-2xl font-bold text-green-800">95%</div>
-                    <div className="text-sm text-green-600">שביעות רצון</div>
+                    <div className="text-sm text-green-600">
+                      {dict.charts.performance.satisfaction}
+                    </div>
                   </div>
                 </div>
-
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-medium text-blue-800">
-                      התפתחות החודש
+                      {dict.charts.performance.monthlyProgress}
                     </span>
                     <TrendingUp className="w-4 h-4 text-blue-600" />
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-blue-700">מועמדים חדשים</span>
+                      <span className="text-blue-700">
+                        {dict.charts.performance.newCandidates}
+                      </span>
                       <span className="font-bold text-blue-800">+12%</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-blue-700">פעילות</span>
+                      <span className="text-blue-700">
+                        {dict.charts.performance.activity}
+                      </span>
                       <span className="font-bold text-blue-800">+8%</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-blue-700">השלמות פרופיל</span>
+                      <span className="text-blue-700">
+                        {dict.charts.performance.profileCompletion}
+                      </span>
                       <span className="font-bold text-blue-800">+5%</span>
                     </div>
                   </div>
