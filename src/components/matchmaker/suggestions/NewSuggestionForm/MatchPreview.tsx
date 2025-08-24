@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
 interface MatchPreviewProps {
-  dict: MatchmakerPageDictionary['newSuggestionForm']['matchPreview'];
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['newSuggestionForm']['matchPreview'];
   firstParty: Candidate;
   secondParty: Candidate;
   className?: string;
@@ -56,7 +56,7 @@ const getTranslatedReason = (dict: any, key: string): string => {
 };
 
 const MatchCriteriaCard: React.FC<{
-  dict: MatchmakerPageDictionary['newSuggestionForm']['matchPreview'];
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['newSuggestionForm']['matchPreview'];
   criterion: {
     name: string;
     score: number;
