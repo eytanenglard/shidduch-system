@@ -570,7 +570,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
       />
 
       {isHeaderCompact && (
-        <div className="flex-shrink-0 bg-white/80 backdrop-blur-sm border-b border-gray-100 py-2 px-6">
+        <div className="flex-shrink-0 bg-white/80 backdrop-blur-sm border-b border-gray-100 py-2 px-6 mt-16">
           <div className="container mx-auto px-6">
             <div className="flex justify-between items-center">
               {!filters.separateFiltering && (
@@ -771,7 +771,12 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         </div>
       )}
 
-      <main className="flex-1 min-h-0 container mx-auto px-6 pb-4 pt-4">
+      <main
+        className={cn(
+          'flex-1 min-h-0 container mx-auto px-6 pb-4 pt-4',
+          !isHeaderCompact && 'mt-32'
+        )}
+      >
         <div className="flex gap-4 h-full">
           {showFiltersPanel && (
             <aside className="hidden lg:block w-72 flex-shrink-0">
@@ -849,8 +854,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         isOpen={showManualAddDialog}
         onClose={() => setShowManualAddDialog(false)}
         onCandidateAdded={handleCandidateAdded}
-          dict={matchmakerDict.candidatesManager.addManualCandidateDialog} // <--- הוספת השורה הזו
-
+        dict={matchmakerDict.candidatesManager.addManualCandidateDialog} // <--- הוספת השורה הזו
       />
       <AiMatchAnalysisDialog
         isOpen={isAnalysisDialogOpen}

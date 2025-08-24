@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import { Toaster } from 'sonner';
 import { ReactNode, useState, useEffect } from 'react';
+import { cn } from '@/lib/utils'; // ודא שהייבוא הזה קיים
 
 type NavbarDict = {
   myMatches: string;
@@ -29,48 +30,39 @@ export default function AppContent({ children, dict }: AppContentProps) {
   const pathname = usePathname();
   const [isMainNavbarVisible, setIsMainNavbarVisible] = useState(true);
 
-  // ✨ לוגיקה משוכתבת ומדויקת בתוך useEffect
   useEffect(() => {
-    // בודקים אם אנחנו בדף הבית. הנתיבים יכולים להיות /he, /en, או פשוט /
     const locale = pathname.split('/')[1];
     const isHomePage =
       pathname === `/${locale}` || (pathname === '/' && !locale);
 
-    // מקרה 1: אם אנחנו לא בדף הבית
     if (!isHomePage) {
-      // קובעים שה-Navbar תמיד יהיה גלוי
       setIsMainNavbarVisible(true);
-      // חשוב: אנחנו לא מוסיפים שום event listener, ולכן אין צורך בפונקציית ניקוי.
-      // יוצאים מהאפקט כאן.
       return;
     }
 
-    // מקרה 2: אם אנחנו כן בדף הבית - כאן נטפל בלוגיקת הגלילה
     const handleScroll = () => {
-      // ה-Navbar יהיה גלוי רק בחלק העליון ביותר של הדף
       setIsMainNavbarVisible(window.scrollY <= 10);
     };
 
-    // מוסיפים את ה-event listener
     window.addEventListener('scroll', handleScroll, { passive: true });
-    // מפעילים פעם אחת בהתחלה כדי לקבוע מצב ראשוני נכון
     handleScroll();
 
-    // ✨ פונקציית ניקוי קריטית ✨
-    // פונקציה זו תרוץ אוטומטית כאשר ה-pathname משתנה (כלומר, כשמנווטים לעמוד אחר).
-    // היא מסירה את ה-event listener ומבטיחה שהוא לא ישפיע על עמודים אחרים.
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [pathname]); // האפקט ירוץ מחדש בכל פעם שהנתיב משתנה
+  }, [pathname]);
 
   // לוגיקה להסתרה ידנית של ה-Navbar (למשל, בשאלון)
   const isNavbarManuallyHidden = pathname.includes('/questionnaire');
+
+  // משתנה עזר שקובע אם צריך להוסיף את הריפוד העליון
+  const shouldApplyNavbarPadding = !isNavbarManuallyHidden;
 
   return (
     <div className="flex flex-col min-h-screen">
       <Toaster position="top-center" richColors />
 
+      {/* ה-Navbar נשאר עם position: fixed כפי שהיה */}
       {!isNavbarManuallyHidden && (
         <div
           className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
@@ -83,7 +75,19 @@ export default function AppContent({ children, dict }: AppContentProps) {
         </div>
       )}
 
-      <main className="flex-grow">{children}</main>
+      {/* 
+        --- התיקון המרכזי כאן ---
+        אנו מוסיפים לאלמנט ה-<main> ריפוד עליון (padding-top) בגובה של ה-Navbar (שהוא h-20, כלומר 5rem או 80px).
+        הריפוד מתווסף באופן מותנה רק כאשר ה-Navbar באמת מוצג, כדי למנוע רווח מיותר בעמודים שבהם הוא מוסתר.
+      */}
+      <main
+        className={cn(
+          'flex-grow',
+          shouldApplyNavbarPadding && 'pt-20' // pt-20 = padding-top: 5rem (80px)
+        )}
+      >
+        {children}
+      </main>
     </div>
   );
 }
