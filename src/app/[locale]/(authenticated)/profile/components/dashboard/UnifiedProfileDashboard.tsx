@@ -38,22 +38,23 @@ import type {
   UserProfile,
   UserImage,
   QuestionnaireResponse,
+  UpdateValue, // <-- פתרון בעיית ה-any
 } from '@/types/next-auth';
-import type { ProfilePageDictionary } from '@/types/dictionary'; // <-- שלב 1: ייבוא הטיפוס הנכון
+import type { ProfilePageDictionary } from '@/types/dictionary';
 
 // Props interface for the component, now including the dictionary
 interface UnifiedProfileDashboardProps {
   viewOnly?: boolean;
   userId?: string;
   initialTab?: string;
-  dict: ProfilePageDictionary; // <-- שלב 1: שימוש בטיפוס הנכון
+  dict: ProfilePageDictionary;
 }
 
 const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   viewOnly = false,
   userId,
   initialTab = 'overview',
-  dict, // קבלת המילון המלא
+  dict,
 }) => {
   const {
     data: session,
@@ -62,7 +63,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   } = useSession();
   const router = useRouter();
 
-  // State hooks remain the same
+  // State hooks
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [images, setImages] = useState<UserImage[]>([]);
   const [questionnaireResponse, setQuestionnaireResponse] =
@@ -91,7 +92,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     setIsLoading(true);
     setError('');
     try {
-      // Logic for fetching data remains the same...
+      // Fetch profile data
       const profileUrl = userId
         ? `/api/profile?userId=${userId}`
         : '/api/profile';
@@ -107,12 +108,12 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setHasSeenPreview(true);
       }
 
+      // Fetch questionnaire data
       const questionnaireUrl = userId
         ? `/api/profile/questionnaire?userId=${userId}`
         : '/api/profile/questionnaire';
       const questionnaireFetchResponse = await fetch(questionnaireUrl);
 
-      // ... logic for questionnaire response ...
       if (questionnaireFetchResponse.status === 404) {
         setQuestionnaireResponse(null);
       } else if (questionnaireFetchResponse.ok) {
@@ -139,7 +140,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       if (err instanceof Error) {
         errorMessage = err.message || errorMessage;
       }
-      // Use dictionary for error message
       const translatedError = dict.dashboard.loadError.replace(
         '{{error}}',
         errorMessage
@@ -183,12 +183,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
           throw new Error('Failed to update preview status');
         }
         setHasSeenPreview(true);
-        // Use dictionary for success toast
         toast.success(dict.dashboard.viewedPreviewSuccess);
         await updateSession();
       } catch (error) {
         console.error('Error in handlePreviewClick:', error);
-        // Use dictionary for error toast
         toast.error(dict.dashboard.viewedPreviewError);
       }
     }
@@ -208,12 +206,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         await updateSession();
         setProfileData(data.profile);
         setIsEditing(false);
-        // Use dictionary for success toast
         toast.success(dict.dashboard.updateSuccess);
         setError('');
       } else {
-        const errorMessage = data.message || 'שגיאה בעדכון הפרופיל';
-        // Use dictionary for error message and toast
+        const errorMessage = data.message || 'Profile update error';
         const translatedError = dict.dashboard.updateError.replace(
           '{{error}}',
           errorMessage
@@ -223,7 +219,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       }
     } catch (err) {
       console.error('Save error:', err);
-      const errorMessage = 'שגיאה בעדכון הפרופיל';
+      const errorMessage = 'Profile update error';
       const translatedError = dict.dashboard.updateError.replace(
         '{{error}}',
         errorMessage
@@ -235,25 +231,178 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     }
   };
 
-  // Image handling and other functions remain the same logic,
-  // but any user-facing strings inside them should be replaced.
-  // For brevity, only showing the updated parts in the JSX.
+  // --- השלמת הפונקציות החסרות עם תרגום ---
+
   const handleImageUpload = async (files: File[]) => {
-    /* ... logic ... */
+    if (!files || files.length === 0) return;
+
+    setIsLoading(true);
+    const uploadedImages: UserImage[] = [];
+    const failedUploads: string[] = [];
+    const toastsDict = dict.photosSection.toasts;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const toastId = `upload-${i}`;
+      const loadingMsg = dict.photosSection.uploadingMultiple.replace(
+        '{{count}}',
+        `${i + 1}/${files.length}`
+      );
+
+      try {
+        toast.loading(loadingMsg, { id: toastId });
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('/api/profile/images', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success && data.image) {
+          uploadedImages.push(data.image);
+          toast.success(
+            `${file.name} uploaded successfully!`, // This specific string is often kept in English for file names
+            { id: toastId }
+          );
+        } else {
+          throw new Error(data.error || 'Upload failed');
+        }
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : toastsDict.uploadError;
+        failedUploads.push(`${file.name}: ${errorMessage}`);
+        toast.error(`${file.name}: ${errorMessage}`, { id: toastId });
+      }
+    }
+
+    if (uploadedImages.length > 0) {
+      setImages((prev) => [...prev, ...uploadedImages].slice(0, 10)); // Assuming max 10 images
+      await updateSession();
+      toast.success(
+        toastsDict.uploadSuccess.replace(
+          '{{count}}',
+          String(uploadedImages.length)
+        )
+      );
+      setError('');
+    }
+
+    if (failedUploads.length > 0 && uploadedImages.length === 0) {
+      setError(toastsDict.uploadError);
+      toast.error(toastsDict.uploadError);
+    }
+
+    setIsLoading(false);
   };
+
   const handleSetMainImage = async (imageId: string) => {
-    /* ... logic ... */
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/profile/images/${imageId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isMain: true }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setImages(data.images);
+        await updateSession();
+        toast.success(dict.photosSection.toasts.setMainSuccess);
+        setError('');
+      } else {
+        const errorMsg = data.message || dict.photosSection.toasts.setMainError;
+        setError(errorMsg);
+        toast.error(errorMsg);
+      }
+    } catch (err) {
+      const errorMsg = dict.photosSection.toasts.setMainError;
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
   const handleDeleteImage = async (imageIds: string[]) => {
-    /* ... logic ... */
+    if (!imageIds || imageIds.length === 0) {
+      toast.info(dict.photosSection.toasts.selectOneError);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/profile/images`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageIds }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setImages(data.images);
+        await updateSession();
+        const successMsg =
+          imageIds.length > 1
+            ? dict.photosSection.toasts.bulkDeleteSuccess.replace(
+                '{{count}}',
+                String(imageIds.length)
+              )
+            : dict.photosSection.toasts.singleDeleteSuccess;
+        toast.success(successMsg);
+        setError('');
+      } else {
+        const errorMsg =
+          data.message || dict.photosSection.toasts.bulkDeleteError;
+        setError(errorMsg);
+        toast.error(errorMsg);
+      }
+    } catch (err) {
+      console.error('Delete image error:', err);
+      setError(dict.photosSection.toasts.bulkDeleteError);
+      toast.error(dict.photosSection.toasts.bulkDeleteError);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
   const handleQuestionnaireUpdate = async (
     world: string,
     questionId: string,
-    value: any
+    value: UpdateValue // <-- שימוש בטיפוס הנכון במקום any
   ) => {
-    /* ... logic ... */
+    setIsLoading(true);
+    try {
+      const payload = { worldKey: world, questionId: questionId, value };
+      const response = await fetch('/api/profile/questionnaire', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setQuestionnaireResponse(data.data);
+        toast.success(dict.dashboard.tabContent.questionnaireUpdateSuccess);
+        setError('');
+      } else {
+        const errorMsg =
+          data.message || dict.dashboard.tabContent.questionnaireUpdateError;
+        setError(errorMsg);
+        toast.error(errorMsg);
+      }
+    } catch (err) {
+      console.error('Failed to update questionnaire:', err);
+      setError(dict.dashboard.tabContent.questionnaireUpdateError);
+      toast.error(dict.dashboard.tabContent.questionnaireUpdateError);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  // --- סוף החלק שהושלם ---
 
   if (isLoading && !profileData) {
     return (
@@ -265,7 +414,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       >
         <div className="flex items-center gap-2 text-lg text-cyan-600">
           <Loader2 className="animate-spin h-6 w-6" />
-          {/* Use dictionary for loading text */}
           <span>{dict.dashboard.loadingData}</span>
         </div>
       </div>
@@ -279,7 +427,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         dir="rtl"
       >
         <Alert variant="destructive" className="max-w-md mx-auto">
-          {/* The `error` state variable already contains the translated string */}
           <AlertDescription className="text-center">{error}</AlertDescription>
         </Alert>
       </div>
@@ -314,13 +461,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 hasSeenPreview={hasSeenPreview}
                 onPreviewClick={handlePreviewClick}
                 questionnaireResponse={questionnaireResponse}
-                // Pass the relevant dictionary part to the child component
                 dict={dict.dashboard.checklist}
               />
               <div className="my-6 md:my-8 text-center">
                 <AIProfileAdvisorDialog
                   userId={user.id}
-                  // Pass the relevant dictionary part to the child component
                   dict={dict.dashboard.aiAdvisor}
                   analysisDict={dict.dashboard.analysisResult}
                 />
@@ -342,7 +487,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                       size="lg"
                       className="px-8 py-3 text-base sm:text-lg gap-2 rounded-full border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400 transition-all duration-300 shadow-sm hover:shadow-md"
                     >
-                      {/* Use dictionary for button text */}
                       {dict.dashboard.previewButton}{' '}
                       <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
                     </Button>
@@ -363,7 +507,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                       />
                     ) : (
                       <p className="text-center text-gray-500 py-10">
-                        {/* Use dictionary for loading text */}
                         {dict.dashboard.previewLoading}
                       </p>
                     )}

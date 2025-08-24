@@ -564,40 +564,63 @@ export default function MatchmakerDashboard({
 
   const kanbanColumns = useMemo(() => {
     const columns: {
-      title: string;
-      suggestions: Suggestion[];
-      color: string;
-      icon: React.ElementType;
-    }[] = [
-      {
+      [key: string]: {
+        title: string;
+        suggestions: Suggestion[];
+        color: string;
+        icon: React.ElementType;
+      };
+    } = {
+      requiresAction: {
         title: dashboardDict.kanban.requiresAction,
         suggestions: [],
         color: 'from-red-500 to-orange-500',
         icon: Clock,
       },
-      {
+      pendingResponse: {
         title: dashboardDict.kanban.pendingResponse,
         suggestions: [],
         color: 'from-yellow-500 to-amber-500',
         icon: MessageCircle,
       },
-      {
+      inProgress: {
         title: dashboardDict.kanban.inProgress,
         suggestions: [],
         color: 'from-green-500 to-emerald-500',
         icon: Target,
       },
-      {
+      history: {
         title: dashboardDict.kanban.history,
         suggestions: [],
         color: 'from-gray-500 to-slate-500',
         icon: Archive,
       },
-    ];
-    // ... (logic remains the same)
-    return columns;
-  }, [filteredSuggestions, dashboardDict.kanban]);
+    };
 
+    for (const suggestion of filteredSuggestions) {
+      if (suggestion.category === 'HISTORY') {
+        columns.history.suggestions.push(suggestion);
+      } else if (
+        ['PENDING_FIRST_PARTY', 'PENDING_SECOND_PARTY'].includes(
+          suggestion.status
+        )
+      ) {
+        columns.requiresAction.suggestions.push(suggestion);
+      } else if (
+        [
+          'APPROVED_BY_FIRST_PARTY',
+          'APPROVED_BY_SECOND_PARTY',
+          'AWAITING_REVIEW',
+        ].includes(suggestion.status)
+      ) {
+        columns.pendingResponse.suggestions.push(suggestion);
+      } else if (suggestion.category === 'ACTIVE') {
+        columns.inProgress.suggestions.push(suggestion);
+      }
+    }
+
+    return Object.values(columns);
+  }, [filteredSuggestions, dashboardDict.kanban]);
   const heroStats = useMemo(() => {
     // ... (logic remains the same)
     const total = suggestions.length;

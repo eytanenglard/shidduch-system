@@ -342,7 +342,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       : 'space-y-4';
   }, [isMobile, mobileView, viewMode]);
 
-
   // ... (החלק של isLoading ו-candidates.length === 0 נשאר זהה) ...
   if (isLoading) {
     return (
@@ -378,7 +377,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       </div>
     );
   }
-
 
   return (
     <>
@@ -438,13 +436,18 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         <div
           ref={quickViewRef}
           className="absolute z-[70]"
-          style={{ top: `${hoverPosition.top}px`, left: `${hoverPosition.left}px`, width: '420px' }}
+          style={{
+            top: `${hoverPosition.top}px`,
+            left: `${hoverPosition.left}px`,
+            width: '420px',
+          }}
         >
           <div className="drop-shadow-2xl">
             {/********** תיקון #2: העברת המילון הנכון ל-QuickView **********/}
             <QuickView
               candidate={hoveredCandidate}
-              onAction={(action) => handleAction(action as any, hoveredCandidate)} // 'any' to satisfy older component version if needed
+              // שורה מעודכנת
+              onAction={(action) => handleAction(action, hoveredCandidate)}
               onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
               isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
               dict={dict.list.quickView} // <--- התיקון כאן
@@ -455,22 +458,45 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
       <Dialog
         open={!!selectedCandidate}
-        onOpenChange={(open) => { if (!open) { setSelectedCandidate(null); setQuestionnaireResponse(null); } }}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedCandidate(null);
+            setQuestionnaireResponse(null);
+          }
+        }}
       >
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <DialogTitle>{dict.list.profileDialog.title}</DialogTitle>
-              <Button variant="outline" onClick={() => handleAction('edit', selectedCandidate!)} className="flex items-center gap-2">
-                <Edit className="w-4 h-4" />{dict.list.profileDialog.editButton}
+              <Button
+                variant="outline"
+                onClick={() => handleAction('edit', selectedCandidate!)}
+                className="flex items-center gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                {dict.list.profileDialog.editButton}
               </Button>
             </div>
-            <DialogDescription>{dict.list.profileDialog.description}</DialogDescription>
-            <Select value={isMatchmaker ? 'matchmaker' : 'candidate'} onValueChange={(value) => setIsMatchmaker(value === 'matchmaker')}>
-              <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder={dict.list.profileDialog.viewAsLabel} /></SelectTrigger>
+            <DialogDescription>
+              {dict.list.profileDialog.description}
+            </DialogDescription>
+            <Select
+              value={isMatchmaker ? 'matchmaker' : 'candidate'}
+              onValueChange={(value) => setIsMatchmaker(value === 'matchmaker')}
+            >
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue
+                  placeholder={dict.list.profileDialog.viewAsLabel}
+                />
+              </SelectTrigger>
               <SelectContent>
-                <SelectItem value="candidate">{dict.list.profileDialog.candidateView}</SelectItem>
-                <SelectItem value="matchmaker">{dict.list.profileDialog.matchmakerView}</SelectItem>
+                <SelectItem value="candidate">
+                  {dict.list.profileDialog.candidateView}
+                </SelectItem>
+                <SelectItem value="matchmaker">
+                  {dict.list.profileDialog.matchmakerView}
+                </SelectItem>
               </SelectContent>
             </Select>
           </DialogHeader>

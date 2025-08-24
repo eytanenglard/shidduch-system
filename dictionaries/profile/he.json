@@ -20,7 +20,9 @@
       "loadingPreferences": "טוען העדפות...",
       "loadingQuestionnaire": "טוען שאלון...",
       "noQuestionnaire": "לא מולאו תשובות לשאלון.",
-      "fillQuestionnaireLink": "למילוי השאלון"
+      "fillQuestionnaireLink": "למילוי השאלון",
+       "questionnaireUpdateSuccess": "השאלון עודכן בהצלחה",
+      "questionnaireUpdateError": "שגיאה בעדכון השאלון"
     },
     "checklist": {
       "welcome": "ברוך הבא, {{firstName}}! בוא נכין את הפרופיל שלך להצלחה",

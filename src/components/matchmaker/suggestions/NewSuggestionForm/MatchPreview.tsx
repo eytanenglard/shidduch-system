@@ -1,4 +1,4 @@
-// src/app/components/matchmaker/suggestions/NewSuggestionForm/MatchPreview.tsx
+// src/components/matchmaker/suggestions/NewSuggestionForm/MatchPreview.tsx
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,6 +30,30 @@ interface MatchPreviewProps {
   secondParty: Candidate;
   className?: string;
 }
+
+/**
+ * Helper function to dynamically access nested dictionary properties using a dot-notation key.
+ * @param dict - The dictionary object to search within.
+ * @param key - The dot-separated key (e.g., "age.reasons.ideal").
+ * @returns The translated string or the key itself as a fallback.
+ */
+const getTranslatedReason = (dict: any, key: string): string => {
+  try {
+    const keys = key.split('.');
+    let result = dict;
+    for (const k of keys) {
+      if (result[k] === undefined) {
+        // If any part of the path is missing, return the original key
+        return key;
+      }
+      result = result[k];
+    }
+    return typeof result === 'string' ? result : key;
+  } catch (error) {
+    console.warn(`Translation key not found: ${key}`);
+    return key; // Fallback to the key itself if an error occurs
+  }
+};
 
 const MatchCriteriaCard: React.FC<{
   dict: MatchmakerPageDictionary['newSuggestionForm']['matchPreview'];
@@ -76,6 +100,9 @@ const MatchCriteriaCard: React.FC<{
   const info = getCriterionInfo(criterion.name);
   const IconComponent = info.icon;
   const scorePercentage = Math.round(criterion.score * 100);
+  const translatedReason = criterion.reason
+    ? getTranslatedReason(dict.criteria, criterion.reason)
+    : '';
 
   const getScoreCategory = (score: number) => {
     if (score >= 0.9)
@@ -128,7 +155,6 @@ const MatchCriteriaCard: React.FC<{
         <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-white/30 to-transparent rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
       </div>
-
       <div className="relative z-10 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -142,7 +168,6 @@ const MatchCriteriaCard: React.FC<{
             </div>
             <h4 className="text-lg font-bold text-gray-800">{info.label}</h4>
           </div>
-
           <Badge
             className={cn(
               'px-3 py-1 font-bold shadow-lg',
@@ -153,7 +178,6 @@ const MatchCriteriaCard: React.FC<{
             {scoreCategory.label}
           </Badge>
         </div>
-
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-600">
@@ -171,11 +195,10 @@ const MatchCriteriaCard: React.FC<{
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           </div>
         </div>
-
-        {criterion.reason && (
+        {translatedReason && (
           <div className="p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 shadow-inner">
             <p className="text-sm text-gray-700 leading-relaxed font-medium">
-              {criterion.reason}
+              {translatedReason}
             </p>
           </div>
         )}
@@ -292,7 +315,6 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
           style={{ animationDelay: '4s' }}
         ></div>
       </div>
-
       <CardContent className="relative z-10 p-8 space-y-8">
         <div className="text-center space-y-6">
           <div className="flex items-center justify-center">
@@ -398,7 +420,7 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
               </h4>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {matchScore.reasons.map((reason, index) => (
+              {matchScore.reasons.map((reasonKey, index) => (
                 <div
                   key={index}
                   className="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300 group"
@@ -411,7 +433,7 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
                     <Gift className="w-4 h-4" />
                   </div>
                   <p className="text-gray-700 leading-relaxed font-medium flex-1">
-                    {reason}
+                    {getTranslatedReason(dict.criteria, reasonKey)}
                   </p>
                 </div>
               ))}

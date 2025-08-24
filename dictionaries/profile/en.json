@@ -20,7 +20,10 @@
       "loadingPreferences": "Loading preferences...",
       "loadingQuestionnaire": "Loading questionnaire...",
       "noQuestionnaire": "Questionnaire has not been filled out.",
-      "fillQuestionnaireLink": "Fill out the questionnaire"
+      "fillQuestionnaireLink": "Fill out the questionnaire",
+            "questionnaireUpdateSuccess": "Questionnaire updated successfully",
+      "questionnaireUpdateError": "Error updating questionnaire"
+
     },
     "checklist": {
       "welcome": "Welcome, {{firstName}}! Let's get your profile ready for success",

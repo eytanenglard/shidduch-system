@@ -1205,10 +1205,10 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           className="h-6 [&>span]:bg-gradient-to-r [&>span]:from-indigo-500 [&>span]:to-purple-500"
                           dir="rtl"
                         />
-                        <div className="flex justify-between mt-2 px-1 text-xs text-gray-500">
-                          <span>{HEIGHT_RANGE.min} ס"מ</span>
-                          <span>{HEIGHT_RANGE.max} ס"מ</span>
-                        </div>
+                    <div className="flex justify-between mt-2 px-1 text-xs text-gray-500">
+  <span>{HEIGHT_RANGE.min} ס&quot;מ</span>
+  <span>{HEIGHT_RANGE.max} ס&quot;מ</span>
+</div>
                       </div>
                     </div>
                   </FilterSection>

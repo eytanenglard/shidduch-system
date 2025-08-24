@@ -1205,6 +1205,8 @@ export type UnifiedProfileDashboardDict = {
     loadingQuestionnaire: string;
     noQuestionnaire: string;
     fillQuestionnaireLink: string;
+    questionnaireUpdateSuccess: string; // <-- הוספה
+    questionnaireUpdateError: string; 
   };
   checklist: ProfileChecklistDict;
   aiAdvisor: AIAdvisorDialogDict;
