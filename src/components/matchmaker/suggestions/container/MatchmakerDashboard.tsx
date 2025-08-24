@@ -1025,7 +1025,7 @@ export default function MatchmakerDashboard({
         onClose={() => setShowNewSuggestion(false)}
         candidates={allCandidates}
         onSubmit={handleNewSuggestion}
-        dict={matchmakerDict.candidatesManager}
+        dict={matchmakerDict}
       />
       <SuggestionDetailsDialog
         suggestion={selectedSuggestion}
