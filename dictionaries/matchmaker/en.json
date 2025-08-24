@@ -1322,7 +1322,30 @@
       "criteria": {
         "age": "Age",
         "location": "Location",
-        "religious": "Religious Level"
+        "religious": "Religious Level",
+        "reasons": {
+            "age": {
+              "ideal": "Ideal age difference",
+              "good": "Good age difference",
+              "fair": "Reasonable age difference",
+              "large": "Large age difference",
+              "preferenceMismatch": "Doesn't match age preferences"
+            },
+            "location": {
+              "noData": "Location data missing",
+              "sameCity": "Live in the same city",
+              "mutualPreference": "Mutual preferred location",
+              "oneWayPreference": "One-way preferred location",
+              "differentCities": "Different cities"
+            },
+            "religious": {
+              "noData": "Religious level data missing",
+              "sameLevel": "Identical religious level",
+              "mutualPreference": "Mutual preferred religious level",
+              "oneWayPreference": "One-way preferred religious level",
+              "differentLevels": "Different religious levels"
+            }
+          }
       },
       "scoreCategories": {
         "perfect": "Perfect",

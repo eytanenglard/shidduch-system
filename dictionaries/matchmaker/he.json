@@ -1403,7 +1403,31 @@
       "criteria": {
         "age": "גיל",
         "location": "מיקום",
-        "religious": "רמה דתית"
+        "religious": "רמה דתית",
+         "reasons": {
+            "age": {
+              "ideal": "הפרש גילאים אידיאלי",
+              "good": "הפרש גילאים טוב",
+              "fair": "הפרש גילאים סביר",
+              "large": "הפרש גילאים גדול",
+              "preferenceMismatch": "לא תואם להעדפות הגיל"
+            },
+            "location": {
+              "noData": "חסר מידע על מיקום",
+              "sameCity": "גרים באותה עיר",
+              "mutualPreference": "מיקום מועדף הדדי",
+              "oneWayPreference": "מיקום מועדף חד צדדי",
+              "differentCities": "ערים שונות"
+            },
+            "religious": {
+              "noData": "חסר מידע על רמת דתיות",
+              "sameLevel": "רמת דתיות זהה",
+              "mutualPreference": "רמת דתיות מועדפת הדדית",
+              "oneWayPreference": "רמת דתיות מועדפת חד צדדית",
+              "differentLevels": "רמות דתיות שונות"
+            }
+          }
+        
       },
       "scoreCategories": {
         "perfect": "מושלם",

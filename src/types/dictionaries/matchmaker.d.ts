@@ -355,10 +355,6 @@ type AiMatchAnalysisDialogDict = {
   };
 };
 
-type NewSuggestionFormDict = {
-    // ניתן להוסיף כאן את הטיפוסים המדויקים עבור הטופס הזה בעתיד
-    [key: string]: any;
-};
 
 // Main dictionary type for the Matchmaker Page
 export type MatchmakerPageDictionary = {
@@ -1163,6 +1159,29 @@ type MatchPreviewDict = {
     age: string;
     location: string;
     religious: string;
+        reasons: {
+      age: {
+        ideal: string;
+        good: string;
+        fair: string;
+        large: string;
+        preferenceMismatch: string;
+      };
+      location: {
+        noData: string;
+        sameCity: string;
+        mutualPreference: string;
+        oneWayPreference: string;
+        differentCities: string;
+      };
+      religious: {
+        noData: string;
+        sameLevel: string;
+        mutualPreference: string;
+        oneWayPreference: string;
+        differentLevels: string;
+      };
+    };
   };
   scoreCategories: {
     perfect: string;

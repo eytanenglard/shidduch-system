@@ -1,3 +1,5 @@
+// src/components/matchmaker/suggestions/utils/matchingAlgorithm.ts
+
 import { AvailabilityStatus } from '@prisma/client';
 import type { UserProfile } from '@/types/next-auth';
 
@@ -5,14 +7,14 @@ export interface MatchScore {
   score: number;
   criteria: MatchCriteria[];
   compatibility: number;
-  reasons: string[];
+  reasons: string[]; // This will now contain keys, e.g., "age.reasons.ideal"
 }
 
 export interface MatchCriteria {
   name: string;
   weight: number;
   score: number;
-  reason?: string;
+  reason?: string; // This will also be a key
 }
 
 interface AgePreference {
@@ -43,7 +45,6 @@ const calculateAgeCompatibility = (
   let score = 0;
   let reason = '';
 
-  // בדיקת העדפות גיל הדדית
   const aPrefsMatch = preferences.ageA ? 
     (ageB >= preferences.ageA.min && ageB <= preferences.ageA.max) : true;
   const bPrefsMatch = preferences.ageB ?
@@ -52,20 +53,20 @@ const calculateAgeCompatibility = (
   if (aPrefsMatch && bPrefsMatch) {
     if (ageDiff <= 2) {
       score = 1;
-      reason = 'הפרש גילאים אידיאלי';
+      reason = 'age.reasons.ideal';
     } else if (ageDiff <= 5) {
       score = 0.8;
-      reason = 'הפרש גילאים טוב';
+      reason = 'age.reasons.good';
     } else if (ageDiff <= 8) {
       score = 0.6;
-      reason = 'הפרש גילאים סביר';
+      reason = 'age.reasons.fair';
     } else {
       score = 0.4;
-      reason = 'הפרש גילאים גדול';
+      reason = 'age.reasons.large';
     }
   } else {
     score = 0.2;
-    reason = 'לא תואם להעדפות הגיל';
+    reason = 'age.reasons.preferenceMismatch';
   }
 
   return {
@@ -88,7 +89,7 @@ const calculateLocationCompatibility = (
       name: 'location',
       weight: 10,
       score: 0.5,
-      reason: 'חסר מידע על מיקום'
+      reason: 'location.reasons.noData'
     };
   }
 
@@ -98,22 +99,22 @@ const calculateLocationCompatibility = (
 
   if (sameCity) {
     score = 1;
-    reason = 'גרים באותה עיר';
+    reason = 'location.reasons.sameCity';
   } else if (
     preferredLocationsA.includes(profileB.city) &&
     preferredLocationsB.includes(profileA.city)
   ) {
     score = 0.8;
-    reason = 'מיקום מועדף הדדי';
+    reason = 'location.reasons.mutualPreference';
   } else if (
     preferredLocationsA.includes(profileB.city) ||
     preferredLocationsB.includes(profileA.city)
   ) {
     score = 0.6;
-    reason = 'מיקום מועדף חד צדדי';
+    reason = 'location.reasons.oneWayPreference';
   } else {
     score = 0.4;
-    reason = 'ערים שונות';
+    reason = 'location.reasons.differentCities';
   }
 
   return {
@@ -136,7 +137,7 @@ const calculateReligiousCompatibility = (
       name: 'religious',
       weight: 20,
       score: 0.5,
-      reason: 'חסר מידע על רמת דתיות'
+      reason: 'religious.reasons.noData'
     };
   }
 
@@ -146,22 +147,22 @@ const calculateReligiousCompatibility = (
 
   if (sameLevel) {
     score = 1;
-    reason = 'רמת דתיות זהה';
+    reason = 'religious.reasons.sameLevel';
   } else if (
     preferredLevelsA.includes(profileB.religiousLevel) &&
     preferredLevelsB.includes(profileA.religiousLevel)
   ) {
     score = 0.8;
-    reason = 'רמת דתיות מועדפת הדדית';
+    reason = 'religious.reasons.mutualPreference';
   } else if (
     preferredLevelsA.includes(profileB.religiousLevel) ||
     preferredLevelsB.includes(profileA.religiousLevel)
   ) {
     score = 0.6;
-    reason = 'רמת דתיות מועדפת חד צדדית';
+    reason = 'religious.reasons.oneWayPreference';
   } else {
     score = 0.3;
-    reason = 'רמות דתיות שונות';
+    reason = 'religious.reasons.differentLevels';
   }
 
   return {
@@ -176,7 +177,6 @@ export const calculateMatchScore = (
   profileA: UserProfile,
   profileB: UserProfile
 ): MatchScore | null => {
-  // בדיקת תנאי סף
   if (
     profileA.gender === profileB.gender ||
     profileA.availabilityStatus !== AvailabilityStatus.AVAILABLE ||
@@ -185,7 +185,6 @@ export const calculateMatchScore = (
     return null;
   }
 
-  // חישוב קריטריונים
   const ageCriteria = calculateAgeCompatibility(
     profileA,
     profileB,
@@ -208,12 +207,10 @@ export const calculateMatchScore = (
     religiousCriteria
   ];
 
-  // חישוב ציון סופי
   const totalWeight = criteria.reduce((sum, c) => sum + c.weight, 0);
   const weightedScore = criteria.reduce((sum, c) => sum + (c.score * c.weight), 0);
   const finalScore = (weightedScore / totalWeight) * 100;
 
-  // סיבות להתאמה
   const reasons = criteria
     .filter(c => c.score >= 0.6)
     .map(c => c.reason)
@@ -226,27 +223,3 @@ export const calculateMatchScore = (
     reasons
   };
 };
-
-export const findBestMatches = (
-  profile: UserProfile,
-  profiles: UserProfile[],
-  limit: number = 10
-): { profile: UserProfile; score: MatchScore }[] => {
-  const matches = profiles
-    .filter(p => p.id !== profile.id)
-    .map(p => {
-      const score = calculateMatchScore(profile, p);
-      return score ? { profile: p, score } : null;
-    })
-    .filter((match): match is { profile: UserProfile; score: MatchScore } => match !== null)
-    .sort((a, b) => b.score.score - a.score.score);
-
-  return matches.slice(0, limit);
-};
-
-const matchingAlgorithm = {
-  calculateMatchScore,
-  findBestMatches
-};
-
-export default matchingAlgorithm;
