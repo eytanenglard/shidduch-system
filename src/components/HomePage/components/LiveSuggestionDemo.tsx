@@ -59,7 +59,7 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
       */}
       <button
         type="button" // מונע התנהגות ברירת מחדל של שליחת טופס
-        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 w-full text-left"
+        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 w-full"
         onClick={handleOpenModal}
         aria-label={`הצג הצעה עבור ${suggestion.secondParty.firstName}`}
       >

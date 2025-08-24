@@ -70,7 +70,7 @@ interface CandidatesListProps {
   comparisonSelection: Record<string, Candidate>;
   onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
   quickViewSide?: 'left' | 'right' | 'center';
-  dict: MatchmakerPageDictionary['candidatesManager'];
+  dict: MatchmakerPageDictionary;
   profileDict: ProfilePageDictionary;
 }
 
@@ -369,10 +369,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       <div className="flex flex-col items-center justify-center h-32 bg-gray-50 rounded-lg border border-dashed border-gray-300 p-4 text-center">
         <UserX className="w-8 h-8 mb-2 text-gray-400" />
         <p className="text-sm font-medium text-gray-500 mb-1">
-          {dict.list.emptyState.title}
+          {dict.candidatesManager.list.emptyState.title}
         </p>
         <p className="text-xs text-gray-400">
-          {dict.list.emptyState.description}
+          {dict.candidatesManager.list.emptyState.description}
         </p>
       </div>
     );
@@ -415,7 +415,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               }
               isSelectedForComparison={!!comparisonSelection[candidate.id]}
               onToggleComparison={onToggleComparison}
-              dict={dict.list.minimalCard} // <--- התיקון כאן
+              dict={dict.candidatesManager.list.minimalCard} // <--- התיקון כאן
             />
             <button
               className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
@@ -423,8 +423,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 e.stopPropagation();
                 handleAction('edit', candidate);
               }}
-              aria-label={dict.list.editProfileTooltip}
-              title={dict.list.editProfileTooltip}
+              aria-label={dict.candidatesManager.list.editProfileTooltip}
+              title={dict.candidatesManager.list.editProfileTooltip}
             >
               <Edit className="w-4 h-4" />
             </button>
@@ -450,7 +450,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               onAction={(action) => handleAction(action, hoveredCandidate)}
               onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
               isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
-              dict={dict.list.quickView} // <--- התיקון כאן
+              dict={dict.candidatesManager.list.quickView} // <--- התיקון כאן
             />
           </div>
         </div>
@@ -468,18 +468,18 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle>{dict.list.profileDialog.title}</DialogTitle>
+              <DialogTitle>{dict.candidatesManager.list.profileDialog.title}</DialogTitle>
               <Button
                 variant="outline"
                 onClick={() => handleAction('edit', selectedCandidate!)}
                 className="flex items-center gap-2"
               >
                 <Edit className="w-4 h-4" />
-                {dict.list.profileDialog.editButton}
+                {dict.candidatesManager.list.profileDialog.editButton}
               </Button>
             </div>
             <DialogDescription>
-              {dict.list.profileDialog.description}
+              {dict.candidatesManager.list.profileDialog.description}
             </DialogDescription>
             <Select
               value={isMatchmaker ? 'matchmaker' : 'candidate'}
@@ -487,15 +487,15 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             >
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue
-                  placeholder={dict.list.profileDialog.viewAsLabel}
+                  placeholder={dict.candidatesManager.list.profileDialog.viewAsLabel}
                 />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="candidate">
-                  {dict.list.profileDialog.candidateView}
+                  {dict.candidatesManager.list.profileDialog.candidateView}
                 </SelectItem>
                 <SelectItem value="matchmaker">
-                  {dict.list.profileDialog.matchmakerView}
+                  {dict.candidatesManager.list.profileDialog.matchmakerView}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -535,7 +535,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
           onInvite: handleInvite,
           selectedCandidate: dialogCandidate,
         }}
-        dict={dict.actionDialogs} // <--- התיקון כאן
+        dict={dict.candidatesManager.actionDialogs} // <--- התיקון כאן
       />
 
       {/********** תיקון #4: העברת המילון הנכון ל-NewSuggestionForm **********/}
@@ -553,7 +553,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         isOpen={showEditProfileDialog}
         onClose={() => setShowEditProfileDialog(false)}
         candidate={dialogCandidate}
-        dict={dict.editProfile} // <--- התיקון כאן
+        dict={dict.candidatesManager.editProfile} // <--- התיקון כאן
         profileDict={profileDict} // <--- התיקון כאן (הוספנו את המילון השני)
       />
     </>

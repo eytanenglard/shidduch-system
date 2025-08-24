@@ -379,7 +379,6 @@ export type MatchmakerPageDictionary = {
     filterPanel: FilterPanelDict;
     list: CandidatesListDict;
     splitView: SplitViewDict;
-    newSuggestionForm: NewSuggestionFormDict;
     // --- התיקון כאן ---
     // העברנו את aiAnalysis להיות חלק מ-candidatesManager
     aiAnalysis: AiMatchAnalysisDialogDict;
@@ -393,7 +392,6 @@ export type MatchmakerPageDictionary = {
       pagination: PaginationDict;
   loadingStates: LoadingStatesDict;
 suggestionsDashboard: MatchmakerSuggestionsDashboardDict; 
-newSuggestionForm: NewSuggestionFormIndexDict;
 
 };
 
@@ -853,7 +851,7 @@ type DialogsDict = {
 };
 
 // הטיפוס הראשי עבור עמוד ניהול ההצעות
-type MatchmakerSuggestionsDashboardDict = {
+export type MatchmakerSuggestionsDashboardDict = {
       messageForm: MessageFormDict; // <--- הוספת המפתח החדש
 
       suggestionsList: SuggestionsListDict; // <--- הוספת המפתח החדש
@@ -884,7 +882,7 @@ type MatchmakerSuggestionsDashboardDict = {
   actionBar: SuggestionActionBarDict;
     suggestionCard: SuggestionCardDict; // <-- הוספת המפתח החדש
   editSuggestionForm: EditSuggestionFormDict; // <-- הוספת המפתח החדש
-
+ newSuggestionForm: NewSuggestionFormDict; 
 };
 
 type SuggestionActionBarDict = {
@@ -1062,51 +1060,9 @@ type EditSuggestionFormDict = {
   priorityLabels: Record<"URGENT" | "HIGH" | "MEDIUM" | "LOW", string>;
 };
 
-type NewSuggestionFormIndexDict = {
-      matchPreview: MatchPreviewDict; // <-- הוספת המפתח החדש
-  suggestionDetails: SuggestionDetailsDict; // <-- הוספת המפתח החדש
 
-  header: {
-    title: string;
-    description: string;
-  };
-  steps: {
-    select: {
-      label: string;
-      description: string;
-    };
-    analyze: {
-      label: string;
-      description: string;
-    };
-    details: {
-      label: string;
-      description: string;
-    };
-  };
-  emptyState: {
-    title: string;
-  };
-  buttons: {
-    fullAnalysis: string;
-    back: string;
-    continue: string;
-    create: string;
-    creating: string;
-  };
-  footer: {
-    step: string; // "שלב {{current}} מתוך {{total}}"
-    info: string;
-  };
-  toasts: {
-    selectParties: string;
-    createSuccess: string;
-    createError: string;
-  };
-  candidateSelector: CandidateSelectorDict; 
-};
-
-type CandidateSelectorDict = {
+// החלף את ההגדרה הקיימת של CandidateSelectorDict בזו:
+export type CandidateSelectorDict = {
   searchPlaceholder: string;
   commandInputPlaceholder: string;
   noResults: {
@@ -1115,9 +1071,9 @@ type CandidateSelectorDict = {
   };
   status: {
     blocked: string;
-    blockedDescription: string; // "בהצעה פעילה עם {{name}}"
+    blockedDescription: string; // יכיל את המשתנה {{name}}
     pending: string;
-    pendingDescription: string; // "הצעה ממתינה עם {{name}}"
+    pendingDescription: string; // יכיל את המשתנה {{name}}
     available: string;
     availableDescription: string;
   };
@@ -1133,7 +1089,7 @@ type CandidateSelectorDict = {
   toasts: {
     cannotSelectError: {
       title: string;
-      description: string; // "{{name}} כבר נמצא/ת בהצעה פעילה עם {{withName}}."
+      description: string; // יכיל את המשתנים {{name}} ו-{{withName}}
     };
   };
 };
@@ -1577,3 +1533,40 @@ type MessageFormDict = {
     error: string;
   };
 };
+export type NewSuggestionFormDict = {
+  header: {
+    title: string;
+    description: string;
+  };
+  steps: {
+    select: { label: string; description: string; }; // תוקן: נוסף description
+    analyze: { label: string; description: string; }; // תוקן: נוסף description
+    details: { label: string; description: string; };  // תוקן: נוסף description
+  };
+  party1Label: string;
+  party2Label: string;
+  emptyState: {
+    title: string;
+  };
+  buttons: {
+    fullAnalysis: string;
+    back: string;
+    continue: string;
+    create: string;
+    creating: string;
+  };
+  footer: {
+    step: string;  // תוקן: המבנה הנכון
+    info: string;  // תוקן: המבנה הנכון
+  };
+  toasts: {
+    selectParties: string;
+    createSuccess: string; // תוקן: שונה מאובייקט למחרוזת
+    createError: string;
+  };
+  // ===> נוספו הטיפוסים החסרים שהקומפוננטה משתמשת בהם <===
+  candidateSelector: CandidateSelectorDict;
+  matchPreview: MatchPreviewDict;
+  suggestionDetails: SuggestionDetailsDict;
+};
+

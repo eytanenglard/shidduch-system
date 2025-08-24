@@ -73,7 +73,7 @@ interface SplitViewProps {
   onMaleSearchChange?: (query: string) => void;
   onFemaleSearchChange?: (query: string) => void;
   
-  dict: MatchmakerPageDictionary['candidatesManager'];
+  dict: MatchmakerPageDictionary;
   profileDict: ProfilePageDictionary;
 }
 
@@ -279,14 +279,14 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
         onFindAiMatches={handleFindAiMatches}
         isAiLoading={isAiLoading}
         isMobileView={isMobileView}
-        dict={dict.splitView.panelHeaders}
+        dict={dict.candidatesManager.splitView.panelHeaders}
       />
     );
   };
   
   const renderCandidatesListForMobile = (candidates: (Candidate & { aiScore?: number })[], gender: 'male' | 'female', searchQuery: string, onSearchChange?: (query: string) => void) => {
     if (isLoading) { return <LoadingComponent gender={gender} />; }
-    if (candidates.length === 0) { return <EmptyStateComponent gender={gender} searchQuery={searchQuery} onClearSearch={() => onSearchChange?.('')} dict={dict.list.emptyState} />; }
+    if (candidates.length === 0) { return <EmptyStateComponent gender={gender} searchQuery={searchQuery} onClearSearch={() => onSearchChange?.('')} dict={dict.candidatesManager.list.emptyState} />; }
     return (
       <CandidatesList
         candidates={candidates}
@@ -313,13 +313,13 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
         <div className="grid grid-cols-2 gap-3 h-full p-3">
           <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 overflow-hidden rounded-2xl">
             <div className="p-3 text-center bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-              <h2 className="text-sm font-bold flex items-center justify-center gap-1"><Target className="w-4 h-4" />{dict.splitView.mobile.splitLabels.male}<Badge variant="secondary" className="bg-white/20 text-white border-0 ml-1">{maleCandidates.length}</Badge></h2>
+              <h2 className="text-sm font-bold flex items-center justify-center gap-1"><Target className="w-4 h-4" />{dict.candidatesManager.splitView.mobile.splitLabels.male}<Badge variant="secondary" className="bg-white/20 text-white border-0 ml-1">{maleCandidates.length}</Badge></h2>
             </div>
             <div className="flex-grow min-h-0 overflow-y-auto p-2">{renderCandidatesListForMobile(maleCandidatesWithScores, 'male', maleSearchQuery, onMaleSearchChange)}</div>
           </Card>
           <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 overflow-hidden rounded-2xl">
             <div className="p-3 text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-              <h2 className="text-sm font-bold flex items-center justify-center gap-1"><Crown className="w-4 h-4" />{dict.splitView.mobile.splitLabels.female}<Badge variant="secondary" className="bg-white/20 text-white border-0 ml-1">{femaleCandidates.length}</Badge></h2>
+              <h2 className="text-sm font-bold flex items-center justify-center gap-1"><Crown className="w-4 h-4" />{dict.candidatesManager.splitView.mobile.splitLabels.female}<Badge variant="secondary" className="bg-white/20 text-white border-0 ml-1">{femaleCandidates.length}</Badge></h2>
             </div>
             <div className="flex-grow min-h-0 overflow-y-auto p-2">{renderCandidatesListForMobile(femaleCandidatesWithScores, 'female', femaleSearchQuery, onFemaleSearchChange)}</div>
           </Card>
@@ -331,20 +331,20 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
       <div className={cn('w-full h-full', className)}>
         <Tabs defaultValue="male" className="w-full h-full flex flex-col">
           <TabsList className="grid w-full grid-cols-2 flex-shrink-0 bg-gradient-to-r from-indigo-50 to-purple-50 p-1 rounded-2xl shadow-lg">
-            <TabsTrigger value="male" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg"><Target className="h-4 w-4" />{dict.splitView.mobile.tabs.male}<Badge variant="secondary" className="bg-blue-100 text-blue-800 border-0">{maleCandidates.length}</Badge></TabsTrigger>
-            <TabsTrigger value="female" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg"><Crown className="h-4 w-4" />{dict.splitView.mobile.tabs.female}<Badge variant="secondary" className="bg-purple-100 text-purple-800 border-0">{femaleCandidates.length}</Badge></TabsTrigger>
+            <TabsTrigger value="male" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg"><Target className="h-4 w-4" />{dict.candidatesManager.splitView.mobile.tabs.male}<Badge variant="secondary" className="bg-blue-100 text-blue-800 border-0">{maleCandidates.length}</Badge></TabsTrigger>
+            <TabsTrigger value="female" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg"><Crown className="h-4 w-4" />{dict.candidatesManager.splitView.mobile.tabs.female}<Badge variant="secondary" className="bg-purple-100 text-purple-800 border-0">{femaleCandidates.length}</Badge></TabsTrigger>
           </TabsList>
           <TabsContent value="male" className="mt-4 flex-1 min-h-0">
             <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 rounded-2xl">
               {renderPanelHeader('male', true)}
-              {separateFiltering && onMaleSearchChange && (<div className="mb-4 w-full"><SearchBar value={maleSearchQuery} onChange={onMaleSearchChange} placeholder={dict.searchBar.malePlaceholder} genderTarget="male" separateMode={true} dict={dict.searchBar} /></div>)}
+              {separateFiltering && onMaleSearchChange && (<div className="mb-4 w-full"><SearchBar value={maleSearchQuery} onChange={onMaleSearchChange} placeholder={dict.candidatesManager.searchBar.malePlaceholder} genderTarget="male" separateMode={true} dict={dict.candidatesManager.searchBar} /></div>)}
               <div className="flex-grow min-h-0 overflow-y-auto">{renderCandidatesListForMobile(maleCandidatesWithScores, 'male', maleSearchQuery, onMaleSearchChange)}</div>
             </Card>
           </TabsContent>
           <TabsContent value="female" className="mt-4 flex-1 min-h-0">
             <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 rounded-2xl">
               {renderPanelHeader('female', true)}
-              {separateFiltering && onFemaleSearchChange && (<div className="mb-4 w-full"><SearchBar value={femaleSearchQuery} onChange={onFemaleSearchChange} placeholder={dict.searchBar.femalePlaceholder} genderTarget="female" separateMode={true} dict={dict.searchBar} /></div>)}
+              {separateFiltering && onFemaleSearchChange && (<div className="mb-4 w-full"><SearchBar value={femaleSearchQuery} onChange={onFemaleSearchChange} placeholder={dict.candidatesManager.searchBar.femalePlaceholder} genderTarget="female" separateMode={true} dict={dict.candidatesManager.searchBar} /></div>)}
               <div className="flex-grow min-h-0 overflow-y-auto">{renderCandidatesListForMobile(femaleCandidatesWithScores, 'female', femaleSearchQuery, onFemaleSearchChange)}</div>
             </Card>
           </TabsContent>
@@ -360,7 +360,7 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-blue-50/20">
             {renderPanelHeader('male')}
-            {separateFiltering && onMaleSearchChange && (<div className="p-4 bg-blue-50/30 w-full"><SearchBar value={maleSearchQuery} onChange={onMaleSearchChange} placeholder={dict.searchBar.malePlaceholder} genderTarget="male" separateMode={true} dict={dict.searchBar} /></div>)}
+            {separateFiltering && onMaleSearchChange && (<div className="p-4 bg-blue-50/30 w-full"><SearchBar value={maleSearchQuery} onChange={onMaleSearchChange} placeholder={dict.candidatesManager.searchBar.malePlaceholder} genderTarget="male" separateMode={true} dict={dict.candidatesManager.searchBar} /></div>)}
             <div className="flex-grow min-h-0 overflow-y-auto p-4">
               <CandidatesList
                 candidates={maleCandidatesWithScores}
@@ -386,7 +386,7 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-purple-50/20">
             {renderPanelHeader('female')}
-            {separateFiltering && onFemaleSearchChange && (<div className="p-4 bg-purple-50/30 w-full"><SearchBar value={femaleSearchQuery} onChange={onFemaleSearchChange} placeholder={dict.searchBar.femalePlaceholder} genderTarget="female" separateMode={true} dict={dict.searchBar} /></div>)}
+            {separateFiltering && onFemaleSearchChange && (<div className="p-4 bg-purple-50/30 w-full"><SearchBar value={femaleSearchQuery} onChange={onFemaleSearchChange} placeholder={dict.candidatesManager.searchBar.femalePlaceholder} genderTarget="female" separateMode={true} dict={dict.candidatesManager.searchBar} /></div>)}
             <div className="flex-grow min-h-0 overflow-y-auto p-4">
               <CandidatesList
                 candidates={femaleCandidatesWithScores}

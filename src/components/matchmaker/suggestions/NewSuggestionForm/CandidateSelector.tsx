@@ -40,10 +40,11 @@ import {
 } from '@/lib/utils';
 import type { Candidate } from '../../new/types/candidates';
 import { toast } from 'sonner';
-import type { MatchmakerPageDictionary } from '@/types/dictionary';
+import type { CandidateSelectorDict } from '@/types/dictionaries/matchmaker'; // <--- ייבוא הטיפוס של המילון
 
+// ===> עדכון Props <===
 interface CandidateSelectorProps {
-  dict: MatchmakerPageDictionary['newSuggestionForm']['candidateSelector'];
+  dict: CandidateSelectorDict; // <-- הוספת המילון כ-prop
   value: Candidate | null;
   onChange: (candidate: Candidate | null) => void;
   otherParty?: Candidate | null;
@@ -55,7 +56,7 @@ interface CandidateSelectorProps {
 }
 
 const EnhancedCandidateCard: React.FC<{
-  dict: MatchmakerPageDictionary['newSuggestionForm']['candidateSelector'];
+  dict: CandidateSelectorDict; // <-- קבלת המילון
   candidate: Candidate;
   onClick: () => void;
   isActive: boolean;
@@ -116,14 +117,12 @@ const EnhancedCandidateCard: React.FC<{
         <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-br from-cyan-200/20 to-blue-200/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
       </div>
-
       <div className="relative z-10 p-4 space-y-4">
         <div className="flex items-center justify-between">
           <Badge className={cn('shadow-lg font-bold', statusInfo.className)}>
             <StatusIcon className="w-3 h-3 ml-1" />
             {statusInfo.label}
           </Badge>
-
           {candidate.profile.religiousLevel && (
             <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg">
               <Crown className="w-3 h-3 ml-1" />
@@ -131,7 +130,6 @@ const EnhancedCandidateCard: React.FC<{
             </Badge>
           )}
         </div>
-
         <div className="flex items-center gap-4">
           <div className="relative">
             <Avatar className="w-16 h-16 border-4 border-white shadow-xl ring-2 ring-purple-200 group-hover:ring-purple-400 transition-all duration-300">
@@ -149,12 +147,10 @@ const EnhancedCandidateCard: React.FC<{
             </Avatar>
             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-r from-green-400 to-emerald-400 border-2 border-white rounded-full shadow-lg animate-pulse"></div>
           </div>
-
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-bold text-gray-800 truncate group-hover:text-purple-700 transition-colors">
               {candidate.firstName} {candidate.lastName}
             </h3>
-
             <div className="flex items-center gap-2 mt-1">
               <div className="flex items-center gap-1 text-sm text-gray-600">
                 <User className="w-4 h-4 text-blue-500" />
@@ -162,7 +158,6 @@ const EnhancedCandidateCard: React.FC<{
                   {age} {dict.card.years}
                 </span>
               </div>
-
               {candidate.profile.city && (
                 <div className="flex items-center gap-1 text-sm text-gray-600">
                   <MapPin className="w-4 h-4 text-green-500" />
@@ -172,7 +167,6 @@ const EnhancedCandidateCard: React.FC<{
             </div>
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-3">
           {candidate.profile.occupation && (
             <div className="flex items-center gap-2 p-2 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-100 shadow-sm">
@@ -182,7 +176,6 @@ const EnhancedCandidateCard: React.FC<{
               </span>
             </div>
           )}
-
           {candidate.profile.education && (
             <div className="flex items-center gap-2 p-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100 shadow-sm">
               <Sparkles className="w-4 h-4 text-purple-500 flex-shrink-0" />
@@ -192,7 +185,6 @@ const EnhancedCandidateCard: React.FC<{
             </div>
           )}
         </div>
-
         {isBlocked && (
           <div className="p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg border border-red-200">
             <div className="flex items-start gap-2">
@@ -226,7 +218,6 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
 
   const filteredCandidates = candidates.filter((candidate) => {
     if (otherParty && candidate.id === otherParty.id) return false;
-
     if (inputValue) {
       const searchTerm = inputValue.toLowerCase();
       return (
@@ -259,7 +250,6 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
         });
         return;
       }
-
       onChange(candidate);
       setOpen(false);
       setInputValue('');
@@ -270,7 +260,6 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (!open) return;
-
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
@@ -382,20 +371,18 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
                 ) : (
                   <CommandGroup>
                     <div className="grid gap-3">
-                      {filteredCandidates.map((candidate, index) => {
-                        const isBlocked =
-                          candidate.suggestionStatus?.status === 'BLOCKED';
-                        return (
-                          <EnhancedCandidateCard
-                            key={candidate.id}
-                            dict={dict}
-                            candidate={candidate}
-                            onClick={() => handleSelect(candidate)}
-                            isActive={index === activeIndex}
-                            isBlocked={isBlocked}
-                          />
-                        );
-                      })}
+                      {filteredCandidates.map((candidate, index) => (
+                        <EnhancedCandidateCard
+                          key={candidate.id}
+                          dict={dict}
+                          candidate={candidate}
+                          onClick={() => handleSelect(candidate)}
+                          isActive={index === activeIndex}
+                          isBlocked={
+                            candidate.suggestionStatus?.status === 'BLOCKED'
+                          }
+                        />
+                      ))}
                     </div>
                   </CommandGroup>
                 )}
@@ -443,9 +430,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  /* Implement view profile handler */
-                }}
+                onClick={() => {}}
                 className="flex-1 border-2 border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-300"
               >
                 <User className="w-4 h-4 ml-2" />

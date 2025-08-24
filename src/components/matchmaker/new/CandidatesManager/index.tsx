@@ -835,7 +835,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                   femaleSearchQuery={filters.femaleSearchQuery}
                   onMaleSearchChange={updateMaleSearchQuery}
                   onFemaleSearchChange={updateFemaleSearchQuery}
-                  dict={matchmakerDict.candidatesManager}
+                  dict={matchmakerDict}
                   profileDict={profileDict}
                 />
               </div>
@@ -849,7 +849,8 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         isOpen={showManualAddDialog}
         onClose={() => setShowManualAddDialog(false)}
         onCandidateAdded={handleCandidateAdded}
-        dict={matchmakerDict.candidatesManager.addManualCandidateDialog} // <--- הוספת השורה הזו
+          dict={matchmakerDict.candidatesManager.addManualCandidateDialog} // <--- הוספת השורה הזו
+
       />
       <AiMatchAnalysisDialog
         isOpen={isAnalysisDialogOpen}

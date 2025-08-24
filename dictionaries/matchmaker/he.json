@@ -597,10 +597,7 @@
         }
       }
     },
-    "newSuggestionForm": {
-      "title": "יצירת הצעה חדשה",
-      "subtitle": "בחר מועמד/ת ליצירת הצעה עבור"
-    },
+
      "aiAnalysis": {
       "header": {
         "title": "ניתוח התאמה מבוסס AI",
@@ -1317,10 +1314,7 @@
         "MEDIUM": "רגילה",
         "LOW": "נמוכה"
       }
-    }
-
-  },
- 
+    },
     "newSuggestionForm": {
   "header": {
     "title": "יצירת הצעת שידוך חדשה",
@@ -1331,6 +1325,8 @@
     "analyze": { "label": "ניתוח התאמה", "description": "בדוק את רמת ההתאמה" },
     "details": { "label": "פרטי ההצעה", "description": "הוסף נימוקים ופרטים" }
   },
+    "party1Label": "צד א' בהצעה",
+        "party2Label": "צד ב' בהצעה",
   "emptyState": {
     "title": "יש לבחור תחילה את שני המועמדים"
   },
@@ -1350,38 +1346,38 @@
     "createSuccess": "ההצעה נוצרה בהצלחה!",
     "createError": "שגיאה ביצירת ההצעה"
   },
-  "candidateSelector": {
-      "searchPlaceholder": "חפש/י מועמד/ת...",
-      "commandInputPlaceholder": "חיפוש מועמדים...",
-      "noResults": {
-        "title": "לא נמצאו תוצאות",
-        "description": "נסה לשנות את מונחי החיפוש"
-      },
-      "status": {
-        "blocked": "חסום",
-        "blockedDescription": "בהצעה פעילה עם {{name}}",
-        "pending": "ממתין",
-        "pendingDescription": "הצעה ממתינה עם {{name}}",
-        "available": "זמין",
-        "availableDescription": "זמין להצעה חדשה"
-      },
-      "card": {
-        "cannotSelect": "לא ניתן לבחור",
-        "years": "שנים"
-      },
-      "selectedDisplay": {
-        "title": "מועמד/ת נבחר/ת",
-        "removeButton": "הסר בחירה",
-        "viewProfileButton": "צפה בפרופיל מלא"
-      },
-      "toasts": {
-        "cannotSelectError": {
-          "title": "לא ניתן לבחור מועמד זה",
-          "description": "{{name}} כבר נמצא/ת בהצעה פעילה עם {{withName}}."
-        }
-      }
-        
-    },
+ "candidateSelector": {
+  "searchPlaceholder": "חפש/י מועמד/ת...",
+  "commandInputPlaceholder": "חיפוש מועמדים...",
+  "noResults": {
+    "title": "לא נמצאו תוצאות",
+    "description": "נסה לשנות את מונחי החיפוש"
+  },
+  "status": {
+    "blocked": "חסום",
+    "blockedDescription": "בהצעה פעילה עם {{name}}",
+    "pending": "ממתין",
+    "pendingDescription": "הצעה ממתינה עם {{name}}",
+    "available": "זמין",
+    "availableDescription": "זמין להצעה חדשה"
+  },
+  "card": {
+    "cannotSelect": "לא ניתן לבחור",
+    "years": "שנים"
+  },
+  "selectedDisplay": {
+    "title": "מועמד/ת נבחר/ת",
+    "removeButton": "הסר בחירה",
+    "viewProfileButton": "צפה בפרופיל מלא"
+  },
+  "toasts": {
+    "cannotSelectError": {
+      "title": "לא ניתן לבחור מועמד זה",
+      "description": "{{name}} כבר נמצא/ת בהצעה פעילה עם {{withName}}."
+    }
+  }
+}
+,
       "matchPreview": {
       "errorState": {
         "title": "לא ניתן לחשב התאמה",
@@ -1527,7 +1523,10 @@
     }
 
 
- },
+ }
+  },
+ 
+
  "suggestionDetailsDialog": {
   "header": {
     "title": "הצעה #{{id}}",

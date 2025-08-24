@@ -32,7 +32,8 @@ import {
 // Types
 import type { Candidate } from '../../new/types/candidates';
 import { newSuggestionSchema, type NewSuggestionFormData } from './schema';
-import type { MatchmakerPageDictionary } from '@/types/dictionary';
+// <=== שינוי 1: עדכון הטיפוס של המילון שמתקבל ===>
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 // Components
 import SuggestionDetails from './SuggestionDetails';
@@ -42,7 +43,8 @@ import { AiMatchAnalysisDialog } from '../../new/dialogs/AiMatchAnalysisDialog';
 import { cn } from '@/lib/utils';
 
 interface NewSuggestionFormProps {
-  dict: MatchmakerPageDictionary['candidatesManager'];
+  // <=== שינוי 2: עדכון הטיפוס של ה-prop dict ===>
+  dict: MatchmakerPageDictionary;
   isOpen: boolean;
   onClose: () => void;
   candidates: Candidate[];
@@ -113,13 +115,16 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
   selectedCandidate,
   onSubmit,
 }) => {
-  const formDict = dict.newSuggestionForm;
+  // <=== שינוי 3: שימוש בנתיב הנכון והמלא לאובייקט המילון של הטופס ===>
+  const formDict = dict.suggestionsDashboard.newSuggestionForm;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [firstParty, setFirstParty] = useState<Candidate | null>(null);
   const [secondParty, setSecondParty] = useState<Candidate | null>(null);
   const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
+  // <=== שינוי 4: בניית מערך השלבים מתוך המילון ===>
   const steps = [
     { label: formDict.steps.select.label, icon: Users },
     { label: formDict.steps.analyze.label, icon: BarChart2 },
@@ -184,7 +189,9 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
     setIsSubmitting(true);
     try {
       await onSubmit(data);
-      toast.success(formDict.toasts.createSuccess);
+      toast.success(formDict.toasts.createSuccess, {
+        duration: 5000,
+      });
       onClose();
     } catch (error) {
       toast.error(
@@ -219,8 +226,8 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
         return (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <CandidateSelector
-              dict={formDict.candidateSelector} // ✅ העברת המילון
-              label="צד א' (גבר)"
+              dict={formDict.candidateSelector}
+              label={formDict.party1Label}
               value={firstParty}
               onChange={handleCandidateSelect('first')}
               candidates={maleCandidates}
@@ -229,8 +236,8 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
               error={form.formState.errors.firstPartyId?.message}
             />
             <CandidateSelector
-              dict={formDict.candidateSelector} // ✅ העברת המילון
-              label="צד ב' (אישה)"
+              dict={formDict.candidateSelector}
+              label={formDict.party2Label}
               value={secondParty}
               onChange={handleCandidateSelect('second')}
               candidates={femaleCandidates}
@@ -240,6 +247,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
             />
           </div>
         );
+
       case 1:
         if (!firstParty || !secondParty) {
           return (
@@ -255,8 +263,9 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
         }
         return (
           <div className="space-y-8">
+            {/* <=== שינוי 5: העברת החלק הנכון במילון לקומפוננטת הילד ===> */}
             <MatchPreview
-              dict={dict.newSuggestionForm.matchPreview} // ✅ העברת המילון
+              dict={formDict.matchPreview}
               firstParty={firstParty}
               secondParty={secondParty}
             />
@@ -274,6 +283,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
             </div>
           </div>
         );
+
       case 2:
         if (!firstParty || !secondParty) {
           return (
@@ -288,12 +298,14 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
           );
         }
         return (
+          // <=== שינוי 6: העברת החלק הנכון במילון לקומפוננטת הילד ===>
           <SuggestionDetails
-            dict={dict.newSuggestionForm.suggestionDetails} // ✅ העברת המילון
+            dict={formDict.suggestionDetails}
             firstParty={firstParty}
             secondParty={secondParty}
           />
         );
+
       default:
         return null;
     }
@@ -317,16 +329,18 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
                     {formDict.header.title}
                   </DialogTitle>
                   <DialogDescription className="text-md text-gray-500 mt-1">
-                    {formDict.footer.step
+                    {formDict.header.description
                       .replace('{{current}}', (currentStep + 1).toString())
-                      .replace('{{total}}', steps.length.toString())}
-                    : {steps[currentStep].label}
+                      .replace('{{total}}', steps.length.toString())
+                      .replace('{{label}}', steps[currentStep].label)}
                   </DialogDescription>
                 </div>
               </div>
+
               <div className="flex-1 flex justify-center">
                 <StepIndicator currentStep={currentStep} steps={steps} />
               </div>
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -337,6 +351,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
               </Button>
             </div>
           </div>
+
           <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-gradient-to-br from-white via-purple-50/20 to-pink-50/20">
             <FormProvider {...form}>
               <form onSubmit={handleSubmit} className="h-full">
@@ -344,6 +359,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
               </form>
             </FormProvider>
           </div>
+
           <div className="border-t bg-white p-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -392,23 +408,21 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
               </div>
               <div className="text-sm text-gray-500 flex items-center gap-2">
                 <Crown className="w-4 h-4 text-purple-500" />
-                <span>
-                  {firstParty && secondParty
-                    ? `${firstParty.firstName} ו${secondParty.firstName}`
-                    : formDict.steps.select.label}
-                </span>
+                <span>{formDict.footer.info}</span>
               </div>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
       {firstParty && secondParty && (
         <AiMatchAnalysisDialog
           isOpen={showAnalysisDialog}
           onClose={() => setShowAnalysisDialog(false)}
           targetCandidate={firstParty}
           comparisonCandidates={[secondParty]}
-          dict={dict.aiAnalysis}
+          // <=== שינוי 7: העברת החלק הנכון של המילון לדיאלוג ה-AI ===>
+          dict={dict.candidatesManager.aiAnalysis}
         />
       )}
     </>
