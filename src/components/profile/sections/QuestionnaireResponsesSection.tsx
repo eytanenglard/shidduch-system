@@ -28,25 +28,23 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import {
   Tooltip,
-  TooltipContent,
   TooltipProvider,
+  TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-
-// --- START: הוספת ייבוא לקומפוננטה החדשה ---
 import BudgetDisplay from './BudgetDisplay';
-// --- END: הוספת ייבוא לקומפוננטה החדשה ---
 
 import type {
   QuestionnaireResponse,
-  FormattedAnswer, // הטיפוס הזה עודכן בקובץ הטיפוסים
+  FormattedAnswer,
   UpdateValue,
 } from '@/types/next-auth';
-
-import { WORLDS } from '../constants';
+import type { ProfilePageDictionary } from '@/types/dictionary'; // ייבוא טיפוס המילון
+import { WORLDS_CONFIG } from '../constants';
 
 const QUESTIONNAIRE_URL = '/questionnaire';
 
+// --- ממשקים מעודכנים ---
 interface QuestionnaireResponsesSectionProps {
   questionnaire: QuestionnaireResponse | null;
   onUpdate?: (
@@ -55,13 +53,12 @@ interface QuestionnaireResponsesSectionProps {
     value: UpdateValue
   ) => Promise<void>;
   isEditable?: boolean;
-  isFirstInList?: boolean;
-  viewMode?: 'matchmaker' | 'candidate';
+  dict: ProfilePageDictionary; // קבלת המילון
 }
 
 interface QuestionCardProps {
   question: string;
-  answer: FormattedAnswer; // משתמש במבנה החדש שכולל rawValue ו-questionType
+  answer: FormattedAnswer;
   isEditingGlobally: boolean;
   worldKey: string;
   onUpdate: (
@@ -70,18 +67,32 @@ interface QuestionCardProps {
     value: UpdateValue
   ) => Promise<void>;
   isFirstInList?: boolean;
+  dict: ProfilePageDictionary; // קבלת המילון
 }
 
-// החלף את כל הקוד של QuestionCard בקוד הבא
-// בתוך הקובץ: src/app/components/profile/sections/QuestionnaireResponsesSection.tsx
+interface WorldSectionProps {
+  worldKey: keyof typeof WORLDS_CONFIG;
+  worldConfig: (typeof WORLDS_CONFIG)[keyof typeof WORLDS_CONFIG];
+  answers: FormattedAnswer[];
+  isEditingGlobally: boolean;
+  onUpdate: (
+    world: string,
+    questionId: string,
+    value: UpdateValue
+  ) => Promise<void>;
+  isCompleted: boolean;
+  className?: string;
+  dict: ProfilePageDictionary; // קבלת המילון
+}
 
+// --- רכיב QuestionCard ---
 const QuestionCard: React.FC<QuestionCardProps> = ({
   question,
   answer,
   isEditingGlobally,
   worldKey,
   onUpdate,
-  isFirstInList,
+  dict,
 }) => {
   const [isEditingText, setIsEditingText] = useState(false);
   const [editValue, setEditValue] = useState(answer.displayText);
@@ -90,6 +101,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   const [currentIsVisible, setCurrentIsVisible] = useState(
     answer.isVisible ?? true
   );
+
+  const t = dict.questionnaireSection.questionCard; // קיצור דרך לתרגומים של הרכיב
 
   useEffect(() => {
     setCurrentIsVisible(answer.isVisible ?? true);
@@ -105,7 +118,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 
   const handleSaveText = async () => {
     if (!editValue?.trim()) {
-      toast.error('לא ניתן לשמור תשובה ריקה.');
+      toast.error(t.toasts.emptyAnswer);
       return;
     }
     if (editValue.trim() === answer.displayText) {
@@ -119,11 +132,11 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         type: 'answer',
         value: editValue.trim(),
       });
-      toast.success('התשובה עודכנה בהצלחה');
+      toast.success(t.toasts.updateSuccess);
       setIsEditingText(false);
     } catch (error) {
       console.error('Error updating answer:', error);
-      toast.error('שגיאה בעדכון התשובה');
+      toast.error(t.toasts.updateError);
     } finally {
       setIsSavingText(false);
     }
@@ -142,10 +155,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         type: 'visibility',
         isVisible: newIsVisibleState,
       });
-      toast.success('הגדרות הנראות עודכנו');
+      toast.success(t.toasts.visibilitySuccess);
     } catch (error) {
       console.error('Error updating visibility:', error);
-      toast.error('שגיאה בעדכון הנראות');
+      toast.error(t.toasts.visibilityError);
       setCurrentIsVisible(answer.isVisible ?? true);
     } finally {
       setIsSavingVisibility(false);
@@ -160,7 +173,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       !Array.isArray(answer.rawValue)
     ) {
       const budgetData = answer.rawValue as Record<string, number>;
-      return <BudgetDisplay data={budgetData} />;
+      return <BudgetDisplay data={budgetData} dict={dict.budgetDisplay} />;
     }
     return (
       <p className="text-sm text-gray-800 break-words overflow-wrap-anywhere whitespace-pre-wrap">
@@ -169,7 +182,16 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     );
   };
 
-  const visibilityLabel = `הצג תשובה זו למועמדים: ${currentIsVisible ? 'מופעל' : 'כבוי'}`;
+  const getVisibilityTooltip = () => {
+    if (isEditingGlobally) {
+      return currentIsVisible
+        ? t.visibilityTooltip.editing.visible
+        : t.visibilityTooltip.editing.hidden;
+    }
+    return currentIsVisible
+      ? t.visibilityTooltip.viewing.visible
+      : t.visibilityTooltip.viewing.hidden;
+  };
 
   return (
     <div className="rounded-lg border bg-card p-4 shadow-sm transition-shadow duration-300 hover:shadow-md">
@@ -194,13 +216,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                       onClick={() => handleVisibilityChange(!currentIsVisible)}
                       className={cn(
                         'inline-flex items-center justify-center h-8 px-3 rounded-full gap-2 transition-all duration-200 ease-in-out',
-                        // Styles for disabled state (when not editing globally)
                         'disabled:opacity-100 disabled:cursor-default',
-                        // Conditional styles based on visibility state
                         currentIsVisible
                           ? 'bg-emerald-100 text-emerald-800'
                           : 'bg-gray-200 text-gray-600',
-                        // Hover and active effects, only when editable
                         isEditingGlobally &&
                           !isSaving &&
                           'hover:shadow-md active:scale-95',
@@ -223,20 +242,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                         className="text-xs font-medium whitespace-nowrap"
                         dir="rtl"
                       >
-                        {currentIsVisible ? 'גלוי למועמדים' : 'מוסתר'}
+                        {currentIsVisible
+                          ? t.visibilityButton.visible
+                          : t.visibilityButton.hidden}
                       </span>
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="top" dir="rtl">
-                    <p>
-                      {isEditingGlobally
-                        ? currentIsVisible
-                          ? 'הפוך למוסתר (יוצג רק לך ולשדכנים)'
-                          : 'הפוך לגלוי (יוצג למועמדים)'
-                        : currentIsVisible
-                          ? 'תשובה זו גלויה למועמדים'
-                          : 'תשובה זו מוסתרת מהמועמדים'}
-                    </p>
+                    <p>{getVisibilityTooltip()}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -249,7 +262,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 className="min-h-[80px] text-sm focus:ring-cyan-500 focus:border-cyan-500"
-                placeholder="הקלד/י את תשובתך כאן..."
+                placeholder={t.editTextareaPlaceholder}
                 disabled={isSavingText}
               />
               <div className="flex justify-end gap-2">
@@ -261,7 +274,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   className="text-gray-600 hover:bg-gray-100"
                 >
                   <X className="h-4 w-4 ml-1" />
-                  ביטול
+                  {t.editButtons.cancel}
                 </Button>
                 <Button
                   size="sm"
@@ -274,7 +287,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   ) : (
                     <CheckCircle className="h-4 w-4 ml-1" />
                   )}
-                  שמירה
+                  {t.editButtons.save}
                 </Button>
               </div>
             </div>
@@ -293,21 +306,19 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" dir="rtl">
-                      <p>תאריך עדכון אחרון</p>
+                      <p>{t.dateTooltip}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
 
-              {/* --- START: כאן נמצא השינוי המרכזי --- */}
               {isEditingGlobally && !isSaving && (
                 <TooltipProvider delayDuration={200}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      {/* אם זו שאלת תקציב, הכפתור הוא קישור. אחרת, הוא כפתור רגיל */}
                       {answer.questionType === 'budgetAllocation' ? (
                         <Button
-                          asChild // מאפשר לכפתור לעטוף את הקישור
+                          asChild
                           variant="ghost"
                           size="icon"
                           className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
@@ -316,7 +327,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                             href={`/questionnaire?world=${worldKey}&question=${answer.questionId}`}
                           >
                             <Pencil className="h-4 w-4" />
-                            <span className="sr-only">עריכה בשאלון המלא</span>
+                            <span className="sr-only">
+                              {t.editTooltip.budget}
+                            </span>
                           </Link>
                         </Button>
                       ) : (
@@ -327,21 +340,20 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                           onClick={handleStartEdit}
                         >
                           <Pencil className="h-4 w-4" />
-                          <span className="sr-only">עריכת תשובה</span>
+                          <span className="sr-only">{t.editTooltip.text}</span>
                         </Button>
                       )}
                     </TooltipTrigger>
                     <TooltipContent side="top" dir="rtl">
                       <p>
                         {answer.questionType === 'budgetAllocation'
-                          ? 'עריכה בשאלון המלא'
-                          : 'עריכת תשובה'}
+                          ? t.editTooltip.budget
+                          : t.editTooltip.text}
                       </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
-              {/* --- END: סוף השינוי המרכזי --- */}
 
               {isSavingText && !isEditingText && (
                 <div className="absolute top-1 right-1">
@@ -356,22 +368,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   );
 };
 
-// ... (שאר הקובץ נשאר ללא שינוי)
-// --- WorldSection Component ---
-interface WorldSectionProps {
-  worldKey: keyof typeof WORLDS;
-  worldConfig: (typeof WORLDS)[keyof typeof WORLDS];
-  answers: FormattedAnswer[];
-  isEditingGlobally: boolean;
-  onUpdate: (
-    world: string,
-    questionId: string,
-    value: UpdateValue
-  ) => Promise<void>;
-  isCompleted: boolean;
-  className?: string;
-}
-
+// --- רכיב WorldSection ---
 const WorldSection: React.FC<WorldSectionProps> = ({
   worldKey,
   worldConfig,
@@ -380,8 +377,14 @@ const WorldSection: React.FC<WorldSectionProps> = ({
   onUpdate,
   isCompleted,
   className,
+  dict,
 }) => {
-  const { title, icon: Icon, color, bgColor, borderColor } = worldConfig;
+  const { icon: Icon, color, bgColor, borderColor } = worldConfig;
+  const t = dict.questionnaireSection.worldSection;
+
+  // ▼▼▼ שליפת הכותרת מהמילון במקום מהקונפיג ▼▼▼
+  const title = dict.questionnaireSection.worlds[worldKey]?.title || worldKey;
+  const answerCountText = `${answers.length} ${answers.length === 1 ? t.answerSingular : t.answerPlural}`;
 
   return (
     <Card
@@ -413,7 +416,7 @@ const WorldSection: React.FC<WorldSectionProps> = ({
                 {title}
               </CardTitle>
               <CardDescription className="text-xs text-gray-500 mt-0.5">
-                {answers.length} {answers.length === 1 ? 'תשובה' : 'תשובות'}
+                {answerCountText}
               </CardDescription>
             </div>
           </div>
@@ -431,7 +434,7 @@ const WorldSection: React.FC<WorldSectionProps> = ({
             ) : (
               <Clock className="h-3 w-3" />
             )}
-            {isCompleted ? 'הושלם' : 'בתהליך'}
+            {isCompleted ? t.status.completed : t.status.inProgress}
           </Badge>
         </div>
       </CardHeader>
@@ -446,6 +449,7 @@ const WorldSection: React.FC<WorldSectionProps> = ({
               isEditingGlobally={isEditingGlobally}
               worldKey={worldKey}
               onUpdate={onUpdate}
+              dict={dict}
             />
           ))}
         </div>
@@ -454,17 +458,19 @@ const WorldSection: React.FC<WorldSectionProps> = ({
   );
 };
 
-// --- QuestionnaireResponsesSection Component ---
+// --- רכיב QuestionnaireResponsesSection הראשי ---
 const QuestionnaireResponsesSection: React.FC<
   QuestionnaireResponsesSectionProps
-> = ({ questionnaire, onUpdate, isEditable = false }) => {
+> = ({ questionnaire, onUpdate, isEditable = false, dict }) => {
   const [isEditingGlobally, setIsEditingGlobally] = useState(false);
+
+  const t = dict.questionnaireSection; // קיצור דרך לתרגומים
 
   const worldsWithAnswers = useMemo(() => {
     if (!questionnaire?.formattedAnswers) return [];
-    return Object.entries(WORLDS)
+    return Object.entries(WORLDS_CONFIG)
       .map(([key, config]) => ({
-        key: key as keyof typeof WORLDS,
+        key: key as keyof typeof WORLDS_CONFIG,
         config,
         answers:
           questionnaire.formattedAnswers?.[
@@ -479,11 +485,12 @@ const QuestionnaireResponsesSection: React.FC<
   }, [questionnaire]);
 
   if (!questionnaire) {
+    const emptyStateT = t.emptyState;
     return (
       <Card className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed">
         <Book className="h-10 w-10 mx-auto mb-3 opacity-50 text-gray-400" />
-        <p className="font-medium">לא מולא שאלון עבור פרופיל זה.</p>
-        <p className="text-sm mt-1">אין תשובות להציג.</p>
+        <p className="font-medium">{emptyStateT.title}</p>
+        <p className="text-sm mt-1">{emptyStateT.subtitle}</p>
         <div className="mt-6">
           <Button
             asChild
@@ -494,8 +501,7 @@ const QuestionnaireResponsesSection: React.FC<
               href={QUESTIONNAIRE_URL}
               className="flex items-center gap-1.5"
             >
-              מלא את השאלון
-              <ArrowRight className="h-4 w-4" />
+              {emptyStateT.button} <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -504,6 +510,7 @@ const QuestionnaireResponsesSection: React.FC<
   }
 
   const hasAnyAnswers = worldsWithAnswers.length > 0;
+  const headerT = t.header;
 
   return (
     <div className="space-y-6">
@@ -518,18 +525,17 @@ const QuestionnaireResponsesSection: React.FC<
               )}
               <div>
                 <p className="font-semibold text-base text-gray-800">
-                  {questionnaire.completed ? 'שאלון הושלם' : 'שאלון בתהליך'}
+                  {questionnaire.completed
+                    ? headerT.title.completed
+                    : headerT.title.inProgress}
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {hasAnyAnswers
-                    ? `עודכן לאחרונה: ${new Date(
-                        questionnaire.lastSaved
-                      ).toLocaleDateString('he-IL')}`
-                    : 'השאלון טרם החל'}
+                    ? `${headerT.lastUpdated}: ${new Date(questionnaire.lastSaved).toLocaleDateString('he-IL')}`
+                    : headerT.notStarted}
                 </p>
               </div>
             </div>
-
             <div className="flex flex-col sm:flex-row items-center gap-2 self-end sm:self-center">
               <Button
                 asChild
@@ -541,8 +547,7 @@ const QuestionnaireResponsesSection: React.FC<
                   href={QUESTIONNAIRE_URL}
                   className="flex items-center gap-1.5"
                 >
-                  עבור לשאלון
-                  <ArrowRight className="h-4 w-4" />
+                  {headerT.goToButton} <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               {isEditable && hasAnyAnswers && onUpdate && (
@@ -555,12 +560,12 @@ const QuestionnaireResponsesSection: React.FC<
                   {isEditingGlobally ? (
                     <>
                       <Save className="h-4 w-4" />
-                      סיום עריכה
+                      {headerT.editButton.finish}
                     </>
                   ) : (
                     <>
                       <Pencil className="h-4 w-4" />
-                      עריכת תשובות
+                      {headerT.editButton.start}
                     </>
                   )}
                 </Button>
@@ -581,15 +586,16 @@ const QuestionnaireResponsesSection: React.FC<
               isEditingGlobally={isEditingGlobally}
               onUpdate={onUpdate!}
               isCompleted={isCompleted}
+              dict={dict}
             />
           ))}
         </div>
       ) : (
         <div className="text-center py-10 text-gray-500 bg-gray-50/50 rounded-lg border border-gray-200">
           <Book className="h-8 w-8 mx-auto mb-2 opacity-50 text-gray-400" />
-          <p className="font-medium text-lg">השאלון טרם מולא במלואו</p>
+          <p className="font-medium text-lg">{t.noAnswersState.title}</p>
           <p className="text-sm mt-1 text-gray-600">
-            עדיין אין תשובות להציג, אך ניתן להמשיך למלא את השאלון.
+            {t.noAnswersState.subtitle}
           </p>
           <div className="mt-6">
             <Button
@@ -601,8 +607,7 @@ const QuestionnaireResponsesSection: React.FC<
                 href={QUESTIONNAIRE_URL}
                 className="flex items-center gap-1.5 px-6 py-2"
               >
-                המשך מילוי השאלון
-                <ArrowRight className="h-4 w-4" />
+                {t.noAnswersState.button} <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
           </div>

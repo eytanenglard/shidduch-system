@@ -1,5 +1,6 @@
-// src/types/dictionary.ts
+// src/types/dictionary.d.ts
 import type { MatchmakerPageDictionary } from './dictionaries/matchmaker';
+import { WORLD_KEYS } from '@/components/profile/constants'; 
 
 // --- Navbar ---
 export type NavbarDict = {
@@ -1367,6 +1368,8 @@ export type ProfilePageDictionary = {
   visibilityControl: VisibilityControlDict;
   budgetDisplay: BudgetDisplayDict;
   utils: ProfileUtilsDict;
+    questionnaireSection: QuestionnaireSectionDictionary;
+
   // כאן יתווספו מילונים עבור רכיבים נוספים כמו ProfileSection, PreferencesSection וכו'
 };
 
@@ -2217,3 +2220,81 @@ export type ProfileUtilsDict = {
 };
 
 // END: Additions for Profile Elements & Utils
+export type QuestionnaireSectionDictionary = {
+  // הגדרה דינמית של כותרות ה"עולמות" על בסיס הקבועים
+  worlds: Record<typeof WORLD_KEYS[keyof typeof WORLD_KEYS], { title: string }>;
+
+  // טקסטים למצב שבו השאלון כלל לא מולא
+  emptyState: {
+    title: string;
+    subtitle: string;
+    button: string;
+  };
+
+  // טקסטים למצב שבו השאלון התחיל אך אין עדיין תשובות
+  noAnswersState: {
+    title: string;
+    subtitle: string;
+    button: string;
+  };
+
+  // טקסטים לכותרת הראשית של אזור השאלון
+  header: {
+    title: {
+      completed: string;
+      inProgress: string;
+    };
+    lastUpdated: string;
+    notStarted: string;
+    goToButton: string;
+    editButton: {
+      start: string;
+      finish: string;
+    };
+  };
+
+  // טקסטים עבור רכיב WorldSection
+  worldSection: {
+    answerSingular: string;
+    answerPlural: string;
+    status: {
+      completed: string;
+      inProgress: string;
+    };
+  };
+
+  // טקסטים עבור רכיב QuestionCard
+  questionCard: {
+    toasts: {
+      emptyAnswer: string;
+      updateSuccess: string;
+      updateError: string;
+      visibilitySuccess: string;
+      visibilityError: string;
+    };
+    visibilityButton: {
+      visible: string;
+      hidden: string;
+    };
+    visibilityTooltip: {
+      editing: {
+        visible: string;
+        hidden: string;
+      };
+      viewing: {
+        visible: string;
+        hidden: string;
+      };
+    };
+    editTextareaPlaceholder: string;
+    editButtons: {
+      cancel: string;
+      save: string;
+    };
+    dateTooltip: string;
+    editTooltip: {
+      text: string;
+      budget: string;
+    };
+  };
+};

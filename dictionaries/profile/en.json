@@ -452,6 +452,80 @@
     },
     "charCount": "/ {{count}}+ characters"
   },
+    "questionnaireSection": {
+    "worlds": {
+      "values": { "title": "Values & What's Between" },
+      "personality": { "title": "Personality & Character" },
+      "relationship": { "title": "Relationship & Family" },
+      "religion": { "title": "Religion & Faith" },
+      "partner": { "title": "Partner Preferences" }
+    },
+    "emptyState": {
+      "title": "No questionnaire has been filled out for this profile.",
+      "subtitle": "There are no answers to display.",
+      "button": "Fill out the Questionnaire"
+    },
+    "noAnswersState": {
+      "title": "Questionnaire Not Fully Completed",
+      "subtitle": "There are no answers to display yet, but you can continue filling out the questionnaire.",
+      "button": "Continue Questionnaire"
+    },
+    "header": {
+      "title": {
+        "completed": "Questionnaire Completed",
+        "inProgress": "Questionnaire in Progress"
+      },
+      "lastUpdated": "Last updated",
+      "notStarted": "Questionnaire not yet started",
+      "goToButton": "Go to Questionnaire",
+      "editButton": {
+        "start": "Edit Answers",
+        "finish": "Finish Editing"
+      }
+    },
+    "worldSection": {
+      "answerSingular": "answer",
+      "answerPlural": "answers",
+      "status": {
+        "completed": "Completed",
+        "inProgress": "In Progress"
+      }
+    },
+    "questionCard": {
+      "toasts": {
+        "emptyAnswer": "Cannot save an empty answer.",
+        "updateSuccess": "Answer updated successfully",
+        "updateError": "Error updating answer",
+        "visibilitySuccess": "Visibility settings updated",
+        "visibilityError": "Error updating visibility"
+      },
+      "visibilityButton": {
+        "visible": "Visible to candidates",
+        "hidden": "Hidden"
+      },
+      "visibilityTooltip": {
+        "editing": {
+          "visible": "Make hidden (visible only to you and matchmakers)",
+          "hidden": "Make visible (will be shown to candidates)"
+        },
+        "viewing": {
+          "visible": "This answer is visible to candidates",
+          "hidden": "This answer is hidden from candidates"
+        }
+      },
+      "editTextareaPlaceholder": "Type your answer here...",
+      "editButtons": {
+        "cancel": "Cancel",
+        "save": "Save"
+      },
+      "dateTooltip": "Last updated date",
+      "editTooltip": {
+        "text": "Edit answer",
+        "budget": "Edit in the full questionnaire"
+      }
+    }
+  }
+,
   "profileCard": {
     "loading": "Loading profile data...",
     "budgetDisplay": {

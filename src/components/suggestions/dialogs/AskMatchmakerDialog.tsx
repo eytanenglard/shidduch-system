@@ -1,5 +1,4 @@
 // src/app/components/suggestions/dialogs/AskMatchmakerDialog.tsx
-
 import React, { useState, useMemo } from 'react';
 import {
   Dialog,
@@ -30,7 +29,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import type { AskMatchmakerDict } from '@/types/dictionary';
-
 interface AskMatchmakerDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -38,7 +36,6 @@ interface AskMatchmakerDialogProps {
   matchmakerName?: string;
   dict: AskMatchmakerDict;
 }
-
 const iconMap: { [key: string]: React.ElementType } = {
   values: Heart,
   family: Users,
@@ -47,7 +44,6 @@ const iconMap: { [key: string]: React.ElementType } = {
   future: Calendar,
   other: Lightbulb,
 };
-
 const colorMap: { [key: string]: string } = {
   values: 'from-cyan-500 to-blue-500',
   family: 'from-emerald-500 to-green-500',
@@ -56,7 +52,6 @@ const colorMap: { [key: string]: string } = {
   future: 'from-amber-500 to-orange-500',
   other: 'from-gray-500 to-slate-500',
 };
-
 export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
   isOpen,
   onClose,
@@ -68,7 +63,6 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-
   const questionTopics = useMemo(() => {
     return Object.keys(dict.topics).map((key) => ({
       id: key,
@@ -78,8 +72,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
       icon: iconMap[key],
       color: colorMap[key],
     }));
-  }, [dict.topics]);
-
+  }, [dict]);
   const handleSubmit = async () => {
     if (!question.trim()) return;
 
@@ -97,19 +90,16 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
       setIsSubmitting(false);
     }
   };
-
   const getInitials = (name?: string) => {
     if (!name) return 'שד';
     const parts = name.split(' ');
     if (parts.length === 1) return parts[0].charAt(0);
     return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`;
   };
-
   const selectedTopicData = questionTopics.find((t) => t.id === selectedTopic);
   const dialogTitle = matchmakerName
     ? dict.title.replace('{{name}}', matchmakerName)
     : dict.titleDefault;
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 border-0 shadow-2xl rounded-3xl bg-white overflow-hidden z-[9999]">
@@ -134,7 +124,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             </Badge>
           </div>
         </DialogHeader>
-
+        code Code
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
           {error && (
             <Alert variant="destructive" className="border-red-200 bg-red-50">
@@ -241,7 +231,6 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             </div>
           </div>
         </div>
-
         <DialogFooter className="px-8 py-6 border-t border-gray-100 bg-gray-50/50">
           <div className="flex gap-3 w-full">
             <Button
@@ -277,5 +266,4 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
     </Dialog>
   );
 };
-
 export default AskMatchmakerDialog;

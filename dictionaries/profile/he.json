@@ -211,6 +211,80 @@
       "bulkDelete": "האם למחוק {{count}} תמונות נבחרות? הפעולה אינה הפיכה."
     }
   },
+    "questionnaireSection": {
+    "worlds": {
+      "values": { "title": "ערכים ומה שביניהם" },
+      "personality": { "title": "אישיות ואופי" },
+      "relationship": { "title": "זוגיות ומשפחה" },
+      "religion": { "title": "דת ואמונה" },
+      "partner": { "title": "העדפות לגבי בן/בת הזוג" }
+    },
+    "emptyState": {
+      "title": "לא מולא שאלון עבור פרופיל זה.",
+      "subtitle": "אין תשובות להציג.",
+      "button": "מלא את השאלון"
+    },
+    "noAnswersState": {
+      "title": "השאלון טרם מולא במלואו",
+      "subtitle": "עדיין אין תשובות להציג, אך ניתן להמשיך למלא את השאלון.",
+      "button": "המשך מילוי השאלון"
+    },
+    "header": {
+      "title": {
+        "completed": "שאלון הושלם",
+        "inProgress": "שאלון בתהליך"
+      },
+      "lastUpdated": "עודכן לאחרונה",
+      "notStarted": "השאלון טרם החל",
+      "goToButton": "עבור לשאלון",
+      "editButton": {
+        "start": "עריכת תשובות",
+        "finish": "סיום עריכה"
+      }
+    },
+    "worldSection": {
+      "answerSingular": "תשובה",
+      "answerPlural": "תשובות",
+      "status": {
+        "completed": "הושלם",
+        "inProgress": "בתהליך"
+      }
+    },
+    "questionCard": {
+      "toasts": {
+        "emptyAnswer": "לא ניתן לשמור תשובה ריקה.",
+        "updateSuccess": "התשובה עודכנה בהצלחה",
+        "updateError": "שגיאה בעדכון התשובה",
+        "visibilitySuccess": "הגדרות הנראות עודכנו",
+        "visibilityError": "שגיאה בעדכון הנראות"
+      },
+      "visibilityButton": {
+        "visible": "גלוי למועמדים",
+        "hidden": "מוסתר"
+      },
+      "visibilityTooltip": {
+        "editing": {
+          "visible": "הפוך למוסתר (יוצג רק לך ולשדכנים)",
+          "hidden": "הפוך לגלוי (יוצג למועמדים)"
+        },
+        "viewing": {
+          "visible": "תשובה זו גלויה למועמדים",
+          "hidden": "תשובה זו מוסתרת מהמועמדים"
+        }
+      },
+      "editTextareaPlaceholder": "הקלד/י את תשובתך כאן...",
+      "editButtons": {
+        "cancel": "ביטול",
+        "save": "שמירה"
+      },
+      "dateTooltip": "תאריך עדכון אחרון",
+      "editTooltip": {
+        "text": "עריכת תשובה",
+        "budget": "עריכה בשאלון המלא"
+      }
+    }
+  }
+,
     "preferencesSection": {
     "header": {
       "title": "העדפות התאמה",

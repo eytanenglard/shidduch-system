@@ -590,6 +590,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     questionnaire={questionnaireResponse}
                     onUpdate={handleQuestionnaireUpdate}
                     isEditable={!viewOnly && isOwnProfile}
+                    dict={dict}
                   />
                 ) : (
                   <div className="text-center py-12 text-gray-500">
