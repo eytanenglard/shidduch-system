@@ -45,7 +45,7 @@ import { cn } from '@/lib/utils';
 import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
 interface SuggestionDetailsProps {
-  dict: MatchmakerPageDictionary['newSuggestionForm']['suggestionDetails'];
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['newSuggestionForm']['suggestionDetails'];
   firstParty: Candidate;
   secondParty: Candidate;
 }
@@ -100,7 +100,7 @@ const EnhancedSection: React.FC<{
 
 const PriorityBadge: React.FC<{
   priority: Priority;
-  dict: MatchmakerPageDictionary['newSuggestionForm']['suggestionDetails']['priority'];
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['newSuggestionForm']['suggestionDetails']['priority'];
 }> = ({ priority, dict }) => {
   const getPriorityInfo = (p: Priority) => {
     switch (p) {
