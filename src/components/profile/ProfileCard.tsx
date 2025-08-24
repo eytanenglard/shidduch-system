@@ -2011,7 +2011,6 @@ const ProfileHeader: React.FC<{
 }) => {
   const personalityHighlights = useMemo(() => {
     const highlights: ExcitementFactor[] = [];
-
     if (profile.profileCharacterTraits?.length > 0) {
       const trait = profile.profileCharacterTraits[0];
       const traitData = formatEnumValue(
@@ -2059,6 +2058,8 @@ const ProfileHeader: React.FC<{
     THEME.colors.primary.light,
     THEME.colors.secondary.sage,
     THEME.colors.secondary.sky,
+    characterTraitMap,
+    hobbiesMap,
   ]);
 
   return (

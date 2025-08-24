@@ -138,7 +138,7 @@ export default function FAQ({
         isPopular: faqMetadata[key].isPopular || false,
       };
     });
-  }, [dict.items]);
+  }, [dict]); // <-- Change dict.items to dict
 
   const categories = useMemo(
     () => [

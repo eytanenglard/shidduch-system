@@ -12,7 +12,7 @@ export type NavbarDict = {
 };
 
 // --- Hero Section ---
-type PrincipleDict = {
+export type PrincipleDict = {
   title: string;
   shortTitle: string;
   description:string;
@@ -1314,11 +1314,12 @@ export type PreferencesSectionDict = {
     hobbies: { [key: string]: string };
   };
 };
-type FaqAnswerPart = {
+export type FaqAnswerPart = {
   type: 'p' | 'list' | 'tip' | 'info' | 'star' | 'alert';
   title?: string;
   content: string | string[];
 };
+
 
 type FaqItemDict = {
   question: string;
