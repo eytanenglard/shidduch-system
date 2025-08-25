@@ -331,6 +331,8 @@ export default function QuestionCard({
                     isVisible={isVisible}
                     onToggle={() => onVisibilityChange(!isVisible)}
                     disabled={isDisabled}
+                    visibleText={dict.visibilityButton.visible}
+                    hiddenText={dict.visibilityButton.hidden}
                   />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">

@@ -1087,11 +1087,11 @@ export default function AnswerInput({
             <legend className="sr-only">{question.question}</legend>
             <div className="space-y-4">
               {question.categories?.map((category) => {
-                const categoryValue = budgetValues[category.label] || 0;
+                const categoryValue = budgetValues[category.value] || 0;
                 const isActive = categoryValue > 0;
                 return (
                   <motion.div
-                    key={category.label}
+                    key={category.value}
                     className="space-y-2"
                     whileHover={{ scale: 1.01 }}
                     transition={{ duration: 0.2 }}
@@ -1135,7 +1135,7 @@ export default function AnswerInput({
                         );
                         handleValueChange({
                           ...budgetValues,
-                          [category.label]: newValue,
+                          [category.value]: newValue,
                         });
                       }}
                       className={cn(

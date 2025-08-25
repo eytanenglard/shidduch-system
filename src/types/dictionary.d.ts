@@ -895,6 +895,11 @@ export type QuestionCardDict = {
     saveProgress: string;
     viewProfile: string;
   };
+    visibilityButton: {
+    visible: string;
+    hidden: string;
+  };
+
   skipButton: {
     skip: string;
     required: string;

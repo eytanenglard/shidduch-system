@@ -141,6 +141,11 @@
       "saveProgress": "Save progress",
       "viewProfile": "View profile and answers"
     },
+        "visibilityButton": {
+      "visible": "Visible on Profile",
+      "hidden": "Hidden from Profile"
+    },
+
     "skipButton": {
       "skip": "Skip",
       "required": "Required question"
