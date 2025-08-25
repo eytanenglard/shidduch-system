@@ -541,7 +541,7 @@ const MatchingConstellation: React.FC<{
                   </motion.div>
 
                   <motion.div
-                    className={`absolute left-1/2 transform -translate-x-1/2 whitespace-nowrap ${isMobile ? '-bottom-8 text-xs' : '-bottom-12 text-sm'}`}
+                    className={`absolute inset-x-0 top-full text-center whitespace-nowrap ${isMobile ? 'mt-2 text-xs' : 'mt-4 text-sm'}`}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0, scale: isActive ? 1.05 : 1 }}
                     transition={{

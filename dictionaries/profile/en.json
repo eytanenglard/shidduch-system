@@ -3,59 +3,61 @@
   "dashboard": {
     "loadingData": "Loading data...",
     "loadError": "Error loading data: {{error}}",
-    "updateSuccess": "Profile updated successfully",
+    "updateSuccess": "Profile updated successfully.",
     "updateError": "Error updating profile: {{error}}",
-    "previewButton": "Profile Preview",
+    "previewButton": "Preview My Profile",
     "previewLoading": "Loading preview...",
-    "viewedPreviewSuccess": "Thank you! 'View Preview' step completed.",
-    "viewedPreviewError": "Error updating preview status.",
+    "viewedPreviewSuccess": "Thank you! Your profile preview has been marked as viewed.",
+    "viewedPreviewError": "Error updating your preview status.",
     "tabs": {
-      "overview": "General Details",
+      "overview": "Overview",
       "photos": "Photos",
-      "preferences": "Preferences",
-      "questionnaire": "Questionnaire"
+      "preferences": "My Preferences",
+      "questionnaire": "My Questionnaire"
     },
     "tabContent": {
       "loadingOverview": "Loading overview...",
       "loadingPreferences": "Loading preferences...",
       "loadingQuestionnaire": "Loading questionnaire...",
-      "noQuestionnaire": "Questionnaire has not been filled out.",
-      "fillQuestionnaireLink": "Fill out the questionnaire",
-            "questionnaireUpdateSuccess": "Questionnaire updated successfully",
-      "questionnaireUpdateError": "Error updating questionnaire"
-
+      "noQuestionnaire": "Your questionnaire is the key to finding a deep connection. It hasn't been started yet.",
+      "fillQuestionnaireLink": "Begin your questionnaire",
+      "questionnaireUpdateSuccess": "Questionnaire updated successfully.",
+      "questionnaireUpdateError": "Error updating questionnaire."
     },
     "checklist": {
-      "welcome": "Welcome, {{firstName}}! Let's get your profile ready for success",
-      "allComplete": "Well done, {{firstName}}! Your profile is perfect!",
-      "welcomeSubtitle": "Completing the next steps will significantly advance you towards finding a match.",
-      "allCompleteSubtitle": "You've completed all the steps. A rich profile is the key to finding the most accurate match.",
+      "welcome": "Welcome, {{firstName}}! Let's create a profile that truly tells your story.",
+      "allComplete": "Excellent work, {{firstName}}! Your profile is complete and ready to shine.",
+      "welcomeSubtitle": "Completing these steps is the key to unlocking meaningful, high-quality matches.",
+      "allCompleteSubtitle": "You've completed all the steps. A rich, detailed profile is essential for finding your best match.",
       "completionLabel": "Profile Completion",
       "expandLabel": "Expand",
       "minimizeLabel": "Minimize",
-      "missingItemsTitle": "What's missing to complete this step?",
+      "missingItemsTitle": "What’s next to complete this step?",
       "tasks": {
         "photos": {
           "title": "Upload Photos",
-          "description": "Your initial business card.",
-          "missing": "At least 3 photos required (Uploaded: {{count}})"
+          "description": "Your first impression starts here.",
+          "missing": "At least 3 photos required ({{count}} uploaded)"
         },
         "personalDetails": {
           "title": "Personal Details",
-          "description": "The foundation for getting to know you."
+          "description": "The heart of your story.",
+          "missing": "Fill in essential personal details"
         },
         "partnerPreferences": {
-          "title": "Matching Preferences",
-          "description": "To specify who you're looking for."
+          "title": "Match Preferences",
+          "description": "Define what you're looking for.",
+          "missing": "Set your partner preferences"
         },
         "questionnaire": {
-          "title": "Matching Questionnaire",
-          "description": "The key to AI-powered matches."
+          "title": "Compatibility Questionnaire",
+          "description": "Unlocks our smart-matching technology.",
+          "missing": "Complete the matchmaking questionnaire"
         },
         "review": {
-          "title": "Preview",
-          "description": "See how others see you.",
-          "missing": "You must view the profile preview"
+          "title": "Preview Profile",
+          "description": "See yourself through others' eyes.",
+          "missing": "View your profile preview"
         }
       },
       "missingItems": {
@@ -67,53 +69,51 @@
       }
     },
     "aiAdvisor": {
-       "toast": { 
-    "errorTitle": "Analysis Process Error",
-    "errorDescription": "Failed to get profile analysis: {{error}}"
-  },
-      "triggerButton": "Get analysis and tips to improve your profile",
+      "triggerButton": "Get AI Analysis & Tips to Improve Your Profile",
       "dialogTitle": "Your Smart Profile Advisor",
-      "dialogDescription": "AI-based analysis to help you present yourself in the best way and find more accurate matches.",
+      "dialogDescription": "AI-powered analysis to help you present your best self and attract more compatible matches.",
       "closeButton": "Close",
       "loadingTitle": "Our AI is analyzing your profile...",
-      "loadingDescription": "This might take a few seconds. Thank you for your patience.",
+      "loadingDescription": "This may take a few moments. Thank you for your patience.",
       "errorTitle": "Oops, something went wrong",
-      "errorAlertDescription": "We couldn't complete the profile analysis right now.",
+      "errorAlertDescription": "We couldn't complete the profile analysis at this time. Please try again later.",
       "retryButton": "Try Again",
-      "initialState": "Click the button to start the analysis.",
-      "toastErrorTitle": "Analysis Process Error",
-      "toastErrorDescription": "Failed to get profile analysis: {{error}}"
+      "initialState": "Click the button to begin the analysis.",
+      "toast": {
+        "errorTitle": "Analysis Error",
+        "errorDescription": "Failed to retrieve profile analysis: {{error}}"
+      }
     },
     "analysisResult": {
       "tabs": {
         "summary": "Summary",
         "completeness": "Profile Completeness",
-        "tips": "Tips for Improvement"
+        "tips": "Improvement Tips"
       },
       "summary": {
-        "myPersonalityTitle": "Who am I? (AI Summary)",
-        "myPersonalityDescription": "This is how the AI understands your personality based on what you've shared.",
-        "lookingForTitle": "Who am I looking for? (AI Summary)",
-        "lookingForDescription": "A summary of your preferences for an ideal partner."
+        "myPersonalityTitle": "Who Am I? (AI Summary)",
+        "myPersonalityDescription": "How our AI understands your personality based on your profile and answers.",
+        "lookingForTitle": "Who Am I Looking For? (AI Summary)",
+        "lookingForDescription": "A summary of your preferences for your ideal partner."
       },
       "completeness": {
         "title": "Profile Completeness Report",
-        "description": "A review of the completed sections of your profile and those that still need attention.",
+        "description": "An overview of the sections you've completed and those that could use a little more detail.",
         "status": {
           "complete": "Complete",
-          "partial": "Partial",
+          "partial": "Partially Complete",
           "missing": "Missing"
         }
       },
       "tips": {
-        "title": "Recommendations and Tips for Improvement",
-        "description": "Concrete suggestions to help you upgrade your profile and attract better matches."
+        "title": "Personalized Recommendations",
+        "description": "Actionable tips to enhance your profile and attract higher-quality matches."
       }
     }
   },
   "photosSection": {
-    "title": "Profile Photos",
-    "subtitle": "Upload up to {{maxImages}} photos. The main photo will be displayed on the card.",
+    "title": "Your Profile Photos",
+    "subtitle": "Upload up to {{maxImages}} photos. Your first photo will be your main profile picture.",
     "uploadingMultiple": "Uploading {{count}} photos...",
     "selectForDeletion": "Select to Delete",
     "uploadButton": "Upload Photos",
@@ -126,20 +126,20 @@
     "mainBadge": "Main",
     "uploadPlaceholder": {
       "title": "Upload Photos",
-      "remaining": "Up to {{count}} more photos",
+      "remaining": "Up to {{count}} more",
       "prompt": "(Select multiple files)"
     },
     "uploadingPlaceholder": "Uploading...",
     "emptyState": {
-      "title": "No photos in the profile yet",
-      "description": "Good photos make the first impression. It's a good idea to upload some."
+      "title": "No photos yet",
+      "description": "Photos are the first chapter of your story. Upload a few to make a great first impression."
     },
     "emptyStateDisabled": {
       "title": "No photos have been uploaded for this profile."
     },
     "deleteDialog": {
       "title": "Confirm Photo Deletion",
-      "description": "Permanently delete this photo? This action cannot be undone.",
+      "description": "Are you sure you want to permanently delete this photo? This action cannot be undone.",
       "cancel": "Cancel",
       "confirm": "Delete"
     },
@@ -158,25 +158,29 @@
       "invalidFileTypeError": "File {{fileName}}: Invalid file type.",
       "fileTooLargeError": "File {{fileName}}: File is too large (max 5MB).",
       "uploadSuccess": "{{count}} photos uploaded successfully!",
-      "uploadError": "Error uploading photos.",
+      "uploadError": "An error occurred while uploading photos.",
       "selectOneError": "Please select at least one photo to delete.",
       "bulkDeleteSuccess": "{{count}} photos deleted successfully.",
-      "bulkDeleteError": "Error deleting photos.",
+      "bulkDeleteError": "An error occurred while deleting photos.",
       "singleDeleteSuccess": "Photo deleted successfully.",
-      "singleDeleteError": "Error deleting photo.",
-      "setMainSuccess": "Main photo updated.",
-      "setMainError": "Error updating main photo."
+      "singleDeleteError": "An error occurred while deleting the photo.",
+      "setMainSuccess": "Main photo updated successfully.",
+      "setMainError": "An error occurred while updating the main photo."
     },
     "confirmations": {
-      "bulkDelete": "Delete {{count}} selected photos? This action is irreversible."
+      "bulkDelete": "Are you sure you want to delete {{count}} selected photos? This action is irreversible."
     }
   },
   "profileSection": {
     "loading": "Loading profile data...",
+    "budgetDisplay": {
+      "errorInvalidData": "Error: Invalid data for display.",
+      "noValuesAllocated": "No values allocated."
+    },
     "header": {
       "title": "Personal Profile",
-      "subtitleEdit": "Edit your profile details.",
-      "subtitleView": "The candidate's profile details."
+      "subtitleEdit": "Edit your profile details to best reflect who you are.",
+      "subtitleView": "Candidate's profile details."
     },
     "buttons": {
       "edit": "Edit",
@@ -191,11 +195,11 @@
         "genderPlaceholder": "Select gender",
         "birthDateLabel": "Date of Birth",
         "heightLabel": "Height (cm)",
-        "heightPlaceholder": "Height in cm",
+        "heightPlaceholder": "e.g., 175",
         "cityLabel": "City of Residence",
         "cityPlaceholder": "Start typing a city name...",
-        "originLabel": "Origin / Ethnicity",
-        "originPlaceholder": "e.g., Ashkenazi, Sephardi",
+        "originLabel": "Origin / Heritage",
+        "originPlaceholder": "e.g., Ashkenazi, Sephardi, Mixed",
         "aliyaCountryLabel": "Country of Aliyah",
         "aliyaCountryPlaceholder": "If relevant, type country name",
         "aliyaYearLabel": "Year of Aliyah",
@@ -208,12 +212,12 @@
         "removeLanguageLabel": "Remove {{lang}}"
       },
       "family": {
-        "title": "Marital Status & Background",
+        "title": "Family Background",
         "maritalStatusLabel": "Marital Status",
         "maritalStatusPlaceholder": "Select status",
-        "hasChildrenLabel": "Children from previous relationship?",
+        "hasChildrenLabel": "Children from a previous relationship?",
         "hasChildrenYes": "Has children",
-        "parentStatusLabel": "Parents' Status",
+        "parentStatusLabel": "Parents' Marital Status",
         "parentStatusPlaceholder": "e.g., Married, Divorced",
         "fatherOccupationLabel": "Father's Occupation",
         "fatherOccupationPlaceholder": "e.g., Engineer, Lawyer",
@@ -221,16 +225,16 @@
         "motherOccupationPlaceholder": "e.g., Teacher, Doctor",
         "siblingsLabel": "Number of Siblings",
         "siblingsPlaceholder": "Including yourself",
-        "positionLabel": "Position in Family",
-        "positionPlaceholder": "e.g., 1 (Eldest)"
+        "positionLabel": "Birth Order",
+        "positionPlaceholder": "e.g., 1 (for eldest)"
       },
       "religion": {
         "title": "Religion & Lifestyle",
-        "religiousLevelLabel": "Religious Level",
+        "religiousLevelLabel": "Religious Observance",
         "religiousLevelPlaceholder": "Select level",
-        "religiousJourneyLabel": "Religious Journey",
-        "religiousJourneyPlaceholder": "Select religious background",
-        "shomerNegiahLabel": "Shomer/et Negiah?",
+        "religiousJourneyLabel": "Religious Background",
+        "religiousJourneyPlaceholder": "Select background",
+        "shomerNegiahLabel": "Observant of Shomer Negiah?",
         "shomerNegiahYes": "Yes",
         "headCoveringLabel": "Head Covering",
         "headCoveringPlaceholder": "Select covering type",
@@ -242,51 +246,51 @@
         "matchmakerGenderPlaceholder": "Select preference (optional)",
         "matchmakerGenderDefault": "No preference",
         "influentialRabbiLabel": "Influential Rabbinic/Spiritual Figure",
-        "influentialRabbiPlaceholder": "The figure's name and how they influenced you...",
+        "influentialRabbiPlaceholder": "Share a figure who has influenced you and how...",
         "influentialRabbiEmpty": "No influential figure specified."
       },
       "about": {
         "title": "About Me & More",
-        "headlineLabel": "Profile Headline",
-        "headlinePlaceholder": "One sentence that summarizes you...",
+        "headlineLabel": "My Headline",
+        "headlinePlaceholder": "A single sentence that captures your essence...",
         "headlineEmpty": {
-          "title": "Your headline is the opening to your story.",
-          "subtitle": "A short example with depth:",
-          "example": "\"Seeking the simple connection, to build the real thing.\""
+          "title": "Your headline is the opening line to your story.",
+          "subtitle": "A short, meaningful example:",
+          "example": "\"Seeking a simple connection to build something real.\""
         },
-        "aboutLabel": "Tell us a bit about yourself (free text)",
-        "aboutPlaceholder": "Describe yourself, what characterizes you, what's important to you...",
+        "aboutLabel": "About Me (in your own words)",
+        "aboutPlaceholder": "Describe yourself, what makes you unique, and what's important to you...",
         "aboutEmpty": "No personal description provided.",
-        "inspiringCoupleLabel": "The couple that inspires me",
-        "inspiringCouplePlaceholder": "Who is the couple and what's special about their relationship...",
+        "inspiringCoupleLabel": "A Couple That Inspires Me",
+        "inspiringCouplePlaceholder": "Who is the couple and what do you admire about their relationship...",
         "inspiringCoupleEmpty": "No inspiring couple specified.",
-        "privateNotesLabel": "Additional notes for the matchmaker (private)",
-        "privateNotesPlaceholder": "More things it's important for the matchmaker to know...",
-        "privateNotesEmpty": "No additional notes for the matchmaker."
+        "privateNotesLabel": "Private Notes for the Matchmaker",
+        "privateNotesPlaceholder": "Anything else you feel is important for your matchmaker to know...",
+        "privateNotesEmpty": "No private notes provided."
       },
       "medical": {
-        "title": "Medical & Sensitive Information",
-        "tooltip": "Information in this section is for matchmakers only and will not be displayed on the profile by default.",
-        "description": "We believe a healthy relationship is built on integrity and responsibility. This section allows you to discreetly share relevant medical information (physical or mental) so we can help find an accurate match and prevent distress.",
-        "hasInfoLabel": "Is there medical information the team should know?",
-        "detailsLabel": "Information Details (will be kept strictly confidential)",
-        "detailsPlaceholder": "This is the place to elaborate. E.g., chronic illness, mental health challenges, fertility issues, or anything you feel is right and important to mention.",
-        "timingLabel": "When would you like this information disclosed to the other party (mediated by the matchmaker)?",
+        "title": "Sensitive & Medical Information",
+        "tooltip": "This information is confidential and for matchmakers only. It will not be displayed on your profile by default.",
+        "description": "We believe healthy relationships are built on integrity and responsibility. This section allows you to discreetly share relevant information (physical or mental) to help us find the most suitable matches and prevent any discomfort later on.",
+        "hasInfoLabel": "Is there any sensitive or medical information the team should be aware of?",
+        "detailsLabel": "Details (will be kept strictly confidential)",
+        "detailsPlaceholder": "This is a safe space to share. Examples: chronic illness, mental health journey, fertility matters, or anything else you feel is important to mention.",
+        "timingLabel": "When would you prefer this to be shared with a match (mediated by the matchmaker)?",
         "timingPlaceholder": "Select disclosure timing",
-        "visibilityLabel": "Profile Display",
+        "visibilityLabel": "Profile Visibility",
         "visibilityToggle": {
-          "visible": "Will be displayed on profile",
-          "hidden": "Discreet (for team only)"
+          "visible": "A notice will be visible on your profile",
+          "hidden": "Discreet (for the matchmaking team only)"
         },
         "visibilityDescription": {
-          "visible": "A note about the existence of medical info will be shown on your card.",
-          "hidden": "The information will remain confidential and for matchmaker use only."
+          "visible": "Your profile will indicate that there is sensitive information to discuss.",
+          "hidden": "This information will remain completely confidential for matchmaker use only."
         },
         "display": {
-          "sharedInfo": "Medical Information Shared",
+          "sharedInfo": "Sensitive Information Shared",
           "yes": "Yes",
           "no": "No",
-          "details": "Details",
+          "details": "Details Provided",
           "noDetails": "No details provided.",
           "timing": "Preferred Disclosure Timing",
           "visibility": "Profile Visibility",
@@ -295,8 +299,8 @@
         }
       },
       "education": {
-        "title": "Education, Occupation & Service",
-        "levelLabel": "Education Level",
+        "title": "Education, Career & Service",
+        "levelLabel": "Highest Level of Education",
         "levelPlaceholder": "Select level",
         "detailsLabel": "Education Details (Institution, Field)",
         "detailsPlaceholder": "e.g., Bar-Ilan University, Law",
@@ -305,27 +309,27 @@
         "serviceTypeLabel": "Service (Military/National/Other)",
         "serviceTypePlaceholder": "Select service type",
         "serviceDetailsLabel": "Service Details",
-        "serviceDetailsPlaceholder": "Corps, unit, role, name of yeshiva/mechina"
+        "serviceDetailsPlaceholder": "Unit, role, yeshiva/mechina name, etc."
       },
       "character": {
         "title": "Character Traits & Hobbies",
-        "traitsLabel": "Prominent Character Traits (up to 3)",
+        "traitsLabel": "My Top 3 Character Traits",
         "traitsEmpty": "No character traits selected.",
-        "hobbiesLabel": "Main Hobbies (up to 3)",
+        "hobbiesLabel": "My Top 3 Hobbies",
         "hobbiesEmpty": "No hobbies selected."
       }
     },
     "placeholders": {
       "notSpecified": "Not specified",
-      "notRelevant": "Not relevant",
+      "notRelevant": "Not applicable",
       "noYear": "No year specified"
     },
     "tooltips": {
-      "headline": "Write one catchy sentence that sums you up or what you're looking for. E.g., \"Engineer by day, dreamer by night.\"",
-      "about": "This is your place to shine! Tell us about yourself freely: what you do, significant milestones, and of course, your personality.\nAt least {{count}} characters required.",
-      "inspiringCouple": "Think of a couple (family, friends, historical figures) whose relationship inspires you. What do you learn from them?",
-      "influentialRabbi": "Tell us about a figure (rabbi, rebbetzin, thinker) who influenced your worldview. This helps us understand your spiritual nuance.",
-      "privateNotes": "Information that's important for us to know to find a good match, but you wouldn't want to appear on the public profile. E.g., sensitive topics, very specific preferences, or additional background."
+      "headline": "Write one catchy sentence that sums you up or what you're looking for. e.g., 'Engineer by day, dreamer by night.'",
+      "about": "This is your place to shine! Tell us about yourself freely: what you do, significant milestones, and of course, your personality. A minimum of {{count}} characters helps create a richer picture.",
+      "inspiringCouple": "Think of a couple (from your life, history, etc.) whose relationship inspires you. What do you learn from them about partnership?",
+      "influentialRabbi": "Tell us about a figure (rabbi, thinker, teacher) who has shaped your worldview. This helps us understand your spiritual and intellectual side.",
+      "privateNotes": "Share anything important for us to know that you don't want on your public profile. e.g., sensitive topics, very specific preferences, or additional background."
     },
     "toasts": {
       "validationErrorTitle": "Validation Error",
@@ -340,28 +344,28 @@
         "single": "Single",
         "divorced": "Divorced",
         "widowed": "Widowed",
-        "annulled": "Annulled"
+        "annulled": "Annulled Marriage"
       },
       "religiousLevel": {
         "charedi": "Haredi",
-        "charedi_modern": "Modern Haredi",
+        "charedi_modern": "Modern Haredi / Hardali",
         "dati_leumi_torani": "Religious Zionist (Torani)",
         "dati_leumi_liberal": "Religious Zionist (Liberal)",
         "dati_leumi_standard": "Religious Zionist (Standard)",
-        "masorti_strong": "Traditional (Close to religion)",
-        "masorti_light": "Traditional (Light connection)",
-        "secular_traditional_connection": "Secular with connection to tradition",
+        "masorti_strong": "Traditional (Observant)",
+        "masorti_light": "Traditional (Lightly connected)",
+        "secular_traditional_connection": "Secular with a connection to tradition",
         "secular": "Secular",
         "spiritual_not_religious": "Spiritual (not necessarily religious)",
-        "other": "Other (please specify in 'About')"
+        "other": "Other (please specify in 'About Me')"
       },
       "religiousJourney": {
-        "BORN_INTO_CURRENT_LIFESTYLE": "Grew up in a similar environment to today",
+        "BORN_INTO_CURRENT_LIFESTYLE": "Grew up in a similar religious environment",
         "BORN_SECULAR": "Grew up in a secular environment",
-        "BAAL_TESHUVA": "Became religious (Baal Teshuva)",
-        "DATLASH": "Left the religious world (Datlash)",
-        "CONVERT": "Convert",
-        "IN_PROCESS": "In a process of change / exploration",
+        "BAAL_TESHUVA": "Became religious later in life",
+        "DATLASH": "Formerly religious",
+        "CONVERT": "Convert to Judaism",
+        "IN_PROCESS": "In a process of spiritual exploration",
         "OTHER": "Other (please specify in notes)"
       },
       "educationLevel": {
@@ -375,24 +379,24 @@
         "other": "Other"
       },
       "serviceType": {
-        "MILITARY_COMBATANT": "Military - Combatant",
+        "MILITARY_COMBATANT": "Military - Combat",
         "MILITARY_SUPPORT": "Military - Support Role",
         "MILITARY_OFFICER": "Military - Officer",
-        "MILITARY_INTELLIGENCE_CYBER_TECH": "Military - Intel/Cyber/Tech",
-        "NATIONAL_SERVICE_ONE_YEAR": "National Service - One Year",
-        "NATIONAL_SERVICE_TWO_YEARS": "National Service - Two Years",
-        "HESDER_YESHIVA": "Hesder Yeshiva",
-        "YESHIVA_ONLY_POST_HS": "Yeshiva Gedola / Seminary (no army/national service)",
-        "PRE_MILITARY_ACADEMY_AND_SERVICE": "Pre-military Academy and Service",
+        "MILITARY_INTELLIGENCE_CYBER_TECH": "Military - Intelligence/Cyber/Tech",
+        "NATIONAL_SERVICE_ONE_YEAR": "National Service (Sherut Leumi) - One Year",
+        "NATIONAL_SERVICE_TWO_YEARS": "National Service (Sherut Leumi) - Two Years",
+        "HESDER_YESHIVA": "Hesder Yeshiva Program",
+        "YESHIVA_ONLY_POST_HS": "Yeshiva/Seminary (without army/national service)",
+        "PRE_MILITARY_ACADEMY_AND_SERVICE": "Pre-military Academy (Mechina) and Service",
         "EXEMPTED": "Exempted from Service",
-        "CIVILIAN_SERVICE": "Civilian Service",
+        "CIVILIAN_SERVICE": "Civilian Service (Sherut Ezrachi)",
         "OTHER": "Other / Not Applicable"
       },
       "headCovering": {
         "FULL_COVERAGE": "Full Head Covering",
         "PARTIAL_COVERAGE": "Partial Head Covering",
         "HAT_BERET": "Hat / Beret",
-        "SCARF_ONLY_SOMETIMES": "Scarf (only for events/synagogue)",
+        "SCARF_ONLY_SOMETIMES": "Scarf (for synagogue/events)",
         "NONE": "No Head Covering"
       },
       "kippahType": {
@@ -401,8 +405,8 @@
         "KNITTED_LARGE": "Large Knitted",
         "CLOTH": "Cloth",
         "BRESLEV": "Breslev (large white)",
-        "NONE_AT_WORK_OR_CASUAL": "Not at work / daily",
-        "NONE_USUALLY": "Usually doesn't wear",
+        "NONE_AT_WORK_OR_CASUAL": "Only for prayer/special occasions",
+        "NONE_USUALLY": "Usually does not wear",
         "OTHER": "Other"
       },
       "matchmakerGender": {
@@ -411,10 +415,10 @@
         "NONE": "No Preference"
       },
       "medicalTiming": {
-        "FROM_THE_START": "From the start (recommended for major issues)",
+        "FROM_THE_START": "From the beginning (recommended for significant topics)",
         "AFTER_FIRST_DATES": "After the first or second date",
         "WHEN_SERIOUS": "When the relationship becomes serious",
-        "IN_COORDINATION_ONLY": "Only via a personal phone call with me"
+        "IN_COORDINATION_ONLY": "Only via a personal call with me first"
       },
       "traits": {
         "empathetic": "Empathetic",
@@ -452,13 +456,23 @@
     },
     "charCount": "/ {{count}}+ characters"
   },
-    "questionnaireSection": {
+  "questionnaireSection": {
     "worlds": {
-      "values": { "title": "Values & What's Between" },
-      "personality": { "title": "Personality & Character" },
-      "relationship": { "title": "Relationship & Family" },
-      "religion": { "title": "Religion & Faith" },
-      "partner": { "title": "Partner Preferences" }
+      "values": {
+        "title": "Values & Guiding Principles"
+      },
+      "personality": {
+        "title": "Personality & Character"
+      },
+      "relationship": {
+        "title": "Partnership & Family Vision"
+      },
+      "religion": {
+        "title": "Religion & Spirituality"
+      },
+      "partner": {
+        "title": "About My Desired Partner"
+      }
     },
     "emptyState": {
       "title": "No questionnaire has been filled out for this profile.",
@@ -466,8 +480,8 @@
       "button": "Fill out the Questionnaire"
     },
     "noAnswersState": {
-      "title": "Questionnaire Not Fully Completed",
-      "subtitle": "There are no answers to display yet, but you can continue filling out the questionnaire.",
+      "title": "The questionnaire is not yet complete.",
+      "subtitle": "You can continue filling it out to see your answers here.",
       "button": "Continue Questionnaire"
     },
     "header": {
@@ -476,7 +490,7 @@
         "inProgress": "Questionnaire in Progress"
       },
       "lastUpdated": "Last updated",
-      "notStarted": "Questionnaire not yet started",
+      "notStarted": "Not yet started",
       "goToButton": "Go to Questionnaire",
       "editButton": {
         "start": "Edit Answers",
@@ -494,23 +508,23 @@
     "questionCard": {
       "toasts": {
         "emptyAnswer": "Cannot save an empty answer.",
-        "updateSuccess": "Answer updated successfully",
-        "updateError": "Error updating answer",
-        "visibilitySuccess": "Visibility settings updated",
-        "visibilityError": "Error updating visibility"
+        "updateSuccess": "Answer updated successfully.",
+        "updateError": "Error updating answer.",
+        "visibilitySuccess": "Visibility updated.",
+        "visibilityError": "Error updating visibility."
       },
       "visibilityButton": {
-        "visible": "Visible to candidates",
-        "hidden": "Hidden"
+        "visible": "Visible to Matches",
+        "hidden": "Private"
       },
       "visibilityTooltip": {
         "editing": {
-          "visible": "Make hidden (visible only to you and matchmakers)",
-          "hidden": "Make visible (will be shown to candidates)"
+          "visible": "Make private (visible only to you and matchmakers)",
+          "hidden": "Make visible (will be shown to potential matches)"
         },
         "viewing": {
-          "visible": "This answer is visible to candidates",
-          "hidden": "This answer is hidden from candidates"
+          "visible": "This answer is visible to potential matches.",
+          "hidden": "This answer is private and only visible to matchmakers."
         }
       },
       "editTextareaPlaceholder": "Type your answer here...",
@@ -524,8 +538,7 @@
         "budget": "Edit in the full questionnaire"
       }
     }
-  }
-,
+  },
   "profileCard": {
     "loading": "Loading profile data...",
     "budgetDisplay": {
@@ -535,7 +548,7 @@
     "header": {
       "title": "Personal Profile",
       "subtitleEdit": "Edit your profile details.",
-      "subtitleView": "The candidate's profile details."
+      "subtitleView": "Candidate's profile details."
     },
     "buttons": {
       "edit": "Edit",
@@ -550,11 +563,11 @@
         "genderPlaceholder": "Select gender",
         "birthDateLabel": "Date of Birth",
         "heightLabel": "Height (cm)",
-        "heightPlaceholder": "Height in cm",
+        "heightPlaceholder": "e.g., 175",
         "cityLabel": "City of Residence",
         "cityPlaceholder": "Start typing a city name...",
-        "originLabel": "Origin / Ethnicity",
-        "originPlaceholder": "e.g., Ashkenazi, Sephardi",
+        "originLabel": "Origin / Heritage",
+        "originPlaceholder": "e.g., Ashkenazi, Sephardi, Mixed",
         "aliyaCountryLabel": "Country of Aliyah",
         "aliyaCountryPlaceholder": "If relevant, type country name",
         "aliyaYearLabel": "Year of Aliyah",
@@ -567,12 +580,12 @@
         "removeLanguageLabel": "Remove {{lang}}"
       },
       "family": {
-        "title": "Marital Status & Background",
+        "title": "Family Background",
         "maritalStatusLabel": "Marital Status",
         "maritalStatusPlaceholder": "Select status",
-        "hasChildrenLabel": "Children from previous relationship?",
+        "hasChildrenLabel": "Children from a previous relationship?",
         "hasChildrenYes": "Has children",
-        "parentStatusLabel": "Parents' Status",
+        "parentStatusLabel": "Parents' Marital Status",
         "parentStatusPlaceholder": "e.g., Married, Divorced",
         "fatherOccupationLabel": "Father's Occupation",
         "fatherOccupationPlaceholder": "e.g., Engineer, Lawyer",
@@ -580,16 +593,16 @@
         "motherOccupationPlaceholder": "e.g., Teacher, Doctor",
         "siblingsLabel": "Number of Siblings",
         "siblingsPlaceholder": "Including yourself",
-        "positionLabel": "Position in Family",
-        "positionPlaceholder": "e.g., 1 (Eldest)"
+        "positionLabel": "Birth Order",
+        "positionPlaceholder": "e.g., 1 (for eldest)"
       },
       "religion": {
         "title": "Religion & Lifestyle",
-        "religiousLevelLabel": "Religious Level",
+        "religiousLevelLabel": "Religious Observance",
         "religiousLevelPlaceholder": "Select level",
-        "religiousJourneyLabel": "Religious Journey",
-        "religiousJourneyPlaceholder": "Select religious background",
-        "shomerNegiahLabel": "Shomer/et Negiah?",
+        "religiousJourneyLabel": "Religious Background",
+        "religiousJourneyPlaceholder": "Select background",
+        "shomerNegiahLabel": "Observant of Shomer Negiah?",
         "shomerNegiahYes": "Yes",
         "headCoveringLabel": "Head Covering",
         "headCoveringPlaceholder": "Select covering type",
@@ -601,51 +614,51 @@
         "matchmakerGenderPlaceholder": "Select preference (optional)",
         "matchmakerGenderDefault": "No preference",
         "influentialRabbiLabel": "Influential Rabbinic/Spiritual Figure",
-        "influentialRabbiPlaceholder": "The figure's name and how they influenced you...",
+        "influentialRabbiPlaceholder": "Share a figure who has influenced you and how...",
         "influentialRabbiEmpty": "No influential figure specified."
       },
       "about": {
         "title": "About Me & More",
-        "headlineLabel": "Profile Headline",
-        "headlinePlaceholder": "One sentence that summarizes you...",
+        "headlineLabel": "My Headline",
+        "headlinePlaceholder": "A single sentence that captures your essence...",
         "headlineEmpty": {
-          "title": "Your headline is the opening to your story.",
-          "subtitle": "A short example with depth:",
-          "example": "\"Seeking the simple connection, to build the real thing.\""
+          "title": "Your headline is the opening line to your story.",
+          "subtitle": "A short, meaningful example:",
+          "example": "\"Seeking a simple connection to build something real.\""
         },
-        "aboutLabel": "Tell us a bit about yourself (free text)",
-        "aboutPlaceholder": "Describe yourself, what characterizes you, what's important to you...",
+        "aboutLabel": "About Me (in your own words)",
+        "aboutPlaceholder": "Describe yourself, what makes you unique, and what's important to you...",
         "aboutEmpty": "No personal description provided.",
-        "inspiringCoupleLabel": "The couple that inspires me",
-        "inspiringCouplePlaceholder": "Who is the couple and what's special about their relationship...",
+        "inspiringCoupleLabel": "A Couple That Inspires Me",
+        "inspiringCouplePlaceholder": "Who is the couple and what do you admire about their relationship...",
         "inspiringCoupleEmpty": "No inspiring couple specified.",
-        "privateNotesLabel": "Additional notes for the matchmaker (private)",
-        "privateNotesPlaceholder": "More things it's important for the matchmaker to know...",
-        "privateNotesEmpty": "No additional notes for the matchmaker."
+        "privateNotesLabel": "Private Notes for the Matchmaker",
+        "privateNotesPlaceholder": "Anything else you feel is important for your matchmaker to know...",
+        "privateNotesEmpty": "No private notes provided."
       },
       "medical": {
-        "title": "Medical & Sensitive Information",
-        "tooltip": "Information in this section is for matchmakers only and will not be displayed on the profile by default.",
-        "description": "We believe a healthy relationship is built on integrity and responsibility. This section allows you to discreetly share relevant medical information (physical or mental) so we can help find an accurate match and prevent distress.",
-        "hasInfoLabel": "Is there medical information the team should know?",
-        "detailsLabel": "Information Details (will be kept strictly confidential)",
-        "detailsPlaceholder": "This is the place to elaborate. E.g., chronic illness, mental health challenges, fertility issues, or anything you feel is right and important to mention.",
-        "timingLabel": "When would you like this information disclosed to the other party (mediated by the matchmaker)?",
+        "title": "Sensitive & Medical Information",
+        "tooltip": "This information is confidential and for matchmakers only. It will not be displayed on your profile by default.",
+        "description": "We believe healthy relationships are built on integrity and responsibility. This section allows you to discreetly share relevant information (physical or mental) to help us find the most suitable matches and prevent any discomfort later on.",
+        "hasInfoLabel": "Is there any sensitive or medical information the team should be aware of?",
+        "detailsLabel": "Details (will be kept strictly confidential)",
+        "detailsPlaceholder": "This is a safe space to share. Examples: chronic illness, mental health journey, fertility matters, or anything else you feel is important to mention.",
+        "timingLabel": "When would you prefer this to be shared with a match (mediated by the matchmaker)?",
         "timingPlaceholder": "Select disclosure timing",
-        "visibilityLabel": "Profile Display",
+        "visibilityLabel": "Profile Visibility",
         "visibilityToggle": {
-          "visible": "Will be displayed on profile",
-          "hidden": "Discreet (for team only)"
+          "visible": "A notice will be visible on your profile",
+          "hidden": "Discreet (for the matchmaking team only)"
         },
         "visibilityDescription": {
-          "visible": "A note about the existence of medical info will be shown on your card.",
-          "hidden": "The information will remain confidential and for matchmaker use only."
+          "visible": "Your profile will indicate that there is sensitive information to discuss.",
+          "hidden": "This information will remain completely confidential for matchmaker use only."
         },
         "display": {
-          "sharedInfo": "Medical Information Shared",
+          "sharedInfo": "Sensitive Information Shared",
           "yes": "Yes",
           "no": "No",
-          "details": "Details",
+          "details": "Details Provided",
           "noDetails": "No details provided.",
           "timing": "Preferred Disclosure Timing",
           "visibility": "Profile Visibility",
@@ -654,8 +667,8 @@
         }
       },
       "education": {
-        "title": "Education, Occupation & Service",
-        "levelLabel": "Education Level",
+        "title": "Education, Career & Service",
+        "levelLabel": "Highest Level of Education",
         "levelPlaceholder": "Select level",
         "detailsLabel": "Education Details (Institution, Field)",
         "detailsPlaceholder": "e.g., Bar-Ilan University, Law",
@@ -664,54 +677,159 @@
         "serviceTypeLabel": "Service (Military/National/Other)",
         "serviceTypePlaceholder": "Select service type",
         "serviceDetailsLabel": "Service Details",
-        "serviceDetailsPlaceholder": "Corps, unit, role, name of yeshiva/mechina"
+        "serviceDetailsPlaceholder": "Unit, role, yeshiva/mechina name, etc."
       },
       "character": {
         "title": "Character Traits & Hobbies",
-        "traitsLabel": "Prominent Character Traits (up to 3)",
+        "traitsLabel": "My Top 3 Character Traits",
         "traitsEmpty": "No character traits selected.",
-        "hobbiesLabel": "Main Hobbies (up to 3)",
+        "hobbiesLabel": "My Top 3 Hobbies",
         "hobbiesEmpty": "No hobbies selected."
       }
     },
     "placeholders": {
       "notSpecified": "Not specified",
-      "notRelevant": "Not relevant",
+      "notRelevant": "Not applicable",
       "noYear": "No year specified"
     },
     "tooltips": {
-      "headline": "Write one catchy sentence that sums you up or what you're looking for. E.g., \"Engineer by day, dreamer by night.\"",
-      "about": "This is your place to shine! Tell us about yourself freely: what you do, significant milestones, and of course, your personality.\nAt least {{count}} characters required.",
-      "inspiringCouple": "Think of a couple (family, friends, historical figures) whose relationship inspires you. What do you learn from them?",
-      "influentialRabbi": "Tell us about a figure (rabbi, rebbetzin, thinker) who influenced your worldview. This helps us understand your spiritual nuance.",
-      "privateNotes": "Information that's important for us to know to find a good match, but you wouldn't want to appear on the public profile. E.g., sensitive topics, very specific preferences, or additional background."
+      "headline": "Write one catchy sentence that sums you up or what you're looking for. e.g., 'Engineer by day, dreamer by night.'",
+      "about": "This is your place to shine! Tell us about yourself freely: what you do, significant milestones, and of course, your personality. A minimum of {{count}} characters helps create a richer picture.",
+      "inspiringCouple": "Think of a couple (from your life, history, etc.) whose relationship inspires you. What do you learn from them about partnership?",
+      "influentialRabbi": "Tell us about a figure (rabbi, thinker, teacher) who has shaped your worldview. This helps us understand your spiritual and intellectual side.",
+      "privateNotes": "Share anything important for us to know that you don't want on your public profile. e.g., sensitive topics, very specific preferences, or additional background."
     },
     "toasts": {
       "validationErrorTitle": "Validation Error",
       "aboutMinLength": "The 'About Me' field must contain at least {{count}} characters."
     },
     "options": {
-      "gender": { "MALE": "Male", "FEMALE": "Female" },
-      "maritalStatus": { "single": "Single", "divorced": "Divorced", "widowed": "Widowed", "annulled": "Annulled" },
-      "religiousLevel": { "charedi": "Haredi", "charedi_modern": "Modern Haredi", "dati_leumi_torani": "Religious Zionist (Torani)", "dati_leumi_liberal": "Religious Zionist (Liberal)", "dati_leumi_standard": "Religious Zionist (Standard)", "masorti_strong": "Traditional (Close to religion)", "masorti_light": "Traditional (Light connection)", "secular_traditional_connection": "Secular with connection to tradition", "secular": "Secular", "spiritual_not_religious": "Spiritual (not necessarily religious)", "other": "Other (please specify in 'About')" },
-      "religiousJourney": { "BORN_INTO_CURRENT_LIFESTYLE": "Grew up in a similar environment to today", "BORN_SECULAR": "Grew up in a secular environment", "BAAL_TESHUVA": "Became religious (Baal Teshuva)", "DATLASH": "Left the religious world (Datlash)", "CONVERT": "Convert", "IN_PROCESS": "In a process of change / exploration", "OTHER": "Other (please specify in notes)" },
-      "educationLevel": { "high_school": "High School", "vocational": "Vocational / Certificate", "academic_student": "University/College Student", "academic_ba": "Bachelor's Degree (BA/BSc)", "academic_ma": "Master's Degree (MA/MSc)", "academic_phd": "Doctorate (PhD)", "yeshiva_seminary": "Torah Studies (Yeshiva/Seminary/Kollel)", "other": "Other" },
-      "serviceType": { "MILITARY_COMBATANT": "Military - Combatant", "MILITARY_SUPPORT": "Military - Support Role", "MILITARY_OFFICER": "Military - Officer", "MILITARY_INTELLIGENCE_CYBER_TECH": "Military - Intel/Cyber/Tech", "NATIONAL_SERVICE_ONE_YEAR": "National Service - One Year", "NATIONAL_SERVICE_TWO_YEARS": "National Service - Two Years", "HESDER_YESHIVA": "Hesder Yeshiva", "YESHIVA_ONLY_POST_HS": "Yeshiva Gedola / Seminary (no army/national service)", "PRE_MILITARY_ACADEMY_AND_SERVICE": "Pre-military Academy and Service", "EXEMPTED": "Exempted from Service", "CIVILIAN_SERVICE": "Civilian Service", "OTHER": "Other / Not Applicable" },
-      "headCovering": { "FULL_COVERAGE": "Full Head Covering", "PARTIAL_COVERAGE": "Partial Head Covering", "HAT_BERET": "Hat / Beret", "SCARF_ONLY_SOMETIMES": "Scarf (only for events/synagogue)", "NONE": "No Head Covering" },
-      "kippahType": { "BLACK_VELVET": "Black Velvet", "KNITTED_SMALL": "Small Knitted", "KNITTED_LARGE": "Large Knitted", "CLOTH": "Cloth", "BRESLEV": "Breslev (large white)", "NONE_AT_WORK_OR_CASUAL": "Not at work / daily", "NONE_USUALLY": "Usually doesn't wear", "OTHER": "Other" },
-      "matchmakerGender": { "MALE": "Male Matchmaker", "FEMALE": "Female Matchmaker", "NONE": "No Preference" },
-      "medicalTiming": { "FROM_THE_START": "From the start (recommended for major issues)", "AFTER_FIRST_DATES": "After the first or second date", "WHEN_SERIOUS": "When the relationship becomes serious", "IN_COORDINATION_ONLY": "Only via a personal phone call with me" },
-      "traits": { "empathetic": "Empathetic", "driven": "Driven", "optimistic": "Optimistic", "family_oriented": "Family-Oriented", "intellectual": "Intellectual", "organized": "Organized", "calm": "Calm", "humorous": "Humorous", "sociable": "Sociable", "sensitive": "Sensitive", "independent": "Independent", "creative": "Creative", "honest": "Honest", "responsible": "Responsible", "easy_going": "Easy-Going" },
-      "hobbies": { "travel": "Travel", "sports": "Sports", "reading": "Reading", "cooking_baking": "Cooking/Baking", "music_playing_instrument": "Music/Playing an Instrument", "art_crafts": "Art/Crafts", "volunteering": "Volunteering", "learning_courses": "Learning/Courses", "board_games_puzzles": "Board Games/Puzzles", "movies_theater": "Movies/Theater", "dancing": "Dancing", "writing": "Writing", "nature_hiking": "Nature/Hiking", "photography": "Photography" }
+      "gender": {
+        "MALE": "Male",
+        "FEMALE": "Female"
+      },
+      "maritalStatus": {
+        "single": "Single",
+        "divorced": "Divorced",
+        "widowed": "Widowed",
+        "annulled": "Annulled Marriage"
+      },
+      "religiousLevel": {
+        "charedi": "Haredi",
+        "charedi_modern": "Modern Haredi / Hardali",
+        "dati_leumi_torani": "Religious Zionist (Torani)",
+        "dati_leumi_liberal": "Religious Zionist (Liberal)",
+        "dati_leumi_standard": "Religious Zionist (Standard)",
+        "masorti_strong": "Traditional (Observant)",
+        "masorti_light": "Traditional (Lightly connected)",
+        "secular_traditional_connection": "Secular with a connection to tradition",
+        "secular": "Secular",
+        "spiritual_not_religious": "Spiritual (not necessarily religious)",
+        "other": "Other (please specify in 'About Me')"
+      },
+      "religiousJourney": {
+        "BORN_INTO_CURRENT_LIFESTYLE": "Grew up in a similar religious environment",
+        "BORN_SECULAR": "Grew up in a secular environment",
+        "BAAL_TESHUVA": "Became religious later in life",
+        "DATLASH": "Formerly religious",
+        "CONVERT": "Convert to Judaism",
+        "IN_PROCESS": "In a process of spiritual exploration",
+        "OTHER": "Other (please specify in notes)"
+      },
+      "educationLevel": {
+        "high_school": "High School",
+        "vocational": "Vocational / Certificate",
+        "academic_student": "University/College Student",
+        "academic_ba": "Bachelor's Degree (BA/BSc)",
+        "academic_ma": "Master's Degree (MA/MSc)",
+        "academic_phd": "Doctorate (PhD)",
+        "yeshiva_seminary": "Torah Studies (Yeshiva/Seminary/Kollel)",
+        "other": "Other"
+      },
+      "serviceType": {
+        "MILITARY_COMBATANT": "Military - Combat",
+        "MILITARY_SUPPORT": "Military - Support Role",
+        "MILITARY_OFFICER": "Military - Officer",
+        "MILITARY_INTELLIGENCE_CYBER_TECH": "Military - Intelligence/Cyber/Tech",
+        "NATIONAL_SERVICE_ONE_YEAR": "National Service (Sherut Leumi) - One Year",
+        "NATIONAL_SERVICE_TWO_YEARS": "National Service (Sherut Leumi) - Two Years",
+        "HESDER_YESHIVA": "Hesder Yeshiva Program",
+        "YESHIVA_ONLY_POST_HS": "Yeshiva/Seminary (without army/national service)",
+        "PRE_MILITARY_ACADEMY_AND_SERVICE": "Pre-military Academy (Mechina) and Service",
+        "EXEMPTED": "Exempted from Service",
+        "CIVILIAN_SERVICE": "Civilian Service (Sherut Ezrachi)",
+        "OTHER": "Other / Not Applicable"
+      },
+      "headCovering": {
+        "FULL_COVERAGE": "Full Head Covering",
+        "PARTIAL_COVERAGE": "Partial Head Covering",
+        "HAT_BERET": "Hat / Beret",
+        "SCARF_ONLY_SOMETIMES": "Scarf (for synagogue/events)",
+        "NONE": "No Head Covering"
+      },
+      "kippahType": {
+        "BLACK_VELVET": "Black Velvet",
+        "KNITTED_SMALL": "Small Knitted",
+        "KNITTED_LARGE": "Large Knitted",
+        "CLOTH": "Cloth",
+        "BRESLEV": "Breslev (large white)",
+        "NONE_AT_WORK_OR_CASUAL": "Only for prayer/special occasions",
+        "NONE_USUALLY": "Usually does not wear",
+        "OTHER": "Other"
+      },
+      "matchmakerGender": {
+        "MALE": "Male Matchmaker",
+        "FEMALE": "Female Matchmaker",
+        "NONE": "No Preference"
+      },
+      "medicalTiming": {
+        "FROM_THE_START": "From the beginning (recommended for significant topics)",
+        "AFTER_FIRST_DATES": "After the first or second date",
+        "WHEN_SERIOUS": "When the relationship becomes serious",
+        "IN_COORDINATION_ONLY": "Only via a personal call with me first"
+      },
+      "traits": {
+        "empathetic": "Empathetic",
+        "driven": "Driven",
+        "optimistic": "Optimistic",
+        "family_oriented": "Family-Oriented",
+        "intellectual": "Intellectual",
+        "organized": "Organized",
+        "calm": "Calm",
+        "humorous": "Humorous",
+        "sociable": "Sociable",
+        "sensitive": "Sensitive",
+        "independent": "Independent",
+        "creative": "Creative",
+        "honest": "Honest",
+        "responsible": "Responsible",
+        "easy_going": "Easy-Going"
+      },
+      "hobbies": {
+        "travel": "Travel",
+        "sports": "Sports",
+        "reading": "Reading",
+        "cooking_baking": "Cooking/Baking",
+        "music_playing_instrument": "Music/Playing an Instrument",
+        "art_crafts": "Art/Crafts",
+        "volunteering": "Volunteering",
+        "learning_courses": "Learning/Courses",
+        "board_games_puzzles": "Board Games/Puzzles",
+        "movies_theater": "Movies/Theater",
+        "dancing": "Dancing",
+        "writing": "Writing",
+        "nature_hiking": "Nature/Hiking",
+        "photography": "Photography"
+      }
     },
     "charCount": "/ {{count}}+ characters"
   },
   "minimalCard": {
-    "nameNotAvailable": "Name not available",
-    "yearsOld": "{{age}} years",
+    "nameNotAvailable": "Name Not Available",
+    "yearsOld": "{{age}} years old",
     "profileImageAlt": "Profile picture",
     "available": "Available for matches",
-    "inProcess": "In a matching process"
+    "inProcess": "Getting to know someone"
   },
   "statsCard": {
     "availabilityStatusTitle": "Availability Status",
@@ -722,11 +840,11 @@
   },
   "visibilityControl": {
     "tooltip": {
-      "visible": "This answer is visible to candidates",
-      "hidden": "This answer is hidden from candidates",
-      "actionPrefix": "Click to",
-      "actionHide": "hide",
-      "actionShow": "show"
+      "visible": "This answer is visible to potential matches.",
+      "hidden": "This answer is private (for matchmakers only).",
+      "actionPrefix": "Click to make it",
+      "actionHide": "private",
+      "actionShow": "visible"
     },
     "srAction": {
       "hide": "Hide content",
@@ -740,28 +858,28 @@
   },
   "utils": {
     "validationErrors": {
-      "heightRange": "Height must be between 100 and 250 cm"
+      "heightRange": "Height must be between 100 and 250 cm."
     }
   },
-    "availabilityStatus": {
+  "availabilityStatus": {
     "dialogTitle": "Update Availability Status",
-    "dialogDescription": "Select your current status. Changing your status helps matchmakers provide relevant suggestions.",
+    "dialogDescription": "Let us know your current status so we can provide you with the most relevant suggestions.",
     "statusLabel": "Availability Status",
     "selectPlaceholder": "Select status",
     "noteLabel": "Note (Optional)",
-    "notePlaceholder": "e.g., 'Available for suggestions starting Sunday', 'Only serious suggestions'",
+    "notePlaceholder": "e.g., 'Available again on Sunday', 'Only looking for serious matches'",
     "updateError": "Error updating status",
     "cancelButton": "Cancel",
     "updateButton": "Update Status",
     "updatingButton": "Updating...",
-    "successDialogTitle": "Status Updated Successfully!",
-    "successDialogDescription": "Your status has been updated in the system. Please note, it may take a few moments for the change to appear everywhere.",
+    "successDialogTitle": "Status Updated!",
+    "successDialogDescription": "Your status has been updated. It may take a few moments for this change to be reflected everywhere.",
     "successDialogAction": "Got it",
     "status": {
-      "AVAILABLE": "Available for suggestions",
+      "AVAILABLE": "Available for Matches",
       "UNAVAILABLE": "Unavailable",
-      "DATING": "In a relationship process",
-      "PAUSED": "On a break",
+      "DATING": "Getting to Know Someone",
+      "PAUSED": "Taking a Break",
       "ENGAGED": "Engaged",
       "MARRIED": "Married",
       "UNKNOWN": "Unknown"
@@ -771,20 +889,20 @@
     "loadingText": "Loading user details...",
     "cardHeader": {
       "title": "Account Settings",
-      "description": "Manage your account and security details"
+      "description": "Manage your account, privacy, and security details."
     },
     "sections": {
       "personal": {
-        "title": "Personal Details",
-        "description": "Your name and email used on the site",
+        "title": "Personal Information",
+        "description": "The name and email associated with your account.",
         "fullNameLabel": "Full Name",
         "fullNameNotSet": "Not specified",
         "emailLabel": "Email Address",
-        "sendVerificationButton": "Send verification code"
+        "sendVerificationButton": "Send Verification Code"
       },
       "status": {
         "title": "Account Status",
-        "permissionsLabel": "Permissions",
+        "permissionsLabel": "Role",
         "roles": {
           "ADMIN": "Admin",
           "MATCHMAKER": "Matchmaker",
@@ -792,8 +910,8 @@
         },
         "statuses": {
           "ACTIVE": "Active",
-          "PENDING_EMAIL_VERIFICATION": "Pending email verification",
-          "PENDING_PHONE_VERIFICATION": "Pending phone verification",
+          "PENDING_EMAIL_VERIFICATION": "Pending Email Verification",
+          "PENDING_PHONE_VERIFICATION": "Pending Phone Verification",
           "INACTIVE": "Inactive",
           "BLOCKED": "Blocked"
         },
@@ -801,18 +919,18 @@
           "verified": "Verified",
           "notVerified": "Not Verified"
         },
-        "timeInfoLabel": "Time Details",
-        "createdAt": "Created at:",
-        "lastLogin": "Last login:"
+        "timeInfoLabel": "Account History",
+        "createdAt": "Member Since:",
+        "lastLogin": "Last Login:"
       },
       "marketing": {
-        "title": "Mailing Preferences",
-        "label": "Marketing information and updates",
-        "description": "Receive updates on events, promotions, and news from the company."
+        "title": "Communication Preferences",
+        "label": "Receive marketing information and updates",
+        "description": "Get updates about events, new features, and news from NeshamaTech."
       },
       "security": {
-        "title": "Security",
-        "description": "Security and password settings",
+        "title": "Security & Password",
+        "description": "Manage your password and account security.",
         "changePasswordButton": "Change Password",
         "accountVerificationLabel": "Account Verification",
         "passwordManagementLabel": "Password Management",
@@ -821,69 +939,69 @@
       },
       "delete": {
         "title": "Delete Account",
-        "description": "Deleting your account is irreversible and will remove all your data.",
+        "description": "Deleting your account is a permanent action and will remove all of your data.",
         "deleteButton": "Delete Account"
       }
     },
     "cardFooter": {
-      "notice": "Your account details are protected according to the site's privacy policy"
+      "notice": "Your account details are protected in accordance with our Privacy Policy."
     },
     "toasts": {
-      "fillAllFieldsError": "Please fill all fields",
-      "fillAllFieldsDesc": "All fields are required to change the password",
-      "passwordsMismatchError": "Passwords do not match",
-      "passwordsMismatchDesc": "Please ensure the new password is the same in both fields",
-      "passwordValidationError": "Password validation error",
-      "passwordValidationDesc": "Please follow all password requirements",
-      "verificationSentSuccess": "Verification code sent to your email",
-      "verificationSentDesc": "Please check your inbox",
-      "sendVerificationError": "Error sending verification code",
-      "sendVerificationDesc": "Try again later or contact support",
-      "initiatePasswordError": "Error verifying password",
-      "initiatePasswordDesc": "The current password might be incorrect",
-      "verificationCodeRequired": "Please enter the verification code",
-      "verificationCodeDesc": "The verification code is a required field",
-      "invalidVerificationCode": "Invalid verification code",
-      "invalidVerificationCodeDesc": "The verification code must be 6 digits",
-      "passwordUpdateSuccess": "Password updated successfully",
-      "passwordUpdateSuccessDesc": "Your new password is now active",
-      "passwordUpdateError": "Error updating password",
-      "passwordUpdateDesc": "The verification code is incorrect or has expired",
-      "invalidDeleteConfirmation": "Invalid confirmation",
+      "fillAllFieldsError": "Please fill all fields.",
+      "fillAllFieldsDesc": "All fields are required to change your password.",
+      "passwordsMismatchError": "Passwords do not match.",
+      "passwordsMismatchDesc": "Please ensure the new password is the same in both fields.",
+      "passwordValidationError": "Password is not strong enough.",
+      "passwordValidationDesc": "Please ensure your new password meets all requirements.",
+      "verificationSentSuccess": "Verification code sent.",
+      "verificationSentDesc": "Please check your email inbox.",
+      "sendVerificationError": "Error sending verification code.",
+      "sendVerificationDesc": "Please try again later or contact support.",
+      "initiatePasswordError": "Incorrect current password.",
+      "initiatePasswordDesc": "The current password you entered is incorrect. Please try again.",
+      "verificationCodeRequired": "Verification code required.",
+      "verificationCodeDesc": "Please enter the 6-digit code sent to your email.",
+      "invalidVerificationCode": "Invalid verification code.",
+      "invalidVerificationCodeDesc": "The verification code must be 6 digits.",
+      "passwordUpdateSuccess": "Password updated successfully.",
+      "passwordUpdateSuccessDesc": "Your new password is now active.",
+      "passwordUpdateError": "Error updating password.",
+      "passwordUpdateDesc": "The verification code may be incorrect or has expired.",
+      "invalidDeleteConfirmation": "Confirmation text does not match.",
       "invalidDeleteConfirmationDesc": "Please type '{{phrase}}' exactly to confirm deletion.",
-      "deleteSuccess": "Account deleted successfully",
-      "deleteSuccessDesc": "We hope to see you again. You are being redirected.",
-      "deleteError": "Error deleting account",
-      "deleteErrorDesc": "Try again later or contact support",
-      "marketingUpdateSuccess": "Mailing preferences updated successfully",
-      "marketingUpdateError": "Error updating mailing preferences"
+      "deleteSuccess": "Account deleted successfully.",
+      "deleteSuccessDesc": "We're sorry to see you go. You are being redirected.",
+      "deleteError": "Error deleting account.",
+      "deleteErrorDesc": "Please try again later or contact support.",
+      "marketingUpdateSuccess": "Communication preferences updated.",
+      "marketingUpdateError": "Error updating communication preferences."
     },
     "passwordDialog": {
       "title": "Change Password",
-      "description": "Update your account password",
+      "description": "Update your account password for added security.",
       "step1Label": "Enter Passwords",
       "step2Label": "Verification",
       "currentPasswordLabel": "Current Password",
-      "currentPasswordPlaceholder": "Enter current password",
+      "currentPasswordPlaceholder": "Enter your current password",
       "newPasswordLabel": "New Password",
-      "newPasswordPlaceholder": "Enter new password",
+      "newPasswordPlaceholder": "Enter a new, strong password",
       "confirmPasswordLabel": "Confirm New Password",
-      "confirmPasswordPlaceholder": "Enter new password again",
+      "confirmPasswordPlaceholder": "Enter the new password again",
       "passwordStrengthLabel": "Password Strength:",
       "requirements": {
         "length": "At least {{count}} characters",
-        "uppercase": "Uppercase letter",
-        "lowercase": "Lowercase letter",
+        "uppercase": "An uppercase letter",
+        "lowercase": "A lowercase letter",
         "number": "At least one number"
       },
-      "passwordsMismatchWarning": "Passwords do not match",
+      "passwordsMismatchWarning": "Passwords do not match.",
       "noticeTitle": "Please Note",
-      "noticeDescription": "After verifying the current password, a 6-digit code will be sent to your email",
+      "noticeDescription": "For your security, after verifying your current password, a 6-digit code will be sent to your email to confirm this change.",
       "verificationCodeLabel": "Verification Code",
-      "verificationCodePlaceholder": "Enter the 6-digit code sent to your email",
-      "tokenLifetime": "The verification code is valid for 24 hours",
+      "verificationCodePlaceholder": "Enter the 6-digit code from your email",
+      "tokenLifetime": "The verification code is valid for 24 hours.",
       "noCodeAlertTitle": "Didn't receive the code?",
-      "noCodeAlertDescription": "Check your inbox and spam folder. If the code was not received, try starting the process again.",
+      "noCodeAlertDescription": "Please check your inbox and spam folder. If you still can't find it, you can try starting the process again.",
       "cancelButton": "Cancel",
       "continueButton": "Continue",
       "confirmButton": "Confirm",
@@ -900,14 +1018,13 @@
     },
     "deleteDialog": {
       "title": "Confirm Account Deletion",
-      "description": "This action will permanently delete your account and all associated data. This cannot be undone.",
-      "confirmationLabel": "To confirm deletion, please type:",
+      "description": "This action will permanently delete your account and all associated data, including your profile, matches, and messages. This cannot be undone.",
+      "confirmationLabel": "To confirm, please type:",
       "confirmationPhrase": "I confirm deletion",
-      "mismatchWarning": "The entered text does not match.",
+      "mismatchWarning": "The text you entered does not match.",
       "cancelButton": "Cancel",
-      "deleteButton": "Permanently Delete Account",
+      "deleteButton": "Permanently Delete My Account",
       "deletingButton": "Deleting..."
     }
   }
-
 }

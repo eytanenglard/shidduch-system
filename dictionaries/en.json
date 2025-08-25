@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "NeshamaTech | Where Soul Meets Technology",
-    "description": "Relationships that start with the soul. At NeshamaTech, we use advanced technology and personal guidance to uncover true compatibility beyond the profile."
+    "description": "Relationships that start from the soul. At NeshamaTech, we combine advanced technology and personal guidance to uncover true compatibility that goes beyond the profile."
   },
   "navbar": {
     "myMatches": "My Matches",
@@ -10,16 +10,15 @@
     "login": "Sign In",
     "register": "Sign Up",
     "toQuestionnaire": "To the Smart Questionnaire",
-        "matchmakerSuggestions": "Match Suggestions",
+    "matchmakerSuggestions": "Match Suggestions",
     "matchmakerClients": "Candidates"
-
   },
-    "stickyNav": {
+  "stickyNav": {
     "homepageAriaLabel": "NeshamaTech Homepage",
     "signUpButton": "Sign Up",
     "closeNavAriaLabel": "Close navigation",
     "openNavAriaLabel": "Open navigation",
-     "navLinks": {
+    "navLinks": {
       "howItWorks": "The Journey",
       "suggestionDemo": "Suggestion Demo",
       "successStories": "Success Stories",
@@ -27,93 +26,119 @@
       "faq": "FAQ"
     }
   },
-
   "heroSection": {
     "titleLine1": "A relationship that starts",
-    "highlightedWord": "with the soul",
-    "typewriterText": "In a world where dating suggestions often boil down to a photo and a generic description, we believe in a different path. We've created a personal journey of getting to know you, starting with our unique questionnaire. It allows us to understand you deeply, enabling us to provide match suggestions that are far more than dry details – they are a complete story, empowering you to make a decision from a place of true understanding.",
-    "ctaButton": "Take My First Step",
-        "synergy": {
-      "techTools": "Smart Tools",
-      "personalGuidance": "Personal Guidance"
-    },
+    "highlightedWord": "from the soul",
+    "typewriterText": "In a world of endless swipes and superficial profiles, we believe in a different path. Our journey begins with a unique questionnaire designed to understand you deeply. This allows us to present matches that are more than just a picture and a bio—they are a complete story, empowering you to make a decision from a place of true connection.",
+    "ctaButton": "Begin My Journey",
     "secondaryButton": "To the Questionnaire",
-    "principlesHeader": { "title": "Our Approach", "subtitle": "Three core principles that ensure a deep and genuine experience" },
+    "synergy": {
+      "techTools": "Tech",
+      "personalGuidance": "Touch"
+    },
+    "principlesHeader": {
+      "title": "Our Approach",
+      "subtitle": "Three core principles that ensure a deep and genuine experience"
+    },
     "principles": [
-      { "title": "More Than a Picture, a Full Story", "shortTitle": "Full Story", "description": "Our in-depth questionnaire translates who you are into a rich narrative, allowing for a genuine connection from the very first moment." },
-      { "title": "Complete Privacy, Total Control", "shortTitle": "Complete Privacy", "description": "Your profile is only visible to your personal matchmaker. Every step and sharing of information is done only with your explicit approval." },
-      { "title": "Smart Technology, Human Heart", "shortTitle": "Human Heart", "description": "The power of our system is in the hands of an experienced matchmaker. They use the tools to see the person and personally guide you to success." }
+      {
+        "title": "More Than a Picture, a Full Story",
+        "shortTitle": "Full Story",
+        "description": "Our in-depth questionnaire translates who you are into a rich narrative, allowing for a genuine connection from the very first moment."
+      },
+      {
+        "title": "Complete Privacy, Total Control",
+        "shortTitle": "Complete Privacy",
+        "description": "Your profile is only visible to your personal matchmaker. Every step and sharing of information is done only with your explicit approval."
+      },
+      {
+        "title": "Smart Technology, Human Heart",
+        "shortTitle": "Human Heart",
+        "description": "The power of our system is in the hands of an experienced matchmaker. They use the tools to see the person and personally guide you to success."
+      }
     ]
   },
   "valueProposition": {
     "title_part1": "What Makes",
     "title_brand": "NeshamaTech",
-    "title_part2": "Unique?",
+    "title_part2": "Different?",
     "subtitle": "Our approach combines the power of smart technology with the warmth, experience, and personal guidance of professional matchmaking.",
     "challengeCard": {
       "title": "The Relationship Journey Challenges We All Know",
       "items": [
-        "Feeling overexposed and like a 'product on a shelf' in apps",
-        "Generic platforms that don't understand the important nuances of the religious and traditional world",
-        "Wasting time and energy on superficial conversations and irrelevant suggestions",
-        "Limited introductions only within one's immediate circle of friends",
-        "Traditional matchmaking that is sometimes limited by its database and slow processes"
+        "The feeling of being just another 'product on a shelf' in dating apps.",
+        "Generic platforms that miss the crucial nuances of the Jewish world.",
+        "Wasting time and energy on superficial conversations and irrelevant suggestions.",
+        "Introductions limited to one's immediate circle of friends.",
+        "Traditional matchmaking that can be limited by its database and slow processes."
       ]
     },
     "solutionCard": {
-      "title": "The NeshamaTech Approach: Technology at the Service of the Heart",
+      "title": "The NeshamaTech Approach: Technology in Service of the Heart",
       "items": [
-        { "bold": "Wide Database, Focused Search:", "text": "Our system scans a broad and high-quality pool of candidates, allowing matchmakers to present you with precise opportunities you might not have otherwise encountered." },
-        { "bold": "Warm Personal Guidance:", "text": "You are not alone. A personal matchmaker accompanies you, gets to know you deeply, and advises you at every stage of the journey." },
-        { 
-          "bold": "Truly Deep Compatibility:",
+        {
+          "bold": "A Wider Net, A Focused Search:",
+          "text": "Our system scans a broad, high-quality pool of candidates, allowing matchmakers to present you with precise opportunities you might not otherwise encounter."
+        },
+        {
+          "bold": "Warm, Personal Guidance:",
+          "text": "You are not alone. A personal matchmaker accompanies you, gets to know you deeply, and advises you at every stage of the journey."
+        },
+        {
+          "bold": "Discover Deep Compatibility:",
           "textWithLink": {
-            "part1": "A smart algorithm analyzes dozens of compatibility dimensions, based on your answers in our ",
-            "linkText": "unique questionnaire",
-            "part2": ", to uncover connections on a level of shared values and personality."
+            "part1": "Our smart algorithm, guided by your answers in our insightful ",
+            "linkText": "questionnaire",
+            "part2": ", analyzes dozens of dimensions to uncover connections rooted in shared values and personality."
           }
         },
-        { "bold": "Absolute Discretion:", "text": "Your profile remains confidential and is shown only to the matchmakers on the team. No detail is revealed to the other party without your explicit approval." },
-        { "bold": "Respect for Tradition, Tools of Tomorrow:", "text": "A platform that understands and respects your world of values, and uses technology to make the search more efficient and respectful." }
+        {
+          "bold": "Absolute Discretion:",
+          "text": "Your profile remains confidential and is shown only to the matchmakers on our team. No detail is revealed to another party without your explicit approval."
+        },
+        {
+          "bold": "Respect for Tradition, Tools of Tomorrow:",
+          "text": "A platform that understands and respects your world of values, using technology to make the search more efficient and respectful."
+        }
       ]
     }
   },
- "ourMethod": {
+  "ourMethod": {
     "constellation": {
       "header": "Our Human Approach",
       "title_part1": "We see the person",
       "title_part2": "behind the profile",
       "subtitle": "To find a true match, we need to truly know you. That's why we developed a unique method that explores five key worlds that make up who you are. This is how we find a complete connection, not a partial one.",
       "cta_header": "Your Moment Has Arrived",
-      "cta_title_part1": "Ready to start your",
+      "cta_title_part1": "Ready to begin your",
       "cta_title_part2": "journey",
       "cta_subtitle": "Our unique questionnaire is the first step. It's not technical; it's personal. This is your opportunity to tell us your story, so we can find its next chapter.",
-      "cta_button": "I want to start my journey",
-      "cta_features": "Personal Experience • Insights for You • Completely Discreet",
+      "cta_button": "Begin Your Journey",
+      "cta_features": "A Personal Journey • Deep Insights • Absolute Discretion",
       "worlds": [
         {
-          "title": "Personality World",
+          "title": "The World of Personality",
           "shortDesc": "The person behind the details",
           "fullDescription": "Here we understand who you really are: what motivates you, how you handle challenges, and your communication style. This is the foundation for creating an authentic and complete picture for us and for the other side.",
           "personalExample": "How would you divide 100 'personality points' between traits like empathy, ambition, and a sense of humor?",
           "insight": "A deep understanding of personality allows us to find someone with whom the dynamic will feel natural and right from the first moment."
         },
         {
-          "title": "Values World",
+          "title": "The World of Values",
           "shortDesc": "The foundation of a shared home",
           "fullDescription": "What are the pillars of your life? Here we define the values and beliefs that guide you and serve as a compass for building a stable and shared home.",
           "personalExample": "What are your priorities today, and how would you like them to look within a relationship?",
           "insight": "Value alignment is the key to a stable, long-term relationship. This is the most crucial part for accurate filtering and preventing future heartache."
         },
         {
-          "title": "Relationship World",
+          "title": "The World of Partnership",
           "shortDesc": "Your vision for 'togetherness'",
           "fullDescription": "What is a relationship to you, and what are your expectations from it? Here we'll understand your vision for partnership, from daily communication to shared dreams.",
           "personalExample": "What is your preferred approach to managing joint finances in a relationship?",
           "insight": "When visions for a relationship align, it's easier to start walking the same path together from the beginning."
         },
         {
-          "title": "Partner World",
+          "title": "The World of the Partner",
           "shortDesc": "Defining your desired match",
           "fullDescription": "Who is the person you are looking for? In this world, we will focus the search and understand what traits, background, and values are essential for you in a partner.",
           "personalExample": "What are your absolute 'Deal Breakers' in a partner?",
@@ -127,11 +152,10 @@
           "insight": "Spiritual and religious compatibility is critical in our community. Precise answers here are the key to building a faithful home in Israel on a shared and stable foundation."
         }
       ],
-          "example_header": "For example, we ask:",
-    "insight_header": "Our insight:",
-    "dimension_prefix": "Dimension",
-    "dimension_suffix": "of"
-
+      "example_header": "For example, we ask:",
+      "insight_header": "Our insight:",
+      "dimension_prefix": "Dimension",
+      "dimension_suffix": "of"
     }
   },
   "howItWorks": {
@@ -139,23 +163,23 @@
       "header": "Smart Method, Human Result",
       "title_line1": "From a brave decision,",
       "title_line2_part1": "to a",
-      "title_line2_part2": "match that feels right",
+      "title_line2_part2": "connection that feels right",
       "subtitle_line1": "We understand your journey. That's why we built a process that combines smart technology with warm, human guidance.",
       "subtitle_line2": "Our shared goal: to lead you to the exciting moment when you receive a suggestion and immediately understand why it's right for you."
     },
     "process": {
       "steps": [
         {
-          "title": "Step 1: Personal Discovery Journey",
+          "title": "Step 1: Your Journey of Self-Discovery",
           "description": "This is the heart of our method. Not just a form, but an invitation to a personal journey that reveals what truly matters to you. Your in-depth answers are our compass for finding meaningful matches.",
           "linkText": "Start your journey here."
         },
         {
-          "title": "Step 2: Building a Winning Profile",
+          "title": "Step 2: Building Your Best Profile",
           "description": "Your personal matchmaker studies your profile, and our smart system offers insights for improvement. Together, we ensure your story is told in the best and most accurate way."
         },
         {
-          "title": "Step 3: Tech Meets Intuition",
+          "title": "Step 3: Where Technology Meets Intuition",
           "description": "Our algorithm filters thousands of possibilities to find potential. Then, your matchmaker steps in with experience and human intuition to approve only the most promising suggestions."
         },
         {
@@ -167,7 +191,7 @@
     "proof": {
       "header": "The Result: This is What it Looks Like",
       "title_part1": "This is what a match",
-      "title_part2": "built for you looks like",
+      "title_part2": "tailored for you looks like",
       "subtitle": "After completing the process, every suggestion comes with clear reasoning and a rich background, so you can make a decision from a place of true understanding, not just a gut feeling.",
       "demo_female": "Example: A match for a woman",
       "demo_male": "Example: A match for a man"
@@ -208,13 +232,12 @@
       "button": "I want to begin",
       "features": "Free Initial Sign-Up • No Commitment"
     },
-        "suggestionDemo": {
+    "suggestionDemo": {
       "hoverTitle": "Click for Full View",
       "hoverSubtitle": "Discover the matchmaker's rationale, answers, and more"
     }
-
   },
-    "matchmakerTeam": {
+  "matchmakerTeam": {
     "title_part1": "Meet Our",
     "title_highlight": "Founders",
     "title_part2": "",
@@ -225,7 +248,11 @@
         "name": "Dina Englerd",
         "role": "Head Matchmaker",
         "description": "With 8 years of matchmaking experience, Dina brings exceptional interpersonal skills and a deep understanding of candidates' needs. Her personal and empathetic approach has created dozens of happy couples as she guides each candidate on a personalized path.",
-        "tags": ["Matching Expert", "Personal Guidance", "8+ Years Experience"],
+        "tags": [
+          "Matching Expert",
+          "Personal Guidance",
+          "8+ Years Experience"
+        ],
         "imageSrc": "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg",
         "color": "cyan"
       },
@@ -233,16 +260,20 @@
         "name": "Eytan Englerd",
         "role": "Founder & CEO",
         "description": "A tech entrepreneur specializing in matchmaking. Eytan developed our unique software platform, combining technological knowledge with a deep understanding of social psychology. His innovative approach created the unique method that defines our agency.",
-        "tags": ["Tech Innovation", "Matching Algorithm", "Entrepreneurship"],
+        "tags": [
+          "Tech Innovation",
+          "Matching Algorithm",
+          "Entrepreneurship"
+        ],
         "imageSrc": "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg",
         "color": "green"
       }
     ]
   },
-    "successStories": {
+  "successStories": {
     "title_part1": "Stories That Begin",
-    "title_highlight": "With the Soul",
-    "subtitle": "When we talk about 'a real connection,' this is exactly what we mean. Each of these stories began with deep listening to the needs and values of two people. We are grateful for the privilege of accompanying them on their journey.",
+    "title_highlight": "from the Soul",
+    "subtitle": "When we talk about a 'real connection,' this is exactly what we mean. Each of these stories began with a deep listening to the needs and values of two people. We are grateful for the privilege of accompanying them on their journey.",
     "more_stories_button": "For More Success Stories",
     "coming_soon_message": "We will be uploading more success stories soon, stay tuned!",
     "stories": [
@@ -295,7 +326,7 @@
       }
     ]
   },
-    "privacyAssurance": {
+  "privacyAssurance": {
     "title": "Your Safe Space",
     "subtitle": "In the world of matchmaking, trust and discretion are the foundation of everything. We built our system around this principle, so you can feel safe and comfortable throughout the entire journey.",
     "card_title": "Our Commitment to Privacy",
@@ -312,11 +343,11 @@
     "title_part1": "Your Journey to a Relationship",
     "title_highlight": "Starts Here",
     "subtitle": "If our personal, respectful, and in-depth approach speaks to you, you may have found your home. The first step is simple, discreet, and without obligation.",
-    "button": "I Want to Start the Journey"
+    "button": "Start Your Journey"
   },
   "footer": {
     "description": "Combining advanced technology and personal guidance to create meaningful, long-lasting relationships.",
-    "motto": "A relationship that starts with the soul",
+    "motto": "A relationship that starts from the soul",
     "copyright": "© 2025 NeshamaTech. All rights reserved.",
     "columns": {
       "navigation": {
@@ -378,7 +409,7 @@
       "placeholderLimitReached": "Question limit reached. Continue via email."
     }
   },
-    "cookieBanner": {
+  "cookieBanner": {
     "aria_close": "Close cookie banner",
     "title": "Privacy and Transparency",
     "text_part1": "We use cookies, including those from Google Analytics, to improve your browsing experience and analyze site traffic. The information is collected anonymously. For more information, please review our",
@@ -388,23 +419,23 @@
     "decline_button": "Decline"
   },
   "demoProfileCard": {
-  "tabs": {
-    "essence": "Essence",
-    "story": "Answers",
-    "vision": "Vision"
-  },
-  "vision": {
-    "q1": "How do I see my partner?",
-    "a1": "A person with an open heart, a sense of humor, and a true desire to grow together. Someone who is both a best friend and a partner for the journey.",
-    "q2": "What is my vision for a family?",
-    "a2": "A warm and vibrant home, open to guests, where children grow up with values of giving, love of Torah, and the Land of Israel."
-  },
-  "ctaButton": "Want to receive suggestions like this?",
-  "imageNav": {
-    "prev": "Previous image",
-    "next": "Next image",
-    "showImage": "Show image number {{number}}"
-  },
-  "tablistLabel": "Demo profile navigation"
-}
+    "tabs": {
+      "essence": "Essence",
+      "story": "Answers",
+      "vision": "Vision"
+    },
+    "vision": {
+      "q1": "How do I see my partner?",
+      "a1": "A person with an open heart, a sense of humor, and a true desire to grow together. Someone who is both a best friend and a partner for the journey.",
+      "q2": "What is my vision for a family?",
+      "a2": "A warm and vibrant home, open to guests, where children grow up with values of giving, love of Torah, and the Land of Israel."
+    },
+    "ctaButton": "Want to receive suggestions like this?",
+    "imageNav": {
+      "prev": "Previous image",
+      "next": "Next image",
+      "showImage": "Show image number {{number}}"
+    },
+    "tablistLabel": "Demo profile navigation"
+  }
 }

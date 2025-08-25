@@ -101,15 +101,20 @@ const nextConfig = {
           },
           // (CSP) - מדיניות אבטחת תוכן. זוהי ההגנה החזקה ביותר נגד XSS.
           // זוהי הגדרה התחלתית, ייתכן שתצטרך להוסיף מקורות נוספים בעתיד.
+
           {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.google-analytics.com",
+              // --- START: כאן השינוי ---
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.google-analytics.com www.googletagmanager.com",
+              "script-src-elem 'self' 'unsafe-inline' *.google-analytics.com www.googletagmanager.com",
+              // --- END: כאן השינוי ---
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
               "img-src 'self' data: https://res.cloudinary.com",
               "font-src 'self' fonts.gstatic.com",
-              `connect-src 'self' ${siteUrl} *.google-analytics.com https://api.upstash.com vitals.vercel-insights.com`,
+              // הוספנו גם לכאן את הכתובת, למקרה שגוגל עושה fetchים
+              `connect-src 'self' ${siteUrl} *.google-analytics.com www.googletagmanager.com https://api.upstash.com vitals.vercel-insights.com`,
               "form-action 'self'",
               "frame-ancestors 'self'",
             ].join('; '),
