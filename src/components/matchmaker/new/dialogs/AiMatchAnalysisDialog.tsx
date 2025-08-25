@@ -65,6 +65,7 @@ interface AiMatchAnalysisDialogProps {
   targetCandidate: Candidate | null;
   comparisonCandidates: Candidate[];
   dict: MatchmakerPageDictionary['candidatesManager']['aiAnalysis'];
+  locale: string; // <--- הוסף את השורה הזו
 }
 
 // --- Helper Functions ---
@@ -275,6 +276,7 @@ const AnalysisSkeleton: React.FC = () => (
 
 const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
   isOpen,
+  locale,
   onClose,
   targetCandidate,
   comparisonCandidates,
@@ -286,6 +288,9 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
   const [analyses, setAnalyses] = useState<
     Record<string, AiAnalysis | 'error' | 'loading'>
   >({});
+  const [language, setLanguage] = useState<'he' | 'en'>(
+    locale === 'he' ? 'he' : 'en'
+  );
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -330,7 +335,7 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
             body: JSON.stringify({
               userId1: targetCandidate.id,
               userId2: activeComparisonId,
-              language: 'he', // Language is now hardcoded
+              language: language,
             }),
           });
           const data = await response.json();
@@ -349,20 +354,24 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
       };
       fetchAnalysis();
     }
-  }, [isOpen, targetCandidate, activeComparisonId, analyses]);
+  }, [isOpen, targetCandidate, activeComparisonId, language, analyses]);
+
+  const handleLanguageChange = (newLang: 'he' | 'en') => {
+    if (newLang !== language) {
+      setLanguage(newLang);
+      setAnalyses({});
+    }
+  };
 
   if (!targetCandidate) return null;
 
   return (
     <>
-      {/* --- MODIFIED PART: Added floating close button --- */}
       <DialogClose asChild className="absolute top-3 left-3 z-50">
         <Button variant="ghost" size="icon" className="rounded-full">
           <X className="h-5 w-5" />
         </Button>
       </DialogClose>
-
-      {/* --- MODIFIED PART: The DialogHeader was removed from here --- */}
 
       <div className="flex-1 flex flex-col md:flex-row min-h-0">
         {isMobile ? (
@@ -387,8 +396,7 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
           </div>
         ) : (
           <aside className="w-1/4 border-l bg-slate-50/50 flex flex-col flex-shrink-0">
-            {/* --- MODIFICATION: Added pt-4 to give space for the floating X button --- */}
-            <h3 className="p-3 pt-4 text-sm font-semibold text-slate-600 border-b">
+            <h3 className="p-3 text-sm font-semibold text-slate-600 border-b">
               {dict.sidebar.title.replace(
                 '{{count}}',
                 String(comparisonCandidates.length)
@@ -628,7 +636,7 @@ export const AiMatchAnalysisDialog = (props: AiMatchAnalysisDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-6xl w-full h-[95vh] flex flex-col p-0 overflow-hidden relative"
+        className="max-w-6xl w-full h-[95vh] flex flex-col p-0 overflow-hidden"
         dir="rtl"
       >
         {isOpen && <DialogBody {...props} />}

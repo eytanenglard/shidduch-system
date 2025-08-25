@@ -5,7 +5,7 @@
 // --- React & Next.js Imports ---
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
-import { cn, getRelativeCloudinaryPath } from '@/lib/utils'
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 // --- Third-party Libraries ---
 import {
   UserPlus,
@@ -35,6 +35,8 @@ import {
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useParams } from 'next/navigation';
+
 import Image from 'next/image'; // <--- הוסף את השורה הזו
 import { motion, AnimatePresence } from 'framer-motion'; // <--- הוסף את השורה הזו
 
@@ -375,6 +377,8 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const [showManualAddDialog, setShowManualAddDialog] = useState(false);
   const [isHeaderCompact, setIsHeaderCompact] = useState(true);
   const [isQuickViewEnabled, setIsQuickViewEnabled] = useState(true); // <-- הוספת state חדש
+  const params = useParams();
+  const locale = params.lang || 'en'; // קובע את השפה הנוכחית
 
   // --- AI State ---
   const [aiTargetCandidate, setAiTargetCandidate] = useState<Candidate | null>(
@@ -947,7 +951,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         targetCandidate={aiTargetCandidate}
         comparisonCandidates={Object.values(comparisonSelection)}
         dict={matchmakerDict.candidatesManager.aiAnalysis}
-      />
+       locale={locale as string} // <--- הוסף את השורה הזו
+
+     />
     </div>
   );
 };

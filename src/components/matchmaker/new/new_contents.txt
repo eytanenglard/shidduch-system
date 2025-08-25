@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new
-# Generated on: 2025-08-25 19:55:37
+# Generated on: 2025-08-25 21:03:40
 ################################################################################
 
 ================================================================================
@@ -1295,7 +1295,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
           </div>
         </div>
 
-        <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+        <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform lg:translate-y-2 group-hover:translate-y-0">
           {onEdit && (
             <TooltipProvider>
               <Tooltip>
@@ -1362,7 +1362,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
 
         {isSelectableForComparison && onToggleComparison && (
           <div
-            className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0"
+            className="absolute bottom-3 right-3 z-20 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform lg:translate-y-2 group-hover:translate-y-0"
             onClick={(e) => {
               e.stopPropagation();
               onToggleComparison(candidate, e);
@@ -1806,6 +1806,8 @@ interface CandidatesListProps {
   comparisonSelection: Record<string, Candidate>;
   onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
   quickViewSide?: 'left' | 'right' | 'center';
+  isQuickViewEnabled: boolean; // <-- קבלת prop חדש
+
   dict: MatchmakerPageDictionary;
   profileDict: ProfilePageDictionary;
 }
@@ -1815,6 +1817,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   allCandidates,
   onCandidateClick,
   onCandidateAction,
+  isQuickViewEnabled, // <-- שימוש ב-prop החדש
+
   viewMode,
   mobileView,
   isLoading = false,
@@ -1983,6 +1987,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   };
 
   const handleMouseEnter = (candidate: Candidate, e?: React.MouseEvent) => {
+    if (isMobile || !e || !isQuickViewEnabled) return; // <-- תנאי חדש
+
     if (isMobile || !e) return;
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
@@ -2168,29 +2174,31 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         ))}
       </div>
 
-      {hoveredCandidate && !isMobile && (
-        <div
-          ref={quickViewRef}
-          className="absolute z-[70]"
-          style={{
-            top: `${hoverPosition.top}px`,
-            left: `${hoverPosition.left}px`,
-            width: '420px',
-          }}
-        >
-          <div className="drop-shadow-2xl">
-            {/********** תיקון #2: העברת המילון הנכון ל-QuickView **********/}
-            <QuickView
-              candidate={hoveredCandidate}
-              // שורה מעודכנת
-              onAction={(action) => handleAction(action, hoveredCandidate)}
-              onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
-              isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
-              dict={dict.candidatesManager.list.quickView} // <--- התיקון כאן
-            />
+      {isQuickViewEnabled &&
+        hoveredCandidate &&
+        !isMobile && ( // <-- תנאי חדש
+          <div
+            ref={quickViewRef}
+            className="absolute z-[70]"
+            style={{
+              top: `${hoverPosition.top}px`,
+              left: `${hoverPosition.left}px`,
+              width: '420px',
+            }}
+          >
+            <div className="drop-shadow-2xl">
+              {/********** תיקון #2: העברת המילון הנכון ל-QuickView **********/}
+              <QuickView
+                candidate={hoveredCandidate}
+                // שורה מעודכנת
+                onAction={(action) => handleAction(action, hoveredCandidate)}
+                onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
+                isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
+                dict={dict.candidatesManager.list.quickView} // <--- התיקון כאן
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       <Dialog
         open={!!selectedCandidate}
@@ -2204,7 +2212,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle>{dict.candidatesManager.list.profileDialog.title}</DialogTitle>
+              <DialogTitle>
+                {dict.candidatesManager.list.profileDialog.title}
+              </DialogTitle>
               <Button
                 variant="outline"
                 onClick={() => handleAction('edit', selectedCandidate!)}
@@ -2223,7 +2233,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             >
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue
-                  placeholder={dict.candidatesManager.list.profileDialog.viewAsLabel}
+                  placeholder={
+                    dict.candidatesManager.list.profileDialog.viewAsLabel
+                  }
                 />
               </SelectTrigger>
               <SelectContent>
@@ -2972,6 +2984,7 @@ interface AiMatch {
 }
 
 interface SplitViewProps {
+  isQuickViewEnabled: boolean;
   maleCandidates: Candidate[];
   femaleCandidates: Candidate[];
   allCandidates: Candidate[];
@@ -3002,7 +3015,7 @@ interface SplitViewProps {
   femaleSearchQuery?: string;
   onMaleSearchChange?: (query: string) => void;
   onFemaleSearchChange?: (query: string) => void;
-  
+
   dict: MatchmakerPageDictionary;
   profileDict: ProfilePageDictionary;
 }
@@ -3029,20 +3042,30 @@ const PanelHeaderComponent: React.FC<{
   onFindAiMatches,
   isAiLoading,
   isMobileView = false,
-  dict
+  dict,
 }) => {
   const genderConfig = {
     male: {
       title: dict.male.title,
       subtitle: dict.male.subtitle.replace('{{count}}', count.toString()),
       icon: Target,
-      colors: { gradient: 'from-blue-500 to-cyan-500', bg: 'from-blue-50 to-cyan-50', text: 'text-blue-800', badge: 'bg-blue-500' },
+      colors: {
+        gradient: 'from-blue-500 to-cyan-500',
+        bg: 'from-blue-50 to-cyan-50',
+        text: 'text-blue-800',
+        badge: 'bg-blue-500',
+      },
     },
     female: {
       title: dict.female.title,
       subtitle: dict.female.subtitle.replace('{{count}}', count.toString()),
       icon: Crown,
-      colors: { gradient: 'from-purple-500 to-pink-500', bg: 'from-purple-50 to-pink-50', text: 'text-purple-800', badge: 'bg-purple-500' },
+      colors: {
+        gradient: 'from-purple-500 to-pink-500',
+        bg: 'from-purple-50 to-pink-50',
+        text: 'text-purple-800',
+        badge: 'bg-purple-500',
+      },
     },
   };
 
@@ -3050,16 +3073,34 @@ const PanelHeaderComponent: React.FC<{
   const IconComponent = config.icon;
 
   return (
-    <div className={cn('flex justify-between items-center p-4 rounded-t-2xl', !isMobileView && `bg-gradient-to-r ${config.colors.bg} border-b border-gray-100/50`)}>
+    <div
+      className={cn(
+        'flex justify-between items-center p-4 rounded-t-2xl',
+        !isMobileView &&
+          `bg-gradient-to-r ${config.colors.bg} border-b border-gray-100/50`
+      )}
+    >
       <div className="flex items-center gap-3">
-        <div className={cn('p-3 rounded-full shadow-lg text-white transition-transform hover:scale-110', `bg-gradient-to-r ${config.colors.gradient}`)}>
+        <div
+          className={cn(
+            'p-3 rounded-full shadow-lg text-white transition-transform hover:scale-110',
+            `bg-gradient-to-r ${config.colors.gradient}`
+          )}
+        >
           <IconComponent className="w-6 h-6" />
         </div>
         <div>
-          <h2 className={cn('text-xl font-bold', config.colors.text)}>{config.title}</h2>
+          <h2 className={cn('text-xl font-bold', config.colors.text)}>
+            {config.title}
+          </h2>
           <p className="text-sm text-gray-600">{config.subtitle}</p>
         </div>
-        <Badge className={cn('text-white border-0 shadow-lg px-3 py-1 font-bold', config.colors.badge)}>
+        <Badge
+          className={cn(
+            'text-white border-0 shadow-lg px-3 py-1 font-bold',
+            config.colors.badge
+          )}
+        >
           {count}
         </Badge>
       </div>
@@ -3067,15 +3108,35 @@ const PanelHeaderComponent: React.FC<{
         {isTargetPanel && aiTargetCandidate && (
           <div className="flex items-center gap-2 bg-green-100 p-2 rounded-full shadow-lg animate-pulse">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
-            <span className="text-sm font-medium text-green-800 px-2">{dict.targetLabel.replace("{{name}}", aiTargetCandidate.firstName)}</span>
-            <Button size="icon" variant="ghost" className="h-6 w-6 text-green-700 hover:bg-green-200 rounded-full" onClick={onClearAiTarget}>
+            <span className="text-sm font-medium text-green-800 px-2">
+              {dict.targetLabel.replace(
+                '{{name}}',
+                aiTargetCandidate.firstName
+              )}
+            </span>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6 text-green-700 hover:bg-green-200 rounded-full"
+              onClick={onClearAiTarget}
+            >
               <XCircle className="h-4 w-4" />
             </Button>
           </div>
         )}
         {isSearchPanel && (
-          <Button size="sm" onClick={onFindAiMatches} disabled={isAiLoading} className={cn('shadow-lg font-bold transition-all duration-300 hover:scale-105', `bg-gradient-to-r ${config.colors.gradient} hover:opacity-90 text-white`)}>
-            <Sparkles className={cn('ml-2 h-4 w-4', isAiLoading && 'animate-spin')} />
+          <Button
+            size="sm"
+            onClick={onFindAiMatches}
+            disabled={isAiLoading}
+            className={cn(
+              'shadow-lg font-bold transition-all duration-300 hover:scale-105',
+              `bg-gradient-to-r ${config.colors.gradient} hover:opacity-90 text-white`
+            )}
+          >
+            <Sparkles
+              className={cn('ml-2 h-4 w-4', isAiLoading && 'animate-spin')}
+            />
             {isAiLoading ? dict.searchingButton : dict.findMatchesButton}
             <Zap className="w-3 h-3 mr-1" />
           </Button>
@@ -3086,26 +3147,44 @@ const PanelHeaderComponent: React.FC<{
 };
 
 // Enhanced Loading Component
-const LoadingComponent: React.FC<{ gender: 'male' | 'female' }> = ({ gender }) => {
-    const config = gender === 'male'
-      ? { gradient: 'from-blue-200 to-cyan-200', icon: Target, title: 'טוען מועמדים...', subtitle: 'אנא המתן בזמן שאנו מביאים את הנתונים' }
-      : { gradient: 'from-purple-200 to-pink-200', icon: Crown, title: 'טוענת מועמדות...', subtitle: 'אנא המתיני בזמן שאנו מביאות את הנתונים' };
-  
-    const IconComponent = config.icon;
-  
-    return (
-      <div className="flex flex-col items-center justify-center h-64 p-8">
-        <div className={cn('p-6 rounded-full mb-4 animate-pulse', `bg-gradient-to-r ${config.gradient}`)}>
-          <IconComponent className="w-12 h-12 text-white" />
-        </div>
-        <div className="text-center">
-          <h3 className="text-lg font-bold text-gray-700 mb-2">{config.title}</h3>
-          <p className="text-gray-500">{config.subtitle}</p>
-        </div>
+const LoadingComponent: React.FC<{ gender: 'male' | 'female' }> = ({
+  gender,
+}) => {
+  const config =
+    gender === 'male'
+      ? {
+          gradient: 'from-blue-200 to-cyan-200',
+          icon: Target,
+          title: 'טוען מועמדים...',
+          subtitle: 'אנא המתן בזמן שאנו מביאים את הנתונים',
+        }
+      : {
+          gradient: 'from-purple-200 to-pink-200',
+          icon: Crown,
+          title: 'טוענת מועמדות...',
+          subtitle: 'אנא המתיני בזמן שאנו מביאות את הנתונים',
+        };
+
+  const IconComponent = config.icon;
+
+  return (
+    <div className="flex flex-col items-center justify-center h-64 p-8">
+      <div
+        className={cn(
+          'p-6 rounded-full mb-4 animate-pulse',
+          `bg-gradient-to-r ${config.gradient}`
+        )}
+      >
+        <IconComponent className="w-12 h-12 text-white" />
       </div>
-    );
-  };
-  
+      <div className="text-center">
+        <h3 className="text-lg font-bold text-gray-700 mb-2">{config.title}</h3>
+        <p className="text-gray-500">{config.subtitle}</p>
+      </div>
+    </div>
+  );
+};
+
 // Enhanced Empty State Component
 const EmptyStateComponent: React.FC<{
   gender: 'male' | 'female';
@@ -3113,23 +3192,35 @@ const EmptyStateComponent: React.FC<{
   onClearSearch?: () => void;
   dict: MatchmakerPageDictionary['candidatesManager']['list']['emptyState'];
 }> = ({ gender, searchQuery, onClearSearch, dict }) => {
-  const config = gender === 'male'
-    ? { gradient: 'from-blue-100 to-cyan-100', icon: Target }
-    : { gradient: 'from-purple-100 to-pink-100', icon: Crown };
+  const config =
+    gender === 'male'
+      ? { gradient: 'from-blue-100 to-cyan-100', icon: Target }
+      : { gradient: 'from-purple-100 to-pink-100', icon: Crown };
 
   const IconComponent = config.icon;
 
   return (
     <div className="flex flex-col items-center justify-center h-64 p-8">
-      <div className={cn('w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-lg', `bg-gradient-to-br ${config.gradient}`)}>
+      <div
+        className={cn(
+          'w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-lg',
+          `bg-gradient-to-br ${config.gradient}`
+        )}
+      >
         <IconComponent className="w-12 h-12 text-gray-400" />
       </div>
       <h3 className="text-xl font-bold text-gray-800 mb-2">{dict.title}</h3>
       <p className="text-gray-600 text-center mb-4 max-w-sm">
-        {searchQuery ? `לא נמצאו תוצאות עבור "${searchQuery}"` : dict.description}
+        {searchQuery
+          ? `לא נמצאו תוצאות עבור "${searchQuery}"`
+          : dict.description}
       </p>
       {searchQuery && onClearSearch && (
-        <Button variant="outline" onClick={onClearSearch} className="border-2 border-gray-300 hover:border-gray-400">
+        <Button
+          variant="outline"
+          onClick={onClearSearch}
+          className="border-2 border-gray-300 hover:border-gray-400"
+        >
           <Search className="w-4 h-4 ml-2" />
           נקה חיפוש
         </Button>
@@ -3138,10 +3229,36 @@ const EmptyStateComponent: React.FC<{
   );
 };
 
-
-const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) => {
+const SplitView: React.FC<SplitViewProps> = ({
+  dict,
+  profileDict,
+  isQuickViewEnabled,
+  ...props
+}) => {
   const {
-    maleCandidates, femaleCandidates, allCandidates, onCandidateAction, onCandidateClick, viewMode, mobileView, isLoading = false, className, maleSearchQuery = '', femaleSearchQuery = '', onMaleSearchChange, onFemaleSearchChange, aiTargetCandidate, aiMatches, isAiLoading, onSetAiTarget, onClearAiTarget, setAiMatches, setIsAiLoading, comparisonSelection, onToggleComparison, separateFiltering,
+    maleCandidates,
+    femaleCandidates,
+    allCandidates,
+    onCandidateAction,
+    onCandidateClick,
+    viewMode,
+    mobileView,
+    isLoading = false,
+    className,
+    maleSearchQuery = '',
+    femaleSearchQuery = '',
+    onMaleSearchChange,
+    onFemaleSearchChange,
+    aiTargetCandidate,
+    aiMatches,
+    isAiLoading,
+    onSetAiTarget,
+    onClearAiTarget,
+    setAiMatches,
+    setIsAiLoading,
+    comparisonSelection,
+    onToggleComparison,
+    separateFiltering,
   } = props;
 
   const [isMobile, setIsMobile] = useState(false);
@@ -3159,22 +3276,39 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
     setIsAiLoading(true);
     setAiMatches([]);
     const targetGender = aiTargetCandidate.profile.gender;
-    const candidatePool = targetGender === Gender.MALE ? femaleCandidates : maleCandidates;
+    const candidatePool =
+      targetGender === Gender.MALE ? femaleCandidates : maleCandidates;
     const candidatePoolIds = candidatePool.map((c) => c.id);
     if (candidatePoolIds.length === 0) {
-      toast.error('אין מועמדים במאגר לחיפוש התאמות.', { position: 'top-center' });
+      toast.error('אין מועמדים במאגר לחיפוש התאמות.', {
+        position: 'top-center',
+      });
       setIsAiLoading(false);
       return;
     }
     try {
-      const response = await fetch('/api/ai/find-matches', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ targetUserId: aiTargetCandidate.id, candidatePoolIds }) });
+      const response = await fetch('/api/ai/find-matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetUserId: aiTargetCandidate.id,
+          candidatePoolIds,
+        }),
+      });
       const data = await response.json();
-      if (!response.ok || !data.success) throw new Error(data.error || 'Failed to fetch AI matches');
+      if (!response.ok || !data.success)
+        throw new Error(data.error || 'Failed to fetch AI matches');
       setAiMatches(data.matches);
-      toast.success(`נמצאו ${data.matches.length} התאמות AI פוטנציאליות.`, { position: 'top-center', description: 'המועמדים המומלצים מסומנים ומויינו לראש הרשימה.' });
+      toast.success(`נמצאו ${data.matches.length} התאמות AI פוטנציאליות.`, {
+        position: 'top-center',
+        description: 'המועמדים המומלצים מסומנים ומויינו לראש הרשימה.',
+      });
     } catch (error) {
       console.error('Error finding AI matches:', error);
-      toast.error('שגיאה במציאת התאמות AI.', { description: error instanceof Error ? error.message : 'נסה שוב מאוחר יותר.' });
+      toast.error('שגיאה במציאת התאמות AI.', {
+        description:
+          error instanceof Error ? error.message : 'נסה שוב מאוחר יותר.',
+      });
     } finally {
       setIsAiLoading(false);
     }
@@ -3183,20 +3317,30 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
   const maleCandidatesWithScores = useMemo(() => {
     if (aiMatches.length === 0) return maleCandidates;
     const scoreMap = new Map(aiMatches.map((m) => [m.userId, m.score]));
-    return maleCandidates.map((c) => ({ ...c, aiScore: scoreMap.get(c.id) })).sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1));
+    return maleCandidates
+      .map((c) => ({ ...c, aiScore: scoreMap.get(c.id) }))
+      .sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1));
   }, [maleCandidates, aiMatches]);
 
   const femaleCandidatesWithScores = useMemo(() => {
     if (aiMatches.length === 0) return femaleCandidates;
     const scoreMap = new Map(aiMatches.map((m) => [m.userId, m.score]));
-    return femaleCandidates.map((c) => ({ ...c, aiScore: scoreMap.get(c.id) })).sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1));
+    return femaleCandidates
+      .map((c) => ({ ...c, aiScore: scoreMap.get(c.id) }))
+      .sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1));
   }, [femaleCandidates, aiMatches]);
 
-  const renderPanelHeader = (gender: 'male' | 'female', isMobileView: boolean = false) => {
+  const renderPanelHeader = (
+    gender: 'male' | 'female',
+    isMobileView: boolean = false
+  ) => {
     const panelGenderEnum = gender === 'male' ? Gender.MALE : Gender.FEMALE;
     const isTargetPanel = aiTargetCandidate?.profile.gender === panelGenderEnum;
-    const isSearchPanel = !!(aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum);
-    const count = gender === 'male' ? maleCandidates.length : femaleCandidates.length;
+    const isSearchPanel = !!(
+      aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum
+    );
+    const count =
+      gender === 'male' ? maleCandidates.length : femaleCandidates.length;
 
     return (
       <PanelHeaderComponent
@@ -3213,10 +3357,26 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
       />
     );
   };
-  
-  const renderCandidatesListForMobile = (candidates: (Candidate & { aiScore?: number })[], gender: 'male' | 'female', searchQuery: string, onSearchChange?: (query: string) => void) => {
-    if (isLoading) { return <LoadingComponent gender={gender} />; }
-    if (candidates.length === 0) { return <EmptyStateComponent gender={gender} searchQuery={searchQuery} onClearSearch={() => onSearchChange?.('')} dict={dict.candidatesManager.list.emptyState} />; }
+
+  const renderCandidatesListForMobile = (
+    candidates: (Candidate & { aiScore?: number })[],
+    gender: 'male' | 'female',
+    searchQuery: string,
+    onSearchChange?: (query: string) => void
+  ) => {
+    if (isLoading) {
+      return <LoadingComponent gender={gender} />;
+    }
+    if (candidates.length === 0) {
+      return (
+        <EmptyStateComponent
+          gender={gender}
+          searchQuery={searchQuery}
+          onClearSearch={() => onSearchChange?.('')}
+          dict={dict.candidatesManager.list.emptyState}
+        />
+      );
+    }
     return (
       <CandidatesList
         candidates={candidates}
@@ -3231,27 +3391,60 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
         onSetAiTarget={onSetAiTarget}
         comparisonSelection={comparisonSelection}
         onToggleComparison={onToggleComparison}
+        isQuickViewEnabled={isQuickViewEnabled} // <-- העברה הלאה
         dict={dict}
         profileDict={profileDict}
       />
     );
   };
-  
+
   if (isMobile) {
     if (mobileView === 'split') {
       return (
         <div className="grid grid-cols-2 gap-3 h-full p-3">
           <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 overflow-hidden rounded-2xl">
             <div className="p-3 text-center bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-              <h2 className="text-sm font-bold flex items-center justify-center gap-1"><Target className="w-4 h-4" />{dict.candidatesManager.splitView.mobile.splitLabels.male}<Badge variant="secondary" className="bg-white/20 text-white border-0 ml-1">{maleCandidates.length}</Badge></h2>
+              <h2 className="text-sm font-bold flex items-center justify-center gap-1">
+                <Target className="w-4 h-4" />
+                {dict.candidatesManager.splitView.mobile.splitLabels.male}
+                <Badge
+                  variant="secondary"
+                  className="bg-white/20 text-white border-0 ml-1"
+                >
+                  {maleCandidates.length}
+                </Badge>
+              </h2>
             </div>
-            <div className="flex-grow min-h-0 overflow-y-auto p-2">{renderCandidatesListForMobile(maleCandidatesWithScores, 'male', maleSearchQuery, onMaleSearchChange)}</div>
+            <div className="flex-grow min-h-0 overflow-y-auto p-2">
+              {renderCandidatesListForMobile(
+                maleCandidatesWithScores,
+                'male',
+                maleSearchQuery,
+                onMaleSearchChange
+              )}
+            </div>
           </Card>
           <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 overflow-hidden rounded-2xl">
             <div className="p-3 text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-              <h2 className="text-sm font-bold flex items-center justify-center gap-1"><Crown className="w-4 h-4" />{dict.candidatesManager.splitView.mobile.splitLabels.female}<Badge variant="secondary" className="bg-white/20 text-white border-0 ml-1">{femaleCandidates.length}</Badge></h2>
+              <h2 className="text-sm font-bold flex items-center justify-center gap-1">
+                <Crown className="w-4 h-4" />
+                {dict.candidatesManager.splitView.mobile.splitLabels.female}
+                <Badge
+                  variant="secondary"
+                  className="bg-white/20 text-white border-0 ml-1"
+                >
+                  {femaleCandidates.length}
+                </Badge>
+              </h2>
             </div>
-            <div className="flex-grow min-h-0 overflow-y-auto p-2">{renderCandidatesListForMobile(femaleCandidatesWithScores, 'female', femaleSearchQuery, onFemaleSearchChange)}</div>
+            <div className="flex-grow min-h-0 overflow-y-auto p-2">
+              {renderCandidatesListForMobile(
+                femaleCandidatesWithScores,
+                'female',
+                femaleSearchQuery,
+                onFemaleSearchChange
+              )}
+            </div>
           </Card>
         </div>
       );
@@ -3261,21 +3454,135 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
       <div className={cn('w-full h-full', className)}>
         <Tabs defaultValue="male" className="w-full h-full flex flex-col">
           <TabsList className="grid w-full grid-cols-2 flex-shrink-0 bg-gradient-to-r from-indigo-50 to-purple-50 p-1 rounded-2xl shadow-lg">
-            <TabsTrigger value="male" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg"><Target className="h-4 w-4" />{dict.candidatesManager.splitView.mobile.tabs.male}<Badge variant="secondary" className="bg-blue-100 text-blue-800 border-0">{maleCandidates.length}</Badge></TabsTrigger>
-            <TabsTrigger value="female" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg"><Crown className="h-4 w-4" />{dict.candidatesManager.splitView.mobile.tabs.female}<Badge variant="secondary" className="bg-purple-100 text-purple-800 border-0">{femaleCandidates.length}</Badge></TabsTrigger>
+            <TabsTrigger
+              value="male"
+              className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              <Target className="h-4 w-4" />
+              {dict.candidatesManager.splitView.mobile.tabs.male}
+              <Badge
+                variant="secondary"
+                className="bg-blue-100 text-blue-800 border-0"
+              >
+                {maleCandidates.length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger
+              value="female"
+              className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              <Crown className="h-4 w-4" />
+              {dict.candidatesManager.splitView.mobile.tabs.female}
+              <Badge
+                variant="secondary"
+                className="bg-purple-100 text-purple-800 border-0"
+              >
+                {femaleCandidates.length}
+              </Badge>
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="male" className="mt-4 flex-1 min-h-0">
             <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 rounded-2xl">
               {renderPanelHeader('male', true)}
-              {separateFiltering && onMaleSearchChange && (<div className="mb-4 w-full"><SearchBar value={maleSearchQuery} onChange={onMaleSearchChange} placeholder={dict.candidatesManager.searchBar.malePlaceholder} genderTarget="male" separateMode={true} dict={dict.candidatesManager.searchBar} /></div>)}
-              <div className="flex-grow min-h-0 overflow-y-auto">{renderCandidatesListForMobile(maleCandidatesWithScores, 'male', maleSearchQuery, onMaleSearchChange)}</div>
+              {aiTargetCandidate &&
+                aiTargetCandidate.profile.gender === 'FEMALE' && (
+                  <div className="mt-2">
+                    <Button
+                      size="sm"
+                      onClick={handleFindAiMatches}
+                      disabled={isAiLoading}
+                      className="w-full shadow-lg font-bold transition-all duration-300 hover:scale-105 bg-gradient-to-r from-blue-500 to-cyan-500 hover:opacity-90 text-white"
+                    >
+                      <Sparkles
+                        className={cn(
+                          'ml-2 h-4 w-4',
+                          isAiLoading && 'animate-spin'
+                        )}
+                      />
+                      {isAiLoading
+                        ? dict.candidatesManager.splitView.panelHeaders
+                            .searchingButton
+                        : dict.candidatesManager.splitView.panelHeaders
+                            .findMatchesButton}
+                      <Zap className="w-3 h-3 mr-1" />
+                    </Button>
+                  </div>
+                )}
+
+              {separateFiltering && onMaleSearchChange && (
+                <div className="mb-4 w-full">
+                  <SearchBar
+                    value={maleSearchQuery}
+                    onChange={onMaleSearchChange}
+                    placeholder={
+                      dict.candidatesManager.searchBar.malePlaceholder
+                    }
+                    genderTarget="male"
+                    separateMode={true}
+                    dict={dict.candidatesManager.searchBar}
+                  />
+                </div>
+              )}
+              <div className="flex-grow min-h-0 overflow-y-auto">
+                {renderCandidatesListForMobile(
+                  maleCandidatesWithScores,
+                  'male',
+                  maleSearchQuery,
+                  onMaleSearchChange
+                )}
+              </div>
             </Card>
           </TabsContent>
           <TabsContent value="female" className="mt-4 flex-1 min-h-0">
             <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 rounded-2xl">
               {renderPanelHeader('female', true)}
-              {separateFiltering && onFemaleSearchChange && (<div className="mb-4 w-full"><SearchBar value={femaleSearchQuery} onChange={onFemaleSearchChange} placeholder={dict.candidatesManager.searchBar.femalePlaceholder} genderTarget="female" separateMode={true} dict={dict.candidatesManager.searchBar} /></div>)}
-              <div className="flex-grow min-h-0 overflow-y-auto">{renderCandidatesListForMobile(femaleCandidatesWithScores, 'female', femaleSearchQuery, onFemaleSearchChange)}</div>
+              {aiTargetCandidate &&
+                aiTargetCandidate.profile.gender === 'MALE' && (
+                  <div className="mt-2">
+                    <Button
+                      size="sm"
+                      onClick={handleFindAiMatches}
+                      disabled={isAiLoading}
+                      className="w-full shadow-lg font-bold transition-all duration-300 hover:scale-105 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white"
+                    >
+                      <Sparkles
+                        className={cn(
+                          'ml-2 h-4 w-4',
+                          isAiLoading && 'animate-spin'
+                        )}
+                      />
+                      {isAiLoading
+                        ? dict.candidatesManager.splitView.panelHeaders
+                            .searchingButton
+                        : dict.candidatesManager.splitView.panelHeaders
+                            .findMatchesButton}
+                      <Zap className="w-3 h-3 mr-1" />
+                    </Button>
+                  </div>
+                )}
+
+              {separateFiltering && onFemaleSearchChange && (
+                <div className="mb-4 w-full">
+                  <SearchBar
+                    value={femaleSearchQuery}
+                    onChange={onFemaleSearchChange}
+                    placeholder={
+                      dict.candidatesManager.searchBar.femalePlaceholder
+                    }
+                    genderTarget="female"
+                    separateMode={true}
+                    dict={dict.candidatesManager.searchBar}
+                  />
+                </div>
+              )}
+              <div className="flex-grow min-h-0 overflow-y-auto">
+                {renderCandidatesListForMobile(
+                  femaleCandidatesWithScores,
+                  'female',
+                  femaleSearchQuery,
+                  onFemaleSearchChange
+                )}
+              </div>
             </Card>
           </TabsContent>
         </Tabs>
@@ -3286,11 +3593,25 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
   // --- Desktop View using Resizable Panels ---
   return (
     <div className={cn('h-full', className)}>
-      <ResizablePanelGroup direction="horizontal" className="h-full rounded-2xl bg-white shadow-2xl border-0 overflow-hidden">
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="h-full rounded-2xl bg-white shadow-2xl border-0 overflow-hidden"
+      >
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-blue-50/20">
             {renderPanelHeader('male')}
-            {separateFiltering && onMaleSearchChange && (<div className="p-4 bg-blue-50/30 w-full"><SearchBar value={maleSearchQuery} onChange={onMaleSearchChange} placeholder={dict.candidatesManager.searchBar.malePlaceholder} genderTarget="male" separateMode={true} dict={dict.candidatesManager.searchBar} /></div>)}
+            {separateFiltering && onMaleSearchChange && (
+              <div className="p-4 bg-blue-50/30 w-full">
+                <SearchBar
+                  value={maleSearchQuery}
+                  onChange={onMaleSearchChange}
+                  placeholder={dict.candidatesManager.searchBar.malePlaceholder}
+                  genderTarget="male"
+                  separateMode={true}
+                  dict={dict.candidatesManager.searchBar}
+                />
+              </div>
+            )}
             <div className="flex-grow min-h-0 overflow-y-auto p-4">
               <CandidatesList
                 candidates={maleCandidatesWithScores}
@@ -3306,17 +3627,34 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
                 comparisonSelection={comparisonSelection}
                 onToggleComparison={onToggleComparison}
                 quickViewSide="right"
+                isQuickViewEnabled={isQuickViewEnabled} // <-- העברה הלאה
                 dict={dict}
                 profileDict={profileDict}
               />
             </div>
           </div>
         </ResizablePanel>
-        <ResizableHandle withHandle className="bg-gradient-to-b from-indigo-300 to-purple-300 hover:from-indigo-400 hover:to-purple-400 transition-colors w-2" />
+        <ResizableHandle
+          withHandle
+          className="bg-gradient-to-b from-indigo-300 to-purple-300 hover:from-indigo-400 hover:to-purple-400 transition-colors w-2"
+        />
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-purple-50/20">
             {renderPanelHeader('female')}
-            {separateFiltering && onFemaleSearchChange && (<div className="p-4 bg-purple-50/30 w-full"><SearchBar value={femaleSearchQuery} onChange={onFemaleSearchChange} placeholder={dict.candidatesManager.searchBar.femalePlaceholder} genderTarget="female" separateMode={true} dict={dict.candidatesManager.searchBar} /></div>)}
+            {separateFiltering && onFemaleSearchChange && (
+              <div className="p-4 bg-purple-50/30 w-full">
+                <SearchBar
+                  value={femaleSearchQuery}
+                  onChange={onFemaleSearchChange}
+                  placeholder={
+                    dict.candidatesManager.searchBar.femalePlaceholder
+                  }
+                  genderTarget="female"
+                  separateMode={true}
+                  dict={dict.candidatesManager.searchBar}
+                />
+              </div>
+            )}
             <div className="flex-grow min-h-0 overflow-y-auto p-4">
               <CandidatesList
                 candidates={femaleCandidatesWithScores}
@@ -3332,6 +3670,7 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, profileDict, ...props }) =>
                 comparisonSelection={comparisonSelection}
                 onToggleComparison={onToggleComparison}
                 quickViewSide="left"
+                isQuickViewEnabled={isQuickViewEnabled} // <-- העברה הלאה
                 dict={dict}
                 profileDict={profileDict}
               />
@@ -3460,7 +3799,7 @@ Content:
 // --- React & Next.js Imports ---
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
-
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils'
 // --- Third-party Libraries ---
 import {
   UserPlus,
@@ -3484,8 +3823,14 @@ import {
   TrendingDown,
   Star,
   Activity,
+  Eye, // הוספת אייקון
+  EyeOff, // הוספת אייקון
+  GitCompare, // <--- הוסף את זה
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image'; // <--- הוסף את השורה הזו
+import { motion, AnimatePresence } from 'framer-motion'; // <--- הוסף את השורה הזו
 
 // --- UI Components ---
 import { Button } from '@/components/ui/button';
@@ -3535,7 +3880,6 @@ import type {
   MobileView,
 } from '../types/candidates';
 import { SORT_OPTIONS, VIEW_OPTIONS } from '../constants/filterOptions';
-import { cn } from '@/lib/utils';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 
@@ -3824,6 +4168,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [showManualAddDialog, setShowManualAddDialog] = useState(false);
   const [isHeaderCompact, setIsHeaderCompact] = useState(true);
+  const [isQuickViewEnabled, setIsQuickViewEnabled] = useState(true); // <-- הוספת state חדש
 
   // --- AI State ---
   const [aiTargetCandidate, setAiTargetCandidate] = useState<Candidate | null>(
@@ -4080,6 +4425,21 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsQuickViewEnabled(!isQuickViewEnabled)}
+                  className="bg-white/90 shadow-sm border border-gray-200"
+                >
+                  {isQuickViewEnabled ? (
+                    <EyeOff className="w-4 h-4 ml-1" />
+                  ) : (
+                    <Eye className="w-4 h-4 ml-1" />
+                  )}
+                  {isQuickViewEnabled
+                    ? matchmakerDict.candidatesManager.controls.disableQuickView
+                    : matchmakerDict.candidatesManager.controls.enableQuickView}
+                </Button>
 
                 <div className="hidden lg:flex">
                   <Button
@@ -4297,12 +4657,76 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                   onFemaleSearchChange={updateFemaleSearchQuery}
                   dict={matchmakerDict}
                   profileDict={profileDict}
+                  isQuickViewEnabled={isQuickViewEnabled} // <-- העברת prop חדש
                 />
               </div>
             )}
           </div>
         </div>
       </main>
+      <AnimatePresence>
+        {aiTargetCandidate && Object.keys(comparisonSelection).length > 0 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
+          >
+            <div className="bg-white/80 backdrop-blur-sm p-3 rounded-2xl shadow-2xl border flex items-center gap-4">
+              <div className="flex items-center -space-x-4">
+                {Object.values(comparisonSelection)
+                  .slice(0, 3)
+                  .map((c) => (
+                    <div
+                      key={c.id}
+                      className="w-10 h-10 rounded-full overflow-hidden border-2 border-white bg-gray-200 flex items-center justify-center text-gray-500 font-bold"
+                    >
+                      {c.images?.find((img) => img.isMain) ? (
+                        <Image
+                          src={getRelativeCloudinaryPath(
+                            c.images.find((img) => img.isMain)!.url
+                          )}
+                          alt={c.firstName}
+                          width={40}
+                          height={40}
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span>
+                          {c.firstName.charAt(0)}
+                          {c.lastName.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                {Object.keys(comparisonSelection).length > 3 && (
+                  <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold text-gray-600 border-2 border-white">
+                    +{Object.keys(comparisonSelection).length - 3}
+                  </div>
+                )}
+              </div>
+              <Button
+                onClick={() => setIsAnalysisDialogOpen(true)}
+                className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold shadow-lg"
+              >
+                <GitCompare className="w-4 h-4 ml-2" />
+                {matchmakerDict.candidatesManager.controls.compareButton.replace(
+                  '{{count}}',
+                  String(Object.keys(comparisonSelection).length)
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={() => setComparisonSelection({})}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* --- Dialogs --- */}
       <AddManualCandidateDialog

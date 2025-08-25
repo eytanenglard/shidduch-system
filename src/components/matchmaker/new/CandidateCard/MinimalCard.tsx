@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { format } from 'date-fns';
 import {
   User,
   MapPin,
@@ -282,7 +283,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
             {candidate.profile.lastActive && (
               <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
                 <span className="text-xs text-gray-500">
-                  {`${dict.lastActivePrefix} ${formatDistanceToNow(new Date(candidate.profile.lastActive), { addSuffix: true, locale: he })}`}
+                  {`${dict.lastActivePrefix} ${format(new Date(candidate.profile.lastActive), 'dd/MM/yyyy')}`}
                 </span>
                 <Clock className="w-3 h-3 text-gray-400" />
               </div>

@@ -84,14 +84,16 @@ export async function analyzePairCompatibility(
     },
   });
 
-  const languageInstruction =
-    language === 'he'
-      ? 'Your entire JSON output, including all string values (keys and explanations), must be in Hebrew.'
-      : 'Your entire JSON output, including all string values, must be in English.';
+  // --- START OF CHANGE ---
+  // שינוי הדרך שבה אנו מגדירים את השפה עבור הפרומפט
+  const targetLanguage = language === 'he' ? 'Hebrew' : 'English';
+  // --- END OF CHANGE ---
 
   const prompt = `
     You are a "Matchmaking AI Expert" for a religious Jewish dating platform. Your goal is to analyze the compatibility of two user profiles and provide a structured, insightful, and helpful analysis for the matchmaker.
-    ${languageInstruction}
+    
+    IMPORTANT: Your entire JSON output, including all string values (keys and explanations), must be in ${targetLanguage}.
+
     Your output MUST be a valid JSON object.
     The JSON structure: { "overallScore": number, "matchSummary": "string", "compatibilityPoints": [{ "area": "string", "explanation": "string", "strength": "HIGH" | "MEDIUM" | "LOW" }], "potentialChallenges": [{ "area": "string", "explanation": "string", "severity": "HIGH" | "MEDIUM" | "LOW" }], "suggestedConversationStarters": ["string"] }
     --- Profile 1 ---
