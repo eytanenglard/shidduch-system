@@ -1,0 +1,343 @@
+{
+  "signIn": {
+    "title": "התחברות לחשבון",
+    "subtitle": "ברוכים השבים! בואו נמשיך למצוא את השידוך המושלם.",
+    "emailLabel": "אימייל",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "סיסמה",
+    "passwordPlaceholder": "הסיסמה שלך",
+    "forgotPasswordLink": "שכחת סיסמה?",
+    "submitButton": "התחברות",
+    "submitButtonLoading": "מתחבר...",
+    "orDivider": "או",
+    "googleButton": "התחברות עם גוגל",
+    "googleButtonLoading": "מתחבר עם גוגל...",
+    "noAccountPrompt": "אין לך עדיין חשבון?",
+    "signUpLink": "הרשמה עכשיו",
+    "loader": {
+      "authenticated": "התחברת בהצלחה!",
+      "success": "הצלחה!",
+      "loading": "טוען נתונים...",
+      "redirecting": "אנו מעבירים אותך לאזור האישי שלך.",
+      "checking": "אנא המתן בזמן שאנו בודקים את פרטי ההתחברות שלך."
+    },
+    "errors": {
+      "credentialsSignin": "אימייל או סיסמה אינם נכונים. אנא נסה שנית.",
+      "oauthAccountNotLinked": "חשבון זה כבר מקושר באמצעות ספק אחר. אנא התחבר באמצעות הספק המקורי.",
+      "default": "אירעה שגיאה בהתחברות ({errorMessage}). נסה שנית.",
+      "missingFields": "אנא הזן אימייל וסיסמה."
+    }
+  },
+  "forgotPassword": {
+    "title": "שכחת סיסמה?",
+    "subtitle": "אין בעיה! הזן את כתובת המייל שלך למטה, ואם היא קיימת במערכת, נשלח לך קוד לאיפוס הסיסמה.",
+    "emailLabel": "כתובת מייל",
+    "emailPlaceholder": "you@example.com",
+    "submitButton": "שלח בקשה לאיפוס סיסמה",
+    "submitButtonLoading": "שולח...",
+    "backToSignInLink": "חזרה להתחברות",
+    "errors": {
+      "missingEmail": "אנא הזן את כתובת המייל שלך.",
+      "default": "אירעה שגיאה בבקשת איפוס הסיסמה."
+    }
+  },
+  "resetPassword": {
+    "title": "איפוס סיסמה",
+    "subtitle": "הזן את קוד האימות (OTP) שקיבלת במייל ואת הסיסמה החדשה שלך.",
+    "emailLabel": "כתובת מייל (לאימות)",
+    "emailPlaceholder": "you@example.com",
+    "otpLabel": "קוד אימות (OTP)",
+    "otpPlaceholder": "xxxxxx",
+    "newPasswordLabel": "סיסמה חדשה",
+    "newPasswordPlaceholder": "לפחות 8 תווים, אות גדולה, קטנה ומספר",
+    "confirmPasswordLabel": "אימות סיסמה חדשה",
+    "confirmPasswordPlaceholder": "הזן את הסיסמה החדשה שוב",
+    "showPasswordAria": "הצג סיסמה",
+    "hidePasswordAria": "הסתר סיסמה",
+    "passwordHint": "חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.",
+    "submitButton": "אפס סיסמה",
+    "submitButtonLoading": "מאפס סיסמה...",
+    "backToSignInLink": "חזרה להתחברות",
+    "successMessage": "הסיסמה אופסה בהצלחה!",
+    "successRedirect": "אתה מועבר לדף ההתחברות...",
+    "errors": {
+      "missingEmail": "כתובת המייל חסרה. אנא חזור להתחלה ונסה שנית.",
+      "invalidOtp": "קוד האימות (OTP) חייב להיות בן 6 ספרות.",
+      "passwordsMismatch": "הסיסמאות אינן תואמות.",
+      "default": "אירעה שגיאה באיפוס הסיסמה."
+    },
+    "passwordValidation": {
+      "length": "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר."
+    }
+  },
+  "verifyEmail": {
+    "title": "אימות חשבון",
+    "pendingMessage": "שלחנו מייל אימות לכתובת:",
+    "verifyingMessage": "מאמת את החשבון...",
+    "successMessage": "החשבון אומת בהצלחה!",
+    "successRedirect": "מעביר אותך להתחברות...",
+    "errorMessage": "שגיאה באימות החשבון",
+    "resendButton": "שלח מייל אימות מחדש",
+    "resendButtonLoading": "שולח מייל חדש...",
+    "backToSignInButton": "חזור לדף ההתחברות",
+    "emailSentTo": "שלחנו מייל אימות לכתובת:",
+    "emailAddressNotSpecified": "לא צוינה כתובת",
+    "checkYourInbox": "אנא בדקו את תיבת הדואר שלכם ולחצו על הקישור לאימות החשבון.",
+    "errors": {
+      "noEmail": "לא ניתן לשלוח מחדש ללא כתובת אימייל.",
+      "linkInvalid": "קישור האימות אינו תקין (חסר מידע נדרש).",
+      "sessionMismatch": "אתה מחובר עם חשבון מייל אחר. אנא התנתק ונסה שוב את הלינק.",
+      "tokenUsed": "הטוקן הזה כבר נוצל לאימות. אם נרשמת בהצלחה, נסה להתחבר.",
+      "tokenExpired": "תוקף קישור האימות פג. אנא נסה לשלוח מייל אימות מחדש.",
+      "default": "שגיאה באימות החשבון",
+      "resendFailed": "שגיאה בשליחת מייל האימות מחדש"
+    },
+    "alerts": {
+      "resendSuccess": "מייל אימות חדש נשלח בהצלחה. אנא בדוק את תיבת הדואר."
+    }
+  },
+  "setupAccount": {
+      "title": "הגדרת חשבון וקביעת סיסמה",
+      "description": "שלב אחרון לפני שתוכל/י להתחיל. אנא בחר/י סיסמה לחשבונך.",
+      "newPasswordLabel": "סיסמה חדשה",
+      "passwordHint": "לפחות 8 תווים, כולל אותיות ומספרים.",
+      "confirmPasswordLabel": "אישור סיסמה",
+      "submitButton": "הגדר סיסמה והמשך",
+      "submitButtonLoading": "מגדיר סיסמה...",
+      "success": {
+          "title": "החשבון הוגדר בהצלחה!",
+          "description": "הסיסמה נקבעה. הנך מועבר/ת אוטומטית לשלב הבא של השלמת הפרופיל.",
+          "redirecting": "מעביר..."
+      },
+      "errors": {
+          "linkInvalid": "קישור הגדרת החשבון אינו תקין או חסר. אנא השתמש בקישור שנשלח אליך במייל.",
+          "passwordLength": "הסיסמה חייבת להכיל לפחות 8 תווים.",
+          "passwordsMismatch": "הסיסמאות אינן תואמות.",
+          "default": "שגיאה בהגדרת החשבון.",
+          "unexpected": "אירעה שגיאה בלתי צפויה."
+      }
+  },
+  "updatePhone": {
+      "title": "עדכון מספר טלפון",
+      "description": "הזן/י את מספר הטלפון הנכון שלך. קוד אימות חדש יישלח אליו באמצעות WhatsApp.",
+      "newPhoneLabel": "מספר טלפון חדש",
+      "newPhonePlaceholder": "0501234567",
+      "submitButton": "עדכן ושלח קוד חדש",
+      "submitButtonLoading": "מעדכן...",
+      "backToVerificationLink": "חזרה לאימות קוד",
+      "loaderText": "טוען נתונים...",
+      "errors": {
+          "title": "שגיאה",
+          "invalidFormat": "פורמט מספר הטלפון אינו תקין (לדוגמה: 0501234567).",
+          "updateFailed": "עדכון מספר הטלפון נכשל.",
+          "unexpected": "אירעה שגיאה בלתי צפויה בעת עדכון מספר הטלפון."
+      }
+  },
+  "verifyPhone": {
+    "title": "אימות מספר טלפון",
+    "description": "כמעט סיימנו! שלחנו קוד בן 6 ספרות באמצעות WhatsApp למספר",
+    "yourPhoneNumber": "הטלפון שלך",
+    "codeSentTo": "שלחנו קוד בן 6 ספרות באמצעות WhatsApp למספר",
+    "enterCodePrompt": "הזן/י אותו להשלמת ההרשמה.",
+    "digitAriaLabel": "ספרה {{index}}",
+    "verifyButton": "אימות קוד",
+    "verifyingButton": "מאמת...",
+    "resend": {
+      "prompt": "לא קיבלת את הקוד?",
+      "button": "שלח קוד חדש",
+      "buttonLoading": "שולח שוב...",
+      "timer": "שלח קוד חדש ({{timer}} שניות)"
+    },
+    "wrongNumberLink": "האם מספר הטלפון שגוי?",
+    "backToSignInLink": "חזרה להתחברות",
+    "errors": {
+      "title": "שגיאה",
+      "incompleteCode": "אנא הזן את הקוד בן 6 הספרות במלואו.",
+      "default": "אימות הקוד נכשל. אנא נסה שנית.",
+      "unexpected": "אירעה שגיאה בלתי צפויה במהלך האימות."
+    },
+    "success": {
+      "title": "הצלחה",
+      "verifying": "מספר הטלפון אומת בהצלחה!",
+      "updatingProfile": "מעדכן את הפרופיל שלך..."
+    },
+    "info": {
+        "title": "הודעה",
+        "resent": "קוד חדש נשלח אליך באמצעות WhatsApp."
+    }
+  },
+  "errorPage": {
+    "title": "אירעה שגיאה",
+    "backButton": "חזרה לדף ההתחברות",
+    "errors": {
+      "CredentialsSignin": "פרטי ההתחברות שהזנת אינם נכונים. אנא נסה שנית.",
+      "OAuthAccountNotLinked": "כתובת מייל זו כבר משויכת לספק אחר (למשל, גוגל). אנא התחבר באמצעותו.",
+      "Default": "אירעה שגיאה לא צפויה בתהליך האימות. אנא נסה שנית."
+    }
+  },
+  "register": {
+    "progressBar": {
+      "stepLabel": "שלב {{step}}"
+    },
+    "headers": {
+      "registerTitle": "הרשמה למערכת",
+      "verifyEmailTitle": "אימות כתובת מייל",
+      "completeProfileTitle": "השלמת פרטים",
+      "welcomeDescription": "ברוכים הבאים! בואו נתחיל.",
+      "accountCreationDescription": "שלב 1 מתוך 3: אישור תנאים ופרטי התחברות.",
+      "verifyEmailDescription": "הזן את הקוד שנשלח ל: {{email}}.",
+      "personalDetailsDescription": "שלב 1: אישור תנאים ופרטים אישיים.",
+      "personalDetailsConsentedDescription": "שלב 1 מתוך 2: פרטים אישיים.",
+      "optionalInfoDescription": "שלב 2 מתוך 2: מידע נוסף (מומלץ).",
+      "completionPhoneVerificationDescription": "הפרטים הושלמו! השלב הבא: אימות טלפון.",
+      "completionReadyDescription": "הפרופיל שלך מוכן!",
+      "loadingProfileDescription": "טוען שלב השלמת פרופיל..."
+    },
+    "incompleteProfileAlert": {
+      "title": "נדרשת פעולה להשלמת החשבון",
+      "description": "כדי לגשת לאזור האישי ולשאר חלקי האתר, יש להשלים תחילה את פרטי הפרופיל ואימותים נדרשים.",
+      "verifyPhoneDescription": "הפרופיל שלך כמעט מוכן! נדרש אימות טלפון כדי להמשיך."
+    },
+    "contactSupport": "יש לך שאלות?",
+    "contactSupportLink": "צור קשר",
+    "steps": {
+      "welcome": {
+        "title": "ברוכים הבאים!",
+        "subtitle": "אנחנו שמחים שבחרת להצטרף אלינו. בואו נתחיל בתהליך הרשמה קצר ופשוט שיאפשר לנו להכיר אותך טוב יותר.",
+        "googleButton": "המשך עם Google",
+        "emailButton": "המשך עם אימייל",
+        "signInPrompt": "כבר יש לך חשבון?",
+        "signInLink": "התחברות"
+      },
+      "basicInfo": {
+        "title": "פרטי חשבון",
+        "emailLabel": "אימייל",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "סיסמה",
+        "passwordPlaceholder": "לפחות 8 תווים",
+        "passwordHint": "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה באנגלית ומספר.",
+        "firstNameLabel": "שם פרטי",
+        "firstNamePlaceholder": "ישראל",
+        "lastNameLabel": "שם משפחה",
+        "lastNamePlaceholder": "ישראלי",
+        "backButton": "חזרה",
+        "nextButton": "צור חשבון והמשך לאימות",
+        "nextButtonLoading": "יוצר חשבון...",
+        "errors": {
+          "title": "שגיאה בהרשמה",
+          "invalidEmail": "כתובת אימייל לא תקינה",
+          "invalidPassword": "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר",
+          "requiredEmail": "שדה אימייל הוא חובה",
+          "requiredPassword": "שדה סיסמה הוא חובה",
+          "fillFields": "אנא מלא את כל השדות הנדרשים בצורה תקינה.",
+          "fixErrors": "אנא תקן את השגיאות המסומנות.",
+          "consentRequired": "חובה לאשר את תנאי השימוש ומדיניות הפרטיות.",
+          "default": "אירעה שגיאה בלתי צפויה בהרשמה"
+        },
+        "marketingConsent": "אני מסכים/ה לקבל מידע שיווקי ועדכונים מהחברה"
+      },
+      "emailVerification": {
+        "title": "אימות כתובת מייל",
+        "subtitle": "שלחנו קוד אימות בן {{length}} ספרות לכתובת",
+        "yourEmail": "האימייל שלך",
+        "submitButton": "אמת קוד והמשך להשלמת פרופיל",
+        "submitButtonLoading": "מאמת ומתחבר...",
+        "resendPrompt": "לא קיבלת קוד?",
+        "resendButton": "שלח קוד חדש",
+        "resendButtonLoading": "שולח קוד חדש...",
+        "backButton": "חזור למילוי פרטים",
+        "errors": {
+          "title": "שגיאה",
+          "incompleteCode": "הקוד חייב להכיל {{length}} ספרות.",
+          "default": "אירעה שגיאה בלתי צפויה בתהליך האימות",
+          "autoSignInFailed": "אימות המייל הצליח, אך נתקלנו בבעיה בהתחברות האוטומטית: {{error}}. אנא נסה להתחבר ידנית."
+        },
+        "alerts": {
+          "title": "הודעה",
+          "resent": "קוד חדש נשלח בהצלחה."
+        }
+      },
+      "personalDetails": {
+        "title": "פרטים אישיים חיוניים",
+        "subtitle": "אנו צריכים פרטים אלו כדי להמשיך בתהליך ההרשמה שלך.",
+        "firstNameLabel": "שם פרטי",
+        "firstNamePlaceholder": "לדוגמה: ישראל",
+        "lastNameLabel": "שם משפחה",
+        "lastNamePlaceholder": "לדוגמה: ישראלי",
+        "phoneLabel": "טלפון נייד",
+        "phonePlaceholder": "0501234567",
+        "genderLabel": "מגדר",
+        "male": "זכר",
+        "female": "נקבה",
+        "birthDateLabel": "תאריך לידה",
+        "maritalStatusLabel": "מצב משפחתי",
+        "maritalStatusPlaceholder": "בחר/י מצב משפחתי...",
+        "maritalStatuses": {
+          "single": "רווק/ה",
+          "divorced": "גרוש/ה",
+          "widowed": "אלמן/ה"
+        },
+        "backButton": "חזרה",
+        "nextButton": "המשך לשלב הבא",
+        "nextButtonLoading": "מאשר תנאים...",
+        "errors": {
+          "firstNameRequired": "שם פרטי הוא שדה חובה",
+          "lastNameRequired": "שם משפחה הוא שדה חובה",
+          "phoneRequired": "מספר טלפון הוא שדה חובה",
+          "phoneInvalid": "מספר טלפון לא תקין (10 ספרות, מתחיל ב-0)",
+          "birthDateRequired": "תאריך לידה הוא שדה חובה",
+          "ageTooLow": "גיל מינימלי להרשמה הוא 18",
+          "ageTooHigh": "תאריך לידה לא תקין",
+          "genderRequired": "יש לבחור מגדר",
+          "maritalStatusRequired": "יש לבחור מצב משפחתי",
+          "consentRequired": "חובה לאשר את תנאי השימוש ומדיניות הפרטיות.",
+          "consentApiError": "אירעה שגיאה באישור התנאים."
+        }
+      },
+      "optionalInfo": {
+        "title": "מידע נוסף",
+        "subtitle": "מידע זה יעזור לנו להתאים לך שידוכים מדויקים יותר. מומלץ למלא כמה שיותר פרטים.",
+        "heightLabel": "גובה (בס\"מ)",
+        "heightPlaceholder": "לדוגמה: 175",
+        "occupationLabel": "עיסוק",
+        "occupationPlaceholder": "לדוגמה: מהנדס תוכנה, מורה, סטודנט/ית",
+        "educationLabel": "השכלה",
+        "educationPlaceholder": "לדוגמה: תואר ראשון במדעי המחשב",
+        "backButton": "חזרה",
+        "nextButton": "סיום והמשך לאימות",
+        "status": {
+          "saving": "שומר פרטים...",
+          "updating": "מעדכן סשן...",
+          "sendingCode": "שולח קוד אימות..."
+        },
+        "errors": {
+          "title": "שגיאה",
+          "missingData": "חסרים נתונים חיוניים להשלמת הפרופיל. אנא חזור לשלב הקודם ובדוק את הפרטים.",
+          "default": "אירעה שגיאה לא צפויה"
+        }
+      },
+      "complete": {
+        "loading": "טוען נתונים...",
+        "verifyEmailTitle": "אימות כתובת המייל",
+        "verifyEmailSubtitle": "שלחנו לך מייל לכתובת",
+        "verifyEmailPrompt": "אנא לחץ על הקישור במייל כדי להשלים את תהליך האימות.",
+        "completeProfileTitle": "השלמת פרטי פרופיל",
+        "completeProfileSubtitle": "כדי שנוכל להתאים לך את השידוכים הטובים ביותר, אנא השלם את פרטי הפרופיל שלך.",
+        "completeProfileButton": "להשלמת הפרופיל",
+        "verifyPhoneTitle": "אימות מספר טלפון",
+        "verifyPhoneSubtitle": "כמעט סיימנו! אנא אמת את מספר הטלפון כדי להפעיל את חשבונך ולהתחיל לקבל הצעות.",
+        "verifyPhoneButton": "לאימות מספר הטלפון",
+        "allDoneTitle": "ההרשמה והפרופיל הושלמו בהצלחה!",
+        "allDoneSubtitle": "מעולה! כל הפרטים שלך מאומתים ומוכנים. עכשיו תוכל להתחיל בתהליך מציאת השידוך.",
+        "myProfileButton": "לפרופיל שלי",
+        "questionnaireButton": "למילוי שאלון התאמה",
+        "backToHomeLink": "חזרה לדף הבית"
+      }
+    },
+    "consentCheckbox": {
+      "text": "קראתי ואני מאשר/ת את {termsLink} ואת {privacyLink} של Matchpoint, ומסכים/ה לאיסוף, עיבוד ושמירת המידע האישי שלי, לרבות מידע רגיש, בהתאם למפורט בהם, ולהעברת המידע שלי לשרתים שעשויים להיות ממוקמים מחוץ לגבולות ישראל.",
+      "termsLink": "תנאי השימוש",
+      "privacyLink": "מדיניות הפרטיות"
+    }
+  }
+}

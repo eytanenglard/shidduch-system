@@ -1,29 +1,30 @@
-"use client";
+// src/components/auth/steps/WelcomeStep.tsx
+'use client';
 
-import { useState } from "react";
-import { useRegistration } from "../RegistrationContext";
-import { signIn } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Heart, ArrowLeft, Mail } from "lucide-react";
-import Link from "next/link";
+import { useState } from 'react';
+import { useRegistration } from '../RegistrationContext';
+import { signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { Heart, ArrowLeft, Mail, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
-const WelcomeStep: React.FC = () => {
-  const { nextStep,  } = useRegistration();
+// הגדרת טיפוס ה-props כדי להבטיח Type Safety
+interface WelcomeStepProps {
+  dict: RegisterStepsDict['steps']['welcome'];
+}
+
+const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict }) => {
+  const { nextStep } = useRegistration();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     try {
       setIsGoogleLoading(true);
-
-      // Store this information for potential fallback
-      localStorage.setItem("registration_started", "true");
-
-      // The 'redirect' callback in authOptions will handle where to send the user
-      // --- START: התיקון ---
-      await signIn("google"); // הסרנו את callbackUrl
-      // --- END: התיקון ---
+      localStorage.setItem('registration_started', 'true');
+      await signIn('google');
     } catch (error) {
-      console.error("Google sign-in error:", error);
+      console.error('Google sign-in error:', error);
       setIsGoogleLoading(false);
     }
   };
@@ -34,7 +35,6 @@ const WelcomeStep: React.FC = () => {
 
   return (
     <div className="space-y-6 text-center">
-      {/* Welcome animation */}
       <div className="flex justify-center mb-4">
         <div className="relative">
           <div className="w-20 h-20 rounded-full bg-pink-100 flex items-center justify-center animate-pulse">
@@ -46,14 +46,10 @@ const WelcomeStep: React.FC = () => {
         </div>
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-800">ברוכים הבאים!</h2>
+      <h2 className="text-2xl font-bold text-gray-800">{dict.title}</h2>
 
-      <p className="text-gray-600 max-w-sm mx-auto">
-        אנחנו שמחים שבחרת להצטרף אלינו. בואו נתחיל בתהליך הרשמה קצר ופשוט שיאפשר
-        לנו להכיר אותך טוב יותר.
-      </p>
+      <p className="text-gray-600 max-w-sm mx-auto">{dict.subtitle}</p>
 
-      {/* Buttons */}
       <div className="space-y-4 mt-8">
         <Button
           onClick={handleGoogleSignIn}
@@ -63,7 +59,7 @@ const WelcomeStep: React.FC = () => {
           className="w-full relative border-2 border-gray-300 hover:border-gray-400 py-6 rounded-xl flex items-center justify-center gap-3 group"
         >
           {isGoogleLoading ? (
-            <div className="animate-spin h-5 w-5 border-2 border-gray-500 rounded-full border-t-transparent" />
+            <Loader2 className="animate-spin h-5 w-5" />
           ) : (
             <>
               <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -84,7 +80,9 @@ const WelcomeStep: React.FC = () => {
                   fill="#EA4335"
                 />
               </svg>
-              <span className="text-gray-700 font-medium">המשך עם Google</span>
+              <span className="text-gray-700 font-medium">
+                {dict.googleButton}
+              </span>
             </>
           )}
         </Button>
@@ -94,23 +92,21 @@ const WelcomeStep: React.FC = () => {
           size="lg"
           className="w-full py-6 rounded-xl bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-3 group relative overflow-hidden"
         >
-          {/* Button background shimmer effect */}
           <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
           <Mail className="h-5 w-5 text-white" />
-          <span className="text-white font-medium">המשך עם אימייל</span>
+          <span className="text-white font-medium">{dict.emailButton}</span>
           <ArrowLeft className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
         </Button>
       </div>
 
-      {/* Already have an account link */}
       <div className="mt-8 pt-4 border-t border-gray-200">
         <p className="text-gray-600 text-sm">
-          כבר יש לך חשבון?{" "}
+          {dict.signInPrompt}{' '}
           <Link
             href="/auth/signin"
             className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"
           >
-            התחברות
+            {dict.signInLink}
           </Link>
         </p>
       </div>

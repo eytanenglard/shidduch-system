@@ -24,29 +24,29 @@ const profileDictionaries = {
   he: () => import('../../dictionaries/profile/he.json').then((module) => module.default),
 };
 
-// --- START: הוספת טוען למילון השדכן ---
 const matchmakerDictionaries = {
   en: () => import('../../dictionaries/matchmaker/en.json').then((module) => module.default),
   he: () => import('../../dictionaries/matchmaker/he.json').then((module) => module.default),
 };
-// --- END: הוספת טוען למילון השדכן ---
 
-/**
- * פונקציה אסינכרונית לקבלת המילון המלא עבור שפה ספציפית,
- * המורכב ממספר קבצי JSON.
- * @param locale - קוד השפה ('he' או 'en')
- * @returns {Promise<Dictionary>}
- */
+// --- START: הוספת טוען למילון האימות ---
+const authDictionaries = {
+  en: () => import('../../dictionaries/auth/en.json').then((module) => module.default),
+  he: () => import('../../dictionaries/auth/he.json').then((module) => module.default),
+};
+// --- END: הוספת טוען למילון האימות ---
+
 export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
   const targetLocale = mainDictionaries[locale] ? locale : 'he';
 
   // --- START: עדכון Promise.all ---
-  const [main, suggestions, questionnaire, profilePage, matchmakerPage] = await Promise.all([
+  const [main, suggestions, questionnaire, profilePage, matchmakerPage, auth] = await Promise.all([
     mainDictionaries[targetLocale](),
     suggestionsDictionaries[targetLocale](),
     questionnaireDictionaries[targetLocale](),
     profileDictionaries[targetLocale](),
-    matchmakerDictionaries[targetLocale](), // הוספת טעינת מילון השדכן
+    matchmakerDictionaries[targetLocale](),
+    authDictionaries[targetLocale](), // הוספת טעינת מילון האימות
   ]);
   // --- END: עדכון Promise.all ---
 
@@ -56,7 +56,8 @@ export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
     suggestions,
     questionnaire,
     profilePage,
-    matchmakerPage, // הוספת מפתח השדכן
+    matchmakerPage,
+    auth, // הוספת מפתח האימות
   } as Dictionary;
   // --- END: עדכון האובייקט המוחזר ---
 };

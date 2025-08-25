@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2025-08-25 00:08:21
+# Generated on: 2025-08-25 09:03:04
 ################################################################################
 
 ================================================================================
@@ -760,8 +760,8 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
         הטקסט ב-aria-label מספק תיאור ברור לקוראי מסך.
       */}
       <button
-        type="button" // מונע התנהגות ברירת מחדל של שליחת טופס
-        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 w-full"
+        type="button"
+        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 w-full"
         onClick={handleOpenModal}
         aria-label={`הצג הצעה עבור ${suggestion.secondParty.firstName}`}
       >

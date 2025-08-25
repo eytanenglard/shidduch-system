@@ -1,8 +1,8 @@
-// src/app/components/auth/steps/PersonalDetailsStep.tsx
+// src/components/auth/steps/PersonalDetailsStep.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react'; // הוספת update
+import { useSession } from 'next-auth/react';
 import { useRegistration } from '../RegistrationContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,32 +13,39 @@ import {
   Calendar,
   Users,
   Edit3,
-  Loader2, // הוספת אייקון טעינה
-  AlertCircle, // הוספת אייקון לשגיאות
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { Gender } from '@prisma/client';
 import { motion } from 'framer-motion';
-import ConsentCheckbox from '../ConsentCheckbox'; // ייבוא קומפוננטת ההסכמה
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // ייבוא רכיבי Alert
+import ConsentCheckbox from '../ConsentCheckbox';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
-const PersonalDetailsStep: React.FC = () => {
+interface PersonalDetailsStepProps {
+  dict: RegisterStepsDict['steps']['personalDetails'];
+  consentDict: RegisterStepsDict['consentCheckbox'];
+}
+
+const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
+  dict,
+  consentDict,
+}) => {
   const {
     data: registrationState,
     updateField,
     nextStep,
     prevStep,
   } = useRegistration();
-  const { data: session, update: updateSessionHook } = useSession(); // שימוש ב-update מה-hook
+  const { data: session, update: updateSessionHook } = useSession();
 
   const [firstNameError, setFirstNameError] = useState('');
   const [lastNameError, setLastNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [ageError, setAgeError] = useState('');
   const [isFormValid, setIsFormValid] = useState(false);
-
-  // State עבור הסכמה
   const [consentChecked, setConsentChecked] = useState(
-    !!session?.user?.termsAndPrivacyAcceptedAt // אתחול לפי הסשן
+    !!session?.user?.termsAndPrivacyAcceptedAt
   );
   const [consentError, setConsentError] = useState<string | null>(null);
   const [isSubmittingConsent, setIsSubmittingConsent] = useState(false);
@@ -46,156 +53,65 @@ const PersonalDetailsStep: React.FC = () => {
 
   const userHasAlreadyConsented = !!session?.user?.termsAndPrivacyAcceptedAt;
 
-  // פונקציות ולידציה (נשארות זהות)
-  const validateFirstName = (name: string): boolean => {
-    const isValid = name.trim() !== '';
-    setFirstNameError(isValid ? '' : 'שם פרטי הוא שדה חובה');
-    return isValid;
+  const validateFirstName = (name: string) =>
+    !name.trim() && setFirstNameError(dict.errors.firstNameRequired);
+  const validateLastName = (name: string) =>
+    !name.trim() && setLastNameError(dict.errors.lastNameRequired);
+  const validatePhone = (phone: string) => {
+    if (!phone.trim()) setPhoneError(dict.errors.phoneRequired);
+    else if (!/^0\d{9}$/.test(phone)) setPhoneError(dict.errors.phoneInvalid);
+    else setPhoneError('');
   };
-  const validateLastName = (name: string): boolean => {
-    const isValid = name.trim() !== '';
-    setLastNameError(isValid ? '' : 'שם משפחה הוא שדה חובה');
-    return isValid;
-  };
-  const validatePhone = (phone: string): boolean => {
-    const phoneRegex = /^0\d{9}$/;
-    const isValid = phoneRegex.test(phone);
-    setPhoneError(
-      isValid
-        ? ''
-        : phone.trim() === ''
-          ? 'מספר טלפון הוא שדה חובה'
-          : 'מספר טלפון לא תקין (10 ספרות, מתחיל ב-0)'
-    );
-    return isValid;
-  };
-  const validateAge = (birthDate: string): boolean => {
-    if (!birthDate) {
-      setAgeError('תאריך לידה הוא שדה חובה');
-      return false;
-    }
-    const birthDateObj = new Date(birthDate);
-    const today = new Date();
-    let age = today.getFullYear() - birthDateObj.getFullYear();
-    const monthDifference = today.getMonth() - birthDateObj.getMonth();
-    if (
-      monthDifference < 0 ||
-      (monthDifference === 0 && today.getDate() < birthDateObj.getDate())
-    ) {
-      age--;
-    }
-    if (age < 18) {
-      setAgeError('גיל מינימלי להרשמה הוא 18');
-      return false;
-    } else if (age > 120) {
-      setAgeError('תאריך לידה לא תקין');
-      return false;
-    }
-    setAgeError('');
-    return true;
+  const validateAge = (birthDate: string) => {
+    if (!birthDate) return setAgeError(dict.errors.birthDateRequired);
+    const age = new Date().getFullYear() - new Date(birthDate).getFullYear();
+    if (age < 18) setAgeError(dict.errors.ageTooLow);
+    else if (age > 120) setAgeError(dict.errors.ageTooHigh);
+    else setAgeError('');
   };
 
   useEffect(() => {
-    // אם המשתמש כבר אישר בעבר, נסמן את התיבה
-    if (userHasAlreadyConsented) {
-      setConsentChecked(true);
-    }
-  }, [userHasAlreadyConsented]);
-
-  useEffect(() => {
-    const isFirstNameValid =
-      registrationState.firstName.trim() !== '' && !firstNameError;
-    const isLastNameValid =
-      registrationState.lastName.trim() !== '' && !lastNameError;
-    const isPhoneValid =
-      registrationState.phone.trim() !== '' &&
+    const isFieldsValid =
+      registrationState.firstName.trim() &&
+      registrationState.lastName.trim() &&
       /^0\d{9}$/.test(registrationState.phone) &&
-      !phoneError;
-    const isBirthDateValid = registrationState.birthDate !== '' && !ageError;
-    const isGenderValid = registrationState.gender !== '';
-    const isMaritalStatusValid = registrationState.maritalStatus !== '';
-
-    // תקינות הטופס תלויה גם באישור התנאים (אם טרם אושרו)
+      registrationState.birthDate &&
+      registrationState.gender &&
+      registrationState.maritalStatus;
     const consentRequirementMet = userHasAlreadyConsented || consentChecked;
-
-    setIsFormValid(
-      isFirstNameValid &&
-        isLastNameValid &&
-        isPhoneValid &&
-        isBirthDateValid &&
-        isGenderValid &&
-        isMaritalStatusValid &&
-        consentRequirementMet // הוספת דרישת הסכמה
-    );
-  }, [
-    registrationState.firstName,
-    registrationState.lastName,
-    registrationState.phone,
-    registrationState.birthDate,
-    registrationState.gender,
-    registrationState.maritalStatus,
-    firstNameError,
-    lastNameError,
-    phoneError,
-    ageError,
-    consentChecked, // הוספת תלות
-    userHasAlreadyConsented,
-  ]);
+    setIsFormValid(!!isFieldsValid && consentRequirementMet);
+  }, [registrationState, consentChecked, userHasAlreadyConsented]);
 
   const handleContinue = async () => {
-    setGeneralApiError(null); // איפוס שגיאה כללית
-    setConsentError(null); // איפוס שגיאת הסכמה
+    // Trigger all validations on submit attempt
+    validateFirstName(registrationState.firstName);
+    validateLastName(registrationState.lastName);
+    validatePhone(registrationState.phone);
+    validateAge(registrationState.birthDate);
 
-    // ולידציות שדות
-    const fnValid = validateFirstName(registrationState.firstName);
-    const lnValid = validateLastName(registrationState.lastName);
-    const pValid = validatePhone(registrationState.phone);
-    const ageValid = validateAge(registrationState.birthDate);
-    const genderValid = registrationState.gender !== '';
-    const maritalValid = registrationState.maritalStatus !== '';
-
-    if (
-      !fnValid ||
-      !lnValid ||
-      !pValid ||
-      !ageValid ||
-      !genderValid ||
-      !maritalValid
-    ) {
-      return; // עצור אם יש שגיאות בשדות
+    if (!userHasAlreadyConsented && !consentChecked) {
+      setConsentError(dict.errors.consentRequired);
+      return;
     }
 
-    // בדיקה וטיפול בהסכמה אם נדרש
+    if (!isFormValid) return;
+
     if (!userHasAlreadyConsented) {
-      if (!consentChecked) {
-        setConsentError('חובה לאשר את תנאי השימוש ומדיניות הפרטיות.');
-        return;
-      }
       setIsSubmittingConsent(true);
       try {
         const consentResponse = await fetch('/api/user/accept-terms', {
           method: 'POST',
         });
-        const consentResult = await consentResponse.json();
-        if (!consentResponse.ok || !consentResult.success) {
-          throw new Error(consentResult.error || 'שגיאה באישור התנאים.');
-        }
-        // לאחר אישור מוצלח, עדכן את הסשן (אם צריך)
-        await updateSessionHook(); // קריאה לפונקציית העדכון מה-hook
-        console.log('Terms accepted via API, session should be updated.');
+        if (!consentResponse.ok) throw new Error();
+        await updateSessionHook();
       } catch (error) {
-        setGeneralApiError(
-          error instanceof Error ? error.message : 'אירעה שגיאה באישור התנאים.'
-        );
+        setGeneralApiError(dict.errors.consentApiError);
         setIsSubmittingConsent(false);
         return;
-      } finally {
-        setIsSubmittingConsent(false);
       }
+      setIsSubmittingConsent(false);
     }
-
-    // אם הגענו לכאן, כל הולידציות עברו וההסכמה (אם נדרשה) טופלה
-    nextStep(); // עבור לשלב הבא (OptionalInfoStep)
+    nextStep();
   };
 
   const containerVariants = {
@@ -215,304 +131,179 @@ const PersonalDetailsStep: React.FC = () => {
       animate="visible"
     >
       <motion.h2
-        className="text-xl font-semibold text-gray-800 mb-4"
+        className="text-xl font-semibold text-gray-800"
         variants={itemVariants}
       >
-        פרטים אישיים חיוניים
+        {dict.title}
       </motion.h2>
-      <motion.p className="text-sm text-gray-500 mb-5" variants={itemVariants}>
-        אנו צריכים פרטים אלו כדי להמשיך בתהליך ההרשמה שלך.
+      <motion.p className="text-sm text-gray-500" variants={itemVariants}>
+        {dict.subtitle}
       </motion.p>
 
       {generalApiError && (
-        <motion.div variants={itemVariants}>
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>שגיאה</AlertTitle>
-            <AlertDescription>{generalApiError}</AlertDescription>
-          </Alert>
-        </motion.div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{generalApiError}</AlertDescription>
+        </Alert>
       )}
 
       <motion.div variants={itemVariants} className="space-y-4">
-        {/* First Name Field */}
+        {/* All fields updated to use dict */}
         <div className="space-y-1">
-          <label
-            htmlFor="firstNamePersonal"
-            className="block text-sm font-medium text-gray-700"
-          >
-            שם פרטי <span className="text-red-500">*</span>
+          <label htmlFor="firstNamePersonal">
+            {dict.firstNameLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <Input
-              type="text"
-              id="firstNamePersonal"
-              aria-describedby={firstNameError ? 'firstname-error' : undefined}
-              aria-invalid={!!firstNameError}
-              value={registrationState.firstName}
-              onChange={(e) => updateField('firstName', e.target.value)}
-              onBlur={() => validateFirstName(registrationState.firstName)}
-              placeholder="לדוגמה: ישראל"
-              required
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                firstNameError
-                  ? 'border-red-400 focus:ring-red-200'
-                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
-              }`}
-              disabled={isSubmittingConsent}
-            />
-          </div>
+          <Input
+            id="firstNamePersonal"
+            value={registrationState.firstName}
+            onChange={(e) => updateField('firstName', e.target.value)}
+            onBlur={(e) => validateFirstName(e.target.value)}
+            placeholder={dict.firstNamePlaceholder}
+            required
+            disabled={isSubmittingConsent}
+          />
           {firstNameError && (
-            <p
-              id="firstname-error"
-              role="alert"
-              className="text-red-500 text-xs mt-1"
-            >
-              {firstNameError}
-            </p>
+            <p className="text-red-500 text-xs mt-1">{firstNameError}</p>
           )}
         </div>
-
-        {/* Last Name Field */}
         <div className="space-y-1">
-          <label
-            htmlFor="lastNamePersonal"
-            className="block text-sm font-medium text-gray-700"
-          >
-            שם משפחה <span className="text-red-500">*</span>
+          <label htmlFor="lastNamePersonal">
+            {dict.lastNameLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <Input
-              type="text"
-              id="lastNamePersonal"
-              value={registrationState.lastName}
-              onChange={(e) => updateField('lastName', e.target.value)}
-              onBlur={() => validateLastName(registrationState.lastName)}
-              placeholder="לדוגמה: ישראלי"
-              required
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                lastNameError
-                  ? 'border-red-400 focus:ring-red-200'
-                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
-              }`}
-              disabled={isSubmittingConsent}
-            />
-          </div>
+          <Input
+            id="lastNamePersonal"
+            value={registrationState.lastName}
+            onChange={(e) => updateField('lastName', e.target.value)}
+            onBlur={(e) => validateLastName(e.target.value)}
+            placeholder={dict.lastNamePlaceholder}
+            required
+            disabled={isSubmittingConsent}
+          />
           {lastNameError && (
             <p className="text-red-500 text-xs mt-1">{lastNameError}</p>
           )}
         </div>
-
-        {/* Phone Field */}
         <div className="space-y-1">
-          <label
-            htmlFor="phonePersonal"
-            className="block text-sm font-medium text-gray-700"
-          >
-            טלפון נייד <span className="text-red-500">*</span>
+          <label htmlFor="phonePersonal">
+            {dict.phoneLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <Input
-              type="tel"
-              id="phonePersonal"
-              value={registrationState.phone}
-              onChange={(e) => updateField('phone', e.target.value)}
-              onBlur={() => validatePhone(registrationState.phone)}
-              placeholder=""
-              required
-              maxLength={10}
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                phoneError
-                  ? 'border-red-400 focus:ring-red-200'
-                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
-              }`}
-              disabled={isSubmittingConsent}
-            />
-          </div>
+          <Input
+            id="phonePersonal"
+            type="tel"
+            value={registrationState.phone}
+            onChange={(e) => updateField('phone', e.target.value)}
+            onBlur={(e) => validatePhone(e.target.value)}
+            placeholder={dict.phonePlaceholder}
+            required
+            maxLength={10}
+            disabled={isSubmittingConsent}
+          />
           {phoneError && (
             <p className="text-red-500 text-xs mt-1">{phoneError}</p>
           )}
         </div>
-
-        {/* Gender Field */}
         <div className="space-y-1">
-          <label className="block text-sm font-medium text-gray-700">
-            מגדר <span className="text-red-500">*</span>
+          <label>
+            {dict.genderLabel} <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-2 gap-3 mt-1">
-            {(
-              [
-                { value: Gender.MALE, label: 'זכר', icon: '👨' },
-                { value: Gender.FEMALE, label: 'נקבה', icon: '👩' },
-              ] as const
-            ).map((genderOption) => (
-              <button
-                key={genderOption.value}
-                type="button"
-                onClick={() => updateField('gender', genderOption.value)}
-                disabled={isSubmittingConsent}
-                className={`flex items-center justify-center gap-2 py-3 rounded-lg border-2 transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed ${
-                  registrationState.gender === genderOption.value
-                    ? genderOption.value === Gender.MALE
-                      ? 'border-cyan-500 bg-cyan-50 text-cyan-700 shadow-md'
-                      : 'border-pink-500 bg-pink-50 text-pink-700 shadow-md'
-                    : 'border-gray-200 hover:border-gray-300 text-gray-700 bg-white'
-                }`}
-              >
-                <span className="text-xl">{genderOption.icon}</span>
-                <span className="font-medium">{genderOption.label}</span>
-              </button>
-            ))}
-          </div>
-          {registrationState.gender === '' && (
-            <p className="text-red-500 text-xs mt-1">יש לבחור מגדר</p>
-          )}
-        </div>
-
-        {/* Birth Date Field */}
-        <div className="space-y-1">
-          <label
-            htmlFor="birthDatePersonal"
-            className="block text-sm font-medium text-gray-700"
-          >
-            תאריך לידה <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <Input
-              type="date"
-              id="birthDatePersonal"
-              value={registrationState.birthDate}
-              onChange={(e) => {
-                updateField('birthDate', e.target.value);
-                validateAge(e.target.value);
-              }}
-              onBlur={() => validateAge(registrationState.birthDate)}
-              max={
-                new Date(new Date().setFullYear(new Date().getFullYear() - 18))
-                  .toISOString()
-                  .split('T')[0]
+            <Button
+              type="button"
+              onClick={() => updateField('gender', Gender.MALE)}
+              variant={
+                registrationState.gender === Gender.MALE ? 'default' : 'outline'
               }
-              required
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                ageError
-                  ? 'border-red-400 focus:ring-red-200'
-                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
-              }`}
               disabled={isSubmittingConsent}
-            />
+            >
+              👨 {dict.male}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => updateField('gender', Gender.FEMALE)}
+              variant={
+                registrationState.gender === Gender.FEMALE
+                  ? 'default'
+                  : 'outline'
+              }
+              disabled={isSubmittingConsent}
+            >
+              👩 {dict.female}
+            </Button>
           </div>
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="birthDatePersonal">
+            {dict.birthDateLabel} <span className="text-red-500">*</span>
+          </label>
+          <Input
+            id="birthDatePersonal"
+            type="date"
+            value={registrationState.birthDate}
+            onChange={(e) => updateField('birthDate', e.target.value)}
+            onBlur={(e) => validateAge(e.target.value)}
+            required
+            disabled={isSubmittingConsent}
+          />
           {ageError && <p className="text-red-500 text-xs mt-1">{ageError}</p>}
         </div>
-
-        {/* Marital Status Field */}
         <div className="space-y-1">
-          <label
-            htmlFor="maritalStatusPersonal"
-            className="block text-sm font-medium text-gray-700"
-          >
-            מצב משפחתי <span className="text-red-500">*</span>
+          <label htmlFor="maritalStatusPersonal">
+            {dict.maritalStatusLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <Users className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <select
-              id="maritalStatusPersonal"
-              value={registrationState.maritalStatus}
-              onChange={(e) => updateField('maritalStatus', e.target.value)}
-              required
-              disabled={isSubmittingConsent}
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none appearance-none bg-white transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${
-                registrationState.maritalStatus === '' && false // Not a real error condition for select, just placeholder
-                  ? 'border-red-400 focus:ring-red-200'
-                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
-              }`}
-            >
-              <option value="" disabled>
-                בחר/י מצב משפחתי...
-              </option>
-              <option value="רווק/ה">רווק/ה</option>
-              <option value="גרוש/ה">גרוש/ה</option>
-              <option value="אלמן/ה">אלמן/ה</option>
-            </select>
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-              <svg
-                className="h-5 w-5 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </div>
-          </div>
-          {registrationState.maritalStatus === '' && (
-            <p className="text-red-500 text-xs mt-1">יש לבחור מצב משפחתי</p>
-          )}
+          <select
+            id="maritalStatusPersonal"
+            value={registrationState.maritalStatus}
+            onChange={(e) => updateField('maritalStatus', e.target.value)}
+            required
+            disabled={isSubmittingConsent}
+            className="w-full p-2 border rounded"
+          >
+            <option value="" disabled>
+              {dict.maritalStatusPlaceholder}
+            </option>
+            <option value="רווק/ה">{dict.maritalStatuses.single}</option>
+            <option value="גרוש/ה">{dict.maritalStatuses.divorced}</option>
+            <option value="אלמן/ה">{dict.maritalStatuses.widowed}</option>
+          </select>
         </div>
       </motion.div>
 
-      {/* Consent Checkbox - מוצג רק אם המשתמש טרם אישר */}
       {!userHasAlreadyConsented && (
-        <motion.div
-          variants={itemVariants}
-          className="mt-6 pt-4 border-t border-gray-100"
-        >
+        <motion.div variants={itemVariants} className="mt-6 pt-4 border-t">
           <ConsentCheckbox
             checked={consentChecked}
-            onChange={(isChecked) => {
-              setConsentChecked(isChecked);
-              if (isChecked) setConsentError(null);
-            }}
+            onChange={setConsentChecked}
             error={consentError}
+            dict={consentDict}
           />
         </motion.div>
       )}
 
       <motion.div
         variants={itemVariants}
-        className="flex justify-between items-center pt-5 mt-6 border-t border-gray-200"
+        className="flex justify-between items-center pt-5 mt-6 border-t"
       >
         <Button
           onClick={prevStep}
           variant="outline"
-          className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"
-          disabled={
-            isSubmittingConsent ||
-            (registrationState.step === 0 &&
-              !registrationState.isCompletingProfile)
-          }
+          disabled={isSubmittingConsent}
         >
-          <ArrowRight className="h-4 w-4" />
-          חזרה
+          <ArrowRight className="h-4 w-4 ml-2" />
+          {dict.backButton}
         </Button>
-
         <Button
           onClick={handleContinue}
           disabled={!isFormValid || isSubmittingConsent}
-          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all duration-300
-            ${
-              isFormValid && !isSubmittingConsent
-                ? 'bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg hover:shadow-xl transform hover:scale-105'
-                : 'bg-gray-300 cursor-not-allowed'
-            }`}
         >
           {isSubmittingConsent ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              <span>מאשר תנאים...</span>
+              <span>{dict.nextButtonLoading}</span>
             </>
           ) : (
             <>
-              <span>המשך לשלב הבא</span>
-              <ArrowLeft className="h-4 w-4" />
+              {dict.nextButton} <ArrowLeft className="h-4 w-4 mr-2" />
             </>
           )}
         </Button>

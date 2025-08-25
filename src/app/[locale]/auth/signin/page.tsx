@@ -1,8 +1,10 @@
-// src/app/auth/signin/page.tsx
+// src/app/[locale]/auth/signin/page.tsx
 
-import SignInForm from "@/components/auth/SignInForm";
-import { Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
+import { getDictionary } from '@/lib/dictionaries';
+import type { Locale } from '../../../../../i18n-config';
+import SignInClient from './SignInClient'; // רכיב הלקוח החדש
 
 function Loading() {
   return (
@@ -12,14 +14,18 @@ function Loading() {
   );
 }
 
-export default function SignInPage() {
+export default async function SignInPage({
+  params: { locale },
+}: {
+  params: { locale: Locale };
+}) {
+  const dictionary = await getDictionary(locale);
+
   return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
-
-    <Suspense fallback={<Loading />}>
-      <SignInForm />
-    </Suspense>
-        </div>
-
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
+      <Suspense fallback={<Loading />}>
+        <SignInClient dict={dictionary.auth.signIn} />
+      </Suspense>
+    </div>
   );
 }

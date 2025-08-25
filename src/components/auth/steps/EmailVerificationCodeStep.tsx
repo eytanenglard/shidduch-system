@@ -1,27 +1,32 @@
-// src/app/components/auth/steps/EmailVerificationCodeStep.tsx
+// src/components/auth/steps/EmailVerificationCodeStep.tsx
 'use client';
 
 import { useState, useRef, KeyboardEvent, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react'; // נשאר רק signIn, useSession לא בשימוש ישיר כאן
+import { signIn } from 'next-auth/react';
 import { useRegistration } from '../RegistrationContext';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, AlertCircle, MailCheck, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
+import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
 const OTP_LENGTH = 6;
 
-const EmailVerificationCodeStep: React.FC = () => {
+interface EmailVerificationCodeStepProps {
+  dict: RegisterStepsDict['steps']['emailVerification'];
+}
+
+const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
+  dict,
+}) => {
   const {
     data: registrationData,
     exitEmailVerification: goBackToBasicInfo,
-    completeEmailVerification, // הוספת הפונקציה מהקונטקסט
+    completeEmailVerification,
   } = useRegistration();
-
   const router = useRouter();
-
   const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(''));
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -30,67 +35,23 @@ const EmailVerificationCodeStep: React.FC = () => {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    if (inputRefs.current[0]) {
-      inputRefs.current[0]?.focus();
-    }
+    inputRefs.current[0]?.focus();
   }, []);
 
   const handleChange = (element: HTMLInputElement, index: number) => {
     const value = element.value.replace(/[^0-9]/g, '');
-
-    if (value.length > 1 && index < OTP_LENGTH) {
-      const chars = value.split('');
-      let currentIdx = index;
-      const newOtp = [...otp];
-
-      for (
-        let i = 0;
-        i < chars.length && currentIdx < OTP_LENGTH;
-        i++, currentIdx++
-      ) {
-        newOtp[currentIdx] = chars[i];
-      }
-      setOtp(newOtp);
-      const nextFocusIndex = Math.min(index + chars.length, OTP_LENGTH - 1);
-      if (inputRefs.current[nextFocusIndex] && chars.length > 0) {
-        setTimeout(() => inputRefs.current[nextFocusIndex]?.focus(), 0);
-      }
-      return;
-    }
-
     const newOtp = [...otp];
-    newOtp[index] = value;
+    newOtp[index] = value.slice(-1); // Only take the last digit
     setOtp(newOtp);
 
     if (value && index < OTP_LENGTH - 1) {
-      if (inputRefs.current[index + 1]) {
-        inputRefs.current[index + 1]?.focus();
-      }
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key === 'Backspace') {
-      e.preventDefault();
-      const newOtp = [...otp];
-      if (newOtp[index]) {
-        newOtp[index] = '';
-        setOtp(newOtp);
-      } else if (index > 0) {
-        if (inputRefs.current[index - 1]) {
-          inputRefs.current[index - 1]?.focus();
-        }
-      }
-    } else if (e.key === 'ArrowLeft' && index > 0) {
-      e.preventDefault();
-      if (inputRefs.current[index - 1]) {
-        inputRefs.current[index - 1]?.focus();
-      }
-    } else if (e.key === 'ArrowRight' && index < OTP_LENGTH - 1) {
-      e.preventDefault();
-      if (inputRefs.current[index + 1]) {
-        inputRefs.current[index + 1]?.focus();
-      }
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
     }
   };
 
@@ -98,7 +59,9 @@ const EmailVerificationCodeStep: React.FC = () => {
     e.preventDefault();
     const enteredCode = otp.join('');
     if (enteredCode.length !== OTP_LENGTH) {
-      setApiError(`הקוד חייב להכיל ${OTP_LENGTH} ספרות.`);
+      setApiError(
+        dict.errors.incompleteCode.replace('{{length}}', OTP_LENGTH.toString())
+      );
       return;
     }
 
@@ -107,11 +70,6 @@ const EmailVerificationCodeStep: React.FC = () => {
     setResendMessage(null);
 
     try {
-      // 1. Verify the code with the backend
-      console.log(
-        'CLIENT LOG: Submitting OTP to API. Email:',
-        registrationData.emailForVerification
-      );
       const response = await fetch('/api/auth/verify-email-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -120,61 +78,29 @@ const EmailVerificationCodeStep: React.FC = () => {
           code: enteredCode,
         }),
       });
-
       const result = await response.json();
-      console.log('CLIENT LOG: API response for /verify-email-code:', result);
-
       if (!response.ok || !result.success || !result.authToken) {
-        throw new Error(
-          result.error || 'שגיאה באימות הקוד מה-API או שלא הוחזר טוקן התחברות.'
-        );
+        throw new Error(result.error || dict.errors.default);
       }
 
-      const authToken = result.authToken;
-      console.log(
-        'CLIENT LOG: Email code verified with API. AuthToken received. Attempting auto-signin...'
-      );
-
-      // 2. Attempt auto-signin with the received authToken
       const signInResult = await signIn('email-verified-autologin', {
-        authToken: authToken,
-        redirect: false, // חשוב! אנחנו נטפל בהפניה ידנית
+        authToken: result.authToken,
+        redirect: false,
       });
 
-      console.log('CLIENT LOG: Auto-signin attempt result:', signInResult);
-
       if (signInResult?.ok) {
-        // ההתחברות האוטומטית הצליחה, והסשן נוצר/עודכן
-        console.log(
-          'CLIENT LOG: Auto-signin successful. Calling completeEmailVerification and navigating to /auth/register.'
-        );
-        completeEmailVerification(); // <-- קריאה לפונקציה מהקונטקסט
+        completeEmailVerification();
         router.push('/auth/register');
-        // אין צורך לקרוא ל-setIsLoading(false) כאן כי הקומפוננטה תעשה unmount
       } else {
-        // ההתחברות האוטומטית נכשלה
-        console.error('CLIENT LOG: Auto-signin failed.', signInResult?.error);
-        setApiError(
-          `אימות המייל הצליח, אך נתקלנו בבעיה בהתחברות האוטומטית: ${
-            signInResult?.error || 'שגיאה לא ידועה'
-          }. אנא נסה להתחבר ידנית.`
+        throw new Error(
+          dict.errors.autoSignInFailed.replace(
+            '{error}',
+            signInResult?.error || 'Unknown error'
+          )
         );
-        setIsLoading(false); // אפשר למשתמש לנסות שוב או לנקוט פעולה אחרת
       }
     } catch (error) {
-      console.error(
-        'CLIENT LOG: Error during email verification process or auto-signin:',
-        error
-      );
-      setApiError(
-        error instanceof Error
-          ? error.message
-          : 'אירעה שגיאה בלתי צפויה בתהליך האימות'
-      );
-      setOtp(new Array(OTP_LENGTH).fill(''));
-      if (inputRefs.current[0]) {
-        inputRefs.current[0]?.focus();
-      }
+      setApiError(error instanceof Error ? error.message : dict.errors.default);
       setIsLoading(false);
     }
   };
@@ -183,58 +109,19 @@ const EmailVerificationCodeStep: React.FC = () => {
     setIsResending(true);
     setApiError(null);
     setResendMessage(null);
-
     try {
-      console.log(
-        'CLIENT LOG: Requesting to resend verification code for email:',
-        registrationData.emailForVerification
-      );
       const response = await fetch('/api/auth/resend-verification-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: registrationData.emailForVerification }),
       });
       const result = await response.json();
-      console.log(
-        'CLIENT LOG: API response for /resend-verification-code:',
-        result
-      );
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'שגיאה בשליחה חוזרת של הקוד');
-      }
-      setResendMessage(result.message || 'קוד חדש נשלח בהצלחה.');
-      setOtp(new Array(OTP_LENGTH).fill(''));
-      if (inputRefs.current[0]) {
-        inputRefs.current[0]?.focus();
-      }
+      if (!response.ok) throw new Error(result.error);
+      setResendMessage(dict.alerts.resent);
     } catch (error) {
-      console.error('CLIENT LOG: Error during resend code:', error);
-      setApiError(
-        error instanceof Error ? error.message : 'אירעה שגיאה בשליחה חוזרת'
-      );
+      setApiError(error instanceof Error ? error.message : dict.errors.default);
     } finally {
       setIsResending(false);
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
-    const pasteData = e.clipboardData
-      .getData('text')
-      .replace(/[^0-9]/g, '')
-      .slice(0, OTP_LENGTH);
-
-    if (pasteData.length > 0) {
-      e.preventDefault();
-      const newOtp = new Array(OTP_LENGTH).fill('');
-      for (let i = 0; i < pasteData.length; i++) {
-        newOtp[i] = pasteData[i];
-      }
-      setOtp(newOtp);
-      const focusIndex = Math.min(pasteData.length, OTP_LENGTH - 1);
-      if (inputRefs.current[focusIndex]) {
-        setTimeout(() => inputRefs.current[focusIndex]?.focus(), 0);
-      }
     }
   };
 
@@ -249,24 +136,20 @@ const EmailVerificationCodeStep: React.FC = () => {
 
   return (
     <motion.div
-      className="space-y-6 text-center p-4 sm:p-6"
+      className="space-y-6 text-center"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       <motion.div variants={itemVariants}>
         <MailCheck className="h-12 w-12 text-cyan-500 mx-auto mb-3" />
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
-          אימות כתובת מייל
-        </h2>
-        <p className="text-gray-600 mt-2 text-sm sm:text-base">
-          שלחנו קוד אימות בן {OTP_LENGTH} ספרות לכתובת{' '}
+        <h2 className="text-2xl font-bold text-gray-800">{dict.title}</h2>
+        <p className="text-gray-600 mt-2">
+          {dict.subtitle.replace('{{length}}', OTP_LENGTH.toString())}{' '}
           <strong className="font-semibold text-gray-700">
-            {registrationData.emailForVerification || 'האימייל שלך'}
+            {registrationData.emailForVerification || dict.yourEmail}
           </strong>
           .
-          <br />
-          אנא הזן את הקוד שקיבלת.
         </p>
       </motion.div>
 
@@ -274,7 +157,7 @@ const EmailVerificationCodeStep: React.FC = () => {
         <motion.div variants={itemVariants}>
           <Alert variant="destructive" role="alert">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>שגיאה</AlertTitle>
+            <AlertTitle>{dict.errors.title}</AlertTitle>
             <AlertDescription>{apiError}</AlertDescription>
           </Alert>
         </motion.div>
@@ -284,10 +167,10 @@ const EmailVerificationCodeStep: React.FC = () => {
           <Alert
             variant="default"
             className="bg-green-50 border-green-300 text-green-700"
-            role="status" // status מתאים להודעות הצלחה, alert לשגיאות
+            role="status"
           >
             <MailCheck className="h-4 w-4 text-green-600" />
-            <AlertTitle>הודעה</AlertTitle>
+            <AlertTitle>{dict.alerts.title}</AlertTitle>
             <AlertDescription>{resendMessage}</AlertDescription>
           </Alert>
         </motion.div>
@@ -296,9 +179,8 @@ const EmailVerificationCodeStep: React.FC = () => {
       <form onSubmit={handleFormSubmit}>
         <motion.div
           variants={itemVariants}
-          className="flex justify-center space-x-2 sm:space-x-3 rtl:space-x-reverse"
+          className="flex justify-center space-x-2 rtl:space-x-reverse"
           dir="ltr"
-          onPaste={handlePaste}
         >
           {otp.map((digit, index) => (
             <Input
@@ -315,7 +197,7 @@ const EmailVerificationCodeStep: React.FC = () => {
               ref={(el) => {
                 inputRefs.current[index] = el;
               }}
-              className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-semibold border-2 border-gray-300 rounded-md focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition-colors disabled:bg-gray-100 appearance-none"
+              className="w-12 h-14 text-center text-xl font-semibold"
               disabled={isLoading || isResending}
               aria-label={`OTP digit ${index + 1}`}
               autoComplete="one-time-code"
@@ -324,21 +206,21 @@ const EmailVerificationCodeStep: React.FC = () => {
           ))}
         </motion.div>
 
-        <motion.div variants={itemVariants} className="space-y-4 mt-6">
+        <motion.div variants={itemVariants} className="mt-6">
           <Button
             type="submit"
             disabled={
               isLoading || isResending || otp.join('').length !== OTP_LENGTH
             }
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600"
+            className="w-full"
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span>מאמת ומתחבר...</span>
+                <Loader2 className="h-5 w-5 animate-spin ml-2" />
+                <span>{dict.submitButtonLoading}</span>
               </>
             ) : (
-              'אמת קוד והמשך להשלמת פרופיל'
+              dict.submitButton
             )}
           </Button>
         </motion.div>
@@ -348,21 +230,21 @@ const EmailVerificationCodeStep: React.FC = () => {
         variants={itemVariants}
         className="text-sm text-gray-500 mt-2"
       >
-        לא קיבלת קוד?{' '}
+        {dict.resendPrompt}{' '}
         <Button
           type="button"
           variant="link"
           onClick={handleResendCode}
           disabled={isLoading || isResending}
-          className="p-0 h-auto text-cyan-600 hover:text-cyan-700 disabled:text-gray-400"
+          className="p-0 h-auto text-cyan-600"
         >
           {isResending ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin ml-1 rtl:mr-1 rtl:ml-0" />
-              <span>שולח קוד חדש...</span>
+              <Loader2 className="h-4 w-4 animate-spin ml-1" />
+              <span>{dict.resendButtonLoading}</span>
             </>
           ) : (
-            'שלח קוד חדש'
+            dict.resendButton
           )}
         </Button>
       </motion.div>
@@ -372,10 +254,9 @@ const EmailVerificationCodeStep: React.FC = () => {
           type="button"
           onClick={goBackToBasicInfo}
           variant="outline"
-          className="flex items-center gap-2 border-gray-300 text-sm"
           disabled={isLoading || isResending}
         >
-          <ArrowRight className="h-4 w-4" /> חזור למילוי פרטים
+          <ArrowRight className="h-4 w-4 ml-2" /> {dict.backButton}
         </Button>
       </motion.div>
     </motion.div>

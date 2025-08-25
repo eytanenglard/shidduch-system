@@ -1,6 +1,7 @@
 // src/types/dictionary.d.ts
 import type { MatchmakerPageDictionary } from './dictionaries/matchmaker';
 import { WORLD_KEYS } from '@/components/profile/constants'; 
+import type { AuthDictionary } from './dictionaries/auth';
 
 // --- Navbar ---
 export type NavbarDict = {
@@ -545,6 +546,7 @@ export type Dictionary = {
   suggestions: SuggestionsDictionary;
   profilePage: ProfilePageDictionary;
     matchmakerPage: MatchmakerPageDictionary;
+  auth: AuthDictionary; // <--- 2. הוספת המפתח והטיפוס החדש
 
 };
 export type {

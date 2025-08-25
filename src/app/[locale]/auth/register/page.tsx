@@ -1,10 +1,11 @@
-// src/app/auth/register/page.tsx
+// src/app/[locale]/auth/register/page.tsx
 
-import RegisterSteps from '@/components/auth/RegisterSteps';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
+import { getDictionary } from '@/lib/dictionaries';
+import type { Locale } from '../../../../../i18n-config';
+import RegisterClient from './RegisterClient'; // רכיב הלקוח החדש
 
-// רכיב זמני שיוצג בזמן שהקומפוננטה הראשית נטענת
 function Loading() {
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -13,10 +14,16 @@ function Loading() {
   );
 }
 
-export default function RegisterPage() {
+export default async function RegisterPage({
+  params: { locale },
+}: {
+  params: { locale: Locale };
+}) {
+  const dictionary = await getDictionary(locale);
+
   return (
     <Suspense fallback={<Loading />}>
-      <RegisterSteps />
+      <RegisterClient dict={dictionary.auth.register} />
     </Suspense>
   );
 }
