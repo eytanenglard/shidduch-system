@@ -31,7 +31,9 @@
     "highlightedWord": "from the soul",
     "typewriterText": "In a world of endless swipes and superficial profiles, we believe in a different path. Our journey begins with a unique questionnaire designed to understand you deeply. This allows us to present matches that are more than just a picture and a bio—they are a complete story, empowering you to make a decision from a place of true connection.",
     "ctaButton": "Begin My Journey",
+      "ctaButtonShort": "Start Journey", 
     "secondaryButton": "To the Questionnaire",
+     "secondaryButtonShort": "Questionnaire",
     "synergy": {
       "techTools": "Tech",
       "personalGuidance": "Touch"

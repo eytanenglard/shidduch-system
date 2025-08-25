@@ -27,7 +27,10 @@ export type HeroSectionDict = {
   highlightedWord: string;
   typewriterText: string;
   ctaButton: string;
+  ctaButtonShort: string;
   secondaryButton: string;
+  secondaryButtonShort: string;
+
   principlesHeader: {
     title: string;
     subtitle: string;

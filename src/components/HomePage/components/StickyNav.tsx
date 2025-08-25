@@ -89,22 +89,22 @@ const StickyNav: React.FC<StickyNavProps> = ({
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      lastScrollY.current = currentScrollY;
+      // START: Improved Logic
+      const navHeight = isMobile ? 64 : 80; // Height of the sticky nav
+      const triggerPoint = currentScrollY + navHeight + 40; // Nav height + extra margin
 
       let currentSection = '';
-      const offset = isMobile ? 200 : 150;
-      sectionRefs.current.forEach((section, index) => {
-        if (section) {
-          const sectionTop = section.offsetTop - offset;
-          const sectionHeight = section.clientHeight;
-          if (
-            currentScrollY >= sectionTop &&
-            currentScrollY < sectionTop + sectionHeight
-          ) {
-            currentSection = navLinks[index].id;
-          }
+
+      // Iterate backwards to find the last section that is above the trigger point
+      for (let i = sectionRefs.current.length - 1; i >= 0; i--) {
+        const section = sectionRefs.current[i];
+        if (section && section.offsetTop <= triggerPoint) {
+          currentSection = navLinks[i].id;
+          break; // Found the active section, no need to continue
         }
-      });
+      }
+      // END: Improved Logic
+
       setActiveSection(currentSection);
     };
 
@@ -119,7 +119,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
     };
-  }, [navLinks, isMobile]);
+  }, [navLinks, isMobile]); // Dependencies remain the same
 
   const handleLinkClick = (
     e: React.MouseEvent<HTMLAnchorElement>,

@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   ArrowLeft,
+  ArrowRight,
   Shield,
   User,
   BookOpen,
@@ -543,8 +544,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               size="lg"
               className="text-base md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
             >
-              {dict.ctaButton}
-              <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              <span className="hidden md:inline">{dict.ctaButton}</span>
+              <span className="md:hidden">
+                {dict.ctaButtonShort || dict.ctaButton}
+              </span>
+              {locale === 'he' ? (
+                <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              ) : (
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              )}
             </Button>
           </Link>
           <Link
@@ -556,7 +564,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               size="lg"
               className="text-base md:text-lg px-8 py-6 border-2 border-cyan-200 text-cyan-600 bg-white/50 hover:bg-white hover:border-cyan-300 rounded-full transition-all duration-300"
             >
-              {dict.secondaryButton}
+              <span className="hidden md:inline">{dict.secondaryButton}</span>
+              <span className="md:hidden">
+                {dict.secondaryButtonShort || dict.secondaryButton}
+              </span>{' '}
             </Button>
           </Link>
         </motion.div>

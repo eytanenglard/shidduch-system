@@ -295,7 +295,6 @@ const MatchingConstellation: React.FC<{
             }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-rose-50/80 via-amber-50/60 to-sky-50/80 rounded-full blur-3xl" />
-
             <svg
               viewBox={`0 0 ${dimensions.size} ${dimensions.size}`}
               className="absolute inset-0 w-full h-full pointer-events-none"
@@ -440,130 +439,104 @@ const MatchingConstellation: React.FC<{
                 </div>
               </foreignObject>
             </svg>
+           
 
-            {worlds.map((world, index) => {
-              const currentAngle = world.angle + rotationOffset;
-              const x =
-                dimensions.center +
-                Math.cos((currentAngle * Math.PI) / 180) * dimensions.radius;
-              const y =
-                dimensions.center +
-                Math.sin((currentAngle * Math.PI) / 180) * dimensions.radius;
-              const isActive = activeWorld === world.id;
-              const halfIcon = dimensions.iconSize / 2;
+{worlds.map((world, index) => {
+  const currentAngle = world.angle + rotationOffset;
+  const x =
+    dimensions.center +
+    Math.cos((currentAngle * Math.PI) / 180) * dimensions.radius;
+  const y =
+    dimensions.center +
+    Math.sin((currentAngle * Math.PI) / 180) * dimensions.radius;
+  const isActive = activeWorld === world.id;
+  
+  // START: THE FIX - We now position a single flex container
+  return (
+    <motion.div
+      key={world.id}
+      className="absolute cursor-pointer group select-none flex flex-col items-center gap-2 md:gap-4" // <-- 1. This is now a flex column container that centers its items
+      style={{
+        // We set width to be wider to prevent text wrapping, but items-center keeps things aligned
+        width: dimensions.iconSize * 2.5, 
+        transform: 'translate3d(0, 0, 0)',
+      }}
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{
+        opacity: isInView ? 1 : 0,
+        scale: isInView ? 1 : 0,
+        // The positioning logic now centers the entire flex container
+        left: x - (dimensions.iconSize * 2.5) / 2,
+        top: y - dimensions.iconSize / 2,
+      }}
+      transition={{
+        type: 'spring',
+        stiffness: 100,
+        damping: 20,
+        delay: 0.7 + index * 0.1,
+      }}
+      onMouseEnter={() => !isMobile && setHoveredWorld(world.id)}
+      onMouseLeave={() => !isMobile && setHoveredWorld(null)}
+      onClick={() => !isDragging && handleWorldInteraction(world.id)}
+      whileHover={!isMobile ? { scale: 1.05 } : {}} // Apply hover scale to the whole unit
+      whileTap={{ scale: 0.95 }}
+    >
+      {/* 2. First child: The Icon */}
+      <motion.div
+        className={`rounded-full bg-gradient-to-br ${world.color} flex items-center justify-center text-white shadow-xl relative overflow-hidden transition-all duration-300 ${isActive ? 'ring-2 md:ring-4 ring-white/60' : ''} ${isDragging ? 'shadow-2xl' : ''}`}
+        style={{
+          width: dimensions.iconSize,
+          height: dimensions.iconSize,
+          flexShrink: 0 // Prevent the icon from shrinking
+        }}
+        animate={{
+          scale: isDragging ? 1.05 : 1,
+        }}
+        transition={{ duration: 0.2 }}
+      >
+        {/* ... (internal icon elements like gradients, svg, etc. - no changes here) ... */}
+        <motion.div
+            className={`absolute inset-0 bg-gradient-to-br ${world.color} rounded-full blur-md`}
+            animate={{ scale: isActive ? 1.8 : isDragging ? 1.3 : 1, opacity: isActive ? 0.5 : isDragging ? 0.3 : 0 }}
+            transition={{ duration: 0.3 }}
+        />
+        <motion.div
+            className="relative z-10 transform transition-transform duration-300 group-hover:scale-110"
+            animate={{ rotate: isDragging ? [0, 5, -5, 0] : 0 }}
+            transition={{ rotate: { duration: 0.6, repeat: isDragging ? Infinity : 0 } }}
+        >
+            {world.icon}
+        </motion.div>
+        {isActive && (
+            <>
+                <motion.div className="absolute inset-0 border-2 border-white/70 rounded-full" animate={{ scale: [1, 2.5], opacity: [0.8, 0] }} transition={{ duration: 2.8, repeat: Infinity, ease: 'easeOut' }} />
+                <motion.div className="absolute inset-0 border-2 border-white/50 rounded-full" animate={{ scale: [1, 2.5], opacity: [0.6, 0] }} transition={{ duration: 2.8, repeat: Infinity, ease: 'easeOut', delay: 1 }} />
+            </>
+        )}
+      </motion.div>
 
-              return (
-                <motion.div
-                  key={world.id}
-                  className="absolute cursor-pointer group select-none"
-                  style={{
-                    transform: 'translate3d(0, 0, 0)',
-                    pointerEvents: isDragging ? 'none' : 'auto',
-                  }}
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{
-                    opacity: isInView ? 1 : 0,
-                    scale: isInView ? 1 : 0,
-                    left: x - halfIcon,
-                    top: y - halfIcon,
-                  }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 100,
-                    damping: 20,
-                    delay: 0.7 + index * 0.1,
-                  }}
-                  onMouseEnter={() => !isMobile && setHoveredWorld(world.id)}
-                  onMouseLeave={() => !isMobile && setHoveredWorld(null)}
-                  onClick={() =>
-                    !isDragging && handleWorldInteraction(world.id)
-                  }
-                  whileHover={!isMobile ? { scale: 1.15 } : {}}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <motion.div
-                    className={`rounded-full bg-gradient-to-br ${world.color} flex items-center justify-center text-white shadow-xl relative overflow-hidden transition-all duration-300 ${isActive ? 'ring-2 md:ring-4 ring-white/60' : ''} ${isDragging ? 'shadow-2xl' : ''}`}
-                    style={{
-                      width: dimensions.iconSize,
-                      height: dimensions.iconSize,
-                    }}
-                    animate={{
-                      scale: isDragging ? 1.05 : 1,
-                      boxShadow: isDragging
-                        ? '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.3)'
-                        : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                    }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <motion.div
-                      className={`absolute inset-0 bg-gradient-to-br ${world.color} rounded-full blur-md`}
-                      animate={{
-                        scale: isActive ? 1.8 : isDragging ? 1.3 : 1,
-                        opacity: isActive ? 0.5 : isDragging ? 0.3 : 0,
-                      }}
-                      transition={{ duration: 0.3 }}
-                    />
-                    <motion.div
-                      className="relative z-10 transform transition-transform duration-300 group-hover:scale-110"
-                      animate={{ rotate: isDragging ? [0, 5, -5, 0] : 0 }}
-                      transition={{
-                        rotate: {
-                          duration: 0.6,
-                          repeat: isDragging ? Infinity : 0,
-                        },
-                      }}
-                    >
-                      {world.icon}
-                    </motion.div>
-                    {isActive && (
-                      <>
-                        <motion.div
-                          className="absolute inset-0 border-2 border-white/70 rounded-full"
-                          animate={{ scale: [1, 2.5], opacity: [0.8, 0] }}
-                          transition={{
-                            duration: 2.8,
-                            repeat: Infinity,
-                            ease: 'easeOut',
-                          }}
-                        />
-                        <motion.div
-                          className="absolute inset-0 border-2 border-white/50 rounded-full"
-                          animate={{ scale: [1, 2.5], opacity: [0.6, 0] }}
-                          transition={{
-                            duration: 2.8,
-                            repeat: Infinity,
-                            ease: 'easeOut',
-                            delay: 1,
-                          }}
-                        />
-                      </>
-                    )}
-                  </motion.div>
-
-                  <motion.div
-                    className={`absolute inset-x-0 top-full text-center whitespace-nowrap ${isMobile ? 'mt-2 text-xs' : 'mt-4 text-sm'}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0, scale: isActive ? 1.05 : 1 }}
-                    transition={{
-                      delay: 1 + index * 0.1,
-                      scale: { duration: 0.2 },
-                    }}
-                  >
-                    <motion.span
-                      className={`font-medium px-2 md:px-3 py-1 rounded-full transition-all duration-300 ${isActive ? 'bg-white text-gray-800 shadow-lg border border-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
-                      animate={{
-                        backgroundColor: isActive ? '#ffffff' : 'transparent',
-                        boxShadow: isActive
-                          ? '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-                          : '0 0 0 0 transparent',
-                      }}
-                    >
-                      {world.title}
-                    </motion.span>
-                  </motion.div>
-                </motion.div>
-              );
-            })}
+      {/* 3. Second child: The Text. No positioning classes needed! */}
+      <motion.div
+        className="whitespace-nowrap text-center"
+        animate={{ scale: isActive ? 1.05 : 1 }}
+        transition={{ scale: { duration: 0.2 } }}
+      >
+        <motion.span
+          className={`font-medium px-2 md:px-3 py-1 rounded-full transition-all duration-300 text-sm ${isActive ? 'bg-white text-gray-800 shadow-lg border border-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
+          animate={{
+            backgroundColor: isActive ? '#ffffff' : 'transparent',
+            boxShadow: isActive
+              ? '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+              : '0 0 0 0 transparent',
+          }}
+        >
+          {world.title}
+        </motion.span>
+      </motion.div>
+    </motion.div>
+  );
+  // END: THE FIX
+})}
           </div>
         </motion.div>
 
