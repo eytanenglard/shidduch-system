@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2025-08-25 10:45:16
+# Generated on: 2025-08-25 16:12:30
 ################################################################################
 
 ================================================================================
@@ -71,16 +71,21 @@ export default function HomePage({ dict, demoData }: HomePageProps) {
   }, []);
 
   const navLinks: NavLink[] = [
-    { id: 'how-it-works', label: 'המסע שלכם' },
-    { id: 'suggestion-demo', label: 'כך נראית הצעה' },
-    { id: 'success-stories', label: 'סיפורי הצלחה' },
-    { id: 'our-team', label: 'הצוות שלנו' },
-    { id: 'faq', label: 'שאלות נפוצות' },
+    { id: 'how-it-works', label: dict.stickyNav.navLinks.howItWorks },
+    { id: 'suggestion-demo', label: dict.stickyNav.navLinks.suggestionDemo },
+    { id: 'success-stories', label: dict.stickyNav.navLinks.successStories },
+    { id: 'our-team', label: dict.stickyNav.navLinks.ourTeam },
+    { id: 'faq', label: dict.stickyNav.navLinks.faq },
   ];
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden">
-      <StickyNav navLinks={navLinks} session={session} isVisible={isScrolled} />
+      <StickyNav
+        navLinks={navLinks}
+        session={session}
+        isVisible={isScrolled}
+        dict={dict.stickyNav} // ✨ הוסף את ה-prop הזה
+      />
 
       <HeroSection
         session={session}
@@ -705,60 +710,55 @@ Content:
 
 import React, { useState } from 'react';
 import { ZoomIn } from 'lucide-react';
-
-// ייבוא קומפוננטות הליבה של פיצ'ר ההצעות
 import MinimalSuggestionCard from '@/components/suggestions/cards/MinimalSuggestionCard';
 import SuggestionDetailsModal from '@/components/suggestions/modals/SuggestionDetailsModal';
-
-// ייבוא טיפוסים (Types)
 import type { ExtendedMatchSuggestion } from '@/components/suggestions/types';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 import type {
   SuggestionsDictionary,
   ProfileCardDict,
-} from '@/types/dictionary'; // 1. ייבוא הטיפוס
+} from '@/types/dictionary';
+
+// ✨ 1. הגדרת טיפוס לתרגומי הדמו הספציפיים שנוספו
+type SuggestionDemoDict = {
+  hoverTitle: string;
+  hoverSubtitle: string;
+};
 
 /**
- * הממשק (interface) המגדיר את ה-props שהקומפוננטה מקבלת.
- * עודכן כדי לכלול את מילון התרגומים.
+ * ✨ 2. עדכון הממשק של ה-props
+ * הוספנו את suggestionDemoDict כדי לקבל את התרגומים של שכבת הריחוף.
  */
 interface LiveSuggestionDemoProps {
   suggestion: ExtendedMatchSuggestion;
   userId: string;
   demoAiAnalysis: AiSuggestionAnalysisResult | null;
-  suggestionsDict: SuggestionsDictionary; // ✨ prop חדש עבור התרגומים
-  profileCardDict: ProfileCardDict; // 2. הוספת ה-prop לממשק
+  suggestionsDict: SuggestionsDictionary;
+  profileCardDict: ProfileCardDict;
+  suggestionDemoDict: SuggestionDemoDict; // הוספנו את ה-prop החדש
 }
 
 /**
  * קומפוננטה להצגת הדגמה חיה של כרטיס הצעה והמודאל הנפתח ממנו.
- * הקומפוננטה מנהלת את מצב הפתיחה/סגירה של המודאל ומעבירה לו את כל הנתונים הנדרשים,
- * כולל אובייקט התרגום המלא.
  */
 export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
   suggestion,
   userId,
   demoAiAnalysis,
-  suggestionsDict, // ✨ קבלת התרגומים מה-props
-  profileCardDict, // 3. קבלת ה-prop
+  suggestionsDict,
+  profileCardDict,
+  suggestionDemoDict, // ✨ 3. קבלת ה-prop החדש
 }) => {
-  // ניהול מצב מקומי כדי לדעת אם המודאל פתוח או סגור
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // פונקציות עזר לניהול מצב המودאל
   const handleCloseModal = () => setIsModalOpen(false);
   const handleOpenModal = () => setIsModalOpen(true);
 
-  // חילוץ המידע על השאלון של הצד השני מההצעה
   const questionnaireData =
     suggestion.secondParty.questionnaireResponses?.[0] || null;
 
   return (
     <div className="w-full max-w-sm lg:max-w-md mx-auto flex flex-col items-center gap-4">
-      {/* 
-        עטיפת הכרטיס בכפתור הופכת את כל היחידה ללחיצה ומשפרת נגישות.
-        הטקסט ב-aria-label מספק תיאור ברור לקוראי מסך.
-      */}
       <button
         type="button"
         className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 w-full"
@@ -772,37 +772,37 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
           onInquiry={handleOpenModal}
           onApprove={handleOpenModal}
           onDecline={handleOpenModal}
-          isApprovalDisabled={true} // בהדגמה, כפתור האישור מושבת
-          dict={suggestionsDict.card} // ✨ העברת החלק הרלוונטי של המילון לקומפוננטת הכרטיס
+          isApprovalDisabled={true}
+          dict={suggestionsDict.card}
         />
 
-        {/* שכבת ריחוף (hover) המעודדת את המשתמש ללחוץ - כאן נמצא התיקון */}
+        {/* 
+          ✨ 4. עדכון הטקסטים הקשיחים לשימוש בתרגומים מה-dict
+          הטקסטים "לחצו להצגה מלאה" וכו' הוחלפו במשתנים דינמיים.
+        */}
         <div className="absolute inset-0 bg-black/50 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-4 pointer-events-none">
           <ZoomIn className="w-12 h-12 mb-2" />
-          <p className="font-bold text-lg text-center">לחצו להצגה מלאה</p>
+          <p className="font-bold text-lg text-center">
+            {suggestionDemoDict.hoverTitle}
+          </p>
           <p className="text-sm text-center text-white/80">
-            גלו את נימוקי השדכן, התשובות ועוד
+            {suggestionDemoDict.hoverSubtitle}
           </p>
         </div>
       </button>
 
-      {/* 
-        קומפוננטת המודאל המלאה. היא תמיד קיימת ב-DOM אך מוצגת רק כאשר isModalOpen=true.
-        היא מקבלת את כל הנתונים הנדרשים, כולל אובייקט התרגומים המלא.
-      */}
       <SuggestionDetailsModal
         suggestion={suggestion}
         userId={userId}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onActionRequest={(suggestion, action) => {
-          // מאחר וזו הדגמה, אנו מציגים התראה פשוטה במקום לבצע פעולה אמיתית.
           alert(
             `זוהי הדגמה בלבד. הפעולה המבוקשת היא "${action === 'approve' ? 'אישור' : 'דחייה'}" עבור ההצעה ל${suggestion.secondParty.firstName}. במערכת האמיתית, היה נפתח חלון אישור.`
           );
         }}
         questionnaire={questionnaireData}
-        isDemo={true} // מסמן למודאל להתנהג כמצב הדגמה
+        isDemo={true}
         demoAnalysisData={demoAiAnalysis}
         dict={{
           suggestions: suggestionsDict,
@@ -991,26 +991,27 @@ import { useSession, signOut } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
 import UserDropdown from '@/components/layout/UserDropdown';
+import type { StickyNavDict } from '@/types/dictionary'; // ✨ 1. ייבוא הטיפוס החדש
 
 export interface NavLink {
   id: string;
   label: string;
 }
 
-// ✨ 1. עדכון הממשק כך שיקבל את ה-prop החדש
 interface StickyNavProps {
   navLinks: NavLink[];
   session: Session | null;
-  isVisible: boolean; // הוספנו את isVisible
+  isVisible: boolean;
+  dict: StickyNavDict; // ✨ 2. הוספת המילון לממשק ה-props
 }
 
 // ======================== קומפוננטת הלוגו המעודכנת ========================
-const StickyLogo = () => {
+const StickyLogo = ({ homepageAriaLabel }: { homepageAriaLabel: string }) => {
   return (
     <Link
       href="/"
       className="hidden md:flex items-center gap-x-2 group shrink-0"
-      aria-label="NeshamaTech Homepage"
+      aria-label={homepageAriaLabel} // ✨ שימוש ב-prop
     >
       <div className="relative h-8 w-8">
         <Image
@@ -1040,14 +1041,12 @@ const StickyLogo = () => {
 };
 // ========================================================================
 
-// ✨ 2. עדכון חתימת הקומפוננטה כך שתקבל את isVisible
 const StickyNav: React.FC<StickyNavProps> = ({
   navLinks,
   session,
   isVisible,
+  dict, // ✨ 3. קבלת המילון כ-prop
 }) => {
-  // ✨ 3. הסרת המצב הפנימי isSticky - הקומפוננטה נשלטת עכשיו מבחוץ
-  // const [isSticky, setIsSticky] = useState(false);
   const [activeSection, setActiveSection] = useState('');
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const [mobileNavState, setMobileNavState] = useState<'open' | 'closed'>(
@@ -1067,9 +1066,6 @@ const StickyNav: React.FC<StickyNavProps> = ({
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      // ✨ 4. הסרנו את השורה שקובעת את isSticky - זה מגיע עכשיו מ-props
-      // setIsSticky(currentScrollY > 10);
-
       lastScrollY.current = currentScrollY;
 
       let currentSection = '';
@@ -1122,11 +1118,11 @@ const StickyNav: React.FC<StickyNavProps> = ({
   };
 
   const isNavOpen = mobileNavState === 'open';
-
   const navVariants = {
     hidden: { y: '-120%', opacity: 0 },
     visible: { y: 0, opacity: 1 },
   };
+
   const handleSignOut = () => {
     signOut({ callbackUrl: '/' });
   };
@@ -1158,10 +1154,10 @@ const StickyNav: React.FC<StickyNavProps> = ({
 
   const mainProfileImage = getMainProfileImage();
   const profileIconSize = 'w-10 h-10';
+
   return (
     <>
       <AnimatePresence>
-        {/* ✨ 5. שימוש ב-isVisible שהתקבל מבחוץ במקום ב-isSticky הפנימי */}
         {isVisible && (
           <motion.header
             variants={navVariants}
@@ -1173,7 +1169,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
           >
             <div className="absolute inset-0 bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80"></div>
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-              <StickyLogo />
+              <StickyLogo homepageAriaLabel={dict.homepageAriaLabel} />
 
               <nav className="hidden md:flex items-center gap-2 relative">
                 {navLinks.map((link) => (
@@ -1230,7 +1226,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                     size="icon"
                     className="rounded-full text-gray-500 hover:bg-gray-200"
                     onClick={() => setMobileNavState('closed')}
-                    aria-label="סגור ניווט"
+                    aria-label={dict.closeNavAriaLabel} // ✨ שימוש בתרגום
                   >
                     <X className="h-5 w-5" />
                   </Button>
@@ -1251,7 +1247,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                     <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
                       <span className="relative z-10 flex items-center">
                         <UserPlus className="ml-1.5 h-4 w-4" />
-                        הרשמה
+                        {dict.signUpButton} {/* ✨ שימוש בתרגום */}
                       </span>
                     </Button>
                   </Link>
@@ -1263,7 +1259,6 @@ const StickyNav: React.FC<StickyNavProps> = ({
       </AnimatePresence>
 
       <AnimatePresence>
-        {/* ✨ 6. וכנ"ל כאן, שימוש ב-isVisible */}
         {isMobile && isVisible && !isNavOpen && (
           <motion.div
             initial={{ scale: 0, opacity: 0, y: 50 }}
@@ -1276,7 +1271,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
               size="icon"
               className="rounded-full h-14 w-14 bg-white/80 backdrop-blur-md border border-gray-200/80 shadow-lg hover:bg-gray-100"
               onClick={() => setMobileNavState('open')}
-              aria-label="פתח ניווט"
+              aria-label={dict.openNavAriaLabel} // ✨ שימוש בתרגום
             >
               <Menu className="h-6 w-6 text-cyan-600" />
             </Button>
@@ -3357,6 +3352,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     demoAiAnalysis={demoData.demoAiAnalysisForDaniel}
                     suggestionsDict={suggestionsDict}
                     profileCardDict={profileCardDict}
+                    suggestionDemoDict={dict.suggestionDemo}
                   />
                 </div>
               </div>
@@ -3374,6 +3370,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     demoAiAnalysis={demoData.demoAiAnalysisForNoa}
                     suggestionsDict={suggestionsDict}
                     profileCardDict={profileCardDict}
+                    suggestionDemoDict={dict.suggestionDemo}
                   />
                 </div>
               </div>

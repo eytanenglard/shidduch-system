@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries
-# Generated on: 2025-08-25 10:53:01
+# Generated on: 2025-08-25 16:13:16
 ################################################################################
 
 ================================================================================
@@ -27,8 +27,25 @@ Content:
     "messages": "Messages",
     "login": "Sign In",
     "register": "Sign Up",
-    "toQuestionnaire": "To the Smart Questionnaire"
+    "toQuestionnaire": "To the Smart Questionnaire",
+        "matchmakerSuggestions": "Match Suggestions",
+    "matchmakerClients": "Candidates"
+
   },
+    "stickyNav": {
+    "homepageAriaLabel": "NeshamaTech Homepage",
+    "signUpButton": "Sign Up",
+    "closeNavAriaLabel": "Close navigation",
+    "openNavAriaLabel": "Open navigation",
+     "navLinks": {
+      "howItWorks": "The Journey",
+      "suggestionDemo": "Suggestion Demo",
+      "successStories": "Success Stories",
+      "ourTeam": "Our Team",
+      "faq": "FAQ"
+    }
+  },
+
   "heroSection": {
     "titleLine1": "A relationship that starts",
     "highlightedWord": "with the soul",
@@ -208,7 +225,12 @@ Content:
       "subtitle_line2": "The initial registration allows us to start understanding you deeply, with no commitment.",
       "button": "I want to begin",
       "features": "Free Initial Sign-Up • No Commitment"
+    },
+        "suggestionDemo": {
+      "hoverTitle": "Click for Full View",
+      "hoverSubtitle": "Discover the matchmaker's rationale, answers, and more"
     }
+
   },
     "matchmakerTeam": {
     "title_part1": "Meet Our",
@@ -421,9 +443,25 @@ Content:
     "messages": "הודעות",
     "login": "התחברות",
     "register": "הרשמה",
-    "toQuestionnaire": "לשאלון החכם"
+    "toQuestionnaire": "לשאלון החכם",
+        "matchmakerSuggestions": "הצעות שידוך",
+    "matchmakerClients": "מועמדים"
+
   },
- 
+   "stickyNav": {
+    "homepageAriaLabel": "עמוד הבית של NeshamaTech",
+    "signUpButton": "הרשמה",
+    "closeNavAriaLabel": "סגור ניווט",
+    "openNavAriaLabel": "פתח ניווט",
+     "navLinks": {
+      "howItWorks": "המסע שלכם",
+      "suggestionDemo": "כך נראית הצעה",
+      "successStories": "סיפורי הצלחה",
+      "ourTeam": "הצוות שלנו",
+      "faq": "שאלות נפוצות"
+    }
+  },
+
   "heroSection": {
     "titleLine1": "זוגיות שמתחילה",
     "highlightedWord": "מהנשמה",
@@ -606,7 +644,12 @@ Content:
       "subtitle_line2": "ההרשמה הראשונית מאפשרת לנו להתחיל להבין אתכם לעומק, ללא כל התחייבות.",
       "button": "אני רוצה להתחיל",
       "features": "הרשמה ראשונית ללא עלות • ללא התחייבות"
+    },
+        "suggestionDemo": {
+      "hoverTitle": "לחצו להצגה מלאה",
+      "hoverSubtitle": "גלו את נימוקי השדכן, התשובות ועוד"
     }
+
   },
     "matchmakerTeam": {
     "title_part1": "הכירו את",
@@ -5514,7 +5557,174 @@ Content:
     "validationErrors": {
       "heightRange": "Height must be between 100 and 250 cm"
     }
+  },
+    "availabilityStatus": {
+    "dialogTitle": "Update Availability Status",
+    "dialogDescription": "Select your current status. Changing your status helps matchmakers provide relevant suggestions.",
+    "statusLabel": "Availability Status",
+    "selectPlaceholder": "Select status",
+    "noteLabel": "Note (Optional)",
+    "notePlaceholder": "e.g., 'Available for suggestions starting Sunday', 'Only serious suggestions'",
+    "updateError": "Error updating status",
+    "cancelButton": "Cancel",
+    "updateButton": "Update Status",
+    "updatingButton": "Updating...",
+    "successDialogTitle": "Status Updated Successfully!",
+    "successDialogDescription": "Your status has been updated in the system. Please note, it may take a few moments for the change to appear everywhere.",
+    "successDialogAction": "Got it",
+    "status": {
+      "AVAILABLE": "Available for suggestions",
+      "UNAVAILABLE": "Unavailable",
+      "DATING": "In a relationship process",
+      "PAUSED": "On a break",
+      "ENGAGED": "Engaged",
+      "MARRIED": "Married",
+      "UNKNOWN": "Unknown"
+    }
+  },
+  "accountSettings": {
+    "loadingText": "Loading user details...",
+    "cardHeader": {
+      "title": "Account Settings",
+      "description": "Manage your account and security details"
+    },
+    "sections": {
+      "personal": {
+        "title": "Personal Details",
+        "description": "Your name and email used on the site",
+        "fullNameLabel": "Full Name",
+        "fullNameNotSet": "Not specified",
+        "emailLabel": "Email Address",
+        "sendVerificationButton": "Send verification code"
+      },
+      "status": {
+        "title": "Account Status",
+        "permissionsLabel": "Permissions",
+        "roles": {
+          "ADMIN": "Admin",
+          "MATCHMAKER": "Matchmaker",
+          "USER": "Candidate"
+        },
+        "statuses": {
+          "ACTIVE": "Active",
+          "PENDING_EMAIL_VERIFICATION": "Pending email verification",
+          "PENDING_PHONE_VERIFICATION": "Pending phone verification",
+          "INACTIVE": "Inactive",
+          "BLOCKED": "Blocked"
+        },
+        "verification": {
+          "verified": "Verified",
+          "notVerified": "Not Verified"
+        },
+        "timeInfoLabel": "Time Details",
+        "createdAt": "Created at:",
+        "lastLogin": "Last login:"
+      },
+      "marketing": {
+        "title": "Mailing Preferences",
+        "label": "Marketing information and updates",
+        "description": "Receive updates on events, promotions, and news from the company."
+      },
+      "security": {
+        "title": "Security",
+        "description": "Security and password settings",
+        "changePasswordButton": "Change Password",
+        "accountVerificationLabel": "Account Verification",
+        "passwordManagementLabel": "Password Management",
+        "managedByProvider": "Your password is managed via {{provider}}.",
+        "managedExternally": "Your password is managed by an external authentication provider."
+      },
+      "delete": {
+        "title": "Delete Account",
+        "description": "Deleting your account is irreversible and will remove all your data.",
+        "deleteButton": "Delete Account"
+      }
+    },
+    "cardFooter": {
+      "notice": "Your account details are protected according to the site's privacy policy"
+    },
+    "toasts": {
+      "fillAllFieldsError": "Please fill all fields",
+      "fillAllFieldsDesc": "All fields are required to change the password",
+      "passwordsMismatchError": "Passwords do not match",
+      "passwordsMismatchDesc": "Please ensure the new password is the same in both fields",
+      "passwordValidationError": "Password validation error",
+      "passwordValidationDesc": "Please follow all password requirements",
+      "verificationSentSuccess": "Verification code sent to your email",
+      "verificationSentDesc": "Please check your inbox",
+      "sendVerificationError": "Error sending verification code",
+      "sendVerificationDesc": "Try again later or contact support",
+      "initiatePasswordError": "Error verifying password",
+      "initiatePasswordDesc": "The current password might be incorrect",
+      "verificationCodeRequired": "Please enter the verification code",
+      "verificationCodeDesc": "The verification code is a required field",
+      "invalidVerificationCode": "Invalid verification code",
+      "invalidVerificationCodeDesc": "The verification code must be 6 digits",
+      "passwordUpdateSuccess": "Password updated successfully",
+      "passwordUpdateSuccessDesc": "Your new password is now active",
+      "passwordUpdateError": "Error updating password",
+      "passwordUpdateDesc": "The verification code is incorrect or has expired",
+      "invalidDeleteConfirmation": "Invalid confirmation",
+      "invalidDeleteConfirmationDesc": "Please type '{{phrase}}' exactly to confirm deletion.",
+      "deleteSuccess": "Account deleted successfully",
+      "deleteSuccessDesc": "We hope to see you again. You are being redirected.",
+      "deleteError": "Error deleting account",
+      "deleteErrorDesc": "Try again later or contact support",
+      "marketingUpdateSuccess": "Mailing preferences updated successfully",
+      "marketingUpdateError": "Error updating mailing preferences"
+    },
+    "passwordDialog": {
+      "title": "Change Password",
+      "description": "Update your account password",
+      "step1Label": "Enter Passwords",
+      "step2Label": "Verification",
+      "currentPasswordLabel": "Current Password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "newPasswordLabel": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPasswordLabel": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Enter new password again",
+      "passwordStrengthLabel": "Password Strength:",
+      "requirements": {
+        "length": "At least {{count}} characters",
+        "uppercase": "Uppercase letter",
+        "lowercase": "Lowercase letter",
+        "number": "At least one number"
+      },
+      "passwordsMismatchWarning": "Passwords do not match",
+      "noticeTitle": "Please Note",
+      "noticeDescription": "After verifying the current password, a 6-digit code will be sent to your email",
+      "verificationCodeLabel": "Verification Code",
+      "verificationCodePlaceholder": "Enter the 6-digit code sent to your email",
+      "tokenLifetime": "The verification code is valid for 24 hours",
+      "noCodeAlertTitle": "Didn't receive the code?",
+      "noCodeAlertDescription": "Check your inbox and spam folder. If the code was not received, try starting the process again.",
+      "cancelButton": "Cancel",
+      "continueButton": "Continue",
+      "confirmButton": "Confirm",
+      "loading": {
+        "sending": "Sending...",
+        "verifying": "Verifying..."
+      }
+    },
+    "passwordStrength": {
+      "veryWeak": "Very Weak",
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong"
+    },
+    "deleteDialog": {
+      "title": "Confirm Account Deletion",
+      "description": "This action will permanently delete your account and all associated data. This cannot be undone.",
+      "confirmationLabel": "To confirm deletion, please type:",
+      "confirmationPhrase": "I confirm deletion",
+      "mismatchWarning": "The entered text does not match.",
+      "cancelButton": "Cancel",
+      "deleteButton": "Permanently Delete Account",
+      "deletingButton": "Deleting..."
+    }
   }
+
 }
 --- End of Content for en.json ---
 
@@ -6411,7 +6621,174 @@ Content:
     "validationErrors": {
       "heightRange": "גובה חייב להיות בין 100 ל-250 ס\"מ"
     }
+  },
+    "availabilityStatus": {
+    "dialogTitle": "עדכון סטטוס זמינות",
+    "dialogDescription": "בחר/י את הסטטוס הנוכחי שלך. שינוי הסטטוס יעזור לשדכנים להציע לך הצעות רלוונטיות.",
+    "statusLabel": "סטטוס זמינות",
+    "selectPlaceholder": "בחר סטטוס",
+    "noteLabel": "הערה (אופציונלי)",
+    "notePlaceholder": "לדוגמה: 'חוזר/ת להצעות ביום ראשון', 'רק הצעות רציניות'",
+    "updateError": "שגיאה בעדכון הסטטוס",
+    "cancelButton": "ביטול",
+    "updateButton": "עדכון סטטוס",
+    "updatingButton": "מעדכן...",
+    "successDialogTitle": "הסטטוס עודכן בהצלחה!",
+    "successDialogDescription": "הסטטוס שלך עודכן במערכת. שים/י לב, ייתכן שיעברו מספר רגעים עד שהשינוי יופיע בכל מקום.",
+    "successDialogAction": "הבנתי",
+    "status": {
+      "AVAILABLE": "פנוי/ה להצעות",
+      "UNAVAILABLE": "לא פנוי/ה",
+      "DATING": "בתהליך היכרות",
+      "PAUSED": "בהפסקה",
+      "ENGAGED": "מאורס/ת",
+      "MARRIED": "נשוי/אה",
+      "UNKNOWN": "לא ידוע"
+    }
+  },
+  "accountSettings": {
+    "loadingText": "טוען פרטי משתמש...",
+    "cardHeader": {
+      "title": "הגדרות חשבון",
+      "description": "נהל את פרטי החשבון והאבטחה שלך"
+    },
+    "sections": {
+      "personal": {
+        "title": "פרטים אישיים",
+        "description": "השם והמייל המשמשים אותך באתר",
+        "fullNameLabel": "שם מלא",
+        "fullNameNotSet": "לא צוין",
+        "emailLabel": "כתובת מייל",
+        "sendVerificationButton": "שלח קוד אימות"
+      },
+      "status": {
+        "title": "סטטוס חשבון",
+        "permissionsLabel": "הרשאות",
+        "roles": {
+          "ADMIN": "מנהל",
+          "MATCHMAKER": "שדכן",
+          "USER": "מועמד"
+        },
+        "statuses": {
+          "ACTIVE": "פעיל",
+          "PENDING_EMAIL_VERIFICATION": "ממתין לאישור אימייל",
+          "PENDING_PHONE_VERIFICATION": "ממתין לאישור פלאפון",
+          "INACTIVE": "לא פעיל",
+          "BLOCKED": "חסום"
+        },
+        "verification": {
+          "verified": "מאומת",
+          "notVerified": "לא מאומת"
+        },
+        "timeInfoLabel": "פרטי זמן",
+        "createdAt": "נוצר ב:",
+        "lastLogin": "התחברות אחרונה:"
+      },
+      "marketing": {
+        "title": "העדפות דיוור",
+        "label": "מידע שיווקי ועדכונים",
+        "description": "קבלת עדכונים על אירועים, מבצעים וחדשות מהחברה."
+      },
+      "security": {
+        "title": "אבטחה",
+        "description": "הגדרות אבטחה וסיסמה",
+        "changePasswordButton": "שינוי סיסמה",
+        "accountVerificationLabel": "אימות חשבון",
+        "passwordManagementLabel": "ניהול סיסמה",
+        "managedByProvider": "הסיסמה שלך מנוהלת באמצעות {{provider}}.",
+        "managedExternally": "הסיסמה שלך מנוהלת באמצעות ספק אימות חיצוני."
+      },
+      "delete": {
+        "title": "מחיקת חשבון",
+        "description": "מחיקת החשבון היא פעולה בלתי הפיכה ותסיר את כל הנתונים שלך.",
+        "deleteButton": "מחק חשבון"
+      }
+    },
+    "cardFooter": {
+      "notice": "פרטי החשבון שלך מוגנים בהתאם למדיניות הפרטיות של האתר"
+    },
+    "toasts": {
+      "fillAllFieldsError": "נא למלא את כל השדות",
+      "fillAllFieldsDesc": "כל השדות הם שדות חובה לשינוי סיסמה",
+      "passwordsMismatchError": "הסיסמאות אינן תואמות",
+      "passwordsMismatchDesc": "אנא ודא שהסיסמה החדשה זהה בשני השדות",
+      "passwordValidationError": "שגיאה באימות הסיסמה",
+      "passwordValidationDesc": "אנא עקוב אחר כל דרישות הסיסמה",
+      "verificationSentSuccess": "קוד אימות נשלח למייל שלך",
+      "verificationSentDesc": "אנא בדוק את תיבת הדואר הנכנס שלך",
+      "sendVerificationError": "שגיאה בשליחת קוד אימות",
+      "sendVerificationDesc": "נסה שוב מאוחר יותר או פנה לתמיכה",
+      "initiatePasswordError": "שגיאה באימות הסיסמה",
+      "initiatePasswordDesc": "ייתכן שהסיסמה הנוכחית שגויה",
+      "verificationCodeRequired": "נא להזין את קוד האימות",
+      "verificationCodeDesc": "קוד האימות הוא שדה חובה",
+      "invalidVerificationCode": "קוד אימות לא תקין",
+      "invalidVerificationCodeDesc": "קוד האימות חייב להכיל 6 ספרות",
+      "passwordUpdateSuccess": "הסיסמה עודכנה בהצלחה",
+      "passwordUpdateSuccessDesc": "הסיסמה החדשה שלך פעילה כעת",
+      "passwordUpdateError": "שגיאה בעדכון הסיסמה",
+      "passwordUpdateDesc": "קוד האימות שגוי או שפג תוקפו",
+      "invalidDeleteConfirmation": "אישור לא תקין",
+      "invalidDeleteConfirmationDesc": "נא להקליד \"{{phrase}}\" בדיוק כדי לאשר מחיקה.",
+      "deleteSuccess": "החשבון נמחק בהצלחה",
+      "deleteSuccessDesc": "מקווים לראותך שוב. אתה מועבר לדף הבית.",
+      "deleteError": "שגיאה במחיקת החשבון",
+      "deleteErrorDesc": "נסה שוב מאוחר יותר או פנה לתמיכה",
+      "marketingUpdateSuccess": "העדפות דיוור עודכנו בהצלחה",
+      "marketingUpdateError": "שגיאה בעדכון העדפות הדיוור"
+    },
+    "passwordDialog": {
+      "title": "שינוי סיסמה",
+      "description": "עדכן את סיסמת החשבון שלך",
+      "step1Label": "הזנת סיסמאות",
+      "step2Label": "אימות",
+      "currentPasswordLabel": "סיסמה נוכחית",
+      "currentPasswordPlaceholder": "הזן את הסיסמה הנוכחית",
+      "newPasswordLabel": "סיסמה חדשה",
+      "newPasswordPlaceholder": "הזן סיסמה חדשה",
+      "confirmPasswordLabel": "אימות סיסמה חדשה",
+      "confirmPasswordPlaceholder": "הזן שוב את הסיסמה החדשה",
+      "passwordStrengthLabel": "חוזק הסיסמה:",
+      "requirements": {
+        "length": "לפחות {{count}} תווים",
+        "uppercase": "אות גדולה באנגלית",
+        "lowercase": "אות קטנה באנגלית",
+        "number": "מספר אחד לפחות"
+      },
+      "passwordsMismatchWarning": "הסיסמאות אינן תואמות",
+      "noticeTitle": "שים לב",
+      "noticeDescription": "לאחר אימות הסיסמה הנוכחית, יישלח קוד אימות בן 6 ספרות למייל שלך",
+      "verificationCodeLabel": "קוד אימות",
+      "verificationCodePlaceholder": "הזן את הקוד בן 6 הספרות שנשלח למייל",
+      "tokenLifetime": "קוד האימות תקף ל-24 שעות",
+      "noCodeAlertTitle": "לא קיבלת את הקוד?",
+      "noCodeAlertDescription": "בדוק את תיבת הדואר הנכנס והספאם. אם הקוד לא התקבל, נסה להתחיל את התהליך מחדש.",
+      "cancelButton": "ביטול",
+      "continueButton": "המשך",
+      "confirmButton": "אישור",
+      "loading": {
+        "sending": "שולח...",
+        "verifying": "מאמת..."
+      }
+    },
+    "passwordStrength": {
+      "veryWeak": "חלשה מאוד",
+      "weak": "חלשה",
+      "medium": "בינונית",
+      "strong": "חזקה"
+    },
+    "deleteDialog": {
+      "title": "אישור מחיקת חשבון",
+      "description": "פעולה זו תמחק את חשבונך לצמיתות, כולל כל הנתונים. לא ניתן לשחזר חשבון שנמחק.",
+      "confirmationLabel": "לאישור המחיקה, אנא הקלד:",
+      "confirmationPhrase": "אני מאשר מחיקה",
+      "mismatchWarning": "הטקסט שהוקלד אינו תואם.",
+      "cancelButton": "ביטול",
+      "deleteButton": "מחק חשבון לצמיתות",
+      "deletingButton": "מוחק..."
+    }
   }
+
 
 
 
@@ -6571,6 +6948,11 @@ Content:
       "saveProgress": "Save progress",
       "viewProfile": "View profile and answers"
     },
+        "visibilityButton": {
+      "visible": "Visible on Profile",
+      "hidden": "Hidden from Profile"
+    },
+
     "skipButton": {
       "skip": "Skip",
       "required": "Required question"
@@ -7611,6 +7993,11 @@ Content:
       "faq": "שאלות נפוצות",
       "accessibility": "נגישות ותצוגה"
     },
+        "visibilityButton": {
+      "visible": "גלוי לפרופיל",
+      "hidden": "מוסתר מהפרופיל"
+    },
+
     "profileNotice": {
       "title": "שימ/י לב:",
       "textPart1": "כל תשובה שתענה/י תוצג אוטומטית בכרטיס הפרופיל שלך כדי לשפר את איכות ההתאמות. ניתן להסתיר כל שאלה מהפרופיל באמצעות המתג",
@@ -8102,6 +8489,1405 @@ Content:
 
 }
 --- End of Content for he.json ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\questionnaire\questions.en.json
+--------------------------------------------------------------------------------
+Content:
+{
+  "PERSONALITY": {
+    "personality_self_portrayal_revised": {
+      "question": "Imagine we need to describe you to your best friend, in our own words. What are the 3-5 key things you'd want us to emphasize so they truly understand who you are?",
+      "placeholder": "For example: 'I'm an optimistic person, I love learning new things, loyal to my friends, a bit shy at first, but with a good sense of humor...'",
+      "helpText": "This is your chance to give us the most important headlines that make up your story."
+    },
+    "personality_core_trait_selection_revised": {
+      "question": "Imagine your personality is a pie chart totaling 100%. How would you allocate the percentages among the following traits to best describe who you are?",
+      "helpText": "You don't need to assign to all. Focus on the traits that are the biggest parts of your 'pie'. The total must be 100.",
+      "categories": {
+        "empathetic_sensitive": "Empathetic and Sensitive",
+        "honest_reliable": "Honest and Reliable",
+        "optimistic_cheerful": "Optimistic and Cheerful",
+        "humorous": "Humorous",
+        "intelligent_curious": "Intelligent and Curious",
+        "ambitious_motivated": "Ambitious and Motivated",
+        "easygoing_flexible": "Easygoing and Flexible",
+        "responsible_organized": "Responsible and Organized",
+        "creative_original": "Creative and Original",
+        "stable_grounded": "Stable and Grounded",
+        "decisive_confident": "Decisive and Confident",
+        "generous_caring": "Generous and Caring"
+      }
+    },
+    "personality_social_battery_recharge": {
+      "question": "You've had a busy, intense week. Your 'battery' is almost empty. It's Thursday evening, and you have a completely free night. Which of the following options is most appealing and feels like the perfect 'charging station' for you?",
+      "helpText": "There's no 'right' answer. Your choice helps us understand the conditions in which you thrive and recharge, which is crucial for a relationship match.",
+      "options": {
+        "quiet_evening_home": {
+          "text": "A quiet evening at home",
+          "description": "Order tasty food, watch a good show, read a book, or just be in silence. Zero social interactions."
+        },
+        "intimate_gathering": {
+          "text": "An intimate gathering",
+          "description": "Call one or two good friends and set up a relaxed meeting at a cafe or at home. A deep, quality conversation in a small group."
+        },
+        "energetic_social_outing": {
+          "text": "An energetic social outing",
+          "description": "Check what's happening tonight! Get ready and go out to an event, a bar, or a gathering with a large group of friends. Be surrounded by people and energy."
+        },
+        "flexible_combination": {
+          "text": "A flexible combination",
+          "description": "Start the evening at home resting, and maybe later join friends for a short drink if I feel up to it. Go with the flow."
+        }
+      }
+    },
+    "personality_biological_clock": {
+      "question": "On a scale of 1 (morning person) to 10 (night owl), what is your natural 'biological clock'?",
+      "helpText": "Compatibility in daily rhythms can greatly affect harmony in a relationship. This practical data helps us understand your lifestyle.",
+      "labels": {
+        "min": "Early Riser",
+        "max": "Stays up Late"
+      }
+    },
+    "personality_daily_structure_revised": {
+      "question": "In which 'operating system' does your mind work best day-to-day?",
+      "options": {
+        "order_planning": "Order and Planning - I like to know my schedule.",
+        "flexibility_flow": "Flexibility and Flow - I'm at my best when I react to developments.",
+        "task_oriented": "Task-Oriented - I function best with clear goals to achieve.",
+        "balance": "Balance - A combination of a general framework with room for spontaneity."
+      }
+    },
+    "personality_social_situation_revised": {
+      "question": "You arrive at a social event (e.g., a Kiddush, a wedding) where you know only a few people. What is your natural approach?",
+      "options": {
+        "initiator": "Initiate conversation - I approach people and make new connections easily.",
+        "joiner": "Join a conversation - I find a nice-looking group and gently join in.",
+        "deep_diver": "Deep conversation - I prefer to find one or two people for a meaningful conversation on the side.",
+        "observer": "The observer - I take my time, scan the room, and wait for the right opportunity."
+      }
+    },
+    "personality_unproductive_day_feeling": {
+      "question": "How do you feel about yourself at the end of a day when you didn't accomplish what you planned and were less productive than desired?",
+      "helpText": "This question checks your inner dialogue - is it critical or compassionate? This is important for the ability to embrace a partner as well.",
+      "options": {
+        "self_compassion": "Accept it with love, I probably needed the rest.",
+        "criticism_action": "Frustrated, and I immediately plan how to catch up tomorrow.",
+        "analysis_learning": "Analyze what went wrong to learn from it for next time.",
+        "immediate_fix": "Try to do something small and useful to end on a good note."
+      }
+    },
+    "personality_plan_change_reaction": {
+      "question": "You've been planning an important outing for weeks, and at the last minute, it's canceled for a justified but disappointing reason. On the following scale, how much does your inner flexibility allow you to 'go with the flow' with the change?",
+      "helpText": "There's no right answer. This question checks our ability to cope with small changes and disappointments.",
+      "labels": {
+        "min": "Flow completely",
+        "max": "Very disappointed",
+        "middle": "Disappointed but I get over it"
+      }
+    },
+    "personality_stress_management_revised": {
+      "question": "When you feel overwhelmed and stressed, where do you turn to 'reset the system'? (Choose up to 3 main ways)",
+      "options": {
+        "movement_sport": "Movement and sport (walking, running, workout)",
+        "talk_vent": "Talking and venting with someone close",
+        "alone_time_rest": "Alone time, quiet, and rest",
+        "nature": "Going out into nature",
+        "creative_hobby": "Engaging in a creative activity or hobby",
+        "order_organization": "Organizing my thoughts or surroundings",
+        "media_disconnect": "Disconnecting with music, a podcast, or a book"
+      }
+    },
+    "personality_friendship_in_action": {
+      "question": "Think of a time when you were a really good friend to someone who needed you. Without revealing personal details of the friend, what role did you play for them in that moment?",
+      "placeholder": "For example: 'I was the supportive and listening shoulder', 'I helped them analyze the situation rationally', 'I organized practical and concrete help', 'I was just there quietly'...",
+      "helpText": "The way we function as friends says a lot about our ability to be supportive partners in a relationship. Your answer here reveals your natural 'language of support'."
+    },
+    "personality_friend_in_crisis": {
+      "question": "A good friend calls you in the middle of the day, very upset about a personal crisis. What is your first, instinctive reaction?",
+      "helpText": "This question checks your natural 'language of support,' which is critical for relationship dynamics.",
+      "options": {
+        "emotional_support": "Listen and contain - first and foremost, let them vent and be there for them emotionally.",
+        "problem_solving": "Analyze and solve - try to understand the problem and offer practical solutions.",
+        "clarification_analysis": "Ask questions - help them organize their thoughts through guiding questions.",
+        "distraction": "Distract - suggest meeting up or doing something to improve their mood."
+      }
+    },
+    "personality_handling_criticism_revised": {
+      "question": "We all receive criticism sometimes, some more constructive than others. When it happens to you, what goes on inside and how does it look on the outside?",
+      "placeholder": "For example: Do you get hurt but try to learn? Do you feel the need to defend yourself? Do you need time to process things?"
+    },
+    "personality_communication_style_revised": {
+      "question": "In an important conversation, what are the main 'tools' you use? Allocate 100 points among the following styles:",
+      "helpText": "Think about how you usually conduct meaningful conversations, with friends, family, or at work.",
+      "categories": {
+        "direct_clear": "Direct and clear speech",
+        "empathetic_listening": "Empathetic listening",
+        "logic_facts": "Logic and facts",
+        "humor_lightness": "Humor and lightness",
+        "openness_emotional_sharing": "Openness and emotional sharing"
+      }
+    },
+    "personality_humor_type": {
+      "question": "What type of humor appeals to you most? (Choose up to 2)",
+      "helpText": "A match in sense of humor is key to chemistry and the ability to navigate life's challenges together.",
+      "options": {
+        "cynical_witty": "Cynical and witty",
+        "puns_wordplay": "Puns and wordplay",
+        "situational_sitcom": "Situational humor (sitcom)",
+        "self_deprecating": "Self-deprecating humor",
+        "silly_light": "Silly and light-hearted"
+      }
+    },
+    "personality_learning_process": {
+      "question": "Think about the last time you learned something new and complex (a language, a musical instrument, a technical skill). What was the most challenging part for you in the process, and what helped you overcome it?",
+      "placeholder": "The difficulty could be frustration, impatience, or fear of failure. What was your coping strategy?",
+      "helpText": "Our ability to learn and persevere is an excellent indicator of how we will also grow within a relationship."
+    },
+    "personality_failure_lesson": {
+      "question": "Think about a significant failure or challenge you've experienced. What did you learn about yourself from that experience?",
+      "placeholder": "Focus on the insight about yourself, the strengths you discovered, or the areas where you still need to grow...",
+      "helpText": "This question examines resilience, self-awareness, and the capacity for growth. Your honesty here is a gift for us and for you."
+    },
+    "personality_good_vs_perfect_day": {
+      "question": "We all dream of a 'perfect day.' But what, for you, turns an ordinary day into a 'really good day'?",
+      "placeholder": "It could be something small: a good conversation, a sense of satisfaction at work, a successful workout, helping someone...",
+      "helpText": "The answer here reveals a lot about your sources of daily happiness and satisfaction."
+    },
+    "personality_vacation_compass": {
+      "question": "The way we like to vacation says a lot about our personality. What are the components that make a vacation perfect for you? Allocate 100 'vacation points' to build your 'vacation compass'.",
+      "helpText": "There's no wrong answer. Think about what truly recharges you and gives you energy. The total must be 100.",
+      "categories": {
+        "relaxation": {
+          "label": "Relaxation and tranquility",
+          "description": "Complete rest, a good book, a beautiful view, no stress, and no plans."
+        },
+        "adventure": {
+          "label": "Hiking, nature, and adventure",
+          "description": "Hiking trails, wild landscapes, physical activity, and challenges."
+        },
+        "city_life": {
+          "label": "Vibrant city, culture, and entertainment",
+          "description": "Museums, good restaurants, shows, shopping, and nightlife."
+        },
+        "social_time": {
+          "label": "Social and family gathering",
+          "description": "A vacation with friends or extended family, quality group time."
+        },
+        "romance": {
+          "label": "Quality romantic time",
+          "description": "Focusing purely on the relationship, deep conversations, romantic experiences."
+        },
+        "enrichment": {
+          "label": "Enrichment, learning, and spirituality",
+          "description": "Workshops, educational tours, historical sites, places with meaning."
+        }
+      }
+    },
+    "personality_primary_motivation_revised": {
+      "question": "What is your inner 'fuel'? What is the main thing that motivates you to get up in the morning?",
+      "options": {
+        "achieving_goals": "Achieving goals and self-fulfillment",
+        "building_connections": "Creating and building meaningful relationships",
+        "giving_impact": "Making a positive impact and giving to others",
+        "learning_curiosity": "Curiosity, learning, and understanding the world",
+        "creativity_expression": "Creativity and self-expression",
+        "security_stability": "Building security, stability, and peace of mind"
+      }
+    },
+    "personality_strengths_and_weaknesses_revised": {
+      "question": "Tell us about two traits you really like about yourself, and one trait you would like to work on and improve.",
+      "placeholder": "Traits you like: (e.g., my loyalty, my sense of humor). Area for improvement: (e.g., I'd like to be less critical of myself).",
+      "helpText": "Self-awareness is one of the most important traits for a successful relationship. Your honesty here is a gift for us and for you."
+    }
+  },
+  "VALUES": {
+    "values_core_identification_revised": {
+      "question": "Imagine you have 100% of 'value energy' to distribute among the things that truly guide you in life. How would you allocate it?",
+      "helpText": "This is an opportunity to show what's really at the top of your priority list. Focus on what's most important to you.",
+      "categories": {
+        "family_connections": "Family and close relationships",
+        "integrity_honesty": "Integrity, reliability, and honesty",
+        "spirituality_faith": "Spirituality, faith, and tradition",
+        "personal_growth": "Personal growth and development",
+        "giving_contribution": "Giving and contributing to society",
+        "career_fulfillment": "Career and professional fulfillment",
+        "financial_security": "Financial security and stability",
+        "creativity_expression": "Creativity and self-expression"
+      }
+    },
+    "values_core_elaboration_revised": {
+      "question": "Now, choose the 'northernmost' value in your inner compass—the one that directs your truly important decisions—and tell us about one crossroads in life where you followed it.",
+      "placeholder": "For example: 'The most important value to me is integrity. Once, at work, I encountered situation X and chose to do Y because it was the right thing, despite the cost...'",
+      "helpText": "A concrete story is worth a thousand descriptions. It helps us understand what your values look like 'in the field'."
+    },
+    "values_childhood_home_atmosphere": {
+      "question": "If you had to describe the 'atmosphere' in the home where you grew up in three words, what would they be?",
+      "placeholder": "For example: Warm, loud, and intellectual / Quiet, supportive, and modest...",
+      "helpText": "The answer here reveals your emotional and value-based background, and helps us understand what kind of home you would want to create."
+    },
+    "values_quiet_heroes": {
+      "question": "Who are the people (from your inner or outer circles) who serve as an inspiration or role model for you, and in a sentence—why?",
+      "placeholder": "It could be a grandparent, a historical figure, a rabbi, or any other person. What in their traits or actions inspires your admiration?",
+      "helpText": "Tell us who your heroes are, and we'll tell you who you are. The answer here reveals your deepest aspirations."
+    },
+    "values_two_job_offers": {
+      "question": "You've received two job offers: (A) A prestigious position with a very high salary, but demanding with long hours. (B) A meaningful job that you love, with an excellent work-life balance, but with a 30% lower salary. Which offer are you more likely to accept, and why?",
+      "helpText": "There's no right answer. This is a question about priorities, and it helps us understand what truly motivates you.",
+      "options": {
+        "offer_a": {
+          "text": "Offer A: High salary and prestige",
+          "description": "Financial security and the opportunity for rapid advancement are top priorities for me right now."
+        },
+        "offer_b": {
+          "text": "Offer B: Meaning and balance",
+          "description": "Quality of life, personal satisfaction, and free time are more important to me than the purely financial aspect."
+        }
+      }
+    },
+    "values_life_priorities_allocation_revised": {
+      "question": "At this stage of your life, how is your attention (time, energy, thought) divided among different areas? Allocate 100 points:",
+      "helpText": "This is a 'snapshot' of your life today. Your honesty here will help us understand where you are in your journey.",
+      "categories": {
+        "relationship": "Relationship (searching or existing)",
+        "family": "Family (parents, siblings)",
+        "career": "Career and livelihood",
+        "spirituality": "Spirituality and learning",
+        "community": "Friends and community",
+        "leisure": "Leisure, hobbies, and self-care"
+      }
+    },
+    "values_health_lifestyle_importance": {
+      "question": "To what extent are physical health, proper nutrition, and fitness a central value in your daily routine?",
+      "helpText": "Lifestyle habits are an important part of daily married life. Compatibility here can make it easier to build a shared routine.",
+      "labels": {
+        "min": "Not a top priority",
+        "max": "A significant part of my life"
+      }
+    },
+    "values_feeling_of_home": {
+      "question": "Beyond four walls, what are the three things that make a place feel like 'home' to you?",
+      "placeholder": "For example: The smell of cooking, favorite books, a sense of security, people who love me, order and cleanliness...",
+      "helpText": "The answer here teaches about your emotional and physical needs for a supportive and nurturing environment."
+    },
+    "values_definition_of_rich_life": {
+      "question": "What is your definition of a 'rich life' that isn't necessarily related to money?",
+      "placeholder": "Is it a wealth of experiences? Of relationships? Of knowledge? Of free time? Of inner peace?",
+      "helpText": "This question opens a window to your deepest aspirations, beyond the material aspect."
+    },
+    "values_attitude_towards_money_revised": {
+      "question": "What is your 'relationship' with money?",
+      "options": {
+        "security_tool": "A tool for security - It's important for me to save and plan for the future.",
+        "means_for_experiences": "A means for experiences - I love investing in travel, entertainment, and growth.",
+        "balance_responsibility": "Balance - I manage it responsibly, but also know how to enjoy it.",
+        "simplicity": "Simplicity - I don't need much to be happy."
+      }
+    },
+    "values_definition_of_success": {
+      "question": "What is your definition of success in life?",
+      "placeholder": "Is success financial stability? Social impact? Raising a wonderful family? Inner peace?",
+      "helpText": "The answer here is a direct window into your deepest ambitions, and helps us find someone with similar aspirations."
+    },
+    "values_lost_wallet": {
+      "question": "You found a wallet on the street containing a large sum of money and an ID. There's no one around. What are the exact steps you would take?",
+      "placeholder": "Describe your thought process and actions, step by step.",
+      "helpText": "This question examines integrity, resourcefulness, and responsibility in action. There is no single 'correct' answer; the process is what matters."
+    },
+    "values_giving_tzedaka_importance_revised": {
+      "question": "On a scale of 1 to 10, what is the extent of your active involvement in giving and charity (with money, time, or deeds)?",
+      "helpText": "1 = 'If I happen to, I donate occasionally.' 10 = 'I have a regular order of giving, volunteering, or community involvement.'",
+      "labels": {
+        "min": "Spontaneously only",
+        "max": "A regular and central part of my life"
+      }
+    },
+    "values_education_pursuit_revised": {
+      "question": "What is your approach to intellectual development and continuous learning, even after completing formal education?",
+      "options": {
+        "lifelong_learning": "It's an essential part of me - I'm always reading, learning, and developing.",
+        "goal_oriented_learning": "I learn and develop mainly in areas related to my career and goals.",
+        "experiential_learning": "I love learning, but I prefer experiential ways like workshops and podcasts.",
+        "appreciative_but_passive": "I value knowledge, but I'm less available for active learning at the moment."
+      }
+    },
+    "values_parents_tradition_conflict": {
+      "question": "Imagine a situation where a way of life or a decision important to you (e.g., where to live, parenting style) doesn't align with the expectations of your parents, whom you greatly respect. How would you navigate the situation?",
+      "placeholder": "How would you balance honoring your parents with building an independent path with your partner? What would be your main considerations?",
+      "helpText": "This is a dilemma many face. Your answer teaches about maturity, assertiveness, and conflict management skills."
+    },
+    "values_social_political_stance_importance_partner_revised": {
+      "question": "In a relationship, how important is it to you that conversations around the Shabbat table about current events and social issues are in general agreement, versus an open and challenging discussion even if there are disagreements?",
+      "labels": {
+        "min": "Open discussion is key",
+        "max": "Basic agreement is a must"
+      }
+    },
+    "values_dealing_with_disagreement_partner_revised": {
+      "question": "When a deep value-based disagreement arises with a close person, what do you believe is the right approach?",
+      "options": {
+        "discussion_understanding": "Have a respectful conversation to understand, even if we don't agree.",
+        "finding_common_ground": "Try to find the root of the disagreement and the common ground.",
+        "seeking_compromise": "Look for a practical compromise that allows moving forward.",
+        "agree_to_disagree": "Agree to disagree, and let the relationship be above the differences."
+      }
+    },
+    "values_non_negotiable_for_partner_revised": {
+      "question": "To conclude, what are the 1-2 values where there *must* be alignment between you and your partner, with no room for compromise for you?",
+      "placeholder": "Try to focus on the most critical things for you, those that are the foundation for any healthy relationship in your eyes.",
+      "helpText": "This is one of the most important pieces of information for us. It helps us focus the search on what is truly non-negotiable for you."
+    }
+  },
+  "RELATIONSHIP": {
+    "relationship_core_meaning_revised": {
+      "question": "In your eyes, what is the essence, the beating heart, of a healthy and fulfilling romantic partnership? (Choose up to 2 main options)",
+      "helpText": "Try to think about what is most essential for you to feel 'at home' within the relationship.",
+      "options": {
+        "deep_emotional_connection": "Deep emotional connection, intimacy, and mutual understanding",
+        "friendship_support": "True friendship, a strong partnership, and unconditional support",
+        "commitment_security": "Commitment, loyalty, and absolute security in the relationship",
+        "shared_growth": "Shared growth, learning, and personal and mutual development",
+        "building_home_family": "Building a home and family based on shared values"
+      }
+    },
+    "relationship_key_feelings_from_partner_revised": {
+      "question": "For a partnership to succeed, both partners need to feel certain things. What are the three things that are most important for you to feel from your partner in a relationship?",
+      "helpText": "This question is not about 'expectations' but about your basic emotional needs in a relationship.",
+      "options": {
+        "support_understanding": "That I am understood and have emotional support",
+        "appreciation_respect": "That I am appreciated and respected",
+        "security_trust": "Absolute security that I can trust him/her",
+        "desire_attraction": "That I am desired and there is attraction between us",
+        "lightness_fun": "That there is lightness, humor, and fun between us",
+        "intellectual_partnership": "That I have an intellectual partner for conversation and growth"
+      }
+    },
+    "relationship_love_languages": {
+      "question": "We all express and receive love in different ways. What makes you feel most loved? (Choose the main 2)",
+      "helpText": "Understanding 'love languages' is key to good emotional communication and preventing frustration in a relationship.",
+      "options": {
+        "words_of_affirmation": "Words of affirmation and encouragement",
+        "quality_time": "Real quality time and conversation",
+        "physical_touch": "Warm physical touch",
+        "acts_of_service": "Practical help and care (acts of service)",
+        "receiving_gifts": "Receiving gifts and treats"
+      }
+    },
+    "relationship_communication_ideal_revised": {
+      "question": "What does a good and constructive conversation in a relationship look like to you?",
+      "options": {
+        "openness_directness": "Open and direct - we talk about everything with honesty and respect.",
+        "sensitivity_empathy": "Sensitive and empathetic - the focus is on listening to the feelings behind the words.",
+        "solution_focused": "Solution-focused - we analyze the problem and reach a practical solution.",
+        "balance": "Balanced - knows how to combine emotional listening with finding a solution."
+      }
+    },
+    "relationship_handling_partner_disappointment_revised": {
+      "question": "Imagine a situation of misunderstanding or disappointment in a close and significant relationship (romantic, close friendship). What is your most natural, initial tendency?",
+      "helpText": "Your honesty here is important. It will help us understand your coping style.",
+      "options": {
+        "withdraw_process": "To withdraw and retreat into myself to process.",
+        "immediate_talk": "To want to talk about it immediately to resolve it.",
+        "suppression": "To pretend everything is fine and keep it inside.",
+        "logical_analysis": "To analyze the situation logically before reacting.",
+        "not_sure": "I haven't been in a significant relationship / I'm not sure."
+      }
+    },
+    "relationship_repair_mechanism": {
+      "question": "After an argument, what is the most effective way for you to 'repair' the connection and return to closeness?",
+      "helpText": "The ability to 'repair' a rift is more important than the ability not to fight. What is your 'repair key'?",
+      "options": {
+        "processing_talk": "A conversation to process and analyze what happened",
+        "hug_move_on": "Just a hug and 'moving on'",
+        "time_out": "A short time apart and then talking again",
+        "change_of_scenery": "Doing something fun together to change the atmosphere"
+      }
+    },
+    "relationship_meaningful_apology": {
+      "question": "For you to feel that an apology is real and sincere, what is most important for you to happen?",
+      "helpText": "The ability to repair a rift is a key to a long-term relationship. What is your 'repair key'?",
+      "options": {
+        "express_remorse": "For them to express remorse and understanding of how I felt.",
+        "take_responsibility": "For them to take full responsibility for their actions.",
+        "offer_to_fix": "For them to offer a way to fix it or prevent it in the future.",
+        "saying_sorry": "Simply saying the word 'sorry' sincerely is enough for me."
+      }
+    },
+    "relationship_silent_treatment_view": {
+      "question": "On a scale of 1 (legitimate and sometimes necessary) to 10 (destructive and unacceptable under any circumstances), what is your opinion on using the 'silent treatment' during a fight?",
+      "helpText": "It's important to distinguish between a 'time out' to cool down and 'silence' intended to punish. The question refers to the latter.",
+      "labels": {
+        "min": "Legitimate",
+        "max": "Destructive"
+      }
+    },
+    "relationship_partner_bad_day": {
+      "question": "Your partner comes home after a terrible day, frustrated and upset. What would be your natural reaction?",
+      "helpText": "This question checks your 'language of support' in action. There is no right answer, just different styles.",
+      "options": {
+        "listen_contain": "Listen - just be there, offer a hug, and let them vent.",
+        "analyze_solve": "Solve - try to understand what happened and think of solutions together.",
+        "give_space": "Give space - say 'I'm here if you need me' and give them quiet.",
+        "distract": "Distract - suggest something fun that will change the atmosphere."
+      }
+    },
+    "relationship_household_philosophy": {
+      "question": "Building a shared home is teamwork. In your eyes, what is the best 'formula' for dividing responsibility for managing the household (chores, shopping, bureaucracy)?",
+      "placeholder": "For example: An equal 50/50 split, according to who is better at each thing, according to free time, outsourcing, or another approach?",
+      "helpText": "The answer here teaches about your perception of partnership, beyond the question of who does the dishes."
+    },
+    "relationship_daily_togetherness_vs_autonomy_revised": {
+      "question": "In the balance between 'we' versus 'me' and 'you' within a relationship, where do you naturally lean?",
+      "labels": {
+        "min": "Independence and personal space are important to me",
+        "max": "It's important to me to do everything together",
+        "middle": "A flexible balance"
+      }
+    },
+    "relationship_role_in_growth": {
+      "question": "On a scale of 1 to 10, how important is it to you that your partner challenges you to be a better person, versus accepting you exactly as you are?",
+      "helpText": "1 = 'Loves me as I am.' 10 = 'Helps me become the best version of myself.' Which approach speaks to you more?",
+      "labels": {
+        "min": "Complete acceptance",
+        "max": "Challenge and growth"
+      }
+    },
+    "relationship_celebrating_success": {
+      "question": "Your partner gets a significant promotion at work. What is the ideal way for you to celebrate their success?",
+      "placeholder": "For example: A romantic dinner, a surprise party, a deep talk about its meaning, a symbolic gift...",
+      "helpText": "The ability to rejoice in another's success is a measure of a healthy relationship. What is your 'language of celebration'?"
+    },
+    "relationship_family_vision_children_revised": {
+      "question": "Looking ahead, what place does parenthood have in your personal vision for a full and satisfying life?",
+      "options": {
+        "central_part": "It's a central and important part of my dream for a family",
+        "see_myself_as_parent": "I see myself as a parent in the future, when it feels right",
+        "open_but_not_essential": "I'm open to it, but it's not a necessary condition for my happiness",
+        "less_relevant": "I prefer to focus on the relationship, and parenthood is less relevant to me"
+      }
+    },
+    "relationship_deal_breaker_summary_final_revised": {
+      "question": "To conclude this world, what is the one thing without which a relationship simply cannot work for you, and what is the one thing you aspire to most in a relationship?",
+      "placeholder": "My 'deal-breaker' is... and my greatest aspiration is...",
+      "helpText": "Try to distill everything into two things: the bottom line and the ultimate aspiration. This is very focusing."
+    }
+  },
+  "PARTNER": {
+    "partner_initial_impression_priorities_revised": {
+      "question": "On a first date, after the first five minutes, what are the 'signs' that would make you think, 'Wow, there's something interesting here'? (Choose up to 3)",
+      "options": {
+        "appearance_style": "A well-groomed appearance and personal style",
+        "smile_energy": "A warm smile, pleasant energy, and ease",
+        "conversation_chemistry": "Flowing conversation, chemistry, and common interests",
+        "wit_depth": "Wit, a sense of humor, or depth of thought",
+        "sense_of_security": "A sense of security, maturity, and seriousness they project"
+      }
+    },
+    "partner_appearance_importance_scale_revised": {
+      "question": "Honestly, how much of a role does physical appearance play in creating that initial 'click' for you?",
+      "helpText": "Attraction is important. Honesty here will help us focus the search for you.",
+      "labels": {
+        "min": "Character is what matters",
+        "max": "Crucial for attraction"
+      }
+
+    },
+    "partner_intelligence_types": {
+      "question": "When you think of 'intelligence' in a partner, what is most important to you? Allocate 100 points among the following types:",
+      "helpText": "This question helps us understand what kind of 'wisdom' you value most.",
+      "categories": {
+        "emotional": "Emotional (empathy, awareness)",
+        "analytical": "Analytical (logic, analysis)",
+        "life_smarts": "Life smarts ('common sense')",
+        "creative": "Creative (humor, originality)",
+        "spiritual_torah": "Spiritual/Torah (depth in learning)"
+      }
+    },
+    "partner_core_character_traits_essential_revised": {
+      "question": "What are the 'cornerstones' of the personality you are looking for? Allocate 100 'compatibility points' among the character traits most essential to you.",
+      "helpText": "Focus on the traits that are the necessary foundation for you for a healthy and happy relationship.",
+      "categories": {
+        "integrity": "Integrity, reliability, and honesty",
+        "warmth": "Warmth, empathy, and kindness",
+        "optimism": "Optimism and joy for life",
+        "maturity": "Maturity, stability, and responsibility",
+        "ambition": "Ambition and motivation for growth",
+        "communication": "Good communication and listening"
+      }
+    },
+    "partner_completion_trait": {
+      "question": "What trait or ability that is less strong in you would you be happiest to find in a partner so that you complete each other?",
+      "placeholder": "For example: 'I'm less spontaneous, so I'd be happy with someone who brings some adventure into life', or 'I'm very emotional and would like someone more grounded'...",
+      "helpText": "This question indicates self-awareness and a search for a partnership of completion, not of cloning."
+    },
+    "partner_lifestyle_pace_preference_revised": {
+      "question": "What 'internal pace' would you want your partner to have on a daily basis?",
+      "options": {
+        "dynamic_active": "Dynamic and active, loves doing and accomplishing.",
+        "calm_serene": "Calm and serene, appreciates routine and tranquility.",
+        "balanced": "Balanced, knows how to combine action and rest.",
+        "adventurous_spontaneous": "Adventurous and spontaneous, loves changes and experiences."
+      }
+    },
+    "partner_financial_habits_scale": {
+      "question": "On a scale of 1 (very frugal and cautious) to 10 (very much enjoys life and is generous), what style of personal financial conduct would you prefer to see in a partner?",
+      "helpText": "This question isn't checking how much money they have, but rather their attitude and daily conduct.",
+      "labels": {
+        "min": "Frugal and Cautious",
+        "max": "Enjoys and Generous"
+      }
+    },
+    "partner_career_ambition_preference_revised": {
+      "question": "What is your ideal approach to a partner's career and professional ambitions?",
+      "options": {
+        "ambition_focus": "It's important to me that they are ambitious with clear goals.",
+        "work_life_balance": "The most important thing to me is a healthy balance between work and personal life.",
+        "personal_satisfaction": "The profession is less critical, as long as he/she is happy and fulfilled."
+      }
+    },
+    "partner_deal_breakers_open_text_revised": {
+      "question": "In a relationship, it's important to know what you can compromise on and what you can't. What is the one or two 'red lines' that you know for sure you couldn't live with peacefully in the long run?",
+      "placeholder": "For example: dishonesty, stinginess, disrespect, addiction, a large spiritual gap...",
+      "helpText": "Setting boundaries is an act of maturity. Honesty here saves a lot of heartache for both sides."
+    },
+    "partner_red_flag_vs_quirk": {
+      "question": "In your opinion, what's the difference between a 'red flag' that signals a real problem, and a 'lovable quirk' that you can live with lovingly? Give a short example.",
+      "placeholder": "For example: 'A red flag is disrespecting a waiter. A lovable quirk is that he must arrange his books by color.'",
+      "helpText": "This question tests maturity, mental flexibility, and the ability to embrace human complexity."
+    },
+    "partner_in_laws_conflict": {
+      "question": "Imagine you disagree with your partner's parents on a significant issue. How would you expect your partner to behave?",
+      "helpText": "This question touches on one of the main conflict points in a relationship: the boundaries between the couple and their families of origin.",
+      "options": {
+        "loyalty_to_couple": "To fully support my position, even in front of them.",
+        "mediation_compromise": "To try to mediate and find a compromise that respects everyone.",
+        "diplomacy": "To defend me in a private conversation, but maintain respect for his/her parents in public.",
+        "loyalty_to_family_of_origin": "To explain their position to me and expect me to respect it."
+      }
+    },
+    "partner_must_have_quality_final_revised": {
+      "question": "If you had to choose the 'keystone'—the one single trait upon which your entire relationship building will stand—what would it be?",
+      "placeholder": "Try to think of the one and only thing that is the basis for everything for you...",
+      "helpText": "This is the most important focusing question. It helps us understand what is at the core of your search."
+    }
+  },
+  "RELIGION": {
+    "religion_core_feeling_of_faith": {
+      "question": "What is the central feeling that faith and tradition give you in your life?",
+      "helpText": "Try to choose the most dominant feeling. This is an excellent opening to understand your personal connection.",
+      "options": {
+        "security_stability": {
+          "text": "Security, stability, and order in the world",
+          "description": "Tradition gives me an anchor, a clear framework, and peace of mind."
+        },
+        "meaning_belonging": {
+          "text": "Meaning, belonging, and purpose",
+          "description": "Faith connects me to a larger story and gives direction to my life."
+        },
+        "joy_gratitude": {
+          "text": "Joy, gratitude, and spiritual uplift",
+          "description": "Judaism fills my life with light, celebration, and enthusiasm."
+        },
+        "challenge_growth": {
+          "text": "Challenge, growth, and continuous learning",
+          "description": "Engaging with Judaism challenges me intellectually and morally and pushes me to improve."
+        }
+      }
+    },
+    "religion_my_personal_prayer": {
+      "question": "If you had to choose a prayer, a psalm, or a piece of Jewish thought that speaks to you personally, what would it be, and in a sentence - why?",
+      "placeholder": "Share something that touches your heart and expresses your personal connection. For example: 'Modeh Ani', 'Eshet Chayil', 'Shema Yisrael'...",
+      "helpText": "The answer here gives us a beautiful glimpse into your inner spiritual world."
+    },
+    "religion_rabbinic_guidance_role_revised": {
+      "question": "What is the role of spiritual guidance (rabbi, rebbetzin, advisor) in your life when you face significant decisions?",
+      "helpText": "1 = 'I rely mainly on my own judgment.' 10 = 'Consulting with a spiritual figure is an integral part of my decision-making process.'",
+      "labels": {
+        "min": "I decide myself",
+        "max": "Always consult",
+        "middle": "Sometimes, on major issues"
+      }
+    },
+    "religion_shabbat_experience": {
+      "question": "What is the central essence or experience you seek and receive from Shabbat?",
+      "helpText": "Two people can observe Shabbat at the same level but experience it completely differently. What is your 'Shabbat experience'?",
+      "options": {
+        "family_time": "Time for family, togetherness, and conversation.",
+        "spiritual_ascension": "Time for spiritual elevation, prayer, and study.",
+        "rest_recharge": "Time for physical and mental rest from the week.",
+        "community_social": "Time for community, friends, and hosting."
+      }
+    },
+    "religion_daily_spiritual_connection": {
+      "question": "How do you connect with God on a daily basis, beyond formal prayers?",
+      "helpText": "This question distinguishes between technical observance of mitzvot and an active, inner spiritual life.",
+      "options": {
+        "torah_study": "Through Torah study (Gemara, Halacha, philosophy)",
+        "personal_prayer": "Hitbodedut and personal prayer",
+        "nature_gratitude": "Observing nature and giving thanks for creation",
+        "acts_of_kindness": "Through acts of kindness and giving",
+        "song_music": "Through song and music"
+      }
+    },
+    "religion_kashrut_observance_details_revised": {
+      "question": "Kashrut is a whole world. To understand your 'standard', tell us two things: the type of certification you rely on, and how you handle eating outside the home.",
+      "placeholder": "For example: 'I'm strict about a specific Badatz, and outside I only eat at restaurants with that certification', or 'I trust the Rabbanut, and I'm more flexible at friends' houses'."
+    },
+    "religion_modesty_personal_approach_revised": {
+      "question": "Modesty is an internal and external quality. How is it expressed in your world (dress, speech, behavior)?",
+      "placeholder": "This is an opportunity to explain your personal approach beyond technical definitions. For example: type of head covering, style of dress, shomer negiah, etc."
+    },
+    "religion_secular_culture_scenario": {
+      "question": "Good friends suggest going to a highly acclaimed movie or play, but its content doesn't fully align with your worldview. What are you likely to do?",
+      "helpText": "This question examines your boundaries and flexibility when encountering general culture.",
+      "options": {
+        "avoid": "Politely decline, it's a red line for me.",
+        "filter_check": "I'll check reviews and opinions to decide if it's 'acceptable'.",
+        "social_inclusion": "I'll go to be part of the social experience.",
+        "suggest_alternative": "I'll happily suggest another alternative that suits everyone better."
+      }
+    },
+    "religion_general_culture_consumption": {
+      "question": "What is your approach to consuming general culture (movies, series, music) that does not come from the religious world?",
+      "helpText": "This is a practical question that defines the degree of openness or conservatism in daily life, and can prevent many frictions.",
+      "labels": {
+        "min": "Almost completely avoid",
+        "max": "Consume freely"
+      }
+    },
+    "religion_doubts_and_struggles": {
+      "question": "How do you deal with questions, doubts, or challenges in faith, if and when they arise?",
+      "placeholder": "For example: Do you suppress them, consult with a rabbi/friends, study the topic in depth, or find strength in the challenge?",
+      "helpText": "A mature faith also includes dealing with questions. Your honesty here shows depth and integrity."
+    },
+    "religion_partner_ideal_religious_profile_revised": {
+      "question": "To build a home on a shared spiritual foundation, what is the religious-spiritual 'starting point' you would want to find in a partner, from which you can grow together?",
+      "placeholder": "Try to be as specific as possible. What are the most important things for you in this context? (level, outlook, observance)",
+      "helpText": "The phrasing 'starting point' emphasizes that a relationship is a journey. We are looking for a match for the beginning of the shared journey."
+    },
+    "religion_flexibility_religious_differences_partner_revised": {
+      "question": "To what extent are you open to flexibility and compromise if certain gaps are discovered in the halachic approach or religious outlook between you and your partner?",
+      "helpText": "Think about areas where you have more or less room for flexibility.",
+      "labels": {
+        "min": "Very fixed",
+        "max": "Very flexible"
+      }
+    },
+    "religion_gender_roles_philosophy": {
+      "question": "In building a Jewish home, how would you see the division of responsibilities between a man and a woman in different areas? Allocate 100 points among the approaches:",
+      "helpText": "This is a sophisticated way to ask about a complex topic. There is no right answer, only a matching of worldviews.",
+      "categories": {
+        "traditional": "Defined traditional division",
+        "egalitarian": "Full egalitarian partnership",
+        "flexible": "Flexible division according to talent and desire"
+      }
+    },
+    "religion_children_education_religious_vision_revised": {
+      "question": "What is your vision for the spiritual atmosphere and the education of children in the home you will build?",
+      "placeholder": "For example: type of educational institutions (Mamad, Torani, Haredi), atmosphere at home (open, conservative), emphasis on specific values."
+    }
+  }
+}
+--- End of Content for questions.en.json ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\questionnaire\questions.he.json
+--------------------------------------------------------------------------------
+Content:
+{
+  "PERSONALITY": {
+    "personality_self_portrayal_revised": {
+      "question": "דמיין/י שאנחנו צריכים לתאר אותך לחבר/ה הכי טוב/ה שלך, במילים שלנו. מהם 3-5 הדברים המרכזיים שהכי חשוב לך שנדגיש כדי שיבינו מי את/ה באמת?",
+      "placeholder": "לדוגמה: 'אני אדם אופטימי, אוהב/ת ללמוד דברים חדשים, נאמן/ה לחברים, קצת ביישנ/ית בהתחלה, אבל עם חוש הומור טוב...'",
+      "helpText": "זו ההזדמנות שלך לתת לנו את הכותרות החשובות ביותר שמרכיבות את הסיפור שלך."
+    },
+    "personality_core_trait_selection_revised": {
+      "question": "דמיין/י את האישיות שלך כעוגה המחולקת ל-100%. כיצד היית מחלק/ת את האחוזים בין התכונות הבאות כדי לתאר בצורה הכי טובה מי את/ה?",
+      "helpText": "אין צורך לחלק לכולם. התמקד/י בתכונות שהן החלקים הגדולים ביותר ב'עוגה' שלך. הסך הכל צריך להיות 100.",
+      "categories": {
+        "empathetic_sensitive": "אמפתי/ת ורגיש/ה",
+        "honest_reliable": "ישר/ה ואמין/ה",
+        "optimistic_cheerful": "אופטימי/ת ושמח/ה",
+        "humorous": "בעל/ת חוש הומור",
+        "intelligent_curious": "אינטליגנט/ית וסקרנ/ית",
+        "ambitious_motivated": "שאפתנ/ית ובעל/ת מוטיבציה",
+        "easygoing_flexible": "קליל/ה וזורמ/ת",
+        "responsible_organized": "אחראי/ת ומאורגנ/ת",
+        "creative_original": "יצירתי/ת ומקור/ית",
+        "stable_grounded": "יציב/ה וקרקע/ית",
+        "decisive_confident": "החלטי/ת ובעל/ת ביטחון",
+        "generous_caring": "נדיב/ה ומתחשב/ת"
+      }
+    },
+    "personality_social_battery_recharge": {
+      "question": "עבר עליך שבוע עמוס ואינטנסיבי. את/ה מרגיש/ה שה'סוללה' שלך קרובה להתרוקן. הגיע יום חמישי בערב, ויש לך ערב פנוי לחלוטין. איזו מהאפשרויות הבאות הכי קורצת לך ומרגישה כמו 'שקע הטעינה' המושלם עבורך?",
+      "helpText": "אין פה תשובה 'נכונה'. התשובה שלך עוזרת לנו להבין מהם התנאים שבהם את/ה פורח/ת ונטען/ת מחדש, וזה קריטי להתאמה זוגית.",
+      "options": {
+        "quiet_evening_home": {
+          "text": "ערב שקט בבית",
+          "description": "להזמין אוכל טעים, לראות סדרה טובה, לקרוא ספר, או פשוט להיות בשקט. אפס אינטראקציות חברתיות."
+        },
+        "intimate_gathering": {
+          "text": "מפגש אינטימי",
+          "description": "להתקשר לחבר/ה טוב/ה אחד/ת או שניים ולקבוע מפגש רגוע בבית קפה או בבית. שיחה עמוקה ואיכותית בקבוצה קטנה."
+        },
+        "energetic_social_outing": {
+          "text": "יציאה חברתית אנרגטית",
+          "description": "לבדוק מה קורה הערב! להתארגן ולצאת לאירוע, בר, או מפגש עם קבוצה גדולה של חברים. להיות מוקף/ת באנשים ואנרגיה."
+        },
+        "flexible_combination": {
+          "text": "שילוב גמיש",
+          "description": "להתחיל את הערב בבית במנוחה, ואולי מאוחר יותר להצטרף לחברים למשקה קצר אם ארגיש שיש לי כוח. זורם/ת לפי ההרגשה."
+        }
+      }
+    },
+    "personality_biological_clock": {
+      "question": "על סולם של 1 (איש של בוקר) עד 10 (ציפור לילה), מהו ה'שעון הביולוגי' הטבעי שלך?",
+      "helpText": "התאמה בקצב היומי יכולה להשפיע רבות על ההרמוניה בזוגיות. זהו נתון פרקטי שעוזר לנו להבין את סגנון החיים שלך.",
+      "labels": {
+        "min": "משכים קום",
+        "max": "ער עד מאוחר"
+      }
+    },
+    "personality_daily_structure_revised": {
+      "question": "באיזו 'מערכת הפעלה' הראש שלך עובד הכי טוב ביום-יום?",
+      "options": {
+        "order_planning": "סדר ותכנון - אני אוהב/ת לדעת מה הלו\"ז שלי.",
+        "flexibility_flow": "גמישות וזרימה - אני הכי טוב/ה כשאני מגיב/ה להתפתחויות.",
+        "task_oriented": "משימתיות - אני מתפקד/ת הכי טוב עם יעדים ברורים להשגה.",
+        "balance": "איזון - שילוב של מסגרת כללית עם מקום לספונטניות."
+      }
+    },
+    "personality_social_situation_revised": {
+      "question": "את/ה מגיע/ה לאירוע חברתי (למשל, קידוש, חתונה) שבו את/ה מכיר/ה רק מעט אנשים. מהי הגישה הטבעית שלך?",
+      "options": {
+        "initiator": "להתחיל שיחה - אני ניגש/ת לאנשים ויוצר/ת קשרים חדשים בקלות.",
+        "joiner": "להצטרף לשיחה - אני מאתר/ת קבוצה שנראית נחמדה ומצטרף/ת בעדינות.",
+        "deep_diver": "שיחת עומק - אני מעדיף/ה למצוא אדם אחד או שניים לשיחה משמעותית בצד.",
+        "observer": "המתבונן/ת - אני לוקח/ת את הזמן, סורק/ת את המרחב ומחכה להזדמנות הנכונה."
+      }
+    },
+    "personality_unproductive_day_feeling": {
+      "question": "איך את/ה מרגיש/ה עם עצמך בסוף יום שבו לא הספקת את מה שתכננת והיית פחות פרודוקטיבי/ת מהרצוי?",
+      "helpText": "השאלה הזו בודקת את הדיאלוג הפנימי שלך - האם הוא ביקורתי או חומל? זה חשוב ליכולת להכיל גם את בן/בת הזוג.",
+      "options": {
+        "self_compassion": "מקבל/ת באהבה, כנראה שהייתי צריך/ה מנוחה.",
+        "criticism_action": "מתוסכל/ת, ומיד מתכננ/ת איך להשלים פערים מחר.",
+        "analysis_learning": "מנתח/ת מה השתבש כדי ללמוד מזה לפעם הבאה.",
+        "immediate_fix": "מנסה לעשות משהו קטן ומועיל כדי לסיים בתחושה טובה."
+      }
+    },
+    "personality_plan_change_reaction": {
+      "question": "תכננתם בילוי חשוב במשך שבועות, וברגע האחרון הוא מתבטל מסיבה מוצדקת אך מאכזבת. על הסקאלה הבאה, עד כמה הגמישות הפנימית שלך מאפשרת לך 'לזרום' עם השינוי?",
+      "helpText": "אין פה תשובה נכונה. השאלה בודקת את היכולת שלנו להתמודד עם שינויים ואכזבות קטנות.",
+      "labels": {
+        "min": "זורם/ת לגמרי",
+        "max": "מאוד מתאכזב/ת",
+        "middle": "מאוכזב/ת אבל מתגבר/ת"
+      }
+    },
+    "personality_stress_management_revised": {
+      "question": "כשאת/ה מרגיש/ה מוצף/פת ולחוץ/ה, לאן את/ה פונה כדי 'לאפס את המערכת'? (בחר/י עד 3 דרכים עיקריות)",
+      "options": {
+        "movement_sport": "תנועה וספורט (הליכה, ריצה, אימון)",
+        "talk_vent": "שיחה ופריקה עם מישהו קרוב",
+        "alone_time_rest": "זמן לבד, שקט ומנוחה",
+        "nature": "יציאה לטבע",
+        "creative_hobby": "עיסוק ביצירה או תחביב",
+        "order_organization": "סדר וארגון של המחשבות או הסביבה",
+        "media_disconnect": "התנתקות עם מוזיקה, פודקאסט או ספר"
+      }
+    },
+    "personality_friendship_in_action": {
+      "question": "חשוב/י על פעם שבה היית חבר/ה ממש טוב/ה עבור מישהו, ברגע שהיה זקוק לך. בלי לחשוף פרטים אישיים של החבר/ה, מה היה התפקיד שמילאת עבורו/ה באותו רגע?",
+      "placeholder": "לדוגמה: 'הייתי הכתף התומכת והקשובה', 'עזרתי לו/ה לנתח את המצב בצורה רציונלית', 'ארגנתי עזרה מעשית וקונקרטית', 'פשוט הייתי שם בשקט'...",
+      "helpText": "הדרך שבה אנו מתפקדים כחברים אומרת המון על יכולתנו להיות שותפים תומכים בזוגיות. התשובה שלך כאן חושפת את 'שפת התמיכה' הטבעית שלך."
+    },
+    "personality_friend_in_crisis": {
+      "question": "חבר/ה טוב/ה מתקשר/ת אליך באמצע היום, נסער/ת מאוד בגלל משבר אישי. מהי התגובה הראשונה והאינסטינקטיבית שלך?",
+      "helpText": "השאלה בודקת את 'שפת התמיכה' הטבעית שלך, שהיא קריטית לדינמיקה זוגית.",
+      "options": {
+        "emotional_support": "להקשיב ולהכיל - קודם כל לתת לו/ה לפרוק ולהיות שם רגשית.",
+        "problem_solving": "לנתח ולפתור - לנסות להבין את הבעיה ולהציע פתרונות מעשיים.",
+        "clarification_analysis": "לשאול שאלות - לעזור לו/ה לסדר את המחשבות דרך שאלות מנחות.",
+        "distraction": "להסיח את הדעת - להציע להיפגש או לעשות משהו שישפר את מצב הרוח."
+      }
+    },
+    "personality_handling_criticism_revised": {
+      "question": "כולנו מקבלים ביקורת לפעמים, בונה יותר ובונה פחות. כשזה קורה לך, מה קורה אצלך בפנים ואיך זה נראה בחוץ?",
+      "placeholder": "לדוגמה: האם את/ה נפגע/ת אבל מנסה ללמוד? האם עולה בך צורך להתגונן? האם את/ה זקוק/ה לזמן לעבד את הדברים?"
+    },
+    "personality_communication_style_revised": {
+      "question": "בשיחה חשובה, מהם ה'כלים' העיקריים שבהם את/ה משתמש/ת? חלק/י 100 נקודות בין הסגנונות הבאים:",
+      "helpText": "חשוב/י על הדרך שבה את/ה בדרך כלל מנהל/ת שיחות משמעותיות, עם חברים, משפחה או בעבודה.",
+      "categories": {
+        "direct_clear": "דיבור ישיר וברור",
+        "empathetic_listening": "הקשבה אמפתית",
+        "logic_facts": "היגיון ועובדות",
+        "humor_lightness": "הומור וקלילות",
+        "openness_emotional_sharing": "פתיחות ושיתוף רגשי"
+      }
+    },
+    "personality_humor_type": {
+      "question": "איזה סוג של חוש הומור הכי מדבר אליך? (בחר/י עד 2)",
+      "helpText": "התאמה בחוש הומור היא מפתח לכימיה וליכולת לצלוח את אתגרי החיים יחד.",
+      "options": {
+        "cynical_witty": "ציני ושנון",
+        "puns_wordplay": "משחקי מילים",
+        "situational_sitcom": "הומור מצבים (סיטקום)",
+        "self_deprecating": "הומור עצמי",
+        "silly_light": "שטותניקי וקליל ('שטויות')"
+      }
+    },
+    "personality_learning_process": {
+      "question": "חשוב/י על הפעם האחרונה שלמדת משהו חדש ומורכב (שפה, כלי נגינה, מיומנות טכנית). מה היה החלק הכי מאתגר עבורך בתהליך, ומה עזר לך להתגבר?",
+      "placeholder": "הקושי יכול להיות תסכול, חוסר סבלנות או פחד מכישלון. מה הייתה אסטרטגיית ההתמודדות שלך?",
+      "helpText": "היכולת שלנו ללמוד ולהתמיד היא אינדיקציה מצוינת לאיך נצמח גם בתוך זוגיות."
+    },
+    "personality_failure_lesson": {
+      "question": "חשוב/י על כישלון או אתגר משמעותי שחווית. מה למדת על עצמך מתוך ההתמודדות הזו?",
+      "placeholder": "התמקד/י בתובנה על עצמך, על החוזקות שגילית או על התחומים שבהם את/ה עוד צריך/ה לצמוח...",
+      "helpText": "השאלה הזו בוחנת חוסן נפשי, מודעות עצמית ויכולת צמיחה. הכנות שלך כאן היא מתנה עבורנו ועבורך."
+    },
+    "personality_good_vs_perfect_day": {
+      "question": "כולנו חולמים על 'יום מושלם'. אבל מה, עבורך, הופך יום רגיל ל'יום ממש טוב'?",
+      "placeholder": "זה יכול להיות דבר קטן: שיחה טובה, תחושת סיפוק בעבודה, אימון מוצלח, עזרה למישהו...",
+      "helpText": "התשובה כאן מלמדת המון על מקורות האושר והסיפוק היומיומיים שלך."
+    },
+    "personality_vacation_compass": {
+      "question": "הדרך שבה אנחנו אוהבים לנפוש אומרת המון על האישיות שלנו. מהם המרכיבים שהופכים חופשה למושלמת עבורך? חלק/י 100 'נקודות חופשה' כדי לבנות את 'מצפן החופשה' שלך.",
+      "helpText": "אין תשובה לא נכונה. חשוב/י מה באמת מטעין אותך ונותן לך כוח. הסך הכל צריך להיות 100.",
+      "categories": {
+        "relaxation": {
+          "label": "בטן-גב, רוגע ושלווה",
+          "description": "מנוחה מוחלטת, ספר טוב, נוף יפה, בלי לחץ ובלי תוכניות."
+        },
+        "adventure": {
+          "label": "טיולים, טבע והרפתקאות",
+          "description": "מסלולי הליכה, נופים פראיים, פעילות פיזית ואתגר."
+        },
+        "city_life": {
+          "label": "עיר תוססת, תרבות ובילויים",
+          "description": "מוזיאונים, מסעדות טובות, הופעות, קניות וחיי לילה."
+        },
+        "social_time": {
+          "label": "מפגש חברתי ומשפחתי",
+          "description": "חופשה עם חברים או משפחה מורחבת, זמן איכות קבוצתי."
+        },
+        "romance": {
+          "label": "זמן איכות זוגי ורומנטי",
+          "description": "התמקדות נטו בזוגיות, שיחות עומק, חוויות רומנטיות."
+        },
+        "enrichment": {
+          "label": "העשרה, למידה ורוחניות",
+          "description": "סדנאות, סיורים לימודיים, אתרים היסטוריים, מקומות עם משמעות."
+        }
+      }
+    },
+    "personality_primary_motivation_revised": {
+      "question": "מהו 'הדלק' הפנימי שלך? מהו הדבר המרכזי שנותן לך מוטיבציה לקום בבוקר?",
+      "options": {
+        "achieving_goals": "השגת מטרות והגשמה עצמית",
+        "building_connections": "יצירת ובניית קשרים משמעותיים",
+        "giving_impact": "השפעה חיובית ונתינה לאחרים",
+        "learning_curiosity": "סקרנות, למידה והבנת העולם",
+        "creativity_expression": "יצירתיות וביטוי אישי",
+        "security_stability": "בניית ביטחון, יציבות ושקט נפשי"
+      }
+    },
+    "personality_strengths_and_weaknesses_revised": {
+      "question": "ספר/י לנו על שתי תכונות שאת/ה ממש אוהב/ת בעצמך, ועל תכונה אחת שהיית רוצה לעבוד עליה ולשפר.",
+      "placeholder": "תכונות שאת/ה אוהב/ת: (לדוגמה: הנאמנות שלי, חוש ההומור שלי). תחום לשיפור: (לדוגמה: הייתי רוצה להיות פחות ביקורתי/ת כלפי עצמי).",
+      "helpText": "מודעות עצמית היא אחת התכונות החשובות ביותר לזוגיות מוצלחת. הכנות שלך כאן היא מתנה עבורנו ועבורך."
+    }
+  },
+  "VALUES": {
+    "values_core_identification_revised": {
+      "question": "דמיין/י שיש לך 100% של 'אנרגיה ערכית' לחלק בין הדברים שבאמת מנחים אותך בחיים. כיצד היית מחלק/ת אותה?",
+      "helpText": "זו הזדמנות להראות מה באמת נמצא בראש סדר העדיפויות שלך. התמקד/י במה שהכי חשוב לך.",
+      "categories": {
+        "family_connections": "משפחה וקשרים קרובים",
+        "integrity_honesty": "יושרה, אמינות וכנות",
+        "spirituality_faith": "רוחניות, אמונה ומסורת",
+        "personal_growth": "צמיחה אישית והתפתחות",
+        "giving_contribution": "נתינה ותרומה לחברה",
+        "career_fulfillment": "קריירה והגשמה מקצועית",
+        "financial_security": "ביטחון ויציבות כלכלית",
+        "creativity_expression": "יצירתיות וביטוי עצמי"
+      }
+    },
+    "values_core_elaboration_revised": {
+      "question": "כעת, בחר/י את הערך ה'צפוני' ביותר במצפן הפנימי שלך - זה שמכוון את ההחלטות החשובות באמת - וספר/י לנו על צומת דרכים אחד בחיים שבו הלכת לפיו.",
+      "placeholder": "לדוגמה: 'הערך הכי חשוב לי הוא יושרה. פעם, בעבודה, נתקלתי במצב X ובחרתי לעשות Y כי זה היה הדבר הנכון, למרות המחיר...'",
+      "helpText": "סיפור קונקרטי שווה אלף תיאורים. זה עוזר לנו להבין איך הערכים שלך נראים 'בשטח'."
+    },
+    "values_childhood_home_atmosphere": {
+      "question": "אם היית צריך/ה לתאר את 'האווירה' בבית שבו גדלת בשלוש מילים, מה הן היו?",
+      "placeholder": "לדוגמה: חם, רועש ואינטלקטואלי / שקט, תומך וצנוע...",
+      "helpText": "התשובה כאן חושפת את הרקע הרגשי והערכי שלך, ומסייעת לנו להבין איזה סוג של בית תרצה/י ליצור."
+    },
+    "values_quiet_heroes": {
+      "question": "מי הם האנשים (מהמעגלים הקרובים או הרחוקים) שמהווים עבורך השראה או מודל לחיקוי, ובמשפט - מדוע?",
+      "placeholder": "זה יכול להיות סבא, דמות היסטורית, רב, או כל אדם אחר. מה בתכונותיו או במעשיו מעורר בך הערכה?",
+      "helpText": "אומרים לנו מי הגיבורים שלך, ונגיד לך מי אתה. התשובה כאן חושפת את השאיפות העמוקות שלך."
+    },
+    "values_two_job_offers": {
+      "question": "קיבלת שתי הצעות עבודה: (א) משרה יוקרתית עם שכר גבוה מאוד, אך תובענית עם שעות ארוכות. (ב) משרה עם משמעות שאת/ה אוהב/ה, איזון מצוין בין עבודה לחיים, אך עם שכר נמוך ב-30%. איזו הצעה סביר יותר שתקבל/י, ומדוע?",
+      "helpText": "אין פה תשובה נכונה. זו שאלה על סדרי עדיפויות, והיא עוזרת לנו להבין מה באמת מניע אותך.",
+      "options": {
+        "offer_a": {
+          "text": "הצעה א': שכר גבוה ויוקרה",
+          "description": "ביטחון כלכלי והזדמנות להתקדמות מהירה הם בעדיפות עליונה כרגע."
+        },
+        "offer_b": {
+          "text": "הצעה ב': משמעות ואיזון",
+          "description": "איכות חיים, סיפוק אישי וזמן פנוי חשובים לי יותר מהיבט כלכלי נטו."
+        }
+      }
+    },
+    "values_life_priorities_allocation_revised": {
+      "question": "בשלב זה של חייך, כיצד מתחלקת תשומת הלב שלך (זמן, אנרגיה, מחשבה) בין התחומים השונים? חלק/י 100 נקודות:",
+      "helpText": "זוהי 'תמונת מצב' של חייך כיום. הכנות כאן תעזור לנו להבין איפה את/ה נמצא/ת במסע שלך.",
+      "categories": {
+        "relationship": "זוגיות (חיפוש או קשר קיים)",
+        "family": "משפחה (הורים, אחים)",
+        "career": "קריירה ופרנסה",
+        "spirituality": "רוחניות ולימוד",
+        "community": "חברים וקהילה",
+        "leisure": "פנאי, תחביבים וטיפוח עצמי"
+      }
+    },
+    "values_health_lifestyle_importance": {
+      "question": "באיזו מידה בריאות פיזית, תזונה נכונה וכושר גופני הם ערך מרכזי בסדר היום שלך?",
+      "helpText": "הרגלי חיים הם חלק חשוב מהיומיום הזוגי. התאמה כאן יכולה להקל על בניית שגרה משותפת.",
+      "labels": {
+        "min": "לא בראש מעייני",
+        "max": "חלק משמעותי מחיי"
+      }
+    },
+    "values_feeling_of_home": {
+      "question": "מעבר לארבעה קירות, מהם שלושת הדברים שהופכים מקום ל'בית' עבורך?",
+      "placeholder": "לדוגמה: ריח של בישולים, ספרים אהובים, תחושת ביטחון, אנשים שאוהבים אותי, סדר וניקיון...",
+      "helpText": "התשובה כאן מלמדת על הצרכים הרגשיים והפיזיים שלך לסביבה תומכת ומצמיחה."
+    },
+    "values_definition_of_rich_life": {
+      "question": "מהי ההגדרה שלך ל'חיים עשירים', שאינה קשורה בהכרח לכסף?",
+      "placeholder": "האם זה עושר של חוויות? של קשרים? של ידע? של זמן פנוי? של שקט נפשי?",
+      "helpText": "השאלה הזו פותחת צוהר לשאיפות העמוקות ביותר שלך, מעבר להיבט החומרי."
+    },
+    "values_attitude_towards_money_revised": {
+      "question": "מהי 'מערכת היחסים' שלך עם כסף?",
+      "options": {
+        "security_tool": "כלי לביטחון - חשוב לי לחסוך ולתכנן לעתיד.",
+        "means_for_experiences": "אמצעי לחוויות - אני אוהב/ת להשקיע בטיולים, בילויים וצמיחה.",
+        "balance_responsibility": "איזון - אני מנהל/ת אותו באחריות, אבל יודע/ת גם להנות ממנו.",
+        "simplicity": "פשטות - אני לא צריך/ה הרבה כדי להיות מאושר/ת."
+      }
+    },
+    "values_definition_of_success": {
+      "question": "מהי ההגדרה שלך להצלחה בחיים?",
+      "placeholder": "האם הצלחה היא יציבות כלכלית? השפעה חברתית? גידול משפחה לתפארת? שלווה פנימית?",
+      "helpText": "התשובה כאן היא חלון ישיר לשאיפות הכי עמוקות שלך, ומסייעת לנו למצוא מישהו/י עם שאיפות דומות."
+    },
+    "values_lost_wallet": {
+      "question": "מצאת ברחוב ארנק ובו סכום כסף גדול ותעודה מזהה. אין איש בסביבה. מהם הצעדים המדויקים שתעשה/י?",
+      "placeholder": "תאר/י את תהליך המחשבה והפעולות שלך, שלב אחר שלב.",
+      "helpText": "השאלה בוחנת יושרה, תושייה ואחריות בפעולה. אין תשובה אחת 'נכונה', התהליך הוא שחשוב."
+    },
+    "values_giving_tzedaka_importance_revised": {
+      "question": "על סולם של 1 עד 10, מהי מידת המעורבות הפעילה שלך בנתינה וחסד (בכסף, בזמן או במעשים)?",
+      "helpText": "1 = 'אם יוצא לי, אני תורם/ת מדי פעם'. 10 = 'יש לי סדר קבוע של נתינה, התנדבות או מעורבות קהילתית'.",
+      "labels": {
+        "min": "באופן ספונטני בלבד",
+        "max": "חלק קבוע ומרכזי בחיי"
+      }
+    },
+    "values_education_pursuit_revised": {
+      "question": "מהי גישתך להתפתחות אינטלקטואלית וללמידה מתמדת, גם לאחר סיום ההשכלה הפורמלית?",
+      "options": {
+        "lifelong_learning": "זה חלק מהותי ממני - אני תמיד קורא/ת, לומד/ת ומתפתח/ת.",
+        "goal_oriented_learning": "אני לומד/ת ומתפתח/ת בעיקר בתחומים שקשורים לקריירה ולמטרות שלי.",
+        "experiential_learning": "אני אוהב/ת ללמוד, אבל מעדיפ/ה דרכים חוויתיות כמו סדנאות ופודקאסטים.",
+        "appreciative_but_passive": "אני מעריך/ה ידע, אבל כרגע פחות פנוי/ה ללמידה פעילה."
+      }
+    },
+    "values_parents_tradition_conflict": {
+      "question": "דמיין/י מצב שבו דרך חיים או החלטה שחשובה לך (למשל, מקום מגורים, סגנון חינוך) אינה תואמת את הציפיות של הוריך, שאת/ה מאוד מכבד/ת. כיצד תנווט/י את הסיטואציה?",
+      "placeholder": "כיצד תאזן/י בין כיבוד הורים לבין בניית דרך עצמאית עם בן/בת הזוג? מה יהיו השיקולים המרכזיים שלך?",
+      "helpText": "זו דילמה שרבים מתמודדים איתה. התשובה שלך מלמדת על בגרות, אסרטיביות ויכולת ניהול קונפליקטים."
+    },
+    "values_social_political_stance_importance_partner_revised": {
+      "question": "בזוגיות, עד כמה חשוב לך ששיחות סביב שולחן השבת על אקטואליה ונושאים חברתיים יהיו בהסכמה כללית, לעומת שיח פתוח ומאתגר גם אם יש חילוקי דעות?",
+      "labels": {
+        "min": "שיח פתוח זה העיקר",
+        "max": "הסכמה בסיסית היא חובה"
+      }
+    },
+    "values_dealing_with_disagreement_partner_revised": {
+      "question": "כשמתעורר חוסר הסכמה עמוק עם אדם קרוב בנושא ערכי, מהי הגישה הנכונה בעיניך?",
+      "options": {
+        "discussion_understanding": "לנהל שיחה מכבדת כדי להבין, גם אם לא נסכים.",
+        "finding_common_ground": "לנסות למצוא את שורש חוסר ההסכמה והבסיס המשותף.",
+        "seeking_compromise": "לחפש פשרה מעשית שמאפשרת להמשיך הלאה.",
+        "agree_to_disagree": "להסכים לא להסכים, ולתת לקשר להיות מעל חילוקי הדעות."
+      }
+    },
+    "values_non_negotiable_for_partner_revised": {
+      "question": "לסיום, מהם 1-2 הערכים שבהם *חייבת* להיות התאמה בינך לבין בן/בת הזוג, ואין בהם מקום לפשרה מבחינתך?",
+      "placeholder": "נסה/י למקד את הדברים הקריטיים ביותר עבורך, אלה שהם הבסיס לכל קשר בריא בעיניך.",
+      "helpText": "זהו אחד הנתונים החשובים ביותר עבורנו. זה עוזר לנו למקד את החיפוש במה שבאמת לא ניתן למשא ומתן עבורך."
+    }
+  },
+  "RELATIONSHIP": {
+    "relationship_core_meaning_revised": {
+      "question": "מהי בעיניך התמצית, הלב הפועם, של שותפות זוגית בריאה ומספקת? (בחר/י עד 2 אפשרויות עיקריות)",
+      "helpText": "נסה/י לחשוב מה הכי חיוני לך כדי להרגיש 'בבית' בתוך הזוגיות.",
+      "options": {
+        "deep_emotional_connection": "חיבור רגשי עמוק, אינטימיות והבנה הדדית",
+        "friendship_support": "חברות אמת, שותפות איתנה ותמיכה בלתי מסויגת",
+        "commitment_security": "מחויבות, נאמנות וביטחון מוחלט בקשר",
+        "shared_growth": "צמיחה משותפת, למידה והתפתחות אישית וזוגית",
+        "building_home_family": "בניית בית ומשפחה על בסיס ערכים משותפים"
+      }
+    },
+    "relationship_key_feelings_from_partner_revised": {
+      "question": "כדי ששותפות זוגית תצליח, שני הצדדים צריכים להרגיש דברים מסוימים. מהם שלושת הדברים שהכי חשוב לך להרגיש מבן/בת הזוג שלך בקשר?",
+      "helpText": "השאלה היא לא על 'ציפיות' אלא על הצרכים הרגשיים הבסיסיים שלך בקשר.",
+      "options": {
+        "support_understanding": "שאני מובן/ת ושיש לי תמיכה רגשית",
+        "appreciation_respect": "שאני מוערך/ת ומקבל/ת כבוד",
+        "security_trust": "ביטחון מוחלט שאני יכול/ה לסמוך עליו/ה",
+        "desire_attraction": "שאני נחשק/ת ושיש בינינו משיכה",
+        "lightness_fun": "שיש בינינו קלילות, הומור וכיף",
+        "intellectual_partnership": "שיש לי פרטנר אינטלקטואלי לשיחה ולצמיחה"
+      }
+    },
+    "relationship_love_languages": {
+      "question": "כולנו מביעים ומקבלים אהבה בדרכים שונות. מה גורם לך להרגיש הכי אהוב/ה? (בחר/י את ה-2 העיקריים)",
+      "helpText": "הבנת 'שפות האהבה' היא מפתח לתקשורת רגשית טובה ולמניעת תסכולים בזוגיות.",
+      "options": {
+        "words_of_affirmation": "מילים מחזקות ומעודדות",
+        "quality_time": "זמן איכות אמיתי ושיחה",
+        "physical_touch": "מגע פיזי וחם",
+        "acts_of_service": "עזרה מעשית ודאגה (שירותים)",
+        "receiving_gifts": "קבלת מתנות ופינוקים"
+      }
+    },
+    "relationship_communication_ideal_revised": {
+      "question": "איך נראית שיחה טובה ובונה בעיניך בזוגיות?",
+      "options": {
+        "openness_directness": "פתוחה וישירה - מדברים על הכל בכנות ובכבוד.",
+        "sensitivity_empathy": "רגישה ואמפתית - הדגש הוא על הקשבה לרגשות שמאחורי המילים.",
+        "solution_focused": "ממוקדת פתרון - מנתחים את הבעיה ומגיעים לפתרון מעשי.",
+        "balance": "מאוזנת - יודעת לשלב בין הקשבה רגשית למציאת פתרון."
+      }
+    },
+    "relationship_handling_partner_disappointment_revised": {
+      "question": "דמיין/י מצב של אי-הבנה או אכזבה בקשר קרוב ומשמעותי (זוגיות, חברות טובה). מהי הנטייה הראשונית והטבעית ביותר שלך?",
+      "helpText": "הכנות שלך כאן חשובה. היא תעזור לנו להבין את סגנון ההתמודדות שלך.",
+      "options": {
+        "withdraw_process": "להתרחק ולהתכנס בעצמי כדי לעכל.",
+        "immediate_talk": "לרצות לדבר על זה מיד כדי לפתור.",
+        "suppression": "להעמיד פנים שהכל בסדר ולשמור בפנים.",
+        "logical_analysis": "לנתח את המצב בצורה הגיונית לפני שאגיב.",
+        "not_sure": "לא חוויתי זוגיות משמעותית / לא בטוח/ה."
+      }
+    },
+    "relationship_repair_mechanism": {
+      "question": "לאחר ויכוח, מהי הדרך היעילה ביותר עבורך 'לתקן' את הקשר ולחזור לקרבה?",
+      "helpText": "היכולת 'לתקן' קרע חשובה יותר מהיכולת לא לריב. מהו 'מפתח התיקון' שלך?",
+      "options": {
+        "processing_talk": "שיחת עיבוד וניתוח של מה שקרה",
+        "hug_move_on": "פשוט חיבוק ו'להמשיך הלאה'",
+        "time_out": "זמן קצר בנפרד ואז לחזור לדבר",
+        "change_of_scenery": "לעשות משהו כיפי ביחד כדי לשנות אווירה"
+      }
+    },
+    "relationship_meaningful_apology": {
+      "question": "כדי שתרגיש/י שהתנצלות היא אמיתית וכנה, מה הכי חשוב לך שיקרה?",
+      "helpText": "היכולת לתקן קרע היא מפתח לזוגיות ארוכת טווח. מהו 'מפתח התיקון' שלך?",
+      "options": {
+        "express_remorse": "שיביע/תביע חרטה והבנה של איך הרגשתי.",
+        "take_responsibility": "שיקח/תיקח אחריות מלאה על המעשה.",
+        "offer_to_fix": "שיציע/תציע דרך לתקן או למנוע זאת בעתיד.",
+        "saying_sorry": "עצם אמירת המילה 'סליחה' בכנות מספיקה לי."
+      }
+    },
+    "relationship_silent_treatment_view": {
+      "question": "על סולם של 1 (לגיטימי ולפעמים נחוץ) עד 10 (הרסני ולא מקובל בשום מצב), מה דעתך על שימוש ב'שתיקה כעונש' (Silent Treatment) במהלך ריב?",
+      "helpText": "חשוב להבדיל בין 'פסק זמן' כדי להירגע לבין 'שתיקה' שנועדה להעניש. השאלה מתייחסת לאפשרות השנייה.",
+      "labels": {
+        "min": "לגיטימי",
+        "max": "הרסני"
+      }
+    },
+    "relationship_partner_bad_day": {
+      "question": "בן/בת הזוג שלך חוזר/ת הביתה אחרי יום נוראי, מתוסכל/ת ועצבני/ת. מה תהיה התגובה הטבעית שלך?",
+      "helpText": "השאלה בודקת את 'שפת התמיכה' שלך בפועל. אין פה תשובה נכונה, רק סגנונות שונים.",
+      "options": {
+        "listen_contain": "להקשיב - פשוט להיות שם, להציע חיבוק ולתת לו/ה לפרוק.",
+        "analyze_solve": "לפתור - לנסות להבין מה קרה ולחשוב יחד על פתרונות.",
+        "give_space": "לתת מרחב - להגיד 'אני פה אם תצטרך/כי' ולתת לו/ה שקט.",
+        "distract": "להסיח את הדעת - להציע משהו כיפי שישנה את האווירה."
+      }
+    },
+    "relationship_household_philosophy": {
+      "question": "בניית בית משותף היא עבודת צוות. מהי בעיניך ה'נוסחה' הטובה ביותר לחלוקת האחריות על ניהול הבית (מטלות, קניות, בירוקרטיה)?",
+      "placeholder": "לדוגמה: חלוקה שווה 50/50, לפי מי שטוב יותר בכל דבר, לפי זמן פנוי, מיקור חוץ, או גישה אחרת?",
+      "helpText": "התשובה כאן מלמדת על תפיסת השותפות שלך, מעבר לשאלה מי שוטף כלים."
+    },
+    "relationship_daily_togetherness_vs_autonomy_revised": {
+      "question": "באיזון שבין 'אנחנו' לבין 'אני' ו'את/ה' בתוך הזוגיות, לאן את/ה נוטה באופן טבעי?",
+      "labels": {
+        "min": "חשובה לי עצמאות ומרחב אישי",
+        "max": "חשוב לי לעשות הכל ביחד",
+        "middle": "איזון גמיש"
+      }
+    },
+    "relationship_role_in_growth": {
+      "question": "על סולם של 1 עד 10, עד כמה חשוב לך שבן/בת הזוג יאתגרו אותך להיות אדם טוב יותר, לעומת שיקבלו אותך בדיוק כמו שאת/ה?",
+      "helpText": "1 = 'אוהב/ת אותי כמו שאני'. 10 = 'עוזר/ת לי להיות הגרסה הכי טובה של עצמי'. איזו גישה מדברת אליך יותר?",
+      "labels": {
+        "min": "קבלה מוחלטת",
+        "max": "אתגור וצמיחה"
+      }
+    },
+    "relationship_celebrating_success": {
+      "question": "בן/בת הזוג שלך מקבל/ת קידום משמעותי בעבודה. מהי הדרך האידיאלית עבורך לחגוג את ההצלחה שלו/ה?",
+      "placeholder": "לדוגמה: ארוחה רומנטית, מסיבת הפתעה, שיחת עומק על המשמעות, מתנה סמלית...",
+      "helpText": "היכולת לשמוח בהצלחת האחר היא מדד לבריאות הקשר. מהי 'שפת החגיגה' שלך?"
+    },
+    "relationship_family_vision_children_revised": {
+      "question": "במבט קדימה, מה מקומה של ההורות בחזון האישי שלך לחיים מלאים ומספקים?",
+      "options": {
+        "central_part": "זהו חלק מרכזי וחשוב בחלום שלי על משפחה",
+        "see_myself_as_parent": "אני רואה את עצמי הורה בעתיד, כשזה ירגיש נכון",
+        "open_but_not_essential": "פתוח/ה לזה, אבל זה לא תנאי הכרחי לאושר שלי",
+        "less_relevant": "מעדיפ/ה להתמקד בזוגיות, והורות פחות רלוונטית לי"
+      }
+    },
+    "relationship_deal_breaker_summary_final_revised": {
+      "question": "לסיום עולם זה, מהו הדבר האחד שבלעדיו קשר זוגי פשוט לא יכול לעבוד עבורך, ומהו הדבר האחד שאת/ה הכי שואפ/ת אליו בזוגיות?",
+      "placeholder": "ה'דיל ברייקר' שלי הוא... והשאיפה הגדולה ביותר שלי היא...",
+      "helpText": "נסה/י לזקק את הכל לשני דברים: הגבול התחתון והשאיפה העליונה. זה ממקד מאוד."
+    }
+  },
+  "PARTNER": {
+    "partner_initial_impression_priorities_revised": {
+      "question": "בדייט ראשון, אחרי חמש הדקות הראשונות, מהם ה'סימנים' שיגרמו לך לחשוב בלב 'וואו, יש פה משהו מעניין'? (בחר/י עד 3)",
+      "options": {
+        "appearance_style": "מראה חיצוני מטופח וסגנון אישי",
+        "smile_energy": "חיוך חם, אנרגיה נעימה ונינוחות",
+        "conversation_chemistry": "שיחה קולחת, כימיה ותחומי עניין משותפים",
+        "wit_depth": "שנינות, חוש הומור או עומק מחשבה",
+        "sense_of_security": "תחושת ביטחון, בגרות ורצינות שהוא/היא משדר/ת"
+      }
+    },
+    "partner_appearance_importance_scale_revised": {
+      "question": "בכנות, עד כמה למראה חיצוני יש תפקיד ביצירת 'הקליק' הראשוני עבורך?",
+      "helpText": "משיכה היא דבר חשוב. כנות כאן תסייע לנו למקד את החיפוש עבורך.",
+      "labels": {
+        "min": "האופי הוא העיקר",
+        "max": "קריטי למשיכה"
+      }
+    },
+    "partner_intelligence_types": {
+      "question": "כשאת/ה חושב/ת על 'אינטליגנציה' אצל בן/בת זוג, מה הכי חשוב לך? חלק/י 100 נקודות בין הסוגים הבאים:",
+      "helpText": "השאלה הזו עוזרת לנו להבין איזה סוג של 'חכמה' את/ה הכי מעריך/ה.",
+      "categories": {
+        "emotional": "רגשית (אמפתיה, מודעות)",
+        "analytical": "אנליטית (היגיון, ניתוח)",
+        "life_smarts": "חוכמת חיים ('שכל ישר')",
+        "creative": "יצירתית (הומור, מקוריות)",
+        "spiritual_torah": "רוחנית/תורנית (עומק בלימוד)"
+      }
+    },
+    "partner_core_character_traits_essential_revised": {
+      "question": "מהן 'אבני היסוד' של האישיות שאת/ה מחפש/ת? חלק/י 100 'נקודות התאמה' בין תכונות האופי החיוניות לך ביותר.",
+      "helpText": "התמקד/י בתכונות שהן הבסיס ההכרחי עבורך לקשר בריא ומאושר.",
+      "categories": {
+        "integrity": "יושרה, אמינות וכנות",
+        "warmth": "חום, אמפתיה וטוב לב",
+        "optimism": "אופטימיות ושמחת חיים",
+        "maturity": "בגרות, יציבות ואחריות",
+        "ambition": "שאפתנות ומוטיבציה לצמיחה",
+        "communication": "תקשורת טובה והקשבה"
+      }
+    },
+    "partner_completion_trait": {
+      "question": "איזו תכונה או יכולת שפחות חזקה אצלך, היית הכי שמח/ה למצוא אצל בן/בת הזוג כדי שתשלימו זה את זו?",
+      "placeholder": "לדוגמה: 'אני פחות ספונטני, אז הייתי שמח למישהי שתכניס קצת הרפתקנות לחיים', או 'אני מאוד רגשנית והייתי רוצה מישהו יותר קרקעי'...",
+      "helpText": "השאלה הזו מעידה על מודעות עצמית ועל חיפוש שותפות של השלמה, לא של שיבוט."
+    },
+    "partner_lifestyle_pace_preference_revised": {
+      "question": "איזה 'קצב פנימי' היית רוצה שיהיה לבן/בת הזוג שלך ביומיום?",
+      "options": {
+        "dynamic_active": "דינמי ופעיל, אוהב/ת עשייה והספקים.",
+        "calm_serene": "רגוע ושליו, מעריך/ה שגרה ורוגע.",
+        "balanced": "מאוזן, יודע/ת לשלב בין עשייה למנוחה.",
+        "adventurous_spontaneous": "הרפתקני וספונטני, אוהב/ת שינויים וחוויות."
+      }
+    },
+    "partner_financial_habits_scale": {
+      "question": "על סולם של 1 (מאוד חסכן וזהיר) עד 10 (מאוד נהנה מהחיים ונדיב), איזה סגנון של התנהלות כלכלית אישית היית מעדיף/ה לראות אצל בן/בת הזוג?",
+      "helpText": "השאלה לא בודקת כמה כסף יש, אלא את הגישה וההתנהלות היומיומית.",
+      "labels": {
+        "min": "חסכן וזהיר",
+        "max": "נהנה ונדיב"
+      }
+    },
+    "partner_career_ambition_preference_revised": {
+      "question": "מהי גישתך האידיאלית לקריירה ושאיפות מקצועיות של בן/בת הזוג?",
+      "options": {
+        "ambition_focus": "חשוב לי שיהיה/תהיה שאפתן/ית עם מטרות ברורות.",
+        "work_life_balance": "הכי חשוב לי שיהיה איזון בריא בין עבודה לחיים אישיים.",
+        "personal_satisfaction": "העיסוק פחות קריטי, כל עוד הוא/היא מאושר/ת ומסופק/ת."
+      }
+    },
+    "partner_deal_breakers_open_text_revised": {
+      "question": "בזוגיות חשוב לדעת על מה אפשר להתפשר ועל מה לא. מהו ה'קו האדום' האחד או שניים, שאת/ה יודע/ת בוודאות שלא תוכל/י לחיות איתו/איתה בשלום לאורך זמן?",
+      "placeholder": "לדוגמה: חוסר כנות, קמצנות, חוסר כבוד, התמכרות, פער רוחני גדול...",
+      "helpText": "הצבת גבולות היא מעשה של בגרות. הכנות כאן חוסכת עוגמת נפש רבה לשני הצדדים."
+    },
+    "partner_red_flag_vs_quirk": {
+      "question": "מה ההבדל בעיניך בין 'דגל אדום' שמסמן בעיה אמיתית, לבין 'מוזרות חביבה' (Quirk) שאפשר לחיות איתה באהבה? תן/י דוגמה קצרה.",
+      "placeholder": "לדוגמה: 'דגל אדום זה חוסר כבוד למלצר. מוזרות חביבה זה שהוא חייב לסדר את הספרים לפי צבעים'.",
+      "helpText": "השאלה הזו בודקת בגרות, גמישות מחשבתית ויכולת להכיל מורכבות אנושית."
+    },
+    "partner_in_laws_conflict": {
+      "question": "דמיין/י שאת/ה חולק/ת על דעתם של ההורים של בן/בת הזוג בנושא מהותי. כיצד היית מצפה שבן/בת הזוג ינהג/ו?",
+      "helpText": "השאלה נוגעת באחד ממוקדי הקונפליקט המרכזיים בזוגיות: הגבולות בין הזוג למשפחות המוצא.",
+      "options": {
+        "loyalty_to_couple": "שיתמוך/תתמוך בעמדתי באופן מלא, גם מולם.",
+        "mediation_compromise": "שינסה/תנסה לגשר ולמצוא פשרה שמכבדת את כולם.",
+        "diplomacy": "שיגן/תגן עליי בשיחה פרטית, אך ישמור על כבוד הוריו/ה בפומבי.",
+        "loyalty_to_family_of_origin": "שיסביר/תסביר לי את עמדתם ויצפה/תצפה שאכבד אותה."
+      }
+    },
+    "partner_must_have_quality_final_revised": {
+      "question": "אם היית צריך/ה לבחור את 'אבן הראשה' – התכונה האחת שעליה כל בניין הזוגיות שלכם יעמוד – מה היא הייתה?",
+      "placeholder": "נסה/י לחשוב על הדבר האחד והיחיד שהוא הבסיס להכל עבורך...",
+      "helpText": "זו שאלת המיקוד החשובה ביותר. היא עוזרת לנו להבין מה נמצא בגרעין החיפוש שלך."
+    }
+  },
+  "RELIGION": {
+    "religion_core_feeling_of_faith": {
+      "question": "מהי התחושה המרכזית שהאמונה והמסורת מעניקות לך בחייך?",
+      "helpText": "נסה/י לבחור את התחושה הדומיננטית ביותר. זוהי פתיחה מצוינת להבין את החיבור האישי שלך.",
+      "options": {
+        "security_stability": {
+          "text": "ביטחון, יציבות וסדר בעולם",
+          "description": "המסורת נותנת לי עוגן, מסגרת ברורה ושקט נפשי."
+        },
+        "meaning_belonging": {
+          "text": "משמעות, שייכות ומטרה",
+          "description": "האמונה מחברת אותי לסיפור גדול יותר ונותנת כיוון לחיי."
+        },
+        "joy_gratitude": {
+          "text": "שמחה, הודיה והתרוממות רוח",
+          "description": "היהדות ממלאת את חיי באור, בחגיגיות ובהתלהבות."
+        },
+        "challenge_growth": {
+          "text": "אתגר, צמיחה ולמידה מתמדת",
+          "description": "העיסוק ביהדות מאתגר אותי אינטלקטואלית ומוסרית ודוחף אותי להשתפר."
+        }
+      }
+    },
+    "religion_my_personal_prayer": {
+      "question": "אם היית צריך/ה לבחור תפילה, פרק תהילים או קטע הגות יהודי שמדבר אליך במיוחד, מה הוא היה, ובמשפט - למה?",
+      "placeholder": "שתפ/י משהו שנוגע לליבך ומבטא את החיבור האישי שלך. למשל: 'מודה אני', 'אשת חיל', 'שמע ישראל'...",
+      "helpText": "התשובה כאן נותנת לנו הצצה יפהפיה לעולמך הרוחני הפנימי."
+    },
+    "religion_rabbinic_guidance_role_revised": {
+      "question": "מה מקומה של הדרכה רוחנית (רב, רבנית, יועץ/ת) בחייך כשאת/ה מתמודד/ת עם החלטות משמעותיות?",
+      "helpText": "1 = 'אני סומך/ת בעיקר על שיקול הדעת שלי'. 10 = 'התייעצות עם דמות רוחנית היא חלק בלתי נפרד מתהליך קבלת ההחלטות שלי'.",
+      "labels": {
+        "min": "מחליט/ה בעצמי",
+        "max": "תמיד מתייעץ/ת",
+        "middle": "לפעמים, בנושאים כבדים"
+      }
+    },
+    "religion_shabbat_experience": {
+      "question": "מהי המהות או החוויה המרכזית שאת/ה מחפש/ת ומקבל/ת מהשבת?",
+      "helpText": "שני אנשים יכולים לשמור שבת באותה רמה, אך לחוות אותה אחרת לגמרי. מהי 'חווית השבת' שלך?",
+      "options": {
+        "family_time": "זמן למשפחה, לביחד ולשיח.",
+        "spiritual_ascension": "זמן להתעלות רוחנית, תפילה ולימוד.",
+        "rest_recharge": "זמן למנוחה פיזית ונפשית מהשבוע.",
+        "community_social": "זמן לקהילה, לחברים ולאירוח."
+      }
+    },
+    "religion_daily_spiritual_connection": {
+      "question": "כיצד את/ה מתחבר/ת לקב\"ה ביומיום, מעבר לתפילות הפורמליות?",
+      "helpText": "שאלה זו מבדילה בין קיום מצוות טכני לבין חיים רוחניים פנימיים ופעילים.",
+      "options": {
+        "torah_study": "דרך לימוד תורה (גמרא, הלכה, מחשבה)",
+        "personal_prayer": "התבודדות ותפילה אישית",
+        "nature_gratitude": "התבוננות בטבע ובהודיה על הבריאה",
+        "acts_of_kindness": "דרך עשיית חסד ונתינה",
+        "song_music": "דרך שירה וניגון"
+      }
+    },
+    "religion_kashrut_observance_details_revised": {
+      "question": "כשרות היא עולם ומלואו. כדי שנבין את ה'סטנדרט' שלך, ספר/י לנו על שני דברים: סוג ההכשר שאת/ה סומך/ת עליו, ואיך את/ה נוהג/ת באכילה מחוץ לבית.",
+      "placeholder": "לדוגמה: 'מקפיד/ה על בד\"צ מסוים, ובחוץ אוכל/ת רק במסעדות עם אותו הכשר', או 'סומך/ת על רבנות, וגמיש/ה יותר אצל חברים'."
+    },
+    "religion_modesty_personal_approach_revised": {
+      "question": "צניעות היא מידה פנימית וחיצונית. כיצד היא באה לידי ביטוי בעולם שלך (לבוש, דיבור, התנהגות)?",
+      "placeholder": "זו הזדמנות להסביר את הגישה האישית שלך מעבר להגדרות טכניות. למשל: סוג כיסוי ראש, סגנון לבוש, שמירת נגיעה וכו'."
+    },
+    "religion_secular_culture_scenario": {
+      "question": "חברים טובים מציעים ללכת יחד לסרט או הצגה שזכו לביקורות מעולות, אך תכניהם אינם תואמים לחלוטין את השקפת עולמך. מה סביר שתעשה/י?",
+      "helpText": "השאלה בוחנת את הגבולות והגמישות שלך במפגש עם התרבות הכללית.",
+      "options": {
+        "avoid": "אוותר בנימוס, זה קו אדום עבורי.",
+        "filter_check": "אבדוק ביקורות וחוות דעת כדי להחליט אם זה 'עובר'.",
+        "social_inclusion": "אלך כדי להיות חלק מהחוויה החברתית.",
+        "suggest_alternative": "אציע בכיף חלופה אחרת שמתאימה יותר לכולם."
+      }
+    },
+    "religion_general_culture_consumption": {
+      "question": "מהי גישתך לצריכת תרבות כללית (סרטים, סדרות, מוזיקה) שאינה מגיעה מהעולם הדתי?",
+      "helpText": "זוהי שאלה פרקטית המגדירה את מידת הפתיחות או השמרנות בחיי היומיום, ויכולה למנוע חיכוכים רבים.",
+      "labels": {
+        "min": "נמנע/ת כמעט לחלוטין",
+        "max": "צורך/ת בחופשיות"
+      }
+    },
+    "religion_doubts_and_struggles": {
+      "question": "כיצד את/ה מתמודד/ת עם שאלות, ספקות או אתגרים באמונה, אם וכאשר הם עולים?",
+      "placeholder": "למשל: האם את/ה מדחיק/ה, מתייעץ/ת עם רב/חברים, לומד/ת את הנושא לעומק, או מוצא/ת כוח באתגר?",
+      "helpText": "אמונה בוגרת כוללת גם התמודדות עם שאלות. הכנות שלך כאן מלמדת על עומק ויושרה."
+    },
+    "religion_partner_ideal_religious_profile_revised": {
+      "question": "כדי לבנות בית על בסיס רוחני משותף, מהי 'נקודת המוצא' הדתית-רוחנית שהיית רוצה למצוא אצל בן/בת הזוג, שממנה תוכלו לצמוח יחד?",
+      "placeholder": "נסה/י להיות כמה שיותר ספציפי/ת. מהם הדברים החשובים לך ביותר בהקשר זה? (רמה, השקפה, הקפדה)",
+      "helpText": "הניסוח 'נקודת מוצא' מדגיש שזוגיות היא מסע. אנחנו מחפשים התאמה לנקודת ההתחלה של המסע המשותף."
+    },
+    "religion_flexibility_religious_differences_partner_revised": {
+      "question": "באיזו מידה את/ה פתוח/ה לגמישות ופשרה אם יתגלו פערים מסוימים בגישה ההלכתית או בהשקפה הדתית בינך לבין בן/בת הזוג?",
+      "helpText": "חשוב/י על תחומים שבהם יש לך יותר או פחות מקום לגמישות.",
+      "labels": {
+        "min": "מאוד מקובע/ת",
+        "max": "מאוד גמיש/ה"
+      }
+    },
+    "religion_gender_roles_philosophy": {
+      "question": "בבניית בית יהודי, כיצד היית רואה את חלוקת האחריות בין גבר לאישה בתחומים השונים? חלק/י 100 נקודות בין הגישות:",
+      "helpText": "זו דרך מתוחכמת לשאול על נושא מורכב. אין פה תשובה נכונה, רק התאמה של השקפות עולם.",
+      "categories": {
+        "traditional": "חלוקה מסורתית מוגדרת",
+        "egalitarian": "שותפות שוויונית מלאה",
+        "flexible": "חלוקה גמישה לפי כישרון ורצון"
+      }
+    },
+    "religion_children_education_religious_vision_revised": {
+      "question": "מהו החזון שלך לאווירה הרוחנית ולחינוך הילדים בבית שתקים/י?",
+      "placeholder": "לדוגמה: סוג מוסדות החינוך (ממ\"ד, תורני, חרדי), אווירה בבית (פתוחה, שמרנית), דגש על ערכים ספציפיים."
+    }
+  }
+}
+--- End of Content for questions.he.json ---
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\suggestions
