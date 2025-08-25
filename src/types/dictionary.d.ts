@@ -981,6 +981,7 @@ export type QuestionnaireDictionary = {
   questionnaireCompletePage: QuestionnaireCompletePageDict; // <-- הוספה
   questionsList: QuestionsListDict; // <-- הוספה
   matchResultCard: MatchResultCardDict; // <-- הוספה
+  questions: QuestionsDictionary; // <--- הוספת המפתח החדש
 
   // Add other component dictionaries here as needed
 };
@@ -2494,3 +2495,14 @@ export type AccountSettingsDict = {
     deletingButton: string;
   };
 };
+type QuestionContent = {
+  question: string;
+  placeholder?: string;
+  helpText?: string;
+  labels?: { min: string; max: string; middle?: string };
+  options?: Record<string, string | { text: string; description: string }>;
+  categories?: Record<string, string | { label: string; description?: string }>;
+};
+type WorldQuestionsContent = Record<string, QuestionContent>;
+
+export type QuestionsDictionary = Record<WorldId, WorldQuestionsContent>;

@@ -9,7 +9,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation'; // ✨ 1. ייבוא Hooks חדשים
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import AvailabilityStatus from '@/components/AvailabilityStatus';
+import AvailabilityStatus from './AvailabilityStatus';
 import { useNotifications } from '@/app/[locale]/contexts/NotificationContext';
 import {
   Users,

@@ -416,30 +416,45 @@ export default function MatchmakingQuestionnaire({
     (questionId: string, value: AnswerValue) => {
       setError(null);
       setIsDirty(true);
+
+      // מאתרים את מבנה השאלה כדי לדעת את הסוג שלה
+      const currentQuestion = worldConfig[currentWorld].questions.find(
+        (q) => q.id === questionId
+      );
+
       setAnswers((prevAnswers) => {
         const answerIndex = prevAnswers.findIndex(
           (a) => a.questionId.toLowerCase() === questionId.toLowerCase()
         );
+
+        const newAnswerBase = {
+          questionId,
+          worldId: currentWorld,
+          value,
+          answeredAt: new Date().toISOString(),
+          isVisible:
+            answerIndex > -1 ? prevAnswers[answerIndex].isVisible : true,
+        };
+
+        // בדיוק כאן, בתוך פונקציית handleAnswer, נשמור את שפת המשתמש
+        // אך ורק אם מדובר בשאלת טקסט פתוח
+        const finalNewAnswer: QuestionnaireAnswer = {
+          ...newAnswerBase,
+          ...(currentQuestion?.type === 'openText' && {
+            language: language as 'en' | 'he',
+          }),
+        };
+
         if (answerIndex > -1) {
-          return prevAnswers.map((answer) => {
-            if (answer.questionId.toLowerCase() === questionId.toLowerCase()) {
-              return { ...answer, value, answeredAt: new Date().toISOString() };
-            }
-            return answer;
-          });
+          const updatedAnswers = [...prevAnswers];
+          updatedAnswers[answerIndex] = finalNewAnswer;
+          return updatedAnswers;
         } else {
-          const newAnswer: QuestionnaireAnswer = {
-            questionId,
-            worldId: currentWorld,
-            value,
-            answeredAt: new Date().toISOString(),
-            isVisible: true,
-          };
-          return [...prevAnswers, newAnswer];
+          return [...prevAnswers, finalNewAnswer];
         }
       });
     },
-    [currentWorld]
+    [currentWorld, language] // חשוב להוסיף את 'language' למערך התלויות
   );
 
   const handleVisibilityChange = useCallback(
@@ -571,6 +586,7 @@ export default function MatchmakingQuestionnaire({
     setCurrentStep(OnboardingStep.MAP);
   }, []);
 
+  // הקוד החדש והמתוקן
   function renderCurrentWorld() {
     const worldProps = {
       onAnswer: handleAnswer,
@@ -579,7 +595,6 @@ export default function MatchmakingQuestionnaire({
       onBack: handleExit,
       answers: answers.filter((a) => a.worldId === currentWorld),
       isCompleted: completedWorlds.includes(currentWorld),
-      language,
       currentQuestionIndex: currentQuestionIndices[currentWorld],
       setCurrentQuestionIndex: (index: number) => {
         setCurrentQuestionIndices((prev) => ({
@@ -597,6 +612,8 @@ export default function MatchmakingQuestionnaire({
         answerInput: dict.answerInput,
         interactiveScale: dict.interactiveScale,
         questionsList: dict.questionsList,
+        // --- הנה השורה שהוספנו ---
+        questions: dict.questions,
       },
     };
     return <WorldComponent {...worldProps} worldId={currentWorld} />;

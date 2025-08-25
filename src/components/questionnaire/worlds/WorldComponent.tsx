@@ -27,7 +27,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import type {
-  WorldComponentProps,
   AnswerValue,
   Question,
   WorldId,
@@ -36,6 +35,7 @@ import type {
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '@/app/[locale]/contexts/LanguageContext';
 import type {
   WorldComponentDict,
   QuestionCardDict,
@@ -43,6 +43,7 @@ import type {
   AnswerInputDict,
   InteractiveScaleDict,
   QuestionsListDict,
+  QuestionsDictionary,
 } from '@/types/dictionary';
 
 import { personalityQuestions } from '../questions/personality/personalityQuestions';
@@ -55,40 +56,89 @@ const worldConfig: Record<
   WorldId,
   {
     questions: Question[];
-    title: string;
     themeColor: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
   }
 > = {
-  PERSONALITY: {
-    questions: personalityQuestions,
-    title: 'עולם האישיות',
-    themeColor: 'sky',
-  },
-  VALUES: {
-    questions: valuesQuestions,
-    title: 'עולם הערכים והאמונות',
-    themeColor: 'rose',
-  },
-  RELATIONSHIP: {
-    questions: relationshipQuestions,
-    title: 'עולם הזוגיות',
-    themeColor: 'purple',
-  },
-  PARTNER: {
-    questions: partnerQuestions,
-    title: 'עולם הפרטנר',
-    themeColor: 'teal',
-  },
-  RELIGION: {
-    questions: religionQuestions,
-    title: 'עולם הדת והמסורת',
-    themeColor: 'amber',
-  },
+  PERSONALITY: { questions: personalityQuestions, themeColor: 'sky' },
+  VALUES: { questions: valuesQuestions, themeColor: 'rose' },
+  RELATIONSHIP: { questions: relationshipQuestions, themeColor: 'purple' },
+  PARTNER: { questions: partnerQuestions, themeColor: 'teal' },
+  RELIGION: { questions: religionQuestions, themeColor: 'amber' },
 };
 
-interface WorldComponentDynamicProps extends WorldComponentProps {
+// --- CORRECTED HELPER FUNCTION ---
+const getQuestionWithText = (
+  questionStructure: Question,
+  dict: WorldComponentDynamicProps['dict']
+): Question => {
+  const qContent =
+    dict.questions[questionStructure.worldId as WorldId]?.[
+      questionStructure.id
+    ];
+
+  if (!qContent) {
+    console.error(
+      `Missing dictionary entry for question: ${questionStructure.id}`
+    );
+    return {
+      ...questionStructure,
+      question: `Error: Missing text for ${questionStructure.id}`,
+    };
+  }
+
+  const optionsWithText = questionStructure.options?.map((opt) => {
+    const optionContent = qContent.options?.[opt.value];
+    if (typeof optionContent === 'string') {
+      return { ...opt, text: optionContent };
+    }
+    if (typeof optionContent === 'object' && optionContent !== null) {
+      return {
+        ...opt,
+        text: optionContent.text,
+        description: optionContent.description,
+      };
+    }
+    return { ...opt, text: opt.value };
+  });
+
+  const categoriesWithText = questionStructure.categories?.map((cat) => {
+    const categoryContent = qContent.categories?.[cat.value];
+    if (typeof categoryContent === 'string') {
+      return { ...cat, label: categoryContent };
+    }
+    if (typeof categoryContent === 'object' && categoryContent !== null) {
+      return {
+        ...cat,
+        label: categoryContent.label,
+        description: categoryContent.description,
+      };
+    }
+    return { ...cat, label: cat.value };
+  });
+
+  return {
+    ...questionStructure,
+    question: qContent.question,
+    placeholder: qContent.placeholder,
+    metadata: {
+      ...questionStructure.metadata,
+      helpText: qContent.helpText,
+    },
+    options: optionsWithText,
+    categories: categoriesWithText,
+    labels: qContent.labels || questionStructure.labels,
+  };
+};
+
+interface WorldComponentDynamicProps {
   worldId: WorldId;
+  onAnswer: (questionId: string, value: AnswerValue) => void;
   onVisibilityChange: (questionId: string, isVisible: boolean) => void;
+  onComplete: () => void;
+  onBack: () => void;
+  answers: QuestionnaireAnswer[];
+  currentQuestionIndex: number;
+  setCurrentQuestionIndex: (index: number) => void;
   onSave?: () => void;
   isSaving?: boolean;
   isDirectNavigation?: boolean;
@@ -99,6 +149,7 @@ interface WorldComponentDynamicProps extends WorldComponentProps {
     answerInput: AnswerInputDict;
     interactiveScale: InteractiveScaleDict;
     questionsList: QuestionsListDict;
+    questions: QuestionsDictionary;
   };
 }
 
@@ -109,7 +160,6 @@ export default function WorldComponent({
   onComplete,
   onBack,
   answers,
-  language = 'he',
   currentQuestionIndex,
   setCurrentQuestionIndex,
   onSave,
@@ -117,20 +167,27 @@ export default function WorldComponent({
   isDirectNavigation = false,
   dict,
 }: WorldComponentDynamicProps) {
-  const { questions: allQuestions, title, themeColor } = worldConfig[worldId];
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
   const isDesktop = useMediaQuery('(min-width: 1024px)');
-  const isRTL = language === 'he';
   const [isListVisible, setIsListVisible] = useState(true);
+
+  const { language } = useLanguage();
+  const isRTL = language === 'he';
 
   useEffect(() => {
     if (isDirectNavigation) {
       setIsIntroComplete(true);
     }
   }, [isDirectNavigation]);
+
+  const { questions: allQuestionsStructure, themeColor } = worldConfig[worldId];
+  const allQuestions = allQuestionsStructure.map((qStruct) =>
+    getQuestionWithText(qStruct, dict)
+  );
+  const title = dict.worldIntro.worldsContent[worldId].title;
 
   const findAnswer = (questionId: string): QuestionnaireAnswer | undefined => {
     return answers.find(
@@ -532,7 +589,12 @@ export default function WorldComponent({
                   <CardHeader className="pb-3 pt-4 border-b bg-slate-50/50 flex-shrink-0">
                     <CardTitle className="text-lg font-semibold flex items-center gap-2 text-slate-800">
                       <ListChecks className="h-5 w-5 text-blue-600" />
-                      <span>שאלות בעולם זה</span>
+                      <span>
+                        {dict.world.listSheet.title.replace(
+                          '{{worldTitle}}',
+                          title
+                        )}
+                      </span>
                     </CardTitle>
                     <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
                       <div className="flex items-center">
@@ -574,6 +636,7 @@ export default function WorldComponent({
       </div>
     );
   } else {
+    // Mobile View
     return (
       <div
         className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6 pb-24"

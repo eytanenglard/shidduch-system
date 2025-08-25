@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import UnifiedProfileDashboard from './components/dashboard/UnifiedProfileDashboard';
+import UnifiedProfileDashboard from '@/components/profile/sections/UnifiedProfileDashboard';
 import { useSearchParams } from 'next/navigation';
 import { ProfilePageDictionary } from '@/types/dictionary'; // ייבוא הטיפוס
 

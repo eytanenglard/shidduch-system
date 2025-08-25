@@ -32,91 +32,90 @@ export type AnswerValue =
 
 export type AnswerStatus = 'COMPLETE' | 'PARTIAL' | 'SKIPPED';
 
-// Interface definitions
+// --- UPDATED INTERFACES ---
+
 export interface Option {
-  value: string;
-  text: string;
-  icon?: React.ReactNode; // Icon associated with a specific choice/option
-  description?: string;
+  value: string; // This is the key for the dictionary
+  icon?: React.ReactNode;
+  text?: string; // Re-added as optional
+  description?: string; // Re-added as optional
   allowFreeText?: boolean;
-  placeholder?:string;
+  placeholder?: string;
 }
 
 export interface BudgetCategory {
-  label: string;
-  icon?: React.ReactNode; // Icon associated with a specific budget category
-  description?: string;
+  value: string; // The key for the dictionary
+  label?: string; // Re-added as optional
+  icon?: React.ReactNode;
+  description?: string; // Re-added as optional
   min?: number;
   max?: number;
 }
 
 export interface QuestionMetadata {
-  helpText?: string;
-  estimatedTime?: number; // בדקות
+  estimatedTime?: number;
   tags?: string[];
-  // Icon is NOT part of metadata
+  helpText?: string; // Re-added as optional
 }
 
-// --- הוספנו כאן הגדרות לתוויות ותיאורים של סולם ---
 export interface ScaleLabels {
   min: string;
   max: string;
   middle?: string;
 }
 
-export interface ScaleDescriptions { // זה מתאים ל-descriptions ב-InteractiveScale
+export interface ScaleDescriptions {
   min?: string;
   max?: string;
   middle?: string;
-  [key: number]: string; // אפשרות לתיאורים לערכים ספציפיים
+  [key: number]: string;
 }
-// --- סוף ההוספה ---
-
 
 export interface Question {
   worldId: string;
   id: string;
   category: string;
   subcategory?: string;
-  question: string;
+  question?: string; // Re-added as optional
   type: QuestionType;
   depth: QuestionDepth;
   isRequired?: boolean;
   options?: Option[];
-  placeholder?: string;
+  placeholder?: string; // Re-added as optional
+  description?: string; // Re-added as optional
   minLength?: number;
   maxLength?: number;
   minSelections?: number;
   maxSelections?: number;
-  description?: string; // תיאור כללי לשאלה
-  min?: number; // for scale
-  max?: number; // for scale
-  step?: number; // for scale
-  // --- הוספנו כאן את המאפיינים החדשים לשאלות סולם ---
-  labels?: ScaleLabels; // תוויות קצה (ומידל) לשאלות סולם
-  scaleDescriptions?: ScaleDescriptions; // תיאורים ספציפיים לערכים בסולם (אם InteractiveScale תומך בזה בצורה זו)
-  // --- סוף ההוספה ---
-  categories?: BudgetCategory[]; // for budgetAllocation
-  totalPoints?: number; // for budgetAllocation
+  min?: number;
+  max?: number;
+  step?: number;
+  labels?: ScaleLabels;
+  scaleDescriptions?: ScaleDescriptions;
+  categories?: BudgetCategory[];
+  totalPoints?: number;
   metadata?: QuestionMetadata;
-  items?: Option[]; // for ranking questions
-  icon?: React.ReactNode; // <<< --- הוספנו כאן: אייקון אופציונלי לשאלה עצמה
+  items?: Option[];
+  icon?: React.ReactNode;
 }
 
-// Answer-related interfaces
+// --- Answer-related interfaces ---
+
 export interface QuestionnaireAnswer {
   questionId: string;
   worldId: WorldId;
   value: AnswerValue;
   answeredAt: string;
-   isVisible?: boolean;
+  isVisible?: boolean;
+  language?: 'en' | 'he';
 }
 
 export interface Answer extends QuestionnaireAnswer {
   status?: AnswerStatus;
 }
 
-// Component Props interfaces
+// --- Component Props interfaces ---
+
 export interface WorldComponentProps {
   onAnswer: (questionId: string, value: AnswerValue) => void;
   onComplete: () => void;
@@ -148,10 +147,10 @@ export interface QuestionnaireLayoutProps {
   language?: string;
   onSaveProgress?: () => Promise<void>;
   isLoggedIn?: boolean;
-
 }
 
-// Data storage interfaces
+// --- Data storage interfaces ---
+
 export interface QuestionnaireSubmission {
   userId: string;
   answers: QuestionnaireAnswer[];
@@ -160,4 +159,3 @@ export interface QuestionnaireSubmission {
   startedAt: string;
   completedAt?: string;
 }
-

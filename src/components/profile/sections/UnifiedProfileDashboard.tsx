@@ -12,7 +12,7 @@ import type { User as SessionUserType } from '@/types/next-auth';
 
 // Child Components
 import { ProfileChecklist } from './ProfileChecklist';
-import { AIProfileAdvisorDialog } from '../advisor/AIProfileAdvisorDialog';
+import { AIProfileAdvisorDialog } from './AIProfileAdvisorDialog';
 
 // UI Components
 import { Button } from '@/components/ui/button';
