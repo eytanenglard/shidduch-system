@@ -286,7 +286,6 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
   const [analyses, setAnalyses] = useState<
     Record<string, AiAnalysis | 'error' | 'loading'>
   >({});
-  const [language, setLanguage] = useState<'he' | 'en'>('he');
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -331,7 +330,7 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
             body: JSON.stringify({
               userId1: targetCandidate.id,
               userId2: activeComparisonId,
-              language: language,
+              language: 'he', // Language is now hardcoded
             }),
           });
           const data = await response.json();
@@ -350,46 +349,21 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
       };
       fetchAnalysis();
     }
-  }, [isOpen, targetCandidate, activeComparisonId, language, analyses]);
-
-  const handleLanguageChange = (newLang: 'he' | 'en') => {
-    if (newLang !== language) {
-      setLanguage(newLang);
-      setAnalyses({});
-    }
-  };
+  }, [isOpen, targetCandidate, activeComparisonId, analyses]);
 
   if (!targetCandidate) return null;
 
   return (
     <>
-      <DialogHeader className="p-4 border-b flex-row justify-between items-center flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <Sparkles className="w-7 h-7 text-teal-500" />
-          <div>
-            <DialogTitle className="text-xl">{dict.header.title}</DialogTitle>
-            <DialogDescription>{dict.header.description}</DialogDescription>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={language} onValueChange={handleLanguageChange}>
-            <SelectTrigger className="w-[120px] text-xs h-9">
-              <SelectValue
-                placeholder={dict.header.languageSelectPlaceholder}
-              />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="he">{dict.header.languages.he}</SelectItem>
-              <SelectItem value="en">{dict.header.languages.en}</SelectItem>
-            </SelectContent>
-          </Select>
-          <DialogClose asChild>
-            <Button variant="ghost" size="icon">
-              <X className="h-5 w-5" />
-            </Button>
-          </DialogClose>
-        </div>
-      </DialogHeader>
+      {/* --- MODIFIED PART: Added floating close button --- */}
+      <DialogClose asChild className="absolute top-3 left-3 z-50">
+        <Button variant="ghost" size="icon" className="rounded-full">
+          <X className="h-5 w-5" />
+        </Button>
+      </DialogClose>
+
+      {/* --- MODIFIED PART: The DialogHeader was removed from here --- */}
+
       <div className="flex-1 flex flex-col md:flex-row min-h-0">
         {isMobile ? (
           <div className="p-4 border-b md:hidden">
@@ -413,7 +387,8 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
           </div>
         ) : (
           <aside className="w-1/4 border-l bg-slate-50/50 flex flex-col flex-shrink-0">
-            <h3 className="p-3 text-sm font-semibold text-slate-600 border-b">
+            {/* --- MODIFICATION: Added pt-4 to give space for the floating X button --- */}
+            <h3 className="p-3 pt-4 text-sm font-semibold text-slate-600 border-b">
               {dict.sidebar.title.replace(
                 '{{count}}',
                 String(comparisonCandidates.length)
@@ -653,7 +628,7 @@ export const AiMatchAnalysisDialog = (props: AiMatchAnalysisDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-6xl w-full h-[95vh] flex flex-col p-0 overflow-hidden"
+        className="max-w-6xl w-full h-[95vh] flex flex-col p-0 overflow-hidden relative"
         dir="rtl"
       >
         {isOpen && <DialogBody {...props} />}

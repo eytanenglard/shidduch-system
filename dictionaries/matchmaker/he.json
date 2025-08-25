@@ -224,11 +224,16 @@
       }
     }
 ,
-    "controls": {
+  "controls": {
       "sort": "מיון",
       "sortBy": "מיון לפי",
       "filters": "פילטרים",
       "hideFilters": "הסתר",
+      "disableQuickView": "כבה תצוגה מהירה",
+      "enableQuickView": "הפעל תצוגה מהירה",
+      "disableQuickViewTooltip": "כבה את התצוגה המהירה בריחוף",
+      "enableQuickViewTooltip": "הפעל את התצוגה המהירה בריחוף",
+"compareButton": "בצע השוואה ({{count}})",
       "mobile": {
         "split": "מפוצל",
         "singleCol": "טור אחד",

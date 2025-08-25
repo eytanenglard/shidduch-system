@@ -134,13 +134,6 @@ export default function ContactClient({ dict }: ContactClientProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-pink-50">
-      <div className="fixed top-4 left-4 rtl:right-4 rtl:left-auto z-50">
-        <Button onClick={() => router.push('/')} variant="outline" size="sm">
-          <Home className="h-4 w-4 ml-2" />
-          {dict.backToHome}
-        </Button>
-      </div>
-
       <motion.section
         ref={heroRef}
         className="relative pt-20 pb-12 px-4 text-center"
@@ -359,13 +352,17 @@ export default function ContactClient({ dict }: ContactClientProps) {
               <CardContent className="space-y-4">
                 {dict.sidebar.team.members.map((member, index) => (
                   <div key={index} className="flex items-center gap-4">
-                    <Image
-                      src={getRelativeCloudinaryPath(teamMembers[index].image)}
-                      alt={member.name}
-                      width={64}
-                      height={64}
-                      className="rounded-full object-cover"
-                    />
+                    <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-md flex-shrink-0">
+                      <Image
+                        src={getRelativeCloudinaryPath(
+                          teamMembers[index].image
+                        )}
+                        alt={member.name}
+                        fill
+                        sizes="64px"
+                        className="object-cover"
+                      />
+                    </div>
                     <div>
                       <h4 className="font-bold">{member.name}</h4>
                       <p className="text-sm text-cyan-600">{member.role}</p>

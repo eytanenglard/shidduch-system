@@ -27,17 +27,23 @@
         "complete": "Complete"
       }
     },
-    "controls": {
+"controls": {
       "sort": "Sort",
       "sortBy": "Sort by",
       "filters": "Filters",
       "hideFilters": "Hide",
+      "disableQuickView": "Disable Quick View",
+      "enableQuickView": "Enable Quick View",
+      "disableQuickViewTooltip": "Turn off the hover-to-view feature",
+      "enableQuickViewTooltip": "Turn on the hover-to-view feature",
+      "compareButton": "Compare ({{count}})", 
       "mobile": {
         "split": "Split",
         "singleCol": "Single Col",
         "doubleCol": "Double Col"
       }
     },
+
     "sortOptions": {
       "lastActive": "Last Active",
       "age": "Age",

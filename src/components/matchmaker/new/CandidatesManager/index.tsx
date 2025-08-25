@@ -5,7 +5,7 @@
 // --- React & Next.js Imports ---
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
-
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils'
 // --- Third-party Libraries ---
 import {
   UserPlus,
@@ -29,8 +29,14 @@ import {
   TrendingDown,
   Star,
   Activity,
+  Eye, // הוספת אייקון
+  EyeOff, // הוספת אייקון
+  GitCompare, // <--- הוסף את זה
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image'; // <--- הוסף את השורה הזו
+import { motion, AnimatePresence } from 'framer-motion'; // <--- הוסף את השורה הזו
 
 // --- UI Components ---
 import { Button } from '@/components/ui/button';
@@ -80,7 +86,6 @@ import type {
   MobileView,
 } from '../types/candidates';
 import { SORT_OPTIONS, VIEW_OPTIONS } from '../constants/filterOptions';
-import { cn } from '@/lib/utils';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 
@@ -369,6 +374,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [showManualAddDialog, setShowManualAddDialog] = useState(false);
   const [isHeaderCompact, setIsHeaderCompact] = useState(true);
+  const [isQuickViewEnabled, setIsQuickViewEnabled] = useState(true); // <-- הוספת state חדש
 
   // --- AI State ---
   const [aiTargetCandidate, setAiTargetCandidate] = useState<Candidate | null>(
@@ -625,6 +631,21 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsQuickViewEnabled(!isQuickViewEnabled)}
+                  className="bg-white/90 shadow-sm border border-gray-200"
+                >
+                  {isQuickViewEnabled ? (
+                    <EyeOff className="w-4 h-4 ml-1" />
+                  ) : (
+                    <Eye className="w-4 h-4 ml-1" />
+                  )}
+                  {isQuickViewEnabled
+                    ? matchmakerDict.candidatesManager.controls.disableQuickView
+                    : matchmakerDict.candidatesManager.controls.enableQuickView}
+                </Button>
 
                 <div className="hidden lg:flex">
                   <Button
@@ -842,12 +863,76 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                   onFemaleSearchChange={updateFemaleSearchQuery}
                   dict={matchmakerDict}
                   profileDict={profileDict}
+                  isQuickViewEnabled={isQuickViewEnabled} // <-- העברת prop חדש
                 />
               </div>
             )}
           </div>
         </div>
       </main>
+      <AnimatePresence>
+        {aiTargetCandidate && Object.keys(comparisonSelection).length > 0 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
+          >
+            <div className="bg-white/80 backdrop-blur-sm p-3 rounded-2xl shadow-2xl border flex items-center gap-4">
+              <div className="flex items-center -space-x-4">
+                {Object.values(comparisonSelection)
+                  .slice(0, 3)
+                  .map((c) => (
+                    <div
+                      key={c.id}
+                      className="w-10 h-10 rounded-full overflow-hidden border-2 border-white bg-gray-200 flex items-center justify-center text-gray-500 font-bold"
+                    >
+                      {c.images?.find((img) => img.isMain) ? (
+                        <Image
+                          src={getRelativeCloudinaryPath(
+                            c.images.find((img) => img.isMain)!.url
+                          )}
+                          alt={c.firstName}
+                          width={40}
+                          height={40}
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span>
+                          {c.firstName.charAt(0)}
+                          {c.lastName.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                {Object.keys(comparisonSelection).length > 3 && (
+                  <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold text-gray-600 border-2 border-white">
+                    +{Object.keys(comparisonSelection).length - 3}
+                  </div>
+                )}
+              </div>
+              <Button
+                onClick={() => setIsAnalysisDialogOpen(true)}
+                className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold shadow-lg"
+              >
+                <GitCompare className="w-4 h-4 ml-2" />
+                {matchmakerDict.candidatesManager.controls.compareButton.replace(
+                  '{{count}}',
+                  String(Object.keys(comparisonSelection).length)
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={() => setComparisonSelection({})}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* --- Dialogs --- */}
       <AddManualCandidateDialog

@@ -290,7 +290,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
           </div>
         </div>
 
-        <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+        <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform lg:translate-y-2 group-hover:translate-y-0">
           {onEdit && (
             <TooltipProvider>
               <Tooltip>
@@ -357,7 +357,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
 
         {isSelectableForComparison && onToggleComparison && (
           <div
-            className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0"
+            className="absolute bottom-3 right-3 z-20 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform lg:translate-y-2 group-hover:translate-y-0"
             onClick={(e) => {
               e.stopPropagation();
               onToggleComparison(candidate, e);

@@ -366,6 +366,11 @@ export type MatchmakerPageDictionary = {
       sortBy: string;
       filters: string;
       hideFilters: string;
+            disableQuickView: string; // <--- הוסף
+      enableQuickView: string; // <--- הוסף
+      disableQuickViewTooltip: string; // <--- הוסף
+      enableQuickViewTooltip: string; // <--- הוסף
+compareButton: string;
       mobile: {
         split: string;
         singleCol: string;

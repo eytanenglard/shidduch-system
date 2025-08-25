@@ -70,6 +70,8 @@ interface CandidatesListProps {
   comparisonSelection: Record<string, Candidate>;
   onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
   quickViewSide?: 'left' | 'right' | 'center';
+  isQuickViewEnabled: boolean; // <-- קבלת prop חדש
+
   dict: MatchmakerPageDictionary;
   profileDict: ProfilePageDictionary;
 }
@@ -79,6 +81,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   allCandidates,
   onCandidateClick,
   onCandidateAction,
+  isQuickViewEnabled, // <-- שימוש ב-prop החדש
+
   viewMode,
   mobileView,
   isLoading = false,
@@ -247,6 +251,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   };
 
   const handleMouseEnter = (candidate: Candidate, e?: React.MouseEvent) => {
+    if (isMobile || !e || !isQuickViewEnabled) return; // <-- תנאי חדש
+
     if (isMobile || !e) return;
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
@@ -432,29 +438,31 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         ))}
       </div>
 
-      {hoveredCandidate && !isMobile && (
-        <div
-          ref={quickViewRef}
-          className="absolute z-[70]"
-          style={{
-            top: `${hoverPosition.top}px`,
-            left: `${hoverPosition.left}px`,
-            width: '420px',
-          }}
-        >
-          <div className="drop-shadow-2xl">
-            {/********** תיקון #2: העברת המילון הנכון ל-QuickView **********/}
-            <QuickView
-              candidate={hoveredCandidate}
-              // שורה מעודכנת
-              onAction={(action) => handleAction(action, hoveredCandidate)}
-              onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
-              isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
-              dict={dict.candidatesManager.list.quickView} // <--- התיקון כאן
-            />
+      {isQuickViewEnabled &&
+        hoveredCandidate &&
+        !isMobile && ( // <-- תנאי חדש
+          <div
+            ref={quickViewRef}
+            className="absolute z-[70]"
+            style={{
+              top: `${hoverPosition.top}px`,
+              left: `${hoverPosition.left}px`,
+              width: '420px',
+            }}
+          >
+            <div className="drop-shadow-2xl">
+              {/********** תיקון #2: העברת המילון הנכון ל-QuickView **********/}
+              <QuickView
+                candidate={hoveredCandidate}
+                // שורה מעודכנת
+                onAction={(action) => handleAction(action, hoveredCandidate)}
+                onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
+                isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
+                dict={dict.candidatesManager.list.quickView} // <--- התיקון כאן
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       <Dialog
         open={!!selectedCandidate}
@@ -468,7 +476,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle>{dict.candidatesManager.list.profileDialog.title}</DialogTitle>
+              <DialogTitle>
+                {dict.candidatesManager.list.profileDialog.title}
+              </DialogTitle>
               <Button
                 variant="outline"
                 onClick={() => handleAction('edit', selectedCandidate!)}
@@ -487,7 +497,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             >
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue
-                  placeholder={dict.candidatesManager.list.profileDialog.viewAsLabel}
+                  placeholder={
+                    dict.candidatesManager.list.profileDialog.viewAsLabel
+                  }
                 />
               </SelectTrigger>
               <SelectContent>

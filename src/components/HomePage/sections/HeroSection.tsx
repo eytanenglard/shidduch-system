@@ -320,7 +320,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 
   return (
     <motion.section
-      className="relative min-h-screen pt-24 pb-16 md:pt-28 md:pb-20 overflow-hidden flex flex-col items-center justify-center w-full px-4 sm:px-6 lg:px-8"
+      className="relative min-h-screen pt-12 pb-16 md:pt-16 md:pb-20 overflow-hidden flex flex-col items-center justify-center w-full px-4 sm:px-6 lg:px-8"
       initial="hidden"
       animate={isVisible ? 'visible' : 'hidden'}
       transition={{ staggerChildren: 0.2 }}
