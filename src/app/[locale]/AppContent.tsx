@@ -7,7 +7,7 @@ import Navbar from '@/components/layout/Navbar';
 import { Toaster } from 'sonner';
 import { ReactNode, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils'; // ודא שהייבוא הזה קיים
-import type { Dictionary } from '@/types/dictionary'; 
+import type { Dictionary } from '@/types/dictionary';
 
 interface AppContentProps {
   children: ReactNode;
@@ -41,7 +41,7 @@ export default function AppContent({ children, dict }: AppContentProps) {
   }, [pathname]);
 
   // לוגיקה להסתרה ידנית של ה-Navbar (למשל, בשאלון)
-  const isNavbarManuallyHidden = pathname.includes('/questionnaire');
+  const isNavbarManuallyHidden = false; // <- הגדרה חדשה שתמיד מציגה את ה-Navbar
 
   // משתנה עזר שקובע אם צריך להוסיף את הריפוד העליון
   const shouldApplyNavbarPadding = !isNavbarManuallyHidden;

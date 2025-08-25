@@ -21,6 +21,7 @@ const PUBLIC_PATHS = [
   '/auth/error',
   '/legal/privacy-policy',
   '/legal/terms-of-service',
+  '/questionnaire',
 ];
 
 // נתיבים שדורשים אימות, אבל מותרים גם אם הפרופיל לא הושלם
