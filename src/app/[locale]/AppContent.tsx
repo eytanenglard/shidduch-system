@@ -7,19 +7,7 @@ import Navbar from '@/components/layout/Navbar';
 import { Toaster } from 'sonner';
 import { ReactNode, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils'; // ודא שהייבוא הזה קיים
-
-type NavbarDict = {
-  myMatches: string;
-  matchmakingQuestionnaire: string;
-  messages: string;
-  login: string;
-  register: string;
-  toQuestionnaire: string;
-};
-
-type Dictionary = {
-  navbar: NavbarDict;
-};
+import type { Dictionary } from '@/types/dictionary'; 
 
 interface AppContentProps {
   children: ReactNode;
