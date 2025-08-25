@@ -43,7 +43,7 @@ import { AiMatchAnalysisDialog } from '../../new/dialogs/AiMatchAnalysisDialog';
 import { cn } from '@/lib/utils';
 
 interface NewSuggestionFormProps {
-  // <=== שינוי 2: עדכון הטיפוס של ה-prop dict ===>
+  locale: string;
   dict: MatchmakerPageDictionary;
   isOpen: boolean;
   onClose: () => void;
@@ -113,6 +113,8 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
   onClose,
   candidates,
   selectedCandidate,
+  locale, // <--- הוסף את זה
+
   onSubmit,
 }) => {
   // <=== שינוי 3: שימוש בנתיב הנכון והמלא לאובייקט המילון של הטופס ===>
@@ -423,6 +425,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
           comparisonCandidates={[secondParty]}
           // <=== שינוי 7: העברת החלק הנכון של המילון לדיאלוג ה-AI ===>
           dict={dict.candidatesManager.aiAnalysis}
+          locale={locale} // <--- הוסף את השורה הזו
         />
       )}
     </>

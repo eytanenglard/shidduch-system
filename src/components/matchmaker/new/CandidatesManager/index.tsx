@@ -378,7 +378,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const [isHeaderCompact, setIsHeaderCompact] = useState(true);
   const [isQuickViewEnabled, setIsQuickViewEnabled] = useState(true); // <-- הוספת state חדש
   const params = useParams();
-  const locale = params.lang || 'en'; // קובע את השפה הנוכחית
+  const locale = Array.isArray(params.lang)
+    ? params.lang[0]
+    : params.lang || 'en';
 
   // --- AI State ---
   const [aiTargetCandidate, setAiTargetCandidate] = useState<Candidate | null>(
@@ -868,6 +870,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                   dict={matchmakerDict}
                   profileDict={profileDict}
                   isQuickViewEnabled={isQuickViewEnabled} // <-- העברת prop חדש
+                  locale={locale} // <--- הוסף את השורה הזו
                 />
               </div>
             )}
@@ -951,9 +954,8 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         targetCandidate={aiTargetCandidate}
         comparisonCandidates={Object.values(comparisonSelection)}
         dict={matchmakerDict.candidatesManager.aiAnalysis}
-       locale={locale as string} // <--- הוסף את השורה הזו
-
-     />
+        locale={locale as string} // <--- הוסף את השורה הזו
+      />
     </div>
   );
 };

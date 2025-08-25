@@ -71,7 +71,7 @@ interface CandidatesListProps {
   onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
   quickViewSide?: 'left' | 'right' | 'center';
   isQuickViewEnabled: boolean; // <-- קבלת prop חדש
-
+  locale: string;
   dict: MatchmakerPageDictionary;
   profileDict: ProfilePageDictionary;
 }
@@ -79,6 +79,7 @@ interface CandidatesListProps {
 const CandidatesList: React.FC<CandidatesListProps> = ({
   candidates,
   allCandidates,
+  locale,
   onCandidateClick,
   onCandidateAction,
   isQuickViewEnabled, // <-- שימוש ב-prop החדש
@@ -558,6 +559,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         selectedCandidate={dialogCandidate}
         onSubmit={handleCreateSuggestion}
         dict={dict} // <--- התיקון כאן
+        locale={locale}
       />
 
       {/********** תיקון #5: העברת המילונים הנכונים ל-MatchmakerEditProfile **********/}

@@ -52,7 +52,7 @@ interface SplitViewProps {
   mobileView: MobileView;
   isLoading?: boolean;
   className?: string;
-
+  locale: string;
   aiTargetCandidate: Candidate | null;
   aiMatches: AiMatch[];
   isAiLoading: boolean;
@@ -291,6 +291,7 @@ const SplitView: React.FC<SplitViewProps> = ({
   dict,
   profileDict,
   isQuickViewEnabled,
+  locale,
   ...props
 }) => {
   const {
@@ -452,6 +453,7 @@ const SplitView: React.FC<SplitViewProps> = ({
         isQuickViewEnabled={isQuickViewEnabled} // <-- העברה הלאה
         dict={dict}
         profileDict={profileDict}
+        locale={locale}
       />
     );
   };
@@ -688,6 +690,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                 isQuickViewEnabled={isQuickViewEnabled} // <-- העברה הלאה
                 dict={dict}
                 profileDict={profileDict}
+                locale={locale}
               />
             </div>
           </div>
@@ -731,6 +734,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                 isQuickViewEnabled={isQuickViewEnabled} // <-- העברה הלאה
                 dict={dict}
                 profileDict={profileDict}
+                locale={locale}
               />
             </div>
           </div>
