@@ -566,7 +566,7 @@ export type Dictionary = {
   profilePage: ProfilePageDictionary;
     matchmakerPage: MatchmakerPageDictionary;
   auth: AuthDictionary; // <--- 2. הוספת המפתח והטיפוס החדש
-
+contactPage: ContactPageDict;
 };
 export type {
   SuggestionsDictionary,
@@ -2511,3 +2511,92 @@ type QuestionContent = {
 type WorldQuestionsContent = Record<string, QuestionContent>;
 
 export type QuestionsDictionary = Record<WorldId, WorldQuestionsContent>;
+
+
+type ContactFormErrorMessages = {
+    nameMin: string;
+    emailInvalid: string;
+    categoryRequired: string;
+    messageMin: string;
+    sendError: string;
+    unexpectedError: string;
+};
+
+type ContactCategory = {
+    value: string;
+    label: string;
+};
+
+type FaqItem = {
+    question: string;
+    answer: string;
+};
+
+type TeamMember = {
+    name: string;
+    role: string;
+    description: string;
+};
+
+export type ContactPageDict = {
+    backToHome: string;
+    hero: {
+        header: string;
+        title: string;
+        highlightedTitle: string;
+        subtitle: string;
+        guarantee: string;
+    };
+    form: {
+        title: string;
+        description: string;
+        nameLabel: string;
+        namePlaceholder: string;
+        emailLabel: string;
+        emailPlaceholder: string;
+        categoryLabel: string;
+        messageLabel: string;
+        messagePlaceholder: string;
+        submitButton: string;
+        submitButtonLoading: string;
+        privacyCommitment: string;
+        errors: ContactFormErrorMessages;
+        categories: ContactCategory[];
+    };
+    successMessage: {
+        title: string;
+        description: string;
+        signUpButton: string;
+        questionnaireButton: string;
+    };
+    sidebar: {
+        team: {
+            title: string;
+            members: TeamMember[];
+        };
+        faq: {
+            title: string;
+            items: FaqItem[];
+        };
+        otherWays: {
+            title: string;
+            phone: string;
+            email: string;
+            hours: string;
+            commitment: {
+                title: string;
+                body: string;
+            };
+        };
+        cta: {
+            title: string;
+            description: string;
+            signUpButton: string;
+            questionnaireButton: string;
+        };
+    };
+    footer: {
+        tagline: string;
+        copyright: string;
+    };
+};

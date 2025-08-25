@@ -437,5 +437,87 @@
       "showImage": "Show image number {{number}}"
     },
     "tablistLabel": "Demo profile navigation"
+  },
+  "contactPage": {
+    "backToHome": "Homepage",
+    "hero": {
+      "header": "A Conversation from the Heart",
+      "title": "Behind every question, there's a story.",
+      "highlightedTitle": "We're here to listen.",
+      "subtitle": "The journey to a relationship raises many questions. That's precisely why we're here—to provide professional guidance, personal answers, and a safe space for consultation.",
+      "guarantee": "Our door is always open, and your privacy is guaranteed."
+    },
+    "form": {
+      "title": "We'd love to get to know you, advise, and help",
+      "description": "Every inquiry is answered personally, professionally, and with deep consideration.",
+      "nameLabel": "Full Name *",
+      "namePlaceholder": "Your first and last name",
+      "emailLabel": "Email Address *",
+      "emailPlaceholder": "your.email@example.com",
+      "categoryLabel": "Topic of Inquiry *",
+      "messageLabel": "Your Message *",
+      "messagePlaceholder": "Share with us what's on your mind... Every detail helps us provide the best possible answer.",
+      "submitButton": "Send Inquiry",
+      "submitButtonLoading": "Sending...",
+      "privacyCommitment": "Your information is handled with complete discretion and professionalism. That is our commitment to you.",
+      "errors": {
+        "nameMin": "Name must be at least 2 characters.",
+        "emailInvalid": "Please enter a valid email address.",
+        "categoryRequired": "Please select a topic.",
+        "messageMin": "Message must be at least 10 characters.",
+        "sendError": "An error occurred while sending your message. Please try again.",
+        "unexpectedError": "An unexpected error occurred."
+      },
+      "categories": [
+        { "value": "process", "label": "I'd like to understand the process better" },
+        { "value": "consultation", "label": "I'm interested in a personal consultation" },
+        { "value": "general", "label": "I have a general question" },
+        { "value": "technical", "label": "I need technical assistance" }
+      ]
+    },
+    "successMessage": {
+      "title": "Thank you, your inquiry has been received!",
+      "description": "You've taken a significant step in your journey. We value the trust you've placed in us and take it very seriously. A personal matchmaker from the NeshamaTech team will personally review your inquiry and get back to you within 24 business hours.",
+      "signUpButton": "Sign Up & Begin Your Journey",
+      "questionnaireButton": "To the In-depth Questionnaire"
+    },
+    "sidebar": {
+      "team": {
+        "title": "Your Team, Here For You",
+        "members": [
+          { "name": "Dina Englard", "role": "Head Matchmaker", "description": "An expert in warm, personal guidance who believes listening is the key to a true connection." },
+          { "name": "Eytan Englard", "role": "Founder & CEO", "description": "An entrepreneur who combines smart technology with a human heart to build a secure path to a relationship." }
+        ]
+      },
+      "faq": {
+        "title": "Quick Answers to Important Questions",
+        "items": [
+          { "question": "How quickly will I get a response?", "answer": "We respect your time and are committed to responding to every inquiry personally and professionally within 24 business hours." },
+          { "question": "Is the initial consultation free?", "answer": "Absolutely. The introductory call is for building trust and mutual understanding. It is provided at no cost and with no obligation." },
+          { "question": "What's the best way to start my journey?", "answer": "The best way is by filling out our in-depth introductory questionnaire. Afterward, a personal matchmaker will contact you for a one-on-one conversation." }
+        ]
+      },
+      "otherWays": {
+        "title": "Other Ways to Get in Touch",
+        "phone": "+972-54-321-0040",
+        "email": "info@neshamatech.com",
+        "hours": "Sun-Thu 9:00 AM - 6:00 PM",
+        "commitment": {
+          "title": "Our Commitment to You:",
+          "body": "We understand the importance of your inquiry and promise a personal, thoughtful, and professional response."
+        }
+      },
+      "cta": {
+        "title": "Ready for the Next Step in Your Journey?",
+        "description": "Our in-depth questionnaire is the best way for us to get to know you, and for you to begin this process with confidence.",
+        "signUpButton": "Initial Registration (Free)",
+        "questionnaireButton": "To Our Introductory Questionnaire"
+      }
+    },
+    "footer": {
+      "tagline": "A relationship that starts from the soul",
+      "copyright": "© {year} NeshamaTech. All rights reserved."
+    }
   }
+
 }
