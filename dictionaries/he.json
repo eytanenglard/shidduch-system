@@ -11,7 +11,13 @@
     "register": "הרשמה",
     "toQuestionnaire": "לשאלון החכם"
   },
- 
+   "stickyNav": {
+    "homepageAriaLabel": "עמוד הבית של NeshamaTech",
+    "signUpButton": "הרשמה",
+    "closeNavAriaLabel": "סגור ניווט",
+    "openNavAriaLabel": "פתח ניווט"
+  },
+
   "heroSection": {
     "titleLine1": "זוגיות שמתחילה",
     "highlightedWord": "מהנשמה",

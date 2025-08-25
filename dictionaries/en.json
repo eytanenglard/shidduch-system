@@ -11,6 +11,13 @@
     "register": "Sign Up",
     "toQuestionnaire": "To the Smart Questionnaire"
   },
+    "stickyNav": {
+    "homepageAriaLabel": "NeshamaTech Homepage",
+    "signUpButton": "Sign Up",
+    "closeNavAriaLabel": "Close navigation",
+    "openNavAriaLabel": "Open navigation"
+  },
+
   "heroSection": {
     "titleLine1": "A relationship that starts",
     "highlightedWord": "with the soul",

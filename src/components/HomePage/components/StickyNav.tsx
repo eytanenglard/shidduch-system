@@ -14,26 +14,27 @@ import { useSession, signOut } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
 import UserDropdown from '@/components/layout/UserDropdown';
+import type { StickyNavDict } from '@/types/dictionary'; // ✨ 1. ייבוא הטיפוס החדש
 
 export interface NavLink {
   id: string;
   label: string;
 }
 
-// ✨ 1. עדכון הממשק כך שיקבל את ה-prop החדש
 interface StickyNavProps {
   navLinks: NavLink[];
   session: Session | null;
-  isVisible: boolean; // הוספנו את isVisible
+  isVisible: boolean;
+  dict: StickyNavDict; // ✨ 2. הוספת המילון לממשק ה-props
 }
 
 // ======================== קומפוננטת הלוגו המעודכנת ========================
-const StickyLogo = () => {
+const StickyLogo = ({ homepageAriaLabel }: { homepageAriaLabel: string }) => {
   return (
     <Link
       href="/"
       className="hidden md:flex items-center gap-x-2 group shrink-0"
-      aria-label="NeshamaTech Homepage"
+      aria-label={homepageAriaLabel} // ✨ שימוש ב-prop
     >
       <div className="relative h-8 w-8">
         <Image
@@ -63,14 +64,12 @@ const StickyLogo = () => {
 };
 // ========================================================================
 
-// ✨ 2. עדכון חתימת הקומפוננטה כך שתקבל את isVisible
 const StickyNav: React.FC<StickyNavProps> = ({
   navLinks,
   session,
   isVisible,
+  dict, // ✨ 3. קבלת המילון כ-prop
 }) => {
-  // ✨ 3. הסרת המצב הפנימי isSticky - הקומפוננטה נשלטת עכשיו מבחוץ
-  // const [isSticky, setIsSticky] = useState(false);
   const [activeSection, setActiveSection] = useState('');
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const [mobileNavState, setMobileNavState] = useState<'open' | 'closed'>(
@@ -90,9 +89,6 @@ const StickyNav: React.FC<StickyNavProps> = ({
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      // ✨ 4. הסרנו את השורה שקובעת את isSticky - זה מגיע עכשיו מ-props
-      // setIsSticky(currentScrollY > 10);
-
       lastScrollY.current = currentScrollY;
 
       let currentSection = '';
@@ -145,11 +141,11 @@ const StickyNav: React.FC<StickyNavProps> = ({
   };
 
   const isNavOpen = mobileNavState === 'open';
-
   const navVariants = {
     hidden: { y: '-120%', opacity: 0 },
     visible: { y: 0, opacity: 1 },
   };
+
   const handleSignOut = () => {
     signOut({ callbackUrl: '/' });
   };
@@ -181,10 +177,10 @@ const StickyNav: React.FC<StickyNavProps> = ({
 
   const mainProfileImage = getMainProfileImage();
   const profileIconSize = 'w-10 h-10';
+
   return (
     <>
       <AnimatePresence>
-        {/* ✨ 5. שימוש ב-isVisible שהתקבל מבחוץ במקום ב-isSticky הפנימי */}
         {isVisible && (
           <motion.header
             variants={navVariants}
@@ -196,7 +192,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
           >
             <div className="absolute inset-0 bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80"></div>
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-              <StickyLogo />
+              <StickyLogo homepageAriaLabel={dict.homepageAriaLabel} />
 
               <nav className="hidden md:flex items-center gap-2 relative">
                 {navLinks.map((link) => (
@@ -253,7 +249,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                     size="icon"
                     className="rounded-full text-gray-500 hover:bg-gray-200"
                     onClick={() => setMobileNavState('closed')}
-                    aria-label="סגור ניווט"
+                    aria-label={dict.closeNavAriaLabel} // ✨ שימוש בתרגום
                   >
                     <X className="h-5 w-5" />
                   </Button>
@@ -274,7 +270,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                     <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
                       <span className="relative z-10 flex items-center">
                         <UserPlus className="ml-1.5 h-4 w-4" />
-                        הרשמה
+                        {dict.signUpButton} {/* ✨ שימוש בתרגום */}
                       </span>
                     </Button>
                   </Link>
@@ -286,7 +282,6 @@ const StickyNav: React.FC<StickyNavProps> = ({
       </AnimatePresence>
 
       <AnimatePresence>
-        {/* ✨ 6. וכנ"ל כאן, שימוש ב-isVisible */}
         {isMobile && isVisible && !isNavOpen && (
           <motion.div
             initial={{ scale: 0, opacity: 0, y: 50 }}
@@ -299,7 +294,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
               size="icon"
               className="rounded-full h-14 w-14 bg-white/80 backdrop-blur-md border border-gray-200/80 shadow-lg hover:bg-gray-100"
               onClick={() => setMobileNavState('open')}
-              aria-label="פתח ניווט"
+              aria-label={dict.openNavAriaLabel} // ✨ שימוש בתרגום
             >
               <Menu className="h-6 w-6 text-cyan-600" />
             </Button>

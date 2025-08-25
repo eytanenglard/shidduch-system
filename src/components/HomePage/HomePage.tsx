@@ -67,7 +67,12 @@ export default function HomePage({ dict, demoData }: HomePageProps) {
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden">
-      <StickyNav navLinks={navLinks} session={session} isVisible={isScrolled} />
+      <StickyNav
+        navLinks={navLinks}
+        session={session}
+        isVisible={isScrolled}
+        dict={dict.stickyNav} // ✨ הוסף את ה-prop הזה
+      />
 
       <HeroSection
         session={session}

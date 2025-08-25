@@ -147,6 +147,12 @@ export type HowItWorksDict = {
 };
 
 
+export type StickyNavDict = {
+  homepageAriaLabel: string;
+  signUpButton: string;
+  closeNavAriaLabel: string;
+  openNavAriaLabel: string;
+};
 
 type TeamMemberDict = {
   name: string;
@@ -527,6 +533,7 @@ export type SuggestionsDictionary = {
 export type Dictionary = {
   // Keys from the main dictionary
   navbar: NavbarDict;
+  stickyNav: StickyNavDict;
   heroSection: HeroSectionDict;
   valueProposition: ValuePropositionDict;
   ourMethod: OurMethodDict;
