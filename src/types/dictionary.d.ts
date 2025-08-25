@@ -1380,6 +1380,8 @@ export type ProfilePageDictionary = {
   budgetDisplay: BudgetDisplayDict;
   utils: ProfileUtilsDict;
     questionnaireSection: QuestionnaireSectionDictionary;
+  availabilityStatus: AvailabilityStatusDict;
+  accountSettings: AccountSettingsDict;
 
   // כאן יתווספו מילונים עבור רכיבים נוספים כמו ProfileSection, PreferencesSection וכו'
 };
@@ -2313,4 +2315,172 @@ export type QuestionnaireSectionDictionary = {
 type SuggestionDemoDict = {
   hoverTitle: string;
   hoverSubtitle: string;
+};
+export type AvailabilityStatusDict = {
+  dialogTitle: string;
+  dialogDescription: string;
+  statusLabel: string;
+  selectPlaceholder: string;
+  noteLabel: string;
+  notePlaceholder: string;
+  updateError: string;
+  cancelButton: string;
+  updateButton: string;
+  updatingButton: string;
+  successDialogTitle: string;
+  successDialogDescription: string;
+  successDialogAction: string;
+  status: {
+    AVAILABLE: string;
+    UNAVAILABLE: string;
+    DATING: string;
+    PAUSED: string;
+    ENGAGED: string;
+    MARRIED: string;
+    UNKNOWN: string;
+  };
+};
+
+// Type for AccountSettings component
+export type AccountSettingsDict = {
+  loadingText: string;
+  cardHeader: {
+    title: string;
+    description: string;
+  };
+  sections: {
+    personal: {
+      title: string;
+      description: string;
+      fullNameLabel: string;
+      fullNameNotSet: string;
+      emailLabel: string;
+      sendVerificationButton: string;
+    };
+    status: {
+      title: string;
+      permissionsLabel: string;
+      roles: {
+        ADMIN: string;
+        MATCHMAKER: string;
+        USER: string;
+      };
+      statuses: {
+        ACTIVE: string;
+        PENDING_EMAIL_VERIFICATION: string;
+        PENDING_PHONE_VERIFICATION: string;
+        INACTIVE: string;
+        BLOCKED: string;
+      };
+      verification: {
+        verified: string;
+        notVerified: string;
+      };
+      timeInfoLabel: string;
+      createdAt: string;
+      lastLogin: string;
+    };
+    marketing: {
+      title: string;
+      label: string;
+      description: string;
+    };
+    security: {
+      title: string;
+      description: string;
+      changePasswordButton: string;
+      accountVerificationLabel: string;
+      passwordManagementLabel: string;
+      managedByProvider: string; // Placeholder: {{provider}}
+      managedExternally: string;
+    };
+    delete: {
+      title: string;
+      description: string;
+      deleteButton: string;
+    };
+  };
+  cardFooter: {
+    notice: string;
+  };
+  toasts: {
+    fillAllFieldsError: string;
+    fillAllFieldsDesc: string;
+    passwordsMismatchError: string;
+    passwordsMismatchDesc: string;
+    passwordValidationError: string;
+    passwordValidationDesc: string;
+    verificationSentSuccess: string;
+    verificationSentDesc: string;
+    sendVerificationError: string;
+    sendVerificationDesc: string;
+    initiatePasswordError: string;
+    initiatePasswordDesc: string;
+    verificationCodeRequired: string;
+    verificationCodeDesc: string;
+    invalidVerificationCode: string;
+    invalidVerificationCodeDesc: string;
+    passwordUpdateSuccess: string;
+    passwordUpdateSuccessDesc: string;
+    passwordUpdateError: string;
+    passwordUpdateDesc: string;
+    invalidDeleteConfirmation: string;
+    invalidDeleteConfirmationDesc: string; // Placeholder: {{phrase}}
+    deleteSuccess: string;
+    deleteSuccessDesc: string;
+    deleteError: string;
+    deleteErrorDesc: string;
+    marketingUpdateSuccess: string;
+    marketingUpdateError: string;
+  };
+  passwordDialog: {
+    title: string;
+    description: string;
+    step1Label: string;
+    step2Label: string;
+    currentPasswordLabel: string;
+    currentPasswordPlaceholder: string;
+    newPasswordLabel: string;
+    newPasswordPlaceholder: string;
+    confirmPasswordLabel: string;
+    confirmPasswordPlaceholder: string;
+    passwordStrengthLabel: string;
+    requirements: {
+      length: string; // Placeholder: {{count}}
+      uppercase: string;
+      lowercase: string;
+      number: string;
+    };
+    passwordsMismatchWarning: string;
+    noticeTitle: string;
+    noticeDescription: string;
+    verificationCodeLabel: string;
+    verificationCodePlaceholder: string;
+    tokenLifetime: string;
+    noCodeAlertTitle: string;
+    noCodeAlertDescription: string;
+    cancelButton: string;
+    continueButton: string;
+    confirmButton: string;
+    loading: {
+      sending: string;
+      verifying: string;
+    };
+  };
+  passwordStrength: {
+    veryWeak: string;
+    weak: string;
+    medium: string;
+    strong: string;
+  };
+  deleteDialog: {
+    title: string;
+    description: string;
+    confirmationLabel: string;
+    confirmationPhrase: string;
+    mismatchWarning: string;
+    cancelButton: string;
+    deleteButton: string;
+    deletingButton: string;
+  };
 };

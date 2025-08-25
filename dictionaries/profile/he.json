@@ -887,7 +887,174 @@
     "validationErrors": {
       "heightRange": "גובה חייב להיות בין 100 ל-250 ס\"מ"
     }
+  },
+    "availabilityStatus": {
+    "dialogTitle": "עדכון סטטוס זמינות",
+    "dialogDescription": "בחר/י את הסטטוס הנוכחי שלך. שינוי הסטטוס יעזור לשדכנים להציע לך הצעות רלוונטיות.",
+    "statusLabel": "סטטוס זמינות",
+    "selectPlaceholder": "בחר סטטוס",
+    "noteLabel": "הערה (אופציונלי)",
+    "notePlaceholder": "לדוגמה: 'חוזר/ת להצעות ביום ראשון', 'רק הצעות רציניות'",
+    "updateError": "שגיאה בעדכון הסטטוס",
+    "cancelButton": "ביטול",
+    "updateButton": "עדכון סטטוס",
+    "updatingButton": "מעדכן...",
+    "successDialogTitle": "הסטטוס עודכן בהצלחה!",
+    "successDialogDescription": "הסטטוס שלך עודכן במערכת. שים/י לב, ייתכן שיעברו מספר רגעים עד שהשינוי יופיע בכל מקום.",
+    "successDialogAction": "הבנתי",
+    "status": {
+      "AVAILABLE": "פנוי/ה להצעות",
+      "UNAVAILABLE": "לא פנוי/ה",
+      "DATING": "בתהליך היכרות",
+      "PAUSED": "בהפסקה",
+      "ENGAGED": "מאורס/ת",
+      "MARRIED": "נשוי/אה",
+      "UNKNOWN": "לא ידוע"
+    }
+  },
+  "accountSettings": {
+    "loadingText": "טוען פרטי משתמש...",
+    "cardHeader": {
+      "title": "הגדרות חשבון",
+      "description": "נהל את פרטי החשבון והאבטחה שלך"
+    },
+    "sections": {
+      "personal": {
+        "title": "פרטים אישיים",
+        "description": "השם והמייל המשמשים אותך באתר",
+        "fullNameLabel": "שם מלא",
+        "fullNameNotSet": "לא צוין",
+        "emailLabel": "כתובת מייל",
+        "sendVerificationButton": "שלח קוד אימות"
+      },
+      "status": {
+        "title": "סטטוס חשבון",
+        "permissionsLabel": "הרשאות",
+        "roles": {
+          "ADMIN": "מנהל",
+          "MATCHMAKER": "שדכן",
+          "USER": "מועמד"
+        },
+        "statuses": {
+          "ACTIVE": "פעיל",
+          "PENDING_EMAIL_VERIFICATION": "ממתין לאישור אימייל",
+          "PENDING_PHONE_VERIFICATION": "ממתין לאישור פלאפון",
+          "INACTIVE": "לא פעיל",
+          "BLOCKED": "חסום"
+        },
+        "verification": {
+          "verified": "מאומת",
+          "notVerified": "לא מאומת"
+        },
+        "timeInfoLabel": "פרטי זמן",
+        "createdAt": "נוצר ב:",
+        "lastLogin": "התחברות אחרונה:"
+      },
+      "marketing": {
+        "title": "העדפות דיוור",
+        "label": "מידע שיווקי ועדכונים",
+        "description": "קבלת עדכונים על אירועים, מבצעים וחדשות מהחברה."
+      },
+      "security": {
+        "title": "אבטחה",
+        "description": "הגדרות אבטחה וסיסמה",
+        "changePasswordButton": "שינוי סיסמה",
+        "accountVerificationLabel": "אימות חשבון",
+        "passwordManagementLabel": "ניהול סיסמה",
+        "managedByProvider": "הסיסמה שלך מנוהלת באמצעות {{provider}}.",
+        "managedExternally": "הסיסמה שלך מנוהלת באמצעות ספק אימות חיצוני."
+      },
+      "delete": {
+        "title": "מחיקת חשבון",
+        "description": "מחיקת החשבון היא פעולה בלתי הפיכה ותסיר את כל הנתונים שלך.",
+        "deleteButton": "מחק חשבון"
+      }
+    },
+    "cardFooter": {
+      "notice": "פרטי החשבון שלך מוגנים בהתאם למדיניות הפרטיות של האתר"
+    },
+    "toasts": {
+      "fillAllFieldsError": "נא למלא את כל השדות",
+      "fillAllFieldsDesc": "כל השדות הם שדות חובה לשינוי סיסמה",
+      "passwordsMismatchError": "הסיסמאות אינן תואמות",
+      "passwordsMismatchDesc": "אנא ודא שהסיסמה החדשה זהה בשני השדות",
+      "passwordValidationError": "שגיאה באימות הסיסמה",
+      "passwordValidationDesc": "אנא עקוב אחר כל דרישות הסיסמה",
+      "verificationSentSuccess": "קוד אימות נשלח למייל שלך",
+      "verificationSentDesc": "אנא בדוק את תיבת הדואר הנכנס שלך",
+      "sendVerificationError": "שגיאה בשליחת קוד אימות",
+      "sendVerificationDesc": "נסה שוב מאוחר יותר או פנה לתמיכה",
+      "initiatePasswordError": "שגיאה באימות הסיסמה",
+      "initiatePasswordDesc": "ייתכן שהסיסמה הנוכחית שגויה",
+      "verificationCodeRequired": "נא להזין את קוד האימות",
+      "verificationCodeDesc": "קוד האימות הוא שדה חובה",
+      "invalidVerificationCode": "קוד אימות לא תקין",
+      "invalidVerificationCodeDesc": "קוד האימות חייב להכיל 6 ספרות",
+      "passwordUpdateSuccess": "הסיסמה עודכנה בהצלחה",
+      "passwordUpdateSuccessDesc": "הסיסמה החדשה שלך פעילה כעת",
+      "passwordUpdateError": "שגיאה בעדכון הסיסמה",
+      "passwordUpdateDesc": "קוד האימות שגוי או שפג תוקפו",
+      "invalidDeleteConfirmation": "אישור לא תקין",
+      "invalidDeleteConfirmationDesc": "נא להקליד \"{{phrase}}\" בדיוק כדי לאשר מחיקה.",
+      "deleteSuccess": "החשבון נמחק בהצלחה",
+      "deleteSuccessDesc": "מקווים לראותך שוב. אתה מועבר לדף הבית.",
+      "deleteError": "שגיאה במחיקת החשבון",
+      "deleteErrorDesc": "נסה שוב מאוחר יותר או פנה לתמיכה",
+      "marketingUpdateSuccess": "העדפות דיוור עודכנו בהצלחה",
+      "marketingUpdateError": "שגיאה בעדכון העדפות הדיוור"
+    },
+    "passwordDialog": {
+      "title": "שינוי סיסמה",
+      "description": "עדכן את סיסמת החשבון שלך",
+      "step1Label": "הזנת סיסמאות",
+      "step2Label": "אימות",
+      "currentPasswordLabel": "סיסמה נוכחית",
+      "currentPasswordPlaceholder": "הזן את הסיסמה הנוכחית",
+      "newPasswordLabel": "סיסמה חדשה",
+      "newPasswordPlaceholder": "הזן סיסמה חדשה",
+      "confirmPasswordLabel": "אימות סיסמה חדשה",
+      "confirmPasswordPlaceholder": "הזן שוב את הסיסמה החדשה",
+      "passwordStrengthLabel": "חוזק הסיסמה:",
+      "requirements": {
+        "length": "לפחות {{count}} תווים",
+        "uppercase": "אות גדולה באנגלית",
+        "lowercase": "אות קטנה באנגלית",
+        "number": "מספר אחד לפחות"
+      },
+      "passwordsMismatchWarning": "הסיסמאות אינן תואמות",
+      "noticeTitle": "שים לב",
+      "noticeDescription": "לאחר אימות הסיסמה הנוכחית, יישלח קוד אימות בן 6 ספרות למייל שלך",
+      "verificationCodeLabel": "קוד אימות",
+      "verificationCodePlaceholder": "הזן את הקוד בן 6 הספרות שנשלח למייל",
+      "tokenLifetime": "קוד האימות תקף ל-24 שעות",
+      "noCodeAlertTitle": "לא קיבלת את הקוד?",
+      "noCodeAlertDescription": "בדוק את תיבת הדואר הנכנס והספאם. אם הקוד לא התקבל, נסה להתחיל את התהליך מחדש.",
+      "cancelButton": "ביטול",
+      "continueButton": "המשך",
+      "confirmButton": "אישור",
+      "loading": {
+        "sending": "שולח...",
+        "verifying": "מאמת..."
+      }
+    },
+    "passwordStrength": {
+      "veryWeak": "חלשה מאוד",
+      "weak": "חלשה",
+      "medium": "בינונית",
+      "strong": "חזקה"
+    },
+    "deleteDialog": {
+      "title": "אישור מחיקת חשבון",
+      "description": "פעולה זו תמחק את חשבונך לצמיתות, כולל כל הנתונים. לא ניתן לשחזר חשבון שנמחק.",
+      "confirmationLabel": "לאישור המחיקה, אנא הקלד:",
+      "confirmationPhrase": "אני מאשר מחיקה",
+      "mismatchWarning": "הטקסט שהוקלד אינו תואם.",
+      "cancelButton": "ביטול",
+      "deleteButton": "מחק חשבון לצמיתות",
+      "deletingButton": "מוחק..."
+    }
   }
+
 
 
 

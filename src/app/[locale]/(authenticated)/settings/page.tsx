@@ -1,30 +1,30 @@
-// --- START OF FILE page.tsx ---
+// src/app/[locale]/settings/page.tsx
 
-"use client";
+import { getDictionary } from '@/lib/dictionaries';
+import type { Locale } from '../../../../../i18n-config';
+import SettingsClientPage from './SettingsClientPage';
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
-import { useSession } from "next-auth/react";
-import AccountSettings from "@/components/account-settings";
+export default async function SettingsPage({
+  params: { locale },
+}: {
+  params: { locale: Locale };
+}) {
+  // ✨ 1. אימות סשן בצד השרת - אבטחה טובה יותר
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    redirect(`/${locale}/auth/signin?callbackUrl=/${locale}/settings`);
+  }
 
-export default function SettingsPage() {
-  const { data: session, status } = useSession();
+  // ✨ 2. טעינת המילון המלא בצד השרת
+  const dictionary = await getDictionary(locale);
 
-  if (status === "loading") return <div>Loading...</div>;
-  if (status === "unauthenticated") return <div>Access Denied</div>;
-  // It's good practice to check session?.user as well, though useSession types often guarantee it if status is "authenticated"
-  if (!session?.user) return <div>Error: No user data or session invalid</div>;
-
-  const userData = {
-    id: session.user.id,
-    email: session.user.email, // Assuming email is always present and a string
-    firstName: session.user.firstName, // Assuming firstName is always present and a string
-    lastName: session.user.lastName, // Assuming lastName is always present and a string
-    role: session.user.role,
-    status: session.user.status,
-    isVerified: session.user.isVerified,
-    lastLogin: session.user.lastLogin ?? null, // Fix: Convert undefined to null
-    createdAt: session.user.createdAt,
-  };
-
-  return <AccountSettings user={userData} />;
+  // ✨ 3. העברת החלק הרלוונטי מהמילון לקומפוננטת הלקוח
+  return (
+    <div className="container mx-auto p-4 sm:p-6">
+      <SettingsClientPage dict={dictionary.profilePage.accountSettings} />
+    </div>
+  );
 }
-// --- END OF FILE page.tsx ---

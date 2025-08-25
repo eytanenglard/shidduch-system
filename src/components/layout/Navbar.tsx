@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import UserDropdown from './UserDropdown';
+import type { Dictionary, AvailabilityStatusDict } from '@/types/dictionary'; // ייבוא מעודכן
 
 // --- רכיב לוגו (ללא שינוי) ---
 const Logo = () => (
@@ -168,7 +169,7 @@ type NavbarDict = {
 };
 
 interface NavbarProps {
-  dict: NavbarDict;
+  dict: Dictionary;
 }
 
 const Navbar = ({ dict }: NavbarProps) => {
@@ -261,17 +262,17 @@ const Navbar = ({ dict }: NavbarProps) => {
                       <NavItem
                         id="onboarding-target-matches-link"
                         href="/matches"
-                        text={dict.myMatches}
+                        text={dict.navbar.myMatches}
                       />
                     )}
                     <NavItem
                       href="/questionnaire"
-                      text={dict.matchmakingQuestionnaire}
+                      text={dict.navbar.matchmakingQuestionnaire}
                     />
                     <NavItem
                       href="/messages"
                       id="onboarding-target-messages-link"
-                      text={dict.messages}
+                      text={dict.navbar.messages}
                       badge={
                         notifications.total > 0
                           ? notifications.total
@@ -300,7 +301,9 @@ const Navbar = ({ dict }: NavbarProps) => {
                   id="onboarding-target-availability-status"
                   className="hidden md:block"
                 >
-                  <AvailabilityStatus />
+                  <AvailabilityStatus
+                    dict={dict.profilePage.availabilityStatus}
+                  />
                 </div>
               )}
 
@@ -314,13 +317,16 @@ const Navbar = ({ dict }: NavbarProps) => {
                 />
               ) : (
                 <div className="hidden md:flex items-center gap-2">
-                  <NavItem href="/questionnaire" text={dict.toQuestionnaire} />
-                  <NavItem href="/auth/signin" text={dict.login} />
+                  <NavItem
+                    href="/questionnaire"
+                    text={dict.navbar.toQuestionnaire}
+                  />
+                  <NavItem href="/auth/signin" text={dict.navbar.login} />
                   <Link href="/auth/register">
                     <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
                       <span className="relative z-10 flex items-center">
                         <UserPlus className="ml-1.5 h-4 w-4" />
-                        {dict.register}
+                        {dict.navbar.register}
                       </span>
                     </Button>
                   </Link>
@@ -406,7 +412,9 @@ const Navbar = ({ dict }: NavbarProps) => {
                   id="onboarding-target-availability-status"
                   className="mt-4 pt-4 border-t border-gray-200"
                 >
-                  <AvailabilityStatus />
+                  <AvailabilityStatus
+                    dict={dict.profilePage.availabilityStatus}
+                  />
                 </div>
               </div>
             </div>
@@ -434,21 +442,21 @@ const Navbar = ({ dict }: NavbarProps) => {
                   <MobileNavItem
                     id="onboarding-target-matches-link"
                     href="/matches"
-                    text={dict.myMatches}
+                    text={dict.navbar.myMatches}
                     icon={<Users className="ml-2 h-5 w-5" />}
                     onClick={toggleMobileMenu}
                   />
                 )}
                 <MobileNavItem
                   href="/questionnaire"
-                  text={dict.matchmakingQuestionnaire}
+                  text={dict.navbar.matchmakingQuestionnaire}
                   icon={<Lightbulb className="ml-2 h-5 w-5" />}
                   onClick={toggleMobileMenu}
                 />
                 <MobileNavItem
                   id="onboarding-target-messages-link"
                   href="/messages"
-                  text={dict.messages}
+                  text={dict.navbar.messages}
                   icon={<MessageCircle className="ml-2 h-5 w-5" />}
                   badge={
                     notifications.total > 0 ? notifications.total : undefined
@@ -480,19 +488,19 @@ const Navbar = ({ dict }: NavbarProps) => {
               <>
                 <MobileNavItem
                   href="/questionnaire"
-                  text={dict.matchmakingQuestionnaire}
+                  text={dict.navbar.matchmakingQuestionnaire}
                   icon={<Lightbulb className="ml-2 h-5 w-5" />}
                   onClick={toggleMobileMenu}
                 />
                 <MobileNavItem
                   href="/auth/signin"
-                  text={dict.login}
+                  text={dict.navbar.login}
                   icon={<LogIn className="ml-2 h-5 w-5" />}
                   onClick={toggleMobileMenu}
                 />
                 <MobileNavItem
                   href="/auth/register"
-                  text={dict.register}
+                  text={dict.navbar.register}
                   icon={<UserPlus className="ml-2 h-5 w-5" />}
                   onClick={toggleMobileMenu}
                 />

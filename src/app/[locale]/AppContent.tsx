@@ -71,7 +71,7 @@ export default function AppContent({ children, dict }: AppContentProps) {
               : 'opacity-0 -translate-y-full pointer-events-none'
           }`}
         >
-          <Navbar dict={dict.navbar} />
+          <Navbar dict={dict} />
         </div>
       )}
 

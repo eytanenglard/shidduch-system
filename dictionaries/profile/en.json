@@ -742,5 +742,172 @@
     "validationErrors": {
       "heightRange": "Height must be between 100 and 250 cm"
     }
+  },
+    "availabilityStatus": {
+    "dialogTitle": "Update Availability Status",
+    "dialogDescription": "Select your current status. Changing your status helps matchmakers provide relevant suggestions.",
+    "statusLabel": "Availability Status",
+    "selectPlaceholder": "Select status",
+    "noteLabel": "Note (Optional)",
+    "notePlaceholder": "e.g., 'Available for suggestions starting Sunday', 'Only serious suggestions'",
+    "updateError": "Error updating status",
+    "cancelButton": "Cancel",
+    "updateButton": "Update Status",
+    "updatingButton": "Updating...",
+    "successDialogTitle": "Status Updated Successfully!",
+    "successDialogDescription": "Your status has been updated in the system. Please note, it may take a few moments for the change to appear everywhere.",
+    "successDialogAction": "Got it",
+    "status": {
+      "AVAILABLE": "Available for suggestions",
+      "UNAVAILABLE": "Unavailable",
+      "DATING": "In a relationship process",
+      "PAUSED": "On a break",
+      "ENGAGED": "Engaged",
+      "MARRIED": "Married",
+      "UNKNOWN": "Unknown"
+    }
+  },
+  "accountSettings": {
+    "loadingText": "Loading user details...",
+    "cardHeader": {
+      "title": "Account Settings",
+      "description": "Manage your account and security details"
+    },
+    "sections": {
+      "personal": {
+        "title": "Personal Details",
+        "description": "Your name and email used on the site",
+        "fullNameLabel": "Full Name",
+        "fullNameNotSet": "Not specified",
+        "emailLabel": "Email Address",
+        "sendVerificationButton": "Send verification code"
+      },
+      "status": {
+        "title": "Account Status",
+        "permissionsLabel": "Permissions",
+        "roles": {
+          "ADMIN": "Admin",
+          "MATCHMAKER": "Matchmaker",
+          "USER": "Candidate"
+        },
+        "statuses": {
+          "ACTIVE": "Active",
+          "PENDING_EMAIL_VERIFICATION": "Pending email verification",
+          "PENDING_PHONE_VERIFICATION": "Pending phone verification",
+          "INACTIVE": "Inactive",
+          "BLOCKED": "Blocked"
+        },
+        "verification": {
+          "verified": "Verified",
+          "notVerified": "Not Verified"
+        },
+        "timeInfoLabel": "Time Details",
+        "createdAt": "Created at:",
+        "lastLogin": "Last login:"
+      },
+      "marketing": {
+        "title": "Mailing Preferences",
+        "label": "Marketing information and updates",
+        "description": "Receive updates on events, promotions, and news from the company."
+      },
+      "security": {
+        "title": "Security",
+        "description": "Security and password settings",
+        "changePasswordButton": "Change Password",
+        "accountVerificationLabel": "Account Verification",
+        "passwordManagementLabel": "Password Management",
+        "managedByProvider": "Your password is managed via {{provider}}.",
+        "managedExternally": "Your password is managed by an external authentication provider."
+      },
+      "delete": {
+        "title": "Delete Account",
+        "description": "Deleting your account is irreversible and will remove all your data.",
+        "deleteButton": "Delete Account"
+      }
+    },
+    "cardFooter": {
+      "notice": "Your account details are protected according to the site's privacy policy"
+    },
+    "toasts": {
+      "fillAllFieldsError": "Please fill all fields",
+      "fillAllFieldsDesc": "All fields are required to change the password",
+      "passwordsMismatchError": "Passwords do not match",
+      "passwordsMismatchDesc": "Please ensure the new password is the same in both fields",
+      "passwordValidationError": "Password validation error",
+      "passwordValidationDesc": "Please follow all password requirements",
+      "verificationSentSuccess": "Verification code sent to your email",
+      "verificationSentDesc": "Please check your inbox",
+      "sendVerificationError": "Error sending verification code",
+      "sendVerificationDesc": "Try again later or contact support",
+      "initiatePasswordError": "Error verifying password",
+      "initiatePasswordDesc": "The current password might be incorrect",
+      "verificationCodeRequired": "Please enter the verification code",
+      "verificationCodeDesc": "The verification code is a required field",
+      "invalidVerificationCode": "Invalid verification code",
+      "invalidVerificationCodeDesc": "The verification code must be 6 digits",
+      "passwordUpdateSuccess": "Password updated successfully",
+      "passwordUpdateSuccessDesc": "Your new password is now active",
+      "passwordUpdateError": "Error updating password",
+      "passwordUpdateDesc": "The verification code is incorrect or has expired",
+      "invalidDeleteConfirmation": "Invalid confirmation",
+      "invalidDeleteConfirmationDesc": "Please type '{{phrase}}' exactly to confirm deletion.",
+      "deleteSuccess": "Account deleted successfully",
+      "deleteSuccessDesc": "We hope to see you again. You are being redirected.",
+      "deleteError": "Error deleting account",
+      "deleteErrorDesc": "Try again later or contact support",
+      "marketingUpdateSuccess": "Mailing preferences updated successfully",
+      "marketingUpdateError": "Error updating mailing preferences"
+    },
+    "passwordDialog": {
+      "title": "Change Password",
+      "description": "Update your account password",
+      "step1Label": "Enter Passwords",
+      "step2Label": "Verification",
+      "currentPasswordLabel": "Current Password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "newPasswordLabel": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPasswordLabel": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Enter new password again",
+      "passwordStrengthLabel": "Password Strength:",
+      "requirements": {
+        "length": "At least {{count}} characters",
+        "uppercase": "Uppercase letter",
+        "lowercase": "Lowercase letter",
+        "number": "At least one number"
+      },
+      "passwordsMismatchWarning": "Passwords do not match",
+      "noticeTitle": "Please Note",
+      "noticeDescription": "After verifying the current password, a 6-digit code will be sent to your email",
+      "verificationCodeLabel": "Verification Code",
+      "verificationCodePlaceholder": "Enter the 6-digit code sent to your email",
+      "tokenLifetime": "The verification code is valid for 24 hours",
+      "noCodeAlertTitle": "Didn't receive the code?",
+      "noCodeAlertDescription": "Check your inbox and spam folder. If the code was not received, try starting the process again.",
+      "cancelButton": "Cancel",
+      "continueButton": "Continue",
+      "confirmButton": "Confirm",
+      "loading": {
+        "sending": "Sending...",
+        "verifying": "Verifying..."
+      }
+    },
+    "passwordStrength": {
+      "veryWeak": "Very Weak",
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong"
+    },
+    "deleteDialog": {
+      "title": "Confirm Account Deletion",
+      "description": "This action will permanently delete your account and all associated data. This cannot be undone.",
+      "confirmationLabel": "To confirm deletion, please type:",
+      "confirmationPhrase": "I confirm deletion",
+      "mismatchWarning": "The entered text does not match.",
+      "cancelButton": "Cancel",
+      "deleteButton": "Permanently Delete Account",
+      "deletingButton": "Deleting..."
+    }
   }
+
 }
