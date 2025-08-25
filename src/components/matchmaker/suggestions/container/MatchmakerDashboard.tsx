@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useSession } from 'next-auth/react';
+import { useParams } from 'next/navigation';
 import type {
   SuggestionsDictionary,
   MatchmakerPageDictionary,
@@ -306,6 +307,11 @@ export default function MatchmakerDashboard({
   matchmakerDict,
   profileDict,
 }: MatchmakerDashboardProps) {
+  const params = useParams(); // <--- הוסף את השורה הזו
+  const locale = Array.isArray(params.lang)
+    ? params.lang[0]
+    : params.lang || 'en'; // <--- הוסף את השורה הזו
+
   const dashboardDict = matchmakerDict.suggestionsDashboard;
   const toastsDict = dashboardDict.toasts;
 
@@ -1025,6 +1031,7 @@ export default function MatchmakerDashboard({
         onClose={() => setShowNewSuggestion(false)}
         candidates={allCandidates}
         onSubmit={handleNewSuggestion}
+        locale={locale} // <--- הוסף את השורה הזו
         dict={matchmakerDict}
       />
       <SuggestionDetailsDialog
