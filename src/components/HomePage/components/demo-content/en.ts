@@ -61,3 +61,14 @@ export const aiAnalysisContent = {
   forFemaleTitle: 'A Connection of Optimism and Responsibility',
   forFemaleSummary: 'The match between Noa and Daniel is very promising, based on a deep connection at the level of values and personality. Noa\'s creativity and optimism harmoniously complement Daniel\'s stability and responsibility, creating potential for a balanced and supportive relationship.',
 };
+
+export const matchmakerContent = {
+  dina: {
+    firstName: 'Dina',
+    lastName: 'Englerd'
+  },
+  eytan: {
+    firstName: 'Eytan',
+    lastName: 'Englerd'
+  }
+};

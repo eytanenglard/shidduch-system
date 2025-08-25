@@ -15,7 +15,7 @@ const getDemoContent = async (locale: Locale) => {
 
 export const generateDemoData = async (locale: Locale) => {
   const content = await getDemoContent(locale);
-  const { femaleProfileContent, maleProfileContent, suggestionContent, aiAnalysisContent } = content;
+  const { femaleProfileContent, maleProfileContent, suggestionContent, aiAnalysisContent, matchmakerContent } = content;
 
   const noaQuestionnaireResponse: QuestionnaireResponseType = {
     id: 'qr-demo-noa-updated', userId: 'demo-profile-noa',
@@ -107,7 +107,8 @@ export const generateDemoData = async (locale: Locale) => {
   const demoSuggestionDataMale: ExtendedMatchSuggestion = {
     id: 'demo-suggestion-homepage-male', firstPartyId: 'visitor-user-id', secondPartyId: 'demo-profile-daniel', status: 'PENDING_FIRST_PARTY', priority: 'HIGH',
     matchingReason: suggestionContent.femaleToMaleReason, firstPartyNotes: suggestionContent.femaleToMalePersonalNote, secondPartyNotes: null,
-    internalNotes: null, followUpNotes: null, responseDeadline: null, matchmaker: { firstName: 'איתן', lastName: 'אנגלרד' },
+    internalNotes: null, followUpNotes: null, responseDeadline: null,     matchmaker: { firstName: matchmakerContent.eytan.firstName, lastName: matchmakerContent.eytan.lastName },
+
     secondParty: danielProfile, firstParty: baseFirstParty, matchmakerId: 'matchmaker-demo-2', createdAt: new Date(), updatedAt: new Date(),
     lastActivity: new Date(), category: 'ACTIVE', decisionDeadline: new Date(), lastStatusChange: new Date(), previousStatus: 'DRAFT',
     firstPartySent: new Date(), firstPartyResponded: null, secondPartySent: null, secondPartyResponded: null, firstMeetingScheduled: null, closedAt: null,
@@ -117,7 +118,7 @@ export const generateDemoData = async (locale: Locale) => {
   const demoSuggestionDataFemale: ExtendedMatchSuggestion = {
     id: 'demo-suggestion-homepage-female', firstPartyId: 'visitor-user-id', secondPartyId: 'demo-profile-noa', status: 'PENDING_FIRST_PARTY', priority: 'HIGH',
     matchingReason: suggestionContent.maleToFemaleReason, firstPartyNotes: suggestionContent.maleToFemalePersonalNote, secondPartyNotes: null,
-    internalNotes: null, followUpNotes: null, responseDeadline: null, matchmaker: { firstName: 'דינה', lastName: 'אנגלרד' },
+    internalNotes: null, followUpNotes: null, responseDeadline: null,  matchmaker: { firstName: matchmakerContent.dina.firstName, lastName: matchmakerContent.dina.lastName },
     secondParty: noaProfile, firstParty: baseFirstParty, matchmakerId: 'matchmaker-demo', createdAt: new Date(), updatedAt: new Date(),
     lastActivity: new Date(), category: 'ACTIVE', decisionDeadline: new Date(), lastStatusChange: new Date(), previousStatus: 'DRAFT',
     firstPartySent: new Date(), firstPartyResponded: null, secondPartySent: null, secondPartyResponded: null, firstMeetingScheduled: null, closedAt: null,
