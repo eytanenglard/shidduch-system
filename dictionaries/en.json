@@ -9,13 +9,23 @@
     "messages": "Messages",
     "login": "Sign In",
     "register": "Sign Up",
-    "toQuestionnaire": "To the Smart Questionnaire"
+    "toQuestionnaire": "To the Smart Questionnaire",
+        "matchmakerSuggestions": "Match Suggestions",
+    "matchmakerClients": "Candidates"
+
   },
     "stickyNav": {
     "homepageAriaLabel": "NeshamaTech Homepage",
     "signUpButton": "Sign Up",
     "closeNavAriaLabel": "Close navigation",
-    "openNavAriaLabel": "Open navigation"
+    "openNavAriaLabel": "Open navigation",
+     "navLinks": {
+      "howItWorks": "The Journey",
+      "suggestionDemo": "Suggestion Demo",
+      "successStories": "Success Stories",
+      "ourTeam": "Our Team",
+      "faq": "FAQ"
+    }
   },
 
   "heroSection": {

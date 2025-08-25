@@ -11,6 +11,8 @@ export type NavbarDict = {
   login: string;
   register: string;
   toQuestionnaire: string;
+    matchmakerSuggestions: string;
+  matchmakerClients: string;
 };
 
 // --- Hero Section ---
@@ -152,6 +154,14 @@ export type StickyNavDict = {
   signUpButton: string;
   closeNavAriaLabel: string;
   openNavAriaLabel: string;
+    navLinks: {
+    howItWorks: string;
+    suggestionDemo: string;
+    successStories: string;
+    ourTeam: string;
+    faq: string;
+  };
+
 };
 
 type TeamMemberDict = {

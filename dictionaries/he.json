@@ -9,13 +9,23 @@
     "messages": "הודעות",
     "login": "התחברות",
     "register": "הרשמה",
-    "toQuestionnaire": "לשאלון החכם"
+    "toQuestionnaire": "לשאלון החכם",
+        "matchmakerSuggestions": "הצעות שידוך",
+    "matchmakerClients": "מועמדים"
+
   },
    "stickyNav": {
     "homepageAriaLabel": "עמוד הבית של NeshamaTech",
     "signUpButton": "הרשמה",
     "closeNavAriaLabel": "סגור ניווט",
-    "openNavAriaLabel": "פתח ניווט"
+    "openNavAriaLabel": "פתח ניווט",
+     "navLinks": {
+      "howItWorks": "המסע שלכם",
+      "suggestionDemo": "כך נראית הצעה",
+      "successStories": "סיפורי הצלחה",
+      "ourTeam": "הצוות שלנו",
+      "faq": "שאלות נפוצות"
+    }
   },
 
   "heroSection": {

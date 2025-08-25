@@ -254,9 +254,12 @@ const Navbar = ({ dict }: NavbarProps) => {
                       <>
                         <NavItem
                           href="/matchmaker/suggestions"
-                          text="הצעות שידוך"
+                          text={dict.navbar.matchmakerSuggestions}
                         />
-                        <NavItem href="/matchmaker/clients" text="מועמדים" />
+                        <NavItem
+                          href="/matchmaker/clients"
+                          text={dict.navbar.matchmakerClients}
+                        />{' '}
                       </>
                     ) : (
                       <NavItem
@@ -427,13 +430,13 @@ const Navbar = ({ dict }: NavbarProps) => {
                   <>
                     <MobileNavItem
                       href="/matchmaker/suggestions"
-                      text="הצעות שידוך"
+                      text={dict.navbar.matchmakerSuggestions}
                       icon={<Heart className="ml-2 h-5 w-5" />}
                       onClick={toggleMobileMenu}
                     />
                     <MobileNavItem
                       href="/matchmaker/clients"
-                      text="מועמדים"
+                      text={dict.navbar.matchmakerClients}
                       icon={<Users className="ml-2 h-5 w-5" />}
                       onClick={toggleMobileMenu}
                     />

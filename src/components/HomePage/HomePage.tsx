@@ -58,11 +58,11 @@ export default function HomePage({ dict, demoData }: HomePageProps) {
   }, []);
 
   const navLinks: NavLink[] = [
-    { id: 'how-it-works', label: 'המסע שלכם' },
-    { id: 'suggestion-demo', label: 'כך נראית הצעה' },
-    { id: 'success-stories', label: 'סיפורי הצלחה' },
-    { id: 'our-team', label: 'הצוות שלנו' },
-    { id: 'faq', label: 'שאלות נפוצות' },
+    { id: 'how-it-works', label: dict.stickyNav.navLinks.howItWorks },
+    { id: 'suggestion-demo', label: dict.stickyNav.navLinks.suggestionDemo },
+    { id: 'success-stories', label: dict.stickyNav.navLinks.successStories },
+    { id: 'our-team', label: dict.stickyNav.navLinks.ourTeam },
+    { id: 'faq', label: dict.stickyNav.navLinks.faq },
   ];
 
   return (
