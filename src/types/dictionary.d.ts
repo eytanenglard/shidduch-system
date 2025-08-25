@@ -143,6 +143,7 @@ export type HowItWorksDict = {
     button: string;
     features: string;
   };
+    suggestionDemo: SuggestionDemoDict;
 };
 
 
@@ -304,6 +305,7 @@ export type SuggestionsCardDict = {
     askMatchmaker: string;
     viewDetails: string;
   };
+  
 };
 
 export type SuggestionsModalDict = {
@@ -2299,4 +2301,9 @@ export type QuestionnaireSectionDictionary = {
       budget: string;
     };
   };
+};
+
+type SuggestionDemoDict = {
+  hoverTitle: string;
+  hoverSubtitle: string;
 };

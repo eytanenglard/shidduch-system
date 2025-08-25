@@ -190,7 +190,12 @@
       "subtitle_line2": "The initial registration allows us to start understanding you deeply, with no commitment.",
       "button": "I want to begin",
       "features": "Free Initial Sign-Up • No Commitment"
+    },
+        "suggestionDemo": {
+      "hoverTitle": "Click for Full View",
+      "hoverSubtitle": "Discover the matchmaker's rationale, answers, and more"
     }
+
   },
     "matchmakerTeam": {
     "title_part1": "Meet Our",

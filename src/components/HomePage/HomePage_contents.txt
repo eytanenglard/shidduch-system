@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2025-08-25 09:03:04
+# Generated on: 2025-08-25 10:45:16
 ################################################################################
 
 ================================================================================
@@ -776,8 +776,8 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
           dict={suggestionsDict.card} // ✨ העברת החלק הרלוונטי של המילון לקומפוננטת הכרטיס
         />
 
-        {/* שכבת ריחוף (hover) המעודדת את המשתמש ללחוץ */}
-        <div className="absolute inset-0 bg-black/50 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-4">
+        {/* שכבת ריחוף (hover) המעודדת את המשתמש ללחוץ - כאן נמצא התיקון */}
+        <div className="absolute inset-0 bg-black/50 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-4 pointer-events-none">
           <ZoomIn className="w-12 h-12 mb-2" />
           <p className="font-bold text-lg text-center">לחצו להצגה מלאה</p>
           <p className="text-sm text-center text-white/80">

@@ -270,6 +270,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     demoAiAnalysis={demoData.demoAiAnalysisForDaniel}
                     suggestionsDict={suggestionsDict}
                     profileCardDict={profileCardDict}
+                    suggestionDemoDict={dict.suggestionDemo}
                   />
                 </div>
               </div>
@@ -287,6 +288,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     demoAiAnalysis={demoData.demoAiAnalysisForNoa}
                     suggestionsDict={suggestionsDict}
                     profileCardDict={profileCardDict}
+                    suggestionDemoDict={dict.suggestionDemo}
                   />
                 </div>
               </div>
