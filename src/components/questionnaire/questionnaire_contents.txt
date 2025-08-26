@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-08-26 12:32:07
+# Generated on: 2025-08-26 18:02:43
 ################################################################################
 
 ================================================================================
@@ -23,7 +23,6 @@ import React, {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import QuestionnaireLayout from './layout/QuestionnaireLayout';
-import Welcome from './onboarding/Welcome';
 import WorldComponent from './worlds/WorldComponent';
 import QuestionnaireCompletion from './common/QuestionnaireCompletion';
 import { useLanguage } from '@/app/[locale]/contexts/LanguageContext';
@@ -67,7 +66,6 @@ const worldConfig: Record<WorldId, { questions: Question[] }> = {
 };
 
 enum OnboardingStep {
-  WELCOME = 'WELCOME',
   WORLDS = 'WORLDS',
   COMPLETED = 'COMPLETED',
   MAP = 'MAP',
@@ -86,7 +84,7 @@ export interface MatchmakingQuestionnaireProps {
   onComplete?: () => void;
   initialWorld?: WorldId;
   initialQuestionId?: string;
-  dict: QuestionnaireDictionary; // קבלת המילון המלא כ-prop
+  dict: QuestionnaireDictionary;
 }
 
 export default function MatchmakingQuestionnaire({
@@ -94,15 +92,16 @@ export default function MatchmakingQuestionnaire({
   onComplete,
   initialWorld,
   initialQuestionId,
-  dict, // שימוש במשתנה dict
+  dict,
 }: MatchmakingQuestionnaireProps) {
   const router = useRouter();
   const { language } = useLanguage();
   const sessionId = useMemo(() => `session_${Date.now()}`, []);
 
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(
-    OnboardingStep.WELCOME
+    OnboardingStep.MAP
   );
+
   const [currentWorld, setCurrentWorld] = useState<WorldId>(
     initialWorld || 'VALUES'
   );
@@ -343,7 +342,7 @@ export default function MatchmakingQuestionnaire({
         if (!response.ok) {
           if (response.status === 404) {
             console.log('No existing questionnaire data found for user.');
-            setCurrentStep(OnboardingStep.WELCOME);
+            setCurrentStep(OnboardingStep.MAP);
           } else {
             const errorData = await response.json();
             throw new Error(
@@ -408,16 +407,16 @@ export default function MatchmakingQuestionnaire({
               setCurrentWorld(nextWorld || WORLD_ORDER[0]);
               setCurrentStep(OnboardingStep.MAP);
             } else {
-              setCurrentStep(OnboardingStep.WELCOME);
+              setCurrentStep(OnboardingStep.MAP);
             }
           } else {
-            setCurrentStep(OnboardingStep.WELCOME);
+            setCurrentStep(OnboardingStep.MAP);
           }
         }
       } catch (err) {
         console.error('Failed to load existing answers:', err);
         setError(dict.matchmaking.errors.genericLoadError);
-        setCurrentStep(OnboardingStep.WELCOME);
+        setCurrentStep(OnboardingStep.MAP);
       } finally {
         setIsLoading(false);
       }
@@ -430,7 +429,6 @@ export default function MatchmakingQuestionnaire({
       setError(null);
       setIsDirty(true);
 
-      // מאתרים את מבנה השאלה כדי לדעת את הסוג שלה
       const currentQuestion = worldConfig[currentWorld].questions.find(
         (q) => q.id === questionId
       );
@@ -448,9 +446,7 @@ export default function MatchmakingQuestionnaire({
           isVisible:
             answerIndex > -1 ? prevAnswers[answerIndex].isVisible : true,
         };
-
-        // בדיוק כאן, בתוך פונקציית handleAnswer, נשמור את שפת המשתמש
-        // אך ורק אם מדובר בשאלת טקסט פתוח
+        
         const finalNewAnswer: QuestionnaireAnswer = {
           ...newAnswerBase,
           ...(currentQuestion?.type === 'openText' && {
@@ -467,7 +463,7 @@ export default function MatchmakingQuestionnaire({
         }
       });
     },
-    [currentWorld, language] // חשוב להוסיף את 'language' למערך התלויות
+    [currentWorld, language]
   );
 
   const handleVisibilityChange = useCallback(
@@ -599,7 +595,7 @@ export default function MatchmakingQuestionnaire({
     setCurrentStep(OnboardingStep.MAP);
   }, []);
 
-  // הקוד החדש והמתוקן
+  // --- הקוד המתוקן והמדויק ---
   function renderCurrentWorld() {
     const worldProps = {
       onAnswer: handleAnswer,
@@ -621,11 +617,11 @@ export default function MatchmakingQuestionnaire({
       dict: {
         world: dict.world,
         questionCard: dict.questionCard,
-        worldIntro: dict.worldIntro,
+        // השורה הבאה היא התיקון המרכזי. אנחנו מעבירים את הכותרות ולא את כל אובייקט ההקדמה
+        worldLabels: dict.matchmaking.worldLabels,
         answerInput: dict.answerInput,
         interactiveScale: dict.interactiveScale,
         questionsList: dict.questionsList,
-        // --- הנה השורה שהוספנו ---
         questions: dict.questions,
       },
     };
@@ -658,16 +654,7 @@ export default function MatchmakingQuestionnaire({
             dict={dict.worldsMap}
           />
         );
-      case OnboardingStep.WELCOME:
-        return (
-          <Welcome
-            onStart={() => setCurrentStep(OnboardingStep.MAP)}
-            onLearnMore={() => router.push('/profile')}
-            isLoggedIn={!!userId}
-            hasSavedProgress={answers.length > 0 || completedWorlds.length > 0}
-            dict={dict.welcome}
-          />
-        );
+
       case OnboardingStep.WORLDS:
         return (
           <QuestionnaireLayout
@@ -6239,6 +6226,7 @@ import {
   CheckCircle,
   Loader2,
   Menu,
+  UserCheck,
   X,
   Home,
   ArrowRightLeft,
@@ -6249,7 +6237,7 @@ import {
   Edit,
   BookUser,
   Info,
-  EyeOff,
+  Eye,
 } from 'lucide-react';
 import type { WorldId } from '../types/types';
 import { cn } from '@/lib/utils';
@@ -6299,7 +6287,7 @@ const worldConfig = {
   PERSONALITY: { icon: User, themeColor: 'sky' },
   VALUES: { icon: Heart, themeColor: 'rose' },
   RELATIONSHIP: { icon: Users, themeColor: 'purple' },
-  PARTNER: { icon: User, themeColor: 'teal' },
+  PARTNER: { icon: UserCheck, themeColor: 'teal' },
   RELIGION: { icon: Scroll, themeColor: 'amber' },
 } as const;
 
@@ -6412,7 +6400,7 @@ export default function QuestionnaireLayout({
             </span>{' '}
             {dict.layout.profileNotice.textPart1}
             <span className="inline-flex items-center px-1 py-0.5 bg-white border border-slate-200 rounded text-xs font-mono">
-              <EyeOff className="inline-block h-3 w-3 mr-1 text-slate-500" />
+              <Eye className="inline-block h-3 w-3 mr-1 text-slate-500" />
             </span>
             {dict.layout.profileNotice.textPart2}
             <br />
@@ -6795,9 +6783,9 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\question
 Content:
 // src/components/questionnaire/layout/WorldsMap.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -6817,10 +6805,20 @@ import {
   Award,
   Brain,
   BookUser,
+  ChevronDown,
+  Clock,
+  HelpCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
-import type { WorldsMapDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
+import type { WorldsMapDict } from '@/types/dictionary';
+
+// ייבוא של קבצי השאלות כדי לקבל מידע דינמי
+import { personalityQuestions } from '../questions/personality/personalityQuestions';
+import { valuesQuestions } from '../questions/values/valuesQuestions';
+import { relationshipQuestions } from '../questions/relationship/relationshipQuestions';
+import { partnerQuestions } from '../questions/partner/partnerQuestions';
+import { religionQuestions } from '../questions/religion/religionQuestions';
 
 // Configuration objects remain for visual/structural data
 const worldsConfig = {
@@ -6856,20 +6854,46 @@ type WorldStatus =
   | 'available'
   | 'locked';
 
+// חישוב סטטיסטיקות עבור כל עולם באופן דינמי
+const worldStats = {
+  PERSONALITY: {
+    questionCount: personalityQuestions.length,
+    estimatedTime: Math.max(5, Math.round(personalityQuestions.length * 0.4)),
+  },
+  VALUES: {
+    questionCount: valuesQuestions.length,
+    estimatedTime: Math.max(5, Math.round(valuesQuestions.length * 0.4)),
+  },
+  RELATIONSHIP: {
+    questionCount: relationshipQuestions.length,
+    estimatedTime: Math.max(5, Math.round(relationshipQuestions.length * 0.4)),
+  },
+  PARTNER: {
+    questionCount: partnerQuestions.length,
+    estimatedTime: Math.max(5, Math.round(partnerQuestions.length * 0.4)),
+  },
+  RELIGION: {
+    questionCount: religionQuestions.length,
+    estimatedTime: Math.max(5, Math.round(religionQuestions.length * 0.4)),
+  },
+};
+
 // Component Props Interfaces
 interface WorldsMapProps {
   currentWorld: WorldId;
   completedWorlds: WorldId[];
   onWorldChange: (worldId: WorldId) => void;
   className?: string;
-  dict: WorldsMapDict; // קבלת המילון כ-prop
+  dict: WorldsMapDict;
 }
 
 interface WorldCardProps {
   worldId: WorldId;
   status: WorldStatus;
   onSelect: () => void;
-  dict: WorldsMapDict['worldCard']; // קבלת החלק הרלוונטי במילון
+  dict: WorldsMapDict['worldCard'];
+  fullContent: WorldsMapDict['worldsContent'][WorldId];
+  stats: { questionCount: number; estimatedTime: number };
 }
 
 interface ProgressHeaderProps {
@@ -6879,7 +6903,7 @@ interface ProgressHeaderProps {
   totalCount: number;
   nextRecommendedWorld?: WorldId;
   onGoToRecommended: () => void;
-  dict: WorldsMapDict['progressHeader']; // קבלת החלק הרלוונטי במילון
+  dict: WorldsMapDict['progressHeader'];
 }
 
 // Sub-components
@@ -6892,7 +6916,7 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
   onGoToRecommended,
   dict,
 }) => (
-  <motion.div
+    <motion.div
     className="bg-white/95 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-white/60 space-y-4"
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -6941,9 +6965,12 @@ const WorldCard: React.FC<WorldCardProps> = ({
   status,
   onSelect,
   dict,
+  fullContent,
+  stats,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const config = worldsConfig[worldId];
-  const { icon: Icon, themeColor, label } = config;
+  const { icon: Icon, themeColor } = config;
 
   const statusInfo = {
     completed: {
@@ -6994,7 +7021,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
           'opacity-60 bg-gray-50 cursor-not-allowed border-gray-200'
       )}
     >
-      <div className="p-6 flex-grow space-y-4">
+      <div className="p-6 pb-4 space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div
             className={cn(
@@ -7013,11 +7040,64 @@ const WorldCard: React.FC<WorldCardProps> = ({
           </Badge>
         </div>
         <div>
-          <h3 className="text-xl font-bold text-gray-800">{label}</h3>
-          {/* Description is now part of dictionary, to be added if needed in the future */}
+          <h3 className="text-xl font-bold text-gray-800">{fullContent.title}</h3>
+          <p className="text-sm text-gray-600 mt-1">{fullContent.subtitle}</p>
         </div>
       </div>
-      <div className="p-4 bg-gray-50/80 mt-auto">
+      
+      <div className="px-6 text-sm text-gray-500">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-1 hover:text-gray-800 transition-colors"
+        >
+          {isExpanded ? 'הצג פחות' : 'קרא עוד'}
+          <ChevronDown className={cn("w-4 h-4 transition-transform", isExpanded && "rotate-180")} />
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="px-6 pt-4 pb-6 space-y-5">
+              <div>
+                <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <Brain className={`w-5 h-5 text-${themeColor}-500`} />
+                  למה זה קריטי?
+                </h4>
+                <p className="text-sm text-gray-600 leading-relaxed">{fullContent.whyIsItImportant}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <Sparkles className={`w-5 h-5 text-${themeColor}-500`} />
+                  מה תגלה/י על עצמך?
+                </h4>
+                <ul className="list-disc list-inside space-y-1.5 text-sm text-gray-600">
+                  {fullContent.whatYouWillDiscover.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <blockquote className={`border-r-4 border-${themeColor}-300 pr-4 py-2 bg-${themeColor}-50/60 my-4`}>
+                <p className="text-sm text-gray-700 italic">{fullContent.guidingThought}</p>
+              </blockquote>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex-grow" />
+
+      <div className="p-4 bg-gray-50/80 mt-auto border-t">
+         <div className="flex justify-between text-xs text-gray-500 mb-3 px-2">
+            <span className='flex items-center gap-1'><HelpCircle className='w-3.5 h-3.5' />{stats.questionCount} שאלות</span>
+            <span className='flex items-center gap-1'><Clock className='w-3.5 h-3.5' />~{stats.estimatedTime} דקות</span>
+        </div>
         <Button
           className={cn(
             'w-full font-medium',
@@ -7033,6 +7113,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
     </Card>
   );
 };
+
 
 // Main Component
 export default function WorldsMap({
@@ -7068,33 +7149,6 @@ export default function WorldsMap({
     if (worldId === currentWorld) return 'active';
     return 'available';
   };
-
-  const recommendedCard = nextRecommendedWorld ? (
-    <motion.div
-      variants={itemVariants}
-      className="md:col-span-2 lg:col-span-1 lg:row-span-2"
-    >
-      <WorldCard
-        worldId={nextRecommendedWorld}
-        status="recommended"
-        onSelect={() => onWorldChange(nextRecommendedWorld)}
-        dict={dict.worldCard}
-      />
-    </motion.div>
-  ) : null;
-
-  const otherCards = WORLD_ORDER.filter(
-    (worldId) => worldId !== nextRecommendedWorld
-  ).map((worldId) => (
-    <motion.div variants={itemVariants} key={worldId}>
-      <WorldCard
-        worldId={worldId}
-        status={getWorldStatus(worldId)}
-        onSelect={() => onWorldChange(worldId)}
-        dict={dict.worldCard}
-      />
-    </motion.div>
-  ));
 
   return (
     <div
@@ -7170,8 +7224,18 @@ export default function WorldsMap({
           initial="hidden"
           animate="visible"
         >
-          {recommendedCard}
-          {otherCards}
+          {WORLD_ORDER.map((worldId) => (
+            <motion.div variants={itemVariants} key={worldId}>
+              <WorldCard
+                worldId={worldId}
+                status={getWorldStatus(worldId)}
+                onSelect={() => onWorldChange(worldId)}
+                dict={dict.worldCard}
+                fullContent={dict.worldsContent[worldId]}
+                stats={worldStats[worldId]}
+              />
+            </motion.div>
+          ))}
         </motion.div>
         {completionPercent === 100 && (
           <motion.div
@@ -7232,199 +7296,7 @@ export default function WorldsMap({
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\onboarding
 ================================================================================
 
---------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\onboarding\Welcome.tsx
---------------------------------------------------------------------------------
-Content:
-// src/components/questionnaire/onboarding/Welcome.tsx
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Heart, ShieldCheck, Sparkles, LogIn, Edit } from 'lucide-react';
-import { useSession } from 'next-auth/react';
-import type { WelcomeDict } from '@/types/dictionary'; // Import dictionary type
-
-// --- Props Interface ---
-interface WelcomeProps {
-  onStart: () => void;
-  onLearnMore: () => void;
-  isLoggedIn: boolean;
-  hasSavedProgress: boolean;
-  dict: WelcomeDict; // <-- Add dict prop
-}
-
-const FeatureHighlight: React.FC<{
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  color: string;
-}> = ({ icon, title, description, color }) => (
-  // This component now receives its text as props
-  <div className="text-center p-6 bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 border border-slate-100">
-    <div
-      className={`mx-auto w-14 h-14 flex items-center justify-center rounded-full mb-4 ${color}`}
-    >
-      {icon}
-    </div>
-    <h3 className="text-lg font-semibold text-slate-800 mb-2">{title}</h3>
-    <p className="text-sm text-slate-600 leading-relaxed">{description}</p>
-  </div>
-);
-
-const TestimonialCard: React.FC<{ quote: string; author: string }> = ({
-  quote,
-  author,
-}) => (
-  <Card className="bg-white/70 backdrop-blur-sm border-slate-200 shadow-sm">
-    <CardContent className="pt-6">
-      <p className="text-slate-700 italic">“{quote}”</p>
-      <p className="text-right font-semibold text-slate-500 mt-3">- {author}</p>
-    </CardContent>
-  </Card>
-);
-
-export default function Welcome({
-  onStart,
-  isLoggedIn,
-  hasSavedProgress,
-  dict, // <-- Destructure dict
-}: WelcomeProps) {
-  const { data: session } = useSession();
-  const userName = session?.user?.firstName;
-
-  // Animation variants remain the same
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15, delayChildren: 0.2 },
-    },
-  };
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { type: 'spring', stiffness: 100 },
-    },
-  };
-
-  const featureIcons = [
-    {
-      icon: <Sparkles className="h-7 w-7 text-purple-500" />,
-      color: 'bg-purple-50',
-    },
-    {
-      icon: <ShieldCheck className="h-7 w-7 text-green-500" />,
-      color: 'bg-green-50',
-    },
-    { icon: <Heart className="h-7 w-7 text-rose-500" />, color: 'bg-rose-50' },
-  ];
-
-  const renderCTAButton = () => {
-    let text = dict.loggedInCTA;
-    let Icon = Heart;
-
-    if (!isLoggedIn) {
-      text = dict.guestCTA;
-    } else if (hasSavedProgress) {
-      text = dict.resumeCTA;
-      Icon = Edit;
-    }
-
-    return (
-      <Button
-        onClick={onStart}
-        size="lg"
-        className="w-full sm:w-auto text-lg font-semibold px-8 py-7 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group transform hover:-translate-y-1"
-      >
-        <div className="flex items-center justify-center">
-          <Icon className="w-6 h-6 ms-3 fill-white" />
-          <span>{userName && isLoggedIn ? `${text}, ${userName}` : text}</span>
-        </div>
-      </Button>
-    );
-  };
-
-  return (
-    <motion.div
-      className="min-h-screen w-full bg-slate-50 p-4 sm:p-6"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      <div className="max-w-6xl mx-auto space-y-16 py-12">
-        <motion.section variants={itemVariants} className="text-center">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
-            {dict.mainTitle}
-          </h1>
-          <p className="max-w-3xl mx-auto mt-4 text-lg text-slate-600 leading-relaxed">
-            {dict.subtitle}
-          </p>
-          <div className="mt-10">{renderCTAButton()}</div>
-        </motion.section>
-
-        {!isLoggedIn && (
-          <motion.div variants={itemVariants} className="max-w-2xl mx-auto">
-            <Card className="bg-sky-50 border-sky-200 shadow-md">
-              <CardContent className="pt-6 text-center space-y-3">
-                <h3 className="font-semibold text-sky-800">
-                  {dict.loginPrompt.title}
-                </h3>
-                <p className="text-sky-700 text-sm">{dict.loginPrompt.text}</p>
-                <Button
-                  variant="outline"
-                  className="bg-white border-sky-300 text-sky-700 hover:bg-white/80"
-                  onClick={() => (window.location.href = '/auth/signin')}
-                >
-                  <LogIn className="w-4 h-4 ms-2" />
-                  {dict.loginPrompt.loginButtonText}
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        <motion.section variants={itemVariants}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {dict.features.map((feature, index) => (
-              <FeatureHighlight
-                key={index}
-                title={feature.title}
-                description={feature.description}
-                icon={featureIcons[index].icon}
-                color={featureIcons[index].color}
-              />
-            ))}
-          </div>
-        </motion.section>
-
-        <motion.section variants={itemVariants}>
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-slate-800">
-              {dict.testimonials.title}
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {dict.testimonials.quotes.map((testimonial, index) => (
-              <TestimonialCard key={index} {...testimonial} />
-            ))}
-          </div>
-        </motion.section>
-
-        <motion.div
-          variants={itemVariants}
-          className="text-center pt-8 border-t border-slate-200"
-        >
-          <p className="text-slate-600 mb-6">{dict.finalCta.title}</p>
-          {renderCTAButton()}
-        </motion.div>
-      </div>
-    </motion.div>
-  );
-}
---- End of Content for Welcome.tsx ---
+(This directory is empty.)
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\pages
@@ -9898,7 +9770,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\question
 Content:
 // src/components/questionnaire/worlds/WorldComponent.tsx
 import React, { useState, useEffect } from 'react';
-import WorldIntro from '../common/WorldIntro';
+// שימו לב: WorldIntro כבר לא מיובא כי הסרנו אותו מהשימוש כאן
 import QuestionCard from '../common/QuestionCard';
 import AnswerInput from '../common/AnswerInput';
 import QuestionsList from '../common/QuestionsList';
@@ -9937,7 +9809,6 @@ import { useLanguage } from '@/app/[locale]/contexts/LanguageContext';
 import type {
   WorldComponentDict,
   QuestionCardDict,
-  WorldIntroDict,
   AnswerInputDict,
   InteractiveScaleDict,
   QuestionsListDict,
@@ -10028,6 +9899,7 @@ const getQuestionWithText = (
   };
 };
 
+// --- ממשק ה-Props המתוקן ---
 interface WorldComponentDynamicProps {
   worldId: WorldId;
   onAnswer: (questionId: string, value: AnswerValue) => void;
@@ -10043,11 +9915,12 @@ interface WorldComponentDynamicProps {
   dict: {
     world: WorldComponentDict;
     questionCard: QuestionCardDict;
-    worldIntro: WorldIntroDict;
     answerInput: AnswerInputDict;
     interactiveScale: InteractiveScaleDict;
     questionsList: QuestionsListDict;
     questions: QuestionsDictionary;
+    // הוספנו מפתח חדש לקבלת הכותרות והסרנו את הישן
+    worldLabels: Record<WorldId, string>;
   };
 }
 
@@ -10065,7 +9938,6 @@ export default function WorldComponent({
   isDirectNavigation = false,
   dict,
 }: WorldComponentDynamicProps) {
-  const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
@@ -10075,17 +9947,13 @@ export default function WorldComponent({
   const { language } = useLanguage();
   const isRTL = language === 'he';
 
-  useEffect(() => {
-    if (isDirectNavigation) {
-      setIsIntroComplete(true);
-    }
-  }, [isDirectNavigation]);
-
   const { questions: allQuestionsStructure, themeColor } = worldConfig[worldId];
   const allQuestions = allQuestionsStructure.map((qStruct) =>
     getQuestionWithText(qStruct, dict)
   );
-  const title = dict.worldIntro.worldsContent[worldId].title;
+  
+  // --- תיקון מקור הכותרת ---
+  const title = dict.worldLabels[worldId];
 
   const findAnswer = (questionId: string): QuestionnaireAnswer | undefined => {
     return answers.find(
@@ -10199,17 +10067,6 @@ export default function WorldComponent({
   const handleClearAnswer = (questionId: string) => {
     onAnswer(questionId, undefined);
   };
-
-  if (!isIntroComplete) {
-    return (
-      <WorldIntro
-        worldId={worldId}
-        allQuestions={allQuestions}
-        onStart={() => setIsIntroComplete(true)}
-        dict={dict.worldIntro}
-      />
-    );
-  }
 
   if (allQuestions.length === 0) {
     return (

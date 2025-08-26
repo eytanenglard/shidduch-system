@@ -14,6 +14,7 @@ import {
   CheckCircle,
   Loader2,
   Menu,
+  UserCheck,
   X,
   Home,
   ArrowRightLeft,
@@ -24,7 +25,7 @@ import {
   Edit,
   BookUser,
   Info,
-  EyeOff,
+  Eye,
 } from 'lucide-react';
 import type { WorldId } from '../types/types';
 import { cn } from '@/lib/utils';
@@ -74,7 +75,7 @@ const worldConfig = {
   PERSONALITY: { icon: User, themeColor: 'sky' },
   VALUES: { icon: Heart, themeColor: 'rose' },
   RELATIONSHIP: { icon: Users, themeColor: 'purple' },
-  PARTNER: { icon: User, themeColor: 'teal' },
+  PARTNER: { icon: UserCheck, themeColor: 'teal' },
   RELIGION: { icon: Scroll, themeColor: 'amber' },
 } as const;
 
@@ -187,7 +188,7 @@ export default function QuestionnaireLayout({
             </span>{' '}
             {dict.layout.profileNotice.textPart1}
             <span className="inline-flex items-center px-1 py-0.5 bg-white border border-slate-200 rounded text-xs font-mono">
-              <EyeOff className="inline-block h-3 w-3 mr-1 text-slate-500" />
+              <Eye className="inline-block h-3 w-3 mr-1 text-slate-500" />
             </span>
             {dict.layout.profileNotice.textPart2}
             <br />

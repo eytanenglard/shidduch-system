@@ -10,7 +10,6 @@ import React, {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import QuestionnaireLayout from './layout/QuestionnaireLayout';
-import Welcome from './onboarding/Welcome';
 import WorldComponent from './worlds/WorldComponent';
 import QuestionnaireCompletion from './common/QuestionnaireCompletion';
 import { useLanguage } from '@/app/[locale]/contexts/LanguageContext';
@@ -54,7 +53,6 @@ const worldConfig: Record<WorldId, { questions: Question[] }> = {
 };
 
 enum OnboardingStep {
-  WELCOME = 'WELCOME',
   WORLDS = 'WORLDS',
   COMPLETED = 'COMPLETED',
   MAP = 'MAP',
@@ -73,7 +71,7 @@ export interface MatchmakingQuestionnaireProps {
   onComplete?: () => void;
   initialWorld?: WorldId;
   initialQuestionId?: string;
-  dict: QuestionnaireDictionary; // קבלת המילון המלא כ-prop
+  dict: QuestionnaireDictionary;
 }
 
 export default function MatchmakingQuestionnaire({
@@ -81,15 +79,16 @@ export default function MatchmakingQuestionnaire({
   onComplete,
   initialWorld,
   initialQuestionId,
-  dict, // שימוש במשתנה dict
+  dict,
 }: MatchmakingQuestionnaireProps) {
   const router = useRouter();
   const { language } = useLanguage();
   const sessionId = useMemo(() => `session_${Date.now()}`, []);
 
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(
-    OnboardingStep.WELCOME
+    OnboardingStep.MAP
   );
+
   const [currentWorld, setCurrentWorld] = useState<WorldId>(
     initialWorld || 'VALUES'
   );
@@ -330,7 +329,7 @@ export default function MatchmakingQuestionnaire({
         if (!response.ok) {
           if (response.status === 404) {
             console.log('No existing questionnaire data found for user.');
-            setCurrentStep(OnboardingStep.WELCOME);
+            setCurrentStep(OnboardingStep.MAP);
           } else {
             const errorData = await response.json();
             throw new Error(
@@ -395,16 +394,16 @@ export default function MatchmakingQuestionnaire({
               setCurrentWorld(nextWorld || WORLD_ORDER[0]);
               setCurrentStep(OnboardingStep.MAP);
             } else {
-              setCurrentStep(OnboardingStep.WELCOME);
+              setCurrentStep(OnboardingStep.MAP);
             }
           } else {
-            setCurrentStep(OnboardingStep.WELCOME);
+            setCurrentStep(OnboardingStep.MAP);
           }
         }
       } catch (err) {
         console.error('Failed to load existing answers:', err);
         setError(dict.matchmaking.errors.genericLoadError);
-        setCurrentStep(OnboardingStep.WELCOME);
+        setCurrentStep(OnboardingStep.MAP);
       } finally {
         setIsLoading(false);
       }
@@ -417,7 +416,6 @@ export default function MatchmakingQuestionnaire({
       setError(null);
       setIsDirty(true);
 
-      // מאתרים את מבנה השאלה כדי לדעת את הסוג שלה
       const currentQuestion = worldConfig[currentWorld].questions.find(
         (q) => q.id === questionId
       );
@@ -435,9 +433,7 @@ export default function MatchmakingQuestionnaire({
           isVisible:
             answerIndex > -1 ? prevAnswers[answerIndex].isVisible : true,
         };
-
-        // בדיוק כאן, בתוך פונקציית handleAnswer, נשמור את שפת המשתמש
-        // אך ורק אם מדובר בשאלת טקסט פתוח
+        
         const finalNewAnswer: QuestionnaireAnswer = {
           ...newAnswerBase,
           ...(currentQuestion?.type === 'openText' && {
@@ -454,7 +450,7 @@ export default function MatchmakingQuestionnaire({
         }
       });
     },
-    [currentWorld, language] // חשוב להוסיף את 'language' למערך התלויות
+    [currentWorld, language]
   );
 
   const handleVisibilityChange = useCallback(
@@ -586,7 +582,7 @@ export default function MatchmakingQuestionnaire({
     setCurrentStep(OnboardingStep.MAP);
   }, []);
 
-  // הקוד החדש והמתוקן
+  // --- הקוד המתוקן והמדויק ---
   function renderCurrentWorld() {
     const worldProps = {
       onAnswer: handleAnswer,
@@ -608,11 +604,11 @@ export default function MatchmakingQuestionnaire({
       dict: {
         world: dict.world,
         questionCard: dict.questionCard,
-        worldIntro: dict.worldIntro,
+        // השורה הבאה היא התיקון המרכזי. אנחנו מעבירים את הכותרות ולא את כל אובייקט ההקדמה
+        worldLabels: dict.matchmaking.worldLabels,
         answerInput: dict.answerInput,
         interactiveScale: dict.interactiveScale,
         questionsList: dict.questionsList,
-        // --- הנה השורה שהוספנו ---
         questions: dict.questions,
       },
     };
@@ -645,16 +641,7 @@ export default function MatchmakingQuestionnaire({
             dict={dict.worldsMap}
           />
         );
-      case OnboardingStep.WELCOME:
-        return (
-          <Welcome
-            onStart={() => setCurrentStep(OnboardingStep.MAP)}
-            onLearnMore={() => router.push('/profile')}
-            isLoggedIn={!!userId}
-            hasSavedProgress={answers.length > 0 || completedWorlds.length > 0}
-            dict={dict.welcome}
-          />
-        );
+
       case OnboardingStep.WORLDS:
         return (
           <QuestionnaireLayout

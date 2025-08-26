@@ -1,46 +1,5 @@
 {
-  "welcome": {
-    "mainTitle": "Your Journey to a Meaningful Relationship Begins Here",
-    "subtitle": "This isn't just a questionnaire; it's the first step in a guided process of self-discovery. By understanding who you are, we can help you find who you're looking for.",
-    "loggedInCTA": "Begin the Journey",
-    "resumeCTA": "Continue Your Journey",
-    "guestCTA": "Start as a Guest",
-    "loginPrompt": {
-      "title": "Already have an account?",
-      "text": "Sign in to save your progress and continue your journey seamlessly.",
-      "loginButtonText": "Sign In to Continue"
-    },
-    "features": [
-      {
-        "title": "A Journey of Discovery",
-        "description": "Explore five key worlds of your life to create a rich, authentic profile that tells your unique story."
-      },
-      {
-        "title": "Complete Privacy",
-        "description": "Your answers are confidential and shared only with your matchmaker. Nothing is revealed without your consent."
-      },
-      {
-        "title": "Deeper Connections",
-        "description": "This investment of time allows our team and technology to find connections based on true compatibility."
-      }
-    ],
-    "testimonials": {
-      "title": "What Our Members Say",
-      "quotes": [
-        {
-          "quote": "The questionnaire made me think about what I truly want in a partner. It felt less like a form and more like a conversation with a wise friend.",
-          "author": "David S."
-        },
-        {
-          "quote": "I appreciated the depth. For the first time, I felt like a matchmaking service wanted to understand me, not just categorize me.",
-          "author": "Rachel B."
-        }
-      ]
-    },
-    "finalCta": {
-      "title": "Ready to discover what's next?"
-    }
-  },
+
   "worldIntro": {
     "world": "World",
     "of": "of",
@@ -54,71 +13,11 @@
     },
     "whyTitle": "Why This World Matters",
     "whatYouWillDiscoverTitle": "What You'll Discover",
-    "startButton": "Begin This Chapter",
-    "worldsContent": {
-      "PERSONALITY": {
-        "title": "The World of Personality",
-        "subtitle": "Understanding the person behind the details.",
-        "whyIsItImportant": "This is the foundation for creating an authentic picture of who you are. It helps us understand your motivations, communication style, and how you navigate life's challenges.",
-        "whatYouWillDiscover": [
-          "Your primary sources of energy.",
-          "Your natural approach to social situations.",
-          "How you process emotions and stress.",
-          "The core traits that define you."
-        ],
-        "guidingThought": "A deep understanding of personality allows us to find someone with whom the dynamic will feel natural from the start."
-      },
-      "VALUES": {
-        "title": "The World of Values",
-        "subtitle": "The foundation of a shared home.",
-        "whyIsItImportant": "Your core values are the pillars of your life. Defining them clearly serves as a compass for building a stable and shared home with a partner who is walking in the same direction.",
-        "whatYouWillDiscover": [
-          "The principles that guide your decisions.",
-          "Your priorities in life versus in a relationship.",
-          "Your perspectives on money, career, and success.",
-          "The essential values you wish to pass on."
-        ],
-        "guidingThought": "Value alignment is the key to a stable, long-term relationship. This is crucial for accurate matching and preventing future heartache."
-      },
-      "RELATIONSHIP": {
-        "title": "The World of Partnership",
-        "subtitle": "Your vision for 'togetherness'.",
-        "whyIsItImportant": "A successful relationship is a shared creation. This world explores your expectations, communication style, and vision for a partnership, ensuring you and your match are building towards the same future.",
-        "whatYouWillDiscover": [
-          "Your primary 'love languages'.",
-          "How you approach conflict and repair.",
-          "Your ideal balance between autonomy and togetherness.",
-          "Your vision for family and raising children."
-        ],
-        "guidingThought": "When visions for a relationship align, it's easier to walk the same path together from the very beginning."
-      },
-      "PARTNER": {
-        "title": "The World of the Partner",
-        "subtitle": "Defining your desired match.",
-        "whyIsItImportant": "Who is the person you are looking for? Here, we focus the search by understanding what traits, background, and values are most essential for you in a partner.",
-        "whatYouWillDiscover": [
-          "The 'must-have' qualities in a partner.",
-          "Your non-negotiable deal-breakers.",
-          "The balance of traits you find most attractive.",
-          "Your preferences regarding lifestyle and background."
-        ],
-        "guidingThought": "A precise definition of what you're looking for allows us to conduct an efficient and intelligent search, saving you from irrelevant suggestions."
-      },
-      "RELIGION": {
-        "title": "The World of Religion & Tradition",
-        "subtitle": "Your spiritual connection and practice.",
-        "whyIsItImportant": "For many, spiritual and religious compatibility is the bedrock of a relationship. Answering these questions with nuance helps us find someone whose Jewish journey complements your own.",
-        "whatYouWillDiscover": [
-          "The role of faith and observance in your daily life.",
-          "Your vision for a Jewish home.",
-          "How you connect with tradition and community.",
-          "Your approach to children's religious education."
-        ],
-        "guidingThought": "Spiritual compatibility is key to building a faithful home on a shared and stable foundation."
-      }
-    }
+    "startButton": "Begin This Chapter"
+   
   },
-  "questionCard": {
+
+   "questionCard": {
     "depthLabels": {
       "BASIC": "Foundations",
       "ADVANCED": "Deeper Insights",
@@ -155,6 +54,11 @@
       "required": "Required"
     }
   },
+
+    "visibilityButton": {
+      "visible": "Visible",
+      "hidden": "Hidden"
+    },
   "completion": {
     "title": "Congratulations, You've Completed the Journey!",
     "loggedInDescription": "You've taken a significant step towards finding a meaningful connection. Our team will now carefully review your profile.",
@@ -297,6 +201,14 @@
       "button": "Go to My Answers"
     },
     "worldCard": {
+            "subtitles": {
+        "PERSONALITY": "The foundation of who you are and how you navigate the world.",
+        "VALUES": "Your internal compass for life's most important decisions.",
+        "RELATIONSHIP": "Your blueprint for partnership, communication, and a shared daily life.",
+        "PARTNER": "Clarifying the essential qualities and values you're seeking in a partner.",
+        "RELIGION": "Your personal connection to faith, tradition, and your vision for a Jewish home."
+      },
+
       "statuses": {
         "completed": "Completed",
         "recommended": "Recommended Next",
@@ -315,7 +227,70 @@
       "title": "Magnificent, {{name}}!",
       "subtitle": "You've completed the entire questionnaire.",
       "description": "Our team now has a rich, holistic understanding of you. We're excited to begin searching for your match."
+    },
+     "worldsContent": {
+    "PERSONALITY": {
+      "title": "World of Personality: Who Am I, Truly?",
+      "subtitle": "The first step to a deep match is presenting an authentic and accurate picture of yourself.",
+      "whyIsItImportant": "Here, we go deep. Instead of superficial labels, we'll understand your inner dynamics: what recharges your energy, how you function in social settings, and what drives your decisions. A rich personality profile is the foundation for finding someone with whom the dynamic will feel natural from the very start.",
+      "whatYouWillDiscover": [
+        "Your daily energy profile (a morning or night person).",
+        "How your 'social battery' truly works.",
+        "The core traits you identify with most strongly.",
+        "Your natural style of communication and problem-solving."
+      ],
+      "guidingThought": "The goal isn't to find a carbon copy of yourself, but the missing piece that completes your puzzle."
+    },
+    "VALUES": {
+      "title": "World of Values: What Drives Me?",
+      "subtitle": "Shared values are the backbone of a stable relationship. Here, we'll distill your internal compass.",
+      "whyIsItImportant": "This is the most critical world for long-term success. We don't just ask if 'family is important'; we ask you to prioritize between career, spirituality, giving, and personal growth. The high-quality data we gather here allows us to prevent foundational gaps in worldview.",
+      "whatYouWillDiscover": [
+        "What your life priorities look like today.",
+        "Your vision for priorities within a partnership.",
+        "Your definition of success and a 'rich' life.",
+        "Your approach to money, giving, and personal development."
+      ],
+      "guidingThought": "When your values walk in the same direction, you'll always find each other again, even when your paths diverge."
+    },
+    "RELATIONSHIP": {
+      "title": "World of Partnership: What is 'Us'?",
+      "subtitle": "We'll understand your vision for connection, communication, intimacy, and shared daily life.",
+      "whyIsItImportant": "A great relationship is more than a feeling; it's a practical partnership. In this world, we'll uncover your 'love language,' how you handle conflict, and your ideal balance between 'together' and 'apart.' This is the key to creating a bond based on understanding, respect, and true friendship, even in challenging moments.",
+      "whatYouWillDiscover": [
+        "What makes a relationship feel like 'home' for you.",
+        "The most effective way to communicate with you.",
+        "How you envision the distribution of roles and responsibilities.",
+        "Your deepest emotional needs from a partner."
+      ],
+      "guidingThought": "The question isn't 'Will you be happy?', but rather 'How will you handle things together when you're not?'."
+    },
+    "PARTNER": {
+      "title": "World of the Partner: Who Am I Seeking?",
+      "subtitle": "Instead of a checklist, we'll focus the search on what is truly essential for you in a partner.",
+      "whyIsItImportant": "Here, we make the search precise and efficient. Instead of casting a wide net, you'll define the core traits that are non-negotiable, the relevant range of backgrounds and ages, and most importantly, your deal-breakers. Focus is the key to saving precious time and emotional energy.",
+      "whatYouWillDiscover": [
+        "The character traits that are most important to you.",
+        "Your practical preferences (age, background, lifestyle).",
+        "The 'red lines' you are unwilling to compromise on.",
+        "Where you are flexible and willing to bridge gaps."
+      ],
+      "guidingThought": "Don't look for the person you can live with; look for the person you can't imagine living without."
+    },
+    "RELIGION": {
+      "title": "Religion & Tradition: What is My Connection?",
+      "subtitle": "Understanding your personal connection to Judaism is a necessary foundation for building a faithful home.",
+      "whyIsItImportant": "In the Jewish world, 'religious' is a word with infinite shades of meaning. Here, we get down to the precise details: from your self-definition on the spectrum, to how Halacha and tradition are expressed in your life, to your vision for your children's education. This is the basis for spiritual and marital harmony.",
+      "whatYouWillDiscover": [
+        "Your precise location on the religious spectrum.",
+        "What your Shabbat and Kashrut observance looks like in practice.",
+        "Your worldview on modesty, community, and Torah education.",
+        "Your vision for the religious and spiritual atmosphere in the home you'll build."
+      ],
+      "guidingThought": "A Jewish home is built not only with bricks, but with prayers, values, and tradition passed from one generation to the next."
     }
+  }
+
   },
   "layout": {
     "navHeader": "Your Journey",

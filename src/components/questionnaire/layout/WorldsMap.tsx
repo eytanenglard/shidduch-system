@@ -1,8 +1,8 @@
 // src/components/questionnaire/layout/WorldsMap.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -22,10 +22,20 @@ import {
   Award,
   Brain,
   BookUser,
+  ChevronDown,
+  Clock,
+  HelpCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
-import type { WorldsMapDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
+import type { WorldsMapDict } from '@/types/dictionary';
+
+// ייבוא של קבצי השאלות כדי לקבל מידע דינמי
+import { personalityQuestions } from '../questions/personality/personalityQuestions';
+import { valuesQuestions } from '../questions/values/valuesQuestions';
+import { relationshipQuestions } from '../questions/relationship/relationshipQuestions';
+import { partnerQuestions } from '../questions/partner/partnerQuestions';
+import { religionQuestions } from '../questions/religion/religionQuestions';
 
 // Configuration objects remain for visual/structural data
 const worldsConfig = {
@@ -61,20 +71,46 @@ type WorldStatus =
   | 'available'
   | 'locked';
 
+// חישוב סטטיסטיקות עבור כל עולם באופן דינמי
+const worldStats = {
+  PERSONALITY: {
+    questionCount: personalityQuestions.length,
+    estimatedTime: Math.max(5, Math.round(personalityQuestions.length * 0.4)),
+  },
+  VALUES: {
+    questionCount: valuesQuestions.length,
+    estimatedTime: Math.max(5, Math.round(valuesQuestions.length * 0.4)),
+  },
+  RELATIONSHIP: {
+    questionCount: relationshipQuestions.length,
+    estimatedTime: Math.max(5, Math.round(relationshipQuestions.length * 0.4)),
+  },
+  PARTNER: {
+    questionCount: partnerQuestions.length,
+    estimatedTime: Math.max(5, Math.round(partnerQuestions.length * 0.4)),
+  },
+  RELIGION: {
+    questionCount: religionQuestions.length,
+    estimatedTime: Math.max(5, Math.round(religionQuestions.length * 0.4)),
+  },
+};
+
 // Component Props Interfaces
 interface WorldsMapProps {
   currentWorld: WorldId;
   completedWorlds: WorldId[];
   onWorldChange: (worldId: WorldId) => void;
   className?: string;
-  dict: WorldsMapDict; // קבלת המילון כ-prop
+  dict: WorldsMapDict;
 }
 
 interface WorldCardProps {
   worldId: WorldId;
   status: WorldStatus;
   onSelect: () => void;
-  dict: WorldsMapDict['worldCard']; // קבלת החלק הרלוונטי במילון
+  dict: WorldsMapDict['worldCard'];
+  fullContent: WorldsMapDict['worldsContent'][WorldId];
+  stats: { questionCount: number; estimatedTime: number };
 }
 
 interface ProgressHeaderProps {
@@ -84,7 +120,7 @@ interface ProgressHeaderProps {
   totalCount: number;
   nextRecommendedWorld?: WorldId;
   onGoToRecommended: () => void;
-  dict: WorldsMapDict['progressHeader']; // קבלת החלק הרלוונטי במילון
+  dict: WorldsMapDict['progressHeader'];
 }
 
 // Sub-components
@@ -97,7 +133,7 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
   onGoToRecommended,
   dict,
 }) => (
-  <motion.div
+    <motion.div
     className="bg-white/95 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-white/60 space-y-4"
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -146,9 +182,12 @@ const WorldCard: React.FC<WorldCardProps> = ({
   status,
   onSelect,
   dict,
+  fullContent,
+  stats,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const config = worldsConfig[worldId];
-  const { icon: Icon, themeColor, label } = config;
+  const { icon: Icon, themeColor } = config;
 
   const statusInfo = {
     completed: {
@@ -199,7 +238,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
           'opacity-60 bg-gray-50 cursor-not-allowed border-gray-200'
       )}
     >
-      <div className="p-6 flex-grow space-y-4">
+      <div className="p-6 pb-4 space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div
             className={cn(
@@ -218,11 +257,64 @@ const WorldCard: React.FC<WorldCardProps> = ({
           </Badge>
         </div>
         <div>
-          <h3 className="text-xl font-bold text-gray-800">{label}</h3>
-          {/* Description is now part of dictionary, to be added if needed in the future */}
+          <h3 className="text-xl font-bold text-gray-800">{fullContent.title}</h3>
+          <p className="text-sm text-gray-600 mt-1">{fullContent.subtitle}</p>
         </div>
       </div>
-      <div className="p-4 bg-gray-50/80 mt-auto">
+      
+      <div className="px-6 text-sm text-gray-500">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-1 hover:text-gray-800 transition-colors"
+        >
+          {isExpanded ? 'הצג פחות' : 'קרא עוד'}
+          <ChevronDown className={cn("w-4 h-4 transition-transform", isExpanded && "rotate-180")} />
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="px-6 pt-4 pb-6 space-y-5">
+              <div>
+                <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <Brain className={`w-5 h-5 text-${themeColor}-500`} />
+                  למה זה קריטי?
+                </h4>
+                <p className="text-sm text-gray-600 leading-relaxed">{fullContent.whyIsItImportant}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <Sparkles className={`w-5 h-5 text-${themeColor}-500`} />
+                  מה תגלה/י על עצמך?
+                </h4>
+                <ul className="list-disc list-inside space-y-1.5 text-sm text-gray-600">
+                  {fullContent.whatYouWillDiscover.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <blockquote className={`border-r-4 border-${themeColor}-300 pr-4 py-2 bg-${themeColor}-50/60 my-4`}>
+                <p className="text-sm text-gray-700 italic">{fullContent.guidingThought}</p>
+              </blockquote>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex-grow" />
+
+      <div className="p-4 bg-gray-50/80 mt-auto border-t">
+         <div className="flex justify-between text-xs text-gray-500 mb-3 px-2">
+            <span className='flex items-center gap-1'><HelpCircle className='w-3.5 h-3.5' />{stats.questionCount} שאלות</span>
+            <span className='flex items-center gap-1'><Clock className='w-3.5 h-3.5' />~{stats.estimatedTime} דקות</span>
+        </div>
         <Button
           className={cn(
             'w-full font-medium',
@@ -238,6 +330,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
     </Card>
   );
 };
+
 
 // Main Component
 export default function WorldsMap({
@@ -273,33 +366,6 @@ export default function WorldsMap({
     if (worldId === currentWorld) return 'active';
     return 'available';
   };
-
-  const recommendedCard = nextRecommendedWorld ? (
-    <motion.div
-      variants={itemVariants}
-      className="md:col-span-2 lg:col-span-1 lg:row-span-2"
-    >
-      <WorldCard
-        worldId={nextRecommendedWorld}
-        status="recommended"
-        onSelect={() => onWorldChange(nextRecommendedWorld)}
-        dict={dict.worldCard}
-      />
-    </motion.div>
-  ) : null;
-
-  const otherCards = WORLD_ORDER.filter(
-    (worldId) => worldId !== nextRecommendedWorld
-  ).map((worldId) => (
-    <motion.div variants={itemVariants} key={worldId}>
-      <WorldCard
-        worldId={worldId}
-        status={getWorldStatus(worldId)}
-        onSelect={() => onWorldChange(worldId)}
-        dict={dict.worldCard}
-      />
-    </motion.div>
-  ));
 
   return (
     <div
@@ -375,8 +441,18 @@ export default function WorldsMap({
           initial="hidden"
           animate="visible"
         >
-          {recommendedCard}
-          {otherCards}
+          {WORLD_ORDER.map((worldId) => (
+            <motion.div variants={itemVariants} key={worldId}>
+              <WorldCard
+                worldId={worldId}
+                status={getWorldStatus(worldId)}
+                onSelect={() => onWorldChange(worldId)}
+                dict={dict.worldCard}
+                fullContent={dict.worldsContent[worldId]}
+                stats={worldStats[worldId]}
+              />
+            </motion.div>
+          ))}
         </motion.div>
         {completionPercent === 100 && (
           <motion.div

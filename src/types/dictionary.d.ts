@@ -2,7 +2,7 @@
 import type { MatchmakerPageDictionary } from './dictionaries/matchmaker';
 import { WORLD_KEYS } from '@/components/profile/constants'; 
 import type { AuthDictionary } from './dictionaries/auth';
-
+import type { WorldId } from '@/components/questionnaire/types/types';
 // --- Navbar ---
 export type NavbarDict = {
   myMatches: string;
@@ -836,33 +836,6 @@ export type MatchSuggestionStatus =
 // ✨ START: NEW TYPES FOR QUESTIONNAIRE FEATURE ✨
 // ======================================================================== //
 
-export type WelcomeDict = {
-  mainTitle: string;
-  subtitle: string;
-  loggedInCTA: string;
-  resumeCTA: string;
-  guestCTA: string;
-  loginPrompt: {
-    title: string;
-    text: string;
-    loginButtonText: string;
-  };
-  features: {
-    title: string;
-    description: string;
-  }[];
-  testimonials: {
-    title: string;
-    quotes: {
-      quote: string;
-      author: string;
-    }[];
-  };
-  finalCta: {
-    title: string;
-  };
-};
-
 export type WorldIntroDict = {
   world: string;
   of: string;
@@ -878,16 +851,17 @@ export type WorldIntroDict = {
   whyTitle: string;
   whatYouWillDiscoverTitle: string;
   startButton: string;
-  worldsContent: {
-    [key in WorldId]: {
-      title: string;
-      subtitle: string;
-      whyIsItImportant: string;
-      whatYouWillDiscover: string[];
-      guidingThought: string;
-    };
-  };
+
 };
+
+type WorldContent = {
+  title: string;
+  subtitle: string;
+  whyIsItImportant: string;
+  whatYouWillDiscover: string[];
+  guidingThought: string;
+};
+
 
 export type QuestionCardDict = {
   depthLabels: {
@@ -917,16 +891,17 @@ export type QuestionCardDict = {
     saveProgress: string;
     viewProfile: string;
   };
-    visibilityButton: {
+  visibilityButton: {
     visible: string;
     hidden: string;
   };
-
   skipButton: {
     skip: string;
     required: string;
   };
 };
+
+// ... (rest of the file remains the same) ...
 
 export type QuestionnaireCompletionDict = {
   title: string;
@@ -945,9 +920,8 @@ export type QuestionnaireCompletionDict = {
 };
 
 export type MatchmakingQuestionnaireDict = {
-  worldLabels: {
-    [key in WorldId]: string;
-  };
+      worldLabels: Record<WorldId, string>; // ודא שזה משתמש ב-WorldId המיובא
+
   toasts: {
     saveSuccess: string;
     autoSaveError: string;
@@ -988,7 +962,6 @@ export type QuestionnairePageDict = {
 
 // Main dictionary for the questionnaire feature
 export type QuestionnaireDictionary = {
-  welcome: WelcomeDict;
   worldIntro: WorldIntroDict;
   questionCard: QuestionCardDict;
   completion: QuestionnaireCompletionDict;
@@ -1431,7 +1404,7 @@ type AchievementDict = {
 };
 
 export type QuestionnaireProgressDict = {
-  worldLabels: { [key in 'PERSONALITY' | 'VALUES' | 'RELATIONSHIP' | 'PARTNER' | 'RELATIONSHIP']: string };
+        worldLabels: Record<WorldId, string>;
   mobile: {
     title: string;
     totalLabel: string;
@@ -1555,6 +1528,10 @@ export type WorldsMapDict = {
     button: string;
   };
   worldCard: {
+    subtitles: {
+      [key in WorldId]: string;
+    };
+
     statuses: {
       completed: string;
       recommended: string;
@@ -1574,6 +1551,8 @@ export type WorldsMapDict = {
     subtitle: string;
     description: string;
   };
+    worldsContent: Record<WorldId, WorldContent>;
+
 };
 export type QuestionnaireLayoutDict = {
   navHeader: string;
@@ -2323,10 +2302,7 @@ export type QuestionnaireSectionDictionary = {
       visibilitySuccess: string;
       visibilityError: string;
     };
-    visibilityButton: {
-      visible: string;
-      hidden: string;
-    };
+   
     visibilityTooltip: {
       editing: {
         visible: string;

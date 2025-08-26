@@ -1,6 +1,6 @@
 // src/components/questionnaire/worlds/WorldComponent.tsx
 import React, { useState, useEffect } from 'react';
-import WorldIntro from '../common/WorldIntro';
+// שימו לב: WorldIntro כבר לא מיובא כי הסרנו אותו מהשימוש כאן
 import QuestionCard from '../common/QuestionCard';
 import AnswerInput from '../common/AnswerInput';
 import QuestionsList from '../common/QuestionsList';
@@ -39,7 +39,6 @@ import { useLanguage } from '@/app/[locale]/contexts/LanguageContext';
 import type {
   WorldComponentDict,
   QuestionCardDict,
-  WorldIntroDict,
   AnswerInputDict,
   InteractiveScaleDict,
   QuestionsListDict,
@@ -130,6 +129,7 @@ const getQuestionWithText = (
   };
 };
 
+// --- ממשק ה-Props המתוקן ---
 interface WorldComponentDynamicProps {
   worldId: WorldId;
   onAnswer: (questionId: string, value: AnswerValue) => void;
@@ -145,11 +145,12 @@ interface WorldComponentDynamicProps {
   dict: {
     world: WorldComponentDict;
     questionCard: QuestionCardDict;
-    worldIntro: WorldIntroDict;
     answerInput: AnswerInputDict;
     interactiveScale: InteractiveScaleDict;
     questionsList: QuestionsListDict;
     questions: QuestionsDictionary;
+    // הוספנו מפתח חדש לקבלת הכותרות והסרנו את הישן
+    worldLabels: Record<WorldId, string>;
   };
 }
 
@@ -167,7 +168,6 @@ export default function WorldComponent({
   isDirectNavigation = false,
   dict,
 }: WorldComponentDynamicProps) {
-  const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
@@ -177,17 +177,13 @@ export default function WorldComponent({
   const { language } = useLanguage();
   const isRTL = language === 'he';
 
-  useEffect(() => {
-    if (isDirectNavigation) {
-      setIsIntroComplete(true);
-    }
-  }, [isDirectNavigation]);
-
   const { questions: allQuestionsStructure, themeColor } = worldConfig[worldId];
   const allQuestions = allQuestionsStructure.map((qStruct) =>
     getQuestionWithText(qStruct, dict)
   );
-  const title = dict.worldIntro.worldsContent[worldId].title;
+  
+  // --- תיקון מקור הכותרת ---
+  const title = dict.worldLabels[worldId];
 
   const findAnswer = (questionId: string): QuestionnaireAnswer | undefined => {
     return answers.find(
@@ -301,17 +297,6 @@ export default function WorldComponent({
   const handleClearAnswer = (questionId: string) => {
     onAnswer(questionId, undefined);
   };
-
-  if (!isIntroComplete) {
-    return (
-      <WorldIntro
-        worldId={worldId}
-        allQuestions={allQuestions}
-        onStart={() => setIsIntroComplete(true)}
-        dict={dict.worldIntro}
-      />
-    );
-  }
 
   if (allQuestions.length === 0) {
     return (
