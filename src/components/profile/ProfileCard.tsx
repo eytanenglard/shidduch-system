@@ -1993,6 +1993,7 @@ const ProfileHeader: React.FC<{
   characterTraitMap: ReturnType<typeof createCharacterTraitMap>;
   hobbiesMap: ReturnType<typeof createHobbiesMap>;
   religiousLevelMap: ReturnType<typeof createReligiousLevelMap>;
+  educationLevelMap: ReturnType<typeof createEducationLevelMap>;
 }> = ({
   profile,
   age,
@@ -2008,6 +2009,7 @@ const ProfileHeader: React.FC<{
   characterTraitMap,
   hobbiesMap,
   religiousLevelMap,
+  educationLevelMap,
 }) => {
   const personalityHighlights = useMemo(() => {
     const highlights: ExcitementFactor[] = [];
@@ -2334,26 +2336,64 @@ const ProfileHeader: React.FC<{
                           compact={compact}
                         />
                       )}
-                      {profile.religiousLevel && (
-                        <KeyFactCard
-                          icon={BookMarked}
-                          label="השקפה"
-                          value={
-                            formatEnumValue(
-                              profile.religiousLevel,
-                              religiousLevelMap,
-                              undefined,
-                              true
-                            ).shortLabel ||
-                            formatEnumValue(
-                              profile.religiousLevel,
-                              religiousLevelMap
-                            ).label
-                          }
-                          color="purple"
-                          compact={compact}
-                        />
-                      )}
+                      // יש לעטוף כל DetailItem בתנאי משלו
+                      <div className="grid grid-cols-1 gap-2 sm:gap-3 min-w-0 max-w-full">
+                        {profile.religiousLevel && (
+                          <DetailItem
+                            icon={BookMarked}
+                            label="השקפה"
+                            value={
+                              formatEnumValue(
+                                profile.religiousLevel,
+                                religiousLevelMap
+                              ).label
+                            }
+                            variant="elegant"
+                            size="sm"
+                            useMobileLayout={true}
+                            textAlign="center"
+                          />
+                        )}
+                        {profile.shomerNegiah !== null &&
+                          profile.shomerNegiah !== undefined && (
+                            <DetailItem
+                              icon={Heart}
+                              label="שמירת נגיעה"
+                              value={
+                                formatBooleanPreference(profile.shomerNegiah)
+                                  .label
+                              }
+                              variant="elegant"
+                              size="sm"
+                              useMobileLayout={true}
+                            />
+                          )}
+                        {profile.occupation && (
+                          <DetailItem
+                            icon={Briefcase}
+                            label="עיסוק"
+                            value={profile.occupation}
+                            variant="elegant"
+                            size="sm"
+                            useMobileLayout={true}
+                          />
+                        )}
+                        {profile.educationLevel && (
+                          <DetailItem
+                            icon={GraduationCap}
+                            label="השכלה"
+                            value={
+                              formatEnumValue(
+                                profile.educationLevel,
+                                educationLevelMap
+                              ).label
+                            }
+                            variant="elegant"
+                            size="sm"
+                            useMobileLayout={true}
+                          />
+                        )}
+                      </div>
                     </div>
                     <ScrollBar orientation="horizontal" />
                   </ScrollArea>
@@ -3125,62 +3165,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   );
 
   const educationLevelMap = useMemo(
-    () => ({
-      high_school: {
-        label: dict.options.educationLevel.high_school,
-        shortLabel: 'תיכון',
-        icon: School,
-        color: 'text-blue-600',
-      },
-      vocational: {
-        label: dict.options.educationLevel.vocational,
-        shortLabel: 'מקצועי',
-        icon: Award,
-        color: 'text-green-600',
-      },
-      academic_student: {
-        label: dict.options.educationLevel.academic_student,
-        shortLabel: 'סטודנט',
-        icon: BookOpen,
-        color: 'text-orange-600',
-      },
-      academic_ba: {
-        label: dict.options.educationLevel.academic_ba,
-        shortLabel: 'ב.א',
-        icon: GraduationCap,
-        color: 'text-purple-600',
-      },
-      academic_ma: {
-        label: dict.options.educationLevel.academic_ma,
-        shortLabel: 'מ.א',
-        icon: Star,
-        color: 'text-indigo-600',
-      },
-      academic_phd: {
-        label: dict.options.educationLevel.academic_phd,
-        shortLabel: 'דוקטור',
-        icon: Crown,
-        color: 'text-rose-600',
-      },
-      yeshiva_seminary: {
-        label: dict.options.educationLevel.yeshiva_seminary,
-        shortLabel: 'תורני',
-        icon: BookMarked,
-        color: 'text-amber-600',
-      },
-      other: {
-        label: dict.options.educationLevel.other,
-        shortLabel: 'ייחודי',
-        icon: Sparkles,
-        color: 'text-pink-600',
-      },
-      no_preference: {
-        label: dict.options.educationLevel.other,
-        shortLabel: 'פתוח',
-        icon: Globe,
-        color: 'text-gray-600',
-      },
-    }),
+    () => createEducationLevelMap(dict.options.educationLevel),
     [dict.options.educationLevel]
   );
 
@@ -4369,18 +4354,21 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     gradient={THEME.colors.secondary.sky}
                   >
                     <div className="space-y-4 sm:space-y-5">
-                      <DetailItem
-                        icon={GraduationCap}
-                        label="רמת ההשכלה"
-                        value={
-                          formatEnumValue(
-                            profile.educationLevel,
-                            educationLevelMap
-                          ).label
-                        }
-                        variant="highlight"
-                        textAlign="right"
-                      />
+                      // יש להוסיף תנאי מסביב לרכיב
+                      {profile.educationLevel && (
+                        <DetailItem
+                          icon={GraduationCap}
+                          label="רמת ההשכלה"
+                          value={
+                            formatEnumValue(
+                              profile.educationLevel,
+                              educationLevelMap
+                            ).label
+                          }
+                          variant="highlight"
+                          textAlign="right"
+                        />
+                      )}
                       {profile.education && (
                         <DetailItem
                           icon={BookOpen}
@@ -4390,23 +4378,29 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           valueClassName="whitespace-pre-wrap"
                         />
                       )}
-                      <DetailItem
-                        icon={Briefcase}
-                        label="התחום המקצועי"
-                        value={profile.occupation || 'מקצוע מעניין מחכה לגילוי'}
-                        variant="elegant"
-                        textAlign="right"
-                      />
-                      <DetailItem
-                        icon={Award}
-                        label="השירות הצבאי/לאומי"
-                        value={
-                          formatEnumValue(profile.serviceType, serviceTypeMap)
-                            .label
-                        }
-                        variant="elegant"
-                        textAlign="right"
-                      />
+                      // יש להוסיף תנאי ולהסיר את ערך ברירת המחדל
+                      {profile.occupation && (
+                        <DetailItem
+                          icon={Briefcase}
+                          label="התחום המקצועי"
+                          value={profile.occupation}
+                          variant="elegant"
+                          textAlign="right"
+                        />
+                      )}
+                      // יש להוסיף תנאי מסביב לרכיב
+                      {profile.serviceType && (
+                        <DetailItem
+                          icon={Award}
+                          label="השירות הצבאי/לאומי"
+                          value={
+                            formatEnumValue(profile.serviceType, serviceTypeMap)
+                              .label
+                          }
+                          variant="elegant"
+                          textAlign="right"
+                        />
+                      )}
                       {profile.serviceDetails && (
                         <DetailItem
                           icon={InfoIcon}
@@ -4426,13 +4420,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     gradient={THEME.colors.primary.accent}
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                      <DetailItem
-                        icon={Users2}
-                        label="סטטוס ההורים"
-                        value={profile.parentStatus || 'נגלה יחד'}
-                        variant="elegant"
-                        textAlign="right"
-                      />
+                      // יש להוסיף תנאי ולהסיר את ערך ברירת המחדל
+                      {profile.parentStatus && (
+                        <DetailItem
+                          icon={Users2}
+                          label="סטטוס ההורים"
+                          value={profile.parentStatus}
+                          variant="elegant"
+                          textAlign="right"
+                        />
+                      )}
                       {profile.fatherOccupation && (
                         <DetailItem
                           icon={Briefcase}
@@ -4451,28 +4448,26 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           textAlign="right"
                         />
                       )}
-                      <DetailItem
-                        icon={Users}
-                        label="אחים ואחיות"
-                        value={
-                          profile.siblings
-                            ? `${profile.siblings} אחים/אחיות`
-                            : 'נגלה יחד'
-                        }
-                        variant="elegant"
-                        textAlign="right"
-                      />
-                      <DetailItem
-                        icon={Crown}
-                        label="המקום במשפחה"
-                        value={
-                          profile.position
-                            ? `מקום ${profile.position}`
-                            : 'נגלה יחד'
-                        }
-                        variant="elegant"
-                        textAlign="right"
-                      />
+                      // יש להוסיף תנאי ולהסיר את התנאי הפנימי
+                      {profile.siblings && (
+                        <DetailItem
+                          icon={Users}
+                          label="אחים ואחיות"
+                          value={`${profile.siblings} אחים/אחיות`}
+                          variant="elegant"
+                          textAlign="right"
+                        />
+                      )}
+                      // יש להוסיף תנאי ולהסיר את התנאי הפנימי
+                      {profile.position && (
+                        <DetailItem
+                          icon={Crown}
+                          label="המקום במשפחה"
+                          value={`מקום ${profile.position}`}
+                          variant="elegant"
+                          textAlign="right"
+                        />
+                      )}
                       {profile.aliyaCountry && (
                         <DetailItem
                           icon={Globe}
@@ -4548,18 +4543,22 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   gradient={THEME.colors.primary.gold}
                 >
                   <div className="space-y-4 sm:space-y-5">
-                    <DetailItem
-                      icon={BookMarked}
-                      label="השקפת העולם שמנחה אותי"
-                      value={
-                        formatEnumValue(
-                          profile.religiousLevel,
-                          religiousLevelMap
-                        ).label
-                      }
-                      variant="highlight"
-                      textAlign="right"
-                    />
+                    // יש להוסיף תנאי מסביב לרכיב
+                    {profile.religiousLevel && (
+                      <DetailItem
+                        icon={BookMarked}
+                        label="השקפת העולם שמנחה אותי"
+                        value={
+                          formatEnumValue(
+                            profile.religiousLevel,
+                            religiousLevelMap
+                          ).label
+                        }
+                        variant="highlight"
+                        textAlign="right"
+                      />
+                    )}
+                    // הקוד הקיים כבר תקין, אין צורך בשינוי
                     {profile.religiousJourney && (
                       <DetailItem
                         icon={Compass}
@@ -4574,19 +4573,23 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         textAlign="right"
                       />
                     )}
-                    <DetailItem
-                      icon={Heart}
-                      label="שמירת נגיעה"
-                      value={
-                        formatBooleanPreference(
-                          profile.shomerNegiah,
-                          'כן, זה חשוב לי',
-                          'לא'
-                        ).label
-                      }
-                      variant="elegant"
-                      textAlign="right"
-                    />
+                    // יש להוסיף תנאי שיבדוק אם הערך אינו null או undefined
+                    {profile.shomerNegiah !== null &&
+                      profile.shomerNegiah !== undefined && (
+                        <DetailItem
+                          icon={Heart}
+                          label="שמירת נגיעה"
+                          value={
+                            formatBooleanPreference(
+                              profile.shomerNegiah,
+                              'כן, זה חשוב לי',
+                              'לא'
+                            ).label
+                          }
+                          variant="elegant"
+                          textAlign="right"
+                        />
+                      )}
                     {profile.gender === 'FEMALE' && profile.headCovering && (
                       <DetailItem
                         icon={Crown}
@@ -4613,25 +4616,27 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     )}
                   </div>
                 </SectionCard>
-                {profile.influentialRabbi && (
-                  <SectionCard
-                    title="דמות רוחנית משפיעה"
-                    icon={Lightbulb}
-                    variant="elegant"
-                    gradient={THEME.colors.primary.gold}
-                  >
-                    <div
-                      className={cn(
-                        'p-4 sm:p-6 rounded-2xl border border-amber-200',
-                        `bg-gradient-to-r ${THEME.colors.neutral.warm}`
-                      )}
+                {profile.influentialRabbi &&
+                  profile.influentialRabbi.trim() !== '' && (
+                    <SectionCard
+                      title="דמות רוחנית משפיעה"
+                      icon={Lightbulb}
+                      variant="elegant"
+                      gradient={THEME.colors.primary.gold}
                     >
-                      <p className="text-amber-800 leading-relaxed italic">
-                        &quot;{profile.influentialRabbi}&quot;
-                      </p>
-                    </div>
-                  </SectionCard>
-                )}
+                      <div
+                        className={cn(
+                          'p-4 sm:p-6 rounded-2xl border border-amber-200',
+                          `bg-gradient-to-r ${THEME.colors.neutral.warm}`
+                        )}
+                      >
+                        <p className="text-amber-800 leading-relaxed italic">
+                          &quot;{profile.influentialRabbi}&quot;
+                        </p>
+                      </div>
+                    </SectionCard>
+                  )}
+
                 {religionContent.deeperAnswers.length > 0 && (
                   <SectionCard
                     title="העולם הדתי והרוחני שלי"
@@ -4700,26 +4705,28 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </div>
                   </SectionCard>
                 )}
-                {profile.inspiringCoupleStory && (
-                  <SectionCard
-                    title="המודל שלי לזוגיות"
-                    subtitle="הזוג שנותן לי השראה"
-                    icon={Stars}
-                    variant="elegant"
-                    gradient={THEME.colors.primary.gold}
-                  >
-                    <div
-                      className={cn(
-                        'p-4 sm:p-6 rounded-2xl border border-amber-200',
-                        `bg-gradient-to-r ${THEME.colors.neutral.warm}`
-                      )}
+                // שיפור קל לתנאי הקיים
+                {profile.inspiringCoupleStory &&
+                  profile.inspiringCoupleStory.trim() !== '' && (
+                    <SectionCard
+                      title="המודל שלי לזוגיות"
+                      subtitle="הזוג שנותן לי השראה"
+                      icon={Stars}
+                      variant="elegant"
+                      gradient={THEME.colors.primary.gold}
                     >
-                      <p className="text-amber-800 leading-relaxed italic">
-                        &quot;{profile.inspiringCoupleStory}&quot;
-                      </p>
-                    </div>
-                  </SectionCard>
-                )}
+                      <div
+                        className={cn(
+                          'p-4 sm:p-6 rounded-2xl border border-amber-200',
+                          `bg-gradient-to-r ${THEME.colors.neutral.warm}`
+                        )}
+                      >
+                        <p className="text-amber-800 leading-relaxed italic">
+                          &quot;{profile.inspiringCoupleStory}&quot;
+                        </p>
+                      </div>
+                    </SectionCard>
+                  )}
                 {relationshipContent.deeperAnswers.length > 0 && (
                   <SectionCard
                     title="עוד על החזון שלי לזוגיות"
@@ -5033,6 +5040,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           characterTraitMap={characterTraitMap}
           hobbiesMap={hobbiesMap}
           religiousLevelMap={religiousLevelMap}
+          educationLevelMap={educationLevelMap}
         />
         <MobileImageGallery
           orderedImages={orderedImages}
@@ -5072,6 +5080,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             characterTraitMap={characterTraitMap}
             hobbiesMap={hobbiesMap}
             religiousLevelMap={religiousLevelMap}
+            educationLevelMap={educationLevelMap}
           />
           <MobileImageGallery
             orderedImages={orderedImages}
@@ -5400,6 +5409,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   characterTraitMap={characterTraitMap}
                   hobbiesMap={hobbiesMap}
                   religiousLevelMap={religiousLevelMap}
+                  educationLevelMap={educationLevelMap}
                 />
                 <div className="p-4 sm:p-6 overflow-hidden flex max-w-full">
                   <MainContentTabs />
