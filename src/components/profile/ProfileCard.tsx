@@ -4179,7 +4179,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 {personalityContent.hookAnswer && (
                   <QuestionnaireItem
                     answer={personalityContent.hookAnswer}
-                    worldName={WORLDS.personality.label} // <-- הוספנו את זה
+                    worldName={WORLDS.personality.label}
                     worldColor={WORLDS.personality.accentColor}
                     worldGradient={WORLDS.personality.gradient}
                   />
@@ -4312,7 +4312,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         <QuestionnaireItem
                           key={answer.questionId}
                           answer={answer}
-                          worldName={WORLDS.personality.label} // <-- הוספנו את זה
+                          worldName={WORLDS.personality.label}
                           worldColor={WORLDS.personality.accentColor}
                           worldGradient={WORLDS.personality.gradient}
                         />
@@ -4340,7 +4340,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 {valuesContent.hookAnswer && (
                   <QuestionnaireItem
                     answer={valuesContent.hookAnswer}
-                    worldName={WORLDS.personality.label} // <-- הוספנו את זה
+                    worldName={WORLDS.values.label}
                     worldColor={WORLDS.values.accentColor}
                     worldGradient={WORLDS.values.gradient}
                   />
@@ -4354,21 +4354,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     gradient={THEME.colors.secondary.sky}
                   >
                     <div className="space-y-4 sm:space-y-5">
-                      // יש להוסיף תנאי מסביב לרכיב
-                      {profile.educationLevel && (
-                        <DetailItem
-                          icon={GraduationCap}
-                          label="רמת ההשכלה"
-                          value={
-                            formatEnumValue(
-                              profile.educationLevel,
-                              educationLevelMap
-                            ).label
-                          }
-                          variant="highlight"
-                          textAlign="right"
-                        />
-                      )}
+                      <DetailItem
+                        icon={GraduationCap}
+                        label="רמת ההשכלה"
+                        value={
+                          formatEnumValue(
+                            profile.educationLevel,
+                            educationLevelMap
+                          ).label
+                        }
+                        variant="highlight"
+                        textAlign="right"
+                      />
                       {profile.education && (
                         <DetailItem
                           icon={BookOpen}
@@ -4378,29 +4375,23 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           valueClassName="whitespace-pre-wrap"
                         />
                       )}
-                      // יש להוסיף תנאי ולהסיר את ערך ברירת המחדל
-                      {profile.occupation && (
-                        <DetailItem
-                          icon={Briefcase}
-                          label="התחום המקצועי"
-                          value={profile.occupation}
-                          variant="elegant"
-                          textAlign="right"
-                        />
-                      )}
-                      // יש להוסיף תנאי מסביב לרכיב
-                      {profile.serviceType && (
-                        <DetailItem
-                          icon={Award}
-                          label="השירות הצבאי/לאומי"
-                          value={
-                            formatEnumValue(profile.serviceType, serviceTypeMap)
-                              .label
-                          }
-                          variant="elegant"
-                          textAlign="right"
-                        />
-                      )}
+                      <DetailItem
+                        icon={Briefcase}
+                        label="התחום המקצועי"
+                        value={profile.occupation || 'מקצוע מעניין מחכה לגילוי'}
+                        variant="elegant"
+                        textAlign="right"
+                      />
+                      <DetailItem
+                        icon={Award}
+                        label="השירות הצבאי/לאומי"
+                        value={
+                          formatEnumValue(profile.serviceType, serviceTypeMap)
+                            .label
+                        }
+                        variant="elegant"
+                        textAlign="right"
+                      />
                       {profile.serviceDetails && (
                         <DetailItem
                           icon={InfoIcon}
@@ -4420,16 +4411,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     gradient={THEME.colors.primary.accent}
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                      // יש להוסיף תנאי ולהסיר את ערך ברירת המחדל
-                      {profile.parentStatus && (
-                        <DetailItem
-                          icon={Users2}
-                          label="סטטוס ההורים"
-                          value={profile.parentStatus}
-                          variant="elegant"
-                          textAlign="right"
-                        />
-                      )}
+                      <DetailItem
+                        icon={Users2}
+                        label="סטטוס ההורים"
+                        value={profile.parentStatus || 'נגלה יחד'}
+                        variant="elegant"
+                        textAlign="right"
+                      />
                       {profile.fatherOccupation && (
                         <DetailItem
                           icon={Briefcase}
@@ -4448,26 +4436,28 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           textAlign="right"
                         />
                       )}
-                      // יש להוסיף תנאי ולהסיר את התנאי הפנימי
-                      {profile.siblings && (
-                        <DetailItem
-                          icon={Users}
-                          label="אחים ואחיות"
-                          value={`${profile.siblings} אחים/אחיות`}
-                          variant="elegant"
-                          textAlign="right"
-                        />
-                      )}
-                      // יש להוסיף תנאי ולהסיר את התנאי הפנימי
-                      {profile.position && (
-                        <DetailItem
-                          icon={Crown}
-                          label="המקום במשפחה"
-                          value={`מקום ${profile.position}`}
-                          variant="elegant"
-                          textAlign="right"
-                        />
-                      )}
+                      <DetailItem
+                        icon={Users}
+                        label="אחים ואחיות"
+                        value={
+                          profile.siblings
+                            ? `${profile.siblings} אחים/אחיות`
+                            : 'נגלה יחד'
+                        }
+                        variant="elegant"
+                        textAlign="right"
+                      />
+                      <DetailItem
+                        icon={Crown}
+                        label="המקום במשפחה"
+                        value={
+                          profile.position
+                            ? `מקום ${profile.position}`
+                            : 'נגלה יחד'
+                        }
+                        variant="elegant"
+                        textAlign="right"
+                      />
                       {profile.aliyaCountry && (
                         <DetailItem
                           icon={Globe}
@@ -4502,7 +4492,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         <QuestionnaireItem
                           key={answer.questionId}
                           answer={answer}
-                          worldName={WORLDS.personality.label} // <-- הוספנו את זה
+                          worldName={WORLDS.values.label}
                           worldColor={WORLDS.values.accentColor}
                           worldGradient={WORLDS.values.gradient}
                         />
@@ -4530,7 +4520,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 {religionContent.hookAnswer && (
                   <QuestionnaireItem
                     answer={religionContent.hookAnswer}
-                    worldName={WORLDS.personality.label} // <-- הוספנו את זה
+                    worldName={WORLDS.religion.label}
                     worldColor={WORLDS.religion.accentColor}
                     worldGradient={WORLDS.religion.gradient}
                   />
@@ -4543,22 +4533,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   gradient={THEME.colors.primary.gold}
                 >
                   <div className="space-y-4 sm:space-y-5">
-                    // יש להוסיף תנאי מסביב לרכיב
-                    {profile.religiousLevel && (
-                      <DetailItem
-                        icon={BookMarked}
-                        label="השקפת העולם שמנחה אותי"
-                        value={
-                          formatEnumValue(
-                            profile.religiousLevel,
-                            religiousLevelMap
-                          ).label
-                        }
-                        variant="highlight"
-                        textAlign="right"
-                      />
-                    )}
-                    // הקוד הקיים כבר תקין, אין צורך בשינוי
+                    <DetailItem
+                      icon={BookMarked}
+                      label="השקפת העולם שמנחה אותי"
+                      value={
+                        formatEnumValue(
+                          profile.religiousLevel,
+                          religiousLevelMap
+                        ).label
+                      }
+                      variant="highlight"
+                      textAlign="right"
+                    />
                     {profile.religiousJourney && (
                       <DetailItem
                         icon={Compass}
@@ -4573,23 +4559,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         textAlign="right"
                       />
                     )}
-                    // יש להוסיף תנאי שיבדוק אם הערך אינו null או undefined
-                    {profile.shomerNegiah !== null &&
-                      profile.shomerNegiah !== undefined && (
-                        <DetailItem
-                          icon={Heart}
-                          label="שמירת נגיעה"
-                          value={
-                            formatBooleanPreference(
-                              profile.shomerNegiah,
-                              'כן, זה חשוב לי',
-                              'לא'
-                            ).label
-                          }
-                          variant="elegant"
-                          textAlign="right"
-                        />
-                      )}
+                    <DetailItem
+                      icon={Heart}
+                      label="שמירת נגיעה"
+                      value={
+                        formatBooleanPreference(
+                          profile.shomerNegiah,
+                          'כן, זה חשוב לי',
+                          'לא'
+                        ).label
+                      }
+                      variant="elegant"
+                      textAlign="right"
+                    />
                     {profile.gender === 'FEMALE' && profile.headCovering && (
                       <DetailItem
                         icon={Crown}
@@ -4616,27 +4598,25 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     )}
                   </div>
                 </SectionCard>
-                {profile.influentialRabbi &&
-                  profile.influentialRabbi.trim() !== '' && (
-                    <SectionCard
-                      title="דמות רוחנית משפיעה"
-                      icon={Lightbulb}
-                      variant="elegant"
-                      gradient={THEME.colors.primary.gold}
+                {profile.influentialRabbi && (
+                  <SectionCard
+                    title="דמות רוחנית משפיעה"
+                    icon={Lightbulb}
+                    variant="elegant"
+                    gradient={THEME.colors.primary.gold}
+                  >
+                    <div
+                      className={cn(
+                        'p-4 sm:p-6 rounded-2xl border border-amber-200',
+                        `bg-gradient-to-r ${THEME.colors.neutral.warm}`
+                      )}
                     >
-                      <div
-                        className={cn(
-                          'p-4 sm:p-6 rounded-2xl border border-amber-200',
-                          `bg-gradient-to-r ${THEME.colors.neutral.warm}`
-                        )}
-                      >
-                        <p className="text-amber-800 leading-relaxed italic">
-                          &quot;{profile.influentialRabbi}&quot;
-                        </p>
-                      </div>
-                    </SectionCard>
-                  )}
-
+                      <p className="text-amber-800 leading-relaxed italic">
+                        &quot;{profile.influentialRabbi}&quot;
+                      </p>
+                    </div>
+                  </SectionCard>
+                )}
                 {religionContent.deeperAnswers.length > 0 && (
                   <SectionCard
                     title="העולם הדתי והרוחני שלי"
@@ -4650,7 +4630,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         <QuestionnaireItem
                           key={answer.questionId}
                           answer={answer}
-                          worldName={WORLDS.personality.label} // <-- הוספנו את זה
+                          worldName={WORLDS.religion.label}
                           worldColor={WORLDS.religion.accentColor}
                           worldGradient={WORLDS.religion.gradient}
                         />
@@ -4678,7 +4658,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 {relationshipContent.hookAnswer && (
                   <QuestionnaireItem
                     answer={relationshipContent.hookAnswer}
-                    worldName={WORLDS.personality.label} // <-- הוספנו את זה
+                    worldName={WORLDS.relationship.label}
                     worldColor={WORLDS.relationship.accentColor}
                     worldGradient={WORLDS.relationship.gradient}
                   />
@@ -4705,28 +4685,26 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </div>
                   </SectionCard>
                 )}
-                // שיפור קל לתנאי הקיים
-                {profile.inspiringCoupleStory &&
-                  profile.inspiringCoupleStory.trim() !== '' && (
-                    <SectionCard
-                      title="המודל שלי לזוגיות"
-                      subtitle="הזוג שנותן לי השראה"
-                      icon={Stars}
-                      variant="elegant"
-                      gradient={THEME.colors.primary.gold}
+                {profile.inspiringCoupleStory && (
+                  <SectionCard
+                    title="המודל שלי לזוגיות"
+                    subtitle="הזוג שנותן לי השראה"
+                    icon={Stars}
+                    variant="elegant"
+                    gradient={THEME.colors.primary.gold}
+                  >
+                    <div
+                      className={cn(
+                        'p-4 sm:p-6 rounded-2xl border border-amber-200',
+                        `bg-gradient-to-r ${THEME.colors.neutral.warm}`
+                      )}
                     >
-                      <div
-                        className={cn(
-                          'p-4 sm:p-6 rounded-2xl border border-amber-200',
-                          `bg-gradient-to-r ${THEME.colors.neutral.warm}`
-                        )}
-                      >
-                        <p className="text-amber-800 leading-relaxed italic">
-                          &quot;{profile.inspiringCoupleStory}&quot;
-                        </p>
-                      </div>
-                    </SectionCard>
-                  )}
+                      <p className="text-amber-800 leading-relaxed italic">
+                        &quot;{profile.inspiringCoupleStory}&quot;
+                      </p>
+                    </div>
+                  </SectionCard>
+                )}
                 {relationshipContent.deeperAnswers.length > 0 && (
                   <SectionCard
                     title="עוד על החזון שלי לזוגיות"
@@ -4740,7 +4718,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         <QuestionnaireItem
                           key={answer.questionId}
                           answer={answer}
-                          worldName={WORLDS.personality.label} // <-- הוספנו את זה
+                          worldName={WORLDS.relationship.label}
                           worldColor={WORLDS.relationship.accentColor}
                           worldGradient={WORLDS.relationship.gradient}
                         />
@@ -4768,7 +4746,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 {partnerContent.hookAnswer && (
                   <QuestionnaireItem
                     answer={partnerContent.hookAnswer}
-                    worldName={WORLDS.personality.label} // <-- הוספנו את זה
+                    worldName={WORLDS.partner.label}
                     worldColor={WORLDS.partner.accentColor}
                     worldGradient={WORLDS.partner.gradient}
                   />
@@ -4835,7 +4813,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         <QuestionnaireItem
                           key={answer.questionId}
                           answer={answer}
-                          worldName={WORLDS.personality.label} // <-- הוספנו את זה
+                          worldName={WORLDS.partner.label}
                           worldColor={WORLDS.partner.accentColor}
                           worldGradient={WORLDS.partner.gradient}
                         />
