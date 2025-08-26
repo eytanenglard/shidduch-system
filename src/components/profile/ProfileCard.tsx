@@ -1115,7 +1115,7 @@ const formatAvailabilityStatus = (
 ) => {
   const statusMap = {
     AVAILABLE: {
-      text: 'זמין/ה להכרות מרגשות',
+      text: 'זמין/ה',
       shortText: 'זמין',
       gradient: THEME.colors.primary.main,
       gradientSm: THEME.colors.primary.mainSm,
@@ -3992,13 +3992,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const QuestionnaireItem: React.FC<{
     answer: FormattedAnswer;
     worldName: string; // <-- הוספנו את זה
-    dict: ProfileCardDict;
+
     worldColor?: string;
     worldGradient?: string;
     compact?: boolean;
   }> = ({
     answer,
-    dict,
     worldName,
     worldColor = 'rose',
     worldGradient,
@@ -4198,7 +4197,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.personality.label} // <-- הוספנו את זה
                     worldColor={WORLDS.personality.accentColor}
                     worldGradient={WORLDS.personality.gradient}
-                    dict={dict}
                   />
                 )}
                 {profile.profileHeadline && (
@@ -4332,7 +4330,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.personality.label} // <-- הוספנו את זה
                           worldColor={WORLDS.personality.accentColor}
                           worldGradient={WORLDS.personality.gradient}
-                          dict={dict}
                         />
                       ))}
                     </div>
@@ -4361,7 +4358,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.personality.label} // <-- הוספנו את זה
                     worldColor={WORLDS.values.accentColor}
                     worldGradient={WORLDS.values.gradient}
-                    dict={dict}
                   />
                 )}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
@@ -4514,7 +4510,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.personality.label} // <-- הוספנו את זה
                           worldColor={WORLDS.values.accentColor}
                           worldGradient={WORLDS.values.gradient}
-                          dict={dict}
                         />
                       ))}
                     </div>
@@ -4543,7 +4538,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.personality.label} // <-- הוספנו את זה
                     worldColor={WORLDS.religion.accentColor}
                     worldGradient={WORLDS.religion.gradient}
-                    dict={dict}
                   />
                 )}
                 <SectionCard
@@ -4654,7 +4648,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.personality.label} // <-- הוספנו את זה
                           worldColor={WORLDS.religion.accentColor}
                           worldGradient={WORLDS.religion.gradient}
-                        dict={dict}
                         />
                       ))}
                     </div>
@@ -4683,7 +4676,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.personality.label} // <-- הוספנו את זה
                     worldColor={WORLDS.relationship.accentColor}
                     worldGradient={WORLDS.relationship.gradient}
-                  dict={dict}
                   />
                 )}
                 {profile.matchingNotes && (
@@ -4744,7 +4736,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.personality.label} // <-- הוספנו את זה
                           worldColor={WORLDS.relationship.accentColor}
                           worldGradient={WORLDS.relationship.gradient}
-                        dict={dict}
                         />
                       ))}
                     </div>
@@ -4773,7 +4764,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.personality.label} // <-- הוספנו את זה
                     worldColor={WORLDS.partner.accentColor}
                     worldGradient={WORLDS.partner.gradient}
-                  dict={dict}
                   />
                 )}
                 {hasAnyPreferences ? (
@@ -4841,7 +4831,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.personality.label} // <-- הוספנו את זה
                           worldColor={WORLDS.partner.accentColor}
                           worldGradient={WORLDS.partner.gradient}
-                        dict={dict}
                         />
                       ))}
                     </div>

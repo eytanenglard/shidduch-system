@@ -13,6 +13,15 @@
     "matchmakerSuggestions": "Match Suggestions",
     "matchmakerClients": "Candidates"
   },
+    "userDropdown": {
+    "openMenuAriaLabel": "Open user menu",
+    "profileImageAlt": "Profile picture",
+    "myProfile": "My Profile",
+    "questionnaire": "Matching Questionnaire",
+    "accountSettings": "Account Settings",
+    "signOut": "Sign Out"
+  },
+
   "stickyNav": {
     "homepageAriaLabel": "NeshamaTech Homepage",
     "signUpButton": "Sign Up",

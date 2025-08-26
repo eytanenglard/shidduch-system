@@ -14,6 +14,16 @@ export type NavbarDict = {
     matchmakerSuggestions: string;
   matchmakerClients: string;
 };
+// --- User Dropdown ---
+export type UserDropdownDict = {
+  openMenuAriaLabel: string;
+  profileImageAlt: string;
+  myProfile: string;
+  questionnaire: string;
+  accountSettings: string;
+  signOut: string;
+};
+
 
 // --- Hero Section ---
 export type PrincipleDict = {
@@ -546,6 +556,7 @@ export type SuggestionsDictionary = {
 export type Dictionary = {
   // Keys from the main dictionary
   navbar: NavbarDict;
+  userDropdown: UserDropdownDict;
   stickyNav: StickyNavDict;
   heroSection: HeroSectionDict;
   valueProposition: ValuePropositionDict;

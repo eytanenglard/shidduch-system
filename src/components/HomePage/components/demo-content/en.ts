@@ -10,30 +10,139 @@ export const femaleProfileContent = {
   religiousLevel: 'Liberal Orthodox',
   about: 'An optimist who loves deep conversations over coffee. I find beauty in life\'s small things, whether it\'s a walk in nature or a good playlist. After a few attempts that didn\'t work out, I now know better what\'s right for me, and I\'m looking for a partner for the journey, to build a home together filled with laughter, mutual respect, and shared growth.',
   profileHeadline: 'Designing life with a smile, looking for a partner for the adventure.',
-  // START: Significant expansion of questionnaire answers
-  questionnaire: {
-    // Personality World
-    personality_self_portrayal_revised: "I'm an optimistic and positive person who believes you can find the good in any situation. I'm very creative, which is expressed in my work and hobbies, and I have good listening skills - friends say I'm 'receptive'. I value deep conversations, but I also love to laugh and enjoy the simple things.",
-    personality_good_vs_perfect_day: "A 'perfect' day is a big thing, but a 'really good' day is built from many small things: a good phone call with my mom, a creative breakthrough at work on a design I've been working hard on, a spontaneous trip to the beach at sunset, and ending the day with a good conversation and a cup of tea. It's a feeling of satisfaction and peace.",
-    personality_failure_lesson: "From a failure in a big project at work, I learned that my value isn't dependent on external success and that it's important to ask for help. It taught me a lot about self-compassion and teamwork.",
 
-    // Values World
-    values_core_elaboration_revised: "The most important value to me is mutual respect. At a professional crossroads, I could have taken a big project at a colleague's expense, but I chose to collaborate. Although I earned less personal 'credit', we built something better together and maintained a healthy relationship. It was proof to myself that the journey is just as important as the destination.",
-    values_strength_from_challenge: "I grew up in a very creative but also somewhat chaotic home. It taught me from a young age to find order and quiet within myself, and it developed in me a very high capacity for empathy and sensitivity to my surroundings. The challenge turned me into someone who understands people deeply.",
-    
-    // Relationship World
-    relationship_household_philosophy: "I believe in a full and flexible partnership, like I saw in my parents' home, where my dad is in finance and my mom is an artist, and each brings their strengths. Not fixed 'roles', but a team that works together according to strengths and available time. It's all about open communication.",
-    relationship_deal_breaker_summary_final_revised: "The one thing a relationship cannot survive without for me is open and honest communication. My greatest hope is to build a home filled with laughter, mutual respect, and shared growth.",
-
-    // Partner World
-    partner_deal_breakers_open_text_revised: 'My absolute red line is condescending cynicism and a basic lack of respect for people (for example, how he talks to a waiter). I cannot be with someone who doesn\'t know how to respect every person for who they are.',
-    partner_must_have_quality_final_revised: "The one quality upon which everything rests is kindness. A person with a good heart is someone who knows how to give, receive, forgive, and be a true partner. Everything else is built on this foundation.",
-    
-    // Religion World
-    religion_modesty_personal_approach_revised: 'My modesty is mainly expressed in choosing respectful attire (I wear both pants and skirts) and clean speech. I am not shomer negiah, but I believe in creating an initial connection based on getting to know the personality before the physical aspect. My approach is "inner self reflected on the outside".',
-    religion_children_education_religious_vision_revised: 'My vision is to establish a home where children grow up with values of giving, love of Torah, and the Land of Israel. It is important to me that the education be open and allow for questioning, one that nurtures thinking individuals with a deep, internal reverence for God.',
+  formattedAnswers: {
+    personality: [
+      {
+        questionId: 'demo_noa_p1',
+        question: "How would you describe yourself in 3-5 sentences?",
+        questionType: 'openText',
+        rawValue: "I'm an optimistic and positive person who believes you can find the good in any situation. I'm very creative, which is expressed in my work and hobbies, and I have good listening skills - friends say I'm 'receptive'. I value deep conversations, but I also love to laugh and enjoy the simple things.",
+        displayText: "I'm an optimistic and positive person who believes you can find the good in any situation. I'm very creative, which is expressed in my work and hobbies, and I have good listening skills - friends say I'm 'receptive'. I value deep conversations, but I also love to laugh and enjoy the simple things.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_p2',
+        question: "What is your natural 'biological clock'?",
+        questionType: 'scale',
+        rawValue: 7,
+        displayText: "I lean towards being a 'night owl' - I'm more creative and productive in the evening hours.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_p3',
+        question: "When you feel overwhelmed, what are your 'go-to' strategies for resetting?",
+        questionType: 'multiSelect',
+        rawValue: ['A good talk with a friend', 'Getting out into nature', 'Engaging in a creative hobby'],
+        displayText: "My main strategies are a good talk with a friend, getting out into nature, and engaging in art or a creative hobby.",
+        isVisible: true, answeredAt: new Date(),
+      },
+    ],
+    values: [
+      {
+        questionId: 'demo_noa_v1',
+        question: "Share a story of a time you followed your most important value.",
+        questionType: 'openText',
+        rawValue: "The most important value to me is mutual respect. At a professional crossroads, I could have taken a big project at a colleague's expense, but I chose to collaborate. Although I earned less personal 'credit', we built something better together and maintained a healthy relationship. It was proof to myself that the journey is just as important as the destination.",
+        displayText: "The most important value to me is mutual respect. At a professional crossroads, I could have taken a big project at a colleague's expense, but I chose to collaborate. Although I earned less personal 'credit', we built something better together and maintained a healthy relationship. It was proof to myself that the journey is just as important as the destination.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_v2',
+        question: "What is your definition of a 'rich life,' independent of money?",
+        questionType: 'openText',
+        rawValue: "A rich life is a life full of deep connections, experiences that expand the heart, and creation that gives expression to the soul. It's a wealth of time and meaning, not of objects.",
+        displayText: "A rich life is a life full of deep connections, experiences that expand the heart, and creation that gives expression to the soul. It's a wealth of time and meaning, not of objects.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_v3',
+        question: "At this stage of your life, how is your attention distributed among different areas?",
+        questionType: 'budgetAllocation',
+        rawValue: { 'Partnership': 30, 'Family': 20, 'Leisure & Self-Care': 20, 'Career': 15, 'Friends & Community': 10, 'Spirituality': 5 },
+        displayText: "The answer is displayed as a visual chart.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    relationship: [
+      {
+        questionId: 'demo_noa_r1',
+        question: "What's your 'formula' for sharing responsibilities in managing a home?",
+        questionType: 'openText',
+        rawValue: "I believe in a full and flexible partnership, like I saw in my parents' home. Not fixed 'roles', but a team that works together according to strengths and available time. It's all about open communication.",
+        displayText: "I believe in a full and flexible partnership, like I saw in my parents' home. Not fixed 'roles', but a team that works together according to strengths and available time. It's all about open communication.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_r2',
+        question: "After a disagreement, what is the most effective way for you to 'repair' the connection?",
+        questionType: 'iconChoice',
+        rawValue: 'processing_talk',
+        displayText: "A calm conversation to process what happened, to listen, and to reach a mutual understanding.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_r3',
+        question: "In the balance between 'we' and 'me' time, where do you naturally fall?",
+        questionType: 'scale',
+        rawValue: 7,
+        displayText: "I thrive on shared time and activities, but it's also important for me to maintain personal space and my own hobbies.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    partner: [
+      {
+        questionId: 'demo_noa_pa1',
+        question: "What is the one character trait your partner must have?",
+        questionType: 'openText',
+        rawValue: "The one quality upon which everything rests is kindness. A person with a good heart is someone who knows how to give, receive, forgive, and be a true partner. Everything else is built on this foundation.",
+        displayText: "The one quality upon which everything rests is kindness. A person with a good heart is someone who knows how to give, receive, forgive, and be a true partner. Everything else is built on this foundation.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_pa2',
+        question: "Which trait, perhaps less developed in you, would you be happy to find in a partner to complement you?",
+        questionType: 'openText',
+        rawValue: "I'm a person who thinks a lot and sometimes hesitates. I would be happy to find someone a bit more decisive and confident, someone who can help me jump into the water sometimes and balance my tendency to overthink.",
+        displayText: "I'm a person who thinks a lot and sometimes hesitates. I would be happy to find someone a bit more decisive and confident, someone who can help me jump into the water sometimes and balance my tendency to overthink.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_pa3',
+        question: "When you think of an 'intelligent' partner, which type do you value most?",
+        questionType: 'budgetAllocation',
+        rawValue: { 'Emotional': 40, 'Creative': 30, 'Life Smarts': 20, 'Analytical': 10 },
+        displayText: "The answer is displayed as a visual chart.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    religion: [
+      {
+        questionId: 'demo_noa_re1',
+        question: "What is your vision for the education of the children in the home you'll build?",
+        questionType: 'openText',
+        rawValue: 'My vision is to establish a home where children grow up with values of giving, love of Torah, and the Land of Israel. It is important to me that the education be open and allow for questioning, one that nurtures thinking individuals with a deep, internal reverence for God.',
+        displayText: 'My vision is to establish a home where children grow up with values of giving, love of Torah, and the Land of Israel. It is important to me that the education be open and allow for questioning, one that nurtures thinking individuals with a deep, internal reverence for God.',
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_re2',
+        question: "What is the core experience you seek and receive from Shabbat?",
+        questionType: 'iconChoice',
+        rawValue: 'family_time',
+        displayText: "Time for family, for togetherness, and for conversation. The quiet moments of a Shabbat meal are sacred to me.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_re3',
+        question: "How flexible would you be if there were differences in Halachic practice between you and a partner?",
+        questionType: 'scale',
+        rawValue: 8,
+        displayText: "I am very flexible and open. I believe a relationship is a journey of mutual growth, and as long as there is a foundation of respect and reverence for God, we can find a shared path.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
   },
-  // END: Significant expansion
 };
 
 export const maleProfileContent = {
@@ -46,29 +155,139 @@ export const maleProfileContent = {
   religiousLevel: 'Torani Leumi',
   about: 'A man of people and action. I love the combination of the dynamic high-tech world and setting aside time for Torah study. I believe true growth happens outside the comfort zone. I\'m looking for a life partner to build a home together with reverence for God, open-mindedness, and a lot of joy.',
   profileHeadline: 'Engineer by day, Torah scholar by night. Seeking a partner to build a world with.',
-  // START: Significant expansion of questionnaire answers
-  questionnaire: {
-    // Personality World
-    personality_self_portrayal_revised: "I'm a man of action, I love challenges and goals. Reliability is very important to me, and I always try to stand by my word. I have a strong analytical side, which I got from my studies at Yeshivat HaGush and in engineering, but I balance it with a creative side - I love playing the guitar and connect deeply with the world of Hasidut. I seek constant growth, both in my career and personal life.",
-    personality_strengths_and_weaknesses_revised: "Two of my strong traits are ambition and reliability. I set high goals for myself and work hard to achieve them, and I believe my word can be trusted. The area I'm working on is emotional openness. Because of my analytical side, it sometimes takes me time to process and share feelings, and I'm trying to be more open and emotionally accessible.",
-
-    // Values World
-    values_core_elaboration_revised: "My central value is responsibility. When I served as an officer in the Combat Engineering Corps, I had to make a complex operational decision under pressure. I chose the safer course of action, even though it was less 'glamorous'. It was a decision based on responsibility for the lives of my soldiers, and it reinforced my understanding that integrity and responsibility are above all else.",
-    values_quiet_heroes: "Rabbi Sacks zt\"l. His ability to bridge worlds, to present deep and relevant Jewish thought, and to be a man of both spirit and action at the highest level is a huge inspiration for me.",
-    
-    // Relationship World
-    relationship_household_philosophy: "I believe in a division based on strengths and efficiency, with transparency and coordination. If one partner is better at cooking and the other at managing finances, it makes sense for each to lead in their area, but both should be involved and supportive. The goal is for the home to function as the best possible team.",
-    relationship_deal_breaker_summary_final_revised: "The absolute deal-breaker is a lack of integrity. The greatest aspiration is a true partnership. The knowledge that I have someone by my side, that we are a team against whatever life brings, and that we always look out for each other.",
-
-    // Partner World
-    partner_completion_trait: "As someone who is used to planning and acting in a very structured way, I would be happy to find someone with more spontaneity and flow, someone who will help me get out of the box sometimes and bring some adventure into life.",
-    partner_deal_breakers_open_text_revised: "A red line for me is a lack of ambition to develop and improve. I'm not looking for someone perfect, but it's important to me that she has an internal motivation to grow, learn, and be a better version of herself. Passivity and an unwillingness to face challenges is something I find very difficult to connect with.",
-    
-    // Religion World
-    religion_my_personal_prayer: "A passage from Rabbi Sacks that talks about 'faith as an ongoing conversation'. It connects with my perception that faith is not static, but a dynamic journey of questions, searching, and answers, which fascinates me.",
-    religion_children_education_religious_vision_revised: "My vision is to build a home where children grow up with a natural reverence for God, love of Torah, and a deep connection to the Land of Israel. It's important to me that the education be open and allow for questioning, fostering individuals who are both thinkers and believers.",
+  
+  formattedAnswers: {
+    personality: [
+      {
+        questionId: 'demo_daniel_p1',
+        question: "What are the 3-5 key things you'd want us to highlight so people understand who you truly are?",
+        questionType: 'openText',
+        rawValue: "I'm a man of action, I love challenges and goals. Reliability is very important to me, and I always try to stand by my word. I have a strong analytical side, which I got from my studies at Yeshivat HaGush and in engineering, but I balance it with a creative side - I love playing the guitar and connect deeply with the world of Hasidut. I seek constant growth, both in my career and personal life.",
+        displayText: "I'm a man of action, I love challenges and goals. Reliability is very important to me, and I always try to stand by my word. I have a strong analytical side, which I got from my studies at Yeshivat HaGush and in engineering, but I balance it with a creative side - I love playing the guitar and connect deeply with the world of Hasidut. I seek constant growth, both in my career and personal life.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_p2',
+        question: "Which 'operating system' best describes how you function day-to-day?",
+        questionType: 'iconChoice',
+        rawValue: 'task_oriented',
+        displayText: "Mission-Oriented: I function best with clear goals to accomplish.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_p3',
+        question: "Share a story about a significant failure or challenge and what you learned from it.",
+        questionType: 'openText',
+        rawValue: "I failed an important exam in my undergraduate studies. It taught me the importance of perseverance, the ability to get up after a fall, and most importantly, that failure is not the end of the world but an opportunity to learn and improve.",
+        displayText: "I failed an important exam in my undergraduate studies. It taught me the importance of perseverance, the ability to get up after a fall, and most importantly, that failure is not the end of the world but an opportunity to learn and improve.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    values: [
+      {
+        questionId: 'demo_daniel_v1',
+        question: "Share a story of a time you followed your most important value.",
+        questionType: 'openText',
+        rawValue: "My central value is responsibility. When I served as an officer in the Combat Engineering Corps, I had to make a complex operational decision under pressure. I chose the safer course of action, even though it was less 'glamorous'. It was a decision based on responsibility for the lives of my soldiers, and it reinforced my understanding that integrity and responsibility are above all else.",
+        displayText: "My central value is responsibility. When I served as an officer in the Combat Engineering Corps, I had to make a complex operational decision under pressure. I chose the safer course of action, even though it was less 'glamorous'. It was a decision based on responsibility for the lives of my soldiers, and it reinforced my understanding that integrity and responsibility are above all else.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_v2',
+        question: "Who are the people you admire as role models, and why?",
+        questionType: 'openText',
+        rawValue: "Rabbi Sacks zt\"l. His ability to bridge worlds, to present deep and relevant Jewish thought, and to be a man of both spirit and action at the highest level is a huge inspiration for me.",
+        displayText: "Rabbi Sacks zt\"l. His ability to bridge worlds, to present deep and relevant Jewish thought, and to be a man of both spirit and action at the highest level is a huge inspiration for me.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_v3',
+        question: "What is your approach to lifelong learning and intellectual growth?",
+        questionType: 'iconChoice',
+        rawValue: 'lifelong_learning',
+        displayText: "It's an essential part of who I am - I am always reading, learning, and developing, both in my professional field and in my Torah studies.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    relationship: [
+      {
+        questionId: 'demo_daniel_r1',
+        question: "What's one thing a relationship can't survive without for you, and what is your greatest aspiration?",
+        questionType: 'openText',
+        rawValue: "The absolute deal-breaker is a lack of integrity. The greatest aspiration is a true partnership. The knowledge that I have someone by my side, that we are a team against whatever life brings, and that we always look out for each other.",
+        displayText: "The absolute deal-breaker is a lack of integrity. The greatest aspiration is a true partnership. The knowledge that I have someone by my side, that we are a team against whatever life brings, and that we always look out for each other.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_r2',
+        question: "What's more important in a partner: someone who accepts you as you are, or someone who challenges you to grow?",
+        questionType: 'scale',
+        rawValue: 7,
+        displayText: "Acceptance is very important, but I'm looking for a partner who will help me be the best version of myself, and challenge me when needed. Shared growth is a supreme value in my eyes.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_r3',
+        question: "When your partner comes home after a terrible day, what is your natural response?",
+        questionType: 'iconChoice',
+        rawValue: 'analyze_solve',
+        displayText: "My initial tendency is to try to understand what happened, analyze the situation, and think together about practical solutions that could help.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    partner: [
+      {
+        questionId: 'demo_daniel_pa1',
+        question: "Which trait, perhaps less developed in you, would you be happy to find in a partner to complement you?",
+        questionType: 'openText',
+        rawValue: "As someone who is used to planning and acting in a very structured way, I would be happy to find someone with more spontaneity and flow, someone who will help me get out of the box sometimes and bring some adventure into life.",
+        displayText: "As someone who is used to planning and acting in a very structured way, I would be happy to find someone with more spontaneity and flow, someone who will help me get out of the box sometimes and bring some adventure into life.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_pa2',
+        question: "How would you allocate 100 'compatibility points' among the most essential character traits for you in a partner?",
+        questionType: 'budgetAllocation',
+        rawValue: { 'Integrity & Honesty': 30, 'Maturity & Stability': 25, 'Ambition & Growth': 20, 'Optimism': 15, 'Good Communication': 10 },
+        displayText: "The answer is displayed as a visual chart.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_pa3',
+        question: "What is your absolute 'red line,' a trait you could not live with?",
+        questionType: 'openText',
+        rawValue: "A red line for me is a lack of ambition to develop and improve. I'm not looking for someone perfect, but it's important to me that she has an internal motivation to grow, learn, and be a better version of herself. Passivity and an unwillingness to face challenges is something I find very difficult to connect with.",
+        displayText: "A red line for me is a lack of ambition to develop and improve. I'm not looking for someone perfect, but it's important to me that she has an internal motivation to grow, learn, and be a better version of herself. Passivity and an unwillingness to face challenges is something I find very difficult to connect with.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    religion: [
+      {
+        questionId: 'demo_daniel_re1',
+        question: "What prayer, Jewish concept, or idea resonates most with you?",
+        questionType: 'openText',
+        rawValue: "A passage from Rabbi Sacks that talks about 'faith as an ongoing conversation'. It connects with my perception that faith is not static, but a dynamic journey of questions, searching, and answers, which fascinates me.",
+        displayText: "A passage from Rabbi Sacks that talks about 'faith as an ongoing conversation'. It connects with my perception that faith is not static, but a dynamic journey of questions, searching, and answers, which fascinates me.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_re2',
+        question: "In building a Jewish home, how do you envision the partnership regarding roles and responsibilities?",
+        questionType: 'budgetAllocation',
+        rawValue: { 'Flexible': 60, 'Traditional': 30, 'Egalitarian': 10 },
+        displayText: "The answer is displayed as a visual chart.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_re3',
+        question: "What role does spiritual guidance (from a Rabbi, etc.) play in your life when making significant decisions?",
+        questionType: 'scale',
+        rawValue: 8,
+        displayText: "Consulting with a spiritual figure is an integral part of my decision-making process on significant issues. I see it as a source of wisdom, balance, and connection to tradition.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
   },
-  // END: Significant expansion
 };
 
 export const suggestionContent = {

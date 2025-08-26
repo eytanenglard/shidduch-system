@@ -317,6 +317,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                   getInitials={getInitials}
                   handleSignOut={handleSignOut}
                   profileIconSize={profileIconSize}
+                  dict={dict.userDropdown} 
                 />
               ) : (
                 <div className="hidden md:flex items-center gap-2">
@@ -466,26 +467,26 @@ const Navbar = ({ dict }: NavbarProps) => {
                   }
                   onClick={toggleMobileMenu}
                 />
-                <hr className="my-3" />
-                <MobileNavItem
-                  href="/profile"
-                  text="פרופיל אישי"
-                  icon={<User className="ml-2 h-5 w-5" />}
-                  onClick={toggleMobileMenu}
-                />
-                <MobileNavItem
-                  href="/settings"
-                  text="הגדרות חשבון"
-                  icon={<Settings className="ml-2 h-5 w-5" />}
-                  onClick={toggleMobileMenu}
-                />
-                <button
-                  onClick={handleSignOut}
-                  className="w-full flex items-center text-right px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
-                >
-                  <LogOut className="ml-2 h-5 w-5" />
-                  התנתקות
-                </button>
+              <hr className="my-3" />
+<MobileNavItem
+  href="/profile"
+  text={dict.userDropdown.myProfile} // <--- השתמש בתרגום
+  icon={<User className="ml-2 h-5 w-5" />}
+  onClick={toggleMobileMenu}
+/>
+<MobileNavItem
+  href="/settings"
+  text={dict.userDropdown.accountSettings} // <--- השתמש בתרגום
+  icon={<Settings className="ml-2 h-5 w-5" />}
+  onClick={toggleMobileMenu}
+/>
+<button
+  onClick={handleSignOut}
+  className="w-full flex items-center text-right px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+>
+  <LogOut className="ml-2 h-5 w-5" />
+  {dict.userDropdown.signOut} 
+</button>
               </>
             ) : (
               <>

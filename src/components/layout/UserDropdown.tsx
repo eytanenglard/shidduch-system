@@ -9,6 +9,7 @@ import { User, LogOut, Settings, Lightbulb } from 'lucide-react';
 import type { Session as NextAuthSession } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
+import type { UserDropdownDict } from '@/types/dictionary';
 
 const UserDropdown = ({
   session,
@@ -16,12 +17,15 @@ const UserDropdown = ({
   getInitials,
   handleSignOut,
   profileIconSize,
+  dict,
 }: {
   session: NextAuthSession | null;
   mainProfileImage: UserImage | null;
   getInitials: () => string;
   handleSignOut: () => void;
   profileIconSize: string;
+  // הגדרת ה-prop כ-אופציונלי עם '?' מונעת שגיאות אם הוא לא מועבר
+  dict?: UserDropdownDict; 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -43,26 +47,36 @@ const UserDropdown = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (!session?.user) return null;
+  // אם ה-dict לא הגיע, נשתמש בערכים זמניים באנגלית כדי למנוע קריסה
+  const safeDict = dict || {
+    openMenuAriaLabel: 'Open user menu (fallback)',
+    profileImageAlt: 'Profile picture (fallback)',
+    myProfile: 'My Profile',
+    questionnaire: 'Matching Questionnaire',
+    accountSettings: 'Account Settings',
+    signOut: 'Sign Out',
+  };
+
+  if (!session?.user) {
+    return null;
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         id="onboarding-target-profile-dropdown"
         onClick={() => setIsOpen(!isOpen)}
-        // --- התחל תיקון נגישות ---
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-controls="user-menu"
-        aria-label="פתח תפריט משתמש"
-        // --- סיים תיקון נגישות ---
+        aria-label={safeDict.openMenuAriaLabel}
         className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-sm shadow-md transition-all duration-300 cursor-pointer group overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 focus:ring-offset-white`}
       >
         <div className="absolute inset-0 rounded-full transition-all duration-300 group-hover:ring-2 group-hover:ring-cyan-400"></div>
         {mainProfileImage && mainProfileImage.url ? (
           <Image
             src={getRelativeCloudinaryPath(mainProfileImage.url)}
-            alt={session.user.name || 'תמונת פרופיל'}
+            alt={session.user.name || safeDict.profileImageAlt}
             fill
             className="object-cover rounded-full"
             sizes="(max-width: 768px) 40px, 40px"
@@ -76,12 +90,10 @@ const UserDropdown = ({
 
       {isOpen && (
         <div
-          // --- התחל תיקון נגישות ---
           id="user-menu"
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="onboarding-target-profile-dropdown"
-          // --- סיים תיקון נגישות ---
           className={`absolute mt-3 w-56 bg-white rounded-xl shadow-2xl z-20 border border-gray-100 ${
             isRTL ? 'origin-top-left left-0' : 'origin-top-right right-0'
           }`}
@@ -106,7 +118,7 @@ const UserDropdown = ({
                 onClick={() => setIsOpen(false)}
               >
                 <User className="ml-2 h-4 w-4" />
-                פרופיל אישי
+                {safeDict.myProfile}
               </Link>
               <Link
                 href="/questionnaire"
@@ -115,7 +127,7 @@ const UserDropdown = ({
                 onClick={() => setIsOpen(false)}
               >
                 <Lightbulb className="ml-2 h-4 w-4" />
-                שאלון התאמה
+                {safeDict.questionnaire}
               </Link>
               <Link
                 href="/settings"
@@ -124,7 +136,7 @@ const UserDropdown = ({
                 onClick={() => setIsOpen(false)}
               >
                 <Settings className="ml-2 h-4 w-4" />
-                הגדרות חשבון
+                {safeDict.accountSettings}
               </Link>
             </div>
             <div className="py-1 border-t border-gray-100" role="none">
@@ -137,7 +149,7 @@ const UserDropdown = ({
                 className="w-full text-right flex items-center px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
               >
                 <LogOut className="ml-2 h-4 w-4" />
-                התנתקות
+                {safeDict.signOut}
               </button>
             </div>
           </div>

@@ -14,6 +14,15 @@
     "matchmakerClients": "מועמדים"
 
   },
+    "userDropdown": {
+    "openMenuAriaLabel": "פתח תפריט משתמש",
+    "profileImageAlt": "תמונת פרופיל",
+    "myProfile": "פרופיל אישי",
+    "questionnaire": "שאלון התאמה",
+    "accountSettings": "הגדרות חשבון",
+    "signOut": "התנתקות"
+  },
+
    "stickyNav": {
     "homepageAriaLabel": "עמוד הבית של NeshamaTech",
     "signUpButton": "הרשמה",
