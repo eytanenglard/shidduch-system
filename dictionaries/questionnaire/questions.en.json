@@ -341,7 +341,25 @@
       "question": "In summary, what are 1-2 core values where you and your partner *must* be aligned, where there is no room for compromise for you?",
       "placeholder": "Try to focus on the most critical foundations for a healthy relationship in your eyes.",
       "helpText": "This is one of the most vital pieces of information for us. It helps focus the search on what is truly non-negotiable for you."
+    },
+        "values_childhood_shaping_experience": {
+      "question": "Our childhood shapes who we are. From the following areas, which experiences from your childhood or adolescence most significantly influenced your worldview and values today, for better or worse?",
+      "helpText": "No need to elaborate. The goal is to understand which 'lessons' life taught you early on. This knowledge will help us find someone who understands and appreciates the background you come from.",
+      "options": {
+        "financial_struggle_or_abundance": "Financial struggle or abundance at home",
+        "parental_relationship_dynamics": "The relationship dynamic between parents",
+        "social_challenges_school": "Social challenges (at school, in youth groups, etc.)",
+        "health_or_loss_experiences": "Experiences of health, loss, or family struggles",
+        "academic_pressure_or_freedom": "Academic pressure or freedom",
+        "religious_environment_strict_or_open": "The religious/spiritual environment (e.g., strict or open)"
+      }
+    },
+    "values_strength_from_challenge": {
+      "question": "(Optional question for deeper sharing) Sometimes, the greatest challenges we've faced become our greatest sources of strength. If you're comfortable sharing, how did one of the experiences you marked shape you and make you the sensitive, strong, or wise person you are today?",
+      "placeholder": "For example: 'The social difficulties I experienced taught me to be very sensitive to others and to be a loyal friend,' or 'The fact my parents worked hard taught me independence and responsibility from a young age,' or 'The struggles at home taught me how important open communication is in a relationship.'",
+      "helpText": "Your honesty here is a gift. It allows us to see not just your background, but the depth and maturity that grew from it. This information will remain strictly confidential and will only be used by the matchmaking team to find a match with understanding and sensitivity."
     }
+  
   },
   "RELATIONSHIP": {
     "relationship_core_meaning_revised": {
@@ -475,7 +493,22 @@
       "question": "To conclude this world: what is one thing a relationship cannot survive without for you, and what is the ultimate aspiration you hold for a partnership?",
       "placeholder": "My one non-negotiable is... and my highest hope is...",
       "helpText": "This helps distill your thoughts into a core principle and a guiding aspiration. It's a powerful way to focus."
+    },
+        "relationship_dating_journey_reflection": {
+      "question": "Reflecting on your dating journey so far, where do you feel you are right now?",
+      "options": {
+        "new_to_process": "At the beginning of the road, with fresh energy.",
+        "some_experience": "I've had a few chapters, learned about myself along the way.",
+        "long_journey": "I've been on this journey for a while, with experience and insights.",
+        "taking_a_break": "Returning to the process after taking a break for myself."
+      }
+    },
+    "relationship_dating_journey_lesson": {
+      "question": "What is the most significant insight you've learned about yourself or about relationships from your dating experiences to date?",
+      "placeholder": "For example: 'I learned that I need more time to open up,' 'I realized how important a shared sense of humor is to me,' or 'I discovered I used to give too much weight to superficial things.'",
+      "helpText": "This question isn't meant to pry, but to understand your starting point today. Your honesty here will help us find more suitable matches for you."
     }
+  
   },
   "PARTNER": {
     "partner_initial_impression_priorities_revised": {
@@ -573,7 +606,29 @@
       "question": "If you had to choose just one 'keystone' quality—the single trait upon which the entire structure of your relationship would rest—what would it be?",
       "placeholder": "Try to think of the single most fundamental trait for you...",
       "helpText": "This is a powerful focusing question. It helps us understand the absolute core of your search."
+    },
+    "partner_dating_persona": {
+      "question": "A date is a unique social situation. If your personality on a date was a pie chart worth 100%, how would you distribute the points among the different 'roles' you tend to play?",
+      "helpText": "We're all a bit different on a date than in daily life. Think honestly: do you tend to listen more or talk more? Be humorous or serious? Your answer helps us understand the dynamic you create.",
+      "categories": {
+        "observer_listener": "The Observer & Listener",
+        "storyteller_initiator": "The Storyteller & Initiator",
+        "humorous_light": "The Humorous & Lighthearted One",
+        "deep_serious": "The Deep & Serious One",
+        "shy_reserved": "The Shy & Reserved One"
+      }
+    },
+    "partner_common_disqualifiers": {
+      "question": "Looking back on dates that didn't continue, do you recognize a recurring pattern? What are the small (or large) things that usually make you feel 'this isn't it'?",
+      "placeholder": "For example: 'A lack of curiosity about me,' 'a conversation that's too superficial,' 'disrespect towards a waiter,' 'a major worldview gap that surfaces quickly,' 'a sense of not being serious'...",
+      "helpText": "This is one of the most important questions. It helps us (and you) distinguish between a true deal-breaker and a pattern that might be worth re-examining."
+    },
+    "partner_personality_clash": {
+      "question": "Beyond a checklist, think about a type of energy or character trait that you know you just couldn't live with day-to-day. What is the interpersonal dynamic that is the complete 'antithesis' of who you are?",
+      "placeholder": "For example: 'I can't be with someone who is constantly cynical and critical,' 'a passive person who always needs to be motivated,' 'someone overly dramatic,' 'a very controlling person'...",
+      "helpText": "Your answer helps us understand the relational environment in which you thrive, and the one in which you wither. This is just as important as matching values."
     }
+  
   },
   "RELIGION": {
     "religion_core_feeling_of_faith": {

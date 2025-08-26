@@ -17,12 +17,26 @@ export const generateDemoData = async (locale: Locale) => {
   const content = await getDemoContent(locale);
   const { femaleProfileContent, maleProfileContent, suggestionContent, aiAnalysisContent, matchmakerContent } = content;
 
+  // START: בניית אובייקט השאלון המלא מתוך התוכן המיובא
   const noaQuestionnaireResponse: QuestionnaireResponseType = {
     id: 'qr-demo-noa-updated', userId: 'demo-profile-noa',
-    personalityAnswers: { personality_self_portrayal_revised: femaleProfileContent.questionnaire.personality_self_portrayal_revised },
-    valuesAnswers: { values_core_elaboration_revised: femaleProfileContent.questionnaire.values_core_elaboration_revised },
-    relationshipAnswers: { relationship_household_philosophy: femaleProfileContent.questionnaire.relationship_household_philosophy },
-    partnerAnswers: { partner_deal_breakers_open_text_revised: femaleProfileContent.questionnaire.partner_deal_breakers_open_text_revised },
+    personalityAnswers: { 
+      personality_self_portrayal_revised: femaleProfileContent.questionnaire.personality_self_portrayal_revised,
+      personality_good_vs_perfect_day: femaleProfileContent.questionnaire.personality_good_vs_perfect_day,
+      personality_failure_lesson: femaleProfileContent.questionnaire.personality_failure_lesson,
+    },
+    valuesAnswers: { 
+      values_core_elaboration_revised: femaleProfileContent.questionnaire.values_core_elaboration_revised,
+      values_strength_from_challenge: femaleProfileContent.questionnaire.values_strength_from_challenge,
+    },
+    relationshipAnswers: { 
+      relationship_household_philosophy: femaleProfileContent.questionnaire.relationship_household_philosophy,
+      relationship_deal_breaker_summary_final_revised: femaleProfileContent.questionnaire.relationship_deal_breaker_summary_final_revised,
+    },
+    partnerAnswers: { 
+      partner_deal_breakers_open_text_revised: femaleProfileContent.questionnaire.partner_deal_breakers_open_text_revised,
+      partner_must_have_quality_final_revised: femaleProfileContent.questionnaire.partner_must_have_quality_final_revised,
+    },
     religionAnswers: { 
       religion_modesty_personal_approach_revised: femaleProfileContent.questionnaire.religion_modesty_personal_approach_revised,
       religion_children_education_religious_vision_revised: femaleProfileContent.questionnaire.religion_children_education_religious_vision_revised,
@@ -35,14 +49,32 @@ export const generateDemoData = async (locale: Locale) => {
 
   const danielQuestionnaireResponse: QuestionnaireResponseType = {
     id: 'qr-demo-daniel-updated', userId: 'demo-profile-daniel',
-    personalityAnswers: { personality_self_portrayal_revised: maleProfileContent.questionnaire.personality_self_portrayal_revised },
-    valuesAnswers: { values_core_elaboration_revised: maleProfileContent.questionnaire.values_core_elaboration_revised },
-    relationshipAnswers: {}, partnerAnswers: {}, religionAnswers: {},
+    personalityAnswers: { 
+      personality_self_portrayal_revised: maleProfileContent.questionnaire.personality_self_portrayal_revised,
+      personality_strengths_and_weaknesses_revised: maleProfileContent.questionnaire.personality_strengths_and_weaknesses_revised,
+    },
+    valuesAnswers: { 
+      values_core_elaboration_revised: maleProfileContent.questionnaire.values_core_elaboration_revised,
+      values_quiet_heroes: maleProfileContent.questionnaire.values_quiet_heroes,
+    },
+    relationshipAnswers: {
+      relationship_household_philosophy: maleProfileContent.questionnaire.relationship_household_philosophy,
+      relationship_deal_breaker_summary_final_revised: maleProfileContent.questionnaire.relationship_deal_breaker_summary_final_revised,
+    },
+    partnerAnswers: {
+      partner_completion_trait: maleProfileContent.questionnaire.partner_completion_trait,
+      partner_deal_breakers_open_text_revised: maleProfileContent.questionnaire.partner_deal_breakers_open_text_revised,
+    }, 
+    religionAnswers: {
+      religion_my_personal_prayer: maleProfileContent.questionnaire.religion_my_personal_prayer,
+      religion_children_education_religious_vision_revised: maleProfileContent.questionnaire.religion_children_education_religious_vision_revised,
+    },
     valuesCompleted: true, personalityCompleted: true, relationshipCompleted: true, partnerCompleted: true, religionCompleted: true,
     worldsCompleted: ['VALUES', 'PERSONALITY', 'PARTNER', 'RELATIONSHIP', 'RELIGION'],
     completed: true, startedAt: new Date(), completedAt: new Date(), lastSaved: new Date(), createdAt: new Date(), updatedAt: new Date(),
     formattedAnswers: { personality: [], values: [], relationship: [], partner: [], religion: [] }
   };
+  // END: בניית אובייקט השאלון
   
   const noaProfile: PartyInfo = {
     id: 'demo-profile-noa', email: 'noa.demo@example.com', firstName: femaleProfileContent.firstName, lastName: femaleProfileContent.lastName, isProfileComplete: true,

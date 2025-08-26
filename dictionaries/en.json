@@ -439,7 +439,8 @@
       "showImage": "Show image number {{number}}"
     },
     "tablistLabel": "Demo profile navigation"
-  },
+  }
+,
 "contactPage": {
     "backToHome": "Homepage",
     "hero": {

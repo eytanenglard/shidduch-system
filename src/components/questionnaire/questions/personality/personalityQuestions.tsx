@@ -42,7 +42,7 @@ export const personalityQuestions: Question[] = [
     subcategory: 'self_perception',
     type: 'openText',
     depth: 'BASIC',
-    isRequired: true,
+    isRequired: false,
     minLength: 70,
     maxLength: 500,
     metadata: { estimatedTime: 3 },
@@ -54,7 +54,7 @@ export const personalityQuestions: Question[] = [
     subcategory: 'self_perception',
     type: 'budgetAllocation',
     depth: 'BASIC',
-    isRequired: true,
+    isRequired: false,
     totalPoints: 100,
     categories: [
       { value: 'empathetic_sensitive', icon: <Heart /> },
@@ -79,7 +79,7 @@ export const personalityQuestions: Question[] = [
     subcategory: 'lifestyle',
     type: 'scenario',
     depth: 'BASIC',
-    isRequired: true,
+    isRequired: false,
     options: [
       { value: 'quiet_evening_home', icon: <Moon /> },
       { value: 'intimate_gathering', icon: <Coffee /> },
@@ -95,7 +95,7 @@ export const personalityQuestions: Question[] = [
     subcategory: 'lifestyle',
     type: 'scale',
     depth: 'BASIC',
-    isRequired: true,
+    isRequired: false,
     min: 1,
     max: 10,
     metadata: { estimatedTime: 1 },
@@ -107,7 +107,7 @@ export const personalityQuestions: Question[] = [
     subcategory: 'lifestyle',
     type: 'iconChoice',
     depth: 'BASIC',
-    isRequired: true,
+    isRequired: false,
     options: [
       { value: 'order_planning', icon: <Watch /> },
       { value: 'flexibility_flow', icon: <Cloud /> },
@@ -123,7 +123,7 @@ export const personalityQuestions: Question[] = [
     subcategory: 'social_communication',
     type: 'iconChoice',
     depth: 'BASIC',
-    isRequired: true,
+    isRequired: false,
     options: [
       { value: 'initiator', icon: <Users /> },
       { value: 'joiner', icon: <Coffee /> },
@@ -167,7 +167,7 @@ export const personalityQuestions: Question[] = [
     subcategory: 'emotional_coping',
     type: 'multiSelectWithOther',
     depth: 'BASIC',
-    isRequired: true,
+    isRequired: false,
     options: [
       { value: 'movement_sport', icon: <Activity /> },
       { value: 'talk_vent', icon: <Users /> },
@@ -228,7 +228,7 @@ export const personalityQuestions: Question[] = [
     subcategory: 'social_communication',
     type: 'budgetAllocation',
     depth: 'ADVANCED',
-    isRequired: true,
+    isRequired: false,
     totalPoints: 100,
     categories: [
       { value: 'direct_clear', icon: <Target /> },
@@ -301,7 +301,7 @@ export const personalityQuestions: Question[] = [
     subcategory: 'lifestyle',
     type: 'budgetAllocation',
     depth: 'ADVANCED',
-    isRequired: true,
+    isRequired: false,
     totalPoints: 100,
     categories: [
       { value: 'relaxation', icon: <Bed /> },
@@ -320,7 +320,7 @@ export const personalityQuestions: Question[] = [
     subcategory: 'growth_aspirations',
     type: 'iconChoice',
     depth: 'ADVANCED',
-    isRequired: true,
+    isRequired: false,
     options: [
       { value: 'achieving_goals', icon: <Star /> },
       { value: 'building_connections', icon: <Heart /> },
@@ -338,7 +338,7 @@ export const personalityQuestions: Question[] = [
     subcategory: 'growth_aspirations',
     type: 'openText',
     depth: 'ADVANCED',
-    isRequired: true,
+    isRequired: false,
     minLength: 70,
     maxLength: 600,
     metadata: { estimatedTime: 3 },
