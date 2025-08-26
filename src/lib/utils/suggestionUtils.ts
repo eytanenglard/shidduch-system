@@ -1,6 +1,7 @@
 // src/lib/utils/suggestionUtils.ts
 
 import type { MatchSuggestionStatus } from "@prisma/client";
+import type { SuggestionsCardDict } from "@/types/dictionary";
 
 export interface StatusWithPartyInfo {
   label: string;
@@ -15,7 +16,8 @@ export interface StatusWithPartyInfo {
 
 export function getEnhancedStatusInfo(
   status: MatchSuggestionStatus,
-  isFirstParty: boolean = false
+  isFirstParty: boolean = false,
+  dict: SuggestionsCardDict
 ): StatusWithPartyInfo {
   const statusMap: Record<MatchSuggestionStatus, StatusWithPartyInfo> = {
     DRAFT: {
@@ -31,7 +33,7 @@ export function getEnhancedStatusInfo(
     
     PENDING_FIRST_PARTY: {
       label: isFirstParty ? "ממתין לתשובתך" : "נשלח לצד הראשון",
-      shortLabel: isFirstParty ? "ממתין לך" : "צד ראשון",
+      shortLabel: isFirstParty ? dict.statusIndicator.waitingForYou : dict.statusIndicator.firstParty,
       description: isFirstParty 
         ? "ההצעה מחכה להחלטתך - אשר או דחה"
         : "השדכן שלח את ההצעה לצד הראשון וממתין לתשובה",
@@ -44,7 +46,7 @@ export function getEnhancedStatusInfo(
 
     FIRST_PARTY_APPROVED: {
       label: isFirstParty ? "אישרת את ההצעה" : "הצד הראשון אישר",
-      shortLabel: isFirstParty ? "אישרת" : "צד ראשון אישר",
+      shortLabel: isFirstParty ? "אישרת" : `${dict.statusIndicator.firstParty} אישר`,
       description: isFirstParty
         ? "אישרת את ההצעה - עכשיו ההצעה תשלח לצד השני"
         : "הצד הראשון אישר את ההצעה בהתלהבות",
@@ -57,7 +59,7 @@ export function getEnhancedStatusInfo(
 
     FIRST_PARTY_DECLINED: {
       label: isFirstParty ? "דחית את ההצעה" : "הצד הראשון דחה",
-      shortLabel: isFirstParty ? "דחית" : "צד ראשון דחה",
+      shortLabel: isFirstParty ? "דחית" : `${dict.statusIndicator.firstParty} דחה`,
       description: isFirstParty
         ? "דחית את ההצעה - תודה על המשוב הכן"
         : "הצד הראשון החליט שההצעה לא מתאימה",
@@ -70,7 +72,7 @@ export function getEnhancedStatusInfo(
 
     PENDING_SECOND_PARTY: {
       label: isFirstParty ? "ההצעה נשלחה לצד השני" : "ממתין לתשובתך",
-      shortLabel: isFirstParty ? "צד שני" : "ממתין לך",
+      shortLabel: isFirstParty ? dict.statusIndicator.secondParty : dict.statusIndicator.waitingForYou,
       description: isFirstParty
         ? "הצד השני בודק את ההצעה - נעדכן אותך כשיגיע המשוב"
         : "ההצעה מחכה להחלטתך - אשר או דחה",
@@ -83,7 +85,7 @@ export function getEnhancedStatusInfo(
 
     SECOND_PARTY_APPROVED: {
       label: isFirstParty ? "הצד השני אישר!" : "אישרת את ההצעה!",
-      shortLabel: isFirstParty ? "צד שני אישר" : "אישרת",
+      shortLabel: isFirstParty ? `${dict.statusIndicator.secondParty} אישר` : "אישרת",
       description: isFirstParty
         ? "הצד השני גם מעוניין - בקרוב תקבלו פרטי קשר"
         : "אישרת את ההצעה - בקרוב תקבלו פרטי קשר",
@@ -96,7 +98,7 @@ export function getEnhancedStatusInfo(
 
     SECOND_PARTY_DECLINED: {
       label: isFirstParty ? "הצד השני דחה" : "דחית את ההצעה",
-      shortLabel: isFirstParty ? "צד שני דחה" : "דחית",
+      shortLabel: isFirstParty ? `${dict.statusIndicator.secondParty} דחה` : "דחית",
       description: isFirstParty
         ? "הצד השני החליט שההצעה לא מתאימה"
         : "דחית את ההצעה - תודה על המשוב הכן",
@@ -109,7 +111,7 @@ export function getEnhancedStatusInfo(
 
     AWAITING_MATCHMAKER_APPROVAL: {
       label: "ממתין לאישור השדכן",
-      shortLabel: "אישור שדכן",
+      shortLabel: `אישור ${dict.statusIndicator.matchmaker}`,
       description: "שני הצדדים אישרו - השדכן/ית יאשר שיתוף פרטים",
       currentParty: "matchmaker",
       icon: require("lucide-react").Handshake,
@@ -231,7 +233,7 @@ export function getEnhancedStatusInfo(
     ENGAGED: {
       label: "אירוסין! 💍",
       shortLabel: "מאורסים",
-      description: "מזל טוב על האירוסין! איזה שמחה",
+      description: "מזל טוב על האירוסין! איזו שמחה",
       currentParty: "both",
       icon: require("lucide-react").Star,
       className: "bg-gradient-to-r from-yellow-50 to-amber-50 text-yellow-700 border-yellow-200",
@@ -242,7 +244,7 @@ export function getEnhancedStatusInfo(
     MARRIED: {
       label: "נישואין! 🎉",
       shortLabel: "נשואים",
-      description: "מזל טוב על החתונה! איזה הצלחה",
+      description: "מזל טוב על החתונה! איזו הצלחה",
       currentParty: "both",
       icon: require("lucide-react").Gift,
       className: "bg-gradient-to-r from-rose-50 to-pink-50 text-rose-700 border-rose-200",
@@ -290,37 +292,38 @@ export function getEnhancedStatusInfo(
 // Helper function to get party indicator
 export function getPartyIndicator(
   status: MatchSuggestionStatus,
-  isFirstParty: boolean
+  isFirstParty: boolean,
+  dict: SuggestionsCardDict
 ): {
   show: boolean;
   text: string;
   className: string;
 } {
-  const statusInfo = getEnhancedStatusInfo(status, isFirstParty);
+  const statusInfo = getEnhancedStatusInfo(status, isFirstParty, dict);
   
   switch (statusInfo.currentParty) {
     case "first":
       return {
         show: true,
-        text: isFirstParty ? "תורך!" : "צד ראשון",
+        text: isFirstParty ? dict.statusIndicator.yourTurn : dict.statusIndicator.firstParty,
         className: "bg-purple-500 text-white"
       };
     case "second":
       return {
         show: true,
-        text: isFirstParty ? "צד שני" : "תורך!",
+        text: isFirstParty ? dict.statusIndicator.secondParty : dict.statusIndicator.yourTurn,
         className: "bg-blue-500 text-white"
       };
     case "matchmaker":
       return {
         show: true,
-        text: "השדכן/ית",
+        text: dict.statusIndicator.matchmaker,
         className: "bg-emerald-500 text-white"
       };
     case "both":
       return {
         show: true,
-        text: "שני הצדדים",
+        text: dict.statusIndicator.bothParties,
         className: "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
       };
     default:

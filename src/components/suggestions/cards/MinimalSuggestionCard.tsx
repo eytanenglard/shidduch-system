@@ -89,8 +89,17 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
 
   const mainImage = targetParty.images?.find((img) => img.isMain);
   const age = calculateAge(targetParty.profile.birthDate);
-  const statusInfo = getEnhancedStatusInfo(suggestion.status, isFirstParty);
-  const partyIndicator = getPartyIndicator(suggestion.status, isFirstParty);
+  const statusInfo = getEnhancedStatusInfo(
+    suggestion.status,
+    isFirstParty,
+    dict
+  );
+  const partyIndicator = getPartyIndicator(
+    suggestion.status,
+    isFirstParty,
+    dict
+  );
+
   const hasDeadline =
     suggestion.decisionDeadline &&
     new Date(suggestion.decisionDeadline) > new Date();

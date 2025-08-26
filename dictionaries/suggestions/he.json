@@ -66,7 +66,16 @@
       "approveDisabledTooltip": "לא ניתן לאשר הצעה חדשה כשיש הצעה בתהליך פעיל.",
       "askMatchmaker": "שאלה לשדכן/ית",
       "viewDetails": "צפה בפרטים"
+    },
+        "statusIndicator": {
+      "yourTurn": "תורך!",
+      "waitingForYou": "ממתין לך",
+      "matchmaker": "השדכן/ית",
+      "firstParty": "צד ראשון",
+      "secondParty": "צד שני",
+      "bothParties": "שני הצדדים"
     }
+
   },
    "modal": {
     "header": {

@@ -66,7 +66,16 @@
       "approveDisabledTooltip": "You cannot approve a new introduction while another is in an active process.",
       "askMatchmaker": "Ask Your Matchmaker",
       "viewDetails": "View Details"
+    },
+        "statusIndicator": {
+      "yourTurn": "Your Turn!",
+      "waitingForYou": "Waiting for You",
+      "matchmaker": "Matchmaker",
+      "firstParty": "First Party",
+      "secondParty": "Second Party",
+      "bothParties": "Both Parties"
     }
+
   },
   "modal": {
     "header": {

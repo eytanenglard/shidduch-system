@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2025-08-26 13:39:26
+# Generated on: 2025-08-26 15:01:17
 ################################################################################
 
 ================================================================================
@@ -1390,9 +1390,9 @@ Content:
 
 import type { Locale } from '../../../../i18n-config';
 import type { ExtendedMatchSuggestion, PartyInfo } from '@/components/suggestions/types';
-import type { QuestionnaireResponse as QuestionnaireResponseType, UserProfile } from '@/types/next-auth';
+import type { QuestionnaireResponse as QuestionnaireResponseType } from '@/types/next-auth';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
-import { ReligiousJourney, ServiceType, Gender, AvailabilityStatus, KippahType, HeadCoveringType } from '@prisma/client';
+import { ReligiousJourney, ServiceType, Gender, AvailabilityStatus, KippahType } from '@prisma/client';
 
 const getDemoContent = async (locale: Locale) => {
   if (locale === 'en') {
@@ -1404,32 +1404,32 @@ const getDemoContent = async (locale: Locale) => {
 export const generateDemoData = async (locale: Locale) => {
   const content = await getDemoContent(locale);
   const { femaleProfileContent, maleProfileContent, suggestionContent, aiAnalysisContent, matchmakerContent } = content;
-
+  
+  // Directly use the hardcoded formattedAnswers from the content files
   const noaQuestionnaireResponse: QuestionnaireResponseType = {
     id: 'qr-demo-noa-updated', userId: 'demo-profile-noa',
-    personalityAnswers: { personality_self_portrayal_revised: femaleProfileContent.questionnaire.personality_self_portrayal_revised },
-    valuesAnswers: { values_core_elaboration_revised: femaleProfileContent.questionnaire.values_core_elaboration_revised },
-    relationshipAnswers: { relationship_household_philosophy: femaleProfileContent.questionnaire.relationship_household_philosophy },
-    partnerAnswers: { partner_deal_breakers_open_text_revised: femaleProfileContent.questionnaire.partner_deal_breakers_open_text_revised },
-    religionAnswers: { 
-      religion_modesty_personal_approach_revised: femaleProfileContent.questionnaire.religion_modesty_personal_approach_revised,
-      religion_children_education_religious_vision_revised: femaleProfileContent.questionnaire.religion_children_education_religious_vision_revised,
-    },
+    personalityAnswers: {}, // Raw answers aren't critical as we have formattedAnswers
+    valuesAnswers: {},
+    relationshipAnswers: {},
+    partnerAnswers: {},
+    religionAnswers: {},
     valuesCompleted: true, personalityCompleted: true, relationshipCompleted: true, partnerCompleted: true, religionCompleted: true,
     worldsCompleted: ['VALUES', 'RELATIONSHIP', 'PARTNER', 'PERSONALITY', 'RELIGION'],
     completed: true, startedAt: new Date(), completedAt: new Date(), lastSaved: new Date(), createdAt: new Date(), updatedAt: new Date(),
-    formattedAnswers: { personality: [], values: [], relationship: [], partner: [], religion: [] }
+    formattedAnswers: femaleProfileContent.formattedAnswers,
   };
 
   const danielQuestionnaireResponse: QuestionnaireResponseType = {
     id: 'qr-demo-daniel-updated', userId: 'demo-profile-daniel',
-    personalityAnswers: { personality_self_portrayal_revised: maleProfileContent.questionnaire.personality_self_portrayal_revised },
-    valuesAnswers: { values_core_elaboration_revised: maleProfileContent.questionnaire.values_core_elaboration_revised },
-    relationshipAnswers: {}, partnerAnswers: {}, religionAnswers: {},
+    personalityAnswers: {},
+    valuesAnswers: {},
+    relationshipAnswers: {},
+    partnerAnswers: {},
+    religionAnswers: {},
     valuesCompleted: true, personalityCompleted: true, relationshipCompleted: true, partnerCompleted: true, religionCompleted: true,
     worldsCompleted: ['VALUES', 'PERSONALITY', 'PARTNER', 'RELATIONSHIP', 'RELIGION'],
     completed: true, startedAt: new Date(), completedAt: new Date(), lastSaved: new Date(), createdAt: new Date(), updatedAt: new Date(),
-    formattedAnswers: { personality: [], values: [], relationship: [], partner: [], religion: [] }
+    formattedAnswers: maleProfileContent.formattedAnswers,
   };
   
   const noaProfile: PartyInfo = {
@@ -1496,7 +1496,6 @@ export const generateDemoData = async (locale: Locale) => {
     id: 'demo-suggestion-homepage-male', firstPartyId: 'visitor-user-id', secondPartyId: 'demo-profile-daniel', status: 'PENDING_FIRST_PARTY', priority: 'HIGH',
     matchingReason: suggestionContent.femaleToMaleReason, firstPartyNotes: suggestionContent.femaleToMalePersonalNote, secondPartyNotes: null,
     internalNotes: null, followUpNotes: null, responseDeadline: null,     matchmaker: { firstName: matchmakerContent.eytan.firstName, lastName: matchmakerContent.eytan.lastName },
-
     secondParty: danielProfile, firstParty: baseFirstParty, matchmakerId: 'matchmaker-demo-2', createdAt: new Date(), updatedAt: new Date(),
     lastActivity: new Date(), category: 'ACTIVE', decisionDeadline: new Date(), lastStatusChange: new Date(), previousStatus: 'DRAFT',
     firstPartySent: new Date(), firstPartyResponded: null, secondPartySent: null, secondPartyResponded: null, firstMeetingScheduled: null, closedAt: null,
@@ -1547,25 +1546,139 @@ export const femaleProfileContent = {
   religiousLevel: 'Liberal Orthodox',
   about: 'An optimist who loves deep conversations over coffee. I find beauty in life\'s small things, whether it\'s a walk in nature or a good playlist. After a few attempts that didn\'t work out, I now know better what\'s right for me, and I\'m looking for a partner for the journey, to build a home together filled with laughter, mutual respect, and shared growth.',
   profileHeadline: 'Designing life with a smile, looking for a partner for the adventure.',
-  questionnaire: {
-    personality_self_portrayal_revised: "I'm an optimistic and positive person who believes you can find the good in any situation. I'm very creative, which is expressed in my work and hobbies, and I have good listening skills - friends say I'm 'receptive'. I value deep conversations, but I also love to laugh and enjoy the simple things.",
-    personality_good_vs_perfect_day: "A 'perfect' day is a big thing, but a 'really good' day is built from many small things: a good phone call with my mom, a creative breakthrough at work on a design I've been working hard on, a spontaneous trip to the beach at sunset, and ending the day with a good conversation and a cup of tea. It's a feeling of satisfaction and peace.",
-    values_core_elaboration_revised: "The most important value to me is mutual respect. At a professional crossroads, I could have taken a big project at a colleague's expense, but I chose to collaborate. Although I earned less personal 'credit', we built something better together and maintained a healthy relationship. It was proof to myself that the journey is just as important as the destination.",
-    relationship_household_philosophy: "I believe in a full and flexible partnership, like I saw in my parents' home, where my dad is in finance and my mom is an artist, and each brings their strengths. Not fixed 'roles', but a team that works together according to strengths and available time. It's all about open communication.",
-    partner_deal_breakers_open_text_revised: 'My absolute red line is condescending cynicism and a basic lack of respect for people (for example, how he talks to a waiter). I cannot be with someone who doesn\'t know how to respect every person for who they are.',
-    religion_modesty_personal_approach_revised: 'My modesty is mainly expressed in choosing respectful attire (I wear both pants and skirts) and clean speech. I am not shomer negiah, but I believe in creating an initial connection based on getting to know the personality before the physical aspect. My approach is "inner self reflected on the outside".',
-    religion_children_education_religious_vision_revised: 'My vision is to establish a home where children grow up with values of giving, love of Torah, and the Land of Israel. It is important to me that the education be open and allow for questioning, one that nurtures thinking individuals with a deep, internal reverence for God.',
+
+  formattedAnswers: {
+    personality: [
+      {
+        questionId: 'demo_noa_p1',
+        question: "How would you describe yourself in 3-5 sentences?",
+        questionType: 'openText',
+        rawValue: "I'm an optimistic and positive person who believes you can find the good in any situation. I'm very creative, which is expressed in my work and hobbies, and I have good listening skills - friends say I'm 'receptive'. I value deep conversations, but I also love to laugh and enjoy the simple things.",
+        displayText: "I'm an optimistic and positive person who believes you can find the good in any situation. I'm very creative, which is expressed in my work and hobbies, and I have good listening skills - friends say I'm 'receptive'. I value deep conversations, but I also love to laugh and enjoy the simple things.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_p2',
+        question: "What is your natural 'biological clock'?",
+        questionType: 'scale',
+        rawValue: 7,
+        displayText: "I lean towards being a 'night owl' - I'm more creative and productive in the evening hours.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_p3',
+        question: "When you feel overwhelmed, what are your 'go-to' strategies for resetting?",
+        questionType: 'multiSelect',
+        rawValue: ['A good talk with a friend', 'Getting out into nature', 'Engaging in a creative hobby'],
+        displayText: "My main strategies are a good talk with a friend, getting out into nature, and engaging in art or a creative hobby.",
+        isVisible: true, answeredAt: new Date(),
+      },
+    ],
+    values: [
+      {
+        questionId: 'demo_noa_v1',
+        question: "Share a story of a time you followed your most important value.",
+        questionType: 'openText',
+        rawValue: "The most important value to me is mutual respect. At a professional crossroads, I could have taken a big project at a colleague's expense, but I chose to collaborate. Although I earned less personal 'credit', we built something better together and maintained a healthy relationship. It was proof to myself that the journey is just as important as the destination.",
+        displayText: "The most important value to me is mutual respect. At a professional crossroads, I could have taken a big project at a colleague's expense, but I chose to collaborate. Although I earned less personal 'credit', we built something better together and maintained a healthy relationship. It was proof to myself that the journey is just as important as the destination.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_v2',
+        question: "What is your definition of a 'rich life,' independent of money?",
+        questionType: 'openText',
+        rawValue: "A rich life is a life full of deep connections, experiences that expand the heart, and creation that gives expression to the soul. It's a wealth of time and meaning, not of objects.",
+        displayText: "A rich life is a life full of deep connections, experiences that expand the heart, and creation that gives expression to the soul. It's a wealth of time and meaning, not of objects.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_v3',
+        question: "At this stage of your life, how is your attention distributed among different areas?",
+        questionType: 'budgetAllocation',
+        rawValue: { 'Partnership': 30, 'Family': 20, 'Leisure & Self-Care': 20, 'Career': 15, 'Friends & Community': 10, 'Spirituality': 5 },
+        displayText: "The answer is displayed as a visual chart.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    relationship: [
+      {
+        questionId: 'demo_noa_r1',
+        question: "What's your 'formula' for sharing responsibilities in managing a home?",
+        questionType: 'openText',
+        rawValue: "I believe in a full and flexible partnership, like I saw in my parents' home. Not fixed 'roles', but a team that works together according to strengths and available time. It's all about open communication.",
+        displayText: "I believe in a full and flexible partnership, like I saw in my parents' home. Not fixed 'roles', but a team that works together according to strengths and available time. It's all about open communication.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_r2',
+        question: "After a disagreement, what is the most effective way for you to 'repair' the connection?",
+        questionType: 'iconChoice',
+        rawValue: 'processing_talk',
+        displayText: "A calm conversation to process what happened, to listen, and to reach a mutual understanding.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_r3',
+        question: "In the balance between 'we' and 'me' time, where do you naturally fall?",
+        questionType: 'scale',
+        rawValue: 7,
+        displayText: "I thrive on shared time and activities, but it's also important for me to maintain personal space and my own hobbies.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    partner: [
+      {
+        questionId: 'demo_noa_pa1',
+        question: "What is the one character trait your partner must have?",
+        questionType: 'openText',
+        rawValue: "The one quality upon which everything rests is kindness. A person with a good heart is someone who knows how to give, receive, forgive, and be a true partner. Everything else is built on this foundation.",
+        displayText: "The one quality upon which everything rests is kindness. A person with a good heart is someone who knows how to give, receive, forgive, and be a true partner. Everything else is built on this foundation.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_pa2',
+        question: "Which trait, perhaps less developed in you, would you be happy to find in a partner to complement you?",
+        questionType: 'openText',
+        rawValue: "I'm a person who thinks a lot and sometimes hesitates. I would be happy to find someone a bit more decisive and confident, someone who can help me jump into the water sometimes and balance my tendency to overthink.",
+        displayText: "I'm a person who thinks a lot and sometimes hesitates. I would be happy to find someone a bit more decisive and confident, someone who can help me jump into the water sometimes and balance my tendency to overthink.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_pa3',
+        question: "When you think of an 'intelligent' partner, which type do you value most?",
+        questionType: 'budgetAllocation',
+        rawValue: { 'Emotional': 40, 'Creative': 30, 'Life Smarts': 20, 'Analytical': 10 },
+        displayText: "The answer is displayed as a visual chart.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    religion: [
+      {
+        questionId: 'demo_noa_re1',
+        question: "What is your vision for the education of the children in the home you'll build?",
+        questionType: 'openText',
+        rawValue: 'My vision is to establish a home where children grow up with values of giving, love of Torah, and the Land of Israel. It is important to me that the education be open and allow for questioning, one that nurtures thinking individuals with a deep, internal reverence for God.',
+        displayText: 'My vision is to establish a home where children grow up with values of giving, love of Torah, and the Land of Israel. It is important to me that the education be open and allow for questioning, one that nurtures thinking individuals with a deep, internal reverence for God.',
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_re2',
+        question: "What is the core experience you seek and receive from Shabbat?",
+        questionType: 'iconChoice',
+        rawValue: 'family_time',
+        displayText: "Time for family, for togetherness, and for conversation. The quiet moments of a Shabbat meal are sacred to me.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_re3',
+        question: "How flexible would you be if there were differences in Halachic practice between you and a partner?",
+        questionType: 'scale',
+        rawValue: 8,
+        displayText: "I am very flexible and open. I believe a relationship is a journey of mutual growth, and as long as there is a foundation of respect and reverence for God, we can find a shared path.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
   },
-  demoQAndA: [
-    {
-      question: 'What is the most important value you want to instill in the home you build?',
-      answer: 'Mutual respect. The ability to truly listen, even when we disagree, and to create a safe space where we can both be our most authentic selves.',
-    },
-    {
-      question: 'How do you see the division of roles in a modern relationship?',
-      answer: "I believe in a full partnership. Not fixed 'roles', but a team that works together. One day I'll be the strong one when he needs support, and another day he'll be there for me. It's all about communication and flexibility.",
-    },
-  ]
 };
 
 export const maleProfileContent = {
@@ -1578,11 +1691,139 @@ export const maleProfileContent = {
   religiousLevel: 'Torani Leumi',
   about: 'A man of people and action. I love the combination of the dynamic high-tech world and setting aside time for Torah study. I believe true growth happens outside the comfort zone. I\'m looking for a life partner to build a home together with reverence for God, open-mindedness, and a lot of joy.',
   profileHeadline: 'Engineer by day, Torah scholar by night. Seeking a partner to build a world with.',
-  questionnaire: {
-    personality_self_portrayal_revised: "I'm a man of action, I love challenges and goals. Reliability is very important to me, and I always try to stand by my word. I have a strong analytical side, which I got from my studies at Yeshivat HaGush and in engineering, but I balance it with a creative side - I love playing the guitar and connect deeply with the world of Hasidut. I seek constant growth, both in my career and personal life.",
-    values_core_elaboration_revised: "My central value is responsibility. When I served as an officer in the Combat Engineering Corps, I had to make a complex operational decision under pressure. I chose the safer course of action, even though it was less 'glamorous'. It was a decision based on responsibility for the lives of my soldiers, and it reinforced my understanding that integrity and responsibility are above all else.",
-    // More answers can be added as needed
-  }
+  
+  formattedAnswers: {
+    personality: [
+      {
+        questionId: 'demo_daniel_p1',
+        question: "What are the 3-5 key things you'd want us to highlight so people understand who you truly are?",
+        questionType: 'openText',
+        rawValue: "I'm a man of action, I love challenges and goals. Reliability is very important to me, and I always try to stand by my word. I have a strong analytical side, which I got from my studies at Yeshivat HaGush and in engineering, but I balance it with a creative side - I love playing the guitar and connect deeply with the world of Hasidut. I seek constant growth, both in my career and personal life.",
+        displayText: "I'm a man of action, I love challenges and goals. Reliability is very important to me, and I always try to stand by my word. I have a strong analytical side, which I got from my studies at Yeshivat HaGush and in engineering, but I balance it with a creative side - I love playing the guitar and connect deeply with the world of Hasidut. I seek constant growth, both in my career and personal life.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_p2',
+        question: "Which 'operating system' best describes how you function day-to-day?",
+        questionType: 'iconChoice',
+        rawValue: 'task_oriented',
+        displayText: "Mission-Oriented: I function best with clear goals to accomplish.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_p3',
+        question: "Share a story about a significant failure or challenge and what you learned from it.",
+        questionType: 'openText',
+        rawValue: "I failed an important exam in my undergraduate studies. It taught me the importance of perseverance, the ability to get up after a fall, and most importantly, that failure is not the end of the world but an opportunity to learn and improve.",
+        displayText: "I failed an important exam in my undergraduate studies. It taught me the importance of perseverance, the ability to get up after a fall, and most importantly, that failure is not the end of the world but an opportunity to learn and improve.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    values: [
+      {
+        questionId: 'demo_daniel_v1',
+        question: "Share a story of a time you followed your most important value.",
+        questionType: 'openText',
+        rawValue: "My central value is responsibility. When I served as an officer in the Combat Engineering Corps, I had to make a complex operational decision under pressure. I chose the safer course of action, even though it was less 'glamorous'. It was a decision based on responsibility for the lives of my soldiers, and it reinforced my understanding that integrity and responsibility are above all else.",
+        displayText: "My central value is responsibility. When I served as an officer in the Combat Engineering Corps, I had to make a complex operational decision under pressure. I chose the safer course of action, even though it was less 'glamorous'. It was a decision based on responsibility for the lives of my soldiers, and it reinforced my understanding that integrity and responsibility are above all else.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_v2',
+        question: "Who are the people you admire as role models, and why?",
+        questionType: 'openText',
+        rawValue: "Rabbi Sacks zt\"l. His ability to bridge worlds, to present deep and relevant Jewish thought, and to be a man of both spirit and action at the highest level is a huge inspiration for me.",
+        displayText: "Rabbi Sacks zt\"l. His ability to bridge worlds, to present deep and relevant Jewish thought, and to be a man of both spirit and action at the highest level is a huge inspiration for me.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_v3',
+        question: "What is your approach to lifelong learning and intellectual growth?",
+        questionType: 'iconChoice',
+        rawValue: 'lifelong_learning',
+        displayText: "It's an essential part of who I am - I am always reading, learning, and developing, both in my professional field and in my Torah studies.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    relationship: [
+      {
+        questionId: 'demo_daniel_r1',
+        question: "What's one thing a relationship can't survive without for you, and what is your greatest aspiration?",
+        questionType: 'openText',
+        rawValue: "The absolute deal-breaker is a lack of integrity. The greatest aspiration is a true partnership. The knowledge that I have someone by my side, that we are a team against whatever life brings, and that we always look out for each other.",
+        displayText: "The absolute deal-breaker is a lack of integrity. The greatest aspiration is a true partnership. The knowledge that I have someone by my side, that we are a team against whatever life brings, and that we always look out for each other.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_r2',
+        question: "What's more important in a partner: someone who accepts you as you are, or someone who challenges you to grow?",
+        questionType: 'scale',
+        rawValue: 7,
+        displayText: "Acceptance is very important, but I'm looking for a partner who will help me be the best version of myself, and challenge me when needed. Shared growth is a supreme value in my eyes.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_r3',
+        question: "When your partner comes home after a terrible day, what is your natural response?",
+        questionType: 'iconChoice',
+        rawValue: 'analyze_solve',
+        displayText: "My initial tendency is to try to understand what happened, analyze the situation, and think together about practical solutions that could help.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    partner: [
+      {
+        questionId: 'demo_daniel_pa1',
+        question: "Which trait, perhaps less developed in you, would you be happy to find in a partner to complement you?",
+        questionType: 'openText',
+        rawValue: "As someone who is used to planning and acting in a very structured way, I would be happy to find someone with more spontaneity and flow, someone who will help me get out of the box sometimes and bring some adventure into life.",
+        displayText: "As someone who is used to planning and acting in a very structured way, I would be happy to find someone with more spontaneity and flow, someone who will help me get out of the box sometimes and bring some adventure into life.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_pa2',
+        question: "How would you allocate 100 'compatibility points' among the most essential character traits for you in a partner?",
+        questionType: 'budgetAllocation',
+        rawValue: { 'Integrity & Honesty': 30, 'Maturity & Stability': 25, 'Ambition & Growth': 20, 'Optimism': 15, 'Good Communication': 10 },
+        displayText: "The answer is displayed as a visual chart.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_pa3',
+        question: "What is your absolute 'red line,' a trait you could not live with?",
+        questionType: 'openText',
+        rawValue: "A red line for me is a lack of ambition to develop and improve. I'm not looking for someone perfect, but it's important to me that she has an internal motivation to grow, learn, and be a better version of herself. Passivity and an unwillingness to face challenges is something I find very difficult to connect with.",
+        displayText: "A red line for me is a lack of ambition to develop and improve. I'm not looking for someone perfect, but it's important to me that she has an internal motivation to grow, learn, and be a better version of herself. Passivity and an unwillingness to face challenges is something I find very difficult to connect with.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    religion: [
+      {
+        questionId: 'demo_daniel_re1',
+        question: "What prayer, Jewish concept, or idea resonates most with you?",
+        questionType: 'openText',
+        rawValue: "A passage from Rabbi Sacks that talks about 'faith as an ongoing conversation'. It connects with my perception that faith is not static, but a dynamic journey of questions, searching, and answers, which fascinates me.",
+        displayText: "A passage from Rabbi Sacks that talks about 'faith as an ongoing conversation'. It connects with my perception that faith is not static, but a dynamic journey of questions, searching, and answers, which fascinates me.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_re2',
+        question: "In building a Jewish home, how do you envision the partnership regarding roles and responsibilities?",
+        questionType: 'budgetAllocation',
+        rawValue: { 'Flexible': 60, 'Traditional': 30, 'Egalitarian': 10 },
+        displayText: "The answer is displayed as a visual chart.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_re3',
+        question: "What role does spiritual guidance (from a Rabbi, etc.) play in your life when making significant decisions?",
+        questionType: 'scale',
+        rawValue: 8,
+        displayText: "Consulting with a spiritual figure is an integral part of my decision-making process on significant issues. I see it as a source of wisdom, balance, and connection to tradition.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+  },
 };
 
 export const suggestionContent = {
@@ -1615,8 +1856,6 @@ export const matchmakerContent = {
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\demo-content\he.ts
 --------------------------------------------------------------------------------
 Content:
-// src/components/HomePage/components/demo-content/he.ts
-
 export const femaleProfileContent = {
   firstName: 'נועה',
   lastName: 'ישראלי',
@@ -1627,25 +1866,139 @@ export const femaleProfileContent = {
   religiousLevel: 'דתיה ליברלית',
   about: 'אופטימית וחובבת שיחות עומק על כוס קפה. מוצאת יופי בדברים הקטנים של החיים, בין אם זה טיול בטבע או פלייליסט טוב. אחרי כמה ניסיונות שלא צלחו, אני יודעת היום טוב יותר מה נכון לי, ומחפשת שותף לדרך, לבנות יחד בית שמלא בצחוק, כבוד הדדי וצמיחה משותפת.',
   profileHeadline: 'מעצבת את החיים בחיוך, מחפשת שותף להרפתקה.',
-  questionnaire: {
-    personality_self_portrayal_revised: "אני אדם אופטימי וחיובי, שמאמין שאפשר למצוא את הטוב בכל מצב. אני מאוד יצירתית, מה שבא לידי ביטוי בעבודה ובתחביבים שלי, ויש לי יכולת הקשבה טובה - חברים אומרים שאני 'מכילה'. חשוב לי מאוד לנהל שיחות עומק, אבל אני גם אוהבת לצחוק וליהנות מהדברים הפשוטים.",
-    personality_good_vs_perfect_day: "יום 'מושלם' זה משהו גדול, אבל יום 'ממש טוב' נבנה מהרבה דברים קטנים: שיחת טלפון טובה עם אמא, פריצת דרך יצירתית בעבודה על עיצוב שעבדתי עליו קשה, טיול ספונטני לים בשקיעה, ולסיים את היום עם שיחה טובה וכוס תה. זו תחושה של סיפוק ושלווה.",
-    values_core_elaboration_revised: "הערך הכי חשוב לי הוא כבוד הדדי. בצומת דרכים מקצועי שהיה לי, יכולתי לקחת פרויקט גדול על חשבון קולגה, אבל בחרתי לשתף פעולה. למרות שהרווחתי פחות 'קרדיט' אישי, בנינו יחד משהו טוב יותר ושמרנו על מערכת יחסים בריאה. זו הייתה הוכחה לעצמי שהדרך חשובה לי לא פחות מהתוצאה.",
-    relationship_household_philosophy: "אני מאמינה בשותפות מלאה וגמישה, כמו שראיתי בבית הורי, שם אבא איש כספים ואמא אמנית, וכל אחד מביא את החוזקות שלו. לא 'תפקידים' קבועים, אלא צוות שפועל יחד לפי נקודות החוזק והזמן הפנוי. הכל בתקשורת פתוחה.",
-    partner_deal_breakers_open_text_revised: 'הקו האדום המוחלט שלי הוא ציניות מתנשאת וחוסר כבוד בסיסי לאנשים (למשל, איך שהוא מדבר למלצר). אני לא יכולה להיות עם מישהו שלא יודע לכבד כל אדם באשר הוא.',
-    religion_modesty_personal_approach_revised: 'הצניעות שלי באה לידי ביטוי בעיקר בבחירת לבוש מכבד (לובשת גם מכנסיים וגם חצאיות) ובדיבור נקי. אני לא שומרת נגיעה, אבל מאמינה ביצירת קשר ראשוני שמבוסס על היכרות עם האישיות לפני הפיזיות. הגישה שלי היא "פנימיות שמשתקפת בחיצוניות".',
-    religion_children_education_religious_vision_revised: 'החזון שלי הוא להקים בית שבו ילדים גדלים עם ערכים של נתינה, אהבת התורה וארץ ישראל. חשוב לי שהחינוך יהיה דתי-לאומי פתוח ומאפשר שאלת שאלות, כזה שמצמיח אנשים חושבים, עם יראת שמיים פנימית ועמוקה.',
+  
+  formattedAnswers: {
+    personality: [
+      {
+        questionId: 'demo_noa_p1',
+        question: "איך היית מתארת את עצמך ב-3-5 משפטים?",
+        questionType: 'openText',
+        rawValue: "אני אדם אופטימי וחיובי, שמאמין שאפשר למצוא את הטוב בכל מצב. אני מאוד יצירתית, מה שבא לידי ביטוי בעבודה ובתחביבים שלי, ויש לי יכולת הקשבה טובה - חברים אומרים שאני 'מכילה'. חשוב לי מאוד לנהל שיחות עומק, אבל אני גם אוהבת לצחוק וליהנות מהדברים הפשוטים.",
+        displayText: "אני אדם אופטימי וחיובי, שמאמין שאפשר למצוא את הטוב בכל מצב. אני מאוד יצירתית, מה שבא לידי ביטוי בעבודה ובתחביבים שלי, ויש לי יכולת הקשבה טובה - חברים אומרים שאני 'מכילה'. חשוב לי מאוד לנהל שיחות עומק, אבל אני גם אוהבת לצחוק וליהנות מהדברים הפשוטים.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_p2',
+        question: "מהו ה'שעון הביולוגי' הטבעי שלך?",
+        questionType: 'scale',
+        rawValue: 7,
+        displayText: "נטייה ל'ציפור לילה' - אני יותר יצירתית ופרודוקטיבית בשעות הערב.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_p3',
+        question: "כשאת מרגישה מוצפת, לאן את פונה כדי 'לאפס את המערכת'?",
+        questionType: 'multiSelect',
+        rawValue: ['שיחה עם חברה', 'יציאה לטבע', 'עיסוק ביצירה'],
+        displayText: "הדרכים העיקריות שלי הן שיחה טובה עם חברה, יציאה לטבע, ועיסוק ביצירה או אמנות.",
+        isVisible: true, answeredAt: new Date(),
+      },
+    ],
+    values: [
+      {
+        questionId: 'demo_noa_v1',
+        question: "ספרי על צומת דרכים אחד בחיים שבו פעלת לפי ערך שהכי חשוב לך.",
+        questionType: 'openText',
+        rawValue: "הערך הכי חשוב לי הוא כבוד הדדי. בצומת דרכים מקצועי שהיה לי, יכולתי לקחת פרויקט גדול על חשבון קולגה, אבל בחרתי לשתף פעולה. למרות שהרווחתי פחות 'קרדיט' אישי, בנינו יחד משהו טוב יותר ושמרנו על מערכת יחסים בריאה. זו הייתה הוכחה לעצמי שהדרך חשובה לי לא פחות מהתוצאה.",
+        displayText: "הערך הכי חשוב לי הוא כבוד הדדי. בצומת דרכים מקצועי שהיה לי, יכולתי לקחת פרויקט גדול על חשבון קולגה, אבל בחרתי לשתף פעולה. למרות שהרווחתי פחות 'קרדיט' אישי, בנינו יחד משהו טוב יותר ושמרנו על מערכת יחסים בריאה. זו הייתה הוכחה לעצמי שהדרך חשובה לי לא פחות מהתוצאה.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_v2',
+        question: "מהי ההגדרה שלך ל'חיים עשירים', שאינה קשורה לכסף?",
+        questionType: 'openText',
+        rawValue: "חיים עשירים הם חיים שמלאים בקשרים עמוקים, חוויות שמרחיבות את הלב, ויצירה שנותנת ביטוי לנשמה. זה עושר של זמן ושל משמעות, לא של חפצים.",
+        displayText: "חיים עשירים הם חיים שמלאים בקשרים עמוקים, חוויות שמרחיבות את הלב, ויצירה שנותנת ביטוי לנשמה. זה עושר של זמן ושל משמעות, לא של חפצים.",
+        isVisible: true, answeredAt: new Date(),
+      },
+       {
+        questionId: 'demo_noa_v3',
+        question: "בשלב זה של חייך, כיצד מתחלקת תשומת הלב שלך בין התחומים השונים?",
+        questionType: 'budgetAllocation',
+        rawValue: { 'זוגיות': 30, 'משפחה': 20, 'פנאי וטיפוח עצמי': 20, 'קריירה': 15, 'חברים וקהילה': 10, 'רוחניות': 5 },
+        displayText: "התשובה מוצגת כגרף ויזואלי.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    relationship: [
+      {
+        questionId: 'demo_noa_r1',
+        question: "מהי בעיניך 'הנוסחה' לחלוקת אחריות בניהול בית משותף?",
+        questionType: 'openText',
+        rawValue: "אני מאמינה בשותפות מלאה וגמישה, כמו שראיתי בבית הורי, שם אבא איש כספים ואמא אמנית, וכל אחד מביא את החוזקות שלו. לא 'תפקידים' קבועים, אלא צוות שפועל יחד לפי נקודות החוזק והזמן הפנוי. הכל בתקשורת פתוחה.",
+        displayText: "אני מאמינה בשותפות מלאה וגמישה, כמו שראיתי בבית הורי. לא 'תפקידים' קבועים, אלא צוות שפועל יחד לפי נקודות החוזק והזמן הפנוי. הכל בתקשורת פתוחה.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_r2',
+        question: "לאחר ויכוח, מהי הדרך היעילה ביותר עבורך 'לתקן' את הקשר?",
+        questionType: 'iconChoice',
+        rawValue: 'processing_talk',
+        displayText: "שיחת עיבוד רגועה כדי להבין מה קרה, להקשיב ולהגיע להבנה הדדית.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_r3',
+        question: "באיזון שבין 'אנחנו' ל'אני', לאן את נוטה באופן טבעי?",
+        questionType: 'scale',
+        rawValue: 7,
+        displayText: "אני משגשגת בזמן משותף ופעילויות משותפות, אבל חשוב לי גם לשמור על מרחב אישי ותחביבים משלי.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    partner: [
+       {
+        questionId: 'demo_noa_pa1',
+        question: "מהי תכונת האופי האחת שחייבת להיות בבן הזוג שלך?",
+        questionType: 'openText',
+        rawValue: "התכונה האחת שעליה הכל עומד היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.",
+        displayText: "התכונה האחת שעליה הכל עומד היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.",
+        isVisible: true, answeredAt: new Date(),
+      },
+       {
+        questionId: 'demo_noa_pa2',
+        question: "איזו תכונה שפחות חזקה אצלך, היית שמחה למצוא אצל בן הזוג כדי שתשלימו זה את זו?",
+        questionType: 'openText',
+        rawValue: "אני אדם שחושב הרבה ולפעמים מהסס. הייתי שמחה למצוא מישהו קצת יותר החלטי ועם ביטחון, כזה שיעזור לי לפעמים לקפוץ למים ויאזן את הנטייה שלי לחשוב יותר מדי.",
+        displayText: "אני אדם שחושב הרבה ולפעמים מהסס. הייתי שמחה למצוא מישהו קצת יותר החלטי ועם ביטחון, כזה שיעזור לי לפעמים לקפוץ למים ויאזן את הנטייה שלי לחשוב יותר מדי.",
+        isVisible: true, answeredAt: new Date(),
+      },
+       {
+        questionId: 'demo_noa_pa3',
+        question: "כשאת חושבת על 'אינטליגנציה' אצל בן זוג, מה הכי חשוב לך?",
+        questionType: 'budgetAllocation',
+        rawValue: { 'רגשית': 40, 'יצירתית': 30, 'חוכמת חיים': 20, 'אנליטית': 10 },
+        displayText: "התשובה מוצגת כגרף ויזואלי.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    religion: [
+      {
+        questionId: 'demo_noa_re1',
+        question: "מהו החזון שלך לחינוך הילדים בבית שתקימי?",
+        questionType: 'openText',
+        rawValue: 'החזון שלי הוא להקים בית שבו ילדים גדלים עם ערכים של נתינה, אהבת התורה וארץ ישראל. חשוב לי שהחינוך יהיה דתי-לאומי פתוח ומאפשר שאלת שאלות, כזה שמצמיח אנשים חושבים, עם יראת שמיים פנימית ועמוקה.',
+        displayText: 'החזון שלי הוא להקים בית שבו ילדים גדלים עם ערכים של נתינה, אהבת התורה וארץ ישראל. חשוב לי שהחינוך יהיה דתי-לאומי פתוח ומאפשר שאלת שאלות, כזה שמצמיח אנשים חושבים, עם יראת שמיים פנימית ועמוקה.',
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_re2',
+        question: "מהי החוויה המרכזית שאת מחפשת ומקבלת מהשבת?",
+        questionType: 'iconChoice',
+        rawValue: 'family_time',
+        displayText: "זמן למשפחה, לביחד ולשיח. הרגעים השקטים של סעודת שבת הם קודש קודשים עבורי.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_noa_re3',
+        question: "באיזו מידה את פתוחה לגמישות אם יתגלו פערים בגישה ההלכתית בינך לבין בן הזוג?",
+        questionType: 'scale',
+        rawValue: 8,
+        displayText: "אני מאוד גמישה ופתוחה. אני מאמינה שזוגיות היא מסע של צמיחה משותפת, וכל עוד יש בסיס של כבוד ויראת שמיים, אפשר למצוא את הדרך המשותפת.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
   },
-  demoQAndA: [
-    {
-      question: 'מה הערך החשוב ביותר שתרצי להנחיל בבית שתקימי?',
-      answer: 'כבוד הדדי. היכולת להקשיב באמת, גם כשלא מסכימים, וליצור מרחב בטוח שבו שנינו יכולים להיות הגרסה הכי אותנטית של עצמנו.',
-    },
-    {
-      question: 'איך את רואה את חלוקת התפקידים בזוגיות מודרנית?',
-      answer: "אני מאמינה בשותפות מלאה. לא 'תפקידים' קבועים, אלא צוות שפועל יחד. יום אחד אני אהיה החזקה כשהוא צריך תמיכה, ויום אחר הוא יהיה שם בשבילי. הכל בתקשורת וגמישות.",
-    },
-  ]
 };
 
 export const maleProfileContent = {
@@ -1658,11 +2011,139 @@ export const maleProfileContent = {
   religiousLevel: 'דתי לאומי תורני',
   about: 'בחור של אנשים ושל עשייה. אוהב את השילוב בין עולם ההייטק הדינמי לבין קביעת עיתים לתורה. מאמין שצמיחה אמיתית קורית מחוץ לאזור הנוחות. מחפש שותפה לחיים, לבנות ביחד בית עם יראת שמיים, פתיחות מחשבתית והרבה שמחה.',
   profileHeadline: 'מהנדס ביום, לומד תורה בערב. מחפש שותפה לבנות עולם.',
-  questionnaire: {
-    personality_self_portrayal_revised: "אני אדם של עשייה, אוהב אתגרים ומטרות. חשובה לי מאוד האמינות, ואני תמיד משתדל לעמוד במילה שלי. יש לי צד אנליטי חזק, שקיבלתי מהלימודים בישיבת הגוש ובהנדסה, אבל אני מאזן את זה עם צד יצירתי - אני אוהב לנגן בגיטרה ומתחבר מאוד לעולם החסידות. אני מחפש צמיחה מתמדת, גם בקריירה וגם בחיים האישיים.",
-    values_core_elaboration_revised: "הערך המרכזי שלי הוא אחריות. כששירתי כקצין בהנדסה קרבית, הייתי צריך לקבל החלטה מבצעית מורכבת תחת לחץ. בחרתי בדרך הפעולה הבטוחה יותר, למרות שהיא הייתה פחות 'זוהרת'. זו הייתה החלטה שהתבססה על אחריות לחיי החיילים שלי, והיא חיזקה אצלי את ההבנה שיושרה ואחריות הן מעל הכל.",
-    // ניתן להוסיף עוד תשובות לפי הצורך
-  }
+  
+  formattedAnswers: {
+    personality: [
+      {
+        questionId: 'demo_daniel_p1',
+        question: "מהם 3-5 הדברים המרכזיים שהיית רוצה שנדגיש כדי שיבינו מי אתה באמת?",
+        questionType: 'openText',
+        rawValue: "אני אדם של עשייה, אוהב אתגרים ומטרות. חשובה לי מאוד האמינות, ואני תמיד משתדל לעמוד במילה שלי. יש לי צד אנליטי חזק, שקיבלתי מהלימודים בישיבת הגוש ובהנדסה, אבל אני מאזן את זה עם צד יצירתי - אני אוהב לנגן בגיטרה ומתחבר מאוד לעולם החסידות. אני מחפש צמיחה מתמדת, גם בקריירה וגם בחיים האישיים.",
+        displayText: "אני אדם של עשייה, אוהב אתגרים ומטרות. חשובה לי מאוד האמינות, ואני תמיד משתדל לעמוד במילה שלי. יש לי צד אנליטי חזק, שקיבלתי מהלימודים בישיבת הגוש ובהנדסה, אבל אני מאזן את זה עם צד יצירתי - אני אוהב לנגן בגיטרה ומתחבר מאוד לעולם החסידות. אני מחפש צמיחה מתמדת, גם בקריירה וגם בחיים האישיים.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_p2',
+        question: "באיזו 'מערכת הפעלה' הראש שלך עובד הכי טוב ביום-יום?",
+        questionType: 'iconChoice',
+        rawValue: 'task_oriented',
+        displayText: "משימתיות - אני מתפקד הכי טוב עם יעדים ברורים להשגה.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_p3',
+        question: "ספר על כישלון או אתגר משמעותי, ומה למדת ממנו על עצמך.",
+        questionType: 'openText',
+        rawValue: "נכשלתי במבחן חשוב בתואר הראשון. זה לימד אותי על החשיבות של התמדה, על היכולת לקום אחרי נפילה, ובעיקר שכישלון הוא לא סוף העולם אלא הזדמנות ללמוד ולהשתפר.",
+        displayText: "נכשלתי במבחן חשוב בתואר הראשון. זה לימד אותי על החשיבות של התמדה, על היכולת לקום אחרי נפילה, ובעיקר שכישלון הוא לא סוף העולם אלא הזדמנות ללמוד ולהשתפר.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    values: [
+      {
+        questionId: 'demo_daniel_v1',
+        question: "ספר על צומת דרכים אחד בחיים שבו פעלת לפי הערך שהכי חשוב לך.",
+        questionType: 'openText',
+        rawValue: "הערך המרכזי שלי הוא אחריות. כששירתי כקצין בהנדסה קרבית, הייתי צריך לקבל החלטה מבצעית מורכבת תחת לחץ. בחרתי בדרך הפעולה הבטוחה יותר, למרות שהיא הייתה פחות 'זוהרת'. זו הייתה החלטה שהתבססה על אחריות לחיי החיילים שלי, והיא חיזקה אצלי את ההבנה שיושרה ואחריות הן מעל הכל.",
+        displayText: "הערך המרכזי שלי הוא אחריות. כששירתי כקצין בהנדסה קרבית, הייתי צריך לקבל החלטה מבצעית מורכבת תחת לחץ. בחרתי בדרך הפעולה הבטוחה יותר, למרות שהיא הייתה פחות 'זוהרת'. זו הייתה החלטה שהתבססה על אחריות לחיי החיילים שלי, והיא חיזקה אצלי את ההבנה שיושרה ואחריות הן מעל הכל.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_v2',
+        question: "מי הם האנשים שמהווים עבורך מודל לחיקוי, ומדוע?",
+        questionType: 'openText',
+        rawValue: "הרב זקס זצ\"ל. היכולת שלו לגשר בין עולמות, להציג מחשבה יהודית עמוקה ורלוונטית, ולהיות איש רוח ומעשה ברמה הגבוהה ביותר היא השראה עצומה עבורי.",
+        displayText: "הרב זקס זצ\"ל. היכולת שלו לגשר בין עולמות, להציג מחשבה יהודית עמוקה ורלוונטית, ולהיות איש רוח ומעשה ברמה הגבוהה ביותר היא השראה עצומה עבורי.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_v3',
+        question: "מהי גישתך להתפתחות אינטלקטואלית וללמידה מתמדת?",
+        questionType: 'iconChoice',
+        rawValue: 'lifelong_learning',
+        displayText: "זה חלק מהותי ממני - אני תמיד קורא, לומד ומתפתח, גם בתחום המקצועי וגם בתחום התורני.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    relationship: [
+      {
+        questionId: 'demo_daniel_r1',
+        question: "מהו הדבר האחד שבלעדיו קשר זוגי לא יכול לעבוד עבורך, ומהי השאיפה הגדולה ביותר?",
+        questionType: 'openText',
+        rawValue: "הדיל ברייקר המוחלט הוא חוסר יושרה. השאיפה הגדולה ביותר היא שותפות אמיתית. הידיעה שיש לי מישהי לצידי, שאנחנו צוות מול כל אתגר, ושדואגים תמיד אחד לשנייה.",
+        displayText: "הדיל ברייקר המוחלט הוא חוסר יושרה. השאיפה הגדולה ביותר היא שותפות אמיתית. הידיעה שיש לי מישהי לצידי, שאנחנו צוות מול כל אתגר, ושדואגים תמיד אחד לשנייה.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_r2',
+        question: "מה יותר חשוב לך בבת זוג: מישהי שתקבל אותך כמו שאתה, או מישהי שתאתגר אותך לצמוח?",
+        questionType: 'scale',
+        rawValue: 7,
+        displayText: "חשובה לי מאוד הקבלה, אבל אני מחפש שותפה שתעזור לי להיות הגרסה הכי טובה של עצמי, ותאתגר אותי כשצריך. צמיחה משותפת היא ערך עליון בעיניי.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_r3',
+        question: "כשבת הזוג שלך חוזרת הביתה אחרי יום נוראי, מה תהיה התגובה הטבעית שלך?",
+        questionType: 'iconChoice',
+        rawValue: 'analyze_solve',
+        displayText: "הנטייה הראשונית שלי היא לנסות להבין מה קרה, לנתח את המצב ולחשוב יחד על פתרונות מעשיים שיכולים לעזור.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    partner: [
+      {
+        questionId: 'demo_daniel_pa1',
+        question: "איזו תכונה או יכולת, שאולי פחות חזקה אצלך, היית שמח למצוא אצל בת הזוג כדי שתשלימו זו את זה?",
+        questionType: 'openText',
+        rawValue: "כאדם שרגיל לתכנן ולפעול בצורה מאוד מובנית, הייתי שמח למצוא מישהי עם יותר ספונטניות וזרימה, כזו שתעזור לי לפעמים לצאת מהקופסה ולהכניס קצת הרפתקנות לחיים.",
+        displayText: "כאדם שרגיל לתכנן ולפעול בצורה מאוד מובנית, הייתי שמח למצוא מישהי עם יותר ספונטניות וזרימה, כזו שתעזור לי לפעמים לצאת מהקופסה ולהכניס קצת הרפתקנות לחיים.",
+        isVisible: true, answeredAt: new Date(),
+      },
+      {
+        questionId: 'demo_daniel_pa2',
+        question: "איך היית מחלק 100 'נקודות התאמה' בין תכונות האופי החיוניות לך בבת זוג?",
+        questionType: 'budgetAllocation',
+        rawValue: { 'יושרה ואמינות': 30, 'בגרות ויציבות': 25, 'שאפתנות וצמיחה': 20, 'אופטימיות': 15, 'תקשורת טובה': 10 },
+        displayText: "התשובה מוצגת כגרף ויזואלי.",
+        isVisible: true, answeredAt: new Date(),
+      },
+       {
+        questionId: 'demo_daniel_pa3',
+        question: "מהו ה'קו האדום' המוחלט שלך, תכונה שלא תוכל לחיות איתה בשלום?",
+        questionType: 'openText',
+        rawValue: "קו אדום עבורי הוא חוסר שאיפה להתפתח ולהשתפר. אני לא מחפש מישהי מושלמת, אבל חשוב לי שתהיה לה מוטיבציה פנימית לצמוח, ללמוד ולהיות גרסה טובה יותר של עצמה. פסיביות וחוסר רצון להתמודד עם אתגרים זה משהו שקשה לי מאוד להתחבר אליו.",
+        displayText: "קו אדום עבורי הוא חוסר שאיפה להתפתח ולהשתפר. אני לא מחפש מישהי מושלמת, אבל חשוב לי שתהיה לה מוטיבציה פנימית לצמוח, ללמוד ולהיות גרסה טובה יותר של עצמה. פסיביות וחוסר רצון להתמודד עם אתגרים זה משהו שקשה לי מאוד להתחבר אליו.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+    religion: [
+      {
+        questionId: 'demo_daniel_re1',
+        question: "מהו קטע תפילה, הגות או רעיון יהודי שמדבר אליך במיוחד?",
+        questionType: 'openText',
+        rawValue: "קטע של הרב זקס שמדבר על 'אמונה כשיחה מתמשכת'. זה מתחבר לי לתפיסה שהאמונה היא לא משהו סטטי, אלא מסע דינמי של שאלה, חיפוש ותשובה, וזה מרתק אותי.",
+        displayText: "קטע של הרב זקס שמדבר על 'אמונה כשיחה מתמשכת'. זה מתחבר לי לתפיסה שהאמונה היא לא משהו סטטי, אלא מסע דינמי של שאלה, חיפוש ותשובה, וזה מרתק אותי.",
+        isVisible: true, answeredAt: new Date(),
+      },
+       {
+        questionId: 'demo_daniel_re2',
+        question: "בבניית בית יהודי, כיצד היית רואה את חלוקת האחריות בין גבר לאישה?",
+        questionType: 'budgetAllocation',
+        rawValue: { 'חלוקה גמישה': 60, 'חלוקה מסורתית': 30, 'שותפות שוויונית': 10 },
+        displayText: "התשובה מוצגת כגרף ויזואלי.",
+        isVisible: true, answeredAt: new Date(),
+      },
+       {
+        questionId: 'demo_daniel_re3',
+        question: "מה מקומה של הדרכה רוחנית (רב, רבנית) בחייך בקבלת החלטות משמעותיות?",
+        questionType: 'scale',
+        rawValue: 8,
+        displayText: "התייעצות עם דמות רוחנית היא חלק בלתי נפרד מתהליך קבלת ההחלטות שלי בנושאים משמעותיים. אני רואה בזה מקור לחוכמה, איזון וחיבור למסורת.",
+        isVisible: true, answeredAt: new Date(),
+      }
+    ],
+  },
 };
 
 export const suggestionContent = {
@@ -1679,7 +2160,6 @@ export const aiAnalysisContent = {
   forFemaleSummary: 'ההתאמה בין נועה לדניאל מבטיחה מאוד ומתבססת על חיבור עמוק ברמת הערכים והאישיות. היצירתיות, הרגישות והאופטימיות של נועה משלימות באופן הרמוני את היציבות, האחריות והנחישות של דניאל, ויוצרות פוטנציאל לזוגיות מאוזנת, תומכת ומלאת תוכן, שבה כל אחד יכול להיות הגרסה הטובה ביותר של עצמו.',
 };
 
-// ADD THIS OBJECT
 export const matchmakerContent = {
   dina: {
     firstName: 'דינה',

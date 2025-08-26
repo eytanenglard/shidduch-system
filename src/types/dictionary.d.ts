@@ -334,7 +334,15 @@ export type SuggestionsCardDict = {
     askMatchmaker: string;
     viewDetails: string;
   };
-  
+    statusIndicator: {
+    yourTurn: string;
+    waitingForYou: string;
+    matchmaker: string;
+    firstParty: string;
+    secondParty: string;
+    bothParties: string;
+  };
+
 };
 
 export type SuggestionsModalDict = {
