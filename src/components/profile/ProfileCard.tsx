@@ -2336,64 +2336,22 @@ const ProfileHeader: React.FC<{
                           compact={compact}
                         />
                       )}
-                      // יש לעטוף כל DetailItem בתנאי משלו
-                      <div className="grid grid-cols-1 gap-2 sm:gap-3 min-w-0 max-w-full">
-                        {profile.religiousLevel && (
-                          <DetailItem
-                            icon={BookMarked}
-                            label="השקפה"
-                            value={
-                              formatEnumValue(
-                                profile.religiousLevel,
-                                religiousLevelMap
-                              ).label
-                            }
-                            variant="elegant"
-                            size="sm"
-                            useMobileLayout={true}
-                            textAlign="center"
-                          />
-                        )}
-                        {profile.shomerNegiah !== null &&
-                          profile.shomerNegiah !== undefined && (
-                            <DetailItem
-                              icon={Heart}
-                              label="שמירת נגיעה"
-                              value={
-                                formatBooleanPreference(profile.shomerNegiah)
-                                  .label
-                              }
-                              variant="elegant"
-                              size="sm"
-                              useMobileLayout={true}
-                            />
-                          )}
-                        {profile.occupation && (
-                          <DetailItem
-                            icon={Briefcase}
-                            label="עיסוק"
-                            value={profile.occupation}
-                            variant="elegant"
-                            size="sm"
-                            useMobileLayout={true}
-                          />
-                        )}
-                        {profile.educationLevel && (
-                          <DetailItem
-                            icon={GraduationCap}
-                            label="השכלה"
-                            value={
-                              formatEnumValue(
-                                profile.educationLevel,
-                                educationLevelMap
-                              ).label
-                            }
-                            variant="elegant"
-                            size="sm"
-                            useMobileLayout={true}
-                          />
-                        )}
-                      </div>
+                      {profile.religiousLevel && (
+                        <KeyFactCard
+                          icon={BookMarked}
+                          label="השקפה"
+                          value={
+                            formatEnumValue(
+                              profile.religiousLevel,
+                              religiousLevelMap,
+                              undefined,
+                              true
+                            ).shortLabel || ''
+                          }
+                          color="purple"
+                          compact={compact}
+                        />
+                      )}
                     </div>
                     <ScrollBar orientation="horizontal" />
                   </ScrollArea>
