@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-08-26 18:02:43
+# Generated on: 2025-08-26 18:48:03
 ################################################################################
 
 ================================================================================
@@ -6681,23 +6681,7 @@ export default function QuestionnaireLayout({
           </Button>
           <div className="flex gap-2 pt-2">
             {renderFAQButton(false)}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="w-8 h-8 p-0 rounded-full text-slate-500"
-                    onClick={() => setAccessibilityPanelOpen(true)}
-                  >
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{dict.layout.tooltips.accessibility}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {/* The redundant accessibility button has been removed from here */}
           </div>
         </div>
       </aside>
@@ -6808,35 +6792,35 @@ import {
   ChevronDown,
   Clock,
   HelpCircle,
+  ArrowLeft,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import type { WorldsMapDict } from '@/types/dictionary';
+import { useLanguage } from '@/app/[locale]/contexts/LanguageContext';
 
-// ייבוא של קבצי השאלות כדי לקבל מידע דינמי
+// Importowanie pytań w celu uzyskania dynamicznych statystyk
 import { personalityQuestions } from '../questions/personality/personalityQuestions';
 import { valuesQuestions } from '../questions/values/valuesQuestions';
 import { relationshipQuestions } from '../questions/relationship/relationshipQuestions';
 import { partnerQuestions } from '../questions/partner/partnerQuestions';
 import { religionQuestions } from '../questions/religion/religionQuestions';
 
-// Configuration objects remain for visual/structural data
+// Konfiguracja wizualna (ikony, kolory) — etykiety tekstowe zostały usunięte
 const worldsConfig = {
-  PERSONALITY: { icon: User, label: 'אישיות', order: 1, themeColor: 'sky' },
-  VALUES: { icon: Heart, label: 'ערכים ואמונות', order: 2, themeColor: 'rose' },
+  PERSONALITY: { icon: User, order: 1, themeColor: 'sky' },
+  VALUES: { icon: Heart, order: 2, themeColor: 'rose' },
   RELATIONSHIP: {
     icon: Users,
-    label: 'זוגיות',
     order: 3,
     themeColor: 'purple',
   },
   PARTNER: {
     icon: UserCheck,
-    label: 'הפרטנר האידיאלי',
     order: 4,
     themeColor: 'teal',
   },
-  RELIGION: { icon: Scroll, label: 'דת ומסורת', order: 5, themeColor: 'amber' },
+  RELIGION: { icon: Scroll, order: 5, themeColor: 'amber' },
 } as const;
 
 type WorldId = keyof typeof worldsConfig;
@@ -6854,7 +6838,7 @@ type WorldStatus =
   | 'available'
   | 'locked';
 
-// חישוב סטטיסטיקות עבור כל עולם באופן דינמי
+// Dynamiczne obliczanie statystyk dla każdego świata
 const worldStats = {
   PERSONALITY: {
     questionCount: personalityQuestions.length,
@@ -6878,7 +6862,7 @@ const worldStats = {
   },
 };
 
-// Component Props Interfaces
+// Interfejsy propsów komponentów
 interface WorldsMapProps {
   currentWorld: WorldId;
   completedWorlds: WorldId[];
@@ -6904,9 +6888,10 @@ interface ProgressHeaderProps {
   nextRecommendedWorld?: WorldId;
   onGoToRecommended: () => void;
   dict: WorldsMapDict['progressHeader'];
+  worldLabels: WorldsMapDict['worldLabels'];
 }
 
-// Sub-components
+// Podkomponenty
 const ProgressHeader: React.FC<ProgressHeaderProps> = ({
   userName,
   completionPercent,
@@ -6915,8 +6900,9 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
   nextRecommendedWorld,
   onGoToRecommended,
   dict,
+  worldLabels,
 }) => (
-    <motion.div
+  <motion.div
     className="bg-white/95 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-white/60 space-y-4"
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -6950,10 +6936,10 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
         onClick={onGoToRecommended}
         className="w-full sm:w-auto bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 animate-pulse-slow"
       >
-        <Sparkles className="h-5 w-5 mr-2 fill-current" />
+        <Sparkles className="h-5 w-5 me-2 fill-current" />
         {dict.ctaButton.replace(
           '{{worldName}}',
-          worldsConfig[nextRecommendedWorld].label
+          worldLabels[nextRecommendedWorld]
         )}
       </Button>
     )}
@@ -7035,23 +7021,30 @@ const WorldCard: React.FC<WorldCardProps> = ({
             variant="outline"
             className={cn('text-xs font-medium', statusInfo.badge)}
           >
-            <statusInfo.Icon className="w-3.5 h-3.5 ml-1.5" />
+            <statusInfo.Icon className="w-3.5 h-3.5 ms-1.5" />
             {statusInfo.text}
           </Badge>
         </div>
         <div>
-          <h3 className="text-xl font-bold text-gray-800">{fullContent.title}</h3>
+          <h3 className="text-xl font-bold text-gray-800">
+            {fullContent.title}
+          </h3>
           <p className="text-sm text-gray-600 mt-1">{fullContent.subtitle}</p>
         </div>
       </div>
-      
+
       <div className="px-6 text-sm text-gray-500">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="flex items-center gap-1 hover:text-gray-800 transition-colors"
         >
-          {isExpanded ? 'הצג פחות' : 'קרא עוד'}
-          <ChevronDown className={cn("w-4 h-4 transition-transform", isExpanded && "rotate-180")} />
+          {isExpanded ? dict.showLess : dict.readMore}
+          <ChevronDown
+            className={cn(
+              'w-4 h-4 transition-transform',
+              isExpanded && 'rotate-180'
+            )}
+          />
         </button>
       </div>
 
@@ -7068,14 +7061,16 @@ const WorldCard: React.FC<WorldCardProps> = ({
               <div>
                 <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
                   <Brain className={`w-5 h-5 text-${themeColor}-500`} />
-                  למה זה קריטי?
+                  {fullContent.whyIsItImportant}
                 </h4>
-                <p className="text-sm text-gray-600 leading-relaxed">{fullContent.whyIsItImportant}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {fullContent.whyIsItImportant}
+                </p>
               </div>
               <div>
                 <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
                   <Sparkles className={`w-5 h-5 text-${themeColor}-500`} />
-                  מה תגלה/י על עצמך?
+                  {fullContent.whatYouWillDiscover[0]}
                 </h4>
                 <ul className="list-disc list-inside space-y-1.5 text-sm text-gray-600">
                   {fullContent.whatYouWillDiscover.map((item, index) => (
@@ -7083,8 +7078,12 @@ const WorldCard: React.FC<WorldCardProps> = ({
                   ))}
                 </ul>
               </div>
-              <blockquote className={`border-r-4 border-${themeColor}-300 pr-4 py-2 bg-${themeColor}-50/60 my-4`}>
-                <p className="text-sm text-gray-700 italic">{fullContent.guidingThought}</p>
+              <blockquote
+                className={`border-s-4 border-${themeColor}-300 ps-4 py-2 bg-${themeColor}-50/60 my-4`}
+              >
+                <p className="text-sm text-gray-700 italic">
+                  {fullContent.guidingThought}
+                </p>
               </blockquote>
             </div>
           </motion.div>
@@ -7094,9 +7093,21 @@ const WorldCard: React.FC<WorldCardProps> = ({
       <div className="flex-grow" />
 
       <div className="p-4 bg-gray-50/80 mt-auto border-t">
-         <div className="flex justify-between text-xs text-gray-500 mb-3 px-2">
-            <span className='flex items-center gap-1'><HelpCircle className='w-3.5 h-3.5' />{stats.questionCount} שאלות</span>
-            <span className='flex items-center gap-1'><Clock className='w-3.5 h-3.5' />~{stats.estimatedTime} דקות</span>
+        <div className="flex justify-between text-xs text-gray-500 mb-3 px-2">
+          <span className="flex items-center gap-1">
+            <HelpCircle className="w-3.5 h-3.5" />
+            {dict.questionCount.replace(
+              '{{count}}',
+              stats.questionCount.toString()
+            )}
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5" />
+            {dict.estimatedTime.replace(
+              '{{count}}',
+              stats.estimatedTime.toString()
+            )}
+          </span>
         </div>
         <Button
           className={cn(
@@ -7106,7 +7117,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
           onClick={onSelect}
           disabled={status === 'locked'}
         >
-          <statusInfo.ActionIcon className="w-4 h-4 ml-2" />
+          <statusInfo.ActionIcon className="w-4 h-4 ms-2" />
           {statusInfo.action}
         </Button>
       </div>
@@ -7114,8 +7125,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
   );
 };
 
-
-// Main Component
+// Komponent główny
 export default function WorldsMap({
   currentWorld,
   completedWorlds,
@@ -7124,6 +7134,8 @@ export default function WorldsMap({
   dict,
 }: WorldsMapProps) {
   const { data: session } = useSession();
+  const { language } = useLanguage();
+  const isRTL = language === 'he';
   const completionPercent = Math.round(
     (completedWorlds.length / WORLD_ORDER.length) * 100
   );
@@ -7150,12 +7162,15 @@ export default function WorldsMap({
     return 'available';
   };
 
+  const ReviewButtonArrow = isRTL ? ArrowLeft : ArrowRight;
+
   return (
     <div
       className={cn(
         'p-4 sm:p-6 bg-gradient-to-b from-white via-teal-50/20 to-white min-h-screen relative overflow-hidden',
         className
       )}
+      dir={isRTL ? 'rtl' : 'ltr'} // Kluczowa zmiana: ustawienie kierunku
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-orange-200/20 rounded-full blur-3xl animate-float-slow" />
@@ -7183,6 +7198,7 @@ export default function WorldsMap({
             nextRecommendedWorld && onWorldChange(nextRecommendedWorld)
           }
           dict={dict.progressHeader}
+          worldLabels={dict.worldLabels}
         />
         {completedWorlds.length > 0 && (
           <motion.div
@@ -7210,7 +7226,7 @@ export default function WorldsMap({
                     variant="outline"
                     className="w-full sm:w-auto bg-white/80 border-teal-200 text-teal-600 hover:bg-teal-50 hover:border-teal-300"
                   >
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    <ReviewButtonArrow className="w-4 h-4 me-2" />
                     {dict.reviewCard.button}
                   </Button>
                 </Link>
@@ -7330,14 +7346,14 @@ import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { motion } from 'framer-motion';
-import type { QuestionnaireLandingPageDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
+import type { QuestionnaireLandingPageDict } from '@/types/dictionary';
 
 // --- Props Interface ---
 interface QuestionnaireLandingPageProps {
   onStartQuestionnaire: () => void;
   hasSavedProgress: boolean;
   isLoading?: boolean;
-  dict: QuestionnaireLandingPageDict; // קבלת המילון כ-prop
+  dict: QuestionnaireLandingPageDict;
 }
 
 // --- Animation Variants ---
@@ -7345,19 +7361,21 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
   },
 };
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 30 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
+    transition: { duration: 0.6, ease: 'easeOut' },
   },
 };
 
+// --- START: התיקון ---
+// הוספת ההגדרה החסרה של האנימציה
 const staggeredCardVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -7365,67 +7383,27 @@ const staggeredCardVariants = {
     transition: { staggerChildren: 0.1, delayChildren: 0.1 },
   },
 };
+// --- END: התיקון ---
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.98 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: 0.5,
-      ease: 'easeOut',
-      scale: { type: 'spring', stiffness: 260, damping: 20 },
-    },
-  },
-};
-
-// --- Background Components ---
+// --- Background Component ---
 const DynamicBackground: React.FC = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    <div className="absolute inset-0 opacity-30">
-      <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-teal-200/40 to-orange-300/30 rounded-full blur-3xl animate-float-slow" />
+    <div className="absolute inset-0 opacity-40">
+      <div className="absolute top-10 left-10 w-40 h-40 bg-gradient-to-br from-teal-200/40 to-orange-300/30 rounded-full blur-3xl animate-float-slow" />
       <div
-        className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-amber-200/40 to-orange-300/30 rounded-full blur-2xl animate-float-slow"
+        className="absolute top-1/2 right-20 w-32 h-32 bg-gradient-to-br from-amber-200/40 to-orange-300/30 rounded-full blur-2xl animate-float-slow"
         style={{ animationDelay: '2s' }}
       />
       <div
-        className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-br from-teal-200/30 to-amber-300/25 rounded-full blur-3xl animate-float-slow"
+        className="absolute bottom-10 left-1/4 w-48 h-48 bg-gradient-to-br from-teal-200/30 to-amber-300/25 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '4s' }}
       />
-      <div
-        className="absolute bottom-10 right-10 w-28 h-28 bg-gradient-to-br from-orange-200/35 to-amber-300/30 rounded-full blur-2xl animate-float-slow"
-        style={{ animationDelay: '1s' }}
-      />
     </div>
-    <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#f97316_1px,transparent_1px)] [background-size:20px_20px]" />
-    <svg
-      className="absolute inset-0 w-full h-full"
-      viewBox="0 0 1000 1000"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        <linearGradient id="bgGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#0d9488" stopOpacity="0.08" />
-          <stop offset="50%" stopColor="#f97316" stopOpacity="0.06" />
-          <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.08" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M0,200 C300,100 700,300 1000,200 L1000,0 L0,0 Z"
-        fill="url(#bgGrad1)"
-        className="animate-pulse-slow"
-      />
-      <path
-        d="M0,800 C300,700 700,900 1000,800 L1000,1000 L0,1000 Z"
-        fill="url(#bgGrad1)"
-        className="animate-pulse-slow"
-        style={{ animationDelay: '3s' }}
-      />
-    </svg>
+    <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#f97316_0.5px,transparent_0.5px)] [background-size:24px_24px]" />
   </div>
 );
 
+// --- Main Component ---
 export default function QuestionnaireLandingPage({
   onStartQuestionnaire,
   hasSavedProgress,
@@ -7435,38 +7413,12 @@ export default function QuestionnaireLandingPage({
   const { status, data: session } = useSession();
   const isMobile = useIsMobile();
 
-  // World visual configuration remains in code
   const worldVisuals = [
-    {
-      id: 'PERSONALITY',
-      icon: <User className="h-7 w-7" />,
-      colorGradient: 'from-sky-400 to-blue-500',
-      questions: 20,
-    },
-    {
-      id: 'VALUES',
-      icon: <Heart className="h-7 w-7" />,
-      colorGradient: 'from-rose-400 to-red-500',
-      questions: 25,
-    },
-    {
-      id: 'RELATIONSHIP',
-      icon: <Users className="h-7 w-7" />,
-      colorGradient: 'from-purple-400 to-indigo-500',
-      questions: 18,
-    },
-    {
-      id: 'PARTNER',
-      icon: <UserCheck className="h-7 w-7" />,
-      colorGradient: 'from-teal-400 to-emerald-500',
-      questions: 22,
-    },
-    {
-      id: 'RELIGION',
-      icon: <Scroll className="h-7 w-7" />,
-      colorGradient: 'from-amber-400 to-orange-500',
-      questions: 15,
-    },
+    { id: 'PERSONALITY', icon: <User />, color: 'sky' },
+    { id: 'VALUES', icon: <Heart />, color: 'rose' },
+    { id: 'RELATIONSHIP', icon: <Users />, color: 'purple' },
+    { id: 'PARTNER', icon: <UserCheck />, color: 'teal' },
+    { id: 'RELIGION', icon: <Scroll />, color: 'amber' },
   ];
 
   const getCtaText = () => {
@@ -7480,18 +7432,20 @@ export default function QuestionnaireLandingPage({
   return (
     <div
       className={cn(
-        'relative min-h-screen overflow-hidden text-right dir-rtl bg-gradient-to-b from-white via-rose-50/30 to-white',
+        'relative min-h-screen overflow-hidden text-right dir-rtl bg-slate-50',
         isMobile && 'pb-28'
       )}
     >
       <DynamicBackground />
+
+      {/* SECTION 1: HERO - The Invitation */}
       <motion.section
-        className="relative py-20 px-4 sm:py-24 text-center overflow-hidden"
+        className="relative py-20 px-4 sm:py-24 text-center"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
-        <div className="max-w-4xl mx-auto relative">
+        <div className="max-w-4xl mx-auto">
           <motion.div
             className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-8"
             variants={fadeInUp}
@@ -7507,20 +7461,12 @@ export default function QuestionnaireLandingPage({
           >
             <span className="text-gray-800">{dict.hero.title}</span>
           </motion.h1>
-          <motion.div
-            className="relative max-w-3xl mx-auto mt-6"
+          <motion.p
+            className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed"
             variants={fadeInUp}
           >
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-rose-100/50 to-transparent rounded-full transform translate-x-16 -translate-y-16" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-purple-100/50 to-transparent rounded-full transform -translate-x-12 translate-y-12" />
-              <div className="relative">
-                <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-                  {dict.hero.subtitle}
-                </p>
-              </div>
-            </div>
-          </motion.div>
+            {dict.hero.subtitle}
+          </motion.p>
           <motion.div
             className="mt-12 space-y-4 flex flex-col items-center"
             variants={fadeInUp}
@@ -7559,6 +7505,7 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
+      {/* SECTION 2: WORLDS - The Journey's Map */}
       <motion.section
         className="py-16 px-4 relative"
         initial="hidden"
@@ -7566,7 +7513,7 @@ export default function QuestionnaireLandingPage({
         viewport={{ once: true, amount: 0.1 }}
         variants={containerVariants}
       >
-        <div className="absolute inset-0 -m-8 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60" />
+        <div className="absolute inset-0 -m-8 bg-white/95 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-white/60" />
         <div className="max-w-6xl mx-auto relative">
           <motion.div className="text-center mb-12" variants={fadeInUp}>
             <h2 className="text-3xl font-bold mb-3 text-gray-800">
@@ -7584,40 +7531,33 @@ export default function QuestionnaireLandingPage({
             {worldVisuals.map((world) => {
               const worldContent =
                 dict.worlds[world.id as keyof typeof dict.worlds];
+              const colorClasses = {
+                sky: 'from-sky-400 to-blue-500',
+                rose: 'from-rose-400 to-red-500',
+                purple: 'from-purple-400 to-indigo-500',
+                teal: 'from-teal-400 to-emerald-500',
+                amber: 'from-amber-400 to-orange-500',
+              };
               return (
-                <motion.div key={world.id} variants={cardVariants}>
-                  <Card className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/90 backdrop-blur-sm border border-white/60 flex flex-col h-full group">
-                    <CardContent className="p-6 text-center flex flex-col items-center flex-grow relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/50 to-white/80 opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-2xl" />
-                      <div className="relative z-10 flex flex-col items-center flex-grow">
-                        <div
-                          className={cn(
-                            'p-4 rounded-full bg-gradient-to-br text-white shadow-lg mb-4 group-hover:scale-110 transition-all duration-300',
-                            world.colorGradient
-                          )}
-                        >
-                          {world.icon}
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">
-                          {worldContent.title}
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-3">
-                          {worldContent.questionsLabel.replace(
-                            '{{count}}',
-                            world.questions.toString()
-                          )}
-                        </p>
-                        <p className="text-base text-gray-600 leading-relaxed flex-grow">
-                          {worldContent.description}
-                        </p>
-                      </div>
-                      <div className="absolute top-2 right-2 w-2 h-2 bg-gradient-to-br from-teal-300/50 to-orange-300/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500" />
-                      <div
-                        className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-gradient-to-br from-orange-300/50 to-amber-300/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700"
-                        style={{ transitionDelay: '0.2s' }}
-                      />
-                    </CardContent>
-                  </Card>
+                <motion.div key={world.id} variants={fadeInUp}>
+                  <div className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/90 backdrop-blur-sm border border-white/60 flex flex-col h-full group p-6 text-center items-center">
+                    <div
+                      className={cn(
+                        'p-4 rounded-full bg-gradient-to-br text-white shadow-lg mb-4 group-hover:scale-110 transition-all duration-300',
+                        colorClasses[world.color as keyof typeof colorClasses]
+                      )}
+                    >
+                      {React.cloneElement(world.icon as React.ReactElement, {
+                        className: 'h-7 w-7',
+                      })}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">
+                      {worldContent.title}
+                    </h3>
+                    <p className="text-base text-gray-600 leading-relaxed flex-grow">
+                      {worldContent.description}
+                    </p>
+                  </div>
                 </motion.div>
               );
             })}
@@ -7625,14 +7565,15 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
+      {/* SECTION 3: FEATURES - The Promise */}
       <motion.section
-        className="py-16 px-4 relative"
+        className="py-16 px-4 bg-white"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
         variants={containerVariants}
       >
-        <div className="max-w-5xl mx-auto relative">
+        <div className="max-w-5xl mx-auto">
           <motion.div className="text-center mb-12" variants={fadeInUp}>
             <h2 className="text-3xl font-bold mb-3 text-gray-800">
               {dict.featuresSection.title}
@@ -7649,41 +7590,35 @@ export default function QuestionnaireLandingPage({
             {dict.featuresSection.features.map((feature, index) => (
               <motion.div
                 key={index}
-                className="flex flex-col items-center p-6 relative group"
-                variants={cardVariants}
+                className="flex flex-col items-center p-6 group"
+                variants={fadeInUp}
               >
-                <div className="absolute inset-0 bg-white/60 backdrop-blur-md rounded-2xl shadow-lg border border-white/40 opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105" />
-                <div className="relative z-10 flex flex-col items-center">
-                  {/* Icons can be mapped here if needed, or kept static */}
-                  <div className="p-4 rounded-full mb-5 group-hover:scale-110 transition-all duration-300">
-                    {index === 0 && <Clock className="h-8 w-8 text-sky-600" />}
-                    {index === 1 && (
-                      <Shield className="h-8 w-8 text-rose-600" />
-                    )}
-                    {index === 2 && <Star className="h-8 w-8 text-amber-600" />}
-                  </div>
-                  <h3 className="font-bold text-xl mb-2 text-gray-800 group-hover:text-gray-900 transition-colors duration-300">
-                    {feature.title}
-                  </h3>
-                  <p className="text-base text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
-                    {feature.description}
-                  </p>
+                <div className="p-4 rounded-full mb-5 transition-all duration-300 bg-slate-100 group-hover:bg-slate-200">
+                  {index === 0 && <Clock className="h-8 w-8 text-sky-600" />}
+                  {index === 1 && <Shield className="h-8 w-8 text-rose-600" />}
+                  {index === 2 && <Star className="h-8 w-8 text-amber-600" />}
                 </div>
+                <h3 className="font-bold text-xl mb-2 text-gray-800">
+                  {feature.title}
+                </h3>
+                <p className="text-base text-gray-600 leading-relaxed">
+                  {feature.description}
+                </p>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </motion.section>
 
+      {/* SECTION 4: FINAL CTA */}
       <motion.section
-        className="py-20 px-4 text-center relative"
+        className="py-20 px-4 text-center relative bg-slate-50"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.15 }}
         variants={containerVariants}
       >
-        <div className="absolute inset-0 -m-8 bg-gradient-to-br from-teal-600/10 via-orange-600/10 to-amber-600/10 rounded-3xl backdrop-blur-sm border border-white/40" />
-        <div className="max-w-3xl mx-auto relative">
+        <div className="max-w-3xl mx-auto">
           <motion.h2
             className="text-3xl font-bold mb-4 text-gray-800"
             variants={fadeInUp}
@@ -7742,7 +7677,7 @@ export default function QuestionnaireLandingPage({
         </div>
       )}
 
-      <footer className="text-center py-6 text-gray-500 text-sm bg-white/50 backdrop-blur-sm">
+      <footer className="text-center py-6 text-gray-500 text-sm bg-slate-50">
         {dict.footer.copyright.replace(
           '{{year}}',
           new Date().getFullYear().toString()
@@ -7753,27 +7688,22 @@ export default function QuestionnaireLandingPage({
         @keyframes float-slow {
           0%,
           100% {
-            transform: translateY(0px) rotate(0deg);
+            transform: translateY(0px);
           }
-          25% {
-            transform: translateY(-3px) rotate(0.5deg);
-          }
-          75% {
-            transform: translateY(3px) rotate(-0.5deg);
+          50% {
+            transform: translateY(-20px);
           }
         }
         .animate-float-slow {
-          animation: float-slow 6s ease-in-out infinite;
+          animation: float-slow 8s ease-in-out infinite;
         }
         @keyframes pulse-slow {
           0%,
           100% {
             opacity: 0.8;
-            transform: scale(1);
           }
           50% {
             opacity: 1;
-            transform: scale(1.02);
           }
         }
         .animate-pulse-slow {
@@ -9770,7 +9700,6 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\question
 Content:
 // src/components/questionnaire/worlds/WorldComponent.tsx
 import React, { useState, useEffect } from 'react';
-// שימו לב: WorldIntro כבר לא מיובא כי הסרנו אותו מהשימוש כאן
 import QuestionCard from '../common/QuestionCard';
 import AnswerInput from '../common/AnswerInput';
 import QuestionsList from '../common/QuestionsList';
@@ -9899,7 +9828,6 @@ const getQuestionWithText = (
   };
 };
 
-// --- ממשק ה-Props המתוקן ---
 interface WorldComponentDynamicProps {
   worldId: WorldId;
   onAnswer: (questionId: string, value: AnswerValue) => void;
@@ -9919,7 +9847,6 @@ interface WorldComponentDynamicProps {
     interactiveScale: InteractiveScaleDict;
     questionsList: QuestionsListDict;
     questions: QuestionsDictionary;
-    // הוספנו מפתח חדש לקבלת הכותרות והסרנו את הישן
     worldLabels: Record<WorldId, string>;
   };
 }
@@ -9951,8 +9878,7 @@ export default function WorldComponent({
   const allQuestions = allQuestionsStructure.map((qStruct) =>
     getQuestionWithText(qStruct, dict)
   );
-  
-  // --- תיקון מקור הכותרת ---
+
   const title = dict.worldLabels[worldId];
 
   const findAnswer = (questionId: string): QuestionnaireAnswer | undefined => {
@@ -10251,51 +10177,48 @@ export default function WorldComponent({
     </motion.div>
   );
 
-  const renderNavigationButtons = () => (
-    <div className="flex justify-between pt-4 mt-6 border-t border-slate-200">
-      <Button
-        variant="outline"
-        onClick={handlePrevious}
-        className="flex items-center gap-2"
-      >
-        {isRTL ? (
-          <ArrowRight className="h-4 w-4" />
+  const renderNavigationButtons = () => {
+    const PrevIcon = isRTL ? ArrowRight : ArrowLeft;
+    const NextIcon = isRTL ? ArrowLeft : ArrowRight;
+
+    return (
+      <div className="flex justify-between pt-4 mt-6 border-t border-slate-200">
+        <Button
+          variant="outline"
+          onClick={handlePrevious}
+          className="flex items-center gap-2"
+        >
+          <PrevIcon className="h-4 w-4" />
+          <span>
+            {currentQuestionIndex === 0
+              ? dict.world.buttons.backToMap
+              : dict.world.buttons.previous}
+          </span>
+        </Button>
+        {currentQuestionIndex < allQuestions.length - 1 ? (
+          <Button
+            variant="default"
+            onClick={handleNext}
+            className={cn(
+              'flex items-center gap-2',
+              `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`
+            )}
+          >
+            <span>{dict.world.buttons.next}</span>
+            <NextIcon className="h-4 w-4" />
+          </Button>
         ) : (
-          <ArrowLeft className="h-4 w-4" />
+          <Button
+            onClick={handleNext}
+            className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+          >
+            <span>{dict.world.buttons.finish}</span>
+            <CheckCircle className="h-4 w-4" />
+          </Button>
         )}
-        <span>
-          {currentQuestionIndex === 0
-            ? dict.world.buttons.backToMap
-            : dict.world.buttons.previous}
-        </span>
-      </Button>
-      {currentQuestionIndex < allQuestions.length - 1 ? (
-        <Button
-          variant="default"
-          onClick={handleNext}
-          className={cn(
-            'flex items-center gap-2',
-            `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`
-          )}
-        >
-          <span>{dict.world.buttons.next}</span>
-          {isRTL ? (
-            <ArrowLeft className="h-4 w-4" />
-          ) : (
-            <ArrowRight className="h-4 w-4" />
-          )}
-        </Button>
-      ) : (
-        <Button
-          onClick={handleNext}
-          className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
-        >
-          <span>{dict.world.buttons.finish}</span>
-          <CheckCircle className="h-4 w-4" />
-        </Button>
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   if (isDesktop) {
     return (
@@ -10391,7 +10314,7 @@ export default function WorldComponent({
       </div>
     );
   } else {
-    // Mobile View
+    // Widok mobilny
     return (
       <div
         className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6 pb-24"

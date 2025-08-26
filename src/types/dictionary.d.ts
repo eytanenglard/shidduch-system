@@ -1515,7 +1515,16 @@ export type QuestionnaireLandingPageDict = {
   };
 };
 
+type WorldContent = {
+  title: string;
+  subtitle: string;
+  whyIsItImportant: string;
+  whatYouWillDiscover: string[];
+  guidingThought: string;
+};
+
 export type WorldsMapDict = {
+  worldLabels: Record<WorldId, string>; // labels for buttons, headers etc.
   progressHeader: {
     greeting: string; // e.g., "שלום, {{name}}! ברוך הבא למסע שלך"
     defaultTitle: string;
@@ -1528,10 +1537,10 @@ export type WorldsMapDict = {
     button: string;
   };
   worldCard: {
-    subtitles: {
-      [key in WorldId]: string;
-    };
-
+    readMore: string;
+    showLess: string;
+    questionCount: string; // e.g., "{{count}} שאלות"
+    estimatedTime: string; // e.g., "~{{count}} דקות"
     statuses: {
       completed: string;
       recommended: string;
@@ -1551,8 +1560,7 @@ export type WorldsMapDict = {
     subtitle: string;
     description: string;
   };
-    worldsContent: Record<WorldId, WorldContent>;
-
+  worldsContent: Record<WorldId, WorldContent>; // All descriptive content for cards
 };
 export type QuestionnaireLayoutDict = {
   navHeader: string;

@@ -1,6 +1,5 @@
 // src/components/questionnaire/worlds/WorldComponent.tsx
 import React, { useState, useEffect } from 'react';
-// שימו לב: WorldIntro כבר לא מיובא כי הסרנו אותו מהשימוש כאן
 import QuestionCard from '../common/QuestionCard';
 import AnswerInput from '../common/AnswerInput';
 import QuestionsList from '../common/QuestionsList';
@@ -129,7 +128,6 @@ const getQuestionWithText = (
   };
 };
 
-// --- ממשק ה-Props המתוקן ---
 interface WorldComponentDynamicProps {
   worldId: WorldId;
   onAnswer: (questionId: string, value: AnswerValue) => void;
@@ -149,7 +147,6 @@ interface WorldComponentDynamicProps {
     interactiveScale: InteractiveScaleDict;
     questionsList: QuestionsListDict;
     questions: QuestionsDictionary;
-    // הוספנו מפתח חדש לקבלת הכותרות והסרנו את הישן
     worldLabels: Record<WorldId, string>;
   };
 }
@@ -181,8 +178,7 @@ export default function WorldComponent({
   const allQuestions = allQuestionsStructure.map((qStruct) =>
     getQuestionWithText(qStruct, dict)
   );
-  
-  // --- תיקון מקור הכותרת ---
+
   const title = dict.worldLabels[worldId];
 
   const findAnswer = (questionId: string): QuestionnaireAnswer | undefined => {
@@ -481,51 +477,48 @@ export default function WorldComponent({
     </motion.div>
   );
 
-  const renderNavigationButtons = () => (
-    <div className="flex justify-between pt-4 mt-6 border-t border-slate-200">
-      <Button
-        variant="outline"
-        onClick={handlePrevious}
-        className="flex items-center gap-2"
-      >
-        {isRTL ? (
-          <ArrowRight className="h-4 w-4" />
+  const renderNavigationButtons = () => {
+    const PrevIcon = isRTL ? ArrowRight : ArrowLeft;
+    const NextIcon = isRTL ? ArrowLeft : ArrowRight;
+
+    return (
+      <div className="flex justify-between pt-4 mt-6 border-t border-slate-200">
+        <Button
+          variant="outline"
+          onClick={handlePrevious}
+          className="flex items-center gap-2"
+        >
+          <PrevIcon className="h-4 w-4" />
+          <span>
+            {currentQuestionIndex === 0
+              ? dict.world.buttons.backToMap
+              : dict.world.buttons.previous}
+          </span>
+        </Button>
+        {currentQuestionIndex < allQuestions.length - 1 ? (
+          <Button
+            variant="default"
+            onClick={handleNext}
+            className={cn(
+              'flex items-center gap-2',
+              `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`
+            )}
+          >
+            <span>{dict.world.buttons.next}</span>
+            <NextIcon className="h-4 w-4" />
+          </Button>
         ) : (
-          <ArrowLeft className="h-4 w-4" />
+          <Button
+            onClick={handleNext}
+            className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+          >
+            <span>{dict.world.buttons.finish}</span>
+            <CheckCircle className="h-4 w-4" />
+          </Button>
         )}
-        <span>
-          {currentQuestionIndex === 0
-            ? dict.world.buttons.backToMap
-            : dict.world.buttons.previous}
-        </span>
-      </Button>
-      {currentQuestionIndex < allQuestions.length - 1 ? (
-        <Button
-          variant="default"
-          onClick={handleNext}
-          className={cn(
-            'flex items-center gap-2',
-            `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`
-          )}
-        >
-          <span>{dict.world.buttons.next}</span>
-          {isRTL ? (
-            <ArrowLeft className="h-4 w-4" />
-          ) : (
-            <ArrowRight className="h-4 w-4" />
-          )}
-        </Button>
-      ) : (
-        <Button
-          onClick={handleNext}
-          className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
-        >
-          <span>{dict.world.buttons.finish}</span>
-          <CheckCircle className="h-4 w-4" />
-        </Button>
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   if (isDesktop) {
     return (
@@ -621,7 +614,7 @@ export default function WorldComponent({
       </div>
     );
   } else {
-    // Mobile View
+    // Widok mobilny
     return (
       <div
         className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6 pb-24"

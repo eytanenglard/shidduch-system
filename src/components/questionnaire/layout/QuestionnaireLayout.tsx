@@ -469,23 +469,7 @@ export default function QuestionnaireLayout({
           </Button>
           <div className="flex gap-2 pt-2">
             {renderFAQButton(false)}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="w-8 h-8 p-0 rounded-full text-slate-500"
-                    onClick={() => setAccessibilityPanelOpen(true)}
-                  >
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{dict.layout.tooltips.accessibility}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {/* The redundant accessibility button has been removed from here */}
           </div>
         </div>
       </aside>

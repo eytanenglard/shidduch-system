@@ -25,35 +25,35 @@ import {
   ChevronDown,
   Clock,
   HelpCircle,
+  ArrowLeft,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import type { WorldsMapDict } from '@/types/dictionary';
+import { useLanguage } from '@/app/[locale]/contexts/LanguageContext';
 
-// ייבוא של קבצי השאלות כדי לקבל מידע דינמי
+// Importowanie pytań w celu uzyskania dynamicznych statystyk
 import { personalityQuestions } from '../questions/personality/personalityQuestions';
 import { valuesQuestions } from '../questions/values/valuesQuestions';
 import { relationshipQuestions } from '../questions/relationship/relationshipQuestions';
 import { partnerQuestions } from '../questions/partner/partnerQuestions';
 import { religionQuestions } from '../questions/religion/religionQuestions';
 
-// Configuration objects remain for visual/structural data
+// Konfiguracja wizualna (ikony, kolory) — etykiety tekstowe zostały usunięte
 const worldsConfig = {
-  PERSONALITY: { icon: User, label: 'אישיות', order: 1, themeColor: 'sky' },
-  VALUES: { icon: Heart, label: 'ערכים ואמונות', order: 2, themeColor: 'rose' },
+  PERSONALITY: { icon: User, order: 1, themeColor: 'sky' },
+  VALUES: { icon: Heart, order: 2, themeColor: 'rose' },
   RELATIONSHIP: {
     icon: Users,
-    label: 'זוגיות',
     order: 3,
     themeColor: 'purple',
   },
   PARTNER: {
     icon: UserCheck,
-    label: 'הפרטנר האידיאלי',
     order: 4,
     themeColor: 'teal',
   },
-  RELIGION: { icon: Scroll, label: 'דת ומסורת', order: 5, themeColor: 'amber' },
+  RELIGION: { icon: Scroll, order: 5, themeColor: 'amber' },
 } as const;
 
 type WorldId = keyof typeof worldsConfig;
@@ -71,7 +71,7 @@ type WorldStatus =
   | 'available'
   | 'locked';
 
-// חישוב סטטיסטיקות עבור כל עולם באופן דינמי
+// Dynamiczne obliczanie statystyk dla każdego świata
 const worldStats = {
   PERSONALITY: {
     questionCount: personalityQuestions.length,
@@ -95,7 +95,7 @@ const worldStats = {
   },
 };
 
-// Component Props Interfaces
+// Interfejsy propsów komponentów
 interface WorldsMapProps {
   currentWorld: WorldId;
   completedWorlds: WorldId[];
@@ -121,9 +121,10 @@ interface ProgressHeaderProps {
   nextRecommendedWorld?: WorldId;
   onGoToRecommended: () => void;
   dict: WorldsMapDict['progressHeader'];
+  worldLabels: WorldsMapDict['worldLabels'];
 }
 
-// Sub-components
+// Podkomponenty
 const ProgressHeader: React.FC<ProgressHeaderProps> = ({
   userName,
   completionPercent,
@@ -132,8 +133,9 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
   nextRecommendedWorld,
   onGoToRecommended,
   dict,
+  worldLabels,
 }) => (
-    <motion.div
+  <motion.div
     className="bg-white/95 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-white/60 space-y-4"
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -167,10 +169,10 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
         onClick={onGoToRecommended}
         className="w-full sm:w-auto bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 animate-pulse-slow"
       >
-        <Sparkles className="h-5 w-5 mr-2 fill-current" />
+        <Sparkles className="h-5 w-5 me-2 fill-current" />
         {dict.ctaButton.replace(
           '{{worldName}}',
-          worldsConfig[nextRecommendedWorld].label
+          worldLabels[nextRecommendedWorld]
         )}
       </Button>
     )}
@@ -252,23 +254,30 @@ const WorldCard: React.FC<WorldCardProps> = ({
             variant="outline"
             className={cn('text-xs font-medium', statusInfo.badge)}
           >
-            <statusInfo.Icon className="w-3.5 h-3.5 ml-1.5" />
+            <statusInfo.Icon className="w-3.5 h-3.5 ms-1.5" />
             {statusInfo.text}
           </Badge>
         </div>
         <div>
-          <h3 className="text-xl font-bold text-gray-800">{fullContent.title}</h3>
+          <h3 className="text-xl font-bold text-gray-800">
+            {fullContent.title}
+          </h3>
           <p className="text-sm text-gray-600 mt-1">{fullContent.subtitle}</p>
         </div>
       </div>
-      
+
       <div className="px-6 text-sm text-gray-500">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="flex items-center gap-1 hover:text-gray-800 transition-colors"
         >
-          {isExpanded ? 'הצג פחות' : 'קרא עוד'}
-          <ChevronDown className={cn("w-4 h-4 transition-transform", isExpanded && "rotate-180")} />
+          {isExpanded ? dict.showLess : dict.readMore}
+          <ChevronDown
+            className={cn(
+              'w-4 h-4 transition-transform',
+              isExpanded && 'rotate-180'
+            )}
+          />
         </button>
       </div>
 
@@ -285,14 +294,16 @@ const WorldCard: React.FC<WorldCardProps> = ({
               <div>
                 <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
                   <Brain className={`w-5 h-5 text-${themeColor}-500`} />
-                  למה זה קריטי?
+                  {fullContent.whyIsItImportant}
                 </h4>
-                <p className="text-sm text-gray-600 leading-relaxed">{fullContent.whyIsItImportant}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {fullContent.whyIsItImportant}
+                </p>
               </div>
               <div>
                 <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
                   <Sparkles className={`w-5 h-5 text-${themeColor}-500`} />
-                  מה תגלה/י על עצמך?
+                  {fullContent.whatYouWillDiscover[0]}
                 </h4>
                 <ul className="list-disc list-inside space-y-1.5 text-sm text-gray-600">
                   {fullContent.whatYouWillDiscover.map((item, index) => (
@@ -300,8 +311,12 @@ const WorldCard: React.FC<WorldCardProps> = ({
                   ))}
                 </ul>
               </div>
-              <blockquote className={`border-r-4 border-${themeColor}-300 pr-4 py-2 bg-${themeColor}-50/60 my-4`}>
-                <p className="text-sm text-gray-700 italic">{fullContent.guidingThought}</p>
+              <blockquote
+                className={`border-s-4 border-${themeColor}-300 ps-4 py-2 bg-${themeColor}-50/60 my-4`}
+              >
+                <p className="text-sm text-gray-700 italic">
+                  {fullContent.guidingThought}
+                </p>
               </blockquote>
             </div>
           </motion.div>
@@ -311,9 +326,21 @@ const WorldCard: React.FC<WorldCardProps> = ({
       <div className="flex-grow" />
 
       <div className="p-4 bg-gray-50/80 mt-auto border-t">
-         <div className="flex justify-between text-xs text-gray-500 mb-3 px-2">
-            <span className='flex items-center gap-1'><HelpCircle className='w-3.5 h-3.5' />{stats.questionCount} שאלות</span>
-            <span className='flex items-center gap-1'><Clock className='w-3.5 h-3.5' />~{stats.estimatedTime} דקות</span>
+        <div className="flex justify-between text-xs text-gray-500 mb-3 px-2">
+          <span className="flex items-center gap-1">
+            <HelpCircle className="w-3.5 h-3.5" />
+            {dict.questionCount.replace(
+              '{{count}}',
+              stats.questionCount.toString()
+            )}
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5" />
+            {dict.estimatedTime.replace(
+              '{{count}}',
+              stats.estimatedTime.toString()
+            )}
+          </span>
         </div>
         <Button
           className={cn(
@@ -323,7 +350,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
           onClick={onSelect}
           disabled={status === 'locked'}
         >
-          <statusInfo.ActionIcon className="w-4 h-4 ml-2" />
+          <statusInfo.ActionIcon className="w-4 h-4 ms-2" />
           {statusInfo.action}
         </Button>
       </div>
@@ -331,8 +358,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
   );
 };
 
-
-// Main Component
+// Komponent główny
 export default function WorldsMap({
   currentWorld,
   completedWorlds,
@@ -341,6 +367,8 @@ export default function WorldsMap({
   dict,
 }: WorldsMapProps) {
   const { data: session } = useSession();
+  const { language } = useLanguage();
+  const isRTL = language === 'he';
   const completionPercent = Math.round(
     (completedWorlds.length / WORLD_ORDER.length) * 100
   );
@@ -367,12 +395,15 @@ export default function WorldsMap({
     return 'available';
   };
 
+  const ReviewButtonArrow = isRTL ? ArrowLeft : ArrowRight;
+
   return (
     <div
       className={cn(
         'p-4 sm:p-6 bg-gradient-to-b from-white via-teal-50/20 to-white min-h-screen relative overflow-hidden',
         className
       )}
+      dir={isRTL ? 'rtl' : 'ltr'} // Kluczowa zmiana: ustawienie kierunku
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-orange-200/20 rounded-full blur-3xl animate-float-slow" />
@@ -400,6 +431,7 @@ export default function WorldsMap({
             nextRecommendedWorld && onWorldChange(nextRecommendedWorld)
           }
           dict={dict.progressHeader}
+          worldLabels={dict.worldLabels}
         />
         {completedWorlds.length > 0 && (
           <motion.div
@@ -427,7 +459,7 @@ export default function WorldsMap({
                     variant="outline"
                     className="w-full sm:w-auto bg-white/80 border-teal-200 text-teal-600 hover:bg-teal-50 hover:border-teal-300"
                   >
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    <ReviewButtonArrow className="w-4 h-4 me-2" />
                     {dict.reviewCard.button}
                   </Button>
                 </Link>
