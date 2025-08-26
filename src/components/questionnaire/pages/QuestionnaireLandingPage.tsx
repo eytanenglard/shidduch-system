@@ -22,14 +22,14 @@ import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { motion } from 'framer-motion';
-import type { QuestionnaireLandingPageDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
+import type { QuestionnaireLandingPageDict } from '@/types/dictionary';
 
 // --- Props Interface ---
 interface QuestionnaireLandingPageProps {
   onStartQuestionnaire: () => void;
   hasSavedProgress: boolean;
   isLoading?: boolean;
-  dict: QuestionnaireLandingPageDict; // קבלת המילון כ-prop
+  dict: QuestionnaireLandingPageDict;
 }
 
 // --- Animation Variants ---
@@ -72,7 +72,7 @@ const cardVariants = {
   },
 };
 
-// --- Background Components ---
+// --- Background Component ---
 const DynamicBackground: React.FC = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     <div className="absolute inset-0 opacity-30">
@@ -127,7 +127,6 @@ export default function QuestionnaireLandingPage({
   const { status, data: session } = useSession();
   const isMobile = useIsMobile();
 
-  // World visual configuration remains in code
   const worldVisuals = [
     {
       id: 'PERSONALITY',
@@ -346,7 +345,6 @@ export default function QuestionnaireLandingPage({
               >
                 <div className="absolute inset-0 bg-white/60 backdrop-blur-md rounded-2xl shadow-lg border border-white/40 opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105" />
                 <div className="relative z-10 flex flex-col items-center">
-                  {/* Icons can be mapped here if needed, or kept static */}
                   <div className="p-4 rounded-full mb-5 group-hover:scale-110 transition-all duration-300">
                     {index === 0 && <Clock className="h-8 w-8 text-sky-600" />}
                     {index === 1 && (

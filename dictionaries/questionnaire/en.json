@@ -228,68 +228,63 @@
       "subtitle": "You've completed the entire questionnaire.",
       "description": "Our team now has a rich, holistic understanding of you. We're excited to begin searching for your match."
     },
-     "worldsContent": {
-    "PERSONALITY": {
-      "title": "World of Personality: Who Am I, Truly?",
-      "subtitle": "The first step to a deep match is presenting an authentic and accurate picture of yourself.",
-      "whyIsItImportant": "Here, we go deep. Instead of superficial labels, we'll understand your inner dynamics: what recharges your energy, how you function in social settings, and what drives your decisions. A rich personality profile is the foundation for finding someone with whom the dynamic will feel natural from the very start.",
-      "whatYouWillDiscover": [
-        "Your daily energy profile (a morning or night person).",
-        "How your 'social battery' truly works.",
-        "The core traits you identify with most strongly.",
-        "Your natural style of communication and problem-solving."
-      ],
-      "guidingThought": "The goal isn't to find a carbon copy of yourself, but the missing piece that completes your puzzle."
-    },
-    "VALUES": {
-      "title": "World of Values: What Drives Me?",
-      "subtitle": "Shared values are the backbone of a stable relationship. Here, we'll distill your internal compass.",
-      "whyIsItImportant": "This is the most critical world for long-term success. We don't just ask if 'family is important'; we ask you to prioritize between career, spirituality, giving, and personal growth. The high-quality data we gather here allows us to prevent foundational gaps in worldview.",
-      "whatYouWillDiscover": [
-        "What your life priorities look like today.",
-        "Your vision for priorities within a partnership.",
-        "Your definition of success and a 'rich' life.",
-        "Your approach to money, giving, and personal development."
-      ],
-      "guidingThought": "When your values walk in the same direction, you'll always find each other again, even when your paths diverge."
-    },
-    "RELATIONSHIP": {
-      "title": "World of Partnership: What is 'Us'?",
-      "subtitle": "We'll understand your vision for connection, communication, intimacy, and shared daily life.",
-      "whyIsItImportant": "A great relationship is more than a feeling; it's a practical partnership. In this world, we'll uncover your 'love language,' how you handle conflict, and your ideal balance between 'together' and 'apart.' This is the key to creating a bond based on understanding, respect, and true friendship, even in challenging moments.",
-      "whatYouWillDiscover": [
-        "What makes a relationship feel like 'home' for you.",
-        "The most effective way to communicate with you.",
-        "How you envision the distribution of roles and responsibilities.",
-        "Your deepest emotional needs from a partner."
-      ],
-      "guidingThought": "The question isn't 'Will you be happy?', but rather 'How will you handle things together when you're not?'."
-    },
-    "PARTNER": {
-      "title": "World of the Partner: Who Am I Seeking?",
-      "subtitle": "Instead of a checklist, we'll focus the search on what is truly essential for you in a partner.",
-      "whyIsItImportant": "Here, we make the search precise and efficient. Instead of casting a wide net, you'll define the core traits that are non-negotiable, the relevant range of backgrounds and ages, and most importantly, your deal-breakers. Focus is the key to saving precious time and emotional energy.",
-      "whatYouWillDiscover": [
-        "The character traits that are most important to you.",
-        "Your practical preferences (age, background, lifestyle).",
-        "The 'red lines' you are unwilling to compromise on.",
-        "Where you are flexible and willing to bridge gaps."
-      ],
-      "guidingThought": "Don't look for the person you can live with; look for the person you can't imagine living without."
-    },
-    "RELIGION": {
-      "title": "Religion & Tradition: What is My Connection?",
-      "subtitle": "Understanding your personal connection to Judaism is a necessary foundation for building a faithful home.",
-      "whyIsItImportant": "In the Jewish world, 'religious' is a word with infinite shades of meaning. Here, we get down to the precise details: from your self-definition on the spectrum, to how Halacha and tradition are expressed in your life, to your vision for your children's education. This is the basis for spiritual and marital harmony.",
-      "whatYouWillDiscover": [
-        "Your precise location on the religious spectrum.",
-        "What your Shabbat and Kashrut observance looks like in practice.",
-        "Your worldview on modesty, community, and Torah education.",
-        "Your vision for the religious and spiritual atmosphere in the home you'll build."
-      ],
-      "guidingThought": "A Jewish home is built not only with bricks, but with prayers, values, and tradition passed from one generation to the next."
-    }
+"worldsContent": {
+  "PERSONALITY": {
+    "title": "World of Personality: Who am I, and how does that connect to a relationship?",
+    "subtitle": "Together, we'll build an authentic profile that attracts the right person for you, beyond the technical details.",
+    "whyIsItImportant": "To find the missing piece of your puzzle, we need to know all your pieces. Here, our goal isn't to label you, but to understand your inner dynamics: what drives you, how your 'social battery' works, and your approach to challenges. This information is critical for us to find someone with whom the interaction will feel natural and right from the start.",
+    "whatYouWillDiscover": [
+      "How would you describe yourself in 3-5 sentences, beyond the usual list of traits?",
+      "After a busy week, how do you recharge? (A quiet evening at home / an intimate gathering / a social outing...)",
+      "Allocate 100 'personality points' among traits like: optimism, ambition, empathy, stability, and humor."
+    ],
+    "guidingThought": "Our goal is to find someone who will fall in love with who you truly are. Self-understanding is the first step to finding someone who will understand you."
+  },
+  "VALUES": {
+    "title": "World of Values: What is your internal compass?",
+    "subtitle": "Here we'll understand the core principles that guide you, to build a solid foundation for a stable relationship.",
+    "whyIsItImportant": "A relationship based only on initial chemistry runs into trouble when real life begins. For us to find a match that stands the test of time, we need to understand your 'operating system'. This world is the most crucial for creating quality data that allows us to prevent deep worldview gaps and find someone walking in the same direction as you.",
+    "whatYouWillDiscover": [
+      "What is your definition of a 'rich life,' independent of money?",
+      "What is the most significant story that shaped your values?",
+      "Allocate 100 'priority points' among life areas like: partnership, family, career, spirituality, and leisure."
+    ],
+    "guidingThought": "A successful relationship isn't a coincidence; it's a meeting of two value systems that know how to walk in the same direction."
+  },
+  "RELATIONSHIP": {
+    "title": "World of Partnership: What does true partnership mean to me?",
+    "subtitle": "We'll define your vision for connection, communication, and intimacy to find a partner for your journey.",
+    "whyIsItImportant": "A good relationship is a practical partnership. Here, we need your help to map your emotional needs, your communication style, and how you see shared daily life. This understanding allows us to find someone whose 'formula' for a relationship complements yours, especially in challenging moments.",
+    "whatYouWillDiscover": [
+      "What is your 'formula' for sharing responsibilities in a shared home?",
+      "When a partner disappoints you, what is your initial reaction? (Need to talk immediately / withdraw to process...)",
+      "On the scale between 'together time' and 'personal space,' where do you naturally fall?"
+    ],
+    "guidingThought": "Our goal is to find someone with whom you won't just share experiences, but with whom you'll build a shared future."
+  },
+  "PARTNER": {
+    "title": "World of the Partner: Who am I truly looking for?",
+    "subtitle": "We'll focus the search on the qualities essential to you, to save you precious time on irrelevant suggestions.",
+    "whyIsItImportant": "A search that is too 'open' leads to wasted time and emotional energy. Here, you'll help us make the search precise and efficient. By defining the core, non-negotiable traits, the range of backgrounds and ages, and your 'deal-breakers,' you enable our algorithm and matchmakers to work smartly and focusedly for you.",
+    "whatYouWillDiscover": [
+      "What is the single most important character trait your partner must have?",
+      "What are your absolute 'red lines' on which there is no room for compromise?",
+      "When you think of 'intelligence' in a partner, what matters most to you? (Emotional / analytical / creative...)"
+    ],
+    "guidingThought": "Focusing your search isn't about limiting options; it's about increasing the probability of finding the right one."
+  },
+  "RELIGION": {
+    "title": "Religion & Tradition: What is my spiritual connection?",
+    "subtitle": "We'll get into the precise resolutions of your religious world to find a true spiritual match.",
+    "whyIsItImportant": "In the Jewish world, the word 'religious' contains a multitude of meanings. To prevent future misunderstandings, we need to understand the finest nuances of your connection: from your self-definition on the spectrum, through how Halacha is expressed in your life, to your vision for your children's education. This is the foundation for harmony in building a faithful home in Israel.",
+    "whatYouWillDiscover": [
+      "What is the central experience you seek and receive from Shabbat?",
+      "What is your vision for the religious and spiritual atmosphere in the home you will build?",
+      "How flexible would you be if differences in Halachic approach were discovered between you and a partner?"
+    ],
+    "guidingThought": "The goal is to find a person with whom you can grow spiritually, not just live alongside."
   }
+}
 
   },
   "layout": {
