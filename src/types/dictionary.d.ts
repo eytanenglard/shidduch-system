@@ -2302,7 +2302,11 @@ export type QuestionnaireSectionDictionary = {
       visibilitySuccess: string;
       visibilityError: string;
     };
-   
+       visibilityButton: {
+      visible: string;
+      hidden: string;
+    };
+
     visibilityTooltip: {
       editing: {
         visible: string;
