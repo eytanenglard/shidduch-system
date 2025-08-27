@@ -34,6 +34,7 @@ import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
+import { cn } from '@/lib/utils';
 
 interface MatchmakerEditProfileProps {
   isOpen: boolean;
@@ -56,6 +57,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
 }) => {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(true);
@@ -346,7 +348,10 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-5xl max-h-[90vh] p-0 overflow-hidden">
+        <DialogContent
+          className="max-w-5xl max-h-[90vh] p-0 overflow-hidden"
+          dir={direction}
+        >
           {isLoading && !profile ? (
             <div className="flex items-center justify-center h-64">
               <Loader2 className="w-10 h-10 animate-spin text-primary" />
@@ -361,12 +366,22 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
               <DialogHeader className="p-6 border-b">
                 <div className="flex items-center justify-between">
                   <div>
-                    <DialogTitle className="text-2xl font-bold text-primary/90">
+                    <DialogTitle
+                      className={cn(
+                        'text-2xl font-bold text-primary/90',
+                        locale === 'he' ? 'text-right' : 'text-left'
+                      )}
+                    >
                       {dict.header.title
                         .replace('{{firstName}}', candidate.firstName)
                         .replace('{{lastName}}', candidate.lastName)}
                     </DialogTitle>
-                    <DialogDescription className="text-gray-500 mt-1">
+                    <DialogDescription
+                      className={cn(
+                        'text-gray-500 mt-1',
+                        locale === 'he' ? 'text-right' : 'text-left'
+                      )}
+                    >
                       {dict.header.description}
                     </DialogDescription>
                   </div>
@@ -489,7 +504,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                       isSaving || isDeletingCandidate || isSendingInvite
                     }
                   >
-                    <Send className="w-4 h-4 ml-2" />
+                    <Send
+                      className={cn(
+                        'w-4 h-4',
+                        locale === 'he' ? 'mr-2' : 'ml-2'
+                      )}
+                    />
                     {dict.footer.buttons.sendInvite}
                   </Button>
                   {isAdmin && (
@@ -499,7 +519,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                       disabled={isSaving || isUploading || isDeletingCandidate}
                       size="sm"
                     >
-                      <Trash2 className="w-4 h-4 mr-2" />
+                      <Trash2
+                        className={cn(
+                          'w-4 h-4',
+                          locale === 'he' ? 'ml-2' : 'mr-2'
+                        )}
+                      />
                       {dict.footer.buttons.deleteCandidate}
                     </Button>
                   )}
@@ -522,7 +547,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
 
       {candidate && (
         <Dialog open={isSetupInviteOpen} onOpenChange={setIsSetupInviteOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md" dir={direction}>
             <DialogHeader>
               <DialogTitle>{dict.inviteDialog.title}</DialogTitle>
               <DialogDescription>
@@ -533,7 +558,10 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <Label htmlFor="inviteEmail" className="text-right">
+              <Label
+                htmlFor="inviteEmail"
+                className={cn(locale === 'he' ? 'text-right' : 'text-left')}
+              >
                 {dict.inviteDialog.emailLabel}
               </Label>
               <Input
@@ -543,7 +571,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder={dict.inviteDialog.emailPlaceholder}
                 className="col-span-3"
-                dir="ltr"
+                dir="ltr" // Email input should always be LTR
               />
             </div>
             <DialogFooter>
@@ -564,7 +592,9 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 {isSendingInvite ? (
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <Send className="ml-2 h-4 w-4" />
+                  <X
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
                 )}
                 {isSendingInvite
                   ? dict.inviteDialog.buttons.sending
