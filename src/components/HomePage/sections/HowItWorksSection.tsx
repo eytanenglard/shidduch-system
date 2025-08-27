@@ -290,7 +290,8 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     suggestionsDict={suggestionsDict}
                     profileCardDict={profileCardDict}
                     suggestionDemoDict={dict.suggestionDemo}
-                    locale={locale} // <-- ✨ 3. העבר את locale לרכיב הבן
+                                  locale={locale} // <-- ✨ 3. העבר את locale לרכיב הבן
+
                   />
                 </div>
               </div>
