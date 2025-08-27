@@ -12,19 +12,20 @@ export default async function SettingsPage({
 }: {
   params: { locale: Locale };
 }) {
-  // ✨ 1. אימות סשן בצד השרת - אבטחה טובה יותר
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     redirect(`/${locale}/auth/signin?callbackUrl=/${locale}/settings`);
   }
 
-  // ✨ 2. טעינת המילון המלא בצד השרת
   const dictionary = await getDictionary(locale);
 
-  // ✨ 3. העברת החלק הרלוונטי מהמילון לקומפוננטת הלקוח
   return (
     <div className="container mx-auto p-4 sm:p-6">
-      <SettingsClientPage dict={dictionary.profilePage.accountSettings} />
+      {/* ✨ שינוי: העברת ה-locale שהתקבל מה-URL כ-prop לקומפוננטת הלקוח */}
+      <SettingsClientPage
+        dict={dictionary.profilePage.accountSettings}
+        locale={locale}
+      />
     </div>
   );
 }

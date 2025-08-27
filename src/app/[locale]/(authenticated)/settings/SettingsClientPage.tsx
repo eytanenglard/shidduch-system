@@ -4,18 +4,19 @@
 
 import { useSession } from "next-auth/react";
 import AccountSettings from "@/components/profile/account-settings";
-import { Skeleton } from "@/components/ui/skeleton"; // הוספת ייבוא לשלד טעינה
-import type { AccountSettingsDict } from "@/types/dictionary"; // ייבוא טיפוס המילון
+import { Skeleton } from "@/components/ui/skeleton";
+import type { AccountSettingsDict } from "@/types/dictionary";
+import type { Locale } from "../../../../../i18n-config"; // ✨ שינוי 1: ייבוא טיפוס השפה
 
-// ✨ 1. עדכון הממשק לקבלת המילון כ-prop
+// ✨ שינוי 2: עדכון הממשק לקבלת המילון וגם את השפה (locale)
 interface SettingsClientPageProps {
   dict: AccountSettingsDict;
+  locale: Locale;
 }
 
-export default function SettingsClientPage({ dict }: SettingsClientPageProps) {
+export default function SettingsClientPage({ dict, locale }: SettingsClientPageProps) {
   const { data: session, status } = useSession();
 
-  // ✨ 2. טיפול במצב טעינה עם שלד (Skeleton)
   if (status === "loading") {
     return (
       <div className="container mx-auto p-6 max-w-2xl">
@@ -24,7 +25,6 @@ export default function SettingsClientPage({ dict }: SettingsClientPageProps) {
     );
   }
 
-  // ✨ 3. טיפול במצב לא מאומת עם הודעה ברורה
   if (status === "unauthenticated") {
     return (
       <div className="container mx-auto p-6 text-center text-red-600">
@@ -33,7 +33,6 @@ export default function SettingsClientPage({ dict }: SettingsClientPageProps) {
     );
   }
   
-  // בדיקה מקיפה יותר לוודאות שיש סשן ומשתמש
   if (!session?.user) {
     return (
       <div className="container mx-auto p-6 text-center text-red-600">
@@ -42,7 +41,6 @@ export default function SettingsClientPage({ dict }: SettingsClientPageProps) {
     );
   }
 
-  // בניית אובייקט המשתמש נשארת כפי שהייתה
   const userData = {
     id: session.user.id,
     email: session.user.email,
@@ -56,6 +54,6 @@ export default function SettingsClientPage({ dict }: SettingsClientPageProps) {
     marketingConsent: session.user.marketingConsent,
   };
 
-  // ✨ 4. העברת המילון שקיבלנו ב-props לקומפוננטה AccountSettings
-  return <AccountSettings user={userData} dict={dict} />;
+  // ✨ שינוי 3: העברת המילון וה-locale שהתקבלו ב-props לרכיב AccountSettings
+  return <AccountSettings user={userData} dict={dict} locale={locale} />;
 }
