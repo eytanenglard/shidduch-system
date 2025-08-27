@@ -3,8 +3,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, useParams } from 'next/navigation'; // <-- הוספה של useParams
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -31,6 +30,10 @@ export default function QuestionnairePageClient({
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = useParams(); // <-- הוספה: קריאת הפרמטרים מה-URL
+  const locale = (
+    Array.isArray(params.lang) ? params.lang[0] : params.lang || 'en'
+  ) as 'he' | 'en'; // <-- הוספה: חילוץ השפה
 
   // State for tracking current stage in the flow
   const [currentStage, setCurrentStage] = useState<QuestionnaireStage>(
@@ -141,6 +144,7 @@ export default function QuestionnairePageClient({
             initialWorld={initialWorld}
             initialQuestionId={initialQuestionId}
             dict={dict} // העברת המילון לרכיב הבן
+            locale={locale}
           />
         );
       case QuestionnaireStage.COMPLETE:

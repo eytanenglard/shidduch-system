@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
-import { usePathname, useRouter } from 'next/navigation'; // ✨ 1. ייבוא Hooks חדשים
+import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import AvailabilityStatus from './AvailabilityStatus';
@@ -24,10 +24,16 @@ import {
   X,
   Globe,
   Lightbulb,
+  Info,
+  Award,
+  HelpCircle,
 } from 'lucide-react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import UserDropdown from './UserDropdown';
-import type { Dictionary, AvailabilityStatusDict } from '@/types/dictionary'; // ייבוא מעודכן
+import type { Dictionary } from '@/types/dictionary';
+
+// ✨ שלב 1: ייבוא ה-Hook מה-Context
+import { useQuestionnaireState } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
 // --- רכיב לוגו (ללא שינוי) ---
 const Logo = () => (
@@ -53,9 +59,7 @@ const Logo = () => (
   </Link>
 );
 
-// --- ✨ 2. עדכון רכיבי הניווט להיות מודעי-שפה ---
-
-// רכיב פריט ניווט לדסקטופ (עצמאי ומודע שפה)
+// --- רכיבי ניווט (ללא שינוי) ---
 const NavItem = ({
   href,
   text,
@@ -72,7 +76,6 @@ const NavItem = ({
   const fullHref = `/${locale}${href}`;
   const isActive =
     pathname === fullHref || (href !== '/' && pathname.startsWith(fullHref));
-
   return (
     <Link
       id={id}
@@ -101,7 +104,6 @@ const NavItem = ({
   );
 };
 
-// רכיב פריט ניווט למובייל (עצמאי ומודע שפה)
 const MobileNavItem = ({
   href,
   text,
@@ -122,7 +124,6 @@ const MobileNavItem = ({
   const fullHref = `/${locale}${href}`;
   const isActive =
     pathname === fullHref || (href !== '/' && pathname.startsWith(fullHref));
-
   return (
     <Link
       id={id}
@@ -158,14 +159,38 @@ const MobileNavItem = ({
   );
 };
 
-// --- ✨ 3. עדכון הטיפוסים וה-props של רכיב ה-Navbar הראשי ---
-type NavbarDict = {
-  myMatches: string;
-  matchmakingQuestionnaire: string;
-  messages: string;
-  login: string;
-  register: string;
-  toQuestionnaire: string;
+const MobileHomePageLink = ({
+  href,
+  text,
+  icon,
+  onClick,
+}: {
+  href: string;
+  text: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+}) => {
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const element = document.querySelector(href);
+    if (element) {
+      const navHeight = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navHeight;
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+    }
+    onClick();
+  };
+  return (
+    <a
+      href={href}
+      onClick={handleScroll}
+      className="flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+    >
+      <span className="text-gray-500 group-hover:text-gray-700">{icon}</span>
+      <span className="flex-grow">{text}</span>
+    </a>
+  );
 };
 
 interface NavbarProps {
@@ -176,23 +201,74 @@ const Navbar = ({ dict }: NavbarProps) => {
   const { data: session } = useSession();
   const pathname = usePathname();
   const router = useRouter();
+
+  // ✨ שלב 2: קריאה ל-Hook בתוך רכיב ה-Navbar
+  const { isDirty, promptNavigation } = useQuestionnaireState();
+
   const isMatchmaker =
     session?.user?.role === 'MATCHMAKER' || session?.user?.role === 'ADMIN';
   const { notifications } = useNotifications();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const locale = pathname.split('/')[1] || 'he';
+  const isHomePage = pathname === `/${locale}` || pathname === '/';
 
-  // ✨ 4. לוגיקה מעודכנת להחלפת שפה באמצעות שינוי URL
+  const homePageLinks = dict.stickyNav?.navLinks
+    ? [
+        {
+          id: 'how-it-works',
+          text: dict.stickyNav.navLinks.howItWorks,
+          icon: <Info className="ml-2 h-5 w-5" />,
+        },
+        {
+          id: 'suggestion-demo',
+          text: dict.stickyNav.navLinks.suggestionDemo,
+          icon: <Heart className="ml-2 h-5 w-5" />,
+        },
+        {
+          id: 'success-stories',
+          text: dict.stickyNav.navLinks.successStories,
+          icon: <Award className="ml-2 h-5 w-5" />,
+        },
+        {
+          id: 'our-team',
+          text: dict.stickyNav.navLinks.ourTeam,
+          icon: <Users className="ml-2 h-5 w-5" />,
+        },
+        {
+          id: 'faq',
+          text: dict.stickyNav.navLinks.faq,
+          icon: <HelpCircle className="ml-2 h-5 w-5" />,
+        },
+      ]
+    : [];
+
+  // ✨ שלב 3: עדכון הלוגיקה של החלפת השפה
   const handleLanguageChange = () => {
-    const currentLocale = pathname.split('/')[1] || 'he';
-    const newLocale = currentLocale === 'he' ? 'en' : 'he';
-    // מחליף את קידומת השפה בנתיב הקיים
-    const newPathname = pathname.replace(`/${currentLocale}`, `/${newLocale}`);
+    // הגדרת הפעולה שאנו רוצים לבצע
+    const changeAction = () => {
+      const currentLocale = pathname.split('/')[1] || 'he';
+      const newLocale = currentLocale === 'he' ? 'en' : 'he';
+      const newPathname = pathname.replace(
+        `/${currentLocale}`,
+        `/${newLocale}`
+      );
 
-    if (mobileMenuOpen) {
-      setMobileMenuOpen(false);
+      if (mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+      router.push(newPathname);
+    };
+
+    // בדיקה: האם יש שינויים שלא נשמרו?
+    if (isDirty) {
+      // אם כן, פתח את המודאל ובקש אישור מהמשתמש.
+      // הפונקציה promptNavigation מגיעה מה-Context.
+      promptNavigation(changeAction);
+    } else {
+      // אם לא, בצע את הפעולה מיד
+      changeAction();
     }
-    router.push(newPathname);
   };
 
   useEffect(() => {
@@ -203,12 +279,10 @@ const Navbar = ({ dict }: NavbarProps) => {
   }, []);
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
-
   const handleSignOut = () => {
     setMobileMenuOpen(false);
     signOut({ callbackUrl: '/' });
   };
-
   const getInitials = () => {
     const fullName = session?.user?.name;
     if (!fullName) return 'P';
@@ -218,7 +292,6 @@ const Navbar = ({ dict }: NavbarProps) => {
       (names.length > 1 ? names[names.length - 1]?.[0] || '' : '')
     ).toUpperCase();
   };
-
   const mainProfileImage = session?.user?.image
     ? {
         id: 'session-image',
@@ -240,6 +313,7 @@ const Navbar = ({ dict }: NavbarProps) => {
       <nav
         className={`sticky top-0 z-50 w-full transition-all duration-300 ${navbarClasses}`}
       >
+        {/* ... (שאר ה-JSX נשאר זהה לחלוטין) ... */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-4 md:gap-8">
@@ -286,7 +360,6 @@ const Navbar = ({ dict }: NavbarProps) => {
                 ) : null}
               </nav>
             </div>
-
             <div className="flex items-center gap-2 md:gap-4">
               <Button
                 variant="ghost"
@@ -298,7 +371,6 @@ const Navbar = ({ dict }: NavbarProps) => {
               >
                 <Globe className="h-5 w-5" />
               </Button>
-
               {session && (
                 <div
                   id="onboarding-target-availability-status"
@@ -309,7 +381,6 @@ const Navbar = ({ dict }: NavbarProps) => {
                   />
                 </div>
               )}
-
               {session ? (
                 <UserDropdown
                   session={session}
@@ -317,7 +388,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                   getInitials={getInitials}
                   handleSignOut={handleSignOut}
                   profileIconSize={profileIconSize}
-                  dict={dict.userDropdown} 
+                  dict={dict.userDropdown}
                 />
               ) : (
                 <div className="hidden md:flex items-center gap-2">
@@ -336,7 +407,6 @@ const Navbar = ({ dict }: NavbarProps) => {
                   </Link>
                 </div>
               )}
-
               <Button
                 variant="ghost"
                 size="icon"
@@ -352,8 +422,6 @@ const Navbar = ({ dict }: NavbarProps) => {
           </div>
         </div>
       </nav>
-
-      {/* ✨ 5. עדכון מלא של תפריט המובייל */}
       {mobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm md:hidden"
@@ -380,7 +448,6 @@ const Navbar = ({ dict }: NavbarProps) => {
             <X className="h-5 w-5" />
           </Button>
         </div>
-
         <div className="overflow-y-auto h-[calc(100%-4.5rem)] pb-20">
           {session?.user && (
             <div className="p-4">
@@ -423,7 +490,6 @@ const Navbar = ({ dict }: NavbarProps) => {
               </div>
             </div>
           )}
-
           <nav className="space-y-1.5 p-2">
             {session ? (
               <>
@@ -467,29 +533,63 @@ const Navbar = ({ dict }: NavbarProps) => {
                   }
                   onClick={toggleMobileMenu}
                 />
-              <hr className="my-3" />
-<MobileNavItem
-  href="/profile"
-  text={dict.userDropdown.myProfile} // <--- השתמש בתרגום
-  icon={<User className="ml-2 h-5 w-5" />}
-  onClick={toggleMobileMenu}
-/>
-<MobileNavItem
-  href="/settings"
-  text={dict.userDropdown.accountSettings} // <--- השתמש בתרגום
-  icon={<Settings className="ml-2 h-5 w-5" />}
-  onClick={toggleMobileMenu}
-/>
-<button
-  onClick={handleSignOut}
-  className="w-full flex items-center text-right px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
->
-  <LogOut className="ml-2 h-5 w-5" />
-  {dict.userDropdown.signOut} 
-</button>
+                {isHomePage && homePageLinks.length > 0 && (
+                  <>
+                    <hr className="my-3" />
+                    <div className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      {dict.stickyNav.mobileTitle || 'ניווט בדף'}
+                    </div>
+                    {homePageLinks.map((link) => (
+                      <MobileHomePageLink
+                        key={link.id}
+                        href={`#${link.id}`}
+                        text={link.text}
+                        icon={link.icon}
+                        onClick={toggleMobileMenu}
+                      />
+                    ))}
+                  </>
+                )}
+                <hr className="my-3" />
+                <MobileNavItem
+                  href="/profile"
+                  text={dict.userDropdown.myProfile}
+                  icon={<User className="ml-2 h-5 w-5" />}
+                  onClick={toggleMobileMenu}
+                />
+                <MobileNavItem
+                  href="/settings"
+                  text={dict.userDropdown.accountSettings}
+                  icon={<Settings className="ml-2 h-5 w-5" />}
+                  onClick={toggleMobileMenu}
+                />
+                <button
+                  onClick={handleSignOut}
+                  className="w-full flex items-center text-right px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                >
+                  <LogOut className="ml-2 h-5 w-5" />
+                  {dict.userDropdown.signOut}
+                </button>
               </>
             ) : (
               <>
+                {isHomePage && homePageLinks.length > 0 && (
+                  <>
+                    <div className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      {dict.stickyNav.mobileTitle || 'ניווט בדף'}
+                    </div>
+                    {homePageLinks.map((link) => (
+                      <MobileHomePageLink
+                        key={link.id}
+                        href={`#${link.id}`}
+                        text={link.text}
+                        icon={link.icon}
+                        onClick={toggleMobileMenu}
+                      />
+                    ))}
+                    <hr className="my-3" />
+                  </>
+                )}
                 <MobileNavItem
                   href="/questionnaire"
                   text={dict.navbar.matchmakingQuestionnaire}
@@ -511,7 +611,6 @@ const Navbar = ({ dict }: NavbarProps) => {
               </>
             )}
           </nav>
-
           <div className="absolute bottom-4 left-0 right-0 px-4">
             <Button
               variant="outline"

@@ -143,8 +143,9 @@ import { languageOptions } from '@/lib/languageOptions';
 import type { Candidate } from '@/components/matchmaker/new/types/candidates';
 
 import NewSuggestionForm from '@/components/matchmaker/suggestions/NewSuggestionForm';
-import { ProfileCardDict } from '@/types/dictionary';
+import { ProfileCardDict, ProfileCardDisplayDict } from '@/types/dictionary';
 
+// --- Maps Creation ---
 const createMaritalStatusMap = (
   dict: ProfileCardDict['options']['maritalStatus']
 ) => ({
@@ -250,7 +251,7 @@ const createReligiousLevelMap = (
     color: 'text-pink-600',
   },
   no_preference: {
-    label: dict.other,
+    label: dict.other, // Assuming 'other' can serve as a fallback for 'no preference' text
     shortLabel: 'פתוח',
     icon: Globe,
     color: 'text-gray-600',
@@ -1037,7 +1038,7 @@ const formatEnumValue = (
       mobileClasses?: string;
     };
   },
-  placeholder: string = 'עוד נגלה יחד...',
+  placeholder: string,
   useMobile: boolean = false
 ): {
   label: string;
@@ -1111,12 +1112,14 @@ const calculateAge = (birthDate: Date | string | null | undefined): number => {
 
 const formatAvailabilityStatus = (
   status: UserProfile['availabilityStatus'] | undefined,
-  THEME: ThemeType
+  THEME: ThemeType,
+  dict: ProfileCardDisplayDict['availability'] & { mysterious: string },
+  badgeDict: ProfileCardDisplayDict['header']['availabilityBadge']
 ) => {
   const statusMap = {
     AVAILABLE: {
-      text: 'זמין/ה',
-      shortText: 'זמין',
+      text: dict.AVAILABLE,
+      shortText: badgeDict.available_short,
       gradient: THEME.colors.primary.main,
       gradientSm: THEME.colors.primary.mainSm,
       icon: Heart,
@@ -1126,8 +1129,8 @@ const formatAvailabilityStatus = (
       mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
     },
     UNAVAILABLE: {
-      text: 'לא זמין/ה כרגע',
-      shortText: 'לא זמין',
+      text: dict.UNAVAILABLE,
+      shortText: badgeDict.unavailable_short,
       gradient: 'from-gray-400 to-gray-500',
       gradientSm: 'from-gray-300 to-gray-400',
       icon: Clock,
@@ -1137,8 +1140,8 @@ const formatAvailabilityStatus = (
       mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
     },
     DATING: {
-      text: 'בתהליך היכרות',
-      shortText: 'בהיכרות',
+      text: dict.DATING,
+      shortText: badgeDict.dating_short,
       gradient: THEME.colors.primary.accent,
       gradientSm: THEME.colors.primary.accentSm,
       icon: Coffee,
@@ -1148,8 +1151,8 @@ const formatAvailabilityStatus = (
       mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
     },
     PAUSED: {
-      text: 'בהפסקה זמנית',
-      shortText: 'בהפסקה',
+      text: dict.PAUSED,
+      shortText: badgeDict.paused_short,
       gradient: THEME.colors.secondary.sky,
       gradientSm: THEME.colors.secondary.skySm,
       icon: Moon,
@@ -1159,8 +1162,8 @@ const formatAvailabilityStatus = (
       mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
     },
     ENGAGED: {
-      text: 'מאורס/ת',
-      shortText: 'מאורס',
+      text: dict.ENGAGED,
+      shortText: badgeDict.engaged_short,
       gradient: THEME.colors.primary.light,
       gradientSm: THEME.colors.primary.lightSm,
       icon: Star,
@@ -1170,8 +1173,8 @@ const formatAvailabilityStatus = (
       mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
     },
     MARRIED: {
-      text: 'נשוי/אה',
-      shortText: 'נשוי',
+      text: dict.MARRIED,
+      shortText: badgeDict.married_short,
       gradient: THEME.colors.primary.main,
       gradientSm: THEME.colors.primary.mainSm,
       icon: Heart,
@@ -1184,8 +1187,8 @@ const formatAvailabilityStatus = (
 
   return (
     statusMap[status as keyof typeof statusMap] || {
-      text: 'מסתורי/ת...',
-      shortText: 'מסתורי',
+      text: dict.mysterious,
+      shortText: badgeDict.mysterious_short,
       gradient: THEME.colors.secondary.lavender,
       gradientSm: THEME.colors.secondary.lavenderSm,
       icon: Sparkles,
@@ -1199,9 +1202,8 @@ const formatAvailabilityStatus = (
 
 const formatBooleanPreference = (
   value: boolean | null | undefined,
-  yesLabel: string = 'כן',
-  noLabel: string = 'לא',
-  notSpecifiedLabel: string = 'נגלה יחד',
+  dict: ProfileCardDisplayDict['booleanPrefs'] & { willDiscover: string },
+  useYesShomer: boolean = false,
   useMobile: boolean = false
 ): {
   label: string;
@@ -1210,6 +1212,10 @@ const formatBooleanPreference = (
   color: string;
   mobileClasses?: string;
 } => {
+  const yesLabel = useYesShomer ? dict.shomerYes : dict.yes;
+  const noLabel = dict.no;
+  const notSpecifiedLabel = dict.willDiscover;
+
   const baseResponse = {
     mobileClasses: 'text-xs sm:text-sm',
   };
@@ -1254,39 +1260,7 @@ const formatBooleanPreference = (
 
 const formatStringBooleanPreference = (
   value: string | null | undefined,
-  options: {
-    [key: string]: {
-      label: string;
-      shortLabel?: string;
-      icon: React.ElementType;
-      color: string;
-    };
-  } = {
-    yes: {
-      label: 'כן',
-      shortLabel: 'כן',
-      icon: CheckCircle,
-      color: 'text-green-600',
-    },
-    no: { label: 'לא', shortLabel: 'לא', icon: X, color: 'text-red-500' },
-    flexible: {
-      label: 'גמיש/ה',
-      shortLabel: 'גמיש',
-      icon: Rainbow,
-      color: 'text-indigo-600',
-    },
-  },
-  notSpecifiedLabel: {
-    label: string;
-    shortLabel?: string;
-    icon: React.ElementType;
-    color: string;
-  } = {
-    label: 'נגלה יחד',
-    shortLabel: 'נגלה',
-    icon: Telescope,
-    color: 'text-gray-500',
-  },
+  dict: ProfileCardDisplayDict['stringBooleanPrefs'] & { willDiscover: string },
   useMobile: boolean = false
 ): {
   label: string;
@@ -1295,6 +1269,36 @@ const formatStringBooleanPreference = (
   color: string;
   mobileClasses?: string;
 } => {
+  const options: {
+    [key: string]: {
+      label: string;
+      shortLabel?: string;
+      icon: React.ElementType;
+      color: string;
+    };
+  } = {
+    yes: {
+      label: dict.yes,
+      shortLabel: dict.yes,
+      icon: CheckCircle,
+      color: 'text-green-600',
+    },
+    no: { label: dict.no, shortLabel: dict.no, icon: X, color: 'text-red-500' },
+    flexible: {
+      label: dict.flexible,
+      shortLabel: dict.flexible,
+      icon: Rainbow,
+      color: 'text-indigo-600',
+    },
+  };
+
+  const notSpecifiedLabel = {
+    label: dict.willDiscover,
+    shortLabel: 'נגלה',
+    icon: Telescope,
+    color: 'text-gray-500',
+  };
+
   const baseResponse = {
     mobileClasses: 'text-xs sm:text-sm',
   };
@@ -1339,6 +1343,7 @@ const DetailItem: React.FC<{
   textAlign?: 'center' | 'right' | 'left';
   responsive?: boolean;
   useMobileLayout?: boolean;
+  placeholder: string;
 }> = ({
   icon: Icon,
   label,
@@ -1352,6 +1357,7 @@ const DetailItem: React.FC<{
   textAlign = 'center',
   responsive = true,
   useMobileLayout = false,
+  placeholder,
 }) => {
   const sizes = {
     sm: {
@@ -1473,7 +1479,7 @@ const DetailItem: React.FC<{
         >
           {value || (
             <span className="text-gray-400 italic text-xs sm:text-sm">
-              עוד נגלה יחד...
+              {placeholder}
             </span>
           )}
         </div>
@@ -1856,22 +1862,21 @@ const SectionCard: React.FC<{
 };
 
 // 4. ColorPaletteSelector
-// src/app/components/profile/ProfileCard.tsx -> ColorPaletteSelector (מעודכן)
-
 const ColorPaletteSelector: React.FC<{
   selectedPalette: ColorPaletteName;
   onPaletteChange: (palette: ColorPaletteName) => void;
   THEME: ThemeType;
+  dict: ProfileCardDisplayDict['colorPalette'];
   compact?: boolean;
-}> = ({ selectedPalette, onPaletteChange, THEME, compact = false }) => {
+}> = ({ selectedPalette, onPaletteChange, THEME, dict, compact = false }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="relative">
       <Button
-        id="color-palette-button" // 1. הוספת ID לכפתור כדי לקשר אליו מהתפריט
-        aria-haspopup="menu" // 2. ציון שהכפתור פותח תפריט
-        aria-expanded={isOpen} // 3. ציון אם התפריט פתוח או סגור
+        id="color-palette-button"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
         variant="ghost"
         size="icon"
         className={cn(
@@ -1883,7 +1888,7 @@ const ColorPaletteSelector: React.FC<{
           'touch-manipulation'
         )}
         onClick={() => setIsOpen(!isOpen)}
-        aria-label="בחר ערכת צבעים"
+        aria-label={dict.selectLabel}
       >
         <Palette
           className={cn(
@@ -1899,8 +1904,8 @@ const ColorPaletteSelector: React.FC<{
             onClick={() => setIsOpen(false)}
           />
           <div
-            role="menu" // 4. הגדרת ה-div כתפריט
-            aria-labelledby="color-palette-button" // 5. קישור התפריט לכפתור שפותח אותו
+            role="menu"
+            aria-labelledby="color-palette-button"
             className={cn(
               'absolute top-full mt-2 right-0 z-50',
               'bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/80 shadow-xl',
@@ -1911,7 +1916,7 @@ const ColorPaletteSelector: React.FC<{
             {Object.entries(COLOR_PALETTES).map(([key, palette]) => (
               <button
                 key={key}
-                role="menuitem" // 6. הגדרת כל כפתור כפריט בתפריט
+                role="menuitem"
                 onClick={() => {
                   onPaletteChange(key as ColorPaletteName);
                   setIsOpen(false);
@@ -1924,7 +1929,7 @@ const ColorPaletteSelector: React.FC<{
                 )}
               >
                 <div
-                  aria-hidden="true" // 7. האייקון הצבעוני הוא דקורטיבי, הטקסט מסביר
+                  aria-hidden="true"
                   className={cn(
                     'w-4 h-4 rounded-full flex-shrink-0',
                     key === 'feminine' &&
@@ -1943,12 +1948,11 @@ const ColorPaletteSelector: React.FC<{
                     selectedPalette === key && 'text-gray-900 font-semibold'
                   )}
                 >
-                  {palette.name}
+                  {dict.palettes[key as keyof typeof dict.palettes]}
                 </span>
                 {selectedPalette === key && (
-                  // 8. הוספת טקסט נסתר לאייקון כדי לציין שהאפשרות נבחרה
                   <>
-                    <span className="sr-only">(נבחר)</span>
+                    <span className="sr-only">{dict.selected}</span>
                     <CheckCircle
                       aria-hidden="true"
                       className="w-4 h-4 text-green-600 mr-auto"
@@ -1989,6 +1993,7 @@ const ProfileHeader: React.FC<{
   selectedPalette: ColorPaletteName;
   onPaletteChange?: (palette: ColorPaletteName) => void;
   THEME: ThemeType;
+  dict: ProfileCardDisplayDict;
   compact?: boolean;
   characterTraitMap: ReturnType<typeof createCharacterTraitMap>;
   hobbiesMap: ReturnType<typeof createHobbiesMap>;
@@ -2005,6 +2010,7 @@ const ProfileHeader: React.FC<{
   selectedPalette,
   onPaletteChange,
   THEME,
+  dict,
   compact = false,
   characterTraitMap,
   hobbiesMap,
@@ -2129,7 +2135,10 @@ const ProfileHeader: React.FC<{
               {mainImageToDisplay?.url ? (
                 <Image
                   src={getRelativeCloudinaryPath(mainImageToDisplay.url)}
-                  alt={`תמונת הפרופיל של ${profile.user?.firstName || 'המועמד/ת'} ${profile.user?.lastName || ''}`}
+                  alt={dict.header.profileImageAlt.replace(
+                    '{{name}}',
+                    `${profile.user?.firstName || ''} ${profile.user?.lastName || ''}`.trim()
+                  )}
                   fill
                   className="object-cover transition-transform duration-700 hover:scale-110"
                   sizes={compact ? '160px' : isMobile ? '176px' : '144px'}
@@ -2203,6 +2212,7 @@ const ProfileHeader: React.FC<{
                   selectedPalette={selectedPalette}
                   onPaletteChange={onPaletteChange}
                   THEME={THEME}
+                  dict={dict.colorPalette}
                   compact={compact}
                 />
               </div>
@@ -2229,14 +2239,12 @@ const ProfileHeader: React.FC<{
                   'hover:from-rose-600 hover:via-pink-600 hover:to-purple-600'
                 )}
               >
-                {profile.user?.firstName ? (
-                  <>
-                    הסיפור של {profile.user.firstName}
-                    {profile.user.lastName && ` ${profile.user.lastName}`}
-                  </>
-                ) : (
-                  'סיפור שמחכה להתגלות'
-                )}
+                {profile.user?.firstName
+                  ? dict.header.storyOf.replace(
+                      '{{name}}',
+                      `${profile.user.firstName} ${profile.user.lastName || ''}`.trim()
+                    )
+                  : dict.placeholders.storyWaiting}
               </h1>
 
               {age > 0 && (
@@ -2261,7 +2269,7 @@ const ProfileHeader: React.FC<{
                         : 'text-sm sm:text-base md:text-lg'
                     )}
                   >
-                    גיל: {age}
+                    {dict.header.ageLabel.replace('{{age}}', age.toString())}
                   </span>
                 </div>
               )}
@@ -2330,7 +2338,7 @@ const ProfileHeader: React.FC<{
                       {profile.occupation && (
                         <KeyFactCard
                           icon={Briefcase}
-                          label="עיסוק"
+                          label={dict.keyFacts.occupation}
                           value={profile.occupation}
                           color="amber"
                           compact={compact}
@@ -2339,12 +2347,12 @@ const ProfileHeader: React.FC<{
                       {profile.religiousLevel && (
                         <KeyFactCard
                           icon={BookMarked}
-                          label="השקפה"
+                          label={dict.keyFacts.outlook}
                           value={
                             formatEnumValue(
                               profile.religiousLevel,
                               religiousLevelMap,
-                              undefined,
+                              '',
                               true
                             ).shortLabel || ''
                           }
@@ -2361,7 +2369,7 @@ const ProfileHeader: React.FC<{
                   {profile.city && (
                     <KeyFactCard
                       icon={MapPin}
-                      label="מיקום"
+                      label={dict.keyFacts.location}
                       value={profile.city}
                       color="rose"
                       compact={compact}
@@ -2370,7 +2378,7 @@ const ProfileHeader: React.FC<{
                   {profile.occupation && (
                     <KeyFactCard
                       icon={Briefcase}
-                      label="עיסוק"
+                      label={dict.keyFacts.occupation}
                       value={profile.occupation}
                       color="amber"
                       compact={compact}
@@ -2379,11 +2387,12 @@ const ProfileHeader: React.FC<{
                   {profile.religiousLevel && (
                     <KeyFactCard
                       icon={BookMarked}
-                      label="השקפה"
+                      label={dict.keyFacts.outlook}
                       value={
                         formatEnumValue(
                           profile.religiousLevel,
-                          religiousLevelMap
+                          religiousLevelMap,
+                          ''
                         ).label
                       }
                       color="purple"
@@ -2422,7 +2431,9 @@ const ProfileHeader: React.FC<{
                     )}
                   />
                   <span className="break-words">
-                    {compact ? 'הצע התאמה' : 'הצע התאמה מושלמת'}
+                    {compact
+                      ? dict.header.suggestMatchButton
+                      : dict.header.suggestPerfectMatchButton}
                   </span>
                   <ArrowRight
                     className={cn(
@@ -2461,7 +2472,7 @@ const ProfileHeader: React.FC<{
                 )}
               />
               <p className="font-medium italic text-center break-words flex-shrink min-w-0">
-                כל סיפור אהבה מתחיל בהכרות אחת מיוחדת...
+                {dict.header.excitementQuote}
               </p>
               <Quote
                 aria-hidden="true"
@@ -2543,8 +2554,16 @@ const MobileImageGallery: React.FC<{
   profile: UserProfile;
   onImageClick: (image: UserImageType) => void;
   THEME: ThemeType;
+  dict: ProfileCardDisplayDict['gallery'];
   compact?: boolean;
-}> = ({ orderedImages, profile, onImageClick, THEME, compact = false }) => {
+}> = ({
+  orderedImages,
+  profile,
+  onImageClick,
+  THEME,
+  dict,
+  compact = false,
+}) => {
   if (orderedImages.length === 0) return null;
 
   return (
@@ -2574,7 +2593,10 @@ const MobileImageGallery: React.FC<{
             )}
           />
           <span className="break-words min-w-0">
-            הגלריה של {profile.user?.firstName || 'המועמד'}
+            {dict.title.replace(
+              '{{name}}',
+              profile.user?.firstName || 'המועמד'
+            )}
           </span>
         </h3>
         <p
@@ -2583,7 +2605,7 @@ const MobileImageGallery: React.FC<{
             compact ? 'text-xs' : 'text-xs sm:text-sm'
           )}
         >
-          לחץ על תמונה להגדלה
+          {dict.subtitle}
         </p>
       </div>
       <ScrollArea dir="rtl" className="w-full overflow-hidden">
@@ -2598,7 +2620,10 @@ const MobileImageGallery: React.FC<{
             <button
               key={image.id}
               type="button"
-              aria-label={`הצג את תמונה ${idx + 1} בגודל מלא`}
+              aria-label={dict.showImageAlt.replace(
+                '{{index}}',
+                (idx + 1).toString()
+              )}
               className={cn(
                 'relative flex-shrink-0 rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-rose-500',
                 orderedImages.length <= 3
@@ -2615,7 +2640,7 @@ const MobileImageGallery: React.FC<{
             >
               <Image
                 src={getRelativeCloudinaryPath(image.url)}
-                alt={`תמונה מדהימה ${idx + 1}`}
+                alt={dict.imageAlt.replace('{{index}}', (idx + 1).toString())}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
                 sizes={
@@ -2646,7 +2671,7 @@ const MobileImageGallery: React.FC<{
                       compact ? 'w-2 h-2' : 'w-2 h-2 sm:w-2.5 sm:h-2.5'
                     )}
                   />
-                  {!compact && <span>ראשי</span>}
+                  {!compact && <span>{dict.mainBadge}</span>}
                 </Badge>
               )}
             </button>
@@ -2658,38 +2683,6 @@ const MobileImageGallery: React.FC<{
   );
 };
 
-const handleOpenImageDialog = (
-  image: UserImageType,
-  setSelectedImageForDialog: (img: UserImageType | null) => void
-) => {
-  if (image.url) {
-    setSelectedImageForDialog(image);
-  }
-};
-
-const handleCloseImageDialog = (
-  setSelectedImageForDialog: (img: UserImageType | null) => void
-) => {
-  setSelectedImageForDialog(null);
-};
-
-const handleDialogNav = (
-  direction: 'next' | 'prev',
-  currentDialogImageIndex: number,
-  orderedImages: UserImageType[],
-  setSelectedImageForDialog: (img: UserImageType) => void
-) => {
-  if (currentDialogImageIndex === -1 || orderedImages.length <= 1) return;
-
-  const newIndex =
-    direction === 'next'
-      ? (currentDialogImageIndex + 1) % orderedImages.length
-      : (currentDialogImageIndex - 1 + orderedImages.length) %
-        orderedImages.length;
-
-  setSelectedImageForDialog(orderedImages[newIndex]);
-};
-
 const ImageDialogComponent: React.FC<{
   selectedImageForDialog: UserImageType | null;
   currentDialogImageIndex: number;
@@ -2697,6 +2690,7 @@ const ImageDialogComponent: React.FC<{
   onClose: () => void;
   onNavigate: (direction: 'next' | 'prev') => void;
   onImageSelect: (image: UserImageType) => void;
+  dict: ProfileCardDisplayDict['imageDialog'];
 }> = ({
   selectedImageForDialog,
   currentDialogImageIndex,
@@ -2704,6 +2698,7 @@ const ImageDialogComponent: React.FC<{
   onClose,
   onNavigate,
   onImageSelect,
+  dict,
 }) => {
   if (!selectedImageForDialog) return null;
 
@@ -2733,14 +2728,19 @@ const ImageDialogComponent: React.FC<{
           >
             <Camera className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
             <span className="break-words">
-              תמונה {currentDialogImageIndex + 1} מתוך {orderedImages.length}
+              {dict.title
+                .replace(
+                  '{{current}}',
+                  (currentDialogImageIndex + 1).toString()
+                )
+                .replace('{{total}}', orderedImages.length.toString())}
             </span>
           </DialogTitle>
           <DialogClose asChild>
             <Button
               variant="ghost"
               size="icon"
-              aria-label="סגור תצוגת תמונה"
+              aria-label={dict.closeLabel}
               className={cn(
                 'text-gray-300 hover:text-white hover:bg-white/10 rounded-full transition-all',
                 'w-8 h-8 sm:w-10 sm:h-10 min-h-[44px] min-w-[44px]'
@@ -2766,7 +2766,7 @@ const ImageDialogComponent: React.FC<{
             <>
               <Button
                 variant="ghost"
-                aria-label="התמונה הקודמת"
+                aria-label={dict.prevLabel}
                 className={cn(
                   'absolute right-4 top-1/2 -translate-y-1/2 rounded-full',
                   'bg-black/50 hover:bg-black/70 text-white border border-white/20',
@@ -2779,7 +2779,7 @@ const ImageDialogComponent: React.FC<{
               </Button>
               <Button
                 variant="ghost"
-                aria-label="התמונה הבאה"
+                aria-label={dict.nextLabel}
                 className={cn(
                   'absolute left-4 top-1/2 -translate-y-1/2 rounded-full',
                   'bg-black/50 hover:bg-black/70 text-white border border-white/20',
@@ -2812,7 +2812,7 @@ const ImageDialogComponent: React.FC<{
                   >
                     <Image
                       src={getRelativeCloudinaryPath(img.url)}
-                      alt="תמונה קטנה"
+                      alt={dict.thumbAlt}
                       fill
                       className="object-cover"
                       sizes="64px"
@@ -2840,7 +2840,8 @@ const MobileTabNavigation: React.FC<{
   }[];
   onTabChange: (newTab: string) => void;
   THEME: ThemeType;
-}> = ({ activeTab, tabItems, onTabChange }) => {
+  dict: ProfileCardDisplayDict['mobileNav'];
+}> = ({ activeTab, tabItems, onTabChange, THEME, dict }) => {
   const currentIndex = useMemo(
     () => tabItems.findIndex((tab) => tab.value === activeTab),
     [tabItems, activeTab]
@@ -2877,7 +2878,7 @@ const MobileTabNavigation: React.FC<{
         >
           <div className="flex items-center gap-2">
             <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
-            <p className="text-xs font-medium text-gray-500">הקודם</p>
+            <p className="text-xs font-medium text-gray-500">{dict.previous}</p>
           </div>
           <div className="flex items-center gap-2 mt-1.5">
             <prevTab.icon className="w-5 h-5 text-gray-600 flex-shrink-0" />
@@ -2900,7 +2901,7 @@ const MobileTabNavigation: React.FC<{
           onClick={() => onTabChange(nextTab.value)}
         >
           <div className="flex items-center gap-2">
-            <p className="text-xs font-medium text-rose-700">הבא</p>
+            <p className="text-xs font-medium text-rose-700">{dict.next}</p>
             <ChevronLeft className="w-6 h-6 text-rose-500 flex-shrink-0" />
           </div>
           <div className="flex items-center justify-end gap-2 mt-1.5">
@@ -2939,6 +2940,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     [profileData, isProfileComplete]
   );
 
+  const displayDict = dict.display;
+
   const [isClient, setIsClient] = useState(false);
   const [isDesktop, setIsDesktop] = useState(true);
   const [selectedImageForDialog, setSelectedImageForDialog] =
@@ -2955,577 +2958,49 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   );
 
   const maritalStatusMap = useMemo(
-    () => ({
-      single: {
-        label: dict.options.maritalStatus.single,
-        shortLabel: 'רווק',
-        icon: Heart,
-        color: 'text-rose-600',
-      },
-      divorced: {
-        label: dict.options.maritalStatus.divorced,
-        shortLabel: 'גרוש',
-        icon: Sunrise,
-        color: 'text-amber-600',
-      },
-      widowed: {
-        label: dict.options.maritalStatus.widowed,
-        shortLabel: 'אלמן',
-        icon: Stars,
-        color: 'text-purple-600',
-      },
-      annulled: {
-        label: dict.options.maritalStatus.annulled,
-        shortLabel: 'מוכן לאהבה',
-        icon: Rainbow,
-        color: 'text-pink-600',
-      },
-      any: {
-        label: dict.options.maritalStatus.any,
-        shortLabel: 'פתוח',
-        icon: Sparkles,
-        color: 'text-indigo-600',
-      },
-    }),
+    () => createMaritalStatusMap(dict.options.maritalStatus),
     [dict.options.maritalStatus]
   );
-
   const religiousLevelMap = useMemo(
-    () => ({
-      charedi: {
-        label: dict.options.religiousLevel.charedi,
-        shortLabel: 'חרדי',
-        icon: BookMarked,
-        color: 'text-indigo-700',
-      },
-      charedi_modern: {
-        label: dict.options.religiousLevel.charedi_modern,
-        shortLabel: 'חרדי מודרני',
-        icon: BookOpen,
-        color: 'text-indigo-600',
-      },
-      dati_leumi_torani: {
-        label: dict.options.religiousLevel.dati_leumi_torani,
-        shortLabel: 'דתי תורני',
-        icon: Star,
-        color: 'text-blue-700',
-      },
-      dati_leumi_liberal: {
-        label: dict.options.religiousLevel.dati_leumi_liberal,
-        shortLabel: 'דתי ליברלי',
-        icon: Flower,
-        color: 'text-blue-600',
-      },
-      dati_leumi_standard: {
-        label: dict.options.religiousLevel.dati_leumi_standard,
-        shortLabel: 'דתי לאומי',
-        icon: Crown,
-        color: 'text-blue-600',
-      },
-      masorti_strong: {
-        label: dict.options.religiousLevel.masorti_strong,
-        shortLabel: 'מסורתי חזק',
-        icon: TreePine,
-        color: 'text-emerald-700',
-      },
-      masorti_light: {
-        label: dict.options.religiousLevel.masorti_light,
-        shortLabel: 'מסורתי קל',
-        icon: Wind,
-        color: 'text-emerald-600',
-      },
-      secular_traditional_connection: {
-        label: dict.options.religiousLevel.secular_traditional_connection,
-        shortLabel: 'חילוני עם זיקה',
-        icon: Waves,
-        color: 'text-cyan-600',
-      },
-      secular: {
-        label: dict.options.religiousLevel.secular,
-        shortLabel: 'חילוני',
-        icon: Sunrise,
-        color: 'text-orange-600',
-      },
-      spiritual_not_religious: {
-        label: dict.options.religiousLevel.spiritual_not_religious,
-        shortLabel: 'רוחני',
-        icon: Sparkle,
-        color: 'text-purple-600',
-      },
-      other: {
-        label: dict.options.religiousLevel.other,
-        shortLabel: 'ייחודי',
-        icon: Rainbow,
-        color: 'text-pink-600',
-      },
-      no_preference: {
-        label: dict.options.religiousLevel.no_preference,
-        shortLabel: 'פתוח',
-        icon: Globe,
-        color: 'text-gray-600',
-      },
-    }),
+    () => createReligiousLevelMap(dict.options.religiousLevel),
     [dict.options.religiousLevel]
   );
-
   const religiousJourneyMap = useMemo(
-    () => ({
-      BORN_INTO_CURRENT_LIFESTYLE: {
-        label: dict.options.religiousJourney.BORN_INTO_CURRENT_LIFESTYLE,
-        shortLabel: 'גדלתי דתי',
-        icon: Home,
-        color: 'text-blue-600',
-      },
-      BORN_SECULAR: {
-        label: dict.options.religiousJourney.BORN_SECULAR,
-        shortLabel: 'גדלתי חילוני',
-        icon: Sun,
-        color: 'text-orange-600',
-      },
-      BAAL_TESHUVA: {
-        label: dict.options.religiousJourney.BAAL_TESHUVA,
-        shortLabel: 'חוזר בתשובה',
-        icon: Sparkles,
-        color: 'text-purple-600',
-      },
-      DATLASH: {
-        label: dict.options.religiousJourney.DATLASH,
-        shortLabel: 'דתל"ש',
-        icon: ArrowLeft,
-        color: 'text-gray-600',
-      },
-      CONVERT: {
-        label: dict.options.religiousJourney.CONVERT,
-        shortLabel: 'גיורת',
-        icon: Star,
-        color: 'text-amber-600',
-      },
-      IN_PROCESS: {
-        label: dict.options.religiousJourney.IN_PROCESS,
-        shortLabel: 'בתהליך',
-        icon: Compass,
-        color: 'text-teal-600',
-      },
-      OTHER: {
-        label: dict.options.religiousJourney.OTHER,
-        shortLabel: 'אחר',
-        icon: InfoIcon,
-        color: 'text-pink-600',
-      },
-      no_preference: {
-        label: dict.options.religiousJourney.no_preference,
-        shortLabel: 'ללא העדפה',
-        icon: Globe,
-        color: 'text-gray-500',
-      },
-    }),
+    () => createReligiousJourneyMap(dict.options.religiousJourney),
     [dict.options.religiousJourney]
   );
-
   const educationLevelMap = useMemo(
     () => createEducationLevelMap(dict.options.educationLevel),
     [dict.options.educationLevel]
   );
-
   const serviceTypeMap = useMemo(
-    () => ({
-      MILITARY_COMBATANT: {
-        label: dict.options.serviceType.MILITARY_COMBATANT,
-        shortLabel: 'לוחם',
-        icon: Award,
-        color: 'text-red-600',
-      },
-      MILITARY_SUPPORT: {
-        label: dict.options.serviceType.MILITARY_SUPPORT,
-        shortLabel: 'תומך',
-        icon: Users,
-        color: 'text-orange-600',
-      },
-      MILITARY_OFFICER: {
-        label: dict.options.serviceType.MILITARY_OFFICER,
-        shortLabel: 'קצין',
-        icon: Crown,
-        color: 'text-purple-600',
-      },
-      MILITARY_INTELLIGENCE_CYBER_TECH: {
-        label: dict.options.serviceType.MILITARY_INTELLIGENCE_CYBER_TECH,
-        shortLabel: 'טכנולוגיה',
-        icon: Zap,
-        color: 'text-blue-600',
-      },
-      NATIONAL_SERVICE_ONE_YEAR: {
-        label: dict.options.serviceType.NATIONAL_SERVICE_ONE_YEAR,
-        shortLabel: 'שירות לאומי',
-        icon: Heart,
-        color: 'text-pink-600',
-      },
-      NATIONAL_SERVICE_TWO_YEARS: {
-        label: dict.options.serviceType.NATIONAL_SERVICE_TWO_YEARS,
-        shortLabel: 'שירות מורחב',
-        icon: Stars,
-        color: 'text-rose-600',
-      },
-      HESDER_YESHIVA: {
-        label: dict.options.serviceType.HESDER_YESHIVA,
-        shortLabel: 'הסדר',
-        icon: BookMarked,
-        color: 'text-indigo-600',
-      },
-      YESHIVA_ONLY_POST_HS: {
-        label: dict.options.serviceType.YESHIVA_ONLY_POST_HS,
-        shortLabel: 'תורני',
-        icon: BookOpen,
-        color: 'text-amber-600',
-      },
-      PRE_MILITARY_ACADEMY_AND_SERVICE: {
-        label: dict.options.serviceType.PRE_MILITARY_ACADEMY_AND_SERVICE,
-        shortLabel: 'מכינה',
-        icon: GraduationCap,
-        color: 'text-green-600',
-      },
-      EXEMPTED: {
-        label: dict.options.serviceType.EXEMPTED,
-        shortLabel: 'פטור',
-        icon: Shield,
-        color: 'text-gray-600',
-      },
-      CIVILIAN_SERVICE: {
-        label: dict.options.serviceType.CIVILIAN_SERVICE,
-        shortLabel: 'אזרחי',
-        icon: Users2,
-        color: 'text-teal-600',
-      },
-      OTHER: {
-        label: dict.options.serviceType.OTHER,
-        shortLabel: 'ייחודי',
-        icon: Sparkles,
-        color: 'text-purple-600',
-      },
-    }),
+    () =>
+      createServiceTypeMap(
+        dict.options.serviceType as Record<ServiceType, string>
+      ),
     [dict.options.serviceType]
   );
-
   const headCoveringMap = useMemo(
-    () => ({
-      FULL_COVERAGE: {
-        label: dict.options.headCovering.FULL_COVERAGE,
-        shortLabel: 'מלא',
-        icon: Crown,
-        color: 'text-purple-600',
-      },
-      PARTIAL_COVERAGE: {
-        label: dict.options.headCovering.PARTIAL_COVERAGE,
-        shortLabel: 'חלקי',
-        icon: Flower,
-        color: 'text-pink-600',
-      },
-      HAT_BERET: {
-        label: dict.options.headCovering.HAT_BERET,
-        shortLabel: 'כובע',
-        icon: Sun,
-        color: 'text-orange-600',
-      },
-      SCARF_ONLY_SOMETIMES: {
-        label: dict.options.headCovering.SCARF_ONLY_SOMETIMES,
-        shortLabel: 'לאירועים',
-        icon: Sparkle,
-        color: 'text-rose-600',
-      },
-      NONE: {
-        label: dict.options.headCovering.NONE,
-        shortLabel: 'ללא',
-        icon: Wind,
-        color: 'text-blue-600',
-      },
-      any: {
-        label: 'גמיש/ה',
-        shortLabel: 'גמיש',
-        icon: Rainbow,
-        color: 'text-indigo-600',
-      },
-    }),
+    () =>
+      createHeadCoveringMap(
+        dict.options.headCovering as Record<HeadCoveringType, string>
+      ),
     [dict.options.headCovering]
   );
-
   const kippahTypeMap = useMemo(
-    () => ({
-      BLACK_VELVET: {
-        label: dict.options.kippahType.BLACK_VELVET,
-        shortLabel: 'קטיפה',
-        icon: Crown,
-        color: 'text-indigo-700',
-      },
-      KNITTED_SMALL: {
-        label: dict.options.kippahType.KNITTED_SMALL,
-        shortLabel: 'סרוגה קטנה',
-        icon: Star,
-        color: 'text-blue-600',
-      },
-      KNITTED_LARGE: {
-        label: dict.options.kippahType.KNITTED_LARGE,
-        shortLabel: 'סרוגה גדולה',
-        icon: Stars,
-        color: 'text-blue-700',
-      },
-      CLOTH: {
-        label: dict.options.kippahType.CLOTH,
-        shortLabel: 'בד',
-        icon: Flower,
-        color: 'text-green-600',
-      },
-      BRESLEV: {
-        label: dict.options.kippahType.BRESLEV,
-        shortLabel: 'ברסלב',
-        icon: Sparkle,
-        color: 'text-purple-600',
-      },
-      NONE_AT_WORK_OR_CASUAL: {
-        label: dict.options.kippahType.NONE_AT_WORK_OR_CASUAL,
-        shortLabel: 'לא בעבודה',
-        icon: Briefcase,
-        color: 'text-gray-600',
-      },
-      NONE_USUALLY: {
-        label: dict.options.kippahType.NONE_USUALLY,
-        shortLabel: 'לרוב לא',
-        icon: Wind,
-        color: 'text-gray-500',
-      },
-      OTHER: {
-        label: dict.options.kippahType.OTHER,
-        shortLabel: 'ייחודי',
-        icon: Rainbow,
-        color: 'text-pink-600',
-      },
-      any: {
-        label: 'גמיש',
-        shortLabel: 'גמיש',
-        icon: Globe,
-        color: 'text-teal-600',
-      },
-    }),
+    () =>
+      createKippahTypeMap(
+        dict.options.kippahType as Record<KippahType, string>
+      ),
     [dict.options.kippahType]
   );
-
-  const contactPreferenceMap = useMemo(
-    () => ({
-      direct: {
-        label: 'ישירות',
-        shortLabel: 'ישירות',
-        icon: PhoneIcon,
-        color: 'text-green-600',
-      },
-      matchmaker: {
-        label: 'דרך השדכן/ית',
-        shortLabel: 'דרך שדכן',
-        icon: Users,
-        color: 'text-purple-600',
-      },
-      both: {
-        label: 'גמיש/ה',
-        shortLabel: 'גמיש',
-        icon: MessageSquare,
-        color: 'text-blue-600',
-      },
-    }),
-    []
-  );
-
+  const contactPreferenceMap = useMemo(() => createContactPreferenceMap(), []);
   const characterTraitMap = useMemo(
-    () => ({
-      empathetic: {
-        label: dict.options.traits.empathetic,
-        shortLabel: 'אמפתי',
-        icon: Heart,
-        color: 'text-rose-600',
-      },
-      driven: {
-        label: dict.options.traits.driven,
-        shortLabel: 'שאפתן',
-        icon: Zap,
-        color: 'text-orange-600',
-      },
-      optimistic: {
-        label: dict.options.traits.optimistic,
-        shortLabel: 'אופטימי',
-        icon: Sunrise,
-        color: 'text-yellow-600',
-      },
-      family_oriented: {
-        label: dict.options.traits.family_oriented,
-        shortLabel: 'משפחתי',
-        icon: Users2,
-        color: 'text-pink-600',
-      },
-      intellectual: {
-        label: dict.options.traits.intellectual,
-        shortLabel: 'אינטלקטואל',
-        icon: BookOpen,
-        color: 'text-indigo-600',
-      },
-      organized: {
-        label: dict.options.traits.organized,
-        shortLabel: 'מאורגן',
-        icon: CheckCircle,
-        color: 'text-green-600',
-      },
-      calm: {
-        label: dict.options.traits.calm,
-        shortLabel: 'רגוע',
-        icon: Waves,
-        color: 'text-blue-600',
-      },
-      humorous: {
-        label: dict.options.traits.humorous,
-        shortLabel: 'מצחיק',
-        icon: Smile,
-        color: 'text-purple-600',
-      },
-      sociable: {
-        label: dict.options.traits.sociable,
-        shortLabel: 'חברותי',
-        icon: Users,
-        color: 'text-cyan-600',
-      },
-      sensitive: {
-        label: dict.options.traits.sensitive,
-        shortLabel: 'רגיש',
-        icon: Flower,
-        color: 'text-pink-600',
-      },
-      independent: {
-        label: dict.options.traits.independent,
-        shortLabel: 'עצמאי',
-        icon: Crown,
-        color: 'text-amber-600',
-      },
-      creative: {
-        label: dict.options.traits.creative,
-        shortLabel: 'יצירתי',
-        icon: Palette,
-        color: 'text-rose-600',
-      },
-      honest: {
-        label: dict.options.traits.honest,
-        shortLabel: 'כן וישר',
-        icon: Star,
-        color: 'text-blue-600',
-      },
-      responsible: {
-        label: dict.options.traits.responsible,
-        shortLabel: 'אחראי',
-        icon: Award,
-        color: 'text-green-600',
-      },
-      easy_going: {
-        label: dict.options.traits.easy_going,
-        shortLabel: 'זורם',
-        icon: Wind,
-        color: 'text-teal-600',
-      },
-      no_strong_preference: {
-        label: 'פתוח/ה לגילוי',
-        shortLabel: 'פתוח',
-        icon: Compass,
-        color: 'text-gray-600',
-      },
-    }),
+    () => createCharacterTraitMap(dict.options.traits),
     [dict.options.traits]
   );
-
   const hobbiesMap = useMemo(
-    () => ({
-      travel: {
-        label: dict.options.hobbies.travel,
-        shortLabel: 'טיולים',
-        icon: Compass,
-        color: 'text-green-600',
-      },
-      sports: {
-        label: dict.options.hobbies.sports,
-        shortLabel: 'ספורט',
-        icon: Zap,
-        color: 'text-orange-600',
-      },
-      reading: {
-        label: dict.options.hobbies.reading,
-        shortLabel: 'קריאה',
-        icon: BookOpen,
-        color: 'text-indigo-600',
-      },
-      cooking_baking: {
-        label: dict.options.hobbies.cooking_baking,
-        shortLabel: 'בישול',
-        icon: Coffee,
-        color: 'text-amber-600',
-      },
-      music_playing_instrument: {
-        label: dict.options.hobbies.music_playing_instrument,
-        shortLabel: 'מוזיקה',
-        icon: Music,
-        color: 'text-purple-600',
-      },
-      art_crafts: {
-        label: dict.options.hobbies.art_crafts,
-        shortLabel: 'אומנות',
-        icon: Palette,
-        color: 'text-pink-600',
-      },
-      volunteering: {
-        label: dict.options.hobbies.volunteering,
-        shortLabel: 'התנדבות',
-        icon: Heart,
-        color: 'text-rose-600',
-      },
-      learning_courses: {
-        label: dict.options.hobbies.learning_courses,
-        shortLabel: 'למידה',
-        icon: GraduationCap,
-        color: 'text-blue-600',
-      },
-      board_games_puzzles: {
-        label: dict.options.hobbies.board_games_puzzles,
-        shortLabel: 'משחקים',
-        icon: Play,
-        color: 'text-cyan-600',
-      },
-      movies_theater: {
-        label: dict.options.hobbies.movies_theater,
-        shortLabel: 'סרטים',
-        icon: Camera,
-        color: 'text-red-600',
-      },
-      dancing: {
-        label: dict.options.hobbies.dancing,
-        shortLabel: 'ריקוד',
-        icon: Sparkle,
-        color: 'text-pink-600',
-      },
-      writing: {
-        label: dict.options.hobbies.writing,
-        shortLabel: 'כתיבה',
-        icon: Edit3,
-        color: 'text-gray-600',
-      },
-      nature_hiking: {
-        label: dict.options.hobbies.nature_hiking,
-        shortLabel: 'טבע',
-        icon: TreePine,
-        color: 'text-green-600',
-      },
-      photography: {
-        label: dict.options.hobbies.photography,
-        shortLabel: 'צילום',
-        icon: Camera,
-        color: 'text-blue-600',
-      },
-      no_strong_preference: {
-        label: 'פתוח/ה לגילוי יחד',
-        shortLabel: 'פתוח',
-        icon: Rainbow,
-        color: 'text-gray-600',
-      },
-    }),
+    () => createHobbiesMap(dict.options.hobbies),
     [dict.options.hobbies]
   );
 
@@ -3557,62 +3032,49 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   } = useMemo(
     () => ({
       values: {
-        label: 'הערכים והעקרונות שמנחים אותי',
-        shortLabel: 'הערכים',
+        ...displayDict.content.worlds.values,
+        shortLabel: displayDict.tabs.journey.shortLabel,
         icon: BookMarked,
         gradient: THEME.colors.primary.accent,
-        description: 'מה חשוב לי בחיים ומה מוביל אותי',
         accentColor: 'blue',
       },
       personality: {
-        label: 'האישיות והתכונות הייחודיות שלי',
-        shortLabel: 'האישיות',
+        ...displayDict.content.worlds.personality,
+        shortLabel: displayDict.tabs.essence.shortLabel,
         icon: Sparkles,
         gradient: THEME.colors.primary.light,
-        description: 'איך אני באמת ומה מאפיין אותי',
         accentColor: 'purple',
       },
       relationship: {
-        label: 'החזון שלי לזוגיות ומשפחה',
-        shortLabel: 'הזוגיות',
+        ...displayDict.content.worlds.relationship,
+        shortLabel: displayDict.tabs.vision.shortLabel,
         icon: Heart,
         gradient: THEME.colors.primary.main,
-        description: 'איך אני רואה את עתיד הזוגיות שלי',
         accentColor: 'rose',
       },
       partner: {
-        label: 'מה אני מחפש/ת בבן/בת הזוג',
-        shortLabel: 'החיפוש',
+        ...displayDict.content.worlds.partner,
+        shortLabel: displayDict.tabs.connection.shortLabel,
         icon: Users,
         gradient: THEME.colors.secondary.sky,
-        description: 'התכונות והערכים שחשובים לי בפרטנר',
         accentColor: 'blue',
       },
       religion: {
-        label: 'הדת והרוחניות בחיי',
-        shortLabel: 'הדת',
+        ...displayDict.content.worlds.religion,
+        shortLabel: displayDict.tabs.spirit.shortLabel,
         icon: Star,
         gradient: THEME.colors.secondary.peach,
-        description: 'המקום של האמונה והמסורת בעולמי',
         accentColor: 'amber',
       },
       general: {
-        label: 'עוד דברים חשובים שכדאי לדעת עליי',
-        shortLabel: 'עוד דברים',
+        ...displayDict.content.worlds.general,
+        shortLabel: 'עוד',
         icon: FileText,
         gradient: THEME.colors.secondary.lavender,
-        description: 'פרטים נוספים שמשלימים את התמונה',
         accentColor: 'purple',
       },
     }),
-    [
-      THEME.colors.primary.accent,
-      THEME.colors.primary.light,
-      THEME.colors.primary.main,
-      THEME.colors.secondary.sky,
-      THEME.colors.secondary.peach,
-      THEME.colors.secondary.lavender,
-    ]
+    [THEME, displayDict]
   );
 
   const hasAnyPreferences = useMemo(() => {
@@ -3648,9 +3110,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     () => calculateAge(profile.birthDate),
     [profile.birthDate]
   );
+
   const availability = useMemo(
-    () => formatAvailabilityStatus(profile.availabilityStatus, THEME),
-    [profile.availabilityStatus, THEME]
+    () =>
+      formatAvailabilityStatus(
+        profile.availabilityStatus,
+        THEME,
+        {
+          ...displayDict.availability,
+          mysterious: displayDict.placeholders.mysterious,
+        },
+        displayDict.header.availabilityBadge
+      ),
+    [profile.availabilityStatus, THEME, displayDict]
   );
 
   // Helper function to check if an answer has actual content
@@ -3759,8 +3231,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       [
         {
           value: 'essence',
-          label: 'המהות שלי',
-          shortLabel: 'מהות',
+          label: displayDict.tabs.essence.label,
+          shortLabel: displayDict.tabs.essence.shortLabel,
           icon: Sparkles,
           gradient: THEME.colors.primary.light,
           hasContent:
@@ -3773,8 +3245,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         },
         {
           value: 'journey',
-          label: 'הדרך שלי',
-          shortLabel: 'הדרך',
+          label: displayDict.tabs.journey.label,
+          shortLabel: displayDict.tabs.journey.shortLabel,
           icon: Compass,
           gradient: THEME.colors.primary.accent,
           hasContent:
@@ -3786,8 +3258,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         },
         {
           value: 'spirit',
-          label: 'עולם הרוח',
-          shortLabel: 'רוחניות',
+          label: displayDict.tabs.spirit.label,
+          shortLabel: displayDict.tabs.spirit.shortLabel,
           icon: Star,
           gradient: THEME.colors.secondary.peach,
           hasContent:
@@ -3798,8 +3270,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         },
         {
           value: 'vision',
-          label: 'חזון לזוגיות',
-          shortLabel: 'חזון',
+          label: displayDict.tabs.vision.label,
+          shortLabel: displayDict.tabs.vision.shortLabel,
           icon: Heart,
           gradient: THEME.colors.primary.main,
           hasContent:
@@ -3809,16 +3281,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         },
         {
           value: 'connection',
-          label: 'החיבור שאחפש',
-          shortLabel: 'חיבור',
+          label: displayDict.tabs.connection.label,
+          shortLabel: displayDict.tabs.connection.shortLabel,
           icon: Target,
           gradient: THEME.colors.secondary.sky,
           hasContent: hasAnyPreferences || partnerAnswers.length > 0,
         },
         viewMode === 'matchmaker' && {
           value: 'professional',
-          label: 'מידע לשדכן',
-          shortLabel: 'לשדכן',
+          label: displayDict.tabs.professional.label,
+          shortLabel: displayDict.tabs.professional.shortLabel,
           icon: Lock,
           gradient: THEME.colors.secondary.lavender,
           hasContent: true,
@@ -3841,6 +3313,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       relationshipAnswers,
       partnerAnswers,
       religionAnswers,
+      displayDict,
     ]
   );
 
@@ -3934,8 +3407,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   const QuestionnaireItem: React.FC<{
     answer: FormattedAnswer;
-    worldName: string; // <-- הוספנו את זה
-
+    worldName: string;
     worldColor?: string;
     worldGradient?: string;
     compact?: boolean;
@@ -3978,7 +3450,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               )}
             >
               <span className="flex-1 break-words ...">
-                <span className="sr-only">שאלה מקטגוריית {worldName}: </span>
+                <span className="sr-only">
+                  {displayDict.content.questionnaire.questionFromCategory.replace(
+                    '{{worldName}}',
+                    worldName
+                  )}{' '}
+                </span>
                 {answer.question}
               </span>
               {answer.isVisible === false && (
@@ -3987,11 +3464,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     <TooltipTrigger asChild>
                       <div className="flex-shrink-0 flex items-center gap-1 bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs cursor-default">
                         <Lock className="w-3 h-3" />
-                        <span>חסוי</span>
+                        <span>
+                          {displayDict.content.questionnaire.confidential}
+                        </span>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="top">
-                      <p>תשובה זו חסויה ומוצגת לשדכנים בלבד.</p>
+                      <p>
+                        {displayDict.content.questionnaire.confidentialTooltip}
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -4125,8 +3606,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             {!(activeTabConfig && activeTabConfig.hasContent) && (
               <EmptyState
                 icon={Telescope}
-                title="אין כאן מה להציג כרגע"
-                description="נראה שהמועמד/ת עדיין לא מילא/ה את החלק הזה בפרופיל. זו הזדמנות נהדרת לגלות יחד!"
+                title={displayDict.content.emptyStateTitle}
+                description={displayDict.content.emptyStateDescription}
                 variant="discovery"
               />
             )}
@@ -4144,7 +3625,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
                 {profile.profileHeadline && (
                   <SectionCard
-                    title="משפט פתיחה"
+                    title={displayDict.content.openingSentence}
                     icon={Quote}
                     variant="highlight"
                     gradient={THEME.colors.primary.main}
@@ -4156,8 +3637,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
                 {profile.about && (
                   <SectionCard
-                    title="מי אני, בקצרה"
-                    subtitle={`הסיפור האישי של ${profile.user?.firstName || 'המועמד/ת'}`}
+                    title={displayDict.content.aboutMe}
+                    subtitle={displayDict.content.aboutMeSubtitle.replace(
+                      '{{name}}',
+                      profile.user?.firstName || 'המועמד/ת'
+                    )}
                     icon={Heart}
                     variant="romantic"
                     gradient={THEME.colors.primary.main}
@@ -4181,8 +3665,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   {profile.profileCharacterTraits &&
                     profile.profileCharacterTraits.length > 0 && (
                       <SectionCard
-                        title="מה שמייחד אותי"
-                        subtitle="תכונות האופי שלי"
+                        title={displayDict.content.whatMakesMeSpecial}
+                        subtitle={displayDict.content.myTraits}
                         icon={Sparkles}
                         variant="elegant"
                         gradient={THEME.colors.primary.light}
@@ -4220,8 +3704,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   {profile.profileHobbies &&
                     profile.profileHobbies.length > 0 && (
                       <SectionCard
-                        title="איך אני ממלא/ה את הנשמה"
-                        subtitle="התחביבים והתשוקות שלי"
+                        title={displayDict.content.whatFillsMySoul}
+                        subtitle={displayDict.content.myHobbies}
                         icon={Heart}
                         variant="elegant"
                         gradient={THEME.colors.secondary.sage}
@@ -4259,8 +3743,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 </div>
                 {personalityContent.deeperAnswers.length > 0 && (
                   <SectionCard
-                    title="צלילה לתוך האישיות"
-                    subtitle="תשובות נוספות שעוזרות להכיר אותי"
+                    title={displayDict.content.deepDivePersonality}
+                    subtitle={displayDict.content.moreAnswersPersonality}
                     icon={Telescope}
                     variant="elegant"
                     gradient={WORLDS.personality.gradient}
@@ -4284,6 +3768,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     tabItems={tabItems}
                     onTabChange={handleTabChange}
                     THEME={THEME}
+                    dict={displayDict.mobileNav}
                   />
                 )}
               </div>
@@ -4305,8 +3790,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                   <SectionCard
-                    title="השכלה ועולם המקצוע"
-                    subtitle="הדרך האקדמית והמקצועית שלי"
+                    title={displayDict.content.educationAndCareer}
+                    subtitle={displayDict.content.academicAndProfessionalPath}
                     icon={GraduationCap}
                     variant="elegant"
                     gradient={THEME.colors.secondary.sky}
@@ -4314,56 +3799,74 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     <div className="space-y-4 sm:space-y-5">
                       <DetailItem
                         icon={GraduationCap}
-                        label="רמת ההשכלה"
+                        label={displayDict.content.detailLabels.educationLevel}
                         value={
                           formatEnumValue(
                             profile.educationLevel,
-                            educationLevelMap
+                            educationLevelMap,
+                            displayDict.placeholders.willDiscover
                           ).label
                         }
                         variant="highlight"
                         textAlign="right"
+                        placeholder={displayDict.placeholders.willDiscover}
                       />
                       {profile.education && (
                         <DetailItem
                           icon={BookOpen}
-                          label="פירוט הלימודים"
+                          label={
+                            displayDict.content.detailLabels.educationDetails
+                          }
                           value={profile.education}
                           variant="elegant"
                           valueClassName="whitespace-pre-wrap"
+                          placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
                       <DetailItem
                         icon={Briefcase}
-                        label="התחום המקצועי"
-                        value={profile.occupation || 'מקצוע מעניין מחכה לגילוי'}
-                        variant="elegant"
-                        textAlign="right"
-                      />
-                      <DetailItem
-                        icon={Award}
-                        label="השירות הצבאי/לאומי"
+                        label={
+                          displayDict.content.detailLabels.professionalField
+                        }
                         value={
-                          formatEnumValue(profile.serviceType, serviceTypeMap)
-                            .label
+                          profile.occupation ||
+                          displayDict.placeholders.professionWaiting
                         }
                         variant="elegant"
                         textAlign="right"
+                        placeholder={displayDict.placeholders.willDiscover}
+                      />
+                      <DetailItem
+                        icon={Award}
+                        label={displayDict.content.detailLabels.militaryService}
+                        value={
+                          formatEnumValue(
+                            profile.serviceType,
+                            serviceTypeMap,
+                            displayDict.placeholders.willDiscover
+                          ).label
+                        }
+                        variant="elegant"
+                        textAlign="right"
+                        placeholder={displayDict.placeholders.willDiscover}
                       />
                       {profile.serviceDetails && (
                         <DetailItem
                           icon={InfoIcon}
-                          label="פרטי השירות"
+                          label={
+                            displayDict.content.detailLabels.serviceDetails
+                          }
                           value={profile.serviceDetails}
                           variant="elegant"
                           valueClassName="whitespace-pre-wrap"
+                          placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
                     </div>
                   </SectionCard>
                   <SectionCard
-                    title="הרקע המשפחתי והתרבותי"
-                    subtitle="המשפחה והמקורות שעיצבו אותי"
+                    title={displayDict.content.familyAndCulturalBackground}
+                    subtitle={displayDict.content.familyThatShapedMe}
                     icon={Users2}
                     variant="romantic"
                     gradient={THEME.colors.primary.accent}
@@ -4371,67 +3874,83 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                       <DetailItem
                         icon={Users2}
-                        label="סטטוס ההורים"
-                        value={profile.parentStatus || 'נגלה יחד'}
+                        label={displayDict.content.detailLabels.parentStatus}
+                        value={
+                          profile.parentStatus ||
+                          displayDict.placeholders.willDiscover
+                        }
                         variant="elegant"
                         textAlign="right"
+                        placeholder={displayDict.placeholders.willDiscover}
                       />
                       {profile.fatherOccupation && (
                         <DetailItem
                           icon={Briefcase}
-                          label="מקצוע האב"
+                          label={
+                            displayDict.content.detailLabels.fatherOccupation
+                          }
                           value={profile.fatherOccupation}
                           variant="elegant"
                           textAlign="right"
+                          placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
                       {profile.motherOccupation && (
                         <DetailItem
                           icon={Briefcase}
-                          label="מקצוע האם"
+                          label={
+                            displayDict.content.detailLabels.motherOccupation
+                          }
                           value={profile.motherOccupation}
                           variant="elegant"
                           textAlign="right"
+                          placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
                       <DetailItem
                         icon={Users}
-                        label="אחים ואחיות"
+                        label={displayDict.content.detailLabels.siblings}
                         value={
                           profile.siblings
                             ? `${profile.siblings} אחים/אחיות`
-                            : 'נגלה יחד'
+                            : displayDict.placeholders.willDiscover
                         }
                         variant="elegant"
                         textAlign="right"
+                        placeholder={displayDict.placeholders.willDiscover}
                       />
                       <DetailItem
                         icon={Crown}
-                        label="המקום במשפחה"
+                        label={displayDict.content.detailLabels.birthOrder}
                         value={
                           profile.position
                             ? `מקום ${profile.position}`
-                            : 'נגלה יחד'
+                            : displayDict.placeholders.willDiscover
                         }
                         variant="elegant"
                         textAlign="right"
+                        placeholder={displayDict.placeholders.willDiscover}
                       />
                       {profile.aliyaCountry && (
                         <DetailItem
                           icon={Globe}
-                          label="ארץ המוצא"
+                          label={
+                            displayDict.content.detailLabels.countryOfOrigin
+                          }
                           value={`${profile.aliyaCountry} - השורשים שלי`}
                           variant="elegant"
                           textAlign="right"
+                          placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
                       {profile.aliyaYear && (
                         <DetailItem
                           icon={Calendar}
-                          label="שנת העלייה"
+                          label={displayDict.content.detailLabels.aliyaYear}
                           value={`${profile.aliyaYear} - הגעתי הביתה`}
                           variant="elegant"
                           textAlign="right"
+                          placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
                     </div>
@@ -4439,8 +3958,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 </div>
                 {valuesContent.deeperAnswers.length > 0 && (
                   <SectionCard
-                    title="הערכים והעקרונות שמנחים אותי"
-                    subtitle="תשובות לשאלות על מה שחשוב לי באמת"
+                    title={displayDict.content.valuesAndPrinciples}
+                    subtitle={displayDict.content.answersOnWhatMatters}
                     icon={BookMarked}
                     variant="elegant"
                     gradient={WORLDS.values.gradient}
@@ -4464,6 +3983,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     tabItems={tabItems}
                     onTabChange={handleTabChange}
                     THEME={THEME}
+                    dict={displayDict.mobileNav}
                   />
                 )}
               </div>
@@ -4484,8 +4004,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   />
                 )}
                 <SectionCard
-                  title="החיבור שלי ליהדות"
-                  subtitle="המקום של האמונה והמסורת בחיי"
+                  title={displayDict.content.myConnectionToJudaism}
+                  subtitle={displayDict.content.faithAndTraditionInMyLife}
                   icon={BookMarked}
                   variant="elegant"
                   gradient={THEME.colors.primary.gold}
@@ -4497,68 +4017,86 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       value={
                         formatEnumValue(
                           profile.religiousLevel,
-                          religiousLevelMap
+                          religiousLevelMap,
+                          displayDict.placeholders.willDiscover
                         ).label
                       }
                       variant="highlight"
                       textAlign="right"
+                      placeholder={displayDict.placeholders.willDiscover}
                     />
                     {profile.religiousJourney && (
                       <DetailItem
                         icon={Compass}
-                        label="המסע הדתי שלי"
+                        label={
+                          displayDict.content.detailLabels.religiousJourney
+                        }
                         value={
                           formatEnumValue(
                             profile.religiousJourney,
-                            religiousJourneyMap
+                            religiousJourneyMap,
+                            displayDict.placeholders.willDiscover
                           ).label
                         }
                         variant="elegant"
                         textAlign="right"
+                        placeholder={displayDict.placeholders.willDiscover}
                       />
                     )}
                     <DetailItem
                       icon={Heart}
-                      label="שמירת נגיעה"
+                      label={displayDict.content.detailLabels.shomerNegiah}
                       value={
                         formatBooleanPreference(
                           profile.shomerNegiah,
-                          'כן, זה חשוב לי',
-                          'לא'
+                          {
+                            ...displayDict.booleanPrefs,
+                            willDiscover: displayDict.placeholders.willDiscover,
+                          },
+                          true
                         ).label
                       }
                       variant="elegant"
                       textAlign="right"
+                      placeholder={displayDict.placeholders.willDiscover}
                     />
                     {profile.gender === 'FEMALE' && profile.headCovering && (
                       <DetailItem
                         icon={Crown}
-                        label="כיסוי ראש"
+                        label={displayDict.content.detailLabels.headCovering}
                         value={
-                          formatEnumValue(profile.headCovering, headCoveringMap)
-                            .label
+                          formatEnumValue(
+                            profile.headCovering,
+                            headCoveringMap,
+                            displayDict.placeholders.willDiscover
+                          ).label
                         }
                         variant="elegant"
                         textAlign="right"
+                        placeholder={displayDict.placeholders.willDiscover}
                       />
                     )}
                     {profile.gender === 'MALE' && profile.kippahType && (
                       <DetailItem
                         icon={Crown}
-                        label="סוג כיפה"
+                        label={displayDict.content.detailLabels.kippahType}
                         value={
-                          formatEnumValue(profile.kippahType, kippahTypeMap)
-                            .label
+                          formatEnumValue(
+                            profile.kippahType,
+                            kippahTypeMap,
+                            displayDict.placeholders.willDiscover
+                          ).label
                         }
                         variant="elegant"
                         textAlign="right"
+                        placeholder={displayDict.placeholders.willDiscover}
                       />
                     )}
                   </div>
                 </SectionCard>
                 {profile.influentialRabbi && (
                   <SectionCard
-                    title="דמות רוחנית משפיעה"
+                    title={displayDict.content.inspiringSpiritualFigure}
                     icon={Lightbulb}
                     variant="elegant"
                     gradient={THEME.colors.primary.gold}
@@ -4577,8 +4115,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
                 {religionContent.deeperAnswers.length > 0 && (
                   <SectionCard
-                    title="העולם הדתי והרוחני שלי"
-                    subtitle="תשובות לשאלות על אמונה, מסורת ורוחניות"
+                    title={displayDict.content.myReligiousAndSpiritualWorld}
+                    subtitle={displayDict.content.answersOnFaith}
                     icon={Star}
                     variant="elegant"
                     gradient={WORLDS.religion.gradient}
@@ -4602,6 +4140,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     tabItems={tabItems}
                     onTabChange={handleTabChange}
                     THEME={THEME}
+                    dict={displayDict.mobileNav}
                   />
                 )}
               </div>
@@ -4623,7 +4162,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
                 {profile.matchingNotes && (
                   <SectionCard
-                    title="הזוגיות שאני חולם/ת עליה"
+                    title={displayDict.content.myDreamRelationship}
                     icon={Heart}
                     variant="romantic"
                     gradient={THEME.colors.primary.main}
@@ -4645,8 +4184,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
                 {profile.inspiringCoupleStory && (
                   <SectionCard
-                    title="המודל שלי לזוגיות"
-                    subtitle="הזוג שנותן לי השראה"
+                    title={displayDict.content.myRoleModelForRelationship}
+                    subtitle={displayDict.content.theCoupleThatInspiresMe}
                     icon={Stars}
                     variant="elegant"
                     gradient={THEME.colors.primary.gold}
@@ -4665,8 +4204,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
                 {relationshipContent.deeperAnswers.length > 0 && (
                   <SectionCard
-                    title="עוד על החזון שלי לזוגיות"
-                    subtitle="תשובות לשאלות על אהבה, משפחה וכל מה שביניהם"
+                    title={displayDict.content.moreOnMyVision}
+                    subtitle={displayDict.content.answersOnLoveAndFamily}
                     icon={Heart}
                     variant="romantic"
                     gradient={WORLDS.relationship.gradient}
@@ -4690,6 +4229,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     tabItems={tabItems}
                     onTabChange={handleTabChange}
                     THEME={THEME}
+                    dict={displayDict.mobileNav}
                   />
                 )}
               </div>
@@ -4711,35 +4251,35 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
                 {hasAnyPreferences ? (
                   <SectionCard
-                    title="העדפות להתאמה"
-                    subtitle="דברים שיכולים לעזור לנו למצוא את החיבור הנכון"
+                    title={displayDict.content.matchingPreferences}
+                    subtitle={displayDict.content.whatHelpsFindConnection}
                     icon={Filter}
                     variant="default"
                   >
                     <div className="space-y-6 sm:space-y-8">
                       {renderPreferenceBadges(
-                        'סטטוסים משפחתיים',
+                        displayDict.content.maritalStatuses,
                         Heart,
                         profile.preferredMaritalStatuses,
                         maritalStatusMap,
                         THEME.colors.primary.main
                       )}
                       {renderPreferenceBadges(
-                        'רמות דתיות',
+                        displayDict.content.religiousLevels,
                         BookMarked,
                         profile.preferredReligiousLevels,
                         religiousLevelMap,
                         THEME.colors.secondary.peach
                       )}
                       {renderPreferenceBadges(
-                        'מסע דתי של בן/בת הזוג',
+                        displayDict.content.partnerReligiousJourney,
                         Compass,
                         profile.preferredReligiousJourneys as string[],
                         religiousJourneyMap,
                         THEME.colors.secondary.sage
                       )}
                       {renderPreferenceBadges(
-                        'רמות השכלה',
+                        displayDict.content.educationLevels,
                         GraduationCap,
                         profile.preferredEducation,
                         educationLevelMap,
@@ -4752,16 +4292,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   partnerContent.deeperAnswers.length === 0 && (
                     <EmptyState
                       icon={Compass}
-                      title="פתוח/ה להכיר את האדם הנכון"
-                      description="אין כאן רשימת דרישות, אלא הזמנה פתוחה להכיר אדם מיוחד. יש כאן מקום לגילויים מרגשים יחד."
+                      title={displayDict.content.emptyPrefsTitle}
+                      description={displayDict.content.emptyPrefsDescription}
                       variant="discovery"
                     />
                   )
                 )}
                 {partnerContent.deeperAnswers.length > 0 && (
                   <SectionCard
-                    title="איך אני מדמיין/ת את בן/בת הזוג"
-                    subtitle="תשובות נוספות על מה שאני מחפש/ת"
+                    title={displayDict.content.howIVisionMyPartner}
+                    subtitle={displayDict.content.moreAnswersAboutPartner}
                     icon={Target}
                     variant="elegant"
                     gradient={WORLDS.partner.gradient}
@@ -4785,6 +4325,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     tabItems={tabItems}
                     onTabChange={handleTabChange}
                     THEME={THEME}
+                    dict={displayDict.mobileNav}
                   />
                 )}
               </div>
@@ -4797,8 +4338,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 className="mt-0 max-w-full min-w-0"
               >
                 <SectionCard
-                  title="פרטים חסויים ותובנות לשדכן"
-                  subtitle="פרטים מקצועיים לתהליך השידוך"
+                  title={displayDict.content.confidentialInfo}
+                  subtitle={displayDict.content.professionalDetails}
                   icon={Lock}
                   variant="elegant"
                   gradient={THEME.colors.primary.gold}
@@ -4807,62 +4348,74 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <DetailItem
                         icon={Phone}
-                        label="העדפת יצירת קשר"
+                        label={
+                          displayDict.content.professionalInfo.contactPreference
+                        }
                         value={
                           formatEnumValue(
                             profile.contactPreference,
                             contactPreferenceMap,
-                            'נגלה יחד'
+                            displayDict.placeholders.willDiscover
                           ).label
                         }
                         variant="elegant"
                         textAlign="right"
+                        placeholder={displayDict.placeholders.willDiscover}
                       />
                       <DetailItem
                         icon={Users}
-                        label="העדפת מגדר שדכן/ית"
+                        label={
+                          displayDict.content.professionalInfo
+                            .matchmakerGenderPref
+                        }
                         value={
                           profile.preferredMatchmakerGender
                             ? profile.preferredMatchmakerGender === 'MALE'
-                              ? 'שדכן גבר'
-                              : 'שדכנית אישה'
-                            : 'אין העדפה מיוחדת'
+                              ? displayDict.content.professionalInfo
+                                  .matchmakerMale
+                              : displayDict.content.professionalInfo
+                                  .matchmakerFemale
+                            : displayDict.content.professionalInfo.noPreference
                         }
                         variant="elegant"
                         textAlign="right"
+                        placeholder={displayDict.placeholders.willDiscover}
                       />
                     </div>
                     {profile.hasMedicalInfo && (
                       <DetailItem
                         icon={Heart}
-                        label="מידע רפואי"
+                        label={displayDict.content.professionalInfo.medicalInfo}
                         value={
                           profile.isMedicalInfoVisible
-                            ? 'גלוי בפרופיל'
-                            : 'קיים מידע דיסקרטי'
+                            ? displayDict.content.professionalInfo
+                                .medicalInfoVisible
+                            : displayDict.content.professionalInfo
+                                .medicalInfoDiscreet
                         }
                         variant="elegant"
                         textAlign="right"
                         tooltip={profile.medicalInfoDetails || undefined}
+                        placeholder={displayDict.placeholders.willDiscover}
                       />
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-gray-500" />
                         <span>
-                          פרופיל נוצר:{' '}
+                          {displayDict.content.professionalInfo.profileCreated}{' '}
                           {profile.createdAt
                             ? new Date(profile.createdAt).toLocaleDateString(
                                 'he-IL'
                               )
-                            : 'לא ידוע'}
+                            : displayDict.content.professionalInfo.unknown}
                         </span>
                       </div>
                       {profile.lastActive && (
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-gray-500" />
                           <span>
-                            פעילות אחרונה:{' '}
+                            {displayDict.content.professionalInfo.lastActive}{' '}
                             {new Date(profile.lastActive).toLocaleDateString(
                               'he-IL'
                             )}
@@ -4878,6 +4431,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     tabItems={tabItems}
                     onTabChange={handleTabChange}
                     THEME={THEME}
+                    dict={displayDict.mobileNav}
                   />
                 )}
               </TabsContent>
@@ -4905,7 +4459,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           'w-10 h-10 sm:w-12 sm:h-12 min-h-[44px] min-w-[44px] touch-manipulation'
         )}
         onClick={handleClose}
-        aria-label="סגור תצוגה מקדימה"
+        aria-label={displayDict.mobileNav.closePreview}
       >
         <X className="w-4 h-4 sm:w-5 sm:h-5" />
       </Button>
@@ -4924,7 +4478,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         >
           <ToggleGroupItem
             value="focus"
-            aria-label="תצוגת היכרות"
+            aria-label={displayDict.mobileNav.introView}
             className={cn(
               'rounded-xl transition-all duration-300 min-h-[44px] px-3 sm:px-4 py-2 touch-manipulation',
               'data-[state=on]:bg-gradient-to-r data-[state=on]:from-rose-500 data-[state=on]:to-pink-500 data-[state=on]:text-white data-[state=on]:shadow-md'
@@ -4932,12 +4486,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           >
             <Heart className="h-3 h-3 sm:h-4 sm:w-4" />
             <span className="mr-1.5 sm:mr-2 text-xs sm:text-sm font-medium">
-              היכרות
+              {displayDict.mobileNav.introView}
             </span>
           </ToggleGroupItem>
           <ToggleGroupItem
             value="detailed"
-            aria-label="תצוגה מפורטת"
+            aria-label={displayDict.mobileNav.detailedView}
             className={cn(
               'rounded-xl transition-all duration-300 min-h-[44px] px-3 sm:px-4 py-2 touch-manipulation',
               'data-[state=on]:bg-gradient-to-r data-[state=on]:from-purple-500 data-[state=on]:to-indigo-500 data-[state=on]:text-white data-[state=on]:shadow-md'
@@ -4945,7 +4499,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           >
             <FileText className="h-3 h-3 sm:h-4 sm:w-4" />
             <span className="mr-1.5 sm:mr-2 text-xs sm:text-sm font-medium">
-              מפורט
+              {displayDict.mobileNav.detailedView}
             </span>
           </ToggleGroupItem>
         </ToggleGroup>
@@ -4953,6 +4507,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           selectedPalette={selectedPalette}
           onPaletteChange={setSelectedPalette}
           THEME={THEME}
+          dict={displayDict.colorPalette}
           compact={true}
         />
       </div>
@@ -4972,6 +4527,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           isMobile={true}
           selectedPalette={selectedPalette}
           THEME={THEME}
+          dict={displayDict}
           compact={false}
           characterTraitMap={characterTraitMap}
           hobbiesMap={hobbiesMap}
@@ -4983,6 +4539,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           profile={profile}
           onImageClick={handleOpenImageDialog}
           THEME={THEME}
+          dict={displayDict.gallery}
           compact={false}
         />
         <div
@@ -5012,6 +4569,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             selectedPalette={selectedPalette}
             onPaletteChange={setSelectedPalette}
             THEME={THEME}
+            dict={displayDict}
             compact={true}
             characterTraitMap={characterTraitMap}
             hobbiesMap={hobbiesMap}
@@ -5023,6 +4581,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             profile={profile}
             onImageClick={handleOpenImageDialog}
             THEME={THEME}
+            dict={displayDict.gallery}
             compact={true}
           />
           <div
@@ -5033,8 +4592,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           >
             {profile.about ? (
               <SectionCard
-                title="קצת עליי"
-                subtitle="המילים שמגדירות אותי"
+                title={displayDict.content.focus.aboutMe}
+                subtitle={displayDict.content.focus.myStory}
                 icon={Heart}
                 variant="romantic"
                 gradient={THEME.colors.primary.main}
@@ -5059,24 +4618,24 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               </SectionCard>
             ) : (
               <SectionCard
-                title="הסיפור שלי"
-                subtitle="המילים שמגדירות אותי"
+                title={displayDict.content.focus.myStory}
+                subtitle={displayDict.content.focus.myStory}
                 icon={Telescope}
                 variant="romantic"
                 compact={true}
               >
                 <EmptyState
                   icon={Telescope}
-                  title="יש כאן הרבה לגלות!"
-                  description="הסיפור האישי מחכה להיכתב יחד איתך..."
+                  title={displayDict.content.emptyPrefsTitle}
+                  description={displayDict.content.emptyPrefsDescription}
                   variant="romantic"
                   compact={true}
                 />
               </SectionCard>
             )}
             <SectionCard
-              title="תמצית מהירה"
-              subtitle="הפרטים החשובים שכדאי לדעת עליי במבט ראשון"
+              title={displayDict.content.focus.quickSummary}
+              subtitle={displayDict.content.focus.importantDetails}
               icon={Zap}
               variant="elegant"
               gradient={THEME.colors.primary.gold}
@@ -5086,48 +4645,65 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               <div className="grid grid-cols-1 gap-2 sm:gap-3 min-w-0 max-w-full">
                 <DetailItem
                   icon={BookMarked}
-                  label="השקפה"
+                  label={dict.display.keyFacts.outlook}
                   value={
-                    formatEnumValue(profile.religiousLevel, religiousLevelMap)
-                      .label
+                    formatEnumValue(
+                      profile.religiousLevel,
+                      religiousLevelMap,
+                      displayDict.placeholders.willDiscover
+                    ).label
                   }
                   variant="elegant"
                   size="sm"
                   useMobileLayout={true}
                   textAlign="center"
+                  placeholder={displayDict.placeholders.willDiscover}
                 />
                 <DetailItem
                   icon={Heart}
-                  label="שמירת נגיעה"
-                  value={formatBooleanPreference(profile.shomerNegiah).label}
-                  variant="elegant"
-                  size="sm"
-                  useMobileLayout={true}
-                />
-                <DetailItem
-                  icon={Briefcase}
-                  label="עיסוק"
-                  value={profile.occupation || 'נגלה יחד'}
-                  variant="elegant"
-                  size="sm"
-                  useMobileLayout={true}
-                />
-                <DetailItem
-                  icon={GraduationCap}
-                  label="השכלה"
+                  label={displayDict.content.detailLabels.shomerNegiah}
                   value={
-                    formatEnumValue(profile.educationLevel, educationLevelMap)
-                      .label
+                    formatBooleanPreference(profile.shomerNegiah, {
+                      ...displayDict.booleanPrefs,
+                      willDiscover: displayDict.placeholders.willDiscover,
+                    }).label
                   }
                   variant="elegant"
                   size="sm"
                   useMobileLayout={true}
+                  placeholder={displayDict.placeholders.willDiscover}
+                />
+                <DetailItem
+                  icon={Briefcase}
+                  label={dict.display.keyFacts.occupation}
+                  value={
+                    profile.occupation || displayDict.placeholders.willDiscover
+                  }
+                  variant="elegant"
+                  size="sm"
+                  useMobileLayout={true}
+                  placeholder={displayDict.placeholders.willDiscover}
+                />
+                <DetailItem
+                  icon={GraduationCap}
+                  label={displayDict.content.detailLabels.educationLevel}
+                  value={
+                    formatEnumValue(
+                      profile.educationLevel,
+                      educationLevelMap,
+                      displayDict.placeholders.willDiscover
+                    ).label
+                  }
+                  variant="elegant"
+                  size="sm"
+                  useMobileLayout={true}
+                  placeholder={displayDict.placeholders.willDiscover}
                 />
               </div>
             </SectionCard>
             <SectionCard
-              title="מה מיוחד בי"
-              subtitle="התכונות והתחביבים שעושים אותי ייחודי/ת"
+              title={displayDict.content.focus.whatMakesMeUnique}
+              subtitle={displayDict.content.focus.traitsAndHobbies}
               icon={Sparkles}
               variant="romantic"
               gradient={THEME.colors.primary.romantic}
@@ -5139,7 +4715,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   profile.profileCharacterTraits.length > 0 && (
                     <div className="min-w-0 max-w-full">
                       <h4 className="text-sm font-bold text-purple-700 mb-2 sm:mb-3 flex items-center justify-center gap-2">
-                        <span className="break-words">התכונות שלי:</span>
+                        <span className="break-words">
+                          {displayDict.content.focus.myTraits}
+                        </span>
                         <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                       </h4>
                       <div className="flex flex-wrap gap-2 min-w-0 max-w-full justify-center">
@@ -5176,7 +4754,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   profile.profileHobbies.length > 0 && (
                     <div className="min-w-0 max-w-full">
                       <h4 className="text-sm font-bold text-emerald-700 mb-2 sm:mb-3 flex items-center justify-center gap-2">
-                        <span className="break-words">מה אני אוהב/ת:</span>
+                        <span className="break-words">
+                          {displayDict.content.focus.whatILove}
+                        </span>
                         <Heart className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                       </h4>
                       <div className="flex flex-wrap gap-2 min-w-0 max-w-full justify-center">
@@ -5217,10 +4797,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               )}
             >
               <h3 className="text-base sm:text-lg font-bold mb-2 break-words">
-                רוצים לדעת עוד?
+                {displayDict.content.focus.wantToKnowMore}
               </h3>
               <p className="mb-3 sm:mb-4 opacity-90 text-sm break-words">
-                עוד המון דברים מעניינים מחכים לגילוי...
+                {displayDict.content.focus.moreToDiscover}
               </p>
               <Button
                 onClick={() => setMobileViewLayout('detailed')}
@@ -5231,7 +4811,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
               >
                 <Eye className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
-                <span className="break-words">בואו נכיר לעומק</span>
+                <span className="break-words">
+                  {displayDict.content.focus.letsGetToKnow}
+                </span>
               </Button>
             </div>
           </div>
@@ -5314,7 +4896,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>סגור תצוגה מקדימה</p>
+                <p>{displayDict.mobileNav.closePreview}</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -5342,6 +4924,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   selectedPalette={selectedPalette}
                   onPaletteChange={setSelectedPalette}
                   THEME={THEME}
+                  dict={displayDict}
                   characterTraitMap={characterTraitMap}
                   hobbiesMap={hobbiesMap}
                   religiousLevelMap={religiousLevelMap}
@@ -5367,8 +4950,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               <ScrollArea className="flex-grow min-h-0 max-w-full">
                 <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 min-w-0 max-w-full">
                   <SectionCard
-                    title="הגלריה האישית"
-                    subtitle="התמונות שמספרות את הסיפור"
+                    title={displayDict.gallery.title.replace(
+                      '{{name}}',
+                      profile.user?.firstName || 'המועמד'
+                    )}
+                    subtitle={displayDict.gallery.subtitle}
                     icon={Camera}
                     variant="romantic"
                     gradient={THEME.colors.primary.rose}
@@ -5388,7 +4974,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             src={getRelativeCloudinaryPath(
                               orderedImages[0].url
                             )}
-                            alt="תמונה ראשית מדהימה"
+                            alt={displayDict.gallery.imageAlt.replace(
+                              '{{index}}',
+                              '1'
+                            )}
                             fill
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
                             sizes="35vw"
@@ -5398,14 +4987,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             <div className="text-center text-white">
                               <Eye className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2" />
                               <p className="font-bold text-sm sm:text-base">
-                                לחץ להגדלה
+                                {displayDict.gallery.subtitle}
                               </p>
                             </div>
                           </div>
                         </div>
                         {orderedImages.length > 1 && (
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 min-w-0 max-w-full">
-                            {orderedImages.slice(1, 7).map((img) => (
+                            {orderedImages.slice(1, 7).map((img, idx) => (
                               <div
                                 key={img.id}
                                 className={cn(
@@ -5415,7 +5004,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                               >
                                 <Image
                                   src={getRelativeCloudinaryPath(img.url)}
-                                  alt="תמונת פרופיל נוספת"
+                                  alt={displayDict.gallery.imageAlt.replace(
+                                    '{{index}}',
+                                    (idx + 2).toString()
+                                  )}
                                   fill
                                   className="object-cover hover:scale-110 transition-transform duration-300"
                                   sizes="15vw"
@@ -5428,8 +5020,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     ) : (
                       <EmptyState
                         icon={Camera}
-                        title="התמונות בדרך אלינו..."
-                        description="הגלריה האישית מחכה להיחשף"
+                        title={displayDict.content.emptyStateTitle}
+                        description={displayDict.content.emptyStateDescription}
                         variant="romantic"
                       />
                     )}
@@ -5456,6 +5048,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           onClose={handleCloseImageDialog}
           onNavigate={handleDialogNav}
           onImageSelect={setSelectedImageForDialog}
+          dict={displayDict.imageDialog}
         />
       </Card>
     </TooltipProvider>

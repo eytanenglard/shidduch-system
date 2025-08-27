@@ -38,6 +38,7 @@ interface HowItWorksProps {
   profileCardDict: ProfileCardDict; // 2. הוספת ה-prop לממשק
 
   demoData: DemoData; // הוסף את זה
+  locale: 'he' | 'en'; // <-- ✨ 1. הוסף את locale לממשק ה-props
 }
 // --- END: Type Definitions ---
 
@@ -125,11 +126,10 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
   suggestionsDict,
   demoData,
   profileCardDict,
+  locale, // <-- ✨ 2. קבל את locale
 }) => {
   const demoRef = useRef(null);
   const isDemoInView = useInView(demoRef, { once: true, amount: 0.1 });
-  const pathname = usePathname();
-  const locale = pathname.split('/')[1] || 'he';
 
   const stepColors = ['cyan', 'green', 'orange', 'pink'] as const;
 
@@ -271,6 +271,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     suggestionsDict={suggestionsDict}
                     profileCardDict={profileCardDict}
                     suggestionDemoDict={dict.suggestionDemo}
+                    locale={locale} // <-- ✨ 3. העבר את locale לרכיב הבן
                   />
                 </div>
               </div>
@@ -289,6 +290,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     suggestionsDict={suggestionsDict}
                     profileCardDict={profileCardDict}
                     suggestionDemoDict={dict.suggestionDemo}
+                    locale={locale} // <-- ✨ 3. העבר את locale לרכיב הבן
                   />
                 </div>
               </div>

@@ -46,12 +46,17 @@ import AskMatchmakerDialog from '../dialogs/AskMatchmakerDialog';
 import { cn } from '@/lib/utils';
 import type { ExtendedMatchSuggestion } from '../types';
 // ✅ 1. ייבוא הטיפוסים הנדרשים
-import type { SuggestionsDictionary, ProfileCardDict } from '@/types/dictionary';
+import type {
+  SuggestionsDictionary,
+  ProfileCardDict,
+} from '@/types/dictionary';
 
 // ✅ 2. עדכון הממשק לקבל props נפרדים
 interface SuggestionsListProps {
   suggestions: ExtendedMatchSuggestion[];
   userId: string;
+  locale: 'he' | 'en'; // <-- 1. הוסף את locale לממשק ה-props
+
   isHistory?: boolean;
   viewMode: 'grid' | 'list';
   isLoading?: boolean;
@@ -183,6 +188,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   viewMode: initialViewMode,
   isLoading = false,
   userId,
+  locale,
   className,
   onActionRequest,
   isUserInActiveProcess,
@@ -357,7 +363,9 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
                     type="text"
-                    placeholder={suggestionsDict.list.controls.searchPlaceholder}
+                    placeholder={
+                      suggestionsDict.list.controls.searchPlaceholder
+                    }
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pr-12 text-right border-gray-200 focus:border-purple-300 focus:ring-purple-200 rounded-xl h-12"
@@ -379,23 +387,64 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                     </DropdownMenuLabel>
                     <DropdownMenuGroup>
                       <DropdownMenuItem onClick={() => setFilterOption('all')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'all' ? 'opacity-100' : 'opacity-0')} />
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'all' ? 'opacity-100' : 'opacity-0'
+                          )}
+                        />
                         {suggestionsDict.list.controls.filterAll}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterOption('pending')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'pending' ? 'opacity-100' : 'opacity-0')} />
+                      <DropdownMenuItem
+                        onClick={() => setFilterOption('pending')}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'pending'
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
                         {suggestionsDict.list.controls.filterPending}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterOption('accepted')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'accepted' ? 'opacity-100' : 'opacity-0')} />
+                      <DropdownMenuItem
+                        onClick={() => setFilterOption('accepted')}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'accepted'
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
                         {suggestionsDict.list.controls.filterAccepted}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterOption('declined')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'declined' ? 'opacity-100' : 'opacity-0')} />
+                      <DropdownMenuItem
+                        onClick={() => setFilterOption('declined')}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'declined'
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
                         {suggestionsDict.list.controls.filterDeclined}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterOption('contact_shared')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'contact_shared' ? 'opacity-100' : 'opacity-0')} />
+                      <DropdownMenuItem
+                        onClick={() => setFilterOption('contact_shared')}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'contact_shared'
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
                         {suggestionsDict.list.controls.filterContactShared}
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
@@ -406,7 +455,11 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   onValueChange={(value) => setSortOption(value as SortOption)}
                 >
                   <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-purple-300 rounded-xl">
-                    <SelectValue placeholder={suggestionsDict.list.controls.sortPlaceholder} />
+                    <SelectValue
+                      placeholder={
+                        suggestionsDict.list.controls.sortPlaceholder
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="newest">
@@ -438,27 +491,54 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
               </div>
               {(searchQuery || filterOption !== 'all') && (
                 <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                  <span className="text-sm text-gray-500 font-medium">{suggestionsDict.list.activeFilters.title}</span>
+                  <span className="text-sm text-gray-500 font-medium">
+                    {suggestionsDict.list.activeFilters.title}
+                  </span>
                   {searchQuery && (
-                    <Badge variant="outline" className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200">
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200"
+                    >
                       {suggestionsDict.list.activeFilters.search} {searchQuery}
-                      <Button variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => setSearchQuery('')}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
+                        onClick={() => setSearchQuery('')}
+                      >
                         <XCircle className="h-3 w-3" />
                       </Button>
                     </Badge>
                   )}
                   {filterOption !== 'all' && (
-                    <Badge variant="outline" className="flex items-center gap-1 bg-pink-50 text-pink-700 border-pink-200">
-                      {filterOption === 'pending' && suggestionsDict.list.controls.filterPending}
-                      {filterOption === 'accepted' && suggestionsDict.list.controls.filterAccepted}
-                      {filterOption === 'declined' && suggestionsDict.list.controls.filterDeclined}
-                      {filterOption === 'contact_shared' && suggestionsDict.list.controls.filterContactShared}
-                      <Button variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => setFilterOption('all')}>
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 bg-pink-50 text-pink-700 border-pink-200"
+                    >
+                      {filterOption === 'pending' &&
+                        suggestionsDict.list.controls.filterPending}
+                      {filterOption === 'accepted' &&
+                        suggestionsDict.list.controls.filterAccepted}
+                      {filterOption === 'declined' &&
+                        suggestionsDict.list.controls.filterDeclined}
+                      {filterOption === 'contact_shared' &&
+                        suggestionsDict.list.controls.filterContactShared}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
+                        onClick={() => setFilterOption('all')}
+                      >
                         <XCircle className="h-3 w-3" />
                       </Button>
                     </Badge>
                   )}
-                  <Button variant="ghost" size="sm" className="text-xs text-gray-500 hover:text-gray-700" onClick={clearFilters}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                    onClick={clearFilters}
+                  >
                     {suggestionsDict.list.activeFilters.clearAll}
                   </Button>
                 </div>
@@ -470,13 +550,19 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         <div className="flex justify-between items-center text-sm text-gray-600">
           <span>
             {filteredSuggestions.length === 1
-              ? suggestionsDict.list.resultsCount.showingSingle.replace('{{count}}', '1').replace('{{total}}', initialSuggestions.length.toString())
-              : suggestionsDict.list.resultsCount.showingMultiple.replace('{{count}}', filteredSuggestions.length.toString()).replace('{{total}}', initialSuggestions.length.toString())}
+              ? suggestionsDict.list.resultsCount.showingSingle
+                  .replace('{{count}}', '1')
+                  .replace('{{total}}', initialSuggestions.length.toString())
+              : suggestionsDict.list.resultsCount.showingMultiple
+                  .replace('{{count}}', filteredSuggestions.length.toString())
+                  .replace('{{total}}', initialSuggestions.length.toString())}
           </span>
           {filteredSuggestions.length > 0 && (
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-purple-500" />
-              <span className="font-medium">{suggestionsDict.list.resultsCount.qualityMatches}</span>
+              <span className="font-medium">
+                {suggestionsDict.list.resultsCount.qualityMatches}
+              </span>
             </div>
           )}
         </div>
@@ -508,6 +594,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
               >
                 <MinimalSuggestionCard
                   suggestion={suggestion}
+                  locale={locale}
                   userId={userId}
                   onClick={() => handleOpenDetails(suggestion)}
                   onInquiry={() => handleInquiry(suggestion)}
@@ -530,6 +617,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
       <SuggestionDetailsModal
         suggestion={selectedSuggestion}
         userId={userId}
+        locale={locale}
         isOpen={!!selectedSuggestion && !showAskDialog}
         onClose={() => setSelectedSuggestion(null)}
         onActionRequest={onActionRequest}
@@ -537,7 +625,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           selectedSuggestion?.secondParty?.questionnaireResponses?.[0] || null
         }
         // ✅ 4. העברת שני ה-props ליעד הסופי
-       dict={{
+        dict={{
           suggestions: suggestionsDict,
           profileCard: profileCardDict,
         }}

@@ -34,7 +34,6 @@ import type {
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLanguage } from '@/app/[locale]/contexts/LanguageContext';
 import type {
   WorldComponentDict,
   QuestionCardDict,
@@ -149,6 +148,7 @@ interface WorldComponentDynamicProps {
     questions: QuestionsDictionary;
     worldLabels: Record<WorldId, string>;
   };
+  locale: 'he' | 'en';
 }
 
 export default function WorldComponent({
@@ -164,15 +164,21 @@ export default function WorldComponent({
   isSaving,
   isDirectNavigation = false,
   dict,
+  locale,
 }: WorldComponentDynamicProps) {
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const [isListVisible, setIsListVisible] = useState(true);
-
-  const { language } = useLanguage();
+  const language = locale;
   const isRTL = language === 'he';
+  useEffect(() => {
+    console.log(
+      `%c[WorldComponent - ${worldId}] Language is now: ${language}`,
+      'color: #9c27b0; font-weight: bold;'
+    );
+  }, [language, worldId]);
 
   const { questions: allQuestionsStructure, themeColor } = worldConfig[worldId];
   const allQuestions = allQuestionsStructure.map((qStruct) =>

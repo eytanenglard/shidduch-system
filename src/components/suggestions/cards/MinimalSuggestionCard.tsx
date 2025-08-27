@@ -9,6 +9,7 @@ import {
   Briefcase,
   Eye,
   XCircle,
+  ChevronRight,
   MessageCircle,
   Heart,
   BookOpen,
@@ -50,6 +51,7 @@ interface MinimalSuggestionCardProps {
   isHistory?: boolean;
   isApprovalDisabled?: boolean;
   dict: SuggestionsCardDict; // ✨ Add dict prop
+  locale: 'he' | 'en'; // <-- 1. הוסף prop
 }
 
 const calculateAge = (birthDate?: Date | string | null): number | null => {
@@ -76,6 +78,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   isHistory = false,
   isApprovalDisabled = false,
   dict, // ✨ Destructure dict
+  locale,
 }) => {
   const targetParty =
     suggestion.firstPartyId === userId
@@ -331,7 +334,11 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
               >
                 <Eye className="w-4 h-4 ml-2" />
                 {dict.buttons.viewDetails}
-                <ChevronLeft className="w-3 h-3 mr-1" />
+                {locale === 'he' ? (
+                  <ChevronLeft className="w-3 h-3" />
+                ) : (
+                  <ChevronRight className="w-3 h-3" />
+                )}
               </Button>
             </div>
           )}

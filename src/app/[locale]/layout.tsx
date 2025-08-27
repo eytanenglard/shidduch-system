@@ -11,6 +11,9 @@ import type { Metadata } from 'next';
 import { getDictionary } from '@/lib/dictionaries';
 import { Locale } from '../../../i18n-config';
 
+// ✨ 1. ייבוא ה-Provider החדש שיצרנו
+import { QuestionnaireStateProvider } from '@/app/[locale]/contexts/QuestionnaireStateContext';
+
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
@@ -29,7 +32,6 @@ export async function generateMetadata({
   };
 }
 
-// ✨ 1. הפונקציה הופכת להיות אסינכרונית (async)
 export default async function RootLayout({
   children,
   params,
@@ -37,7 +39,6 @@ export default async function RootLayout({
   children: React.ReactNode;
   params: { locale: Locale };
 }) {
-  // ✨ 2. טוענים את המילון המלא כאן, ברמת ה-Layout
   const dictionary = await getDictionary(params.locale);
 
   return (
@@ -55,10 +56,12 @@ export default async function RootLayout({
         <GoogleAnalytics />
         <Providers>
           <LanguageProvider>
-            {/* ✨ 3. מעבירים את המילון כולו כ-prop לרכיב AppContent */}
-            <AppContent dict={dictionary}>{children}</AppContent>
+            {/* ✨ 2. עטיפת AppContent ב-Provider החדש */}
+            {/* ה-Provider מקבל את המילון כדי להציג את המודאל בשפה הנכונה */}
+            <QuestionnaireStateProvider dict={dictionary}>
+              <AppContent dict={dictionary}>{children}</AppContent>
+            </QuestionnaireStateProvider>
           </LanguageProvider>
-          {/* ✨ 4. העברת המילון הרלוונטי לרכיב הנגישות */}
           <AccessibilityFeatures
             dict={dictionary.questionnaire.accessibilityFeatures}
           />

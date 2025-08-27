@@ -308,9 +308,9 @@ export default function MatchmakerDashboard({
   profileDict,
 }: MatchmakerDashboardProps) {
   const params = useParams(); // <--- הוסף את השורה הזו
-  const locale = Array.isArray(params.lang)
-    ? params.lang[0]
-    : params.lang || 'en'; // <--- הוסף את השורה הזו
+  const locale = (
+    Array.isArray(params.lang) ? params.lang[0] : params.lang || 'en'
+  ) as 'he' | 'en'; // ✨ 2. חלץ את השפה
 
   const dashboardDict = matchmakerDict.suggestionsDashboard;
   const toastsDict = dashboardDict.toasts;
@@ -1044,6 +1044,7 @@ export default function MatchmakerDashboard({
         suggestionsDict={suggestionsDict}
         profileDict={profileDict} // ✅ הוספת השורה הזו
         // ✅ העברת המילון של ההצעות
+        locale={locale}
       />
 
       <Dialog

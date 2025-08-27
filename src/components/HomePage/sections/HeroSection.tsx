@@ -3,7 +3,6 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -25,6 +24,7 @@ interface HeroSectionProps {
   session: Session | null;
   isVisible: boolean;
   dict: HeroSectionDict;
+   locale: 'he' | 'en'; 
 }
 
 // --- קומפוננטת מכונת הכתיבה (מעודכנת) ---
@@ -313,11 +313,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   session,
   isVisible,
   dict,
+  locale,
 }) => {
   const logoUrl =
     'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png';
-  const pathname = usePathname();
-  const locale = pathname.split('/')[1] || 'he';
 
   return (
     <motion.section

@@ -1,6 +1,6 @@
 // src/components/questionnaire/layout/WorldsMap.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // הוסף את useEffect אם הוא חסר
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,7 +30,6 @@ import {
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import type { WorldsMapDict } from '@/types/dictionary';
-import { useLanguage } from '@/app/[locale]/contexts/LanguageContext';
 
 // Importowanie pytań w celu uzyskania dynamicznych statystyk
 import { personalityQuestions } from '../questions/personality/personalityQuestions';
@@ -102,6 +101,7 @@ interface WorldsMapProps {
   onWorldChange: (worldId: WorldId) => void;
   className?: string;
   dict: WorldsMapDict;
+  locale: 'he' | 'en';
 }
 
 interface WorldCardProps {
@@ -133,6 +133,7 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
   nextRecommendedWorld,
   onGoToRecommended,
   dict,
+
   worldLabels,
 }) => (
   <motion.div
@@ -185,6 +186,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
   onSelect,
   dict,
   fullContent,
+
   stats,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -365,10 +367,18 @@ export default function WorldsMap({
   onWorldChange,
   className = '',
   dict,
+  locale,
 }: WorldsMapProps) {
   const { data: session } = useSession();
-  const { language } = useLanguage();
-  const isRTL = language === 'he';
+
+  const isRTL = locale === 'he';
+  useEffect(() => {
+    console.log(
+      `%c[WorldsMap] Language is now: ${locale}`,
+      'color: #007acc; font-weight: bold;'
+    );
+  }, [locale]);
+
   const completionPercent = Math.round(
     (completedWorlds.length / WORLD_ORDER.length) * 100
   );

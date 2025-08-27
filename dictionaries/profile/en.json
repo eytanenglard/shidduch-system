@@ -177,6 +177,7 @@
       "errorInvalidData": "Error: Invalid data for display.",
       "noValuesAllocated": "No values allocated."
     },
+
     "header": {
       "title": "Personal Profile",
       "subtitleEdit": "Edit your profile details to best reflect who you are.",
@@ -545,6 +546,195 @@
       "errorInvalidData": "Error: Invalid data for display.",
       "noValuesAllocated": "No values allocated."
     },
+        "display": {
+      "placeholders": {
+        "willDiscover": "Let's find out together...",
+        "notSpecified": "Not specified",
+        "mysterious": "Mysterious...",
+        "storyWaiting": "A story waiting to be discovered",
+        "professionWaiting": "An interesting profession awaits"
+      },
+      "colorPalette": {
+        "selectLabel": "Select color scheme",
+        "selected": "(Selected)",
+        "palettes": {
+          "professional": "Blue-Gray",
+          "feminine": "Pink-Red",
+          "masculine": "Blue-Green",
+          "luxury": "Gold-Purple"
+        }
+      },
+      "availability": {
+        "AVAILABLE": "Available",
+        "UNAVAILABLE": "Currently unavailable",
+        "DATING": "Getting to know someone",
+        "PAUSED": "On a break",
+        "ENGAGED": "Engaged",
+        "MARRIED": "Married"
+      },
+      "booleanPrefs": {
+        "yes": "Yes",
+        "no": "No",
+        "shomerYes": "Yes, this is important to me"
+      },
+      "stringBooleanPrefs": {
+        "yes": "Yes",
+        "no": "No",
+        "flexible": "Flexible"
+      },
+      "header": {
+        "profileImageAlt": "Profile picture of {{name}}",
+        "storyOf": "The Story of {{name}}",
+        "ageLabel": "Age: {{age}}",
+        "availabilityBadge": {
+          "available_short": "Available",
+          "unavailable_short": "Unavailable",
+          "dating_short": "Dating",
+          "paused_short": "Paused",
+          "engaged_short": "Engaged",
+          "married_short": "Married",
+          "mysterious_short": "Mysterious"
+        },
+        "excitementQuote": "Every love story begins with one special meeting...",
+        "suggestMatchButton": "Suggest Match",
+        "suggestPerfectMatchButton": "Suggest a Perfect Match"
+      },
+      "keyFacts": {
+        "occupation": "Occupation",
+        "outlook": "Outlook",
+        "location": "Location"
+      },
+      "gallery": {
+        "title": "{{name}}'s Gallery",
+        "subtitle": "Click a photo to enlarge",
+        "showImageAlt": "Show image {{index}} in full size",
+        "imageAlt": "An amazing image {{index}}",
+        "mainBadge": "Main"
+      },
+      "imageDialog": {
+        "closeLabel": "Close image viewer",
+        "title": "Image {{current}} of {{total}}",
+        "prevLabel": "Previous image",
+        "nextLabel": "Next image",
+        "thumbAlt": "Thumbnail"
+      },
+      "mobileNav": {
+        "closePreview": "Close preview",
+        "introView": "Intro",
+        "detailedView": "Detailed",
+        "previous": "Previous",
+        "next": "Next"
+      },
+      "tabs": {
+        "essence": { "label": "My Essence", "shortLabel": "Essence" },
+        "journey": { "label": "My Journey", "shortLabel": "Journey" },
+        "spirit": { "label": "Spirituality", "shortLabel": "Spirit" },
+        "vision": { "label": "Relationship Vision", "shortLabel": "Vision" },
+        "connection": { "label": "The Connection I Seek", "shortLabel": "Connection" },
+        "professional": { "label": "For Matchmaker", "shortLabel": "Pro" }
+      },
+      "content": {
+        "emptyStateTitle": "Nothing to show here yet",
+        "emptyStateDescription": "It seems this candidate hasn't filled out this part of their profile yet. A great opportunity to discover together!",
+        "openingSentence": "Opening Line",
+        "aboutMe": "A Little About Me",
+        "aboutMeSubtitle": "The personal story of {{name}}",
+        "whatMakesMeSpecial": "What Makes Me Special",
+        "myTraits": "My Character Traits",
+        "whatFillsMySoul": "How I Recharge My Soul",
+        "myHobbies": "My Hobbies and Passions",
+        "deepDivePersonality": "A Deep Dive into My Personality",
+        "moreAnswersPersonality": "More answers that help you get to know me",
+        "educationAndCareer": "Education & Career",
+        "academicAndProfessionalPath": "My academic and professional path",
+        "familyAndCulturalBackground": "Family & Cultural Background",
+        "familyThatShapedMe": "The family and roots that shaped me",
+        "valuesAndPrinciples": "My Guiding Values & Principles",
+        "answersOnWhatMatters": "Answers to questions about what truly matters to me",
+        "myConnectionToJudaism": "My Connection to Judaism",
+        "faithAndTraditionInMyLife": "The place of faith and tradition in my life",
+        "inspiringSpiritualFigure": "Inspiring Spiritual Figure",
+        "myReligiousAndSpiritualWorld": "My Religious and Spiritual World",
+        "answersOnFaith": "Answers to questions on faith, tradition, and spirituality",
+        "myDreamRelationship": "The Relationship I Dream Of",
+        "myRoleModelForRelationship": "My Role Model for a Relationship",
+        "theCoupleThatInspiresMe": "The couple that inspires me",
+        "moreOnMyVision": "More on my vision for a relationship",
+        "answersOnLoveAndFamily": "Answers to questions on love, family, and everything in between",
+        "matchingPreferences": "Matching Preferences",
+        "whatHelpsFindConnection": "Things that can help us find the right connection",
+        "maritalStatuses": "Marital Statuses",
+        "religiousLevels": "Religious Levels",
+        "partnerReligiousJourney": "Partner's Religious Journey",
+        "educationLevels": "Education Levels",
+        "howIVisionMyPartner": "How I Envision My Partner",
+        "moreAnswersAboutPartner": "More answers about what I'm looking for",
+        "confidentialInfo": "Confidential Info & Matchmaker Insights",
+        "professionalDetails": "Professional details for the matchmaking process",
+        "emptyPrefsTitle": "Open to meeting the right person",
+        "emptyPrefsDescription": "There's no checklist here, but an open invitation to meet a special person. There's room for exciting discoveries together.",
+        "focus": {
+          "aboutMe": "About Me",
+          "myStory": "The words that define me",
+          "quickSummary": "Quick Summary",
+          "importantDetails": "The important details at a glance",
+          "whatMakesMeUnique": "What's Special About Me",
+          "traitsAndHobbies": "The traits and hobbies that make me unique",
+          "myTraits": "My Traits:",
+          "whatILove": "What I Love:",
+          "wantToKnowMore": "Want to know more?",
+          "moreToDiscover": "There are many more interesting things to discover...",
+          "letsGetToKnow": "Let's Get to Know Each Other Better"
+        },
+        "questionnaire": {
+          "questionFromCategory": "Question from {{worldName}}:",
+          "confidential": "Confidential",
+          "confidentialTooltip": "This answer is confidential and only visible to matchmakers."
+        },
+        "professionalInfo": {
+          "contactPreference": "Contact Preference",
+          "matchmakerGenderPref": "Preferred Matchmaker Gender",
+          "noPreference": "No specific preference",
+          "matchmakerMale": "Male Matchmaker",
+          "matchmakerFemale": "Female Matchmaker",
+          "medicalInfo": "Medical Information",
+          "medicalInfoVisible": "Visible on profile",
+          "medicalInfoDiscreet": "Discreet information exists",
+          "profileCreated": "Profile created:",
+          "lastActive": "Last active:",
+          "unknown": "Unknown"
+        },
+        "worlds": {
+          "values": { "label": "My Guiding Values", "description": "What's important to me in life" },
+          "personality": { "label": "My Unique Personality", "description": "What I'm really like" },
+          "relationship": { "label": "My Vision for Partnership", "description": "How I see my future relationship" },
+          "partner": { "label": "What I Seek in a Partner", "description": "Qualities I value in a partner" },
+          "religion": { "label": "Religion & Spirituality in My Life", "description": "The place of faith in my world" },
+          "general": { "label": "More Important Things to Know", "description": "Additional details that complete the picture" }
+        },
+              "detailLabels": {
+        "worldview": "My Guiding Worldview",
+        "religiousJourney": "My Religious Journey",
+        "shomerNegiah": "Observant of 'Shomer Negiah'",
+        "headCovering": "Head Covering",
+        "kippahType": "Kippah Type",
+        "educationLevel": "Education Level",
+        "educationDetails": "Education Details",
+        "professionalField": "Professional Field",
+        "militaryService": "Military/National Service",
+        "serviceDetails": "Service Details",
+        "parentStatus": "Parents' Status",
+        "fatherOccupation": "Father's Occupation",
+        "motherOccupation": "Mother's Occupation",
+        "siblings": "Siblings",
+        "birthOrder": "Birth Order",
+        "countryOfOrigin": "Country of Origin",
+        "aliyaYear": "Year of Aliyah"
+      }
+
+      }
+    },
+
     "header": {
       "title": "Personal Profile",
       "subtitleEdit": "Edit your profile details.",

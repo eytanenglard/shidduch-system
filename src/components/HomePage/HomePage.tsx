@@ -4,6 +4,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useParams } from 'next/navigation'; // ✨ 1. הוסף ייבוא של useParams
 
 // Import all sections
 import HeroSection from './sections/HeroSection';
@@ -39,6 +40,10 @@ export default function HomePage({ dict, demoData }: HomePageProps) {
   const { data: session } = useSession();
   const [isVisible, setIsVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const params = useParams();
+  const locale = (
+    Array.isArray(params.lang) ? params.lang[0] : params.lang || 'en'
+  ) as 'he' | 'en';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -78,6 +83,7 @@ export default function HomePage({ dict, demoData }: HomePageProps) {
         session={session}
         isVisible={isVisible}
         dict={dict.heroSection}
+        locale={locale}
       />
       <ValuePropositionSection dict={dict.valueProposition} />
 
@@ -89,6 +95,7 @@ export default function HomePage({ dict, demoData }: HomePageProps) {
         suggestionsDict={dict.suggestions}
         profileCardDict={dict.profilePage.profileCard}
         demoData={demoData}
+        locale={locale}
       />
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
       <SuccessStoriesSection dict={dict.successStories} />

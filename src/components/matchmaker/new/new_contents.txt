@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new
-# Generated on: 2025-08-25 21:03:40
+# Generated on: 2025-08-26 19:12:01
 ################################################################################
 
 ================================================================================
@@ -1013,6 +1013,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { format } from 'date-fns';
 import {
   User,
   MapPin,
@@ -1287,7 +1288,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
             {candidate.profile.lastActive && (
               <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
                 <span className="text-xs text-gray-500">
-                  {`${dict.lastActivePrefix} ${formatDistanceToNow(new Date(candidate.profile.lastActive), { addSuffix: true, locale: he })}`}
+                  {`${dict.lastActivePrefix} ${format(new Date(candidate.profile.lastActive), 'dd/MM/yyyy')}`}
                 </span>
                 <Clock className="w-3 h-3 text-gray-400" />
               </div>
@@ -1807,7 +1808,7 @@ interface CandidatesListProps {
   onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
   quickViewSide?: 'left' | 'right' | 'center';
   isQuickViewEnabled: boolean; // <-- קבלת prop חדש
-
+  locale: string;
   dict: MatchmakerPageDictionary;
   profileDict: ProfilePageDictionary;
 }
@@ -1815,6 +1816,7 @@ interface CandidatesListProps {
 const CandidatesList: React.FC<CandidatesListProps> = ({
   candidates,
   allCandidates,
+  locale,
   onCandidateClick,
   onCandidateAction,
   isQuickViewEnabled, // <-- שימוש ב-prop החדש
@@ -2294,6 +2296,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         selectedCandidate={dialogCandidate}
         onSubmit={handleCreateSuggestion}
         dict={dict} // <--- התיקון כאן
+        locale={locale}
       />
 
       {/********** תיקון #5: העברת המילונים הנכונים ל-MatchmakerEditProfile **********/}
@@ -2994,7 +2997,7 @@ interface SplitViewProps {
   mobileView: MobileView;
   isLoading?: boolean;
   className?: string;
-
+  locale: string;
   aiTargetCandidate: Candidate | null;
   aiMatches: AiMatch[];
   isAiLoading: boolean;
@@ -3233,6 +3236,7 @@ const SplitView: React.FC<SplitViewProps> = ({
   dict,
   profileDict,
   isQuickViewEnabled,
+  locale,
   ...props
 }) => {
   const {
@@ -3394,6 +3398,7 @@ const SplitView: React.FC<SplitViewProps> = ({
         isQuickViewEnabled={isQuickViewEnabled} // <-- העברה הלאה
         dict={dict}
         profileDict={profileDict}
+        locale={locale}
       />
     );
   };
@@ -3630,6 +3635,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                 isQuickViewEnabled={isQuickViewEnabled} // <-- העברה הלאה
                 dict={dict}
                 profileDict={profileDict}
+                locale={locale}
               />
             </div>
           </div>
@@ -3673,6 +3679,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                 isQuickViewEnabled={isQuickViewEnabled} // <-- העברה הלאה
                 dict={dict}
                 profileDict={profileDict}
+                locale={locale}
               />
             </div>
           </div>
@@ -3799,7 +3806,7 @@ Content:
 // --- React & Next.js Imports ---
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
-import { cn, getRelativeCloudinaryPath } from '@/lib/utils'
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 // --- Third-party Libraries ---
 import {
   UserPlus,
@@ -3829,6 +3836,8 @@ import {
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useParams } from 'next/navigation';
+
 import Image from 'next/image'; // <--- הוסף את השורה הזו
 import { motion, AnimatePresence } from 'framer-motion'; // <--- הוסף את השורה הזו
 
@@ -4169,6 +4178,10 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const [showManualAddDialog, setShowManualAddDialog] = useState(false);
   const [isHeaderCompact, setIsHeaderCompact] = useState(true);
   const [isQuickViewEnabled, setIsQuickViewEnabled] = useState(true); // <-- הוספת state חדש
+  const params = useParams();
+  const locale = Array.isArray(params.lang)
+    ? params.lang[0]
+    : params.lang || 'en';
 
   // --- AI State ---
   const [aiTargetCandidate, setAiTargetCandidate] = useState<Candidate | null>(
@@ -4658,6 +4671,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                   dict={matchmakerDict}
                   profileDict={profileDict}
                   isQuickViewEnabled={isQuickViewEnabled} // <-- העברת prop חדש
+                  locale={locale} // <--- הוסף את השורה הזו
                 />
               </div>
             )}
@@ -4741,6 +4755,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         targetCandidate={aiTargetCandidate}
         comparisonCandidates={Object.values(comparisonSelection)}
         dict={matchmakerDict.candidatesManager.aiAnalysis}
+        locale={locale as string} // <--- הוסף את השורה הזו
       />
     </div>
   );
@@ -8780,9 +8795,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmak
 --------------------------------------------------------------------------------
 Content:
 // File: src/app/components/matchmaker/new/dialogs/AiMatchAnalysisDialog.tsx
-
 'use client';
-
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import {
@@ -8839,13 +8852,13 @@ interface AiAnalysis {
   }[];
   suggestedConversationStarters: string[];
 }
-
 interface AiMatchAnalysisDialogProps {
   isOpen: boolean;
   onClose: () => void;
   targetCandidate: Candidate | null;
   comparisonCandidates: Candidate[];
   dict: MatchmakerPageDictionary['candidatesManager']['aiAnalysis'];
+  locale: string; // <--- הוסף את השורה הזו
 }
 
 // --- Helper Functions ---
@@ -8855,7 +8868,6 @@ const getInitials = (firstName?: string, lastName?: string): string => {
   if (lastName && lastName.length > 0) initials += lastName[0];
   return initials.toUpperCase() || '?';
 };
-
 const calculateAge = (birthDate: Date | string): number => {
   if (!birthDate) return 0;
   const today = new Date();
@@ -8878,7 +8890,6 @@ const MiniProfileHeader: React.FC<{
   const mainImage = candidate.images?.find((img) => img.isMain);
   const age = calculateAge(candidate.profile.birthDate);
   const initials = getInitials(candidate.firstName, candidate.lastName);
-
   return (
     <div className="p-4 rounded-t-lg bg-gradient-to-b from-slate-50 to-slate-100 border-b border-slate-200 text-center relative">
       <div className="relative w-24 h-24 mx-auto rounded-full overflow-hidden border-4 border-white shadow-lg ring-2 ring-offset-2 ring-cyan-400">
@@ -8929,7 +8940,6 @@ const MiniProfileHeader: React.FC<{
     </div>
   );
 };
-
 const AnalysisItem: React.FC<{
   icon: React.ElementType;
   iconColor: string;
@@ -8951,18 +8961,20 @@ const AnalysisItem: React.FC<{
     </div>
   </div>
 );
-
 const ComparisonTable: React.FC<{
   target: Candidate;
   comparison: Candidate;
   dict: MatchmakerPageDictionary['candidatesManager']['aiAnalysis']['comparisonTable'];
-}> = ({ target, comparison, dict }) => {
+  language: 'he' | 'en';
+}> = ({ target, comparison, dict, language }) => {
   const fieldsToCompare = [
     {
       key: 'age',
       label: dict.fields.age,
       formatter: (c: Candidate) =>
-        `${calculateAge(c.profile.birthDate)}${c.profile.birthDateIsApproximate ? ` ${dict.fields.ageApprox}` : ''}`,
+        `${calculateAge(c.profile.birthDate)}${
+          c.profile.birthDateIsApproximate ? ` ${dict.fields.ageApprox}` : ''
+        }`,
     },
     {
       key: 'city',
@@ -8992,7 +9004,12 @@ const ComparisonTable: React.FC<{
   ];
   return (
     <div className="overflow-x-auto border rounded-lg">
-      <table className="w-full text-sm text-right border-collapse">
+      <table
+        className={cn(
+          'w-full text-sm border-collapse',
+          language === 'he' ? 'text-right' : 'text-left'
+        )}
+      >
         <thead>
           <tr className="bg-slate-50">
             <th className="p-3 font-semibold text-slate-600 border-b border-slate-200">
@@ -9028,7 +9045,6 @@ const ComparisonTable: React.FC<{
     </div>
   );
 };
-
 const AnalysisSkeleton: React.FC = () => (
   <div className="space-y-6 p-4 animate-pulse">
     <div className="p-4 bg-gray-100 rounded-lg">
@@ -9053,9 +9069,9 @@ const AnalysisSkeleton: React.FC = () => (
     </div>
   </div>
 );
-
 const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
   isOpen,
+  locale,
   onClose,
   targetCandidate,
   comparisonCandidates,
@@ -9067,16 +9083,16 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
   const [analyses, setAnalyses] = useState<
     Record<string, AiAnalysis | 'error' | 'loading'>
   >({});
-  const [language, setLanguage] = useState<'he' | 'en'>('he');
+  const [language, setLanguage] = useState<'he' | 'en'>(
+    locale === 'he' ? 'he' : 'en'
+  );
   const [isMobile, setIsMobile] = useState(false);
-
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
   const activeComparisonCandidate = useMemo(
     () => comparisonCandidates.find((c) => c.id === activeComparisonId),
     [activeComparisonId, comparisonCandidates]
@@ -9085,7 +9101,6 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
     () => (activeComparisonId ? analyses[activeComparisonId] || null : null),
     [activeComparisonId, analyses]
   );
-
   useEffect(() => {
     if (
       isOpen &&
@@ -9095,7 +9110,6 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
       setActiveComparisonId(comparisonCandidates[0].id);
     }
   }, [isOpen, comparisonCandidates, activeComparisonId]);
-
   useEffect(() => {
     if (
       isOpen &&
@@ -9132,45 +9146,29 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
       fetchAnalysis();
     }
   }, [isOpen, targetCandidate, activeComparisonId, language, analyses]);
-
   const handleLanguageChange = (newLang: 'he' | 'en') => {
     if (newLang !== language) {
       setLanguage(newLang);
       setAnalyses({});
     }
   };
-
   if (!targetCandidate) return null;
-
   return (
-    <>
-      <DialogHeader className="p-4 border-b flex-row justify-between items-center flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <Sparkles className="w-7 h-7 text-teal-500" />
-          <div>
-            <DialogTitle className="text-xl">{dict.header.title}</DialogTitle>
-            <DialogDescription>{dict.header.description}</DialogDescription>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={language} onValueChange={handleLanguageChange}>
-            <SelectTrigger className="w-[120px] text-xs h-9">
-              <SelectValue
-                placeholder={dict.header.languageSelectPlaceholder}
-              />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="he">{dict.header.languages.he}</SelectItem>
-              <SelectItem value="en">{dict.header.languages.en}</SelectItem>
-            </SelectContent>
-          </Select>
-          <DialogClose asChild>
-            <Button variant="ghost" size="icon">
-              <X className="h-5 w-5" />
-            </Button>
-          </DialogClose>
-        </div>
-      </DialogHeader>
+    <DialogContent
+      className="max-w-6xl w-full h-[95vh] flex flex-col p-0 overflow-hidden"
+      dir={language === 'he' ? 'rtl' : 'ltr'}
+    >
+      <DialogClose
+        asChild
+        className={cn(
+          'absolute top-3 z-50',
+          language === 'he' ? 'left-3' : 'right-3'
+        )}
+      >
+        <Button variant="ghost" size="icon" className="rounded-full">
+          <X className="h-5 w-5" />
+        </Button>
+      </DialogClose>
       <div className="flex-1 flex flex-col md:flex-row min-h-0">
         {isMobile ? (
           <div className="p-4 border-b md:hidden">
@@ -9193,7 +9191,12 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
             </Select>
           </div>
         ) : (
-          <aside className="w-1/4 border-l bg-slate-50/50 flex flex-col flex-shrink-0">
+          <aside
+            className={cn(
+              'w-1/4 bg-slate-50/50 flex flex-col flex-shrink-0',
+              language === 'he' ? 'border-l' : 'border-r'
+            )}
+          >
             <h3 className="p-3 text-sm font-semibold text-slate-600 border-b">
               {dict.sidebar.title.replace(
                 '{{count}}',
@@ -9210,9 +9213,12 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
                     key={candidate.id}
                     onClick={() => setActiveComparisonId(candidate.id)}
                     className={cn(
-                      'w-full text-right p-3 flex items-center gap-3 border-b border-slate-200/60 hover:bg-slate-100 transition-colors',
+                      'w-full p-3 flex items-center gap-3 border-b border-slate-200/60 hover:bg-slate-100 transition-colors',
+                      language === 'he' ? 'text-right' : 'text-left',
                       activeComparisonId === candidate.id &&
-                        'bg-cyan-50 border-r-4 border-cyan-500 font-semibold'
+                        'bg-cyan-50 border-cyan-500 font-semibold',
+                      activeComparisonId === candidate.id &&
+                        (language === 'he' ? 'border-r-4' : 'border-l-4')
                     )}
                   >
                     <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
@@ -9387,6 +9393,7 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
                                 target={targetCandidate}
                                 comparison={activeComparisonCandidate}
                                 dict={dict.comparisonTable}
+                                language={language}
                               />
                             </TabsContent>
                             <TabsContent
@@ -9425,20 +9432,14 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
           )}
         </main>
       </div>
-    </>
+    </DialogContent>
   );
 };
-
 export const AiMatchAnalysisDialog = (props: AiMatchAnalysisDialogProps) => {
   const { isOpen, onClose } = props;
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent
-        className="max-w-6xl w-full h-[95vh] flex flex-col p-0 overflow-hidden"
-        dir="rtl"
-      >
-        {isOpen && <DialogBody {...props} />}
-      </DialogContent>
+      {isOpen && <DialogBody {...props} />}
     </Dialog>
   );
 };

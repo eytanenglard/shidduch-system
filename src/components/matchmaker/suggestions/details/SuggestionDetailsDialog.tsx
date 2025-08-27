@@ -115,6 +115,7 @@ interface SuggestionDetailsDialogProps {
   matchmakerDict: MatchmakerPageDictionary;
   suggestionsDict: SuggestionsDictionary;
   profileDict: ProfilePageDictionary; // ✅ הוספת המילון החדש
+  locale: 'he' | 'en'; // <-- 1. הוסף את locale לממשק ה-props
 }
 
 interface StatusInfo {
@@ -343,6 +344,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   matchmakerDict,
   suggestionsDict,
   profileDict,
+  locale, // <-- 2. קבל את locale
 }) => {
   const dict = matchmakerDict.suggestionDetailsDialog;
   const [activeTab, setActiveTab] = useState('overview');
@@ -425,7 +427,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
             ? '!w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0'
             : 'md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl'
         )}
-        dir="rtl"
+        dir={locale === 'he' ? 'rtl' : 'ltr'} // <-- ✨ 3. השתמש ב-locale לקביעת הכיווניות
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <Tabs

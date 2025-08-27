@@ -12,7 +12,6 @@ import { useRouter } from 'next/navigation';
 import QuestionnaireLayout from './layout/QuestionnaireLayout';
 import WorldComponent from './worlds/WorldComponent';
 import QuestionnaireCompletion from './common/QuestionnaireCompletion';
-import { useLanguage } from '@/app/[locale]/contexts/LanguageContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import WorldsMap from './layout/WorldsMap';
@@ -20,6 +19,8 @@ import { useIdleTimeout } from './hooks/useIdleTimeout';
 import { signOut } from 'next-auth/react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useQuestionnaireState } from '@/app/[locale]/contexts/QuestionnaireStateContext'; // ✨ 1. ייבוא ה-Hook
+
 import {
   Loader2,
   CheckCircle,
@@ -72,6 +73,7 @@ export interface MatchmakingQuestionnaireProps {
   initialWorld?: WorldId;
   initialQuestionId?: string;
   dict: QuestionnaireDictionary;
+  locale: 'he' | 'en'; // <-- הוספה: קבלת locale כ-prop
 }
 
 export default function MatchmakingQuestionnaire({
@@ -80,11 +82,11 @@ export default function MatchmakingQuestionnaire({
   initialWorld,
   initialQuestionId,
   dict,
+  locale,
 }: MatchmakingQuestionnaireProps) {
   const router = useRouter();
-  const { language } = useLanguage();
   const sessionId = useMemo(() => `session_${Date.now()}`, []);
-
+  const language = locale;
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(
     OnboardingStep.MAP
   );
@@ -111,6 +113,8 @@ export default function MatchmakingQuestionnaire({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const { setIsDirty: setGlobalDirty, setSaveHandler } =
+    useQuestionnaireState(); // ✨ 2. שימוש ב-Hook
 
   const [toastState, setToastState] = useState<{
     message: string;
@@ -148,6 +152,9 @@ export default function MatchmakingQuestionnaire({
     resetIdleTimer();
   }, [resetIdleTimer]);
 
+  useEffect(() => {
+    setGlobalDirty(isDirty);
+  }, [isDirty, setGlobalDirty]);
   useEffect(() => {
     if (initialWorld) {
       setCurrentWorld(initialWorld);
@@ -274,7 +281,15 @@ export default function MatchmakingQuestionnaire({
       dict,
     ]
   );
+  useEffect(() => {
+    // רשום את פונקציית השמירה כשהרכיב נטען
+    setSaveHandler(() => handleQuestionnaireSave(false));
 
+    // נקה את הרישום כשהרכיב יורד מהמסך
+    return () => {
+      setSaveHandler(null);
+    };
+  }, [handleQuestionnaireSave, setSaveHandler]);
   useEffect(() => {
     let autoSaveInterval: NodeJS.Timeout;
     if (currentStep === OnboardingStep.WORLDS && userId) {
@@ -433,7 +448,7 @@ export default function MatchmakingQuestionnaire({
           isVisible:
             answerIndex > -1 ? prevAnswers[answerIndex].isVisible : true,
         };
-        
+
         const finalNewAnswer: QuestionnaireAnswer = {
           ...newAnswerBase,
           ...(currentQuestion?.type === 'openText' && {
@@ -612,7 +627,13 @@ export default function MatchmakingQuestionnaire({
         questions: dict.questions,
       },
     };
-    return <WorldComponent {...worldProps} worldId={currentWorld} />;
+    return (
+      <WorldComponent
+        {...worldProps}
+        worldId={currentWorld}
+        locale={language}
+      />
+    );
   }
 
   interface ToastProps {
@@ -639,6 +660,7 @@ export default function MatchmakingQuestionnaire({
             completedWorlds={completedWorlds}
             onWorldChange={handleWorldChange}
             dict={dict.worldsMap}
+            locale={language}
           />
         );
 

@@ -13,6 +13,15 @@
     "matchmakerSuggestions": "Match Suggestions",
     "matchmakerClients": "Candidates"
   },
+    "unsavedChangesModal": {
+    "title": "Unsaved Changes",
+    "description": "It looks like you have changes that haven't been saved. If you leave now, you will lose them. What would you like to do?",
+    "cancelButton": "Cancel",
+    "continueWithoutSavingButton": "Continue Without Saving",
+    "saveAndContinueButton": "Save and Continue",
+    "savingButton": "Saving..."
+  },
+
     "userDropdown": {
     "openMenuAriaLabel": "Open user menu",
     "profileImageAlt": "Profile picture",
@@ -27,6 +36,7 @@
     "signUpButton": "Sign Up",
     "closeNavAriaLabel": "Close navigation",
     "openNavAriaLabel": "Open navigation",
+    "mobileTitle": "On this page",
     "navLinks": {
       "howItWorks": "The Journey",
       "suggestionDemo": "Suggestion Demo",

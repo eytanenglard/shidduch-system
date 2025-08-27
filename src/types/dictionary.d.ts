@@ -165,6 +165,8 @@ export type HowItWorksDict = {
 export type StickyNavDict = {
   homepageAriaLabel: string;
   signUpButton: string;
+    mobileTitle?: string; // <--- הוסף את השורה הזו
+
   closeNavAriaLabel: string;
   openNavAriaLabel: string;
     navLinks: {
@@ -320,7 +322,7 @@ export type CookieBannerDict = {
 // ======================================================================== //
 
 export type SuggestionsCardDict = {
-  suggestedBy: string;
+   suggestedBy: string;
   yourTurn: string;
   urgent: string;
   viewDetailsAria: string; // e.g., "View full details for {{name}}"
@@ -342,6 +344,10 @@ export type SuggestionsCardDict = {
     secondParty: string;
     bothParties: string;
   };
+  statusDescriptions: {
+    [key: string]: string;
+  };
+
 
 };
 
@@ -582,6 +588,7 @@ export type Dictionary = {
       questionnaire: QuestionnaireDictionary; 
 
   demoProfileCard: DemoProfileCardDict;
+  unsavedChangesModal: UnsavedChangesModalDict;
 
   // New, namespaced key for the modular dictionary
   suggestions: SuggestionsDictionary;
@@ -1985,10 +1992,208 @@ export type ProfileSectionDict = {
   charCount: string; // e.g., " / {{count}}+ characters"
 };
 
+export interface UnsavedChangesModalDict {
+  title: string;
+  description: string;
+  cancelButton: string;
+  continueWithoutSavingButton: string;
+  saveAndContinueButton: string;
+  savingButton: string;
+}
+
+export type ProfileCardDisplayDict = {
+  placeholders: {
+    willDiscover: string;
+    notSpecified: string;
+    mysterious: string;
+    storyWaiting: string;
+    professionWaiting: string;
+  };
+  colorPalette: {
+    selectLabel: string;
+    selected: string;
+    palettes: {
+      professional: string;
+      feminine: string;
+      masculine: string;
+      luxury: string;
+    };
+  };
+  availability: {
+    AVAILABLE: string;
+    UNAVAILABLE: string;
+    DATING: string;
+    PAUSED: string;
+    ENGAGED: string;
+    MARRIED: string;
+  };
+  booleanPrefs: {
+    yes: string;
+    no: string;
+    shomerYes: string;
+  };
+  stringBooleanPrefs: {
+    yes: string;
+    no: string;
+    flexible: string;
+  };
+  header: {
+    profileImageAlt: string; // Placeholder: {{name}}
+    storyOf: string; // Placeholder: {{name}}
+    ageLabel: string; // Placeholder: {{age}}
+    availabilityBadge: {
+      available_short: string;
+      unavailable_short: string;
+      dating_short: string;
+      paused_short: string;
+      engaged_short: string;
+      married_short: string;
+      mysterious_short: string;
+    };
+    excitementQuote: string;
+    suggestMatchButton: string;
+    suggestPerfectMatchButton: string;
+  };
+  keyFacts: {
+    occupation: string;
+    outlook: string;
+    location: string;
+  };
+  gallery: {
+    title: string; // Placeholder: {{name}}
+    subtitle: string;
+    showImageAlt: string; // Placeholder: {{index}}
+    imageAlt: string; // Placeholder: {{index}}
+    mainBadge: string;
+  };
+  imageDialog: {
+    closeLabel: string;
+    title: string; // Placeholders: {{current}}, {{total}}
+    prevLabel: string;
+    nextLabel: string;
+    thumbAlt: string;
+  };
+  mobileNav: {
+    closePreview: string;
+    introView: string;
+    detailedView: string;
+    previous: string;
+    next: string;
+  };
+  tabs: {
+    essence: { label: string; shortLabel: string };
+    journey: { label: string; shortLabel: string };
+    spirit: { label: string; shortLabel: string };
+    vision: { label: string; shortLabel: string };
+    connection: { label: string; shortLabel: string };
+    professional: { label: string; shortLabel: string };
+  };
+  content: {
+    emptyStateTitle: string;
+    emptyStateDescription: string;
+    openingSentence: string;
+    aboutMe: string;
+    aboutMeSubtitle: string; // Placeholder: {{name}}
+    whatMakesMeSpecial: string;
+    myTraits: string;
+    whatFillsMySoul: string;
+    myHobbies: string;
+    deepDivePersonality: string;
+    moreAnswersPersonality: string;
+    educationAndCareer: string;
+    academicAndProfessionalPath: string;
+    familyAndCulturalBackground: string;
+    familyThatShapedMe: string;
+    valuesAndPrinciples: string;
+    answersOnWhatMatters: string;
+    myConnectionToJudaism: string;
+    faithAndTraditionInMyLife: string;
+    inspiringSpiritualFigure: string;
+    myReligiousAndSpiritualWorld: string;
+    answersOnFaith: string;
+    myDreamRelationship: string;
+    myRoleModelForRelationship: string;
+    theCoupleThatInspiresMe: string;
+    moreOnMyVision: string;
+    answersOnLoveAndFamily: string;
+    matchingPreferences: string;
+    whatHelpsFindConnection: string;
+    maritalStatuses: string;
+    religiousLevels: string;
+    partnerReligiousJourney: string;
+    educationLevels: string;
+    howIVisionMyPartner: string;
+    moreAnswersAboutPartner: string;
+    confidentialInfo: string;
+    professionalDetails: string;
+    emptyPrefsTitle: string;
+    emptyPrefsDescription: string;
+    focus: {
+      aboutMe: string;
+      myStory: string;
+      quickSummary: string;
+      importantDetails: string;
+      whatMakesMeUnique: string;
+      traitsAndHobbies: string;
+      myTraits: string;
+      whatILove: string;
+      wantToKnowMore: string;
+      moreToDiscover: string;
+      letsGetToKnow: string;
+    };
+    questionnaire: {
+      questionFromCategory: string; // Placeholder: {{worldName}}
+      confidential: string;
+      confidentialTooltip: string;
+    };
+    professionalInfo: {
+      contactPreference: string;
+      matchmakerGenderPref: string;
+      noPreference: string;
+      matchmakerMale: string;
+      matchmakerFemale: string;
+      medicalInfo: string;
+      medicalInfoVisible: string;
+      medicalInfoDiscreet: string;
+      profileCreated: string;
+      lastActive: string;
+      unknown: string;
+    };
+        detailLabels: {
+      worldview: string;
+      religiousJourney: string;
+      shomerNegiah: string;
+      headCovering: string;
+      kippahType: string;
+      educationLevel: string;
+      educationDetails: string;
+      professionalField: string;
+      militaryService: string;
+      serviceDetails: string;
+      parentStatus: string;
+      fatherOccupation: string;
+      motherOccupation: string;
+      siblings: string;
+      birthOrder: string;
+      countryOfOrigin: string;
+      aliyaYear: string;
+    };
+
+    worlds: {
+      values: { label: string; description: string };
+      personality: { label: string; description: string };
+      relationship: { label: string; description: string };
+      partner: { label: string; description: string };
+      religion: { label: string; description: string };
+      general: { label: string; description: string };
+    };
+  };
+};
 
 export type ProfileCardDict = {
   loading: string;
     budgetDisplay: BudgetDisplayDict; // הוסף שורה זו
+  display: ProfileCardDisplayDict; // <-- הוסף שורה זו
 
   header: {
     title: string;

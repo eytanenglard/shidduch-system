@@ -28,7 +28,9 @@ interface LiveSuggestionDemoProps {
   demoAiAnalysis: AiSuggestionAnalysisResult | null;
   suggestionsDict: SuggestionsDictionary;
   profileCardDict: ProfileCardDict;
-  suggestionDemoDict: SuggestionDemoDict; // הוספנו את ה-prop החדש
+  suggestionDemoDict: SuggestionDemoDict;
+  locale: 'he' | 'en'; // <-- ✨ 1. הוסף את locale לממשק ה-props
+  // הוספנו את ה-prop החדש
 }
 
 /**
@@ -40,6 +42,7 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
   demoAiAnalysis,
   suggestionsDict,
   profileCardDict,
+  locale,
   suggestionDemoDict, // ✨ 3. קבלת ה-prop החדש
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -67,6 +70,7 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
           onDecline={handleOpenModal}
           isApprovalDisabled={true}
           dict={suggestionsDict.card}
+           locale={locale}
         />
 
         {/* 
@@ -101,6 +105,7 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
           suggestions: suggestionsDict,
           profileCard: profileCardDict,
         }}
+         locale={locale}
       />
     </div>
   );

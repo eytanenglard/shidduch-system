@@ -52,7 +52,7 @@
       "refreshSuccessDescription": "כל ההצעות עודכנו למצב הנוכחי"
     }
   },
-  "card": {
+   "card": {
     "suggestedBy": "הצעה מ",
     "yourTurn": "תורך!",
     "urgent": "דחוף",
@@ -67,16 +67,47 @@
       "askMatchmaker": "שאלה לשדכן/ית",
       "viewDetails": "צפה בפרטים"
     },
-        "statusIndicator": {
+    "statusIndicator": {
       "yourTurn": "תורך!",
       "waitingForYou": "ממתין לך",
       "matchmaker": "השדכן/ית",
       "firstParty": "צד ראשון",
       "secondParty": "צד שני",
       "bothParties": "שני הצדדים"
+    },
+    "statusDescriptions": {
+      "draft": "השדכן/ית מכין/ה את ההצעה",
+      "pendingFirstPartyUser": "ההצעה מחכה להחלטתך - אשר או דחה",
+      "pendingFirstPartyOther": "השדכן שלח את ההצעה לצד הראשון וממתין לתשובה",
+      "firstPartyApprovedUser": "אישרת את ההצעה - עכשיו ההצעה תישלח לצד השני",
+      "firstPartyApprovedOther": "הצד הראשון אישר את ההצעה בהתלהבות",
+      "firstPartyDeclinedUser": "דחית את ההצעה - תודה על המשוב הכן",
+      "firstPartyDeclinedOther": "הצד הראשון החליט שההצעה לא מתאימה",
+      "pendingSecondPartyUser": "הצד השני בודק את ההצעה - נעדכן אותך כשיגיע המשוב",
+      "pendingSecondPartyOther": "ההצעה מחכה להחלטתך - אשר או דחה",
+      "secondPartyApprovedUser": "הצד השני גם מעוניין - בקרוב תקבלו פרטי קשר",
+      "secondPartyApprovedOther": "אישרת את ההצעה - בקרוב תקבלו פרטי קשר",
+      "secondPartyDeclinedUser": "הצד השני החליט שההצעה לא מתאימה",
+      "secondPartyDeclinedOther": "דחית את ההצעה - תודה על המשוב הכן",
+      "awaitingMatchmakerApproval": "שני הצדדים אישרו - השדכן/ית יאשר שיתוף פרטים",
+      "contactDetailsShared": "פרטי הקשר של שניכם נשלחו - זמן ליצור קשר!",
+      "awaitingFirstDateFeedback": "כיף שנפגשתם! נשמח לשמוע איך עבר",
+      "thinkingAfterDate": "זמן לעכל את הפגישה ולהחליט על המשך",
+      "proceedingToSecondDate": "נהדר! שניכם רוצים להמשיך להכיר",
+      "endedAfterFirstDate": "החלטתם שלא להמשיך - זה בסדר גמור",
+      "meetingPending": "השדכן/ית מתאם פגישה ראשונה",
+      "meetingScheduled": "הפגישה הראשונה נקבעה - בהצלחה!",
+      "matchApproved": "השידוך אושר רשמית - מזל טוב!",
+      "matchDeclined": "השידוך לא קיבל אישור להמשך",
+      "dating": "שניכם נמצאים בתהליך היכרות פעיל",
+      "engaged": "אירוסין! 💍 מזל טוב על האירוסין! איזו שמחה",
+      "married": "נישואין! 🎉 מזל טוב על החתונה! איזו הצלחה",
+      "expired": "ההצעה פגה מפאת אי מענה",
+      "closed": "התהליך הסתיים והקובץ נסגר",
+      "cancelled": "ההצעה בוטלה על ידי השדכן/ית"
     }
-
   },
+
    "modal": {
     "header": {
       "title": "הצעה שנבחרה במיוחד עבורך",

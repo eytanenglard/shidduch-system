@@ -675,6 +675,196 @@
       "errorInvalidData": "שגיאה: נתונים לא תקינים לתצוגה.",
       "noValuesAllocated": "לא הוקצו ערכים."
     },
+    "display": {
+      "placeholders": {
+        "willDiscover": "עוד נגלה יחד...",
+        "notSpecified": "לא צוין",
+        "mysterious": "מסתורי/ת...",
+        "storyWaiting": "סיפור שמחכה להתגלות",
+        "professionWaiting": "מקצוע מעניין מחכה לגילוי"
+      },
+      "colorPalette": {
+        "selectLabel": "בחר ערכת צבעים",
+        "selected": "(נבחר)",
+        "palettes": {
+          "professional": "כחול-אפור",
+          "feminine": "ורוד-אדום",
+          "masculine": "כחול-ירוק",
+          "luxury": "זהב-סגול"
+        }
+      },
+      "availability": {
+        "AVAILABLE": "זמין/ה",
+        "UNAVAILABLE": "לא זמין/ה כרגע",
+        "DATING": "בתהליך היכרות",
+        "PAUSED": "בהפסקה זמנית",
+        "ENGAGED": "מאורס/ת",
+        "MARRIED": "נשוי/אה"
+      },
+      "booleanPrefs": {
+        "yes": "כן",
+        "no": "לא",
+        "shomerYes": "כן, זה חשוב לי"
+      },
+      "stringBooleanPrefs": {
+        "yes": "כן",
+        "no": "לא",
+        "flexible": "גמיש/ה"
+      },
+      "header": {
+        "profileImageAlt": "תמונת הפרופיל של {{name}}",
+        "storyOf": "הסיפור של {{name}}",
+        "ageLabel": "גיל: {{age}}",
+        "availabilityBadge": {
+          "available_short": "זמין",
+          "unavailable_short": "לא זמין",
+          "dating_short": "בהיכרות",
+          "paused_short": "בהפסקה",
+          "engaged_short": "מאורס",
+          "married_short": "נשוי",
+          "mysterious_short": "מסתורי"
+        },
+        "excitementQuote": "כל סיפור אהבה מתחיל בהכרות אחת מיוחדת...",
+        "suggestMatchButton": "הצע התאמה",
+        "suggestPerfectMatchButton": "הצע התאמה מושלמת"
+      },
+      "keyFacts": {
+        "occupation": "עיסוק",
+        "outlook": "השקפה",
+        "location": "מיקום"
+      },
+      "gallery": {
+        "title": "הגלריה של {{name}}",
+        "subtitle": "לחץ על תמונה להגדלה",
+        "showImageAlt": "הצג את תמונה {{index}} בגודל מלא",
+        "imageAlt": "תמונה מדהימה {{index}}",
+        "mainBadge": "ראשי"
+      },
+      "imageDialog": {
+        "closeLabel": "סגור תצוגת תמונה",
+        "title": "תמונה {{current}} מתוך {{total}}",
+        "prevLabel": "התמונה הקודמת",
+        "nextLabel": "התמונה הבאה",
+        "thumbAlt": "תמונה קטנה"
+      },
+      "mobileNav": {
+        "closePreview": "סגור תצוגה מקדימה",
+        "introView": "היכרות",
+        "detailedView": "מפורט",
+        "previous": "הקודם",
+        "next": "הבא"
+      },
+      "tabs": {
+        "essence": { "label": "המהות שלי", "shortLabel": "מהות" },
+        "journey": { "label": "הדרך שלי", "shortLabel": "הדרך" },
+        "spirit": { "label": "עולם הרוח", "shortLabel": "רוחניות" },
+        "vision": { "label": "חזון לזוגיות", "shortLabel": "חזון" },
+        "connection": { "label": "החיבור שאחפש", "shortLabel": "חיבור" },
+        "professional": { "label": "מידע לשדכן", "shortLabel": "לשדכן" }
+      },
+      "content": {
+        "emptyStateTitle": "אין כאן מה להציג כרגע",
+        "emptyStateDescription": "נראה שהמועמד/ת עדיין לא מילא/ה את החלק הזה בפרופיל. זו הזדמנות נהדרת לגלות יחד!",
+        "openingSentence": "משפט פתיחה",
+        "aboutMe": "מי אני, בקצרה",
+        "aboutMeSubtitle": "הסיפור האישי של {{name}}",
+        "whatMakesMeSpecial": "מה שמייחד אותי",
+        "myTraits": "תכונות האופי שלי",
+        "whatFillsMySoul": "איך אני ממלא/ה את הנשמה",
+        "myHobbies": "התחביבים והתשוקות שלי",
+        "deepDivePersonality": "צלילה לתוך האישיות",
+        "moreAnswersPersonality": "תשובות נוספות שעוזרות להכיר אותי",
+        "educationAndCareer": "השכלה ועולם המקצוע",
+        "academicAndProfessionalPath": "הדרך האקדמית והמקצועית שלי",
+        "familyAndCulturalBackground": "הרקע המשפחתי והתרבותי",
+        "familyThatShapedMe": "המשפחה והמקורות שעיצבו אותי",
+        "valuesAndPrinciples": "הערכים והעקרונות שמנחים אותי",
+        "answersOnWhatMatters": "תשובות לשאלות על מה שחשוב לי באמת",
+        "myConnectionToJudaism": "החיבור שלי ליהדות",
+        "faithAndTraditionInMyLife": "המקום של האמונה והמסורת בחיי",
+        "inspiringSpiritualFigure": "דמות רוחנית משפיעה",
+        "myReligiousAndSpiritualWorld": "העולם הדתי והרוחני שלי",
+        "answersOnFaith": "תשובות לשאלות על אמונה, מסורת ורוחניות",
+        "myDreamRelationship": "הזוגיות שאני חולם/ת עליה",
+        "myRoleModelForRelationship": "המודל שלי לזוגיות",
+        "theCoupleThatInspiresMe": "הזוג שנותן לי השראה",
+        "moreOnMyVision": "עוד על החזון שלי לזוגיות",
+        "answersOnLoveAndFamily": "תשובות לשאלות על אהבה, משפחה וכל מה שביניהם",
+        "matchingPreferences": "העדפות להתאמה",
+        "whatHelpsFindConnection": "דברים שיכולים לעזור לנו למצוא את החיבור הנכון",
+        "maritalStatuses": "סטטוסים משפחתיים",
+        "religiousLevels": "רמות דתיות",
+        "partnerReligiousJourney": "מסע דתי של בן/בת הזוג",
+        "educationLevels": "רמות השכלה",
+        "howIVisionMyPartner": "איך אני מדמיין/ת את בן/בת הזוג",
+        "moreAnswersAboutPartner": "תשובות נוספות על מה שאני מחפש/ת",
+        "confidentialInfo": "פרטים חסויים ותובנות לשדכן",
+        "professionalDetails": "פרטים מקצועיים לתהליך השידוך",
+        "emptyPrefsTitle": "פתוח/ה להכיר את האדם הנכון",
+        "emptyPrefsDescription": "אין כאן רשימת דרישות, אלא הזמנה פתוחה להכיר אדם מיוחד. יש כאן מקום לגילויים מרגשים יחד.",
+        "focus": {
+          "aboutMe": "קצת עליי",
+          "myStory": "המילים שמגדירות אותי",
+          "quickSummary": "תמצית מהירה",
+          "importantDetails": "הפרטים החשובים שכדאי לדעת עליי במבט ראשון",
+          "whatMakesMeUnique": "מה מיוחד בי",
+          "traitsAndHobbies": "התכונות והתחביבים שעושים אותי ייחודי/ת",
+          "myTraits": "התכונות שלי:",
+          "whatILove": "מה אני אוהב/ת:",
+          "wantToKnowMore": "רוצים לדעת עוד?",
+          "moreToDiscover": "עוד המון דברים מעניינים מחכים לגילוי...",
+          "letsGetToKnow": "בואו נכיר לעומק"
+        },
+        "questionnaire": {
+          "questionFromCategory": "שאלה מקטגוריית {{worldName}}:",
+          "confidential": "חסוי",
+          "confidentialTooltip": "תשובה זו חסויה ומוצגת לשדכנים בלבד."
+        },
+        "professionalInfo": {
+          "contactPreference": "העדפת יצירת קשר",
+          "matchmakerGenderPref": "העדפת מגדר שדכן/ית",
+          "noPreference": "אין העדפה מיוחדת",
+          "matchmakerMale": "שדכן גבר",
+          "matchmakerFemale": "שדכנית אישה",
+          "medicalInfo": "מידע רפואי",
+          "medicalInfoVisible": "גלוי בפרופיל",
+          "medicalInfoDiscreet": "קיים מידע דיסקרטי",
+          "profileCreated": "פרופיל נוצר:",
+          "lastActive": "פעילות אחרונה:",
+          "unknown": "לא ידוע"
+        },
+        "worlds": {
+          "values": { "label": "הערכים והעקרונות שמנחים אותי", "description": "מה חשוב לי בחיים ומה מוביל אותי" },
+          "personality": { "label": "האישיות והתכונות הייחודיות שלי", "description": "איך אני באמת ומה מאפיין אותי" },
+          "relationship": { "label": "החזון שלי לזוגיות ומשפחה", "description": "איך אני רואה את עתיד הזוגיות שלי" },
+          "partner": { "label": "מה אני מחפש/ת בבן/בת הזוג", "description": "התכונות והערכים שחשובים לי בפרטנר" },
+          "religion": { "label": "הדת והרוחניות בחיי", "description": "המקום של האמונה והמסורת בעולמי" },
+          "general": { "label": "עוד דברים חשובים שכדאי לדעת עליי", "description": "פרטים נוספים שמשלימים את התמונה" }
+        },
+              "detailLabels": {
+        "worldview": "השקפת העולם שמנחה אותי",
+        "religiousJourney": "המסע הדתי שלי",
+        "shomerNegiah": "שמירת נגיעה",
+        "headCovering": "כיסוי ראש",
+        "kippahType": "סוג כיפה",
+        "educationLevel": "רמת ההשכלה",
+        "educationDetails": "פירוט הלימודים",
+        "professionalField": "התחום המקצועי",
+        "militaryService": "השירות הצבאי/לאומי",
+        "serviceDetails": "פרטי השירות",
+        "parentStatus": "סטטוס ההורים",
+        "fatherOccupation": "מקצוע האב",
+        "motherOccupation": "מקצוע האם",
+        "siblings": "אחים ואחיות",
+        "birthOrder": "המקום במשפחה",
+        "countryOfOrigin": "ארץ המוצא",
+        "aliyaYear": "שנת העלייה"
+      }
+
+      }
+    },
+
+
     "loading": "טוען נתוני פרופיל...",
     "header": {
       "title": "פרופיל אישי",

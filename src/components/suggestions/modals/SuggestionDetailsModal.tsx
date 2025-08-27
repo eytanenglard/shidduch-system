@@ -27,6 +27,7 @@ import {
   MapPin,
   Briefcase,
   GraduationCap,
+  ArrowLeft,
   ChevronUp,
   Scroll as ScrollIcon,
   GitCompareArrows,
@@ -87,6 +88,8 @@ interface SuggestionDetailsModalProps {
     suggestion: ExtendedMatchSuggestion,
     action: 'approve' | 'decline'
   ) => void;
+  locale: 'he' | 'en'; // <-- 1. הוסף prop
+
   questionnaire: QuestionnaireResponse | null;
   isDemo?: boolean;
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
@@ -135,6 +138,8 @@ const EnhancedHeroSection: React.FC<{
   targetParty: ExtendedMatchSuggestion['secondParty'];
   personalNote?: string | null;
   matchingReason?: string | null;
+  locale: 'he' | 'en'; // <-- הוסף prop
+
   onViewProfile: () => void;
   onStartConversation: () => void;
   dict: SuggestionsDictionary['modal']['header'];
@@ -146,6 +151,7 @@ const EnhancedHeroSection: React.FC<{
   onViewProfile,
   onStartConversation,
   dict,
+  locale,
 }) => {
   const age = targetParty.profile?.birthDate
     ? new Date().getFullYear() -
@@ -273,7 +279,11 @@ const EnhancedHeroSection: React.FC<{
                     >
                       <User className="w-5 h-5 ml-2" />
                       {dict.viewFullProfile}
-                      <ArrowRight className="w-4 h-4 mr-2" />
+                      {locale === 'he' ? (
+                        <ArrowRight className="w-4 h-4" />
+                      ) : (
+                        <ArrowLeft className="w-4 h-4" />
+                      )}
                     </Button>
                     <Button
                       onClick={onStartConversation}
@@ -557,6 +567,7 @@ const EnhancedTabsSection: React.FC<{
 const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   suggestion,
   userId,
+  locale,
   isOpen,
   onClose,
   onActionRequest,
@@ -652,7 +663,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent
           className={cn(getModalClasses())}
-          dir="rtl"
+          dir={locale === 'he' ? 'rtl' : 'ltr'} // <-- ✨ 3. הוסף כיווניות דינמית למודאל!
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <ScrollArea className="flex-grow min-h-0 modal-scroll">
@@ -678,6 +689,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 <EnhancedHeroSection
                   matchmaker={suggestion.matchmaker}
                   targetParty={targetParty}
+                  locale={locale}
                   personalNote={
                     isFirstParty
                       ? suggestion.firstPartyNotes

@@ -5,6 +5,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useParams } from 'next/navigation'; // ✨ 1. הוסף ייבוא של useParams
+
 import {
   History,
   AlertCircle,
@@ -40,7 +42,10 @@ import {
 } from '@/components/ui/alert-dialog';
 
 // ✅ 1. ייבוא הטיפוסים הנדרשים עבור המילונים
-import type { SuggestionsDictionary, ProfileCardDict } from '@/types/dictionary';
+import type {
+  SuggestionsDictionary,
+  ProfileCardDict,
+} from '@/types/dictionary';
 
 const LoadingSkeleton: React.FC<{
   dict: SuggestionsDictionary['container']['loading'];
@@ -257,6 +262,11 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   suggestionsDict,
   profileCardDict,
 }) => {
+  const params = useParams();
+  const locale = (
+    Array.isArray(params.lang) ? params.lang[0] : params.lang || 'en'
+  ) as 'he' | 'en';
+
   const [activeSuggestions, setActiveSuggestions] = useState<
     ExtendedMatchSuggestion[]
   >([]);
@@ -315,7 +325,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           setHasNewSuggestions(true);
           // ✅ 3. שימוש ב-suggestionsDict במקום dict
           toast.success(suggestionsDict.container.toasts.newSuggestionsTitle, {
-            description: suggestionsDict.container.toasts.newSuggestionsDescription,
+            description:
+              suggestionsDict.container.toasts.newSuggestionsDescription,
             duration: 5000,
           });
         }
@@ -329,7 +340,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             ? error.message
             : suggestionsDict.container.main.unknownError;
         setError(
-          suggestionsDict.container.main.errorLoading.replace('{error}', errorMessage)
+          suggestionsDict.container.main.errorLoading.replace(
+            '{error}',
+            errorMessage
+          )
         );
         toast.error(suggestionsDict.container.toasts.errorTitle, {
           description: suggestionsDict.container.toasts.errorDescription,
@@ -366,17 +380,22 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
         // ✅ 3. שימוש ב-suggestionsDict במקום dict
         const statusMessages: Record<string, string> = {
-          FIRST_PARTY_APPROVED: suggestionsDict.container.toasts.approvedSuccess,
-          SECOND_PARTY_APPROVED: suggestionsDict.container.toasts.approvedSuccess,
-          FIRST_PARTY_DECLINED: suggestionsDict.container.toasts.declinedSuccess,
-          SECOND_PARTY_DECLINED: suggestionsDict.container.toasts.declinedSuccess,
+          FIRST_PARTY_APPROVED:
+            suggestionsDict.container.toasts.approvedSuccess,
+          SECOND_PARTY_APPROVED:
+            suggestionsDict.container.toasts.approvedSuccess,
+          FIRST_PARTY_DECLINED:
+            suggestionsDict.container.toasts.declinedSuccess,
+          SECOND_PARTY_DECLINED:
+            suggestionsDict.container.toasts.declinedSuccess,
         };
 
         let description: string;
         if (newStatus === 'FIRST_PARTY_APPROVED') {
           description = suggestionsDict.container.toasts.approvedFirstPartyDesc;
         } else if (newStatus === 'SECOND_PARTY_APPROVED') {
-          description = suggestionsDict.container.toasts.approvedSecondPartyDesc;
+          description =
+            suggestionsDict.container.toasts.approvedSecondPartyDesc;
         } else if (newStatus.includes('DECLINED')) {
           description = suggestionsDict.container.toasts.declinedDesc;
         } else {
@@ -491,6 +510,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         'min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20',
         className
       )}
+      dir={locale === 'he' ? 'rtl' : 'ltr'}
     >
       <div className="container mx-auto px-4 py-8">
         <WelcomeStats
@@ -596,6 +616,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               )}
               <TabsContent value="active" className="space-y-6">
                 <SuggestionsList
+                  locale={locale}
                   suggestions={activeSuggestions}
                   userId={userId}
                   viewMode={viewMode}
@@ -611,6 +632,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               </TabsContent>
               <TabsContent value="history" className="space-y-6">
                 <SuggestionsList
+                            locale={locale}
+
                   suggestions={historySuggestions}
                   userId={userId}
                   viewMode={viewMode}
@@ -627,6 +650,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               </TabsContent>
               <TabsContent value="urgent" className="space-y-6">
                 <SuggestionsList
+                            locale={locale}
+
                   suggestions={activeSuggestions.filter((s) => {
                     const isFirstParty = s.firstPartyId === userId;
                     return (

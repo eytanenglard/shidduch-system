@@ -14,6 +14,15 @@
     "matchmakerClients": "מועמדים"
 
   },
+    "unsavedChangesModal": {
+    "title": "שינויים שלא נשמרו",
+    "description": "נראה שיש לך שינויים שלא נשמרו. אם תצא/י מהדף, הם ילכו לאיבוד. מה תרצה/י לעשות?",
+    "cancelButton": "ביטול",
+    "continueWithoutSavingButton": "המשך ללא שמירה",
+    "saveAndContinueButton": "שמור והמשך",
+    "savingButton": "שומר..."
+  },
+
     "userDropdown": {
     "openMenuAriaLabel": "פתח תפריט משתמש",
     "profileImageAlt": "תמונת פרופיל",
@@ -28,6 +37,8 @@
     "signUpButton": "הרשמה",
     "closeNavAriaLabel": "סגור ניווט",
     "openNavAriaLabel": "פתח ניווט",
+      "mobileTitle": "ניווט בדף", 
+
      "navLinks": {
       "howItWorks": "המסע שלכם",
       "suggestionDemo": "כך נראית הצעה",

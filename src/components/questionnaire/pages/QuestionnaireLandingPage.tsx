@@ -1,6 +1,8 @@
 // src/components/questionnaire/pages/QuestionnaireLandingPage.tsx
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useLanguage } from '@/app/[locale]/contexts/LanguageContext'; // 1. הוסף את הייבוא
+
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -88,6 +90,8 @@ export default function QuestionnaireLandingPage({
 }: QuestionnaireLandingPageProps) {
   const { status, data: session } = useSession();
   const isMobile = useIsMobile();
+  const { language } = useLanguage(); // 2. השתמש ב-hook
+  const isRTL = language === 'he'; // 3. הגדר משתנה עזר
 
   const worldVisuals = [
     { id: 'PERSONALITY', icon: <User />, color: 'sky' },
@@ -108,7 +112,8 @@ export default function QuestionnaireLandingPage({
   return (
     <div
       className={cn(
-        'relative min-h-screen overflow-hidden text-right dir-rtl bg-slate-50',
+        'relative min-h-screen overflow-hidden bg-slate-50',
+        isRTL ? 'dir-rtl text-right' : 'dir-ltr text-left', // 4. החלף את המחלקות הקבועות בדינמיות
         isMobile && 'pb-28'
       )}
     >

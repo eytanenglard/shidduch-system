@@ -52,7 +52,7 @@
       "refreshSuccessDescription": "Your introductions are now up to date."
     }
   },
-  "card": {
+   "card": {
     "suggestedBy": "Introduction from",
     "yourTurn": "Your Turn!",
     "urgent": "Urgent",
@@ -67,16 +67,47 @@
       "askMatchmaker": "Ask Your Matchmaker",
       "viewDetails": "View Details"
     },
-        "statusIndicator": {
+    "statusIndicator": {
       "yourTurn": "Your Turn!",
       "waitingForYou": "Waiting for You",
       "matchmaker": "Matchmaker",
       "firstParty": "First Party",
       "secondParty": "Second Party",
       "bothParties": "Both Parties"
+    },
+    "statusDescriptions": {
+      "draft": "The matchmaker is preparing the suggestion.",
+      "pendingFirstPartyUser": "The suggestion awaits your decision - please approve or decline.",
+      "pendingFirstPartyOther": "The matchmaker has sent the suggestion to the first party and is awaiting a response.",
+      "firstPartyApprovedUser": "You approved the suggestion - it will now be sent to the other party.",
+      "firstPartyApprovedOther": "The first party enthusiastically approved the suggestion.",
+      "firstPartyDeclinedUser": "You declined the suggestion - thank you for the honest feedback.",
+      "firstPartyDeclinedOther": "The first party decided the suggestion was not a good fit.",
+      "pendingSecondPartyUser": "The other party is reviewing the suggestion - we'll update you when we have feedback.",
+      "pendingSecondPartyOther": "The suggestion awaits your decision - please approve or decline.",
+      "secondPartyApprovedUser": "The other party is also interested! You will receive contact details soon.",
+      "secondPartyApprovedOther": "You approved the suggestion! You will both receive contact details soon.",
+      "secondPartyDeclinedUser": "The other party decided the suggestion was not a good fit.",
+      "secondPartyDeclinedOther": "You declined the suggestion - thank you for the honest feedback.",
+      "awaitingMatchmakerApproval": "Both parties have approved - the matchmaker will confirm the sharing of details.",
+      "contactDetailsShared": "Your contact details have been shared - it's time to get in touch!",
+      "awaitingFirstDateFeedback": "Great that you met! We'd love to hear how it went.",
+      "thinkingAfterDate": "Time to process the meeting and decide on the next steps.",
+      "proceedingToSecondDate": "Excellent! You both want to continue getting to know each other.",
+      "endedAfterFirstDate": "You've decided not to proceed - that's perfectly fine.",
+      "meetingPending": "The matchmaker is coordinating a first meeting.",
+      "meetingScheduled": "The first meeting has been scheduled - good luck!",
+      "matchApproved": "The match has been officially approved - congratulations!",
+      "matchDeclined": "The match was not approved to proceed.",
+      "dating": "You are both in an active dating process.",
+      "engaged": "Engaged! 💍 Mazel Tov on your engagement! What a joy!",
+      "married": "Married! 🎉 Mazel Tov on your wedding! What a success!",
+      "expired": "The suggestion has expired due to no response.",
+      "closed": "The process has ended and the file has been closed.",
+      "cancelled": "The suggestion was cancelled by the matchmaker."
     }
-
   },
+
   "modal": {
     "header": {
       "title": "An Introduction, With You in Mind",
