@@ -77,6 +77,7 @@ export default function HomePage({ dict, demoData }: HomePageProps) {
         session={session}
         isVisible={isScrolled}
         dict={dict.stickyNav} // ✨ הוסף את ה-prop הזה
+        locale={locale}
       />
 
       <HeroSection

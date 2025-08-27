@@ -22,6 +22,7 @@ export interface NavLink {
 }
 
 interface StickyNavProps {
+  locale: 'he' | 'en';
   navLinks: NavLink[];
   session: Session | null;
   isVisible: boolean;
@@ -69,6 +70,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
   session,
   isVisible,
   dict, // ✨ 3. קבלת המילון כ-prop
+  locale,
 }) => {
   const [activeSection, setActiveSection] = useState('');
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
@@ -264,6 +266,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                     getInitials={getInitials}
                     handleSignOut={handleSignOut}
                     profileIconSize={profileIconSize}
+                    locale={locale}
                   />
                 ) : (
                   <Link href="/auth/register">
