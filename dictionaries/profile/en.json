@@ -1169,6 +1169,8 @@
     "passwordDialog": {
       "title": "Change Password",
       "description": "Update your account password for added security.",
+            "verificationDescription": "For your security, please enter the 6-digit code sent to your email to confirm this change.",
+
       "step1Label": "Enter Passwords",
       "step2Label": "Verification",
       "currentPasswordLabel": "Current Password",
@@ -1195,6 +1197,9 @@
       "cancelButton": "Cancel",
       "continueButton": "Continue",
       "confirmButton": "Confirm",
+            "loadingButton": "Saving...",
+      "backButton": "Back",
+
       "loading": {
         "sending": "Sending...",
         "verifying": "Verifying..."

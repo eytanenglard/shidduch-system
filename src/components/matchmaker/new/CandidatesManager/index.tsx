@@ -362,11 +362,13 @@ const MinimalHeader: React.FC<{
 interface CandidatesManagerProps {
   matchmakerDict: MatchmakerPageDictionary;
   profileDict: ProfilePageDictionary;
+  locale: string;
 }
 
 const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   matchmakerDict,
   profileDict,
+  locale,
 }) => {
   // --- State Management ---
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -378,9 +380,6 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const [isHeaderCompact, setIsHeaderCompact] = useState(true);
   const [isQuickViewEnabled, setIsQuickViewEnabled] = useState(true); // <-- הוספת state חדש
   const params = useParams();
-  const locale = Array.isArray(params.lang)
-    ? params.lang[0]
-    : params.lang || 'en';
 
   // --- AI State ---
   const [aiTargetCandidate, setAiTargetCandidate] = useState<Candidate | null>(
@@ -442,6 +441,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     const activeToday = candidates.filter((c) => {
       const lastActive = new Date(c.createdAt);
       const today = new Date();
+
       return (
         (today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24) <= 7
       );
@@ -564,10 +564,14 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
       setIsBulkUpdating(false);
     }
   };
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   // --- Render ---
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-indigo-50/10 to-purple-50/5">
+    <div
+      className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-indigo-50/10 to-purple-50/5"
+      dir={direction}
+    >
       <MinimalHeader
         stats={heroStats}
         onAddCandidate={() => setShowManualAddDialog(true)}
@@ -609,7 +613,12 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                       size="sm"
                       className="bg-white/90 shadow-sm border border-gray-200"
                     >
-                      <ArrowUpDown className="w-4 h-4 ml-1" />
+                      <ArrowUpDown
+                        className={cn(
+                          'w-4 h-4',
+                          locale === 'he' ? 'ml-1' : 'mr-1'
+                        )}
+                      />
                       {matchmakerDict.candidatesManager.controls.sort}
                     </Button>
                   </DropdownMenuTrigger>
@@ -644,10 +653,21 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                   className="bg-white/90 shadow-sm border border-gray-200"
                 >
                   {isQuickViewEnabled ? (
-                    <EyeOff className="w-4 h-4 ml-1" />
+                    <EyeOff
+                      className={cn(
+                        'w-4 h-4',
+                        locale === 'he' ? 'ml-1' : 'mr-1'
+                      )}
+                    />
                   ) : (
-                    <Eye className="w-4 h-4 ml-1" />
+                    <Eye
+                      className={cn(
+                        'w-4 h-4',
+                        locale === 'he' ? 'ml-1' : 'mr-1'
+                      )}
+                    />
                   )}
+
                   {isQuickViewEnabled
                     ? matchmakerDict.candidatesManager.controls.disableQuickView
                     : matchmakerDict.candidatesManager.controls.enableQuickView}
@@ -922,7 +942,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                 onClick={() => setIsAnalysisDialogOpen(true)}
                 className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold shadow-lg"
               >
-                <GitCompare className="w-4 h-4 ml-2" />
+                <GitCompare
+                  className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />
                 {matchmakerDict.candidatesManager.controls.compareButton.replace(
                   '{{count}}',
                   String(Object.keys(comparisonSelection).length)
@@ -947,6 +969,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         onClose={() => setShowManualAddDialog(false)}
         onCandidateAdded={handleCandidateAdded}
         dict={matchmakerDict.candidatesManager.addManualCandidateDialog} // <--- הוספת השורה הזו
+        locale={locale}
       />
       <AiMatchAnalysisDialog
         isOpen={isAnalysisDialogOpen}
@@ -954,7 +977,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         targetCandidate={aiTargetCandidate}
         comparisonCandidates={Object.values(comparisonSelection)}
         dict={matchmakerDict.candidatesManager.aiAnalysis}
-        locale={locale as string} // <--- הוסף את השורה הזו
+       locale={locale} // <--- הוסף את השורה הזו
       />
     </div>
   );

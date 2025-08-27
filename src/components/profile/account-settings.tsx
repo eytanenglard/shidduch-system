@@ -42,6 +42,8 @@ import {
   Settings,
   AlertCircle,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession, signOut } from 'next-auth/react';
@@ -62,6 +64,7 @@ interface AccountSettingsProps {
     marketingConsent?: boolean;
   };
   dict: AccountSettingsDict;
+  locale: 'he' | 'en';
 }
 
 const PASSWORD_MIN_LENGTH = 8;
@@ -69,12 +72,16 @@ const PASSWORD_MIN_LENGTH = 8;
 const AccountSettings: React.FC<AccountSettingsProps> = ({
   user: propUser,
   dict,
+  locale,
 }) => {
   const {
     data: session,
     status: sessionStatus,
     update: updateSession,
   } = useSession();
+  
+  const isRtl = locale === 'he';
+  const ArrowIcon = isRtl ? ChevronLeft : ChevronRight;
 
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isSendingVerification, setIsSendingVerification] = useState(false);
@@ -400,13 +407,20 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
     if (passwordStrength <= 75) return strengthDict.medium;
     return strengthDict.strong;
   };
+  
+  const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
+    <div className={`flex items-center text-sm ${met ? 'text-green-600' : 'text-gray-500'}`}>
+      {met ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+      <span className="ms-2">{text}</span>
+    </div>
+  );
 
   if (!propUser) {
     return <div>{dict.loadingText}</div>;
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6" dir={isRtl ? 'rtl' : 'ltr'}>
       <Card
         className={`shadow-md hover:shadow-lg transition-all duration-300 border-t-4 border-blue-600 overflow-hidden relative`}
         onMouseEnter={() => setActiveSection('main')}
@@ -417,7 +431,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         />
         <CardHeader className="border-b pb-3 relative">
           <CardTitle className="text-xl flex items-center">
-            <Settings className="w-5 h-5 text-blue-600 mr-2" />
+            <Settings className="w-5 h-5 text-blue-600 me-2" />
             {dict.cardHeader.title}
           </CardTitle>
           <CardDescription>{dict.cardHeader.description}</CardDescription>
@@ -425,7 +439,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         <CardContent className="divide-y relative">
           <div className="py-4">
             <h3 className="text-base font-semibold flex items-center mb-4">
-              <User className="w-4 h-4 text-blue-600 mr-2" />
+              <User className="w-4 h-4 text-blue-600 me-2" />
               {dict.sections.personal.title}
             </h3>
             <div className="grid gap-3">
@@ -457,7 +471,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                       onClick={sendVerificationEmail}
                       disabled={isSendingVerification}
                     >
-                      <Mail className="w-4 h-4 mr-2" />
+                      <Mail className="w-4 h-4 me-2" />
                       {dict.sections.personal.sendVerificationButton}
                     </Button>
                   )}
@@ -467,7 +481,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           </div>
           <div className="py-4">
             <h3 className="text-base font-semibold mb-4 flex items-center">
-              <Shield className="w-4 h-4 text-blue-600 mr-2" />
+              <Shield className="w-4 h-4 text-blue-600 me-2" />
               {dict.sections.status.title}
             </h3>
             <div className="grid gap-3">
@@ -500,12 +514,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   </p>
                   <p className="text-gray-800">
                     {dict.sections.status.createdAt}{' '}
-                    {new Date(propUser.createdAt).toLocaleDateString('he-IL')}
+                    {new Date(propUser.createdAt).toLocaleDateString(isRtl ? 'he-IL' : 'en-US')}
                   </p>
                   {propUser.lastLogin && (
                     <p className="text-gray-800">
                       {dict.sections.status.lastLogin}{' '}
-                      {new Date(propUser.lastLogin).toLocaleDateString('he-IL')}
+                      {new Date(propUser.lastLogin).toLocaleDateString(isRtl ? 'he-IL' : 'en-US')}
                     </p>
                   )}
                 </div>
@@ -514,7 +528,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           </div>
           <div className="py-4">
             <h3 className="text-base font-semibold mb-4 flex items-center">
-              <Bell className="w-4 h-4 text-blue-600 mr-2" />
+              <Bell className="w-4 h-4 text-blue-600 me-2" />
               {dict.sections.marketing.title}
             </h3>
             <div className="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
@@ -538,7 +552,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-semibold flex items-center">
-                  <Key className="w-4 h-4 text-blue-600 mr-2" />
+                  <Key className="w-4 h-4 text-blue-600 me-2" />
                   {dict.sections.security.title}
                 </h3>
                 <p className="text-sm text-muted-foreground">
@@ -552,7 +566,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   onClick={() => setIsChangingPassword(true)}
                   disabled={isLoading}
                 >
-                  <Key className="w-4 h-4 mr-2" />
+                  <Key className="w-4 h-4 me-2" />
                   {dict.sections.security.changePasswordButton}
                 </Button>
               )}
@@ -601,7 +615,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold flex items-center text-red-600">
-                  <Trash2 className="w-4 h-4 mr-2" />
+                  <Trash2 className="w-4 h-4 me-2" />
                   {dict.sections.delete.title}
                 </h3>
                 <p className="text-sm text-muted-foreground">
@@ -614,7 +628,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                 onClick={() => setIsDeletingAccount(true)}
                 disabled={isLoading}
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Trash2 className="w-4 h-4 me-2" />
                 {dict.sections.delete.deleteButton}
               </Button>
             </div>
@@ -622,13 +636,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         </CardContent>
         <CardFooter className="bg-gradient-to-r from-gray-50 to-white border-t p-4 text-sm text-gray-500 relative">
           <div className="flex items-center">
-            <Bell className="w-4 h-4 text-blue-600 mr-2" />
+            <Bell className="w-4 h-4 text-blue-600 me-2" />
             <span>{dict.cardFooter.notice}</span>
           </div>
         </CardFooter>
       </Card>
 
-      {/* Dialogs using dict */}
       {canChangePassword && (
         <Dialog
           open={isChangingPassword}
@@ -637,8 +650,134 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
             else setIsChangingPassword(true);
           }}
         >
-          <DialogContent className="sm:max-w-md">
-            {/* All content inside the dialog should now use `dict.passwordDialog...` */}
+          <DialogContent className="sm:max-w-md" dir={isRtl ? 'rtl' : 'ltr'}>
+            <DialogHeader>
+              <DialogTitle>{dict.passwordDialog.title}</DialogTitle>
+              <DialogDescription>
+                {passwordChangeStep === 1
+                  ? dict.passwordDialog.description
+                  : dict.passwordDialog.verificationDescription}
+              </DialogDescription>
+            </DialogHeader>
+
+            {passwordChangeStep === 1 && (
+              <div className="space-y-4 py-4">
+                <div className="relative space-y-2">
+                  <Label htmlFor="current-password">{dict.passwordDialog.currentPasswordLabel}</Label>
+                  <div className="relative">
+                    <Input
+                      id="current-password"
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="pe-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-1/2 -translate-y-1/2 end-1 h-7 w-7"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    >
+                      {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <div className="relative space-y-2">
+                  <Label htmlFor="new-password">{dict.passwordDialog.newPasswordLabel}</Label>
+                  <div className="relative">
+                    <Input
+                      id="new-password"
+                      type={showNewPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="pe-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-1/2 -translate-y-1/2 end-1 h-7 w-7"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  {newPassword && (
+                    <div className="space-y-2 pt-1">
+                      <div className="flex items-center justify-between">
+                         <span className="text-xs font-medium text-muted-foreground">{getPasswordStrengthText()}</span>
+                      </div>
+                      <Progress value={passwordStrength} className={getPasswordStrengthColor()} />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 pt-2">
+                        <PasswordRequirement met={passwordRequirements.length} text={dict.passwordDialog.requirements.length.replace('{{count}}', String(PASSWORD_MIN_LENGTH))} />
+                        <PasswordRequirement met={passwordRequirements.uppercase} text={dict.passwordDialog.requirements.uppercase} />
+                        <PasswordRequirement met={passwordRequirements.lowercase} text={dict.passwordDialog.requirements.lowercase} />
+                        <PasswordRequirement met={passwordRequirements.number} text={dict.passwordDialog.requirements.number} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="relative space-y-2">
+                  <Label htmlFor="confirm-password">{dict.passwordDialog.confirmPasswordLabel}</Label>
+                   <div className="relative">
+                     <Input
+                        id="confirm-password"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="pe-10"
+                     />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-1/2 -translate-y-1/2 end-1 h-7 w-7"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {passwordChangeStep === 2 && (
+              <div className="py-4 space-y-2">
+                <Label htmlFor="verification-code">{dict.passwordDialog.verificationCodeLabel}</Label>
+                <Input
+                  id="verification-code"
+                  type="text"
+                  maxLength={6}
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  placeholder="123456"
+                />
+              </div>
+            )}
+            
+            <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2">
+                {passwordChangeStep === 1 ? (
+                    <>
+                        <Button variant="outline" onClick={resetPasswordForm}>
+                            {dict.passwordDialog.cancelButton}
+                        </Button>
+                        <Button onClick={initiatePasswordChange} disabled={isLoading || !passwordRequirements.length || !passwordRequirements.uppercase || !passwordRequirements.lowercase || !passwordRequirements.number}>
+                            {isLoading ? dict.passwordDialog.loadingButton : dict.passwordDialog.continueButton}
+                            {!isLoading && <ArrowIcon className="w-4 h-4 ms-2" />}
+                        </Button>
+                    </>
+                ) : (
+                    <>
+                        <Button variant="outline" onClick={() => setPasswordChangeStep(1)}>
+                            {dict.passwordDialog.backButton}
+                        </Button>
+                        <Button onClick={completePasswordChange} disabled={isLoading}>
+                             {isLoading ? dict.passwordDialog.loadingButton : dict.passwordDialog.confirmButton}
+                        </Button>
+                    </>
+                )}
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
@@ -654,7 +793,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           }
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" dir={isRtl ? 'rtl' : 'ltr'}>
           <DialogHeader>
             <DialogTitle>{dict.deleteDialog.title}</DialogTitle>
             <DialogDescription>
@@ -662,7 +801,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <Label htmlFor="deleteConfirm">
+            <Label htmlFor="deleteConfirm" className="text-start">
               {dict.deleteDialog.confirmationLabel}{' '}
               <strong>{dict.deleteDialog.confirmationPhrase}</strong>
             </Label>
@@ -674,12 +813,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
             />
             {deleteConfirmText &&
               deleteConfirmText !== dict.deleteDialog.confirmationPhrase && (
-                <p className="text-xs text-red-600">
+                <p className="text-xs text-red-600 text-start">
                   {dict.deleteDialog.mismatchWarning}
                 </p>
               )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
             <Button
               variant="outline"
               onClick={() => setIsDeletingAccount(false)}

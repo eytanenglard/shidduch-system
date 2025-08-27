@@ -2667,6 +2667,7 @@ export type AccountSettingsDict = {
   passwordDialog: {
     title: string;
     description: string;
+    verificationDescription: string; 
     step1Label: string;
     step2Label: string;
     currentPasswordLabel: string;
@@ -2693,6 +2694,9 @@ export type AccountSettingsDict = {
     cancelButton: string;
     continueButton: string;
     confirmButton: string;
+        loadingButton: string; // הוספה
+    backButton: string; // הוספה
+
     loading: {
       sending: string;
       verifying: string;

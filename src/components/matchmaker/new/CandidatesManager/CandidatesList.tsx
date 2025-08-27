@@ -474,7 +474,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
           }
         }}
       >
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent
+          className="max-w-6xl max-h-[90vh] overflow-y-auto"
+          dir={locale === 'he' ? 'rtl' : 'ltr'}
+        >
           <DialogHeader>
             <div className="flex items-center justify-between">
               <DialogTitle>
@@ -569,7 +572,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         onClose={() => setShowEditProfileDialog(false)}
         candidate={dialogCandidate}
         dict={dict.candidatesManager.editProfile} // <--- התיקון כאן
-        profileDict={profileDict} // <--- התיקון כאן (הוספנו את המילון השני)
+        profileDict={profileDict}
+        locale={locale}
       />
     </>
   );

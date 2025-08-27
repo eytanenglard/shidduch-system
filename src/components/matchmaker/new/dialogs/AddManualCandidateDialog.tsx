@@ -35,6 +35,7 @@ interface AddManualCandidateDialogProps {
   onClose: () => void;
   onCandidateAdded: () => void;
   dict: MatchmakerPageDictionary['candidatesManager']['addManualCandidateDialog'];
+  locale: string;
 }
 
 const MAX_IMAGES = 5;

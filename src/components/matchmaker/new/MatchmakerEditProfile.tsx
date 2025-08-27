@@ -42,6 +42,7 @@ interface MatchmakerEditProfileProps {
   onCandidateDeleted?: (candidateId: string) => void;
   dict: MatchmakerPageDictionary['candidatesManager']['editProfile'];
   profileDict: ProfilePageDictionary;
+  locale: string;
 }
 
 const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
@@ -51,6 +52,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   onCandidateDeleted,
   dict,
   profileDict,
+  locale,
 }) => {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';
@@ -419,6 +421,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                           setIsEditing={setIsEditing}
                           onSave={handleProfileUpdate}
                           dict={profileDict.profileSection}
+                          locale={locale}
                         />
                       </div>
                     ) : (
@@ -441,6 +444,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                         onDelete={handleDeleteImage}
                         maxImages={10}
                         dict={profileDict.photosSection}
+                        locale={locale}
                       />
                     </div>
                   </TabsContent>
@@ -456,6 +460,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                           setIsEditing={setIsEditing}
                           onChange={handleProfileUpdate}
                           dictionary={profileDict.preferencesSection}
+                          locale={locale}
                         />
                       </div>
                     ) : (

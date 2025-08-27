@@ -1196,6 +1196,8 @@
     "passwordDialog": {
       "title": "שינוי סיסמה",
       "description": "עדכן את סיסמת החשבון שלך",
+            "verificationDescription": "למען אבטחתך, אנא הזן את קוד האימות בן 6 הספרות שנשלח למייל שלך לאישור הפעולה.",
+
       "step1Label": "הזנת סיסמאות",
       "step2Label": "אימות",
       "currentPasswordLabel": "סיסמה נוכחית",
@@ -1222,6 +1224,9 @@
       "cancelButton": "ביטול",
       "continueButton": "המשך",
       "confirmButton": "אישור",
+            "loadingButton": "מעדכן...",
+      "backButton": "חזור"
+,
       "loading": {
         "sending": "שולח...",
         "verifying": "מאמת..."

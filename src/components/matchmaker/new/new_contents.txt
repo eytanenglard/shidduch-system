@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new
-# Generated on: 2025-08-26 19:12:01
+# Generated on: 2025-08-27 20:08:39
 ################################################################################
 
 ================================================================================
@@ -432,6 +432,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                           setIsEditing={setIsEditing}
                           onSave={handleProfileUpdate}
                           dict={profileDict.profileSection}
+                          locale={locale}
                         />
                       </div>
                     ) : (
@@ -454,6 +455,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                         onDelete={handleDeleteImage}
                         maxImages={10}
                         dict={profileDict.photosSection}
+                        locale={locale}
                       />
                     </div>
                   </TabsContent>
@@ -469,6 +471,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                           setIsEditing={setIsEditing}
                           onChange={handleProfileUpdate}
                           dictionary={profileDict.preferencesSection}
+                          locale={locale}
                         />
                       </div>
                     ) : (
@@ -2259,6 +2262,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 viewMode={isMatchmaker ? 'matchmaker' : 'candidate'}
                 isProfileComplete={selectedCandidate.isProfileComplete}
                 dict={profileDict.profileCard}
+                locale={locale}
               />
             </div>
           )}

@@ -9,17 +9,20 @@ import type { ProfilePageDictionary } from '@/types/dictionary';
 interface CandidatesManagerClientProps {
   matchmakerDict: MatchmakerPageDictionary;
   profileDict: ProfilePageDictionary;
+  locale: string; // ▼▼▼ ADDED: locale prop ▼▼▼
 }
 
 export default function CandidatesManagerClient({
   matchmakerDict,
   profileDict,
+  locale, // ▼▼▼ ADDED: destructure locale ▼▼▼
 }: CandidatesManagerClientProps) {
-  // Pass the dictionaries down to the main component
+  // ▼▼▼ CHANGE: Pass the dictionaries and the new locale prop down ▼▼▼
   return (
     <CandidatesManager
       matchmakerDict={matchmakerDict}
       profileDict={profileDict}
+      locale={locale}
     />
   );
 }
