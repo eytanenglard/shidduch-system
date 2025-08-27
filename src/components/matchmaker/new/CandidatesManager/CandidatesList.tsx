@@ -522,6 +522,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 viewMode={isMatchmaker ? 'matchmaker' : 'candidate'}
                 isProfileComplete={selectedCandidate.isProfileComplete}
                 dict={profileDict.profileCard}
+                locale={locale}
               />
             </div>
           )}
