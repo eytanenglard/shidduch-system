@@ -564,6 +564,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   viewMode="matchmaker"
                   isProfileComplete={suggestion.firstParty.isProfileComplete}
                   dict={profileDict.profileCard}
+                  locale={locale}
                 />
               </div>
             </TabsContent>
@@ -576,6 +577,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   viewMode="matchmaker"
                   isProfileComplete={suggestion.secondParty.isProfileComplete}
                   dict={profileDict.profileCard}
+                  locale={locale}
                 />
               </div>
             </TabsContent>
