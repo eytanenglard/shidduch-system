@@ -729,6 +729,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     // =============================    KEY CHANGE #3 (Usage)    =============================
                     // מעבירים לקומפוננטת הפרופיל את המילון שלה
                     dict={dict.profileCard}
+                    locale={locale}
                     // ======================================================================================
                   />
                 ) : (
