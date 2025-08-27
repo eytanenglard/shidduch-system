@@ -23,6 +23,7 @@ import {
   EyeOff,
   Loader2,
   ArrowRight,
+  ArrowLeft, // ייבוא אייקון חץ שמאלה
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -39,7 +40,7 @@ import type {
   FormattedAnswer,
   UpdateValue,
 } from '@/types/next-auth';
-import type { ProfilePageDictionary } from '@/types/dictionary'; // ייבוא טיפוס המילון
+import type { ProfilePageDictionary } from '@/types/dictionary';
 import { WORLDS_CONFIG } from '../constants';
 
 const QUESTIONNAIRE_URL = '/questionnaire';
@@ -53,7 +54,8 @@ interface QuestionnaireResponsesSectionProps {
     value: UpdateValue
   ) => Promise<void>;
   isEditable?: boolean;
-  dict: ProfilePageDictionary; // קבלת המילון
+  dict: ProfilePageDictionary;
+  locale: string; // הוספת Prop לשפה
 }
 
 interface QuestionCardProps {
@@ -67,7 +69,8 @@ interface QuestionCardProps {
     value: UpdateValue
   ) => Promise<void>;
   isFirstInList?: boolean;
-  dict: ProfilePageDictionary; // קבלת המילון
+  dict: ProfilePageDictionary;
+  locale: string; // הוספת Prop לשפה
 }
 
 interface WorldSectionProps {
@@ -82,7 +85,8 @@ interface WorldSectionProps {
   ) => Promise<void>;
   isCompleted: boolean;
   className?: string;
-  dict: ProfilePageDictionary; // קבלת המילון
+  dict: ProfilePageDictionary;
+  locale: string; // הוספת Prop לשפה
 }
 
 // --- רכיב QuestionCard ---
@@ -93,6 +97,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   worldKey,
   onUpdate,
   dict,
+  locale,
 }) => {
   const [isEditingText, setIsEditingText] = useState(false);
   const [editValue, setEditValue] = useState(answer.displayText);
@@ -102,7 +107,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     answer.isVisible ?? true
   );
 
-  const t = dict.questionnaireSection.questionCard; // קיצור דרך לתרגומים של הרכיב
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
+  const t = dict.questionnaireSection.questionCard;
 
   useEffect(() => {
     setCurrentIsVisible(answer.isVisible ?? true);
@@ -173,7 +179,13 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       !Array.isArray(answer.rawValue)
     ) {
       const budgetData = answer.rawValue as Record<string, number>;
-      return <BudgetDisplay data={budgetData} dict={dict.budgetDisplay} />;
+      return (
+        <BudgetDisplay
+          data={budgetData}
+          dict={dict.budgetDisplay}
+          locale={locale}
+        />
+      );
     }
     return (
       <p className="text-sm text-gray-800 break-words overflow-wrap-anywhere whitespace-pre-wrap">
@@ -194,11 +206,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   };
 
   return (
-    <div className="rounded-lg border bg-card p-4 shadow-sm transition-shadow duration-300 hover:shadow-md">
+    <div
+      className="rounded-lg border bg-card p-4 shadow-sm transition-shadow duration-300 hover:shadow-md"
+      dir={direction}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
-            <h4 className="font-medium text-sm sm:text-base flex-1 text-right">
+            <h4 className="font-medium text-sm sm:text-base flex-1 text-start">
               {question}
             </h4>
             <div className="flex items-center gap-2 self-end sm:self-center">
@@ -238,17 +253,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                       ) : (
                         <EyeOff className="h-3.5 w-3.5" />
                       )}
-                      <span
-                        className="text-xs font-medium whitespace-nowrap"
-                        dir="rtl"
-                      >
+                      <span className="text-xs font-medium whitespace-nowrap">
                         {currentIsVisible
                           ? t.visibilityButton.visible
                           : t.visibilityButton.hidden}
                       </span>
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="top" dir="rtl">
+                  <TooltipContent side="top" dir={direction}>
                     <p>{getVisibilityTooltip()}</p>
                   </TooltipContent>
                 </Tooltip>
@@ -264,6 +276,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 className="min-h-[80px] text-sm focus:ring-cyan-500 focus:border-cyan-500"
                 placeholder={t.editTextareaPlaceholder}
                 disabled={isSavingText}
+                dir={direction}
               />
               <div className="flex justify-end gap-2">
                 <Button
@@ -273,7 +286,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   disabled={isSavingText}
                   className="text-gray-600 hover:bg-gray-100"
                 >
-                  <X className="h-4 w-4 ml-1" />
+                  <X className="h-4 w-4 ms-1" />
                   {t.editButtons.cancel}
                 </Button>
                 <Button
@@ -285,7 +298,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   {isSavingText ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <CheckCircle className="h-4 w-4 ml-1" />
+                    <CheckCircle className="h-4 w-4 ms-1" />
                   )}
                   {t.editButtons.save}
                 </Button>
@@ -298,14 +311,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 <TooltipProvider delayDuration={200}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="text-xs text-gray-400 block mt-2 text-left">
+                      <span className="text-xs text-gray-400 block mt-2 text-start">
                         {new Date(answer.answeredAt).toLocaleDateString(
-                          'he-IL',
+                          locale === 'he' ? 'he-IL' : 'en-US',
                           { year: 'numeric', month: '2-digit', day: '2-digit' }
                         )}
                       </span>
                     </TooltipTrigger>
-                    <TooltipContent side="top" dir="rtl">
+                    <TooltipContent side="top" dir={direction}>
                       <p>{t.dateTooltip}</p>
                     </TooltipContent>
                   </Tooltip>
@@ -321,7 +334,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                           asChild
                           variant="ghost"
                           size="icon"
-                          className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
+                          className="absolute top-0 end-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
                         >
                           <Link
                             href={`/questionnaire?world=${worldKey}&question=${answer.questionId}`}
@@ -336,7 +349,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
+                          className="absolute top-0 end-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
                           onClick={handleStartEdit}
                         >
                           <Pencil className="h-4 w-4" />
@@ -344,7 +357,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                         </Button>
                       )}
                     </TooltipTrigger>
-                    <TooltipContent side="top" dir="rtl">
+                    <TooltipContent side="top" dir={direction}>
                       <p>
                         {answer.questionType === 'budgetAllocation'
                           ? t.editTooltip.budget
@@ -356,7 +369,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               )}
 
               {isSavingText && !isEditingText && (
-                <div className="absolute top-1 right-1">
+                <div className="absolute top-1 end-1">
                   <Loader2 className="h-4 w-4 animate-spin text-cyan-500" />
                 </div>
               )}
@@ -378,13 +391,16 @@ const WorldSection: React.FC<WorldSectionProps> = ({
   isCompleted,
   className,
   dict,
+  locale,
 }) => {
   const { icon: Icon, color, bgColor, borderColor } = worldConfig;
   const t = dict.questionnaireSection.worldSection;
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
-  // ▼▼▼ שליפת הכותרת מהמילון במקום מהקונפיג ▼▼▼
   const title = dict.questionnaireSection.worlds[worldKey]?.title || worldKey;
-  const answerCountText = `${answers.length} ${answers.length === 1 ? t.answerSingular : t.answerPlural}`;
+  const answerCountText = `${answers.length} ${
+    answers.length === 1 ? t.answerSingular : t.answerPlural
+  }`;
 
   return (
     <Card
@@ -394,6 +410,7 @@ const WorldSection: React.FC<WorldSectionProps> = ({
         borderColor,
         className
       )}
+      dir={direction}
     >
       <CardHeader
         className="p-4 border-b"
@@ -450,6 +467,7 @@ const WorldSection: React.FC<WorldSectionProps> = ({
               worldKey={worldKey}
               onUpdate={onUpdate}
               dict={dict}
+              locale={locale}
             />
           ))}
         </div>
@@ -461,10 +479,12 @@ const WorldSection: React.FC<WorldSectionProps> = ({
 // --- רכיב QuestionnaireResponsesSection הראשי ---
 const QuestionnaireResponsesSection: React.FC<
   QuestionnaireResponsesSectionProps
-> = ({ questionnaire, onUpdate, isEditable = false, dict }) => {
+> = ({ questionnaire, onUpdate, isEditable = false, dict, locale }) => {
   const [isEditingGlobally, setIsEditingGlobally] = useState(false);
 
-  const t = dict.questionnaireSection; // קיצור דרך לתרגומים
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
+  const ArrowIcon = direction === 'rtl' ? ArrowLeft : ArrowRight;
+  const t = dict.questionnaireSection;
 
   const worldsWithAnswers = useMemo(() => {
     if (!questionnaire?.formattedAnswers) return [];
@@ -487,7 +507,10 @@ const QuestionnaireResponsesSection: React.FC<
   if (!questionnaire) {
     const emptyStateT = t.emptyState;
     return (
-      <Card className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed">
+      <Card
+        className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed"
+        dir={direction}
+      >
         <Book className="h-10 w-10 mx-auto mb-3 opacity-50 text-gray-400" />
         <p className="font-medium">{emptyStateT.title}</p>
         <p className="text-sm mt-1">{emptyStateT.subtitle}</p>
@@ -501,7 +524,7 @@ const QuestionnaireResponsesSection: React.FC<
               href={QUESTIONNAIRE_URL}
               className="flex items-center gap-1.5"
             >
-              {emptyStateT.button} <ArrowRight className="h-4 w-4" />
+              {emptyStateT.button} <ArrowIcon className="h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -513,7 +536,7 @@ const QuestionnaireResponsesSection: React.FC<
   const headerT = t.header;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={direction}>
       <Card className="shadow-sm border">
         <CardHeader className="p-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -531,7 +554,11 @@ const QuestionnaireResponsesSection: React.FC<
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {hasAnyAnswers
-                    ? `${headerT.lastUpdated}: ${new Date(questionnaire.lastSaved).toLocaleDateString('he-IL')}`
+                    ? `${headerT.lastUpdated}: ${new Date(
+                        questionnaire.lastSaved
+                      ).toLocaleDateString(
+                        locale === 'he' ? 'he-IL' : 'en-US'
+                      )}`
                     : headerT.notStarted}
                 </p>
               </div>
@@ -547,7 +574,7 @@ const QuestionnaireResponsesSection: React.FC<
                   href={QUESTIONNAIRE_URL}
                   className="flex items-center gap-1.5"
                 >
-                  {headerT.goToButton} <ArrowRight className="h-4 w-4" />
+                  {headerT.goToButton} <ArrowIcon className="h-4 w-4" />
                 </Link>
               </Button>
               {isEditable && hasAnyAnswers && onUpdate && (
@@ -587,6 +614,7 @@ const QuestionnaireResponsesSection: React.FC<
               onUpdate={onUpdate!}
               isCompleted={isCompleted}
               dict={dict}
+              locale={locale}
             />
           ))}
         </div>
@@ -607,7 +635,7 @@ const QuestionnaireResponsesSection: React.FC<
                 href={QUESTIONNAIRE_URL}
                 className="flex items-center gap-1.5 px-6 py-2"
               >
-                {t.noAnswersState.button} <ArrowRight className="h-4 w-4" />
+                {t.noAnswersState.button} <ArrowIcon className="h-4 w-4" />
               </Link>
             </Button>
           </div>

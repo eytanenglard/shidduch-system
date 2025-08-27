@@ -11,6 +11,19 @@ import type { UserImage } from '@/types/next-auth';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
 import type { UserDropdownDict } from '@/types/dictionary';
 
+// ✨ שלב 1: הגדרת ממשק (Interface) עבור ה-Props של הרכיב
+// הוספנו את המאפיין 'locale' כדי שהרכיב ידע לקבל אותו
+interface UserDropdownProps {
+  session: NextAuthSession | null;
+  mainProfileImage: UserImage | null;
+  getInitials: () => string;
+  handleSignOut: () => void;
+  profileIconSize: string;
+  dict?: UserDropdownDict;
+  locale: 'he' | 'en'; // <-- הוספה של המאפיין החסר
+}
+
+// ✨ שלב 2: עדכון חתימת הרכיב כדי להשתמש בממשק החדש ולקבל את 'locale'
 const UserDropdown = ({
   session,
   mainProfileImage,
@@ -18,23 +31,17 @@ const UserDropdown = ({
   handleSignOut,
   profileIconSize,
   dict,
-}: {
-  session: NextAuthSession | null;
-  mainProfileImage: UserImage | null;
-  getInitials: () => string;
-  handleSignOut: () => void;
-  profileIconSize: string;
-  // הגדרת ה-prop כ-אופציונלי עם '?' מונעת שגיאות אם הוא לא מועבר
-  dict?: UserDropdownDict; 
-}) => {
+  locale, // <-- קבלת ה-prop
+}: UserDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [isRTL, setIsRTL] = useState(true); // Default to RTL for initial render
+
+  // ✨ שלב 3: קביעת הכיווניות על בסיס ה-locale שהתקבל
+  // זה מבטיח שהכיווניות נכונה גם ברינדור השרת ומונע קפיצות בטעינה
+  const isRtl = locale === 'he';
 
   useEffect(() => {
-    // Set directionality only on the client-side
-    setIsRTL(document.documentElement.dir === 'rtl');
-
+    // לוגיקה לסגירת התפריט בלחיצה מחוצה לו (ללא שינוי)
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
@@ -47,10 +54,9 @@ const UserDropdown = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // אם ה-dict לא הגיע, נשתמש בערכים זמניים באנגלית כדי למנוע קריסה
   const safeDict = dict || {
-    openMenuAriaLabel: 'Open user menu (fallback)',
-    profileImageAlt: 'Profile picture (fallback)',
+    openMenuAriaLabel: 'Open user menu',
+    profileImageAlt: 'Profile picture',
     myProfile: 'My Profile',
     questionnaire: 'Matching Questionnaire',
     accountSettings: 'Account Settings',
@@ -61,6 +67,7 @@ const UserDropdown = ({
     return null;
   }
 
+  // ✨ שלב 4: שימוש במשתנה isRtl וב-locale כדי להתאים את ה-CSS והקישורים
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -94,8 +101,9 @@ const UserDropdown = ({
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="onboarding-target-profile-dropdown"
+          // התאמת מיקום התפריט הנפתח לפי כיוון השפה
           className={`absolute mt-3 w-56 bg-white rounded-xl shadow-2xl z-20 border border-gray-100 ${
-            isRTL ? 'origin-top-left left-0' : 'origin-top-right right-0'
+            isRtl ? 'origin-top-left left-0' : 'origin-top-right right-0'
           }`}
         >
           <div className="p-1" role="none">
@@ -111,31 +119,33 @@ const UserDropdown = ({
               </p>
             </div>
             <div className="py-1" role="none">
+              {/* בניית קישורים דינמיים עם תחילית השפה */}
               <Link
-                href="/profile"
+                href={`/${locale}/profile`}
                 role="menuitem"
-                className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
+                className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                <User className="ml-2 h-4 w-4" />
+                {/* התאמת מיקום האייקון לפי כיוון השפה */}
+                <User className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                 {safeDict.myProfile}
               </Link>
               <Link
-                href="/questionnaire"
+                href={`/${locale}/questionnaire`}
                 role="menuitem"
-                className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
+                className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                <Lightbulb className="ml-2 h-4 w-4" />
+                <Lightbulb className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                 {safeDict.questionnaire}
               </Link>
               <Link
-                href="/settings"
+                href={`/${locale}/settings`}
                 role="menuitem"
-                className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
+                className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                <Settings className="ml-2 h-4 w-4" />
+                <Settings className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                 {safeDict.accountSettings}
               </Link>
             </div>
@@ -146,9 +156,9 @@ const UserDropdown = ({
                   handleSignOut();
                 }}
                 role="menuitem"
-                className="w-full text-right flex items-center px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
+                className="w-full flex items-center px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
               >
-                <LogOut className="ml-2 h-4 w-4" />
+                <LogOut className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                 {safeDict.signOut}
               </button>
             </div>

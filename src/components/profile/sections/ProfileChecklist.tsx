@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { QuestionnaireResponse } from '@/types/next-auth';
 import { Gender } from '@prisma/client';
-import { ProfileChecklistDict } from '@/types/dictionary'; // ייבוא הטיפוס החדש
+import { ProfileChecklistDict } from '@/types/dictionary';
 
 // Helper Types & Constants
 const QUESTION_COUNTS: Record<
@@ -61,7 +61,7 @@ interface ChecklistItemProps {
   }[];
   isActive: boolean;
   setActiveItemId: React.Dispatch<React.SetStateAction<string | null>>;
-  dict: ProfileChecklistDict; // הוספת המילון
+  dict: ProfileChecklistDict;
 }
 
 const ChecklistItem: React.FC<ChecklistItemProps> = ({
@@ -120,7 +120,7 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
               damping: 20,
               delay: 0.2,
             }}
-            className="absolute -top-1 -right-1"
+            className="absolute -top-1 -end-1" // Updated: from -right-1 to -end-1 for RTL support
           >
             <CheckCircle
               className="w-5 h-5 text-emerald-500 bg-white rounded-full p-0.5"
@@ -153,7 +153,7 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
     ) : (
       <button
         onClick={handleInteraction}
-        className="h-full w-full text-left"
+        className="h-full w-full text-start" // Updated: from text-left to text-start
         disabled={isCompleted}
       >
         {cardContent}
@@ -188,7 +188,9 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
                 {dict.missingItemsTitle}
               </h4>
               {missingItems && (
-                <ul className="list-disc pr-4 space-y-1.5 text-gray-600 text-xs">
+                <ul className="list-disc ps-4 space-y-1.5 text-gray-600 text-xs">
+                  {' '}
+                  {/* Updated: from pr-4 to ps-4 */}
                   {missingItems.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
@@ -234,7 +236,8 @@ interface ProfileChecklistProps {
   hasSeenPreview: boolean;
   onPreviewClick: () => void;
   questionnaireResponse: QuestionnaireResponse | null;
-  dict: ProfileChecklistDict; // הוספת המילון
+  dict: ProfileChecklistDict;
+  locale: string; // Added: locale prop for directionality
 }
 
 export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
@@ -243,10 +246,14 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   hasSeenPreview,
   questionnaireResponse,
   dict,
+  locale, // Added: destructure locale
 }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const missingItemsDict = dict.missingItems;
+
+  // Added: Determine direction based on locale
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   const getMissingItems = useMemo(() => {
     const p = user.profile;
@@ -401,7 +408,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
           ? [
               dict.tasks.photos.missing.replace(
                 '{{count}}',
-                (user.images?.length ?? 0).toString()
+                (3 - (user.images?.length ?? 0)).toString()
               ),
             ]
           : [],
@@ -611,10 +618,13 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         exit={{ opacity: 0, height: 0, transition: { duration: 0.4 } }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
         className="mb-8 rounded-3xl shadow-xl border border-white/50 bg-white/70 backdrop-blur-md overflow-hidden"
+        dir={direction} // Added: set direction for the whole component
       >
         <div className="p-4 sm:p-6">
           <div className="md:flex md:items-center md:justify-between">
-            <div className="flex-1 text-center md:text-right">
+            <div className="flex-1 text-center md:text-start">
+              {' '}
+              {/* Updated: from md:text-right to md:text-start */}
               <h2 className="text-xl font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
                 {isAllComplete && (
                   <Sparkles className="w-6 h-6 text-amber-500" />

@@ -15,6 +15,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, Sparkles, AlertTriangle, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils'; // Import cn utility
 
 import AnalysisResultDisplay from './AnalysisResultDisplay';
 import type { AiProfileAnalysisResult } from '@/lib/services/aiService';
@@ -24,17 +25,21 @@ interface AIProfileAdvisorDialogProps {
   userId: string;
   dict: AIAdvisorDialogDict;
   analysisDict: AnalysisResultDisplayDict;
+  locale: string; // Added locale prop
 }
 
 export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
   userId,
   dict,
-  analysisDict
+  analysisDict,
+  locale,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [analysis, setAnalysis] = useState<AiProfileAnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   const handleGetAnalysis = async () => {
     if (analysis) {
@@ -64,7 +69,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
       const errorMessage =
         err instanceof Error ? err.message : 'An unexpected error occurred.';
       setError(errorMessage);
-      // שימוש במבנה ה-toast הנכון
       toast.error(dict.toast.errorTitle, {
         description: dict.toast.errorDescription.replace('{{error}}', errorMessage),
       });
@@ -93,19 +97,24 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
           onClick={handleTriggerClick}
           variant="outline"
           size="lg"
-          className="rounded-full border-2 border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:border-purple-400 transition-all duration-300 shadow-sm hover:shadow-lg group w-full max-w-sm"
+          className="rounded-full border-2 border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:border-purple-400 transition-all duration-300 shadow-sm hover:shadow-lg group w-full max-w-sm flex items-center gap-2"
         >
-          <Sparkles className="w-5 h-5 ml-2 text-purple-500 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110" />
+          <Sparkles className="w-5 h-5 text-purple-500 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110" />
           <span>{dict.triggerButton}</span>
         </Button>
       </DialogTrigger>
 
       <DialogContent
         className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0"
-        dir="rtl"
+        dir={direction} // Dynamically set direction
       >
         <DialogClose asChild>
-          <button className="absolute top-3 left-4 rtl:right-4 rtl:left-auto text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10">
+          <button
+            className={cn(
+              'absolute top-3 text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10',
+              direction === 'rtl' ? 'left-4' : 'right-4'
+            )}
+          >
             <X className="h-5 w-5" />
             <span className="sr-only">{dict.closeButton}</span>
           </button>
@@ -140,7 +149,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
             <div className="flex flex-col items-center justify-center h-full text-center">
               <Alert variant="destructive" className="max-w-md">
                 <AlertTriangle className="h-5 w-5" />
-                {/* שימוש בשדות הנכונים לאלרט */}
                 <AlertTitle>{dict.errorAlertTitle}</AlertTitle>
                 <AlertDescription>
                   <p>{dict.errorAlertDescription}</p>
@@ -156,7 +164,11 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
               </Button>
             </div>
           ) : analysis ? (
-            <AnalysisResultDisplay analysis={analysis} dict={analysisDict} />
+            <AnalysisResultDisplay
+              analysis={analysis}
+              dict={analysisDict}
+              locale={locale} // Pass locale down
+            />
           ) : (
             <div className="flex items-center justify-center h-full">
               <p>{dict.initialState}</p>

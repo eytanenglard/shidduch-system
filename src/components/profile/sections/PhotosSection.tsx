@@ -45,6 +45,7 @@ interface PhotosSectionProps {
   onSetMain: (imageId: string) => Promise<void>;
   onDelete: (imageIds: string[]) => Promise<void>;
   dict: PhotosSectionDict;
+  locale: string; // Prop for language to determine direction
 }
 
 const PhotosSection: React.FC<PhotosSectionProps> = ({
@@ -56,6 +57,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   onSetMain,
   onDelete,
   dict,
+  locale,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,6 +74,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     new Set()
   );
 
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
   const isLoading =
     isExternallyUploading || isProcessing || uploadingFiles.length > 0;
 
@@ -246,16 +249,16 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   const handleNextImage = useCallback(
     () =>
       setSelectedViewerIndex((prev) =>
-        prev === null || prev >= images.length - 1 ? prev : prev + 1
+        prev === null || prev >= images.length - 1 ? 0 : prev + 1
       ),
     [images.length]
   );
   const handlePreviousImage = useCallback(
     () =>
       setSelectedViewerIndex((prev) =>
-        prev === null || prev <= 0 ? prev : prev - 1
+        prev === null || prev <= 0 ? images.length - 1 : prev - 1
       ),
-    []
+    [images.length]
   );
 
   const handleSetMainImage = async (
@@ -284,25 +287,41 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!showImageViewer) return;
-      if (e.key === 'ArrowRight') handlePreviousImage();
-      if (e.key === 'ArrowLeft') handleNextImage();
+      if (direction === 'rtl') {
+        if (e.key === 'ArrowRight') handlePreviousImage();
+        if (e.key === 'ArrowLeft') handleNextImage();
+      } else {
+        if (e.key === 'ArrowRight') handleNextImage();
+        if (e.key === 'ArrowLeft') handlePreviousImage();
+      }
       if (e.key === 'Escape') closeImageViewer();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showImageViewer, handlePreviousImage, handleNextImage, closeImageViewer]);
+  }, [
+    showImageViewer,
+    handlePreviousImage,
+    handleNextImage,
+    closeImageViewer,
+    direction,
+  ]);
 
   const getRemainingSlots = () => maxImages - images.length;
 
   return (
     <div
-      dir="rtl"
+      dir={direction}
       className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-8"
     >
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-4 border-b border-gray-200/80">
         {!selectionMode ? (
           <>
-            <div className="mb-3 sm:mb-0 text-right">
+            <div
+              className={cn(
+                'mb-3 sm:mb-0',
+                direction === 'rtl' ? 'text-right' : 'text-left'
+              )}
+            >
               <h2 className="text-xl font-semibold text-gray-800">
                 {dict.title}
               </h2>
@@ -449,7 +468,10 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
             )}
             {!disabled && !selectionMode && (
               <div
-                className="absolute top-2 right-2 z-10 flex gap-1.5 opacity-85 group-hover:opacity-100 transition-opacity duration-200"
+                className={cn(
+                  'absolute top-2 z-10 flex gap-1.5 opacity-85 group-hover:opacity-100 transition-opacity duration-200',
+                  direction === 'rtl' ? 'left-2' : 'right-2'
+                )}
                 onClick={handleControlClick}
               >
                 <Button
@@ -487,7 +509,12 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               </div>
             )}
             {image.isMain && !selectionMode && (
-              <Badge className="absolute bottom-2 left-2 rounded-full px-2.5 py-0.5 text-xs font-medium shadow-md text-white bg-gradient-to-r from-cyan-500 to-pink-500 border-none">
+              <Badge
+                className={cn(
+                  'absolute bottom-2 rounded-full px-2.5 py-0.5 text-xs font-medium shadow-md text-white bg-gradient-to-r from-cyan-500 to-pink-500 border-none',
+                  direction === 'rtl' ? 'right-2' : 'left-2'
+                )}
+              >
                 {dict.mainBadge}
               </Badge>
             )}
@@ -557,7 +584,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <DialogContent
           className="sm:max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-none p-6"
-          dir="rtl"
+          dir={direction}
         >
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-gray-800">
@@ -582,12 +609,12 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               variant="destructive"
               onClick={confirmDelete}
               disabled={isLoading}
-              className="rounded-full px-5"
+              className="rounded-full px-5 flex items-center gap-2"
             >
               {isProcessing ? (
-                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <Trash2 className="w-4 h-4 ml-2" />
+                <Trash2 className="w-4 h-4" />
               )}
               <span>{dict.deleteDialog.confirm}</span>
             </Button>
@@ -599,11 +626,15 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
         <DialogContent
           className="p-0 m-0 w-screen h-screen max-w-none sm:max-w-full sm:h-full bg-black/90 backdrop-blur-sm border-none rounded-none flex items-center justify-center outline-none"
           aria-describedby={undefined}
+          dir={direction}
         >
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-4 left-4 z-50 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors"
+            className={cn(
+              'absolute top-4 z-50 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors',
+              direction === 'rtl' ? 'right-4' : 'left-4'
+            )}
             onClick={closeImageViewer}
             aria-label={dict.imageViewer.closeLabel}
           >
@@ -629,10 +660,16 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
                 {images.length > 1 && (
                   <>
+                    {/* Previous Button */}
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto"
+                      className={cn(
+                        'absolute top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto',
+                        direction === 'rtl'
+                          ? 'right-2 sm:right-4'
+                          : 'left-2 sm:left-4'
+                      )}
                       onClick={(e) => {
                         e.stopPropagation();
                         handlePreviousImage();
@@ -640,12 +677,22 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                       disabled={selectedViewerIndex === 0}
                       aria-label={dict.imageViewer.prevLabel}
                     >
-                      <ChevronRight className="w-7 h-7" />
+                      {direction === 'rtl' ? (
+                        <ChevronRight className="w-7 h-7" />
+                      ) : (
+                        <ChevronLeft className="w-7 h-7" />
+                      )}
                     </Button>
+                    {/* Next Button */}
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto"
+                      className={cn(
+                        'absolute top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto',
+                        direction === 'rtl'
+                          ? 'left-2 sm:left-4'
+                          : 'right-2 sm:right-4'
+                      )}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleNextImage();
@@ -653,12 +700,21 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                       disabled={selectedViewerIndex === images.length - 1}
                       aria-label={dict.imageViewer.nextLabel}
                     >
-                      <ChevronLeft className="w-7 h-7" />
+                      {direction === 'rtl' ? (
+                        <ChevronLeft className="w-7 h-7" />
+                      ) : (
+                        <ChevronRight className="w-7 h-7" />
+                      )}
                     </Button>
                   </>
                 )}
                 {!disabled && (
-                  <div className="absolute top-4 right-4 z-50 flex flex-col sm:flex-row gap-2 pointer-events-auto">
+                  <div
+                    className={cn(
+                      'absolute top-4 z-50 flex flex-col sm:flex-row gap-2 pointer-events-auto',
+                      direction === 'rtl' ? 'left-4' : 'right-4'
+                    )}
+                  >
                     {!images[selectedViewerIndex].isMain && (
                       <Button
                         variant="secondary"

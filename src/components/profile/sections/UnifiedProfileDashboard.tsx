@@ -48,6 +48,7 @@ interface UnifiedProfileDashboardProps {
   userId?: string;
   initialTab?: string;
   dict: ProfilePageDictionary;
+  locale: string; // Added locale prop
 }
 
 const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
@@ -55,6 +56,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   userId,
   initialTab = 'overview',
   dict,
+  locale, // Destructure locale
 }) => {
   const {
     data: session,
@@ -76,6 +78,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const [hasSeenPreview, setHasSeenPreview] = useState(
     session?.user?.profile?.hasViewedProfilePreview || false
   );
+  const direction = locale === 'he' ? 'rtl' : 'ltr'; // Define direction based on locale
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -410,7 +413,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         role="status"
         aria-live="polite"
         className="flex items-center justify-center min-h-screen bg-gradient-to-br from-cyan-50 via-white to-pink-50"
-        dir="rtl"
+        dir={direction} // Changed
       >
         <div className="flex items-center gap-2 text-lg text-cyan-600">
           <Loader2 className="animate-spin h-6 w-6" />
@@ -424,7 +427,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     return (
       <div
         className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 p-4"
-        dir="rtl"
+        dir={direction} // Changed
       >
         <Alert variant="destructive" className="max-w-md mx-auto">
           <AlertDescription className="text-center">{error}</AlertDescription>
@@ -436,7 +439,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const user = session?.user as SessionUserType | undefined;
 
   return (
-    <div className="relative min-h-screen w-full" dir="rtl">
+    <div className="relative min-h-screen w-full" dir={direction}>
       <div
         className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-pink-50 animate-gradient-slow -z-10"
         style={{ backgroundSize: '400% 400%' }}
@@ -462,57 +465,58 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 onPreviewClick={handlePreviewClick}
                 questionnaireResponse={questionnaireResponse}
                 dict={dict.dashboard.checklist}
+                locale={locale} // Added
               />
               <div className="my-6 md:my-8 text-center">
                 <AIProfileAdvisorDialog
                   userId={user.id}
                   dict={dict.dashboard.aiAdvisor}
                   analysisDict={dict.dashboard.analysisResult}
+                  locale={locale}
                 />
               </div>
             </>
           )}
 
           {!viewOnly && isOwnProfile && (
-            <div className="flex justify-center my-6 md:my-8">
-              <div
-                id="onboarding-target-preview-profile"
-                className="flex justify-center my-6 md:my-8"
-              >
-                <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-                  <DialogTrigger asChild>
-                    <Button
-                      onClick={handlePreviewClick}
-                      variant="outline"
-                      size="lg"
-                      className="px-8 py-3 text-base sm:text-lg gap-2 rounded-full border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400 transition-all duration-300 shadow-sm hover:shadow-md"
-                    >
-                      {dict.dashboard.previewButton}{' '}
-                      <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="w-screen h-screen sm:w-[95vw] sm:h-[90vh] sm:max-w-6xl p-0 bg-white/95 backdrop-blur-md sm:rounded-3xl shadow-2xl border-none overflow-hidden">
-                    {profileData ? (
-                      <ProfileCard
-                        profile={profileData}
-                        images={images}
-                        questionnaire={questionnaireResponse}
-                        viewMode="candidate"
-                        isProfileComplete={
-                          session?.user?.isProfileComplete ?? false
-                        }
-                        className="h-full"
-                        onClose={() => setPreviewOpen(false)}
-                        dict={dict.profileCard}
-                      />
-                    ) : (
-                      <p className="text-center text-gray-500 py-10">
-                        {dict.dashboard.previewLoading}
-                      </p>
-                    )}
-                  </DialogContent>
-                </Dialog>
-              </div>
+            <div
+              id="onboarding-target-preview-profile"
+              className="flex justify-center my-6 md:my-8"
+            >
+              <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    onClick={handlePreviewClick}
+                    variant="outline"
+                    size="lg"
+                    className="px-8 py-3 text-base sm:text-lg gap-2 rounded-full border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400 transition-all duration-300 shadow-sm hover:shadow-md"
+                  >
+                    {dict.dashboard.previewButton}
+                    <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-screen h-screen sm:w-[95vw] sm:h-[90vh] sm:max-w-6xl p-0 bg-white/95 backdrop-blur-md sm:rounded-3xl shadow-2xl border-none overflow-hidden">
+                  {profileData ? (
+                    <ProfileCard
+                      profile={profileData}
+                      images={images}
+                      questionnaire={questionnaireResponse}
+                      viewMode="candidate"
+                      isProfileComplete={
+                        session?.user?.isProfileComplete ?? false
+                      }
+                      className="h-full"
+                      onClose={() => setPreviewOpen(false)}
+                      dict={dict.profileCard}
+                      locale={locale} // Pass locale to ProfileCard
+                    />
+                  ) : (
+                    <p className="text-center text-gray-500 py-10">
+                      {dict.dashboard.previewLoading}
+                    </p>
+                  )}
+                </DialogContent>
+              </Dialog>
             </div>
           )}
 
@@ -522,7 +526,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
             className="w-full"
           >
             <div className="flex justify-center mb-6 md:mb-8">
-              <ScrollArea dir="rtl" className="w-auto max-w-full">
+              <ScrollArea dir={direction} className="w-auto max-w-full">
                 <TabsList className="h-auto p-1.5 bg-white/70 backdrop-blur-sm rounded-full shadow-md gap-1 inline-flex flex-nowrap">
                   <TabsTrigger value="overview">
                     {dict.dashboard.tabs.overview}
@@ -550,6 +554,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     onSave={handleSave}
                     viewOnly={viewOnly || !isOwnProfile}
                     dict={dict.profileSection}
+                    locale={locale} // Pass locale
                   />
                 ) : (
                   <p className="text-center text-gray-500 py-10">
@@ -566,6 +571,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   onSetMain={handleSetMainImage}
                   onDelete={handleDeleteImage}
                   dict={dict.photosSection}
+                  locale={locale}
                 />
               </TabsContent>
               <TabsContent value="preferences">
@@ -577,6 +583,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     onChange={handleSave}
                     viewOnly={viewOnly || !isOwnProfile}
                     dictionary={dict.preferencesSection}
+                    locale={locale} // Pass locale
                   />
                 ) : (
                   <p className="text-center text-gray-500 py-10">
@@ -591,6 +598,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     onUpdate={handleQuestionnaireUpdate}
                     isEditable={!viewOnly && isOwnProfile}
                     dict={dict}
+                    locale={locale} // Pass locale
                   />
                 ) : (
                   <div className="text-center py-12 text-gray-500">

@@ -65,6 +65,7 @@ interface ProfileSectionProps {
   viewOnly?: boolean;
   onSave: (data: Partial<UserProfile>) => void;
   dict: ProfileSectionDict;
+  locale: string; // Adicionado para controle de direção
 }
 
 const ensureDateObject = (
@@ -90,6 +91,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   viewOnly = false,
   onSave,
   dict,
+  locale, // Recebendo o locale
 }) => {
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [loading, setLoading] = useState(true);
@@ -97,6 +99,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   const [cityInputValue, setCityInputValue] = useState('');
   const [aliyaCountryInputValue, setAliyaCountryInputValue] = useState('');
+
+  // Determina a direção com base no locale
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   const characterTraitsOptions = useMemo(
     () =>
@@ -461,9 +466,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         <Badge
           key={value}
           variant="secondary"
-          className="mr-1 mb-1 bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full"
+          className="me-1 mb-1 bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full"
         >
-          {option.icon && <option.icon className="w-3 h-3 mr-1" />}
+          {option.icon && <option.icon className="w-3 h-3 me-1" />}
           {option.label}
         </Badge>
       ) : null;
@@ -471,11 +476,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   };
 
   return (
-    <div className="relative" dir="rtl">
+    <div className="relative" dir={direction}>
       <div className="sticky top-0 z-10 bg-gradient-to-b from-white via-white/95 to-white/0 pt-4 pb-3 backdrop-blur-sm">
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="text-start">
               <h1 className="text-xl md:text-2xl font-bold text-slate-800">
                 {dict.header.title}
               </h1>
@@ -494,7 +499,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     onClick={() => setIsEditing(true)}
                     className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50"
                   >
-                    <Pencil className="w-3.5 h-3.5 ml-1.5" />
+                    <Pencil className="w-3.5 h-3.5 ms-1.5" />
                     {dict.buttons.edit}
                   </Button>
                 ) : (
@@ -506,7 +511,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         onClick={handleCancel}
                         className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50"
                       >
-                        <X className="w-3.5 h-3.5 ml-1.5" />
+                        <X className="w-3.5 h-3.5 ms-1.5" />
                         {dict.buttons.cancel}
                       </Button>
                       <Button
@@ -515,7 +520,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         onClick={handleSave}
                         className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white"
                       >
-                        <Save className="w-3.5 h-3.5 ml-1.5" />
+                        <Save className="w-3.5 h-3.5 ms-1.5" />
                         {dict.buttons.save}
                       </Button>
                     </div>
@@ -548,6 +553,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.gender || ''}
                         onValueChange={(value) =>
                           handleChange('gender', value as Gender)
@@ -555,7 +561,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="gender"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={dict.cards.personal.genderPlaceholder}
@@ -794,6 +800,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.nativeLanguage || ''}
                         onValueChange={(value) =>
                           handleChange('nativeLanguage', value || undefined)
@@ -801,7 +808,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="nativeLanguage"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -809,7 +816,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             }
                           />
                         </SelectTrigger>
-                        <SelectContent className="max-h-[200px]">
+                        <SelectContent>
                           {languageOptions.map((lang) => (
                             <SelectItem key={lang.value} value={lang.value}>
                               {lang.label}
@@ -835,6 +842,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         onValueChange={(value) => {
                           const currentLanguages =
                             formData.additionalLanguages || [];
@@ -848,7 +856,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="additionalLanguages"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -895,7 +903,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                     )
                                   )
                                 }
-                                className="mr-1.5 text-cyan-600 hover:text-cyan-800 text-xs"
+                                className="ms-1.5 text-cyan-600 hover:text-cyan-800 text-xs"
                                 aria-label={dict.cards.personal.removeLanguageLabel.replace(
                                   '{{lang}}',
                                   lang.label
@@ -938,6 +946,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.maritalStatus || ''}
                         onValueChange={(value) =>
                           handleChange('maritalStatus', value || undefined)
@@ -945,7 +954,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="maritalStatus"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -1161,6 +1170,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.religiousLevel || ''}
                         onValueChange={(value) =>
                           handleChange('religiousLevel', value || undefined)
@@ -1168,7 +1178,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="religiousLevel"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -1202,6 +1212,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.religiousJourney || ''}
                         onValueChange={(value) =>
                           handleChange(
@@ -1212,7 +1223,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="religiousJourney"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -1281,6 +1292,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </Label>
                       {isEditing && !viewOnly ? (
                         <Select
+                          dir={direction}
                           value={formData.headCovering || ''}
                           onValueChange={(value) =>
                             handleChange(
@@ -1291,7 +1303,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         >
                           <SelectTrigger
                             id="headCovering"
-                            className="h-9 text-sm focus:ring-cyan-500"
+                            className="h-9 text-sm focus:ring-cyan-500 text-start"
                           >
                             <SelectValue
                               placeholder={
@@ -1328,6 +1340,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </Label>
                       {isEditing && !viewOnly ? (
                         <Select
+                          dir={direction}
                           value={formData.kippahType || ''}
                           onValueChange={(value) =>
                             handleChange(
@@ -1338,7 +1351,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         >
                           <SelectTrigger
                             id="kippahType"
-                            className="h-9 text-sm focus:ring-cyan-500"
+                            className="h-9 text-sm focus:ring-cyan-500 text-start"
                           >
                             <SelectValue
                               placeholder={
@@ -1374,6 +1387,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.preferredMatchmakerGender || ''}
                         onValueChange={(value) =>
                           handleChange(
@@ -1384,7 +1398,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="preferredMatchmakerGender"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -1593,7 +1607,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           <div
                             id="about-char-count"
                             className={cn(
-                              'text-xs mt-1 text-right',
+                              'text-xs mt-1 text-end',
                               formData.about.trim().length < 100
                                 ? 'text-red-600'
                                 : 'text-gray-500'
@@ -1794,6 +1808,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             {dict.cards.medical.timingLabel}
                           </Label>
                           <Select
+                            dir={direction}
                             value={formData.medicalInfoDisclosureTiming || ''}
                             onValueChange={(value) =>
                               handleChange(
@@ -1804,7 +1819,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           >
                             <SelectTrigger
                               id="medicalInfoDisclosureTiming"
-                              className="h-9 text-sm focus:ring-cyan-500"
+                              className="h-9 text-sm focus:ring-cyan-500 text-start"
                             >
                               <SelectValue
                                 placeholder={
@@ -1910,7 +1925,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                 variant="secondary"
                                 className="bg-green-100 text-green-800"
                               >
-                                <Eye className="w-3.5 h-3.5 ml-1.5" />
+                                <Eye className="w-3.5 h-3.5 ms-1.5" />
                                 {dict.cards.medical.display.visibleBadge}
                               </Badge>
                             ) : (
@@ -1918,7 +1933,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                 variant="secondary"
                                 className="bg-gray-100 text-gray-700"
                               >
-                                <Lock className="w-3.5 h-3.5 ml-1.5" />
+                                <Lock className="w-3.5 h-3.5 ms-1.5" />
                                 {dict.cards.medical.display.hiddenBadge}
                               </Badge>
                             )}
@@ -1949,6 +1964,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.educationLevel || ''}
                         onValueChange={(value) =>
                           handleChange('educationLevel', value || undefined)
@@ -1956,7 +1972,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="educationLevel"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={dict.cards.education.levelPlaceholder}
@@ -2035,6 +2051,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.serviceType || ''}
                         onValueChange={(value) =>
                           handleChange(
@@ -2045,7 +2062,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="serviceType"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -2149,7 +2166,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           )}
                         >
                           {trait.icon && (
-                            <trait.icon className="w-3.5 h-3.5 ml-1.5 rtl:mr-1.5 rtl:ml-0" />
+                            <trait.icon className="w-3.5 h-3.5 ms-1.5" />
                           )}
                           {trait.label}
                         </Button>
@@ -2206,7 +2223,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           )}
                         >
                           {hobby.icon && (
-                            <hobby.icon className="w-3.5 h-3.5 ml-1.5 rtl:mr-1.5 rtl:ml-0" />
+                            <hobby.icon className="w-3.5 h-3.5 ms-1.5" />
                           )}
                           {hobby.label}
                         </Button>
@@ -2237,7 +2254,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               onClick={handleCancel}
               className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-2"
             >
-              <X className="w-4 h-4 ml-1.5" />
+              <X className="w-4 h-4 ms-1.5" />
               {dict.buttons.cancel}
             </Button>
             <Button
@@ -2246,7 +2263,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               onClick={handleSave}
               className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2"
             >
-              <Save className="w-4 h-4 ml-1.5" />
+              <Save className="w-4 h-4 ms-1.5" />
               {dict.buttons.saveChanges}
             </Button>
           </div>

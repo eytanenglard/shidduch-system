@@ -58,6 +58,7 @@ interface PreferencesSectionProps {
   setIsEditing: (value: boolean) => void;
   onChange: (data: Partial<UserProfile>) => void;
   dictionary: PreferencesSectionDict; // Passing the dictionary as a prop
+  locale: string; // Added locale for RTL/LTR support
 }
 
 const PreferencesSection: React.FC<PreferencesSectionProps> = ({
@@ -67,11 +68,14 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   setIsEditing,
   onChange,
   dictionary: t, // Using 't' as a shorthand for the dictionary
+  locale, // Destructure locale
 }) => {
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
   const [locationInputValue, setLocationInputValue] = useState('');
   const [originInputValue, setOriginInputValue] = useState('');
+
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   // --- Map icons to values for dynamic options ---
   const iconMap: { [key: string]: React.ElementType } = {
@@ -300,11 +304,11 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
           key={value}
           variant="secondary"
           className={cn(
-            'mr-1 mb-1 text-xs px-2 py-0.5 rounded-full flex items-center',
+            'ltr:mr-1 rtl:ml-1 mb-1 text-xs px-2 py-0.5 rounded-full flex items-center',
             badgeClass
           )}
         >
-          {option.icon && <option.icon className="w-3 h-3 rtl:ml-1 mr-1" />}
+          {option.icon && <option.icon className="w-3 h-3 ltr:mr-1 rtl:ml-1" />}
           {option.label}
         </Badge>
       ) : null;
@@ -327,7 +331,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   };
 
   return (
-    <div className="relative" dir="rtl">
+    <div className="relative" dir={direction}>
       <div className="sticky top-0 z-10 bg-gradient-to-b from-white via-white/95 to-white/0 pt-4 pb-3 backdrop-blur-sm">
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="flex items-center justify-between">
@@ -350,7 +354,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     onClick={() => setIsEditing(true)}
                     className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50"
                   >
-                    <Pencil className="w-3.5 h-3.5 ml-1.5" />
+                    <Pencil className="w-3.5 h-3.5 ltr:ml-1.5 rtl:mr-1.5" />
                     {t.buttons.edit}
                   </Button>
                 ) : (
@@ -361,7 +365,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       onClick={handleCancel}
                       className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50"
                     >
-                      <X className="w-3.5 h-3.5 ml-1.5" />
+                      <X className="w-3.5 h-3.5 ltr:ml-1.5 rtl:mr-1.5" />
                       {t.buttons.cancel}
                     </Button>
                     <Button
@@ -370,7 +374,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       onClick={handleSave}
                       className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white"
                     >
-                      <Save className="w-3.5 h-3.5 ml-1.5" />
+                      <Save className="w-3.5 h-3.5 ltr:ml-1.5 rtl:mr-1.5" />
                       {t.buttons.save}
                     </Button>
                   </>
@@ -631,7 +635,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             <span>{loc}</span>
                             <button
                               type="button"
-                              className="mr-1.5 rtl:mr-0 rtl:ml-1.5 text-sky-600 hover:text-sky-900"
+                              className="ltr:mr-1.5 rtl:ml-1.5 text-sky-600 hover:text-sky-900"
                               onClick={() =>
                                 handleRemoveItemFromArray(
                                   'preferredLocations',
@@ -691,7 +695,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                           <Badge
                             key={loc}
                             variant="secondary"
-                            className="mr-1 mb-1 bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full"
+                            className="ltr:mr-1 rtl:ml-1 mb-1 bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full"
                           >
                             {loc}
                           </Badge>
@@ -1278,7 +1282,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                                 <span>{origin}</span>
                                 <button
                                   type="button"
-                                  className="mr-1.5 rtl:mr-0 rtl:ml-1.5 text-fuchsia-600 hover:text-fuchsia-900"
+                                  className="ltr:mr-1.5 rtl:ml-1.5 text-fuchsia-600 hover:text-fuchsia-900"
                                   onClick={() =>
                                     handleRemoveItemFromArray(
                                       'preferredOrigins',
@@ -1348,7 +1352,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             <Badge
                               key={originValue}
                               variant="secondary"
-                              className="mr-1 mb-1 bg-fuchsia-100 text-fuchsia-700 text-xs px-2 py-0.5 rounded-full"
+                              className="ltr:mr-1 rtl:ml-1 mb-1 bg-fuchsia-100 text-fuchsia-700 text-xs px-2 py-0.5 rounded-full"
                             >
                               {label}
                             </Badge>
@@ -1454,7 +1458,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                           )}
                         >
                           {opt.icon && (
-                            <opt.icon className="w-3.5 h-3.5 rtl:ml-1.5 mr-1.5" />
+                            <opt.icon className="w-3.5 h-3.5 ltr:mr-1.5 rtl:ml-1.5" />
                           )}
                           {opt.label}
                         </Button>
@@ -1513,7 +1517,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                           )}
                         >
                           {opt.icon && (
-                            <opt.icon className="w-3.5 h-3.5 rtl:ml-1.5 mr-1.5" />
+                            <opt.icon className="w-3.5 h-3.5 ltr:mr-1.5 rtl:ml-1.5" />
                           )}
                           {opt.label}
                         </Button>

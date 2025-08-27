@@ -26,6 +26,7 @@ import { AnalysisResultDisplayDict } from '@/types/dictionary';
 interface AnalysisResultDisplayProps {
   analysis: AiProfileAnalysisResult;
   dict: AnalysisResultDisplayDict;
+  locale: string; // Added locale prop
 }
 
 const TipCard: React.FC<{ area: string; tip: string }> = ({ area, tip }) => (
@@ -47,9 +48,18 @@ interface ReportItemProps {
   dict: AnalysisResultDisplayDict['completeness']['status'];
 }
 
-const ReportItem: React.FC<ReportItemProps> = ({ area, status, feedback, dict }) => {
+const ReportItem: React.FC<ReportItemProps> = ({
+  area,
+  status,
+  feedback,
+  dict,
+}) => {
   const statusConfig = {
-    COMPLETE: { icon: CheckCircle2, color: 'text-green-600', text: dict.complete },
+    COMPLETE: {
+      icon: CheckCircle2,
+      color: 'text-green-600',
+      text: dict.complete,
+    },
     PARTIAL: { icon: AlertCircle, color: 'text-amber-600', text: dict.partial },
     MISSING: { icon: XCircle, color: 'text-red-600', text: dict.missing },
   };
@@ -83,13 +93,18 @@ const ReportItem: React.FC<ReportItemProps> = ({ area, status, feedback, dict })
 const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
   analysis,
   dict,
+  locale,
 }) => {
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
+
   return (
-    <div className="w-full">
+    <div dir={direction} className="w-full">
       <Tabs defaultValue="summary" className="w-full">
         <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-slate-200/70 rounded-lg">
           <TabsTrigger value="summary">{dict.tabs.summary}</TabsTrigger>
-          <TabsTrigger value="completeness">{dict.tabs.completeness}</TabsTrigger>
+          <TabsTrigger value="completeness">
+            {dict.tabs.completeness}
+          </TabsTrigger>
           <TabsTrigger value="tips">{dict.tabs.tips}</TabsTrigger>
         </TabsList>
 
@@ -99,11 +114,9 @@ const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <User className="text-blue-500" />
-                  {/* תיקון: שימוש בשמות הנכונים מהמילון */}
                   {dict.summary.myPersonalityTitle}
                 </CardTitle>
                 <CardDescription>
-                  {/* תיקון: שימוש בשמות הנכונים מהמילון */}
                   {dict.summary.myPersonalityDescription}
                 </CardDescription>
               </CardHeader>
@@ -145,7 +158,11 @@ const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
               <CardContent className="p-0">
                 <div className="space-y-0 divide-y">
                   {analysis.completenessReport.map((item, index) => (
-                    <ReportItem key={index} {...item} dict={dict.completeness.status} />
+                    <ReportItem
+                      key={index}
+                      {...item}
+                      dict={dict.completeness.status}
+                    />
                   ))}
                 </div>
               </CardContent>
@@ -159,9 +176,7 @@ const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
                   <Lightbulb className="text-yellow-500" />
                   {dict.tips.title}
                 </CardTitle>
-                <CardDescription>
-                  {dict.tips.description}
-                </CardDescription>
+                <CardDescription>{dict.tips.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {analysis.actionableTips.map((tip, index) => (

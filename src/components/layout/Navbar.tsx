@@ -31,14 +31,13 @@ import {
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import UserDropdown from './UserDropdown';
 import type { Dictionary } from '@/types/dictionary';
-
-// ✨ שלב 1: ייבוא ה-Hook מה-Context
 import { useQuestionnaireState } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
-// --- רכיב לוגו (ללא שינוי) ---
-const Logo = () => (
+// --- רכיב לוגו (עם תיקון) ---
+// ✨ תיקון: הוספנו את המשתנה locale כדי שהלוגו יקשר לדף הבית בשפה הנכונה
+const Logo = ({ locale }: { locale: string }) => (
   <Link
-    href="/"
+    href={`/${locale}`} // <-- התיקון כאן
     className="flex items-center gap-x-2 group shrink-0"
     aria-label="NeshamaTech Homepage"
   >
@@ -59,7 +58,7 @@ const Logo = () => (
   </Link>
 );
 
-// --- רכיבי ניווט (ללא שינוי) ---
+// --- רכיבי ניווט (ללא שינוי, הם היו תקינים) ---
 const NavItem = ({
   href,
   text,
@@ -202,7 +201,6 @@ const Navbar = ({ dict }: NavbarProps) => {
   const pathname = usePathname();
   const router = useRouter();
 
-  // ✨ שלב 2: קריאה ל-Hook בתוך רכיב ה-Navbar
   const { isDirty, promptNavigation } = useQuestionnaireState();
 
   const isMatchmaker =
@@ -210,7 +208,10 @@ const Navbar = ({ dict }: NavbarProps) => {
   const { notifications } = useNotifications();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const locale = pathname.split('/')[1] || 'he';
+
+  // ✨ שינוי מרכזי: קביעת ה-locale פעם אחת במקום בכל רכיב מחדש
+  const locale = (pathname.split('/')[1] || 'he') as 'he' | 'en';
+
   const isHomePage = pathname === `/${locale}` || pathname === '/';
 
   const homePageLinks = dict.stickyNav?.navLinks
@@ -243,16 +244,10 @@ const Navbar = ({ dict }: NavbarProps) => {
       ]
     : [];
 
-  // ✨ שלב 3: עדכון הלוגיקה של החלפת השפה
   const handleLanguageChange = () => {
-    // הגדרת הפעולה שאנו רוצים לבצע
     const changeAction = () => {
-      const currentLocale = pathname.split('/')[1] || 'he';
-      const newLocale = currentLocale === 'he' ? 'en' : 'he';
-      const newPathname = pathname.replace(
-        `/${currentLocale}`,
-        `/${newLocale}`
-      );
+      const newLocale = locale === 'he' ? 'en' : 'he';
+      const newPathname = pathname.replace(`/${locale}`, `/${newLocale}`);
 
       if (mobileMenuOpen) {
         setMobileMenuOpen(false);
@@ -260,13 +255,9 @@ const Navbar = ({ dict }: NavbarProps) => {
       router.push(newPathname);
     };
 
-    // בדיקה: האם יש שינויים שלא נשמרו?
     if (isDirty) {
-      // אם כן, פתח את המודאל ובקש אישור מהמשתמש.
-      // הפונקציה promptNavigation מגיעה מה-Context.
       promptNavigation(changeAction);
     } else {
-      // אם לא, בצע את הפעולה מיד
       changeAction();
     }
   };
@@ -281,7 +272,7 @@ const Navbar = ({ dict }: NavbarProps) => {
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const handleSignOut = () => {
     setMobileMenuOpen(false);
-    signOut({ callbackUrl: '/' });
+    signOut({ callbackUrl: `/${locale}` }); // ✨ תיקון: חזרה לדף הבית בשפה הנכונה
   };
   const getInitials = () => {
     const fullName = session?.user?.name;
@@ -313,11 +304,10 @@ const Navbar = ({ dict }: NavbarProps) => {
       <nav
         className={`sticky top-0 z-50 w-full transition-all duration-300 ${navbarClasses}`}
       >
-        {/* ... (שאר ה-JSX נשאר זהה לחלוטין) ... */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-4 md:gap-8">
-              <Logo />
+              <Logo locale={locale} /> {/* ✨ תיקון: העברת ה-locale ללוגו */}
               <nav
                 aria-label="ניווט ראשי"
                 className="hidden md:flex items-center gap-2 md:gap-3"
@@ -389,6 +379,10 @@ const Navbar = ({ dict }: NavbarProps) => {
                   handleSignOut={handleSignOut}
                   profileIconSize={profileIconSize}
                   dict={dict.userDropdown}
+                  // ✨ תיקון: העברת ה-locale לרכיב ה-Dropdown
+                  // יש לוודא שברכיב UserDropdown אתם משתמשים ב-locale לבניית הקישורים
+                  // לדוגמה: <Link href={`/${props.locale}/profile`}>...</Link>
+                  locale={locale}
                 />
               ) : (
                 <div className="hidden md:flex items-center gap-2">
@@ -397,7 +391,8 @@ const Navbar = ({ dict }: NavbarProps) => {
                     text={dict.navbar.toQuestionnaire}
                   />
                   <NavItem href="/auth/signin" text={dict.navbar.login} />
-                  <Link href="/auth/register">
+                  {/* ✨ תיקון: הוספת תחילית השפה לקישור ההרשמה */}
+                  <Link href={`/${locale}/auth/register`}>
                     <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
                       <span className="relative z-10 flex items-center">
                         <UserPlus className="ml-1.5 h-4 w-4" />
@@ -430,14 +425,14 @@ const Navbar = ({ dict }: NavbarProps) => {
         />
       )}
       <div
-        className={`fixed top-0 ${(pathname.split('/')[1] || 'he') === 'he' ? 'right-0' : 'left-0'} z-50 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden ${mobileMenuOpen ? 'translate-x-0' : (pathname.split('/')[1] || 'he') === 'he' ? 'translate-x-full' : '-translate-x-full'}`}
+        className={`fixed top-0 ${locale === 'he' ? 'right-0' : 'left-0'} z-50 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden ${mobileMenuOpen ? 'translate-x-0' : locale === 'he' ? 'translate-x-full' : '-translate-x-full'}`}
         id="mobile-menu-panel"
         role="dialog"
         aria-modal="true"
         aria-label="תפריט ניווט"
       >
         <div className="flex justify-between items-center p-4 border-b border-gray-100">
-          <Logo />
+          <Logo locale={locale} /> {/* ✨ תיקון: העברת ה-locale ללוגו */}
           <Button
             variant="ghost"
             size="icon"
@@ -618,11 +613,9 @@ const Navbar = ({ dict }: NavbarProps) => {
               className="w-full font-medium border-gray-300 text-gray-600 hover:bg-gray-100 hover:border-gray-400 flex items-center justify-center py-6 text-base"
             >
               <Globe
-                className={`h-5 w-5 ${(pathname.split('/')[1] || 'he') === 'he' ? 'ml-2' : 'mr-2'}`}
+                className={`h-5 w-5 ${locale === 'he' ? 'ml-2' : 'mr-2'}`}
               />
-              {(pathname.split('/')[1] || 'he') === 'he'
-                ? 'Switch to English'
-                : 'החלף לעברית'}
+              {locale === 'he' ? 'Switch to English' : 'החלף לעברית'}
             </Button>
           </div>
         </div>

@@ -1340,7 +1340,7 @@ const DetailItem: React.FC<{
   tooltip?: string;
   variant?: 'default' | 'highlight' | 'elegant' | 'romantic';
   size?: 'sm' | 'md' | 'lg';
-  textAlign?: 'center' | 'right' | 'left';
+  textAlign?: 'center' | 'right' | 'left' | 'start' | 'end';
   responsive?: boolean;
   useMobileLayout?: boolean;
   placeholder: string;
@@ -1411,6 +1411,7 @@ const DetailItem: React.FC<{
 
   const currentSize = sizes[size];
   const currentVariant = variants[variant];
+  const textAlignClass = `text-${textAlign}`;
 
   const content = (
     <div
@@ -1453,7 +1454,8 @@ const DetailItem: React.FC<{
         </div>
         <p
           className={cn(
-            'font-semibold mb-1 tracking-wide leading-tight text-center',
+            'font-semibold mb-1 tracking-wide leading-tight',
+            textAlignClass,
             currentSize.label,
             'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
             variant === 'highlight' || variant === 'elegant'
@@ -1466,7 +1468,8 @@ const DetailItem: React.FC<{
         </p>
         <div
           className={cn(
-            'font-medium leading-relaxed text-center',
+            'font-medium leading-relaxed',
+            textAlignClass,
             currentSize.value,
             'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
             'max-w-full overflow-hidden',
@@ -1868,7 +1871,15 @@ const ColorPaletteSelector: React.FC<{
   THEME: ThemeType;
   dict: ProfileCardDisplayDict['colorPalette'];
   compact?: boolean;
-}> = ({ selectedPalette, onPaletteChange, THEME, dict, compact = false }) => {
+  direction: 'ltr' | 'rtl';
+}> = ({
+  selectedPalette,
+  onPaletteChange,
+  THEME,
+  dict,
+  compact = false,
+  direction,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -1907,11 +1918,13 @@ const ColorPaletteSelector: React.FC<{
             role="menu"
             aria-labelledby="color-palette-button"
             className={cn(
-              'absolute top-full mt-2 right-0 z-50',
+              'absolute top-full mt-2 z-50',
+              direction === 'rtl' ? 'left-0' : 'right-0',
               'bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/80 shadow-xl',
               'min-w-[160px] py-2',
               'animate-in fade-in-0 zoom-in-95 duration-200'
             )}
+            dir={direction}
           >
             {Object.entries(COLOR_PALETTES).map(([key, palette]) => (
               <button
@@ -1922,7 +1935,7 @@ const ColorPaletteSelector: React.FC<{
                   setIsOpen(false);
                 }}
                 className={cn(
-                  'w-full px-4 py-3 text-right transition-all duration-200',
+                  'w-full px-4 py-3 text-start transition-all duration-200',
                   'hover:bg-gray-100/80 active:bg-gray-200/50',
                   'flex items-center gap-3 min-h-[44px]',
                   selectedPalette === key && 'bg-gray-100/60 font-semibold'
@@ -1955,7 +1968,7 @@ const ColorPaletteSelector: React.FC<{
                     <span className="sr-only">{dict.selected}</span>
                     <CheckCircle
                       aria-hidden="true"
-                      className="w-4 h-4 text-green-600 mr-auto"
+                      className="w-4 h-4 text-green-600 ms-auto"
                     />
                   </>
                 )}
@@ -1980,6 +1993,7 @@ interface ProfileCardProps {
   onCreateSuggestion?: (data: CreateSuggestionData) => Promise<void>;
   onClose?: () => void;
   dict: ProfileCardDict;
+  locale: string;
 }
 
 const ProfileHeader: React.FC<{
@@ -1999,6 +2013,7 @@ const ProfileHeader: React.FC<{
   hobbiesMap: ReturnType<typeof createHobbiesMap>;
   religiousLevelMap: ReturnType<typeof createReligiousLevelMap>;
   educationLevelMap: ReturnType<typeof createEducationLevelMap>;
+  locale: string;
 }> = ({
   profile,
   age,
@@ -2016,7 +2031,10 @@ const ProfileHeader: React.FC<{
   hobbiesMap,
   religiousLevelMap,
   educationLevelMap,
+  locale,
 }) => {
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
+
   const personalityHighlights = useMemo(() => {
     const highlights: ExcitementFactor[] = [];
     if (profile.profileCharacterTraits?.length > 0) {
@@ -2082,16 +2100,16 @@ const ProfileHeader: React.FC<{
           className={cn(
             'absolute bg-gradient-to-br from-rose-200/40 to-pink-200/40 rounded-full blur-xl sm:blur-2xl animate-pulse',
             compact
-              ? 'top-2 right-2 w-8 h-8 sm:w-16 sm:h-16'
-              : 'top-4 right-4 sm:top-10 sm:right-10 w-16 h-16 sm:w-32 sm:h-32'
+              ? 'top-2 end-2 w-8 h-8 sm:w-16 sm:h-16'
+              : 'top-4 end-4 sm:top-10 sm:end-10 w-16 h-16 sm:w-32 sm:h-32'
           )}
         ></div>
         <div
           className={cn(
             'absolute bg-gradient-to-br from-amber-200/40 to-orange-200/40 rounded-full blur-lg sm:blur-xl animate-pulse',
             compact
-              ? 'bottom-2 left-2 w-6 h-6 sm:w-12 sm:h-12'
-              : 'bottom-4 left-4 sm:bottom-10 sm:left-10 w-12 h-12 sm:w-24 sm:h-24'
+              ? 'bottom-2 start-2 w-6 h-6 sm:w-12 sm:h-12'
+              : 'bottom-4 start-4 sm:bottom-10 sm:start-10 w-12 h-12 sm:w-24 sm:h-24'
           )}
           style={{ animationDelay: '1s' }}
         ></div>
@@ -2172,7 +2190,7 @@ const ProfileHeader: React.FC<{
             <div
               className={cn(
                 'absolute transition-all duration-300',
-                compact ? '-bottom-1 -right-1' : '-bottom-2 -right-2'
+                compact ? '-bottom-1 -end-1' : '-bottom-2 -end-2'
               )}
             >
               <Badge
@@ -2191,7 +2209,7 @@ const ProfileHeader: React.FC<{
                 <availability.icon
                   className={cn(
                     'flex-shrink-0',
-                    compact ? 'w-2 h-2 ml-1' : 'w-3 h-3 ml-1 sm:ml-1.5'
+                    compact ? 'w-2 h-2 me-1' : 'w-3 h-3 me-1 sm:me-1.5'
                   )}
                 />
                 <span className={cn('break-words')}>
@@ -2214,6 +2232,7 @@ const ProfileHeader: React.FC<{
                   THEME={THEME}
                   dict={dict.colorPalette}
                   compact={compact}
+                  direction={direction}
                 />
               </div>
             )}
@@ -2282,7 +2301,7 @@ const ProfileHeader: React.FC<{
                   isMobile ? 'flex justify-center' : 'flex justify-start'
                 )}
               >
-                <ScrollArea className="w-full max-w-full" dir="rtl">
+                <ScrollArea className="w-full max-w-full" dir={direction}>
                   <div
                     className={cn(
                       'flex gap-2 sm:gap-3 pb-2 px-1 min-w-max',
@@ -2328,7 +2347,7 @@ const ProfileHeader: React.FC<{
             >
               {isMobile ? (
                 <div className="w-full max-w-full overflow-hidden px-1">
-                  <ScrollArea className="w-full" dir="rtl">
+                  <ScrollArea className="w-full" dir={direction}>
                     <div
                       className={cn(
                         'flex gap-2 sm:gap-3 pb-2 px-1',
@@ -2425,9 +2444,8 @@ const ProfileHeader: React.FC<{
                   <Heart
                     className={cn(
                       'flex-shrink-0',
-                      compact
-                        ? 'w-4 h-4 ml-1'
-                        : 'w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2'
+                      compact ? 'w-4 h-4' : 'w-4 h-4 sm:w-5 sm:h-5',
+                      direction === 'rtl' ? 'ml-1 sm:ml-2' : 'mr-1 sm:mr-2'
                     )}
                   />
                   <span className="break-words">
@@ -2435,14 +2453,25 @@ const ProfileHeader: React.FC<{
                       ? dict.header.suggestMatchButton
                       : dict.header.suggestPerfectMatchButton}
                   </span>
-                  <ArrowRight
-                    className={cn(
-                      'flex-shrink-0',
-                      compact
-                        ? 'w-4 h-4 mr-1'
-                        : 'w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2'
-                    )}
-                  />
+                  {direction === 'rtl' ? (
+                    <ArrowLeft
+                      className={cn(
+                        'flex-shrink-0',
+                        compact
+                          ? 'w-4 h-4 mr-1'
+                          : 'w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2'
+                      )}
+                    />
+                  ) : (
+                    <ArrowRight
+                      className={cn(
+                        'flex-shrink-0',
+                        compact
+                          ? 'w-4 h-4 ml-1'
+                          : 'w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2'
+                      )}
+                    />
+                  )}
                 </Button>
               </div>
             )}
@@ -2556,6 +2585,7 @@ const MobileImageGallery: React.FC<{
   THEME: ThemeType;
   dict: ProfileCardDisplayDict['gallery'];
   compact?: boolean;
+  direction: 'ltr' | 'rtl';
 }> = ({
   orderedImages,
   profile,
@@ -2563,6 +2593,7 @@ const MobileImageGallery: React.FC<{
   THEME,
   dict,
   compact = false,
+  direction,
 }) => {
   if (orderedImages.length === 0) return null;
 
@@ -2608,7 +2639,7 @@ const MobileImageGallery: React.FC<{
           {dict.subtitle}
         </p>
       </div>
-      <ScrollArea dir="rtl" className="w-full overflow-hidden">
+      <ScrollArea dir={direction} className="w-full overflow-hidden">
         <div
           className={cn(
             'flex pb-2 sm:pb-3',
@@ -2659,8 +2690,8 @@ const MobileImageGallery: React.FC<{
                   className={cn(
                     'absolute font-bold',
                     compact
-                      ? 'top-0.5 right-0.5 text-xs px-1 py-0.5 gap-0.5'
-                      : 'top-1 right-1 text-xs px-1.5 py-0.5 gap-1',
+                      ? 'top-0.5 end-0.5 text-xs px-1 py-0.5 gap-0.5'
+                      : 'top-1 end-1 text-xs px-1.5 py-0.5 gap-1',
                     'bg-gradient-to-r from-yellow-400 to-amber-500 text-black shadow-sm',
                     THEME.shadows.warm
                   )}
@@ -2691,6 +2722,7 @@ const ImageDialogComponent: React.FC<{
   onNavigate: (direction: 'next' | 'prev') => void;
   onImageSelect: (image: UserImageType) => void;
   dict: ProfileCardDisplayDict['imageDialog'];
+  direction: 'ltr' | 'rtl';
 }> = ({
   selectedImageForDialog,
   currentDialogImageIndex,
@@ -2699,8 +2731,11 @@ const ImageDialogComponent: React.FC<{
   onNavigate,
   onImageSelect,
   dict,
+  direction,
 }) => {
   if (!selectedImageForDialog) return null;
+  const PrevIcon = direction === 'rtl' ? ChevronRight : ChevronLeft;
+  const NextIcon = direction === 'rtl' ? ChevronLeft : ChevronRight;
 
   return (
     <Dialog
@@ -2712,7 +2747,7 @@ const ImageDialogComponent: React.FC<{
           'max-w-5xl w-[95vw] h-[90vh] p-0 border-none rounded-2xl flex flex-col',
           'bg-black/95 backdrop-blur-md'
         )}
-        dir="rtl"
+        dir={direction}
       >
         <DialogHeader
           className={cn(
@@ -2768,27 +2803,29 @@ const ImageDialogComponent: React.FC<{
                 variant="ghost"
                 aria-label={dict.prevLabel}
                 className={cn(
-                  'absolute right-4 top-1/2 -translate-y-1/2 rounded-full',
+                  'absolute top-1/2 -translate-y-1/2 rounded-full',
+                  direction === 'rtl' ? 'right-4' : 'left-4',
                   'bg-black/50 hover:bg-black/70 text-white border border-white/20',
                   'backdrop-blur-sm transition-all hover:scale-110 active:scale-95',
                   'w-12 h-12 sm:w-14 sm:h-14 min-h-[44px] min-w-[44px]'
                 )}
                 onClick={() => onNavigate('prev')}
               >
-                <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                <PrevIcon className="h-5 w-5 sm:h-6 sm:w-6" />
               </Button>
               <Button
                 variant="ghost"
                 aria-label={dict.nextLabel}
                 className={cn(
-                  'absolute left-4 top-1/2 -translate-y-1/2 rounded-full',
+                  'absolute top-1/2 -translate-y-1/2 rounded-full',
+                  direction === 'rtl' ? 'left-4' : 'right-4',
                   'bg-black/50 hover:bg-black/70 text-white border border-white/20',
                   'backdrop-blur-sm transition-all hover:scale-110 active:scale-95',
                   'w-12 h-12 sm:w-14 sm:h-14 min-h-[44px] min-w-[44px]'
                 )}
                 onClick={() => onNavigate('next')}
               >
-                <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+                <NextIcon className="h-5 w-5 sm:h-6 sm:w-6" />
               </Button>
             </>
           )}
@@ -2796,7 +2833,7 @@ const ImageDialogComponent: React.FC<{
 
         {orderedImages.length > 1 && (
           <DialogFooter className="border-t border-gray-700/50 bg-black/80 backdrop-blur-sm p-0">
-            <ScrollArea dir="rtl" className="w-full">
+            <ScrollArea dir={direction} className="w-full">
               <div className="flex gap-2 p-3 justify-center min-w-max">
                 {orderedImages.map((img) => (
                   <div
@@ -2841,7 +2878,8 @@ const MobileTabNavigation: React.FC<{
   onTabChange: (newTab: string) => void;
   THEME: ThemeType;
   dict: ProfileCardDisplayDict['mobileNav'];
-}> = ({ activeTab, tabItems, onTabChange, THEME, dict }) => {
+  direction: 'ltr' | 'rtl';
+}> = ({ activeTab, tabItems, onTabChange, THEME, dict, direction }) => {
   const currentIndex = useMemo(
     () => tabItems.findIndex((tab) => tab.value === activeTab),
     [tabItems, activeTab]
@@ -2864,25 +2902,28 @@ const MobileTabNavigation: React.FC<{
   const baseButtonClasses =
     'flex-1 flex flex-col p-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
 
+  const PrevIcon = direction === 'rtl' ? ChevronRight : ChevronLeft;
+  const NextIcon = direction === 'rtl' ? ChevronLeft : ChevronRight;
+
   return (
     <div className="mt-8 pt-6 border-t border-gray-200/80 flex items-stretch justify-between gap-3 sm:gap-4 w-full">
       {prevTab ? (
         <button
           className={cn(
             baseButtonClasses,
-            'items-start text-right',
+            'items-start text-start',
             'bg-white border border-gray-200/80 hover:border-gray-300',
             'focus-visible:ring-gray-400'
           )}
           onClick={() => onTabChange(prevTab.value)}
         >
           <div className="flex items-center gap-2">
-            <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
+            <PrevIcon className="w-6 h-6 text-gray-400 flex-shrink-0" />
             <p className="text-xs font-medium text-gray-500">{dict.previous}</p>
           </div>
           <div className="flex items-center gap-2 mt-1.5">
             <prevTab.icon className="w-5 h-5 text-gray-600 flex-shrink-0" />
-            <span className="text-base font-bold text-gray-800 text-right break-words min-w-0">
+            <span className="text-base font-bold text-gray-800 text-start break-words min-w-0">
               {prevTab.label}
             </span>
           </div>
@@ -2894,7 +2935,7 @@ const MobileTabNavigation: React.FC<{
         <button
           className={cn(
             baseButtonClasses,
-            'items-end text-left',
+            'items-end text-end',
             'bg-rose-50 border border-rose-200/80 hover:border-rose-300',
             'focus-visible:ring-rose-500'
           )}
@@ -2902,10 +2943,10 @@ const MobileTabNavigation: React.FC<{
         >
           <div className="flex items-center gap-2">
             <p className="text-xs font-medium text-rose-700">{dict.next}</p>
-            <ChevronLeft className="w-6 h-6 text-rose-500 flex-shrink-0" />
+            <NextIcon className="w-6 h-6 text-rose-500 flex-shrink-0" />
           </div>
           <div className="flex items-center justify-end gap-2 mt-1.5">
-            <span className="text-base font-bold text-rose-900 text-left break-words min-w-0">
+            <span className="text-base font-bold text-rose-900 text-end break-words min-w-0">
               {nextTab.label}
             </span>
             <nextTab.icon className="w-5 h-5 text-rose-600 flex-shrink-0" />
@@ -2931,7 +2972,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   onCreateSuggestion,
   onClose,
   dict,
+  locale,
 }) => {
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
+
   const profile = useMemo(
     () => ({
       ...profileData,
@@ -3203,11 +3247,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     image.url && setSelectedImageForDialog(image);
   const handleCloseImageDialog = () => setSelectedImageForDialog(null);
 
-  const handleDialogNav = (direction: 'next' | 'prev') => {
+  const handleDialogNav = (navDirection: 'next' | 'prev') => {
     if (currentDialogImageIndex === -1 || orderedImages.length <= 1) return;
     const newIndex =
       (currentDialogImageIndex +
-        (direction === 'next' ? 1 : -1) +
+        (navDirection === 'next' ? 1 : -1) +
         orderedImages.length) %
       orderedImages.length;
     setSelectedImageForDialog(orderedImages[newIndex]);
@@ -3411,12 +3455,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     worldColor?: string;
     worldGradient?: string;
     compact?: boolean;
+    direction: 'ltr' | 'rtl';
   }> = ({
     answer,
     worldName,
     worldColor = 'rose',
     worldGradient,
     compact = false,
+    direction,
   }) => {
     return (
       <div
@@ -3480,9 +3526,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </h4>
             <div
               className={cn(
-                'rounded-lg border-r-4 bg-white/60 overflow-hidden',
+                'rounded-lg bg-white/60 overflow-hidden',
                 compact ? 'p-3' : 'p-3 sm:p-4',
-                `border-${worldColor}-400`
+                direction === 'rtl'
+                  ? `border-r-4 border-${worldColor}-400`
+                  : `border-l-4 border-${worldColor}-400`
               )}
             >
               {answer.questionType === 'budgetAllocation' &&
@@ -3492,6 +3540,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 <BudgetDisplay
                   data={answer.rawValue as Record<string, number>}
                   dict={dict.budgetDisplay}
+                  locale={locale}
                 />
               ) : (
                 <p
@@ -3500,9 +3549,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     compact ? 'text-sm' : 'text-sm sm:text-base'
                   )}
                 >
-                  <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline ml-1 text-gray-400 flex-shrink-0" />
+                  <Quote
+                    className={cn(
+                      'w-3 h-3 sm:w-4 sm:h-4 inline text-gray-400 flex-shrink-0',
+                      direction === 'rtl' ? 'ml-1' : 'mr-1'
+                    )}
+                  />
                   {answer.displayText}
-                  <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 text-gray-400 transform rotate-180 flex-shrink-0" />
+                  <Quote
+                    className={cn(
+                      'w-3 h-3 sm:w-4 sm:h-4 inline text-gray-400 transform rotate-180 flex-shrink-0',
+                      direction === 'rtl' ? 'mr-1' : 'ml-1'
+                    )}
+                  />
                 </p>
               )}
             </div>
@@ -3562,7 +3621,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             THEME.shadows.elegant
           )}
         >
-          <ScrollArea className="w-full max-w-full overflow-hidden" dir="rtl">
+          <ScrollArea
+            className="w-full max-w-full overflow-hidden"
+            dir={direction}
+          >
             <div className="flex gap-0.5 sm:gap-1 justify-center min-w-max px-2 sm:px-4">
               {tabItems.map((tab) => (
                 <button
@@ -3621,6 +3683,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.personality.label}
                     worldColor={WORLDS.personality.accentColor}
                     worldGradient={WORLDS.personality.gradient}
+                    direction={direction}
                   />
                 )}
                 {profile.profileHeadline && (
@@ -3653,11 +3716,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         THEME.shadows.soft
                       )}
                     >
-                      <Quote className="absolute top-3 right-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300" />
-                      <p className="text-base sm:text-lg text-gray-800 leading-relaxed italic font-medium text-center lg:text-right break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                      <Quote className="absolute top-3 end-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300" />
+                      <p className="text-base sm:text-lg text-gray-800 leading-relaxed italic font-medium text-center lg:text-start break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
                         {profile.about}
                       </p>
-                      <Quote className="absolute bottom-3 left-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300 transform rotate-180" />
+                      <Quote className="absolute bottom-3 start-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300 transform rotate-180" />
                     </div>
                   </SectionCard>
                 )}
@@ -3757,6 +3820,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.personality.label}
                           worldColor={WORLDS.personality.accentColor}
                           worldGradient={WORLDS.personality.gradient}
+                          direction={direction}
                         />
                       ))}
                     </div>
@@ -3769,6 +3833,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     onTabChange={handleTabChange}
                     THEME={THEME}
                     dict={displayDict.mobileNav}
+                    direction={direction}
                   />
                 )}
               </div>
@@ -3786,6 +3851,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.values.label}
                     worldColor={WORLDS.values.accentColor}
                     worldGradient={WORLDS.values.gradient}
+                    direction={direction}
                   />
                 )}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
@@ -3808,7 +3874,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           ).label
                         }
                         variant="highlight"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       {profile.education && (
@@ -3833,7 +3899,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           displayDict.placeholders.professionWaiting
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       <DetailItem
@@ -3847,7 +3913,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           ).label
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       {profile.serviceDetails && (
@@ -3880,7 +3946,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           displayDict.placeholders.willDiscover
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       {profile.fatherOccupation && (
@@ -3891,7 +3957,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           }
                           value={profile.fatherOccupation}
                           variant="elegant"
-                          textAlign="right"
+                          textAlign="start"
                           placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
@@ -3903,7 +3969,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           }
                           value={profile.motherOccupation}
                           variant="elegant"
-                          textAlign="right"
+                          textAlign="start"
                           placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
@@ -3916,7 +3982,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             : displayDict.placeholders.willDiscover
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       <DetailItem
@@ -3928,7 +3994,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             : displayDict.placeholders.willDiscover
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       {profile.aliyaCountry && (
@@ -3939,7 +4005,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           }
                           value={`${profile.aliyaCountry} - השורשים שלי`}
                           variant="elegant"
-                          textAlign="right"
+                          textAlign="start"
                           placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
@@ -3949,7 +4015,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           label={displayDict.content.detailLabels.aliyaYear}
                           value={`${profile.aliyaYear} - הגעתי הביתה`}
                           variant="elegant"
-                          textAlign="right"
+                          textAlign="start"
                           placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
@@ -3972,6 +4038,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.values.label}
                           worldColor={WORLDS.values.accentColor}
                           worldGradient={WORLDS.values.gradient}
+                          direction={direction}
                         />
                       ))}
                     </div>
@@ -3984,6 +4051,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     onTabChange={handleTabChange}
                     THEME={THEME}
                     dict={displayDict.mobileNav}
+                    direction={direction}
                   />
                 )}
               </div>
@@ -4001,6 +4069,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.religion.label}
                     worldColor={WORLDS.religion.accentColor}
                     worldGradient={WORLDS.religion.gradient}
+                    direction={direction}
                   />
                 )}
                 <SectionCard
@@ -4022,7 +4091,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         ).label
                       }
                       variant="highlight"
-                      textAlign="right"
+                      textAlign="start"
                       placeholder={displayDict.placeholders.willDiscover}
                     />
                     {profile.religiousJourney && (
@@ -4039,7 +4108,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           ).label
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                     )}
@@ -4057,7 +4126,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         ).label
                       }
                       variant="elegant"
-                      textAlign="right"
+                      textAlign="start"
                       placeholder={displayDict.placeholders.willDiscover}
                     />
                     {profile.gender === 'FEMALE' && profile.headCovering && (
@@ -4072,7 +4141,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           ).label
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                     )}
@@ -4088,7 +4157,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           ).label
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                     )}
@@ -4129,6 +4198,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.religion.label}
                           worldColor={WORLDS.religion.accentColor}
                           worldGradient={WORLDS.religion.gradient}
+                          direction={direction}
                         />
                       ))}
                     </div>
@@ -4141,6 +4211,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     onTabChange={handleTabChange}
                     THEME={THEME}
                     dict={displayDict.mobileNav}
+                    direction={direction}
                   />
                 )}
               </div>
@@ -4158,6 +4229,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.relationship.label}
                     worldColor={WORLDS.relationship.accentColor}
                     worldGradient={WORLDS.relationship.gradient}
+                    direction={direction}
                   />
                 )}
                 {profile.matchingNotes && (
@@ -4175,9 +4247,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       )}
                     >
                       <p className="text-rose-700 leading-relaxed whitespace-pre-wrap italic text-base sm:text-lg break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
-                        <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline ml-1 text-rose-400 flex-shrink-0" />
+                        <Quote
+                          className={cn(
+                            'w-4 h-4 sm:w-5 sm:h-5 inline text-rose-400 flex-shrink-0',
+                            direction === 'rtl' ? 'ml-1' : 'mr-1'
+                          )}
+                        />
                         {profile.matchingNotes}
-                        <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 text-rose-400 transform rotate-180 flex-shrink-0" />
+                        <Quote
+                          className={cn(
+                            'w-4 h-4 sm:w-5 sm:h-5 inline text-rose-400 transform rotate-180 flex-shrink-0',
+                            direction === 'rtl' ? 'mr-1' : 'ml-1'
+                          )}
+                        />
                       </p>
                     </div>
                   </SectionCard>
@@ -4218,6 +4300,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.relationship.label}
                           worldColor={WORLDS.relationship.accentColor}
                           worldGradient={WORLDS.relationship.gradient}
+                          direction={direction}
                         />
                       ))}
                     </div>
@@ -4230,6 +4313,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     onTabChange={handleTabChange}
                     THEME={THEME}
                     dict={displayDict.mobileNav}
+                    direction={direction}
                   />
                 )}
               </div>
@@ -4247,6 +4331,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.partner.label}
                     worldColor={WORLDS.partner.accentColor}
                     worldGradient={WORLDS.partner.gradient}
+                    direction={direction}
                   />
                 )}
                 {hasAnyPreferences ? (
@@ -4314,6 +4399,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.partner.label}
                           worldColor={WORLDS.partner.accentColor}
                           worldGradient={WORLDS.partner.gradient}
+                          direction={direction}
                         />
                       ))}
                     </div>
@@ -4326,6 +4412,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     onTabChange={handleTabChange}
                     THEME={THEME}
                     dict={displayDict.mobileNav}
+                    direction={direction}
                   />
                 )}
               </div>
@@ -4359,7 +4446,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           ).label
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       <DetailItem
@@ -4378,7 +4465,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             : displayDict.content.professionalInfo.noPreference
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                     </div>
@@ -4394,7 +4481,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                 .medicalInfoDiscreet
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         tooltip={profile.medicalInfoDetails || undefined}
                         placeholder={displayDict.placeholders.willDiscover}
                       />
@@ -4406,7 +4493,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           {displayDict.content.professionalInfo.profileCreated}{' '}
                           {profile.createdAt
                             ? new Date(profile.createdAt).toLocaleDateString(
-                                'he-IL'
+                                locale
                               )
                             : displayDict.content.professionalInfo.unknown}
                         </span>
@@ -4417,7 +4504,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           <span>
                             {displayDict.content.professionalInfo.lastActive}{' '}
                             {new Date(profile.lastActive).toLocaleDateString(
-                              'he-IL'
+                              locale
                             )}
                           </span>
                         </div>
@@ -4432,6 +4519,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     onTabChange={handleTabChange}
                     THEME={THEME}
                     dict={displayDict.mobileNav}
+                    direction={direction}
                   />
                 )}
               </TabsContent>
@@ -4449,7 +4537,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         'p-3 sm:p-4 min-h-[60px]',
         `bg-gradient-to-r ${THEME.colors.neutral.warm}`
       )}
-      dir="ltr"
+      dir={direction}
     >
       <Button
         variant="ghost"
@@ -4485,7 +4573,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             )}
           >
             <Heart className="h-3 h-3 sm:h-4 sm:w-4" />
-            <span className="mr-1.5 sm:mr-2 text-xs sm:text-sm font-medium">
+            <span className="mx-1.5 sm:mx-2 text-xs sm:text-sm font-medium">
               {displayDict.mobileNav.introView}
             </span>
           </ToggleGroupItem>
@@ -4498,7 +4586,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             )}
           >
             <FileText className="h-3 h-3 sm:h-4 sm:w-4" />
-            <span className="mr-1.5 sm:mr-2 text-xs sm:text-sm font-medium">
+            <span className="mx-1.5 sm:mx-2 text-xs sm:text-sm font-medium">
               {displayDict.mobileNav.detailedView}
             </span>
           </ToggleGroupItem>
@@ -4509,6 +4597,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           THEME={THEME}
           dict={displayDict.colorPalette}
           compact={true}
+          direction={direction}
         />
       </div>
     </div>
@@ -4533,6 +4622,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           hobbiesMap={hobbiesMap}
           religiousLevelMap={religiousLevelMap}
           educationLevelMap={educationLevelMap}
+          locale={locale}
         />
         <MobileImageGallery
           orderedImages={orderedImages}
@@ -4541,6 +4631,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           THEME={THEME}
           dict={displayDict.gallery}
           compact={false}
+          direction={direction}
         />
         <div
           className={cn(
@@ -4575,6 +4666,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             hobbiesMap={hobbiesMap}
             religiousLevelMap={religiousLevelMap}
             educationLevelMap={educationLevelMap}
+            locale={locale}
           />
           <MobileImageGallery
             orderedImages={orderedImages}
@@ -4583,6 +4675,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             THEME={THEME}
             dict={displayDict.gallery}
             compact={true}
+            direction={direction}
           />
           <div
             className={cn(
@@ -4607,12 +4700,22 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   )}
                 >
                   <p
-                    className="text-gray-800 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-right"
-                    dir="rtl"
+                    className="text-gray-800 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-start"
+                    dir={direction}
                   >
-                    <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline ml-1 text-rose-400 flex-shrink-0" />
+                    <Quote
+                      className={cn(
+                        'w-3 h-3 sm:w-4 sm:h-4 inline text-rose-400 flex-shrink-0',
+                        direction === 'rtl' ? 'ml-1' : 'mr-1'
+                      )}
+                    />
                     {profile.about}
-                    <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 text-rose-400 transform rotate-180 flex-shrink-0" />
+                    <Quote
+                      className={cn(
+                        'w-3 h-3 sm:w-4 sm:h-4 inline text-rose-400 transform rotate-180 flex-shrink-0',
+                        direction === 'rtl' ? 'mr-1' : 'ml-1'
+                      )}
+                    />
                   </p>
                 </div>
               </SectionCard>
@@ -4810,7 +4913,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   THEME.shadows.warm
                 )}
               >
-                <Eye className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
+                <Eye
+                  className={cn(
+                    'w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0',
+                    direction === 'rtl' ? 'ml-2' : 'mr-2'
+                  )}
+                />
                 <span className="break-words">
                   {displayDict.content.focus.letsGetToKnow}
                 </span>
@@ -4825,7 +4933,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   if (!isClient) {
     return (
       <Card
-        dir="rtl"
+        dir={direction}
         className={cn(
           'w-full bg-white shadow-2xl rounded-2xl overflow-hidden border-0 flex flex-col h-full',
           className
@@ -4864,7 +4972,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   return (
     <TooltipProvider>
       <Card
-        dir="rtl"
+        dir={direction}
         id="profile-card-container"
         className={cn(
           'w-full h-full overflow-hidden flex flex-col max-w-full min-w-0',
@@ -4874,13 +4982,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           className
         )}
         style={{
-          direction: 'rtl',
-          textAlign: 'right',
+          textAlign: direction === 'rtl' ? 'right' : 'left',
           overflow: 'hidden',
         }}
       >
         {isDesktop && onClose && (
-          <div className="absolute top-4 left-4 z-40">
+          <div
+            className={cn(
+              'absolute top-4 z-40',
+              direction === 'rtl' ? 'left-4' : 'right-4'
+            )}
+          >
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -4905,7 +5017,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         {isDesktop ? (
           <ResizablePanelGroup
             direction="horizontal"
-            dir="rtl"
+            dir={direction}
             className="flex-grow min-h-0 max-w-full"
           >
             <ResizablePanel
@@ -4929,6 +5041,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   hobbiesMap={hobbiesMap}
                   religiousLevelMap={religiousLevelMap}
                   educationLevelMap={educationLevelMap}
+                  locale={locale}
                 />
                 <div className="p-4 sm:p-6 overflow-hidden flex max-w-full">
                   <MainContentTabs />
@@ -5049,6 +5162,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           onNavigate={handleDialogNav}
           onImageSelect={setSelectedImageForDialog}
           dict={displayDict.imageDialog}
+          direction={direction}
         />
       </Card>
     </TooltipProvider>

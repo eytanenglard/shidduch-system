@@ -7,9 +7,16 @@ import type { BudgetDisplayDict } from '@/types/dictionary';
 interface BudgetDisplayProps {
   data: Record<string, number>;
   dict: BudgetDisplayDict;
+  locale: string; // Added locale prop
 }
 
-const BudgetDisplay: React.FC<BudgetDisplayProps> = ({ data, dict }) => {
+const BudgetDisplay: React.FC<BudgetDisplayProps> = ({
+  data,
+  dict,
+  locale,
+}) => {
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
+
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     return <p className="text-sm text-red-500">{dict.errorInvalidData}</p>;
   }
@@ -41,13 +48,15 @@ const BudgetDisplay: React.FC<BudgetDisplayProps> = ({ data, dict }) => {
     },
   };
 
+  // Adjust animation based on direction
   const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
+    hidden: { opacity: 0, x: direction === 'rtl' ? 20 : -20 },
     visible: { opacity: 1, x: 0 },
   };
 
   return (
     <motion.div
+      dir={direction} // Set direction for the whole component
       className="space-y-3 pt-2"
       variants={containerVariants}
       initial="hidden"
