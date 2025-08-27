@@ -1,8 +1,8 @@
-import React, { Suspense } from "react";
-import { Loader2 } from "lucide-react";
-import { getDictionary } from "@/lib/dictionaries";
-import { Locale } from "../../../../../i18n-config";
-import ProfilePageClient from "./ProfilePageClient";
+import React, { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
+import { getDictionary } from '@/lib/dictionaries';
+import { Locale } from '@/../i18n-config'; // שיניתי את הנתיב כדי שיתאים לפרויקט סטנדרטי, שנה חזרה אם צריך
+import ProfilePageClient from './ProfilePageClient';
 
 // רכיב השרת
 export default async function ProfilePage({
@@ -26,7 +26,12 @@ export default async function ProfilePage({
         </div>
       }
     >
-      <ProfilePageClient dict={dictionary.profilePage} />
+      {/* 
+        ▼▼▼ התיקון נמצא כאן ▼▼▼
+        הוספנו את ה-prop 'locale' והעברנו לו את המשתנה locale
+        שקיבלנו בפרמטרים של העמוד.
+      */}
+      <ProfilePageClient dict={dictionary.profilePage} locale={locale} />
     </Suspense>
   );
 }

@@ -353,14 +353,24 @@ const Navbar = ({ dict }: NavbarProps) => {
             <div className="flex items-center gap-2 md:gap-4">
               <Button
                 variant="ghost"
-                size="icon"
                 onClick={handleLanguageChange}
-                className="text-gray-600 hover:text-cyan-600 hover:bg-cyan-100/50 rounded-full"
-                aria-label="Switch Language"
-                title="Switch Language"
+                className="group flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-cyan-600 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-pink-50 rounded-full transition-all duration-300 border border-gray-200/60 hover:border-cyan-300 shadow-sm hover:shadow-lg"
+                aria-label={`Switch to ${locale === 'he' ? 'English' : 'Hebrew'}`}
+                title={`Switch to ${locale === 'he' ? 'English' : 'Hebrew'}`}
               >
-                <Globe className="h-5 w-5" />
+                <div className="relative">
+                  <Globe className="h-4 w-4 transition-all duration-300 group-hover:scale-110 group-hover:text-cyan-500" />
+                  <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-gradient-to-r from-cyan-500 to-pink-500 rounded-full flex items-center justify-center shadow-sm border border-white">
+                    <span className="text-[8px] font-bold text-white leading-none">
+                      {locale === 'he' ? 'ע' : 'E'}
+                    </span>
+                  </div>
+                </div>
+                <span className="text-sm font-semibold transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-600 group-hover:to-pink-600">
+                  {locale === 'he' ? 'EN' : 'HE'}
+                </span>
               </Button>
+
               {session && (
                 <div
                   id="onboarding-target-availability-status"
@@ -610,12 +620,30 @@ const Navbar = ({ dict }: NavbarProps) => {
             <Button
               variant="outline"
               onClick={handleLanguageChange}
-              className="w-full font-medium border-gray-300 text-gray-600 hover:bg-gray-100 hover:border-gray-400 flex items-center justify-center py-6 text-base"
+              className="w-full font-medium border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-pink-50 hover:border-cyan-300 flex items-center justify-center py-6 text-base gap-4 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
             >
-              <Globe
-                className={`h-5 w-5 ${locale === 'he' ? 'ml-2' : 'mr-2'}`}
-              />
-              {locale === 'he' ? 'Switch to English' : 'החלף לעברית'}
+              <div className="relative">
+                <Globe className="h-6 w-6 text-cyan-600 transition-transform duration-300 hover:scale-110" />
+                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gradient-to-r from-cyan-500 to-pink-500 rounded-full flex items-center justify-center shadow-md border-2 border-white">
+                  <span className="text-[10px] font-bold text-white leading-none">
+                    {locale === 'he' ? 'ע' : 'E'}
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-col items-start">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-lg bg-gradient-to-r from-cyan-600 to-pink-600 bg-clip-text text-transparent">
+                    {locale === 'he' ? 'EN' : 'HE'}
+                  </span>
+                  <span className="text-sm text-gray-400">•</span>
+                  <span className="text-sm font-medium text-gray-600">
+                    {locale === 'he' ? 'English' : 'עברית'}
+                  </span>
+                </div>
+                <span className="text-xs text-gray-400 mt-0.5">
+                  {locale === 'he' ? 'Switch to English' : 'החלף לעברית'}
+                </span>
+              </div>
             </Button>
           </div>
         </div>
