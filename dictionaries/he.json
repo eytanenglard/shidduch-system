@@ -516,6 +516,29 @@
       "tagline": "זוגיות שמתחילה מהנשמה",
       "copyright": "© {year} NeshamaTech. כל הזכויות שמורות."
     }
+  },
+    "feedbackWidget": {
+          "tabLabel": "משוב",
+
+    "openAriaLabel": "פתח חלון משוב",
+    "title": "השותפות שלך בבניית NeshamaTech",
+    "subtitle": "התובנות שלך עוזרות לנו ליצור את חווית השידוכים הטובה בישראל.",
+    "types": {
+      "suggestion": "יש לי הצעה לשיפור",
+      "bug": "מצאתי תקלה טכנית",
+      "positive": "רציתי לפרגן"
+    },
+    "placeholder": "מה על ליבך? כל מחשבה, רעיון או הערה יתקבלו בברכה...",
+    "attachScreenshot": "צרף צילום מסך",
+    "cancelButton": "ביטול",
+    "submitButton": "שלח משוב",
+    "toasts": {
+      "imageTooLarge": "התמונה גדולה מדי (מקסימום 2MB).",
+      "contentRequired": "אנא מלא/י את תוכן המשוב.",
+      "submitSuccess": "תודה רבה! המשוב שלך נשלח בהצלחה.",
+      "submitError": "אופס, אירעה שגיאה בשליחת המשוב. נסה/י שוב."
+    }
   }
+
 
 }

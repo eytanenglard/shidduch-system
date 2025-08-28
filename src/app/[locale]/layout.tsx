@@ -10,7 +10,7 @@ import AccessibilityFeatures from '@/components/questionnaire/components/Accessi
 import type { Metadata } from 'next';
 import { getDictionary } from '@/lib/dictionaries';
 import { Locale } from '../../../i18n-config';
-
+import FeedbackWidget from '@/components/layout/FeedbackWidget';
 // ✨ 1. ייבוא ה-Provider החדש שיצרנו
 import { QuestionnaireStateProvider } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
@@ -59,6 +59,8 @@ export default async function RootLayout({
             {/* ✨ 2. עטיפת AppContent ב-Provider החדש */}
             {/* ה-Provider מקבל את המילון כדי להציג את המודאל בשפה הנכונה */}
             <QuestionnaireStateProvider dict={dictionary}>
+              <FeedbackWidget dict={dictionary.feedbackWidget} />
+
               <AppContent dict={dictionary}>{children}</AppContent>
             </QuestionnaireStateProvider>
           </LanguageProvider>

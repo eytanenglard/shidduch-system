@@ -541,6 +541,28 @@
       "tagline": "Relationships that Start from the Soul",
       "copyright": "© {year} NeshamaTech. All rights reserved."
     }
+  },
+  "feedbackWidget": {
+        "tabLabel": "Feedback",
+
+    "openAriaLabel": "Open feedback widget",
+    "title": "Your Partnership in Building NeshamaTech",
+    "subtitle": "Your insights help us create Israel's best matchmaking experience.",
+    "types": {
+      "suggestion": "I have a suggestion",
+      "bug": "I found a technical issue",
+      "positive": "I have positive feedback"
+    },
+    "placeholder": "What's on your mind? Every thought, idea, or note is welcomed...",
+    "attachScreenshot": "Attach Screenshot",
+    "cancelButton": "Cancel",
+    "submitButton": "Send Feedback",
+    "toasts": {
+      "imageTooLarge": "Image is too large (max 2MB).",
+      "contentRequired": "Please fill in the feedback content.",
+      "submitSuccess": "Thank you! Your feedback has been sent successfully.",
+      "submitError": "Oops, an error occurred while sending feedback. Please try again."
+    }
   }
 
 

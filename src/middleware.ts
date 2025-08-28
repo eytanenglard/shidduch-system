@@ -34,6 +34,9 @@ const AUTHENTICATED_INCOMPLETE_ALLOWED_PATHS = [
 ];
 
 // --- END: Path Definitions ---
+const PUBLIC_API_PATHS = [
+  '/api/feedback' // הנתיב החדש שלנו
+];
 
 // --- I18N Locale Detection Function ---
 function getLocale(request: NextRequest): Locale {
@@ -55,7 +58,8 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/assets/') ||
     pathname.startsWith('/images/') ||
-    pathname.includes('/favicon.ico')
+    pathname.includes('/favicon.ico')||
+    PUBLIC_API_PATHS.some(path => pathname.startsWith(path)) 
   ) {
     return NextResponse.next();
   }

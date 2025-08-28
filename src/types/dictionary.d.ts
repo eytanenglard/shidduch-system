@@ -596,6 +596,8 @@ export type Dictionary = {
     matchmakerPage: MatchmakerPageDictionary;
   auth: AuthDictionary; // <--- 2. הוספת המפתח והטיפוס החדש
 contactPage: ContactPageDict;
+  feedbackWidget: FeedbackWidgetDict; // <--- הוסף את השורה הזו
+
 };
 export type {
   SuggestionsDictionary,
@@ -2823,3 +2825,27 @@ export type ContactPageDict = {
         copyright: string;
     };
 };
+
+export type FeedbackWidgetDict  = {
+  openAriaLabel: string;
+  title: string;
+  subtitle: string;
+  tabLabel: string; // הוספנו תרגום חדש ללשונית
+  types: {
+    suggestion: string;
+    bug: string;
+    positive: string;
+  };
+  placeholder: string;
+  attachScreenshot: string;
+  cancelButton: string;
+  submitButton: string;
+  toasts: {
+    imageTooLarge: string;
+    contentRequired: string;
+    submitSuccess: string;
+    submitError: string;
+  };
+}
+
+

@@ -54,6 +54,8 @@ model User {
   reviewedSuggestions             MatchSuggestion[]       @relation("ReviewedSuggestions")
   oneTimeAuthTokens               OneTimeAuthToken[]
   manuallyAddedCandidates         User[]                  @relation("ManuallyAddedBy") // New relation back to matchmaker
+  feedbacks                       Feedback[]
+
 
   @@index([email])
   @@index([role])
@@ -598,4 +600,32 @@ enum InquiryStatus {
   PENDING
   ANSWERED
   CLOSED
+}
+
+model Feedback {
+  id            String         @id @default(cuid())
+  createdAt     DateTime       @default(now())
+  userId        String?
+  user          User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pageUrl       String
+  feedbackType  FeedbackType
+  content       String         @db.Text
+  status        FeedbackStatus @default(NEW)
+  userAgent     String?
+  screenshotUrl String?      // Field for the screenshot URL
+
+  @@index([userId])
+}
+
+enum FeedbackType {
+  SUGGESTION
+  BUG
+  POSITIVE
+}
+
+enum FeedbackStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  WONT_FIX
 }
