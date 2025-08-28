@@ -1,10 +1,32 @@
+// src/app/api/chat/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  GoogleGenerativeAI,
-  HarmCategory,
-  HarmBlockThreshold,
-} from '@google/generative-ai';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import nodemailer from 'nodemailer';
+
+// --- התוספות החדשות לאבטחה ---
+import { getToken } from 'next-auth/jwt';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+// --- הגדרת Rate Limiter (זהה לפיצ'ר המשוב) ---
+// ודא שמשתני הסביבה מוגדרים
+if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+  // בסביבת פיתוח, זו רק אזהרה. בפרודקשן, זו יכולה להיות שגיאה קריטית.
+  console.warn('Upstash Redis credentials are not configured. Rate limiting for CHAT API will not be active.');
+}
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL || '',
+  token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+});
+
+// נאפשר 15 בקשות בשעה. זה מאפשר שיחה קצרה ומונע הצפה.
+const ratelimit = new Ratelimit({
+  redis: redis,
+  limiter: Ratelimit.slidingWindow(15, '1 h'),
+});
+// --- סוף התוספות לאבטחה ---
+
 
 // --- START: Internationalized Knowledge Base ---
 const KNOWLEDGE_BASES = {
@@ -177,8 +199,21 @@ const safetySettings = [
 
 export async function POST(req: NextRequest) {
   try {
+    // --- הוספת לוגיקת Rate Limiting ---
+    if (process.env.NODE_ENV === 'production' && process.env.UPSTASH_REDIS_REST_URL) {
+      const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+      const ip = req.ip ?? '127.0.0.1';
+      const identifier = token?.sub ?? ip;
+      const { success } = await ratelimit.limit(identifier);
+
+      if (!success) {
+        return new NextResponse('Too many requests. Please try again later.', { status: 429 });
+      }
+    }
+    // --- סוף לוגיקת Rate Limiting ---
+
     const { message, type, userEmail, locale } = await req.json();
-    const lang: 'he' | 'en' = locale === 'en' ? 'en' : 'he'; // <-- קביעת השפה מהבקשה
+    const lang: 'he' | 'en' = locale === 'en' ? 'en' : 'he';
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
@@ -200,15 +235,15 @@ export async function POST(req: NextRequest) {
 
       const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME || 'NeshamaTech Chatbot'}" <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
-        to: 'jewish.matchpoint@gmail.com', // <-- עדכון כתובת המייל
-        subject: `New Chat Inquiry: ${userEmail}`, // <-- נושא באנגלית
+        to: 'jewish.matchpoint@gmail.com',
+        subject: `New Chat Inquiry: ${userEmail}`,
         replyTo: userEmail,
         html: `
           <div dir="rtl" style="font-family: Arial, sans-serif; text-align: right; line-height: 1.6; color: #333;">
             <h2 style="color: #0891b2;">פנייה חדשה מהצ'אט-בוט באתר NeshamaTech:</h2>
             <p><strong>מאת:</strong> <a href="mailto:${userEmail}">${userEmail}</a></p>
             <div style="background-color: #f8f9fa; border-right: 4px solid #06b6d4; padding: 15px; border-radius: 5px; margin-top: 10px;">
-              <p style="margin: 0;">${message.replace(/\n/g, '<br>')}</p>
+              <p style="margin: 0; white-space: pre-wrap;">${message.replace(/\n/g, '<br>')}</p>
             </div>
             <p style="font-size: 12px; color: #6c757d; margin-top: 20px;">
               זוהי הודעה אוטומטית. ניתן להשיב למייל זה ישירות כדי לענות לפונה.
@@ -219,31 +254,30 @@ export async function POST(req: NextRequest) {
 
       await transporter.sendMail(mailOptions);
       return NextResponse.json({
-        reply: EMAIL_SUCCESS_MESSAGES[lang], // <-- החזרת הודעת הצלחה מתורגמת
+        reply: EMAIL_SUCCESS_MESSAGES[lang],
       });
     }
 
-    // --- לוגיקת AI מודעת-שפה ---
     const selectedKnowledgeBase = KNOWLEDGE_BASES[lang];
     const knowledgeContext = selectedKnowledgeBase
-        .map((item) => `שאלה: ${item.question}\nתשובה: ${item.answer}`) // The prompt itself can remain hebrew-like as it's for the AI
+        .map((item) => `שאלה: ${item.question}\nתשובה: ${item.answer}`)
         .join('\n\n');
 
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash', safetySettings });
     
-    const prompt = getPrompt(lang, knowledgeContext, message); // <-- קבלת ההנחיה בשפה הנכונה
+    const prompt = getPrompt(lang, knowledgeContext, message);
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
     let text = response.text();
 
-    const isFallback = text.includes(FALLBACK_PHRASES[lang]); // <-- בדיקת Fallback לפי שפה
+    const isFallback = text.includes(FALLBACK_PHRASES[lang]);
 
     if (isFallback) {
       return NextResponse.json({
         reply: text,
         isFallback: true,
-        actions: [{ type: 'email', label: FALLBACK_ACTION_LABELS[lang] }], // <-- כפתור פעולה מתורגם
+        actions: [{ type: 'email', label: FALLBACK_ACTION_LABELS[lang] }],
       });
     }
 
@@ -257,4 +291,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
