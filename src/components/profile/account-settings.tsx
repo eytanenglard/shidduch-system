@@ -49,6 +49,7 @@ import { toast } from 'sonner';
 import { useSession, signOut } from 'next-auth/react';
 import { UserRole, UserStatus } from '@prisma/client';
 import type { AccountSettingsDict } from '@/types/dictionary';
+import type { Locale } from '../../../i18n-config'; // ייבוא טיפוס השפה
 
 interface AccountSettingsProps {
   user: {
@@ -64,6 +65,7 @@ interface AccountSettingsProps {
     marketingConsent?: boolean;
   };
   dict: AccountSettingsDict;
+  locale: Locale; // ✨ הוספת locale לממשק
 }
 
 const PASSWORD_MIN_LENGTH = 8;
@@ -71,6 +73,7 @@ const PASSWORD_MIN_LENGTH = 8;
 const AccountSettings: React.FC<AccountSettingsProps> = ({
   user: propUser,
   dict,
+  locale, // ✨ קבלת locale
 }) => {
   const {
     data: session,
@@ -414,16 +417,20 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
       className={`flex items-center text-xs ${met ? 'text-green-600' : 'text-gray-500'}`}
     >
       {met ? (
-        <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
+        <CheckCircle className="w-3.5 h-3.5 me-1.5" />
       ) : (
-        <XCircle className="w-3.5 h-3.5 mr-1.5" />
+        <XCircle className="w-3.5 h-3.5 me-1.5" />
       )}
       {label}
     </li>
   );
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    // ✨ הוספת dir דינמי
+    <div
+      className="max-w-2xl mx-auto space-y-6"
+      dir={locale === 'he' ? 'rtl' : 'ltr'}
+    >
       <Card
         className={`shadow-md hover:shadow-lg transition-all duration-300 border-t-4 border-blue-600 overflow-hidden relative`}
         onMouseEnter={() => setActiveSection('main')}
@@ -434,7 +441,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         />
         <CardHeader className="border-b pb-3 relative">
           <CardTitle className="text-xl flex items-center">
-            <Settings className="w-5 h-5 text-blue-600 ml-2" />
+            <Settings className="w-5 h-5 text-blue-600 me-2" />
             {dict.cardHeader.title}
           </CardTitle>
           <CardDescription>{dict.cardHeader.description}</CardDescription>
@@ -442,7 +449,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         <CardContent className="divide-y relative">
           <div className="py-4">
             <h3 className="text-base font-semibold flex items-center mb-4">
-              <User className="w-4 h-4 text-blue-600 ml-2" />
+              <User className="w-4 h-4 text-blue-600 me-2" />
               {dict.sections.personal.title}
             </h3>
             <div className="grid gap-3">
@@ -474,7 +481,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                       onClick={sendVerificationEmail}
                       disabled={isSendingVerification}
                     >
-                      <Mail className="w-4 h-4 ml-2" />
+                      <Mail className="w-4 h-4 me-2" />
                       {dict.sections.personal.sendVerificationButton}
                     </Button>
                   )}
@@ -484,7 +491,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           </div>
           <div className="py-4">
             <h3 className="text-base font-semibold mb-4 flex items-center">
-              <Shield className="w-4 h-4 text-blue-600 ml-2" />
+              <Shield className="w-4 h-4 text-blue-600 me-2" />
               {dict.sections.status.title}
             </h3>
             <div className="grid gap-3">
@@ -517,12 +524,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   </p>
                   <p className="text-gray-800">
                     {dict.sections.status.createdAt}{' '}
-                    {new Date(propUser.createdAt).toLocaleDateString('he-IL')}
+                    {new Date(propUser.createdAt).toLocaleDateString(locale)}
                   </p>
                   {propUser.lastLogin && (
                     <p className="text-gray-800">
                       {dict.sections.status.lastLogin}{' '}
-                      {new Date(propUser.lastLogin).toLocaleDateString('he-IL')}
+                      {new Date(propUser.lastLogin).toLocaleDateString(locale)}
                     </p>
                   )}
                 </div>
@@ -531,15 +538,18 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           </div>
           <div className="py-4">
             <h3 className="text-base font-semibold mb-4 flex items-center">
-              <Bell className="w-4 h-4 text-blue-600 ml-2" />
+              <Bell className="w-4 h-4 text-blue-600 me-2" />
               {dict.sections.marketing.title}
             </h3>
             <div className="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
               <div>
-                <Label htmlFor="marketing-switch" className="cursor-pointer">
+                <Label
+                  htmlFor="marketing-switch"
+                  className="cursor-pointer text-start"
+                >
                   {dict.sections.marketing.label}
                 </Label>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-gray-600 text-start">
                   {dict.sections.marketing.description}
                 </p>
               </div>
@@ -553,9 +563,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           </div>
           <div className="py-4">
             <div className="flex items-center justify-between mb-4">
-              <div>
+              <div className="text-start">
                 <h3 className="text-base font-semibold flex items-center">
-                  <Key className="w-4 h-4 text-blue-600 ml-2" />
+                  <Key className="w-4 h-4 text-blue-600 me-2" />
                   {dict.sections.security.title}
                 </h3>
                 <p className="text-sm text-muted-foreground">
@@ -569,7 +579,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   onClick={() => setIsChangingPassword(true)}
                   disabled={isLoading}
                 >
-                  <Key className="w-4 h-4 ml-2" />
+                  <Key className="w-4 h-4 me-2" />
                   {dict.sections.security.changePasswordButton}
                 </Button>
               )}
@@ -616,9 +626,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           </div>
           <div className="py-4 border-t border-dashed border-red-200">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="text-start">
                 <h3 className="text-base font-semibold flex items-center text-red-600">
-                  <Trash2 className="w-4 h-4 ml-2" />
+                  <Trash2 className="w-4 h-4 me-2" />
                   {dict.sections.delete.title}
                 </h3>
                 <p className="text-sm text-muted-foreground">
@@ -631,7 +641,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                 onClick={() => setIsDeletingAccount(true)}
                 disabled={isLoading}
               >
-                <Trash2 className="w-4 h-4 ml-2" />
+                <Trash2 className="w-4 h-4 me-2" />
                 {dict.sections.delete.deleteButton}
               </Button>
             </div>
@@ -639,7 +649,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         </CardContent>
         <CardFooter className="bg-gradient-to-r from-gray-50 to-white border-t p-4 text-sm text-gray-500 relative">
           <div className="flex items-center">
-            <Bell className="w-4 h-4 text-blue-600 ml-2" />
+            <Bell className="w-4 h-4 text-blue-600 me-2" />
             <span>{dict.cardFooter.notice}</span>
           </div>
         </CardFooter>
@@ -653,8 +663,11 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
             else setIsChangingPassword(true);
           }}
         >
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
+          <DialogContent
+            className="sm:max-w-md"
+            dir={locale === 'he' ? 'rtl' : 'ltr'}
+          >
+            <DialogHeader className="text-start">
               <DialogTitle>{dict.passwordDialog.title}</DialogTitle>
               <DialogDescription>
                 {passwordChangeStep === 1
@@ -666,7 +679,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
               </DialogDescription>
             </DialogHeader>
             {passwordChangeStep === 1 ? (
-              <div className="space-y-4">
+              <div className="space-y-4 text-start">
                 <div className="space-y-2">
                   <Label htmlFor="currentPassword">
                     {dict.passwordDialog.currentPasswordLabel}
@@ -681,7 +694,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
                       onClick={() =>
                         setShowCurrentPassword(!showCurrentPassword)
                       }
@@ -713,7 +726,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
                       onClick={() => setShowNewPassword(!showNewPassword)}
                     >
                       <span className="sr-only">
@@ -743,7 +756,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
@@ -802,7 +815,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                 )}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 text-start">
                 <Label htmlFor="verificationCode">
                   {dict.passwordDialog.verificationCodeLabel}
                 </Label>
@@ -828,7 +841,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
                 ) : null}
                 {passwordChangeStep === 1
                   ? dict.passwordDialog.continueButton
@@ -850,14 +863,17 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           }
         }}
       >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent
+          className="sm:max-w-md"
+          dir={locale === 'he' ? 'rtl' : 'ltr'}
+        >
+          <DialogHeader className="text-start">
             <DialogTitle>{dict.deleteDialog.title}</DialogTitle>
             <DialogDescription>
               {dict.deleteDialog.description}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 text-start">
             <Label htmlFor="deleteConfirm">
               {dict.deleteDialog.confirmationLabel}{' '}
               <strong>{dict.deleteDialog.confirmationPhrase}</strong>
