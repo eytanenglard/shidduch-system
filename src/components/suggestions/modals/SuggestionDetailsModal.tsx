@@ -586,6 +586,19 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const { isFullscreen, isTransitioning, toggleFullscreen } =
     useFullscreenModal(isOpen);
   const searchParams = useSearchParams();
+  useEffect(() => {
+    if (isOpen && (isMobile || isFullscreen)) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [isOpen, isMobile, isFullscreen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -648,23 +661,29 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
 
   // src/components/suggestions/modals/SuggestionDetailsModal.tsx
 
+  // src/app/components/suggestions/modals/SuggestionDetailsModal.tsx
+
+  // החלף את כל הפונקציה הזו בקוד הבא
   const getModalClasses = () => {
-    const base =
+    const baseClasses =
       'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out';
-    if (isMobile)
-      //  <-- כאן התיקון
-      return `${base} !w-screen !h-[100dvh] !max-w-none !max-h-none !rounded-none`;
-    if (isFullscreen)
-      return `${base} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0`;
-    return `${base} md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl`;
+    if (isMobile) {
+      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0`;
+    } else if (isFullscreen) {
+      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !translate-x-0 !translate-y-0 !transform-none`;
+    } else {
+      return `${baseClasses} md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl`;
+    }
   };
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent
           className={cn(getModalClasses())}
-          dir={locale === 'he' ? 'rtl' : 'ltr'} // <-- ✨ 3. הוסף כיווניות דינמית למודאל!
+          dir={locale === 'he' ? 'rtl' : 'ltr'}
           onOpenAutoFocus={(e) => e.preventDefault()}
+          data-fullscreen={isFullscreen}
+          data-mobile={isMobile}
         >
           <ScrollArea className="flex-grow min-h-0 modal-scroll">
             <Tabs

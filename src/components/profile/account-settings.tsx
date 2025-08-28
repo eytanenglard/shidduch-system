@@ -22,6 +22,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
@@ -42,8 +43,7 @@ import {
   Settings,
   AlertCircle,
   Trash2,
-  ChevronLeft,
-  ChevronRight,
+  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession, signOut } from 'next-auth/react';
@@ -64,7 +64,6 @@ interface AccountSettingsProps {
     marketingConsent?: boolean;
   };
   dict: AccountSettingsDict;
-  locale: 'he' | 'en';
 }
 
 const PASSWORD_MIN_LENGTH = 8;
@@ -72,16 +71,12 @@ const PASSWORD_MIN_LENGTH = 8;
 const AccountSettings: React.FC<AccountSettingsProps> = ({
   user: propUser,
   dict,
-  locale,
 }) => {
   const {
     data: session,
     status: sessionStatus,
     update: updateSession,
   } = useSession();
-  
-  const isRtl = locale === 'he';
-  const ArrowIcon = isRtl ? ChevronLeft : ChevronRight;
 
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isSendingVerification, setIsSendingVerification] = useState(false);
@@ -264,7 +259,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           icon: <AlertCircle className="h-5 w-5 text-red-500" />,
         }
       );
-      resetPasswordForm();
     } finally {
       setIsLoading(false);
     }
@@ -407,20 +401,29 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
     if (passwordStrength <= 75) return strengthDict.medium;
     return strengthDict.strong;
   };
-  
-  const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
-    <div className={`flex items-center text-sm ${met ? 'text-green-600' : 'text-gray-500'}`}>
-      {met ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-      <span className="ms-2">{text}</span>
-    </div>
-  );
 
   if (!propUser) {
     return <div>{dict.loadingText}</div>;
   }
 
+  const PasswordRequirement: React.FC<{ label: string; met: boolean }> = ({
+    label,
+    met,
+  }) => (
+    <li
+      className={`flex items-center text-xs ${met ? 'text-green-600' : 'text-gray-500'}`}
+    >
+      {met ? (
+        <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
+      ) : (
+        <XCircle className="w-3.5 h-3.5 mr-1.5" />
+      )}
+      {label}
+    </li>
+  );
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6" dir={isRtl ? 'rtl' : 'ltr'}>
+    <div className="max-w-2xl mx-auto space-y-6">
       <Card
         className={`shadow-md hover:shadow-lg transition-all duration-300 border-t-4 border-blue-600 overflow-hidden relative`}
         onMouseEnter={() => setActiveSection('main')}
@@ -431,7 +434,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         />
         <CardHeader className="border-b pb-3 relative">
           <CardTitle className="text-xl flex items-center">
-            <Settings className="w-5 h-5 text-blue-600 me-2" />
+            <Settings className="w-5 h-5 text-blue-600 ml-2" />
             {dict.cardHeader.title}
           </CardTitle>
           <CardDescription>{dict.cardHeader.description}</CardDescription>
@@ -439,7 +442,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         <CardContent className="divide-y relative">
           <div className="py-4">
             <h3 className="text-base font-semibold flex items-center mb-4">
-              <User className="w-4 h-4 text-blue-600 me-2" />
+              <User className="w-4 h-4 text-blue-600 ml-2" />
               {dict.sections.personal.title}
             </h3>
             <div className="grid gap-3">
@@ -471,7 +474,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                       onClick={sendVerificationEmail}
                       disabled={isSendingVerification}
                     >
-                      <Mail className="w-4 h-4 me-2" />
+                      <Mail className="w-4 h-4 ml-2" />
                       {dict.sections.personal.sendVerificationButton}
                     </Button>
                   )}
@@ -481,7 +484,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           </div>
           <div className="py-4">
             <h3 className="text-base font-semibold mb-4 flex items-center">
-              <Shield className="w-4 h-4 text-blue-600 me-2" />
+              <Shield className="w-4 h-4 text-blue-600 ml-2" />
               {dict.sections.status.title}
             </h3>
             <div className="grid gap-3">
@@ -514,12 +517,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   </p>
                   <p className="text-gray-800">
                     {dict.sections.status.createdAt}{' '}
-                    {new Date(propUser.createdAt).toLocaleDateString(isRtl ? 'he-IL' : 'en-US')}
+                    {new Date(propUser.createdAt).toLocaleDateString('he-IL')}
                   </p>
                   {propUser.lastLogin && (
                     <p className="text-gray-800">
                       {dict.sections.status.lastLogin}{' '}
-                      {new Date(propUser.lastLogin).toLocaleDateString(isRtl ? 'he-IL' : 'en-US')}
+                      {new Date(propUser.lastLogin).toLocaleDateString('he-IL')}
                     </p>
                   )}
                 </div>
@@ -528,7 +531,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           </div>
           <div className="py-4">
             <h3 className="text-base font-semibold mb-4 flex items-center">
-              <Bell className="w-4 h-4 text-blue-600 me-2" />
+              <Bell className="w-4 h-4 text-blue-600 ml-2" />
               {dict.sections.marketing.title}
             </h3>
             <div className="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
@@ -552,7 +555,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-semibold flex items-center">
-                  <Key className="w-4 h-4 text-blue-600 me-2" />
+                  <Key className="w-4 h-4 text-blue-600 ml-2" />
                   {dict.sections.security.title}
                 </h3>
                 <p className="text-sm text-muted-foreground">
@@ -566,7 +569,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   onClick={() => setIsChangingPassword(true)}
                   disabled={isLoading}
                 >
-                  <Key className="w-4 h-4 me-2" />
+                  <Key className="w-4 h-4 ml-2" />
                   {dict.sections.security.changePasswordButton}
                 </Button>
               )}
@@ -615,7 +618,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold flex items-center text-red-600">
-                  <Trash2 className="w-4 h-4 me-2" />
+                  <Trash2 className="w-4 h-4 ml-2" />
                   {dict.sections.delete.title}
                 </h3>
                 <p className="text-sm text-muted-foreground">
@@ -628,7 +631,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                 onClick={() => setIsDeletingAccount(true)}
                 disabled={isLoading}
               >
-                <Trash2 className="w-4 h-4 me-2" />
+                <Trash2 className="w-4 h-4 ml-2" />
                 {dict.sections.delete.deleteButton}
               </Button>
             </div>
@@ -636,7 +639,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         </CardContent>
         <CardFooter className="bg-gradient-to-r from-gray-50 to-white border-t p-4 text-sm text-gray-500 relative">
           <div className="flex items-center">
-            <Bell className="w-4 h-4 text-blue-600 me-2" />
+            <Bell className="w-4 h-4 text-blue-600 ml-2" />
             <span>{dict.cardFooter.notice}</span>
           </div>
         </CardFooter>
@@ -650,133 +653,187 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
             else setIsChangingPassword(true);
           }}
         >
-          <DialogContent className="sm:max-w-md" dir={isRtl ? 'rtl' : 'ltr'}>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>{dict.passwordDialog.title}</DialogTitle>
               <DialogDescription>
                 {passwordChangeStep === 1
-                  ? dict.passwordDialog.description
-                  : dict.passwordDialog.verificationDescription}
+                  ? dict.passwordDialog.step1Description
+                  : dict.passwordDialog.step2Description.replace(
+                      '{{email}}',
+                      propUser.email
+                    )}
               </DialogDescription>
             </DialogHeader>
-
-            {passwordChangeStep === 1 && (
-              <div className="space-y-4 py-4">
-                <div className="relative space-y-2">
-                  <Label htmlFor="current-password">{dict.passwordDialog.currentPasswordLabel}</Label>
+            {passwordChangeStep === 1 ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword">
+                    {dict.passwordDialog.currentPasswordLabel}
+                  </Label>
                   <div className="relative">
                     <Input
-                      id="current-password"
+                      id="currentPassword"
                       type={showCurrentPassword ? 'text' : 'password'}
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="pe-10"
                     />
                     <Button
-                      type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute top-1/2 -translate-y-1/2 end-1 h-7 w-7"
-                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      onClick={() =>
+                        setShowCurrentPassword(!showCurrentPassword)
+                      }
                     >
-                      {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <span className="sr-only">
+                        {showCurrentPassword
+                          ? dict.passwordDialog.hidePassword
+                          : dict.passwordDialog.showPassword}
+                      </span>
+                      {showCurrentPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
-                <div className="relative space-y-2">
-                  <Label htmlFor="new-password">{dict.passwordDialog.newPasswordLabel}</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">
+                    {dict.passwordDialog.newPasswordLabel}
+                  </Label>
                   <div className="relative">
                     <Input
-                      id="new-password"
+                      id="newPassword"
                       type={showNewPassword ? 'text' : 'password'}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="pe-10"
                     />
                     <Button
-                      type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute top-1/2 -translate-y-1/2 end-1 h-7 w-7"
+                      className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
                       onClick={() => setShowNewPassword(!showNewPassword)}
                     >
-                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <span className="sr-only">
+                        {showNewPassword
+                          ? dict.passwordDialog.hidePassword
+                          : dict.passwordDialog.showPassword}
+                      </span>
+                      {showNewPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
-                  {newPassword && (
-                    <div className="space-y-2 pt-1">
-                      <div className="flex items-center justify-between">
-                         <span className="text-xs font-medium text-muted-foreground">{getPasswordStrengthText()}</span>
-                      </div>
-                      <Progress value={passwordStrength} className={getPasswordStrengthColor()} />
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 pt-2">
-                        <PasswordRequirement met={passwordRequirements.length} text={dict.passwordDialog.requirements.length.replace('{{count}}', String(PASSWORD_MIN_LENGTH))} />
-                        <PasswordRequirement met={passwordRequirements.uppercase} text={dict.passwordDialog.requirements.uppercase} />
-                        <PasswordRequirement met={passwordRequirements.lowercase} text={dict.passwordDialog.requirements.lowercase} />
-                        <PasswordRequirement met={passwordRequirements.number} text={dict.passwordDialog.requirements.number} />
-                      </div>
-                    </div>
-                  )}
                 </div>
-                <div className="relative space-y-2">
-                  <Label htmlFor="confirm-password">{dict.passwordDialog.confirmPasswordLabel}</Label>
-                   <div className="relative">
-                     <Input
-                        id="confirm-password"
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="pe-10"
-                     />
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">
+                    {dict.passwordDialog.confirmPasswordLabel}
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
                     <Button
-                      type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute top-1/2 -translate-y-1/2 end-1 h-7 w-7"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                     >
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <span className="sr-only">
+                        {showConfirmPassword
+                          ? dict.passwordDialog.hidePassword
+                          : dict.passwordDialog.showPassword}
+                      </span>
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
+                {newPassword && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-medium">
+                        {dict.passwordDialog.strengthLabel}
+                      </p>
+                      <p
+                        className={`text-xs font-semibold ${getPasswordStrengthColor().replace('bg-', 'text-')}`}
+                      >
+                        {getPasswordStrengthText()}
+                      </p>
+                    </div>
+                    <Progress
+                      value={passwordStrength}
+                      className={`h-1.5 ${getPasswordStrengthColor()}`}
+                    />
+                    <ul className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2">
+                      <PasswordRequirement
+                        label={dict.passwordDialog.requirements.length.replace(
+                          '{{count}}',
+                          String(PASSWORD_MIN_LENGTH)
+                        )}
+                        met={passwordRequirements.length}
+                      />
+                      <PasswordRequirement
+                        label={dict.passwordDialog.requirements.uppercase}
+                        met={passwordRequirements.uppercase}
+                      />
+                      <PasswordRequirement
+                        label={dict.passwordDialog.requirements.lowercase}
+                        met={passwordRequirements.lowercase}
+                      />
+                      <PasswordRequirement
+                        label={dict.passwordDialog.requirements.number}
+                        met={passwordRequirements.number}
+                      />
+                    </ul>
+                  </div>
+                )}
               </div>
-            )}
-            
-            {passwordChangeStep === 2 && (
-              <div className="py-4 space-y-2">
-                <Label htmlFor="verification-code">{dict.passwordDialog.verificationCodeLabel}</Label>
+            ) : (
+              <div className="space-y-4">
+                <Label htmlFor="verificationCode">
+                  {dict.passwordDialog.verificationCodeLabel}
+                </Label>
                 <Input
-                  id="verification-code"
-                  type="text"
-                  maxLength={6}
+                  id="verificationCode"
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
                   placeholder="123456"
+                  maxLength={6}
                 />
               </div>
             )}
-            
-            <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2">
-                {passwordChangeStep === 1 ? (
-                    <>
-                        <Button variant="outline" onClick={resetPasswordForm}>
-                            {dict.passwordDialog.cancelButton}
-                        </Button>
-                        <Button onClick={initiatePasswordChange} disabled={isLoading || !passwordRequirements.length || !passwordRequirements.uppercase || !passwordRequirements.lowercase || !passwordRequirements.number}>
-                            {isLoading ? dict.passwordDialog.loadingButton : dict.passwordDialog.continueButton}
-                            {!isLoading && <ArrowIcon className="w-4 h-4 ms-2" />}
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        <Button variant="outline" onClick={() => setPasswordChangeStep(1)}>
-                            {dict.passwordDialog.backButton}
-                        </Button>
-                        <Button onClick={completePasswordChange} disabled={isLoading}>
-                             {isLoading ? dict.passwordDialog.loadingButton : dict.passwordDialog.confirmButton}
-                        </Button>
-                    </>
-                )}
+            <DialogFooter>
+              <Button variant="outline" onClick={resetPasswordForm}>
+                {dict.passwordDialog.cancelButton}
+              </Button>
+              <Button
+                onClick={
+                  passwordChangeStep === 1
+                    ? initiatePasswordChange
+                    : completePasswordChange
+                }
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                {passwordChangeStep === 1
+                  ? dict.passwordDialog.continueButton
+                  : dict.passwordDialog.confirmButton}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -793,7 +850,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           }
         }}
       >
-        <DialogContent className="sm:max-w-md" dir={isRtl ? 'rtl' : 'ltr'}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{dict.deleteDialog.title}</DialogTitle>
             <DialogDescription>
@@ -801,7 +858,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <Label htmlFor="deleteConfirm" className="text-start">
+            <Label htmlFor="deleteConfirm">
               {dict.deleteDialog.confirmationLabel}{' '}
               <strong>{dict.deleteDialog.confirmationPhrase}</strong>
             </Label>
@@ -813,12 +870,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
             />
             {deleteConfirmText &&
               deleteConfirmText !== dict.deleteDialog.confirmationPhrase && (
-                <p className="text-xs text-red-600 text-start">
+                <p className="text-xs text-red-600">
                   {dict.deleteDialog.mismatchWarning}
                 </p>
               )}
           </div>
-          <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+          <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setIsDeletingAccount(false)}

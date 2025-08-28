@@ -361,6 +361,7 @@
         "links": [
           { "text": "מדיניות פרטיות", "href": "/legal/privacy-policy" },
           { "text": "תנאי שימוש", "href": "/legal/terms-of-service" },
+                    { "text": "הצהרת נגישות", "href": "/legal/accessibility-statement" },
           { "text": "מחירים (בשאלות נפוצות)", "href": "#faq" },
           { "text": "יצירת קשר ותמיכה", "href": "/contact" }
         ]

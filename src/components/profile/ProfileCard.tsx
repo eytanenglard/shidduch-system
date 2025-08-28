@@ -2034,6 +2034,9 @@ const ProfileHeader: React.FC<{
   locale,
 }) => {
   const direction = locale === 'he' ? 'rtl' : 'ltr';
+  console.log(
+    `ProfileCard Loaded - Locale: ${locale}, Direction: ${direction}`
+  );
 
   const personalityHighlights = useMemo(() => {
     const highlights: ExcitementFactor[] = [];

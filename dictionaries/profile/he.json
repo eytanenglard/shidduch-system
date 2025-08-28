@@ -1195,9 +1195,8 @@
     },
     "passwordDialog": {
       "title": "שינוי סיסמה",
-      "description": "עדכן את סיסמת החשבון שלך",
-            "verificationDescription": "למען אבטחתך, אנא הזן את קוד האימות בן 6 הספרות שנשלח למייל שלך לאישור הפעולה.",
-
+    "step1Description": "עדכן את סיסמת החשבון שלך. תחילה, הזן את סיסמתך הנוכחית והחדשה.",
+    "step2Description": "למען אבטחתך, אנא הזן את קוד האימות בן 6 הספרות שנשלח למייל שלך ({{email}}) לאישור הפעולה.",
       "step1Label": "הזנת סיסמאות",
       "step2Label": "אימות",
       "currentPasswordLabel": "סיסמה נוכחית",
@@ -1206,6 +1205,10 @@
       "newPasswordPlaceholder": "הזן סיסמה חדשה",
       "confirmPasswordLabel": "אימות סיסמה חדשה",
       "confirmPasswordPlaceholder": "הזן שוב את הסיסמה החדשה",
+          "strengthLabel": "חוזק הסיסמה:",
+    "showPassword": "הצג סיסמה",
+    "hidePassword": "הסתר סיסמה",
+
       "passwordStrengthLabel": "חוזק הסיסמה:",
       "requirements": {
         "length": "לפחות {{count}} תווים",

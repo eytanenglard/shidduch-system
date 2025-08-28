@@ -208,17 +208,18 @@ src/
                     ├── VerifyPhoneClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\verify-phone\VerifyPhoneClient.tsx)
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\verify-phone\page.tsx)
         └── contact/
+                ├── ContactClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contact\ContactClient.tsx)
                 └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contact\page.tsx)
         └── contexts/
                 ├── LanguageContext.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contexts\LanguageContext.tsx)
-                └── NotificationContext.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contexts\NotificationContext.tsx)
+                ├── NotificationContext.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contexts\NotificationContext.tsx)
+                └── QuestionnaireStateContext.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contexts\QuestionnaireStateContext.tsx)
         └── legal/
             └── privacy-policy/
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\privacy-policy\page.tsx)
             └── terms-of-service/
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\terms-of-service\page.tsx)
         └── questionnaire/
-                ├── layout.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\layout.tsx)
                 └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\page.tsx)
             └── complete/
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\complete\page.tsx)
@@ -367,6 +368,7 @@ src/
             ├── account-settings.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\account-settings.tsx)
             ├── constants.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\constants.ts)
             ├── index.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\index.ts)
+            ├── profile_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\profile_contents.txt)
             └── utils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\utils.ts)
         └── elements/
                 ├── MinimalCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\elements\MinimalCard.tsx)
@@ -396,8 +398,7 @@ src/
                 ├── InteractiveScale.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\InteractiveScale.tsx)
                 ├── QuestionCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\QuestionCard.tsx)
                 ├── QuestionnaireCompletion.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\QuestionnaireCompletion.tsx)
-                ├── QuestionsList.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\QuestionsList.tsx)
-                └── WorldIntro.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\WorldIntro.tsx)
+                └── QuestionsList.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\QuestionsList.tsx)
         └── components/
                 ├── AccessibilityFeatures.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\AccessibilityFeatures.tsx)
                 ├── FAQ.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\FAQ.tsx)
@@ -411,7 +412,6 @@ src/
                 ├── QuestionnaireLayout.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\layout\QuestionnaireLayout.tsx)
                 └── WorldsMap.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\layout\WorldsMap.tsx)
         └── onboarding/
-                └── Welcome.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\onboarding\Welcome.tsx)
         └── pages/
                 └── QuestionnaireLandingPage.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\pages\QuestionnaireLandingPage.tsx)
         └── questions/
@@ -433,6 +433,7 @@ src/
                 └── WorldComponent.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\worlds\WorldComponent.tsx)
     └── suggestions/
             ├── MatchSuggestionsContainer.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\MatchSuggestionsContainer.tsx)
+            ├── suggestions_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\suggestions_contents.txt)
             └── types.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\types.ts)
         └── cards/
                 ├── MinimalSuggestionCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\cards\MinimalSuggestionCard.tsx)

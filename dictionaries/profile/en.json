@@ -1168,9 +1168,8 @@
     },
     "passwordDialog": {
       "title": "Change Password",
-      "description": "Update your account password for added security.",
-            "verificationDescription": "For your security, please enter the 6-digit code sent to your email to confirm this change.",
-
+    "description": "Update your account password for added security.",
+    "verificationDescription": "For your security, please enter the 6-digit code sent to your email to confirm this change.",
       "step1Label": "Enter Passwords",
       "step2Label": "Verification",
       "currentPasswordLabel": "Current Password",
@@ -1179,6 +1178,10 @@
       "newPasswordPlaceholder": "Enter a new, strong password",
       "confirmPasswordLabel": "Confirm New Password",
       "confirmPasswordPlaceholder": "Enter the new password again",
+          "strengthLabel": "Password Strength:",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+
       "passwordStrengthLabel": "Password Strength:",
       "requirements": {
         "length": "At least {{count}} characters",

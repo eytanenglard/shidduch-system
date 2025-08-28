@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2025-08-27 18:56:19
+# Generated on: 2025-08-28 11:02:49
 ################################################################################
 
 ================================================================================
@@ -90,6 +90,7 @@ export default function HomePage({ dict, demoData }: HomePageProps) {
         session={session}
         isVisible={isScrolled}
         dict={dict.stickyNav} // ✨ הוסף את ה-prop הזה
+        locale={locale}
       />
 
       <HeroSection
@@ -1011,6 +1012,7 @@ export interface NavLink {
 }
 
 interface StickyNavProps {
+  locale: 'he' | 'en';
   navLinks: NavLink[];
   session: Session | null;
   isVisible: boolean;
@@ -1058,6 +1060,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
   session,
   isVisible,
   dict, // ✨ 3. קבלת המילון כ-prop
+  locale,
 }) => {
   const [activeSection, setActiveSection] = useState('');
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
@@ -1253,6 +1256,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                     getInitials={getInitials}
                     handleSignOut={handleSignOut}
                     profileIconSize={profileIconSize}
+                    locale={locale}
                   />
                 ) : (
                   <Link href="/auth/register">
@@ -3898,7 +3902,8 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     suggestionsDict={suggestionsDict}
                     profileCardDict={profileCardDict}
                     suggestionDemoDict={dict.suggestionDemo}
-                    locale={locale} // <-- ✨ 3. העבר את locale לרכיב הבן
+                                  locale={locale} // <-- ✨ 3. העבר את locale לרכיב הבן
+
                   />
                 </div>
               </div>

@@ -2666,8 +2666,8 @@ export type AccountSettingsDict = {
   };
   passwordDialog: {
     title: string;
-    description: string;
-    verificationDescription: string; 
+step1Description: string;
+    step2Description: string; // Placeholder: {{email}}
     step1Label: string;
     step2Label: string;
     currentPasswordLabel: string;
@@ -2676,6 +2676,10 @@ export type AccountSettingsDict = {
     newPasswordPlaceholder: string;
     confirmPasswordLabel: string;
     confirmPasswordPlaceholder: string;
+        strengthLabel: string; // This was missing
+    showPassword: string;  // This was missing
+    hidePassword: string;  // This was missing
+
     passwordStrengthLabel: string;
     requirements: {
       length: string; // Placeholder: {{count}}

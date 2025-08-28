@@ -33,17 +33,15 @@ type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
 interface HomePageProps {
   dict: Dictionary;
   demoData: DemoData;
+  locale: 'he' | 'en';
 }
 
-export default function HomePage({ dict, demoData }: HomePageProps) {
+export default function HomePage({ dict, demoData, locale }: HomePageProps) {
   // ✅ 3. קבלת demoData כ-prop
   const { data: session } = useSession();
   const [isVisible, setIsVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const params = useParams();
-  const locale = (
-    Array.isArray(params.lang) ? params.lang[0] : params.lang || 'en'
-  ) as 'he' | 'en';
+
 
   useEffect(() => {
     const handleScroll = () => {

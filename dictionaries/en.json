@@ -386,6 +386,7 @@
         "links": [
           { "text": "Privacy Policy", "href": "/legal/privacy-policy" },
           { "text": "Terms of Service", "href": "/legal/terms-of-service" },
+          { "text": "Accessibility Statement", "href": "/legal/accessibility-statement" },
           { "text": "Pricing (in FAQ)", "href": "#faq" },
           { "text": "Contact & Support", "href": "/contact" }
         ]
