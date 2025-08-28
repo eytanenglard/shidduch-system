@@ -1,5 +1,3 @@
-// src/components/FeedbackWidget/FeedbackWidget.tsx
-
 'use client';
 
 import React, { useState, useRef, useEffect, Fragment } from 'react';
@@ -38,6 +36,9 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isTabHidden, setIsTabHidden] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const feedbackOptions = [
@@ -63,6 +64,31 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
       gradient: 'from-teal-400 via-green-400 to-amber-400',
     },
   ];
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null); // Reset touchEnd
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isRightSwipe) {
+      setIsTabHidden(true);
+      // Auto show after 3 seconds
+      setTimeout(() => setIsTabHidden(false), 3000);
+    }
+  };
 
   useEffect(() => {
     if (screenshot) {
@@ -139,63 +165,109 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
 
   return (
     <Fragment>
-      {/* Floating Tab Button - NeshamaTech Style */}
+      {/* Floating Tab Button - Responsive */}
       <div className="fixed top-1/2 -translate-y-1/2 right-0 z-50">
         <div
-          className={`transition-all duration-700 ${isOpen ? 'translate-x-4 opacity-0 scale-95' : 'translate-x-0 opacity-100 scale-100'}`}
+          className={`transition-all duration-700 ${
+            isOpen || isTabHidden
+              ? 'translate-x-4 opacity-0 scale-95'
+              : 'translate-x-0 opacity-100 scale-100'
+          }`}
         >
-          <button
-            onClick={() => setIsOpen(true)}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            className={`group relative text-white px-2 py-6 rounded-l-2xl shadow-xl hover:shadow-2xl transition-all duration-500 flex flex-col items-center justify-center min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-600 via-orange-500 to-amber-400 bg-size-200 hover:bg-pos-100 ${
-              isHovered ? 'w-32' : 'w-12'
-            }`}
-            style={{
-              backgroundSize: '200% 100%',
-              backgroundPosition: isHovered ? '100% 0' : '0% 0',
-            }}
-            aria-label={dict.openAriaLabel}
-          >
-            {/* Glass overlay */}
-            <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
+          <div className="relative group">
+            <button
+              onClick={() => setIsOpen(true)}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+              className={`relative text-white px-1.5 sm:px-2 py-4 sm:py-6 rounded-l-2xl shadow-xl hover:shadow-2xl transition-all duration-500 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-600 via-orange-500 to-amber-400 bg-size-200 hover:bg-pos-100 ${
+                isHovered ? 'w-20 sm:w-32' : 'w-8 sm:w-12'
+              }`}
+              style={{
+                backgroundSize: '200% 100%',
+                backgroundPosition: isHovered ? '100% 0' : '0% 0',
+              }}
+              aria-label={dict.openAriaLabel}
+            >
+              {/* Glass overlay */}
+              <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
 
-            {/* Content container */}
-            <div className="relative z-10 flex flex-col items-center justify-center h-full">
-              {/* Icon */}
-              <MessageSquare className="w-5 h-5 transition-all duration-300 mb-3 drop-shadow-sm" />
+              {/* Content container */}
+              <div className="relative z-10 flex flex-col items-center justify-center h-full">
+                {/* Icon */}
+                <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 mb-2 sm:mb-3 drop-shadow-sm" />
 
-              {/* Text - NeshamaTech style */}
-              {!isHovered ? (
-                <span
-                  className="text-sm font-bold tracking-wider transition-all duration-700 ease-in-out drop-shadow-sm"
-                  style={{
-                    writingMode: 'vertical-rl',
-                    textOrientation: 'mixed',
-                  }}
-                >
-                  {dict.tabLabel}
-                </span>
-              ) : (
-                <span className="text-sm font-bold whitespace-nowrap transition-all duration-700 ease-in-out drop-shadow-sm">
-                  {dict.tabLabel}
-                </span>
+                {/* Text - Mobile optimized */}
+                {!isHovered ? (
+                  <span
+                    className="text-xs sm:text-sm font-bold tracking-wider transition-all duration-700 ease-in-out drop-shadow-sm"
+                    style={{
+                      writingMode: 'vertical-rl',
+                      textOrientation: 'mixed',
+                    }}
+                  >
+                    {dict.tabLabel}
+                  </span>
+                ) : (
+                  <span className="text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-700 ease-in-out drop-shadow-sm px-1">
+                    {dict.tabLabel}
+                  </span>
+                )}
+              </div>
+
+              {/* Animated glow effect */}
+              <div className="absolute -inset-1 bg-gradient-to-br from-teal-400 via-orange-400 to-amber-400 rounded-2xl blur opacity-30 group-hover:opacity-60 transition-all duration-700" />
+
+              {/* Floating particles on hover */}
+              {isHovered && (
+                <>
+                  <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-amber-400 rounded-full animate-ping shadow-lg" />
+                  <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-teal-400 rounded-full animate-bounce delay-300 shadow-lg" />
+                  <div className="absolute top-1/2 -left-1 w-1 h-1 sm:w-1.5 sm:h-1.5 bg-orange-400 rounded-full animate-pulse delay-500 shadow-lg" />
+                </>
               )}
+            </button>
+
+            {/* Close button (X) - Both mobile and desktop */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsTabHidden(true);
+                setTimeout(() => setIsTabHidden(false), 3000);
+              }}
+              className="absolute -top-2 -left-2 w-6 h-6 bg-white/90 hover:bg-red-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-500 hover:scale-110 group/close opacity-0 group-hover:opacity-100 backdrop-blur-sm border border-gray-200"
+              aria-label="הסתר זמנית"
+            >
+              <X className="w-3 h-3 group-hover/close:rotate-45 transition-all duration-500" />
+            </button>
+
+            {/* Swipe hint - Mobile only, Desktop hint */}
+            <div className="absolute -left-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-80 transition-all duration-500 pointer-events-none delay-300">
+              <div className="bg-gray-800/90 text-white text-xs px-3 py-1.5 rounded-lg backdrop-blur-sm border border-gray-600/30 shadow-lg whitespace-nowrap">
+                <span className="sm:hidden">החלק ימינה להסתרה</span>
+                <span className="hidden sm:inline">לחץ X להסתרה זמנית</span>
+                <div className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-full w-0 h-0 border-l-4 border-l-gray-800/90 border-t-2 border-t-transparent border-b-2 border-b-transparent"></div>
+              </div>
             </div>
-
-            {/* Animated glow effect - matches NeshamaTech style */}
-            <div className="absolute -inset-1 bg-gradient-to-br from-teal-400 via-orange-400 to-amber-400 rounded-2xl blur opacity-30 group-hover:opacity-60 transition-all duration-700" />
-
-            {/* Floating particles on hover */}
-            {isHovered && (
-              <>
-                <div className="absolute -top-2 -right-2 w-3 h-3 bg-amber-400 rounded-full animate-ping shadow-lg" />
-                <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-teal-400 rounded-full animate-bounce delay-300 shadow-lg" />
-                <div className="absolute top-1/2 -left-2 w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse delay-500 shadow-lg" />
-              </>
-            )}
-          </button>
+          </div>
         </div>
+
+        {/* Show button when hidden */}
+        {isTabHidden && (
+          <div className="transition-all duration-700 opacity-100 translate-x-0">
+            <button
+              onClick={() => setIsTabHidden(false)}
+              className="w-8 h-8 bg-gradient-to-r from-teal-500 to-amber-500 hover:from-teal-600 hover:to-amber-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group/show"
+              aria-label="הצג כפתור משוב"
+            >
+              <MessageSquare className="w-4 h-4 group-hover/show:scale-110 transition-transform duration-300" />
+              {/* Subtle pulse ring */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-teal-400 to-amber-400 animate-ping opacity-20"></div>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Backdrop */}
@@ -206,50 +278,50 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
         />
       )}
 
-      {/* Main Widget */}
+      {/* Main Widget - Responsive */}
       <div
-        className={`fixed top-1/2 -translate-y-1/2 right-24 z-50 w-96 transition-all duration-500 ${
+        className={`fixed inset-x-4 top-1/2 -translate-y-1/2 sm:top-1/2 sm:-translate-y-1/2 sm:right-16 sm:left-auto sm:right-24 z-50 w-auto sm:w-96 max-w-lg mx-auto sm:mx-0 transition-all duration-500 ${
           isOpen
             ? 'opacity-100 translate-x-0 scale-100'
             : 'opacity-0 translate-x-8 scale-95 pointer-events-none'
         }`}
       >
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 overflow-hidden">
-          {/* Ambient light effect - NeshamaTech style */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-teal-400/20 via-orange-400/20 to-amber-400/20 rounded-3xl blur-xl" />
+        <div className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/50 overflow-hidden max-h-[85vh] sm:max-h-none overflow-y-auto">
+          {/* Ambient light effect */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-teal-400/20 via-orange-400/20 to-amber-400/20 rounded-2xl sm:rounded-3xl blur-xl" />
 
           <div className="relative">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-teal-500/20 via-orange-500/15 to-amber-500/20 p-6 border-b border-white/30">
+            {/* Header - Mobile optimized */}
+            <div className="bg-gradient-to-r from-teal-500/20 via-orange-500/15 to-amber-500/20 p-4 sm:p-6 border-b border-white/30">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-gradient-to-r from-teal-400 to-amber-400 rounded-full animate-pulse shadow-lg" />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gradient-to-r from-teal-400 to-amber-400 rounded-full animate-pulse shadow-lg" />
                   <div>
-                    <h3 className="text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-400 bg-clip-text text-transparent">
+                    <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-400 bg-clip-text text-transparent">
                       {dict.title}
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
                       {dict.subtitle}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => resetState()}
-                  className="w-8 h-8 rounded-full bg-white/50 hover:bg-white/70 flex items-center justify-center transition-all duration-300 group hover:scale-110"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/50 hover:bg-white/70 flex items-center justify-center transition-all duration-300 group hover:scale-110"
                   aria-label={dict.closeAriaLabel}
                 >
-                  <X className="w-4 h-4 text-gray-600 group-hover:text-gray-800 transition-colors" />
+                  <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 group-hover:text-gray-800 transition-colors" />
                 </button>
               </div>
             </div>
 
-            {/* Content */}
-            <div className="p-6">
+            {/* Content - Mobile optimized */}
+            <div className="p-4 sm:p-6">
               {step === 'type' && (
-                <div className="space-y-4">
-                  <div className="text-center mb-6">
-                    <Sparkles className="w-8 h-8 text-transparent bg-gradient-to-r from-teal-500 to-amber-500 bg-clip-text mx-auto mb-2" />
-                    <p className="text-gray-700 font-medium">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="text-center mb-4 sm:mb-6">
+                    <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-transparent bg-gradient-to-r from-teal-500 to-amber-500 bg-clip-text mx-auto mb-2" />
+                    <p className="text-gray-700 font-medium text-sm sm:text-base">
                       {dict.step_type_title}
                     </p>
                   </div>
@@ -261,18 +333,18 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                         setFeedbackType(option.type);
                         setStep('form');
                       }}
-                      className="w-full p-4 rounded-2xl bg-gradient-to-r from-gray-50/80 to-white/80 hover:from-white to-gray-50 border border-gray-100/50 hover:border-orange-200/50 transition-all duration-300 group flex items-center gap-4 hover:shadow-md hover:scale-[1.02]"
+                      className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-gray-50/80 to-white/80 hover:from-white to-gray-50 border border-gray-100/50 hover:border-orange-200/50 transition-all duration-300 group flex items-center gap-3 sm:gap-4 hover:shadow-md hover:scale-[1.02]"
                     >
                       <div
-                        className={`w-12 h-12 rounded-xl bg-gradient-to-br ${option.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br ${option.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
                       >
-                        <option.icon className="w-6 h-6 text-white drop-shadow-sm" />
+                        <option.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-sm" />
                       </div>
                       <div className="flex-1 text-right">
-                        <div className="font-medium text-gray-800 mb-1">
+                        <div className="font-medium text-gray-800 mb-1 text-sm sm:text-base">
                           {option.label}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-xs sm:text-sm text-gray-500">
                           {option.description}
                         </div>
                       </div>
@@ -282,7 +354,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
               )}
 
               {step === 'form' && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <button
                     onClick={() => setStep('type')}
                     className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-2 transition-colors duration-300 group"
@@ -293,8 +365,8 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                     {dict.cancelButton}
                   </button>
 
-                  {/* Selected type indicator */}
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50/80 to-white/80 rounded-xl border border-gray-100/50">
+                  {/* Selected type indicator - Mobile optimized */}
+                  <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gradient-to-r from-gray-50/80 to-white/80 rounded-lg sm:rounded-xl border border-gray-100/50">
                     {(() => {
                       const selectedOption = feedbackOptions.find(
                         (option) => option.type === feedbackType
@@ -302,15 +374,15 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                       return selectedOption ? (
                         <>
                           <div
-                            className={`w-10 h-10 rounded-xl bg-gradient-to-br ${selectedOption.gradient} flex items-center justify-center shadow-md`}
+                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br ${selectedOption.gradient} flex items-center justify-center shadow-md`}
                           >
-                            <selectedOption.icon className="w-5 h-5 text-white drop-shadow-sm" />
+                            <selectedOption.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white drop-shadow-sm" />
                           </div>
                           <div className="flex-1">
-                            <div className="font-medium text-gray-800">
+                            <div className="font-medium text-gray-800 text-sm sm:text-base">
                               {selectedOption.label}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-xs sm:text-sm text-gray-500">
                               {selectedOption.description}
                             </div>
                           </div>
@@ -323,17 +395,17 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     placeholder={dict.placeholder}
-                    className="min-h-[120px] resize-none border-0 bg-gray-50/80 focus:bg-white rounded-2xl shadow-inner transition-all duration-300 placeholder:text-gray-400"
+                    className="min-h-[100px] sm:min-h-[120px] resize-none border-0 bg-gray-50/80 focus:bg-white rounded-xl sm:rounded-2xl shadow-inner transition-all duration-300 placeholder:text-gray-400 text-sm sm:text-base"
                     required
                   />
 
-                  {/* Enhanced File Upload Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
+                  {/* File Upload Section - Mobile optimized */}
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="group relative px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 hover:border-orange-300 rounded-xl transition-all duration-300 flex items-center gap-3 hover:shadow-md hover:scale-[1.02] overflow-hidden"
+                        className="group relative px-3 py-2.5 sm:px-4 sm:py-3 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 hover:border-orange-300 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center gap-2 sm:gap-3 hover:shadow-md hover:scale-[1.02] overflow-hidden w-full sm:w-auto"
                       >
                         {/* Background animation */}
                         <div className="absolute inset-0 bg-gradient-to-r from-teal-50/50 via-orange-50/30 to-amber-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -346,7 +418,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                         </div>
 
                         {/* Text */}
-                        <span className="text-sm font-medium text-gray-700 group-hover:text-orange-700 transition-colors duration-300 relative z-10">
+                        <span className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-orange-700 transition-colors duration-300 relative z-10">
                           {dict.attachScreenshot}
                         </span>
 
@@ -354,12 +426,12 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                         <div className="w-2 h-2 bg-gradient-to-r from-teal-400 to-amber-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse" />
                       </button>
 
-                      {/* Enhanced Screenshot Preview */}
+                      {/* Screenshot Preview - Mobile optimized */}
                       {screenshotPreview && (
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center sm:justify-start">
                           <div className="relative group/preview">
-                            {/* Image container with enhanced styling */}
-                            <div className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-orange-200 shadow-lg bg-white">
+                            {/* Image container */}
+                            <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-xl overflow-hidden border-2 border-orange-200 shadow-lg bg-white">
                               <img
                                 src={screenshotPreview}
                                 alt="Screenshot preview"
@@ -369,27 +441,22 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                               <div className="absolute inset-0 bg-black/0 group-hover/preview:bg-black/20 transition-colors duration-300" />
                             </div>
 
-                            {/* Enhanced remove button */}
+                            {/* Remove button */}
                             <button
                               type="button"
                               onClick={() => setScreenshot(null)}
-                              className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/remove"
+                              className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/remove"
                             >
-                              <X className="w-3 h-3 group-hover/remove:rotate-90 transition-transform duration-300" />
+                              <X className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover/remove:rotate-90 transition-transform duration-300" />
                               {/* Glow effect */}
                               <div className="absolute inset-0 bg-red-400 rounded-full blur opacity-0 group-hover/remove:opacity-50 transition-opacity duration-300" />
                             </button>
-
-                            {/* File info tooltip */}
-                            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/preview:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                              {dict.screenshotTooltip}
-                            </div>
                           </div>
                         </div>
                       )}
                     </div>
 
-                    {/* Upload instructions/status */}
+                    {/* Upload instructions */}
                     <div className="text-xs text-gray-500 flex items-center gap-2">
                       <div className="w-1.5 h-1.5 bg-gradient-to-r from-teal-400 to-amber-400 rounded-full" />
                       <span>{dict.fileInstructions}</span>
@@ -404,29 +471,29 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                     />
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-3 pt-4">
+                  {/* Action Buttons - Mobile optimized */}
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4">
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={() => resetState()}
-                      className="flex-1 hover:bg-gray-100 transition-colors duration-300"
+                      className="flex-1 hover:bg-gray-100 transition-colors duration-300 text-sm sm:text-base"
                     >
                       {dict.cancelButton}
                     </Button>
                     <Button
                       onClick={handleSubmit}
                       disabled={isSubmitting || !content.trim()}
-                      className="flex-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                      className="flex-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm sm:text-base"
                     >
                       {isSubmitting ? (
                         <>
-                          <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                          <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin ml-2" />
                           {dict.submittingButton}
                         </>
                       ) : (
                         <>
-                          <Send className="w-4 h-4 ml-2" />
+                          <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-2" />
                           {dict.submitButton}
                         </>
                       )}
