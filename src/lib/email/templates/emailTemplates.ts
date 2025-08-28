@@ -8,6 +8,14 @@ interface BaseTemplateContext {
   baseUrl: string; // Added for consistency
 }
 
+interface InternalFeedbackNotificationContext extends BaseTemplateContext {
+    feedbackId: string;
+    feedbackType: string;
+    userIdentifier: string;
+    content: string;
+    pageUrl: string;
+    screenshotUrl?: string;
+}
 interface WelcomeTemplateContext extends BaseTemplateContext {
   firstName: string;
   matchmakerAssigned?: boolean;
@@ -89,6 +97,7 @@ type TemplateContextMap = {
   'password-changed-confirmation': PasswordChangedConfirmationTemplateContext; // New
   'invitation': InvitationTemplateContext;
     'account-setup': AccountSetupTemplateContext; // New template
+  'internal-feedback-notification': InternalFeedbackNotificationContext; // <-- הוסף את השורה הזו
 
   // 'password-reset': PasswordResetLinkTemplateContext; // Keep if old link-based reset is still used elsewhere
 };
@@ -341,7 +350,31 @@ export const emailTemplates: {
     `;
     // Use 'success' class for the header of this confirmation email
     return createBaseEmailHtml('הסיסמה שלך שונתה', content.replace('{{headerClass}}', 'success'), footer);
+  },
+
+  'internal-feedback-notification': (context) => {
+      const content = `
+          <p>A new piece of feedback has been submitted through the website widget.</p>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+              <tr style="border-bottom: 1px solid #eee;"><th style="text-align: left; padding: 12px; background-color: #f7f7f7; font-weight: 600;">Feedback ID</th><td style="text-align: left; padding: 12px;">${context.feedbackId}</td></tr>
+              <tr style="border-bottom: 1px solid #eee;"><th style="text-align: left; padding: 12px; background-color: #f7f7f7; font-weight: 600;">Type</th><td style="text-align: left; padding: 12px;"><strong>${context.feedbackType}</strong></td></tr>
+              <tr style="border-bottom: 1px solid #eee;"><th style="text-align: left; padding: 12px; background-color: #f7f7f7; font-weight: 600;">Submitted By</th><td style="text-align: left; padding: 12px;">${context.userIdentifier}</td></tr>
+              <tr style="border-bottom: 1px solid #eee;"><th style="text-align: left; padding: 12px; background-color: #f7f7f7; font-weight: 600;">Page URL</th><td style="text-align: left; padding: 12px;"><a href="${context.pageUrl}">${context.pageUrl}</a></td></tr>
+              <tr style="border-bottom: 1px solid #eee;"><th style="text-align: left; padding: 12px; background-color: #f7f7f7; font-weight: 600;">Content</th><td style="text-align: left; padding: 12px;"><pre style="white-space: pre-wrap; font-family: sans-serif;">${context.content}</pre></td></tr>
+          </table>
+          ${context.screenshotUrl ? `
+          <div style="margin-top: 20px;">
+              <h2 style="font-size: 18px;">Screenshot Attached</h2>
+              <a href="${context.screenshotUrl}" target="_blank">
+                  <img src="${context.screenshotUrl}" alt="User-submitted screenshot" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;">
+              </a>
+          </div>
+          ` : ''}
+      `;
+      const footer = `<p>© ${context.currentYear} ${context.companyName}. This is an automated notification.</p>`;
+      return createBaseEmailHtml('New Feedback Received', content, footer);
   }
+
 
   // If you still had an old 'password-reset' for links:
   // 'password-reset': (context) => { ... your old link-based reset template ... }

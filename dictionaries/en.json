@@ -1,8 +1,42 @@
 {
-  "metadata": {
+"metadata": {
+  "title": "NeshamaTech | Where Soul Meets Technology",
+  "description": "Relationships that start from the soul. At NeshamaTech, we use advanced technology and personal guidance to uncover true compatibility beyond the profile. Join a discreet and respectful journey to find a serious and meaningful connection.",
+  "keywords": [
+    "Matchmaking",
+    "Soul and Technology",
+    "Relationships from the soul",
+    "NeshamaTech",
+    "Serious relationship",
+    "Deep dating",
+    "Modern matchmaking",
+    "Personality matching",
+    "Jewish Matchmaking"
+  ],
+  "openGraph": {
     "title": "NeshamaTech | Where Soul Meets Technology",
-    "description": "Relationships that start from the soul. At NeshamaTech, we combine advanced technology and personal guidance to uncover true compatibility that goes beyond the profile."
+    "description": "Relationships that start from the soul. A platform combining technology and personal guidance to create genuine connections.",
+    "url": "https://www.neshamatech.com",
+    "siteName": "NeshamaTech",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png",
+        "width": 1200,
+        "height": 630,
+        "alt": "NeshamaTech Logo - Technology and Soul"
+      }
+    ],
+    "locale": "en_US",
+    "type": "website"
   },
+  "twitter": {
+    "card": "summary_large_image",
+    "title": "NeshamaTech | Where Soul Meets Technology",
+    "description": "Relationships that start from the soul. Genuine connections based on technology and personal guidance.",
+    "images": ["https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png"]
+  }
+},
+
   "navbar": {
     "myMatches": "My Matches",
     "matchmakingQuestionnaire": "Questionnaire",
@@ -543,27 +577,42 @@
     }
   },
   "feedbackWidget": {
-        "tabLabel": "Feedback",
-
+    "tabLabel": "Your Feedback",
     "openAriaLabel": "Open feedback widget",
-    "title": "Your Partnership in Building NeshamaTech",
-    "subtitle": "Your insights help us create Israel's best matchmaking experience.",
+    "closeAriaLabel": "Close feedback widget",
+    "title": "Building the Future, Together",
+    "subtitle": "Your insights help us refine the journey to a deep and meaningful connection.",
+    "step_type_title": "How can we improve, together?",
     "types": {
-      "suggestion": "I have a suggestion",
-      "bug": "I found a technical issue",
-      "positive": "I have positive feedback"
+      "suggestion": {
+        "label": "I have an idea to improve",
+        "description": "A new idea? A missing feature? We'd love to hear it."
+      },
+      "bug": {
+        "label": "I found an issue",
+        "description": "Something isn't working as expected? Help us fix it."
+      },
+      "positive": {
+        "label": "I wanted to say thanks",
+        "description": "A good experience? A success story? Share it with us."
+      }
     },
-    "placeholder": "What's on your mind? Every thought, idea, or note is welcomed...",
-    "attachScreenshot": "Attach Screenshot",
+    "placeholder": "This is the place to share what's on your mind. Every thought or idea helps us grow...",
+    "attachScreenshot": "Attach an Image",
+    "screenshotTooltip": "Screenshot Preview",
+    "fileInstructions": "PNG, JPG, or WebP files (up to 2MB)",
     "cancelButton": "Cancel",
-    "submitButton": "Send Feedback",
+    "submitButton": "Send Insight",
+    "submittingButton": "Sending...",
     "toasts": {
-      "imageTooLarge": "Image is too large (max 2MB).",
-      "contentRequired": "Please fill in the feedback content.",
-      "submitSuccess": "Thank you! Your feedback has been sent successfully.",
-      "submitError": "Oops, an error occurred while sending feedback. Please try again."
+      "imageTooLarge": "This file is a bit too large. Please upload a file under 2MB.",
+      "contentRequired": "So we can listen, we'd appreciate you writing something for us.",
+      "submitSuccess": "We've received it! Thank you for the partnership. Your feedback is on its way to our team.",
+      "submitError": "Oops, there seems to be a slight issue. Please try again, we truly want to hear from you."
     }
   }
+
+
 
 
 }

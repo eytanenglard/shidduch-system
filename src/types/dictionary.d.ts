@@ -589,7 +589,7 @@ export type Dictionary = {
 
   demoProfileCard: DemoProfileCardDict;
   unsavedChangesModal: UnsavedChangesModalDict;
-
+metadata: MetadataDict
   // New, namespaced key for the modular dictionary
   suggestions: SuggestionsDictionary;
   profilePage: ProfilePageDictionary;
@@ -641,7 +641,29 @@ export type SuggestionsPresentationDict = {
 export type MetadataDict = {
   title: string;
   description: string;
+  keywords: string[];
+  openGraph: {
+    title: string;
+    description: string;
+    url: string;
+    siteName: string;
+    images: {
+      url: string;
+      width: number;
+      height: number;
+      alt: string;
+    }[];
+    locale: string;
+    type: string;
+  };
+  twitter: {
+    card: string;
+    title: string;
+    description: string;
+    images: string[];
+  };
 };
+
 
 export type SuggestionsQuickViewDict = {
   unitCm: string;
@@ -2828,18 +2850,23 @@ export type ContactPageDict = {
 
 export type FeedbackWidgetDict  = {
   openAriaLabel: string;
+  closeAriaLabel: string; // חדש
   title: string;
   subtitle: string;
-  tabLabel: string; // הוספנו תרגום חדש ללשונית
+  tabLabel: string;
+  step_type_title: string; // חדש: "איך נוכל לשפר?"
   types: {
-    suggestion: string;
-    bug: string;
-    positive: string;
+    suggestion: { label: string; description: string; }; // מבנה מורחב
+    bug: { label: string; description: string; }; // מבנה מורחב
+    positive: { label: string; description: string; }; // מבנה מורחב
   };
   placeholder: string;
   attachScreenshot: string;
+  screenshotTooltip: string; // חדש
+  fileInstructions: string; // חדש
   cancelButton: string;
   submitButton: string;
+  submittingButton: string; // חדש: "שולח..."
   toasts: {
     imageTooLarge: string;
     contentRequired: string;
@@ -2847,5 +2874,6 @@ export type FeedbackWidgetDict  = {
     submitError: string;
   };
 }
+
 
 

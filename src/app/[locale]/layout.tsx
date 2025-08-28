@@ -29,6 +29,9 @@ export async function generateMetadata({
   return {
     title: dictionary.metadata.title,
     description: dictionary.metadata.description,
+    keywords: dictionary.metadata.keywords,
+    openGraph: dictionary.metadata.openGraph,
+    twitter: dictionary.metadata.twitter,
   };
 }
 

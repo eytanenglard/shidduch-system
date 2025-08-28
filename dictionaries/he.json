@@ -1,8 +1,42 @@
 {
-  "metadata": {
+"metadata": {
+  "title": "NeshamaTech | המקום בו נשמה פוגשת טכנולוגיה",
+  "description": "זוגיות שמתחילה מהנשמה. ב-NeshamaTech, אנו משתמשים בטכנולוגיה מתקדמת וליווי אישי כדי לחשוף את התאימות האמיתית שמעבר לפרופיל. הצטרפו למסע דיסקרטי ומכבד למציאת קשר רציני ומשמעותי.",
+  "keywords": [
+    "שידוכים",
+    "נשמה וטכנולוגיה",
+    "זוגיות שמתחילה מהנשמה",
+    "NeshamaTech",
+    "קשר רציני",
+    "היכרויות עומק",
+    "שדכנות מודרנית",
+    "התאמה לפי אישיות",
+    "Jewish Matchmaking"
+  ],
+  "openGraph": {
     "title": "NeshamaTech | המקום בו נשמה פוגשת טכנולוגיה",
-    "description": "זוגיות שמתחילה מהנשמה. ב-NeshamaTech, אנו משתמשים בטכנולוגיה מתקדמת וליווי אישי כדי לחשוף את התאימות האמיתית שמעבר לפרופיל."
+    "description": "זוגיות שמתחילה מהנשמה. פלטפורמה המשלבת טכנולוגיה וליווי אישי ליצירת חיבורים אמיתיים.",
+    "url": "https://www.neshamatech.com",
+    "siteName": "NeshamaTech",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png",
+        "width": 1200,
+        "height": 630,
+        "alt": "הלוגו של NeshamaTech - טכנולוגיה ונשמה"
+      }
+    ],
+    "locale": "he_IL",
+    "type": "website"
   },
+  "twitter": {
+    "card": "summary_large_image",
+    "title": "NeshamaTech | נשמה פוגשת טכנולוגיה",
+    "description": "זוגיות שמתחילה מהנשמה. חיבורים אמיתיים המבוססים על טכנולוגיה וליווי אישי.",
+    "images": ["https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png"]
+  }
+},
+
   "navbar": {
     "myMatches": "ההצעות שלי",
     "matchmakingQuestionnaire": "שאלון התאמה",
@@ -517,28 +551,43 @@
       "copyright": "© {year} NeshamaTech. כל הזכויות שמורות."
     }
   },
-    "feedbackWidget": {
-          "tabLabel": "משוב",
-
-    "openAriaLabel": "פתח חלון משוב",
-    "title": "השותפות שלך בבניית NeshamaTech",
-    "subtitle": "התובנות שלך עוזרות לנו ליצור את חווית השידוכים הטובה בישראל.",
+  "feedbackWidget": {
+    "tabLabel": "הפידבק שלך",
+    "openAriaLabel": "פתיחת חלונית משוב",
+    "closeAriaLabel": "סגירת חלונית המשוב",
+    "title": "בונים יחד את הבית הבא",
+    "subtitle": "כל תובנה שלכם עוזרת לנו לדייק את המסע לקשר אמיתי ועמוק.",
+    "step_type_title": "איך נוכל להשתפר יחד?",
     "types": {
-      "suggestion": "יש לי הצעה לשיפור",
-      "bug": "מצאתי תקלה טכנית",
-      "positive": "רציתי לפרגן"
+      "suggestion": {
+        "label": "יש לי רעיון לשיפור",
+        "description": "רעיון חדש? פיצ'ר שחסר? נשמח לשמוע."
+      },
+      "bug": {
+        "label": "מצאתי תקלה במערכת",
+        "description": "משהו לא עובד כמצופה? עזרו לנו לתקן."
+      },
+      "positive": {
+        "label": "רציתי לומר תודה",
+        "description": "חוויה טובה? סיפור הצלחה? שתפו אותנו."
+      }
     },
-    "placeholder": "מה על ליבך? כל מחשבה, רעיון או הערה יתקבלו בברכה...",
-    "attachScreenshot": "צרף צילום מסך",
+    "placeholder": "כאן המקום לשתף מה שעל ליבך. כל מחשבה, הארה או הצעה תעזור לנו לגדול...",
+    "attachScreenshot": "צרף תמונה להמחשה",
+    "screenshotTooltip": "תצוגה מקדימה",
+    "fileInstructions": "קבצי PNG, JPG או WebP (עד 2MB)",
     "cancelButton": "ביטול",
-    "submitButton": "שלח משוב",
+    "submitButton": "שלח תובנה",
+    "submittingButton": "שולחים...",
     "toasts": {
-      "imageTooLarge": "התמונה גדולה מדי (מקסימום 2MB).",
-      "contentRequired": "אנא מלא/י את תוכן המשוב.",
-      "submitSuccess": "תודה רבה! המשוב שלך נשלח בהצלחה.",
-      "submitError": "אופס, אירעה שגיאה בשליחת המשוב. נסה/י שוב."
+      "imageTooLarge": "הקובץ גדול מדי. נשמח אם תעלה/י קובץ עד 2MB.",
+      "contentRequired": "כדי שנוכל להקשיב, נשמח אם תכתוב/י לנו משהו.",
+      "submitSuccess": "קיבלנו! תודה רבה על השותפות. המשוב שלך בדרך לצוות שלנו.",
+      "submitError": "אוי, נראה שיש תקלה קטנה. אנא נסה/י שוב, אנחנו באמת רוצים לשמוע אותך."
     }
   }
+
+
 
 
 }

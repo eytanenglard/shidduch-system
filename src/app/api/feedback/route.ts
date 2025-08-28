@@ -5,45 +5,49 @@ import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { v2 as cloudinary } from 'cloudinary';
 import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis'; // <-- שינוי: ייבוא הלקוח של Upstash
+import { Redis } from '@upstash/redis';
 import prisma from '@/lib/prisma';
 import { FeedbackType } from '@prisma/client';
+import { emailService } from '@/lib/email/emailService';
 
-// Configure Cloudinary (נשאר זהה)
+// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// --- התחברות ל-Redis והגדרת Rate Limiter (זה החלק שהשתנה) ---
-// ודא שמשתני הסביבה מוגדרים
+// Configure Redis and Rate Limiter for Heroku environment
 if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-  throw new Error('Upstash Redis credentials are not configured in environment variables');
+  console.warn('Upstash Redis credentials are not configured. Rate limiting will not be active.');
 }
 
-// יצירת לקוח Redis חדש
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  url: process.env.UPSTASH_REDIS_REST_URL || '',
+  token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
 });
 
-// הגדרת Rate Limiter: 5 בקשות בשעה מאותו מזהה
 const ratelimit = new Ratelimit({
-  redis: redis, // שימוש בלקוח החדש
-  limiter: Ratelimit.slidingWindow(5, '1 h'),
+  redis: redis,
+  limiter: Ratelimit.slidingWindow(5, '1 h'), // Allow 5 requests per hour from the same identifier
 });
-// --- סוף החלק שהשתנה ---
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const ip = req.ip ?? '127.0.0.1';
-  
-  const identifier = token?.sub ?? ip;
-  const { success } = await ratelimit.limit(identifier);
+  // Rate Limiting Logic
+  if (process.env.NODE_ENV === 'production' && process.env.UPSTASH_REDIS_REST_URL) {
+    try {
+      const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+      const ip = req.ip ?? '127.0.0.1';
+      const identifier = token?.sub ?? ip;
+      const { success } = await ratelimit.limit(identifier);
 
-  if (!success) {
-    return new NextResponse('Too many requests. Please try again later.', { status: 429 });
+      if (!success) {
+        return new NextResponse('Too many requests. Please try again later.', { status: 429 });
+      }
+    } catch (e) {
+        console.error("Error with rate limiter:", e);
+        // If the rate limiter fails, we don't block the request but log the error
+    }
   }
 
   try {
@@ -53,6 +57,8 @@ export async function POST(req: NextRequest) {
     const pageUrl = formData.get('pageUrl') as string;
     const userAgent = req.headers.get('user-agent') || 'Unknown';
     const screenshot = formData.get('screenshot') as File | null;
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
 
     if (!content || !feedbackType || !pageUrl) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
@@ -60,11 +66,11 @@ export async function POST(req: NextRequest) {
 
     let screenshotUrl: string | undefined = undefined;
 
+    // Handle screenshot upload if it exists
     if (screenshot) {
       const bytes = await screenshot.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
-      // --- התיקון המרכזי: הגדרת טיפוסים נכונה ל-Promise ---
       const uploadResult = await new Promise<{ secure_url?: string; error?: any }>((resolve) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
@@ -73,13 +79,10 @@ export async function POST(req: NextRequest) {
           },
           (error, result) => {
             if (error) {
-              console.error('Cloudinary upload error:', error);
-              resolve({ error }); // החזר אובייקט עם שגיאה
-            }
-            if (result) {
-              resolve({ secure_url: result.secure_url }); // החזר אובייקט עם ה-URL
+              resolve({ error });
+            } else if (result) {
+              resolve({ secure_url: result.secure_url });
             } else {
-              // מקרה קצה שבו אין שגיאה ואין תוצאה
               resolve({ error: new Error('Cloudinary returned no result or error.') });
             }
           }
@@ -88,30 +91,63 @@ export async function POST(req: NextRequest) {
       });
 
       if (uploadResult.error) {
-        // אם הייתה שגיאה בהעלאה, נרשום אותה ביומן אך לא נעצור את שליחת המשוב
         console.error('Failed to upload screenshot to Cloudinary:', uploadResult.error);
-        // אפשר להוסיף כאן לוגיקה לשליחת התראה למערכת ניטור אם יש לך
       } else if (uploadResult.secure_url) {
         screenshotUrl = uploadResult.secure_url;
       }
     }
 
-    await prisma.feedback.create({
+    // Save the feedback to the database
+    const newFeedback = await prisma.feedback.create({
       data: {
         userId: token?.sub,
         content,
         feedbackType,
         pageUrl,
         userAgent,
-        screenshotUrl, // השדה הזה יהיה `undefined` אם ההעלאה נכשלה, וזה בסדר
+        screenshotUrl,
       },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          }
+        }
+      }
     });
+
+    // Send an email notification to the admin
+    try {
+      const adminEmail = "jewish.matchpoint@gmail.com";
+      const userIdentifier = newFeedback.user 
+        ? `${newFeedback.user.firstName} ${newFeedback.user.lastName} (${newFeedback.user.email})`
+        : `Anonymous User (IP: ${req.ip ?? 'N/A'})`;
+
+      await emailService.sendEmail({
+        to: adminEmail,
+        subject: `New Feedback Received (${feedbackType}): ${userIdentifier}`,
+        templateName: 'internal-feedback-notification', // The new template we will create
+        context: {
+          feedbackType: feedbackType,
+          userIdentifier: userIdentifier,
+          content: content,
+          pageUrl: pageUrl,
+          screenshotUrl: screenshotUrl,
+          feedbackId: newFeedback.id,
+        }
+      });
+      console.log(`Feedback notification sent successfully to ${adminEmail}`);
+    } catch (emailError) {
+      // Critical: Do not stop the process if the email fails. The feedback is already saved.
+      console.error("Failed to send feedback notification email, but feedback was saved to DB. Error:", emailError);
+    }
 
     return NextResponse.json({ success: true, message: 'Feedback submitted successfully' });
 
   } catch (error) {
-    console.error('Error submitting feedback:', error);
+    console.error('Fatal error in feedback submission process:', error);
     return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
-
 }
