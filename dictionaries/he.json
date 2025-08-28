@@ -157,7 +157,7 @@
       ],
       "example_header": "למשל, אנו שואלים:",
     "insight_header": "התובנה שלנו:",
-    "dimension_prefix": "מימד",
+    "dimension_prefix": "עולם",
     "dimension_suffix": "מתוך"
     }
   },
@@ -370,7 +370,7 @@
         "title": "יצירת קשר",
         "items": [
           { "icon": "📱", "text": "054-321-0040" },
-          { "icon": "✉️", "text": "info@neshamatech.com" },
+          { "icon": "✉️", "text": "jewish.matchpoint@gmail.com" },
           { "icon": "📍", "text": "רעננה, ישראל" },
           { "icon": "🕒", "text": "א'-ה' 9:00-18:00" }
         ]
@@ -399,7 +399,7 @@
       "composeEmailPrompt": "מעולה. כעת, כתוב/י את פנייתך ואחד מאנשי הצוות שלנו יחזור אליך באופן אישי.",
       "emailError": "נראה שכתובת המייל אינה תקינה. אנא בדקו ונסו שוב.",
       "genericError": "אנו מתנצלים, אירעה שגיאה טכנית קלה. אנא נסו לרענן או לחזור בעוד מספר רגעים. תמיד אפשר גם לפנות אלינו ישירות במייל.",
-      "sendEmailError": "אנו מתנצלים, אירעה שגיאה בשליחת המייל. אנא נסו שוב, או פנו אלינו ישירות לכתובת info@neshamatech.com.",
+      "sendEmailError": "אנו מתנצלים, אירעה שגיאה בשליחת המייל. אנא נסו שוב, או פנו אלינו ישירות לכתובת jewish.matchpoint@gmail.com.",
       "placeholderDefault": "שאלו אותנו על הגישה שלנו...",
       "placeholderGatheringEmail": "הכניסו את כתובת המייל שלכם...",
       "placeholderComposingEmail": "כתבו את הודעתכם כאן...",

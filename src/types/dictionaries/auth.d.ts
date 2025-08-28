@@ -367,4 +367,271 @@ export type AuthDictionary = {
   verifyPhone: VerifyPhoneDict;
   errorPage: AuthErrorDict;
   register: RegisterStepsDict;
+    legal: LegalDictionary;
+
 };
+
+export type AccessibilityStatementDict = {
+  pageTitle: string;
+  pageDescription: string;
+  mainTitle: string;
+  siteName: string;
+  lastUpdated: string;
+  commitment: {
+    title: string;
+    p1: string;
+    p2: string;
+  };
+  level: {
+    title: string;
+    item1: string;
+    item2: string;
+  };
+  features: {
+    title: string;
+    p1: string;
+    dedicatedToolbarTitle: string;
+    p2: string;
+    fontAdjustment: {
+      title: string;
+      description: string;
+    };
+    contrastModes: {
+      title: string;
+      description: string;
+    };
+    readableFont: {
+      title: string;
+      description: string;
+    };
+    largeCursor: {
+      title: string;
+      description: string;
+    };
+    textToSpeech: {
+      title: string;
+      description: string;
+    };
+    reduceMotion: {
+      title: string;
+      description: string;
+    };
+    additionalAdjustmentsTitle: string;
+    keyboardNav: string;
+    screenReader: string;
+    altText: string;
+    accessibleForms: string;
+    noFlashing: string;
+  };
+  limitations: {
+    title: string;
+    p1: string;
+    p2: string;
+  };
+  contact: {
+    title: string;
+    p1: string;
+    name: string;
+    email: string;
+    p2: string;
+    p3: string;
+  };
+};
+
+export type PrivacyPolicyDict = {
+  pageTitle: string;
+  pageDescription: string;
+  mainTitle: string;
+  lastUpdated: string;
+  introduction: {
+    title: string;
+    p1: string;
+    p2: string;
+    p3: string;
+  };
+  consent: {
+    title: string;
+    p1: string;
+    p2: string;
+    p3: string;
+    p4: string;
+  };
+  collectedInfo: {
+    title: string;
+    p1: string;
+    subTitle1: string;
+    list1: {
+      item1: string;
+      item2: {
+        title: string;
+        subItem1: string;
+        subItem2: string;
+        subItem3: string;
+      };
+      item3: string;
+      item4: string;
+      item5: string;
+      item6: string;
+    };
+    subTitle2: string;
+    p2: string;
+    subTitle3: string;
+    p3_1: string;
+    p3_2: string;
+    p3_3: string;
+    p3_4: string;
+    p3_5: string;
+    p3_6: string;
+    p3_7: string;
+    subTitle4: string;
+    list2: {
+      item1: string;
+      item2: string;
+    };
+  };
+  howWeUse: {
+    title: string;
+    p1: string;
+    list: {
+      item1: string;
+      item2: string;
+      item3: string;
+      item4: string;
+      item5: string;
+      item6: string;
+      item7: string;
+    };
+  };
+  sharingInfo: {
+    title: string;
+    p1: string;
+    list: {
+      item1: string;
+      item2: string;
+      item3: string;
+      item4: string;
+      item5: string;
+    };
+  };
+  security: {
+    title: string;
+    p1: string;
+  };
+  retention: {
+    title: string;
+    p1: string;
+  };
+  yourRights: {
+    title: string;
+    p1: string;
+  };
+  crossBorder: {
+    title: string;
+    p1: string;
+  };
+  minors: {
+    title: string;
+    p1: string;
+  };
+  changes: {
+    title: string;
+    p1: string;
+  };
+  contact: {
+    title: string;
+    p1: string;
+    companyName: string;
+    email: string;
+    address: string;
+  };
+};
+
+export type TermsOfServiceDict = {
+  pageTitle: string;
+  pageDescription: string;
+  mainTitle: string;
+  subTitle: string;
+  lastUpdated: string;
+  introduction: {
+    title: string;
+    p1_1: string;
+    p1_2: string;
+    p1_3: string;
+    p1_4: string;
+    list: {
+      itemA: string;
+      itemB: string;
+      itemC: string;
+    };
+    p1_5: string;
+  };
+  userAccount: {
+    title: string;
+    p2_1: string;
+    p2_2: string;
+    list: {
+      itemA: string;
+      itemB: string;
+      itemC: string;
+      itemD: string;
+      itemE: string;
+      itemF: string;
+      itemG: string;
+      itemH: string;
+      itemI: string;
+    };
+    p2_3: string;
+  };
+  serviceFees: {
+    title: string;
+    p3_1: string;
+    list: {
+      itemA: string;
+      itemB: string;
+      itemC: string;
+    };
+    p3_2: string;
+    p3_3: string;
+    p3_4: string;
+    p3_5: string;
+  };
+  intellectualProperty: {
+    title: string;
+    p4_1: string;
+    p4_2: string;
+  };
+  thirdPartyLinks: {
+    title: string;
+    p1: string;
+  };
+  limitationOfLiability: {
+    title: string;
+    p6_1: string;
+    p6_2: string;
+    p6_3: string;
+    p6_4: string;
+  };
+  indemnification: {
+    title: string;
+    p1: string;
+  };
+  terminationLaw: {
+    title: string;
+    p8_1: string;
+    p8_2: string;
+    p8_3: string;
+  };
+  contact: {
+    title: string;
+    p9_1: string;
+    p9_2: string;
+  };
+};
+
+
+export type LegalDictionary = {
+  accessibilityStatement: AccessibilityStatementDict;
+  privacyPolicy: PrivacyPolicyDict;
+  termsOfService: TermsOfServiceDict;
+};
+

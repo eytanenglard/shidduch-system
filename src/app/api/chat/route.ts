@@ -200,7 +200,7 @@ export async function POST(req: NextRequest) {
 
       const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME || 'NeshamaTech Chatbot'}" <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
-        to: 'info@neshamatech.com', // <-- עדכון כתובת המייל
+        to: 'jewish.matchpoint@gmail.com', // <-- עדכון כתובת המייל
         subject: `New Chat Inquiry: ${userEmail}`, // <-- נושא באנגלית
         replyTo: userEmail,
         html: `
