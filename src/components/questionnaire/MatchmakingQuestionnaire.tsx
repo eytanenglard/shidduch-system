@@ -73,7 +73,7 @@ export interface MatchmakingQuestionnaireProps {
   initialWorld?: WorldId;
   initialQuestionId?: string;
   dict: QuestionnaireDictionary;
-  locale: 'he' | 'en'; // <-- הוספה: קבלת locale כ-prop
+  locale,// <-- הוספה: קבלת locale כ-prop
 }
 
 export default function MatchmakingQuestionnaire({
@@ -86,7 +86,6 @@ export default function MatchmakingQuestionnaire({
 }: MatchmakingQuestionnaireProps) {
   const router = useRouter();
   const sessionId = useMemo(() => `session_${Date.now()}`, []);
-  const language = locale;
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(
     OnboardingStep.MAP
   );
@@ -452,7 +451,7 @@ export default function MatchmakingQuestionnaire({
         const finalNewAnswer: QuestionnaireAnswer = {
           ...newAnswerBase,
           ...(currentQuestion?.type === 'openText' && {
-            language: language as 'en' | 'he',
+            language: locale as 'en' | 'he',
           }),
         };
 
@@ -465,7 +464,7 @@ export default function MatchmakingQuestionnaire({
         }
       });
     },
-    [currentWorld, language]
+    [currentWorld, locale]
   );
 
   const handleVisibilityChange = useCallback(
@@ -628,11 +627,7 @@ export default function MatchmakingQuestionnaire({
       },
     };
     return (
-      <WorldComponent
-        {...worldProps}
-        worldId={currentWorld}
-        locale={language}
-      />
+      <WorldComponent {...worldProps} worldId={currentWorld} locale={locale} />
     );
   }
 
@@ -660,7 +655,7 @@ export default function MatchmakingQuestionnaire({
             completedWorlds={completedWorlds}
             onWorldChange={handleWorldChange}
             dict={dict.worldsMap}
-            locale={language}
+            locale={locale}
           />
         );
 
@@ -672,7 +667,7 @@ export default function MatchmakingQuestionnaire({
             onWorldChange={handleWorldChange}
             onExit={handleExit}
             onSaveProgress={() => handleQuestionnaireSave(false)}
-            language={language}
+            locale={locale}
             isLoggedIn={!!userId}
             dict={{
               layout: dict.layout,
@@ -779,7 +774,7 @@ export default function MatchmakingQuestionnaire({
     <div
       className={cn(
         'min-h-screen bg-gray-50',
-        language === 'he' ? 'dir-rtl' : 'dir-ltr'
+        locale === 'he' ? 'dir-rtl' : 'dir-ltr'
       )}
     >
       <IdleModal />

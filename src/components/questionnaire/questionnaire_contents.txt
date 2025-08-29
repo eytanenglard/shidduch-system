@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-08-29 11:01:48
+# Generated on: 2025-08-29 12:03:41
 ################################################################################
 
 ================================================================================
@@ -1284,6 +1284,7 @@ import { Badge } from '@/components/ui/badge';
 import type { AnswerInputDict, InteractiveScaleDict } from '@/types/dictionary';
 
 export interface AnswerInputProps {
+  locale: string;
   question: Question;
   value?: AnswerValue;
   onChange?: (value: AnswerValue) => void;
@@ -1304,7 +1305,10 @@ export default function AnswerInput({
   className = '',
   validationError,
   dict,
+  locale,
 }: AnswerInputProps) {
+  const isRTL = locale === 'he'; // הגדר משתנה עזר
+
   const [internalValue, setInternalValue] = useState<AnswerValue>(value);
   const [error, setError] = useState<string | null>(null);
   const [customValue, setCustomValue] = useState<string>('');
@@ -1418,7 +1422,13 @@ export default function AnswerInput({
           />
         )}
       </AnimatePresence>
-      <div className="flex items-center gap-2 flex-1 z-10">
+      <div
+        className={cn(
+          'flex items-center gap-2 flex-1 z-10',
+          isRTL && 'flex-row-reverse'
+        )}
+      >
+        {' '}
         {choiceOption.icon && (
           <motion.div
             className={cn(
@@ -1567,7 +1577,13 @@ export default function AnswerInput({
                         />
                       )}
                     </AnimatePresence>
-                    <div className="flex items-center gap-2 z-10">
+                    <div
+                      className={cn(
+                        'flex items-center gap-2 z-10',
+                        isRTL && 'flex-row-reverse'
+                      )}
+                    >
+                      {' '}
                       {option.icon && (
                         <motion.div
                           className={cn(
@@ -1712,7 +1728,13 @@ export default function AnswerInput({
                       />
                     )}
                   </AnimatePresence>
-                  <div className="flex items-center gap-2 z-10">
+                  <div
+                    className={cn(
+                      'flex items-center gap-2 z-10',
+                      isRTL && 'flex-row-reverse'
+                    )}
+                  >
+                    {' '}
                     {option.icon && (
                       <motion.div
                         animate={{ scale: isSelected ? 1.1 : 1 }}
@@ -2128,8 +2150,14 @@ export default function AnswerInput({
                 }
                 className={cn(
                   'resize-y border-0 focus-visible:ring-0 w-full min-h-[150px] text-base leading-relaxed',
-                  textValue.length > 0 ? 'pr-12' : 'pr-3',
-                  'py-3 pl-3'
+                  textValue.length > 0
+                    ? isRTL
+                      ? 'pl-12'
+                      : 'pr-12'
+                    : isRTL
+                      ? 'pl-3'
+                      : 'pr-3',
+                  isRTL ? 'py-3 pr-3' : 'py-3 pl-3'
                 )}
                 style={{ height: `${textAreaHeight}px` }}
                 aria-label={question.question}
@@ -2795,7 +2823,7 @@ interface QuestionCardProps {
   validationError?: string;
   isDisabled?: boolean;
   children?: React.ReactNode;
-  language?: string;
+  locale?: 'he' | 'en';
   isFirstInList?: boolean;
   themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
   isVisible: boolean;
@@ -2867,11 +2895,12 @@ export default function QuestionCard({
   onVisibilityChange,
   onSave,
   isSaving,
+  locale,
   dict, // שימוש במשתנה dict
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-
+  const isRTL = locale === 'he';
   const cardVariants = {
     initial: { opacity: 0, y: 30, scale: 0.98 },
     animate: {
@@ -2923,7 +2952,7 @@ export default function QuestionCard({
                         themeClasses.text
                       )}
                     >
-                      <Star className="h-3.5 w-3.5 mr-1.5" />
+                      <Star className="h-3.5 w-3.5 ms-1.5" />{' '}
                       {dict.depthLabels[depth]}
                     </Badge>
                   </TooltipTrigger>
@@ -3169,7 +3198,7 @@ export default function QuestionCard({
                 )}
               >
                 {isRequired ? dict.skipButton.required : dict.skipButton.skip}
-                {!isRequired && <SkipForward className="w-4 h-4 mr-2" />}
+                {!isRequired && <SkipForward className="w-4 h-4 me-2" />}
               </Button>
             )}
           </div>
@@ -3293,11 +3322,12 @@ import { Badge } from '@/components/ui/badge';
 import type { QuestionsListDict } from '@/types/dictionary'; // Import dictionary type
 
 interface QuestionsListProps {
+  locale: string;
+
   allQuestions: Question[];
   currentQuestionIndex: number;
   setCurrentQuestionIndex: (index: number) => void;
   answers: QuestionnaireAnswer[];
-  language?: string;
   className?: string;
   onClose?: () => void;
   themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
@@ -3309,14 +3339,13 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
   currentQuestionIndex,
   setCurrentQuestionIndex,
   answers,
-  language = 'he',
+  locale = 'he',
   className = '',
   onClose,
   themeColor = 'sky',
   dict,
 }) => {
-  const isRTL = language === 'he';
-
+  const isRTL = locale === 'he';
   const findAnswer = (questionId: string): AnswerValue | undefined => {
     return answers.find((a) => a.questionId === questionId)?.value;
   };
@@ -9851,7 +9880,7 @@ export default function WorldComponent({
                     currentQuestionIndex={currentQuestionIndex}
                     setCurrentQuestionIndex={setCurrentQuestionIndex}
                     answers={answers}
-                    language={language}
+                    locale={locale}
                     themeColor={themeColor}
                     className="h-full"
                     dict={dict.questionsList}
@@ -9883,7 +9912,7 @@ export default function WorldComponent({
         depth={currentQuestion.depth}
         isRequired={currentQuestion.isRequired}
         validationError={validationErrors[currentQuestion.id]}
-        language={language}
+        locale={locale}
         themeColor={themeColor}
         isVisible={currentAnswerObject?.isVisible ?? true}
         onVisibilityChange={(isVisible) =>
@@ -9909,6 +9938,7 @@ export default function WorldComponent({
             answerInput: dict.answerInput,
             interactiveScale: dict.interactiveScale,
           }}
+          locale={locale}
         />
       </QuestionCard>
     </motion.div>
@@ -10037,7 +10067,7 @@ export default function WorldComponent({
                       currentQuestionIndex={currentQuestionIndex}
                       setCurrentQuestionIndex={setCurrentQuestionIndex}
                       answers={answers}
-                      language={language}
+                      locale={locale}
                       themeColor={themeColor}
                       className="h-full"
                       dict={dict.questionsList}

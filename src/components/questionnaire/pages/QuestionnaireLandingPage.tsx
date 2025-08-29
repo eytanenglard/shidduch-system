@@ -90,8 +90,8 @@ export default function QuestionnaireLandingPage({
 }: QuestionnaireLandingPageProps) {
   const { status, data: session } = useSession();
   const isMobile = useIsMobile();
-  const { language } = useLanguage(); // 2. השתמש ב-hook
-  const isRTL = language === 'he'; // 3. הגדר משתנה עזר
+  const { language: locale } = useLanguage(); // 2. השתמש ב-hook ושנה את שם המשתנה
+  const isRTL = locale === 'he'; // 3. הגדר משתנה עזר
 
   const worldVisuals = [
     { id: 'PERSONALITY', icon: <User />, color: 'sky' },

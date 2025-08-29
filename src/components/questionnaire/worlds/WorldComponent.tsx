@@ -171,14 +171,14 @@ export default function WorldComponent({
   >({});
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const [isListVisible, setIsListVisible] = useState(true);
-  const language = locale;
-  const isRTL = language === 'he';
+  const isRTL = locale === 'he';
+
   useEffect(() => {
     console.log(
-      `%c[WorldComponent - ${worldId}] Language is now: ${language}`,
+      `%c[WorldComponent - ${worldId}] Language is now: ${locale}`,
       'color: #9c27b0; font-weight: bold;'
     );
-  }, [language, worldId]);
+  }, [locale, worldId]);
 
   const { questions: allQuestionsStructure, themeColor } = worldConfig[worldId];
   const allQuestions = allQuestionsStructure.map((qStruct) =>

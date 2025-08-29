@@ -28,7 +28,7 @@ export default async function Page({
   return (
     <Suspense fallback={<Loading />}>
       {/* 2. רינדור רכיב הלקוח והעברת המילון כ-prop */}
-      <QuestionnairePageClient dict={dictionary.questionnaire} />
+      <QuestionnairePageClient dict={dictionary.questionnaire} locale={locale}/>
     </Suspense>
   );
 }

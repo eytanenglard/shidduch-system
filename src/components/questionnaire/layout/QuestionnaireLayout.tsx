@@ -60,7 +60,7 @@ export interface QuestionnaireLayoutProps {
   completedWorlds: WorldId[];
   onWorldChange: (worldId: WorldId) => void;
   onExit?: () => void;
-  language?: string;
+  locale?: 'he' | 'en';
   onSaveProgress?: () => Promise<void>;
   isLoggedIn?: boolean;
   dict: {
@@ -85,7 +85,7 @@ export default function QuestionnaireLayout({
   completedWorlds,
   onWorldChange,
   onExit,
-  language = 'he',
+  locale = 'he',
   isLoggedIn = false,
   onSaveProgress,
   dict,
@@ -98,9 +98,8 @@ export default function QuestionnaireLayout({
 
   const isSmallScreen = useMediaQuery('(max-width: 640px)');
   const currentThemeColor = worldConfig[currentWorld]?.themeColor || 'sky';
-  const isRTL = language === 'he';
+  const isRTL = locale === 'he';
   const directionClass = isRTL ? 'rtl' : 'ltr';
-
   const handleSave = useCallback(async () => {
     if (!onSaveProgress) return;
     setIsSaving(true);
