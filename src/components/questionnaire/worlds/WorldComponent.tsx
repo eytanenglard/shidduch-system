@@ -420,7 +420,7 @@ export default function WorldComponent({
                     currentQuestionIndex={currentQuestionIndex}
                     setCurrentQuestionIndex={setCurrentQuestionIndex}
                     answers={answers}
-                    language={language}
+                    locale={locale}
                     themeColor={themeColor}
                     className="h-full"
                     dict={dict.questionsList}
@@ -452,7 +452,7 @@ export default function WorldComponent({
         depth={currentQuestion.depth}
         isRequired={currentQuestion.isRequired}
         validationError={validationErrors[currentQuestion.id]}
-        language={language}
+        locale={locale}
         themeColor={themeColor}
         isVisible={currentAnswerObject?.isVisible ?? true}
         onVisibilityChange={(isVisible) =>
@@ -607,7 +607,7 @@ export default function WorldComponent({
                       currentQuestionIndex={currentQuestionIndex}
                       setCurrentQuestionIndex={setCurrentQuestionIndex}
                       answers={answers}
-                      language={language}
+                      locale={locale}
                       themeColor={themeColor}
                       className="h-full"
                       dict={dict.questionsList}
