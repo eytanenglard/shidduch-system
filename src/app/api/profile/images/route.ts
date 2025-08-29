@@ -1,5 +1,7 @@
 // src/app/api/profile/images/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
@@ -79,7 +81,12 @@ export async function GET() {
 }
 
 // POST - Upload new images (can be adapted for multiple files)
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Apply rate limiting: 20 image uploads per user per hour (prevents resource abuse)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   const startTime = Date.now();
 
   try {

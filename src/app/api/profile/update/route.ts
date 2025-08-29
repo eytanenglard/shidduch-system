@@ -1,6 +1,8 @@
 // File: app/api/profile/update/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -64,6 +66,11 @@ const emptyStringToNull = (value: string | null | undefined): string | null => {
 };
 
 export async function PUT(req: NextRequest) {
+  // Apply rate limiting: 50 profile updates per user per 10 minutes (prevents DB heavy load)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 50, window: '10 m' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   try {
     const session = await getServerSession(authOptions);
 

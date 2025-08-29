@@ -1,5 +1,6 @@
 // app/api/auth/resend-phone-code/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth'; // Adjust path if needed
 import prisma from '@/lib/prisma'; // Adjust path if needed
@@ -32,7 +33,12 @@ const logger = {
 
 
 // --- Main POST Handler ---
-export async function POST() {
+export async function POST(req: NextRequest) {
+      const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
     logger.info("Resend phone code request received");
 
     // 1. --- Authentication Check ---

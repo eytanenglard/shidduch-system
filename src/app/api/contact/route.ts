@@ -1,5 +1,7 @@
 // src/app/api/contact/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import nodemailer from 'nodemailer';
 import { z } from 'zod';
 
@@ -11,6 +13,11 @@ const contactSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  // Apply rate limiting: 5 contact form submissions per IP per hour (prevents spam)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   try {
     const body = await req.json();
 

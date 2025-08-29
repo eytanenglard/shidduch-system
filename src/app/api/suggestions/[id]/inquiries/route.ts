@@ -1,6 +1,7 @@
 // src/app/api/suggestions/[id]/inquiries/route.ts
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -73,10 +74,12 @@ export async function GET(
  * POST: Create a new inquiry (question) for a suggestion.
  * A user (candidate) sends a question to the matchmaker.
  */
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  // Apply rate limiting: 20 inquiries per user per hour (prevents matchmaker spam)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   try {
     const session = await getServerSession(authOptions);
     const { suggestion, userId } = await checkPermissions(params.id, session);

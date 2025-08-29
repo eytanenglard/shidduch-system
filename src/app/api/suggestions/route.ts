@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -25,6 +27,11 @@ const createSuggestionSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  // Apply rate limiting: 30 new suggestions per matchmaker per hour (safety net)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 30, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   try {
     // 1. Authentication check
     const session = await getServerSession(authOptions);

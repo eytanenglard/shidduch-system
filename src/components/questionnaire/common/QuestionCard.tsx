@@ -44,7 +44,7 @@ interface QuestionCardProps {
   validationError?: string;
   isDisabled?: boolean;
   children?: React.ReactNode;
-  language?: string;
+  locale?: 'he' | 'en';
   isFirstInList?: boolean;
   themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
   isVisible: boolean;
@@ -116,11 +116,12 @@ export default function QuestionCard({
   onVisibilityChange,
   onSave,
   isSaving,
+  locale,
   dict, // שימוש במשתנה dict
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-
+  const isRTL = locale === 'he';
   const cardVariants = {
     initial: { opacity: 0, y: 30, scale: 0.98 },
     animate: {
@@ -172,7 +173,7 @@ export default function QuestionCard({
                         themeClasses.text
                       )}
                     >
-                      <Star className="h-3.5 w-3.5 mr-1.5" />
+                      <Star className="h-3.5 w-3.5 ms-1.5" />{' '}
                       {dict.depthLabels[depth]}
                     </Badge>
                   </TooltipTrigger>
@@ -418,7 +419,7 @@ export default function QuestionCard({
                 )}
               >
                 {isRequired ? dict.skipButton.required : dict.skipButton.skip}
-                {!isRequired && <SkipForward className="w-4 h-4 mr-2" />}
+                {!isRequired && <SkipForward className="w-4 h-4 me-2" />}
               </Button>
             )}
           </div>

@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   // זה מבטיח שבכל פעם שה-API נקרא (בסביבת Serverless),
   // משתני הסביבה ייטענו ויהיו זמינים לקוד לפני השימוש בהם.
   cloudinary.config({
-    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
 
     if (screenshot) {
       // בדיקה מפורשת של משתני הסביבה לפני ניסיון העלאה
-      if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
           const errorMsg = "Server configuration error: Cloudinary environment variables are missing at the time of upload.";
           console.error(`CRITICAL: ${errorMsg}`);
           return NextResponse.json({ success: false, error: "שגיאת תצורה בשרת המונעת העלאת תמונות." }, { status: 500 });

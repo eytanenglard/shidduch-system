@@ -1,10 +1,11 @@
 // app/api/auth/register/route.ts
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType, UserSource  } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { emailService } from '@/lib/email/emailService';
 import { VerificationService } from '@/lib/services/verificationService'; 
+import { applyRateLimit } from '@/lib/rate-limiter';
 
 const prisma = new PrismaClient();
 
@@ -126,7 +127,11 @@ function handleError(error: unknown): { message: string; status: number } {
 }
 
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+    const rateLimitResponse = await applyRateLimit(req, { requests: 10, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   logger.info('Initial registration process initiated');
 
   try {

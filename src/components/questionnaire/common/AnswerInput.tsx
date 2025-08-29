@@ -44,6 +44,7 @@ import { Badge } from '@/components/ui/badge';
 import type { AnswerInputDict, InteractiveScaleDict } from '@/types/dictionary';
 
 export interface AnswerInputProps {
+  locale: string;
   question: Question;
   value?: AnswerValue;
   onChange?: (value: AnswerValue) => void;
@@ -64,7 +65,10 @@ export default function AnswerInput({
   className = '',
   validationError,
   dict,
+  locale,
 }: AnswerInputProps) {
+  const isRTL = locale === 'he'; // הגדר משתנה עזר
+
   const [internalValue, setInternalValue] = useState<AnswerValue>(value);
   const [error, setError] = useState<string | null>(null);
   const [customValue, setCustomValue] = useState<string>('');
@@ -178,7 +182,13 @@ export default function AnswerInput({
           />
         )}
       </AnimatePresence>
-      <div className="flex items-center gap-2 flex-1 z-10">
+      <div
+        className={cn(
+          'flex items-center gap-2 flex-1 z-10',
+          isRTL && 'flex-row-reverse'
+        )}
+      >
+        {' '}
         {choiceOption.icon && (
           <motion.div
             className={cn(
@@ -327,7 +337,13 @@ export default function AnswerInput({
                         />
                       )}
                     </AnimatePresence>
-                    <div className="flex items-center gap-2 z-10">
+                    <div
+                      className={cn(
+                        'flex items-center gap-2 z-10',
+                        isRTL && 'flex-row-reverse'
+                      )}
+                    >
+                      {' '}
                       {option.icon && (
                         <motion.div
                           className={cn(
@@ -472,7 +488,13 @@ export default function AnswerInput({
                       />
                     )}
                   </AnimatePresence>
-                  <div className="flex items-center gap-2 z-10">
+                  <div
+                    className={cn(
+                      'flex items-center gap-2 z-10',
+                      isRTL && 'flex-row-reverse'
+                    )}
+                  >
+                    {' '}
                     {option.icon && (
                       <motion.div
                         animate={{ scale: isSelected ? 1.1 : 1 }}
@@ -888,8 +910,14 @@ export default function AnswerInput({
                 }
                 className={cn(
                   'resize-y border-0 focus-visible:ring-0 w-full min-h-[150px] text-base leading-relaxed',
-                  textValue.length > 0 ? 'pr-12' : 'pr-3',
-                  'py-3 pl-3'
+                  textValue.length > 0
+                    ? isRTL
+                      ? 'pl-12'
+                      : 'pr-12'
+                    : isRTL
+                      ? 'pl-3'
+                      : 'pr-3',
+                  isRTL ? 'py-3 pr-3' : 'py-3 pl-3'
                 )}
                 style={{ height: `${textAreaHeight}px` }}
                 aria-label={question.question}

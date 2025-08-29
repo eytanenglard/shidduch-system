@@ -37,9 +37,18 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isTabHidden, setIsTabHidden] = useState(false);
+  const [isPermanentlyHidden, setIsPermanentlyHidden] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load hidden state from localStorage on mount
+  useEffect(() => {
+    const hidden = localStorage.getItem('feedback-widget-hidden');
+    if (hidden === 'true') {
+      setIsPermanentlyHidden(true);
+    }
+  }, []);
 
   const feedbackOptions = [
     {
@@ -84,10 +93,20 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
     const isRightSwipe = distance < -minSwipeDistance;
 
     if (isRightSwipe) {
-      setIsTabHidden(true);
-      // Auto show after 3 seconds
-      setTimeout(() => setIsTabHidden(false), 3000);
+      handleHidePermanently();
     }
+  };
+
+  // Function to hide widget permanently
+  const handleHidePermanently = () => {
+    setIsPermanentlyHidden(true);
+    localStorage.setItem('feedback-widget-hidden', 'true');
+  };
+
+  // Function to show widget again
+  const handleShowWidget = () => {
+    setIsPermanentlyHidden(false);
+    localStorage.setItem('feedback-widget-hidden', 'false');
   };
 
   useEffect(() => {
@@ -169,7 +188,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
       <div className="fixed top-1/2 -translate-y-1/2 right-0 z-50">
         <div
           className={`transition-all duration-700 ${
-            isOpen || isTabHidden
+            isOpen || isPermanentlyHidden
               ? 'translate-x-4 opacity-0 scale-95'
               : 'translate-x-0 opacity-100 scale-100'
           }`}
@@ -182,7 +201,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
-              className={`relative text-white px-1.5 sm:px-2 py-4 sm:py-6 rounded-l-2xl shadow-xl hover:shadow-2xl transition-all duration-500 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-600 via-orange-500 to-amber-400 bg-size-200 hover:bg-pos-100 ${
+              className={`relative text-white px-1.5 sm:px-2 py-4 sm:py-6 rounded-l-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-600 via-orange-500 to-amber-400 bg-size-200 hover:bg-pos-100 ${
                 isHovered ? 'w-20 sm:w-32' : 'w-8 sm:w-12'
               }`}
               style={{
@@ -202,7 +221,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                 {/* Text - Mobile optimized */}
                 {!isHovered ? (
                   <span
-                    className="text-xs sm:text-sm font-bold tracking-wider transition-all duration-700 ease-in-out drop-shadow-sm"
+                    className="text-xs sm:text-sm font-bold tracking-wider transition-all duration-300 ease-in-out drop-shadow-sm"
                     style={{
                       writingMode: 'vertical-rl',
                       textOrientation: 'mixed',
@@ -211,14 +230,14 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                     {dict.tabLabel}
                   </span>
                 ) : (
-                  <span className="text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-700 ease-in-out drop-shadow-sm px-1">
+                  <span className="text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-300 ease-in-out drop-shadow-sm px-1">
                     {dict.tabLabel}
                   </span>
                 )}
               </div>
 
               {/* Animated glow effect */}
-              <div className="absolute -inset-1 bg-gradient-to-br from-teal-400 via-orange-400 to-amber-400 rounded-2xl blur opacity-30 group-hover:opacity-60 transition-all duration-700" />
+              <div className="absolute -inset-1 bg-gradient-to-br from-teal-400 via-orange-400 to-amber-400 rounded-2xl blur opacity-30 group-hover:opacity-60 transition-all duration-300" />
 
               {/* Floating particles on hover */}
               {isHovered && (
@@ -234,33 +253,24 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setIsTabHidden(true);
-                setTimeout(() => setIsTabHidden(false), 3000);
+                handleHidePermanently();
               }}
-              className="absolute -top-2 -left-2 w-6 h-6 bg-white/90 hover:bg-red-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-500 hover:scale-110 group/close opacity-0 group-hover:opacity-100 backdrop-blur-sm border border-gray-200"
-              aria-label="הסתר זמנית"
+              className="absolute -top-2 -left-2 w-6 h-6 bg-white/90 hover:bg-red-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/close opacity-0 group-hover:opacity-100 backdrop-blur-sm border border-gray-200 z-20"
+              aria-label="הסתר כפתור פידבק"
             >
-              <X className="w-3 h-3 group-hover/close:rotate-45 transition-all duration-500" />
+              <X className="w-3 h-3 group-hover/close:rotate-45 transition-all duration-300" />
             </button>
-
-            {/* Swipe hint - Mobile only, Desktop hint */}
-            <div className="absolute -left-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-80 transition-all duration-500 pointer-events-none delay-300">
-              <div className="bg-gray-800/90 text-white text-xs px-3 py-1.5 rounded-lg backdrop-blur-sm border border-gray-600/30 shadow-lg whitespace-nowrap">
-                <span className="sm:hidden">החלק ימינה להסתרה</span>
-                <span className="hidden sm:inline">לחץ X להסתרה זמנית</span>
-                <div className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-full w-0 h-0 border-l-4 border-l-gray-800/90 border-t-2 border-t-transparent border-b-2 border-b-transparent"></div>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Show button when hidden */}
-        {isTabHidden && (
+        {/* Show button when permanently hidden */}
+        {isPermanentlyHidden && (
           <div className="transition-all duration-700 opacity-100 translate-x-0">
             <button
-              onClick={() => setIsTabHidden(false)}
+              onClick={handleShowWidget}
               className="w-8 h-8 bg-gradient-to-r from-teal-500 to-amber-500 hover:from-teal-600 hover:to-amber-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group/show"
               aria-label="הצג כפתור משוב"
+              title="הצג כפתור משוב"
             >
               <MessageSquare className="w-4 h-4 group-hover/show:scale-110 transition-transform duration-300" />
               {/* Subtle pulse ring */}

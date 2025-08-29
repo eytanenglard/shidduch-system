@@ -478,6 +478,7 @@ export default function WorldComponent({
             answerInput: dict.answerInput,
             interactiveScale: dict.interactiveScale,
           }}
+          locale={locale}
         />
       </QuestionCard>
     </motion.div>

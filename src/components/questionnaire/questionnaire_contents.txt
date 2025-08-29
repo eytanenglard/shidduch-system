@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-08-27 16:19:52
+# Generated on: 2025-08-29 11:01:48
 ################################################################################
 
 ================================================================================
@@ -32,6 +32,8 @@ import { useIdleTimeout } from './hooks/useIdleTimeout';
 import { signOut } from 'next-auth/react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useQuestionnaireState } from '@/app/[locale]/contexts/QuestionnaireStateContext'; // ✨ 1. ייבוא ה-Hook
+
 import {
   Loader2,
   CheckCircle,
@@ -124,6 +126,8 @@ export default function MatchmakingQuestionnaire({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const { setIsDirty: setGlobalDirty, setSaveHandler } =
+    useQuestionnaireState(); // ✨ 2. שימוש ב-Hook
 
   const [toastState, setToastState] = useState<{
     message: string;
@@ -161,6 +165,9 @@ export default function MatchmakingQuestionnaire({
     resetIdleTimer();
   }, [resetIdleTimer]);
 
+  useEffect(() => {
+    setGlobalDirty(isDirty);
+  }, [isDirty, setGlobalDirty]);
   useEffect(() => {
     if (initialWorld) {
       setCurrentWorld(initialWorld);
@@ -287,7 +294,15 @@ export default function MatchmakingQuestionnaire({
       dict,
     ]
   );
+  useEffect(() => {
+    // רשום את פונקציית השמירה כשהרכיב נטען
+    setSaveHandler(() => handleQuestionnaireSave(false));
 
+    // נקה את הרישום כשהרכיב יורד מהמסך
+    return () => {
+      setSaveHandler(null);
+    };
+  }, [handleQuestionnaireSave, setSaveHandler]);
   useEffect(() => {
     let autoSaveInterval: NodeJS.Timeout;
     if (currentStep === OnboardingStep.WORLDS && userId) {

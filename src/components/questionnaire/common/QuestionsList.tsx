@@ -12,11 +12,12 @@ import { Badge } from '@/components/ui/badge';
 import type { QuestionsListDict } from '@/types/dictionary'; // Import dictionary type
 
 interface QuestionsListProps {
+  locale: string;
+
   allQuestions: Question[];
   currentQuestionIndex: number;
   setCurrentQuestionIndex: (index: number) => void;
   answers: QuestionnaireAnswer[];
-  language?: string;
   className?: string;
   onClose?: () => void;
   themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
@@ -28,14 +29,13 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
   currentQuestionIndex,
   setCurrentQuestionIndex,
   answers,
-  language = 'he',
+  locale = 'he',
   className = '',
   onClose,
   themeColor = 'sky',
   dict,
 }) => {
-  const isRTL = language === 'he';
-
+  const isRTL = locale === 'he';
   const findAnswer = (questionId: string): AnswerValue | undefined => {
     return answers.find((a) => a.questionId === questionId)?.value;
   };

@@ -1,5 +1,6 @@
 // src/app/api/auth/request-password-reset/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
 import { PrismaClient, VerificationType, UserStatus, VerificationStatus } from '@prisma/client'; // Added VerificationStatus
 import { VerificationService } from '@/lib/services/verificationService';
 import { emailService } from '@/lib/email/emailService';
@@ -28,7 +29,12 @@ const logger = {
   error: (message: string, meta?: LogMetadata) => console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', message, ...meta })),
 };
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Apply rate limiting: 5 requests per IP per hour (prevents email spam)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   const action = "request-password-reset";
   let requestBody: { email?: string } | undefined; // Define type for requestBody
   try {

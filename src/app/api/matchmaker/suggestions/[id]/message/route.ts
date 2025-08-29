@@ -1,6 +1,8 @@
 // src/app/api/matchmaker/suggestions/[id]/message/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -11,10 +13,12 @@ import { initNotificationService } from "@/components/matchmaker/suggestions/ser
 const notificationService = initNotificationService();
 
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  // Apply rate limiting: 30 messages/reminders per matchmaker per hour (costly notifications)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 30, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   try {
     const session = await getServerSession(authOptions);
     

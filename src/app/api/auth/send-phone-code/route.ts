@@ -1,12 +1,18 @@
 // app/api/auth/send-phone-code/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { generateOtp, sendOtpViaWhatsApp } from '@/lib/phoneVerificationService';
 import { VerificationType } from '@prisma/client';
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  // Apply rate limiting: 5 requests per user per hour (costly SMS/WhatsApp)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {

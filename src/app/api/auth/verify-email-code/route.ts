@@ -1,6 +1,7 @@
 // app/api/auth/verify-email-code/route.ts
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
 import { VerificationService } from '@/lib/services/verificationService';
 import { VerificationType, PrismaClient } from '@prisma/client';
 import { randomBytes } from 'crypto';
@@ -43,7 +44,12 @@ interface VerifyEmailCodeRequest {
   code: string;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Apply rate limiting: 15 verification attempts per IP per 15 minutes (prevents brute-force)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '15 m' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   let requestBody: VerifyEmailCodeRequest | null = null;
   try {
     requestBody = await req.json();
