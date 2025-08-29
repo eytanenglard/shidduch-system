@@ -24,7 +24,7 @@ interface HeroSectionProps {
   session: Session | null;
   isVisible: boolean;
   dict: HeroSectionDict;
-   locale: 'he' | 'en'; 
+  locale: 'he' | 'en';
 }
 
 // --- קומפוננטת מכונת הכתיבה (מעודכנת) ---
@@ -33,9 +33,11 @@ const TypewriterText: React.FC<{
   delay?: number;
   speed?: number;
   className?: string;
-}> = ({ text, delay = 0, speed = 30, className = '' }) => {
+  locale: 'he' | 'en';
+}> = ({ text, delay = 0, speed = 30, className = '', locale }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [isStarted, setIsStarted] = useState(false);
+  const [isFinished, setIsFinished] = useState(false); // מצב חדש למעקב אחר סיום הכתיבה
 
   useEffect(() => {
     const startTimer = setTimeout(() => setIsStarted(true), delay);
@@ -49,11 +51,34 @@ const TypewriterText: React.FC<{
     }, speed);
     return () => clearInterval(interval);
   }, [displayedText, text, speed, isStarted]);
+  useEffect(() => {
+    if (!isStarted || isFinished) return; // עצור אם האנימציה הסתיימה
+    if (displayedText.length >= text.length) {
+      setIsFinished(true); // קבע שהכתיבה הסתיימה
+      return;
+    }
+    const interval = setInterval(() => {
+      setDisplayedText(text.substring(0, displayedText.length + 1));
+    }, speed);
+    return () => clearInterval(interval);
+  }, [displayedText, text, speed, isStarted, isFinished]);
+
+  // קביעת סגנון דינמי בהתבסס על השפה ועל מצב הסיום
+  const dynamicStyle: React.CSSProperties = {
+    direction: locale === 'he' ? 'rtl' : 'ltr',
+    textAlign: isFinished ? 'center' : locale === 'he' ? 'right' : 'left',
+    width: '100%', // ודא שהאלמנט תופס את כל הרוחב כדי שהיישור יעבוד
+  };
 
   return (
-    <div className={className} aria-label={text} aria-live="polite">
+    <div
+      className={className}
+      aria-label={text}
+      aria-live="polite"
+      style={dynamicStyle} // החלת הסגנון הדינמי
+    >
       {displayedText}
-      {displayedText.length < text.length && (
+      {!isFinished && (
         <span className="inline-block w-0.5 h-6 bg-gradient-to-b from-cyan-500 via-pink-400 to-cyan-500 animate-pulse ml-1 align-text-top shadow-sm shadow-cyan-400/40 rounded-full"></span>
       )}
     </div>
@@ -360,6 +385,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                     delay={1200}
                     speed={32}
                     className="block text-center leading-relaxed text-transparent bg-clip-text bg-gradient-to-br from-gray-700 via-gray-600 to-gray-700 font-bold tracking-wide drop-shadow-sm"
+                    locale={locale}
                   />
                 )}
               </div>
