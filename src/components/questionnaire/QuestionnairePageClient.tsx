@@ -132,7 +132,7 @@ export default function QuestionnairePageClient({
             onStartQuestionnaire={handleStartQuestionnaire}
             hasSavedProgress={hasSavedProgress}
             dict={dict.landingPage} // <- הוסף את השורה הזו
-
+            locale={locale}
             // כאן נעביר את המילון הרלוונטי אם וכאשר הרכיב יעודכן
           />
         );

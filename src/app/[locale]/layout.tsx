@@ -3,7 +3,7 @@
 import { Inter } from 'next/font/google';
 import '../globals.css';
 import Providers from '@/components/Providers';
-import { LanguageProvider } from '@/app/[locale]/contexts/LanguageContext';
+// 'LanguageProvider' הוסר מכיוון שהוא גרם לחוסר תאימות ברינדור
 import AppContent from './AppContent';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import AccessibilityFeatures from '@/components/questionnaire/components/AccessibilityFeatures';
@@ -11,15 +11,16 @@ import type { Metadata } from 'next';
 import { getDictionary } from '@/lib/dictionaries';
 import { Locale } from '../../../i18n-config';
 import FeedbackWidget from '@/components/layout/FeedbackWidget';
-// ✨ 1. ייבוא ה-Provider החדש שיצרנו
 import { QuestionnaireStateProvider } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
+// הגדרת הפונט נשארת ללא שינוי
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
 });
 
+// פונקציית יצירת המטא-דאטה נשארת ללא שינוי
 export async function generateMetadata({
   params: { locale },
 }: {
@@ -35,6 +36,7 @@ export async function generateMetadata({
   };
 }
 
+// רכיב ה-Layout הראשי של האפליקציה
 export default async function RootLayout({
   children,
   params,
@@ -42,13 +44,20 @@ export default async function RootLayout({
   children: React.ReactNode;
   params: { locale: Locale };
 }) {
+  // טעינת המילון המתאים לשפה מה-URL. פעולה זו מתבצעת בשרת.
   const dictionary = await getDictionary(params.locale);
 
+  // הגדרת כיווניות (direction) על סמך השפה
+  const direction = params.locale === 'he' ? 'rtl' : 'ltr';
+
   return (
+    // תגית ה-html מקבלת את השפה והכיווניות ישירות מה-URL.
+    // זה מבטיח שה-HTML הראשוני שהשרת שולח תמיד יהיה נכון.
     <html
       lang={params.locale}
-      dir={params.locale === 'he' ? 'rtl' : 'ltr'}
-      className={params.locale === 'he' ? 'dir-rtl' : 'dir-ltr'}
+      dir={direction}
+      className={direction === 'rtl' ? 'dir-rtl' : 'dir-ltr'}
+      // מומלץ להשאיר אזהרה זו למקרה שיש תוספים שגורמים לבעיות הידרציה
       suppressHydrationWarning
     >
       <head />
@@ -58,15 +67,24 @@ export default async function RootLayout({
       >
         <GoogleAnalytics />
         <Providers>
-          <LanguageProvider>
-            {/* ✨ 2. עטיפת AppContent ב-Provider החדש */}
-            {/* ה-Provider מקבל את המילון כדי להציג את המודאל בשפה הנכונה */}
-            <QuestionnaireStateProvider dict={dictionary}>
-              <FeedbackWidget dict={dictionary.feedbackWidget} />
+          {/* 
+            הסרנו את LanguageProvider. 
+            כעת, אין יותר מצב גלובלי נפרד לשפה בצד הלקוח שמתנגש עם השרת.
+            השפה נקבעת אך ורק על ידי ה-URL.
+          */}
+          <QuestionnaireStateProvider dict={dictionary}>
+            <FeedbackWidget dict={dictionary.feedbackWidget} />
 
-              <AppContent dict={dictionary}>{children}</AppContent>
-            </QuestionnaireStateProvider>
-          </LanguageProvider>
+            {/* 
+              אנו מעבירים את המילון וחשוב מכך, את השפה (locale),
+              ישירות כ-props לרכיב AppContent. 
+              רכיב זה יוכל להעביר אותם הלאה לרכיבים שתחתיו במידת הצורך.
+            */}
+            <AppContent dict={dictionary}>
+              {children}
+            </AppContent>
+          </QuestionnaireStateProvider>
+          
           <AccessibilityFeatures
             dict={dictionary.questionnaire.accessibilityFeatures}
           />

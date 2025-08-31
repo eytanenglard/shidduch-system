@@ -1,7 +1,6 @@
 // src/components/questionnaire/pages/QuestionnaireLandingPage.tsx
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useLanguage } from '@/app/[locale]/contexts/LanguageContext'; // 1. הוסף את הייבוא
 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -32,6 +31,7 @@ interface QuestionnaireLandingPageProps {
   hasSavedProgress: boolean;
   isLoading?: boolean;
   dict: QuestionnaireLandingPageDict;
+  locale: string;
 }
 
 // --- Animation Variants ---
@@ -87,10 +87,10 @@ export default function QuestionnaireLandingPage({
   hasSavedProgress,
   isLoading = false,
   dict,
+  locale,
 }: QuestionnaireLandingPageProps) {
   const { status, data: session } = useSession();
   const isMobile = useIsMobile();
-  const { language: locale } = useLanguage(); // 2. השתמש ב-hook ושנה את שם המשתנה
   const isRTL = locale === 'he'; // 3. הגדר משתנה עזר
 
   const worldVisuals = [
