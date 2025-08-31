@@ -129,7 +129,7 @@ class EmailService {
       const fullContext = {
         ...context,
         supportEmail: context.supportEmail || process.env.SUPPORT_EMAIL || 'support@example.com',
-        companyName: process.env.COMPANY_NAME || 'Matchpoint Shidduch System',
+        companyName: process.env.COMPANY_NAME || 'NeshamaTech',
         currentYear: new Date().getFullYear(),
         baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
       };
@@ -137,7 +137,7 @@ class EmailService {
       const html = emailTemplates[templateName](fullContext);
 
       const mailOptions: nodemailer.SendMailOptions = {
-        from: `${process.env.EMAIL_FROM_NAME || 'Matchpoint Shidduch System'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
+        from: `${process.env.EMAIL_FROM_NAME || 'נשמה טק'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
         to,
         subject,
         html,
@@ -172,7 +172,7 @@ class EmailService {
   }: WelcomeEmailParams): Promise<void> {
     await this.sendEmail({
       to: email,
-      subject: 'ברוכים הבאים למערכת השידוכים Matchpoint',
+      subject: 'ברוכים הבאים ל-NeshamaTech',
       templateName: 'welcome', // Ensure 'welcome' template exists
       context: {
         firstName,
@@ -191,7 +191,7 @@ class EmailService {
     
     await this.sendEmail({
       to: email,
-      subject: `הזמנה להגדרת חשבונך ב-Matchpoint`,
+      subject: `הזמנה להגדרת חשבונך ב-NeshamaTech`,
       templateName: 'account-setup',
       context: {
         firstName,
@@ -210,7 +210,7 @@ class EmailService {
     console.log(`Sending account verification email with OTP ${verificationCode} to ${email}`);
     await this.sendEmail({
       to: email,
-      subject: 'קוד לאימות כתובת האימייל שלך - Matchpoint',
+      subject: 'קוד אימות עבור NeshamaTech',
       templateName: 'email-otp-verification', // Ensure this template exists and uses 'verificationCode'
       context: {
         firstName,
@@ -231,7 +231,7 @@ class EmailService {
     
     await this.sendEmail({
       to: email,
-      subject: `הזמנה להצטרף ל-Matchpoint מ${matchmakerName}`,
+      subject: `הזמנה להצטרף ל-NeshamaTech מ${matchmakerName}`,
       templateName: 'invitation', // Ensure 'invitation' template exists
       context: {
         matchmakerName,
@@ -251,7 +251,7 @@ class EmailService {
   }: ContactDetailsEmailParams): Promise<void> {
     await this.sendEmail({
       to: email,
-      subject: `פרטי קשר להצעת שידוך מ${matchmakerName} - Matchpoint`,
+      subject: `פרטי קשר להצעת שידוך מ${matchmakerName} - NeshamaTech`,
       templateName: 'share-contact-details', // Ensure 'share-contact-details' template exists
       context: {
         recipientName,
@@ -271,7 +271,7 @@ class EmailService {
   }: SuggestionEmailParams): Promise<void> {
     await this.sendEmail({
       to: email,
-      subject: `הצעת שידוך חדשה ממתינה לך מ${matchmakerName} - Matchpoint`,
+      subject: `הצעת שידוך חדשה ממתינה לך מ${matchmakerName} - NeshamaTech`,
       templateName: 'suggestion', // Ensure 'suggestion' template exists
       context: {
         recipientName,
@@ -288,7 +288,7 @@ class EmailService {
     
     await this.sendEmail({
       to: email,
-      subject: 'איפוס סיסמה - Matchpoint (קישור)', // Differentiate if needed
+      subject: 'איפוס סיסמה - NeshamaTech', // Differentiate if needed
       templateName: 'password-reset', // Ensure 'password-reset' (link-based) template exists
       context: {
         resetLink: fullResetLink,
@@ -307,7 +307,7 @@ class EmailService {
     console.log(`Sending password reset OTP ${otp} to ${email}`);
     await this.sendEmail({
       to: email,
-      subject: 'קוד לאיפוס סיסמה במערכת Matchpoint',
+      subject: 'קוד לאיפוס סיסמה - NeshamaTech',
       templateName: 'password-reset-otp', // Ensure 'password-reset-otp' template exists
       context: {
         firstName,
@@ -325,7 +325,7 @@ class EmailService {
       console.log(`Sending password changed confirmation to ${email}`);
       await this.sendEmail({
           to: email,
-          subject: 'הסיסמה שלך במערכת Matchpoint שונתה בהצלחה',
+          subject: 'הסיסמה שלך ב-NeshamaTech שונתה בהצלחה',
           templateName: 'password-changed-confirmation', // Ensure 'password-changed-confirmation' template exists
           context: {
               firstName,
@@ -343,7 +343,7 @@ class EmailService {
   }: AvailabilityCheckEmailParams): Promise<void> {
     await this.sendEmail({
       to: email,
-      subject: `בקשת בדיקת זמינות לשידוך מ${matchmakerName} - Matchpoint`,
+      subject: `בקשת בדיקת זמינות לשידוך מ${matchmakerName} - NeshamaTech`,
       templateName: 'availability-check', // Ensure 'availability-check' template exists
       context: {
         recipientName,

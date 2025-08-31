@@ -27,6 +27,8 @@ const PUBLIC_PATHS = [
 
 // נתיבים שדורשים אימות, אבל מותרים גם אם הפרופיל לא הושלם
 const AUTHENTICATED_INCOMPLETE_ALLOWED_PATHS = [
+    '/auth/register', // <-- הוסף את השורה הזו
+
   '/auth/setup-account',
   '/auth/verify-phone',
   '/auth/update-phone',
@@ -85,14 +87,24 @@ export async function middleware(req: NextRequest) {
   const isAuthPage = pathWithoutLocale.startsWith('/auth');
 
   // 5. לוגיקת הרשאות
-  if (isAuthPage) {
-    // אם המשתמש מחובר ומנסה לגשת לדפי אימות (כניסה/הרשמה), הפנה אותו פנימה
+// src/middleware.ts - בלוק קוד מתוקן
+
+if (isAuthPage) {
     if (isUserLoggedIn) {
-      return NextResponse.redirect(new URL(`/${currentLocale}/matches`, req.url));
+        // בדוק אם הנתיב הנוכחי הוא אחד מהנתיבים המותרים להשלמת פרופיל
+        const isAllowedSetupPath = AUTHENTICATED_INCOMPLETE_ALLOWED_PATHS.includes(pathWithoutLocale);
+
+        // אם המשתמש נמצא בנתיב שנועד להשלמת פרופיל, אל תפריע לו.
+        if (isAllowedSetupPath) {
+            return NextResponse.next();
+        }
+
+        // אם המשתמש מחובר ונמצא בדף auth אחר (כמו signin/register), הפנה אותו פנימה.
+        return NextResponse.redirect(new URL(`/${currentLocale}/profile`, req.url));
     }
-    // אם לא מחובר, אפשר לו להישאר בדף האימות
+    // אם המשתמש לא מחובר, אפשר לו לגשת לכל דף auth.
     return NextResponse.next();
-  }
+}
   
   // אם הנתיב דורש אימות והמשתמש לא מחובר
   const isPublic = PUBLIC_PATHS.includes(pathWithoutLocale);
@@ -111,12 +123,15 @@ export async function middleware(req: NextRequest) {
       const isAllowedForIncomplete = AUTHENTICATED_INCOMPLETE_ALLOWED_PATHS.includes(pathWithoutLocale);
 
       // אם הפרופיל לא שלם והוא מנסה לגשת לעמוד שלא מורשה לו
-      if (!isProfileComplete && !isAllowedForIncomplete && !isPublic) {
-          // הפנה אותו לדף השלמת הפרופיל
-          const setupUrl = new URL(`/${currentLocale}/auth/setup-account`, req.url);
-          setupUrl.searchParams.set('reason', 'incomplete_profile');
-          return NextResponse.redirect(setupUrl);
-      }
+// src/middleware.ts - קוד מתוקן
+
+// אם הפרופיל לא שלם והוא מנסה לגשת לעמוד שלא מורשה לו
+if (!isProfileComplete && !isAllowedForIncomplete && !isPublic) {
+    // הפנה אותו לדף השלמת הפרופיל (שהוא דף ההרשמה במצב מחובר)
+    const registerUrl = new URL(`/${currentLocale}/auth/register`, req.url); // <-- שינוי כאן
+    registerUrl.searchParams.set('reason', 'incomplete_profile');
+    return NextResponse.redirect(registerUrl);
+}
   }
 
   // אם כל הבדיקות עברו, אפשר למשתמש להמשיך

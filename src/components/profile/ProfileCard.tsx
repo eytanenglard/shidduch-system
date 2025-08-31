@@ -3492,6 +3492,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
           <div className="flex-1 min-w-0 overflow-hidden">
             <h4
+              dir="auto"
               className={cn(
                 'font-bold mb-2 sm:mb-3 text-gray-800 leading-relaxed',
                 'flex items-center justify-between gap-2 text-start',

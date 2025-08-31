@@ -467,7 +467,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 dict={dict.dashboard.checklist}
                 locale={locale} // Added
               />
-              <div className="my-6 md:my-8 text-center">
+              <div className="my-6 md:my-8 flex justify-center">
                 <AIProfileAdvisorDialog
                   userId={user.id}
                   dict={dict.dashboard.aiAdvisor}
