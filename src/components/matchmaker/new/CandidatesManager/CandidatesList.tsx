@@ -232,11 +232,14 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   const handleCreateSuggestion = async (data: CreateSuggestionData) => {
     try {
-      const response = await fetch('/api/matchmaker/suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        `/api/matchmaker/suggestions?locale=${locale}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        }
+      );
       if (!response.ok) throw new Error('Failed to create suggestion');
       toast.success('ההצעה נוצרה בהצלחה');
       onCandidateAction?.('suggest', dialogCandidate!);

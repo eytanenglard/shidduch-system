@@ -5,9 +5,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
-import { StatusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
-
-// Initialize the notification service
+import { statusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
+// ========================= שלב 1: ייבוא טיפוסים ומודולים נדרשים =========================
+import { EmailDictionary } from "@/types/dictionary";
+import { getDictionary } from "@/lib/dictionaries";
+// =====================================================================================
 
 export async function POST(
   req: NextRequest,
@@ -16,75 +18,65 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions);
     
-    // Verify user is logged in
     if (!session?.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    // Verify matchmaker permissions
     if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json(
-        { success: false, error: "Insufficient permissions" },
-        { status: 403 }
-      );
+      return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 });
     }
 
     const suggestionId = params.id;
     const { partyType } = await req.json();
 
-    // Verify suggestion exists
+    // ========================= שלב 2: טעינת המילון מה-URL =========================
+    const url = new URL(req.url);
+    const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
+    
+    console.log(`[API /resend] Received request with locale: '${locale}'`);
+
+    const dictionary = await getDictionary(locale);
+    const emailDict: EmailDictionary = dictionary.email;
+
+    if (!emailDict) {
+        throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
+    }
+    // ============================================================================
+
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
-        firstParty: {
-          include: { profile: true }
-        },
-        secondParty: {
-          include: { profile: true }
-        },
+        firstParty: { include: { profile: true } },
+        secondParty: { include: { profile: true } },
         matchmaker: true
       },
     });
 
     if (!suggestion) {
-      return NextResponse.json(
-        { success: false, error: "Suggestion not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: "Suggestion not found" }, { status: 404 });
     }
 
-    // Verify matchmaker permissions for resending
-    if (
-      suggestion.matchmakerId !== session.user.id &&
-      session.user.role !== UserRole.ADMIN
-    ) {
-      return NextResponse.json(
-        { success: false, error: "You are not authorized to resend this suggestion" },
-        { status: 403 }
-      );
+    if (suggestion.matchmakerId !== session.user.id && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ success: false, error: "You are not authorized to resend this suggestion" }, { status: 403 });
     }
 
-    const statusTransitionService = StatusTransitionService.getInstance();
     let updatedSuggestion = suggestion;
     const transitionNotes = `הצעה נשלחה מחדש ע"י ${session.user.firstName} ${session.user.lastName}`;
     
-    // Update suggestion status to the appropriate status for resending
     if (partyType === "both" || partyType === "first") {
-      // Resend to first party
+      // ========================= שלב 3: קריאה נכונה לשירות =========================
       updatedSuggestion = await statusTransitionService.transitionStatus(
         updatedSuggestion, 
         MatchSuggestionStatus.PENDING_FIRST_PARTY,
-        `${transitionNotes} - לצד ראשון`,
-        {
+        emailDict, // <-- ארגומנט 3: המילון
+        `${transitionNotes} - לצד ראשון`, // <-- ארגומנט 4: הערות
+        { // <-- ארגומנט 5: הגדרות
           sendNotifications: true,
           notifyParties: ['first']
         }
       );
+      // ===========================================================================
       
-      // If this is just for the first party, update the sent time
       if (partyType === "first") {
         await prisma.matchSuggestion.update({
           where: { id: suggestionId },
@@ -97,18 +89,19 @@ export async function POST(
     }
     
     if (partyType === "both" || partyType === "second") {
-      // Resend to second party (directly or after the first)
+      // ========================= שלב 3: קריאה נכונה לשירות (שוב) =========================
       updatedSuggestion = await statusTransitionService.transitionStatus(
         updatedSuggestion, 
         MatchSuggestionStatus.PENDING_SECOND_PARTY,
-        `${transitionNotes} - לצד שני`,
-        {
+        emailDict, // <-- ארגומנט 3: המילון
+        `${transitionNotes} - לצד שני`, // <-- ארגומנט 4: הערות
+        { // <-- ארגומנט 5: הגדרות
           sendNotifications: true,
           notifyParties: ['second']
         }
       );
+      // ===========================================================================
       
-      // Update the sent time
       await prisma.matchSuggestion.update({
         where: { id: suggestionId },
         data: {
