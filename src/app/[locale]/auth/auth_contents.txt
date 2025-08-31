@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth
-# Generated on: 2025-08-31 21:38:44
+# Generated on: 2025-08-31 23:01:43
 ################################################################################
 
 ================================================================================
@@ -124,12 +124,19 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
 import type { ForgotPasswordDict } from '@/types/dictionaries/auth';
 
+/**
+ * הגדרת ה-Props שהקומפוננטה מקבלת.
+ * dict: אובייקט התרגומים לשימוש ב-UI.
+ * locale: השפה הנוכחית, לצורך שליחתה ל-API.
+ */
 interface ForgotPasswordClientProps {
   dict: ForgotPasswordDict;
+  locale: 'he' | 'en';
 }
 
 export default function ForgotPasswordClient({
   dict,
+  locale, // קבלת השפה כ-prop
 }: ForgotPasswordClientProps) {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -148,11 +155,15 @@ export default function ForgotPasswordClient({
     }
 
     try {
-      const response = await fetch('/api/auth/request-password-reset', {
+      // ============================ התיקון המרכזי ============================
+      // הוספת פרמטר השפה `locale` לכתובת ה-URL של בקשת ה-API.
+      // כך השרת ידע באיזו שפה לשלוח את המייל.
+      const response = await fetch(`/api/auth/request-password-reset?locale=${locale}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
+      // =====================================================================
 
       const data = await response.json();
 
@@ -160,9 +171,11 @@ export default function ForgotPasswordClient({
         throw new Error(data.error || dict.errors.default);
       }
 
+      // לאחר הצלחה, מעבירים את המשתמש לדף איפוס הסיסמה עם המייל שלו ב-URL.
       router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.errors.default);
+      // חשוב להפסיק את הטעינה במקרה של שגיאה.
       setIsLoading(false);
     }
   };
@@ -181,7 +194,7 @@ export default function ForgotPasswordClient({
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>שגיאה</AlertTitle>
+            <AlertTitle>{dict.errors.title}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -240,30 +253,47 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\f
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/auth/forgot-password/page.tsx
+
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import ForgotPasswordClient from './ForgotPasswordClient';
 
+/**
+ * דף "שכחתי סיסמה". זהו רכיב צד-שרת האחראי על טעינת התרגומים
+ * והעברתם לרכיב הלקוח שיטפל בלוגיקה של הטופס.
+ */
 export default async function ForgotPasswordPage({
   params: { locale },
 }: {
   params: { locale: Locale };
 }) {
+  // טעינת המילון (קובץ התרגומים) בהתאם לשפה מה-URL.
   const dictionary = await getDictionary(locale);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
+      {/* קישור לחזרה לדף הבית */}
       <Link
         href="/"
         className="absolute top-4 left-4 rtl:right-4 rtl:left-auto text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm z-20"
       >
         <ArrowLeft className="h-4 w-4 transform rtl:rotate-180" />
-        {/* This text is outside the main component, so we either hardcode it or pass it from a shared dictionary part */}
+        {/* טקסט זה יכול להגיע גם הוא מהמילון, אך לצורך הפשטות נשאיר אותו כאן */}
         חזרה לדף הבית
       </Link>
-      <ForgotPasswordClient dict={dictionary.auth.forgotPassword} />
+
+      {/* 
+        רינדור רכיב הלקוח. 
+        אנו מעבירים לו שני props חיוניים:
+        1. dict: אובייקט התרגומים הספציפי לטופס זה.
+        2. locale: משתנה השפה ('he' או 'en'), כדי שהלקוח ידע איזו שפה לשלוח ל-API.
+      */}
+      <ForgotPasswordClient
+        dict={dictionary.auth.forgotPassword}
+        locale={locale}
+      />
     </div>
   );
 }
@@ -295,16 +325,26 @@ import OptionalInfoStep from '@/components/auth/steps/OptionalInfoStep';
 import CompleteStep from '@/components/auth/steps/CompleteStep';
 import ProgressBar from '@/components/auth/ProgressBar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowRight, Info, Loader2 } from 'lucide-react';
+import { Info, Loader2 } from 'lucide-react';
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
+/**
+ * הגדרת ה-Props עבור קומפוננטת הלקוח.
+ * היא מקבלת את המילון (dict) ואת השפה (locale).
+ */
 interface RegisterClientProps {
   dict: RegisterStepsDict;
+  locale: 'he' | 'en'; // הוספת locale לממשק ה-props
 }
 
-const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
+/**
+ * רכיב התוכן הפנימי המכיל את הלוגיקה המרכזית של תהליך ההרשמה.
+ * גם הוא מקבל את המילון והשפה.
+ */
+const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict; locale: 'he' | 'en' }> = ({
   dict,
+  locale, // קבלת locale
 }) => {
   const {
     data: registrationContextData,
@@ -320,6 +360,7 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
     useState(false);
   const [initializationAttempted, setInitializationAttempted] = useState(false);
 
+  // useEffect שמטפל בהצגת הודעה למשתמשים שצריכים להשלים פרופיל
   useEffect(() => {
     const reasonParam = searchParams.get('reason');
     if (
@@ -332,11 +373,13 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
     }
   }, [searchParams, registrationContextData.isCompletingProfile]);
 
+  // useEffect המרכזי שמנהל את מצב תהליך ההרשמה בהתבסס על הסשן
   useEffect(() => {
     if (sessionStatus === 'loading') return;
 
     if (sessionStatus === 'authenticated' && session?.user) {
       const user = session.user as SessionUserType;
+      // אם המשתמש סיים את כל התהליך, העבר אותו לפרופיל
       if (
         user.isProfileComplete &&
         user.isPhoneVerified &&
@@ -351,6 +394,7 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
         return;
       }
 
+      // אם המשתמש צריך להתחיל או להמשיך תהליך הרשמה/השלמה
       const needsSetup =
         !user.termsAndPrivacyAcceptedAt ||
         !user.isProfileComplete ||
@@ -365,8 +409,13 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
         setInitializationAttempted(true);
       }
     } else if (sessionStatus === 'unauthenticated') {
-      // Complex logic for resetting form based on state, remains as is.
-      // This part is logic-heavy and doesn't contain hardcoded strings for translation.
+      // לוגיקה לאיפוס הטופס אם המשתמש לא מחובר
+      const registrationInProgress =
+        registrationContextData.step > 0 ||
+        registrationContextData.isVerifyingEmailCode;
+      if (registrationInProgress) {
+        resetForm();
+      }
     }
   }, [
     sessionStatus,
@@ -380,6 +429,10 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
     searchParams,
   ]);
 
+  /**
+   * פונקציה שמחזירה את רכיב-השלב המתאים בהתבסס על המצב הנוכחי בקונטקסט.
+   * כאן אנו מעבירים את המילון (dict) והשפה (locale) לרכיבי-הבן.
+   */
   const renderStep = (): React.ReactNode => {
     if (sessionStatus === 'loading') {
       return (
@@ -389,13 +442,15 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
       );
     }
 
+    // שלב אימות קוד במייל
     if (
       registrationContextData.isVerifyingEmailCode &&
       !registrationContextData.isCompletingProfile
     ) {
-      return <EmailVerificationCodeStep dict={dict.steps.emailVerification} />;
+      return <EmailVerificationCodeStep dict={dict.steps.emailVerification} locale={locale} />;
     }
 
+    // שלבי השלמת פרופיל (לאחר התחברות ראשונית)
     if (registrationContextData.isCompletingProfile) {
       switch (registrationContextData.step) {
         case 2:
@@ -415,6 +470,7 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
       }
     }
 
+    // שלבי הרשמה ראשונית
     switch (registrationContextData.step) {
       case 0:
         return <WelcomeStep dict={dict.steps.welcome} />;
@@ -423,6 +479,7 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
           <BasicInfoStep
             dict={dict.steps.basicInfo}
             consentDict={dict.consentCheckbox}
+            locale={locale} // <<<<<<<<<<<< העברת ה-locale לשלב זה
           />
         );
       default:
@@ -431,6 +488,7 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
     }
   };
 
+  // לוגיקה לקביעת הכותרות וסרגל ההתקדמות, המשתמשת במילון
   let pageTitle = dict.headers.registerTitle;
   let stepDescription = dict.headers.welcomeDescription;
   let currentProgressBarStep = 0;
@@ -528,10 +586,15 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
   );
 };
 
-export default function RegisterClient({ dict }: RegisterClientProps) {
+/**
+ * רכיב הייצוא הראשי (Wrapper).
+ * הוא עוטף את כל הלוגיקה ב-RegistrationProvider כדי לספק את הקונטקסט
+ * לכל רכיבי-הבן שלו.
+ */
+export default function RegisterClient({ dict, locale }: RegisterClientProps) {
   return (
     <RegistrationProvider>
-      <RegisterStepsContent dict={dict} />
+      <RegisterStepsContent dict={dict} locale={locale} />
     </RegistrationProvider>
   );
 }
@@ -549,6 +612,10 @@ import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import RegisterClient from './RegisterClient'; // רכיב הלקוח החדש
 
+/**
+ * רכיב טעינה שיוצג בזמן שהמילון והקומפוננטה נטענים.
+ * זהו חלק ממנגנון ה-Suspense של React.
+ */
 function Loading() {
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -557,16 +624,34 @@ function Loading() {
   );
 }
 
+/**
+ * זהו רכיב צד-שרת (Server Component) שאחראי על:
+ * 1. קבלת פרמטר השפה (locale) מה-URL.
+ * 2. טעינת קובץ התרגומים (המילון) המתאים לשפה זו באופן אסינכרוני.
+ * 3. העברת התרגומים והשפה לרכיב צד-לקוח (RegisterClient) שיטפל בלוגיקה ובאינטראקציה עם המשתמש.
+ */
 export default async function RegisterPage({
   params: { locale },
 }: {
   params: { locale: Locale };
 }) {
+  // שלב 1: טעינת המילון המתאים לשפה הנוכחית.
+  // הפעולה הזו מתבצעת על השרת לפני שהדף נשלח לדפדפן.
   const dictionary = await getDictionary(locale);
 
+  // שלב 2: רינדור רכיב הלקוח בתוך Suspense.
+  // ה-Suspense יציג את רכיב ה-Loading עד שהכל יהיה מוכן.
   return (
     <Suspense fallback={<Loading />}>
-      <RegisterClient dict={dictionary.auth.register} />
+      <RegisterClient
+        // מעביר את החלק הספציפי של המילון שרלוונטי לדף ההרשמה.
+        dict={dictionary.auth.register}
+        // ============================ התיקון המרכזי ============================
+        // מעביר את משתנה השפה (לדוגמה, 'he' או 'en') לרכיב הלקוח.
+        // זה יאפשר לרכיב הלקוח לדעת באיזו שפה לשלוח את בקשות ה-API.
+        locale={locale}
+        // =====================================================================
+      />
     </Suspense>
   );
 }
@@ -603,6 +688,7 @@ import type { ResetPasswordDict } from '@/types/dictionaries/auth';
 
 interface ResetPasswordClientProps {
   dict: ResetPasswordDict;
+  locale: 'he' | 'en'; // הוסף
 }
 
 const validatePassword = (
@@ -618,6 +704,7 @@ const validatePassword = (
 
 export default function ResetPasswordClient({
   dict,
+  locale,
 }: ResetPasswordClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -670,11 +757,14 @@ export default function ResetPasswordClient({
     }
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, newPassword }),
-      });
+      const response = await fetch(
+        `/api/auth/reset-password?locale=${locale}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, otp, newPassword }),
+        }
+      );
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || dict.errors.default);
 
@@ -895,6 +985,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\r
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/auth/reset-password/page.tsx
+
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -902,7 +993,9 @@ import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import ResetPasswordClient from './ResetPasswordClient';
 
-// A loader for the Suspense boundary
+/**
+ * רכיב טעינה שיוצג בזמן שהמילון ורכיב הלקוח נטענים.
+ */
 function Loading() {
   return (
     <div className="flex flex-col items-center justify-center p-8 bg-white rounded-xl shadow-xl">
@@ -912,11 +1005,16 @@ function Loading() {
   );
 }
 
+/**
+ * דף "איפוס סיסמה". זהו רכיב צד-שרת האחראי על טעינת התרגומים
+ * והעברתם לרכיב הלקוח שיטפל בלוגיקה של הטופס.
+ */
 export default async function ResetPasswordPage({
   params: { locale },
 }: {
   params: { locale: Locale };
 }) {
+  // טעינת המילון המתאים לשפה מה-URL.
   const dictionary = await getDictionary(locale);
 
   return (
@@ -926,11 +1024,18 @@ export default async function ResetPasswordPage({
         className="absolute top-4 left-4 rtl:right-4 rtl:left-auto text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm z-20"
       >
         <ArrowLeft className="h-4 w-4 transform rtl:rotate-180" />
-        {/* This text is common and could come from a shared/main dictionary part in a real scenario */}
         חזרה לדף הבית
       </Link>
+      
+      {/* 
+        השימוש ב-Suspense מבטיח שהמשתמש יראה אנימציית טעינה
+        אם יש עיכוב כלשהו בטעינת רכיב הלקוח.
+      */}
       <Suspense fallback={<Loading />}>
-        <ResetPasswordClient dict={dictionary.auth.resetPassword} />
+        <ResetPasswordClient
+          dict={dictionary.auth.resetPassword}
+          locale={locale} // <<<<<<<<<<<< העברת השפה לרכיב הלקוח
+        />
       </Suspense>
     </div>
   );

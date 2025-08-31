@@ -13,11 +13,14 @@ import type { VerifyPhoneDict } from '@/types/dictionaries/auth';
 
 const OTP_LENGTH = 6;
 
+// <<< 1. הרחבת הממשק כדי לקבל את משתנה השפה >>>
 interface VerifyPhoneClientProps {
   dict: VerifyPhoneDict;
+  locale: 'he' | 'en'; // הוספנו את השפה
 }
 
-const VerifyPhoneClient = ({ dict }: VerifyPhoneClientProps) => {
+// <<< 2. עדכון חתימת הקומפוננטה כדי לקבל את locale כ-prop >>>
+const VerifyPhoneClient = ({ dict, locale }: VerifyPhoneClientProps) => {
   const router = useRouter();
   const {
     data: session,
@@ -88,22 +91,27 @@ const VerifyPhoneClient = ({ dict }: VerifyPhoneClientProps) => {
       }
       setIsLoading(true);
       try {
-        const response = await fetch('/api/auth/verify-phone-code', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: otp }),
-        });
+        // <<< 3. הוספת פרמטר השפה לכתובת ה-API >>>
+        const response = await fetch(
+          `/api/auth/verify-phone-code?locale=${locale}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: otp }),
+          }
+        );
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || dict.errors.default);
         setSuccessMessage(dict.success.verifying);
         await updateSession({ isPhoneVerified: true });
-        window.location.href = '/profile';
+        // שינוי קל: שימוש ב-router.push במקום window.location.href למעבר חלק יותר
+        router.push('/profile');
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : dict.errors.unexpected);
         setIsLoading(false);
       }
     },
-    [code, updateSession, dict]
+    [code, updateSession, dict, locale, router] // הוספנו את locale ו-router לתלויות
   );
 
   const handleResendCode = useCallback(async () => {
@@ -112,9 +120,13 @@ const VerifyPhoneClient = ({ dict }: VerifyPhoneClientProps) => {
     setInfoMessage(null);
     setIsResending(true);
     try {
-      const response = await fetch('/api/auth/resend-phone-code', {
-        method: 'POST',
-      });
+      // גם כאן נוסיף את השפה, למקרה שנצטרך אותה בעתיד
+      const response = await fetch(
+        `/api/auth/resend-phone-code?locale=${locale}`,
+        {
+          method: 'POST',
+        }
+      );
       if (!response.ok) throw new Error((await response.json()).error);
       setInfoMessage(dict.info.resent);
       startResendTimer();
@@ -123,7 +135,7 @@ const VerifyPhoneClient = ({ dict }: VerifyPhoneClientProps) => {
     } finally {
       setIsResending(false);
     }
-  }, [isResending, resendDisabled, startResendTimer, dict]);
+  }, [isResending, resendDisabled, startResendTimer, dict, locale]); // הוספנו את locale לתלויות
 
   const getHiddenPhone = () => {
     const phone = session?.user?.phone;
@@ -134,12 +146,12 @@ const VerifyPhoneClient = ({ dict }: VerifyPhoneClientProps) => {
   const disableForm = isLoading || !!successMessage;
   const disableResend = isResending || resendDisabled || !!successMessage;
 
+  // ... (חלק ה-JSX נשאר זהה לחלוטין)
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 to-pink-50 p-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-6 sm:p-8 space-y-6 text-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">{dict.title}</h1>
-          {/* === FIX: Reverted to JSX from dangerouslySetInnerHTML for better readability and security === */}
           <p className="text-gray-600 mt-2 text-sm">
             {dict.codeSentTo.replace('{{OTP_LENGTH}}', OTP_LENGTH.toString())}{' '}
             <span className="font-medium text-gray-700">
@@ -193,12 +205,10 @@ const VerifyPhoneClient = ({ dict }: VerifyPhoneClientProps) => {
                   '{{index}}',
                   (index + 1).toString()
                 )}
-                // === FIX: Restored the original, detailed styling for OTP inputs ===
                 className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-semibold border-2 border-gray-300 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-md shadow-sm transition-colors disabled:opacity-50 disabled:bg-gray-100"
               />
             ))}
           </div>
-          {/* === FIX: Restored the original gradient button styling === */}
           <Button
             type="submit"
             disabled={disableForm || code.join('').length !== OTP_LENGTH}
@@ -215,7 +225,6 @@ const VerifyPhoneClient = ({ dict }: VerifyPhoneClientProps) => {
         <div className="text-sm text-gray-600 space-y-2">
           <div>
             {dict.resend.prompt}{' '}
-            {/* === FIX: Restored specific styling for resend button and its disabled state === */}
             <Button
               type="button"
               variant="link"
@@ -234,7 +243,6 @@ const VerifyPhoneClient = ({ dict }: VerifyPhoneClientProps) => {
             </Button>
           </div>
           <div>
-            {/* === FIX: Restored specific styling for links and their disabled state === */}
             <Link
               href="/auth/update-phone"
               className={`text-cyan-600 hover:text-cyan-700 hover:underline ${disableForm ? 'pointer-events-none text-gray-400' : ''}`}
