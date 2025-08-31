@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions
-# Generated on: 2025-08-24 17:41:15
+# Generated on: 2025-08-31 17:57:43
 ################################################################################
 
 ================================================================================
@@ -384,6 +384,8 @@ export default EditSuggestionForm;
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\MessageForm.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/components/matchmaker/suggestions/MessageForm.tsx
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -407,7 +409,6 @@ import { toast } from 'sonner';
 import {
   MessageCircle,
   Send,
-  AlertCircle,
   Users,
   User,
   Clock,
@@ -423,6 +424,7 @@ import type { Suggestion } from '@/types/suggestions';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
+import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
 interface MessageFormProps {
   isOpen: boolean;
@@ -434,6 +436,7 @@ interface MessageFormProps {
     messageType: 'message' | 'reminder' | 'update';
     messageContent: string;
   }) => Promise<void>;
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['messageForm'];
 }
 
 const MessageForm: React.FC<MessageFormProps> = ({
@@ -441,6 +444,7 @@ const MessageForm: React.FC<MessageFormProps> = ({
   onClose,
   suggestion,
   onSend,
+  dict,
 }) => {
   const [partyType, setPartyType] = useState<'first' | 'second' | 'both'>(
     'both'
@@ -456,7 +460,6 @@ const MessageForm: React.FC<MessageFormProps> = ({
 
     try {
       setIsSubmitting(true);
-
       await onSend({
         suggestionId: suggestion.id,
         partyType,
@@ -464,98 +467,91 @@ const MessageForm: React.FC<MessageFormProps> = ({
         messageContent,
       });
 
+      let recipientText = '';
+      if (partyType === 'first') {
+        recipientText = dict.toasts.successRecipients.first.replace(
+          '{{name}}',
+          suggestion.firstParty.firstName
+        );
+      } else if (partyType === 'second') {
+        recipientText = dict.toasts.successRecipients.second.replace(
+          '{{name}}',
+          suggestion.secondParty.firstName
+        );
+      } else {
+        recipientText = dict.toasts.successRecipients.both;
+      }
       toast.success(
-        `ההודעה נשלחה ${
-          partyType === 'first'
-            ? `ל${suggestion.firstParty.firstName}`
-            : partyType === 'second'
-              ? `ל${suggestion.secondParty.firstName}`
-              : 'לשני הצדדים'
-        }`
+        dict.toasts.success.replace('{{recipient}}', recipientText)
       );
 
-      // Reset form
       setMessageContent('');
       setPartyType('both');
       setMessageType('message');
       onClose();
     } catch (error) {
-      toast.error('שגיאה בשליחת ההודעה');
+      toast.error(dict.toasts.error);
       console.error('Error sending message:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getMessagePlaceholder = () => {
-    switch (messageType) {
-      case 'reminder':
-        return 'הודעת תזכורת למועמד/ת לגבי ההצעה...';
-      case 'update':
-        return 'עדכון לגבי סטטוס ההצעה או מידע חדש...';
-      default:
-        return 'הודעה אישית למועמד/ת...';
-    }
+  const getMessageTypeInfo = (type: 'message' | 'reminder' | 'update') => {
+    const infoMap = {
+      message: {
+        icon: MessageCircle,
+        color: 'from-purple-500 to-pink-500',
+        bgColor: 'from-purple-50 to-pink-50',
+      },
+      reminder: {
+        icon: Clock,
+        color: 'from-yellow-500 to-amber-500',
+        bgColor: 'from-yellow-50 to-amber-50',
+      },
+      update: {
+        icon: Info,
+        color: 'from-blue-500 to-cyan-500',
+        bgColor: 'from-blue-50 to-cyan-50',
+      },
+    };
+    return {
+      label: dict.messageTypes[type].label,
+      description: dict.messageTypes[type].description,
+      placeholder: dict.messageTypes[type].placeholder,
+      ...infoMap[type],
+    };
   };
 
-  const getMessageTypeInfo = (type: string) => {
-    switch (type) {
-      case 'reminder':
-        return {
-          label: 'תזכורת',
-          icon: Clock,
-          color: 'from-yellow-500 to-amber-500',
-          bgColor: 'from-yellow-50 to-amber-50',
-          description: 'הודעה להזכרה על ההצעה או פעולה נדרשת',
-        };
-      case 'update':
-        return {
-          label: 'עדכון סטטוס',
-          icon: Info,
-          color: 'from-blue-500 to-cyan-500',
-          bgColor: 'from-blue-50 to-cyan-50',
-          description: 'עדכון על שינוי במצב ההצעה או מידע חדש',
-        };
-      default:
-        return {
-          label: 'הודעה רגילה',
-          icon: MessageCircle,
-          color: 'from-purple-500 to-pink-500',
-          bgColor: 'from-purple-50 to-pink-50',
-          description: 'הודעה אישית כללית',
-        };
-    }
-  };
-
-  const getPartyTypeInfo = (type: string) => {
-    switch (type) {
-      case 'first':
-        return {
-          label: `${suggestion?.firstParty.firstName} ${suggestion?.firstParty.lastName} (צד א')`,
-          icon: User,
-          color: 'from-green-500 to-emerald-500',
-        };
-      case 'second':
-        return {
-          label: `${suggestion?.secondParty.firstName} ${suggestion?.secondParty.lastName} (צד ב')`,
-          icon: User,
-          color: 'from-blue-500 to-cyan-500',
-        };
-      default:
-        return {
-          label: 'שני הצדדים',
-          icon: Users,
-          color: 'from-purple-500 to-pink-500',
-        };
-    }
+  const getPartyTypeInfo = (type: 'first' | 'second' | 'both') => {
+    const infoMap = {
+      first: { icon: User, color: 'from-green-500 to-emerald-500' },
+      second: { icon: User, color: 'from-blue-500 to-cyan-500' },
+      both: { icon: Users, color: 'from-purple-500 to-pink-500' },
+    };
+    const labels = {
+      first: dict.partyTypes.first
+        .replace('{{firstName}}', suggestion?.firstParty.firstName || '')
+        .replace('{{lastName}}', suggestion?.firstParty.lastName || ''),
+      second: dict.partyTypes.second
+        .replace('{{firstName}}', suggestion?.secondParty.firstName || '')
+        .replace('{{lastName}}', suggestion?.secondParty.lastName || ''),
+      both: dict.partyTypes.both,
+    };
+    return {
+      label: labels[type],
+      ...infoMap[type],
+    };
   };
 
   if (!suggestion) return null;
 
-  const messageTypeInfo = getMessageTypeInfo(messageType);
-  const partyTypeInfo = getPartyTypeInfo(partyType);
-  const MessageTypeIcon = messageTypeInfo.icon;
-  const PartyTypeIcon = partyTypeInfo.icon;
+  const currentMessageTypeInfo = getMessageTypeInfo(messageType);
+  const currentPartyTypeInfo = getPartyTypeInfo(partyType);
+  const MessageTypeIcon = currentMessageTypeInfo.icon;
+  const PartyTypeIcon = currentPartyTypeInfo.icon;
+  const fullParty1Name = `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`;
+  const fullParty2Name = `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -563,11 +559,10 @@ const MessageForm: React.FC<MessageFormProps> = ({
         className="max-w-4xl border-0 shadow-2xl rounded-3xl p-0 overflow-hidden"
         dir="rtl"
       >
-        {/* Hero Header */}
         <div
           className={cn(
             'relative overflow-hidden bg-gradient-to-br',
-            messageTypeInfo.bgColor,
+            currentMessageTypeInfo.bgColor,
             'border-b border-gray-100'
           )}
         >
@@ -575,7 +570,6 @@ const MessageForm: React.FC<MessageFormProps> = ({
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-white/30 to-transparent rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-2xl"></div>
           </div>
-
           <div className="relative z-10 p-8">
             <DialogHeader>
               <div className="flex items-center justify-between mb-4">
@@ -585,18 +579,15 @@ const MessageForm: React.FC<MessageFormProps> = ({
                   </div>
                   <div>
                     <DialogTitle className="text-3xl font-bold text-gray-800">
-                      שליחת הודעה
+                      {dict.header.title}
                     </DialogTitle>
                     <DialogDescription className="text-lg text-gray-600 mt-1">
-                      שליחת הודעה הקשורה להצעת השידוך בין{' '}
-                      {suggestion.firstParty.firstName}{' '}
-                      {suggestion.firstParty.lastName} ל
-                      {suggestion.secondParty.firstName}{' '}
-                      {suggestion.secondParty.lastName}
+                      {dict.header.description
+                        .replace('{{party1}}', fullParty1Name)
+                        .replace('{{party2}}', fullParty2Name)}
                     </DialogDescription>
                   </div>
                 </div>
-
                 <Button
                   variant="ghost"
                   size="icon"
@@ -606,57 +597,54 @@ const MessageForm: React.FC<MessageFormProps> = ({
                   <X className="w-6 h-6" />
                 </Button>
               </div>
-
               <div className="flex items-center gap-4">
                 <Badge
                   className={cn(
                     'px-4 py-2 font-bold shadow-lg bg-gradient-to-r text-white',
-                    messageTypeInfo.color
+                    currentMessageTypeInfo.color
                   )}
                 >
                   <MessageTypeIcon className="w-4 h-4 ml-2" />
-                  {messageTypeInfo.label}
+                  {currentMessageTypeInfo.label}
                 </Badge>
-
                 <Badge
                   className={cn(
                     'px-4 py-2 font-bold shadow-lg bg-gradient-to-r text-white',
-                    partyTypeInfo.color
+                    currentPartyTypeInfo.color
                   )}
                 >
                   <PartyTypeIcon className="w-4 h-4 ml-2" />
-                  {partyTypeInfo.label}
+                  {currentPartyTypeInfo.label}
                 </Badge>
               </div>
             </DialogHeader>
           </div>
         </div>
-
         <div className="p-8 space-y-8">
-          {/* Suggestion Info Alert */}
           <Alert className="border-0 bg-gradient-to-r from-indigo-50 to-purple-50 shadow-lg rounded-2xl">
             <Heart className="h-5 w-5 text-indigo-500" />
             <AlertDescription className="text-indigo-800 font-medium">
-              <strong>הצעה #{suggestion.id.slice(-8)}:</strong> הודעה זו תישלח
-              במסגרת הצעת השידוך הפעילה.
+              <strong>
+                {dict.infoAlert.suggestionPrefix}
+                {suggestion.id.slice(-8)}:
+              </strong>{' '}
+              {dict.infoAlert.body}
               <br />
-              <strong>סטטוס נוכחי:</strong> {suggestion.status} •{' '}
-              <strong>עדיפות:</strong> {suggestion.priority}
+              <strong>{dict.infoAlert.statusLabel}</strong> {suggestion.status}{' '}
+              • <strong>{dict.infoAlert.priorityLabel}</strong>{' '}
+              {suggestion.priority}
             </AlertDescription>
           </Alert>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Recipient Selection */}
             <div className="p-6 bg-white rounded-2xl shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg">
                   <Users className="w-5 h-5" />
                 </div>
                 <Label className="text-lg font-bold text-gray-800">
-                  שלח אל
+                  {dict.form.recipientLabel}
                 </Label>
               </div>
-
               <Select
                 value={partyType}
                 onValueChange={(value) =>
@@ -664,70 +652,51 @@ const MessageForm: React.FC<MessageFormProps> = ({
                 }
               >
                 <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-green-300 focus:border-green-500 rounded-xl transition-all">
-                  <SelectValue placeholder="בחר נמען" />
+                  <SelectValue placeholder={dict.form.recipientPlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="first">
                     <div className="flex items-center gap-3">
                       <User className="w-4 h-4 text-green-500" />
-                      <div className="text-right">
-                        <div className="font-medium">
-                          {suggestion.firstParty.firstName}{' '}
-                          {suggestion.firstParty.lastName}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          (צד א&apos;)
-                        </div>{' '}
-                      </div>
+                      {getPartyTypeInfo('first').label}
                     </div>
                   </SelectItem>
                   <SelectItem value="second">
                     <div className="flex items-center gap-3">
                       <User className="w-4 h-4 text-blue-500" />
-                      <div className="text-right">
-                        <div className="font-medium">
-                          {suggestion.secondParty.firstName}{' '}
-                          {suggestion.secondParty.lastName}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          (צד ב&apos;)
-                        </div>{' '}
-                      </div>
+                      {getPartyTypeInfo('second').label}
                     </div>
                   </SelectItem>
                   <SelectItem value="both">
                     <div className="flex items-center gap-3">
                       <Users className="w-4 h-4 text-purple-500" />
-                      <div className="font-medium">שני הצדדים</div>
+                      {getPartyTypeInfo('both').label}
                     </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
-
               <div className="mt-3 p-3 bg-green-50 rounded-xl">
                 <p className="text-sm text-green-700">
                   <PartyTypeIcon className="w-4 h-4 inline ml-1" />
-                  ההודעה תישלח ל{partyTypeInfo.label}
+                  {dict.form.recipientSelectedPrefix}{' '}
+                  {currentPartyTypeInfo.label}
                 </p>
               </div>
             </div>
-
-            {/* Message Type */}
             <div className="p-6 bg-white rounded-2xl shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center gap-3 mb-4">
                 <div
                   className={cn(
                     'p-2 rounded-full bg-gradient-to-r text-white shadow-lg',
-                    messageTypeInfo.color
+                    currentMessageTypeInfo.color
                   )}
                 >
                   <MessageTypeIcon className="w-5 h-5" />
                 </div>
                 <Label className="text-lg font-bold text-gray-800">
-                  סוג ההודעה
+                  {dict.form.messageTypeLabel}
                 </Label>
               </div>
-
               <Select
                 value={messageType}
                 onValueChange={(value) =>
@@ -735,93 +704,74 @@ const MessageForm: React.FC<MessageFormProps> = ({
                 }
               >
                 <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 rounded-xl transition-all">
-                  <SelectValue placeholder="בחר סוג הודעה" />
+                  <SelectValue placeholder={dict.form.messageTypePlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="message">
                     <div className="flex items-center gap-3">
                       <MessageCircle className="w-4 h-4 text-purple-500" />
-                      <div className="text-right">
-                        <div className="font-medium">הודעה רגילה</div>
-                        <div className="text-xs text-gray-500">
-                          הודעה אישית כללית
-                        </div>
-                      </div>
+                      {dict.messageTypes.message.label}
                     </div>
                   </SelectItem>
                   <SelectItem value="reminder">
                     <div className="flex items-center gap-3">
                       <Clock className="w-4 h-4 text-yellow-500" />
-                      <div className="text-right">
-                        <div className="font-medium">תזכורת</div>
-                        <div className="text-xs text-gray-500">
-                          הזכרה על פעולה נדרשת
-                        </div>
-                      </div>
+                      {dict.messageTypes.reminder.label}
                     </div>
                   </SelectItem>
                   <SelectItem value="update">
                     <div className="flex items-center gap-3">
                       <Info className="w-4 h-4 text-blue-500" />
-                      <div className="text-right">
-                        <div className="font-medium">עדכון סטטוס</div>
-                        <div className="text-xs text-gray-500">
-                          עדכון על שינוי במצב
-                        </div>
-                      </div>
+                      {dict.messageTypes.update.label}
                     </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
-
               <div
                 className={cn(
                   'mt-3 p-3 rounded-xl bg-gradient-to-r',
-                  messageTypeInfo.bgColor
+                  currentMessageTypeInfo.bgColor
                 )}
               >
                 <p
                   className="text-sm font-medium"
-                  style={{ color: messageTypeInfo.color.split(' ')[1] }}
+                  style={{ color: currentMessageTypeInfo.color.split(' ')[1] }}
                 >
                   <MessageTypeIcon className="w-4 h-4 inline ml-1" />
-                  {messageTypeInfo.description}
+                  {currentMessageTypeInfo.description}
                 </p>
               </div>
             </div>
           </div>
-
-          {/* Message Content */}
           <div className="p-6 bg-white rounded-2xl shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg">
                 <Mail className="w-5 h-5" />
               </div>
               <Label className="text-lg font-bold text-gray-800">
-                תוכן ההודעה
+                {dict.form.messageContentLabel}
               </Label>
             </div>
-
             <Textarea
               value={messageContent}
               onChange={(e) => setMessageContent(e.target.value)}
-              placeholder={getMessagePlaceholder()}
+              placeholder={currentMessageTypeInfo.placeholder}
               className="h-48 border-2 border-gray-200 focus:border-indigo-400 rounded-xl transition-all resize-none text-lg"
               dir="rtl"
             />
-
             <div className="mt-3 flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Sparkles className="w-4 h-4" />
-                <span>המערכת תוסיף אוטומטית חתימה מקצועית</span>
+                <span>{dict.form.signatureNotice}</span>
               </div>
               <div className="text-sm text-gray-500">
-                {messageContent.length}/1000 תווים
+                {dict.form.charsCount.replace(
+                  '{{count}}',
+                  messageContent.length.toString()
+                )}
               </div>
             </div>
           </div>
-
-          {/* Preview Section */}
           {messageContent.trim() && (
             <div className="p-6 bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl border-2 border-gray-200">
               <div className="flex items-center gap-3 mb-4">
@@ -829,32 +779,31 @@ const MessageForm: React.FC<MessageFormProps> = ({
                   <Zap className="w-5 h-5" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">
-                  תצוגה מקדימה
+                  {dict.preview.title}
                 </h3>
               </div>
-
               <div className="bg-white p-4 rounded-xl border-2 border-gray-100 shadow-inner">
                 <div className="text-sm text-gray-600 mb-2">
-                  אל: {partyTypeInfo.label} • סוג: {messageTypeInfo.label}
+                  {dict.preview.recipientLabel} {currentPartyTypeInfo.label} •{' '}
+                  {dict.preview.typeLabel} {currentMessageTypeInfo.label}
                 </div>
                 <div className="text-gray-800 leading-relaxed whitespace-pre-wrap">
                   {messageContent}
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
-                  בברכה,
+                  {dict.preview.signature.greeting}
                   <br />
-                  צוות מערכת השידוכים
+                  {dict.preview.signature.team}
                 </div>
               </div>
             </div>
           )}
         </div>
-
         <DialogFooter className="p-8 border-t border-gray-100 bg-gradient-to-r from-gray-50 to-slate-50">
           <div className="flex justify-between w-full items-center">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Bell className="w-4 h-4" />
-              <span>הנמענים יקבלו התראה באימייל ובוואטסאפ</span>
+              <span>{dict.footer.notificationNotice}</span>
             </div>
             <div className="flex gap-4">
               <Button
@@ -863,7 +812,7 @@ const MessageForm: React.FC<MessageFormProps> = ({
                 disabled={isSubmitting}
                 className="px-8 py-3 border-2 border-gray-300 hover:bg-gray-50 rounded-xl transition-all"
               >
-                ביטול
+                {dict.footer.cancelButton}
               </Button>
               <Button
                 onClick={handleSubmit}
@@ -873,12 +822,12 @@ const MessageForm: React.FC<MessageFormProps> = ({
                 {isSubmitting ? (
                   <>
                     <Send className="w-5 h-5 ml-2 animate-pulse" />
-                    שולח...
+                    {dict.footer.sendingButton}
                   </>
                 ) : (
                   <>
                     <Send className="w-5 h-5 ml-2" />
-                    שלח הודעה
+                    {dict.footer.sendButton}
                   </>
                 )}
               </Button>
@@ -948,10 +897,11 @@ import {
 } from '@/lib/utils';
 import type { Candidate } from '../../new/types/candidates';
 import { toast } from 'sonner';
-import type { MatchmakerPageDictionary } from '@/types/dictionary';
+import type { CandidateSelectorDict } from '@/types/dictionaries/matchmaker'; // <--- ייבוא הטיפוס של המילון
 
+// ===> עדכון Props <===
 interface CandidateSelectorProps {
-  dict: MatchmakerPageDictionary['newSuggestionForm']['candidateSelector'];
+  dict: CandidateSelectorDict; // <-- הוספת המילון כ-prop
   value: Candidate | null;
   onChange: (candidate: Candidate | null) => void;
   otherParty?: Candidate | null;
@@ -963,7 +913,7 @@ interface CandidateSelectorProps {
 }
 
 const EnhancedCandidateCard: React.FC<{
-  dict: MatchmakerPageDictionary['newSuggestionForm']['candidateSelector'];
+  dict: CandidateSelectorDict; // <-- קבלת המילון
   candidate: Candidate;
   onClick: () => void;
   isActive: boolean;
@@ -1024,14 +974,12 @@ const EnhancedCandidateCard: React.FC<{
         <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-br from-cyan-200/20 to-blue-200/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
       </div>
-
       <div className="relative z-10 p-4 space-y-4">
         <div className="flex items-center justify-between">
           <Badge className={cn('shadow-lg font-bold', statusInfo.className)}>
             <StatusIcon className="w-3 h-3 ml-1" />
             {statusInfo.label}
           </Badge>
-
           {candidate.profile.religiousLevel && (
             <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg">
               <Crown className="w-3 h-3 ml-1" />
@@ -1039,7 +987,6 @@ const EnhancedCandidateCard: React.FC<{
             </Badge>
           )}
         </div>
-
         <div className="flex items-center gap-4">
           <div className="relative">
             <Avatar className="w-16 h-16 border-4 border-white shadow-xl ring-2 ring-purple-200 group-hover:ring-purple-400 transition-all duration-300">
@@ -1057,12 +1004,10 @@ const EnhancedCandidateCard: React.FC<{
             </Avatar>
             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-r from-green-400 to-emerald-400 border-2 border-white rounded-full shadow-lg animate-pulse"></div>
           </div>
-
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-bold text-gray-800 truncate group-hover:text-purple-700 transition-colors">
               {candidate.firstName} {candidate.lastName}
             </h3>
-
             <div className="flex items-center gap-2 mt-1">
               <div className="flex items-center gap-1 text-sm text-gray-600">
                 <User className="w-4 h-4 text-blue-500" />
@@ -1070,7 +1015,6 @@ const EnhancedCandidateCard: React.FC<{
                   {age} {dict.card.years}
                 </span>
               </div>
-
               {candidate.profile.city && (
                 <div className="flex items-center gap-1 text-sm text-gray-600">
                   <MapPin className="w-4 h-4 text-green-500" />
@@ -1080,7 +1024,6 @@ const EnhancedCandidateCard: React.FC<{
             </div>
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-3">
           {candidate.profile.occupation && (
             <div className="flex items-center gap-2 p-2 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-100 shadow-sm">
@@ -1090,7 +1033,6 @@ const EnhancedCandidateCard: React.FC<{
               </span>
             </div>
           )}
-
           {candidate.profile.education && (
             <div className="flex items-center gap-2 p-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100 shadow-sm">
               <Sparkles className="w-4 h-4 text-purple-500 flex-shrink-0" />
@@ -1100,7 +1042,6 @@ const EnhancedCandidateCard: React.FC<{
             </div>
           )}
         </div>
-
         {isBlocked && (
           <div className="p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg border border-red-200">
             <div className="flex items-start gap-2">
@@ -1134,7 +1075,6 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
 
   const filteredCandidates = candidates.filter((candidate) => {
     if (otherParty && candidate.id === otherParty.id) return false;
-
     if (inputValue) {
       const searchTerm = inputValue.toLowerCase();
       return (
@@ -1167,7 +1107,6 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
         });
         return;
       }
-
       onChange(candidate);
       setOpen(false);
       setInputValue('');
@@ -1178,7 +1117,6 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (!open) return;
-
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
@@ -1290,20 +1228,18 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
                 ) : (
                   <CommandGroup>
                     <div className="grid gap-3">
-                      {filteredCandidates.map((candidate, index) => {
-                        const isBlocked =
-                          candidate.suggestionStatus?.status === 'BLOCKED';
-                        return (
-                          <EnhancedCandidateCard
-                            key={candidate.id}
-                            dict={dict}
-                            candidate={candidate}
-                            onClick={() => handleSelect(candidate)}
-                            isActive={index === activeIndex}
-                            isBlocked={isBlocked}
-                          />
-                        );
-                      })}
+                      {filteredCandidates.map((candidate, index) => (
+                        <EnhancedCandidateCard
+                          key={candidate.id}
+                          dict={dict}
+                          candidate={candidate}
+                          onClick={() => handleSelect(candidate)}
+                          isActive={index === activeIndex}
+                          isBlocked={
+                            candidate.suggestionStatus?.status === 'BLOCKED'
+                          }
+                        />
+                      ))}
                     </div>
                   </CommandGroup>
                 )}
@@ -1351,9 +1287,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  /* Implement view profile handler */
-                }}
+                onClick={() => {}}
                 className="flex-1 border-2 border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-300"
               >
                 <User className="w-4 h-4 ml-2" />
@@ -1374,7 +1308,7 @@ export default CandidateSelector;
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\NewSuggestionForm\MatchPreview.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/components/matchmaker/suggestions/NewSuggestionForm/MatchPreview.tsx
+// src/components/matchmaker/suggestions/NewSuggestionForm/MatchPreview.tsx
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -1401,14 +1335,38 @@ import { cn } from '@/lib/utils';
 import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
 interface MatchPreviewProps {
-  dict: MatchmakerPageDictionary['newSuggestionForm']['matchPreview'];
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['newSuggestionForm']['matchPreview'];
   firstParty: Candidate;
   secondParty: Candidate;
   className?: string;
 }
 
+/**
+ * Helper function to dynamically access nested dictionary properties using a dot-notation key.
+ * @param dict - The dictionary object to search within.
+ * @param key - The dot-separated key (e.g., "age.reasons.ideal").
+ * @returns The translated string or the key itself as a fallback.
+ */
+const getTranslatedReason = (dict: any, key: string): string => {
+  try {
+    const keys = key.split('.');
+    let result = dict;
+    for (const k of keys) {
+      if (result[k] === undefined) {
+        // If any part of the path is missing, return the original key
+        return key;
+      }
+      result = result[k];
+    }
+    return typeof result === 'string' ? result : key;
+  } catch (error) {
+    console.warn(`Translation key not found: ${key}`);
+    return key; // Fallback to the key itself if an error occurs
+  }
+};
+
 const MatchCriteriaCard: React.FC<{
-  dict: MatchmakerPageDictionary['newSuggestionForm']['matchPreview'];
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['newSuggestionForm']['matchPreview'];
   criterion: {
     name: string;
     score: number;
@@ -1452,6 +1410,9 @@ const MatchCriteriaCard: React.FC<{
   const info = getCriterionInfo(criterion.name);
   const IconComponent = info.icon;
   const scorePercentage = Math.round(criterion.score * 100);
+  const translatedReason = criterion.reason
+    ? getTranslatedReason(dict.criteria, criterion.reason)
+    : '';
 
   const getScoreCategory = (score: number) => {
     if (score >= 0.9)
@@ -1504,7 +1465,6 @@ const MatchCriteriaCard: React.FC<{
         <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-white/30 to-transparent rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
       </div>
-
       <div className="relative z-10 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -1518,7 +1478,6 @@ const MatchCriteriaCard: React.FC<{
             </div>
             <h4 className="text-lg font-bold text-gray-800">{info.label}</h4>
           </div>
-
           <Badge
             className={cn(
               'px-3 py-1 font-bold shadow-lg',
@@ -1529,7 +1488,6 @@ const MatchCriteriaCard: React.FC<{
             {scoreCategory.label}
           </Badge>
         </div>
-
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-600">
@@ -1547,11 +1505,10 @@ const MatchCriteriaCard: React.FC<{
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           </div>
         </div>
-
-        {criterion.reason && (
+        {translatedReason && (
           <div className="p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 shadow-inner">
             <p className="text-sm text-gray-700 leading-relaxed font-medium">
-              {criterion.reason}
+              {translatedReason}
             </p>
           </div>
         )}
@@ -1668,7 +1625,6 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
           style={{ animationDelay: '4s' }}
         ></div>
       </div>
-
       <CardContent className="relative z-10 p-8 space-y-8">
         <div className="text-center space-y-6">
           <div className="flex items-center justify-center">
@@ -1774,7 +1730,7 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
               </h4>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {matchScore.reasons.map((reason, index) => (
+              {matchScore.reasons.map((reasonKey, index) => (
                 <div
                   key={index}
                   className="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300 group"
@@ -1787,7 +1743,7 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
                     <Gift className="w-4 h-4" />
                   </div>
                   <p className="text-gray-700 leading-relaxed font-medium flex-1">
-                    {reason}
+                    {getTranslatedReason(dict.criteria, reasonKey)}
                   </p>
                 </div>
               ))}
@@ -4109,7 +4065,7 @@ import { cn } from '@/lib/utils';
 import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
 interface SuggestionDetailsProps {
-  dict: MatchmakerPageDictionary['newSuggestionForm']['suggestionDetails'];
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['newSuggestionForm']['suggestionDetails'];
   firstParty: Candidate;
   secondParty: Candidate;
 }
@@ -4164,7 +4120,7 @@ const EnhancedSection: React.FC<{
 
 const PriorityBadge: React.FC<{
   priority: Priority;
-  dict: MatchmakerPageDictionary['newSuggestionForm']['suggestionDetails']['priority'];
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['newSuggestionForm']['suggestionDetails']['priority'];
 }> = ({ priority, dict }) => {
   const getPriorityInfo = (p: Priority) => {
     switch (p) {
@@ -4726,7 +4682,8 @@ import {
 // Types
 import type { Candidate } from '../../new/types/candidates';
 import { newSuggestionSchema, type NewSuggestionFormData } from './schema';
-import type { MatchmakerPageDictionary } from '@/types/dictionary';
+// <=== שינוי 1: עדכון הטיפוס של המילון שמתקבל ===>
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 // Components
 import SuggestionDetails from './SuggestionDetails';
@@ -4736,7 +4693,8 @@ import { AiMatchAnalysisDialog } from '../../new/dialogs/AiMatchAnalysisDialog';
 import { cn } from '@/lib/utils';
 
 interface NewSuggestionFormProps {
-  dict: MatchmakerPageDictionary['candidatesManager'];
+  locale: string;
+  dict: MatchmakerPageDictionary;
   isOpen: boolean;
   onClose: () => void;
   candidates: Candidate[];
@@ -4805,15 +4763,20 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
   onClose,
   candidates,
   selectedCandidate,
+  locale, // <--- הוסף את זה
+
   onSubmit,
 }) => {
-  const formDict = dict.newSuggestionForm;
+  // <=== שינוי 3: שימוש בנתיב הנכון והמלא לאובייקט המילון של הטופס ===>
+  const formDict = dict.suggestionsDashboard.newSuggestionForm;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [firstParty, setFirstParty] = useState<Candidate | null>(null);
   const [secondParty, setSecondParty] = useState<Candidate | null>(null);
   const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
+  // <=== שינוי 4: בניית מערך השלבים מתוך המילון ===>
   const steps = [
     { label: formDict.steps.select.label, icon: Users },
     { label: formDict.steps.analyze.label, icon: BarChart2 },
@@ -4878,7 +4841,9 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
     setIsSubmitting(true);
     try {
       await onSubmit(data);
-      toast.success(formDict.toasts.createSuccess);
+      toast.success(formDict.toasts.createSuccess, {
+        duration: 5000,
+      });
       onClose();
     } catch (error) {
       toast.error(
@@ -4913,8 +4878,8 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
         return (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <CandidateSelector
-              dict={formDict.candidateSelector} // ✅ העברת המילון
-              label="צד א' (גבר)"
+              dict={formDict.candidateSelector}
+              label={formDict.party1Label}
               value={firstParty}
               onChange={handleCandidateSelect('first')}
               candidates={maleCandidates}
@@ -4923,8 +4888,8 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
               error={form.formState.errors.firstPartyId?.message}
             />
             <CandidateSelector
-              dict={formDict.candidateSelector} // ✅ העברת המילון
-              label="צד ב' (אישה)"
+              dict={formDict.candidateSelector}
+              label={formDict.party2Label}
               value={secondParty}
               onChange={handleCandidateSelect('second')}
               candidates={femaleCandidates}
@@ -4934,6 +4899,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
             />
           </div>
         );
+
       case 1:
         if (!firstParty || !secondParty) {
           return (
@@ -4949,8 +4915,9 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
         }
         return (
           <div className="space-y-8">
+            {/* <=== שינוי 5: העברת החלק הנכון במילון לקומפוננטת הילד ===> */}
             <MatchPreview
-              dict={dict.newSuggestionForm.matchPreview} // ✅ העברת המילון
+              dict={formDict.matchPreview}
               firstParty={firstParty}
               secondParty={secondParty}
             />
@@ -4968,6 +4935,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
             </div>
           </div>
         );
+
       case 2:
         if (!firstParty || !secondParty) {
           return (
@@ -4982,12 +4950,14 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
           );
         }
         return (
+          // <=== שינוי 6: העברת החלק הנכון במילון לקומפוננטת הילד ===>
           <SuggestionDetails
-            dict={dict.newSuggestionForm.suggestionDetails} // ✅ העברת המילון
+            dict={formDict.suggestionDetails}
             firstParty={firstParty}
             secondParty={secondParty}
           />
         );
+
       default:
         return null;
     }
@@ -5011,16 +4981,18 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
                     {formDict.header.title}
                   </DialogTitle>
                   <DialogDescription className="text-md text-gray-500 mt-1">
-                    {formDict.footer.step
+                    {formDict.header.description
                       .replace('{{current}}', (currentStep + 1).toString())
-                      .replace('{{total}}', steps.length.toString())}
-                    : {steps[currentStep].label}
+                      .replace('{{total}}', steps.length.toString())
+                      .replace('{{label}}', steps[currentStep].label)}
                   </DialogDescription>
                 </div>
               </div>
+
               <div className="flex-1 flex justify-center">
                 <StepIndicator currentStep={currentStep} steps={steps} />
               </div>
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -5031,6 +5003,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
               </Button>
             </div>
           </div>
+
           <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-gradient-to-br from-white via-purple-50/20 to-pink-50/20">
             <FormProvider {...form}>
               <form onSubmit={handleSubmit} className="h-full">
@@ -5038,6 +5011,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
               </form>
             </FormProvider>
           </div>
+
           <div className="border-t bg-white p-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -5086,23 +5060,22 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
               </div>
               <div className="text-sm text-gray-500 flex items-center gap-2">
                 <Crown className="w-4 h-4 text-purple-500" />
-                <span>
-                  {firstParty && secondParty
-                    ? `${firstParty.firstName} ו${secondParty.firstName}`
-                    : formDict.steps.select.label}
-                </span>
+                <span>{formDict.footer.info}</span>
               </div>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
       {firstParty && secondParty && (
         <AiMatchAnalysisDialog
           isOpen={showAnalysisDialog}
           onClose={() => setShowAnalysisDialog(false)}
           targetCandidate={firstParty}
           comparisonCandidates={[secondParty]}
-          dict={dict.aiAnalysis}
+          // <=== שינוי 7: העברת החלק הנכון של המילון לדיאלוג ה-AI ===>
+          dict={dict.candidatesManager.aiAnalysis}
+          locale={locale} // <--- הוסף את השורה הזו
         />
       )}
     </>
@@ -6196,6 +6169,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useSession } from 'next-auth/react';
+import { useParams } from 'next/navigation';
 import type {
   SuggestionsDictionary,
   MatchmakerPageDictionary,
@@ -6496,6 +6470,11 @@ export default function MatchmakerDashboard({
   matchmakerDict,
   profileDict,
 }: MatchmakerDashboardProps) {
+  const params = useParams(); // <--- הוסף את השורה הזו
+  const locale = (
+    Array.isArray(params.lang) ? params.lang[0] : params.lang || 'en'
+  ) as 'he' | 'en'; // ✨ 2. חלץ את השפה
+
   const dashboardDict = matchmakerDict.suggestionsDashboard;
   const toastsDict = dashboardDict.toasts;
 
@@ -6754,40 +6733,63 @@ export default function MatchmakerDashboard({
 
   const kanbanColumns = useMemo(() => {
     const columns: {
-      title: string;
-      suggestions: Suggestion[];
-      color: string;
-      icon: React.ElementType;
-    }[] = [
-      {
+      [key: string]: {
+        title: string;
+        suggestions: Suggestion[];
+        color: string;
+        icon: React.ElementType;
+      };
+    } = {
+      requiresAction: {
         title: dashboardDict.kanban.requiresAction,
         suggestions: [],
         color: 'from-red-500 to-orange-500',
         icon: Clock,
       },
-      {
+      pendingResponse: {
         title: dashboardDict.kanban.pendingResponse,
         suggestions: [],
         color: 'from-yellow-500 to-amber-500',
         icon: MessageCircle,
       },
-      {
+      inProgress: {
         title: dashboardDict.kanban.inProgress,
         suggestions: [],
         color: 'from-green-500 to-emerald-500',
         icon: Target,
       },
-      {
+      history: {
         title: dashboardDict.kanban.history,
         suggestions: [],
         color: 'from-gray-500 to-slate-500',
         icon: Archive,
       },
-    ];
-    // ... (logic remains the same)
-    return columns;
-  }, [filteredSuggestions, dashboardDict.kanban]);
+    };
 
+    for (const suggestion of filteredSuggestions) {
+      if (suggestion.category === 'HISTORY') {
+        columns.history.suggestions.push(suggestion);
+      } else if (
+        ['PENDING_FIRST_PARTY', 'PENDING_SECOND_PARTY'].includes(
+          suggestion.status
+        )
+      ) {
+        columns.requiresAction.suggestions.push(suggestion);
+      } else if (
+        [
+          'APPROVED_BY_FIRST_PARTY',
+          'APPROVED_BY_SECOND_PARTY',
+          'AWAITING_REVIEW',
+        ].includes(suggestion.status)
+      ) {
+        columns.pendingResponse.suggestions.push(suggestion);
+      } else if (suggestion.category === 'ACTIVE') {
+        columns.inProgress.suggestions.push(suggestion);
+      }
+    }
+
+    return Object.values(columns);
+  }, [filteredSuggestions, dashboardDict.kanban]);
   const heroStats = useMemo(() => {
     // ... (logic remains the same)
     const total = suggestions.length;
@@ -7192,7 +7194,8 @@ export default function MatchmakerDashboard({
         onClose={() => setShowNewSuggestion(false)}
         candidates={allCandidates}
         onSubmit={handleNewSuggestion}
-        dict={matchmakerDict.candidatesManager}
+        locale={locale} // <--- הוסף את השורה הזו
+        dict={matchmakerDict}
       />
       <SuggestionDetailsDialog
         suggestion={selectedSuggestion}
@@ -7204,6 +7207,7 @@ export default function MatchmakerDashboard({
         suggestionsDict={suggestionsDict}
         profileDict={profileDict} // ✅ הוספת השורה הזו
         // ✅ העברת המילון של ההצעות
+        locale={locale}
       />
 
       <Dialog
@@ -7234,6 +7238,7 @@ export default function MatchmakerDashboard({
         onClose={() => setShowMessageForm(false)}
         suggestion={selectedSuggestion}
         onSend={handleSendMessage}
+        dict={dashboardDict.messageForm}
       />
       {confirmAction && (
         <AlertDialog
@@ -8568,6 +8573,7 @@ interface SuggestionDetailsDialogProps {
   matchmakerDict: MatchmakerPageDictionary;
   suggestionsDict: SuggestionsDictionary;
   profileDict: ProfilePageDictionary; // ✅ הוספת המילון החדש
+  locale: 'he' | 'en'; // <-- 1. הוסף את locale לממשק ה-props
 }
 
 interface StatusInfo {
@@ -8796,6 +8802,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   matchmakerDict,
   suggestionsDict,
   profileDict,
+  locale, // <-- 2. קבל את locale
 }) => {
   const dict = matchmakerDict.suggestionDetailsDialog;
   const [activeTab, setActiveTab] = useState('overview');
@@ -8878,7 +8885,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
             ? '!w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0'
             : 'md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl'
         )}
-        dir="rtl"
+        dir={locale === 'he' ? 'rtl' : 'ltr'} // <-- ✨ 3. השתמש ב-locale לקביעת הכיווניות
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <Tabs
@@ -9015,6 +9022,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   viewMode="matchmaker"
                   isProfileComplete={suggestion.firstParty.isProfileComplete}
                   dict={profileDict.profileCard}
+                  locale={locale}
                 />
               </div>
             </TabsContent>
@@ -9027,6 +9035,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   viewMode="matchmaker"
                   isProfileComplete={suggestion.secondParty.isProfileComplete}
                   dict={profileDict.profileCard}
+                  locale={locale}
                 />
               </div>
             </TabsContent>
@@ -9477,10 +9486,9 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\mat
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\list\ManagerSuggestionsList.tsx
 --------------------------------------------------------------------------------
 Content:
-// FILENAME: src/app/components/matchmaker/suggestions/list/ManagerSuggestionsList.tsx
+// src/components/matchmaker/suggestions/list/ManagerSuggestionsList.tsx
 
 import React, { useMemo, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Users } from 'lucide-react';
@@ -9489,22 +9497,10 @@ import type {
   SuggestionFilters,
   ActionAdditionalData,
 } from '@/types/suggestions';
-import SuggestionDetailsDialog from '../details/SuggestionDetailsDialog';
 import { toast } from 'sonner';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import SuggestionCard from '../cards/SuggestionCard'; // Make sure this is imported
-import type { SuggestionsDictionary } from '@/types/dictionary';
+import SuggestionCard from '../cards/SuggestionCard';
+import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
-// Define a more specific action type to avoid 'any'
 type SuggestionActionType =
   | 'view'
   | 'contact'
@@ -9513,22 +9509,18 @@ type SuggestionActionType =
   | 'delete'
   | 'resend'
   | 'changeStatus'
-  | 'reminder'
-  | 'sendReminder'
-  | 'shareContacts'
-  | 'scheduleMeeting'
-  | 'viewMeetings'
-  | 'exportHistory'
-  | 'export'
-  | 'resendToAll';
+  | 'reminder';
 
 interface ManagerSuggestionsListProps {
   suggestions: Suggestion[];
   filters: SuggestionFilters;
   searchQuery: string;
   type: 'active' | 'pending' | 'history';
-  onSuggestionDeleted?: (id: string) => void;
-  dict: SuggestionsDictionary;
+  onAction: (
+    actionType: SuggestionActionType,
+    data: { suggestion: Suggestion } & ActionAdditionalData
+  ) => void;
+  dict: MatchmakerPageDictionary['suggestionsDashboard'];
 }
 
 const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
@@ -9536,16 +9528,10 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
   filters,
   searchQuery,
   type,
-  onSuggestionDeleted,
-    dict,
+  onAction,
+  dict,
 }) => {
-  const { data: session } = useSession();
-  const [selectedSuggestion, setSelectedSuggestion] =
-    useState<Suggestion | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [suggestionToDelete, setSuggestionToDelete] = useState<string | null>(
-    null
-  );
+  const listDict = dict.managerSuggestionsList;
 
   const filteredSuggestions = useMemo(() => {
     return suggestions.filter((suggestion) => {
@@ -9611,114 +9597,41 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
     });
   }, [suggestions, filters, searchQuery, type]);
 
-  const confirmDelete = async () => {
-    if (!suggestionToDelete) return;
-    try {
-      const response = await fetch(
-        `/api/matchmaker/suggestions/${suggestionToDelete}/delete`,
-        { method: 'DELETE' }
-      );
-      if (!response.ok) throw new Error('Failed to delete suggestion');
-      toast.success('ההצעה נמחקה בהצלחה');
-      if (onSuggestionDeleted) onSuggestionDeleted(suggestionToDelete);
-    } catch (error) {
-      console.error('Error deleting suggestion:', error);
-      toast.error('שגיאה במחיקת ההצעה');
-    } finally {
-      setShowDeleteDialog(false);
-      setSuggestionToDelete(null);
-    }
-  };
-
-  const handleAction = (
-    actionType: SuggestionActionType,
-    data?: { suggestion: Suggestion } & ActionAdditionalData
-  ) => {
-    console.log(
-      `Action '${actionType}' triggered for suggestion`,
-      data?.suggestion?.id
-    );
-    if (actionType === 'view' && data?.suggestion) {
-      setSelectedSuggestion(data.suggestion);
-    }
-    // Implement other actions like edit, message etc. here by setting state for their respective dialogs
-  };
-
   if (filteredSuggestions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+      <div className="flex flex-col items-center justify-center h-64 text-gray-400 text-center">
         <Users className="w-12 h-12 mb-4" />
-        <p>לא נמצאו הצעות התואמות את הסינון</p>
+        <h3 className="text-lg font-semibold text-gray-600">
+          {listDict.emptyState.title}
+        </h3>
+        <p>{listDict.emptyState.description}</p>
       </div>
     );
   }
 
   return (
-    <>
-      <ScrollArea className="h-[600px] rounded-md border p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredSuggestions.map((suggestion) => {
-            if (!suggestion.firstParty || !suggestion.secondParty) {
-              return null; // Safety check for corrupted data
-            }
-            return (
-              <SuggestionCard
-                key={suggestion.id}
-                suggestion={suggestion}
-                onAction={(type, suggestionData, additionalData) => {
-                  if (type === 'view') {
-                    setSelectedSuggestion(suggestionData);
-                  } else if (type === 'delete') {
-                    setSuggestionToDelete(suggestionData.id);
-                    setShowDeleteDialog(true);
-                  } else {
-                    handleAction(type, {
-                      suggestion: suggestionData,
-                      ...additionalData,
-                    });
-                  }
-                }}
-              />
-            );
-          })}
-        </div>
-      </ScrollArea>
-
-      <SuggestionDetailsDialog
-        suggestion={selectedSuggestion}
-        isOpen={!!selectedSuggestion}
-        onClose={() => setSelectedSuggestion(null)}
-        onAction={(type, additionalData) =>
-          handleAction(type, {
-            suggestion: selectedSuggestion!,
-            ...additionalData,
-          })
-        }
-        userId={session?.user?.id || ''}
-        dict={dict}
-      
-      />
-
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>האם את/ה בטוח/ה?</AlertDialogTitle>
-            <AlertDialogDescription>
-              פעולה זו תמחק את ההצעה לצמיתות ולא ניתן יהיה לשחזר אותה.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>ביטול</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              מחיקה
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    <ScrollArea className="h-[600px] rounded-md border p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {filteredSuggestions.map((suggestion) => {
+          if (!suggestion.firstParty || !suggestion.secondParty) {
+            return null; // Safety check for corrupted data
+          }
+          return (
+            <SuggestionCard
+              key={suggestion.id}
+              suggestion={suggestion}
+              onAction={(type, suggestionData, additionalData) =>
+                onAction(type, {
+                  suggestion: suggestionData,
+                  ...additionalData,
+                })
+              }
+              dict={dict.suggestionCard}
+            />
+          );
+        })}
+      </div>
+    </ScrollArea>
   );
 };
 
@@ -9729,27 +9642,29 @@ export default ManagerSuggestionsList;
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\list\SuggestionsList.tsx
 --------------------------------------------------------------------------------
 Content:
-import React, { useState, useMemo } from "react";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+// src/components/matchmaker/suggestions/list/SuggestionsList.tsx
+
+import React, { useState, useMemo } from 'react';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { 
-  Search, 
-  Filter, 
-  SortDesc, 
-  LayoutGrid, 
-  List, 
-  Users, 
-  Clock, 
-  CheckCircle, 
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import {
+  Search,
+  Filter,
+  SortDesc,
+  LayoutGrid,
+  List,
+  Users,
+  Clock,
+  CheckCircle,
   XCircle,
   Heart,
   Star,
@@ -9767,18 +9682,56 @@ import {
   RefreshCw,
   Calendar,
   MapPin,
-} from "lucide-react";
-import type { MatchSuggestion } from "@prisma/client";
-import type { UserProfile, UserImage } from "@/types/next-auth";
-import SuggestionCard from "../cards/SuggestionCard";
-import { LoadingContainer } from "../../new/shared/LoadingStates";
+} from 'lucide-react';
+import type { MatchSuggestion } from '@prisma/client';
+import type { UserProfile, UserImage } from '@/types/next-auth';
+import SuggestionCard from '../cards/SuggestionCard';
+import { LoadingContainer } from '../../new/shared/LoadingStates';
 import type {
   Suggestion,
   ActionAdditionalData,
   SuggestionStatusHistory,
-} from "@/types/suggestions";
-import { cn } from "@/lib/utils";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+} from '@/types/suggestions';
+import { cn } from '@/lib/utils';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import type { MatchmakerPageDictionary } from '@/types/dictionary';
+
+// Define outside the component to avoid re-creation
+const STATIC_SORT_OPTIONS = [
+  { value: 'latest', icon: TrendingUp },
+  { value: 'oldest', icon: Calendar },
+  { value: 'deadline', icon: Clock },
+  { value: 'priority', icon: Flame },
+];
+
+const STATIC_STATUS_OPTIONS = [
+  {
+    value: 'PENDING_FIRST_PARTY',
+    color: 'from-yellow-500 to-amber-500',
+    icon: Clock,
+  },
+  {
+    value: 'PENDING_SECOND_PARTY',
+    color: 'from-blue-500 to-cyan-500',
+    icon: Clock,
+  },
+  {
+    value: 'FIRST_PARTY_APPROVED',
+    color: 'from-green-500 to-emerald-500',
+    icon: CheckCircle,
+  },
+  {
+    value: 'SECOND_PARTY_APPROVED',
+    color: 'from-green-500 to-emerald-500',
+    icon: CheckCircle,
+  },
+  {
+    value: 'CONTACT_DETAILS_SHARED',
+    color: 'from-purple-500 to-pink-500',
+    icon: Heart,
+  },
+  { value: 'DATING', color: 'from-pink-500 to-rose-500', icon: Heart },
+];
 
 interface PartyInfo {
   id: string;
@@ -9799,78 +9752,32 @@ interface SuggestionsListProps {
   isLoading?: boolean;
   onAction: (
     type:
-      | "view"
-      | "contact"
-      | "message"
-      | "edit"
-      | "delete"
-      | "resend"
-      | "changeStatus"
-      | "reminder",
+      | 'view'
+      | 'contact'
+      | 'message'
+      | 'edit'
+      | 'delete'
+      | 'resend'
+      | 'changeStatus'
+      | 'reminder',
     suggestion: Suggestion,
     additionalData?: ActionAdditionalData
   ) => void;
   className?: string;
+  dict: MatchmakerPageDictionary['suggestionsDashboard'];
 }
 
-const SORT_OPTIONS = [
-  { value: "latest", label: "החדשים ביותר", icon: TrendingUp },
-  { value: "oldest", label: "הישנים ביותר", icon: Calendar },
-  { value: "deadline", label: "לפי תאריך יעד", icon: Clock },
-  { value: "priority", label: "לפי דחיפות", icon: Flame },
-];
-
-const STATUS_OPTIONS = [
-  { 
-    value: "PENDING_FIRST_PARTY", 
-    label: "ממתין לצד א׳", 
-    color: "from-yellow-500 to-amber-500",
-    icon: Clock
-  },
-  { 
-    value: "PENDING_SECOND_PARTY", 
-    label: "ממתין לצד ב׳", 
-    color: "from-blue-500 to-cyan-500",
-    icon: Clock
-  },
-  { 
-    value: "FIRST_PARTY_APPROVED", 
-    label: "צד א׳ אישר", 
-    color: "from-green-500 to-emerald-500",
-    icon: CheckCircle
-  },
-  { 
-    value: "SECOND_PARTY_APPROVED", 
-    label: "צד ב׳ אישר", 
-    color: "from-green-500 to-emerald-500",
-    icon: CheckCircle
-  },
-  { 
-    value: "CONTACT_DETAILS_SHARED", 
-    label: "פרטי קשר שותפו", 
-    color: "from-purple-500 to-pink-500",
-    icon: Heart
-  },
-  { 
-    value: "DATING", 
-    label: "בתהליך היכרות", 
-    color: "from-pink-500 to-rose-500",
-    icon: Heart
-  },
-];
-
-// Enhanced Stats Component
 const EnhancedListStats: React.FC<{
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['suggestionsList']['stats'];
   total: number;
   pending: number;
   approved: number;
   declined: number;
   urgent: number;
-}> = ({ total, pending, approved, declined, urgent }) => (
+}> = ({ dict, total, pending, approved, declined, urgent }) => (
   <Card className="border-0 shadow-xl bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 mb-6">
     <CardContent className="p-4">
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        {/* Total */}
         <div className="text-center group">
           <div className="flex items-center justify-center gap-2 mb-1">
             <div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg group-hover:scale-110 transition-transform">
@@ -9878,32 +9785,30 @@ const EnhancedListStats: React.FC<{
             </div>
             <span className="text-2xl font-bold text-blue-600">{total}</span>
           </div>
-          <p className="text-xs text-gray-600 font-medium">סך הכל</p>
+          <p className="text-xs text-gray-600 font-medium">{dict.total}</p>
         </div>
-
-        {/* Pending */}
         <div className="text-center group">
           <div className="flex items-center justify-center gap-2 mb-1">
             <div className="p-2 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg group-hover:scale-110 transition-transform">
               <Clock className="w-4 h-4" />
             </div>
-            <span className="text-2xl font-bold text-yellow-600">{pending}</span>
+            <span className="text-2xl font-bold text-yellow-600">
+              {pending}
+            </span>
           </div>
-          <p className="text-xs text-gray-600 font-medium">ממתינות</p>
+          <p className="text-xs text-gray-600 font-medium">{dict.pending}</p>
         </div>
-
-        {/* Approved */}
         <div className="text-center group">
           <div className="flex items-center justify-center gap-2 mb-1">
             <div className="p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg group-hover:scale-110 transition-transform">
               <CheckCircle className="w-4 h-4" />
             </div>
-            <span className="text-2xl font-bold text-green-600">{approved}</span>
+            <span className="text-2xl font-bold text-green-600">
+              {approved}
+            </span>
           </div>
-          <p className="text-xs text-gray-600 font-medium">מאושרות</p>
+          <p className="text-xs text-gray-600 font-medium">{dict.approved}</p>
         </div>
-
-        {/* Declined */}
         <div className="text-center group">
           <div className="flex items-center justify-center gap-2 mb-1">
             <div className="p-2 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg group-hover:scale-110 transition-transform">
@@ -9911,10 +9816,8 @@ const EnhancedListStats: React.FC<{
             </div>
             <span className="text-2xl font-bold text-red-600">{declined}</span>
           </div>
-          <p className="text-xs text-gray-600 font-medium">נדחו</p>
+          <p className="text-xs text-gray-600 font-medium">{dict.declined}</p>
         </div>
-
-        {/* Urgent */}
         <div className="text-center group">
           <div className="flex items-center justify-center gap-2 mb-1">
             <div className="p-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg group-hover:scale-110 transition-transform animate-pulse">
@@ -9922,15 +9825,15 @@ const EnhancedListStats: React.FC<{
             </div>
             <span className="text-2xl font-bold text-orange-600">{urgent}</span>
           </div>
-          <p className="text-xs text-gray-600 font-medium">דחופות</p>
+          <p className="text-xs text-gray-600 font-medium">{dict.urgent}</p>
         </div>
       </div>
     </CardContent>
   </Card>
 );
 
-// Enhanced Filter Bar
 const EnhancedFilterSection: React.FC<{
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['suggestionsList']['filters'];
   searchQuery: string;
   onSearchChange: (query: string) => void;
   sortBy: string;
@@ -9942,6 +9845,7 @@ const EnhancedFilterSection: React.FC<{
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
 }> = ({
+  dict,
   searchQuery,
   onSearchChange,
   sortBy,
@@ -9955,92 +9859,92 @@ const EnhancedFilterSection: React.FC<{
 }) => (
   <Card className="border-0 shadow-xl bg-gradient-to-r from-white via-cyan-50/30 to-blue-50/30 mb-6">
     <CardContent className="p-6 space-y-4">
-      {/* Main Filter Row */}
       <div className="flex flex-col md:flex-row gap-4">
-        {/* Search Input */}
         <div className="relative flex-1">
           <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="חיפוש לפי שם או עיר..."
+            placeholder={dict.searchPlaceholder}
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pr-12 text-right bg-white/80 backdrop-blur-sm border-cyan-200 focus:border-cyan-400 focus:ring-cyan-200 rounded-xl h-12 shadow-sm"
           />
         </div>
-
-        {/* Sort Select */}
         <Select value={sortBy} onValueChange={onSortChange}>
           <SelectTrigger className="w-48 h-12 bg-white/80 backdrop-blur-sm border-cyan-200 focus:border-cyan-400 rounded-xl shadow-sm">
             <SortDesc className="w-4 h-4 ml-2" />
-            <SelectValue placeholder="מיון לפי..." />
+            <SelectValue placeholder={dict.sortPlaceholder} />
           </SelectTrigger>
           <SelectContent>
-            {SORT_OPTIONS.map((option) => {
+            {STATIC_SORT_OPTIONS.map((option) => {
               const IconComponent = option.icon;
               return (
                 <SelectItem key={option.value} value={option.value}>
                   <div className="flex items-center gap-2">
                     <IconComponent className="w-4 h-4" />
-                    {option.label}
+                    {
+                      dict.sortOptions[
+                        option.value as keyof typeof dict.sortOptions
+                      ]
+                    }
                   </div>
                 </SelectItem>
               );
             })}
           </SelectContent>
         </Select>
-
-        {/* Filter Toggle */}
         <Button
           variant="outline"
           onClick={onToggleFilters}
           className={cn(
-            "h-12 border-cyan-200 hover:bg-cyan-50 text-cyan-600 rounded-xl bg-white/80 backdrop-blur-sm shadow-sm",
-            showFilters && "bg-cyan-100 border-cyan-300"
+            'h-12 border-cyan-200 hover:bg-cyan-50 text-cyan-600 rounded-xl bg-white/80 backdrop-blur-sm shadow-sm',
+            showFilters && 'bg-cyan-100 border-cyan-300'
           )}
         >
           <Filter className="w-4 h-4 ml-2" />
-          סינון
+          {dict.filterButton}
         </Button>
-
-        {/* View Mode Toggle */}
         <ToggleGroup
           type="single"
           value={viewMode}
-          onValueChange={(value: 'grid' | 'list') => value && onViewModeChange(value)}
+          onValueChange={(value: 'grid' | 'list') =>
+            value && onViewModeChange(value)
+          }
           className="bg-white/80 backdrop-blur-sm shadow-sm rounded-xl border border-cyan-200"
         >
-          <ToggleGroupItem 
-            value="grid" 
-            aria-label="Grid view"
+          <ToggleGroupItem
+            value="grid"
+            aria-label={dict.viewModes.grid}
             className="data-[state=on]:bg-cyan-500 data-[state=on]:text-white"
           >
             <LayoutGrid className="h-4 w-4" />
           </ToggleGroupItem>
-          <ToggleGroupItem 
-            value="list" 
-            aria-label="List view"
+          <ToggleGroupItem
+            value="list"
+            aria-label={dict.viewModes.list}
             className="data-[state=on]:bg-cyan-500 data-[state=on]:text-white"
           >
             <List className="h-4 w-4" />
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
-
-      {/* Advanced Filters */}
       {showFilters && (
         <div className="pt-4 border-t border-cyan-100 space-y-4">
           <div>
             <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
               <Activity className="w-4 h-4 text-cyan-500" />
-              סינון לפי סטטוס
+              {dict.advancedFilterTitle}
             </h4>
             <div className="flex flex-wrap gap-2">
-              {STATUS_OPTIONS.map((status) => {
+              {STATIC_STATUS_OPTIONS.map((status) => {
                 const IconComponent = status.icon;
                 return (
                   <Button
                     key={status.value}
-                    variant={statusFilter.includes(status.value) ? "default" : "outline"}
+                    variant={
+                      statusFilter.includes(status.value)
+                        ? 'default'
+                        : 'outline'
+                    }
                     size="sm"
                     onClick={() => {
                       const newFilter = statusFilter.includes(status.value)
@@ -10049,21 +9953,23 @@ const EnhancedFilterSection: React.FC<{
                       onStatusFilterChange(newFilter);
                     }}
                     className={cn(
-                      "text-xs rounded-xl transition-all duration-300",
+                      'text-xs rounded-xl transition-all duration-300',
                       statusFilter.includes(status.value)
                         ? `bg-gradient-to-r ${status.color} text-white shadow-lg border-0`
-                        : "border-gray-200 hover:bg-gray-50"
+                        : 'border-gray-200 hover:bg-gray-50'
                     )}
                   >
                     <IconComponent className="w-3 h-3 ml-1" />
-                    {status.label}
+                    {
+                      dict.statusOptions[
+                        status.value as keyof typeof dict.statusOptions
+                      ]
+                    }
                   </Button>
                 );
               })}
             </div>
           </div>
-
-          {/* Clear Filters */}
           <div className="flex justify-end">
             <Button
               variant="ghost"
@@ -10072,7 +9978,7 @@ const EnhancedFilterSection: React.FC<{
               className="text-gray-500 hover:text-gray-700"
             >
               <RefreshCw className="w-3 h-3 ml-1" />
-              נקה סינונים
+              {dict.clearFiltersButton}
             </Button>
           </div>
         </div>
@@ -10081,11 +9987,11 @@ const EnhancedFilterSection: React.FC<{
   </Card>
 );
 
-// Enhanced Empty State
 const EnhancedEmptyState: React.FC<{
+  dict: MatchmakerPageDictionary['suggestionsDashboard']['suggestionsList']['emptyState'];
   isFiltered: boolean;
   onClearFilters: () => void;
-}> = ({ isFiltered, onClearFilters }) => (
+}> = ({ dict, isFiltered, onClearFilters }) => (
   <div className="flex flex-col items-center justify-center min-h-[500px] text-center p-12">
     <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 flex items-center justify-center shadow-xl mb-8">
       {isFiltered ? (
@@ -10094,25 +10000,19 @@ const EnhancedEmptyState: React.FC<{
         <Users className="w-16 h-16 text-purple-400" />
       )}
     </div>
-    
     <h3 className="text-2xl font-bold text-gray-800 mb-4">
-      {isFiltered ? 'לא נמצאו תוצאות' : 'אין הצעות כרגע'}
+      {isFiltered ? dict.filtered.title : dict.default.title}
     </h3>
-    
     <p className="text-gray-600 max-w-md mx-auto mb-6 leading-relaxed">
-      {isFiltered 
-        ? 'נסה לשנות את קריטריוני החיפוש או הסינון כדי למצוא את מה שאתה מחפש'
-        : 'כשיהיו הצעות זמינות, הן יופיעו כאן'
-      }
+      {isFiltered ? dict.filtered.description : dict.default.description}
     </p>
-
     {isFiltered && (
       <Button
         onClick={onClearFilters}
         className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl"
       >
         <RefreshCw className="w-4 h-4 ml-2" />
-        נקה סינון
+        {dict.clearButton}
       </Button>
     )}
   </div>
@@ -10123,64 +10023,60 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   isLoading = false,
   onAction,
   className,
+  dict: dashboardDict,
 }) => {
-  // Filter states
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("latest");
+  const dict = dashboardDict.suggestionsList;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('latest');
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  // Calculate stats
   const stats = useMemo(() => {
     const total = suggestions.length;
-    const pending = suggestions.filter(s => 
-      s.status === 'PENDING_FIRST_PARTY' || s.status === 'PENDING_SECOND_PARTY'
+    const pending = suggestions.filter((s) =>
+      s.status.includes('PENDING')
     ).length;
-    const approved = suggestions.filter(s => 
-      s.status === 'FIRST_PARTY_APPROVED' || s.status === 'SECOND_PARTY_APPROVED'
+    const approved = suggestions.filter((s) =>
+      s.status.includes('APPROVED')
     ).length;
-    const declined = suggestions.filter(s => 
-      s.status === 'FIRST_PARTY_DECLINED' || s.status === 'SECOND_PARTY_DECLINED'
+    const declined = suggestions.filter((s) =>
+      s.status.includes('DECLINED')
     ).length;
-    const urgent = suggestions.filter(s => s.priority === 'URGENT').length;
-
+    const urgent = suggestions.filter((s) => s.priority === 'URGENT').length;
     return { total, pending, approved, declined, urgent };
   }, [suggestions]);
 
-  // Filter and sort suggestions
   const filteredSuggestions = useMemo(() => {
     let result = [...suggestions];
 
-    // Apply status filter
     if (statusFilter.length > 0) {
       result = result.filter((s) => statusFilter.includes(s.status));
     }
 
-    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter((s) => {
-        const searchText = `${s.firstParty.firstName} ${s.firstParty.lastName} ${s.secondParty.firstName} ${s.secondParty.lastName} ${s.firstParty.profile?.city || ''} ${s.secondParty.profile?.city || ''}`.toLowerCase();
+        const searchText =
+          `${s.firstParty.firstName} ${s.firstParty.lastName} ${s.secondParty.firstName} ${s.secondParty.lastName} ${s.firstParty.profile?.city || ''} ${s.secondParty.profile?.city || ''}`.toLowerCase();
         return searchText.includes(query);
       });
     }
 
-    // Apply sorting
     switch (sortBy) {
-      case "latest":
+      case 'latest':
         result.sort(
           (a, b) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         break;
-      case "oldest":
+      case 'oldest':
         result.sort(
           (a, b) =>
             new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
         break;
-      case "deadline":
+      case 'deadline':
         result.sort((a, b) => {
           if (!a.decisionDeadline) return 1;
           if (!b.decisionDeadline) return -1;
@@ -10190,11 +10086,11 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           );
         });
         break;
-      case "priority":
+      case 'priority':
         const priorityOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
         result.sort(
-          (a, b) => 
-            (priorityOrder[a.priority as keyof typeof priorityOrder] || 4) - 
+          (a, b) =>
+            (priorityOrder[a.priority as keyof typeof priorityOrder] || 4) -
             (priorityOrder[b.priority as keyof typeof priorityOrder] || 4)
         );
         break;
@@ -10204,19 +10100,21 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   }, [suggestions, searchQuery, sortBy, statusFilter]);
 
   const isFiltered = searchQuery !== '' || statusFilter.length > 0;
-
   const clearAllFilters = () => {
     setSearchQuery('');
     setStatusFilter([]);
   };
 
-  return (
-    <div className={cn("space-y-6", className)}>
-      {/* Enhanced Stats */}
-      <EnhancedListStats {...stats} />
+  const resultsLabel =
+    filteredSuggestions.length === 1
+      ? dict.results.itemLabel_one
+      : dict.results.itemLabel_other;
 
-      {/* Enhanced Filter Section */}
+  return (
+    <div className={cn('space-y-6', className)}>
+      <EnhancedListStats dict={dict.stats} {...stats} />
       <EnhancedFilterSection
+        dict={dict.filters}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         sortBy={sortBy}
@@ -10228,65 +10126,54 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         viewMode={viewMode}
         onViewModeChange={setViewMode}
       />
-
-      {/* Results Summary */}
       <div className="flex justify-between items-center text-sm text-gray-600 px-2">
         <span className="font-medium">
-          מציג {filteredSuggestions.length} {filteredSuggestions.length === 1 ? 'הצעה' : 'הצעות'} מתוך {suggestions.length}
+          {dict.results.summary
+            .replace('{{count}}', filteredSuggestions.length.toString())
+            .replace('{{label}}', resultsLabel)
+            .replace('{{total}}', suggestions.length.toString())}
         </span>
         {filteredSuggestions.length > 0 && (
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-purple-500" />
-            <span className="font-medium text-purple-600">התאמות איכותיות</span>
+            <span className="font-medium text-purple-600">
+              {dict.results.qualityMatches}
+            </span>
           </div>
         )}
       </div>
-
-      {/* Suggestions Grid/List */}
       {isLoading ? (
         <LoadingContainer>
-          <div className="space-y-6">
-            {/* Loading Stats */}
-            <Card className="border-0 shadow-xl">
-              <CardContent className="p-4">
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="text-center space-y-2">
-                      <div className="w-12 h-12 bg-gray-200 rounded-full mx-auto animate-pulse"></div>
-                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Loading Cards */}
-            <div className={cn(
+          <div
+            className={cn(
               viewMode === 'grid'
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                : "space-y-4"
-            )}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-80 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl animate-pulse shadow-lg"
-                />
-              ))}
-            </div>
+                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                : 'space-y-4'
+            )}
+          >
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-80 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl animate-pulse shadow-lg"
+              />
+            ))}
           </div>
         </LoadingContainer>
       ) : filteredSuggestions.length === 0 ? (
         <EnhancedEmptyState
+          dict={dict.emptyState}
           isFiltered={isFiltered}
           onClearFilters={clearAllFilters}
         />
       ) : (
-        <div className={cn(
-          "animate-fade-in-up",
-          viewMode === 'grid'
-            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            : "space-y-6"
-        )}>
+        <div
+          className={cn(
+            'animate-fade-in-up',
+            viewMode === 'grid'
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+              : 'space-y-6'
+          )}
+        >
           {filteredSuggestions.map((suggestion, index) => (
             <div
               key={suggestion.id}
@@ -10299,51 +10186,53 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
               <SuggestionCard
                 suggestion={suggestion as unknown as Suggestion}
                 onAction={onAction}
-                variant={viewMode === 'list' ? 'full' : 'full'}
-                className={cn(
-                  "card-hover-elegant shadow-lg hover:shadow-xl transition-all duration-300",
-                  viewMode === 'list' && "flex"
-                )}
+                dict={dashboardDict.suggestionCard}
+                className="h-full"
               />
             </div>
           ))}
         </div>
       )}
-
-      {/* Filter Summary */}
-      {(searchQuery || statusFilter.length > 0) && (
+      {isFiltered && (
         <Card className="border-0 shadow-lg bg-gradient-to-r from-purple-50 to-pink-50">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-sm flex-wrap">
                 <Filter className="w-4 h-4 text-purple-500" />
-                <span className="font-medium text-purple-700">סינון פעיל:</span>
-                
+                <span className="font-medium text-purple-700">
+                  {dict.activeFilters.title}
+                </span>
                 {searchQuery && (
                   <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-sm">
-                    חיפוש: {searchQuery}
+                    {dict.activeFilters.searchLabel.replace(
+                      '{{query}}',
+                      searchQuery
+                    )}
                   </Badge>
                 )}
-                
                 {statusFilter.map((status) => {
-                  const statusOption = STATUS_OPTIONS.find(opt => opt.value === status);
+                  const statusOption = STATIC_STATUS_OPTIONS.find(
+                    (opt) => opt.value === status
+                  );
                   if (!statusOption) return null;
                   const IconComponent = statusOption.icon;
-                  
                   return (
-                    <Badge 
+                    <Badge
                       key={status}
                       className={cn(
                         `bg-gradient-to-r ${statusOption.color} text-white border-0 shadow-sm`
                       )}
                     >
                       <IconComponent className="w-3 h-3 ml-1" />
-                      {statusOption.label}
+                      {
+                        dict.filters.statusOptions[
+                          status as keyof typeof dict.filters.statusOptions
+                        ]
+                      }
                     </Badge>
                   );
                 })}
               </div>
-              
               <Button
                 variant="ghost"
                 size="sm"
@@ -10351,14 +10240,12 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                 className="text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-xl"
               >
                 <RefreshCw className="w-3 h-3 ml-1" />
-                נקה הכל
+                {dict.activeFilters.clearAllButton}
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
-
-      {/* Performance Insights */}
       {filteredSuggestions.length > 0 && (
         <Card className="border-0 shadow-lg bg-gradient-to-r from-emerald-50 to-green-50">
           <CardContent className="p-4">
@@ -10368,24 +10255,38 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   <BarChart3 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-emerald-800">תובנות ביצועים</h4>
+                  <h4 className="font-bold text-emerald-800">
+                    {dict.performance.title}
+                  </h4>
                   <p className="text-sm text-emerald-600">
-                    {Math.round((stats.approved / stats.total) * 100)}% אחוז אישור •{' '}
-                    {stats.urgent > 0 && `${stats.urgent} דחופות •`}{' '}
-                    {stats.pending} ממתינות לטיפול
+                    {dict.performance.description
+                      .replace(
+                        '{{rate}}',
+                        Math.round(
+                          (stats.approved / Math.max(stats.total, 1)) * 100
+                        ).toString()
+                      )
+                      .replace('{{urgentCount}}', stats.urgent.toString())
+                      .replace('{{pendingCount}}', stats.pending.toString())}
                   </p>
                 </div>
               </div>
-              
               <div className="flex items-center gap-2">
                 <div className="text-right text-xs text-emerald-600">
-                  <div className="font-bold">{Math.round((stats.approved / Math.max(stats.total, 1)) * 100)}%</div>
-                  <div>הצלחה</div>
+                  <div className="font-bold">
+                    {Math.round(
+                      (stats.approved / Math.max(stats.total, 1)) * 100
+                    )}
+                    %
+                  </div>
+                  <div>{dict.performance.successLabel}</div>
                 </div>
                 <div className="w-16 h-2 bg-emerald-200 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-emerald-500 to-green-500 transition-all duration-500"
-                    style={{ width: `${Math.round((stats.approved / Math.max(stats.total, 1)) * 100)}%` }}
+                    style={{
+                      width: `${Math.round((stats.approved / Math.max(stats.total, 1)) * 100)}%`,
+                    }}
                   />
                 </div>
               </div>
@@ -10920,6 +10821,949 @@ export function initNotificationService() {
   return notificationService;
 }
 --- End of Content for initNotifications.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\notification_contents.txt
+--------------------------------------------------------------------------------
+Content:
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification
+# Generated on: 2025-08-31 16:42:23
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\NotificationService.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/matchmaker/suggestions/services/notification/NotificationService.ts
+
+import { MatchSuggestionStatus } from '@prisma/client';
+import { SuggestionWithParties } from '../suggestions/StatusTransitionService';
+
+export type RecipientInfo = {
+  email: string;
+  phone?: string; // Phone number with international prefix, e.g.: +972501234567
+  name: string;
+};
+
+export type NotificationContent = {
+  subject: string;
+  body: string;
+  htmlBody?: string; // HTML version for email
+};
+
+export type NotificationChannel = 'email' | 'whatsapp' | 'sms';
+
+export type NotificationOptions = {
+  channels: NotificationChannel[];
+  notifyParties?: ('first' | 'second' | 'matchmaker')[];
+  priority?: 'high' | 'normal' | 'low';
+  attachments?: Array<{
+    filename: string;
+    content: Buffer | string;
+    contentType: string;
+  }>;
+  customMessage?: string;
+  metadata?: Record<string, unknown>;
+};
+
+export interface NotificationAdapter {
+  canSendTo(recipient: RecipientInfo): boolean;
+  send(recipient: RecipientInfo, content: NotificationContent): Promise<boolean>;
+  getChannelType(): NotificationChannel;
+}
+
+export class NotificationService {
+  private static instance: NotificationService;
+  private adapters: Map<NotificationChannel, NotificationAdapter> = new Map();
+
+  private constructor() {}
+
+  public static getInstance(): NotificationService {
+    if (!NotificationService.instance) {
+      NotificationService.instance = new NotificationService();
+    }
+    return NotificationService.instance;
+  }
+
+  public registerAdapter(adapter: NotificationAdapter): void {
+    this.adapters.set(adapter.getChannelType(), adapter);
+    console.log(`Registered ${adapter.getChannelType()} adapter`);
+  }
+
+  public async sendNotification(
+    recipient: RecipientInfo,
+    content: NotificationContent,
+    options: NotificationOptions
+  ): Promise<Record<NotificationChannel, boolean>> {
+    const results: Record<NotificationChannel, boolean> = {} as Record<NotificationChannel, boolean>;
+    console.log(`Attempting to send notification to ${recipient.name} via channels:`, options.channels);
+
+    for (const channel of options.channels) {
+      const adapter = this.adapters.get(channel);
+      if (!adapter) {
+        console.warn(`No adapter registered for channel: ${channel}`);
+        results[channel] = false;
+        continue;
+      }
+
+      if (!adapter.canSendTo(recipient)) {
+        console.warn(`Cannot send to recipient via ${channel}: missing required info`);
+        results[channel] = false;
+        continue;
+      }
+
+      try {
+        console.log(`Sending ${channel} notification to ${recipient.name}`);
+        results[channel] = await adapter.send(recipient, content);
+        console.log(`${channel} notification sent successfully: ${results[channel]}`);
+      } catch (error) {
+        console.error(`Error sending notification via ${channel}:`, error);
+        results[channel] = false;
+      }
+    }
+
+    return results;
+  }
+
+  // Dedicated method for handling suggestion-related notifications
+  public async handleSuggestionStatusChange(
+    suggestion: SuggestionWithParties,
+    options: Partial<NotificationOptions> = {}
+  ): Promise<void> {
+    console.log(`Processing notifications for suggestion ${suggestion.id} with status ${suggestion.status}`);
+    
+    const templateContent = this.getSuggestionTemplate(suggestion, options.customMessage);
+    if (!templateContent) {
+      console.log(`No template found for status ${suggestion.status} - skipping notification`);
+      return;
+    }
+  
+    const recipientsWithChannels = this.getRecipientsForSuggestion(suggestion);
+    console.log(`Found ${recipientsWithChannels.length} potential recipients`);
+  
+    for (const { recipient, preferredChannels } of recipientsWithChannels) {
+      // Filter recipients based on notifyParties if provided
+      if (options.notifyParties) {
+        const recipientType = this.getRecipientType(recipient, suggestion);
+        if (!recipientType || !options.notifyParties.includes(recipientType)) {
+          console.log(`Skipping recipient ${recipient.name} (${recipientType}) - not in notifyParties`, options.notifyParties);
+          continue;
+        }
+      }
+      
+      const channelsToUse = options.channels || preferredChannels || ['email'];
+      console.log(`Sending notification to ${recipient.name} via channels:`, channelsToUse);
+      
+      await this.sendNotification(
+        recipient,
+        templateContent,
+        { ...options, channels: channelsToUse }
+      );
+    }
+    
+    console.log(`Finished processing notifications for suggestion ${suggestion.id}`);
+  }
+
+  // Helper method to determine recipient type
+  private getRecipientType(
+    recipient: RecipientInfo, 
+    suggestion: SuggestionWithParties
+  ): 'first' | 'second' | 'matchmaker' | null {
+    if (recipient.email === suggestion.firstParty.email) {
+      return 'first';
+    } else if (recipient.email === suggestion.secondParty.email) {
+      return 'second';
+    } else if (recipient.email === suggestion.matchmaker.email) {
+      return 'matchmaker';
+    }
+    return null;
+  }
+
+  private getSuggestionTemplate(
+    suggestion: SuggestionWithParties,
+    customMessage?: string
+  ): NotificationContent | null {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    
+    // If there's a custom message, use it instead of the template
+    if (customMessage) {
+      const reviewUrl = `${baseUrl}/suggestions/${suggestion.id}/review`;
+      return {
+        subject: "עדכון בהצעת שידוך",
+        body: `שלום,\n\n${customMessage}\n\nלצפייה בפרטי ההצעה: ${reviewUrl}\n\nבברכה,\nמערכת השידוכים`,
+        htmlBody: `
+          <div dir="rtl">
+            <h2>שלום,</h2>
+            <p>${customMessage}</p>
+            <p>לצפייה בפרטי ההצעה: <a href="${reviewUrl}">לחץ כאן</a></p>
+            <p>בברכה,<br>מערכת השידוכים</p>
+          </div>
+        `
+      };
+    }
+    
+    // Otherwise use the template based on status
+    switch (suggestion.status) {
+      case MatchSuggestionStatus.PENDING_FIRST_PARTY:
+        return {
+          subject: 'הצעת שידוך חדשה עבורך',
+          body: `שלום ${suggestion.firstParty.firstName},\n\n${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} הציע/ה עבורך הצעת שידוך.\n\nלצפייה בפרטי ההצעה ומענה: ${baseUrl}/suggestions/${suggestion.id}/review\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.firstParty.firstName},</h2><p>${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} הציע/ה עבורך הצעת שידוך.</p><p>לצפייה בפרטי ההצעה ומענה, אנא היכנס/י לקישור הבא:</p><p><a href="${baseUrl}/suggestions/${suggestion.id}/review">לצפייה בהצעה</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+      
+      case MatchSuggestionStatus.FIRST_PARTY_APPROVED:
+        return {
+          subject: 'עדכון סטטוס - הצעת שידוך אושרה על ידי הצד הראשון',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\n${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} אישר/ה את הצעת השידוך.\n\nההצעה תועבר כעת באופן אוטומטי לצד השני.\n\nלצפייה בפרטים נוספים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} אישר/ה את הצעת השידוך.</p><p>ההצעה תועבר כעת באופן אוטומטי לצד השני.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים נוספים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.FIRST_PARTY_DECLINED:
+        return {
+          subject: 'עדכון סטטוס - הצעת שידוך נדחתה',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\n${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} דחה/תה את הצעת השידוך.\n\nלצפייה בפרטים נוספים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} דחה/תה את הצעת השידוך.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים נוספים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.PENDING_SECOND_PARTY:
+        return {
+          subject: 'הצעת שידוך חדשה עבורך',
+          body: `שלום ${suggestion.secondParty.firstName},\n\n${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} הציע/ה עבורך הצעת שידוך.\n\nהצד הראשון כבר אישר את ההצעה.\n\nלצפייה בפרטי ההצעה ומענה: ${baseUrl}/suggestions/${suggestion.id}/review\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.secondParty.firstName},</h2><p>${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} הציע/ה עבורך הצעת שידוך.</p><p>הצד הראשון כבר אישר את ההצעה.</p><p><a href="${baseUrl}/suggestions/${suggestion.id}/review">לצפייה בפרטי ההצעה ומענה</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
+        return {
+          subject: 'עדכון סטטוס - הצעת שידוך אושרה על ידי הצד השני',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\n${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} אישר/ה את הצעת השידוך.\n\nשני הצדדים אישרו את ההצעה. ניתן כעת לשתף פרטי קשר.\n\nלצפייה בפרטים נוספים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} אישר/ה את הצעת השידוך.</p><p>שני הצדדים אישרו את ההצעה. ניתן כעת לשתף פרטי קשר.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים נוספים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
+        return {
+          subject: 'עדכון סטטוס - הצעת שידוך נדחתה',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\n${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} דחה/תה את הצעת השידוך.\n\nלצפייה בפרטים נוספים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} דחה/תה את הצעת השידוך.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים נוספים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+    
+      case MatchSuggestionStatus.CONTACT_DETAILS_SHARED:
+        // Prepare contact details with multi-line support
+        const firstPartyDetails = this.formatUserDetails(suggestion.firstParty);
+        const secondPartyDetails = this.formatUserDetails(suggestion.secondParty);
+        
+        return {
+          subject: 'פרטי קשר להצעת השידוך',
+          body: `ברכות! שני הצדדים אישרו את הצעת השידוך.\n\nפרטי הקשר של הצד הראשון:\n${firstPartyDetails}\n\nפרטי הקשר של הצד השני:\n${secondPartyDetails}\n\nאנא צרו קשר בהקדם לתיאום פגישה ראשונה.\n\nבהצלחה!`,
+          htmlBody: `<div dir="rtl"><h2>ברכות! שני הצדדים אישרו את הצעת השידוך.</h2><p>פרטי הקשר של הצד הראשון:</p><pre>${firstPartyDetails}</pre><p>פרטי הקשר של הצד השני:</p><pre>${secondPartyDetails}</pre><p>אנא צרו קשר בהקדם לתיאום פגישה ראשונה.</p><p>בהצלחה!</p></div>`
+        };
+      
+      case MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK:
+        return {
+          subject: 'בקשה למשוב על הפגישה הראשונה',
+          body: `שלום,\n\nנשמח לקבל את המשוב שלך על הפגישה הראשונה.\n\nלשליחת המשוב: ${baseUrl}/suggestions/${suggestion.id}/feedback\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום,</h2><p>נשמח לקבל את המשוב שלך על הפגישה הראשונה.</p><p><a href="${baseUrl}/suggestions/${suggestion.id}/feedback">לשליחת המשוב</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.THINKING_AFTER_DATE:
+        return {
+          subject: 'בקשת זמן למחשבה לאחר הפגישה',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\nאחד הצדדים ביקש זמן למחשבה לאחר הפגישה.\n\nלצפייה בפרטים נוספים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>אחד הצדדים ביקש זמן למחשבה לאחר הפגישה.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים נוספים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.DATING:
+        return {
+          subject: 'עדכון סטטוס - בתהליך היכרות',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\nהזוג נמצא בתהליך היכרות.\n\nלצפייה בפרטים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>הזוג נמצא בתהליך היכרות.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.ENGAGED:
+        return {
+          subject: 'מזל טוב! - אירוסין',
+          body: `מזל טוב ${suggestion.firstParty.firstName} ו${suggestion.secondParty.firstName}!\n\nאנו שמחים לשמוע על האירוסין ומאחלים לכם המון הצלחה בהמשך הדרך.\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>מזל טוב ${suggestion.firstParty.firstName} ו${suggestion.secondParty.firstName}!</h2><p>אנו שמחים לשמוע על האירוסין ומאחלים לכם המון הצלחה בהמשך הדרך.</p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.MARRIED:
+        return {
+          subject: 'מזל טוב! - חתונה',
+          body: `מזל טוב ${suggestion.firstParty.firstName} ו${suggestion.secondParty.firstName}!\n\nאנו שמחים לשמוע על החתונה ומאחלים לכם חיים מאושרים יחד.\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>מזל טוב ${suggestion.firstParty.firstName} ו${suggestion.secondParty.firstName}!</h2><p>אנו שמחים לשמוע על החתונה ומאחלים לכם חיים מאושרים יחד.</p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.EXPIRED:
+        return {
+          subject: 'הצעת השידוך פגה',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\nהצעת השידוך פגה עקב חוסר מענה במועד.\n\nלצפייה בפרטים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>הצעת השידוך פגה עקב חוסר מענה במועד.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      default:
+        // For other statuses, return null to skip notification
+        console.log(`No template defined for status: ${suggestion.status}`);
+        return null;
+    }
+  }
+
+  private getRecipientsForSuggestion(suggestion: SuggestionWithParties): Array<{
+    recipient: RecipientInfo;
+    preferredChannels: NotificationChannel[];
+  }> {
+    const recipients: Array<{
+      recipient: RecipientInfo;
+      preferredChannels: NotificationChannel[];
+    }> = [];
+    
+    // Logic to determine recipients based on suggestion status
+    switch (suggestion.status) {
+      case MatchSuggestionStatus.DRAFT:
+        recipients.push({
+          recipient: {
+            email: suggestion.matchmaker.email,
+            phone: suggestion.matchmaker.phone || undefined,
+            name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+          },
+          preferredChannels: ['email'] // Email only for drafts
+        });
+        break;
+      
+      case MatchSuggestionStatus.PENDING_FIRST_PARTY:
+        recipients.push({
+          recipient: {
+            email: suggestion.firstParty.email,
+            phone: suggestion.firstParty.phone || undefined,
+            name: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`
+          },
+          preferredChannels: ['email', 'whatsapp'] // Email and WhatsApp for candidates
+        });
+        break;
+      
+      case MatchSuggestionStatus.FIRST_PARTY_APPROVED:
+      case MatchSuggestionStatus.FIRST_PARTY_DECLINED:
+        recipients.push({
+          recipient: {
+            email: suggestion.matchmaker.email,
+            phone: suggestion.matchmaker.phone || undefined,
+            name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+          },
+          preferredChannels: ['email', 'whatsapp'] // Email and WhatsApp for matchmaker
+        });
+        break;
+      
+      case MatchSuggestionStatus.PENDING_SECOND_PARTY:
+        recipients.push({
+          recipient: {
+            email: suggestion.secondParty.email,
+            phone: suggestion.secondParty.phone || undefined,
+            name: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`
+          },
+          preferredChannels: ['email', 'whatsapp'] // Email and WhatsApp for candidates
+        });
+        break;
+      
+      case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
+      case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
+        recipients.push({
+          recipient: {
+            email: suggestion.matchmaker.email,
+            phone: suggestion.matchmaker.phone || undefined,
+            name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+          },
+          preferredChannels: ['email', 'whatsapp'] // Email and WhatsApp for matchmaker
+        });
+        break;
+      
+      case MatchSuggestionStatus.AWAITING_MATCHMAKER_APPROVAL:
+        recipients.push({
+          recipient: {
+            email: suggestion.matchmaker.email,
+            phone: suggestion.matchmaker.phone || undefined,
+            name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+          },
+          preferredChannels: ['email', 'whatsapp'] // Email and WhatsApp for matchmaker
+        });
+        break;
+      
+      case MatchSuggestionStatus.CONTACT_DETAILS_SHARED:
+        // Send to both parties and matchmaker
+        recipients.push(
+          {
+            recipient: {
+              email: suggestion.firstParty.email,
+              phone: suggestion.firstParty.phone || undefined,
+              name: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          },
+          {
+            recipient: {
+              email: suggestion.secondParty.email,
+              phone: suggestion.secondParty.phone || undefined,
+              name: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          },
+          {
+            recipient: {
+              email: suggestion.matchmaker.email,
+              phone: suggestion.matchmaker.phone || undefined,
+              name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+            },
+            preferredChannels: ['email']
+          }
+        );
+        break;
+      
+      case MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK:
+        // Send to both parties
+        recipients.push(
+          {
+            recipient: {
+              email: suggestion.firstParty.email,
+              phone: suggestion.firstParty.phone || undefined,
+              name: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          },
+          {
+            recipient: {
+              email: suggestion.secondParty.email,
+              phone: suggestion.secondParty.phone || undefined,
+              name: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          }
+        );
+        break;
+      
+      case MatchSuggestionStatus.ENGAGED:
+      case MatchSuggestionStatus.MARRIED:
+        // Send to both parties and matchmaker
+        recipients.push(
+          {
+            recipient: {
+              email: suggestion.firstParty.email,
+              phone: suggestion.firstParty.phone || undefined,
+              name: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          },
+          {
+            recipient: {
+              email: suggestion.secondParty.email,
+              phone: suggestion.secondParty.phone || undefined,
+              name: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          },
+          {
+            recipient: {
+              email: suggestion.matchmaker.email,
+              phone: suggestion.matchmaker.phone || undefined,
+              name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          }
+        );
+        break;
+
+      default:
+        // Default: send to matchmaker only
+        recipients.push({
+          recipient: {
+            email: suggestion.matchmaker.email,
+            phone: suggestion.matchmaker.phone || undefined,
+            name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+          },
+          preferredChannels: ['email']
+        });
+        break;
+    }
+
+    return recipients;
+  }
+
+  // Helper function to format contact details
+  private formatUserDetails(user: { 
+    firstName: string; 
+    lastName: string; 
+    email: string; 
+    phone?: string | null 
+  }): string {
+    const details = [
+      `שם: ${user.firstName} ${user.lastName}`,
+      `אימייל: ${user.email}`,
+    ];
+
+    if (user.phone) {
+      details.push(`טלפון: ${user.phone}`);
+    }
+
+    return details.join('\n');
+  }
+}
+
+export const notificationService = NotificationService.getInstance();
+--- End of Content for NotificationService.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\initNotifications.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/matchmaker/suggestions/services/notification/initNotifications.ts
+
+import { notificationService } from './NotificationService';
+import { emailAdapter } from './adapters/EmailAdapter';
+import { whatsAppAdapter } from './adapters/WhatsAppAdapter';
+
+// Define notification channel type
+export type NotificationChannel = 'email' | 'whatsapp' | 'sms';
+
+export type NotificationOptions = {
+    channels: NotificationChannel[];
+    notifyParties?: ('first' | 'second' | 'matchmaker')[];
+    customMessage?: string;
+  };
+
+/**
+ * Initializes the notification service by registering all available adapters
+ * @returns The initialized notification service
+ */
+export function initNotificationService() {
+  // Register adapters
+  notificationService.registerAdapter(emailAdapter);
+  notificationService.registerAdapter(whatsAppAdapter);
+  
+  console.log('Notification service initialized with email and WhatsApp adapters');
+  
+  return notificationService;
+}
+--- End of Content for initNotifications.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\notification_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\adapters
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\adapters\EmailAdapter.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/matchmaker/suggestions/services/notification/adapters/EmailAdapter.ts
+
+import { NotificationAdapter, NotificationChannel, RecipientInfo, NotificationContent } from '../NotificationService';
+import nodemailer from 'nodemailer';
+
+export class EmailAdapter implements NotificationAdapter {
+  private static instance: EmailAdapter;
+  private transporter: nodemailer.Transporter;
+
+  private constructor() {
+    // Configure the transporter exactly like in EmailService
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER || '',
+        pass: process.env.GMAIL_APP_PASSWORD || '',
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+
+    // Verify email configuration on initialization
+    this.verifyEmailConfig();
+  }
+
+  private async verifyEmailConfig(): Promise<void> {
+    try {
+      await this.transporter.verify();
+      console.log('Email configuration verified successfully');
+    } catch (error) {
+      console.error('Email configuration verification failed:', error);
+      // Don't throw, to allow the system to continue even if verification fails
+    }
+  }
+
+  public static getInstance(): EmailAdapter {
+    if (!EmailAdapter.instance) {
+      EmailAdapter.instance = new EmailAdapter();
+    }
+    return EmailAdapter.instance;
+  }
+
+  public getChannelType(): NotificationChannel {
+    return 'email';
+  }
+
+  public canSendTo(recipient: RecipientInfo): boolean {
+    return !!recipient.email;
+  }
+
+  public async send(recipient: RecipientInfo, content: NotificationContent): Promise<boolean> {
+    try {
+      const result = await this.transporter.sendMail({
+        from: `${process.env.EMAIL_FROM_NAME || 'מערכת השידוכים'} <${process.env.GMAIL_USER || ''}>`,
+        to: recipient.email,
+        subject: content.subject,
+        text: content.body,
+        html: content.htmlBody || content.body.replace(/\n/g, '<br>'),
+      });
+
+      console.log('Email sent successfully:', {
+        messageId: result.messageId,
+        response: result.response,
+        to: recipient.email,
+        subject: content.subject
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Detailed error sending email:', {
+        error: error instanceof Error ? {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        } : error,
+        recipient: recipient.email,
+        subject: content.subject
+      });
+      return false;
+    }
+  }
+}
+
+export const emailAdapter = EmailAdapter.getInstance();
+--- End of Content for EmailAdapter.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\adapters\WhatsAppAdapter.ts
+--------------------------------------------------------------------------------
+Content:
+// lib/WhatsAppAdapter.ts
+import {
+  NotificationAdapter,
+  NotificationChannel,
+  RecipientInfo,
+  NotificationContent as BaseNotificationContent
+} from '../NotificationService'; // Assuming NotificationService.ts exists in the same directory
+import twilio from 'twilio';
+// Import the specific type for message creation options if available
+import { MessageListInstanceCreateOptions } from 'twilio/lib/rest/api/v2010/account/message';
+
+// --- Define an extended NotificationContent interface ---
+// This adds the optional adapter-specific data structure
+interface NotificationContent extends BaseNotificationContent {
+  _adapterSpecificData?: {
+      contentSid?: string;
+      contentVariables?: string; // Should be a JSON string
+      // Add other potential adapter-specific fields here
+  };
+}
+// --- End Interface Extension ---
+
+// --- Type Guard for Twilio-like Errors ---
+interface PotentialTwilioError {
+  code?: number | string;
+  message?: string;
+  // Add other potential properties like 'status', 'moreInfo', etc. if needed
+}
+
+/**
+* Type guard to check if an unknown error object might be a Twilio API error
+* by checking for the presence of 'code' or 'message' properties.
+* @param error The unknown value caught in a catch block.
+* @returns True if the error object has properties common to Twilio errors, false otherwise.
+*/
+function isPotentialTwilioError(error: unknown): error is PotentialTwilioError {
+  // Check if it's a non-null object and has either 'code' or 'message' property
+  return typeof error === 'object' && error !== null && ('code' in error || 'message' in error);
+}
+// --- End Type Guard ---
+
+// --- Helper: Logger (optional but recommended) ---
+// Using Record<string, unknown> or object instead of any
+const logger = {
+info: (message: string, meta?: Record<string, unknown> | object) => {
+  console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', service: 'WhatsAppAdapter', message, ...(meta || {}) }));
+},
+warn: (message: string, meta?: Record<string, unknown> | object) => {
+  console.warn(JSON.stringify({ timestamp: new Date().toISOString(), level: 'warn', service: 'WhatsAppAdapter', message, ...(meta || {}) }));
+},
+error: (message: string, meta?: Record<string, unknown> | object) => {
+  let logMeta = meta || {};
+  // If the meta object itself is an Error, extract relevant info
+  if (meta instanceof Error) {
+      logMeta = { name: meta.name, message: meta.message, stack: meta.stack };
+  } else if (isPotentialTwilioError(meta)) {
+      // If it's potentially a Twilio error passed directly
+      logMeta = { code: meta.code, message: meta.message, ...meta };
+  }
+  console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', service: 'WhatsAppAdapter', message, ...logMeta }));
+},
+};
+// --- End Logger ---
+
+
+export class WhatsAppAdapter implements NotificationAdapter {
+// Singleton instance
+private static instance: WhatsAppAdapter;
+// Twilio client instance (typed)
+private client: twilio.Twilio | null = null;
+// Configured Twilio WhatsApp sender number
+private fromNumber: string = '';
+
+/**
+ * Private constructor to enforce singleton pattern.
+ * Initializes the Twilio client using environment variables.
+ */
+private constructor() {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  this.fromNumber = process.env.TWILIO_WHATSAPP_NUMBER || ''; // Get number from env
+
+  // Validate configuration
+  if (!accountSid || !authToken || !this.fromNumber) {
+    logger.error('Missing Twilio configuration details', {
+        hasSid: !!accountSid,
+        hasToken: !!authToken,
+        hasWhatsAppNumber: !!this.fromNumber,
+        detail: "WhatsApp notifications will be unavailable."
+    });
+    // Do not throw, allow graceful degradation if possible
+  } else {
+    try {
+      // Initialize Twilio client
+      this.client = twilio(accountSid, authToken);
+      logger.info('Twilio client initialized successfully', { fromWhatsAppNumber: this.fromNumber });
+    } catch (error: unknown) { // Catch as unknown
+      logger.error('Failed to initialize Twilio client during constructor', { error });
+      this.client = null; // Ensure client is null on initialization failure
+    }
+  }
+}
+
+/**
+ * Gets the singleton instance of the WhatsAppAdapter.
+ * @returns The WhatsAppAdapter instance.
+ */
+public static getInstance(): WhatsAppAdapter {
+  if (!WhatsAppAdapter.instance) {
+    WhatsAppAdapter.instance = new WhatsAppAdapter();
+  }
+  return WhatsAppAdapter.instance;
+}
+
+/**
+ * Returns the channel type handled by this adapter.
+ * @returns The notification channel type ('whatsapp').
+ */
+public getChannelType(): NotificationChannel {
+  return 'whatsapp';
+}
+
+/**
+ * Checks if this adapter is capable of sending a notification to the given recipient.
+ * Requires a valid phone number, an initialized Twilio client, and a configured 'from' number.
+ * @param recipient Information about the recipient.
+ * @returns True if the adapter can send, false otherwise.
+ */
+public canSendTo(recipient: RecipientInfo): boolean {
+  const hasValidPhone = !!recipient.phone && recipient.phone.length > 8; // Basic validation
+  const isClientReady = this.client !== null;
+  const hasFromNumber = this.fromNumber !== '';
+  const canSend = hasValidPhone && isClientReady && hasFromNumber;
+
+  if (!canSend) {
+      let reason = 'Unknown';
+      if (!hasValidPhone) reason = 'Invalid or missing phone number';
+      else if (!isClientReady) reason = 'Twilio client not initialized';
+      else if (!hasFromNumber) reason = 'Twilio "from" number not configured';
+      logger.warn('Cannot send WhatsApp message due to configuration or recipient data', {
+          reason: reason,
+          recipientPhone: recipient.phone // Log phone for debugging
+      });
+  }
+  return canSend;
+}
+
+/**
+ * Formats a phone number into E.164 standard without the leading '+'.
+ * Required for Twilio's `to` parameter when prefixed with `whatsapp:`.
+ * Handles Israeli numbers starting with '0'.
+ * Example: 0501234567 -> 972501234567
+ * @param phone The phone number string to format.
+ * @returns The formatted phone number string.
+ */
+private formatPhoneNumber(phone: string): string {
+  // Remove all non-digit characters
+  let cleaned = phone.replace(/\D/g, '');
+  // Prepend country code for Israeli numbers if '0' prefix exists
+  if (cleaned.startsWith('0')) {
+    cleaned = '972' + cleaned.substring(1);
+  }
+  // Remove leading '+' if present (it's added later in the `whatsapp:` prefix)
+  if (cleaned.startsWith('+')) {
+    cleaned = cleaned.substring(1);
+  }
+  return cleaned;
+}
+
+/**
+ * Sends a notification via WhatsApp using the Twilio API.
+ * Prefers using template messages if configured via `_adapterSpecificData`.
+ * Falls back to raw text messages otherwise (less reliable for business-initiated messages).
+ * @param recipient Information about the recipient.
+ * @param content The notification content, potentially including adapter-specific data.
+ * @returns A promise that resolves to true if the message was successfully queued by Twilio, false otherwise.
+ */
+public async send(recipient: RecipientInfo, content: NotificationContent): Promise<boolean> {
+  logger.info('Attempting to send WhatsApp message', {
+    recipientPhone: recipient.phone,
+    fromNumber: this.fromNumber,
+    hasClient: !!this.client,
+    contentSid: content._adapterSpecificData?.contentSid,
+    hasContentVariables: !!content._adapterSpecificData?.contentVariables,
+  });
+
+  // --- Pre-send Checks ---
+  if (!this.client) {
+    logger.error('Twilio client not initialized. Cannot send WhatsApp message.');
+    return false;
+  }
+  if (!recipient.phone) {
+    logger.error('Recipient phone number is missing. Cannot send WhatsApp message.');
+    return false;
+  }
+  if (!this.fromNumber) {
+      logger.error('Twilio "from" WhatsApp number is not configured. Cannot send message.');
+      return false;
+  }
+  // --- End Pre-send Checks ---
+
+
+  try {
+    // --- Format Numbers ---
+    const toNumberE164 = this.formatPhoneNumber(recipient.phone);
+    // Ensure 'from' number has '+' prefix for the whatsapp: schema
+    const fromWhatsAppFormatted = `whatsapp:${this.fromNumber.startsWith('+') ? this.fromNumber : '+' + this.fromNumber}`;
+    // Ensure 'to' number has '+' prefix for the whatsapp: schema
+    const toWhatsAppFormatted = `whatsapp:+${toNumberE164}`;
+
+    logger.info(`Formatted numbers for sending via Twilio`, { from: fromWhatsAppFormatted, to: toWhatsAppFormatted });
+    // --- End Format Numbers ---
+
+
+    // --- Prepare Message Payload ---
+    let messagePayload: MessageListInstanceCreateOptions;
+    const adapterData = content._adapterSpecificData;
+
+    if (adapterData?.contentSid && adapterData?.contentVariables) {
+       // **Use Template Messaging**
+       logger.info(`Preparing WhatsApp template message`, { contentSid: adapterData.contentSid });
+       messagePayload = {
+          from: fromWhatsAppFormatted,
+          to: toWhatsAppFormatted,
+          contentSid: adapterData.contentSid, // The approved template SID
+          contentVariables: adapterData.contentVariables, // JSON string of variables {"1": "value1", "2": "value2"}
+          // Optional: Specify Messaging Service SID if using one
+          // messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID
+       };
+    } else {
+       // **Use Raw Text Messaging (Fallback)**
+       // Note: This might fail if outside the 24-hour customer service window
+       // or if WhatsApp/Twilio policies require templates for this type of message.
+       const bodyText = content.body || content.subject || 'הודעה ממערכת השידוכים'; // Determine fallback content
+       logger.warn(`Preparing raw text WhatsApp message (using fallback, might fail)`, { bodyLength: bodyText.length });
+       messagePayload = {
+          from: fromWhatsAppFormatted,
+          to: toWhatsAppFormatted,
+          body: bodyText, // The actual text message content
+          // Optional: Specify Messaging Service SID if using one
+          // messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID
+       };
+    }
+    // --- End Prepare Message Payload ---
+
+
+    // --- Send Message via Twilio API ---
+    logger.info("Sending message payload to Twilio API", { payload: messagePayload }); // Be cautious logging full payload in production if sensitive
+    const message = await this.client.messages.create(messagePayload);
+    // --- End Send Message ---
+
+
+    // --- Log Success ---
+    // The message status here is typically 'queued' or 'sending'. Delivery confirmation is asynchronous.
+    logger.info('WhatsApp message request processed successfully by Twilio', {
+      messageSid: message.sid,
+      status: message.status,
+      to: toWhatsAppFormatted,
+      from: fromWhatsAppFormatted,
+      price: message.price, // Log cost if available
+      priceUnit: message.priceUnit,
+      errorCode: message.errorCode, // Log if Twilio detected an error immediately
+      errorMessage: message.errorMessage,
+    });
+    // We return true because Twilio accepted the request. Delivery is not guaranteed at this point.
+    return true;
+    // --- End Log Success ---
+
+  } catch (error: unknown) { // Catch error as unknown
+    // --- Handle Errors ---
+    let errorMessage = 'Unknown error occurred while sending WhatsApp message.';
+    let errorCode: number | string | undefined;
+
+    // Use the type guard to safely access potential error properties
+    if (isPotentialTwilioError(error)) {
+        errorCode = error.code;
+        errorMessage = error.message || errorMessage;
+    } else if (error instanceof Error) {
+        // Standard JavaScript Error
+        errorMessage = error.message;
+    } else if (typeof error === 'string') {
+        // Simple string error
+        errorMessage = error;
+    }
+
+    // Log detailed error information
+    logger.error('Failed to send WhatsApp message via Twilio', {
+      errorCode,
+      errorMessage,
+      recipient: `whatsapp:+${this.formatPhoneNumber(recipient.phone)}`, // Log formatted number for debugging
+      from: `whatsapp:${this.fromNumber.startsWith('+') ? this.fromNumber : '+' + this.fromNumber}`,
+      // Pass the original error object for full details in structured logs
+      errorDetails: error
+    });
+
+    // Specific handling/logging for common, informative errors
+    if (errorCode === 63018 || errorCode === 21614) { // Common codes for non-WhatsApp/incapable numbers
+         logger.error(`Recipient number appears invalid or not registered on WhatsApp.`, { phone: recipient.phone, errorCode });
+         // Consider adding logic here: maybe mark the user's number as invalid? Notify admin?
+    } else if (errorCode === 63016) { // Common code for failing outside the 24-hour window without a template
+          logger.warn(`Failed to send non-template message outside 24-hour window.`, { phone: recipient.phone, errorCode });
+    }
+
+    return false; // Indicate that sending failed
+    // --- End Handle Errors ---
+  }
+}
+}
+
+// Export the singleton instance for use in other parts of the application
+export const whatsAppAdapter = WhatsAppAdapter.getInstance();
+--- End of Content for WhatsAppAdapter.ts ---
+
+--- End of Content for notification_contents.txt ---
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\adapters
@@ -12164,6 +13008,8 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\mat
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\utils\matchingAlgorithm.ts
 --------------------------------------------------------------------------------
 Content:
+// src/components/matchmaker/suggestions/utils/matchingAlgorithm.ts
+
 import { AvailabilityStatus } from '@prisma/client';
 import type { UserProfile } from '@/types/next-auth';
 
@@ -12171,14 +13017,14 @@ export interface MatchScore {
   score: number;
   criteria: MatchCriteria[];
   compatibility: number;
-  reasons: string[];
+  reasons: string[]; // This will now contain keys, e.g., "age.reasons.ideal"
 }
 
 export interface MatchCriteria {
   name: string;
   weight: number;
   score: number;
-  reason?: string;
+  reason?: string; // This will also be a key
 }
 
 interface AgePreference {
@@ -12209,7 +13055,6 @@ const calculateAgeCompatibility = (
   let score = 0;
   let reason = '';
 
-  // בדיקת העדפות גיל הדדית
   const aPrefsMatch = preferences.ageA ? 
     (ageB >= preferences.ageA.min && ageB <= preferences.ageA.max) : true;
   const bPrefsMatch = preferences.ageB ?
@@ -12218,20 +13063,20 @@ const calculateAgeCompatibility = (
   if (aPrefsMatch && bPrefsMatch) {
     if (ageDiff <= 2) {
       score = 1;
-      reason = 'הפרש גילאים אידיאלי';
+      reason = 'age.reasons.ideal';
     } else if (ageDiff <= 5) {
       score = 0.8;
-      reason = 'הפרש גילאים טוב';
+      reason = 'age.reasons.good';
     } else if (ageDiff <= 8) {
       score = 0.6;
-      reason = 'הפרש גילאים סביר';
+      reason = 'age.reasons.fair';
     } else {
       score = 0.4;
-      reason = 'הפרש גילאים גדול';
+      reason = 'age.reasons.large';
     }
   } else {
     score = 0.2;
-    reason = 'לא תואם להעדפות הגיל';
+    reason = 'age.reasons.preferenceMismatch';
   }
 
   return {
@@ -12254,7 +13099,7 @@ const calculateLocationCompatibility = (
       name: 'location',
       weight: 10,
       score: 0.5,
-      reason: 'חסר מידע על מיקום'
+      reason: 'location.reasons.noData'
     };
   }
 
@@ -12264,22 +13109,22 @@ const calculateLocationCompatibility = (
 
   if (sameCity) {
     score = 1;
-    reason = 'גרים באותה עיר';
+    reason = 'location.reasons.sameCity';
   } else if (
     preferredLocationsA.includes(profileB.city) &&
     preferredLocationsB.includes(profileA.city)
   ) {
     score = 0.8;
-    reason = 'מיקום מועדף הדדי';
+    reason = 'location.reasons.mutualPreference';
   } else if (
     preferredLocationsA.includes(profileB.city) ||
     preferredLocationsB.includes(profileA.city)
   ) {
     score = 0.6;
-    reason = 'מיקום מועדף חד צדדי';
+    reason = 'location.reasons.oneWayPreference';
   } else {
     score = 0.4;
-    reason = 'ערים שונות';
+    reason = 'location.reasons.differentCities';
   }
 
   return {
@@ -12302,7 +13147,7 @@ const calculateReligiousCompatibility = (
       name: 'religious',
       weight: 20,
       score: 0.5,
-      reason: 'חסר מידע על רמת דתיות'
+      reason: 'religious.reasons.noData'
     };
   }
 
@@ -12312,22 +13157,22 @@ const calculateReligiousCompatibility = (
 
   if (sameLevel) {
     score = 1;
-    reason = 'רמת דתיות זהה';
+    reason = 'religious.reasons.sameLevel';
   } else if (
     preferredLevelsA.includes(profileB.religiousLevel) &&
     preferredLevelsB.includes(profileA.religiousLevel)
   ) {
     score = 0.8;
-    reason = 'רמת דתיות מועדפת הדדית';
+    reason = 'religious.reasons.mutualPreference';
   } else if (
     preferredLevelsA.includes(profileB.religiousLevel) ||
     preferredLevelsB.includes(profileA.religiousLevel)
   ) {
     score = 0.6;
-    reason = 'רמת דתיות מועדפת חד צדדית';
+    reason = 'religious.reasons.oneWayPreference';
   } else {
     score = 0.3;
-    reason = 'רמות דתיות שונות';
+    reason = 'religious.reasons.differentLevels';
   }
 
   return {
@@ -12342,7 +13187,6 @@ export const calculateMatchScore = (
   profileA: UserProfile,
   profileB: UserProfile
 ): MatchScore | null => {
-  // בדיקת תנאי סף
   if (
     profileA.gender === profileB.gender ||
     profileA.availabilityStatus !== AvailabilityStatus.AVAILABLE ||
@@ -12351,7 +13195,6 @@ export const calculateMatchScore = (
     return null;
   }
 
-  // חישוב קריטריונים
   const ageCriteria = calculateAgeCompatibility(
     profileA,
     profileB,
@@ -12374,12 +13217,10 @@ export const calculateMatchScore = (
     religiousCriteria
   ];
 
-  // חישוב ציון סופי
   const totalWeight = criteria.reduce((sum, c) => sum + c.weight, 0);
   const weightedScore = criteria.reduce((sum, c) => sum + (c.score * c.weight), 0);
   const finalScore = (weightedScore / totalWeight) * 100;
 
-  // סיבות להתאמה
   const reasons = criteria
     .filter(c => c.score >= 0.6)
     .map(c => c.reason)
@@ -12392,30 +13233,6 @@ export const calculateMatchScore = (
     reasons
   };
 };
-
-export const findBestMatches = (
-  profile: UserProfile,
-  profiles: UserProfile[],
-  limit: number = 10
-): { profile: UserProfile; score: MatchScore }[] => {
-  const matches = profiles
-    .filter(p => p.id !== profile.id)
-    .map(p => {
-      const score = calculateMatchScore(profile, p);
-      return score ? { profile: p, score } : null;
-    })
-    .filter((match): match is { profile: UserProfile; score: MatchScore } => match !== null)
-    .sort((a, b) => b.score.score - a.score.score);
-
-  return matches.slice(0, limit);
-};
-
-const matchingAlgorithm = {
-  calculateMatchScore,
-  findBestMatches
-};
-
-export default matchingAlgorithm;
 --- End of Content for matchingAlgorithm.ts ---
 
 --------------------------------------------------------------------------------

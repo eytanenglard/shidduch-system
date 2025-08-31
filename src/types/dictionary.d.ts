@@ -4,7 +4,8 @@ import { WORLD_KEYS } from '@/components/profile/constants';
 import type { AuthDictionary } from './dictionaries/auth';
 import type { WorldId } from '@/components/questionnaire/types/types';
 import type { EmailDictionary } from './dictionaries/email';
-
+import { MatchSuggestionStatus } from '@prisma/client'; 
+import { NotificationDictionary } from './dictionaries/email'; // הוסף ייבוא
 
 // --- Navbar ---
 export type NavbarDict = {
@@ -610,6 +611,7 @@ export type {
   MatchmakerPageDictionary,
   AuthDictionary,   // <-- הוסף שורה זו
   EmailDictionary,  // <-- והוסף שורה זו
+
 };
 
 export type SuggestionsPresentationDict = {

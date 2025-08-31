@@ -80,5 +80,48 @@
     "intro": "זהו אישור לכך שהסיסמה לחשבונך ב-NeshamaTech שונתה בהצלחה. חשבונך מאובטח כעת עם הסיסמה החדשה.",
     "securityNote": "אם לא ביצעת את השינוי, אנא פנה/י אלינו באופן מיידי כדי שנבדוק את הנושא.",
     "actionButton": "התחברות לחשבון"
+  },
+    "notifications": {
+
+    "customMessage": {
+    "subject": "הודעה אישית מהשדכן/ית שלך"
+  },
+  "suggestionStatusChange": {
+    "PENDING_FIRST_PARTY": {
+      "subject": "יש לנו הרגשה טובה לגבי ההצעה הזו עבורך",
+      "body": "שלום {{partyName}}, {{matchmakerName}} שלח/ה לך הצעת שידוך חדשה ומבטיחה. לפרטים נוספים ולהחלטתך, אנא היכנס/י לאזור האישי שלך: {{reviewUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>השדכן/ית שלך, {{matchmakerName}}, חשב/ה עליך והרכיב/ה עבורך הצעה חדשה, שנראית מבטיחה במיוחד.</p><p>כדי לעיין בפרופיל המלא ולקבל החלטה, אנו מזמינים אותך <a href='{{reviewUrl}}'>להיכנס לאזור האישי</a>.</p><p>מחכים לשמוע ממך,</p><p>צוות NeshamaTech</p></div>"
+    },
+    "FIRST_PARTY_APPROVED": {
+      "subject": "עדכון: הצד הראשון אישר את ההצעה",
+      "body": "שלום {{matchmakerName}}, עדכון נהדר: {{partyName}} אישר/ה את הצעת השידוך. המערכת תעביר אותה כעת לצד השני. לעיון בפרטים: {{dashboardUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>עדכון נהדר: <strong>{{partyName}}</strong> אישר/ה את הצעת השידוך.</p><p>ההצעה תועבר כעת באופן אוטומטי לצד השני. ניתן לעקוב אחר ההתקדמות <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+    },
+    "FIRST_PARTY_DECLINED": {
+      "subject": "עדכון: הצעה נדחתה על ידי הצד הראשון",
+      "body": "שלום {{matchmakerName}}, לידיעתך, {{partyName}} בחנ/ה את ההצעה והחליט/ה לדחות אותה. פרטים נוספים וסיבת הדחייה (אם נמסרה) זמינים בלוח הבקרה: {{dashboardUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>לידיעתך, <strong>{{partyName}}</strong> בחנ/ה את ההצעה והחליט/ה שאינה מתאימה בשלב זה.</p><p>פרטים נוספים וסיבת הדחייה (אם נמסרה) זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+    },
+    "PENDING_SECOND_PARTY": {
+      "subject": "הצעה חדשה עבורך, עם התאמה גבוהה",
+      "body": "שלום {{partyName}}, {{matchmakerName}} שלח/ה לך הצעה חדשה, והצד הראשון כבר הביע עניין. נשמח שתעיף/י מבט. לפרטים נוספים: {{reviewUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>יש לנו חדשות מרגשות! השדכן/ית {{matchmakerName}} שלח/ה לך הצעה חדשה, <strong>והצד הראשון כבר אישר אותה</strong>.</p><p>נראה שיש כאן פוטנציאל גבוה ואנו מזמינים אותך <a href='{{reviewUrl}}'>לעיין בפרטים ולקבל החלטה</a>.</p></div>"
+    },
+    "SECOND_PARTY_APPROVED": {
+      "subject": "זה מאצ'! שני הצדדים אישרו את ההצעה",
+      "body": "שלום {{matchmakerName}}, בשורות טובות! {{partyName}} אישר/ה את ההצעה. שני הצדדים אישרו וכעת ניתן להתקדם לשלב החלפת פרטי הקשר. לפרטים נוספים: {{dashboardUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p><strong>זה מאצ'!</strong> 🎉</p><p>אנו שמחים לעדכן שגם <strong>{{partyName}}</strong> אישר/ה את ההצעה. כעת, שני הצדדים הביעו הסכמה וניתן <a href='{{dashboardUrl}}'>להתקדם לשלב החלפת פרטי הקשר</a>.</p></div>"
+    },
+    "SECOND_PARTY_DECLINED": {
+      "subject": "עדכון: הצעה נדחתה על ידי הצד השני",
+      "body": "שלום {{matchmakerName}}, לידיעתך, {{partyName}} בחנ/ה את ההצעה והחליט/ה לדחות אותה. פרטים נוספים זמינים בלוח הבקרה: {{dashboardUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>לידיעתך, <strong>{{partyName}}</strong> בחנ/ה את ההצעה והחליט/ה שאינה מתאימה בשלב זה.</p><p>פרטים נוספים זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+    },
+    "CONTACT_DETAILS_SHARED": {
+      "subject": "בהצלחה! פרטי הקשר שלכם הוחלפו",
+      "body": "ברכות! שניכם אישרתם את ההצעה. פרטי הקשר המלאים נשלחו אליכם במייל נפרד. אנו ממליצים ליצור קשר ב-24-48 השעות הקרובות. שיהיה בהצלחה!",
+      "htmlBody": "<div dir='rtl'><h2>יוצאים לדרך!</h2><p>שניכם אישרתם את ההצעה, וזו תמיד התרגשות גדולה. פרטי הקשר המלאים נשלחו אליכם במייל נפרד ומפורט.</p><p><strong>טיפ קטן מאיתנו:</strong> קחו נשימה, זכרו שהמטרה היא פשוט להכיר, והכי חשוב - תהיו אתם. מומלץ ליצור קשר ראשוני ב-24-48 השעות הקרובות.</p><p>מאחלים לכם שיחה נעימה ופגישה מוצלחת!</p></div>"
+    }
   }
+    }
 }

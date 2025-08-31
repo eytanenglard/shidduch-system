@@ -80,5 +80,48 @@
 "intro": "This is a confirmation that the password for your NeshamaTech account has been successfully changed. Your account is now secured with the new password.",
 "securityNote": "If you did not make this change, please contact us immediately so we can investigate.",
 "actionButton": "Log in to Your Account"
-}
+},
+  "notifications": {
+
+  "customMessage": {
+    "subject": "A personal message from your matchmaker"
+  },
+  "suggestionStatusChange": {
+    "PENDING_FIRST_PARTY": {
+      "subject": "We have a good feeling about this new suggestion for you",
+      "body": "Hello {{partyName}}, {{matchmakerName}} has sent you a new and promising suggestion. For more details and to make your decision, please log in to your personal dashboard: {{reviewUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>Your matchmaker, {{matchmakerName}}, was thinking of you and has prepared a new suggestion that looks especially promising.</p><p>To review the full profile and make a decision, we invite you <a href='{{reviewUrl}}'>to visit your personal dashboard</a>.</p><p>We look forward to hearing from you,</p><p>The NeshamaTech Team</p></div>"
+    },
+    "FIRST_PARTY_APPROVED": {
+      "subject": "Update: The first party has approved the suggestion",
+      "body": "Hello {{matchmakerName}}, great news: {{partyName}} has approved the suggestion. The system will now forward it to the second party. To view details: {{dashboardUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>Great news: <strong>{{partyName}}</strong> has approved the suggestion.</p><p>It will now be automatically sent to the second party. You can track its progress on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+    },
+    "FIRST_PARTY_DECLINED": {
+      "subject": "Update: Suggestion declined by the first party",
+      "body": "Hello {{matchmakerName}}, for your information, {{partyName}} has reviewed the suggestion and decided to decline. More details and the reason for declining (if provided) are available on your dashboard: {{dashboardUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>For your information, <strong>{{partyName}}</strong> has reviewed the suggestion and decided it's not the right fit at this time.</p><p>More details and the reason for declining (if provided) are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+    },
+    "PENDING_SECOND_PARTY": {
+      "subject": "A new suggestion for you, with high potential",
+      "body": "Hello {{partyName}}, {{matchmakerName}} has sent you a new suggestion, and the first party has already expressed interest. We'd love for you to take a look. For details: {{reviewUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>We have exciting news! Your matchmaker, {{matchmakerName}}, has sent you a new suggestion, and <strong>the first party has already approved it</strong>.</p><p>There seems to be high potential here, and we invite you to <a href='{{reviewUrl}}'>review the details and make a decision</a>.</p></div>"
+    },
+    "SECOND_PARTY_APPROVED": {
+      "subject": "It's a match! Both parties have approved",
+      "body": "Hello {{matchmakerName}}, great news! {{partyName}} has approved the suggestion. Both parties have now approved, and you can proceed to share contact details. For more info: {{dashboardUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p><strong>It's a match!</strong> 🎉</p><p>We are happy to report that <strong>{{partyName}}</strong> has also approved the suggestion. With mutual consent from both parties, you can now <a href='{{dashboardUrl}}'>proceed to share contact details</a>.</p></div>"
+    },
+    "SECOND_PARTY_DECLINED": {
+      "subject": "Update: Suggestion declined by the second party",
+      "body": "Hello {{matchmakerName}}, for your information, {{partyName}} has reviewed the suggestion and decided to decline. More details are available on your dashboard: {{dashboardUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>For your information, <strong>{{partyName}}</strong> has reviewed the suggestion and decided it's not the right fit at this time.</p><p>More details are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+    },
+    "CONTACT_DETAILS_SHARED": {
+      "subject": "Best of luck! Your contact details have been exchanged",
+      "body": "Congratulations! You both approved the suggestion. Your full contact details have been sent to you in a separate email. We recommend making contact within the next 24-48 hours. Best of luck!",
+      "htmlBody": "<div dir='ltr'><h2>Time to connect!</h2><p>You both approved the suggestion, which is always an exciting moment. Your full and detailed contact information has been sent to you in a separate email.</p><p><strong>A little tip from us:</strong> Take a breath, remember the goal is simply to get acquainted, and most importantly - be yourself. We recommend making initial contact within the next 24-48 hours.</p><p>Wishing you a pleasant conversation and a wonderful meeting!</p></div>"
+    }
+  }
+  }
 }

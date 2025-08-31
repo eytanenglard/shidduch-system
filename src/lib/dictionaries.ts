@@ -6,8 +6,8 @@ import type {
   Dictionary, 
   QuestionnaireDictionary, 
   AuthDictionary, 
-  EmailDictionary // ודא שהטיפוס הזה מיובא מהמיקום הנכון
-} from '@/types/dictionary'; // ודא שנתיב הייבוא הראשי נכון
+  EmailDictionary
+} from '@/types/dictionary';
 
 // --- הגדרת טוענים (Loaders) עבור כל מודול של המילון ---
 // כל טוען הוא אובייקט המכיל פונקציות ייבוא דינמיות עבור כל שפה נתמכת.
@@ -48,12 +48,10 @@ const matchmakerDictionaries = {
   he: () => import('../../dictionaries/matchmaker/he.json').then((module) => module.default),
 };
 
-// --- START: הוספת טוען עבור מילון המיילים החדש ---
 const emailDictionaries = {
   en: () => import('../../dictionaries/email/en.json').then((module) => module.default),
   he: () => import('../../dictionaries/email/he.json').then((module) => module.default),
 };
-// --- END: הוספת טוען עבור מילון המיילים החדש ---
 
 
 /**
@@ -66,7 +64,6 @@ export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
   const targetLocale = mainDictionaries[locale] ? locale : 'he';
 
   // טעינה מקבילית של כל חלקי המילון באמצעות Promise.all לביצועים מיטביים.
-  // --- START: הוספת המשתנה email לטעינה המקבילית ---
   const [
     main, 
     auth,
@@ -82,9 +79,8 @@ export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
     questionnaireDictionaries[targetLocale](),
     profileDictionaries[targetLocale](),
     matchmakerDictionaries[targetLocale](),
-    emailDictionaries[targetLocale](), // הוספת טעינת מילון המיילים
+    emailDictionaries[targetLocale](),
   ]);
-  // --- END: הוספת המשתנה email ---
 
   // טיפול מיוחד במילון השאלון:
   // טוענים בנפרד את קובץ השאלות ומשלבים אותו עם קובץ הבסיס של השאלון.
@@ -97,15 +93,13 @@ export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
   };
 
   // הרכבת אובייקט המילון הסופי והשלם, כולל כל המודולים שנטענו.
-  // --- START: הוספת מודול המייל לאובייקט המוחזר ---
   return {
-    ...main,
-    auth: auth as AuthDictionary, // שימוש ב-Type Assertion לדיוק
+    ...main, // פורס את כל התוכן מהמילון הראשי (en.json / he.json)
+    auth: auth as AuthDictionary,
     suggestions,
-    questionnaire, // זהו כעת האובייקט המורכב הכולל את השאלות
+    questionnaire,
     profilePage,
     matchmakerPage,
-    email: email as EmailDictionary,// אריזת המילון תחת המפתח 'email' כדי להתאים לטיפוס
+    email: email as EmailDictionary,
   } as Dictionary;
-  // --- END: הוספת מודול המייל ---
 };

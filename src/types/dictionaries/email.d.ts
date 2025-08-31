@@ -1,94 +1,78 @@
 // src/types/dictionaries/email.d.ts
 
-// Type for a single email template's dictionary
-export type EmailTemplateDict = {
+import { MatchSuggestionStatus } from '@prisma/client';
+
+// ======================================================================== //
+// ✨ טיפוסים עבור מודול ההתראות (Notifications) ✨
+// מוגדרים כאן כדי להיות חלק ממודול ההודעות המאוחד
+// ======================================================================== //
+
+/**
+ * מגדיר את המבנה של הודעת סטטוס בודדת (למשל, הצעה אושרה).
+ */
+type SuggestionStatusNotificationDict = {
   subject: string;
-  [key: string]: string; // Allows for other fields like title, paragraph1, etc.
+  body: string;      // טקסט פשוט עבור SMS/WhatsApp
+  htmlBody: string;  // HTML מעוצב עבור מיילים
 };
 
-// Main email dictionary structure
+/**
+ * מגדיר את המבנה של כל מילון ההתראות.
+ */
+type NotificationDictionary = {
+  customMessage: {
+    subject: string;
+  };
+  suggestionStatusChange: Partial<Record<MatchSuggestionStatus, SuggestionStatusNotificationDict>>;
+};
+
+// ======================================================================== //
+// ✨ טיפוסים עבור תבניות המיילים (Email Templates) ✨
+// ======================================================================== //
+
+/**
+ * טיפוס בסיסי המגדיר את המאפיינים המשותפים לכל תבניות המייל.
+ */
+type EmailTemplateContent = {
+  subject: string;
+  title: string;
+  // מאפשר הוספת שדות נוספים וגמישים לכל תבנית
+  [key: string]: string;
+};
+
+// ======================================================================== //
+// ✨ הטיפוס הראשי והמאוחד: EmailDictionary ✨
+// מרכז את כל הטקסטים למיילים ולהתראות תחת אובייקט אחד.
+// ======================================================================== //
+
 export type EmailDictionary = {
+  /**
+   * טקסטים משותפים לכל המיילים.
+   */
   shared: {
-    greeting: string; // "שלום {{name}},"
-    closing: string; // "בברכה,"
-    team: string; // "צוות NeshamaTech"
-    supportPrompt: string; // "לכל שאלה או עזרה, ניתן לפנות לתמיכה:"
-    rightsReserved: string; // "© {{year}} כל הזכויות שמורות ל-NeshamaTech."
+    greeting: string;
+    closing: string;
+    team: string;
+    supportPrompt: string;
+    rightsReserved: string;
   };
-  welcome: {
-    subject: string;
-    title: string;
-    intro: string;
-    matchmakerAssigned: string; // "שמחים לעדכן שהוקצה לך שדכן/ית אישי/ת..."
-    getStarted: string;
-    dashboardButton: string;
-  };
-  accountSetup: {
-    subject: string;
-    title: string;
-    intro: string; // "השדכן/ית {{matchmakerName}} יצר/ה עבורך פרופיל..."
-    actionPrompt: string;
-    actionButton: string;
-    notice: string; // "קישור זה הינו חד-פעמי ותקף ל-{{expiresIn}}."
-    nextStep: string;
-  };
-  emailOtpVerification: {
-    subject: string;
-    title: string;
-    intro: string;
-    codeInstruction: string;
-    expiryNotice: string; // "הקוד תקף למשך {{expiresIn}}."
-    securityNote: string;
-  };
-  invitation: {
-    subject: string; // "הזמנה להצטרף ל-NeshamaTech מ{{matchmakerName}}"
-    title: string;
-    intro: string;
-    actionPrompt: string;
-    actionButton: string;
-    expiryNotice: string;
-  };
-  suggestion: {
-    subject: string; // "יש לנו הרגשה טובה לגבי ההצעה הזו עבורך"
-    title: string;
-    intro: string; // "השדכן/ית שלך, {{matchmakerName}}, מצא/ה הצעה שנראית מבטיחה במיוחד."
-    previewTitle: string;
-    actionPrompt: string;
-    actionButton: string;
-    closing: string; // "נשמח לשמוע ממך,"
-  };
-  shareContactDetails: {
-    subject: string;
-    title: string;
-    intro: string; // "איזה יופי! שני הצדדים אישרו את ההצעה. הגיע הזמן לעשות את הצעד הבא."
-    detailsOf: string; // "פרטי הקשר של {{otherPartyName}}:"
-    tipTitle: string;
-    tipContent: string;
-    goodLuck: string;
-  };
-  availabilityCheck: {
-    subject: string;
-    title: string;
-    intro: string; // "השדכן/ית {{matchmakerName}} חושב/ת על הצעה עבורך..."
-    actionPrompt: string;
-    actionButton: string;
-    noticeTitle: string;
-    noticeContent: string;
-  };
-  passwordResetOtp: {
-    subject: string;
-    title: string;
-    intro: string;
-    codeInstruction: string;
-    expiryNotice: string;
-    securityNote: string;
-  };
-  passwordChangedConfirmation: {
-    subject: string;
-    title: string;
-    intro: string;
-    securityNote: string;
-    actionButton: string;
-  };
-};
 
+  /**
+   * תבניות מייל ספציפיות.
+   * כל תבנית יורשת את המאפיינים הבסיסיים ומוסיפה את שלה.
+   */
+  welcome: EmailTemplateContent & { matchmakerAssigned: string; getStarted: string; dashboardButton: string; };
+  accountSetup: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; notice: string; nextStep: string; };
+  emailOtpVerification: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
+  invitation: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; expiryNotice: string; };
+  suggestion: EmailTemplateContent & { intro: string; previewTitle: string; actionPrompt: string; actionButton: string; closing: string; };
+  shareContactDetails: EmailTemplateContent & { intro: string; detailsOf: string; tipTitle: string; tipContent: string; goodLuck: string; };
+  availabilityCheck: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; noticeTitle: string; noticeContent: string; };
+  passwordResetOtp: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
+  passwordChangedConfirmation: EmailTemplateContent & { intro: string; securityNote: string; actionButton: string; };
+  
+  /**
+   * מילון ההתראות, מקונן כאן כחלק מהמודול המאוחד.
+   */
+  notifications: NotificationDictionary;
+};
