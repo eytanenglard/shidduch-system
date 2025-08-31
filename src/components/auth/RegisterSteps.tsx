@@ -17,14 +17,25 @@ import { Info, Loader2 } from 'lucide-react';
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
-// הגדרת ה-Props עבור הקומפוננטה הראשית שמקבלת את המילון
+/**
+ * הגדרת ה-Props עבור הקומפוננטה הראשית.
+ * היא מקבלת את המילון (dict) ואת השפה (locale).
+ */
 interface RegisterStepsProps {
   dict: RegisterStepsDict;
+  locale: 'he' | 'en'; // הוספת locale לממשק
 }
 
-// זוהי הקומפוננטה הפנימית שמכילה את הלוגיקה. היא גם צריכה לקבל את המילון.
-const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
+/**
+ * רכיב התוכן הפנימי שמכיל את הלוגיקה המרכזית של תהליך ההרשמה.
+ * הוא מקבל את המילון והשפה מההורה שלו.
+ */
+const RegisterStepsContent: React.FC<{
+  dict: RegisterStepsDict;
+  locale: 'he' | 'en';
+}> = ({
   dict,
+  locale, // קבלת locale כ-prop
 }) => {
   const {
     data: registrationContextData,
@@ -40,7 +51,7 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
     useState(false);
   const [initializationAttempted, setInitializationAttempted] = useState(false);
 
-  // כל הלוגיקה ב-useEffect נשארת כפי שהיא, מכיוון שהיא מנהלת את זרימת התהליך ולא טקסטים.
+  // useEffect שמנהל את מצב ההרשמה והסשן
   useEffect(() => {
     const reasonParam = searchParams.get('reason');
     if (
@@ -54,11 +65,46 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
   }, [searchParams, registrationContextData.isCompletingProfile]);
 
   useEffect(() => {
-    // לוגיקת סשן מורכבת נשארת כאן
     if (sessionStatus === 'loading') {
       return;
     }
-    // ... וכן הלאה, כל הלוגיקה מתוך הקובץ המקורי שלך נשארת כאן.
+    if (sessionStatus === 'authenticated' && session?.user) {
+      const user = session.user as SessionUserType;
+      if (
+        user.isProfileComplete &&
+        user.isPhoneVerified &&
+        user.termsAndPrivacyAcceptedAt
+      ) {
+        if (
+          typeof window !== 'undefined' &&
+          window.location.pathname !== '/profile'
+        ) {
+          router.push('/profile');
+        }
+        return;
+      }
+
+      const needsSetup =
+        !user.termsAndPrivacyAcceptedAt ||
+        !user.isProfileComplete ||
+        !user.isPhoneVerified;
+      if (
+        needsSetup &&
+        (!initializationAttempted ||
+          (registrationContextData.step === 0 &&
+            !registrationContextData.isVerifyingEmailCode))
+      ) {
+        initializeFromSession(user);
+        setInitializationAttempted(true);
+      }
+    } else if (sessionStatus === 'unauthenticated') {
+      const registrationInProgress =
+        registrationContextData.step > 0 ||
+        registrationContextData.isVerifyingEmailCode;
+      if (registrationInProgress) {
+        resetForm();
+      }
+    }
   }, [
     sessionStatus,
     session,
@@ -71,8 +117,10 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
     searchParams,
   ]);
 
-  // הפונקציה המרכזית שמחזירה את רכיב-השלב הנכון
-  // כאן נמצא התיקון הקריטי - העברת ה-props לכל רכיב-בן
+  /**
+   * פונקציה שמחזירה את רכיב-השלב המתאים למצב הנוכחי.
+   * זה המקום בו אנו מוודאים שה-prop 'locale' מועבר לכל רכיב-בן שצריך אותו.
+   */
   const renderStep = (): React.ReactNode => {
     if (sessionStatus === 'loading') {
       return (
@@ -86,7 +134,15 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
       registrationContextData.isVerifyingEmailCode &&
       !registrationContextData.isCompletingProfile
     ) {
-      return <EmailVerificationCodeStep dict={dict.steps.emailVerification} />;
+      // ============================ התיקון שפותר את השגיאה ============================
+      // מעבירים את ה-locale לרכיב אימות המייל, כפי שנדרש בממשק שלו
+      return (
+        <EmailVerificationCodeStep
+          dict={dict.steps.emailVerification}
+          locale={locale}
+        />
+      );
+      // ==============================================================================
     }
 
     if (registrationContextData.isCompletingProfile) {
@@ -116,6 +172,7 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
           <BasicInfoStep
             dict={dict.steps.basicInfo}
             consentDict={dict.consentCheckbox}
+            locale={locale} // <<<<<<<<<<<< העברת ה-locale גם לשלב זה
           />
         );
       default:
@@ -124,7 +181,7 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
     }
   };
 
-  // לוגיקה לקביעת הכותרות וסרגל ההתקדמות, עכשיו משתמשת במילון
+  // לוגיקה לקביעת הכותרות וסרגל ההתקדמות (משתמשת במילון)
   let pageTitle = dict.headers.registerTitle;
   let stepDescription = dict.headers.welcomeDescription;
   let currentProgressBarStep = 0;
@@ -220,11 +277,15 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
   );
 };
 
-// רכיב הייצוא הראשי שעוטף הכל ב-Provider
-export default function RegisterSteps({ dict }: RegisterStepsProps) {
+/**
+ * רכיב הייצוא הראשי (Wrapper).
+ * הוא עוטף את כל הלוגיקה ב-RegistrationProvider כדי לספק את הקונטקסט
+ * לכל רכיבי-הבן שלו. הוא מקבל את המילון והשפה מה-page.tsx.
+ */
+export default function RegisterSteps({ dict, locale }: RegisterStepsProps) {
   return (
     <RegistrationProvider>
-      <RegisterStepsContent dict={dict} />
+      <RegisterStepsContent dict={dict} locale={locale} />
     </RegistrationProvider>
   );
 }
