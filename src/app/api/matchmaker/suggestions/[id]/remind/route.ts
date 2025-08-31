@@ -6,8 +6,10 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
 import { initNotificationService } from "@/components/matchmaker/suggestions/services/notification/initNotifications";
+import { EmailDictionary } from "@/types/dictionary";
+import { getDictionary } from "@/lib/dictionaries";
 
-// Initialize the notification service
+// הפעלת שירות ההתראות
 const notificationService = initNotificationService();
 
 export async function POST(
@@ -17,95 +19,72 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions);
     
-    // Verify user is logged in
     if (!session?.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    // Verify matchmaker permissions
     if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json(
-        { success: false, error: "Insufficient permissions" },
-        { status: 403 }
-      );
+      return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 });
     }
 
     const suggestionId = params.id;
     const { partyType } = await req.json();
 
-    // Verify suggestion exists
+    const url = new URL(req.url);
+    const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
+    
+    console.log(`[API /remind] Received request with locale: '${locale}'`);
+
+    const dictionary = await getDictionary(locale);
+    const emailDict: EmailDictionary = dictionary.email;
+
+    if (!emailDict || !emailDict.notifications?.customMessage?.reminderText) {
+        throw new Error(`Email dictionary for locale '${locale}' is missing required notification templates.`);
+    }
+
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
-        firstParty: {
-          include: { profile: true }
-        },
-        secondParty: {
-          include: { profile: true }
-        },
+        firstParty: { include: { profile: true } },
+        secondParty: { include: { profile: true } },
         matchmaker: true
       },
     });
 
     if (!suggestion) {
-      return NextResponse.json(
-        { success: false, error: "Suggestion not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: "Suggestion not found" }, { status: 404 });
     }
 
-    // Verify matchmaker permissions for this suggestion
-    if (
-      suggestion.matchmakerId !== session.user.id &&
-      session.user.role !== UserRole.ADMIN
-    ) {
-      return NextResponse.json(
-        { success: false, error: "You are not authorized to send reminders for this suggestion" },
-        { status: 403 }
-      );
+    if (suggestion.matchmakerId !== session.user.id && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ success: false, error: "You are not authorized to send reminders for this suggestion" }, { status: 403 });
     }
     
-    // Define parties that will receive the reminder
     const notifyParties: ('first' | 'second')[] = [];
-    let sentCount = 0;
-    
-    if (partyType === "first" || partyType === "both") {
-      if (suggestion.status === MatchSuggestionStatus.PENDING_FIRST_PARTY) {
-        notifyParties.push('first');
-        sentCount++;
-      }
+    if ((partyType === "first" || partyType === "both") && suggestion.status === MatchSuggestionStatus.PENDING_FIRST_PARTY) {
+      notifyParties.push('first');
+    }
+    if ((partyType === "second" || partyType === "both") && suggestion.status === MatchSuggestionStatus.PENDING_SECOND_PARTY) {
+      notifyParties.push('second');
     }
     
-    if (partyType === "second" || partyType === "both") {
-      if (suggestion.status === MatchSuggestionStatus.PENDING_SECOND_PARTY) {
-        notifyParties.push('second');
-        sentCount++;
-      }
-    }
-    
-    // Construct reminder content
-    const reminderContent = `זוהי תזכורת ידידותית שהצעת שידוך מאת ${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} ממתינה לתשובתך. לצפייה בפרטי ההצעה ומענה, אנא לחץ/י על הקישור.`;
-    
-    // Check if we have applicable recipients
-    if (sentCount === 0) {
-      return NextResponse.json({
-        success: false,
-        error: "No applicable recipients for reminder in current status"
-      }, { status: 400 });
+    if (notifyParties.length === 0) {
+      return NextResponse.json({ success: false, error: "No applicable recipients for reminder in current status" }, { status: 400 });
     }
 
-    // Update the last activity timestamp in the suggestion
+    // ============================ התיקון המרכזי כאן ============================
+    // 1. קבל את תבנית הטקסט ישירות מ-reminderText.
+    const reminderTemplateText = emailDict.notifications.customMessage.reminderText;
+    
+    // 2. בצע את ההחלפה הנדרשת של שם השדכן.
+    const reminderContent = reminderTemplateText
+        .replace('{{matchmakerName}}', `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`);
+    // =========================================================================
+
     await prisma.matchSuggestion.update({
       where: { id: suggestionId },
-      data: {
-        lastActivity: new Date(),
-      },
+      data: { lastActivity: new Date() },
     });
 
-    // Log the reminder to history
     await prisma.suggestionStatusHistory.create({
       data: {
         suggestionId,
@@ -114,9 +93,9 @@ export async function POST(
       },
     });
     
-    // רק לאחר העדכון בדאטהבייס - שלח את ההודעה
     await notificationService.handleSuggestionStatusChange(
       suggestion,
+      emailDict,
       {
         channels: ['email', 'whatsapp'],
         notifyParties,
@@ -127,7 +106,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       message: "Reminder sent successfully",
-      recipientCount: sentCount
+      recipientCount: notifyParties.length
     });
   } catch (error) {
     console.error("Error sending reminder:", error);

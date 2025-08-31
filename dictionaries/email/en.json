@@ -83,9 +83,11 @@
 },
   "notifications": {
 
-  "customMessage": {
-    "subject": "A personal message from your matchmaker"
-  },
+    "customMessage": {
+      "subject": "A personal message from your matchmaker",
+      "reminderText": "This is a friendly reminder that a match suggestion from {{matchmakerName}} is awaiting your response. To view the details and reply, please log in to the system."
+    },
+
   "suggestionStatusChange": {
     "PENDING_FIRST_PARTY": {
       "subject": "We have a good feeling about this new suggestion for you",

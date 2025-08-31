@@ -82,10 +82,11 @@
     "actionButton": "התחברות לחשבון"
   },
     "notifications": {
-
     "customMessage": {
-    "subject": "הודעה אישית מהשדכן/ית שלך"
-  },
+      "subject": "הודעה אישית מהשדכן/ית שלך",
+      "reminderText": "זוהי תזכורת ידידותית שהצעת שידוך מאת {{matchmakerName}} ממתינה לתשובתך. לצפייה בפרטי ההצעה ומענה, אנא היכנס/י למערכת."
+    },
+
   "suggestionStatusChange": {
     "PENDING_FIRST_PARTY": {
       "subject": "יש לנו הרגשה טובה לגבי ההצעה הזו עבורך",

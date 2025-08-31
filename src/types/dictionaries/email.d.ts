@@ -22,6 +22,9 @@ type SuggestionStatusNotificationDict = {
 type NotificationDictionary = {
   customMessage: {
     subject: string;
+    // ============================ התיקון כאן ============================
+    reminderText: string; // הוספת שדה זה כדי להתאים לקבצי ה-JSON
+    // =====================================================================
   };
   suggestionStatusChange: Partial<Record<MatchSuggestionStatus, SuggestionStatusNotificationDict>>;
 };

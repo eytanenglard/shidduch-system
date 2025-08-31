@@ -3,7 +3,9 @@
 import { MatchSuggestionStatus, User, MatchSuggestion, Profile } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { notificationService } from "../notification/NotificationService";
-
+// ========================= שלב 1: ייבוא טיפוס המילון =========================
+import type { EmailDictionary } from "@/types/dictionary";
+// =========================================================================
 
 type UserWithProfile = User & {
   profile: Profile | null;
@@ -32,9 +34,12 @@ export class StatusTransitionService {
     return StatusTransitionService.instance;
   }
 
+  // ========================= שלב 2: עדכון חתימת הפונקציה =========================
+  // הפונקציה מקבלת כעת את המילון (dictionary) כפרמטר שלישי, שהוא חובה.
   async transitionStatus(
     suggestion: SuggestionWithParties,
     newStatus: MatchSuggestionStatus,
+    dictionary: EmailDictionary, // <-- הוספת המילון כפרמטר
     notes?: string,
     options: TransitionOptions = {}
   ): Promise<SuggestionWithParties> {
@@ -48,9 +53,8 @@ export class StatusTransitionService {
     // Validate the transition
     this.validateStatusTransition(previousStatus, newStatus);
 
-    // Perform the status transition in a transaction
+    // Perform the status transition in a transaction (הקוד כאן נשאר זהה)
     const updatedSuggestion = await prisma.$transaction(async (tx) => {
-      // Update the suggestion status
       const updated = await tx.matchSuggestion.update({
         where: { id: suggestion.id },
         data: {
@@ -58,36 +62,19 @@ export class StatusTransitionService {
           previousStatus,
           lastStatusChange: new Date(),
           lastActivity: new Date(),
-          
-          // Update timing fields based on status
-          ...(newStatus === MatchSuggestionStatus.FIRST_PARTY_APPROVED && {
-            firstPartyResponded: new Date(),
-          }),
-          ...(newStatus === MatchSuggestionStatus.PENDING_SECOND_PARTY && {
-            secondPartySent: new Date(),
-          }),
-          ...(newStatus === MatchSuggestionStatus.SECOND_PARTY_APPROVED && {
-            secondPartyResponded: new Date(),
-          }),
-          ...(newStatus === MatchSuggestionStatus.CONTACT_DETAILS_SHARED && {
-            closedAt: new Date(),
-          }),
-          ...(newStatus === MatchSuggestionStatus.MEETING_SCHEDULED && {
-            firstMeetingScheduled: new Date(),
-          }),
+          ...(newStatus === MatchSuggestionStatus.FIRST_PARTY_APPROVED && { firstPartyResponded: new Date() }),
+          ...(newStatus === MatchSuggestionStatus.PENDING_SECOND_PARTY && { secondPartySent: new Date() }),
+          ...(newStatus === MatchSuggestionStatus.SECOND_PARTY_APPROVED && { secondPartyResponded: new Date() }),
+          ...(newStatus === MatchSuggestionStatus.CONTACT_DETAILS_SHARED && { closedAt: new Date() }),
+          ...(newStatus === MatchSuggestionStatus.MEETING_SCHEDULED && { firstMeetingScheduled: new Date() }),
         },
         include: {
-          firstParty: {
-            include: { profile: true }
-          },
-          secondParty: {
-            include: { profile: true }
-          },
+          firstParty: { include: { profile: true } },
+          secondParty: { include: { profile: true } },
           matchmaker: true,
         },
       });
 
-      // Create status history record
       await tx.suggestionStatusHistory.create({
         data: {
           suggestionId: suggestion.id,
@@ -102,16 +89,18 @@ export class StatusTransitionService {
     // Only send notifications if option is enabled
     if (mergedOptions.sendNotifications) {
       try {
-        // Utilize the notification service for all channels (email, WhatsApp, etc.)
+        // ========================= שלב 3: קריאה נכונה לשירות ההתראות =========================
+        // כעת אנו מעבירים את המילון כארגומנט השני, ואת ההגדרות כשלישי.
         await notificationService.handleSuggestionStatusChange(
-          
           updatedSuggestion, 
-          {
+          dictionary, // <-- ארגומנט 2: המילון
+          {           // <-- ארגומנט 3: אובייקט ההגדרות
             channels: ['email', 'whatsapp'],
             notifyParties: mergedOptions.notifyParties as ('first' | 'second' | 'matchmaker')[],
             customMessage: mergedOptions.customMessage
           }
         );
+        // ======================================================================================
         
         console.log(`Notifications sent for suggestion ${updatedSuggestion.id} status change to ${newStatus}`);
       } catch (error) {
@@ -123,6 +112,7 @@ export class StatusTransitionService {
     return updatedSuggestion;
   }
 
+  // הפונקציות הבאות נשארות ללא שינוי
   private validateStatusTransition(
     currentStatus: MatchSuggestionStatus, 
     newStatus: MatchSuggestionStatus
@@ -246,7 +236,6 @@ export class StatusTransitionService {
     return statusLabels[status] || status;
   }
   
-  // Get available actions for current status based on user role
   getAvailableActions(
     suggestion: SuggestionWithParties, 
     userId: string
