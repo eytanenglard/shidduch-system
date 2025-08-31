@@ -419,11 +419,15 @@ export default function MatchmakerDashboard({
 
   const handleNewSuggestion = async (data: NewSuggestionFormData) => {
     try {
-      const response = await fetch('/api/matchmaker/suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        `/api/matchmaker/suggestions?locale=${locale}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        }
+      );
+
       if (!response.ok)
         throw new Error(
           (await response.json()).error || 'Failed to create suggestion'
@@ -438,7 +442,6 @@ export default function MatchmakerDashboard({
       );
     }
   };
-
   const handleSuggestionDeleted = useCallback(
     (deletedId: string) => {
       setSuggestions((prev) => prev.filter((s) => s.id !== deletedId));

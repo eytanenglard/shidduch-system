@@ -21,6 +21,7 @@ import type { ResetPasswordDict } from '@/types/dictionaries/auth';
 
 interface ResetPasswordClientProps {
   dict: ResetPasswordDict;
+  locale: 'he' | 'en'; // הוסף
 }
 
 const validatePassword = (
@@ -36,6 +37,7 @@ const validatePassword = (
 
 export default function ResetPasswordClient({
   dict,
+  locale,
 }: ResetPasswordClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -88,11 +90,14 @@ export default function ResetPasswordClient({
     }
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, newPassword }),
-      });
+      const response = await fetch(
+        `/api/auth/reset-password?locale=${locale}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, otp, newPassword }),
+        }
+      );
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || dict.errors.default);
 

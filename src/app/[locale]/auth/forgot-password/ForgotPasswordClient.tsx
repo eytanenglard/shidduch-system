@@ -10,12 +10,19 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
 import type { ForgotPasswordDict } from '@/types/dictionaries/auth';
 
+/**
+ * הגדרת ה-Props שהקומפוננטה מקבלת.
+ * dict: אובייקט התרגומים לשימוש ב-UI.
+ * locale: השפה הנוכחית, לצורך שליחתה ל-API.
+ */
 interface ForgotPasswordClientProps {
   dict: ForgotPasswordDict;
+  locale: 'he' | 'en';
 }
 
 export default function ForgotPasswordClient({
   dict,
+  locale, // קבלת השפה כ-prop
 }: ForgotPasswordClientProps) {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -34,11 +41,15 @@ export default function ForgotPasswordClient({
     }
 
     try {
-      const response = await fetch('/api/auth/request-password-reset', {
+      // ============================ התיקון המרכזי ============================
+      // הוספת פרמטר השפה `locale` לכתובת ה-URL של בקשת ה-API.
+      // כך השרת ידע באיזו שפה לשלוח את המייל.
+      const response = await fetch(`/api/auth/request-password-reset?locale=${locale}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
+      // =====================================================================
 
       const data = await response.json();
 
@@ -46,9 +57,11 @@ export default function ForgotPasswordClient({
         throw new Error(data.error || dict.errors.default);
       }
 
+      // לאחר הצלחה, מעבירים את המשתמש לדף איפוס הסיסמה עם המייל שלו ב-URL.
       router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.errors.default);
+      // חשוב להפסיק את הטעינה במקרה של שגיאה.
       setIsLoading(false);
     }
   };
@@ -67,7 +80,7 @@ export default function ForgotPasswordClient({
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>שגיאה</AlertTitle>
+            <AlertTitle>{dict.errors.title}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}

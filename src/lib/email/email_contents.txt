@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email
-# Generated on: 2025-08-31 20:53:06
+# Generated on: 2025-08-31 21:37:24
 ################################################################################
 
 ================================================================================
@@ -14,7 +14,11 @@ Content:
 // src/lib/email/emailService.ts
 
 import nodemailer from 'nodemailer';
-import { emailTemplates } from './templates/emailTemplates'; // ודא שהקובץ הזה קיים ומיצא את התבניות
+import { emailTemplates } from './templates/emailTemplates';
+// =================  הוספות נדרשות =================
+import { getDictionary } from '@/lib/dictionaries';
+import { EmailDictionary } from '@/types/dictionary';
+// ================= סוף הוספות =================
 
 // Types
 interface EmailConfig {
@@ -23,7 +27,10 @@ interface EmailConfig {
   templateName: string;
   context: Record<string, unknown>;
 }
+
+// ================= שינוי: הוספת locale לכל הטיפוסים =================
 interface AccountSetupEmailParams {
+    locale: 'he' | 'en';
     email: string;
     firstName: string;
     matchmakerName: string;
@@ -31,25 +38,24 @@ interface AccountSetupEmailParams {
     expiresIn: string;
 }
 interface WelcomeEmailParams {
+  locale: 'he' | 'en';
   email: string;
   firstName: string;
-  requiresVerification?: boolean;
   matchmakerAssigned?: boolean;
   matchmakerName?: string;
   dashboardUrl: string;
-  supportEmail: string;
-  unsubscribeUrl?: string;
-  privacyNote?: boolean;
 }
 
 interface VerificationEmailParams {
+  locale: 'he' | 'en';
   email: string;
-  verificationCode: string; // שונה מ-verificationLink
+  verificationCode: string;
   firstName?: string;
-  expiresIn?: string; // לדוגמה: "שעה אחת", "10 דקות"
+  expiresIn?: string;
 }
 
 interface InvitationEmailParams {
+  locale: 'he' | 'en';
   email: string;
   invitationLink: string;
   matchmakerName: string;
@@ -57,6 +63,7 @@ interface InvitationEmailParams {
 }
 
 interface SuggestionEmailParams {
+  locale: 'he' | 'en';
   email: string;
   recipientName: string;
   matchmakerName: string;
@@ -69,6 +76,7 @@ interface SuggestionEmailParams {
 }
 
 interface ContactDetailsEmailParams {
+  locale: 'he' | 'en';
   email: string;
   recipientName: string;
   otherPartyName: string;
@@ -78,30 +86,30 @@ interface ContactDetailsEmailParams {
     whatsapp?: string;
   };
   matchmakerName: string;
-  supportEmail?: string;
 }
 
 interface AvailabilityCheckEmailParams {
+  locale: 'he' | 'en';
   email: string;
   recipientName: string;
   matchmakerName: string;
   inquiryId: string;
-  baseUrl?: string;
 }
 
-// New type for password reset OTP email
 interface PasswordResetOtpEmailParams {
+  locale: 'he' | 'en';
   email: string;
   otp: string;
   firstName?: string;
-  expiresIn?: string; // e.g., "15 דקות"
+  expiresIn?: string;
 }
 
-// New type for password changed confirmation
 interface PasswordChangedConfirmationParams {
+    locale: 'he' | 'en';
     email: string;
     firstName?: string;
 }
+// ================= סוף השינויים בטיפוסים =================
 
 
 class EmailService {
@@ -109,16 +117,13 @@ class EmailService {
   private transporter: nodemailer.Transporter;
   
   private constructor() {
-    // Configure the transporter according to your email provider
-    // Ensure environment variables are set for sensitive data
     this.transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail', // Default to gmail if not specified
+      service: process.env.EMAIL_SERVICE || 'gmail',
       auth: {
-        user: process.env.GMAIL_USER || process.env.EMAIL_USER, // Your email user
-        pass: process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS, // Your email password or app password
+        user: process.env.GMAIL_USER || process.env.EMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS,
       },
       tls: {
-        // Do not fail on invalid certs for development, but ensure it's true for production
         rejectUnauthorized: process.env.NODE_ENV === 'production',
       }
     });
@@ -138,26 +143,23 @@ class EmailService {
         throw new Error(`Template ${templateName} not found`);
       }
 
-      // Add common context variables if they are not already present
       const fullContext = {
         ...context,
         supportEmail: context.supportEmail || process.env.SUPPORT_EMAIL || 'support@example.com',
         companyName: process.env.COMPANY_NAME || 'NeshamaTech',
-        currentYear: new Date().getFullYear(),
+        currentYear: new Date().getFullYear().toString(),
         baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
       };
       
-      const html = emailTemplates[templateName](fullContext);
+      const html = emailTemplates[templateName](fullContext as any); // Use 'as any' to bypass strict context type checks here
 
       const mailOptions: nodemailer.SendMailOptions = {
-        from: `${process.env.EMAIL_FROM_NAME || 'נשמה טק'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
+        from: `${process.env.EMAIL_FROM_NAME || 'NeshamaTech'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
         to,
         subject,
         html,
         headers: {
           'Content-Type': 'text/html; charset=UTF-8',
-          'X-Priority': '1', // For Outlook
-          'X-MSMAIL-Priority': 'High' // For Outlook
         }
       };
 
@@ -166,47 +168,52 @@ class EmailService {
       
     } catch (error) {
       console.error('Error sending email to:', to, 'Subject:', subject, 'Template:', templateName, 'Error:', error);
-      // Depending on the criticality, you might re-throw or handle it.
-      // For now, re-throwing to make it clear that sending failed.
       throw new Error(`Failed to send email to ${to} using template ${templateName}`);
     }
   }
 
+  // ============================ עדכון כל הפונקציות הבאות ============================
+
   async sendWelcomeEmail({
+    locale,
     email,
     firstName,
-    requiresVerification = false,
     matchmakerAssigned = false,
     matchmakerName = '',
-    dashboardUrl, // למשל '/dashboard'
-    supportEmail,
-    unsubscribeUrl,
-    privacyNote = true
+    dashboardUrl,
   }: WelcomeEmailParams): Promise<void> {
+    const dictionary = await getDictionary(locale);
+    const emailDict = dictionary.email;
+
     await this.sendEmail({
       to: email,
-      subject: 'ברוכים הבאים ל-NeshamaTech',
-      templateName: 'welcome', // Ensure 'welcome' template exists
+      subject: emailDict.welcome.subject,
+      templateName: 'welcome',
       context: {
-        firstName,
-        requiresVerification,
+        dict: emailDict.welcome,
+        sharedDict: emailDict.shared,
+        name: firstName, // 'name' for the shared greeting
+        firstName, // keep 'firstName' for specific template use if any
         matchmakerAssigned,
         matchmakerName,
         dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${dashboardUrl}`,
-        supportEmail: supportEmail || process.env.SUPPORT_EMAIL || 'support@example.com',
-        unsubscribeUrl,
-        privacyNote,
       }
     });
   }
-  async sendAccountSetupEmail({ email, firstName, matchmakerName, setupToken, expiresIn }: AccountSetupEmailParams): Promise<void> {
+
+  async sendAccountSetupEmail({ locale, email, firstName, matchmakerName, setupToken, expiresIn }: AccountSetupEmailParams): Promise<void> {
+    const dictionary = await getDictionary(locale);
+    const emailDict = dictionary.email;
     const setupLink = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-account?token=${setupToken}`;
     
     await this.sendEmail({
       to: email,
-      subject: `הזמנה להגדרת חשבונך ב-NeshamaTech`,
-      templateName: 'account-setup',
+      subject: emailDict.accountSetup.subject,
+      templateName: 'accountSetup',
       context: {
+        dict: emailDict.accountSetup,
+        sharedDict: emailDict.shared,
+        name: firstName,
         firstName,
         matchmakerName,
         setupLink,
@@ -214,39 +221,52 @@ class EmailService {
       },
     });
   }
+
   async sendVerificationEmail({
+    locale,
     email,
     verificationCode,
     firstName,
-    expiresIn = 'שעה אחת'
+    expiresIn = '1 hour'
   }: VerificationEmailParams): Promise<void> {
-    console.log(`Sending account verification email with OTP ${verificationCode} to ${email}`);
+    const dictionary = await getDictionary(locale);
+    const emailDict = dictionary.email;
+
     await this.sendEmail({
       to: email,
-      subject: 'קוד אימות עבור NeshamaTech',
-      templateName: 'email-otp-verification', // Ensure this template exists and uses 'verificationCode'
+      subject: emailDict.emailOtpVerification.subject,
+      templateName: 'emailOtpVerification',
       context: {
+        dict: emailDict.emailOtpVerification,
+        sharedDict: emailDict.shared,
+        name: firstName,
         firstName,
-        verificationCode, // Pass the code to the template
+        verificationCode,
         expiresIn,
       }
     });
   }
 
   async sendInvitation({
+    locale,
     email,
-    invitationLink, // This is the token itself from the Invitation model
+    invitationLink,
     matchmakerName,
-    expiresIn = '7 ימים'
+    expiresIn = '7 days'
   }: InvitationEmailParams): Promise<void> {
+    const dictionary = await getDictionary(locale);
+    const emailDict = dictionary.email;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const fullInvitationLink = `${baseUrl}/auth/accept-invitation?token=${invitationLink}`;
     
     await this.sendEmail({
       to: email,
-      subject: `הזמנה להצטרף ל-NeshamaTech מ${matchmakerName}`,
-      templateName: 'invitation', // Ensure 'invitation' template exists
+      subject: emailDict.invitation.subject.replace('{{matchmakerName}}', matchmakerName),
+      templateName: 'invitation',
       context: {
+        dict: emailDict.invitation,
+        sharedDict: emailDict.shared,
+        name: email, // Fallback name
         matchmakerName,
         invitationLink: fullInvitationLink,
         expiresIn,
@@ -255,38 +275,50 @@ class EmailService {
   }
 
   async sendContactDetailsEmail({
+    locale,
     email,
     recipientName,
     otherPartyName,
     otherPartyContact,
     matchmakerName,
-    supportEmail
   }: ContactDetailsEmailParams): Promise<void> {
+    const dictionary = await getDictionary(locale);
+    const emailDict = dictionary.email;
+    
     await this.sendEmail({
       to: email,
-      subject: `פרטי קשר להצעת שידוך מ${matchmakerName} - NeshamaTech`,
-      templateName: 'share-contact-details', // Ensure 'share-contact-details' template exists
+      subject: emailDict.shareContactDetails.subject,
+      templateName: 'shareContactDetails',
       context: {
+        dict: emailDict.shareContactDetails,
+        sharedDict: emailDict.shared,
+        name: recipientName,
         recipientName,
         otherPartyName,
         otherPartyContact,
         matchmakerName,
-        supportEmail: supportEmail || process.env.SUPPORT_EMAIL || 'support@example.com',
       }
     });
   }
 
   async sendSuggestionNotification({
+    locale,
     email,
     recipientName,
     matchmakerName,
     suggestionDetails
   }: SuggestionEmailParams): Promise<void> {
+    const dictionary = await getDictionary(locale);
+    const emailDict = dictionary.email;
+
     await this.sendEmail({
       to: email,
-      subject: `הצעת שידוך חדשה ממתינה לך מ${matchmakerName} - NeshamaTech`,
-      templateName: 'suggestion', // Ensure 'suggestion' template exists
+      subject: emailDict.suggestion.subject,
+      templateName: 'suggestion',
       context: {
+        dict: emailDict.suggestion,
+        sharedDict: emailDict.shared,
+        name: recipientName,
         recipientName,
         matchmakerName,
         suggestionDetails,
@@ -295,34 +327,24 @@ class EmailService {
     });
   }
 
-  // Existing method for link-based password reset (if you still use it elsewhere)
-  async sendPasswordReset(email: string, resetToken: string): Promise<void> {
-    const fullResetLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`; // This implies the old page took a long token
-    
-    await this.sendEmail({
-      to: email,
-      subject: 'איפוס סיסמה - NeshamaTech', // Differentiate if needed
-      templateName: 'password-reset', // Ensure 'password-reset' (link-based) template exists
-      context: {
-        resetLink: fullResetLink,
-        expiresIn: 'שעה אחת', // Or however long your link token is valid
-      }
-    });
-  }
-
-  // New method for sending OTP for password reset
   async sendPasswordResetOtpEmail({
+    locale,
     email,
     otp,
     firstName,
-    expiresIn = '15 דקות' // Default expiry for OTP
+    expiresIn = '15 minutes'
   }: PasswordResetOtpEmailParams): Promise<void> {
-    console.log(`Sending password reset OTP ${otp} to ${email}`);
+    const dictionary = await getDictionary(locale);
+    const emailDict = dictionary.email;
+    
     await this.sendEmail({
       to: email,
-      subject: 'קוד לאיפוס סיסמה - NeshamaTech',
-      templateName: 'password-reset-otp', // Ensure 'password-reset-otp' template exists
+      subject: emailDict.passwordResetOtp.subject,
+      templateName: 'passwordResetOtp',
       context: {
+        dict: emailDict.passwordResetOtp,
+        sharedDict: emailDict.shared,
+        name: firstName,
         firstName,
         otp,
         expiresIn,
@@ -330,17 +352,22 @@ class EmailService {
     });
   }
 
-  // New method for confirming password change
   async sendPasswordChangedConfirmationEmail({
+      locale,
       email,
       firstName,
   }: PasswordChangedConfirmationParams): Promise<void> {
-      console.log(`Sending password changed confirmation to ${email}`);
+      const dictionary = await getDictionary(locale);
+      const emailDict = dictionary.email;
+      
       await this.sendEmail({
           to: email,
-          subject: 'הסיסמה שלך ב-NeshamaTech שונתה בהצלחה',
-          templateName: 'password-changed-confirmation', // Ensure 'password-changed-confirmation' template exists
+          subject: emailDict.passwordChangedConfirmation.subject,
+          templateName: 'passwordChangedConfirmation',
           context: {
+              dict: emailDict.passwordChangedConfirmation,
+              sharedDict: emailDict.shared,
+              name: firstName,
               firstName,
               loginUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/signin`,
           }
@@ -348,28 +375,31 @@ class EmailService {
   }
 
   async sendAvailabilityCheck({
+    locale,
     email,
     recipientName,
     matchmakerName,
     inquiryId,
-    baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
   }: AvailabilityCheckEmailParams): Promise<void> {
+    const dictionary = await getDictionary(locale);
+    const emailDict = dictionary.email;
+    
     await this.sendEmail({
       to: email,
-      subject: `בקשת בדיקת זמינות לשידוך מ${matchmakerName} - NeshamaTech`,
-      templateName: 'availability-check', // Ensure 'availability-check' template exists
+      subject: emailDict.availabilityCheck.subject,
+      templateName: 'availabilityCheck',
       context: {
+        dict: emailDict.availabilityCheck,
+        sharedDict: emailDict.shared,
+        name: recipientName,
         recipientName,
         matchmakerName,
         inquiryId,
-        baseUrl,
-        // Example links if your template supports them directly
-        // approveLink: `${baseUrl}/api/inquiries/${inquiryId}/respond?available=true`,
-        // declineLink: `${baseUrl}/api/inquiries/${inquiryId}/respond?available=false`,
       }
     });
   }
-
+  
+  // ... (verifyConnection ופונקציות אחרות נשארות ללא שינוי)
   async verifyConnection(): Promise<boolean> {
     try {
       await this.transporter.verify();
@@ -382,10 +412,7 @@ class EmailService {
   }
 }
 
-// Export singleton instance
 export const emailService = EmailService.getInstance();
-
-// Export types
 export type {
   EmailConfig,
   WelcomeEmailParams,
@@ -394,10 +421,9 @@ export type {
   SuggestionEmailParams,
   ContactDetailsEmailParams,
   AvailabilityCheckEmailParams,
-  PasswordResetOtpEmailParams, // Export new type
-  PasswordChangedConfirmationParams, // Export new type
-  AccountSetupEmailParams, // Export new type
-
+  PasswordResetOtpEmailParams,
+  PasswordChangedConfirmationParams,
+  AccountSetupEmailParams,
 };
 --- End of Content for emailService.ts ---
 

@@ -23,6 +23,7 @@ import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 interface BasicInfoStepProps {
   dict: RegisterStepsDict['steps']['basicInfo'];
   consentDict: RegisterStepsDict['consentCheckbox'];
+  locale: 'he' | 'en'; // הוסף את locale
 }
 
 const isValidEmail = (email: string): boolean => {
@@ -35,7 +36,12 @@ const isValidPassword = (password: string): boolean => {
   return passwordRegex.test(password);
 };
 
-const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
+const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
+  dict,
+  consentDict,
+  locale,
+}) => {
+  // קבל את locale
   const { data, updateField, prevStep, proceedToEmailVerification } =
     useRegistration();
   const [passwordError, setPasswordError] = useState('');
@@ -86,7 +92,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
     setApiError(null);
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`/api/auth/register?locale=${locale}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

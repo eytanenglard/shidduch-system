@@ -39,6 +39,7 @@ export type ForgotPasswordDict = {
   submitButtonLoading: string;
   backToSignInLink: string;
   errors: {
+    title: string;
     missingEmail: string;
     default: string;
   };

@@ -37,6 +37,8 @@
     "submitButtonLoading": "שולח...",
     "backToSignInLink": "חזרה להתחברות",
     "errors": {
+            "title": "שגיאה",
+
       "missingEmail": "אנא הזן את כתובת המייל שלך.",
       "default": "אירעה שגיאה בבקשת איפוס הסיסמה."
     }
