@@ -22,12 +22,12 @@ enum QuestionnaireStage {
 // הגדרת Props לרכיב
 interface QuestionnairePageClientProps {
   dict: QuestionnaireDictionary;
-   locale: string;
+  locale: string;
 }
 
 export default function QuestionnairePageClient({
   dict,
-   locale,
+  locale,
 }: QuestionnairePageClientProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -119,6 +119,7 @@ export default function QuestionnairePageClient({
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50">
         <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+        <p className="mt-4 text-gray-600">{dict.page.loading}</p>
       </div>
     );
   }

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-08-29 12:03:41
+# Generated on: 2025-08-31 13:00:09
 ################################################################################
 
 ================================================================================
@@ -86,7 +86,7 @@ export interface MatchmakingQuestionnaireProps {
   initialWorld?: WorldId;
   initialQuestionId?: string;
   dict: QuestionnaireDictionary;
-  locale: 'he' | 'en'; // <-- הוספה: קבלת locale כ-prop
+  locale,// <-- הוספה: קבלת locale כ-prop
 }
 
 export default function MatchmakingQuestionnaire({
@@ -99,7 +99,6 @@ export default function MatchmakingQuestionnaire({
 }: MatchmakingQuestionnaireProps) {
   const router = useRouter();
   const sessionId = useMemo(() => `session_${Date.now()}`, []);
-  const language = locale;
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(
     OnboardingStep.MAP
   );
@@ -465,7 +464,7 @@ export default function MatchmakingQuestionnaire({
         const finalNewAnswer: QuestionnaireAnswer = {
           ...newAnswerBase,
           ...(currentQuestion?.type === 'openText' && {
-            language: language as 'en' | 'he',
+            language: locale as 'en' | 'he',
           }),
         };
 
@@ -478,7 +477,7 @@ export default function MatchmakingQuestionnaire({
         }
       });
     },
-    [currentWorld, language]
+    [currentWorld, locale]
   );
 
   const handleVisibilityChange = useCallback(
@@ -641,11 +640,7 @@ export default function MatchmakingQuestionnaire({
       },
     };
     return (
-      <WorldComponent
-        {...worldProps}
-        worldId={currentWorld}
-        locale={language}
-      />
+      <WorldComponent {...worldProps} worldId={currentWorld} locale={locale} />
     );
   }
 
@@ -673,7 +668,7 @@ export default function MatchmakingQuestionnaire({
             completedWorlds={completedWorlds}
             onWorldChange={handleWorldChange}
             dict={dict.worldsMap}
-            locale={language}
+            locale={locale}
           />
         );
 
@@ -685,7 +680,7 @@ export default function MatchmakingQuestionnaire({
             onWorldChange={handleWorldChange}
             onExit={handleExit}
             onSaveProgress={() => handleQuestionnaireSave(false)}
-            language={language}
+            locale={locale}
             isLoggedIn={!!userId}
             dict={{
               layout: dict.layout,
@@ -792,7 +787,7 @@ export default function MatchmakingQuestionnaire({
     <div
       className={cn(
         'min-h-screen bg-gray-50',
-        language === 'he' ? 'dir-rtl' : 'dir-ltr'
+        locale === 'he' ? 'dir-rtl' : 'dir-ltr'
       )}
     >
       <IdleModal />
@@ -935,18 +930,17 @@ enum QuestionnaireStage {
 // הגדרת Props לרכיב
 interface QuestionnairePageClientProps {
   dict: QuestionnaireDictionary;
+   locale: string;
 }
 
 export default function QuestionnairePageClient({
   dict,
+   locale,
 }: QuestionnairePageClientProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams(); // <-- הוספה: קריאת הפרמטרים מה-URL
-  const locale = (
-    Array.isArray(params.lang) ? params.lang[0] : params.lang || 'en'
-  ) as 'he' | 'en'; // <-- הוספה: חילוץ השפה
 
   // State for tracking current stage in the flow
   const [currentStage, setCurrentStage] = useState<QuestionnaireStage>(
@@ -6017,7 +6011,7 @@ export interface QuestionnaireLayoutProps {
   completedWorlds: WorldId[];
   onWorldChange: (worldId: WorldId) => void;
   onExit?: () => void;
-  language?: string;
+  locale?: 'he' | 'en';
   onSaveProgress?: () => Promise<void>;
   isLoggedIn?: boolean;
   dict: {
@@ -6042,7 +6036,7 @@ export default function QuestionnaireLayout({
   completedWorlds,
   onWorldChange,
   onExit,
-  language = 'he',
+  locale = 'he',
   isLoggedIn = false,
   onSaveProgress,
   dict,
@@ -6055,9 +6049,8 @@ export default function QuestionnaireLayout({
 
   const isSmallScreen = useMediaQuery('(max-width: 640px)');
   const currentThemeColor = worldConfig[currentWorld]?.themeColor || 'sky';
-  const isRTL = language === 'he';
+  const isRTL = locale === 'he';
   const directionClass = isRTL ? 'rtl' : 'ltr';
-
   const handleSave = useCallback(async () => {
     if (!onSaveProgress) return;
     setIsSaving(true);
@@ -7169,8 +7162,8 @@ export default function QuestionnaireLandingPage({
 }: QuestionnaireLandingPageProps) {
   const { status, data: session } = useSession();
   const isMobile = useIsMobile();
-  const { language } = useLanguage(); // 2. השתמש ב-hook
-  const isRTL = language === 'he'; // 3. הגדר משתנה עזר
+  const { language: locale } = useLanguage(); // 2. השתמש ב-hook ושנה את שם המשתנה
+  const isRTL = locale === 'he'; // 3. הגדר משתנה עזר
 
   const worldVisuals = [
     { id: 'PERSONALITY', icon: <User />, color: 'sky' },
@@ -9631,14 +9624,14 @@ export default function WorldComponent({
   >({});
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const [isListVisible, setIsListVisible] = useState(true);
-  const language = locale;
-  const isRTL = language === 'he';
+  const isRTL = locale === 'he';
+
   useEffect(() => {
     console.log(
-      `%c[WorldComponent - ${worldId}] Language is now: ${language}`,
+      `%c[WorldComponent - ${worldId}] Language is now: ${locale}`,
       'color: #9c27b0; font-weight: bold;'
     );
-  }, [language, worldId]);
+  }, [locale, worldId]);
 
   const { questions: allQuestionsStructure, themeColor } = worldConfig[worldId];
   const allQuestions = allQuestionsStructure.map((qStruct) =>

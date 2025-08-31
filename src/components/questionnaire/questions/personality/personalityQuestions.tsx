@@ -37,18 +37,6 @@ import {
 export const personalityQuestions: Question[] = [
   {
     worldId: 'PERSONALITY',
-    id: 'personality_self_portrayal_revised',
-    category: 'personality',
-    subcategory: 'self_perception',
-    type: 'openText',
-    depth: 'BASIC',
-    isRequired: false,
-    minLength: 70,
-    maxLength: 500,
-    metadata: { estimatedTime: 3 },
-  },
-  {
-    worldId: 'PERSONALITY',
     id: 'personality_core_trait_selection_revised',
     category: 'personality',
     subcategory: 'self_perception',
@@ -100,6 +88,7 @@ export const personalityQuestions: Question[] = [
     max: 10,
     metadata: { estimatedTime: 1 },
   },
+
   {
     worldId: 'PERSONALITY',
     id: 'personality_daily_structure_revised',
@@ -131,6 +120,18 @@ export const personalityQuestions: Question[] = [
       { value: 'observer', icon: <Compass /> },
     ],
     metadata: { estimatedTime: 1 },
+  },
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_self_portrayal_revised',
+    category: 'personality',
+    subcategory: 'self_perception',
+    type: 'openText',
+    depth: 'BASIC',
+    isRequired: false,
+    minLength: 70,
+    maxLength: 500,
+    metadata: { estimatedTime: 3 },
   },
   {
     worldId: 'PERSONALITY',

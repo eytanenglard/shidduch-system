@@ -3323,8 +3323,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           gradient: THEME.colors.primary.main,
           hasContent:
             relationshipAnswers.length > 0 ||
-            !!profile.matchingNotes ||
-            !!profile.inspiringCoupleStory,
+            !!profile.matchingNotes?.trim() ||
+            !!profile.inspiringCoupleStory?.trim(),
         },
         {
           value: 'connection',
@@ -3494,7 +3494,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             <h4
               className={cn(
                 'font-bold mb-2 sm:mb-3 text-gray-800 leading-relaxed',
-                'flex items-center justify-between gap-2',
+                'flex items-center justify-between gap-2 text-start',
                 compact ? 'text-sm' : 'text-sm sm:text-base'
               )}
             >
