@@ -62,6 +62,8 @@ src/
                 └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\chat\route.ts)
         └── contact/
                 └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\contact\route.ts)
+        └── feedback/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\feedback\route.ts)
         └── matchmaker/
             └── candidates/
                     ├── candidates_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\candidates_contents.txt)
@@ -154,7 +156,6 @@ src/
             ├── favicon.ico  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\favicon.ico)
             ├── favicon.svg  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\favicon.svg)
             ├── layout.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\layout.tsx)
-            ├── metadata.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\metadata.ts)
             ├── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\page.tsx)
             ├── site.webmanifest  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\site.webmanifest)
             ├── web-app-manifest-192x192.png  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\web-app-manifest-192x192.png)
@@ -215,9 +216,15 @@ src/
                 ├── NotificationContext.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contexts\NotificationContext.tsx)
                 └── QuestionnaireStateContext.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contexts\QuestionnaireStateContext.tsx)
         └── legal/
+                └── legal_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\legal_contents.txt)
+            └── accessibility-statement/
+                    ├── AccessibilityStatementClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\accessibility-statement\AccessibilityStatementClient.tsx)
+                    └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\accessibility-statement\page.tsx)
             └── privacy-policy/
+                    ├── PrivacyPolicyClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\privacy-policy\PrivacyPolicyClient.tsx)
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\privacy-policy\page.tsx)
             └── terms-of-service/
+                    ├── TermsOfServiceClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\terms-of-service\TermsOfServiceClient.tsx)
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\terms-of-service\page.tsx)
         └── questionnaire/
                 └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\page.tsx)
@@ -238,13 +245,15 @@ src/
             ├── RegistrationContext.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\RegistrationContext.tsx)
             ├── ResetPasswordForm.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ResetPasswordForm.tsx)
             ├── SignInForm.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\SignInForm.tsx)
-            └── VerifyEmailClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\VerifyEmailClient.tsx)
+            ├── VerifyEmailClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\VerifyEmailClient.tsx)
+            └── auth_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\auth_contents.txt)
         └── steps/
                 ├── BasicInfoStep.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\BasicInfoStep.tsx)
                 ├── CompleteStep.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\CompleteStep.tsx)
                 ├── EmailVerificationCodeStep.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\EmailVerificationCodeStep.tsx)
                 ├── OptionalInfoStep.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\OptionalInfoStep.tsx)
                 ├── PersonalDetailsStep.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\PersonalDetailsStep.tsx)
+                ├── SubmissionStatusIndicator.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\SubmissionStatusIndicator.tsx)
                 └── WelcomeStep.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\WelcomeStep.tsx)
     └── ChatWidget/
             └── ChatWidget.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ChatWidget\ChatWidget.tsx)
@@ -279,6 +288,7 @@ src/
                 └── ValuePropositionSection.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\sections\ValuePropositionSection.tsx)
     └── layout/
             ├── AvailabilityStatus.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\layout\AvailabilityStatus.tsx)
+            ├── FeedbackWidget.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\layout\FeedbackWidget.tsx)
             ├── Navbar.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\layout\Navbar.tsx)
             └── UserDropdown.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\layout\UserDropdown.tsx)
     └── matchmaker/
@@ -516,6 +526,7 @@ src/
         ├── phoneVerificationService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\phoneVerificationService.ts)
         ├── prisma.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\prisma.ts)
         ├── questionnaireFormatter.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\questionnaireFormatter.ts)
+        ├── rate-limiter.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\rate-limiter.ts)
         ├── tokens.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\tokens.ts)
         └── utils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\utils.ts)
     └── email/
@@ -526,6 +537,7 @@ src/
                 ├── availability-check.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\availability-check.hbs)
                 ├── email-verification.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\email-verification.hbs)
                 ├── emailTemplates.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\emailTemplates.ts)
+                ├── internal-feedback-notification.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\internal-feedback-notification.hbs)
                 ├── invitation.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\invitation.hbs)
                 ├── password-changed-confirmation.html  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\password-changed-confirmation.html)
                 ├── password-reset-otp.html  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\password-reset-otp.html)
@@ -549,4 +561,5 @@ src/
         └── suggestions.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\suggestions.ts)
     └── dictionaries/
             ├── auth.d.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\dictionaries\auth.d.ts)
+            ├── email.d.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\dictionaries\email.d.ts)
             └── matchmaker.d.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\dictionaries\matchmaker.d.ts)

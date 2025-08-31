@@ -1,4 +1,4 @@
-// src/app/components/matchmaker/suggestions/services/suggestions/SuggestionService.ts
+// src/components/matchmaker/suggestions/services/suggestions/SuggestionService.ts
 
 import { MatchSuggestionStatus, Priority, UserRole } from "@prisma/client";
 import prisma from "@/lib/prisma";
@@ -8,6 +8,8 @@ import type {
   CreateSuggestionData,
   UpdateSuggestionData,
 } from "@/types/suggestions";
+// ========================= שינוי מרכזי 1: ייבוא טיפוס המילון =========================
+import type { EmailDictionary } from "@/types/dictionary";
 
 // Initialize notification service
 const notificationService = initNotificationService();
@@ -24,6 +26,7 @@ const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
   'MATCH_APPROVED',
   'DATING',
 ];
+
 export class SuggestionService {
   private static instance: SuggestionService;
 
@@ -38,20 +41,24 @@ export class SuggestionService {
 
   /**
    * יצירת הצעת שידוך חדשה
+   * ========================= שינוי מרכזי 2: עדכון חתימת הפונקציה =========================
+   * הפונקציה מקבלת כעת את אובייקט תרגומי המיילים כפרמטר נוסף
    */
-  public async createSuggestion(data: CreateSuggestionData): Promise<SuggestionWithParties> {
+  public async createSuggestion(
+    data: CreateSuggestionData,
+    dictionary: EmailDictionary 
+  ): Promise<SuggestionWithParties> {
     // 1. וידוא הרשאות השדכן
     const matchmaker = await prisma.user.findUnique({
       where: { id: data.matchmakerId },
     });
 
-    // קוד חדש ומתוקן
-const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
-if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
-  throw new Error("Unauthorized - User must be a Matchmaker or Admin");
-}
-  // --- START: NEW VALIDATION LOGIC ---
-    // Fetch both parties to get their names for error messages
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
+      throw new Error("Unauthorized - User must be a Matchmaker or Admin");
+    }
+  
+    // 2. בדיקה אם קיימת הצעה פעילה
     const [firstParty, secondParty] = await Promise.all([
         prisma.user.findUnique({ where: { id: data.firstPartyId } }),
         prisma.user.findUnique({ where: { id: data.secondPartyId } })
@@ -61,7 +68,6 @@ if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
         throw new Error("One or both candidates not found.");
     }
     
-    // Check for BLOCKING suggestions for either party
     const blockingSuggestion = await prisma.matchSuggestion.findFirst({
         where: {
             OR: [
@@ -88,12 +94,8 @@ if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
         }
     }
 
-    // 4. יצירת ההצעה בטרנזקציה
+    // 3. יצירת ההצעה בטרנזקציה
     const suggestion = await prisma.$transaction(async (tx) => {
-      // יצירת ההצעה עם הנתונים המנוקים
-      console.log('Decision deadline value:', data.decisionDeadline);
-      console.log('Decision deadline type:', typeof data.decisionDeadline);
-      
       const cleanedData = {
         matchmakerId: data.matchmakerId,
         firstPartyId: data.firstPartyId,
@@ -114,17 +116,12 @@ if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
       const newSuggestion = await tx.matchSuggestion.create({
         data: cleanedData,
         include: {
-          firstParty: {
-            include: { profile: true }
-          },
-          secondParty: {
-            include: { profile: true }
-          },
+          firstParty: { include: { profile: true } },
+          secondParty: { include: { profile: true } },
           matchmaker: true,
         },
       });
 
-      // יצירת רשומת היסטוריה ראשונית
       await tx.suggestionStatusHistory.create({
         data: {
           suggestionId: newSuggestion.id,
@@ -136,19 +133,20 @@ if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
       return newSuggestion;
     });
 
-    // 5. שליחת התראות באמצעות מערכת ההתראות המאוחדת
+    // 4. שליחת התראות
     try {
       console.log('Sending notifications for new suggestion...');
+      // ========================= שינוי מרכזי 3: תיקון הקריאה לשירות ההתראות =========================
       await notificationService.handleSuggestionStatusChange(
         suggestion,
-        {
+        dictionary, // <-- הארגומנט השני הוא המילון
+        { // <-- הארגומנט השלישי הוא אובייקט ההגדרות
           channels: ['email', 'whatsapp'],
-          notifyParties: ['first'] // רק לצד הראשון בשלב זה
+          notifyParties: ['first']
         }
       );
     } catch (error) {
       console.error('Error sending initial suggestion notifications:', error);
-      // לא לעצור את התהליך - רק לדווח על השגיאה
     }
 
     return suggestion;
@@ -162,16 +160,11 @@ if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
     matchmakerId: string,
     data: UpdateSuggestionData
   ): Promise<SuggestionWithParties> {
-    // 1. בדיקת קיום ההצעה והרשאות
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id },
       include: {
-        firstParty: {
-          include: { profile: true }
-        },
-        secondParty: {
-          include: { profile: true }
-        },
+        firstParty: { include: { profile: true } },
+        secondParty: { include: { profile: true } },
         matchmaker: true,
       },
     });
@@ -184,44 +177,24 @@ if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
       throw new Error("Unauthorized - Only the original matchmaker can update the suggestion");
     }
 
-    // 2. ניקוי והכנת נתוני העדכון
     const cleanedUpdateData = {
-      ...(data.notes?.matchingReason !== undefined && { 
-        matchingReason: data.notes.matchingReason 
-      }),
-      ...(data.notes?.forFirstParty !== undefined && { 
-        firstPartyNotes: data.notes.forFirstParty 
-      }),
-      ...(data.notes?.forSecondParty !== undefined && { 
-        secondPartyNotes: data.notes.forSecondParty 
-      }),
-      ...(data.notes?.internal !== undefined && { 
-        internalNotes: data.notes.internal 
-      }),
-      ...(data.notes?.followUpNotes !== undefined && { 
-        followUpNotes: data.notes.followUpNotes 
-      }),
+      ...(data.notes?.matchingReason !== undefined && { matchingReason: data.notes.matchingReason }),
+      ...(data.notes?.forFirstParty !== undefined && { firstPartyNotes: data.notes.forFirstParty }),
+      ...(data.notes?.forSecondParty !== undefined && { secondPartyNotes: data.notes.forSecondParty }),
+      ...(data.notes?.internal !== undefined && { internalNotes: data.notes.internal }),
+      ...(data.notes?.followUpNotes !== undefined && { followUpNotes: data.notes.followUpNotes }),
       ...(data.priority && { priority: data.priority }),
-      ...(data.responseDeadline && { 
-        responseDeadline: new Date(data.responseDeadline) 
-      }),
-      ...(data.decisionDeadline && { 
-        decisionDeadline: new Date(data.decisionDeadline) 
-      }),
+      ...(data.responseDeadline && { responseDeadline: new Date(data.responseDeadline) }),
+      ...(data.decisionDeadline && { decisionDeadline: new Date(data.decisionDeadline) }),
       lastActivity: new Date()
     };
 
-    // 3. עדכון הנתונים
     return await prisma.matchSuggestion.update({
       where: { id },
       data: cleanedUpdateData,
       include: {
-        firstParty: {
-          include: { profile: true }
-        },
-        secondParty: {
-          include: { profile: true }
-        },
+        firstParty: { include: { profile: true } },
+        secondParty: { include: { profile: true } },
         matchmaker: true,
       },
     });
@@ -239,12 +212,8 @@ if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id },
       include: {
-        firstParty: {
-          include: { profile: true }
-        },
-        secondParty: {
-          include: { profile: true }
-        },
+        firstParty: { include: { profile: true } },
+        secondParty: { include: { profile: true } },
         matchmaker: true,
       },
     });
@@ -264,21 +233,11 @@ if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id },
       include: {
-        firstParty: {
-          include: { profile: true }
-        },
-        secondParty: {
-          include: { profile: true }
-        },
+        firstParty: { include: { profile: true } },
+        secondParty: { include: { profile: true } },
         matchmaker: true,
-        statusHistory: {
-          orderBy: { createdAt: "desc" },
-        },
-        meetings: {
-          include: {
-            feedback: true
-          }
-        },
+        statusHistory: { orderBy: { createdAt: "desc" } },
+        meetings: { include: { feedback: true } },
       },
     });
 
@@ -310,25 +269,13 @@ if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
         ],
       },
       include: {
-        firstParty: {
-          include: { profile: true }
-        },
-        secondParty: {
-          include: { profile: true }
-        },
+        firstParty: { include: { profile: true } },
+        secondParty: { include: { profile: true } },
         matchmaker: true,
-        statusHistory: {
-          orderBy: { createdAt: "desc" },
-        },
-        meetings: {
-          include: {
-            feedback: true
-          }
-        },
+        statusHistory: { orderBy: { createdAt: "desc" } },
+        meetings: { include: { feedback: true } },
       },
-      orderBy: {
-        lastActivity: "desc",
-      },
+      orderBy: { lastActivity: "desc" },
     });
   }
 
@@ -353,45 +300,6 @@ if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
         if (!isMatchmaker) throw new Error("Only matchmaker can change status at this stage");
     }
   }
-
-  /**
-   * בדיקת קיום הצעה פעילה בין שני מועמדים
-   */
-  private async checkExistingSuggestion(
-    firstPartyId: string,
-    secondPartyId: string
-  ): Promise<SuggestionWithParties | null> {
-    return await prisma.matchSuggestion.findFirst({
-      where: {
-        AND: [
-          {
-            OR: [
-              { firstPartyId, secondPartyId },
-              { firstPartyId: secondPartyId, secondPartyId: firstPartyId },
-            ],
-          },
-          {
-            status: {
-              notIn: [
-                MatchSuggestionStatus.CLOSED,
-                MatchSuggestionStatus.CANCELLED,
-                MatchSuggestionStatus.EXPIRED,
-                MatchSuggestionStatus.MATCH_DECLINED,
-              ],
-            },
-          },
-        ],
-      },
-      include: {
-        firstParty: {
-          include: { profile: true }
-        },
-        secondParty: {
-          include: { profile: true }
-        },
-        matchmaker: true,
-      },
-    });
-  }
 }
+
 export const suggestionService = SuggestionService.getInstance();

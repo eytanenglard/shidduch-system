@@ -1,69 +1,101 @@
+// src/app/api/auth/resend-verification/route.ts
 
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { randomBytes } from "crypto";
 import { emailService } from "@/lib/email/emailService";
+import { VerificationService } from "@/lib/services/verificationService";
 import { VerificationType } from "@prisma/client";
+import { applyRateLimit } from "@/lib/rate-limiter";
 
-export async function POST(req: Request) {
+/**
+ * מטפל בבקשות לשליחה חוזרת של קוד אימות למייל.
+ * נקודת קצה זו נועדה למשתמשים שנרשמו אך לא קיבלו את קוד האימות הראשוני.
+ */
+export async function POST(req: NextRequest) {
+  // 1. הגבלת קצב בקשות למניעת שימוש לרעה ושליחת ספאם
+  const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
-    const { email, type } = await req.json();
+    // 2. שליפת שפת הממשק מה-URL לצורך תרגום המייל
+    const url = new URL(req.url);
+    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
 
-    if (!email || !type) {
+    // 3. קריאת ואימות גוף הבקשה
+    const body = await req.json();
+    const { email } = body;
+
+    if (!email || typeof email !== 'string') {
       return NextResponse.json(
-        { error: "חסרים פרטים נדרשים" },
+        { success: false, error: "כתובת המייל היא שדה חובה." },
         { status: 400 }
       );
     }
 
-    // מציאת המשתמש
+    const normalizedEmail = email.toLowerCase();
+
+    // 4. איתור המשתמש במסד הנתונים
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email: normalizedEmail }
     });
 
+    // בדיקות קצה קריטיות
     if (!user) {
       return NextResponse.json(
-        { error: "לא נמצא משתמש עם כתובת האימייל הזו" },
+        { success: false, error: "לא נמצא משתמש עם כתובת המייל הזו." },
         { status: 404 }
       );
     }
 
     if (user.isVerified) {
       return NextResponse.json(
-        { error: "המשתמש כבר מאומת" },
+        { success: false, error: "חשבון זה כבר מאומת. ניתן להתחבר." },
         { status: 400 }
       );
     }
 
-    // יצירת טוקן אימות חדש
-    const verification = await prisma.verification.create({
-      data: {
-        userId: user.id,
-        type: type as VerificationType,
-        token: randomBytes(32).toString('hex'),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // תוקף ל-24 שעות
-        status: 'PENDING',
-        attempts: 0
-      }
-    });
+    // 5. יצירת קוד אימות חדש באמצעות שירות האימות המרכזי
+    // השירות ידאג לבטל תוקף של קודים קודמים שטרם נוצלו.
+    const expiresInHours = 1; // תוקף לשעה
+    const { otp: verificationCode } = await VerificationService.createVerification(
+        user.id,
+        VerificationType.EMAIL,
+        user.email,
+        expiresInHours
+    );
 
-    // שליחת מייל אימות חדש
-    // *** התיקון כאן: שימוש ב-verificationCode במקום verificationLink ***
+    console.log(`[Resend Verification] New OTP generated for user: ${user.id}`);
+
+    // 6. שליחת מייל אימות חדש עם הקוד שנוצר, בהתאם לשפה שנבחרה
+    const expiresInText = locale === 'he' ? 'שעה אחת' : '1 hour';
+    
     await emailService.sendVerificationEmail({
+      locale, // העברת פרמטר השפה
       email: user.email,
-      verificationCode: verification.token, // שונה מ-verificationLink
+      verificationCode: verificationCode,
       firstName: user.firstName,
-      expiresIn: '24 שעות'
+      expiresIn: expiresInText
     });
 
+    console.log(`[Resend Verification] Verification email sent successfully to ${user.email} in ${locale}`);
+
+    // 7. החזרת תשובת הצלחה ללקוח
     return NextResponse.json({
       success: true,
-      message: "מייל אימות חדש נשלח בהצלחה"
+      message: "מייל אימות חדש נשלח בהצלחה."
     });
 
-  } catch (error) {
-    console.error('Resend verification error:', error);
-    const errorMessage = error instanceof Error ? error.message : "שגיאה בשליחת מייל האימות";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  } catch (error: unknown) {
+    // 8. טיפול בשגיאות לא צפויות
+    console.error('[API Resend Verification] A critical error occurred:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : "שגיאה לא צפויה בשליחת מייל האימות.";
+    
+    return NextResponse.json(
+        { success: false, error: "אירעה שגיאה בתהליך, אנא נסה שנית מאוחר יותר.", details: errorMessage }, 
+        { status: 500 }
+    );
   }
 }

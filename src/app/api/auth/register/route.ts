@@ -134,6 +134,8 @@ export async function POST(req: NextRequest) {
   }
   logger.info('Initial registration process initiated');
 
+ const url = new URL(req.url);
+    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he'; // ברירת מחדל לעברית
   try {
     const body: InitialRegistrationData = await req.json();
     logger.info('Initial registration data received', {
@@ -221,16 +223,17 @@ export async function POST(req: NextRequest) {
     logger.info('Database transaction completed successfully', { userId: result.user.id });
     
     let emailSentSuccess = false;
-    const emailOtpExpiryText = "שעה אחת"; 
+        const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour"; 
 
     try {
       logger.info('Sending verification OTP email', { userId: result.user.id, email: result.user.email });
-      await emailService.sendVerificationEmail({
-        email: result.user.email,
-        verificationCode: result.generatedOtp, 
-        firstName: result.user.firstName,
-        expiresIn: emailOtpExpiryText 
-      });
+        await emailService.sendVerificationEmail({
+                locale, // <<<<<<<<<<<< הוספת ה-locale
+                email: result.user.email,
+                verificationCode: result.generatedOtp, 
+                firstName: result.user.firstName,
+                expiresIn: emailOtpExpiryText 
+            });
       emailSentSuccess = true;
       logger.info('Verification OTP email sent successfully', { userId: result.user.id });
     } catch (error) {

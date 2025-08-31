@@ -4,83 +4,85 @@ import { EmailDictionary } from '@/types/dictionary';
 
 // --- הגדרות טיפוסים לקונטקסט של כל תבנית ---
 
-// קונטקסט בסיסי - מכיל רק את מה שמשותף לכולם באמת.
-// <-- התיקון המרכזי 1: הסרנו את 'dict' מהבסיס --->
 interface BaseTemplateContext {
   supportEmail: string;
   currentYear: string;
   companyName: string;
   baseUrl: string;
   sharedDict: EmailDictionary['shared'];
-  name: string; // שם הנמען לברכה הכללית
+  name: string;
 }
 
-// <-- התיקון המרכזי 2: כל קונטקסט ספציפי מגדיר את ה-'dict' שלו --->
-interface WelcomeTemplateContext extends BaseTemplateContext {
-  dict: EmailDictionary['welcome']; // ספציפי למייל ברוכים הבאים
+// הגדרות ספציפיות
+export interface WelcomeTemplateContext extends BaseTemplateContext {
+  dict: EmailDictionary['welcome'];
   firstName: string;
   matchmakerAssigned?: boolean;
   matchmakerName?: string;
   dashboardUrl: string;
 }
-
-interface AccountSetupTemplateContext extends BaseTemplateContext {
-  dict: EmailDictionary['accountSetup']; // ספציפי למייל הגדרת חשבון
+export interface AccountSetupTemplateContext extends BaseTemplateContext {
+  dict: EmailDictionary['accountSetup'];
   firstName: string;
   matchmakerName: string;
   setupLink: string;
   expiresIn: string;
 }
-
-interface EmailOtpVerificationTemplateContext extends BaseTemplateContext {
-  dict: EmailDictionary['emailOtpVerification']; // ספציפי למייל אימות קוד
+export interface EmailOtpVerificationTemplateContext extends BaseTemplateContext {
+  dict: EmailDictionary['emailOtpVerification'];
   verificationCode: string;
   expiresIn: string;
 }
-
-interface InvitationTemplateContext extends BaseTemplateContext {
+export interface InvitationTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['invitation'];
   matchmakerName: string;
   invitationLink: string;
   expiresIn: string;
 }
-
-interface SuggestionTemplateContext extends BaseTemplateContext {
+export interface SuggestionTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['suggestion'];
   recipientName: string;
   matchmakerName: string;
   suggestionDetails?: { age?: number; city?: string; occupation?: string; additionalInfo?: string | null; };
   dashboardUrl: string;
 }
-
-interface ContactDetailsTemplateContext extends BaseTemplateContext {
+export interface ContactDetailsTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['shareContactDetails'];
   recipientName: string;
   otherPartyName: string;
   otherPartyContact: { phone?: string; email?: string; whatsapp?: string; };
   matchmakerName: string;
 }
-
-interface AvailabilityCheckTemplateContext extends BaseTemplateContext {
+export interface AvailabilityCheckTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['availabilityCheck'];
   recipientName: string;
   matchmakerName: string;
   inquiryId: string;
 }
-
-interface PasswordResetOtpTemplateContext extends BaseTemplateContext {
+export interface PasswordResetOtpTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['passwordResetOtp'];
   otp: string;
   expiresIn: string;
 }
-
-interface PasswordChangedConfirmationTemplateContext extends BaseTemplateContext {
+export interface PasswordChangedConfirmationTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['passwordChangedConfirmation'];
   loginUrl: string;
 }
 
+// מפה בין שם התבנית לסוג הקונטקסט שלה
+export type TemplateContextMap = {
+  welcome: WelcomeTemplateContext;
+  accountSetup: AccountSetupTemplateContext;
+  emailOtpVerification: EmailOtpVerificationTemplateContext;
+  invitation: InvitationTemplateContext;
+  suggestion: SuggestionTemplateContext;
+  shareContactDetails: ContactDetailsTemplateContext;
+  availabilityCheck: AvailabilityCheckTemplateContext;
+  passwordResetOtp: PasswordResetOtpTemplateContext;
+  passwordChangedConfirmation: PasswordChangedConfirmationTemplateContext;
+};
+
 // --- פונקציית עזר ליצירת HTML בסיסי ---
-// <-- הערה: פונקציה זו אינה דורשת שינוי, היא כבר עובדת עם BaseTemplateContext המתוקן --->
 const createBaseEmailHtml = (title: string, content: string, context: BaseTemplateContext): string => `
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
@@ -92,7 +94,6 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
         body { font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; direction: rtl; text-align: right; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; }
         .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden; }
         .email-header { background-color: #06b6d4; color: #ffffff; padding: 25px; text-align: center; border-bottom: 5px solid #0891b2; }
-        .email-header.success { background-color: #10b981; border-bottom-color: #059669; }
         .email-header h1 { margin: 0; font-size: 26px; font-weight: 600; }
         .email-body { padding: 25px 30px; font-size: 16px; }
         .email-body p { margin-bottom: 1em; }
@@ -121,10 +122,11 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
 </html>
 `;
 
-// --- מיפוי התבניות ---
-// כעת כל פונקציה מקבלת את הטיפוס הספציפי והמתוקן שלה, והקוד בתוכה יעבוד ללא שגיאות.
-export const emailTemplates = {
-  welcome: (context: WelcomeTemplateContext) => createBaseEmailHtml(context.dict.title, `
+// --- מיפוי התבניות עם הטיפוס המדויק ---
+export const emailTemplates: {
+  [K in keyof TemplateContextMap]: (context: TemplateContextMap[K]) => string;
+} = {
+  welcome: (context) => createBaseEmailHtml(context.dict.title, `
     <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
     <p>${context.dict.intro}</p>
     ${context.matchmakerAssigned && context.matchmakerName ? `
@@ -138,7 +140,7 @@ export const emailTemplates = {
     </p>
   `, context),
 
-  accountSetup: (context: AccountSetupTemplateContext) => createBaseEmailHtml(context.dict.title, `
+  accountSetup: (context) => createBaseEmailHtml(context.dict.title, `
     <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
     <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
     <p>${context.dict.actionPrompt}</p>
@@ -151,7 +153,7 @@ export const emailTemplates = {
     <p>${context.dict.nextStep}</p>
   `, context),
   
-  emailOtpVerification: (context: EmailOtpVerificationTemplateContext) => createBaseEmailHtml(context.dict.title, `
+  emailOtpVerification: (context) => createBaseEmailHtml(context.dict.title, `
     <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>
     <p>${context.dict.intro}</p>
     <p>${context.dict.codeInstruction}</p>
@@ -160,7 +162,7 @@ export const emailTemplates = {
     <p>${context.dict.securityNote}</p>
   `, context),
 
-  invitation: (context: InvitationTemplateContext) => createBaseEmailHtml(context.dict.title, `
+  invitation: (context) => createBaseEmailHtml(context.dict.title, `
     <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
     <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
     <p>${context.dict.actionPrompt}</p>
@@ -170,7 +172,7 @@ export const emailTemplates = {
     <p>${context.dict.expiryNotice.replace('{{expiresIn}}', context.expiresIn)}</p>
   `, context),
   
-  suggestion: (context: SuggestionTemplateContext) => {
+  suggestion: (context) => {
     let detailsHtml = '';
     if (context.suggestionDetails) {
       const detailsList = [
@@ -195,7 +197,7 @@ export const emailTemplates = {
     `, context);
   },
 
-  shareContactDetails: (context: ContactDetailsTemplateContext) => {
+  shareContactDetails: (context) => {
     const contactInfoHtml = [
       context.otherPartyContact.phone && `<p><strong>טלפון:</strong> ${context.otherPartyContact.phone}</p>`,
       context.otherPartyContact.email && `<p><strong>אימייל:</strong> <a href="mailto:${context.otherPartyContact.email}">${context.otherPartyContact.email}</a></p>`,
@@ -216,7 +218,7 @@ export const emailTemplates = {
     `, context);
   },
 
-  availabilityCheck: (context: AvailabilityCheckTemplateContext) => createBaseEmailHtml(context.dict.title, `
+  availabilityCheck: (context) => createBaseEmailHtml(context.dict.title, `
     <p>${context.sharedDict.greeting.replace('{{name}}', context.recipientName)}</p>
     <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
     <p>${context.dict.actionPrompt}</p>
@@ -228,7 +230,7 @@ export const emailTemplates = {
     </div>
   `, context),
 
-  passwordResetOtp: (context: PasswordResetOtpTemplateContext) => createBaseEmailHtml(context.dict.title, `
+  passwordResetOtp: (context) => createBaseEmailHtml(context.dict.title, `
     <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>
     <p>${context.dict.intro}</p>
     <p>${context.dict.codeInstruction}</p>
@@ -237,7 +239,7 @@ export const emailTemplates = {
     <p>${context.dict.securityNote}</p>
   `, context),
 
-  passwordChangedConfirmation: (context: PasswordChangedConfirmationTemplateContext) => createBaseEmailHtml(context.dict.title, `
+  passwordChangedConfirmation: (context) => createBaseEmailHtml(context.dict.title, `
     <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>
     <p>${context.dict.intro}</p>
     <div class="highlight-box">

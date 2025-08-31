@@ -1,13 +1,18 @@
 // src/app/api/auth/initiate-password-change/route.ts
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server"; // ייבוא NextRequest
 import { db } from "@/lib/db";
 import { emailService } from "@/lib/email/emailService";
 import { VerificationService } from "@/lib/services/verificationService";
 import { VerificationType } from "@prisma/client";
 import { hash, compare } from "bcryptjs";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) { // שינוי ל-NextRequest
   try {
+    // ================ 1. שליפת ה-locale מה-URL ================
+    const url = new URL(req.url);
+    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
+    // ==========================================================
+
     const { userId, currentPassword, newPassword } = await req.json();
 
     const user = await db.user.findUnique({
@@ -21,7 +26,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // הוספת בדיקה: אם למשתמש אין סיסמה (למשל, נרשם דרך OAuth)
     if (!user.password) {
       return NextResponse.json(
         { error: "לא הוגדרה סיסמה לחשבון זה. ייתכן שנרשמת באמצעות שירות חיצוני." },
@@ -29,8 +33,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // בדיקת סיסמה נוכחית
-    // כעת, user.password מובטח להיות string
     const isValidPassword = await compare(currentPassword, user.password);
     if (!isValidPassword) {
       return NextResponse.json(
@@ -39,16 +41,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // הצפנת הסיסמה החדשה
     const hashedNewPassword = await hash(newPassword, 12);
 
-    // יצירת קוד אימות בן 6 ספרות באמצעות שירות האימות
-    // שינוי שם הפונקציה והוספת פרמטר target
+    // השירות יוצר OTP בן 6 ספרות
     const { verification } = await VerificationService.createVerification(
       user.id,
       VerificationType.PASSWORD_RESET,
-      user.email, // הוספת user.email כפרמטר target
-      24 // תקף ל-24 שעות (expiresInHours)
+      user.email,
+      24 // Expires in 24 hours
     );
 
     // שמירת הסיסמה המוצפנת במטא-דאטה של האימות
@@ -59,10 +59,20 @@ export async function POST(req: Request) {
       }
     });
 
-    // שליחת מייל עם קוד האימות
-    await emailService.sendPasswordReset(user.email, verification.token);
+    // ================ 2. קריאה לפונקציה הנכונה עם הפרמטרים המעודכנים ================
+    const otpCode = verification.token; // הטוקן שנוצר הוא ה-OTP
+    const expiresInText = locale === 'he' ? '24 שעות' : '24 hours';
 
-    return NextResponse.json({ success: true });
+    await emailService.sendPasswordResetOtpEmail({
+      locale,
+      email: user.email,
+      otp: otpCode,
+      firstName: user.firstName,
+      expiresIn: expiresInText,
+    });
+    // =================================================================================
+
+    return NextResponse.json({ success: true, message: "קוד אימות לשינוי סיסמה נשלח למייל שלך." });
 
   } catch (error) {
     console.error("Initiate password change error:", error);

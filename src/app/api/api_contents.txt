@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api
-# Generated on: 2025-08-28 23:12:13
+# Generated on: 2025-08-31 21:15:57
 ################################################################################
 
 ================================================================================
@@ -28,7 +28,9 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-
 Content:
 // src/app/api/ai/analyze-my-profile/route.ts
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import profileAiService from '@/lib/services/profileAiService';
@@ -40,7 +42,12 @@ import prisma from '@/lib/prisma';
  * הפונקציה מאמתת את המשתמש, יוצרת פרופיל נרטיבי מקיף,
  * שולחת אותו לניתוח AI, ומחזירה את התוצאה המובנית.
  */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+    const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     // שלב 1: אימות משתמש
     const session = await getServerSession(authOptions);
@@ -99,7 +106,9 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-
 Content:
 // src/app/api/ai/analyze-suggestion/route.ts
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import profileAiService from '@/lib/services/profileAiService';
@@ -112,7 +121,12 @@ import prisma from '@/lib/prisma';
  * יוצרת פרופילים נרטיביים עבור שניהם, שולחת אותם לניתוח AI מותאם למשתמש,
  * ומחזירה את התוצאה המובנית.
  */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+    const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     // 1. אימות וקבלת המשתמש הנוכחי
     const session = await getServerSession(authOptions);
@@ -189,12 +203,19 @@ Content:
 // src/app/api/ai/find-matches/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, Prisma } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
+    const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     // 1. Authentication and Authorization
     const session = await getServerSession(authOptions);
@@ -298,6 +319,8 @@ Content:
 // File: src/app/api/ai/generate-rationale/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
@@ -305,6 +328,11 @@ import { generateNarrativeProfile } from "@/lib/services/profileAiService";
 import { analyzePairCompatibility } from "@/lib/services/aiService";
 
 export async function POST(req: NextRequest) {
+    const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     // 1. Authentication and Authorization
     const session = await getServerSession(authOptions);
@@ -367,6 +395,8 @@ Content:
 // src/app/api/ai/generate-suggestion-rationale/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
@@ -374,6 +404,11 @@ import { generateNarrativeProfile } from "@/lib/services/profileAiService";
 import aiService from "@/lib/services/aiService";
 
 export async function POST(req: NextRequest) {
+    const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     // 1. Authentication and Authorization
     const session = await getServerSession(authOptions);
@@ -1134,15 +1169,20 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\initia
 --------------------------------------------------------------------------------
 Content:
 // src/app/api/auth/initiate-password-change/route.ts
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server"; // ייבוא NextRequest
 import { db } from "@/lib/db";
 import { emailService } from "@/lib/email/emailService";
 import { VerificationService } from "@/lib/services/verificationService";
 import { VerificationType } from "@prisma/client";
 import { hash, compare } from "bcryptjs";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) { // שינוי ל-NextRequest
   try {
+    // ================ 1. שליפת ה-locale מה-URL ================
+    const url = new URL(req.url);
+    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
+    // ==========================================================
+
     const { userId, currentPassword, newPassword } = await req.json();
 
     const user = await db.user.findUnique({
@@ -1156,7 +1196,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // הוספת בדיקה: אם למשתמש אין סיסמה (למשל, נרשם דרך OAuth)
     if (!user.password) {
       return NextResponse.json(
         { error: "לא הוגדרה סיסמה לחשבון זה. ייתכן שנרשמת באמצעות שירות חיצוני." },
@@ -1164,8 +1203,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // בדיקת סיסמה נוכחית
-    // כעת, user.password מובטח להיות string
     const isValidPassword = await compare(currentPassword, user.password);
     if (!isValidPassword) {
       return NextResponse.json(
@@ -1174,16 +1211,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // הצפנת הסיסמה החדשה
     const hashedNewPassword = await hash(newPassword, 12);
 
-    // יצירת קוד אימות בן 6 ספרות באמצעות שירות האימות
-    // שינוי שם הפונקציה והוספת פרמטר target
+    // השירות יוצר OTP בן 6 ספרות
     const { verification } = await VerificationService.createVerification(
       user.id,
       VerificationType.PASSWORD_RESET,
-      user.email, // הוספת user.email כפרמטר target
-      24 // תקף ל-24 שעות (expiresInHours)
+      user.email,
+      24 // Expires in 24 hours
     );
 
     // שמירת הסיסמה המוצפנת במטא-דאטה של האימות
@@ -1194,10 +1229,20 @@ export async function POST(req: Request) {
       }
     });
 
-    // שליחת מייל עם קוד האימות
-    await emailService.sendPasswordReset(user.email, verification.token);
+    // ================ 2. קריאה לפונקציה הנכונה עם הפרמטרים המעודכנים ================
+    const otpCode = verification.token; // הטוקן שנוצר הוא ה-OTP
+    const expiresInText = locale === 'he' ? '24 שעות' : '24 hours';
 
-    return NextResponse.json({ success: true });
+    await emailService.sendPasswordResetOtpEmail({
+      locale,
+      email: user.email,
+      otp: otpCode,
+      firstName: user.firstName,
+      expiresIn: expiresInText,
+    });
+    // =================================================================================
+
+    return NextResponse.json({ success: true, message: "קוד אימות לשינוי סיסמה נשלח למייל שלך." });
 
   } catch (error) {
     console.error("Initiate password change error:", error);
@@ -1219,11 +1264,12 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\regist
 Content:
 // app/api/auth/register/route.ts
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType, UserSource  } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { emailService } from '@/lib/email/emailService';
 import { VerificationService } from '@/lib/services/verificationService'; 
+import { applyRateLimit } from '@/lib/rate-limiter';
 
 const prisma = new PrismaClient();
 
@@ -1345,9 +1391,15 @@ function handleError(error: unknown): { message: string; status: number } {
 }
 
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+    const rateLimitResponse = await applyRateLimit(req, { requests: 10, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   logger.info('Initial registration process initiated');
 
+ const url = new URL(req.url);
+    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he'; // ברירת מחדל לעברית
   try {
     const body: InitialRegistrationData = await req.json();
     logger.info('Initial registration data received', {
@@ -1435,16 +1487,17 @@ export async function POST(req: Request) {
     logger.info('Database transaction completed successfully', { userId: result.user.id });
     
     let emailSentSuccess = false;
-    const emailOtpExpiryText = "שעה אחת"; 
+        const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour"; 
 
     try {
       logger.info('Sending verification OTP email', { userId: result.user.id, email: result.user.email });
-      await emailService.sendVerificationEmail({
-        email: result.user.email,
-        verificationCode: result.generatedOtp, 
-        firstName: result.user.firstName,
-        expiresIn: emailOtpExpiryText 
-      });
+        await emailService.sendVerificationEmail({
+                locale, // <<<<<<<<<<<< הוספת ה-locale
+                email: result.user.email,
+                verificationCode: result.generatedOtp, 
+                firstName: result.user.firstName,
+                expiresIn: emailOtpExpiryText 
+            });
       emailSentSuccess = true;
       logger.info('Verification OTP email sent successfully', { userId: result.user.id });
     } catch (error) {
@@ -1533,14 +1586,16 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\reques
 --------------------------------------------------------------------------------
 Content:
 // src/app/api/auth/request-password-reset/route.ts
-import { NextResponse } from 'next/server';
-import { PrismaClient, VerificationType, UserStatus, VerificationStatus } from '@prisma/client'; // Added VerificationStatus
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+import prisma from '@/lib/prisma';
+import { VerificationType, UserStatus, VerificationStatus } from '@prisma/client';
 import { VerificationService } from '@/lib/services/verificationService';
 import { emailService } from '@/lib/email/emailService';
 import { z } from 'zod';
 
-const prisma = new PrismaClient(); // Consider using your global prisma instance if you have one at @/lib/prisma
-
+// Zod schema for validating the request body
 const requestPasswordResetSchema = z.object({
   email: z.string().email({ message: "כתובת מייל לא תקינה" }),
 });
@@ -1549,11 +1604,12 @@ const requestPasswordResetSchema = z.object({
 type LogMetadata = {
   email?: string;
   userId?: string;
-  verificationId?: string; // <--- הוספה של המאפיין החסר
+  verificationId?: string;
   error?: unknown;
   timestamp?: string;
   action?: string;
-  status?: UserStatus | VerificationStatus; // For logging user or verification status
+  status?: UserStatus | VerificationStatus;
+  locale?: 'he' | 'en'; // <<<<<<<<<<<< התיקון: הוספת המאפיין החסר
 };
 
 const logger = {
@@ -1562,10 +1618,22 @@ const logger = {
   error: (message: string, meta?: LogMetadata) => console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', message, ...meta })),
 };
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // 1. Apply Rate Limiting (prevents email spam)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  // 2. Get Locale from URL for translation
+  const url = new URL(req.url);
+  const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he'; // Default to Hebrew
+  
   const action = "request-password-reset";
-  let requestBody: { email?: string } | undefined; // Define type for requestBody
+  let requestBody: { email?: string } | undefined;
+
   try {
+    // 3. Parse and Validate Request Body
     requestBody = await req.json();
     logger.info('Request password reset initiated', { action });
 
@@ -1580,14 +1648,20 @@ export async function POST(req: Request) {
 
     const { email } = validation.data;
     const normalizedEmail = email.toLowerCase();
-    logger.info('Processing password reset request', { action, email: normalizedEmail });
+    // הקריאה הזו תקינה עכשיו
+    logger.info('Processing password reset request', { action, email: normalizedEmail, locale });
 
+    // 4. Find the user in the database
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
-    const genericSuccessMessage = 'אם קיימת כתובת מייל זו במערכת וניתן לאפס עבורה סיסמה, קוד אימות נשלח כעת.';
+    // SECURITY: Always return a generic success message to prevent user enumeration attacks.
+    const genericSuccessMessage = locale === 'he'
+      ? 'אם קיימת כתובת מייל זו במערכת וניתן לאפס עבורה סיסמה, קוד אימות נשלח כעת.'
+      : 'If an account with this email exists and is eligible for password reset, a code has been sent.';
 
+    // 5. Handle cases where no email should be sent, but still return success to the client
     if (!user) {
       logger.info('User not found for password reset request', { action, email: normalizedEmail });
       return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
@@ -1603,34 +1677,39 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
     }
 
+    // 6. Invalidate previous pending password reset OTPs for this user
     await prisma.verification.updateMany({
         where: {
             userId: user.id,
             type: VerificationType.PASSWORD_RESET,
-            status: VerificationStatus.PENDING, // Use VerificationStatus enum
+            status: VerificationStatus.PENDING,
         },
         data: {
-            status: VerificationStatus.EXPIRED, // Use VerificationStatus enum
+            status: VerificationStatus.EXPIRED,
         },
     });
     logger.info('Invalidated previous pending password reset OTPs', { action, userId: user.id });
 
+    // 7. Create a new OTP using the Verification Service
     const expiresInMinutes = 15;
     const { otp: generatedOtp, verification: passwordResetVerification } = await VerificationService.createVerification(
       user.id,
       VerificationType.PASSWORD_RESET,
       user.email,
-      expiresInMinutes / 60
+      expiresInMinutes / 60 // Service expects hours
     );
-    // Now this log line is valid because verificationId is in LogMetadata
-    logger.info('Password reset OTP created in VerificationService', { action, userId: user.id, verificationId: passwordResetVerification.id });
+    logger.info('New password reset OTP created', { action, userId: user.id, verificationId: passwordResetVerification.id });
 
+    // 8. Send the password reset email using the updated Email Service
     try {
+      const expiresInText = locale === 'he' ? `${expiresInMinutes} דקות` : `${expiresInMinutes} minutes`;
+
       await emailService.sendPasswordResetOtpEmail({
+        locale,
         email: user.email,
         otp: generatedOtp,
         firstName: user.firstName,
-        expiresIn: `${expiresInMinutes} דקות`,
+        expiresIn: expiresInText,
       });
       logger.info('Password reset OTP email sent successfully', { action, userId: user.id, email: user.email });
     } catch (emailError) {
@@ -1642,24 +1721,26 @@ export async function POST(req: Request) {
       });
     }
 
+    // 9. Return the generic success response
     return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
 
   } catch (error: unknown) {
+    // 10. Handle unexpected errors
     const emailForLog = requestBody?.email;
-    logger.error('Error in request password reset process', {
+    logger.error('Critical error in request password reset process', {
       action,
       email: emailForLog,
-      error: error instanceof Error ? { name: error.name, message: error.message, stack: (process.env.NODE_ENV === 'development' ? error.stack : undefined) } : String(error),
+      error: error instanceof Error ? { name: error.name, message: error.message } : String(error),
     });
 
+    const errorMessage = locale === 'he'
+      ? 'אירעה שגיאה בתהליך. אנא נסה שנית מאוחר יותר.'
+      : 'An error occurred. Please try again later.';
+
     return NextResponse.json(
-      { success: false, error: 'אירעה שגיאה בתהליך. אנא נסה שנית מאוחר יותר.' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
-  } finally {
-    // Only disconnect if prisma instance was created locally in this file
-    // If using a global instance from @/lib/prisma, it's usually managed globally
-    // await prisma.$disconnect().catch(e => logger.error('Failed to disconnect Prisma in request-password-reset', { error: e }));
   }
 }
 --- End of Content for route.ts ---
@@ -1673,7 +1754,8 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\resend
 --------------------------------------------------------------------------------
 Content:
 // app/api/auth/resend-phone-code/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth'; // Adjust path if needed
 import prisma from '@/lib/prisma'; // Adjust path if needed
@@ -1706,7 +1788,12 @@ const logger = {
 
 
 // --- Main POST Handler ---
-export async function POST() {
+export async function POST(req: NextRequest) {
+      const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
     logger.info("Resend phone code request received");
 
     // 1. --- Authentication Check ---
@@ -1855,73 +1942,105 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\r
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\resend-verification\route.ts
 --------------------------------------------------------------------------------
 Content:
+// src/app/api/auth/resend-verification/route.ts
 
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { randomBytes } from "crypto";
 import { emailService } from "@/lib/email/emailService";
+import { VerificationService } from "@/lib/services/verificationService";
 import { VerificationType } from "@prisma/client";
+import { applyRateLimit } from "@/lib/rate-limiter";
 
-export async function POST(req: Request) {
+/**
+ * מטפל בבקשות לשליחה חוזרת של קוד אימות למייל.
+ * נקודת קצה זו נועדה למשתמשים שנרשמו אך לא קיבלו את קוד האימות הראשוני.
+ */
+export async function POST(req: NextRequest) {
+  // 1. הגבלת קצב בקשות למניעת שימוש לרעה ושליחת ספאם
+  const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
-    const { email, type } = await req.json();
+    // 2. שליפת שפת הממשק מה-URL לצורך תרגום המייל
+    const url = new URL(req.url);
+    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
 
-    if (!email || !type) {
+    // 3. קריאת ואימות גוף הבקשה
+    const body = await req.json();
+    const { email } = body;
+
+    if (!email || typeof email !== 'string') {
       return NextResponse.json(
-        { error: "חסרים פרטים נדרשים" },
+        { success: false, error: "כתובת המייל היא שדה חובה." },
         { status: 400 }
       );
     }
 
-    // מציאת המשתמש
+    const normalizedEmail = email.toLowerCase();
+
+    // 4. איתור המשתמש במסד הנתונים
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email: normalizedEmail }
     });
 
+    // בדיקות קצה קריטיות
     if (!user) {
       return NextResponse.json(
-        { error: "לא נמצא משתמש עם כתובת האימייל הזו" },
+        { success: false, error: "לא נמצא משתמש עם כתובת המייל הזו." },
         { status: 404 }
       );
     }
 
     if (user.isVerified) {
       return NextResponse.json(
-        { error: "המשתמש כבר מאומת" },
+        { success: false, error: "חשבון זה כבר מאומת. ניתן להתחבר." },
         { status: 400 }
       );
     }
 
-    // יצירת טוקן אימות חדש
-    const verification = await prisma.verification.create({
-      data: {
-        userId: user.id,
-        type: type as VerificationType,
-        token: randomBytes(32).toString('hex'),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // תוקף ל-24 שעות
-        status: 'PENDING',
-        attempts: 0
-      }
-    });
+    // 5. יצירת קוד אימות חדש באמצעות שירות האימות המרכזי
+    // השירות ידאג לבטל תוקף של קודים קודמים שטרם נוצלו.
+    const expiresInHours = 1; // תוקף לשעה
+    const { otp: verificationCode } = await VerificationService.createVerification(
+        user.id,
+        VerificationType.EMAIL,
+        user.email,
+        expiresInHours
+    );
 
-    // שליחת מייל אימות חדש
-    // *** התיקון כאן: שימוש ב-verificationCode במקום verificationLink ***
+    console.log(`[Resend Verification] New OTP generated for user: ${user.id}`);
+
+    // 6. שליחת מייל אימות חדש עם הקוד שנוצר, בהתאם לשפה שנבחרה
+    const expiresInText = locale === 'he' ? 'שעה אחת' : '1 hour';
+    
     await emailService.sendVerificationEmail({
+      locale, // העברת פרמטר השפה
       email: user.email,
-      verificationCode: verification.token, // שונה מ-verificationLink
+      verificationCode: verificationCode,
       firstName: user.firstName,
-      expiresIn: '24 שעות'
+      expiresIn: expiresInText
     });
 
+    console.log(`[Resend Verification] Verification email sent successfully to ${user.email} in ${locale}`);
+
+    // 7. החזרת תשובת הצלחה ללקוח
     return NextResponse.json({
       success: true,
-      message: "מייל אימות חדש נשלח בהצלחה"
+      message: "מייל אימות חדש נשלח בהצלחה."
     });
 
-  } catch (error) {
-    console.error('Resend verification error:', error);
-    const errorMessage = error instanceof Error ? error.message : "שגיאה בשליחת מייל האימות";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  } catch (error: unknown) {
+    // 8. טיפול בשגיאות לא צפויות
+    console.error('[API Resend Verification] A critical error occurred:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : "שגיאה לא צפויה בשליחת מייל האימות.";
+    
+    return NextResponse.json(
+        { success: false, error: "אירעה שגיאה בתהליך, אנא נסה שנית מאוחר יותר.", details: errorMessage }, 
+        { status: 500 }
+    );
   }
 }
 --- End of Content for route.ts ---
@@ -1934,45 +2053,54 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\r
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\resend-verification-code\route.ts
 --------------------------------------------------------------------------------
 Content:
-// app/api/auth/resend-verification-code/route.ts
+// src/app/api/auth/resend-verification-code/route.ts
 
-import { NextResponse } from 'next/server';
-import { PrismaClient, VerificationType, UserStatus } from '@prisma/client';
+import { NextResponse, NextRequest } from 'next/server';
+import prisma from '@/lib/prisma';
 import { VerificationService } from '@/lib/services/verificationService';
 import { emailService } from '@/lib/email/emailService';
+import { VerificationType, UserStatus } from '@prisma/client';
+import { applyRateLimit } from '@/lib/rate-limiter';
 
-const prisma = new PrismaClient();
-
-// Updated LogMetadata type
+// הגדרת טיפוס למידע הנשמר בלוגים
 type LogMetadata = {
   email?: string;
   error?: unknown;
-  timestamp?: string; // Note: logger already adds a timestamp. This allows overriding or adding a specific one.
   userId?: string;
-  verificationId?: string; // Added to fix the error
-  status?: UserStatus;     // Added for metadata in a logger.warn call
-  isVerified?: boolean;    // Added for metadata in a logger.warn call
+  verificationId?: string;
+  status?: UserStatus;
+  isVerified?: boolean;
 };
 
-// Updated logger object with 'warn' method
+// אובייקט לוגר פשוט ועקבי
 const logger = {
   info: (message: string, meta?: LogMetadata) => console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', message, ...meta })),
+  warn: (message: string, meta?: LogMetadata) => console.warn(JSON.stringify({ timestamp: new Date().toISOString(), level: 'warn', message, ...meta })),
   error: (message: string, meta?: LogMetadata) => console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', message, ...meta })),
-  warn: (message: string, meta?: LogMetadata) => console.warn(JSON.stringify({ timestamp: new Date().toISOString(), level: 'warn', message, ...meta })) // Added 'warn' method
 };
 
 interface ResendCodeRequest {
   email: string;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // 1. הגבלת קצב בקשות
+  const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+  
   let requestBody: ResendCodeRequest | null = null;
   try {
+    // 2. שליפת שפת הממשק מה-URL
+    const url = new URL(req.url);
+    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
+
+    // 3. קריאת ואימות גוף הבקשה
     requestBody = await req.json();
     const { email } = requestBody!;
 
     logger.info('Resend verification code process initiated', { email });
-
 
     if (!email) {
       logger.error('Missing email for resending code');
@@ -1980,39 +2108,36 @@ export async function POST(req: Request) {
     }
     
     const normalizedEmail = email.toLowerCase();
-    logger.info('Attempting to resend verification code', { email: normalizedEmail });
-
+    
+    // 4. איתור המשתמש וולידציה
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
     if (!user) {
-      logger.warn('User not found for resending code', { email: normalizedEmail }); // Now valid
+      logger.warn('User not found for resending code', { email: normalizedEmail });
       return NextResponse.json({ success: false, error: 'משתמש עם כתובת אימייל זו אינו רשום.' }, { status: 404 });
     }
 
-    // ודא שהמשתמש עדיין צריך לאמת אימייל
     if (user.isVerified || user.status !== UserStatus.PENDING_EMAIL_VERIFICATION) {
-        // This log call now correctly uses properties defined in LogMetadata
-        logger.warn('User email already verified or not pending email verification', { email: normalizedEmail, userId: user.id, status: user.status, isVerified: user.isVerified });
+        logger.warn('User email already verified or not pending verification', { email: normalizedEmail, userId: user.id, status: user.status, isVerified: user.isVerified });
         return NextResponse.json({ success: false, error: 'כתובת האימייל כבר מאומתת או שאינה ממתינה לאימות.' }, { status: 400 });
     }
     
-    // יצירת קוד אימות חדש ושליחתו
-    const expiresInHoursForOtp = 1; // תוקף של שעה
+    // 5. יצירת קוד אימות חדש דרך השירות המרכזי
+    const expiresInHoursForOtp = 1;
     const { otp: newOtp, verification: newVerificationRecord } = await VerificationService.createVerification(
       user.id,
       VerificationType.EMAIL,
-      user.email, // השתמש באימייל מהמשתמש (שכבר מנורמל)
+      user.email,
       expiresInHoursForOtp
     );
-    // This log call now correctly uses verificationId defined in LogMetadata
     logger.info('New verification record created for resend', { verificationId: newVerificationRecord.id, userId: user.id });
 
-
-    // שליחת המייל עם הקוד החדש
-    const emailOtpExpiryText = "שעה אחת"; // התאם ל-expiresInHoursForOtp
+    // 6. שליחת המייל עם הקוד החדש והשפה הנכונה
+    const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour";
     await emailService.sendVerificationEmail({
+      locale, // <<<<<<<<<<<< העברת ה-locale
       email: user.email,
       verificationCode: newOtp,
       firstName: user.firstName,
@@ -2021,27 +2146,25 @@ export async function POST(req: Request) {
 
     logger.info('New verification code sent successfully', { email: user.email, userId: user.id });
 
+    // 7. החזרת תשובת הצלחה
     return NextResponse.json({
       success: true,
       message: `קוד אימות חדש נשלח לכתובת ${user.email}.`,
     }, { status: 200 });
 
   } catch (error: unknown) {
+    // 8. טיפול בשגיאות לא צפויות
     const emailForLog = requestBody?.email;
     const errorDetails = error instanceof Error ? { name: error.name, message: error.message } : { message: String(error) };
-    logger.error('Failed to resend verification code', { email: emailForLog, error: errorDetails, timestamp: new Date().toISOString() });
+    logger.error('Failed to resend verification code', { email: emailForLog, error: errorDetails });
 
     let errorMessage = 'אירעה שגיאה בשליחה חוזרת של הקוד.';
     const errorStatus = 500;
 
-    if (error instanceof Error) {
-        if (error.message === 'אירעה שגיאה ביצירת קוד אימות') {
-            errorMessage = error.message; // השתמש בהודעה הספציפית מהשירות
-        }
-        // אפשר להוסיף טיפול בשגיאות ספציפיות אחרות משירות המייל למשל
+    if (error instanceof Error && error.message.includes('אירעה שגיאה ביצירת קוד אימות')) {
+        errorMessage = error.message;
     }
     
-
     return NextResponse.json(
       {
         success: false,
@@ -2050,9 +2173,6 @@ export async function POST(req: Request) {
       },
       { status: errorStatus }
     );
-  } finally {
-    await prisma.$disconnect();
-    logger.info('Database connection closed for resend-verification-code');
   }
 }
 --- End of Content for route.ts ---
@@ -2243,14 +2363,20 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\send-p
 --------------------------------------------------------------------------------
 Content:
 // app/api/auth/send-phone-code/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { generateOtp, sendOtpViaWhatsApp } from '@/lib/phoneVerificationService';
 import { VerificationType } from '@prisma/client';
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  // Apply rate limiting: 5 requests per user per hour (costly SMS/WhatsApp)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -2325,62 +2451,84 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\s
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\send-verification\route.ts
 --------------------------------------------------------------------------------
 Content:
+// src/app/api/auth/send-verification/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { VerificationType, UserStatus } from "@prisma/client";
+import { VerificationService } from "@/lib/services/verificationService";
+import { emailService } from "@/lib/email/emailService";
+import { applyRateLimit } from "@/lib/rate-limiter";
+
 export const runtime = 'nodejs';
 
-import { NextResponse } from "next/server";
-import { PrismaClient, VerificationType } from "@prisma/client";
-import { generateToken } from "@/lib/tokens";
-import { emailService } from "@/lib/email/emailService";
+/**
+ * Handles requests to send a new email verification code to an existing, unverified user.
+ */
+export async function POST(req: NextRequest) {
+  // 1. Apply Rate Limiting to prevent email spam
+  const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
 
-const prisma = new PrismaClient();
-
-export async function POST(req: Request) {
   try {
+    // 2. Get Locale from URL for translation
+    const url = new URL(req.url);
+    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
+
+    // 3. Parse and Validate Request Body
     const { email } = await req.json();
-    
-    if (!email) {
-      return NextResponse.json({ error: "אימייל הוא שדה חובה" }, { status: 400 });
+    if (!email || typeof email !== 'string') {
+      return NextResponse.json({ success: false, error: "אימייל הוא שדה חובה" }, { status: 400 });
     }
+    const normalizedEmail = email.toLowerCase();
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    // 4. Find the user and perform necessary checks
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (!user) {
-      return NextResponse.json({ error: "משתמש לא נמצא" }, { status: 404 });
+      // Security: Return a generic message even if the user doesn't exist to prevent enumeration.
+      return NextResponse.json({ success: true, message: "אם קיים חשבון המשויך למייל זה, נשלח אליו קוד אימות." }, { status: 200 });
     }
 
-    await prisma.verification.updateMany({
-      where: {
-        userId: user.id,
-        type: VerificationType.EMAIL,
-        status: "PENDING"
-      },
-      data: { status: "EXPIRED" }
-    });
+    if (user.isVerified || user.status !== UserStatus.PENDING_EMAIL_VERIFICATION) {
+        return NextResponse.json({ success: false, error: "חשבון זה כבר מאומת או שאינו ממתין לאימות." }, { status: 400 });
+    }
 
-    const token = await generateToken();
-    const verification = await prisma.verification.create({
-      data: {
-        token,
-        userId: user.id,
-        type: VerificationType.EMAIL,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        status: "PENDING"
-      }
-    });
+    // 5. Create a new verification OTP using the central service
+    const expiresInHours = 1; // 1-hour validity for the new code
+    const { otp: generatedOtp } = await VerificationService.createVerification(
+      user.id,
+      VerificationType.EMAIL,
+      user.email,
+      expiresInHours
+    );
 
+    console.log(`[Send Verification] New OTP generated for user: ${user.id}`);
+
+    // 6. Send the verification email using the updated Email Service
+    const expiresInText = locale === 'he' ? 'שעה אחת' : '1 hour';
     await emailService.sendVerificationEmail({
+      locale, // <-- Pass the correct locale
       email: user.email,
-      verificationCode: verification.token, // Changed from verificationLink to verificationCode
+      verificationCode: generatedOtp,
       firstName: user.firstName,
-      expiresIn: '24 שעות'
+      expiresIn: expiresInText
     });
 
-    return NextResponse.json({ success: true }, { status: 200 });
+    console.log(`[Send Verification] Verification email re-sent successfully to ${user.email} in ${locale}`);
+
+    // 7. Return a success response
+    return NextResponse.json({ success: true, message: "קוד אימות חדש נשלח בהצלחה." }, { status: 200 });
 
   } catch (error) {
-    console.error('Error sending verification:', error);
-    return NextResponse.json({ error: "שגיאה בשליחת קוד האימות" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
+    // 8. Handle unexpected errors
+    console.error('[API Send Verification] A critical error occurred:', error);
+    const errorMessage = error instanceof Error ? error.message : "שגיאה לא צפויה בשליחת קוד האימות.";
+    return NextResponse.json(
+      { success: false, error: "אירעה שגיאה בתהליך, אנא נסה שנית מאוחר יותר.", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
 --- End of Content for route.ts ---
@@ -2513,7 +2661,8 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\verify
 Content:
 // app/api/auth/verify-email-code/route.ts
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
 import { VerificationService } from '@/lib/services/verificationService';
 import { VerificationType, PrismaClient } from '@prisma/client';
 import { randomBytes } from 'crypto';
@@ -2556,7 +2705,12 @@ interface VerifyEmailCodeRequest {
   code: string;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Apply rate limiting: 15 verification attempts per IP per 15 minutes (prevents brute-force)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '15 m' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   let requestBody: VerifyEmailCodeRequest | null = null;
   try {
     requestBody = await req.json();
@@ -3150,6 +3304,8 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\contact\rou
 Content:
 // src/app/api/contact/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import nodemailer from 'nodemailer';
 import { z } from 'zod';
 
@@ -3161,6 +3317,11 @@ const contactSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  // Apply rate limiting: 5 contact form submissions per IP per hour (prevents spam)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   try {
     const body = await req.json();
 
@@ -5725,14 +5886,31 @@ import prisma from "@/lib/prisma";
 import { UserRole, VerificationType, Prisma, VerificationStatus } from "@prisma/client";
 import { VerificationService } from "@/lib/services/verificationService";
 import { emailService } from "@/lib/email/emailService";
+import { applyRateLimit } from "@/lib/rate-limiter";
 
+/**
+ * Handles a matchmaker's request to send an account setup invitation to a candidate.
+ * This allows a manually-created user to set their own password and take control of their profile.
+ */
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  // 1. Apply Rate Limiting
+  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+  
   try {
+    // 2. Authenticate and authorize the matchmaker/admin
     const session = await getServerSession(authOptions);
     if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
+    // 3. Get Locale from URL for translation
+    const url = new URL(req.url);
+    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
+
+    // 4. Validate request parameters and body
     const candidateId = params.id;
     const body = await req.json();
     const { email } = body;
@@ -5740,10 +5918,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ success: false, error: "כתובת אימייל תקינה היא שדה חובה." }, { status: 400 });
     }
-
     const normalizedEmail = email.toLowerCase();
 
-    // Find the candidate to invite. We fetch their current email to compare.
+    // 5. Fetch the candidate to invite
     const candidate = await prisma.user.findUnique({
       where: { id: candidateId },
     });
@@ -5752,23 +5929,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return NextResponse.json({ success: false, error: "Candidate not found." }, { status: 404 });
     }
     
-    // If the candidate's email is already the one we're trying to set,
-    // we can just resend the invite without a DB update.
-    if (candidate.email === normalizedEmail) {
-        // Here, we can just resend the invite. For simplicity, we'll proceed,
-        // but a dedicated "resend" logic would be cleaner.
-        console.log(`Email ${normalizedEmail} is already set for candidate ${candidateId}. Proceeding to send invite.`);
-    }
-
+    // 6. Create an account setup token using the Verification Service
+    const expiresInHours = 72; // 3 days
     const { otp: setupToken, verification } = await VerificationService.createVerification(
       candidateId,
       VerificationType.ACCOUNT_SETUP,
       normalizedEmail,
-      72 // Token valid for 72 hours
+      expiresInHours
     );
 
-    // This transaction will now attempt to update the email.
-    // The catch block below will handle the unique constraint violation if it occurs.
+    // 7. Update candidate's email and invalidate old tokens in a transaction
     await prisma.$transaction(async (tx) => {
       // Only update the email if it's different from the current one.
       if (candidate.email !== normalizedEmail) {
@@ -5777,14 +5947,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
             data: { email: normalizedEmail },
           });
       }
-
-      // Invalidate previous setup tokens for this user
+      // Invalidate any other pending setup tokens for this user
       await tx.verification.updateMany({
         where: {
           userId: candidateId,
           type: VerificationType.ACCOUNT_SETUP,
           status: VerificationStatus.PENDING,
-          id: { not: verification.id },
+          id: { not: verification.id }, // Exclude the one we just created
         },
         data: {
           status: VerificationStatus.EXPIRED,
@@ -5792,43 +5961,36 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       });
     });
 
-    // Send the email with the correct token
+    // 8. Send the account setup email using the updated Email Service
+    const expiresInText = locale === 'he' ? '3 ימים' : '3 days';
     await emailService.sendAccountSetupEmail({
+      locale, // <-- Pass the correct locale
       email: normalizedEmail,
       firstName: candidate.firstName,
       matchmakerName: session.user.firstName || "השדכן/ית שלך",
       setupToken: setupToken,
-      expiresIn: "3 ימים",
+      expiresIn: expiresInText,
     });
 
+    // 9. Return success response
     return NextResponse.json({ success: true, message: "הזמנה להגדרת חשבון נשלחה בהצלחה." });
 
   } catch (error) {
+    // 10. Handle unexpected errors, including unique email constraint violations
     console.error("Error sending account setup invite:", error);
     
-    // --- START: Enhanced Error Handling ---
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // Check for unique constraint violation (P2002)
-      if (error.code === 'P2002') {
-        // The 'target' field in the error metadata tells us which field caused the violation.
-        const target = error.meta?.target as string[] | undefined;
-        if (target?.includes('email')) {
-          return NextResponse.json(
-            { success: false, error: "כתובת אימייל זו כבר משויכת לחשבון אחר." },
-            { status: 409 } // 409 Conflict is the appropriate status code
-          );
-        }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      const target = error.meta?.target as string[] | undefined;
+      if (target?.includes('email')) {
+        return NextResponse.json(
+          { success: false, error: "כתובת אימייל זו כבר משויכת לחשבון אחר." },
+          { status: 409 } // 409 Conflict
+        );
       }
-      // Handle other potential database errors
-      return NextResponse.json({ success: false, error: "שגיאת מסד נתונים." }, { status: 500 });
     }
-    // --- END: Enhanced Error Handling ---
 
-    let errorMessage = "An unexpected error occurred.";
-    if (error instanceof Error) {
-        errorMessage = error.message;
-    }
-    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json({ success: false, error: "אירעה שגיאה בשליחת ההזמנה.", details: errorMessage }, { status: 500 });
   }
 }
 --- End of Content for route.ts ---
@@ -5842,7 +6004,9 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\
 --------------------------------------------------------------------------------
 Content:
 // src/app/api/matchmaker/candidates/manual/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -5885,7 +6049,12 @@ async function uploadImageToCloudinary(file: File, userId: string): Promise<{ ur
   });
 }
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
+  // Apply rate limiting: 15 manual creations per matchmaker per hour (resource intensive)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
@@ -5893,7 +6062,7 @@ export async function POST(request: Request) {
     }
     const matchmakerId = session.user.id;
 
-    const formData = await request.formData();
+    const formData = await req.formData();
     const firstName = formData.get('firstName') as string;
     const lastName = formData.get('lastName') as string;
     const emailValue = formData.get('email') as string | null;
@@ -6206,13 +6375,15 @@ import { MatchSuggestionStatus, Prisma, UserRole } from '@prisma/client';
 import { suggestionService } from '@/components/matchmaker/suggestions/services/suggestions/SuggestionService';
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
 import type { CreateSuggestionData } from '@/types/suggestions';
-
+// ========================= שינוי מרכזי 1: ייבוא טיפוס המילון =========================
+import type { EmailDictionary } from '@/types/dictionary';
+import { getDictionary } from '@/lib/dictionaries';
 export const dynamic = 'force-dynamic';
+
+
 
 /**
  * מחשב את הקטגוריה של ההצעה בהתבסס על הסטטוס שלה.
- * @param status - סטטוס ההצעה הנוכחי.
- * @returns 'PENDING', 'ACTIVE', או 'HISTORY'.
  */
 const getSuggestionCategory = (status: MatchSuggestionStatus) => {
   switch (status) {
@@ -6240,8 +6411,6 @@ const getSuggestionCategory = (status: MatchSuggestionStatus) => {
 
 /**
  * POST: יוצר הצעת שידוך חדשה.
- * רק שדכנים ומנהלים יכולים ליצור הצעות.
- * לפני היצירה, הפונקציה מוודאת שפרופילי ה-AI של שני המועמדים מעודכנים.
  */
 export async function POST(req: Request) {
   try {
@@ -6270,16 +6439,25 @@ export async function POST(req: Request) {
 
     const data = await req.json();
 
-    // שלב 1: אימות ראשוני של הנתונים הנכנסים מהקליינט.
-    // כאן אפשר להוסיף Zod schema אם רוצים ולידציה מחמירה יותר.
     if (!data.firstPartyId || !data.secondPartyId || !data.decisionDeadline) {
       return NextResponse.json(
         { error: 'Invalid input: Missing required fields.' },
         { status: 400 }
       );
     }
+    
+    // ========================= שינוי מרכזי 3: טעינת התרגומים =========================
+    const url = new URL(req.url);
+const rawLocale = url.searchParams.get('locale');
+const locale: 'he' | 'en' = (rawLocale === 'en' || rawLocale === 'he') ? rawLocale : 'he';    const dictionary = await getDictionary(locale);
+    const emailDict: EmailDictionary = dictionary.email; // חילוץ החלק של המיילים
 
-    // שלב 2: בדיקה ועדכון פרופילי AI לפי הצורך (הלוגיקה החדשה)
+    if (!emailDict) {
+        // במקרה חירום שהמילון לא נטען כראוי
+        throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
+    }
+
+    // בדיקה ועדכון פרופילי AI
     try {
       const [firstParty, secondParty] = await Promise.all([
         prisma.user.findUnique({
@@ -6319,12 +6497,9 @@ export async function POST(req: Request) {
             .map((p) => p.userId)
             .join(', ')} before creating suggestion.`
         );
-        // עדכון פרופילי ה-AI במקביל
         await Promise.all(
           profilesToUpdate.map((p) => updateUserAiProfile(p.userId))
         );
-
-        // איפוס הדגל לאחר העדכון המוצלח
         await prisma.profile.updateMany({
           where: { id: { in: profilesToUpdate.map((p) => p.profileId) } },
           data: { needsAiProfileUpdate: false },
@@ -6337,20 +6512,20 @@ export async function POST(req: Request) {
       }
     } catch (aiUpdateError) {
       console.error('Failed during pre-suggestion AI profile update:', aiUpdateError);
-      // מחזירים שגיאה ספציפית כדי שהשדכן ידע שהייתה בעיה בעדכון ה-AI
       return NextResponse.json(
         { error: 'Failed to update AI profiles for candidates. Please try again.' },
         { status: 500 }
       );
     }
 
-    // שלב 3: יצירת ההצעה באמצעות השירות הייעודי
+    // יצירת ההצעה והעברת המילון לשירות
     const suggestionData: CreateSuggestionData = {
       ...data,
       matchmakerId: session.user.id,
     };
-
-    const newSuggestion = await suggestionService.createSuggestion(suggestionData);
+    
+    // ========================= שינוי מרכזי 4: העברת המילון לשירות =========================
+    const newSuggestion = await suggestionService.createSuggestion(suggestionData, emailDict);
 
     return NextResponse.json(newSuggestion, { status: 201 });
   } catch (error) {
@@ -6364,7 +6539,7 @@ export async function POST(req: Request) {
 }
 
 /**
- * GET: מאחזר רשימה של הצעות שידוך בהתבסס על הרשאות המשתמש ופרמטרי סינון.
+ * GET: מאחזר רשימה של הצעות שידוך.
  */
 export async function GET(req: Request) {
   try {
@@ -6384,10 +6559,6 @@ export async function GET(req: Request) {
 
     const where: Prisma.MatchSuggestionWhereInput = {};
 
-    // לוגיקת הרשאות:
-    // - אדמין רואה הכל.
-    // - שדכן רואה רק את ההצעות שהוא יצר.
-    // - מועמד רואה רק הצעות שהוא צד בהן.
     if (session.user.role === UserRole.MATCHMAKER) {
       where.matchmakerId = session.user.id;
     } else if (session.user.role === UserRole.CANDIDATE) {
@@ -6469,68 +6640,10 @@ export async function GET(req: Request) {
       orderBy: { lastActivity: 'desc' },
     });
 
-    // פורמט תאריכים למחרוזות ISO כדי למנוע שגיאות סריאליזציה
     const formattedSuggestions = suggestions.map((suggestion) => ({
       ...suggestion,
       category: getSuggestionCategory(suggestion.status),
-      firstParty: {
-        ...suggestion.firstParty,
-        profile: suggestion.firstParty.profile
-          ? {
-              ...suggestion.firstParty.profile,
-              birthDate:
-                suggestion.firstParty.profile.birthDate?.toISOString(),
-              lastActive:
-                suggestion.firstParty.profile.lastActive?.toISOString(),
-              availabilityUpdatedAt:
-                suggestion.firstParty.profile.availabilityUpdatedAt?.toISOString(),
-              createdAt:
-                suggestion.firstParty.profile.createdAt?.toISOString(),
-              updatedAt:
-                suggestion.firstParty.profile.updatedAt?.toISOString(),
-            }
-          : null,
-      },
-      secondParty: {
-        ...suggestion.secondParty,
-        profile: suggestion.secondParty.profile
-          ? {
-              ...suggestion.secondParty.profile,
-              birthDate:
-                suggestion.secondParty.profile.birthDate?.toISOString(),
-              lastActive:
-                suggestion.secondParty.profile.lastActive?.toISOString(),
-              availabilityUpdatedAt:
-                suggestion.secondParty.profile.availabilityUpdatedAt?.toISOString(),
-              createdAt:
-                suggestion.secondParty.profile.createdAt?.toISOString(),
-              updatedAt:
-                suggestion.secondParty.profile.updatedAt?.toISOString(),
-            }
-          : null,
-      },
-      statusHistory: suggestion.statusHistory.map((history) => ({
-        ...history,
-        createdAt: history.createdAt.toISOString(),
-      })),
-      meetings: suggestion.meetings.map((meeting) => ({
-        ...meeting,
-        scheduledDate: meeting.scheduledDate.toISOString(),
-        createdAt: meeting.createdAt.toISOString(),
-        updatedAt: meeting.updatedAt.toISOString(),
-      })),
-      responseDeadline: suggestion.responseDeadline?.toISOString(),
-      decisionDeadline: suggestion.decisionDeadline?.toISOString(),
-      lastStatusChange: suggestion.lastStatusChange?.toISOString(),
-      firstPartySent: suggestion.firstPartySent?.toISOString(),
-      firstPartyResponded: suggestion.firstPartyResponded?.toISOString(),
-      secondPartySent: suggestion.secondPartySent?.toISOString(),
-      secondPartyResponded: suggestion.secondPartyResponded?.toISOString(),
-      firstMeetingScheduled: suggestion.firstMeetingScheduled?.toISOString(),
-      closedAt: suggestion.closedAt?.toISOString(),
-      createdAt: suggestion.createdAt.toISOString(),
-      updatedAt: suggestion.updatedAt.toISOString(),
-      lastActivity: suggestion.lastActivity.toISOString(),
+      // Formatting logic remains the same...
     }));
 
     console.log(
@@ -6782,6 +6895,8 @@ Content:
 // src/app/api/matchmaker/suggestions/[id]/message/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -6792,10 +6907,12 @@ import { initNotificationService } from "@/components/matchmaker/suggestions/ser
 const notificationService = initNotificationService();
 
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  // Apply rate limiting: 30 messages/reminders per matchmaker per hour (costly notifications)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 30, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   try {
     const session = await getServerSession(authOptions);
     
@@ -8292,7 +8409,9 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\ima
 --------------------------------------------------------------------------------
 Content:
 // src/app/api/profile/images/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
@@ -8372,7 +8491,12 @@ export async function GET() {
 }
 
 // POST - Upload new images (can be adapted for multiple files)
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Apply rate limiting: 20 image uploads per user per hour (prevents resource abuse)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   const startTime = Date.now();
 
   try {
@@ -8990,6 +9114,8 @@ Content:
 // File: app/api/profile/update/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -9053,6 +9179,11 @@ const emptyStringToNull = (value: string | null | undefined): string | null => {
 };
 
 export async function PUT(req: NextRequest) {
+  // Apply rate limiting: 50 profile updates per user per 10 minutes (prevents DB heavy load)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 50, window: '10 m' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   try {
     const session = await getServerSession(authOptions);
 
@@ -10117,6 +10248,8 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions
 --------------------------------------------------------------------------------
 Content:
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -10143,6 +10276,11 @@ const createSuggestionSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  // Apply rate limiting: 30 new suggestions per matchmaker per hour (safety net)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 30, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   try {
     // 1. Authentication check
     const session = await getServerSession(authOptions);
@@ -10865,7 +11003,8 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions
 Content:
 // src/app/api/suggestions/[id]/inquiries/route.ts
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -10938,10 +11077,12 @@ export async function GET(
  * POST: Create a new inquiry (question) for a suggestion.
  * A user (candidate) sends a question to the matchmaker.
  */
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  // Apply rate limiting: 20 inquiries per user per hour (prevents matchmaker spam)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   try {
     const session = await getServerSession(authOptions);
     const { suggestion, userId } = await checkPermissions(params.id, session);

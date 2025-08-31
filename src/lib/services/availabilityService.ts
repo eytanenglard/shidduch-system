@@ -1,13 +1,16 @@
 // src/lib/services/availabilityService.ts
+
 import prisma from '@/lib/prisma';
 import { AvailabilityStatus, Prisma } from '@prisma/client';
 import { emailService } from '@/lib/email/emailService';
 
+// ============================ INICIO DE LA MODIFICACIÓN ============================
+// Se ha añadido 'locale' a las interfaces para que se pueda pasar a los servicios de correo electrónico.
 interface SendInquiryParams {
   matchmakerId: string;
   firstPartyId: string;
-  secondPartyId?: string;
   note?: string;
+  locale: 'he' | 'en'; // El 'locale' es ahora obligatorio.
 }
 
 interface UpdateInquiryResponse {
@@ -15,7 +18,9 @@ interface UpdateInquiryResponse {
   userId: string;
   isAvailable: boolean;
   note?: string;
+  locale: 'he' | 'en'; // El 'locale' es ahora obligatorio.
 }
+// ============================= FIN DE LA MODIFICACIÓN ==============================
 
 interface GetInquiriesOptions {
   status?: 'pending' | 'completed' | 'expired';
@@ -34,23 +39,25 @@ export class AvailabilityService {
   static async sendAvailabilityInquiry({
     matchmakerId,
     firstPartyId,
-    note
+    note,
+    locale, // Destructurar el nuevo parámetro 'locale'.
   }: SendInquiryParams) {
     try {
       console.log('Starting availability inquiry process', {
         matchmakerId,
         firstPartyId,
-        note
+        note,
+        locale,
       });
 
-      // Check for existing active inquiry
+      // Comprobar si existe una consulta activa.
       const existingInquiry = await prisma.availabilityInquiry.findFirst({
         where: {
           firstPartyId,
           expiresAt: {
-            gt: new Date()
-          }
-        }
+            gt: new Date(),
+          },
+        },
       });
 
       if (existingInquiry) {
@@ -58,7 +65,7 @@ export class AvailabilityService {
         throw new Error('קיימת כבר בקשת זמינות פעילה');
       }
 
-      // Create new inquiry
+      // Crear una nueva consulta.
       console.log('Creating new inquiry...');
       const inquiry = await prisma.availabilityInquiry.create({
         data: {
@@ -66,7 +73,7 @@ export class AvailabilityService {
           firstPartyId,
           secondPartyId: firstPartyId,
           note,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
         },
         include: {
           firstParty: {
@@ -79,10 +86,10 @@ export class AvailabilityService {
                 select: {
                   availabilityStatus: true,
                   availabilityNote: true,
-                  availabilityUpdatedAt: true
-                }
-              }
-            }
+                  availabilityUpdatedAt: true,
+                },
+              },
+            },
           },
           secondParty: {
             select: {
@@ -94,46 +101,49 @@ export class AvailabilityService {
                 select: {
                   availabilityStatus: true,
                   availabilityNote: true,
-                  availabilityUpdatedAt: true
-                }
-              }
-            }
+                  availabilityUpdatedAt: true,
+                },
+              },
+            },
           },
           matchmaker: {
             select: {
               id: true,
               firstName: true,
               lastName: true,
-              email: true
-            }
-          }
-        }
+              email: true,
+            },
+          },
+        },
       });
-      
+
       console.log('Successfully created inquiry:', inquiry);
 
-      // Send email notification
+      // Enviar notificación por correo electrónico.
       if (inquiry.firstParty.email) {
         console.log('Attempting to send email to:', inquiry.firstParty.email);
         
         try {
+          // ============================ INICIO DE LA MODIFICACIÓN ============================
+          // Pasar el 'locale' al servicio de correo electrónico.
           await emailService.sendAvailabilityCheck({
+            locale, // Pasar el 'locale' recibido.
             email: inquiry.firstParty.email,
             recipientName: `${inquiry.firstParty.firstName} ${inquiry.firstParty.lastName}`,
             matchmakerName: `${inquiry.matchmaker.firstName} ${inquiry.matchmaker.lastName}`,
-            inquiryId: inquiry.id
+            inquiryId: inquiry.id,
           });
+          // ============================= FIN DE LA MODIFICACIÓN ==============================
           console.log('Email sent successfully');
         } catch (emailError) {
           console.error('Failed to send email:', emailError);
-          // Continue even if email fails - we want the inquiry to be saved
+          // Continuar aunque el correo electrónico falle; queremos que la consulta se guarde.
         }
       } else {
         console.warn('No email found for first party');
       }
 
       return inquiry;
-
     } catch (error) {
       console.error('Error in sendAvailabilityInquiry:', error);
       throw error;
@@ -144,17 +154,19 @@ export class AvailabilityService {
     inquiryId,
     userId,
     isAvailable,
-    note
+    note,
+    locale, // Destructurar el nuevo parámetro 'locale'.
   }: UpdateInquiryResponse) {
     try {
       console.log('Starting to update inquiry response:', {
         inquiryId,
         userId,
         isAvailable,
-        note
+        note,
+        locale
       });
 
-      // Check if inquiry exists
+      // Comprobar si la consulta existe.
       const inquiry = await prisma.availabilityInquiry.findUnique({
         where: { id: inquiryId },
         include: {
@@ -163,25 +175,25 @@ export class AvailabilityService {
               firstName: true,
               lastName: true,
               email: true,
-              profile: true
-            }
+              profile: true,
+            },
           },
           secondParty: {
             select: {
               firstName: true,
               lastName: true,
               email: true,
-              profile: true
-            }
+              profile: true,
+            },
           },
           matchmaker: {
             select: {
               firstName: true,
               lastName: true,
-              email: true
-            }
-          }
-        }
+              email: true,
+            },
+          },
+        },
       });
 
       if (!inquiry) {
@@ -204,26 +216,30 @@ export class AvailabilityService {
         throw new Error('אין הרשאה לעדכן בקשה זו');
       }
 
-      // Update both inquiry and profile in a transaction
+      // Actualizar tanto la consulta como el perfil en una transacción.
       console.log('Updating inquiry and profile...');
       const result = await prisma.$transaction(async (tx) => {
-        // Update user's profile
+        // Actualizar el perfil del usuario.
         const updatedProfile = await tx.profile.update({
           where: { userId },
           data: {
-            availabilityStatus: isAvailable ? AvailabilityStatus.AVAILABLE : AvailabilityStatus.UNAVAILABLE,
+            availabilityStatus: isAvailable
+              ? AvailabilityStatus.AVAILABLE
+              : AvailabilityStatus.UNAVAILABLE,
             availabilityNote: note,
-            availabilityUpdatedAt: new Date()
-          }
+            availabilityUpdatedAt: new Date(),
+          },
         });
         console.log('Profile updated:', updatedProfile);
 
-        // Update the inquiry
+        // Actualizar la consulta.
         const updatedInquiry = await tx.availabilityInquiry.update({
           where: { id: inquiryId },
           data: {
-            ...(isFirstParty ? { firstPartyResponse: isAvailable } : { secondPartyResponse: isAvailable }),
-            updatedAt: new Date()
+            ...(isFirstParty
+              ? { firstPartyResponse: isAvailable }
+              : { secondPartyResponse: isAvailable }),
+            updatedAt: new Date(),
           },
           include: {
             firstParty: {
@@ -231,45 +247,52 @@ export class AvailabilityService {
                 firstName: true,
                 lastName: true,
                 email: true,
-                profile: true
-              }
+                profile: true,
+              },
             },
             secondParty: {
               select: {
                 firstName: true,
                 lastName: true,
                 email: true,
-                profile: true
-              }
+                profile: true,
+              },
             },
             matchmaker: {
               select: {
                 firstName: true,
                 lastName: true,
-                email: true
-              }
-            }
-          }
+                email: true,
+              },
+            },
+          },
         });
         console.log('Inquiry updated:', updatedInquiry);
 
-        // Send notification to matchmaker
+        // Enviar notificación al matchmaker.
         if (inquiry.matchmaker.email) {
+          // ============================ INICIO DE LA MODIFICACIÓN ============================
+          // Pasar el 'locale' al servicio de correo electrónico.
           await emailService.sendSuggestionNotification({
+            locale, // Pasar el 'locale' recibido.
             email: inquiry.matchmaker.email,
             recipientName: `${inquiry.matchmaker.firstName} ${inquiry.matchmaker.lastName}`,
-            matchmakerName: "המערכת",
+            matchmakerName: 'המערכת',
             suggestionDetails: {
-              additionalInfo: `${isFirstParty ? 'הצד הראשון' : 'הצד השני'} ${isAvailable ? 'זמין' : 'אינו זמין'} ${note ? `(הערה: ${note})` : ''}`
-            }
+              additionalInfo: `${
+                isFirstParty ? 'הצד הראשון' : 'הצד השני'
+              } ${isAvailable ? 'זמין' : 'אינו זמין'} ${
+                note ? `(הערה: ${note})` : ''
+              }`,
+            },
           });
+          // ============================= FIN DE LA MODIFICACIÓN ==============================
         }
 
         return updatedInquiry;
       });
 
       return result;
-
     } catch (error) {
       console.error('Error in updateInquiryResponse:', error);
       throw error;
@@ -291,10 +314,10 @@ export class AvailabilityService {
                 select: {
                   availabilityStatus: true,
                   availabilityNote: true,
-                  availabilityUpdatedAt: true
-                }
-              }
-            }
+                  availabilityUpdatedAt: true,
+                },
+              },
+            },
           },
           secondParty: {
             select: {
@@ -305,19 +328,19 @@ export class AvailabilityService {
                 select: {
                   availabilityStatus: true,
                   availabilityNote: true,
-                  availabilityUpdatedAt: true
-                }
-              }
-            }
+                  availabilityUpdatedAt: true,
+                },
+              },
+            },
           },
           matchmaker: {
             select: {
               firstName: true,
               lastName: true,
-              email: true
-            }
-          }
-        }
+              email: true,
+            },
+          },
+        },
       });
 
       if (!inquiry) {
@@ -327,14 +350,15 @@ export class AvailabilityService {
 
       console.log('Found inquiry:', inquiry);
       return inquiry;
-
     } catch (error) {
       console.error('Error in getInquiryById:', error);
       throw error;
     }
   }
 
-  static async getAvailabilityStats(matchmakerId: string): Promise<AvailabilityStats> {
+  static async getAvailabilityStats(
+    matchmakerId: string
+  ): Promise<AvailabilityStats> {
     console.log('Calculating availability stats for matchmaker:', matchmakerId);
     try {
       const stats = await prisma.profile.groupBy({
@@ -343,25 +367,31 @@ export class AvailabilityService {
           user: {
             OR: [
               { firstPartyInquiries: { some: { matchmakerId } } },
-              { secondPartyInquiries: { some: { matchmakerId } } }
-            ]
-          }
+              { secondPartyInquiries: { some: { matchmakerId } } },
+            ],
+          },
         },
-        _count: true
+        _count: true,
       });
 
       console.log('Raw stats:', stats);
 
-      const result = {
-        available: stats.find(s => s.availabilityStatus === AvailabilityStatus.AVAILABLE)?._count || 0,
-        unavailable: stats.find(s => s.availabilityStatus === AvailabilityStatus.UNAVAILABLE)?._count || 0,
-        dating: stats.find(s => s.availabilityStatus === AvailabilityStatus.DATING)?._count || 0,
-        pending: stats.find(s => s.availabilityStatus === null)?._count || 0
+      const result: AvailabilityStats = {
+        available:
+          stats.find((s) => s.availabilityStatus === AvailabilityStatus.AVAILABLE)
+            ?._count || 0,
+        unavailable:
+          stats.find(
+            (s) => s.availabilityStatus === AvailabilityStatus.UNAVAILABLE
+          )?._count || 0,
+        dating:
+          stats.find((s) => s.availabilityStatus === AvailabilityStatus.DATING)
+            ?._count || 0,
+        pending: stats.find((s) => s.availabilityStatus === null)?._count || 0,
       };
 
       console.log('Processed stats:', result);
       return result;
-
     } catch (error) {
       console.error('Error in getAvailabilityStats:', error);
       throw error;
@@ -373,27 +403,27 @@ export class AvailabilityService {
     { status = 'pending', orderBy = 'createdAt', limit }: GetInquiriesOptions = {}
   ) {
     try {
-      // Build the where clause based on status
+      // Construir la cláusula 'where' basada en el estado.
       const where: Prisma.AvailabilityInquiryWhereInput = {
         OR: [
           { matchmakerId: userId },
           { firstPartyId: userId },
-          { secondPartyId: userId }
+          { secondPartyId: userId },
         ],
         ...(status === 'pending' && {
           expiresAt: { gt: new Date() },
           OR: [
             { firstPartyResponse: null },
-            { secondPartyResponse: null }
-          ]
+            { secondPartyResponse: null },
+          ],
         }),
         ...(status === 'completed' && {
           firstPartyResponse: { not: null },
-          secondPartyResponse: { not: null }
+          secondPartyResponse: { not: null },
         }),
         ...(status === 'expired' && {
-          expiresAt: { lt: new Date() }
-        })
+          expiresAt: { lt: new Date() },
+        }),
       };
 
       const validOrderBy = orderBy || 'createdAt';
@@ -410,10 +440,10 @@ export class AvailabilityService {
                 select: {
                   availabilityStatus: true,
                   availabilityNote: true,
-                  availabilityUpdatedAt: true
-                }
-              }
-            }
+                  availabilityUpdatedAt: true,
+                },
+              },
+            },
           },
           secondParty: {
             select: {
@@ -424,27 +454,26 @@ export class AvailabilityService {
                 select: {
                   availabilityStatus: true,
                   availabilityNote: true,
-                  availabilityUpdatedAt: true
-                }
-              }
-            }
+                  availabilityUpdatedAt: true,
+                },
+              },
+            },
           },
           matchmaker: {
             select: {
               firstName: true,
               lastName: true,
-              email: true
-            }
-          }
+              email: true,
+            },
+          },
         },
         orderBy: {
-          [validOrderBy]: 'desc'
+          [validOrderBy]: 'desc',
         },
-        ...(limit ? { take: limit } : {})
+        ...(limit ? { take: limit } : {}),
       });
 
       return inquiries;
-
     } catch (error) {
       console.error('Error in getAllInquiries:', error);
       throw error;
