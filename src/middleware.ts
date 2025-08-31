@@ -1,19 +1,15 @@
-// src/middleware.ts - VERSION WITH FULL MANUAL CONTROL
+// src/middleware.ts - VERSION WITH FULL LOGGING
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt'; // The key to getting session on the server
-
-// --- START: I18N Imports & Config ---
+import { getToken } from 'next-auth/jwt';
 import { i18n, type Locale } from '../i18n-config';
 import { match as matchLocale } from '@formatjs/intl-localematcher';
 import Negotiator from 'negotiator';
-// --- END: I18N Imports & Config ---
 
-// --- START: Path Definitions ---
-// נתיבים ציבוריים לחלוטין, לא דורשים שום אימות
+// --- Path Definitions ---
 const PUBLIC_PATHS = [
-  '/', // דף הבית
+  '/',
   '/auth/signin',
   '/auth/register',
   '/auth/forgot-password',
@@ -25,20 +21,15 @@ const PUBLIC_PATHS = [
   '/contact',
 ];
 
-// נתיבים שדורשים אימות, אבל מותרים גם אם הפרופיל לא הושלם
-const AUTHENTICATED_INCOMPLETE_ALLOWED_PATHS = [
-    '/auth/register', // <-- הוסף את השורה הזו
-
+// נתיבים שחיוניים להשלמת פרופיל, גם אם המשתמש כבר מחובר
+const SETUP_PATHS = [
+  '/auth/register', // המשתמש מופנה לכאן להשלמת פרופיל
   '/auth/setup-account',
   '/auth/verify-phone',
   '/auth/update-phone',
-  '/settings', // הגדרות כלליות כמו מחיקת חשבון
 ];
 
-// --- END: Path Definitions ---
-const PUBLIC_API_PATHS = [
-  '/api/feedback' // הנתיב החדש שלנו
-];
+const PUBLIC_API_PATHS = ['/api/feedback'];
 
 // --- I18N Locale Detection Function ---
 function getLocale(request: NextRequest): Locale {
@@ -51,18 +42,26 @@ function getLocale(request: NextRequest): Locale {
 
 // --- Main Middleware Logic ---
 export async function middleware(req: NextRequest) {
-  const pathname = req.nextUrl.pathname;
-  const secret = process.env.NEXTAUTH_SECRET;
+  // ====================== LOGGING START: Entry Point ======================
+  console.log(`\n\n=========================================================`);
+  console.log(`--- [Middleware] New Request Received ---`);
+  console.log(`Timestamp: ${new Date().toISOString()}`);
+  console.log(`➡️  Incoming Full URL: ${req.url}`);
+  // ======================= LOGGING END =======================
+
+  const { pathname } = req.nextUrl;
 
   // 1. התעלם מנכסים סטטיים ומנתיבי API פנימיים
   if (
-    pathname.startsWith('/api/') || // נטפל ב-API בנפרד אם צריך
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/assets/') ||
     pathname.startsWith('/images/') ||
-    pathname.includes('/favicon.ico')||
-    PUBLIC_API_PATHS.some(path => pathname.startsWith(path)) 
+    pathname.includes('/favicon.ico') ||
+    PUBLIC_API_PATHS.some(path => pathname.startsWith(path)) ||
+    pathname.startsWith('/api/')
   ) {
+    console.log(`[Middleware] Path is a static asset or internal API route. Skipping auth logic.`);
+    console.log(`=========================================================\n`);
     return NextResponse.next();
   }
 
@@ -71,73 +70,98 @@ export async function middleware(req: NextRequest) {
     (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
   );
 
+  // ====================== LOGGING START: Locale Check ======================
+  console.log(`   Pathname being checked: ${pathname}`);
+  console.log(`   Is Pathname Missing Locale?: ${pathnameIsMissingLocale}`);
+  // ======================= LOGGING END =======================
+
   if (pathnameIsMissingLocale) {
     const locale = getLocale(req);
-    return NextResponse.redirect(new URL(`/${locale}${pathname.startsWith('/') ? '' : '/'}${pathname}`, req.url));
+    const newUrl = new URL(`/${locale}${pathname.startsWith('/') ? '' : '/'}${pathname}`, req.url);
+
+    // ====================== LOGGING START: Redirecting for Locale ======================
+    console.error(`❌ [Middleware] Pathname is missing locale. REDIRECTING NOW.`);
+    console.error(`   Detected browser/header locale preference: ${locale}`);
+    console.error(`   Redirecting from "${pathname}" to: ${newUrl.toString()}`);
+    console.log(`=========================================================\n`);
+    // ======================= LOGGING END =======================
+
+    return NextResponse.redirect(newUrl);
   }
 
-  // 3. חילוץ השפה הנוכחית והנתיב ללא שפה
+  // 3. חילוץ פרטי הנתיב והסשן
   const currentLocale = (pathname.split('/')[1] as Locale) || i18n.defaultLocale;
   const pathWithoutLocale = pathname.replace(`/${currentLocale}`, '') || '/';
-
-  // 4. קבלת הטוקן (הסשן) של המשתמש בצד השרת
-  const token = await getToken({ req, secret });
-
-  const isUserLoggedIn = !!token;
-  const isAuthPage = pathWithoutLocale.startsWith('/auth');
-
-  // 5. לוגיקת הרשאות
-// src/middleware.ts - בלוק קוד מתוקן
-
-if (isAuthPage) {
-    if (isUserLoggedIn) {
-        // בדוק אם הנתיב הנוכחי הוא אחד מהנתיבים המותרים להשלמת פרופיל
-        const isAllowedSetupPath = AUTHENTICATED_INCOMPLETE_ALLOWED_PATHS.includes(pathWithoutLocale);
-
-        // אם המשתמש נמצא בנתיב שנועד להשלמת פרופיל, אל תפריע לו.
-        if (isAllowedSetupPath) {
-            return NextResponse.next();
-        }
-
-        // אם המשתמש מחובר ונמצא בדף auth אחר (כמו signin/register), הפנה אותו פנימה.
-        return NextResponse.redirect(new URL(`/${currentLocale}/profile`, req.url));
-    }
-    // אם המשתמש לא מחובר, אפשר לו לגשת לכל דף auth.
-    return NextResponse.next();
-}
   
-  // אם הנתיב דורש אימות והמשתמש לא מחובר
-  const isPublic = PUBLIC_PATHS.includes(pathWithoutLocale);
-  if (!isPublic && !isUserLoggedIn) {
-      const signInUrl = new URL(`/${currentLocale}/auth/signin`, req.url);
-      // שמירת הנתיב המקורי כדי לחזור אליו אחרי התחברות
-      signInUrl.searchParams.set('callbackUrl', req.url);
-      return NextResponse.redirect(signInUrl);
-  }
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const isUserLoggedIn = !!token;
+  
+  const isProfileConsideredComplete = !!token?.isProfileComplete && !!token?.isPhoneVerified;
 
-  // אם המשתמש מחובר, בדוק אם הפרופיל שלו שלם
+  // ====================== LOGGING START: Context Analysis ======================
+  console.log(`   Detected Locale from URL: ${currentLocale}`);
+  console.log(`   Path without Locale: ${pathWithoutLocale}`);
+  console.log(`   Is User Logged In?: ${isUserLoggedIn}`);
+  if (token) {
+    console.log(`   User ID from token: ${token.id}`);
+  }
+  console.log(`   Is Profile Considered Complete?: ${isProfileConsideredComplete}`);
+  // ======================= LOGGING END =======================
+
+  // 4. לוגיקת הרשאות מאוחדת
+  const isPublicPath = PUBLIC_PATHS.includes(pathWithoutLocale);
+  const isSetupPath = SETUP_PATHS.includes(pathWithoutLocale);
+
+  // ====================== LOGGING START: Path Classification ======================
+  console.log(`   Is Public Path?: ${isPublicPath}`);
+  console.log(`   Is Setup Path?: ${isSetupPath}`);
+  // ======================= LOGGING END =======================
+
+  // --- תרחיש 1: המשתמש מחובר ---
   if (isUserLoggedIn) {
-      // כאן ניתן להוסיף את הלוגיקה שלך לבדיקת שלמות הפרופיל מהטוקן
-      const isProfileComplete = token.isProfileComplete && token.isPhoneVerified; // לדוגמה
+    console.log(`[Middleware] Evaluating rules for LOGGED-IN user...`);
+    // אם הפרופיל שלו שלם והוא מנסה לגשת לדף התחברות/הרשמה
+    if (isProfileConsideredComplete && (pathWithoutLocale.startsWith('/auth/signin') || pathWithoutLocale.startsWith('/auth/register'))) {
+      const redirectUrl = new URL(`/${currentLocale}/profile`, req.url);
+      console.warn(`[Middleware] Logged-in user with complete profile is on auth page. Redirecting to profile.`);
+      console.warn(`   Redirecting to: ${redirectUrl.toString()}`);
+      console.log(`=========================================================\n`);
+      return NextResponse.redirect(redirectUrl);
+    }
 
-      const isAllowedForIncomplete = AUTHENTICATED_INCOMPLETE_ALLOWED_PATHS.includes(pathWithoutLocale);
-
-      // אם הפרופיל לא שלם והוא מנסה לגשת לעמוד שלא מורשה לו
-// src/middleware.ts - קוד מתוקן
-
-// אם הפרופיל לא שלם והוא מנסה לגשת לעמוד שלא מורשה לו
-if (!isProfileComplete && !isAllowedForIncomplete && !isPublic) {
-    // הפנה אותו לדף השלמת הפרופיל (שהוא דף ההרשמה במצב מחובר)
-    const registerUrl = new URL(`/${currentLocale}/auth/register`, req.url); // <-- שינוי כאן
-    registerUrl.searchParams.set('reason', 'incomplete_profile');
-    return NextResponse.redirect(registerUrl);
-}
+    // אם הפרופיל שלו *לא* שלם והוא מנסה לגשת לדף שאינו ציבורי ואינו חלק מתהליך ההרשמה
+    if (!isProfileConsideredComplete && !isPublicPath && !isSetupPath) {
+      const setupUrl = new URL(`/${currentLocale}/auth/register`, req.url);
+      setupUrl.searchParams.set('reason', 'complete_profile');
+      console.warn(`[Middleware] Logged-in user with INCOMPLETE profile is on a protected page. Redirecting to complete profile.`);
+      console.warn(`   Redirecting to: ${setupUrl.toString()}`);
+      console.log(`=========================================================\n`);
+      return NextResponse.redirect(setupUrl);
+    }
+    
+    console.log(`[Middleware] Logged-in user access granted to "${pathname}".`);
+  }
+  // --- תרחיש 2: המשתמש *לא* מחובר ---
+  else { // isUserLoggedIn is false
+    console.log(`[Middleware] Evaluating rules for GUEST user...`);
+    // אם הוא מנסה לגשת לדף שאינו ציבורי
+    if (!isPublicPath) {
+      const signInUrl = new URL(`/${currentLocale}/auth/signin`, req.url);
+      signInUrl.searchParams.set('callbackUrl', req.nextUrl.pathname);
+      console.warn(`[Middleware] Guest user trying to access a protected page. Redirecting to sign-in.`);
+      console.warn(`   Redirecting to: ${signInUrl.toString()}`);
+      console.log(`=========================================================\n`);
+      return NextResponse.redirect(signInUrl);
+    }
+    
+    console.log(`[Middleware] Guest user access granted to public page "${pathname}".`);
   }
 
-  // אם כל הבדיקות עברו, אפשר למשתמש להמשיך
+  // ברירת מחדל אחרונה - אם שום כלל לא עצר את הבקשה
+  console.log(`✅ [Middleware] All checks passed. Allowing request to continue to its destination.`);
+  console.log(`=========================================================\n`);
   return NextResponse.next();
 }
-
 
 // הגדרת ה-matcher נשארת זהה
 export const config = {
@@ -145,4 +169,3 @@ export const config = {
     '/((?!api|_next/static|_next/image|assets|images|favicon.ico|sw.js|site.webmanifest).*)',
   ],
 };
-

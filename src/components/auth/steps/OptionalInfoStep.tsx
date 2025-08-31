@@ -19,16 +19,20 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
-// ייבוא הרכיב המשופר והטיפוס שלו
 import SubmissionStatusIndicator, {
   SubmissionStatus,
 } from './SubmissionStatusIndicator';
 
+// הממשק המלא של ה-props
 interface OptionalInfoStepProps {
   dict: RegisterStepsDict['steps']['optionalInfo'];
+  locale: 'he' | 'en';
 }
 
-const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({ dict }) => {
+const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
+  dict,
+  locale,
+}) => {
   const { data, updateField, prevStep } = useRegistration();
   const router = useRouter();
   const { update: updateSessionHook } = useSession();
@@ -85,12 +89,41 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({ dict }) => {
         throw new Error(errorData.error || dict.errors.default);
       }
 
-      // שלב הסיום החדש
       setSubmissionStatus('allDone');
 
-      // השהיה מבוקרת למעבר חלק
       setTimeout(() => {
-        router.push('/auth/verify-phone');
+        // ====================== LOGGING START: Client-Side Navigation ======================
+        console.log(
+          `\n\n=========================================================`
+        );
+        console.log(`--- [Client-Side | OptionalInfoStep] ---`);
+        console.log(`Timestamp: ${new Date().toISOString()}`);
+        console.log(
+          `➡️  Preparing to navigate after completing optional info.`
+        );
+
+        // בדיקה קריטית של ה-locale שהתקבל כ-prop
+        console.log(`   Value of 'locale' prop received: "${locale}"`);
+
+        if (!locale || (locale !== 'he' && locale !== 'en')) {
+          console.error(
+            `❌ CRITICAL ERROR: The 'locale' prop is invalid or undefined! Value: "${locale}". This will cause a redirect loop or incorrect language.`
+          );
+          console.log(
+            `   This error originates from how this component is rendered by its parent (RegisterClient.tsx).`
+          );
+        }
+
+        const targetUrl = `/${locale}/auth/verify-phone`;
+
+        console.log(`   Constructed Target URL: "${targetUrl}"`);
+        console.log(`   Executing: router.push("${targetUrl}")`);
+        console.log(
+          `=========================================================\n`
+        );
+        // ======================= LOGGING END =======================
+
+        router.push(targetUrl);
       }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.errors.default);

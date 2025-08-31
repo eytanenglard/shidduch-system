@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-08-31 23:29:09
+# Generated on: 2025-09-01 00:08:22
 ################################################################################
 
 ================================================================================
@@ -2870,16 +2870,21 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
-// ייבוא הרכיב המשופר והטיפוס שלו
 import SubmissionStatusIndicator, {
   SubmissionStatus,
 } from './SubmissionStatusIndicator';
 
+// 1. עדכן את הממשק כדי שיקבל את locale
 interface OptionalInfoStepProps {
   dict: RegisterStepsDict['steps']['optionalInfo'];
+  locale: 'he' | 'en';
 }
 
-const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({ dict }) => {
+// 2. קבל את locale מה-props
+const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
+  dict,
+  locale,
+}) => {
   const { data, updateField, prevStep } = useRegistration();
   const router = useRouter();
   const { update: updateSessionHook } = useSession();
@@ -2936,12 +2941,11 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({ dict }) => {
         throw new Error(errorData.error || dict.errors.default);
       }
 
-      // שלב הסיום החדש
       setSubmissionStatus('allDone');
 
-      // השהיה מבוקרת למעבר חלק
       setTimeout(() => {
-        router.push('/auth/verify-phone');
+        // 3. השתמש ב-locale כדי לבנות את הנתיב המלא
+        router.push(`/${locale}/auth/verify-phone`);
       }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.errors.default);
@@ -2949,6 +2953,7 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({ dict }) => {
     }
   };
 
+  // ... שאר הקוד של הקומפוננטה וה-JSX נשארים זהים לחלוטין ...
   const isSubmitting =
     submissionStatus !== 'idle' && submissionStatus !== 'error';
 
@@ -3600,12 +3605,14 @@ import { Heart, ArrowLeft, Mail, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
-// הגדרת טיפוס ה-props כדי להבטיח Type Safety
+// 1. הרחבת הממשק
 interface WelcomeStepProps {
   dict: RegisterStepsDict['steps']['welcome'];
+  locale: 'he' | 'en';
 }
 
-const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict }) => {
+// 2. קבלת locale מה-props
+const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
   const { nextStep } = useRegistration();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -3613,7 +3620,8 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict }) => {
     try {
       setIsGoogleLoading(true);
       localStorage.setItem('registration_started', 'true');
-      await signIn('google');
+      // 3. הוספת פרמטר השפה לקריאה
+      await signIn('google', undefined, { hl: locale });
     } catch (error) {
       console.error('Google sign-in error:', error);
       setIsGoogleLoading(false);
@@ -3624,6 +3632,7 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict }) => {
     nextStep();
   };
 
+  // ... (JSX נשאר ללא שינוי) ...
   return (
     <div className="space-y-6 text-center">
       <div className="flex justify-center mb-4">

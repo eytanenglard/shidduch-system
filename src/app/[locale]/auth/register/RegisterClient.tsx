@@ -33,7 +33,10 @@ interface RegisterClientProps {
  * רכיב התוכן הפנימי המכיל את הלוגיקה המרכזית של תהליך ההרשמה.
  * גם הוא מקבל את המילון והשפה.
  */
-const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict; locale: 'he' | 'en' }> = ({
+const RegisterStepsContent: React.FC<{
+  dict: RegisterStepsDict;
+  locale: 'he' | 'en';
+}> = ({
   dict,
   locale, // קבלת locale
 }) => {
@@ -138,7 +141,12 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict; locale: 'he' | '
       registrationContextData.isVerifyingEmailCode &&
       !registrationContextData.isCompletingProfile
     ) {
-      return <EmailVerificationCodeStep dict={dict.steps.emailVerification} locale={locale} />;
+      return (
+        <EmailVerificationCodeStep
+          dict={dict.steps.emailVerification}
+          locale={locale}
+        />
+      );
     }
 
     // שלבי השלמת פרופיל (לאחר התחברות ראשונית)
@@ -152,30 +160,33 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict; locale: 'he' | '
             />
           );
         case 3:
-          return <OptionalInfoStep dict={dict.steps.optionalInfo} />;
+          return (
+            <OptionalInfoStep dict={dict.steps.optionalInfo} locale={locale} />
+          );
         case 4:
           return <CompleteStep dict={dict.steps.complete} />;
         default:
           resetForm();
-          return <WelcomeStep dict={dict.steps.welcome} />;
+          return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
       }
     }
 
     // שלבי הרשמה ראשונית
     switch (registrationContextData.step) {
       case 0:
-        return <WelcomeStep dict={dict.steps.welcome} />;
+        // נעביר את locale כ-prop לרכיב WelcomeStep
+        return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
       case 1:
         return (
           <BasicInfoStep
             dict={dict.steps.basicInfo}
             consentDict={dict.consentCheckbox}
-            locale={locale} // <<<<<<<<<<<< העברת ה-locale לשלב זה
+            locale={locale}
           />
         );
       default:
         resetForm();
-        return <WelcomeStep dict={dict.steps.welcome} />;
+        return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
     }
   };
 

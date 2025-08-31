@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth
-# Generated on: 2025-08-31 23:28:55
+# Generated on: 2025-09-01 00:08:02
 ################################################################################
 
 ================================================================================
@@ -342,7 +342,10 @@ interface RegisterClientProps {
  * רכיב התוכן הפנימי המכיל את הלוגיקה המרכזית של תהליך ההרשמה.
  * גם הוא מקבל את המילון והשפה.
  */
-const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict; locale: 'he' | 'en' }> = ({
+const RegisterStepsContent: React.FC<{
+  dict: RegisterStepsDict;
+  locale: 'he' | 'en';
+}> = ({
   dict,
   locale, // קבלת locale
 }) => {
@@ -447,7 +450,12 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict; locale: 'he' | '
       registrationContextData.isVerifyingEmailCode &&
       !registrationContextData.isCompletingProfile
     ) {
-      return <EmailVerificationCodeStep dict={dict.steps.emailVerification} locale={locale} />;
+      return (
+        <EmailVerificationCodeStep
+          dict={dict.steps.emailVerification}
+          locale={locale}
+        />
+      );
     }
 
     // שלבי השלמת פרופיל (לאחר התחברות ראשונית)
@@ -461,30 +469,33 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict; locale: 'he' | '
             />
           );
         case 3:
-          return <OptionalInfoStep dict={dict.steps.optionalInfo} />;
+          return (
+            <OptionalInfoStep dict={dict.steps.optionalInfo} locale={locale} />
+          );
         case 4:
           return <CompleteStep dict={dict.steps.complete} />;
         default:
           resetForm();
-          return <WelcomeStep dict={dict.steps.welcome} />;
+          return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
       }
     }
 
     // שלבי הרשמה ראשונית
     switch (registrationContextData.step) {
       case 0:
-        return <WelcomeStep dict={dict.steps.welcome} />;
+        // נעביר את locale כ-prop לרכיב WelcomeStep
+        return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
       case 1:
         return (
           <BasicInfoStep
             dict={dict.steps.basicInfo}
             consentDict={dict.consentCheckbox}
-            locale={locale} // <<<<<<<<<<<< העברת ה-locale לשלב זה
+            locale={locale}
           />
         );
       default:
         resetForm();
-        return <WelcomeStep dict={dict.steps.welcome} />;
+        return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
     }
   };
 
@@ -1227,11 +1238,14 @@ import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import type { SignInDict } from '@/types/dictionaries/auth';
 
+// 1. הרחבת הממשק לקבלת locale
 interface SignInClientProps {
   dict: SignInDict;
+  locale: 'he' | 'en';
 }
 
-export default function SignInClient({ dict }: SignInClientProps) {
+// 2. קבלת locale מה-props
+export default function SignInClient({ dict, locale }: SignInClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
@@ -1242,6 +1256,7 @@ export default function SignInClient({ dict }: SignInClientProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
+  // ... (useEffect hooks נשארים ללא שינוי) ...
   useEffect(() => {
     if (status === 'authenticated') {
       // @ts-ignore
@@ -1293,9 +1308,14 @@ export default function SignInClient({ dict }: SignInClientProps) {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     setError('');
-    await signIn('google');
+
+    // 3. הוספת פרמטר השפה לקריאה
+    // הפרמטר השלישי של signIn מאפשר להעביר פרמטרים נוספים לבקשת האימות.
+    // גוגל משתמש בפרמטר 'hl' (Host Language) כדי לקבוע את שפת הממשק.
+    await signIn('google', undefined, { hl: locale });
   };
 
+  // ... (כל שאר ה-JSX נשאר ללא שינוי) ...
   if (status === 'loading' || status === 'authenticated') {
     return (
       <div
@@ -1492,7 +1512,7 @@ import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
-import SignInClient from './SignInClient'; // רכיב הלקוח החדש
+import SignInClient from './SignInClient';
 
 function Loading() {
   return (
@@ -1512,7 +1532,8 @@ export default async function SignInPage({
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
       <Suspense fallback={<Loading />}>
-        <SignInClient dict={dictionary.auth.signIn} />
+        {/* הוספנו את locale={locale} כ-prop */}
+        <SignInClient dict={dictionary.auth.signIn} locale={locale} />
       </Suspense>
     </div>
   );

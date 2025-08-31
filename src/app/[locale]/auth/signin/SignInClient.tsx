@@ -10,11 +10,14 @@ import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import type { SignInDict } from '@/types/dictionaries/auth';
 
+// 1. הרחבת הממשק לקבלת locale
 interface SignInClientProps {
   dict: SignInDict;
+  locale: 'he' | 'en';
 }
 
-export default function SignInClient({ dict }: SignInClientProps) {
+// 2. קבלת locale מה-props
+export default function SignInClient({ dict, locale }: SignInClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
@@ -25,6 +28,7 @@ export default function SignInClient({ dict }: SignInClientProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
+  // ... (useEffect hooks נשארים ללא שינוי) ...
   useEffect(() => {
     if (status === 'authenticated') {
       // @ts-ignore
@@ -76,9 +80,14 @@ export default function SignInClient({ dict }: SignInClientProps) {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     setError('');
-    await signIn('google');
+
+    // 3. הוספת פרמטר השפה לקריאה
+    // הפרמטר השלישי של signIn מאפשר להעביר פרמטרים נוספים לבקשת האימות.
+    // גוגל משתמש בפרמטר 'hl' (Host Language) כדי לקבוע את שפת הממשק.
+    await signIn('google', undefined, { hl: locale });
   };
 
+  // ... (כל שאר ה-JSX נשאר ללא שינוי) ...
   if (status === 'loading' || status === 'authenticated') {
     return (
       <div

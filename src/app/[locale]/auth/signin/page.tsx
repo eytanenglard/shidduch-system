@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
-import SignInClient from './SignInClient'; // רכיב הלקוח החדש
+import SignInClient from './SignInClient';
 
 function Loading() {
   return (
@@ -24,7 +24,8 @@ export default async function SignInPage({
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
       <Suspense fallback={<Loading />}>
-        <SignInClient dict={dictionary.auth.signIn} />
+        {/* הוספנו את locale={locale} כ-prop */}
+        <SignInClient dict={dictionary.auth.signIn} locale={locale} />
       </Suspense>
     </div>
   );

@@ -13,20 +13,19 @@ import type { VerifyPhoneDict } from '@/types/dictionaries/auth';
 
 const OTP_LENGTH = 6;
 
-// <<< 1. הרחבת הממשק כדי לקבל את משתנה השפה >>>
 interface VerifyPhoneClientProps {
   dict: VerifyPhoneDict;
-  locale: 'he' | 'en'; // הוספנו את השפה
+  locale: 'he' | 'en';
 }
 
-// <<< 2. עדכון חתימת הקומפוננטה כדי לקבל את locale כ-prop >>>
 const VerifyPhoneClient = ({ dict, locale }: VerifyPhoneClientProps) => {
   const router = useRouter();
   const {
     data: session,
     status: sessionStatus,
-    update: updateSession,
+    update: updateSession, // אנחנו צריכים את פונקציית העדכון
   } = useSession();
+
   const [code, setCode] = useState<string[]>(new Array(OTP_LENGTH).fill(''));
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -90,8 +89,8 @@ const VerifyPhoneClient = ({ dict, locale }: VerifyPhoneClientProps) => {
         return;
       }
       setIsLoading(true);
+
       try {
-        // <<< 3. הוספת פרמטר השפה לכתובת ה-API >>>
         const response = await fetch(
           `/api/auth/verify-phone-code?locale=${locale}`,
           {
@@ -100,18 +99,53 @@ const VerifyPhoneClient = ({ dict, locale }: VerifyPhoneClientProps) => {
             body: JSON.stringify({ code: otp }),
           }
         );
+
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || dict.errors.default);
+
+        // ====================== התיקון המרכזי מתחיל כאן ======================
+
         setSuccessMessage(dict.success.verifying);
-        await updateSession({ isPhoneVerified: true });
-        // שינוי קל: שימוש ב-router.push במקום window.location.href למעבר חלק יותר
-        router.push('/profile');
+
+        console.log(
+          '[VerifyPhoneClient] Phone verified via API. Now updating client-side session...'
+        );
+
+        // 1. קרא לפונקציית עדכון הסשן והמתן לה עד שתסתיים.
+        // הפונקציה מחזירה את הסשן המעודכן.
+        const updatedSession = await updateSession();
+
+        console.log(
+          '[VerifyPhoneClient] Session update process finished. Updated session object:',
+          updatedSession
+        );
+
+        // 2. בדוק אם הסשן המעודכן אכן מכיל את המידע הנכון (isPhoneVerified: true).
+        // זהו מנגנון הגנה שמונע ניתוב אם עדכון הסשן נכשל מסיבה כלשהי.
+        if (updatedSession?.user?.isPhoneVerified) {
+          console.log(
+            `[VerifyPhoneClient] Session is confirmed as verified. Redirecting to /${locale}/profile`
+          );
+          // 3. בצע את הניתוב רק לאחר שהכל אומת, וודא שה-locale כלול בנתיב!
+          router.push(`/${locale}/profile`);
+        } else {
+          // זהו מקרה קצה נדיר, אבל חשוב לטפל בו.
+          console.error(
+            '[VerifyPhoneClient] CRITICAL: Session update failed or did not reflect the change. Halting redirect.'
+          );
+          setError(
+            
+              'Failed to update session. Please try logging in again.'
+          );
+          setIsLoading(false);
+        }
+        // ======================= התיקון המרכזי מסתיים כאן =======================
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : dict.errors.unexpected);
         setIsLoading(false);
       }
     },
-    [code, updateSession, dict, locale, router] // הוספנו את locale ו-router לתלויות
+    [code, updateSession, dict, locale, router]
   );
 
   const handleResendCode = useCallback(async () => {
@@ -120,7 +154,6 @@ const VerifyPhoneClient = ({ dict, locale }: VerifyPhoneClientProps) => {
     setInfoMessage(null);
     setIsResending(true);
     try {
-      // גם כאן נוסיף את השפה, למקרה שנצטרך אותה בעתיד
       const response = await fetch(
         `/api/auth/resend-phone-code?locale=${locale}`,
         {
@@ -135,7 +168,7 @@ const VerifyPhoneClient = ({ dict, locale }: VerifyPhoneClientProps) => {
     } finally {
       setIsResending(false);
     }
-  }, [isResending, resendDisabled, startResendTimer, dict, locale]); // הוספנו את locale לתלויות
+  }, [isResending, resendDisabled, startResendTimer, dict, locale]);
 
   const getHiddenPhone = () => {
     const phone = session?.user?.phone;
@@ -146,7 +179,6 @@ const VerifyPhoneClient = ({ dict, locale }: VerifyPhoneClientProps) => {
   const disableForm = isLoading || !!successMessage;
   const disableResend = isResending || resendDisabled || !!successMessage;
 
-  // ... (חלק ה-JSX נשאר זהה לחלוטין)
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 to-pink-50 p-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-6 sm:p-8 space-y-6 text-center">
@@ -244,7 +276,7 @@ const VerifyPhoneClient = ({ dict, locale }: VerifyPhoneClientProps) => {
           </div>
           <div>
             <Link
-              href="/auth/update-phone"
+              href={`/${locale}/auth/update-phone`}
               className={`text-cyan-600 hover:text-cyan-700 hover:underline ${disableForm ? 'pointer-events-none text-gray-400' : ''}`}
             >
               {dict.wrongNumberLink}
@@ -253,7 +285,7 @@ const VerifyPhoneClient = ({ dict, locale }: VerifyPhoneClientProps) => {
         </div>
         <div className="mt-4 border-t pt-4">
           <Link
-            href="/auth/signin"
+            href={`/${locale}/auth/signin`}
             className={`text-xs text-gray-500 hover:text-gray-600 ${disableForm ? 'pointer-events-none opacity-50' : ''}`}
           >
             {dict.backToSignInLink}

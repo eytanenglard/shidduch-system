@@ -9,12 +9,14 @@ import { Heart, ArrowLeft, Mail, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
-// הגדרת טיפוס ה-props כדי להבטיח Type Safety
+// 1. הרחבת הממשק
 interface WelcomeStepProps {
   dict: RegisterStepsDict['steps']['welcome'];
+  locale: 'he' | 'en';
 }
 
-const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict }) => {
+// 2. קבלת locale מה-props
+const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
   const { nextStep } = useRegistration();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -22,7 +24,8 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict }) => {
     try {
       setIsGoogleLoading(true);
       localStorage.setItem('registration_started', 'true');
-      await signIn('google');
+      // 3. הוספת פרמטר השפה לקריאה
+      await signIn('google', undefined, { hl: locale });
     } catch (error) {
       console.error('Google sign-in error:', error);
       setIsGoogleLoading(false);
@@ -33,6 +36,7 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict }) => {
     nextStep();
   };
 
+  // ... (JSX נשאר ללא שינוי) ...
   return (
     <div className="space-y-6 text-center">
       <div className="flex justify-center mb-4">
