@@ -3,6 +3,9 @@ import type { MatchmakerPageDictionary } from './dictionaries/matchmaker';
 import { WORLD_KEYS } from '@/components/profile/constants'; 
 import type { AuthDictionary } from './dictionaries/auth';
 import type { WorldId } from '@/components/questionnaire/types/types';
+import type { EmailDictionary } from './dictionaries/email';
+
+
 // --- Navbar ---
 export type NavbarDict = {
   myMatches: string;
@@ -586,6 +589,7 @@ export type Dictionary = {
   cookieBanner: CookieBannerDict;
     metadata: MetadataDict;
       questionnaire: QuestionnaireDictionary; 
+  email: EmailDictionary;
 
   demoProfileCard: DemoProfileCardDict;
   unsavedChangesModal: UnsavedChangesModalDict;
@@ -604,6 +608,8 @@ export type {
   QuestionnaireDictionary,
   ProfilePageDictionary,
   MatchmakerPageDictionary,
+  AuthDictionary,   // <-- הוסף שורה זו
+  EmailDictionary,  // <-- והוסף שורה זו
 };
 
 export type SuggestionsPresentationDict = {

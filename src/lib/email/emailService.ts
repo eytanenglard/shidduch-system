@@ -1,388 +1,241 @@
-// src/lib/email/emailService.ts
+// src/lib/email/templates/emailTemplates.ts
 
-import nodemailer from 'nodemailer';
-import { emailTemplates } from './templates/emailTemplates'; // ודא שהקובץ הזה קיים ומיצא את התבניות
+import { EmailDictionary } from '@/types/dictionary';
 
-// Types
-interface EmailConfig {
-  to: string;
-  subject: string;
-  templateName: string;
-  context: Record<string, unknown>;
+// --- הגדרות טיפוסים לקונטקסט של כל תבנית ---
+
+// קונטקסט בסיסי שכל תבנית מקבלת
+interface BaseTemplateContext {
+  supportEmail: string;
+  currentYear: string;
+  companyName: string;
+  baseUrl: string;
+  // אנו משתמשים ב-any כדי למנוע שגיאות TypeScript מורכבות עם המפתחות הדינמיים,
+  // אך בפועל, dict יהיה אחד מהאובייקטים הספציפיים מתוך EmailDictionary.
+  dict: any;
+  sharedDict: EmailDictionary['shared'];
+  name: string; // שם הנמען לברכה הכללית
 }
-interface AccountSetupEmailParams {
-    email: string;
-    firstName: string;
-    matchmakerName: string;
-    setupToken: string;
-    expiresIn: string;
-}
-interface WelcomeEmailParams {
-  email: string;
+
+// קונטקסטים ספציפיים שמרחיבים את הבסיס
+interface WelcomeTemplateContext extends BaseTemplateContext {
   firstName: string;
-  requiresVerification?: boolean;
   matchmakerAssigned?: boolean;
   matchmakerName?: string;
   dashboardUrl: string;
-  supportEmail: string;
-  unsubscribeUrl?: string;
-  privacyNote?: boolean;
 }
 
-interface VerificationEmailParams {
-  email: string;
-  verificationCode: string; // שונה מ-verificationLink
-  firstName?: string;
-  expiresIn?: string; // לדוגמה: "שעה אחת", "10 דקות"
+interface AccountSetupTemplateContext extends BaseTemplateContext {
+    firstName: string;
+    matchmakerName: string;
+    setupLink: string;
+    expiresIn: string;
 }
 
-interface InvitationEmailParams {
-  email: string;
-  invitationLink: string;
-  matchmakerName: string;
-  expiresIn?: string;
+interface EmailOtpVerificationTemplateContext extends BaseTemplateContext {
+  verificationCode: string;
+  expiresIn: string;
 }
 
-interface SuggestionEmailParams {
-  email: string;
+interface InvitationTemplateContext extends BaseTemplateContext {
+    matchmakerName: string;
+    invitationLink: string;
+    expiresIn: string;
+}
+
+interface SuggestionTemplateContext extends BaseTemplateContext {
   recipientName: string;
   matchmakerName: string;
-  suggestionDetails?: {
-    age?: number;
-    city?: string;
-    occupation?: string;
-    additionalInfo?: string | null;
-  };
+  suggestionDetails?: { age?: number; city?: string; occupation?: string; additionalInfo?: string | null; };
+  dashboardUrl: string;
 }
 
-interface ContactDetailsEmailParams {
-  email: string;
+interface ContactDetailsTemplateContext extends BaseTemplateContext {
   recipientName: string;
   otherPartyName: string;
-  otherPartyContact: {
-    phone?: string;
-    email?: string;
-    whatsapp?: string;
-  };
+  otherPartyContact: { phone?: string; email?: string; whatsapp?: string; };
   matchmakerName: string;
-  supportEmail?: string;
 }
 
-interface AvailabilityCheckEmailParams {
-  email: string;
+interface AvailabilityCheckTemplateContext extends BaseTemplateContext {
   recipientName: string;
   matchmakerName: string;
   inquiryId: string;
-  baseUrl?: string;
 }
 
-// New type for password reset OTP email
-interface PasswordResetOtpEmailParams {
-  email: string;
+interface PasswordResetOtpTemplateContext extends BaseTemplateContext {
   otp: string;
-  firstName?: string;
-  expiresIn?: string; // e.g., "15 דקות"
+  expiresIn: string;
 }
 
-// New type for password changed confirmation
-interface PasswordChangedConfirmationParams {
-    email: string;
-    firstName?: string;
+interface PasswordChangedConfirmationTemplateContext extends BaseTemplateContext {
+    loginUrl: string;
 }
 
+// --- פונקציית עזר ליצירת HTML בסיסי ---
+const createBaseEmailHtml = (title: string, content: string, context: BaseTemplateContext): string => `
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        body { font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; direction: rtl; text-align: right; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; }
+        .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden; }
+        .email-header { background-color: #06b6d4; color: #ffffff; padding: 25px; text-align: center; border-bottom: 5px solid #0891b2; }
+        .email-header.success { background-color: #10b981; border-bottom-color: #059669; }
+        .email-header h1 { margin: 0; font-size: 26px; font-weight: 600; }
+        .email-body { padding: 25px 30px; font-size: 16px; }
+        .email-body p { margin-bottom: 1em; }
+        .otp-code { font-size: 28px; font-weight: bold; color: #ec4899; text-align: center; margin: 25px 0; padding: 15px; background-color: #fdf2f8; border: 1px dashed #fbcfe8; border-radius: 5px; letter-spacing: 3px; }
+        .button { display: inline-block; padding: 12px 25px; background-color: #06b6d4; color: white !important; text-decoration: none; border-radius: 5px; margin: 15px 0; font-weight: 500; text-align: center; }
+        .button:hover { background-color: #0891b2; }
+        .footer { background-color: #f1f3f5; padding: 20px; text-align: center; font-size: 0.9em; color: #6c757d; border-top: 1px solid #e9ecef; }
+        .footer a { color: #06b6d4; text-decoration: none; }
+        .highlight-box { background-color: #fef9e7; border-right: 4px solid #f7c75c; padding: 15px; margin: 20px 0; border-radius: 5px; }
+        .attributes-list { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header"><h1>${title}</h1></div>
+        <div class="email-body">
+            ${content}
+            <p style="margin-top: 30px;">${context.sharedDict.closing}<br>${context.sharedDict.team}</p>
+        </div>
+        <div class="footer">
+            <p>${context.sharedDict.supportPrompt} <a href="mailto:${context.supportEmail}">${context.supportEmail}</a></p>
+            <p>${context.sharedDict.rightsReserved.replace('{{year}}', context.currentYear)}</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
 
-class EmailService {
-  private static instance: EmailService;
-  private transporter: nodemailer.Transporter;
+// --- מיפוי התבניות תוך שימוש במפתחות camelCase ---
+export const emailTemplates = {
+  welcome: (context: WelcomeTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
+    <p>${context.dict.intro}</p>
+    ${context.matchmakerAssigned && context.matchmakerName ? `
+      <div class="highlight-box">
+        <p><strong>${context.dict.matchmakerAssigned.replace('{{matchmakerName}}', context.matchmakerName)}</strong></p>
+      </div>` : ''
+    }
+    <p>${context.dict.getStarted}</p>
+    <p style="text-align: center;">
+      <a href="${context.dashboardUrl}" class="button">${context.dict.dashboardButton}</a>
+    </p>
+  `, context),
+
+  accountSetup: (context: AccountSetupTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
+    <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
+    <p>${context.dict.actionPrompt}</p>
+    <p style="text-align: center;">
+      <a href="${context.setupLink}" class="button">${context.dict.actionButton}</a>
+    </p>
+    <div class="highlight-box">
+      <p><strong>${context.dict.notice.replace('{{expiresIn}}', context.expiresIn)}</strong></p>
+    </div>
+    <p>${context.dict.nextStep}</p>
+  `, context),
   
-  private constructor() {
-    // Configure the transporter according to your email provider
-    // Ensure environment variables are set for sensitive data
-    this.transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail', // Default to gmail if not specified
-      auth: {
-        user: process.env.GMAIL_USER || process.env.EMAIL_USER, // Your email user
-        pass: process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS, // Your email password or app password
-      },
-      tls: {
-        // Do not fail on invalid certs for development, but ensure it's true for production
-        rejectUnauthorized: process.env.NODE_ENV === 'production',
-      }
-    });
-  }
+  emailOtpVerification: (context: EmailOtpVerificationTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>
+    <p>${context.dict.intro}</p>
+    <p>${context.dict.codeInstruction}</p>
+    <div class="otp-code">${context.verificationCode}</div>
+    <p>${context.dict.expiryNotice.replace('{{expiresIn}}', context.expiresIn)}</p>
+    <p>${context.dict.securityNote}</p>
+  `, context),
 
-  public static getInstance(): EmailService {
-    if (!EmailService.instance) {
-      EmailService.instance = new EmailService();
+  invitation: (context: InvitationTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
+    <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
+    <p>${context.dict.actionPrompt}</p>
+    <p style="text-align: center;">
+      <a href="${context.invitationLink}" class="button">${context.dict.actionButton}</a>
+    </p>
+    <p>${context.dict.expiryNotice.replace('{{expiresIn}}', context.expiresIn)}</p>
+  `, context),
+  
+  suggestion: (context: SuggestionTemplateContext) => {
+    let detailsHtml = '';
+    if (context.suggestionDetails) {
+      const detailsList = [
+        context.suggestionDetails.age && `<li><strong>גיל:</strong> ${context.suggestionDetails.age}</li>`,
+        context.suggestionDetails.city && `<li><strong>עיר:</strong> ${context.suggestionDetails.city}</li>`,
+        context.suggestionDetails.occupation && `<li><strong>עיסוק:</strong> ${context.suggestionDetails.occupation}</li>`,
+        context.suggestionDetails.additionalInfo && `<li><strong>מידע נוסף:</strong> ${context.suggestionDetails.additionalInfo}</li>`,
+      ].filter(Boolean).join('');
+      if (detailsList) {
+        detailsHtml = `<ul>${detailsList}</ul>`;
+      }
     }
-    return EmailService.instance;
-  }
+    return createBaseEmailHtml(context.dict.title, `
+      <p>${context.sharedDict.greeting.replace('{{name}}', context.recipientName)}</p>
+      <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
+      ${detailsHtml ? `<div class="attributes-list"><h4>${context.dict.previewTitle}</h4>${detailsHtml}</div>` : ''}
+      <p>${context.dict.actionPrompt}</p>
+      <p style="text-align: center;">
+        <a href="${context.dashboardUrl}" class="button">${context.dict.actionButton}</a>
+      </p>
+      <p>${context.dict.closing}</p>
+    `, context);
+  },
 
-  async sendEmail({ to, subject, templateName, context }: EmailConfig): Promise<void> {
-    try {
-      if (!emailTemplates[templateName]) {
-        console.error(`Email template "${templateName}" not found.`);
-        throw new Error(`Template ${templateName} not found`);
-      }
+  shareContactDetails: (context: ContactDetailsTemplateContext) => {
+    const contactInfoHtml = [
+      context.otherPartyContact.phone && `<p><strong>טלפון:</strong> ${context.otherPartyContact.phone}</p>`,
+      context.otherPartyContact.email && `<p><strong>אימייל:</strong> <a href="mailto:${context.otherPartyContact.email}">${context.otherPartyContact.email}</a></p>`,
+      context.otherPartyContact.whatsapp && `<p><strong>וואטסאפ:</strong> ${context.otherPartyContact.whatsapp}</p>`,
+    ].filter(Boolean).join('');
 
-      // Add common context variables if they are not already present
-      const fullContext = {
-        ...context,
-        supportEmail: context.supportEmail || process.env.SUPPORT_EMAIL || 'support@example.com',
-        companyName: process.env.COMPANY_NAME || 'NeshamaTech',
-        currentYear: new Date().getFullYear(),
-        baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
-      };
-      
-      const html = emailTemplates[templateName](fullContext);
+    return createBaseEmailHtml(context.dict.title, `
+      <p>${context.sharedDict.greeting.replace('{{name}}', context.recipientName)}</p>
+      <p>${context.dict.intro}</p>
+      <div class="attributes-list">
+        <h3>${context.dict.detailsOf.replace('{{otherPartyName}}', context.otherPartyName)}</h3>
+        ${contactInfoHtml || '<p>לא סופקו פרטי קשר.</p>'}
+      </div>
+      <div class="highlight-box">
+        <p><strong>${context.dict.tipTitle}</strong> ${context.dict.tipContent}</p>
+      </div>
+      <p>${context.dict.goodLuck}</p>
+    `, context);
+  },
 
-      const mailOptions: nodemailer.SendMailOptions = {
-        from: `${process.env.EMAIL_FROM_NAME || 'נשמה טק'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
-        to,
-        subject,
-        html,
-        headers: {
-          'Content-Type': 'text/html; charset=UTF-8',
-          'X-Priority': '1', // For Outlook
-          'X-MSMAIL-Priority': 'High' // For Outlook
-        }
-      };
+  availabilityCheck: (context: AvailabilityCheckTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.recipientName)}</p>
+    <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
+    <p>${context.dict.actionPrompt}</p>
+    <p style="text-align: center;">
+      <a href="${context.baseUrl}/dashboard/suggestions?inquiryId=${context.inquiryId}" class="button">${context.dict.actionButton}</a>
+    </p>
+    <div class="highlight-box">
+      <p><strong>${context.dict.noticeTitle}</strong> ${context.dict.noticeContent}</p>
+    </div>
+  `, context),
 
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent successfully:', info.messageId, 'to:', to, 'subject:', subject);
-      
-    } catch (error) {
-      console.error('Error sending email to:', to, 'Subject:', subject, 'Template:', templateName, 'Error:', error);
-      // Depending on the criticality, you might re-throw or handle it.
-      // For now, re-throwing to make it clear that sending failed.
-      throw new Error(`Failed to send email to ${to} using template ${templateName}`);
-    }
-  }
+  passwordResetOtp: (context: PasswordResetOtpTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>
+    <p>${context.dict.intro}</p>
+    <p>${context.dict.codeInstruction}</p>
+    <div class="otp-code">${context.otp}</div>
+    <p>${context.dict.expiryNotice.replace('{{expiresIn}}', context.expiresIn)}</p>
+    <p>${context.dict.securityNote}</p>
+  `, context),
 
-  async sendWelcomeEmail({
-    email,
-    firstName,
-    requiresVerification = false,
-    matchmakerAssigned = false,
-    matchmakerName = '',
-    dashboardUrl, // למשל '/dashboard'
-    supportEmail,
-    unsubscribeUrl,
-    privacyNote = true
-  }: WelcomeEmailParams): Promise<void> {
-    await this.sendEmail({
-      to: email,
-      subject: 'ברוכים הבאים ל-NeshamaTech',
-      templateName: 'welcome', // Ensure 'welcome' template exists
-      context: {
-        firstName,
-        requiresVerification,
-        matchmakerAssigned,
-        matchmakerName,
-        dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${dashboardUrl}`,
-        supportEmail: supportEmail || process.env.SUPPORT_EMAIL || 'support@example.com',
-        unsubscribeUrl,
-        privacyNote,
-      }
-    });
-  }
-  async sendAccountSetupEmail({ email, firstName, matchmakerName, setupToken, expiresIn }: AccountSetupEmailParams): Promise<void> {
-    const setupLink = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-account?token=${setupToken}`;
-    
-    await this.sendEmail({
-      to: email,
-      subject: `הזמנה להגדרת חשבונך ב-NeshamaTech`,
-      templateName: 'account-setup',
-      context: {
-        firstName,
-        matchmakerName,
-        setupLink,
-        expiresIn,
-      },
-    });
-  }
-  async sendVerificationEmail({
-    email,
-    verificationCode,
-    firstName,
-    expiresIn = 'שעה אחת'
-  }: VerificationEmailParams): Promise<void> {
-    console.log(`Sending account verification email with OTP ${verificationCode} to ${email}`);
-    await this.sendEmail({
-      to: email,
-      subject: 'קוד אימות עבור NeshamaTech',
-      templateName: 'email-otp-verification', // Ensure this template exists and uses 'verificationCode'
-      context: {
-        firstName,
-        verificationCode, // Pass the code to the template
-        expiresIn,
-      }
-    });
-  }
-
-  async sendInvitation({
-    email,
-    invitationLink, // This is the token itself from the Invitation model
-    matchmakerName,
-    expiresIn = '7 ימים'
-  }: InvitationEmailParams): Promise<void> {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const fullInvitationLink = `${baseUrl}/auth/accept-invitation?token=${invitationLink}`;
-    
-    await this.sendEmail({
-      to: email,
-      subject: `הזמנה להצטרף ל-NeshamaTech מ${matchmakerName}`,
-      templateName: 'invitation', // Ensure 'invitation' template exists
-      context: {
-        matchmakerName,
-        invitationLink: fullInvitationLink,
-        expiresIn,
-      }
-    });
-  }
-
-  async sendContactDetailsEmail({
-    email,
-    recipientName,
-    otherPartyName,
-    otherPartyContact,
-    matchmakerName,
-    supportEmail
-  }: ContactDetailsEmailParams): Promise<void> {
-    await this.sendEmail({
-      to: email,
-      subject: `פרטי קשר להצעת שידוך מ${matchmakerName} - NeshamaTech`,
-      templateName: 'share-contact-details', // Ensure 'share-contact-details' template exists
-      context: {
-        recipientName,
-        otherPartyName,
-        otherPartyContact,
-        matchmakerName,
-        supportEmail: supportEmail || process.env.SUPPORT_EMAIL || 'support@example.com',
-      }
-    });
-  }
-
-  async sendSuggestionNotification({
-    email,
-    recipientName,
-    matchmakerName,
-    suggestionDetails
-  }: SuggestionEmailParams): Promise<void> {
-    await this.sendEmail({
-      to: email,
-      subject: `הצעת שידוך חדשה ממתינה לך מ${matchmakerName} - NeshamaTech`,
-      templateName: 'suggestion', // Ensure 'suggestion' template exists
-      context: {
-        recipientName,
-        matchmakerName,
-        suggestionDetails,
-        dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/dashboard/suggestions`,
-      }
-    });
-  }
-
-  // Existing method for link-based password reset (if you still use it elsewhere)
-  async sendPasswordReset(email: string, resetToken: string): Promise<void> {
-    const fullResetLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`; // This implies the old page took a long token
-    
-    await this.sendEmail({
-      to: email,
-      subject: 'איפוס סיסמה - NeshamaTech', // Differentiate if needed
-      templateName: 'password-reset', // Ensure 'password-reset' (link-based) template exists
-      context: {
-        resetLink: fullResetLink,
-        expiresIn: 'שעה אחת', // Or however long your link token is valid
-      }
-    });
-  }
-
-  // New method for sending OTP for password reset
-  async sendPasswordResetOtpEmail({
-    email,
-    otp,
-    firstName,
-    expiresIn = '15 דקות' // Default expiry for OTP
-  }: PasswordResetOtpEmailParams): Promise<void> {
-    console.log(`Sending password reset OTP ${otp} to ${email}`);
-    await this.sendEmail({
-      to: email,
-      subject: 'קוד לאיפוס סיסמה - NeshamaTech',
-      templateName: 'password-reset-otp', // Ensure 'password-reset-otp' template exists
-      context: {
-        firstName,
-        otp,
-        expiresIn,
-      }
-    });
-  }
-
-  // New method for confirming password change
-  async sendPasswordChangedConfirmationEmail({
-      email,
-      firstName,
-  }: PasswordChangedConfirmationParams): Promise<void> {
-      console.log(`Sending password changed confirmation to ${email}`);
-      await this.sendEmail({
-          to: email,
-          subject: 'הסיסמה שלך ב-NeshamaTech שונתה בהצלחה',
-          templateName: 'password-changed-confirmation', // Ensure 'password-changed-confirmation' template exists
-          context: {
-              firstName,
-              loginUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/signin`,
-          }
-      });
-  }
-
-  async sendAvailabilityCheck({
-    email,
-    recipientName,
-    matchmakerName,
-    inquiryId,
-    baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-  }: AvailabilityCheckEmailParams): Promise<void> {
-    await this.sendEmail({
-      to: email,
-      subject: `בקשת בדיקת זמינות לשידוך מ${matchmakerName} - NeshamaTech`,
-      templateName: 'availability-check', // Ensure 'availability-check' template exists
-      context: {
-        recipientName,
-        matchmakerName,
-        inquiryId,
-        baseUrl,
-        // Example links if your template supports them directly
-        // approveLink: `${baseUrl}/api/inquiries/${inquiryId}/respond?available=true`,
-        // declineLink: `${baseUrl}/api/inquiries/${inquiryId}/respond?available=false`,
-      }
-    });
-  }
-
-  async verifyConnection(): Promise<boolean> {
-    try {
-      await this.transporter.verify();
-      console.log("Email service connection verified successfully.");
-      return true;
-    } catch (error) {
-      console.error('Email service connection error:', error);
-      return false;
-    }
-  }
-}
-
-// Export singleton instance
-export const emailService = EmailService.getInstance();
-
-// Export types
-export type {
-  EmailConfig,
-  WelcomeEmailParams,
-  VerificationEmailParams,
-  InvitationEmailParams,
-  SuggestionEmailParams,
-  ContactDetailsEmailParams,
-  AvailabilityCheckEmailParams,
-  PasswordResetOtpEmailParams, // Export new type
-  PasswordChangedConfirmationParams, // Export new type
-  AccountSetupEmailParams, // Export new type
-
+  passwordChangedConfirmation: (context: PasswordChangedConfirmationTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>
+    <p>${context.dict.intro}</p>
+    <div class="highlight-box">
+      <p>${context.dict.securityNote}</p>
+    </div>
+    <p style="text-align: center;">
+      <a href="${context.loginUrl}" class="button">${context.dict.actionButton}</a>
+    </p>
+  `, context),
 };

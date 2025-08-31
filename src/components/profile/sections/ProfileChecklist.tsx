@@ -257,13 +257,6 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
 
   const getMissingItems = useMemo(() => {
     const p = user.profile;
-    console.log(
-      '---[ CLIENT LOG 2 ]--- ProfileChecklist received user.profile prop:'
-    );
-    console.log(p);
-    console.log('---[ CLIENT LOG 2.5 ]--- Dictionary for missing items:');
-    console.log(missingItemsDict);
-
     if (!p) return { personalDetails: [], partnerPreferences: [] };
 
     const personalDetails = [
@@ -341,11 +334,9 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       (!p.preferredMaritalStatuses ||
         p.preferredMaritalStatuses.length === 0) &&
         missingItemsDict.preferredMaritalStatuses,
-      // --- START OF FIX ---
-      (p.preferredHasChildrenFromPrevious === null ||
-        p.preferredHasChildrenFromPrevious === undefined) &&
+      (p.preferredPartnerHasChildren === null ||
+        p.preferredPartnerHasChildren === undefined) &&
         missingItemsDict.preferredPartnerHasChildren,
-      // --- END OF FIX ---
       (!p.preferredOrigins || p.preferredOrigins.length === 0) &&
         missingItemsDict.preferredOrigins,
       !p.preferredAliyaStatus && missingItemsDict.preferredAliyaStatus,
@@ -365,11 +356,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       if (!p.preferredHeadCoverings || p.preferredHeadCoverings.length === 0)
         partnerPreferences.push(missingItemsDict.preferredHeadCoverings);
     }
-    console.log('---[ CLIENT LOG 3 ]--- Calculated Missing Items:');
-    console.log({
-      personalDetails: personalDetails,
-      partnerPreferences: partnerPreferences,
-    });
+
     return {
       personalDetails: personalDetails as string[],
       partnerPreferences: partnerPreferences as string[],
@@ -571,8 +558,8 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         !!(p.preferredMaritalStatuses && p.preferredMaritalStatuses.length > 0)
       );
       otherTasksStatus.push(
-        p.preferredHasChildrenFromPrevious !== null &&
-          p.preferredHasChildrenFromPrevious !== undefined
+        p.preferredPartnerHasChildren !== null &&
+          p.preferredPartnerHasChildren !== undefined
       );
       otherTasksStatus.push(
         !!(p.preferredOrigins && p.preferredOrigins.length > 0)
@@ -638,29 +625,18 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
             <div className="flex-1 text-center md:text-start">
               {' '}
               {/* Updated: from md:text-right to md:text-start */}
-              <h2 className="text-xl font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
-                {isAllComplete && (
-                  <Sparkles className="w-6 h-6 text-amber-500" />
-                )}
-                {(() => {
-                  const isFemale = user.profile?.gender === 'FEMALE';
-                  const welcomeText =
-                    isFemale && dict.welcome_female
-                      ? dict.welcome_female
-                      : dict.welcome;
-                  const allCompleteText =
-                    isFemale && dict.allComplete_female
-                      ? dict.allComplete_female
-                      : dict.allComplete;
-                  const textToShow = isAllComplete
-                    ? allCompleteText
-                    : welcomeText;
-                  return textToShow.replace(
-                    '{{firstName}}',
-                    user.firstName || ''
-                  );
-                })()}
-              </h2>
+     <h2 className="text-xl font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
+  {isAllComplete && (
+    <Sparkles className="w-6 h-6 text-amber-500" />
+  )}
+  {(() => {
+    const isFemale = user.profile?.gender === 'FEMALE';
+    const welcomeText = (isFemale && dict.welcome_female) ? dict.welcome_female : dict.welcome;
+    const allCompleteText = (isFemale && dict.allComplete_female) ? dict.allComplete_female : dict.allComplete;
+    const textToShow = isAllComplete ? allCompleteText : welcomeText;
+    return textToShow.replace('{{firstName}}', user.firstName || '');
+  })()}
+</h2>
               <AnimatePresence initial={false}>
                 {!isMinimized && (
                   <motion.p

@@ -1,0 +1,84 @@
+{
+"shared": {
+"greeting": "Hello {{name}},",
+"closing": "Wishing you the best,",
+"team": "The NeshamaTech Team",
+"supportPrompt": "For any questions or assistance, we're here for you at:",
+"rightsReserved": "© {{year}} NeshamaTech. All rights reserved."
+},
+"welcome": {
+"subject": "Welcome to NeshamaTech | Your Journey Begins Here",
+"title": "Your Journey Begins Here",
+"intro": "We are thrilled and excited that you've joined the NeshamaTech family. We are here to guide you, step by step, on the journey to finding a true and meaningful connection. This isn't just another app; it's a home.",
+"matchmakerAssigned": "We're happy to let you know that a personal matchmaker, {{matchmakerName}}, has been assigned to you. They will be in touch soon to get to know you on a deeper level.",
+"getStarted": "Your account is ready. The first step is to complete your personal profile so we can start finding precise matches that truly resonate with your soul.",
+"dashboardButton": "Go to My Dashboard"
+},
+"accountSetup": {
+"subject": "An Invitation to Activate Your NeshamaTech Account",
+"title": "Your Profile is Waiting",
+"intro": "Your matchmaker, {{matchmakerName}}, believes in your potential and has created a profile for you in our system. To take ownership, update your details, and start seeing suggestions, all you need to do is set a personal password.",
+"actionPrompt": "Click the button to set your password and activate your account:",
+"actionButton": "Set Password & Activate Account",
+"notice": "Please note: This link is personal, single-use, and valid for {{expiresIn}}.",
+"nextStep": "After setting your password, you can log in with your email address and begin your journey."
+},
+"emailOtpVerification": {
+"subject": "Your NeshamaTech Verification Code",
+"title": "Almost There...",
+"intro": "To complete the verification and ensure your account is secure, please use the following code:",
+"codeInstruction": "Your verification code is:",
+"expiryNotice": "This code is valid for {{expiresIn}}.",
+"securityNote": "This code is just for you. For your safety, never share it with anyone."
+},
+"invitation": {
+"subject": "{{matchmakerName}} is inviting you to join NeshamaTech",
+"title": "You've Received a Personal Invitation",
+"intro": "Your matchmaker, {{matchmakerName}}, thinks you would be a great fit for NeshamaTech, a community of high-quality individuals seeking serious relationships. We would be delighted for you to join us on this journey.",
+"actionPrompt": "To join and create your profile, please click the link below:",
+"actionButton": "Join the Community",
+"expiryNotice": "Your personal invitation is valid for {{expiresIn}}."
+},
+"suggestion": {
+"subject": "We Have a Good Feeling About This Suggestion for You",
+"title": "A New Suggestion is on its Way",
+"intro": "Your matchmaker, {{matchmakerName}}, was thinking of you and has prepared a new suggestion that looks especially promising. We've put thought into it and believe there's real potential here.",
+"previewTitle": "A small glimpse into the suggestion:",
+"actionPrompt": "To view the full profile and make a decision, we invite you to visit your personal dashboard:",
+"actionButton": "View Full Suggestion",
+"closing": "We look forward to hearing from you,"
+},
+"shareContactDetails": {
+"subject": "Best of luck! Contact details have been shared",
+"title": "Embarking on a Shared Path",
+"intro": "How wonderful! Both sides have approved the suggestion, which is always an exciting moment for us. It's time to take the next step and get to know each other. The contact details have also been sent to the other party.",
+"detailsOf": "Contact details for {{otherPartyName}}:",
+"tipTitle": "A little tip from us:",
+"tipContent": "A first phone call can be a bit nerve-wracking, and that's natural. Take a breath, remember the goal is simply to get acquainted, and most importantly - be yourself. We recommend making initial contact within the next 24-48 hours.",
+"goodLuck": "We wish you a pleasant conversation and a successful meeting!"
+},
+"availabilityCheck": {
+"subject": "An availability check from your matchmaker",
+"title": "Checking if This is a Good Time",
+"intro": "Your matchmaker, {{matchmakerName}}, is considering a suggestion for you and wants to ensure you are available and open to a new connection before proceeding.",
+"actionPrompt": "We would appreciate it if you could update us on your availability through your personal dashboard:",
+"actionButton": "Update Availability Status",
+"noticeTitle": "Good to know:",
+"noticeContent": "Your response will help your matchmaker focus on the most relevant suggestions for you right now."
+},
+"passwordResetOtp": {
+"subject": "Password Reset Code for NeshamaTech",
+"title": "Resetting Your Password",
+"intro": "We received a request to reset your password. To proceed, please use the following one-time code:",
+"codeInstruction": "Your reset code is:",
+"expiryNotice": "The code is valid for {{expiresIn}}.",
+"securityNote": "Didn't request a password reset? You can safely ignore this message. Your account is secure."
+},
+"passwordChangedConfirmation": {
+"subject": "Your NeshamaTech Password Has Been Successfully Updated",
+"title": "Security Update: Your Password Was Changed",
+"intro": "This is a confirmation that the password for your NeshamaTech account has been successfully changed. Your account is now secured with the new password.",
+"securityNote": "If you did not make this change, please contact us immediately so we can investigate.",
+"actionButton": "Log in to Your Account"
+}
+}

@@ -2,13 +2,25 @@
 
 import 'server-only';
 import type { Locale } from '../../i18n-config';
-import type { Dictionary, QuestionnaireDictionary } from '@/types/dictionary';
+import type { 
+  Dictionary, 
+  QuestionnaireDictionary, 
+  AuthDictionary, 
+  EmailDictionary // ודא שהטיפוס הזה מיובא מהמיקום הנכון
+} from '@/types/dictionary'; // ודא שנתיב הייבוא הראשי נכון
 
-// --- Main dictionary loaders for each module ---
+// --- הגדרת טוענים (Loaders) עבור כל מודול של המילון ---
+// כל טוען הוא אובייקט המכיל פונקציות ייבוא דינמיות עבור כל שפה נתמכת.
+// גישה זו מבטיחה שנטען רק את קבצי השפה הנדרשים (Code Splitting).
 
 const mainDictionaries = {
   en: () => import('../../dictionaries/en.json').then((module) => module.default),
   he: () => import('../../dictionaries/he.json').then((module) => module.default),
+};
+
+const authDictionaries = {
+  en: () => import('../../dictionaries/auth/en.json').then((module) => module.default),
+  he: () => import('../../dictionaries/auth/he.json').then((module) => module.default),
 };
 
 const suggestionsDictionaries = {
@@ -21,12 +33,10 @@ const questionnaireDictionaries = {
   he: () => import('../../dictionaries/questionnaire/he.json').then((module) => module.default),
 };
 
-// --- START: הוספת טוען עבור מילון השאלות החדש ---
 const questionnaireQuestionsDictionaries = {
   en: () => import('../../dictionaries/questionnaire/questions.en.json').then((module) => module.default),
   he: () => import('../../dictionaries/questionnaire/questions.he.json').then((module) => module.default),
 };
-// --- END: הוספת טוען עבור מילון השאלות החדש ---
 
 const profileDictionaries = {
   en: () => import('../../dictionaries/profile/en.json').then((module) => module.default),
@@ -38,51 +48,64 @@ const matchmakerDictionaries = {
   he: () => import('../../dictionaries/matchmaker/he.json').then((module) => module.default),
 };
 
-const authDictionaries = {
-  en: () => import('../../dictionaries/auth/en.json').then((module) => module.default),
-  he: () => import('../../dictionaries/auth/he.json').then((module) => module.default),
+// --- START: הוספת טוען עבור מילון המיילים החדש ---
+const emailDictionaries = {
+  en: () => import('../../dictionaries/email/en.json').then((module) => module.default),
+  he: () => import('../../dictionaries/email/he.json').then((module) => module.default),
 };
+// --- END: הוספת טוען עבור מילון המיילים החדש ---
+
 
 /**
- * Loads all dictionary modules for a given locale and assembles them into a single object.
- * @param locale The locale to load ('en' or 'he').
- * @returns A promise that resolves to the complete, structured dictionary object.
+ * טוען את כל מודולי המילון עבור שפה (locale) נתונה ומרכיב אותם לאובייקט אחד שלם.
+ * @param locale השפה לטעינה ('en' או 'he').
+ * @returns Promise שנפתר לאובייקט המילון המלא והמובנה.
  */
 export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
-  // Fallback to Hebrew if the requested locale is not available
+  // קביעת השפה לטעינה, עם עברית ('he') כשפת ברירת מחדל אם השפה המבוקשת אינה זמינה.
   const targetLocale = mainDictionaries[locale] ? locale : 'he';
 
-  // --- START: עדכון Promise.all לטעינת כל המודולים הראשיים ---
-  const [main, suggestions, questionnaireBase, profilePage, matchmakerPage, auth] = await Promise.all([
+  // טעינה מקבילית של כל חלקי המילון באמצעות Promise.all לביצועים מיטביים.
+  // --- START: הוספת המשתנה email לטעינה המקבילית ---
+  const [
+    main, 
+    auth,
+    suggestions, 
+    questionnaireBase, 
+    profilePage, 
+    matchmakerPage,
+    email
+  ] = await Promise.all([
     mainDictionaries[targetLocale](),
+    authDictionaries[targetLocale](),
     suggestionsDictionaries[targetLocale](),
     questionnaireDictionaries[targetLocale](),
     profileDictionaries[targetLocale](),
     matchmakerDictionaries[targetLocale](),
-    authDictionaries[targetLocale](),
+    emailDictionaries[targetLocale](), // הוספת טעינת מילון המיילים
   ]);
-  // --- END: עדכון Promise.all ---
+  // --- END: הוספת המשתנה email ---
 
-  // --- START: טעינה נפרדת של מילון השאלות ושילובו ---
-  // Load the specific questions dictionary
+  // טיפול מיוחד במילון השאלון:
+  // טוענים בנפרד את קובץ השאלות ומשלבים אותו עם קובץ הבסיס של השאלון.
   const questionsContent = await questionnaireQuestionsDictionaries[targetLocale]();
 
-  // Create the complete questionnaire dictionary by merging the base with the questions content
+  // הרכבת אובייקט השאלון השלם
   const questionnaire: QuestionnaireDictionary = {
     ...(questionnaireBase as Omit<QuestionnaireDictionary, 'questions'>),
     questions: questionsContent,
   };
-  // --- END: טעינה נפרדת של מילון השאלות ושילובו ---
 
-  // --- START: עדכון האובייקט המוחזר כך שיכלול את כל המודולים ---
-  // Assemble the final, complete dictionary object
+  // הרכבת אובייקט המילון הסופי והשלם, כולל כל המודולים שנטענו.
+  // --- START: הוספת מודול המייל לאובייקט המוחזר ---
   return {
     ...main,
+    auth: auth as AuthDictionary, // שימוש ב-Type Assertion לדיוק
     suggestions,
-    questionnaire, // This now correctly contains the nested 'questions' object
+    questionnaire, // זהו כעת האובייקט המורכב הכולל את השאלות
     profilePage,
     matchmakerPage,
-    auth,
+    email: email as EmailDictionary,// אריזת המילון תחת המפתח 'email' כדי להתאים לטיפוס
   } as Dictionary;
-  // --- END: עדכון האובייקט המוחזר ---
+  // --- END: הוספת מודול המייל ---
 };

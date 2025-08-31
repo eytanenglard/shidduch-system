@@ -1,111 +1,87 @@
 // src/lib/email/templates/emailTemplates.ts
 
-// טיפוסים לתבניות השונות
+import { EmailDictionary } from '@/types/dictionary';
+
+// --- הגדרות טיפוסים לקונטקסט של כל תבנית ---
+
+// קונטקסט בסיסי - מכיל רק את מה שמשותף לכולם באמת.
+// <-- התיקון המרכזי 1: הסרנו את 'dict' מהבסיס --->
 interface BaseTemplateContext {
   supportEmail: string;
-  currentYear: number;
-  companyName: string; // Added for consistency
-  baseUrl: string; // Added for consistency
+  currentYear: string;
+  companyName: string;
+  baseUrl: string;
+  sharedDict: EmailDictionary['shared'];
+  name: string; // שם הנמען לברכה הכללית
 }
 
-interface InternalFeedbackNotificationContext extends BaseTemplateContext {
-    feedbackId: string;
-    feedbackType: string;
-    userIdentifier: string;
-    content: string;
-    pageUrl: string;
-    screenshotUrl?: string;
-}
+// <-- התיקון המרכזי 2: כל קונטקסט ספציפי מגדיר את ה-'dict' שלו --->
 interface WelcomeTemplateContext extends BaseTemplateContext {
+  dict: EmailDictionary['welcome']; // ספציפי למייל ברוכים הבאים
   firstName: string;
   matchmakerAssigned?: boolean;
   matchmakerName?: string;
-  requiresVerification?: boolean;
   dashboardUrl: string;
-  unsubscribeUrl?: string;
-  privacyNote?: boolean;
+}
+
+interface AccountSetupTemplateContext extends BaseTemplateContext {
+  dict: EmailDictionary['accountSetup']; // ספציפי למייל הגדרת חשבון
+  firstName: string;
+  matchmakerName: string;
+  setupLink: string;
+  expiresIn: string;
 }
 
 interface EmailOtpVerificationTemplateContext extends BaseTemplateContext {
-  firstName?: string;
+  dict: EmailDictionary['emailOtpVerification']; // ספציפי למייל אימות קוד
   verificationCode: string;
   expiresIn: string;
 }
 
+interface InvitationTemplateContext extends BaseTemplateContext {
+  dict: EmailDictionary['invitation'];
+  matchmakerName: string;
+  invitationLink: string;
+  expiresIn: string;
+}
+
+interface SuggestionTemplateContext extends BaseTemplateContext {
+  dict: EmailDictionary['suggestion'];
+  recipientName: string;
+  matchmakerName: string;
+  suggestionDetails?: { age?: number; city?: string; occupation?: string; additionalInfo?: string | null; };
+  dashboardUrl: string;
+}
+
+interface ContactDetailsTemplateContext extends BaseTemplateContext {
+  dict: EmailDictionary['shareContactDetails'];
+  recipientName: string;
+  otherPartyName: string;
+  otherPartyContact: { phone?: string; email?: string; whatsapp?: string; };
+  matchmakerName: string;
+}
+
 interface AvailabilityCheckTemplateContext extends BaseTemplateContext {
+  dict: EmailDictionary['availabilityCheck'];
   recipientName: string;
   matchmakerName: string;
   inquiryId: string;
 }
 
-interface ContactDetailsTemplateContext extends BaseTemplateContext {
-  recipientName: string;
-  otherPartyName: string;
-  otherPartyContact: {
-    phone?: string;
-    email?: string;
-    whatsapp?: string;
-  };
-  matchmakerName: string;
-}
-
-interface SuggestionTemplateContext extends BaseTemplateContext {
-  recipientName: string;
-  matchmakerName: string;
-  suggestionDetails?: {
-    age?: number;
-    city?: string;
-    occupation?: string;
-    additionalInfo?: string | null;
-  };
-  dashboardUrl: string;
-}
-
-// Updated for OTP based reset
 interface PasswordResetOtpTemplateContext extends BaseTemplateContext {
-  firstName?: string;
-  otp: string; // Changed from resetLink to otp
+  dict: EmailDictionary['passwordResetOtp'];
+  otp: string;
   expiresIn: string;
 }
 
-// New context for password changed confirmation
 interface PasswordChangedConfirmationTemplateContext extends BaseTemplateContext {
-    firstName?: string;
-    loginUrl: string;
+  dict: EmailDictionary['passwordChangedConfirmation'];
+  loginUrl: string;
 }
 
-interface InvitationTemplateContext extends BaseTemplateContext {
-    matchmakerName: string;
-    invitationLink: string;
-    expiresIn: string;
-}
-interface AccountSetupTemplateContext extends BaseTemplateContext {
-    firstName: string;
-    matchmakerName: string;
-    setupLink: string;
-    expiresIn: string;
-}
-
-// מיפוי הטיפוסים לתבניות
-type TemplateContextMap = {
-  'welcome': WelcomeTemplateContext;
-  'email-otp-verification': EmailOtpVerificationTemplateContext;
-  'availability-check': AvailabilityCheckTemplateContext;
-  'share-contact-details': ContactDetailsTemplateContext;
-  'suggestion': SuggestionTemplateContext;
-  'password-reset-otp': PasswordResetOtpTemplateContext; // Renamed and updated
-  'password-changed-confirmation': PasswordChangedConfirmationTemplateContext; // New
-  'invitation': InvitationTemplateContext;
-    'account-setup': AccountSetupTemplateContext; // New template
-  'internal-feedback-notification': InternalFeedbackNotificationContext; // <-- הוסף את השורה הזו
-
-  // 'password-reset': PasswordResetLinkTemplateContext; // Keep if old link-based reset is still used elsewhere
-};
-
-// --- פונקציית עזר ליצירת תבנית HTML בסיסית ---
-// This createBaseEmailHtml function is a good pattern.
-// We assume it exists as you provided.
-const createBaseEmailHtml = (title: string, content: string, footerText: string): string => `
+// --- פונקציית עזר ליצירת HTML בסיסי ---
+// <-- הערה: פונקציה זו אינה דורשת שינוי, היא כבר עובדת עם BaseTemplateContext המתוקן --->
+const createBaseEmailHtml = (title: string, content: string, context: BaseTemplateContext): string => `
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
@@ -113,269 +89,162 @@ const createBaseEmailHtml = (title: string, content: string, footerText: string)
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
     <style>
-        body { font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; direction: rtl; text-align: right; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        body { font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; direction: rtl; text-align: right; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; }
         .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden; }
-        .email-header { background-color: #06b6d4; /* Default Cyan */ color: #ffffff; padding: 25px; text-align: center; border-bottom: 5px solid #0891b2; /* Darker Cyan */ }
-        .email-header.success { background-color: #10b981; border-bottom-color: #059669; } /* Green for success */
+        .email-header { background-color: #06b6d4; color: #ffffff; padding: 25px; text-align: center; border-bottom: 5px solid #0891b2; }
+        .email-header.success { background-color: #10b981; border-bottom-color: #059669; }
         .email-header h1 { margin: 0; font-size: 26px; font-weight: 600; }
         .email-body { padding: 25px 30px; font-size: 16px; }
         .email-body p { margin-bottom: 1em; }
-        .email-body strong { color: #0891b2; } /* Darker Cyan */
-        .otp-code { font-size: 28px; font-weight: bold; color: #ec4899; /* Pink */ text-align: center; margin: 25px 0; padding: 15px; background-color: #fdf2f8; border: 1px dashed #fbcfe8; border-radius: 5px; letter-spacing: 3px; }
-        .button { display: inline-block; padding: 12px 25px; background-color: #06b6d4; /* Cyan */ color: white !important; text-decoration: none; border-radius: 5px; margin: 15px 0; font-weight: 500; text-align: center; }
+        .otp-code { font-size: 28px; font-weight: bold; color: #ec4899; text-align: center; margin: 25px 0; padding: 15px; background-color: #fdf2f8; border: 1px dashed #fbcfe8; border-radius: 5px; letter-spacing: 3px; }
+        .button { display: inline-block; padding: 12px 25px; background-color: #06b6d4; color: white !important; text-decoration: none; border-radius: 5px; margin: 15px 0; font-weight: 500; text-align: center; }
         .button:hover { background-color: #0891b2; }
         .footer { background-color: #f1f3f5; padding: 20px; text-align: center; font-size: 0.9em; color: #6c757d; border-top: 1px solid #e9ecef; }
         .footer a { color: #06b6d4; text-decoration: none; }
-        .footer a:hover { text-decoration: underline; }
         .highlight-box { background-color: #fef9e7; border-right: 4px solid #f7c75c; padding: 15px; margin: 20px 0; border-radius: 5px; }
         .attributes-list { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
-        .attributes-list p { margin: 5px 0; }
-        .attributes-list li { margin-bottom: 5px; }
     </style>
 </head>
 <body>
     <div class="email-container">
-        <div class="email-header {{headerClass}}"><h1>${title}</h1></div>
+        <div class="email-header"><h1>${title}</h1></div>
         <div class="email-body">
             ${content}
+            <p style="margin-top: 30px;">${context.sharedDict.closing}<br>${context.sharedDict.team}</p>
         </div>
         <div class="footer">
-            ${footerText}
+            <p>${context.sharedDict.supportPrompt} <a href="mailto:${context.supportEmail}">${context.supportEmail}</a></p>
+            <p>${context.sharedDict.rightsReserved.replace('{{year}}', context.currentYear)}</p>
         </div>
     </div>
 </body>
 </html>
 `;
-// Modified base HTML to accept a headerClass for dynamic header styling
 
-// --- התבניות הקיימות שלך (עם התאמות קלות להקשר הבסיסי) ---
-export const emailTemplates: {
-  [K in keyof TemplateContextMap]: (context: TemplateContextMap[K]) => string;
-} = {
-  'welcome': (context) => {
-    const content = `
-      <p>שלום <strong>${context.firstName}</strong>,</p>
-      <p>אנו שמחים מאוד על הצטרפותך למערכת השידוכים ${context.companyName}! אנו מאחלים לך הצלחה רבה במסע למציאת ההתאמה המושלמת.</p>
-      ${context.matchmakerAssigned && context.matchmakerName ? `
-        <div class="highlight-box">
-          <p><strong>עדכון חשוב:</strong> שדכן/ית אישי/ת, <strong>${context.matchmakerName}</strong>, הוקצה/תה לך ויצור/תיצור עמך קשר בקרוב.</p>
-        </div>
-      ` : ''}
-      ${context.requiresVerification ? `
-        <p>כדי להתחיל, אנא אמת/י את כתובת המייל שלך. שלחנו לך מייל נוסף עם קוד אימות.</p>
-      ` : `
-        <p>חשבונך מוכן לשימוש. אנו ממליצים לך להשלים את הפרופיל האישי שלך כדי שנוכל להתחיל למצוא עבורך הצעות מתאימות.</p>
-      `}
-      <p style="text-align: center;">
-        <a href="${context.dashboardUrl}" class="button">כניסה לאזור האישי</a>
-      </p>
-      <p>אם יש לך שאלות או שאת/ה זקוק/ה לעזרה, אל תהסס/י לפנות אלינו.</p>
-    `;
-    const footer = `
-      <p>לתמיכה ושאלות, ניתן לפנות אלינו בכתובת: <a href="mailto:${context.supportEmail}">${context.supportEmail}</a></p>
-      ${context.unsubscribeUrl ? `<p><a href="${context.unsubscribeUrl}">הסרה מרשימת התפוצה</a></p>` : ''}
-      <p>© ${context.currentYear} כל הזכויות שמורות ל${context.companyName}.</p>
-    `;
-    return createBaseEmailHtml('ברוכים הבאים!', content.replace('{{headerClass}}', ''), footer);
-  },
- 'account-setup': (context) => {
-    const content = `
-      <p>שלום <strong>${context.firstName}</strong>,</p>
-      <p>אנו שמחים לבשר לך שהשדכן/ית, <strong>${context.matchmakerName}</strong>, יצר/ה עבורך פרופיל במערכת השידוכים המתקדמת שלנו, ${context.companyName}.</p>
-      <p>כדי שתוכל/י לקחת שליטה על הפרופיל, לעדכן פרטים, ולצפות בהצעות, יש להגדיר סיסמה אישית לחשבונך.</p>
-      <p style="text-align: center;">
-        <a href="${context.setupLink}" class="button">הגדרת סיסמה והפעלת החשבון</a>
-      </p>
+// --- מיפוי התבניות ---
+// כעת כל פונקציה מקבלת את הטיפוס הספציפי והמתוקן שלה, והקוד בתוכה יעבוד ללא שגיאות.
+export const emailTemplates = {
+  welcome: (context: WelcomeTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
+    <p>${context.dict.intro}</p>
+    ${context.matchmakerAssigned && context.matchmakerName ? `
       <div class="highlight-box">
-        <p><strong>שימ/י לב:</strong> קישור זה הינו חד-פעמי ותקף למשך <strong>${context.expiresIn}</strong>.</p>
-      </div>
-      <p>לאחר הגדרת הסיסמה, תוכל/י להתחבר למערכת בכל עת באמצעות כתובת המייל שלך והסיסמה החדשה.</p>
-      <p>אנו מאחלים לך הצלחה רבה!</p>
-    `;
-    const footer = `
-      <p>לתמיכה ושאלות, ניתן לפנות אלינו בכתובת: <a href="mailto:${context.supportEmail}">${context.supportEmail}</a></p>
-      <p>© ${context.currentYear} כל הזכויות שמורות ל${context.companyName}.</p>
-    `;
-    return createBaseEmailHtml('הזמנה להגדרת חשבונך', content, footer);
-  },
-  'email-otp-verification': (context) => {
-    const content = `
-      <p>שלום ${context.firstName || 'משתמש יקר'},</p>
-      <p>השתמש/י בקוד האימות הבא כדי לאשר את כתובת המייל שלך במערכת ${context.companyName}:</p>
-      <div class="otp-code">${context.verificationCode}</div>
-      <p>הקוד תקף למשך <strong>${context.expiresIn}</strong> מרגע שליחתו.</p>
-      <p>אם לא ביקשת לאמת כתובת מייל זו, או שאינך מנסה להירשם לאתר שלנו, אנא התעלם/י מהודעה זו.</p>
-      <p>אבטחת חשבונך חשובה לנו. לעולם אל תשתף/י קוד זה עם איש.</p>
-    `;
-    const footer = `
-      <p>נתקלת בבעיה? <a href="mailto:${context.supportEmail}">צור קשר עם התמיכה</a>.</p>
-      <p>© ${context.currentYear} כל הזכויות שמורות ל${context.companyName}.</p>
-    `;
-    return createBaseEmailHtml('קוד אימות למייל', content.replace('{{headerClass}}', ''), footer);
-  },
+        <p><strong>${context.dict.matchmakerAssigned.replace('{{matchmakerName}}', context.matchmakerName)}</strong></p>
+      </div>` : ''
+    }
+    <p>${context.dict.getStarted}</p>
+    <p style="text-align: center;">
+      <a href="${context.dashboardUrl}" class="button">${context.dict.dashboardButton}</a>
+    </p>
+  `, context),
+
+  accountSetup: (context: AccountSetupTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
+    <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
+    <p>${context.dict.actionPrompt}</p>
+    <p style="text-align: center;">
+      <a href="${context.setupLink}" class="button">${context.dict.actionButton}</a>
+    </p>
+    <div class="highlight-box">
+      <p><strong>${context.dict.notice.replace('{{expiresIn}}', context.expiresIn)}</strong></p>
+    </div>
+    <p>${context.dict.nextStep}</p>
+  `, context),
   
-  'invitation': (context) => {
-    const content = `
-      <p>שלום,</p>
-      <p>השדכן/ית <strong>${context.matchmakerName}</strong> מזמין/ה אותך להצטרף למערכת השידוכים ${context.companyName}.</p>
-      <p>אנו מאמינים שנוכל לעזור לך למצוא את ההתאמה המושלמת. אנא לחץ/י על הקישור הבא כדי להשלים את ההרשמה:</p>
+  emailOtpVerification: (context: EmailOtpVerificationTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>
+    <p>${context.dict.intro}</p>
+    <p>${context.dict.codeInstruction}</p>
+    <div class="otp-code">${context.verificationCode}</div>
+    <p>${context.dict.expiryNotice.replace('{{expiresIn}}', context.expiresIn)}</p>
+    <p>${context.dict.securityNote}</p>
+  `, context),
+
+  invitation: (context: InvitationTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
+    <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
+    <p>${context.dict.actionPrompt}</p>
+    <p style="text-align: center;">
+      <a href="${context.invitationLink}" class="button">${context.dict.actionButton}</a>
+    </p>
+    <p>${context.dict.expiryNotice.replace('{{expiresIn}}', context.expiresIn)}</p>
+  `, context),
+  
+  suggestion: (context: SuggestionTemplateContext) => {
+    let detailsHtml = '';
+    if (context.suggestionDetails) {
+      const detailsList = [
+        context.suggestionDetails.age && `<li><strong>גיל:</strong> ${context.suggestionDetails.age}</li>`,
+        context.suggestionDetails.city && `<li><strong>עיר:</strong> ${context.suggestionDetails.city}</li>`,
+        context.suggestionDetails.occupation && `<li><strong>עיסוק:</strong> ${context.suggestionDetails.occupation}</li>`,
+        context.suggestionDetails.additionalInfo && `<li><strong>מידע נוסף:</strong> ${context.suggestionDetails.additionalInfo}</li>`,
+      ].filter(Boolean).join('');
+      if (detailsList) {
+        detailsHtml = `<ul>${detailsList}</ul>`;
+      }
+    }
+    return createBaseEmailHtml(context.dict.title, `
+      <p>${context.sharedDict.greeting.replace('{{name}}', context.recipientName)}</p>
+      <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
+      ${detailsHtml ? `<div class="attributes-list"><h4>${context.dict.previewTitle}</h4>${detailsHtml}</div>` : ''}
+      <p>${context.dict.actionPrompt}</p>
       <p style="text-align: center;">
-        <a href="${context.invitationLink}" class="button">הצטרפות למערכת</a>
+        <a href="${context.dashboardUrl}" class="button">${context.dict.actionButton}</a>
       </p>
-      <p>הזמנה זו תקפה למשך <strong>${context.expiresIn}</strong>.</p>
-      <p>אנו מצפים לראותך!</p>
-    `;
-    const footer = `
-      <p>אם יש לך שאלות, ניתן לפנות אלינו בכתובת: <a href="mailto:${context.supportEmail}">${context.supportEmail}</a>.</p>
-      <p>© ${context.currentYear} כל הזכויות שמורות ל${context.companyName}.</p>
-    `;
-    return createBaseEmailHtml('הזמנה להצטרף למערכת השידוכים', content.replace('{{headerClass}}', ''), footer);
+      <p>${context.dict.closing}</p>
+    `, context);
   },
 
-  'availability-check': (context) => {
-    const content = `
-      <p>שלום <strong>${context.recipientName}</strong>,</p>
-      <p>השדכן/ית <strong>${context.matchmakerName}</strong> שלח/ה לך בקשה לבדיקת זמינות עבור הצעת שידוך פוטנציאלית.</p>
-      <p>אנו מעריכים את תגובתך המהירה. אנא כנס/י לאזור האישי שלך כדי לעיין בפרטים ולהשיב לבקשה:</p>
-      <p style="text-align: center;">
-        <a href="${context.baseUrl}/dashboard/suggestions?inquiryId=${context.inquiryId}" class="button">צפייה ועדכון זמינות</a>
-      </p>
-      <p>תודה על שיתוף הפעולה!</p>
-    `;
-    const footer = `
-      <p>לשאלות נוספות, פנה/י לשדכן/ית שלך או לתמיכה בכתובת: <a href="mailto:${context.supportEmail}">${context.supportEmail}</a>.</p>
-      <p>© ${context.currentYear} כל הזכויות שמורות ל${context.companyName}.</p>
-    `;
-    return createBaseEmailHtml('בקשת בדיקת זמינות', content.replace('{{headerClass}}', ''), footer);
-  },
-
-  'share-contact-details': (context) => {
+  shareContactDetails: (context: ContactDetailsTemplateContext) => {
     const contactInfoHtml = [
       context.otherPartyContact.phone && `<p><strong>טלפון:</strong> ${context.otherPartyContact.phone}</p>`,
       context.otherPartyContact.email && `<p><strong>אימייל:</strong> <a href="mailto:${context.otherPartyContact.email}">${context.otherPartyContact.email}</a></p>`,
       context.otherPartyContact.whatsapp && `<p><strong>וואטסאפ:</strong> ${context.otherPartyContact.whatsapp}</p>`,
     ].filter(Boolean).join('');
 
-    const content = `
-      <p>שלום <strong>${context.recipientName}</strong>,</p>
-      <p>בהמשך להסכמתך, אנו שמחים להעביר לך את פרטי הקשר של <strong>${context.otherPartyName}</strong>. פרטים אלו נשלחו גם לצד השני.</p>
+    return createBaseEmailHtml(context.dict.title, `
+      <p>${context.sharedDict.greeting.replace('{{name}}', context.recipientName)}</p>
+      <p>${context.dict.intro}</p>
       <div class="attributes-list">
-        <h3>פרטי הקשר של ${context.otherPartyName}:</h3>
-        ${contactInfoHtml || '<p>לא סופקו פרטי קשר נוספים.</p>'}
+        <h3>${context.dict.detailsOf.replace('{{otherPartyName}}', context.otherPartyName)}</h3>
+        ${contactInfoHtml || '<p>לא סופקו פרטי קשר.</p>'}
       </div>
-      <p>הודעה זו נשלחה על ידי השדכן/ית שלך, <strong>${context.matchmakerName}</strong>.</p>
-      <p>אנו מאחלים לכם הצלחה רבה ומקווים שתהיה זו התחלה של קשר נפלא!</p>
       <div class="highlight-box">
-        <p><strong>טיפ קטן:</strong> מומלץ ליצור קשר ראשוני תוך 24-48 שעות. שיחה נעימה ופתוחה יכולה לעשות הבדל גדול.</p>
+        <p><strong>${context.dict.tipTitle}</strong> ${context.dict.tipContent}</p>
       </div>
-    `;
-    const footer = `
-      <p>אם נתקלת בבעיה או שיש לך שאלות, אנא פנה/י לשדכן/ית שלך או לתמיכה: <a href="mailto:${context.supportEmail}">${context.supportEmail}</a>.</p>
-      <p>© ${context.currentYear} כל הזכויות שמורות ל${context.companyName}.</p>
-    `;
-    return createBaseEmailHtml('העברת פרטי קשר', content.replace('{{headerClass}}', ''), footer);
+      <p>${context.dict.goodLuck}</p>
+    `, context);
   },
 
-  'suggestion': (context) => {
-    let suggestionDetailsHtml = '';
-    if (context.suggestionDetails) {
-      const details = [
-        context.suggestionDetails.age && `<li><strong>גיל:</strong> ${context.suggestionDetails.age}</li>`,
-        context.suggestionDetails.city && `<li><strong>עיר:</strong> ${context.suggestionDetails.city}</li>`,
-        context.suggestionDetails.occupation && `<li><strong>עיסוק:</strong> ${context.suggestionDetails.occupation}</li>`,
-        context.suggestionDetails.additionalInfo && `<li><strong>מידע נוסף:</strong> ${context.suggestionDetails.additionalInfo}</li>`,
-      ].filter(Boolean).join('');
-      if (details) {
-        suggestionDetailsHtml = `
-          <div class="attributes-list">
-            <p>הצצה קטנה לפרטי ההצעה:</p>
-            <ul>${details}</ul>
-          </div>
-        `;
-      }
-    }
+  availabilityCheck: (context: AvailabilityCheckTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.recipientName)}</p>
+    <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
+    <p>${context.dict.actionPrompt}</p>
+    <p style="text-align: center;">
+      <a href="${context.baseUrl}/dashboard/suggestions?inquiryId=${context.inquiryId}" class="button">${context.dict.actionButton}</a>
+    </p>
+    <div class="highlight-box">
+      <p><strong>${context.dict.noticeTitle}</strong> ${context.dict.noticeContent}</p>
+    </div>
+  `, context),
 
-    const content = `
-      <p>שלום <strong>${context.recipientName}</strong>,</p>
-      <p>יש לנו חדשות מרגשות! השדכן/ית שלך, <strong>${context.matchmakerName}</strong>, מצא/ה עבורך הצעת שידוך חדשה שנראית מבטיחה.</p>
-      ${suggestionDetailsHtml}
-      <p>אנו ממליצים לך להיכנס לאזור האישי שלך כדי לעיין בפרטים המלאים של ההצעה ולהודיע לנו על החלטתך:</p>
-      <p style="text-align: center;">
-        <a href="${context.dashboardUrl}" class="button">צפייה בהצעה המלאה</a>
-      </p>
-      <p>נשמח לשמוע ממך בהקדם!</p>
-    `;
-    const footer = `
-      <p>לכל שאלה או התייעצות, השדכן/ית שלך זמין/ה עבורך. ניתן גם לפנות לתמיכה: <a href="mailto:${context.supportEmail}">${context.supportEmail}</a>.</p>
-      <p>© ${context.currentYear} כל הזכויות שמורות ל${context.companyName}.</p>
-    `;
-    return createBaseEmailHtml('הצעת שידוך חדשה עבורך', content.replace('{{headerClass}}', ''), footer);
-  },
+  passwordResetOtp: (context: PasswordResetOtpTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>
+    <p>${context.dict.intro}</p>
+    <p>${context.dict.codeInstruction}</p>
+    <div class="otp-code">${context.otp}</div>
+    <p>${context.dict.expiryNotice.replace('{{expiresIn}}', context.expiresIn)}</p>
+    <p>${context.dict.securityNote}</p>
+  `, context),
 
-  // --- תבניות חדשות ---
-  'password-reset-otp': (context) => {
-    const content = `
-      <p>שלום ${context.firstName || 'משתמש יקר'},</p>
-      <p>קיבלנו בקשה לאיפוס הסיסמה שלך עבור חשבונך במערכת ${context.companyName}.</p>
-      <p>אנא השתמש בקוד האימות החד-פעמי הבא כדי לאפס את סיסמתך. הזן/הזיני אותו בשדה המתאים בדף איפוס הסיסמה באתר:</p>
-      <div class="otp-code">${context.otp}</div>
-      <p>הקוד תקף למשך <strong>${context.expiresIn}</strong>.</p>
-      <div class="highlight-box">
-        <p><strong>חשוב:</strong> אם לא יזמת את הבקשה לאיפוס סיסמה, אין צורך לבצע כל פעולה, וסיסמתך תישאר כפי שהיא. ייתכן שמישהו הזין את כתובת המייל שלך בטעות.</p>
-        <p>מטעמי אבטחה, לעולם אל תשתף/י קוד זה עם אף אחד.</p>
-      </div>
-      <p>במידה ונתקלת בקשיים, צוות התמיכה שלנו זמין לסייע.</p>
-    `;
-    const footer = `
-      <p>לתמיכה נוספת, ניתן לפנות אלינו בכתובת: <a href="mailto:${context.supportEmail}">${context.supportEmail}</a>.</p>
-      <p>© ${context.currentYear} כל הזכויות שמורות ל${context.companyName}.</p>
-    `;
-    // The headerClass here can be an empty string or a specific class if needed
-    return createBaseEmailHtml('קוד לאיפוס סיסמה', content.replace('{{headerClass}}', ''), footer);
-  },
-
-  'password-changed-confirmation': (context) => {
-    const content = `
-      <p>שלום ${context.firstName || 'משתמש יקר'},</p>
-      <p>אנו מאשרים שהסיסמה עבור חשבונך במערכת ${context.companyName} שונתה בהצלחה.</p>
-      <p>אם לא ביצעת שינוי זה, או אם אתה חושד בפעילות לא מורשית בחשבונך, אנא פנה אלינו באופן מיידי.</p>
-      <p>תוכל להתחבר לחשבונך כעת באמצעות הסיסמה החדשה שלך:</p>
-      <p style="text-align: center;">
-        <a href="${context.loginUrl}" class="button">התחבר לחשבונך</a>
-      </p>
-    `;
-    const footer = `
-      <p>לכל שאלה, פנה לתמיכה: <a href="mailto:${context.supportEmail}">${context.supportEmail}</a>.</p>
-      <p>© ${context.currentYear} כל הזכויות שמורות ל${context.companyName}.</p>
-    `;
-    // Use 'success' class for the header of this confirmation email
-    return createBaseEmailHtml('הסיסמה שלך שונתה', content.replace('{{headerClass}}', 'success'), footer);
-  },
-
-  'internal-feedback-notification': (context) => {
-      const content = `
-          <p>A new piece of feedback has been submitted through the website widget.</p>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-              <tr style="border-bottom: 1px solid #eee;"><th style="text-align: left; padding: 12px; background-color: #f7f7f7; font-weight: 600;">Feedback ID</th><td style="text-align: left; padding: 12px;">${context.feedbackId}</td></tr>
-              <tr style="border-bottom: 1px solid #eee;"><th style="text-align: left; padding: 12px; background-color: #f7f7f7; font-weight: 600;">Type</th><td style="text-align: left; padding: 12px;"><strong>${context.feedbackType}</strong></td></tr>
-              <tr style="border-bottom: 1px solid #eee;"><th style="text-align: left; padding: 12px; background-color: #f7f7f7; font-weight: 600;">Submitted By</th><td style="text-align: left; padding: 12px;">${context.userIdentifier}</td></tr>
-              <tr style="border-bottom: 1px solid #eee;"><th style="text-align: left; padding: 12px; background-color: #f7f7f7; font-weight: 600;">Page URL</th><td style="text-align: left; padding: 12px;"><a href="${context.pageUrl}">${context.pageUrl}</a></td></tr>
-              <tr style="border-bottom: 1px solid #eee;"><th style="text-align: left; padding: 12px; background-color: #f7f7f7; font-weight: 600;">Content</th><td style="text-align: left; padding: 12px;"><pre style="white-space: pre-wrap; font-family: sans-serif;">${context.content}</pre></td></tr>
-          </table>
-          ${context.screenshotUrl ? `
-          <div style="margin-top: 20px;">
-              <h2 style="font-size: 18px;">Screenshot Attached</h2>
-              <a href="${context.screenshotUrl}" target="_blank">
-                  <img src="${context.screenshotUrl}" alt="User-submitted screenshot" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;">
-              </a>
-          </div>
-          ` : ''}
-      `;
-      const footer = `<p>© ${context.currentYear} ${context.companyName}. This is an automated notification.</p>`;
-      return createBaseEmailHtml('New Feedback Received', content, footer);
-  }
-
-
-  // If you still had an old 'password-reset' for links:
-  // 'password-reset': (context) => { ... your old link-based reset template ... }
+  passwordChangedConfirmation: (context: PasswordChangedConfirmationTemplateContext) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>
+    <p>${context.dict.intro}</p>
+    <div class="highlight-box">
+      <p>${context.dict.securityNote}</p>
+    </div>
+    <p style="text-align: center;">
+      <a href="${context.loginUrl}" class="button">${context.dict.actionButton}</a>
+    </p>
+  `, context),
 };

@@ -1919,7 +1919,7 @@ const ColorPaletteSelector: React.FC<{
             aria-labelledby="color-palette-button"
             className={cn(
               'absolute top-full mt-2 z-50',
-              direction === 'rtl' ? 'left-0' : 'right-0',
+              direction === 'rtl' ? 'right-0' : 'right-0',
               'bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/80 shadow-xl',
               'min-w-[160px] py-2',
               'animate-in fade-in-0 zoom-in-95 duration-200'
