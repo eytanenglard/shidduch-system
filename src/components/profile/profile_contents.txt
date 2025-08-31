@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile
-# Generated on: 2025-08-27 18:12:10
+# Generated on: 2025-08-31 15:09:03
 ################################################################################
 
 ================================================================================
@@ -1353,7 +1353,7 @@ const DetailItem: React.FC<{
   tooltip?: string;
   variant?: 'default' | 'highlight' | 'elegant' | 'romantic';
   size?: 'sm' | 'md' | 'lg';
-  textAlign?: 'center' | 'right' | 'left';
+  textAlign?: 'center' | 'right' | 'left' | 'start' | 'end';
   responsive?: boolean;
   useMobileLayout?: boolean;
   placeholder: string;
@@ -1424,6 +1424,7 @@ const DetailItem: React.FC<{
 
   const currentSize = sizes[size];
   const currentVariant = variants[variant];
+  const textAlignClass = `text-${textAlign}`;
 
   const content = (
     <div
@@ -1466,7 +1467,8 @@ const DetailItem: React.FC<{
         </div>
         <p
           className={cn(
-            'font-semibold mb-1 tracking-wide leading-tight text-center',
+            'font-semibold mb-1 tracking-wide leading-tight',
+            textAlignClass,
             currentSize.label,
             'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
             variant === 'highlight' || variant === 'elegant'
@@ -1479,7 +1481,8 @@ const DetailItem: React.FC<{
         </p>
         <div
           className={cn(
-            'font-medium leading-relaxed text-center',
+            'font-medium leading-relaxed',
+            textAlignClass,
             currentSize.value,
             'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
             'max-w-full overflow-hidden',
@@ -1881,7 +1884,15 @@ const ColorPaletteSelector: React.FC<{
   THEME: ThemeType;
   dict: ProfileCardDisplayDict['colorPalette'];
   compact?: boolean;
-}> = ({ selectedPalette, onPaletteChange, THEME, dict, compact = false }) => {
+  direction: 'ltr' | 'rtl';
+}> = ({
+  selectedPalette,
+  onPaletteChange,
+  THEME,
+  dict,
+  compact = false,
+  direction,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -1920,11 +1931,13 @@ const ColorPaletteSelector: React.FC<{
             role="menu"
             aria-labelledby="color-palette-button"
             className={cn(
-              'absolute top-full mt-2 right-0 z-50',
+              'absolute top-full mt-2 z-50',
+              direction === 'rtl' ? 'left-0' : 'right-0',
               'bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/80 shadow-xl',
               'min-w-[160px] py-2',
               'animate-in fade-in-0 zoom-in-95 duration-200'
             )}
+            dir={direction}
           >
             {Object.entries(COLOR_PALETTES).map(([key, palette]) => (
               <button
@@ -1935,7 +1948,7 @@ const ColorPaletteSelector: React.FC<{
                   setIsOpen(false);
                 }}
                 className={cn(
-                  'w-full px-4 py-3 text-right transition-all duration-200',
+                  'w-full px-4 py-3 text-start transition-all duration-200',
                   'hover:bg-gray-100/80 active:bg-gray-200/50',
                   'flex items-center gap-3 min-h-[44px]',
                   selectedPalette === key && 'bg-gray-100/60 font-semibold'
@@ -1968,7 +1981,7 @@ const ColorPaletteSelector: React.FC<{
                     <span className="sr-only">{dict.selected}</span>
                     <CheckCircle
                       aria-hidden="true"
-                      className="w-4 h-4 text-green-600 mr-auto"
+                      className="w-4 h-4 text-green-600 ms-auto"
                     />
                   </>
                 )}
@@ -1993,7 +2006,7 @@ interface ProfileCardProps {
   onCreateSuggestion?: (data: CreateSuggestionData) => Promise<void>;
   onClose?: () => void;
   dict: ProfileCardDict;
-  locale: string; // Added locale
+  locale: string;
 }
 
 const ProfileHeader: React.FC<{
@@ -2034,6 +2047,9 @@ const ProfileHeader: React.FC<{
   locale,
 }) => {
   const direction = locale === 'he' ? 'rtl' : 'ltr';
+  console.log(
+    `ProfileCard Loaded - Locale: ${locale}, Direction: ${direction}`
+  );
 
   const personalityHighlights = useMemo(() => {
     const highlights: ExcitementFactor[] = [];
@@ -2100,16 +2116,16 @@ const ProfileHeader: React.FC<{
           className={cn(
             'absolute bg-gradient-to-br from-rose-200/40 to-pink-200/40 rounded-full blur-xl sm:blur-2xl animate-pulse',
             compact
-              ? 'top-2 right-2 w-8 h-8 sm:w-16 sm:h-16'
-              : 'top-4 right-4 sm:top-10 sm:right-10 w-16 h-16 sm:w-32 sm:h-32'
+              ? 'top-2 end-2 w-8 h-8 sm:w-16 sm:h-16'
+              : 'top-4 end-4 sm:top-10 sm:end-10 w-16 h-16 sm:w-32 sm:h-32'
           )}
         ></div>
         <div
           className={cn(
             'absolute bg-gradient-to-br from-amber-200/40 to-orange-200/40 rounded-full blur-lg sm:blur-xl animate-pulse',
             compact
-              ? 'bottom-2 left-2 w-6 h-6 sm:w-12 sm:h-12'
-              : 'bottom-4 left-4 sm:bottom-10 sm:left-10 w-12 h-12 sm:w-24 sm:h-24'
+              ? 'bottom-2 start-2 w-6 h-6 sm:w-12 sm:h-12'
+              : 'bottom-4 start-4 sm:bottom-10 sm:start-10 w-12 h-12 sm:w-24 sm:h-24'
           )}
           style={{ animationDelay: '1s' }}
         ></div>
@@ -2190,7 +2206,7 @@ const ProfileHeader: React.FC<{
             <div
               className={cn(
                 'absolute transition-all duration-300',
-                compact ? '-bottom-1 -right-1' : '-bottom-2 -right-2'
+                compact ? '-bottom-1 -end-1' : '-bottom-2 -end-2'
               )}
             >
               <Badge
@@ -2209,7 +2225,7 @@ const ProfileHeader: React.FC<{
                 <availability.icon
                   className={cn(
                     'flex-shrink-0',
-                    compact ? 'w-2 h-2 ml-1' : 'w-3 h-3 ml-1 sm:ml-1.5'
+                    compact ? 'w-2 h-2 me-1' : 'w-3 h-3 me-1 sm:me-1.5'
                   )}
                 />
                 <span className={cn('break-words')}>
@@ -2232,6 +2248,7 @@ const ProfileHeader: React.FC<{
                   THEME={THEME}
                   dict={dict.colorPalette}
                   compact={compact}
+                  direction={direction}
                 />
               </div>
             )}
@@ -2300,7 +2317,7 @@ const ProfileHeader: React.FC<{
                   isMobile ? 'flex justify-center' : 'flex justify-start'
                 )}
               >
-                <ScrollArea className="w-full max-w-full" dir="rtl">
+                <ScrollArea className="w-full max-w-full" dir={direction}>
                   <div
                     className={cn(
                       'flex gap-2 sm:gap-3 pb-2 px-1 min-w-max',
@@ -2346,7 +2363,7 @@ const ProfileHeader: React.FC<{
             >
               {isMobile ? (
                 <div className="w-full max-w-full overflow-hidden px-1">
-                  <ScrollArea className="w-full" dir="rtl">
+                  <ScrollArea className="w-full" dir={direction}>
                     <div
                       className={cn(
                         'flex gap-2 sm:gap-3 pb-2 px-1',
@@ -2443,9 +2460,8 @@ const ProfileHeader: React.FC<{
                   <Heart
                     className={cn(
                       'flex-shrink-0',
-                      compact
-                        ? 'w-4 h-4 ml-1'
-                        : 'w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2'
+                      compact ? 'w-4 h-4' : 'w-4 h-4 sm:w-5 sm:h-5',
+                      direction === 'rtl' ? 'ml-1 sm:ml-2' : 'mr-1 sm:mr-2'
                     )}
                   />
                   <span className="break-words">
@@ -2453,14 +2469,25 @@ const ProfileHeader: React.FC<{
                       ? dict.header.suggestMatchButton
                       : dict.header.suggestPerfectMatchButton}
                   </span>
-                  <ArrowRight
-                    className={cn(
-                      'flex-shrink-0',
-                      compact
-                        ? 'w-4 h-4 mr-1'
-                        : 'w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2'
-                    )}
-                  />
+                  {direction === 'rtl' ? (
+                    <ArrowLeft
+                      className={cn(
+                        'flex-shrink-0',
+                        compact
+                          ? 'w-4 h-4 mr-1'
+                          : 'w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2'
+                      )}
+                    />
+                  ) : (
+                    <ArrowRight
+                      className={cn(
+                        'flex-shrink-0',
+                        compact
+                          ? 'w-4 h-4 ml-1'
+                          : 'w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2'
+                      )}
+                    />
+                  )}
                 </Button>
               </div>
             )}
@@ -2574,6 +2601,7 @@ const MobileImageGallery: React.FC<{
   THEME: ThemeType;
   dict: ProfileCardDisplayDict['gallery'];
   compact?: boolean;
+  direction: 'ltr' | 'rtl';
 }> = ({
   orderedImages,
   profile,
@@ -2581,6 +2609,7 @@ const MobileImageGallery: React.FC<{
   THEME,
   dict,
   compact = false,
+  direction,
 }) => {
   if (orderedImages.length === 0) return null;
 
@@ -2626,7 +2655,7 @@ const MobileImageGallery: React.FC<{
           {dict.subtitle}
         </p>
       </div>
-      <ScrollArea dir="rtl" className="w-full overflow-hidden">
+      <ScrollArea dir={direction} className="w-full overflow-hidden">
         <div
           className={cn(
             'flex pb-2 sm:pb-3',
@@ -2677,8 +2706,8 @@ const MobileImageGallery: React.FC<{
                   className={cn(
                     'absolute font-bold',
                     compact
-                      ? 'top-0.5 right-0.5 text-xs px-1 py-0.5 gap-0.5'
-                      : 'top-1 right-1 text-xs px-1.5 py-0.5 gap-1',
+                      ? 'top-0.5 end-0.5 text-xs px-1 py-0.5 gap-0.5'
+                      : 'top-1 end-1 text-xs px-1.5 py-0.5 gap-1',
                     'bg-gradient-to-r from-yellow-400 to-amber-500 text-black shadow-sm',
                     THEME.shadows.warm
                   )}
@@ -2709,6 +2738,7 @@ const ImageDialogComponent: React.FC<{
   onNavigate: (direction: 'next' | 'prev') => void;
   onImageSelect: (image: UserImageType) => void;
   dict: ProfileCardDisplayDict['imageDialog'];
+  direction: 'ltr' | 'rtl';
 }> = ({
   selectedImageForDialog,
   currentDialogImageIndex,
@@ -2717,8 +2747,11 @@ const ImageDialogComponent: React.FC<{
   onNavigate,
   onImageSelect,
   dict,
+  direction,
 }) => {
   if (!selectedImageForDialog) return null;
+  const PrevIcon = direction === 'rtl' ? ChevronRight : ChevronLeft;
+  const NextIcon = direction === 'rtl' ? ChevronLeft : ChevronRight;
 
   return (
     <Dialog
@@ -2730,7 +2763,7 @@ const ImageDialogComponent: React.FC<{
           'max-w-5xl w-[95vw] h-[90vh] p-0 border-none rounded-2xl flex flex-col',
           'bg-black/95 backdrop-blur-md'
         )}
-        dir="rtl"
+        dir={direction}
       >
         <DialogHeader
           className={cn(
@@ -2786,27 +2819,29 @@ const ImageDialogComponent: React.FC<{
                 variant="ghost"
                 aria-label={dict.prevLabel}
                 className={cn(
-                  'absolute right-4 top-1/2 -translate-y-1/2 rounded-full',
+                  'absolute top-1/2 -translate-y-1/2 rounded-full',
+                  direction === 'rtl' ? 'right-4' : 'left-4',
                   'bg-black/50 hover:bg-black/70 text-white border border-white/20',
                   'backdrop-blur-sm transition-all hover:scale-110 active:scale-95',
                   'w-12 h-12 sm:w-14 sm:h-14 min-h-[44px] min-w-[44px]'
                 )}
                 onClick={() => onNavigate('prev')}
               >
-                <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                <PrevIcon className="h-5 w-5 sm:h-6 sm:w-6" />
               </Button>
               <Button
                 variant="ghost"
                 aria-label={dict.nextLabel}
                 className={cn(
-                  'absolute left-4 top-1/2 -translate-y-1/2 rounded-full',
+                  'absolute top-1/2 -translate-y-1/2 rounded-full',
+                  direction === 'rtl' ? 'left-4' : 'right-4',
                   'bg-black/50 hover:bg-black/70 text-white border border-white/20',
                   'backdrop-blur-sm transition-all hover:scale-110 active:scale-95',
                   'w-12 h-12 sm:w-14 sm:h-14 min-h-[44px] min-w-[44px]'
                 )}
                 onClick={() => onNavigate('next')}
               >
-                <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+                <NextIcon className="h-5 w-5 sm:h-6 sm:w-6" />
               </Button>
             </>
           )}
@@ -2814,7 +2849,7 @@ const ImageDialogComponent: React.FC<{
 
         {orderedImages.length > 1 && (
           <DialogFooter className="border-t border-gray-700/50 bg-black/80 backdrop-blur-sm p-0">
-            <ScrollArea dir="rtl" className="w-full">
+            <ScrollArea dir={direction} className="w-full">
               <div className="flex gap-2 p-3 justify-center min-w-max">
                 {orderedImages.map((img) => (
                   <div
@@ -2859,7 +2894,8 @@ const MobileTabNavigation: React.FC<{
   onTabChange: (newTab: string) => void;
   THEME: ThemeType;
   dict: ProfileCardDisplayDict['mobileNav'];
-}> = ({ activeTab, tabItems, onTabChange, THEME, dict }) => {
+  direction: 'ltr' | 'rtl';
+}> = ({ activeTab, tabItems, onTabChange, THEME, dict, direction }) => {
   const currentIndex = useMemo(
     () => tabItems.findIndex((tab) => tab.value === activeTab),
     [tabItems, activeTab]
@@ -2882,25 +2918,28 @@ const MobileTabNavigation: React.FC<{
   const baseButtonClasses =
     'flex-1 flex flex-col p-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
 
+  const PrevIcon = direction === 'rtl' ? ChevronRight : ChevronLeft;
+  const NextIcon = direction === 'rtl' ? ChevronLeft : ChevronRight;
+
   return (
     <div className="mt-8 pt-6 border-t border-gray-200/80 flex items-stretch justify-between gap-3 sm:gap-4 w-full">
       {prevTab ? (
         <button
           className={cn(
             baseButtonClasses,
-            'items-start text-right',
+            'items-start text-start',
             'bg-white border border-gray-200/80 hover:border-gray-300',
             'focus-visible:ring-gray-400'
           )}
           onClick={() => onTabChange(prevTab.value)}
         >
           <div className="flex items-center gap-2">
-            <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
+            <PrevIcon className="w-6 h-6 text-gray-400 flex-shrink-0" />
             <p className="text-xs font-medium text-gray-500">{dict.previous}</p>
           </div>
           <div className="flex items-center gap-2 mt-1.5">
             <prevTab.icon className="w-5 h-5 text-gray-600 flex-shrink-0" />
-            <span className="text-base font-bold text-gray-800 text-right break-words min-w-0">
+            <span className="text-base font-bold text-gray-800 text-start break-words min-w-0">
               {prevTab.label}
             </span>
           </div>
@@ -2912,7 +2951,7 @@ const MobileTabNavigation: React.FC<{
         <button
           className={cn(
             baseButtonClasses,
-            'items-end text-left',
+            'items-end text-end',
             'bg-rose-50 border border-rose-200/80 hover:border-rose-300',
             'focus-visible:ring-rose-500'
           )}
@@ -2920,10 +2959,10 @@ const MobileTabNavigation: React.FC<{
         >
           <div className="flex items-center gap-2">
             <p className="text-xs font-medium text-rose-700">{dict.next}</p>
-            <ChevronLeft className="w-6 h-6 text-rose-500 flex-shrink-0" />
+            <NextIcon className="w-6 h-6 text-rose-500 flex-shrink-0" />
           </div>
           <div className="flex items-center justify-end gap-2 mt-1.5">
-            <span className="text-base font-bold text-rose-900 text-left break-words min-w-0">
+            <span className="text-base font-bold text-rose-900 text-end break-words min-w-0">
               {nextTab.label}
             </span>
             <nextTab.icon className="w-5 h-5 text-rose-600 flex-shrink-0" />
@@ -2949,7 +2988,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   onCreateSuggestion,
   onClose,
   dict,
+  locale,
 }) => {
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
+
   const profile = useMemo(
     () => ({
       ...profileData,
@@ -3221,11 +3263,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     image.url && setSelectedImageForDialog(image);
   const handleCloseImageDialog = () => setSelectedImageForDialog(null);
 
-  const handleDialogNav = (direction: 'next' | 'prev') => {
+  const handleDialogNav = (navDirection: 'next' | 'prev') => {
     if (currentDialogImageIndex === -1 || orderedImages.length <= 1) return;
     const newIndex =
       (currentDialogImageIndex +
-        (direction === 'next' ? 1 : -1) +
+        (navDirection === 'next' ? 1 : -1) +
         orderedImages.length) %
       orderedImages.length;
     setSelectedImageForDialog(orderedImages[newIndex]);
@@ -3294,8 +3336,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           gradient: THEME.colors.primary.main,
           hasContent:
             relationshipAnswers.length > 0 ||
-            !!profile.matchingNotes ||
-            !!profile.inspiringCoupleStory,
+            !!profile.matchingNotes?.trim() ||
+            !!profile.inspiringCoupleStory?.trim(),
         },
         {
           value: 'connection',
@@ -3429,12 +3471,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     worldColor?: string;
     worldGradient?: string;
     compact?: boolean;
+    direction: 'ltr' | 'rtl';
   }> = ({
     answer,
     worldName,
     worldColor = 'rose',
     worldGradient,
     compact = false,
+    direction,
   }) => {
     return (
       <div
@@ -3461,9 +3505,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
           <div className="flex-1 min-w-0 overflow-hidden">
             <h4
+              dir="auto"
               className={cn(
                 'font-bold mb-2 sm:mb-3 text-gray-800 leading-relaxed',
-                'flex items-center justify-between gap-2',
+                'flex items-center justify-between gap-2 text-start',
                 compact ? 'text-sm' : 'text-sm sm:text-base'
               )}
             >
@@ -3498,9 +3543,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </h4>
             <div
               className={cn(
-                'rounded-lg border-r-4 bg-white/60 overflow-hidden',
+                'rounded-lg bg-white/60 overflow-hidden',
                 compact ? 'p-3' : 'p-3 sm:p-4',
-                `border-${worldColor}-400`
+                direction === 'rtl'
+                  ? `border-r-4 border-${worldColor}-400`
+                  : `border-l-4 border-${worldColor}-400`
               )}
             >
               {answer.questionType === 'budgetAllocation' &&
@@ -3510,6 +3557,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 <BudgetDisplay
                   data={answer.rawValue as Record<string, number>}
                   dict={dict.budgetDisplay}
+                  locale={locale}
                 />
               ) : (
                 <p
@@ -3518,9 +3566,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     compact ? 'text-sm' : 'text-sm sm:text-base'
                   )}
                 >
-                  <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline ml-1 text-gray-400 flex-shrink-0" />
+                  <Quote
+                    className={cn(
+                      'w-3 h-3 sm:w-4 sm:h-4 inline text-gray-400 flex-shrink-0',
+                      direction === 'rtl' ? 'ml-1' : 'mr-1'
+                    )}
+                  />
                   {answer.displayText}
-                  <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 text-gray-400 transform rotate-180 flex-shrink-0" />
+                  <Quote
+                    className={cn(
+                      'w-3 h-3 sm:w-4 sm:h-4 inline text-gray-400 transform rotate-180 flex-shrink-0',
+                      direction === 'rtl' ? 'mr-1' : 'ml-1'
+                    )}
+                  />
                 </p>
               )}
             </div>
@@ -3580,7 +3638,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             THEME.shadows.elegant
           )}
         >
-          <ScrollArea className="w-full max-w-full overflow-hidden" dir="rtl">
+          <ScrollArea
+            className="w-full max-w-full overflow-hidden"
+            dir={direction}
+          >
             <div className="flex gap-0.5 sm:gap-1 justify-center min-w-max px-2 sm:px-4">
               {tabItems.map((tab) => (
                 <button
@@ -3639,6 +3700,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.personality.label}
                     worldColor={WORLDS.personality.accentColor}
                     worldGradient={WORLDS.personality.gradient}
+                    direction={direction}
                   />
                 )}
                 {profile.profileHeadline && (
@@ -3671,11 +3733,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         THEME.shadows.soft
                       )}
                     >
-                      <Quote className="absolute top-3 right-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300" />
-                      <p className="text-base sm:text-lg text-gray-800 leading-relaxed italic font-medium text-center lg:text-right break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                      <Quote className="absolute top-3 end-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300" />
+                      <p className="text-base sm:text-lg text-gray-800 leading-relaxed italic font-medium text-center lg:text-start break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
                         {profile.about}
                       </p>
-                      <Quote className="absolute bottom-3 left-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300 transform rotate-180" />
+                      <Quote className="absolute bottom-3 start-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300 transform rotate-180" />
                     </div>
                   </SectionCard>
                 )}
@@ -3775,6 +3837,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.personality.label}
                           worldColor={WORLDS.personality.accentColor}
                           worldGradient={WORLDS.personality.gradient}
+                          direction={direction}
                         />
                       ))}
                     </div>
@@ -3787,6 +3850,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     onTabChange={handleTabChange}
                     THEME={THEME}
                     dict={displayDict.mobileNav}
+                    direction={direction}
                   />
                 )}
               </div>
@@ -3804,6 +3868,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.values.label}
                     worldColor={WORLDS.values.accentColor}
                     worldGradient={WORLDS.values.gradient}
+                    direction={direction}
                   />
                 )}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
@@ -3826,7 +3891,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           ).label
                         }
                         variant="highlight"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       {profile.education && (
@@ -3851,7 +3916,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           displayDict.placeholders.professionWaiting
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       <DetailItem
@@ -3865,7 +3930,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           ).label
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       {profile.serviceDetails && (
@@ -3898,7 +3963,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           displayDict.placeholders.willDiscover
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       {profile.fatherOccupation && (
@@ -3909,7 +3974,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           }
                           value={profile.fatherOccupation}
                           variant="elegant"
-                          textAlign="right"
+                          textAlign="start"
                           placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
@@ -3921,7 +3986,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           }
                           value={profile.motherOccupation}
                           variant="elegant"
-                          textAlign="right"
+                          textAlign="start"
                           placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
@@ -3934,7 +3999,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             : displayDict.placeholders.willDiscover
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       <DetailItem
@@ -3946,7 +4011,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             : displayDict.placeholders.willDiscover
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       {profile.aliyaCountry && (
@@ -3957,7 +4022,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           }
                           value={`${profile.aliyaCountry} - השורשים שלי`}
                           variant="elegant"
-                          textAlign="right"
+                          textAlign="start"
                           placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
@@ -3967,7 +4032,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           label={displayDict.content.detailLabels.aliyaYear}
                           value={`${profile.aliyaYear} - הגעתי הביתה`}
                           variant="elegant"
-                          textAlign="right"
+                          textAlign="start"
                           placeholder={displayDict.placeholders.willDiscover}
                         />
                       )}
@@ -3990,6 +4055,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.values.label}
                           worldColor={WORLDS.values.accentColor}
                           worldGradient={WORLDS.values.gradient}
+                          direction={direction}
                         />
                       ))}
                     </div>
@@ -4002,6 +4068,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     onTabChange={handleTabChange}
                     THEME={THEME}
                     dict={displayDict.mobileNav}
+                    direction={direction}
                   />
                 )}
               </div>
@@ -4019,6 +4086,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.religion.label}
                     worldColor={WORLDS.religion.accentColor}
                     worldGradient={WORLDS.religion.gradient}
+                    direction={direction}
                   />
                 )}
                 <SectionCard
@@ -4040,7 +4108,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         ).label
                       }
                       variant="highlight"
-                      textAlign="right"
+                      textAlign="start"
                       placeholder={displayDict.placeholders.willDiscover}
                     />
                     {profile.religiousJourney && (
@@ -4057,7 +4125,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           ).label
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                     )}
@@ -4075,7 +4143,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         ).label
                       }
                       variant="elegant"
-                      textAlign="right"
+                      textAlign="start"
                       placeholder={displayDict.placeholders.willDiscover}
                     />
                     {profile.gender === 'FEMALE' && profile.headCovering && (
@@ -4090,7 +4158,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           ).label
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                     )}
@@ -4106,7 +4174,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           ).label
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                     )}
@@ -4147,6 +4215,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.religion.label}
                           worldColor={WORLDS.religion.accentColor}
                           worldGradient={WORLDS.religion.gradient}
+                          direction={direction}
                         />
                       ))}
                     </div>
@@ -4159,6 +4228,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     onTabChange={handleTabChange}
                     THEME={THEME}
                     dict={displayDict.mobileNav}
+                    direction={direction}
                   />
                 )}
               </div>
@@ -4176,6 +4246,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.relationship.label}
                     worldColor={WORLDS.relationship.accentColor}
                     worldGradient={WORLDS.relationship.gradient}
+                    direction={direction}
                   />
                 )}
                 {profile.matchingNotes && (
@@ -4193,9 +4264,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       )}
                     >
                       <p className="text-rose-700 leading-relaxed whitespace-pre-wrap italic text-base sm:text-lg break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
-                        <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline ml-1 text-rose-400 flex-shrink-0" />
+                        <Quote
+                          className={cn(
+                            'w-4 h-4 sm:w-5 sm:h-5 inline text-rose-400 flex-shrink-0',
+                            direction === 'rtl' ? 'ml-1' : 'mr-1'
+                          )}
+                        />
                         {profile.matchingNotes}
-                        <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 text-rose-400 transform rotate-180 flex-shrink-0" />
+                        <Quote
+                          className={cn(
+                            'w-4 h-4 sm:w-5 sm:h-5 inline text-rose-400 transform rotate-180 flex-shrink-0',
+                            direction === 'rtl' ? 'mr-1' : 'ml-1'
+                          )}
+                        />
                       </p>
                     </div>
                   </SectionCard>
@@ -4236,6 +4317,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.relationship.label}
                           worldColor={WORLDS.relationship.accentColor}
                           worldGradient={WORLDS.relationship.gradient}
+                          direction={direction}
                         />
                       ))}
                     </div>
@@ -4248,6 +4330,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     onTabChange={handleTabChange}
                     THEME={THEME}
                     dict={displayDict.mobileNav}
+                    direction={direction}
                   />
                 )}
               </div>
@@ -4265,6 +4348,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     worldName={WORLDS.partner.label}
                     worldColor={WORLDS.partner.accentColor}
                     worldGradient={WORLDS.partner.gradient}
+                    direction={direction}
                   />
                 )}
                 {hasAnyPreferences ? (
@@ -4332,6 +4416,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           worldName={WORLDS.partner.label}
                           worldColor={WORLDS.partner.accentColor}
                           worldGradient={WORLDS.partner.gradient}
+                          direction={direction}
                         />
                       ))}
                     </div>
@@ -4344,6 +4429,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     onTabChange={handleTabChange}
                     THEME={THEME}
                     dict={displayDict.mobileNav}
+                    direction={direction}
                   />
                 )}
               </div>
@@ -4377,7 +4463,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           ).label
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                       <DetailItem
@@ -4396,7 +4482,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             : displayDict.content.professionalInfo.noPreference
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                     </div>
@@ -4412,7 +4498,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                 .medicalInfoDiscreet
                         }
                         variant="elegant"
-                        textAlign="right"
+                        textAlign="start"
                         tooltip={profile.medicalInfoDetails || undefined}
                         placeholder={displayDict.placeholders.willDiscover}
                       />
@@ -4424,7 +4510,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           {displayDict.content.professionalInfo.profileCreated}{' '}
                           {profile.createdAt
                             ? new Date(profile.createdAt).toLocaleDateString(
-                                'he-IL'
+                                locale
                               )
                             : displayDict.content.professionalInfo.unknown}
                         </span>
@@ -4435,7 +4521,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           <span>
                             {displayDict.content.professionalInfo.lastActive}{' '}
                             {new Date(profile.lastActive).toLocaleDateString(
-                              'he-IL'
+                              locale
                             )}
                           </span>
                         </div>
@@ -4450,6 +4536,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     onTabChange={handleTabChange}
                     THEME={THEME}
                     dict={displayDict.mobileNav}
+                    direction={direction}
                   />
                 )}
               </TabsContent>
@@ -4467,7 +4554,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         'p-3 sm:p-4 min-h-[60px]',
         `bg-gradient-to-r ${THEME.colors.neutral.warm}`
       )}
-      dir="ltr"
+      dir={direction}
     >
       <Button
         variant="ghost"
@@ -4503,7 +4590,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             )}
           >
             <Heart className="h-3 h-3 sm:h-4 sm:w-4" />
-            <span className="mr-1.5 sm:mr-2 text-xs sm:text-sm font-medium">
+            <span className="mx-1.5 sm:mx-2 text-xs sm:text-sm font-medium">
               {displayDict.mobileNav.introView}
             </span>
           </ToggleGroupItem>
@@ -4516,7 +4603,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             )}
           >
             <FileText className="h-3 h-3 sm:h-4 sm:w-4" />
-            <span className="mr-1.5 sm:mr-2 text-xs sm:text-sm font-medium">
+            <span className="mx-1.5 sm:mx-2 text-xs sm:text-sm font-medium">
               {displayDict.mobileNav.detailedView}
             </span>
           </ToggleGroupItem>
@@ -4527,6 +4614,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           THEME={THEME}
           dict={displayDict.colorPalette}
           compact={true}
+          direction={direction}
         />
       </div>
     </div>
@@ -4551,6 +4639,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           hobbiesMap={hobbiesMap}
           religiousLevelMap={religiousLevelMap}
           educationLevelMap={educationLevelMap}
+          locale={locale}
         />
         <MobileImageGallery
           orderedImages={orderedImages}
@@ -4559,6 +4648,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           THEME={THEME}
           dict={displayDict.gallery}
           compact={false}
+          direction={direction}
         />
         <div
           className={cn(
@@ -4593,6 +4683,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             hobbiesMap={hobbiesMap}
             religiousLevelMap={religiousLevelMap}
             educationLevelMap={educationLevelMap}
+            locale={locale}
           />
           <MobileImageGallery
             orderedImages={orderedImages}
@@ -4601,6 +4692,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             THEME={THEME}
             dict={displayDict.gallery}
             compact={true}
+            direction={direction}
           />
           <div
             className={cn(
@@ -4625,12 +4717,22 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   )}
                 >
                   <p
-                    className="text-gray-800 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-right"
-                    dir="rtl"
+                    className="text-gray-800 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-start"
+                    dir={direction}
                   >
-                    <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline ml-1 text-rose-400 flex-shrink-0" />
+                    <Quote
+                      className={cn(
+                        'w-3 h-3 sm:w-4 sm:h-4 inline text-rose-400 flex-shrink-0',
+                        direction === 'rtl' ? 'ml-1' : 'mr-1'
+                      )}
+                    />
                     {profile.about}
-                    <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 text-rose-400 transform rotate-180 flex-shrink-0" />
+                    <Quote
+                      className={cn(
+                        'w-3 h-3 sm:w-4 sm:h-4 inline text-rose-400 transform rotate-180 flex-shrink-0',
+                        direction === 'rtl' ? 'mr-1' : 'ml-1'
+                      )}
+                    />
                   </p>
                 </div>
               </SectionCard>
@@ -4828,7 +4930,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   THEME.shadows.warm
                 )}
               >
-                <Eye className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
+                <Eye
+                  className={cn(
+                    'w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0',
+                    direction === 'rtl' ? 'ml-2' : 'mr-2'
+                  )}
+                />
                 <span className="break-words">
                   {displayDict.content.focus.letsGetToKnow}
                 </span>
@@ -4843,7 +4950,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   if (!isClient) {
     return (
       <Card
-        dir="rtl"
+        dir={direction}
         className={cn(
           'w-full bg-white shadow-2xl rounded-2xl overflow-hidden border-0 flex flex-col h-full',
           className
@@ -4882,7 +4989,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   return (
     <TooltipProvider>
       <Card
-        dir="rtl"
+        dir={direction}
         id="profile-card-container"
         className={cn(
           'w-full h-full overflow-hidden flex flex-col max-w-full min-w-0',
@@ -4892,13 +4999,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           className
         )}
         style={{
-          direction: 'rtl',
-          textAlign: 'right',
+          textAlign: direction === 'rtl' ? 'right' : 'left',
           overflow: 'hidden',
         }}
       >
         {isDesktop && onClose && (
-          <div className="absolute top-4 left-4 z-40">
+          <div
+            className={cn(
+              'absolute top-4 z-40',
+              direction === 'rtl' ? 'left-4' : 'right-4'
+            )}
+          >
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -4923,7 +5034,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         {isDesktop ? (
           <ResizablePanelGroup
             direction="horizontal"
-            dir="rtl"
+            dir={direction}
             className="flex-grow min-h-0 max-w-full"
           >
             <ResizablePanel
@@ -4947,6 +5058,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   hobbiesMap={hobbiesMap}
                   religiousLevelMap={religiousLevelMap}
                   educationLevelMap={educationLevelMap}
+                  locale={locale}
                 />
                 <div className="p-4 sm:p-6 overflow-hidden flex max-w-full">
                   <MainContentTabs />
@@ -5067,6 +5179,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           onNavigate={handleDialogNav}
           onImageSelect={setSelectedImageForDialog}
           dict={displayDict.imageDialog}
+          direction={direction}
         />
       </Card>
     </TooltipProvider>
@@ -5104,6 +5217,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
@@ -5124,11 +5238,13 @@ import {
   Settings,
   AlertCircle,
   Trash2,
+  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession, signOut } from 'next-auth/react';
 import { UserRole, UserStatus } from '@prisma/client';
 import type { AccountSettingsDict } from '@/types/dictionary';
+import type { Locale } from '../../../i18n-config'; // ייבוא טיפוס השפה
 
 interface AccountSettingsProps {
   user: {
@@ -5144,6 +5260,7 @@ interface AccountSettingsProps {
     marketingConsent?: boolean;
   };
   dict: AccountSettingsDict;
+  locale: Locale; // ✨ הוספת locale לממשק
 }
 
 const PASSWORD_MIN_LENGTH = 8;
@@ -5151,6 +5268,7 @@ const PASSWORD_MIN_LENGTH = 8;
 const AccountSettings: React.FC<AccountSettingsProps> = ({
   user: propUser,
   dict,
+  locale, // ✨ קבלת locale
 }) => {
   const {
     data: session,
@@ -5339,7 +5457,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           icon: <AlertCircle className="h-5 w-5 text-red-500" />,
         }
       );
-      resetPasswordForm();
     } finally {
       setIsLoading(false);
     }
@@ -5487,8 +5604,28 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
     return <div>{dict.loadingText}</div>;
   }
 
+  const PasswordRequirement: React.FC<{ label: string; met: boolean }> = ({
+    label,
+    met,
+  }) => (
+    <li
+      className={`flex items-center text-xs ${met ? 'text-green-600' : 'text-gray-500'}`}
+    >
+      {met ? (
+        <CheckCircle className="w-3.5 h-3.5 me-1.5" />
+      ) : (
+        <XCircle className="w-3.5 h-3.5 me-1.5" />
+      )}
+      {label}
+    </li>
+  );
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    // ✨ הוספת dir דינמי
+    <div
+      className="max-w-2xl mx-auto space-y-6"
+      dir={locale === 'he' ? 'rtl' : 'ltr'}
+    >
       <Card
         className={`shadow-md hover:shadow-lg transition-all duration-300 border-t-4 border-blue-600 overflow-hidden relative`}
         onMouseEnter={() => setActiveSection('main')}
@@ -5499,7 +5636,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         />
         <CardHeader className="border-b pb-3 relative">
           <CardTitle className="text-xl flex items-center">
-            <Settings className="w-5 h-5 text-blue-600 mr-2" />
+            <Settings className="w-5 h-5 text-blue-600 me-2" />
             {dict.cardHeader.title}
           </CardTitle>
           <CardDescription>{dict.cardHeader.description}</CardDescription>
@@ -5507,7 +5644,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         <CardContent className="divide-y relative">
           <div className="py-4">
             <h3 className="text-base font-semibold flex items-center mb-4">
-              <User className="w-4 h-4 text-blue-600 mr-2" />
+              <User className="w-4 h-4 text-blue-600 me-2" />
               {dict.sections.personal.title}
             </h3>
             <div className="grid gap-3">
@@ -5539,7 +5676,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                       onClick={sendVerificationEmail}
                       disabled={isSendingVerification}
                     >
-                      <Mail className="w-4 h-4 mr-2" />
+                      <Mail className="w-4 h-4 me-2" />
                       {dict.sections.personal.sendVerificationButton}
                     </Button>
                   )}
@@ -5549,7 +5686,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           </div>
           <div className="py-4">
             <h3 className="text-base font-semibold mb-4 flex items-center">
-              <Shield className="w-4 h-4 text-blue-600 mr-2" />
+              <Shield className="w-4 h-4 text-blue-600 me-2" />
               {dict.sections.status.title}
             </h3>
             <div className="grid gap-3">
@@ -5582,12 +5719,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   </p>
                   <p className="text-gray-800">
                     {dict.sections.status.createdAt}{' '}
-                    {new Date(propUser.createdAt).toLocaleDateString('he-IL')}
+                    {new Date(propUser.createdAt).toLocaleDateString(locale)}
                   </p>
                   {propUser.lastLogin && (
                     <p className="text-gray-800">
                       {dict.sections.status.lastLogin}{' '}
-                      {new Date(propUser.lastLogin).toLocaleDateString('he-IL')}
+                      {new Date(propUser.lastLogin).toLocaleDateString(locale)}
                     </p>
                   )}
                 </div>
@@ -5596,15 +5733,18 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           </div>
           <div className="py-4">
             <h3 className="text-base font-semibold mb-4 flex items-center">
-              <Bell className="w-4 h-4 text-blue-600 mr-2" />
+              <Bell className="w-4 h-4 text-blue-600 me-2" />
               {dict.sections.marketing.title}
             </h3>
             <div className="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
               <div>
-                <Label htmlFor="marketing-switch" className="cursor-pointer">
+                <Label
+                  htmlFor="marketing-switch"
+                  className="cursor-pointer text-start"
+                >
                   {dict.sections.marketing.label}
                 </Label>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-gray-600 text-start">
                   {dict.sections.marketing.description}
                 </p>
               </div>
@@ -5618,9 +5758,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           </div>
           <div className="py-4">
             <div className="flex items-center justify-between mb-4">
-              <div>
+              <div className="text-start">
                 <h3 className="text-base font-semibold flex items-center">
-                  <Key className="w-4 h-4 text-blue-600 mr-2" />
+                  <Key className="w-4 h-4 text-blue-600 me-2" />
                   {dict.sections.security.title}
                 </h3>
                 <p className="text-sm text-muted-foreground">
@@ -5634,7 +5774,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   onClick={() => setIsChangingPassword(true)}
                   disabled={isLoading}
                 >
-                  <Key className="w-4 h-4 mr-2" />
+                  <Key className="w-4 h-4 me-2" />
                   {dict.sections.security.changePasswordButton}
                 </Button>
               )}
@@ -5681,9 +5821,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           </div>
           <div className="py-4 border-t border-dashed border-red-200">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="text-start">
                 <h3 className="text-base font-semibold flex items-center text-red-600">
-                  <Trash2 className="w-4 h-4 mr-2" />
+                  <Trash2 className="w-4 h-4 me-2" />
                   {dict.sections.delete.title}
                 </h3>
                 <p className="text-sm text-muted-foreground">
@@ -5696,7 +5836,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                 onClick={() => setIsDeletingAccount(true)}
                 disabled={isLoading}
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Trash2 className="w-4 h-4 me-2" />
                 {dict.sections.delete.deleteButton}
               </Button>
             </div>
@@ -5704,13 +5844,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         </CardContent>
         <CardFooter className="bg-gradient-to-r from-gray-50 to-white border-t p-4 text-sm text-gray-500 relative">
           <div className="flex items-center">
-            <Bell className="w-4 h-4 text-blue-600 mr-2" />
+            <Bell className="w-4 h-4 text-blue-600 me-2" />
             <span>{dict.cardFooter.notice}</span>
           </div>
         </CardFooter>
       </Card>
 
-      {/* Dialogs using dict */}
       {canChangePassword && (
         <Dialog
           open={isChangingPassword}
@@ -5719,8 +5858,191 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
             else setIsChangingPassword(true);
           }}
         >
-          <DialogContent className="sm:max-w-md">
-            {/* All content inside the dialog should now use `dict.passwordDialog...` */}
+          <DialogContent
+            className="sm:max-w-md"
+            dir={locale === 'he' ? 'rtl' : 'ltr'}
+          >
+            <DialogHeader className="text-start">
+              <DialogTitle>{dict.passwordDialog.title}</DialogTitle>
+              <DialogDescription>
+                {passwordChangeStep === 1
+                  ? dict.passwordDialog.step1Description
+                  : dict.passwordDialog.step2Description.replace(
+                      '{{email}}',
+                      propUser.email
+                    )}
+              </DialogDescription>
+            </DialogHeader>
+            {passwordChangeStep === 1 ? (
+              <div className="space-y-4 text-start">
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword">
+                    {dict.passwordDialog.currentPasswordLabel}
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="currentPassword"
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      onClick={() =>
+                        setShowCurrentPassword(!showCurrentPassword)
+                      }
+                    >
+                      <span className="sr-only">
+                        {showCurrentPassword
+                          ? dict.passwordDialog.hidePassword
+                          : dict.passwordDialog.showPassword}
+                      </span>
+                      {showCurrentPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">
+                    {dict.passwordDialog.newPasswordLabel}
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="newPassword"
+                      type={showNewPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      <span className="sr-only">
+                        {showNewPassword
+                          ? dict.passwordDialog.hidePassword
+                          : dict.passwordDialog.showPassword}
+                      </span>
+                      {showNewPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">
+                    {dict.passwordDialog.confirmPasswordLabel}
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
+                      <span className="sr-only">
+                        {showConfirmPassword
+                          ? dict.passwordDialog.hidePassword
+                          : dict.passwordDialog.showPassword}
+                      </span>
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                {newPassword && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-medium">
+                        {dict.passwordDialog.strengthLabel}
+                      </p>
+                      <p
+                        className={`text-xs font-semibold ${getPasswordStrengthColor().replace('bg-', 'text-')}`}
+                      >
+                        {getPasswordStrengthText()}
+                      </p>
+                    </div>
+                    <Progress
+                      value={passwordStrength}
+                      className={`h-1.5 ${getPasswordStrengthColor()}`}
+                    />
+                    <ul className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2">
+                      <PasswordRequirement
+                        label={dict.passwordDialog.requirements.length.replace(
+                          '{{count}}',
+                          String(PASSWORD_MIN_LENGTH)
+                        )}
+                        met={passwordRequirements.length}
+                      />
+                      <PasswordRequirement
+                        label={dict.passwordDialog.requirements.uppercase}
+                        met={passwordRequirements.uppercase}
+                      />
+                      <PasswordRequirement
+                        label={dict.passwordDialog.requirements.lowercase}
+                        met={passwordRequirements.lowercase}
+                      />
+                      <PasswordRequirement
+                        label={dict.passwordDialog.requirements.number}
+                        met={passwordRequirements.number}
+                      />
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4 text-start">
+                <Label htmlFor="verificationCode">
+                  {dict.passwordDialog.verificationCodeLabel}
+                </Label>
+                <Input
+                  id="verificationCode"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  placeholder="123456"
+                  maxLength={6}
+                />
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={resetPasswordForm}>
+                {dict.passwordDialog.cancelButton}
+              </Button>
+              <Button
+                onClick={
+                  passwordChangeStep === 1
+                    ? initiatePasswordChange
+                    : completePasswordChange
+                }
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                ) : null}
+                {passwordChangeStep === 1
+                  ? dict.passwordDialog.continueButton
+                  : dict.passwordDialog.confirmButton}
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
@@ -5736,14 +6058,17 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           }
         }}
       >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent
+          className="sm:max-w-md"
+          dir={locale === 'he' ? 'rtl' : 'ltr'}
+        >
+          <DialogHeader className="text-start">
             <DialogTitle>{dict.deleteDialog.title}</DialogTitle>
             <DialogDescription>
               {dict.deleteDialog.description}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 text-start">
             <Label htmlFor="deleteConfirm">
               {dict.deleteDialog.confirmationLabel}{' '}
               <strong>{dict.deleteDialog.confirmationPhrase}</strong>
@@ -6301,6 +6626,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, Sparkles, AlertTriangle, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils'; // Import cn utility
 
 import AnalysisResultDisplay from './AnalysisResultDisplay';
 import type { AiProfileAnalysisResult } from '@/lib/services/aiService';
@@ -6310,17 +6636,21 @@ interface AIProfileAdvisorDialogProps {
   userId: string;
   dict: AIAdvisorDialogDict;
   analysisDict: AnalysisResultDisplayDict;
+  locale: string; // Added locale prop
 }
 
 export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
   userId,
   dict,
-  analysisDict
+  analysisDict,
+  locale,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [analysis, setAnalysis] = useState<AiProfileAnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   const handleGetAnalysis = async () => {
     if (analysis) {
@@ -6350,7 +6680,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
       const errorMessage =
         err instanceof Error ? err.message : 'An unexpected error occurred.';
       setError(errorMessage);
-      // שימוש במבנה ה-toast הנכון
       toast.error(dict.toast.errorTitle, {
         description: dict.toast.errorDescription.replace('{{error}}', errorMessage),
       });
@@ -6379,19 +6708,24 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
           onClick={handleTriggerClick}
           variant="outline"
           size="lg"
-          className="rounded-full border-2 border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:border-purple-400 transition-all duration-300 shadow-sm hover:shadow-lg group w-full max-w-sm"
+          className="rounded-full border-2 border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:border-purple-400 transition-all duration-300 shadow-sm hover:shadow-lg group w-full max-w-sm flex items-center gap-2"
         >
-          <Sparkles className="w-5 h-5 ml-2 text-purple-500 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110" />
+          <Sparkles className="w-5 h-5 text-purple-500 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110" />
           <span>{dict.triggerButton}</span>
         </Button>
       </DialogTrigger>
 
       <DialogContent
         className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0"
-        dir="rtl"
+        dir={direction} // Dynamically set direction
       >
         <DialogClose asChild>
-          <button className="absolute top-3 left-4 rtl:right-4 rtl:left-auto text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10">
+          <button
+            className={cn(
+              'absolute top-3 text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10',
+              direction === 'rtl' ? 'left-4' : 'right-4'
+            )}
+          >
             <X className="h-5 w-5" />
             <span className="sr-only">{dict.closeButton}</span>
           </button>
@@ -6426,7 +6760,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
             <div className="flex flex-col items-center justify-center h-full text-center">
               <Alert variant="destructive" className="max-w-md">
                 <AlertTriangle className="h-5 w-5" />
-                {/* שימוש בשדות הנכונים לאלרט */}
                 <AlertTitle>{dict.errorAlertTitle}</AlertTitle>
                 <AlertDescription>
                   <p>{dict.errorAlertDescription}</p>
@@ -6442,7 +6775,11 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
               </Button>
             </div>
           ) : analysis ? (
-            <AnalysisResultDisplay analysis={analysis} dict={analysisDict} />
+            <AnalysisResultDisplay
+              analysis={analysis}
+              dict={analysisDict}
+              locale={locale} // Pass locale down
+            />
           ) : (
             <div className="flex items-center justify-center h-full">
               <p>{dict.initialState}</p>
@@ -6489,6 +6826,7 @@ import { AnalysisResultDisplayDict } from '@/types/dictionary';
 interface AnalysisResultDisplayProps {
   analysis: AiProfileAnalysisResult;
   dict: AnalysisResultDisplayDict;
+  locale: string; // Added locale prop
 }
 
 const TipCard: React.FC<{ area: string; tip: string }> = ({ area, tip }) => (
@@ -6510,9 +6848,18 @@ interface ReportItemProps {
   dict: AnalysisResultDisplayDict['completeness']['status'];
 }
 
-const ReportItem: React.FC<ReportItemProps> = ({ area, status, feedback, dict }) => {
+const ReportItem: React.FC<ReportItemProps> = ({
+  area,
+  status,
+  feedback,
+  dict,
+}) => {
   const statusConfig = {
-    COMPLETE: { icon: CheckCircle2, color: 'text-green-600', text: dict.complete },
+    COMPLETE: {
+      icon: CheckCircle2,
+      color: 'text-green-600',
+      text: dict.complete,
+    },
     PARTIAL: { icon: AlertCircle, color: 'text-amber-600', text: dict.partial },
     MISSING: { icon: XCircle, color: 'text-red-600', text: dict.missing },
   };
@@ -6546,13 +6893,18 @@ const ReportItem: React.FC<ReportItemProps> = ({ area, status, feedback, dict })
 const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
   analysis,
   dict,
+  locale,
 }) => {
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
+
   return (
-    <div className="w-full">
+    <div dir={direction} className="w-full">
       <Tabs defaultValue="summary" className="w-full">
         <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-slate-200/70 rounded-lg">
           <TabsTrigger value="summary">{dict.tabs.summary}</TabsTrigger>
-          <TabsTrigger value="completeness">{dict.tabs.completeness}</TabsTrigger>
+          <TabsTrigger value="completeness">
+            {dict.tabs.completeness}
+          </TabsTrigger>
           <TabsTrigger value="tips">{dict.tabs.tips}</TabsTrigger>
         </TabsList>
 
@@ -6562,11 +6914,9 @@ const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <User className="text-blue-500" />
-                  {/* תיקון: שימוש בשמות הנכונים מהמילון */}
                   {dict.summary.myPersonalityTitle}
                 </CardTitle>
                 <CardDescription>
-                  {/* תיקון: שימוש בשמות הנכונים מהמילון */}
                   {dict.summary.myPersonalityDescription}
                 </CardDescription>
               </CardHeader>
@@ -6608,7 +6958,11 @@ const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
               <CardContent className="p-0">
                 <div className="space-y-0 divide-y">
                   {analysis.completenessReport.map((item, index) => (
-                    <ReportItem key={index} {...item} dict={dict.completeness.status} />
+                    <ReportItem
+                      key={index}
+                      {...item}
+                      dict={dict.completeness.status}
+                    />
                   ))}
                 </div>
               </CardContent>
@@ -6622,9 +6976,7 @@ const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
                   <Lightbulb className="text-yellow-500" />
                   {dict.tips.title}
                 </CardTitle>
-                <CardDescription>
-                  {dict.tips.description}
-                </CardDescription>
+                <CardDescription>{dict.tips.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {analysis.actionableTips.map((tip, index) => (
@@ -6655,9 +7007,16 @@ import type { BudgetDisplayDict } from '@/types/dictionary';
 interface BudgetDisplayProps {
   data: Record<string, number>;
   dict: BudgetDisplayDict;
+  locale: string; // Added locale prop
 }
 
-const BudgetDisplay: React.FC<BudgetDisplayProps> = ({ data, dict }) => {
+const BudgetDisplay: React.FC<BudgetDisplayProps> = ({
+  data,
+  dict,
+  locale,
+}) => {
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
+
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     return <p className="text-sm text-red-500">{dict.errorInvalidData}</p>;
   }
@@ -6689,13 +7048,15 @@ const BudgetDisplay: React.FC<BudgetDisplayProps> = ({ data, dict }) => {
     },
   };
 
+  // Adjust animation based on direction
   const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
+    hidden: { opacity: 0, x: direction === 'rtl' ? 20 : -20 },
     visible: { opacity: 1, x: 0 },
   };
 
   return (
     <motion.div
+      dir={direction} // Set direction for the whole component
       className="space-y-3 pt-2"
       variants={containerVariants}
       initial="hidden"
@@ -6772,6 +7133,7 @@ interface PhotosSectionProps {
   onSetMain: (imageId: string) => Promise<void>;
   onDelete: (imageIds: string[]) => Promise<void>;
   dict: PhotosSectionDict;
+  locale: string; // Prop for language to determine direction
 }
 
 const PhotosSection: React.FC<PhotosSectionProps> = ({
@@ -6783,6 +7145,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   onSetMain,
   onDelete,
   dict,
+  locale,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -6799,6 +7162,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     new Set()
   );
 
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
   const isLoading =
     isExternallyUploading || isProcessing || uploadingFiles.length > 0;
 
@@ -6973,16 +7337,16 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   const handleNextImage = useCallback(
     () =>
       setSelectedViewerIndex((prev) =>
-        prev === null || prev >= images.length - 1 ? prev : prev + 1
+        prev === null || prev >= images.length - 1 ? 0 : prev + 1
       ),
     [images.length]
   );
   const handlePreviousImage = useCallback(
     () =>
       setSelectedViewerIndex((prev) =>
-        prev === null || prev <= 0 ? prev : prev - 1
+        prev === null || prev <= 0 ? images.length - 1 : prev - 1
       ),
-    []
+    [images.length]
   );
 
   const handleSetMainImage = async (
@@ -7011,25 +7375,41 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!showImageViewer) return;
-      if (e.key === 'ArrowRight') handlePreviousImage();
-      if (e.key === 'ArrowLeft') handleNextImage();
+      if (direction === 'rtl') {
+        if (e.key === 'ArrowRight') handlePreviousImage();
+        if (e.key === 'ArrowLeft') handleNextImage();
+      } else {
+        if (e.key === 'ArrowRight') handleNextImage();
+        if (e.key === 'ArrowLeft') handlePreviousImage();
+      }
       if (e.key === 'Escape') closeImageViewer();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showImageViewer, handlePreviousImage, handleNextImage, closeImageViewer]);
+  }, [
+    showImageViewer,
+    handlePreviousImage,
+    handleNextImage,
+    closeImageViewer,
+    direction,
+  ]);
 
   const getRemainingSlots = () => maxImages - images.length;
 
   return (
     <div
-      dir="rtl"
+      dir={direction}
       className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-8"
     >
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-4 border-b border-gray-200/80">
         {!selectionMode ? (
           <>
-            <div className="mb-3 sm:mb-0 text-right">
+            <div
+              className={cn(
+                'mb-3 sm:mb-0',
+                direction === 'rtl' ? 'text-right' : 'text-left'
+              )}
+            >
               <h2 className="text-xl font-semibold text-gray-800">
                 {dict.title}
               </h2>
@@ -7176,7 +7556,10 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
             )}
             {!disabled && !selectionMode && (
               <div
-                className="absolute top-2 right-2 z-10 flex gap-1.5 opacity-85 group-hover:opacity-100 transition-opacity duration-200"
+                className={cn(
+                  'absolute top-2 z-10 flex gap-1.5 opacity-85 group-hover:opacity-100 transition-opacity duration-200',
+                  direction === 'rtl' ? 'left-2' : 'right-2'
+                )}
                 onClick={handleControlClick}
               >
                 <Button
@@ -7214,7 +7597,12 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               </div>
             )}
             {image.isMain && !selectionMode && (
-              <Badge className="absolute bottom-2 left-2 rounded-full px-2.5 py-0.5 text-xs font-medium shadow-md text-white bg-gradient-to-r from-cyan-500 to-pink-500 border-none">
+              <Badge
+                className={cn(
+                  'absolute bottom-2 rounded-full px-2.5 py-0.5 text-xs font-medium shadow-md text-white bg-gradient-to-r from-cyan-500 to-pink-500 border-none',
+                  direction === 'rtl' ? 'right-2' : 'left-2'
+                )}
+              >
                 {dict.mainBadge}
               </Badge>
             )}
@@ -7284,7 +7672,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <DialogContent
           className="sm:max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-none p-6"
-          dir="rtl"
+          dir={direction}
         >
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-gray-800">
@@ -7309,12 +7697,12 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               variant="destructive"
               onClick={confirmDelete}
               disabled={isLoading}
-              className="rounded-full px-5"
+              className="rounded-full px-5 flex items-center gap-2"
             >
               {isProcessing ? (
-                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <Trash2 className="w-4 h-4 ml-2" />
+                <Trash2 className="w-4 h-4" />
               )}
               <span>{dict.deleteDialog.confirm}</span>
             </Button>
@@ -7326,11 +7714,15 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
         <DialogContent
           className="p-0 m-0 w-screen h-screen max-w-none sm:max-w-full sm:h-full bg-black/90 backdrop-blur-sm border-none rounded-none flex items-center justify-center outline-none"
           aria-describedby={undefined}
+          dir={direction}
         >
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-4 left-4 z-50 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors"
+            className={cn(
+              'absolute top-4 z-50 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors',
+              direction === 'rtl' ? 'right-4' : 'left-4'
+            )}
             onClick={closeImageViewer}
             aria-label={dict.imageViewer.closeLabel}
           >
@@ -7356,10 +7748,16 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
                 {images.length > 1 && (
                   <>
+                    {/* Previous Button */}
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto"
+                      className={cn(
+                        'absolute top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto',
+                        direction === 'rtl'
+                          ? 'right-2 sm:right-4'
+                          : 'left-2 sm:left-4'
+                      )}
                       onClick={(e) => {
                         e.stopPropagation();
                         handlePreviousImage();
@@ -7367,12 +7765,22 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                       disabled={selectedViewerIndex === 0}
                       aria-label={dict.imageViewer.prevLabel}
                     >
-                      <ChevronRight className="w-7 h-7" />
+                      {direction === 'rtl' ? (
+                        <ChevronRight className="w-7 h-7" />
+                      ) : (
+                        <ChevronLeft className="w-7 h-7" />
+                      )}
                     </Button>
+                    {/* Next Button */}
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto"
+                      className={cn(
+                        'absolute top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto',
+                        direction === 'rtl'
+                          ? 'left-2 sm:left-4'
+                          : 'right-2 sm:right-4'
+                      )}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleNextImage();
@@ -7380,12 +7788,21 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                       disabled={selectedViewerIndex === images.length - 1}
                       aria-label={dict.imageViewer.nextLabel}
                     >
-                      <ChevronLeft className="w-7 h-7" />
+                      {direction === 'rtl' ? (
+                        <ChevronLeft className="w-7 h-7" />
+                      ) : (
+                        <ChevronRight className="w-7 h-7" />
+                      )}
                     </Button>
                   </>
                 )}
                 {!disabled && (
-                  <div className="absolute top-4 right-4 z-50 flex flex-col sm:flex-row gap-2 pointer-events-auto">
+                  <div
+                    className={cn(
+                      'absolute top-4 z-50 flex flex-col sm:flex-row gap-2 pointer-events-auto',
+                      direction === 'rtl' ? 'left-4' : 'right-4'
+                    )}
+                  >
                     {!images[selectedViewerIndex].isMain && (
                       <Button
                         variant="secondary"
@@ -7504,6 +7921,7 @@ interface PreferencesSectionProps {
   setIsEditing: (value: boolean) => void;
   onChange: (data: Partial<UserProfile>) => void;
   dictionary: PreferencesSectionDict; // Passing the dictionary as a prop
+  locale: string; // Added locale for RTL/LTR support
 }
 
 const PreferencesSection: React.FC<PreferencesSectionProps> = ({
@@ -7513,11 +7931,14 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   setIsEditing,
   onChange,
   dictionary: t, // Using 't' as a shorthand for the dictionary
+  locale, // Destructure locale
 }) => {
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
   const [locationInputValue, setLocationInputValue] = useState('');
   const [originInputValue, setOriginInputValue] = useState('');
+
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   // --- Map icons to values for dynamic options ---
   const iconMap: { [key: string]: React.ElementType } = {
@@ -7746,11 +8167,11 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
           key={value}
           variant="secondary"
           className={cn(
-            'mr-1 mb-1 text-xs px-2 py-0.5 rounded-full flex items-center',
+            'ltr:mr-1 rtl:ml-1 mb-1 text-xs px-2 py-0.5 rounded-full flex items-center',
             badgeClass
           )}
         >
-          {option.icon && <option.icon className="w-3 h-3 rtl:ml-1 mr-1" />}
+          {option.icon && <option.icon className="w-3 h-3 ltr:mr-1 rtl:ml-1" />}
           {option.label}
         </Badge>
       ) : null;
@@ -7773,7 +8194,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   };
 
   return (
-    <div className="relative" dir="rtl">
+    <div className="relative" dir={direction}>
       <div className="sticky top-0 z-10 bg-gradient-to-b from-white via-white/95 to-white/0 pt-4 pb-3 backdrop-blur-sm">
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="flex items-center justify-between">
@@ -7796,7 +8217,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     onClick={() => setIsEditing(true)}
                     className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50"
                   >
-                    <Pencil className="w-3.5 h-3.5 ml-1.5" />
+                    <Pencil className="w-3.5 h-3.5 ltr:ml-1.5 rtl:mr-1.5" />
                     {t.buttons.edit}
                   </Button>
                 ) : (
@@ -7807,7 +8228,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       onClick={handleCancel}
                       className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50"
                     >
-                      <X className="w-3.5 h-3.5 ml-1.5" />
+                      <X className="w-3.5 h-3.5 ltr:ml-1.5 rtl:mr-1.5" />
                       {t.buttons.cancel}
                     </Button>
                     <Button
@@ -7816,7 +8237,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       onClick={handleSave}
                       className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white"
                     >
-                      <Save className="w-3.5 h-3.5 ml-1.5" />
+                      <Save className="w-3.5 h-3.5 ltr:ml-1.5 rtl:mr-1.5" />
                       {t.buttons.save}
                     </Button>
                   </>
@@ -8077,7 +8498,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             <span>{loc}</span>
                             <button
                               type="button"
-                              className="mr-1.5 rtl:mr-0 rtl:ml-1.5 text-sky-600 hover:text-sky-900"
+                              className="ltr:mr-1.5 rtl:ml-1.5 text-sky-600 hover:text-sky-900"
                               onClick={() =>
                                 handleRemoveItemFromArray(
                                   'preferredLocations',
@@ -8137,7 +8558,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                           <Badge
                             key={loc}
                             variant="secondary"
-                            className="mr-1 mb-1 bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full"
+                            className="ltr:mr-1 rtl:ml-1 mb-1 bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full"
                           >
                             {loc}
                           </Badge>
@@ -8724,7 +9145,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                                 <span>{origin}</span>
                                 <button
                                   type="button"
-                                  className="mr-1.5 rtl:mr-0 rtl:ml-1.5 text-fuchsia-600 hover:text-fuchsia-900"
+                                  className="ltr:mr-1.5 rtl:ml-1.5 text-fuchsia-600 hover:text-fuchsia-900"
                                   onClick={() =>
                                     handleRemoveItemFromArray(
                                       'preferredOrigins',
@@ -8794,7 +9215,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             <Badge
                               key={originValue}
                               variant="secondary"
-                              className="mr-1 mb-1 bg-fuchsia-100 text-fuchsia-700 text-xs px-2 py-0.5 rounded-full"
+                              className="ltr:mr-1 rtl:ml-1 mb-1 bg-fuchsia-100 text-fuchsia-700 text-xs px-2 py-0.5 rounded-full"
                             >
                               {label}
                             </Badge>
@@ -8900,7 +9321,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                           )}
                         >
                           {opt.icon && (
-                            <opt.icon className="w-3.5 h-3.5 rtl:ml-1.5 mr-1.5" />
+                            <opt.icon className="w-3.5 h-3.5 ltr:mr-1.5 rtl:ml-1.5" />
                           )}
                           {opt.label}
                         </Button>
@@ -8959,7 +9380,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                           )}
                         >
                           {opt.icon && (
-                            <opt.icon className="w-3.5 h-3.5 rtl:ml-1.5 mr-1.5" />
+                            <opt.icon className="w-3.5 h-3.5 ltr:mr-1.5 rtl:ml-1.5" />
                           )}
                           {opt.label}
                         </Button>
@@ -9014,7 +9435,7 @@ import { cn } from '@/lib/utils';
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { QuestionnaireResponse } from '@/types/next-auth';
 import { Gender } from '@prisma/client';
-import { ProfileChecklistDict } from '@/types/dictionary'; // ייבוא הטיפוס החדש
+import { ProfileChecklistDict } from '@/types/dictionary';
 
 // Helper Types & Constants
 const QUESTION_COUNTS: Record<
@@ -9055,7 +9476,7 @@ interface ChecklistItemProps {
   }[];
   isActive: boolean;
   setActiveItemId: React.Dispatch<React.SetStateAction<string | null>>;
-  dict: ProfileChecklistDict; // הוספת המילון
+  dict: ProfileChecklistDict;
 }
 
 const ChecklistItem: React.FC<ChecklistItemProps> = ({
@@ -9114,7 +9535,7 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
               damping: 20,
               delay: 0.2,
             }}
-            className="absolute -top-1 -right-1"
+            className="absolute -top-1 -end-1" // Updated: from -right-1 to -end-1 for RTL support
           >
             <CheckCircle
               className="w-5 h-5 text-emerald-500 bg-white rounded-full p-0.5"
@@ -9147,7 +9568,7 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
     ) : (
       <button
         onClick={handleInteraction}
-        className="h-full w-full text-left"
+        className="h-full w-full text-start" // Updated: from text-left to text-start
         disabled={isCompleted}
       >
         {cardContent}
@@ -9182,7 +9603,9 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
                 {dict.missingItemsTitle}
               </h4>
               {missingItems && (
-                <ul className="list-disc pr-4 space-y-1.5 text-gray-600 text-xs">
+                <ul className="list-disc ps-4 space-y-1.5 text-gray-600 text-xs">
+                  {' '}
+                  {/* Updated: from pr-4 to ps-4 */}
                   {missingItems.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
@@ -9228,7 +9651,8 @@ interface ProfileChecklistProps {
   hasSeenPreview: boolean;
   onPreviewClick: () => void;
   questionnaireResponse: QuestionnaireResponse | null;
-  dict: ProfileChecklistDict; // הוספת המילון
+  dict: ProfileChecklistDict;
+  locale: string; // Added: locale prop for directionality
 }
 
 export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
@@ -9237,10 +9661,14 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   hasSeenPreview,
   questionnaireResponse,
   dict,
+  locale, // Added: destructure locale
 }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const missingItemsDict = dict.missingItems;
+
+  // Added: Determine direction based on locale
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   const getMissingItems = useMemo(() => {
     const p = user.profile;
@@ -9395,7 +9823,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
           ? [
               dict.tasks.photos.missing.replace(
                 '{{count}}',
-                (user.images?.length ?? 0).toString()
+                (3 - (user.images?.length ?? 0)).toString()
               ),
             ]
           : [],
@@ -9605,10 +10033,13 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         exit={{ opacity: 0, height: 0, transition: { duration: 0.4 } }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
         className="mb-8 rounded-3xl shadow-xl border border-white/50 bg-white/70 backdrop-blur-md overflow-hidden"
+        dir={direction} // Added: set direction for the whole component
       >
         <div className="p-4 sm:p-6">
           <div className="md:flex md:items-center md:justify-between">
-            <div className="flex-1 text-center md:text-right">
+            <div className="flex-1 text-center md:text-start">
+              {' '}
+              {/* Updated: from md:text-right to md:text-start */}
               <h2 className="text-xl font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
                 {isAllComplete && (
                   <Sparkles className="w-6 h-6 text-amber-500" />
@@ -9781,6 +10212,7 @@ interface ProfileSectionProps {
   viewOnly?: boolean;
   onSave: (data: Partial<UserProfile>) => void;
   dict: ProfileSectionDict;
+  locale: string; // Adicionado para controle de direção
 }
 
 const ensureDateObject = (
@@ -9806,6 +10238,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   viewOnly = false,
   onSave,
   dict,
+  locale, // Recebendo o locale
 }) => {
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [loading, setLoading] = useState(true);
@@ -9813,6 +10246,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   const [cityInputValue, setCityInputValue] = useState('');
   const [aliyaCountryInputValue, setAliyaCountryInputValue] = useState('');
+
+  // Determina a direção com base no locale
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   const characterTraitsOptions = useMemo(
     () =>
@@ -10177,9 +10613,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         <Badge
           key={value}
           variant="secondary"
-          className="mr-1 mb-1 bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full"
+          className="me-1 mb-1 bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full"
         >
-          {option.icon && <option.icon className="w-3 h-3 mr-1" />}
+          {option.icon && <option.icon className="w-3 h-3 me-1" />}
           {option.label}
         </Badge>
       ) : null;
@@ -10187,11 +10623,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   };
 
   return (
-    <div className="relative" dir="rtl">
+    <div className="relative" dir={direction}>
       <div className="sticky top-0 z-10 bg-gradient-to-b from-white via-white/95 to-white/0 pt-4 pb-3 backdrop-blur-sm">
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="text-start">
               <h1 className="text-xl md:text-2xl font-bold text-slate-800">
                 {dict.header.title}
               </h1>
@@ -10210,7 +10646,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     onClick={() => setIsEditing(true)}
                     className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50"
                   >
-                    <Pencil className="w-3.5 h-3.5 ml-1.5" />
+                    <Pencil className="w-3.5 h-3.5 ms-1.5" />
                     {dict.buttons.edit}
                   </Button>
                 ) : (
@@ -10222,7 +10658,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         onClick={handleCancel}
                         className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50"
                       >
-                        <X className="w-3.5 h-3.5 ml-1.5" />
+                        <X className="w-3.5 h-3.5 ms-1.5" />
                         {dict.buttons.cancel}
                       </Button>
                       <Button
@@ -10231,7 +10667,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         onClick={handleSave}
                         className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white"
                       >
-                        <Save className="w-3.5 h-3.5 ml-1.5" />
+                        <Save className="w-3.5 h-3.5 ms-1.5" />
                         {dict.buttons.save}
                       </Button>
                     </div>
@@ -10264,6 +10700,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.gender || ''}
                         onValueChange={(value) =>
                           handleChange('gender', value as Gender)
@@ -10271,7 +10708,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="gender"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={dict.cards.personal.genderPlaceholder}
@@ -10510,6 +10947,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.nativeLanguage || ''}
                         onValueChange={(value) =>
                           handleChange('nativeLanguage', value || undefined)
@@ -10517,7 +10955,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="nativeLanguage"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -10525,7 +10963,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             }
                           />
                         </SelectTrigger>
-                        <SelectContent className="max-h-[200px]">
+                        <SelectContent>
                           {languageOptions.map((lang) => (
                             <SelectItem key={lang.value} value={lang.value}>
                               {lang.label}
@@ -10551,6 +10989,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         onValueChange={(value) => {
                           const currentLanguages =
                             formData.additionalLanguages || [];
@@ -10564,7 +11003,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="additionalLanguages"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -10611,7 +11050,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                     )
                                   )
                                 }
-                                className="mr-1.5 text-cyan-600 hover:text-cyan-800 text-xs"
+                                className="ms-1.5 text-cyan-600 hover:text-cyan-800 text-xs"
                                 aria-label={dict.cards.personal.removeLanguageLabel.replace(
                                   '{{lang}}',
                                   lang.label
@@ -10654,6 +11093,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.maritalStatus || ''}
                         onValueChange={(value) =>
                           handleChange('maritalStatus', value || undefined)
@@ -10661,7 +11101,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="maritalStatus"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -10877,6 +11317,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.religiousLevel || ''}
                         onValueChange={(value) =>
                           handleChange('religiousLevel', value || undefined)
@@ -10884,7 +11325,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="religiousLevel"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -10918,6 +11359,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.religiousJourney || ''}
                         onValueChange={(value) =>
                           handleChange(
@@ -10928,7 +11370,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="religiousJourney"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -10997,6 +11439,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </Label>
                       {isEditing && !viewOnly ? (
                         <Select
+                          dir={direction}
                           value={formData.headCovering || ''}
                           onValueChange={(value) =>
                             handleChange(
@@ -11007,7 +11450,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         >
                           <SelectTrigger
                             id="headCovering"
-                            className="h-9 text-sm focus:ring-cyan-500"
+                            className="h-9 text-sm focus:ring-cyan-500 text-start"
                           >
                             <SelectValue
                               placeholder={
@@ -11044,6 +11487,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </Label>
                       {isEditing && !viewOnly ? (
                         <Select
+                          dir={direction}
                           value={formData.kippahType || ''}
                           onValueChange={(value) =>
                             handleChange(
@@ -11054,7 +11498,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         >
                           <SelectTrigger
                             id="kippahType"
-                            className="h-9 text-sm focus:ring-cyan-500"
+                            className="h-9 text-sm focus:ring-cyan-500 text-start"
                           >
                             <SelectValue
                               placeholder={
@@ -11090,6 +11534,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.preferredMatchmakerGender || ''}
                         onValueChange={(value) =>
                           handleChange(
@@ -11100,7 +11545,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="preferredMatchmakerGender"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -11309,7 +11754,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           <div
                             id="about-char-count"
                             className={cn(
-                              'text-xs mt-1 text-right',
+                              'text-xs mt-1 text-end',
                               formData.about.trim().length < 100
                                 ? 'text-red-600'
                                 : 'text-gray-500'
@@ -11510,6 +11955,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             {dict.cards.medical.timingLabel}
                           </Label>
                           <Select
+                            dir={direction}
                             value={formData.medicalInfoDisclosureTiming || ''}
                             onValueChange={(value) =>
                               handleChange(
@@ -11520,7 +11966,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           >
                             <SelectTrigger
                               id="medicalInfoDisclosureTiming"
-                              className="h-9 text-sm focus:ring-cyan-500"
+                              className="h-9 text-sm focus:ring-cyan-500 text-start"
                             >
                               <SelectValue
                                 placeholder={
@@ -11626,7 +12072,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                 variant="secondary"
                                 className="bg-green-100 text-green-800"
                               >
-                                <Eye className="w-3.5 h-3.5 ml-1.5" />
+                                <Eye className="w-3.5 h-3.5 ms-1.5" />
                                 {dict.cards.medical.display.visibleBadge}
                               </Badge>
                             ) : (
@@ -11634,7 +12080,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                 variant="secondary"
                                 className="bg-gray-100 text-gray-700"
                               >
-                                <Lock className="w-3.5 h-3.5 ml-1.5" />
+                                <Lock className="w-3.5 h-3.5 ms-1.5" />
                                 {dict.cards.medical.display.hiddenBadge}
                               </Badge>
                             )}
@@ -11665,6 +12111,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.educationLevel || ''}
                         onValueChange={(value) =>
                           handleChange('educationLevel', value || undefined)
@@ -11672,7 +12119,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="educationLevel"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={dict.cards.education.levelPlaceholder}
@@ -11751,6 +12198,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
+                        dir={direction}
                         value={formData.serviceType || ''}
                         onValueChange={(value) =>
                           handleChange(
@@ -11761,7 +12209,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       >
                         <SelectTrigger
                           id="serviceType"
-                          className="h-9 text-sm focus:ring-cyan-500"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
                           <SelectValue
                             placeholder={
@@ -11865,7 +12313,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           )}
                         >
                           {trait.icon && (
-                            <trait.icon className="w-3.5 h-3.5 ml-1.5 rtl:mr-1.5 rtl:ml-0" />
+                            <trait.icon className="w-3.5 h-3.5 ms-1.5" />
                           )}
                           {trait.label}
                         </Button>
@@ -11922,7 +12370,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           )}
                         >
                           {hobby.icon && (
-                            <hobby.icon className="w-3.5 h-3.5 ml-1.5 rtl:mr-1.5 rtl:ml-0" />
+                            <hobby.icon className="w-3.5 h-3.5 ms-1.5" />
                           )}
                           {hobby.label}
                         </Button>
@@ -11953,7 +12401,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               onClick={handleCancel}
               className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-2"
             >
-              <X className="w-4 h-4 ml-1.5" />
+              <X className="w-4 h-4 ms-1.5" />
               {dict.buttons.cancel}
             </Button>
             <Button
@@ -11962,7 +12410,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               onClick={handleSave}
               className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2"
             >
-              <Save className="w-4 h-4 ml-1.5" />
+              <Save className="w-4 h-4 ms-1.5" />
               {dict.buttons.saveChanges}
             </Button>
           </div>
@@ -12004,6 +12452,7 @@ import {
   EyeOff,
   Loader2,
   ArrowRight,
+  ArrowLeft, // ייבוא אייקון חץ שמאלה
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -12020,7 +12469,7 @@ import type {
   FormattedAnswer,
   UpdateValue,
 } from '@/types/next-auth';
-import type { ProfilePageDictionary } from '@/types/dictionary'; // ייבוא טיפוס המילון
+import type { ProfilePageDictionary } from '@/types/dictionary';
 import { WORLDS_CONFIG } from '../constants';
 
 const QUESTIONNAIRE_URL = '/questionnaire';
@@ -12034,7 +12483,8 @@ interface QuestionnaireResponsesSectionProps {
     value: UpdateValue
   ) => Promise<void>;
   isEditable?: boolean;
-  dict: ProfilePageDictionary; // קבלת המילון
+  dict: ProfilePageDictionary;
+  locale: string; // הוספת Prop לשפה
 }
 
 interface QuestionCardProps {
@@ -12048,7 +12498,8 @@ interface QuestionCardProps {
     value: UpdateValue
   ) => Promise<void>;
   isFirstInList?: boolean;
-  dict: ProfilePageDictionary; // קבלת המילון
+  dict: ProfilePageDictionary;
+  locale: string; // הוספת Prop לשפה
 }
 
 interface WorldSectionProps {
@@ -12063,7 +12514,8 @@ interface WorldSectionProps {
   ) => Promise<void>;
   isCompleted: boolean;
   className?: string;
-  dict: ProfilePageDictionary; // קבלת המילון
+  dict: ProfilePageDictionary;
+  locale: string; // הוספת Prop לשפה
 }
 
 // --- רכיב QuestionCard ---
@@ -12074,6 +12526,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   worldKey,
   onUpdate,
   dict,
+  locale,
 }) => {
   const [isEditingText, setIsEditingText] = useState(false);
   const [editValue, setEditValue] = useState(answer.displayText);
@@ -12083,7 +12536,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     answer.isVisible ?? true
   );
 
-  const t = dict.questionnaireSection.questionCard; // קיצור דרך לתרגומים של הרכיב
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
+  const t = dict.questionnaireSection.questionCard;
 
   useEffect(() => {
     setCurrentIsVisible(answer.isVisible ?? true);
@@ -12154,7 +12608,13 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       !Array.isArray(answer.rawValue)
     ) {
       const budgetData = answer.rawValue as Record<string, number>;
-      return <BudgetDisplay data={budgetData} dict={dict.budgetDisplay} />;
+      return (
+        <BudgetDisplay
+          data={budgetData}
+          dict={dict.budgetDisplay}
+          locale={locale}
+        />
+      );
     }
     return (
       <p className="text-sm text-gray-800 break-words overflow-wrap-anywhere whitespace-pre-wrap">
@@ -12175,11 +12635,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   };
 
   return (
-    <div className="rounded-lg border bg-card p-4 shadow-sm transition-shadow duration-300 hover:shadow-md">
+    <div
+      className="rounded-lg border bg-card p-4 shadow-sm transition-shadow duration-300 hover:shadow-md"
+      dir={direction}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
-            <h4 className="font-medium text-sm sm:text-base flex-1 text-right">
+            <h4 className="font-medium text-sm sm:text-base flex-1 text-start">
               {question}
             </h4>
             <div className="flex items-center gap-2 self-end sm:self-center">
@@ -12219,17 +12682,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                       ) : (
                         <EyeOff className="h-3.5 w-3.5" />
                       )}
-                      <span
-                        className="text-xs font-medium whitespace-nowrap"
-                        dir="rtl"
-                      >
+                      <span className="text-xs font-medium whitespace-nowrap">
                         {currentIsVisible
                           ? t.visibilityButton.visible
                           : t.visibilityButton.hidden}
                       </span>
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="top" dir="rtl">
+                  <TooltipContent side="top" dir={direction}>
                     <p>{getVisibilityTooltip()}</p>
                   </TooltipContent>
                 </Tooltip>
@@ -12245,6 +12705,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 className="min-h-[80px] text-sm focus:ring-cyan-500 focus:border-cyan-500"
                 placeholder={t.editTextareaPlaceholder}
                 disabled={isSavingText}
+                dir={direction}
               />
               <div className="flex justify-end gap-2">
                 <Button
@@ -12254,7 +12715,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   disabled={isSavingText}
                   className="text-gray-600 hover:bg-gray-100"
                 >
-                  <X className="h-4 w-4 ml-1" />
+                  <X className="h-4 w-4 ms-1" />
                   {t.editButtons.cancel}
                 </Button>
                 <Button
@@ -12266,7 +12727,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   {isSavingText ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <CheckCircle className="h-4 w-4 ml-1" />
+                    <CheckCircle className="h-4 w-4 ms-1" />
                   )}
                   {t.editButtons.save}
                 </Button>
@@ -12279,14 +12740,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 <TooltipProvider delayDuration={200}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="text-xs text-gray-400 block mt-2 text-left">
+                      <span className="text-xs text-gray-400 block mt-2 text-start">
                         {new Date(answer.answeredAt).toLocaleDateString(
-                          'he-IL',
+                          locale === 'he' ? 'he-IL' : 'en-US',
                           { year: 'numeric', month: '2-digit', day: '2-digit' }
                         )}
                       </span>
                     </TooltipTrigger>
-                    <TooltipContent side="top" dir="rtl">
+                    <TooltipContent side="top" dir={direction}>
                       <p>{t.dateTooltip}</p>
                     </TooltipContent>
                   </Tooltip>
@@ -12302,7 +12763,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                           asChild
                           variant="ghost"
                           size="icon"
-                          className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
+                          className="absolute top-0 end-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
                         >
                           <Link
                             href={`/questionnaire?world=${worldKey}&question=${answer.questionId}`}
@@ -12317,7 +12778,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
+                          className="absolute top-0 end-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
                           onClick={handleStartEdit}
                         >
                           <Pencil className="h-4 w-4" />
@@ -12325,7 +12786,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                         </Button>
                       )}
                     </TooltipTrigger>
-                    <TooltipContent side="top" dir="rtl">
+                    <TooltipContent side="top" dir={direction}>
                       <p>
                         {answer.questionType === 'budgetAllocation'
                           ? t.editTooltip.budget
@@ -12337,7 +12798,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               )}
 
               {isSavingText && !isEditingText && (
-                <div className="absolute top-1 right-1">
+                <div className="absolute top-1 end-1">
                   <Loader2 className="h-4 w-4 animate-spin text-cyan-500" />
                 </div>
               )}
@@ -12359,13 +12820,16 @@ const WorldSection: React.FC<WorldSectionProps> = ({
   isCompleted,
   className,
   dict,
+  locale,
 }) => {
   const { icon: Icon, color, bgColor, borderColor } = worldConfig;
   const t = dict.questionnaireSection.worldSection;
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
-  // ▼▼▼ שליפת הכותרת מהמילון במקום מהקונפיג ▼▼▼
   const title = dict.questionnaireSection.worlds[worldKey]?.title || worldKey;
-  const answerCountText = `${answers.length} ${answers.length === 1 ? t.answerSingular : t.answerPlural}`;
+  const answerCountText = `${answers.length} ${
+    answers.length === 1 ? t.answerSingular : t.answerPlural
+  }`;
 
   return (
     <Card
@@ -12375,6 +12839,7 @@ const WorldSection: React.FC<WorldSectionProps> = ({
         borderColor,
         className
       )}
+      dir={direction}
     >
       <CardHeader
         className="p-4 border-b"
@@ -12431,6 +12896,7 @@ const WorldSection: React.FC<WorldSectionProps> = ({
               worldKey={worldKey}
               onUpdate={onUpdate}
               dict={dict}
+              locale={locale}
             />
           ))}
         </div>
@@ -12442,10 +12908,12 @@ const WorldSection: React.FC<WorldSectionProps> = ({
 // --- רכיב QuestionnaireResponsesSection הראשי ---
 const QuestionnaireResponsesSection: React.FC<
   QuestionnaireResponsesSectionProps
-> = ({ questionnaire, onUpdate, isEditable = false, dict }) => {
+> = ({ questionnaire, onUpdate, isEditable = false, dict, locale }) => {
   const [isEditingGlobally, setIsEditingGlobally] = useState(false);
 
-  const t = dict.questionnaireSection; // קיצור דרך לתרגומים
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
+  const ArrowIcon = direction === 'rtl' ? ArrowLeft : ArrowRight;
+  const t = dict.questionnaireSection;
 
   const worldsWithAnswers = useMemo(() => {
     if (!questionnaire?.formattedAnswers) return [];
@@ -12468,7 +12936,10 @@ const QuestionnaireResponsesSection: React.FC<
   if (!questionnaire) {
     const emptyStateT = t.emptyState;
     return (
-      <Card className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed">
+      <Card
+        className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed"
+        dir={direction}
+      >
         <Book className="h-10 w-10 mx-auto mb-3 opacity-50 text-gray-400" />
         <p className="font-medium">{emptyStateT.title}</p>
         <p className="text-sm mt-1">{emptyStateT.subtitle}</p>
@@ -12482,7 +12953,7 @@ const QuestionnaireResponsesSection: React.FC<
               href={QUESTIONNAIRE_URL}
               className="flex items-center gap-1.5"
             >
-              {emptyStateT.button} <ArrowRight className="h-4 w-4" />
+              {emptyStateT.button} <ArrowIcon className="h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -12494,7 +12965,7 @@ const QuestionnaireResponsesSection: React.FC<
   const headerT = t.header;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={direction}>
       <Card className="shadow-sm border">
         <CardHeader className="p-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -12512,7 +12983,11 @@ const QuestionnaireResponsesSection: React.FC<
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {hasAnyAnswers
-                    ? `${headerT.lastUpdated}: ${new Date(questionnaire.lastSaved).toLocaleDateString('he-IL')}`
+                    ? `${headerT.lastUpdated}: ${new Date(
+                        questionnaire.lastSaved
+                      ).toLocaleDateString(
+                        locale === 'he' ? 'he-IL' : 'en-US'
+                      )}`
                     : headerT.notStarted}
                 </p>
               </div>
@@ -12528,7 +13003,7 @@ const QuestionnaireResponsesSection: React.FC<
                   href={QUESTIONNAIRE_URL}
                   className="flex items-center gap-1.5"
                 >
-                  {headerT.goToButton} <ArrowRight className="h-4 w-4" />
+                  {headerT.goToButton} <ArrowIcon className="h-4 w-4" />
                 </Link>
               </Button>
               {isEditable && hasAnyAnswers && onUpdate && (
@@ -12568,6 +13043,7 @@ const QuestionnaireResponsesSection: React.FC<
               onUpdate={onUpdate!}
               isCompleted={isCompleted}
               dict={dict}
+              locale={locale}
             />
           ))}
         </div>
@@ -12588,7 +13064,7 @@ const QuestionnaireResponsesSection: React.FC<
                 href={QUESTIONNAIRE_URL}
                 className="flex items-center gap-1.5 px-6 py-2"
               >
-                {t.noAnswersState.button} <ArrowRight className="h-4 w-4" />
+                {t.noAnswersState.button} <ArrowIcon className="h-4 w-4" />
               </Link>
             </Button>
           </div>
@@ -13074,11 +13550,12 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 dict={dict.dashboard.checklist}
                 locale={locale} // Added
               />
-              <div className="my-6 md:my-8 text-center">
+              <div className="my-6 md:my-8 flex justify-center">
                 <AIProfileAdvisorDialog
                   userId={user.id}
                   dict={dict.dashboard.aiAdvisor}
                   analysisDict={dict.dashboard.analysisResult}
+                  locale={locale}
                 />
               </div>
             </>
@@ -13177,6 +13654,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   onSetMain={handleSetMainImage}
                   onDelete={handleDeleteImage}
                   dict={dict.photosSection}
+                  locale={locale}
                 />
               </TabsContent>
               <TabsContent value="preferences">

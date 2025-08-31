@@ -54,9 +54,13 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
   const userHasAlreadyConsented = !!session?.user?.termsAndPrivacyAcceptedAt;
 
   const validateFirstName = (name: string) =>
-    !name.trim() && setFirstNameError(dict.errors.firstNameRequired);
+    name.trim()
+      ? setFirstNameError('')
+      : setFirstNameError(dict.errors.firstNameRequired);
   const validateLastName = (name: string) =>
-    !name.trim() && setLastNameError(dict.errors.lastNameRequired);
+    name.trim()
+      ? setLastNameError('')
+      : setLastNameError(dict.errors.lastNameRequired);
   const validatePhone = (phone: string) => {
     if (!phone.trim()) setPhoneError(dict.errors.phoneRequired);
     else if (!/^0\d{9}$/.test(phone)) setPhoneError(dict.errors.phoneInvalid);
@@ -83,7 +87,6 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
   }, [registrationState, consentChecked, userHasAlreadyConsented]);
 
   const handleContinue = async () => {
-    // Trigger all validations on submit attempt
     validateFirstName(registrationState.firstName);
     validateLastName(registrationState.lastName);
     validatePhone(registrationState.phone);
@@ -93,7 +96,6 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
       setConsentError(dict.errors.consentRequired);
       return;
     }
-
     if (!isFormValid) return;
 
     if (!userHasAlreadyConsented) {
@@ -139,7 +141,6 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
       <motion.p className="text-sm text-gray-500" variants={itemVariants}>
         {dict.subtitle}
       </motion.p>
-
       {generalApiError && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -149,20 +150,24 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
       )}
 
       <motion.div variants={itemVariants} className="space-y-4">
-        {/* All fields updated to use dict */}
+        {/* === FIX: Restored classNames for all inputs and select elements === */}
         <div className="space-y-1">
           <label htmlFor="firstNamePersonal">
             {dict.firstNameLabel} <span className="text-red-500">*</span>
           </label>
-          <Input
-            id="firstNamePersonal"
-            value={registrationState.firstName}
-            onChange={(e) => updateField('firstName', e.target.value)}
-            onBlur={(e) => validateFirstName(e.target.value)}
-            placeholder={dict.firstNamePlaceholder}
-            required
-            disabled={isSubmittingConsent}
-          />
+          <div className="relative">
+            <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              id="firstNamePersonal"
+              value={registrationState.firstName}
+              onChange={(e) => updateField('firstName', e.target.value)}
+              onBlur={(e) => validateFirstName(e.target.value)}
+              placeholder={dict.firstNamePlaceholder}
+              required
+              disabled={isSubmittingConsent}
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none ${firstNameError ? 'border-red-400 focus:ring-red-200' : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'}`}
+            />
+          </div>
           {firstNameError && (
             <p className="text-red-500 text-xs mt-1">{firstNameError}</p>
           )}
@@ -171,15 +176,19 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           <label htmlFor="lastNamePersonal">
             {dict.lastNameLabel} <span className="text-red-500">*</span>
           </label>
-          <Input
-            id="lastNamePersonal"
-            value={registrationState.lastName}
-            onChange={(e) => updateField('lastName', e.target.value)}
-            onBlur={(e) => validateLastName(e.target.value)}
-            placeholder={dict.lastNamePlaceholder}
-            required
-            disabled={isSubmittingConsent}
-          />
+          <div className="relative">
+            <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              id="lastNamePersonal"
+              value={registrationState.lastName}
+              onChange={(e) => updateField('lastName', e.target.value)}
+              onBlur={(e) => validateLastName(e.target.value)}
+              placeholder={dict.lastNamePlaceholder}
+              required
+              disabled={isSubmittingConsent}
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none ${lastNameError ? 'border-red-400 focus:ring-red-200' : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'}`}
+            />
+          </div>
           {lastNameError && (
             <p className="text-red-500 text-xs mt-1">{lastNameError}</p>
           )}
@@ -188,17 +197,21 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           <label htmlFor="phonePersonal">
             {dict.phoneLabel} <span className="text-red-500">*</span>
           </label>
-          <Input
-            id="phonePersonal"
-            type="tel"
-            value={registrationState.phone}
-            onChange={(e) => updateField('phone', e.target.value)}
-            onBlur={(e) => validatePhone(e.target.value)}
-            placeholder={dict.phonePlaceholder}
-            required
-            maxLength={10}
-            disabled={isSubmittingConsent}
-          />
+          <div className="relative">
+            <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              id="phonePersonal"
+              type="tel"
+              value={registrationState.phone}
+              onChange={(e) => updateField('phone', e.target.value)}
+              onBlur={(e) => validatePhone(e.target.value)}
+              placeholder={dict.phonePlaceholder}
+              required
+              maxLength={10}
+              disabled={isSubmittingConsent}
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none ${phoneError ? 'border-red-400 focus:ring-red-200' : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'}`}
+            />
+          </div>
           {phoneError && (
             <p className="text-red-500 text-xs mt-1">{phoneError}</p>
           )}
@@ -215,6 +228,7 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
                 registrationState.gender === Gender.MALE ? 'default' : 'outline'
               }
               disabled={isSubmittingConsent}
+              className={`flex items-center justify-center gap-2 py-3 rounded-lg border-2 ${registrationState.gender === Gender.MALE ? 'border-cyan-500 bg-cyan-50 text-cyan-700' : 'border-gray-200'}`}
             >
               👨 {dict.male}
             </Button>
@@ -227,6 +241,7 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
                   : 'outline'
               }
               disabled={isSubmittingConsent}
+              className={`flex items-center justify-center gap-2 py-3 rounded-lg border-2 ${registrationState.gender === Gender.FEMALE ? 'border-pink-500 bg-pink-50 text-pink-700' : 'border-gray-200'}`}
             >
               👩 {dict.female}
             </Button>
@@ -236,36 +251,43 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           <label htmlFor="birthDatePersonal">
             {dict.birthDateLabel} <span className="text-red-500">*</span>
           </label>
-          <Input
-            id="birthDatePersonal"
-            type="date"
-            value={registrationState.birthDate}
-            onChange={(e) => updateField('birthDate', e.target.value)}
-            onBlur={(e) => validateAge(e.target.value)}
-            required
-            disabled={isSubmittingConsent}
-          />
+          <div className="relative">
+            <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              id="birthDatePersonal"
+              type="date"
+              value={registrationState.birthDate}
+              onChange={(e) => updateField('birthDate', e.target.value)}
+              onBlur={(e) => validateAge(e.target.value)}
+              required
+              disabled={isSubmittingConsent}
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none ${ageError ? 'border-red-400 focus:ring-red-200' : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'}`}
+            />
+          </div>
           {ageError && <p className="text-red-500 text-xs mt-1">{ageError}</p>}
         </div>
         <div className="space-y-1">
           <label htmlFor="maritalStatusPersonal">
             {dict.maritalStatusLabel} <span className="text-red-500">*</span>
           </label>
-          <select
-            id="maritalStatusPersonal"
-            value={registrationState.maritalStatus}
-            onChange={(e) => updateField('maritalStatus', e.target.value)}
-            required
-            disabled={isSubmittingConsent}
-            className="w-full p-2 border rounded"
-          >
-            <option value="" disabled>
-              {dict.maritalStatusPlaceholder}
-            </option>
-            <option value="רווק/ה">{dict.maritalStatuses.single}</option>
-            <option value="גרוש/ה">{dict.maritalStatuses.divorced}</option>
-            <option value="אלמן/ה">{dict.maritalStatuses.widowed}</option>
-          </select>
+          <div className="relative">
+            <Users className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <select
+              id="maritalStatusPersonal"
+              value={registrationState.maritalStatus}
+              onChange={(e) => updateField('maritalStatus', e.target.value)}
+              required
+              disabled={isSubmittingConsent}
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none appearance-none bg-white ${'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'}`}
+            >
+              <option value="" disabled>
+                {dict.maritalStatusPlaceholder}
+              </option>
+              <option value="רווק/ה">{dict.maritalStatuses.single}</option>
+              <option value="גרוש/ה">{dict.maritalStatuses.divorced}</option>
+              <option value="אלמן/ה">{dict.maritalStatuses.widowed}</option>
+            </select>
+          </div>
         </div>
       </motion.div>
 
@@ -295,6 +317,7 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         <Button
           onClick={handleContinue}
           disabled={!isFormValid || isSubmittingConsent}
+          className={`flex items-center gap-2 ${!isFormValid || isSubmittingConsent ? 'bg-gray-300' : 'bg-gradient-to-r from-cyan-500 to-pink-500'}`}
         >
           {isSubmittingConsent ? (
             <>

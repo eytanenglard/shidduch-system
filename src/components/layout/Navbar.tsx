@@ -332,6 +332,13 @@ const Navbar = ({ dict }: NavbarProps) => {
                         text={dict.navbar.myMatches}
                       />
                     )}
+
+                    {/* ✨ הוספה: קישור ישיר לפרופיל האישי בניווט הראשי לדסקטופ */}
+                    <NavItem
+                      href="/profile"
+                      text={dict.userDropdown.myProfile} // שימוש בטקסט קיים מה-dropdown
+                    />
+
                     <NavItem
                       href="/questionnaire"
                       text={dict.navbar.matchmakingQuestionnaire}

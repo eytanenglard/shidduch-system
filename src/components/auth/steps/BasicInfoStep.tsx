@@ -13,6 +13,8 @@ import {
   Lock,
   AlertCircle,
   Loader2,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ConsentCheckbox from '../ConsentCheckbox';
@@ -44,6 +46,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
   const [consentChecked, setConsentChecked] = useState(false);
   const [consentError, setConsentError] = useState<string | null>(null);
   const [marketingConsent, setMarketingConsent] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false); // הוספנו לטובת הצגת/הסתרת סיסמה
 
   useEffect(() => {
     const isEmailValid = isValidEmail(data.email);
@@ -143,7 +146,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
       </motion.h2>
 
       <motion.div variants={itemVariants} className="space-y-4">
-        {/* Email, Password, First/Last Name fields updated to use dict */}
         {/* Email Field */}
         <div className="space-y-1">
           <label
@@ -167,6 +169,14 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
               placeholder={dict.emailPlaceholder}
               disabled={isLoading}
               required
+              // === FIX: Restored className for styling and error states ===
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                isLoading ? 'bg-gray-100' : ''
+              } ${
+                emailError
+                  ? 'border-red-500 focus:ring-red-200'
+                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
+              }`}
             />
           </div>
           {emailError && (
@@ -175,7 +185,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
             </p>
           )}
         </div>
-
         {/* Password Field */}
         <div className="space-y-1">
           <label
@@ -185,9 +194,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
             {dict.passwordLabel} <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
             <input
-              type="password"
+              type={passwordVisible ? 'text' : 'password'}
               id="passwordBasic"
               value={data.password}
               onChange={(e) => updateField('password', e.target.value)}
@@ -201,7 +210,28 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
               placeholder={dict.passwordPlaceholder}
               disabled={isLoading}
               required
+              // הוספנו ריווח פנימי משמאל (pl-10) כדי שהטקסט לא יכנס מתחת לעינית
+              className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                isLoading ? 'bg-gray-100' : ''
+              } ${
+                passwordError
+                  ? 'border-red-500 focus:ring-red-200'
+                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
+              }`}
             />
+            {/* === FIX: Most reliable way to vertically center an absolute icon === */}
+            <button
+              type="button"
+              onClick={() => setPasswordVisible(!passwordVisible)}
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              aria-label={passwordVisible ? 'הסתר סיסמה' : 'הצג סיסמה'}
+            >
+              {passwordVisible ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
           </div>
           {passwordError ? (
             <p role="alert" className="text-red-500 text-xs mt-1">
@@ -211,7 +241,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
             <p className="text-gray-500 text-xs mt-1">{dict.passwordHint}</p>
           )}
         </div>
-
         {/* Name Fields */}
         <div className="space-y-1">
           <label
@@ -230,6 +259,10 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
               placeholder={dict.firstNamePlaceholder}
               disabled={isLoading}
               required
+              // === FIX: Restored className for consistent styling ===
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                isLoading ? 'bg-gray-100' : ''
+              } border-gray-300 focus:ring-cyan-200 focus:border-cyan-500`}
             />
           </div>
         </div>
@@ -250,6 +283,10 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
               placeholder={dict.lastNamePlaceholder}
               disabled={isLoading}
               required
+              // === FIX: Restored className for consistent styling ===
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                isLoading ? 'bg-gray-100' : ''
+              } border-gray-300 focus:ring-cyan-200 focus:border-cyan-500`}
             />
           </div>
         </div>
@@ -291,6 +328,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
           onClick={prevStep}
           variant="outline"
           disabled={isLoading}
+          // === FIX: Restored specific button styling ===
+          className="flex items-center gap-2"
         >
           <ArrowRight className="h-4 w-4 ml-2" /> {dict.backButton}
         </Button>
@@ -298,6 +337,13 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
           type="button"
           onClick={handleRegisterSubmit}
           disabled={!isFormValid || isLoading}
+          // === FIX: Restored gradient and hover effect styling ===
+          className={`flex items-center gap-2 min-w-[200px] justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-opacity
+            ${
+              isFormValid && !isLoading
+                ? 'bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-md hover:shadow-lg'
+                : 'bg-gray-300 cursor-not-allowed'
+            }`}
         >
           {isLoading ? (
             <>
@@ -306,7 +352,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
             </>
           ) : (
             <>
-              {dict.nextButton} <ArrowLeft className="h-4 w-4 mr-2" />
+              <span>{dict.nextButton}</span>
+              <ArrowLeft className="h-4 w-4 mr-2" />
             </>
           )}
         </Button>

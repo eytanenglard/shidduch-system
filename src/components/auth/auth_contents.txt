@@ -1,14 +1,14 @@
 ################################################################################
-# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-08-31 14:27:15
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth
+# Generated on: 2025-08-19 17:42:05
 ################################################################################
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\AuthError.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\AuthError.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/AuthError.tsx
@@ -53,31 +53,26 @@ export default function AuthError() {
 --- End of Content for AuthError.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ConsentCheckbox.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\ConsentCheckbox.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/auth/ConsentCheckbox.tsx
-'use client';
+// src/app/components/auth/ConsentCheckbox.tsx
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+import React from "react";
+import Link from "next/link";
 
 interface ConsentCheckboxProps {
   checked: boolean;
   onChange: (isChecked: boolean) => void;
   error?: string | null;
-  dict: RegisterStepsDict['consentCheckbox'];
 }
 
 const ConsentCheckbox: React.FC<ConsentCheckboxProps> = ({
   checked,
   onChange,
   error,
-  dict,
 }) => {
-  const textParts = dict.text.split(/\{termsLink\}|\{privacyLink\}/);
-
   return (
     <div className="space-y-2">
       <div className="flex items-start space-x-2 rtl:space-x-reverse">
@@ -86,26 +81,30 @@ const ConsentCheckbox: React.FC<ConsentCheckboxProps> = ({
           id="termsConsent"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
-          className={`mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500 ${error ? 'border-red-500' : ''}`}
+          className={`mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500 ${
+            error ? "border-red-500" : ""
+          }`}
         />
         <label htmlFor="termsConsent" className="text-sm text-gray-700">
-          {textParts[0]}
+          קראתי ואני מאשר/ת את{" "}
           <Link
             href="/legal/terms-of-service"
             target="_blank"
             className="font-medium text-cyan-600 hover:text-cyan-700 underline"
           >
-            {dict.termsLink}
-          </Link>
-          {textParts[1]}
+            תנאי השימוש
+          </Link>{" "}
+          ואת{" "}
           <Link
             href="/legal/privacy-policy"
             target="_blank"
             className="font-medium text-cyan-600 hover:text-cyan-700 underline"
           >
-            {dict.privacyLink}
-          </Link>
-          {textParts[2]}
+            מדיניות הפרטיות
+          </Link>{" "}
+          של Matchpoint, ומסכים/ה לאיסוף, עיבוד ושמירת המידע האישי שלי, לרבות
+          מידע רגיש, בהתאם למפורט בהם, ולהעברת המידע שלי לשרתים שעשויים להיות
+          ממוקמים מחוץ לגבולות ישראל.
         </label>
       </div>
       {error && <p className="text-xs text-red-500">{error}</p>}
@@ -117,7 +116,7 @@ export default ConsentCheckbox;
 --- End of Content for ConsentCheckbox.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ForgotPasswordForm.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\ForgotPasswordForm.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/ForgotPasswordForm.tsx
@@ -271,7 +270,7 @@ export default function ForgotPasswordForm() {
 --- End of Content for ForgotPasswordForm.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ProgressBar.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\ProgressBar.tsx
 --------------------------------------------------------------------------------
 Content:
 "use client";
@@ -348,16 +347,429 @@ export default ProgressBar;
 --- End of Content for ProgressBar.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\RegisterSteps.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\RegisterForm.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/auth/RegisterSteps.tsx
+// src/app/components/auth/RegisterForm.tsx
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Gender } from '@prisma/client';
+import { signIn } from 'next-auth/react';
+import ConsentCheckbox from './ConsentCheckbox'; // <-- ייבוא הקומפוננטה
+import { Button } from '@/components/ui/button'; // אם אתה משתמש בכפתור משותף
+import { Loader2 } from 'lucide-react'; // לאייקון טעינה
+
+interface RegistrationFormData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  gender: Gender;
+  birthDate: string;
+  maritalStatus?: string;
+  height?: number;
+  occupation?: string;
+  education?: string;
+}
+
+export default function RegisterForm() {
+  const router = useRouter();
+  const [error, setError] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  // --- הוספת State עבור תיבת ההסכמה ---
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [consentError, setConsentError] = useState<string | null>(null);
+
+  const validatePassword = (value: string) => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+    if (!passwordRegex.test(value)) {
+      setPasswordError(
+        'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר'
+      );
+      return false;
+    }
+    setPasswordError('');
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    setConsentError(null); // איפוס שגיאת הסכמה
+
+    if (!consentChecked) {
+      setConsentError('חובה לאשר את תנאי השימוש ומדיניות הפרטיות.');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setIsLoading(false);
+      return;
+    }
+
+    const formData = new FormData(e.currentTarget);
+    const data: RegistrationFormData = {
+      email: formData.get('email') as string,
+      password: password,
+      firstName: formData.get('firstName') as string,
+      lastName: formData.get('lastName') as string,
+      phone: formData.get('phone') as string,
+      gender: formData.get('gender') as Gender,
+      birthDate: formData.get('birthDate') as string,
+      maritalStatus: formData.get('maritalStatus') as string,
+      height: formData.get('height')
+        ? Number(formData.get('height'))
+        : undefined,
+      occupation: formData.get('occupation') as string,
+      education: formData.get('education') as string,
+    };
+
+    try {
+      // כאן, ה-API /api/auth/register אמור לשמור את termsAndPrivacyAcceptedAt: new Date()
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'אירעה שגיאה בהרשמה');
+      }
+
+      router.push(`/auth/verify-email?email=${encodeURIComponent(data.email)}`);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'אירעה שגיאה בהרשמה');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    // ההנחה היא שאם המשתמש נרשם עם גוגל דרך הטופס הזה,
+    // הוא יועבר לתהליך RegisterSteps, שם יתבקש לאשר תנאים אם נדרש.
+    try {
+      setIsGoogleLoading(true);
+      setError('');
+      await signIn('google'); // NextAuth יטפל בהפניה
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      setError('אירעה שגיאה בהתחברות עם גוגל');
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const isSubmitDisabled = isLoading || !!passwordError || !consentChecked;
+
+  return (
+    <div className="space-y-6 max-w-sm mx-auto p-6 bg-white shadow-lg rounded-lg">
+      <h2 className="text-2xl font-semibold text-center text-gray-800">
+        הרשמה
+      </h2>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* ... כל שדות הטופס הקיימים ... */}
+        {/* שם פרטי */}
+        <div>
+          <label
+            htmlFor="firstNameRegForm"
+            className="block text-sm font-medium text-gray-700"
+          >
+            שם פרטי
+          </label>
+          <input
+            type="text"
+            name="firstName"
+            id="firstNameRegForm"
+            required
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+          />
+        </div>
+        {/* שם משפחה */}
+        <div>
+          <label
+            htmlFor="lastNameRegForm"
+            className="block text-sm font-medium text-gray-700"
+          >
+            שם משפחה
+          </label>
+          <input
+            type="text"
+            name="lastName"
+            id="lastNameRegForm"
+            required
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+          />
+        </div>
+        {/* אימייל */}
+        <div>
+          <label
+            htmlFor="emailRegForm"
+            className="block text-sm font-medium text-gray-700"
+          >
+            אימייל
+          </label>
+          <input
+            type="email"
+            name="email"
+            id="emailRegForm"
+            required
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+          />
+        </div>
+        {/* טלפון */}
+        <div>
+          <label
+            htmlFor="phoneRegForm"
+            className="block text-sm font-medium text-gray-700"
+          >
+            טלפון נייד
+          </label>
+          <input
+            type="tel"
+            name="phone"
+            id="phoneRegForm"
+            required
+            pattern="[0-9]{10}"
+            placeholder=""
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+          />
+        </div>
+        {/* סיסמה */}
+        <div>
+          <label
+            htmlFor="passwordRegForm"
+            className="block text-sm font-medium text-gray-700"
+          >
+            סיסמה
+          </label>
+          <input
+            type="password"
+            name="password" // חשוב שה-name יהיה "password" כדי ש-validatePassword יעבוד עם הערך מה-state. או שנה את validatePassword לקבל את הערך ישירות.
+            id="passwordRegForm"
+            required
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              validatePassword(e.target.value);
+            }}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה
+            באנגלית ומספר.
+          </p>
+          {passwordError && (
+            <div className="text-red-500 text-sm mt-1">{passwordError}</div>
+          )}
+        </div>
+        {/* מגדר */}
+        <div>
+          <label
+            htmlFor="genderRegForm"
+            className="block text-sm font-medium text-gray-700"
+          >
+            מגדר
+          </label>
+          <select
+            name="gender"
+            id="genderRegForm"
+            required
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+          >
+            <option value="">בחר מגדר</option>
+            <option value="MALE">זכר</option>
+            <option value="FEMALE">נקבה</option>
+          </select>
+        </div>
+        {/* תאריך לידה */}
+        <div>
+          <label
+            htmlFor="birthDateRegForm"
+            className="block text-sm font-medium text-gray-700"
+          >
+            תאריך לידה
+          </label>
+          <input
+            type="date"
+            name="birthDate"
+            id="birthDateRegForm"
+            required
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+          />
+        </div>
+        {/* מצב משפחתי */}
+        <div>
+          <label
+            htmlFor="maritalStatusRegForm"
+            className="block text-sm font-medium text-gray-700"
+          >
+            מצב משפחתי
+          </label>
+          <select
+            name="maritalStatus"
+            id="maritalStatusRegForm"
+            required
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+          >
+            <option value="">בחר מצב משפחתי</option>
+            <option value="רווק/ה">רווק/ה</option>
+            <option value="גרוש/ה">גרוש/ה</option>
+            <option value="אלמן/ה">אלמן/ה</option>
+          </select>
+        </div>
+        {/* גובה */}
+        <div>
+          <label
+            htmlFor="heightRegForm"
+            className="block text-sm font-medium text-gray-700"
+          >
+            גובה (בסמ)
+          </label>
+          <input
+            type="number"
+            name="height"
+            id="heightRegForm"
+            min="120"
+            max="220"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+          />
+        </div>
+        {/* עיסוק */}
+        <div>
+          <label
+            htmlFor="occupationRegForm"
+            className="block text-sm font-medium text-gray-700"
+          >
+            עיסוק
+          </label>
+          <input
+            type="text"
+            name="occupation"
+            id="occupationRegForm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+            maxLength={20} // <-- הוסף את התכונה הזו
+          />
+        </div>
+        {/* השכלה */}
+        <div>
+          <label
+            htmlFor="educationRegForm"
+            className="block text-sm font-medium text-gray-700"
+          >
+            השכלה
+          </label>
+          <input
+            type="text"
+            name="education"
+            id="educationRegForm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+          />
+        </div>
+
+        {/* --- הוספת תיבת ההסכמה --- */}
+        <div className="pt-4">
+          <ConsentCheckbox
+            checked={consentChecked}
+            onChange={(isChecked) => {
+              setConsentChecked(isChecked);
+              if (isChecked) setConsentError(null);
+            }}
+            error={consentError}
+          />
+        </div>
+
+        {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+
+        <Button
+          type="submit"
+          disabled={isSubmitDisabled}
+          className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-cyan-600 to-pink-600 hover:from-cyan-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+        >
+          {isLoading ? (
+            <div className="flex items-center">
+              <Loader2 className="animate-spin h-5 w-5 mr-2" />
+              נרשם...
+            </div>
+          ) : (
+            'הרשמה'
+          )}
+        </Button>
+      </form>
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">או</span>
+        </div>
+      </div>
+
+      <Button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={isGoogleLoading}
+        variant="outline"
+        className="w-full flex justify-center items-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+      >
+        {isGoogleLoading ? (
+          <div className="flex items-center">
+            <Loader2 className="animate-spin h-5 w-5 mr-2" />
+            <span>מתחבר...</span>
+          </div>
+        ) : (
+          <>
+            <svg
+              className="h-5 w-5 mr-2"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                fill="#4285F4"
+              />
+              <path
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                fill="#34A853"
+              />
+              <path
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                fill="#FBBC05"
+              />
+              <path
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                fill="#EA4335"
+              />
+            </svg>
+            הרשמה עם גוגל
+          </>
+        )}
+      </Button>
+    </div>
+  );
+}
+--- End of Content for RegisterForm.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\RegisterSteps.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/auth/RegisterSteps.tsx
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { RegistrationProvider, useRegistration } from './RegistrationContext';
+import { RegistrationProvider, useRegistration } from './RegistrationContext'; // ודא ש-RegistrationData מיובא
 import WelcomeStep from './steps/WelcomeStep';
 import BasicInfoStep from './steps/BasicInfoStep';
 import EmailVerificationCodeStep from './steps/EmailVerificationCodeStep';
@@ -366,19 +778,10 @@ import OptionalInfoStep from './steps/OptionalInfoStep';
 import CompleteStep from './steps/CompleteStep';
 import ProgressBar from './ProgressBar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info, Loader2 } from 'lucide-react';
+import { ArrowRight, Info, Loader2 } from 'lucide-react';
 import type { User as SessionUserType } from '@/types/next-auth';
-import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
-// הגדרת ה-Props עבור הקומפוננטה הראשית שמקבלת את המילון
-interface RegisterStepsProps {
-  dict: RegisterStepsDict;
-}
-
-// זוהי הקומפוננטה הפנימית שמכילה את הלוגיקה. היא גם צריכה לקבל את המילון.
-const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
-  dict,
-}) => {
+const RegisterStepsContent: React.FC = () => {
   const {
     data: registrationContextData,
     initializeFromSession,
@@ -393,11 +796,18 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
     useState(false);
   const [initializationAttempted, setInitializationAttempted] = useState(false);
 
-  // כל הלוגיקה ב-useEffect נשארת כפי שהיא, מכיוון שהיא מנהלת את זרימת התהליך ולא טקסטים.
+  // הדפסה ראשונית של מצב הקומפוננטה בעת טעינה/עדכון
+
+
   useEffect(() => {
     const reasonParam = searchParams.get('reason');
     if (
-      (reasonParam === 'complete_profile' || reasonParam === 'verify_phone') &&
+      reasonParam === 'complete_profile' &&
+      !registrationContextData.isCompletingProfile
+    ) {
+      setShowIncompleteProfileMessage(true);
+    } else if (
+      reasonParam === 'verify_phone' &&
       !registrationContextData.isCompletingProfile
     ) {
       setShowIncompleteProfileMessage(true);
@@ -407,79 +817,346 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
   }, [searchParams, registrationContextData.isCompletingProfile]);
 
   useEffect(() => {
-    // לוגיקת סשן מורכבת נשארת כאן
+    console.log('[RegisterStepsContent useEffect Trigger] Current State:', {
+      sessionStatus,
+      sessionUserExists: !!session?.user,
+      contextStep: registrationContextData.step,
+      contextIsCompletingProfile: registrationContextData.isCompletingProfile,
+      contextIsVerifyingEmailCode: registrationContextData.isVerifyingEmailCode,
+      initializationAttempted,
+    });
+
     if (sessionStatus === 'loading') {
+     
       return;
     }
-    // ... וכן הלאה, כל הלוגיקה מתוך הקובץ המקורי שלך נשארת כאן.
+
+    if (sessionStatus === 'authenticated' && session?.user) {
+      const user = session.user as SessionUserType;
+      console.log(
+        '[RegisterStepsContent useEffect] AUTHENTICATED. User data from session:',
+        user
+      );
+
+      if (
+        user.isProfileComplete &&
+        user.isPhoneVerified &&
+        user.termsAndPrivacyAcceptedAt
+      ) {
+        console.log(
+          '[RegisterStepsContent useEffect] User fully set up. Redirecting to /profile.'
+        );
+        if (
+          typeof window !== 'undefined' &&
+          window.location.pathname !== '/profile'
+        ) {
+          router.push('/profile');
+        }
+        return;
+      }
+
+      const needsSetup =
+        !user.termsAndPrivacyAcceptedAt ||
+        !user.isProfileComplete ||
+        !user.isPhoneVerified;
+      console.log(
+        '[RegisterStepsContent useEffect] User needsSetup:',
+        needsSetup
+      );
+
+      if (needsSetup) {
+        if (
+          !initializationAttempted ||
+          (registrationContextData.step === 0 &&
+            !registrationContextData.isVerifyingEmailCode)
+        ) {
+          console.log(
+            '[RegisterStepsContent useEffect] AUTHENTICATED & needs setup. Initializing context from session.'
+          );
+          initializeFromSession(user);
+          setInitializationAttempted(true);
+          // הפונקציה initializeFromSession תגרום לעדכון הקונטקסט, מה שיפעיל מחדש את ה-useEffect.
+          // הלוגיקה תמשיך משם עם הקונטקסט המעודכן.
+          return;
+        } else {
+          console.log(
+            '[RegisterStepsContent useEffect] AUTHENTICATED & needs setup, but initialization already attempted or context not in initial state. Context should be guiding the flow now.'
+          );
+        }
+      } else {
+        console.warn(
+          '[RegisterStepsContent useEffect] AUTHENTICATED & fully setup, but somehow not redirected yet. Forcing redirect to /profile.'
+        );
+        if (
+          typeof window !== 'undefined' &&
+          window.location.pathname !== '/profile'
+        ) {
+          router.push('/profile');
+        }
+        return;
+      }
+    } else if (sessionStatus === 'unauthenticated') {
+      console.log(
+        '[RegisterStepsContent useEffect] UNAUTHENTICATED. Context state:',
+        {
+          step: registrationContextData.step,
+          isCompletingProfile: registrationContextData.isCompletingProfile,
+          isVerifyingEmailCode: registrationContextData.isVerifyingEmailCode,
+        }
+      );
+      setInitializationAttempted(false); // אפס ניסיון אתחול עבור התחברות עתידית
+      let shouldReset = false;
+      let resetReason = '';
+
+      // קריטי: בדוק אם אנחנו במצב שבו אנו *מצפים* שהאימות יתרחש בקרוב.
+      // זה נכון אם הרגע סיימנו אימות מייל והקונטקסט משקף זאת.
+      const justFinishedEmailVerificationAndContextIsReadyForProfileCompletion =
+        registrationContextData.isCompletingProfile && // הקונטקסט עבר למצב השלמת פרופיל
+        registrationContextData.step === 2 && // השלב הבא הוא פרטים אישיים
+        !registrationContextData.isVerifyingEmailCode; // לא בתהליך אימות קוד מייל
+
+      if (justFinishedEmailVerificationAndContextIsReadyForProfileCompletion) {
+        console.log(
+          "[RegisterStepsContent useEffect] UNAUTHENTICATED, but context suggests email verification just completed and set for profile completion. Holding off on reset, expecting session to become 'authenticated' soon."
+        );
+        shouldReset = false; // אל תאפס, חכה שהסשן יתעדכן
+      } else if (registrationContextData.isCompletingProfile) {
+        // אם נמצאים בתהליך השלמת פרופיל (לא מיד אחרי אימות מייל) והסשן אבד.
+        shouldReset = true;
+        resetReason =
+          "Unauthenticated while in 'isCompletingProfile' mode (not immediately after email verification).";
+      } else if (registrationContextData.isVerifyingEmailCode) {
+        // זהו מצב תקין למשתמש חדש שאינו מאומת ונמצא בתהליך אימות קוד מייל.
+        shouldReset = false;
+        console.log(
+          '[RegisterStepsContent useEffect] UNAUTHENTICATED, but actively verifying email code. No reset needed.'
+        );
+      } else if (registrationContextData.step > 1) {
+        // בתהליך הרשמה חדש (לא isCompletingProfile), עבר את שלב BasicInfo (שלב 1), לא מאמת קוד מייל, והפך ללא מאומת.
+        shouldReset = true;
+        resetReason =
+          'Unauthenticated in new registration flow, past BasicInfo (step > 1), and not verifying email code.';
+      } else if (
+        registrationContextData.step <= 1 &&
+        registrationContextData.step >= 0
+      ) {
+        // ב-Welcome (שלב 0) או BasicInfo (שלב 1) עבור הרשמה חדשה, ומצב לא מאומת הוא צפוי.
+        shouldReset = false;
+        console.log(
+          '[RegisterStepsContent useEffect] UNAUTHENTICATED, on Welcome/BasicInfo step for new registration. This is normal, no reset needed.'
+        );
+      }
+
+      if (shouldReset) {
+        console.warn(
+          `[RegisterStepsContent useEffect] UNAUTHENTICATED. Resetting form. Reason: ${resetReason}`
+        );
+        resetForm();
+      }
+    }
   }, [
     sessionStatus,
-    session,
+    session, // תלות בסשן עצמו (לא רק בסטטוס)
     router,
     registrationContextData,
     initializeFromSession,
     resetForm,
     goToStep,
     initializationAttempted,
-    searchParams,
+    searchParams, // הוספנו כתלות כי הוא משפיע על הודעת הפרופיל הלא שלם
   ]);
 
-  // הפונקציה המרכזית שמחזירה את רכיב-השלב הנכון
-  // כאן נמצא התיקון הקריטי - העברת ה-props לכל רכיב-בן
   const renderStep = (): React.ReactNode => {
+    console.log(
+      '[RegisterStepsContent renderStep] Determining step. Context:',
+      {
+        step: registrationContextData.step,
+        isCompletingProfile: registrationContextData.isCompletingProfile,
+        isVerifyingEmailCode: registrationContextData.isVerifyingEmailCode,
+        emailForVerification: registrationContextData.emailForVerification,
+      },
+      'Session Status:',
+      sessionStatus
+    );
+
     if (sessionStatus === 'loading') {
+      console.log(
+        '[RegisterStepsContent renderStep] Session loading, showing loader.'
+      );
       return (
         <div className="flex justify-center p-10">
           <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
         </div>
       );
     }
+    const user = session?.user as SessionUserType | undefined;
+    if (
+      sessionStatus === 'authenticated' &&
+      user &&
+      (!user.isProfileComplete || !user.isPhoneVerified) &&
+      registrationContextData.step < 2
+    ) {
+      console.log(
+        "[RegisterStepsContent renderStep] Authenticated but context is not ready. Showing 'preparing' loader to prevent flash."
+      );
+      return (
+        <div className="flex justify-center items-center p-10 space-x-3 rtl:space-x-reverse">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+          <span className="text-gray-600">מכין את השלב הבא...</span>
+        </div>
+      );
+    }
+    // --- סוף התיקון ---
+    const userFromSession = session?.user as SessionUserType | undefined;
+    if (
+      sessionStatus === 'authenticated' &&
+      userFromSession &&
+      !initializationAttempted &&
+      (!userFromSession.termsAndPrivacyAcceptedAt ||
+        !userFromSession.isProfileComplete ||
+        !userFromSession.isPhoneVerified) &&
+      registrationContextData.step === 0 &&
+      !registrationContextData.isVerifyingEmailCode
+    ) {
+      console.log(
+        "[RegisterStepsContent renderStep] Authenticated but initialization not attempted and context is at step 0. Showing 'preparing' loader."
+      );
+      return (
+        <div className="flex justify-center p-10">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+          <p className="ml-2">מכין תהליך הרשמה...</p>
+        </div>
+      );
+    }
 
+    // אימות מייל למשתמשים חדשים עם אימייל/סיסמה
     if (
       registrationContextData.isVerifyingEmailCode &&
       !registrationContextData.isCompletingProfile
     ) {
-      return <EmailVerificationCodeStep dict={dict.steps.emailVerification} />;
+      console.log(
+        '[RegisterStepsContent renderStep] Rendering EmailVerificationCodeStep.'
+      );
+      return <EmailVerificationCodeStep />;
     }
 
+    // תהליך השלמת פרופיל (isCompletingProfile הוא true)
+    // זה כולל משתמשי גוגל שצריכים השלמה, משתמשי אימייל/סיסמה אחרי אימות מייל,
+    // או משתמשים שחזרו להשלים פרופיל/טלפון.
+    // ההסכמה מטופלת כעת בתוך PersonalDetailsStep אם נדרש.
     if (registrationContextData.isCompletingProfile) {
+      console.log(
+        "[RegisterStepsContent renderStep] In 'isCompletingProfile' mode. Current step:",
+        registrationContextData.step
+      );
       switch (registrationContextData.step) {
         case 2:
-          return (
-            <PersonalDetailsStep
-              dict={dict.steps.personalDetails}
-              consentDict={dict.consentCheckbox}
-            />
+          console.log(
+            '[RegisterStepsContent renderStep] Rendering PersonalDetailsStep for profile completion.'
           );
+          return <PersonalDetailsStep />;
         case 3:
-          return <OptionalInfoStep dict={dict.steps.optionalInfo} />;
+          console.log(
+            '[RegisterStepsContent renderStep] Rendering OptionalInfoStep for profile completion.'
+          );
+          return <OptionalInfoStep />;
         case 4:
-          return <CompleteStep dict={dict.steps.complete} />;
+          console.log(
+            '[RegisterStepsContent renderStep] Rendering CompleteStep for profile completion.'
+          );
+          return <CompleteStep />;
         default:
+          console.warn(
+            `[RegisterStepsContent renderStep] (Profile Completion Flow) Unexpected step ${registrationContextData.step}. Session:`,
+            session?.user
+          );
+          // ניסיון התאוששות אם המצב לא תקין
+          if (session?.user) {
+            // רק אם יש סשן, אחרת זה עלול לגרום ללולאה עם הלוגיקה ב-useEffect
+            if (!initializationAttempted) {
+              console.log(
+                '[RegisterStepsContent renderStep] (Profile Completion Flow) Default case - user exists, re-initializing from session.'
+              );
+              initializeFromSession(session.user as SessionUserType);
+              setInitializationAttempted(true); // סמן שניסית לאתחל
+              return (
+                <Loader2 className="h-8 w-8 animate-spin text-cyan-600 mx-auto my-10" />
+              );
+            } else if (
+              registrationContextData.step < 2 ||
+              registrationContextData.step > 4
+            ) {
+              // אם כבר ניסינו אתחול, והשלב עדיין לא תקין (לא 2,3,4), נסה לנתב לשלב ההתחלה של השלמת פרופיל
+              console.log(
+                `[RegisterStepsContent renderStep] (Profile Completion Flow) Default case - user exists, init attempted, step ${registrationContextData.step} invalid. Going to step 2.`
+              );
+              if (goToStep) goToStep(2); // ודא ש-goToStep מוגדר לפני הקריאה
+              return (
+                <Loader2 className="h-8 w-8 animate-spin text-cyan-600 mx-auto my-10" />
+              );
+            }
+          }
+          // אם אין סשן או שההתאוששות לא עבדה, אולי כדאי לאפס
+          console.log(
+            '[RegisterStepsContent renderStep] (Profile Completion Flow) Default case - cannot recover, resetting form and showing WelcomeStep.'
+          );
           resetForm();
-          return <WelcomeStep dict={dict.steps.welcome} />;
+          return <WelcomeStep />;
       }
     }
 
+    // תהליך הרשמה חדש רגיל
+    console.log(
+      '[RegisterStepsContent renderStep] In new registration flow. Current step:',
+      registrationContextData.step
+    );
     switch (registrationContextData.step) {
       case 0:
-        return <WelcomeStep dict={dict.steps.welcome} />;
+        console.log('[RegisterStepsContent renderStep] Rendering WelcomeStep.');
+        return <WelcomeStep />;
       case 1:
-        return (
-          <BasicInfoStep
-            dict={dict.steps.basicInfo}
-            consentDict={dict.consentCheckbox}
-          />
+        console.log(
+          '[RegisterStepsContent renderStep] Rendering BasicInfoStep.'
         );
+        return <BasicInfoStep />;
+      // שלבים 2,3,4 עבור הרשמה חדשה קורים אחרי אימות מייל,
+      // שם isCompletingProfile הופך ל-true והלוגיקה למעלה תופסת.
       default:
+        console.warn(
+          `[RegisterStepsContent renderStep] (New Registration Flow) Unexpected step ${registrationContextData.step}.`
+        );
+        // אם יש סשן והוא לא מוגדר במלואו, נסה לאתחל
+        if (
+          session?.user &&
+          (!session.user.isProfileComplete ||
+            !session.user.isPhoneVerified ||
+            !session.user.termsAndPrivacyAcceptedAt)
+        ) {
+          if (!initializationAttempted) {
+            console.log(
+              '[RegisterStepsContent renderStep] (New Registration Flow) Default case - user exists and needs setup, re-initializing from session.'
+            );
+            initializeFromSession(session.user as SessionUserType);
+            setInitializationAttempted(true);
+            return (
+              <Loader2 className="h-8 w-8 animate-spin text-cyan-600 mx-auto my-10" />
+            );
+          }
+        }
+        // אם אין סשן או שהאתחול לא נדרש/עזר, אפס והצג את שלב הפתיחה
+        console.log(
+          '[RegisterStepsContent renderStep] (New Registration Flow) Default case - resetting form and showing WelcomeStep.'
+        );
         resetForm();
-        return <WelcomeStep dict={dict.steps.welcome} />;
+        return <WelcomeStep />;
     }
   };
 
-  // לוגיקה לקביעת הכותרות וסרגל ההתקדמות, עכשיו משתמשת במילון
-  let pageTitle = dict.headers.registerTitle;
-  let stepDescription = dict.headers.welcomeDescription;
+  const stepContent = renderStep();
+
+  // --- לוגיקת כותרות וסרגל התקדמות (נשארה כפי שהייתה, אך מומלץ לבדוק אותה היטב בהקשר לשינויים) ---
+  let pageTitle = 'הרשמה למערכת';
+  let stepDescription = 'ברוכים הבאים! בואו נתחיל.';
   let currentProgressBarStep = 0;
   let totalProgressBarSteps = 3;
   let showProgressBar = false;
@@ -488,46 +1165,58 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
     registrationContextData.isVerifyingEmailCode &&
     !registrationContextData.isCompletingProfile
   ) {
-    pageTitle = dict.headers.verifyEmailTitle;
-    stepDescription = dict.headers.verifyEmailDescription.replace(
-      '{{email}}',
-      registrationContextData.emailForVerification || ''
-    );
+    pageTitle = 'אימות כתובת מייל';
+    stepDescription = `הזן את הקוד שנשלח ל: ${registrationContextData.emailForVerification || registrationContextData.email}.`;
     showProgressBar = true;
     currentProgressBarStep = 1;
   } else if (registrationContextData.isCompletingProfile) {
-    pageTitle = dict.headers.completeProfileTitle;
-    totalProgressBarSteps = 2;
+    pageTitle = 'השלמת פרטים';
+    totalProgressBarSteps = 2; // פרטים אישיים (1), מידע נוסף (2)
     if (registrationContextData.step === 2) {
+      // PersonalDetails
       stepDescription = session?.user?.termsAndPrivacyAcceptedAt
-        ? dict.headers.personalDetailsConsentedDescription
-        : dict.headers.personalDetailsDescription;
+        ? 'שלב 1 מתוך 2: פרטים אישיים.'
+        : 'שלב 1: אישור תנאים ופרטים אישיים.';
       currentProgressBarStep = 1;
       showProgressBar = true;
     } else if (registrationContextData.step === 3) {
-      stepDescription = dict.headers.optionalInfoDescription;
+      // OptionalInfo
+      stepDescription = 'שלב 2 מתוך 2: מידע נוסף (מומלץ).'; // ללא שינוי, כבר היה טוב
       currentProgressBarStep = 2;
       showProgressBar = true;
     } else if (registrationContextData.step === 4) {
+      // CompleteStep
       stepDescription = session?.user?.isPhoneVerified
-        ? dict.headers.completionReadyDescription
-        : dict.headers.completionPhoneVerificationDescription;
-      showProgressBar = false;
+        ? 'הפרופיל שלך מוכן!'
+        : 'הפרטים הושלמו! השלב הבא: אימות טלפון.';
+      showProgressBar = false; // בדרך כלל אין סרגל התקדמות במסך הסיום
     } else {
-      stepDescription = dict.headers.loadingProfileDescription;
+      // למקרה שהשלב הוא לא 2, 3, או 4 במצב השלמת פרופיל (למשל, אם נתקע על 0 או 1)
+      stepDescription = 'טוען שלב השלמת פרופיל...';
+      showProgressBar =
+        registrationContextData.step > 1 && registrationContextData.step < 4; // הצג רק אם בשלבי מילוי פעילים
     }
   } else {
-    if (registrationContextData.step === 1) {
-      pageTitle = dict.headers.registerTitle;
-      stepDescription = dict.headers.accountCreationDescription;
+    // הרשמה חדשה (לא מאמתים מייל על המסך, לא משלימים פרופיל עדיין)
+    if (registrationContextData.step === 0) {
+      // Welcome
+      pageTitle = 'ברוכים הבאים';
+      stepDescription = 'בואו נתחיל את המסע יחד.';
+      showProgressBar = false;
+    } else if (registrationContextData.step === 1) {
+      // BasicInfo
+      pageTitle = 'יצירת חשבון';
+      stepDescription = 'שלב 1 מתוך 3: אישור תנאים ופרטי התחברות.';
       currentProgressBarStep = 1;
+      totalProgressBarSteps = 3; // בסיסי (כולל הסכמה), אישי, מידע נוסף (אחרי אימות מייל)
       showProgressBar = true;
     }
   }
+  // --- סוף לוגיקת כותרות וסרגל התקדמות ---
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
-      <div className="mb-6 text-center">
+       <div className="mb-6 text-center">
         <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 text-3xl font-bold mb-2">
           {pageTitle}
         </h1>
@@ -539,12 +1228,12 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
           <Info className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
           <div className="ml-3 rtl:mr-3 rtl:ml-0">
             <AlertTitle className="font-semibold mb-1">
-              {dict.incompleteProfileAlert.title}
+              נדרשת פעולה להשלמת החשבון
             </AlertTitle>
             <AlertDescription className="text-sm">
               {searchParams.get('reason') === 'verify_phone'
-                ? dict.incompleteProfileAlert.verifyPhoneDescription
-                : dict.incompleteProfileAlert.description}
+                ? 'הפרופיל שלך כמעט מוכן! נדרש אימות טלפון כדי להמשיך.'
+                : 'כדי לגשת לאזור האישי ולשאר חלקי האתר, יש להשלים תחילה את פרטי הפרופיל ואימותים נדרשים.'}
             </AlertDescription>
           </div>
         </Alert>
@@ -560,31 +1249,37 @@ const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
       )}
 
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
-        <div className="p-6 sm:p-8">{renderStep()}</div>
+        {!(
+          (registrationContextData.step === 0 &&
+            !registrationContextData.isCompletingProfile) || // WelcomeStep
+          registrationContextData.step === 4 // CompleteStep
+        ) && (
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
+        )}
+        <div className="p-6 sm:p-8">{stepContent}</div>
       </div>
 
       <div className="mt-8 text-center text-sm text-gray-500">
-        {dict.contactSupport}{' '}
+        יש לך שאלות?{' '}
         <a href="/contact" className="text-cyan-600 hover:underline">
-          {dict.contactSupportLink}
+          צור קשר
         </a>
       </div>
     </div>
   );
 };
 
-// רכיב הייצוא הראשי שעוטף הכל ב-Provider
-export default function RegisterSteps({ dict }: RegisterStepsProps) {
+export default function RegisterSteps() {
   return (
     <RegistrationProvider>
-      <RegisterStepsContent dict={dict} />
+      <RegisterStepsContent />
     </RegistrationProvider>
   );
 }
 --- End of Content for RegisterSteps.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\RegistrationContext.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\RegistrationContext.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/RegistrationContext.tsx
@@ -896,46 +1591,39 @@ export const useRegistration = (): RegistrationContextType => {
 --- End of Content for RegistrationContext.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ResetPasswordForm.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\ResetPasswordForm.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/ResetPasswordForm.tsx
-'use client';
+"use client";
 
-import { useState, FormEvent, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Lock,
-  KeySquare,
-  Loader2,
-  AlertCircle,
-  CheckCircle,
-  Eye,
-  EyeOff,
-  Mail,
-} from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import Link from 'next/link';
+import { useState, FormEvent, useEffect }
+from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Lock, KeySquare, Loader2, AlertCircle, CheckCircle, Eye, EyeOff, Mail } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from "next/link";
 
 // Password validation function (similar to your RegisterForm)
 const validatePassword = (value: string): string | null => {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
   if (!passwordRegex.test(value)) {
-    return 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.';
+    return "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.";
   }
   return null;
 };
+
 
 export default function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [email, setEmail] = useState(''); // To prefill if passed, or keep empty
-  const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState(""); // To prefill if passed, or keep empty
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -945,17 +1633,17 @@ export default function ResetPasswordForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
-    const emailFromQuery = searchParams.get('email');
-    const tokenFromQuery = searchParams.get('token'); // If you decide to also prefill OTP via token
+    const emailFromQuery = searchParams.get("email");
+    const tokenFromQuery = searchParams.get("token"); // If you decide to also prefill OTP via token
 
     if (emailFromQuery) {
       setEmail(emailFromQuery);
     }
-    if (tokenFromQuery) {
-      // This 'token' from query is the OTP
+    if (tokenFromQuery) { // This 'token' from query is the OTP
       setOtp(tokenFromQuery);
     }
   }, [searchParams]);
+
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -965,12 +1653,12 @@ export default function ResetPasswordForm() {
     setSuccessMessage(null);
 
     if (!email) {
-      setError('כתובת המייל חסרה. אנא חזור להתחלה ונסה שנית.');
-      setIsLoading(false);
-      return;
+        setError("כתובת המייל חסרה. אנא חזור להתחלה ונסה שנית.");
+        setIsLoading(false);
+        return;
     }
     if (!otp || otp.length !== 6 || !/^\d+$/.test(otp)) {
-      setError('קוד האימות (OTP) חייב להיות בן 6 ספרות.');
+      setError("קוד האימות (OTP) חייב להיות בן 6 ספרות.");
       setIsLoading(false);
       return;
     }
@@ -981,37 +1669,36 @@ export default function ResetPasswordForm() {
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError('הסיסמאות אינן תואמות.');
+      setError("הסיסמאות אינן תואמות.");
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp, newPassword }),
       });
 
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'אירעה שגיאה באיפוס הסיסמה.');
+        throw new Error(data.error || "אירעה שגיאה באיפוס הסיסמה.");
       }
 
-      setSuccessMessage(
-        data.message || 'הסיסמה אופסה בהצלחה! כעת תוכל להתחבר עם הסיסמה החדשה.'
-      );
+      setSuccessMessage(data.message || "הסיסמה אופסה בהצלחה! כעת תוכל להתחבר עם הסיסמה החדשה.");
       // Clear fields on success
-      setOtp('');
-      setNewPassword('');
-      setConfirmPassword('');
+      setOtp("");
+      setNewPassword("");
+      setConfirmPassword("");
       // Optionally redirect after a delay or with a button
       setTimeout(() => {
-        router.push('/auth/signin?reset=success');
+        router.push("/auth/signin?reset=success");
       }, 3000);
+
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.');
+      setError(err instanceof Error ? err.message : "אירעה שגיאה לא צפויה.");
     } finally {
       setIsLoading(false);
     }
@@ -1022,49 +1709,41 @@ export default function ResetPasswordForm() {
       <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
       <div className="p-6 sm:p-8">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">איפוס סיסמה</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            איפוס סיסמה
+          </h1>
           <p className="text-gray-600 text-sm">
             הזן את קוד האימות (OTP) שקיבלת במייל ואת הסיסמה החדשה שלך.
           </p>
         </div>
 
         {error && (
-          <Alert variant="destructive" className="mb-4" role="alert">
+          <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>שגיאה</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        {passwordError && !error && (
-          <Alert variant="destructive" className="mb-4" role="alert">
+         {passwordError && !error && ( // Show passwordError only if general error is not present
+          <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>שגיאת סיסמה</AlertTitle>
-            <AlertDescription id="password-error-message">
-              {passwordError}
-            </AlertDescription>
+            <AlertDescription>{passwordError}</AlertDescription>
           </Alert>
         )}
 
         {successMessage && (
-          <Alert
-            variant="default"
-            className="mb-4 bg-green-50 border-green-200 text-green-700"
-          >
+          <Alert variant="default" className="mb-4 bg-green-50 border-green-200 text-green-700">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertTitle>הצלחה!</AlertTitle>
-            <AlertDescription>
-              {successMessage} אתה מועבר לדף ההתחברות...
-            </AlertDescription>
+            <AlertDescription>{successMessage} אתה מועבר לדף ההתחברות...</AlertDescription>
           </Alert>
         )}
 
         {!successMessage && ( // Only show form if no success message
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-1">
-              <label
-                htmlFor="email-reset"
-                className="block text-sm font-medium text-gray-700"
-              >
+             <div className="space-y-1">
+              <label htmlFor="email-reset" className="block text-sm font-medium text-gray-700">
                 כתובת מייל (לאימות) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -1077,15 +1756,12 @@ export default function ResetPasswordForm() {
                   placeholder="you@example.com"
                   required
                   className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
-                  disabled={isLoading || !!searchParams.get('email')} // Disable if email came from query
+                  disabled={isLoading || !!searchParams.get("email")} // Disable if email came from query
                 />
               </div>
             </div>
             <div className="space-y-1">
-              <label
-                htmlFor="otp-reset"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="otp-reset" className="block text-sm font-medium text-gray-700">
                 קוד אימות (OTP) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -1094,9 +1770,7 @@ export default function ResetPasswordForm() {
                   type="text"
                   id="otp-reset"
                   value={otp}
-                  onChange={(e) =>
-                    setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))
-                  }
+                  onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
                   placeholder="xxxxxx"
                   maxLength={6}
                   required
@@ -1108,69 +1782,48 @@ export default function ResetPasswordForm() {
             </div>
 
             <div className="space-y-1">
-              <label
-                htmlFor="new-password-reset"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="new-password-reset" className="block text-sm font-medium text-gray-700">
                 סיסמה חדשה <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <Input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   id="new-password-reset"
-                  aria-describedby={
-                    passwordError ? 'password-error-message' : 'password-hint'
-                  }
-                  aria-invalid={!!passwordError}
                   value={newPassword}
                   onChange={(e) => {
                     setNewPassword(e.target.value);
                     const validationErr = validatePassword(e.target.value);
-                    if (e.target.value && validationErr)
-                      setPasswordError(validationErr);
+                    if (e.target.value && validationErr) setPasswordError(validationErr);
                     else setPasswordError(null);
                   }}
                   placeholder="לפחות 8 תווים, אות גדולה, קטנה ומספר"
                   required
                   className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none ${
-                    passwordError
-                      ? 'border-red-500 focus:ring-red-200'
-                      : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
+                    passwordError ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
                   }`}
                   disabled={isLoading}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
+                 <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    aria-label={showPassword ? "הסתר סיסמה" : "הצג סיסמה"}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
-              {!passwordError && (
-                <p id="password-hint" className="mt-1 text-xs text-gray-500">
-                  חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.
-                </p>
-              )}
+              {!passwordError && <p className="mt-1 text-xs text-gray-500">חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.</p>}
             </div>
 
             <div className="space-y-1">
-              <label
-                htmlFor="confirm-password-reset"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="confirm-password-reset" className="block text-sm font-medium text-gray-700">
                 אימות סיסמה חדשה <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <Input
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? "text" : "password"}
                   id="confirm-password-reset"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -1180,30 +1833,19 @@ export default function ResetPasswordForm() {
                   disabled={isLoading}
                 />
                 <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  aria-label={showConfirmPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    aria-label={showConfirmPassword ? "הסתר סיסמה" : "הצג סיסמה"}
                 >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
 
             <Button
               type="submit"
-              disabled={
-                isLoading ||
-                !!passwordError ||
-                !otp ||
-                !newPassword ||
-                !confirmPassword ||
-                newPassword !== confirmPassword
-              }
+              disabled={isLoading || !!passwordError || !otp || !newPassword || !confirmPassword || newPassword !== confirmPassword}
               className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-2"
             >
               {isLoading ? (
@@ -1212,7 +1854,7 @@ export default function ResetPasswordForm() {
                   <span>מאפס סיסמה...</span>
                 </>
               ) : (
-                'אפס סיסמה'
+                "אפס סיסמה"
               )}
             </Button>
           </form>
@@ -1233,34 +1875,33 @@ export default function ResetPasswordForm() {
 --- End of Content for ResetPasswordForm.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\SignInForm.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\SignInForm.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/auth/SignInForm.tsx
-'use client';
+"use client";
 
-import { useState, useEffect, FormEvent } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { signIn } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label'; // --- התחל תיקון נגישות ---
-import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import { useState, useEffect, FormEvent } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Mail, Lock, AlertCircle, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (status === "authenticated") {
       // @ts-ignore - אנחנו יודעים שהוספנו את המאפיינים האלה לסשן
       const redirectUrl = session?.redirectUrl || '/profile';
       router.push(redirectUrl);
@@ -1268,21 +1909,21 @@ export default function SignInForm() {
   }, [status, session, router]);
 
   useEffect(() => {
-    const errorMessage = searchParams.get('error');
-    const resetSuccess = searchParams.get('reset');
+    const errorMessage = searchParams.get("error");
+    const resetSuccess = searchParams.get("reset");
 
-    if (resetSuccess === 'success') {
-      setError('');
+    if (resetSuccess === "success") {
+        setError("");
     }
 
     if (errorMessage) {
       switch (errorMessage) {
-        case 'CredentialsSignin':
-          setError('אימייל או סיסמה אינם נכונים. אנא נסה שנית.');
+        case "CredentialsSignin":
+          setError("אימייל או סיסמה אינם נכונים. אנא נסה שנית.");
           break;
-        case 'OAuthAccountNotLinked':
+        case "OAuthAccountNotLinked":
           setError(
-            'חשבון זה כבר מקושר באמצעות ספק אחר. אנא התחבר באמצעות הספק המקורי.'
+            "חשבון זה כבר מקושר באמצעות ספק אחר. אנא התחבר באמצעות הספק המקורי."
           );
           break;
         default:
@@ -1292,7 +1933,7 @@ export default function SignInForm() {
   }, [searchParams]);
 
   useEffect(() => {
-    const emailParam = searchParams.get('email');
+    const emailParam = searchParams.get("email");
     if (emailParam) {
       setEmail(emailParam);
     }
@@ -1300,19 +1941,19 @@ export default function SignInForm() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     if (!email || !password) {
-      setError('אנא הזן אימייל וסיסמה.');
+      setError("אנא הזן אימייל וסיסמה.");
       setIsLoading(false);
       return;
     }
 
-    try {
-      localStorage.setItem('last_user_email', email);
+     try {
+      localStorage.setItem("last_user_email", email);
 
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         email: email.toLowerCase(),
         password,
         redirect: false,
@@ -1321,15 +1962,15 @@ export default function SignInForm() {
       if (result?.ok && result.url) {
         router.push(result.url);
       } else if (!result?.ok) {
-        if (result?.error === 'CredentialsSignin') {
-          setError('אימייל או סיסמה אינם נכונים.');
+        if (result?.error === "CredentialsSignin") {
+          setError("אימייל או סיסמה אינם נכונים.");
         } else {
-          setError(result?.error || 'אירעה שגיאה לא צפויה בהתחברות.');
+          setError(result?.error || "אירעה שגיאה לא צפויה בהתחברות.");
         }
       }
     } catch (err) {
-      console.error('Unexpected sign-in error in handleSubmit:', err);
-      setError('אירעה שגיאה לא צפויה בהתחברות, נסה שנית.');
+      console.error("Unexpected sign-in error in handleSubmit:", err);
+      setError("אירעה שגיאה לא צפויה בהתחברות, נסה שנית.");
     } finally {
       setIsLoading(false);
     }
@@ -1337,35 +1978,32 @@ export default function SignInForm() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    setError('');
-    localStorage.setItem('google_auth_in_progress', 'true');
-    localStorage.setItem('auth_method', 'google');
+    setError("");
+    localStorage.setItem("google_auth_in_progress", "true");
+    localStorage.setItem("auth_method", "google");
 
     try {
-      await signIn('google');
+      await signIn("google");
     } catch (error) {
-      console.error('Google sign-in error:', error);
-      setError('אירעה שגיאה בהתחברות עם גוגל. נסה שנית.');
+      console.error("Google sign-in error:", error);
+      setError("אירעה שגיאה בהתחברות עם גוגל. נסה שנית.");
       setIsGoogleLoading(false);
     }
   };
 
+  // --- שינוי: מסך טעינה מעוצב ואינפורמטיבי ---
+  // בזמן בדיקת הסשן או לאחר התחברות מוצלחת, הצג את ההודעה הבאה עד להפנייה.
   if (status === 'loading' || status === 'authenticated') {
     return (
-      <div
-        className="flex w-full max-w-md flex-col items-center justify-center rounded-xl bg-white p-8 text-center shadow-xl"
-        style={{ minHeight: '520px' }}
-      >
+      <div className="flex w-full max-w-md flex-col items-center justify-center rounded-xl bg-white p-8 text-center shadow-xl" style={{ minHeight: '520px' }}>
         <div className="mb-4 h-12 w-12">
-          <Loader2 className="h-full w-full animate-spin text-cyan-500" />
+            <Loader2 className="h-full w-full animate-spin text-cyan-500" />
         </div>
         <h2 className="mb-2 text-2xl font-bold text-gray-800">
           {status === 'authenticated' ? 'התחברת בהצלחה!' : 'טוען נתונים...'}
         </h2>
         <p className="text-gray-600">
-          {status === 'authenticated'
-            ? 'אנו מעבירים אותך לאזור האישי שלך. '
-            : 'אנא המתן בזמן שאנו בודקים את פרטי ההתחברות שלך.'}
+          {status === 'authenticated' ? 'אנו מעבירים אותך לאזור האישי שלך. ' : 'אנא המתן בזמן שאנו בודקים את פרטי ההתחברות שלך.'}
         </p>
       </div>
     );
@@ -1386,31 +2024,20 @@ export default function SignInForm() {
         </div>
 
         {error && (
-          // --- התחל תיקון נגישות ---
-          <div
-            role="alert"
-            className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2"
-          >
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-            <p id="form-error-message" className="text-red-600 text-sm">
-              {error}
-            </p>
+            <p className="text-red-600 text-sm">{error}</p>
           </div>
-          // --- סיים תיקון נגישות ---
         )}
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 mb-6"
-          aria-describedby={error ? 'form-error-message' : undefined}
-        >
+        <form onSubmit={handleSubmit} className="space-y-4 mb-6">
           <div className="space-y-1">
-            <Label
+            <label
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
               אימייל
-            </Label>
+            </label>
             <div className="relative">
               <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
@@ -1423,19 +2050,18 @@ export default function SignInForm() {
                 className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
                 placeholder="you@example.com"
                 required
-                aria-required="true"
                 disabled={isLoading || isGoogleLoading}
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <Label
+            <label
               htmlFor="password"
               className="block text-sm font-medium text-gray-700"
             >
               סיסמה
-            </Label>
+            </label>
             <div className="relative">
               <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
@@ -1448,7 +2074,6 @@ export default function SignInForm() {
                 className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
                 placeholder="הסיסמה שלך"
                 required
-                aria-required="true"
                 disabled={isLoading || isGoogleLoading}
               />
             </div>
@@ -1532,7 +2157,7 @@ export default function SignInForm() {
 
         <div className="mt-6 text-center">
           <p className="text-gray-600 text-sm">
-            אין לך חשבון עדיין?{' '}
+            אין לך חשבון עדיין?{" "}
             <Link
               href="/auth/register"
               className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"
@@ -1548,7 +2173,7 @@ export default function SignInForm() {
 --- End of Content for SignInForm.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\VerifyEmailClient.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\VerifyEmailClient.tsx
 --------------------------------------------------------------------------------
 Content:
 // /auth/verify-email/page.tsx
@@ -1906,25 +2531,25 @@ export default function VerifyEmailPage() {
 --- End of Content for VerifyEmailClient.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\auth_contents.txt
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\auth_contents.txt
 --------------------------------------------------------------------------------
 [This is the output log file itself. Content not included.]
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\BasicInfoStep.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps\BasicInfoStep.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/auth/steps/BasicInfoStep.tsx
-'use client';
+// src/app/components/auth/steps/BasicInfoStep.tsx
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRegistration } from '../RegistrationContext';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useState, useEffect } from "react";
+import { useRegistration } from "../RegistrationContext";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   ArrowLeft,
   ArrowRight,
@@ -1933,43 +2558,52 @@ import {
   Lock,
   AlertCircle,
   Loader2,
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import ConsentCheckbox from '../ConsentCheckbox';
-import type { RegisterStepsDict } from '@/types/dictionaries/auth';
-
-interface BasicInfoStepProps {
-  dict: RegisterStepsDict['steps']['basicInfo'];
-  consentDict: RegisterStepsDict['consentCheckbox'];
-}
+} from "lucide-react";
+import { motion } from "framer-motion";
+import ConsentCheckbox from "../ConsentCheckbox"; // <-- ייבוא הקומפוננטה החדשה
 
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-  return email.trim() !== '' && emailRegex.test(email);
+  return email.trim() !== "" && emailRegex.test(email);
 };
-
 const isValidPassword = (password: string): boolean => {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
   return passwordRegex.test(password);
 };
 
-const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
+const BasicInfoStep: React.FC = () => {
   const { data, updateField, prevStep, proceedToEmailVerification } =
     useRegistration();
-  const [passwordError, setPasswordError] = useState('');
-  const [emailError, setEmailError] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+
   const [consentChecked, setConsentChecked] = useState(false);
   const [consentError, setConsentError] = useState<string | null>(null);
+
+  // --- START OF CHANGE ---
+  // State for marketing consent
   const [marketingConsent, setMarketingConsent] = useState(false);
+  // --- END OF CHANGE ---
 
   useEffect(() => {
     const isEmailValid = isValidEmail(data.email);
     const isPasswordValid = isValidPassword(data.password);
     const isNameValid =
       data.firstName.trim().length > 0 && data.lastName.trim().length > 0;
+
+    setEmailError(
+      data.email.trim() !== "" && !isEmailValid ? "כתובת אימייל לא תקינה" : ""
+    );
+    setPasswordError(
+      data.password.trim() !== "" && !isPasswordValid
+        ? "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
+        : ""
+    );
 
     setIsFormValid(
       isEmailValid &&
@@ -1987,15 +2621,56 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
     isLoading,
   ]);
 
+  const handleEmailBlur = () => {
+    if (data.email.trim() === "") {
+      setEmailError("");
+    } else if (!isValidEmail(data.email)) {
+      setEmailError("כתובת אימייל לא תקינה");
+    } else {
+      setEmailError("");
+    }
+  };
+  const handlePasswordBlur = () => {
+    if (data.password.trim() === "") {
+      setPasswordError("");
+    } else if (!isValidPassword(data.password)) {
+      setPasswordError(
+        "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
+      );
+    } else {
+      setPasswordError("");
+    }
+  };
+
   const handleRegisterSubmit = async () => {
     setConsentError(null);
     if (!consentChecked) {
-      setConsentError(dict.errors.consentRequired);
+      setConsentError("חובה לאשר את תנאי השימוש ומדיניות הפרטיות.");
+      setIsFormValid(false);
       return;
     }
 
-    if (!isFormValid) {
-      setApiError(dict.errors.fillFields);
+    const isEmailValid = isValidEmail(data.email);
+    const isPasswordValid = isValidPassword(data.password);
+    const isFirstNameValid = data.firstName.trim().length > 0;
+    const isLastNameValid = data.lastName.trim().length > 0;
+
+    if (
+      !isEmailValid ||
+      !isPasswordValid ||
+      !isFirstNameValid ||
+      !isLastNameValid
+    ) {
+      setApiError("אנא מלא את כל השדות הנדרשים בצורה תקינה.");
+      if (!isEmailValid && data.email.trim() !== "") handleEmailBlur();
+      else if (data.email.trim() === "") setEmailError("שדה אימייל הוא חובה");
+      if (!isPasswordValid && data.password.trim() !== "") handlePasswordBlur();
+      else if (data.password.trim() === "")
+        setPasswordError("שדה סיסמה הוא חובה");
+      return;
+    }
+    if (emailError || passwordError) {
+      setApiError("אנא תקן את השגיאות המסומנות.");
       return;
     }
 
@@ -2003,27 +2678,44 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
     setApiError(null);
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: data.email,
           password: data.password,
           firstName: data.firstName,
           lastName: data.lastName,
+          // --- START OF CHANGE ---
           marketingConsent: marketingConsent,
+          // --- END OF CHANGE ---
         }),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || dict.errors.default);
+        throw new Error(
+          result.error || `שגיאה ${response.status}: ${response.statusText}`
+        );
       }
 
-      proceedToEmailVerification(result.email);
+      if (result.success && result.email) {
+        proceedToEmailVerification(result.email);
+      } else {
+        console.error(
+          "Registration API success but no email returned or success false:",
+          result
+        );
+        setApiError(
+          result.error || "אירעה שגיאה במעבר לשלב אימות המייל. אנא נסה שנית."
+        );
+      }
     } catch (error) {
-      setApiError(error instanceof Error ? error.message : dict.errors.default);
+      console.error("Registration API error:", error);
+      setApiError(
+        error instanceof Error ? error.message : "אירעה שגיאה בלתי צפויה בהרשמה"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -2047,9 +2739,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
     >
       {apiError && (
         <motion.div variants={itemVariants}>
-          <Alert variant="destructive" role="alert">
+          <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{dict.errors.title}</AlertTitle>
+            <AlertTitle>שגיאה בהרשמה</AlertTitle>
             <AlertDescription>{apiError}</AlertDescription>
           </Alert>
         </motion.div>
@@ -2059,18 +2751,17 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
         className="text-xl font-bold text-gray-800 mb-4"
         variants={itemVariants}
       >
-        {dict.title}
+        פרטי חשבון
       </motion.h2>
 
       <motion.div variants={itemVariants} className="space-y-4">
-        {/* Email, Password, First/Last Name fields updated to use dict */}
         {/* Email Field */}
         <div className="space-y-1">
           <label
             htmlFor="emailBasic"
             className="block text-sm font-medium text-gray-700"
           >
-            {dict.emailLabel} <span className="text-red-500">*</span>
+            אימייל <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -2078,67 +2769,91 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
               type="email"
               id="emailBasic"
               value={data.email}
-              onChange={(e) => updateField('email', e.target.value)}
-              onBlur={() =>
-                setEmailError(
-                  isValidEmail(data.email) ? '' : dict.errors.invalidEmail
-                )
-              }
-              placeholder={dict.emailPlaceholder}
+              onChange={(e) => updateField("email", e.target.value)}
+              onBlur={handleEmailBlur}
+              placeholder="you@example.com"
               disabled={isLoading}
               required
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                isLoading ? "bg-gray-100" : ""
+              } ${
+                emailError
+                  ? "border-red-500 focus:ring-red-200"
+                  : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+              }`}
             />
+            {emailError && !isLoading && (
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+              </div>
+            )}
           </div>
           {emailError && (
-            <p role="alert" className="text-red-500 text-xs mt-1">
-              {emailError}
-            </p>
+            <p className="text-red-500 text-xs mt-1">{emailError}</p>
           )}
         </div>
 
         {/* Password Field */}
-        <div className="space-y-1">
+        <motion.div variants={itemVariants} className="space-y-1">
           <label
             htmlFor="passwordBasic"
             className="block text-sm font-medium text-gray-700"
           >
-            {dict.passwordLabel} <span className="text-red-500">*</span>
+            סיסמה <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
-              type="password"
+              type={passwordVisible ? "text" : "password"}
               id="passwordBasic"
               value={data.password}
-              onChange={(e) => updateField('password', e.target.value)}
-              onBlur={() =>
-                setPasswordError(
-                  isValidPassword(data.password)
-                    ? ''
-                    : dict.errors.invalidPassword
-                )
-              }
-              placeholder={dict.passwordPlaceholder}
+              onChange={(e) => updateField("password", e.target.value)}
+              onBlur={handlePasswordBlur}
+              placeholder="לפחות 8 תווים"
               disabled={isLoading}
               required
+              className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                isLoading ? "bg-gray-100" : ""
+              } ${
+                passwordError
+                  ? "border-red-300 focus:ring-red-200"
+                  : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+              }`}
             />
+            <button
+              type="button"
+              onClick={() => setPasswordVisible(!passwordVisible)}
+              className="absolute inset-y-0 left-0 flex items-center pl-3 focus:outline-none"
+              aria-label={passwordVisible ? "הסתר סיסמה" : "הצג סיסמה"}
+            >
+              <span className="text-gray-500">
+                {passwordVisible ? "🙈" : "👁️"}
+              </span>
+            </button>
+            {passwordError && !isLoading && (
+              <div className="absolute inset-y-0 left-10 flex items-center pl-3 pointer-events-none">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+              </div>
+            )}
           </div>
-          {passwordError ? (
-            <p role="alert" className="text-red-500 text-xs mt-1">
-              {passwordError}
-            </p>
-          ) : (
-            <p className="text-gray-500 text-xs mt-1">{dict.passwordHint}</p>
+          {passwordError && (
+            <p className="text-red-500 text-xs mt-1">{passwordError}</p>
           )}
-        </div>
+          {!passwordError && (
+            <p className="text-gray-500 text-xs mt-1">
+              הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה
+              באנגלית ומספר.
+            </p>
+          )}
+        </motion.div>
 
-        {/* Name Fields */}
-        <div className="space-y-1">
+        {/* First Name Field */}
+        <motion.div variants={itemVariants} className="space-y-1">
           <label
             htmlFor="firstNameBasic"
             className="block text-sm font-medium text-gray-700"
           >
-            {dict.firstNameLabel} <span className="text-red-500">*</span>
+            שם פרטי <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -2146,19 +2861,24 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
               type="text"
               id="firstNameBasic"
               value={data.firstName}
-              onChange={(e) => updateField('firstName', e.target.value)}
-              placeholder={dict.firstNamePlaceholder}
+              onChange={(e) => updateField("firstName", e.target.value)}
+              placeholder="ישראל"
               disabled={isLoading}
               required
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                isLoading ? "bg-gray-100" : ""
+              } border-gray-300 focus:ring-cyan-200 focus:border-cyan-500`}
             />
           </div>
-        </div>
-        <div className="space-y-1">
+        </motion.div>
+
+        {/* Last Name Field */}
+        <motion.div variants={itemVariants} className="space-y-1">
           <label
             htmlFor="lastNameBasic"
             className="block text-sm font-medium text-gray-700"
           >
-            {dict.lastNameLabel} <span className="text-red-500">*</span>
+            שם משפחה <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -2166,13 +2886,16 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
               type="text"
               id="lastNameBasic"
               value={data.lastName}
-              onChange={(e) => updateField('lastName', e.target.value)}
-              placeholder={dict.lastNamePlaceholder}
+              onChange={(e) => updateField("lastName", e.target.value)}
+              placeholder="ישראלי"
               disabled={isLoading}
               required
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                isLoading ? "bg-gray-100" : ""
+              } border-gray-300 focus:ring-cyan-200 focus:border-cyan-500`}
             />
           </div>
-        </div>
+        </motion.div>
       </motion.div>
 
       <motion.div variants={itemVariants} className="mt-6">
@@ -2183,10 +2906,11 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
             if (isChecked) setConsentError(null);
           }}
           error={consentError}
-          dict={consentDict}
         />
       </motion.div>
-
+      
+      {/* --- START OF CHANGE --- */}
+      {/* Marketing Consent Checkbox */}
       <motion.div variants={itemVariants} className="mt-4">
         <div className="flex items-start space-x-2 rtl:space-x-reverse">
           <input
@@ -2197,10 +2921,11 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
             className="mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
           />
           <label htmlFor="marketingConsent" className="text-sm text-gray-700">
-            {dict.marketingConsent}
+            אני מסכים/ה לקבל מידע שיווקי ועדכונים מהחברה
           </label>
         </div>
       </motion.div>
+      {/* --- END OF CHANGE --- */}
 
       <motion.div
         variants={itemVariants}
@@ -2210,23 +2935,32 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict }) => {
           type="button"
           onClick={prevStep}
           variant="outline"
+          className="flex items-center gap-2 border-gray-300"
           disabled={isLoading}
         >
-          <ArrowRight className="h-4 w-4 ml-2" /> {dict.backButton}
+          <ArrowRight className="h-4 w-4" /> חזרה
         </Button>
+
         <Button
           type="button"
           onClick={handleRegisterSubmit}
           disabled={!isFormValid || isLoading}
+          className={`flex items-center gap-2 min-w-[200px] justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-opacity
+            ${
+              isFormValid && !isLoading
+                ? "bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-md hover:shadow-lg"
+                : "bg-gray-300 cursor-not-allowed"
+            }`}
         >
           {isLoading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              <span>{dict.nextButtonLoading}</span>
+              <span>יוצר חשבון...</span>
             </>
           ) : (
             <>
-              {dict.nextButton} <ArrowLeft className="h-4 w-4 mr-2" />
+              <span>צור חשבון והמשך לאימות</span>
+              <ArrowLeft className="h-4 w-4" />
             </>
           )}
         </Button>
@@ -2239,79 +2973,75 @@ export default BasicInfoStep;
 --- End of Content for BasicInfoStep.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\CompleteStep.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps\CompleteStep.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/auth/steps/CompleteStep.tsx
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
   CheckCircle,
   Mail,
   User,
   Phone,
-  Loader2,
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { useSession } from 'next-auth/react';
-import { UserStatus } from '@prisma/client';
-import type { User as SessionUserType } from '@/types/next-auth';
-import type { RegisterStepsDict } from '@/types/dictionaries/auth';
-
-interface CompleteStepProps {
-  dict: RegisterStepsDict['steps']['complete'];
-}
-
+  ShieldQuestion,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+// ודא שהנתיב לייבוא נכון. יכול להיות שזה ישירות מ-@prisma/client אם ייצאת אותו משם
+import { UserStatus } from "@prisma/client"; // אם זה הנתיב שבו UserStatus מוגדר
+import type { User as SessionUserType } from "@/types/next-auth"; // ... (variants נשארים אותו דבר) ...
 const containerVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
-  },
+  /* ... */
 };
-
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } },
+  /* ... */
 };
-
 const circleVariants = {
-  hidden: { opacity: 0, scale: 0.5 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
+  /* ... */
 };
 
-const CompleteStep: React.FC<CompleteStepProps> = ({ dict }) => {
+const CompleteStep: React.FC = () => {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
 
-  if (sessionStatus === 'loading') {
+  const navigateToProfile = () => router.push("/profile/me");
+  const navigateToQuestionnaire = () => router.push("/questionnaire");
+  const navigateToVerifyPhone = () => router.push("/auth/verify-phone");
+  const navigateToCompleteProfile = () => router.push("/auth/complete-profile");
+
+  if (sessionStatus === "loading") {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-center space-y-4">
-        <Loader2 className="h-10 w-10 animate-spin text-cyan-600" />
-        <p className="text-lg text-gray-600">{dict.loading}</p>
+      <div className="flex justify-center items-center h-40">
+        <p className="text-lg text-gray-600">טוען נתונים...</p>
       </div>
     );
   }
 
-  if (sessionStatus === 'unauthenticated' || !session?.user) {
-    // Should be handled by parent, but as a fallback:
-    router.push('/auth/signin');
+  if (!session?.user) {
+    router.push("/auth/signin");
     return null;
   }
 
-  const user = session.user as SessionUserType;
+  const user = session.user as SessionUserType; // ודא ש-SessionUserType מיובא נכון
 
-  // Scenario 1: Needs email verification
-  if (user.status === UserStatus.PENDING_EMAIL_VERIFICATION) {
+  // תרחיש 1: צריך לאמת אימייל (ורק אם ההרשמה היא עם אימייל/סיסמה)
+  // נניח ש-user.accounts הוא מערך של PrismaAccount
+  const isCredentialsUser = user.accounts?.every(
+    (acc) => acc.provider === "credentials"
+  );
+
+  // *******************************************************************
+  // כאן השינוי: השתמש בערכים מה-enum UserStatus שלך
+  // *******************************************************************
+  if (
+    !user.isVerified &&
+    isCredentialsUser &&
+    user.status === UserStatus.PENDING_EMAIL_VERIFICATION
+  ) {
     return (
       <motion.div
         className="space-y-6 text-center"
@@ -2319,29 +3049,47 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ dict }) => {
         initial="hidden"
         animate="visible"
       >
-        <motion.div className="flex justify-center" variants={circleVariants}>
-          <div className="w-24 h-24 rounded-full bg-cyan-100 flex items-center justify-center">
-            <Mail className="h-12 w-12 text-cyan-600" />
+        {/* ... תוכן לאימות מייל ... */}
+        <motion.div
+          className="flex justify-center mb-6"
+          variants={circleVariants}
+        >
+          <div className="relative w-28 h-28 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 flex items-center justify-center">
+            <motion.div
+              className="absolute inset-1 bg-white rounded-full flex items-center justify-center"
+              animate={{ scale: [0.6, 1] }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <Mail className="h-14 w-14 text-cyan-500" />
+            </motion.div>
           </div>
         </motion.div>
         <motion.h2
           className="text-2xl font-bold text-gray-800"
           variants={itemVariants}
         >
-          {dict.verifyEmailTitle}
+          אימות כתובת המייל
         </motion.h2>
-        <motion.p className="text-gray-600" variants={itemVariants}>
-          {dict.verifyEmailSubtitle}{' '}
-          <span className="font-bold text-gray-700">{user.email}</span>.
-          <br />
-          {dict.verifyEmailPrompt}
-        </motion.p>
+        <motion.div variants={itemVariants}>
+          <div className="p-4 bg-cyan-50 rounded-lg mb-5">
+            <div className="flex items-center gap-2 text-cyan-700 mb-2 justify-center">
+              <Mail className="h-5 w-5" />
+              <h3 className="font-medium">אנא אמת את כתובת המייל שלך</h3>
+            </div>
+            <p className="text-sm text-cyan-600">
+              שלחנו לך מייל לכתובת{" "}
+              <span className="font-bold">{user.email}</span>.
+              <br />
+              אנא לחץ על הקישור במייל כדי להשלים את תהליך האימות.
+            </p>
+          </div>
+        </motion.div>
       </motion.div>
     );
   }
 
-  // Scenario 2: Needs profile completion
-  if (!user.isProfileComplete) {
+  // תרחיש 2: צריך להשלים פרופיל
+  if (user.isVerified && !user.isProfileComplete) {
     return (
       <motion.div
         className="space-y-6 text-center"
@@ -2349,70 +3097,72 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ dict }) => {
         initial="hidden"
         animate="visible"
       >
-        <motion.div className="flex justify-center" variants={circleVariants}>
-          <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center">
-            <User className="h-12 w-12 text-indigo-600" />
+        {/* ... תוכן להשלמת פרופיל ... */}
+        <motion.div
+          className="flex justify-center mb-6"
+          variants={circleVariants}
+        >
+          <div className="relative w-28 h-28 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 flex items-center justify-center">
+            <motion.div
+              className="absolute inset-1 bg-white rounded-full flex items-center justify-center"
+              animate={{ scale: [0.6, 1] }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <User className="h-14 w-14 text-cyan-500" />
+            </motion.div>
           </div>
         </motion.div>
         <motion.h2
           className="text-2xl font-bold text-gray-800"
           variants={itemVariants}
         >
-          {dict.completeProfileTitle}
+          השלמת פרטי פרופיל
         </motion.h2>
-        <motion.p className="text-gray-600" variants={itemVariants}>
-          {dict.completeProfileSubtitle}
+        <motion.p className="text-gray-600 mb-6" variants={itemVariants}>
+          כדי שנוכל להתאים לך את השידוכים הטובים ביותר, אנא השלם את פרטי הפרופיל
+          שלך.
         </motion.p>
-        <motion.div variants={itemVariants}>
+        <motion.div variants={itemVariants} className="flex flex-col gap-4">
           <Button
-            onClick={() =>
-              router.push('/auth/register?reason=complete_profile')
-            }
-            className="w-full"
+            onClick={navigateToCompleteProfile}
+            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-lg shadow-lg flex items-center justify-center gap-2"
           >
-            {dict.completeProfileButton}
+            <User className="h-5 w-5 text-white" />
+            <span className="text-white">להשלמת הפרופיל</span>
           </Button>
         </motion.div>
       </motion.div>
     );
   }
 
-  // Scenario 3: Needs phone verification
-  if (!user.isPhoneVerified) {
+  // תרחיש 3: צריך לאמת טלפון
+  // *******************************************************************
+  // כאן השינוי: השתמש בערכים מה-enum UserStatus שלך
+  // יכול להיות שגם תרצה לבדוק user.status === UserStatus.PENDING_PHONE_VERIFICATION
+  // *******************************************************************
+  if (
+    user.isVerified &&
+    user.isProfileComplete &&
+    !user.isPhoneVerified &&
+    user.status === UserStatus.PENDING_PHONE_VERIFICATION
+  ) {
     return (
-      <motion.div
-        className="space-y-6 text-center"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.div className="flex justify-center" variants={circleVariants}>
-          <div className="w-24 h-24 rounded-full bg-pink-100 flex items-center justify-center">
-            <Phone className="h-12 w-12 text-pink-600" />
-          </div>
-        </motion.div>
-        <motion.h2
-          className="text-2xl font-bold text-gray-800"
-          variants={itemVariants}
-        >
-          {dict.verifyPhoneTitle}
-        </motion.h2>
-        <motion.p className="text-gray-600" variants={itemVariants}>
-          {dict.verifyPhoneSubtitle}
-        </motion.p>
-        <motion.div variants={itemVariants}>
+      <motion.div /* ... */>
+        {/* ... הצגת אייקון, כותרת, וטקסט ... */}
+        <motion.div variants={itemVariants} className="flex flex-col gap-4">
           <Button
-            onClick={() => router.push('/auth/verify-phone')}
-            className="w-full"
+            onClick={navigateToVerifyPhone} // הפונקציה הזו עושה router.push('/auth/verify-phone')
+            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-lg shadow-lg flex items-center justify-center gap-2"
           >
-            {dict.verifyPhoneButton}
+            <Phone className="h-5 w-5 text-white" />
+            <span className="text-white">לאימות מספר הטלפון</span>
           </Button>
         </motion.div>
       </motion.div>
     );
   }
 
-  // Scenario 4: Everything is complete
+  // תרחיש 4: הכל הושלם! (או user.status === UserStatus.ACTIVE)
   return (
     <motion.div
       className="space-y-6 text-center"
@@ -2420,33 +3170,58 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ dict }) => {
       initial="hidden"
       animate="visible"
     >
-      <motion.div className="flex justify-center" variants={circleVariants}>
-        <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
-          <CheckCircle className="h-12 w-12 text-green-600" />
+      {/* ... תוכן להכל הושלם ... */}
+      <motion.div
+        className="flex justify-center mb-6"
+        variants={circleVariants}
+      >
+        <div className="relative w-28 h-28 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 flex items-center justify-center">
+          <motion.div
+            className="absolute inset-1 bg-white rounded-full flex items-center justify-center"
+            animate={{ scale: [0.6, 1] }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
+            <CheckCircle className="h-14 w-14 text-green-500" />
+          </motion.div>
         </div>
       </motion.div>
       <motion.h2
         className="text-2xl font-bold text-gray-800"
         variants={itemVariants}
       >
-        {dict.allDoneTitle}
+        ההרשמה והפרופיל הושלמו בהצלחה!
       </motion.h2>
-      <motion.p className="text-gray-600" variants={itemVariants}>
-        {dict.allDoneSubtitle}
-      </motion.p>
+      <motion.div variants={itemVariants}>
+        <p className="text-gray-600 mb-6">
+          מעולה! כל הפרטים שלך מאומתים ומוכנים.
+          <br />
+          עכשיו תוכל להתחיל בתהליך מציאת השידוך.
+        </p>
+      </motion.div>
       <motion.div variants={itemVariants} className="flex flex-col gap-4">
-        <Button onClick={() => router.push('/profile')} className="w-full">
-          <User className="h-4 w-4 ml-2" /> {dict.myProfileButton}
+        <Button
+          onClick={navigateToProfile}
+          className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-lg shadow-lg flex items-center justify-center gap-2 group relative overflow-hidden"
+        >
+          <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+          <User className="h-5 w-5 text-white" />
+          <span className="text-white">לפרופיל שלי</span>
+          <ArrowLeft className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300" />
         </Button>
         <Button
-          onClick={() => router.push('/questionnaire')}
+          onClick={navigateToQuestionnaire}
           variant="outline"
-          className="w-full"
+          className="w-full py-3 border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 flex items-center justify-center gap-2"
         >
-          {dict.questionnaireButton}
+          <ShieldQuestion className="h-5 w-5" />
+          <span>למילוי שאלון התאמה</span>
+          <ArrowLeft className="h-4 w-4" />
         </Button>
-        <Link href="/" className="text-sm text-gray-500 hover:underline mt-2">
-          {dict.backToHomeLink}
+        <Link
+          href="/"
+          className="text-sm text-gray-500 hover:text-gray-700 hover:underline mt-2"
+        >
+          חזרה לדף הבית
         </Link>
       </motion.div>
     </motion.div>
@@ -2457,39 +3232,34 @@ export default CompleteStep;
 --- End of Content for CompleteStep.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\EmailVerificationCodeStep.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps\EmailVerificationCodeStep.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/auth/steps/EmailVerificationCodeStep.tsx
-'use client';
+// src/app/components/auth/steps/EmailVerificationCodeStep.tsx
+"use client";
 
-import { useState, useRef, KeyboardEvent, useEffect, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import { useRegistration } from '../RegistrationContext';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertCircle, MailCheck, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Input } from '@/components/ui/input';
-import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+import { useState, useRef, KeyboardEvent, useEffect, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react"; // נשאר רק signIn, useSession לא בשימוש ישיר כאן
+import { useRegistration } from "../RegistrationContext";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, AlertCircle, MailCheck, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
 
 const OTP_LENGTH = 6;
 
-interface EmailVerificationCodeStepProps {
-  dict: RegisterStepsDict['steps']['emailVerification'];
-}
-
-const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
-  dict,
-}) => {
+const EmailVerificationCodeStep: React.FC = () => {
   const {
     data: registrationData,
     exitEmailVerification: goBackToBasicInfo,
-    completeEmailVerification,
+    completeEmailVerification, // הוספת הפונקציה מהקונטקסט
   } = useRegistration();
+
   const router = useRouter();
-  const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(''));
+
+  const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(""));
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -2497,33 +3267,75 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    inputRefs.current[0]?.focus();
+    if (inputRefs.current[0]) {
+      inputRefs.current[0]?.focus();
+    }
   }, []);
 
   const handleChange = (element: HTMLInputElement, index: number) => {
-    const value = element.value.replace(/[^0-9]/g, '');
+    const value = element.value.replace(/[^0-9]/g, "");
+
+    if (value.length > 1 && index < OTP_LENGTH) {
+      const chars = value.split("");
+      let currentIdx = index;
+      const newOtp = [...otp];
+
+      for (
+        let i = 0;
+        i < chars.length && currentIdx < OTP_LENGTH;
+        i++, currentIdx++
+      ) {
+        newOtp[currentIdx] = chars[i];
+      }
+      setOtp(newOtp);
+      const nextFocusIndex = Math.min(index + chars.length, OTP_LENGTH - 1);
+      if (inputRefs.current[nextFocusIndex] && chars.length > 0) {
+        setTimeout(() => inputRefs.current[nextFocusIndex]?.focus(), 0);
+      }
+      return;
+    }
+
     const newOtp = [...otp];
-    newOtp[index] = value.slice(-1); // Only take the last digit
+    newOtp[index] = value;
     setOtp(newOtp);
 
     if (value && index < OTP_LENGTH - 1) {
-      inputRefs.current[index + 1]?.focus();
+      if (inputRefs.current[index + 1]) {
+        inputRefs.current[index + 1]?.focus();
+      }
     }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      const newOtp = [...otp];
+      if (newOtp[index]) {
+        newOtp[index] = "";
+        setOtp(newOtp);
+      } else if (index > 0) {
+        if (inputRefs.current[index - 1]) {
+          inputRefs.current[index - 1]?.focus();
+        }
+      }
+    } else if (e.key === "ArrowLeft" && index > 0) {
+      e.preventDefault();
+      if (inputRefs.current[index - 1]) {
+        inputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === "ArrowRight" && index < OTP_LENGTH - 1) {
+      e.preventDefault();
+      if (inputRefs.current[index + 1]) {
+        inputRefs.current[index + 1]?.focus();
+      }
     }
   };
 
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const enteredCode = otp.join('');
+    const enteredCode = otp.join("");
     if (enteredCode.length !== OTP_LENGTH) {
-      setApiError(
-        dict.errors.incompleteCode.replace('{{length}}', OTP_LENGTH.toString())
-      );
+      setApiError(`הקוד חייב להכיל ${OTP_LENGTH} ספרות.`);
       return;
     }
 
@@ -2532,37 +3344,74 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
     setResendMessage(null);
 
     try {
-      const response = await fetch('/api/auth/verify-email-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      // 1. Verify the code with the backend
+      console.log(
+        "CLIENT LOG: Submitting OTP to API. Email:",
+        registrationData.emailForVerification
+      );
+      const response = await fetch("/api/auth/verify-email-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: registrationData.emailForVerification,
           code: enteredCode,
         }),
       });
+
       const result = await response.json();
+      console.log("CLIENT LOG: API response for /verify-email-code:", result);
+
       if (!response.ok || !result.success || !result.authToken) {
-        throw new Error(result.error || dict.errors.default);
-      }
-
-      const signInResult = await signIn('email-verified-autologin', {
-        authToken: result.authToken,
-        redirect: false,
-      });
-
-      if (signInResult?.ok) {
-        completeEmailVerification();
-        router.push('/auth/register');
-      } else {
         throw new Error(
-          dict.errors.autoSignInFailed.replace(
-            '{error}',
-            signInResult?.error || 'Unknown error'
-          )
+          result.error || "שגיאה באימות הקוד מה-API או שלא הוחזר טוקן התחברות."
         );
       }
+
+      const authToken = result.authToken;
+      console.log(
+        "CLIENT LOG: Email code verified with API. AuthToken received. Attempting auto-signin..."
+      );
+
+      // 2. Attempt auto-signin with the received authToken
+      const signInResult = await signIn("email-verified-autologin", {
+        authToken: authToken,
+        redirect: false, // חשוב! אנחנו נטפל בהפניה ידנית
+      });
+
+      console.log("CLIENT LOG: Auto-signin attempt result:", signInResult);
+
+      if (signInResult?.ok) {
+        // ההתחברות האוטומטית הצליחה, והסשן נוצר/עודכן
+        console.log(
+          "CLIENT LOG: Auto-signin successful. Calling completeEmailVerification and navigating to /auth/register."
+        );
+        completeEmailVerification(); // <-- קריאה לפונקציה מהקונטקסט
+        router.push("/auth/register");
+        // אין צורך לקרוא ל-setIsLoading(false) כאן כי הקומפוננטה תעשה unmount
+      } else {
+        // ההתחברות האוטומטית נכשלה
+        console.error("CLIENT LOG: Auto-signin failed.", signInResult?.error);
+        setApiError(
+          `אימות המייל הצליח, אך נתקלנו בבעיה בהתחברות האוטומטית: ${
+            signInResult?.error || "שגיאה לא ידועה"
+          }. אנא נסה להתחבר ידנית.`
+        );
+        setIsLoading(false); // אפשר למשתמש לנסות שוב או לנקוט פעולה אחרת
+      }
     } catch (error) {
-      setApiError(error instanceof Error ? error.message : dict.errors.default);
+      console.error(
+        "CLIENT LOG: Error during email verification process or auto-signin:",
+        error
+      );
+      setApiError(
+        error instanceof Error
+          ? error.message
+          : "אירעה שגיאה בלתי צפויה בתהליך האימות"
+      );
+      setOtp(new Array(OTP_LENGTH).fill(""));
+      if (inputRefs.current[0]) {
+        inputRefs.current[0]?.focus();
+      }
       setIsLoading(false);
     }
   };
@@ -2571,19 +3420,58 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
     setIsResending(true);
     setApiError(null);
     setResendMessage(null);
+
     try {
-      const response = await fetch('/api/auth/resend-verification-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      console.log(
+        "CLIENT LOG: Requesting to resend verification code for email:",
+        registrationData.emailForVerification
+      );
+      const response = await fetch("/api/auth/resend-verification-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: registrationData.emailForVerification }),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
-      setResendMessage(dict.alerts.resent);
+      console.log(
+        "CLIENT LOG: API response for /resend-verification-code:",
+        result
+      );
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "שגיאה בשליחה חוזרת של הקוד");
+      }
+      setResendMessage(result.message || "קוד חדש נשלח בהצלחה.");
+      setOtp(new Array(OTP_LENGTH).fill(""));
+      if (inputRefs.current[0]) {
+        inputRefs.current[0]?.focus();
+      }
     } catch (error) {
-      setApiError(error instanceof Error ? error.message : dict.errors.default);
+      console.error("CLIENT LOG: Error during resend code:", error);
+      setApiError(
+        error instanceof Error ? error.message : "אירעה שגיאה בשליחה חוזרת"
+      );
     } finally {
       setIsResending(false);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const pasteData = e.clipboardData
+      .getData("text")
+      .replace(/[^0-9]/g, "")
+      .slice(0, OTP_LENGTH);
+
+    if (pasteData.length > 0) {
+      e.preventDefault();
+      const newOtp = new Array(OTP_LENGTH).fill("");
+      for (let i = 0; i < pasteData.length; i++) {
+        newOtp[i] = pasteData[i];
+      }
+      setOtp(newOtp);
+      const focusIndex = Math.min(pasteData.length, OTP_LENGTH - 1);
+      if (inputRefs.current[focusIndex]) {
+        setTimeout(() => inputRefs.current[focusIndex]?.focus(), 0);
+      }
     }
   };
 
@@ -2598,28 +3486,32 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
 
   return (
     <motion.div
-      className="space-y-6 text-center"
+      className="space-y-6 text-center p-4 sm:p-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       <motion.div variants={itemVariants}>
         <MailCheck className="h-12 w-12 text-cyan-500 mx-auto mb-3" />
-        <h2 className="text-2xl font-bold text-gray-800">{dict.title}</h2>
-        <p className="text-gray-600 mt-2">
-          {dict.subtitle.replace('{{length}}', OTP_LENGTH.toString())}{' '}
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+          אימות כתובת מייל
+        </h2>
+        <p className="text-gray-600 mt-2 text-sm sm:text-base">
+          שלחנו קוד אימות בן {OTP_LENGTH} ספרות לכתובת{" "}
           <strong className="font-semibold text-gray-700">
-            {registrationData.emailForVerification || dict.yourEmail}
+            {registrationData.emailForVerification || "האימייל שלך"}
           </strong>
           .
+          <br />
+          אנא הזן את הקוד שקיבלת.
         </p>
       </motion.div>
 
       {apiError && (
         <motion.div variants={itemVariants}>
-          <Alert variant="destructive" role="alert">
+          <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{dict.errors.title}</AlertTitle>
+            <AlertTitle>שגיאה</AlertTitle>
             <AlertDescription>{apiError}</AlertDescription>
           </Alert>
         </motion.div>
@@ -2629,10 +3521,9 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
           <Alert
             variant="default"
             className="bg-green-50 border-green-300 text-green-700"
-            role="status"
           >
             <MailCheck className="h-4 w-4 text-green-600" />
-            <AlertTitle>{dict.alerts.title}</AlertTitle>
+            <AlertTitle>הודעה</AlertTitle>
             <AlertDescription>{resendMessage}</AlertDescription>
           </Alert>
         </motion.div>
@@ -2641,8 +3532,9 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
       <form onSubmit={handleFormSubmit}>
         <motion.div
           variants={itemVariants}
-          className="flex justify-center space-x-2 rtl:space-x-reverse"
+          className="flex justify-center space-x-2 sm:space-x-3 rtl:space-x-reverse"
           dir="ltr"
+          onPaste={handlePaste}
         >
           {otp.map((digit, index) => (
             <Input
@@ -2659,7 +3551,7 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
               ref={(el) => {
                 inputRefs.current[index] = el;
               }}
-              className="w-12 h-14 text-center text-xl font-semibold"
+              className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-semibold border-2 border-gray-300 rounded-md focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition-colors disabled:bg-gray-100 appearance-none"
               disabled={isLoading || isResending}
               aria-label={`OTP digit ${index + 1}`}
               autoComplete="one-time-code"
@@ -2668,21 +3560,21 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
           ))}
         </motion.div>
 
-        <motion.div variants={itemVariants} className="mt-6">
+        <motion.div variants={itemVariants} className="space-y-4 mt-6">
           <Button
             type="submit"
             disabled={
-              isLoading || isResending || otp.join('').length !== OTP_LENGTH
+              isLoading || isResending || otp.join("").length !== OTP_LENGTH
             }
-            className="w-full"
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600"
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin ml-2" />
-                <span>{dict.submitButtonLoading}</span>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>מאמת ומתחבר...</span>
               </>
             ) : (
-              dict.submitButton
+              "אמת קוד והמשך להשלמת פרופיל"
             )}
           </Button>
         </motion.div>
@@ -2692,21 +3584,21 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
         variants={itemVariants}
         className="text-sm text-gray-500 mt-2"
       >
-        {dict.resendPrompt}{' '}
+        לא קיבלת קוד?{" "}
         <Button
           type="button"
           variant="link"
           onClick={handleResendCode}
           disabled={isLoading || isResending}
-          className="p-0 h-auto text-cyan-600"
+          className="p-0 h-auto text-cyan-600 hover:text-cyan-700 disabled:text-gray-400"
         >
           {isResending ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin ml-1" />
-              <span>{dict.resendButtonLoading}</span>
+              <Loader2 className="h-4 w-4 animate-spin ml-1 rtl:mr-1 rtl:ml-0" />
+              <span>שולח קוד חדש...</span>
             </>
           ) : (
-            dict.resendButton
+            "שלח קוד חדש"
           )}
         </Button>
       </motion.div>
@@ -2716,9 +3608,10 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
           type="button"
           onClick={goBackToBasicInfo}
           variant="outline"
+          className="flex items-center gap-2 border-gray-300 text-sm"
           disabled={isLoading || isResending}
         >
-          <ArrowRight className="h-4 w-4 ml-2" /> {dict.backButton}
+          <ArrowRight className="h-4 w-4" /> חזור למילוי פרטים
         </Button>
       </motion.div>
     </motion.div>
@@ -2729,10 +3622,10 @@ export default EmailVerificationCodeStep;
 --- End of Content for EmailVerificationCodeStep.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\OptionalInfoStep.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps\OptionalInfoStep.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/auth/steps/OptionalInfoStep.tsx
+// src/app/components/auth/steps/OptionalInfoStep.tsx
 'use client';
 
 import { useState } from 'react';
@@ -2752,7 +3645,6 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
 type SubmissionStatus =
   | 'idle'
@@ -2761,34 +3653,38 @@ type SubmissionStatus =
   | 'sendingCode'
   | 'error';
 
-interface OptionalInfoStepProps {
-  dict: RegisterStepsDict['steps']['optionalInfo'];
-}
-
-const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({ dict }) => {
+const OptionalInfoStep: React.FC = () => {
   const { data, updateField, prevStep } = useRegistration();
   const router = useRouter();
-  const { update: updateSessionHook } = useSession();
+  const { update: updateSessionHook, status: sessionStatus } = useSession();
+
   const [submissionStatus, setSubmissionStatus] =
     useState<SubmissionStatus>('idle');
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
+    console.log(
+      `[OptionalInfoStep] handleSubmit triggered. Current session status: ${sessionStatus}, RegistrationContext data:`,
+      JSON.stringify(data, null, 2)
+    );
     setSubmissionStatus('savingProfile');
     setError(null);
+
     try {
       const profileData = {
+        // חשוב לוודא ששולחים את כל השדות שה-API מצפה להם, במיוחד firstName ו-lastName
         firstName: data.firstName,
         lastName: data.lastName,
-        phone: data.phone,
-        gender: data.gender,
-        birthDate: data.birthDate,
-        maritalStatus: data.maritalStatus,
+        phone: data.phone, // ודא ש-data.phone מכיל ערך תקין מהשלב הקודם
+        gender: data.gender, // ודא ש-data.gender מכיל ערך תקין
+        birthDate: data.birthDate, // ודא ש-data.birthDate מכיל ערך תקין
+        maritalStatus: data.maritalStatus, // ודא ש-data.maritalStatus מכיל ערך תקין
         height: data.height,
         occupation: data.occupation,
         education: data.education,
       };
 
+      // בדיקה נוספת של הנתונים לפני השליחה
       if (
         !profileData.firstName ||
         !profileData.lastName ||
@@ -2797,62 +3693,201 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({ dict }) => {
         !profileData.birthDate ||
         !profileData.maritalStatus
       ) {
-        throw new Error(dict.errors.missingData);
+        console.error(
+          '[OptionalInfoStep] ERROR: Missing required profile data before sending to API. Data:',
+          JSON.stringify(profileData, null, 2)
+        );
+        setError(
+          'חסרים נתונים חיוניים להשלמת הפרופיל. אנא חזור לשלב הקודם ובדוק את הפרטים.'
+        );
+        setSubmissionStatus('error');
+        return;
       }
+
+      console.log(
+        '[OptionalInfoStep] Submitting profile data to /api/auth/complete-profile:',
+        JSON.stringify(profileData, null, 2)
+      );
 
       const profileResponse = await fetch('/api/auth/complete-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData),
+        credentials: 'include', // חשוב אם ה-API שלך מסתמך על עוגיות סשן
       });
+
+      const profileResultText = await profileResponse.text();
+      console.log(
+        `[OptionalInfoStep] Raw response from /api/auth/complete-profile (Status: ${profileResponse.status}):`,
+        profileResultText
+      );
 
       if (!profileResponse.ok) {
-        const errorData = await profileResponse.json();
-        throw new Error(errorData.error || dict.errors.default);
+        let errorMessage = `שגיאה ${profileResponse.status}`;
+        try {
+          const errorData = JSON.parse(profileResultText);
+          errorMessage =
+            errorData.error ||
+            errorData.message || // נסה גם message
+            `שגיאה ${profileResponse.status}: נתונים לא תקינים או בעיית שרת.`;
+          console.error(
+            '[OptionalInfoStep] API Error (complete-profile):',
+            errorData
+          );
+        } catch (parseError) {
+          errorMessage = `שגיאה ${profileResponse.status}: ${profileResponse.statusText}. Response: ${profileResultText}`;
+          console.error(
+            '[OptionalInfoStep] Failed to parse error JSON from /api/auth/complete-profile:',
+            parseError
+          );
+        }
+        throw new Error(errorMessage);
       }
 
-      setSubmissionStatus('updatingSession');
-      await updateSessionHook();
+      let profileResult;
+      try {
+        profileResult = JSON.parse(profileResultText);
+      } catch (e) {
+        console.error(
+          '[OptionalInfoStep] Failed to parse success JSON from /api/auth/complete-profile. Text was:',
+          profileResultText,
+          'Error:',
+          e
+        );
+        throw new Error('תגובה לא תקינה מהשרת לאחר שמירת פרופיל (לא JSON).');
+      }
 
+      console.log(
+        '[OptionalInfoStep] Profile data saved successfully via API. API Response:',
+        JSON.stringify(profileResult, null, 2)
+      );
+
+      if (profileResult?.user?.isProfileComplete !== true) {
+        console.warn(
+          '[OptionalInfoStep] WARNING: API /api/auth/complete-profile did NOT return user.isProfileComplete as true in its response. User object from API:',
+          JSON.stringify(profileResult?.user, null, 2)
+        );
+        // זה לא בהכרח אומר שה-DB לא התעדכן, אבל זה מצביע על חוסר עקביות בתגובת ה-API או שה-API לא עדכן את הדגל.
+      }
+
+      console.log(
+        "[OptionalInfoStep] Setting status to 'updatingSession' and calling updateSessionHook()..."
+      );
+      setSubmissionStatus('updatingSession');
+      await updateSessionHook(); // גורם ל-NextAuth לרענן את הטוקן/סשן. ה-JWT callback בשרת יקרא מה-DB.
+      console.log(
+        '[OptionalInfoStep] updateSessionHook() presumably completed. The session and token should now be refreshed based on DB state.'
+      );
+
+      console.log(
+        "[OptionalInfoStep] Setting status to 'sendingCode' and attempting to send phone verification code..."
+      );
       setSubmissionStatus('sendingCode');
+
       const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' }, // גם אם אין body, header זה עדיין טוב
+        // body: JSON.stringify({}), // אם ה-API דורש גוף כלשהו, אפשר לשלוח אובייקט ריק
+        credentials: 'include',
       });
+      const sendCodeResultText = await sendCodeResponse.text();
+      console.log(
+        `[OptionalInfoStep] Raw response from /api/auth/send-phone-code (Status: ${sendCodeResponse.status}):`,
+        sendCodeResultText
+      );
+
       if (!sendCodeResponse.ok) {
-        const errorData = await sendCodeResponse.json();
-        throw new Error(errorData.error || dict.errors.default);
+        let errorMessage = `שגיאה ${sendCodeResponse.status}`;
+        try {
+          const errorData = JSON.parse(sendCodeResultText);
+          errorMessage =
+            errorData.error ||
+            errorData.message ||
+            `שגיאה ${sendCodeResponse.status} בשליחת קוד אימות.`;
+        } catch (e) {
+          errorMessage = `שגיאה ${sendCodeResponse.status}: ${sendCodeResponse.statusText}. Response: ${sendCodeResultText}`;
+          console.error(
+            '[OptionalInfoStep] Failed to parse error JSON from /api/auth/send-phone-code:',
+            e
+          );
+        }
+        throw new Error(errorMessage);
       }
 
+      let sendCodeResult;
+      try {
+        sendCodeResult = JSON.parse(sendCodeResultText);
+      } catch (e) {
+        console.error(
+          '[OptionalInfoStep] Failed to parse success JSON from /api/auth/send-phone-code. Text was:',
+          sendCodeResultText,
+          'Error:',
+          e
+        );
+        throw new Error('תגובה לא תקינה מהשרת לאחר שליחת קוד טלפון (לא JSON).');
+      }
+
+      console.log(
+        '[OptionalInfoStep] Verification code sent successfully via API. API Response:',
+        JSON.stringify(sendCodeResult, null, 2)
+      );
+
+      console.log(
+        '[OptionalInfoStep] Successfully sent phone code. Navigating to /auth/verify-phone...'
+      );
+      // בשלב זה, הטוקן בעוגיה אמור להיות מעודכן עם isProfileComplete: true (לאחר ה-updateSessionHook).
+      // ה-Middleware שיפעל עם הניווט יראה את הטוקן המעודכן.
       router.push('/auth/verify-phone');
     } catch (err) {
-      setError(err instanceof Error ? err.message : dict.errors.default);
+      console.error(
+        '[OptionalInfoStep] Error during handleSubmit:',
+        err instanceof Error ? err.stack : err // הדפס את ה-stack trace המלא אם זמין
+      );
+      setError(err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה');
       setSubmissionStatus('error');
     }
+    // אין צורך ב-finally להחזיר סטטוס ל-idle אם יש ניווט,
+    // כי הקומפוננטה תעשה unmount.
+    // אם נשארים בדף עקב שגיאה, הכפתור צריך להיות פעיל שוב (הסטטוס 'error' יאפשר זאת).
   };
 
   const getButtonText = (): string => {
     switch (submissionStatus) {
       case 'savingProfile':
-        return dict.status.saving;
+        return 'שומר פרטים...';
       case 'updatingSession':
-        return dict.status.updating;
+        return 'מעדכן סשן...';
       case 'sendingCode':
-        return dict.status.sendingCode;
+        return 'שולח קוד אימות...';
+      case 'error': // במקרה של שגיאה, חזור לטקסט המקורי כדי לאפשר ניסיון חוזר
+      case 'idle':
       default:
-        return dict.nextButton;
+        // הטקסט הדינמי המקורי היה: data.isCompletingProfile ? "סיום והמשך לאימות" : "סיום והרשמה";
+        // מכיוון שאנחנו ב-OptionalInfoStep, סביר להניח ש-isCompletingProfile יהיה true מהקונטקסט.
+        return 'סיום והמשך לאימות';
     }
   };
 
   const isSubmitting =
-    submissionStatus !== 'idle' && submissionStatus !== 'error';
+    submissionStatus === 'savingProfile' ||
+    submissionStatus === 'updatingSession' ||
+    submissionStatus === 'sendingCode';
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
   };
+
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
   };
 
   return (
@@ -2863,81 +3898,96 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({ dict }) => {
       animate="visible"
     >
       <motion.h2
-        className="text-xl font-bold text-gray-800"
+        className="text-xl font-bold text-gray-800 mb-1"
         variants={itemVariants}
       >
-        {dict.title}
+        מידע נוסף
       </motion.h2>
-      <motion.p className="text-gray-600 text-sm" variants={itemVariants}>
-        {dict.subtitle}
+      <motion.p className="text-gray-600 text-sm mb-4" variants={itemVariants}>
+        מידע זה יעזור לנו להתאים לך שידוכים מדויקים יותר. מומלץ למלא כמה שיותר
+        פרטים.
       </motion.p>
 
-      {error && (
+      {error && submissionStatus === 'error' && (
         <motion.div variants={itemVariants}>
-          <Alert variant="destructive" role="alert">
+          <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{dict.errors.title}</AlertTitle>
+            <AlertTitle>שגיאה</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         </motion.div>
       )}
 
       <motion.div variants={itemVariants} className="space-y-4">
+        {/* Height Field */}
         <div className="space-y-1">
           <label
             htmlFor="heightOptional"
             className="block text-sm font-medium text-gray-700 flex items-center gap-1"
           >
             <Ruler className="h-4 w-4 text-gray-400" />
-            {dict.heightLabel}
+            גובה (בסמ)
           </label>
           <Input
             type="number"
             id="heightOptional"
             min="120"
             max="220"
-            value={data.height ?? ''}
+            value={data.height ?? ''} // השתמש ב- ?? "" כדי למנוע uncontrolled input אם הערך הוא undefined
             onChange={(e) =>
               updateField(
                 'height',
-                e.target.value ? parseInt(e.target.value, 10) : undefined
+                e.target.value === '' // אם השדה ריק, שלח undefined
+                  ? undefined
+                  : parseInt(e.target.value, 10) || undefined // אם לא ניתן להמיר למספר, שלח undefined
               )
             }
-            placeholder={dict.heightPlaceholder}
+            placeholder="לדוגמה: 175"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none disabled:bg-gray-100"
             disabled={isSubmitting}
           />
         </div>
+
+        {/* Occupation Field */}
         <div className="space-y-1">
           <label
             htmlFor="occupationOptional"
             className="block text-sm font-medium text-gray-700 flex items-center gap-1"
           >
             <Briefcase className="h-4 w-4 text-gray-400" />
-            {dict.occupationLabel}
+            עיסוק
           </label>
           <Input
             type="text"
             id="occupationOptional"
             value={data.occupation ?? ''}
-            onChange={(e) => updateField('occupation', e.target.value)}
-            placeholder={dict.occupationPlaceholder}
+            onChange={(e) =>
+              updateField('occupation', e.target.value || undefined)
+            } // אם ריק, שלח undefined
+            placeholder="לדוגמה: מהנדס תוכנה, מורה, סטודנט/ית"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none disabled:bg-gray-100"
             disabled={isSubmitting}
           />
         </div>
+
+        {/* Education Field */}
         <div className="space-y-1">
           <label
             htmlFor="educationOptional"
             className="block text-sm font-medium text-gray-700 flex items-center gap-1"
           >
             <GraduationCap className="h-4 w-4 text-gray-400" />
-            {dict.educationLabel}
+            השכלה
           </label>
           <Input
             type="text"
             id="educationOptional"
             value={data.education ?? ''}
-            onChange={(e) => updateField('education', e.target.value)}
-            placeholder={dict.educationPlaceholder}
+            onChange={(e) =>
+              updateField('education', e.target.value || undefined)
+            } // אם ריק, שלח undefined
+            placeholder="לדוגמה: תואר ראשון במדעי המחשב"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none disabled:bg-gray-100"
             disabled={isSubmitting}
           />
         </div>
@@ -2951,20 +4001,29 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({ dict }) => {
           type="button"
           onClick={prevStep}
           variant="outline"
+          className="flex items-center gap-2 border-gray-300"
           disabled={isSubmitting}
         >
-          <ArrowRight className="h-4 w-4 ml-2" />
-          {dict.backButton}
+          <ArrowRight className="h-4 w-4" />
+          חזרה
         </Button>
-        <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 flex items-center gap-2 min-w-[200px] justify-center px-4 py-2.5 disabled:opacity-70" // שיניתי קצת את העיצוב שיתאים לכפתורים אחרים
+        >
           {isSubmitting ? (
             <>
-              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              <Loader2 className="h-5 w-5 animate-spin mr-2" />{' '}
+              {/* התאמתי גודל אייקון */}
               <span>{getButtonText()}</span>
             </>
           ) : (
             <>
-              {getButtonText()} <ArrowLeft className="h-4 w-4 mr-2" />
+              <span>{getButtonText()}</span>
+              <ArrowLeft className="h-4 w-4 ml-2" />
             </>
           )}
         </Button>
@@ -2977,17 +4036,17 @@ export default OptionalInfoStep;
 --- End of Content for OptionalInfoStep.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\PersonalDetailsStep.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps\PersonalDetailsStep.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/auth/steps/PersonalDetailsStep.tsx
-'use client';
+// src/app/components/auth/steps/PersonalDetailsStep.tsx
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRegistration } from '../RegistrationContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react"; // הוספת update
+import { useRegistration } from "../RegistrationContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
   ArrowRight,
@@ -2995,39 +4054,27 @@ import {
   Calendar,
   Users,
   Edit3,
-  Loader2,
-  AlertCircle,
-} from 'lucide-react';
-import { Gender } from '@prisma/client';
-import { motion } from 'framer-motion';
-import ConsentCheckbox from '../ConsentCheckbox';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+  Loader2, // הוספת אייקון טעינה
+  AlertCircle, // הוספת אייקון לשגיאות
+} from "lucide-react";
+import { Gender } from "@prisma/client";
+import { motion } from "framer-motion";
+import ConsentCheckbox from "../ConsentCheckbox"; // ייבוא קומפוננטת ההסכמה
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // ייבוא רכיבי Alert
 
-interface PersonalDetailsStepProps {
-  dict: RegisterStepsDict['steps']['personalDetails'];
-  consentDict: RegisterStepsDict['consentCheckbox'];
-}
+const PersonalDetailsStep: React.FC = () => {
+  const { data: registrationState, updateField, nextStep, prevStep } = useRegistration();
+  const { data: session, update: updateSessionHook } = useSession(); // שימוש ב-update מה-hook
 
-const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
-  dict,
-  consentDict,
-}) => {
-  const {
-    data: registrationState,
-    updateField,
-    nextStep,
-    prevStep,
-  } = useRegistration();
-  const { data: session, update: updateSessionHook } = useSession();
-
-  const [firstNameError, setFirstNameError] = useState('');
-  const [lastNameError, setLastNameError] = useState('');
-  const [phoneError, setPhoneError] = useState('');
-  const [ageError, setAgeError] = useState('');
+  const [firstNameError, setFirstNameError] = useState("");
+  const [lastNameError, setLastNameError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [ageError, setAgeError] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
+
+  // State עבור הסכמה
   const [consentChecked, setConsentChecked] = useState(
-    !!session?.user?.termsAndPrivacyAcceptedAt
+    !!session?.user?.termsAndPrivacyAcceptedAt // אתחול לפי הסשן
   );
   const [consentError, setConsentError] = useState<string | null>(null);
   const [isSubmittingConsent, setIsSubmittingConsent] = useState(false);
@@ -3035,65 +4082,148 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
 
   const userHasAlreadyConsented = !!session?.user?.termsAndPrivacyAcceptedAt;
 
-  const validateFirstName = (name: string) =>
-    !name.trim() && setFirstNameError(dict.errors.firstNameRequired);
-  const validateLastName = (name: string) =>
-    !name.trim() && setLastNameError(dict.errors.lastNameRequired);
-  const validatePhone = (phone: string) => {
-    if (!phone.trim()) setPhoneError(dict.errors.phoneRequired);
-    else if (!/^0\d{9}$/.test(phone)) setPhoneError(dict.errors.phoneInvalid);
-    else setPhoneError('');
+  // פונקציות ולידציה (נשארות זהות)
+  const validateFirstName = (name: string): boolean => {
+    const isValid = name.trim() !== "";
+    setFirstNameError(isValid ? "" : "שם פרטי הוא שדה חובה");
+    return isValid;
   };
-  const validateAge = (birthDate: string) => {
-    if (!birthDate) return setAgeError(dict.errors.birthDateRequired);
-    const age = new Date().getFullYear() - new Date(birthDate).getFullYear();
-    if (age < 18) setAgeError(dict.errors.ageTooLow);
-    else if (age > 120) setAgeError(dict.errors.ageTooHigh);
-    else setAgeError('');
+  const validateLastName = (name: string): boolean => {
+    const isValid = name.trim() !== "";
+    setLastNameError(isValid ? "" : "שם משפחה הוא שדה חובה");
+    return isValid;
+  };
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^0\d{9}$/;
+    const isValid = phoneRegex.test(phone);
+    setPhoneError(
+      isValid
+        ? ""
+        : phone.trim() === ""
+        ? "מספר טלפון הוא שדה חובה"
+        : "מספר טלפון לא תקין (10 ספרות, מתחיל ב-0)"
+    );
+    return isValid;
+  };
+  const validateAge = (birthDate: string): boolean => {
+    if (!birthDate) {
+      setAgeError("תאריך לידה הוא שדה חובה");
+      return false;
+    }
+    const birthDateObj = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birthDateObj.getFullYear();
+    const monthDifference = today.getMonth() - birthDateObj.getMonth();
+    if (
+      monthDifference < 0 ||
+      (monthDifference === 0 && today.getDate() < birthDateObj.getDate())
+    ) {
+      age--;
+    }
+    if (age < 18) {
+      setAgeError("גיל מינימלי להרשמה הוא 18");
+      return false;
+    } else if (age > 120) {
+      setAgeError("תאריך לידה לא תקין");
+      return false;
+    }
+    setAgeError("");
+    return true;
   };
 
   useEffect(() => {
-    const isFieldsValid =
-      registrationState.firstName.trim() &&
-      registrationState.lastName.trim() &&
+    // אם המשתמש כבר אישר בעבר, נסמן את התיבה
+    if (userHasAlreadyConsented) {
+        setConsentChecked(true);
+    }
+  }, [userHasAlreadyConsented]);
+
+
+  useEffect(() => {
+    const isFirstNameValid = registrationState.firstName.trim() !== "" && !firstNameError;
+    const isLastNameValid = registrationState.lastName.trim() !== "" && !lastNameError;
+    const isPhoneValid =
+      registrationState.phone.trim() !== "" &&
       /^0\d{9}$/.test(registrationState.phone) &&
-      registrationState.birthDate &&
-      registrationState.gender &&
-      registrationState.maritalStatus;
+      !phoneError;
+    const isBirthDateValid = registrationState.birthDate !== "" && !ageError;
+    const isGenderValid = registrationState.gender !== "";
+    const isMaritalStatusValid = registrationState.maritalStatus !== "";
+
+    // תקינות הטופס תלויה גם באישור התנאים (אם טרם אושרו)
     const consentRequirementMet = userHasAlreadyConsented || consentChecked;
-    setIsFormValid(!!isFieldsValid && consentRequirementMet);
-  }, [registrationState, consentChecked, userHasAlreadyConsented]);
+
+    setIsFormValid(
+      isFirstNameValid &&
+        isLastNameValid &&
+        isPhoneValid &&
+        isBirthDateValid &&
+        isGenderValid &&
+        isMaritalStatusValid &&
+        consentRequirementMet // הוספת דרישת הסכמה
+    );
+  }, [
+    registrationState.firstName,
+    registrationState.lastName,
+    registrationState.phone,
+    registrationState.birthDate,
+    registrationState.gender,
+    registrationState.maritalStatus,
+    firstNameError,
+    lastNameError,
+    phoneError,
+    ageError,
+    consentChecked, // הוספת תלות
+    userHasAlreadyConsented,
+  ]);
 
   const handleContinue = async () => {
-    // Trigger all validations on submit attempt
-    validateFirstName(registrationState.firstName);
-    validateLastName(registrationState.lastName);
-    validatePhone(registrationState.phone);
-    validateAge(registrationState.birthDate);
+    setGeneralApiError(null); // איפוס שגיאה כללית
+    setConsentError(null); // איפוס שגיאת הסכמה
 
-    if (!userHasAlreadyConsented && !consentChecked) {
-      setConsentError(dict.errors.consentRequired);
-      return;
+    // ולידציות שדות
+    const fnValid = validateFirstName(registrationState.firstName);
+    const lnValid = validateLastName(registrationState.lastName);
+    const pValid = validatePhone(registrationState.phone);
+    const ageValid = validateAge(registrationState.birthDate);
+    const genderValid = registrationState.gender !== "";
+    const maritalValid = registrationState.maritalStatus !== "";
+
+    if (!fnValid || !lnValid || !pValid || !ageValid || !genderValid || !maritalValid) {
+      return; // עצור אם יש שגיאות בשדות
     }
 
-    if (!isFormValid) return;
-
+    // בדיקה וטיפול בהסכמה אם נדרש
     if (!userHasAlreadyConsented) {
-      setIsSubmittingConsent(true);
-      try {
-        const consentResponse = await fetch('/api/user/accept-terms', {
-          method: 'POST',
-        });
-        if (!consentResponse.ok) throw new Error();
-        await updateSessionHook();
-      } catch (error) {
-        setGeneralApiError(dict.errors.consentApiError);
-        setIsSubmittingConsent(false);
+      if (!consentChecked) {
+        setConsentError("חובה לאשר את תנאי השימוש ומדיניות הפרטיות.");
         return;
       }
-      setIsSubmittingConsent(false);
+      setIsSubmittingConsent(true);
+      try {
+        const consentResponse = await fetch("/api/user/accept-terms", {
+          method: "POST",
+        });
+        const consentResult = await consentResponse.json();
+        if (!consentResponse.ok || !consentResult.success) {
+          throw new Error(consentResult.error || "שגיאה באישור התנאים.");
+        }
+        // לאחר אישור מוצלח, עדכן את הסשן (אם צריך)
+        await updateSessionHook(); // קריאה לפונקציית העדכון מה-hook
+        console.log("Terms accepted via API, session should be updated.");
+      } catch (error) {
+        setGeneralApiError(
+          error instanceof Error ? error.message : "אירעה שגיאה באישור התנאים."
+        );
+        setIsSubmittingConsent(false);
+        return;
+      } finally {
+        setIsSubmittingConsent(false);
+      }
     }
-    nextStep();
+
+    // אם הגענו לכאן, כל הולידציות עברו וההסכמה (אם נדרשה) טופלה
+    nextStep(); // עבור לשלב הבא (OptionalInfoStep)
   };
 
   const containerVariants = {
@@ -3113,179 +4243,238 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
       animate="visible"
     >
       <motion.h2
-        className="text-xl font-semibold text-gray-800"
+        className="text-xl font-semibold text-gray-800 mb-4"
         variants={itemVariants}
       >
-        {dict.title}
+        פרטים אישיים חיוניים
       </motion.h2>
-      <motion.p className="text-sm text-gray-500" variants={itemVariants}>
-        {dict.subtitle}
+      <motion.p className="text-sm text-gray-500 mb-5" variants={itemVariants}>
+        אנו צריכים פרטים אלו כדי להמשיך בתהליך ההרשמה שלך.
       </motion.p>
 
       {generalApiError && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{generalApiError}</AlertDescription>
-        </Alert>
+        <motion.div variants={itemVariants}>
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>שגיאה</AlertTitle>
+            <AlertDescription>{generalApiError}</AlertDescription>
+          </Alert>
+        </motion.div>
       )}
 
       <motion.div variants={itemVariants} className="space-y-4">
-        {/* All fields updated to use dict */}
+        {/* First Name Field */}
         <div className="space-y-1">
-          <label htmlFor="firstNamePersonal">
-            {dict.firstNameLabel} <span className="text-red-500">*</span>
+          <label htmlFor="firstNamePersonal" className="block text-sm font-medium text-gray-700">
+            שם פרטי <span className="text-red-500">*</span>
           </label>
-          <Input
-            id="firstNamePersonal"
-            value={registrationState.firstName}
-            onChange={(e) => updateField('firstName', e.target.value)}
-            onBlur={(e) => validateFirstName(e.target.value)}
-            placeholder={dict.firstNamePlaceholder}
-            required
-            disabled={isSubmittingConsent}
-          />
-          {firstNameError && (
-            <p className="text-red-500 text-xs mt-1">{firstNameError}</p>
-          )}
+          <div className="relative">
+            <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              type="text"
+              id="firstNamePersonal"
+              value={registrationState.firstName}
+              onChange={(e) => updateField("firstName", e.target.value)}
+              onBlur={() => validateFirstName(registrationState.firstName)}
+              placeholder="לדוגמה: ישראל"
+              required
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                firstNameError ? "border-red-400 focus:ring-red-200" : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+              }`}
+              disabled={isSubmittingConsent}
+            />
+          </div>
+          {firstNameError && <p className="text-red-500 text-xs mt-1">{firstNameError}</p>}
         </div>
+
+        {/* Last Name Field */}
         <div className="space-y-1">
-          <label htmlFor="lastNamePersonal">
-            {dict.lastNameLabel} <span className="text-red-500">*</span>
+          <label htmlFor="lastNamePersonal" className="block text-sm font-medium text-gray-700">
+            שם משפחה <span className="text-red-500">*</span>
           </label>
-          <Input
-            id="lastNamePersonal"
-            value={registrationState.lastName}
-            onChange={(e) => updateField('lastName', e.target.value)}
-            onBlur={(e) => validateLastName(e.target.value)}
-            placeholder={dict.lastNamePlaceholder}
-            required
-            disabled={isSubmittingConsent}
-          />
-          {lastNameError && (
-            <p className="text-red-500 text-xs mt-1">{lastNameError}</p>
-          )}
+          <div className="relative">
+            <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              type="text"
+              id="lastNamePersonal"
+              value={registrationState.lastName}
+              onChange={(e) => updateField("lastName", e.target.value)}
+              onBlur={() => validateLastName(registrationState.lastName)}
+              placeholder="לדוגמה: ישראלי"
+              required
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                lastNameError ? "border-red-400 focus:ring-red-200" : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+              }`}
+              disabled={isSubmittingConsent}
+            />
+          </div>
+          {lastNameError && <p className="text-red-500 text-xs mt-1">{lastNameError}</p>}
         </div>
+
+        {/* Phone Field */}
         <div className="space-y-1">
-          <label htmlFor="phonePersonal">
-            {dict.phoneLabel} <span className="text-red-500">*</span>
+          <label htmlFor="phonePersonal" className="block text-sm font-medium text-gray-700">
+            טלפון נייד <span className="text-red-500">*</span>
           </label>
-          <Input
-            id="phonePersonal"
-            type="tel"
-            value={registrationState.phone}
-            onChange={(e) => updateField('phone', e.target.value)}
-            onBlur={(e) => validatePhone(e.target.value)}
-            placeholder={dict.phonePlaceholder}
-            required
-            maxLength={10}
-            disabled={isSubmittingConsent}
-          />
-          {phoneError && (
-            <p className="text-red-500 text-xs mt-1">{phoneError}</p>
-          )}
+          <div className="relative">
+            <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              type="tel"
+              id="phonePersonal"
+              value={registrationState.phone}
+              onChange={(e) => updateField("phone", e.target.value)}
+              onBlur={() => validatePhone(registrationState.phone)}
+              placeholder=""
+              required
+              maxLength={10}
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                phoneError ? "border-red-400 focus:ring-red-200" : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+              }`}
+              disabled={isSubmittingConsent}
+            />
+          </div>
+          {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
         </div>
+
+        {/* Gender Field */}
         <div className="space-y-1">
-          <label>
-            {dict.genderLabel} <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium text-gray-700">
+            מגדר <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-2 gap-3 mt-1">
-            <Button
-              type="button"
-              onClick={() => updateField('gender', Gender.MALE)}
-              variant={
-                registrationState.gender === Gender.MALE ? 'default' : 'outline'
-              }
-              disabled={isSubmittingConsent}
-            >
-              👨 {dict.male}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => updateField('gender', Gender.FEMALE)}
-              variant={
-                registrationState.gender === Gender.FEMALE
-                  ? 'default'
-                  : 'outline'
-              }
-              disabled={isSubmittingConsent}
-            >
-              👩 {dict.female}
-            </Button>
+            {([
+              { value: Gender.MALE, label: "זכר", icon: "👨" },
+              { value: Gender.FEMALE, label: "נקבה", icon: "👩" },
+            ] as const).map((genderOption) => (
+              <button
+                key={genderOption.value}
+                type="button"
+                onClick={() => updateField("gender", genderOption.value)}
+                disabled={isSubmittingConsent}
+                className={`flex items-center justify-center gap-2 py-3 rounded-lg border-2 transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed ${
+                  registrationState.gender === genderOption.value
+                    ? genderOption.value === Gender.MALE
+                      ? "border-cyan-500 bg-cyan-50 text-cyan-700 shadow-md"
+                      : "border-pink-500 bg-pink-50 text-pink-700 shadow-md"
+                    : "border-gray-200 hover:border-gray-300 text-gray-700 bg-white"
+                }`}
+              >
+                <span className="text-xl">{genderOption.icon}</span>
+                <span className="font-medium">{genderOption.label}</span>
+              </button>
+            ))}
           </div>
+          {registrationState.gender === "" && <p className="text-red-500 text-xs mt-1">יש לבחור מגדר</p>}
         </div>
+
+        {/* Birth Date Field */}
         <div className="space-y-1">
-          <label htmlFor="birthDatePersonal">
-            {dict.birthDateLabel} <span className="text-red-500">*</span>
+          <label htmlFor="birthDatePersonal" className="block text-sm font-medium text-gray-700">
+            תאריך לידה <span className="text-red-500">*</span>
           </label>
-          <Input
-            id="birthDatePersonal"
-            type="date"
-            value={registrationState.birthDate}
-            onChange={(e) => updateField('birthDate', e.target.value)}
-            onBlur={(e) => validateAge(e.target.value)}
-            required
-            disabled={isSubmittingConsent}
-          />
+          <div className="relative">
+            <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              type="date"
+              id="birthDatePersonal"
+              value={registrationState.birthDate}
+              onChange={(e) => {
+                updateField("birthDate", e.target.value);
+                validateAge(e.target.value);
+              }}
+              onBlur={() => validateAge(registrationState.birthDate)}
+              max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
+              required
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                ageError ? "border-red-400 focus:ring-red-200" : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+              }`}
+              disabled={isSubmittingConsent}
+            />
+          </div>
           {ageError && <p className="text-red-500 text-xs mt-1">{ageError}</p>}
         </div>
+
+        {/* Marital Status Field */}
         <div className="space-y-1">
-          <label htmlFor="maritalStatusPersonal">
-            {dict.maritalStatusLabel} <span className="text-red-500">*</span>
+          <label htmlFor="maritalStatusPersonal" className="block text-sm font-medium text-gray-700">
+            מצב משפחתי <span className="text-red-500">*</span>
           </label>
-          <select
-            id="maritalStatusPersonal"
-            value={registrationState.maritalStatus}
-            onChange={(e) => updateField('maritalStatus', e.target.value)}
-            required
-            disabled={isSubmittingConsent}
-            className="w-full p-2 border rounded"
-          >
-            <option value="" disabled>
-              {dict.maritalStatusPlaceholder}
-            </option>
-            <option value="רווק/ה">{dict.maritalStatuses.single}</option>
-            <option value="גרוש/ה">{dict.maritalStatuses.divorced}</option>
-            <option value="אלמן/ה">{dict.maritalStatuses.widowed}</option>
-          </select>
+          <div className="relative">
+            <Users className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <select
+              id="maritalStatusPersonal"
+              value={registrationState.maritalStatus}
+              onChange={(e) => updateField("maritalStatus", e.target.value)}
+              required
+              disabled={isSubmittingConsent}
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none appearance-none bg-white transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${
+                registrationState.maritalStatus === "" && false // Not a real error condition for select, just placeholder
+                  ? "border-red-400 focus:ring-red-200"
+                  : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+              }`}
+            >
+              <option value="" disabled>בחר/י מצב משפחתי...</option>
+              <option value="רווק/ה">רווק/ה</option>
+              <option value="גרוש/ה">גרוש/ה</option>
+              <option value="אלמן/ה">אלמן/ה</option>
+            </select>
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          {registrationState.maritalStatus === "" && <p className="text-red-500 text-xs mt-1">יש לבחור מצב משפחתי</p>}
         </div>
       </motion.div>
 
+      {/* Consent Checkbox - מוצג רק אם המשתמש טרם אישר */}
       {!userHasAlreadyConsented && (
-        <motion.div variants={itemVariants} className="mt-6 pt-4 border-t">
+        <motion.div variants={itemVariants} className="mt-6 pt-4 border-t border-gray-100">
           <ConsentCheckbox
             checked={consentChecked}
-            onChange={setConsentChecked}
+            onChange={(isChecked) => {
+              setConsentChecked(isChecked);
+              if (isChecked) setConsentError(null);
+            }}
             error={consentError}
-            dict={consentDict}
           />
         </motion.div>
       )}
 
       <motion.div
         variants={itemVariants}
-        className="flex justify-between items-center pt-5 mt-6 border-t"
+        className="flex justify-between items-center pt-5 mt-6 border-t border-gray-200"
       >
         <Button
           onClick={prevStep}
           variant="outline"
-          disabled={isSubmittingConsent}
+          className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+          disabled={isSubmittingConsent || (registrationState.step === 0 && !registrationState.isCompletingProfile)}
         >
-          <ArrowRight className="h-4 w-4 ml-2" />
-          {dict.backButton}
+          <ArrowRight className="h-4 w-4" />
+          חזרה
         </Button>
+
         <Button
           onClick={handleContinue}
           disabled={!isFormValid || isSubmittingConsent}
+          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all duration-300
+            ${
+              isFormValid && !isSubmittingConsent
+                ? "bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg hover:shadow-xl transform hover:scale-105"
+                : "bg-gray-300 cursor-not-allowed"
+            }`}
         >
           {isSubmittingConsent ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              <span>{dict.nextButtonLoading}</span>
+              <span>מאשר תנאים...</span>
             </>
           ) : (
             <>
-              {dict.nextButton} <ArrowLeft className="h-4 w-4 mr-2" />
+              <span>המשך לשלב הבא</span>
+              <ArrowLeft className="h-4 w-4" />
             </>
           )}
         </Button>
@@ -3298,36 +4487,35 @@ export default PersonalDetailsStep;
 --- End of Content for PersonalDetailsStep.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\WelcomeStep.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth\steps\WelcomeStep.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/auth/steps/WelcomeStep.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRegistration } from '../RegistrationContext';
-import { signIn } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { Heart, ArrowLeft, Mail, Loader2 } from 'lucide-react';
-import Link from 'next/link';
-import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+import { useState } from "react";
+import { useRegistration } from "../RegistrationContext";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Heart, ArrowLeft, Mail } from "lucide-react";
+import Link from "next/link";
 
-// הגדרת טיפוס ה-props כדי להבטיח Type Safety
-interface WelcomeStepProps {
-  dict: RegisterStepsDict['steps']['welcome'];
-}
-
-const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict }) => {
-  const { nextStep } = useRegistration();
+const WelcomeStep: React.FC = () => {
+  const { nextStep,  } = useRegistration();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     try {
       setIsGoogleLoading(true);
-      localStorage.setItem('registration_started', 'true');
-      await signIn('google');
+
+      // Store this information for potential fallback
+      localStorage.setItem("registration_started", "true");
+
+      // The 'redirect' callback in authOptions will handle where to send the user
+      // --- START: התיקון ---
+      await signIn("google"); // הסרנו את callbackUrl
+      // --- END: התיקון ---
     } catch (error) {
-      console.error('Google sign-in error:', error);
+      console.error("Google sign-in error:", error);
       setIsGoogleLoading(false);
     }
   };
@@ -3338,6 +4526,7 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict }) => {
 
   return (
     <div className="space-y-6 text-center">
+      {/* Welcome animation */}
       <div className="flex justify-center mb-4">
         <div className="relative">
           <div className="w-20 h-20 rounded-full bg-pink-100 flex items-center justify-center animate-pulse">
@@ -3349,10 +4538,14 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict }) => {
         </div>
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-800">{dict.title}</h2>
+      <h2 className="text-2xl font-bold text-gray-800">ברוכים הבאים!</h2>
 
-      <p className="text-gray-600 max-w-sm mx-auto">{dict.subtitle}</p>
+      <p className="text-gray-600 max-w-sm mx-auto">
+        אנחנו שמחים שבחרת להצטרף אלינו. בואו נתחיל בתהליך הרשמה קצר ופשוט שיאפשר
+        לנו להכיר אותך טוב יותר.
+      </p>
 
+      {/* Buttons */}
       <div className="space-y-4 mt-8">
         <Button
           onClick={handleGoogleSignIn}
@@ -3362,7 +4555,7 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict }) => {
           className="w-full relative border-2 border-gray-300 hover:border-gray-400 py-6 rounded-xl flex items-center justify-center gap-3 group"
         >
           {isGoogleLoading ? (
-            <Loader2 className="animate-spin h-5 w-5" />
+            <div className="animate-spin h-5 w-5 border-2 border-gray-500 rounded-full border-t-transparent" />
           ) : (
             <>
               <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -3383,9 +4576,7 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict }) => {
                   fill="#EA4335"
                 />
               </svg>
-              <span className="text-gray-700 font-medium">
-                {dict.googleButton}
-              </span>
+              <span className="text-gray-700 font-medium">המשך עם Google</span>
             </>
           )}
         </Button>
@@ -3395,21 +4586,23 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict }) => {
           size="lg"
           className="w-full py-6 rounded-xl bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-3 group relative overflow-hidden"
         >
+          {/* Button background shimmer effect */}
           <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
           <Mail className="h-5 w-5 text-white" />
-          <span className="text-white font-medium">{dict.emailButton}</span>
+          <span className="text-white font-medium">המשך עם אימייל</span>
           <ArrowLeft className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
         </Button>
       </div>
 
+      {/* Already have an account link */}
       <div className="mt-8 pt-4 border-t border-gray-200">
         <p className="text-gray-600 text-sm">
-          {dict.signInPrompt}{' '}
+          כבר יש לך חשבון?{" "}
           <Link
             href="/auth/signin"
             className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"
           >
-            {dict.signInLink}
+            התחברות
           </Link>
         </p>
       </div>

@@ -19,13 +19,10 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
-
-type SubmissionStatus =
-  | 'idle'
-  | 'savingProfile'
-  | 'updatingSession'
-  | 'sendingCode'
-  | 'error';
+// ייבוא הרכיב המשופר והטיפוס שלו
+import SubmissionStatusIndicator, {
+  SubmissionStatus,
+} from './SubmissionStatusIndicator';
 
 interface OptionalInfoStepProps {
   dict: RegisterStepsDict['steps']['optionalInfo'];
@@ -71,7 +68,6 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({ dict }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData),
       });
-
       if (!profileResponse.ok) {
         const errorData = await profileResponse.json();
         throw new Error(errorData.error || dict.errors.default);
@@ -89,23 +85,16 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({ dict }) => {
         throw new Error(errorData.error || dict.errors.default);
       }
 
-      router.push('/auth/verify-phone');
+      // שלב הסיום החדש
+      setSubmissionStatus('allDone');
+
+      // השהיה מבוקרת למעבר חלק
+      setTimeout(() => {
+        router.push('/auth/verify-phone');
+      }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.errors.default);
       setSubmissionStatus('error');
-    }
-  };
-
-  const getButtonText = (): string => {
-    switch (submissionStatus) {
-      case 'savingProfile':
-        return dict.status.saving;
-      case 'updatingSession':
-        return dict.status.updating;
-      case 'sendingCode':
-        return dict.status.sendingCode;
-      default:
-        return dict.nextButton;
     }
   };
 
@@ -122,120 +111,135 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({ dict }) => {
   };
 
   return (
-    <motion.div
-      className="space-y-5"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      <motion.h2
-        className="text-xl font-bold text-gray-800"
-        variants={itemVariants}
-      >
-        {dict.title}
-      </motion.h2>
-      <motion.p className="text-gray-600 text-sm" variants={itemVariants}>
-        {dict.subtitle}
-      </motion.p>
-
-      {error && (
-        <motion.div variants={itemVariants}>
-          <Alert variant="destructive" role="alert">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{dict.errors.title}</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        </motion.div>
-      )}
-
-      <motion.div variants={itemVariants} className="space-y-4">
-        <div className="space-y-1">
-          <label
-            htmlFor="heightOptional"
-            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
-          >
-            <Ruler className="h-4 w-4 text-gray-400" />
-            {dict.heightLabel}
-          </label>
-          <Input
-            type="number"
-            id="heightOptional"
-            min="120"
-            max="220"
-            value={data.height ?? ''}
-            onChange={(e) =>
-              updateField(
-                'height',
-                e.target.value ? parseInt(e.target.value, 10) : undefined
-              )
-            }
-            placeholder={dict.heightPlaceholder}
-            disabled={isSubmitting}
-          />
-        </div>
-        <div className="space-y-1">
-          <label
-            htmlFor="occupationOptional"
-            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
-          >
-            <Briefcase className="h-4 w-4 text-gray-400" />
-            {dict.occupationLabel}
-          </label>
-          <Input
-            type="text"
-            id="occupationOptional"
-            value={data.occupation ?? ''}
-            onChange={(e) => updateField('occupation', e.target.value)}
-            placeholder={dict.occupationPlaceholder}
-            disabled={isSubmitting}
-          />
-        </div>
-        <div className="space-y-1">
-          <label
-            htmlFor="educationOptional"
-            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
-          >
-            <GraduationCap className="h-4 w-4 text-gray-400" />
-            {dict.educationLabel}
-          </label>
-          <Input
-            type="text"
-            id="educationOptional"
-            value={data.education ?? ''}
-            onChange={(e) => updateField('education', e.target.value)}
-            placeholder={dict.educationPlaceholder}
-            disabled={isSubmitting}
-          />
-        </div>
-      </motion.div>
+    <>
+      <SubmissionStatusIndicator
+        currentStatus={submissionStatus}
+        dict={dict.status}
+      />
 
       <motion.div
-        variants={itemVariants}
-        className="flex justify-between pt-4 mt-6"
+        className={`space-y-5 ${isSubmitting ? 'blur-sm pointer-events-none' : ''}`}
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
       >
-        <Button
-          type="button"
-          onClick={prevStep}
-          variant="outline"
-          disabled={isSubmitting}
+        <motion.h2
+          className="text-xl font-bold text-gray-800"
+          variants={itemVariants}
         >
-          <ArrowRight className="h-4 w-4 ml-2" />
-          {dict.backButton}
-        </Button>
-        <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              <span>{getButtonText()}</span>
-            </>
-          ) : (
-            <>
-              {getButtonText()} <ArrowLeft className="h-4 w-4 mr-2" />
-            </>
-          )}
-        </Button>
+          {dict.title}
+        </motion.h2>
+        <motion.p className="text-gray-600 text-sm" variants={itemVariants}>
+          {dict.subtitle}
+        </motion.p>
+
+        {error && (
+          <motion.div variants={itemVariants}>
+            <Alert variant="destructive" role="alert">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>{dict.errors.title}</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
+
+        <motion.div variants={itemVariants} className="space-y-4">
+          <div className="space-y-1">
+            <label
+              htmlFor="heightOptional"
+              className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+            >
+              <Ruler className="h-4 w-4 text-gray-400" />
+              {dict.heightLabel}
+            </label>
+            <Input
+              type="number"
+              id="heightOptional"
+              min="120"
+              max="220"
+              value={data.height ?? ''}
+              onChange={(e) =>
+                updateField(
+                  'height',
+                  e.target.value ? parseInt(e.target.value, 10) : undefined
+                )
+              }
+              placeholder={dict.heightPlaceholder}
+              disabled={isSubmitting}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+            />
+          </div>
+          <div className="space-y-1">
+            <label
+              htmlFor="occupationOptional"
+              className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+            >
+              <Briefcase className="h-4 w-4 text-gray-400" />
+              {dict.occupationLabel}
+            </label>
+            <Input
+              type="text"
+              id="occupationOptional"
+              value={data.occupation ?? ''}
+              onChange={(e) => updateField('occupation', e.target.value)}
+              placeholder={dict.occupationPlaceholder}
+              disabled={isSubmitting}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+            />
+          </div>
+          <div className="space-y-1">
+            <label
+              htmlFor="educationOptional"
+              className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+            >
+              <GraduationCap className="h-4 w-4 text-gray-400" />
+              {dict.educationLabel}
+            </label>
+            <Input
+              type="text"
+              id="educationOptional"
+              value={data.education ?? ''}
+              onChange={(e) => updateField('education', e.target.value)}
+              placeholder={dict.educationPlaceholder}
+              disabled={isSubmitting}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+            />
+          </div>
+        </motion.div>
+
+        <motion.div
+          variants={itemVariants}
+          className="flex justify-between pt-4 mt-6"
+        >
+          <Button
+            type="button"
+            onClick={prevStep}
+            variant="outline"
+            disabled={isSubmitting}
+          >
+            <ArrowRight className="h-4 w-4 ml-2" />
+            {dict.backButton}
+          </Button>
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className={`flex items-center gap-2 ${isSubmitting ? 'bg-gray-400' : 'bg-gradient-to-r from-cyan-500 to-pink-500'}`}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                <span>בתהליך...</span>
+              </>
+            ) : (
+              <>
+                {dict.nextButton} <ArrowLeft className="h-4 w-4 mr-2" />
+              </>
+            )}
+          </Button>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </>
   );
 };
 

@@ -105,6 +105,9 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       if (!profileResponse.ok || !profileJson.success) {
         throw new Error(profileJson.message || 'Failed to load profile');
       }
+      console.log('---[ CLIENT LOG 1 ]--- Received Profile Data from API:');
+      console.log(profileJson.profile);
+
       setProfileData(profileJson.profile);
       setImages(profileJson.images || []);
       if (profileJson.profile?.hasViewedProfilePreview) {
@@ -453,7 +456,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
             </Alert>
           )}
 
-          {isOwnProfile && user && (
+          {isOwnProfile && user && profileData && (
             <>
               <ProfileChecklist
                 user={{

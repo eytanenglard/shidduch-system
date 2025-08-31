@@ -1,103 +1,40 @@
 ################################################################################
-# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth
-# Generated on: 2025-08-31 14:27:44
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth
+# Generated on: 2025-08-08 08:13:03
 ################################################################################
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\auth_contents.txt
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\auth_contents.txt
 --------------------------------------------------------------------------------
 [This is the output log file itself. Content not included.]
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\error
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\error
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\error\AuthErrorClient.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\error\page.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/[locale]/auth/error/AuthErrorClient.tsx
-'use client';
+// src/app/auth/error/page.tsx
 
-import { useSearchParams, useRouter } from "next/navigation";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
-import type { AuthErrorDict } from '@/types/dictionaries/auth';
-
-interface AuthErrorClientProps {
-    dict: AuthErrorDict;
-}
-
-export default function AuthErrorClient({ dict }: AuthErrorClientProps) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const error = searchParams.get("error");
-
-  const getErrorMessage = (error: string | null) => {
-    switch (error) {
-      case "CredentialsSignin":
-        return dict.errors.CredentialsSignin;
-      case "OAuthAccountNotLinked":
-        return dict.errors.OAuthAccountNotLinked;
-      default:
-        return dict.errors.Default;
-    }
-  };
-
-  return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <AlertTriangle className="mx-auto h-12 w-12 text-red-500" />
-        <CardTitle className="text-2xl font-bold text-red-600 mt-4">
-          {dict.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 text-center">
-        <p className="text-gray-600">{getErrorMessage(error)}</p>
-        <Button onClick={() => router.push("/auth/signin")} className="w-full">
-          {dict.backButton}
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
---- End of Content for AuthErrorClient.tsx ---
-
---------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\error\page.tsx
---------------------------------------------------------------------------------
-Content:
-// src/app/[locale]/auth/error/page.tsx
+import AuthError from '@/components/auth/AuthError';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
-import { getDictionary } from '@/lib/dictionaries';
-import type { Locale } from '../../../../../i18n-config';
-import AuthErrorClient from './AuthErrorClient';
 
 function Loading() {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-    </div>
-  );
+  return <Loader2 className="h-8 w-8 animate-spin text-gray-500" />;
 }
 
-export default async function ErrorPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  const dictionary = await getDictionary(locale);
-
+export default function ErrorPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
       <Suspense fallback={<Loading />}>
-        <AuthErrorClient dict={dictionary.auth.errorPage} />
+        <AuthError />
       </Suspense>
     </div>
   );
@@ -105,450 +42,49 @@ export default async function ErrorPage({
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\forgot-password
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\forgot-password
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\forgot-password\ForgotPasswordClient.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\forgot-password\page.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/[locale]/auth/forgot-password/ForgotPasswordClient.tsx
-'use client';
+// src/app/auth/forgot-password/page.tsx
+import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
+import { ArrowLeft } from "lucide-react"; // Assuming you use lucide-react
+import Link from "next/link";
 
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Mail, Loader2, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import Link from 'next/link';
-import type { ForgotPasswordDict } from '@/types/dictionaries/auth';
-
-interface ForgotPasswordClientProps {
-  dict: ForgotPasswordDict;
-}
-
-export default function ForgotPasswordClient({
-  dict,
-}: ForgotPasswordClientProps) {
-  const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    if (!email) {
-      setError(dict.errors.missingEmail);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/auth/request-password-reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || dict.errors.default);
-      }
-
-      router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : dict.errors.default);
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
-      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
-      <div className="p-6 sm:p-8">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            {dict.title}
-          </h1>
-          <p className="text-gray-600 text-sm">{dict.subtitle}</p>
-        </div>
-
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>שגיאה</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-1">
-            <label
-              htmlFor="email-forgot"
-              className="block text-sm font-medium text-gray-700"
-            >
-              {dict.emailLabel}
-            </label>
-            <div className="relative">
-              <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                type="email"
-                id="email-forgot"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={dict.emailPlaceholder}
-                required
-                className="w-full pr-10 pl-3 py-3"
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-
-          <Button type="submit" disabled={isLoading} className="w-full py-3">
-            {isLoading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                <span>{dict.submitButtonLoading}</span>
-              </>
-            ) : (
-              dict.submitButton
-            )}
-          </Button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <Link
-            href="/auth/signin"
-            className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline"
-          >
-            {dict.backToSignInLink}
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
---- End of Content for ForgotPasswordClient.tsx ---
-
---------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\forgot-password\page.tsx
---------------------------------------------------------------------------------
-Content:
-// src/app/[locale]/auth/forgot-password/page.tsx
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import { getDictionary } from '@/lib/dictionaries';
-import type { Locale } from '../../../../../i18n-config';
-import ForgotPasswordClient from './ForgotPasswordClient';
-
-export default async function ForgotPasswordPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  const dictionary = await getDictionary(locale);
-
+export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
-      <Link
-        href="/"
-        className="absolute top-4 left-4 rtl:right-4 rtl:left-auto text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm z-20"
-      >
-        <ArrowLeft className="h-4 w-4 transform rtl:rotate-180" />
-        {/* This text is outside the main component, so we either hardcode it or pass it from a shared dictionary part */}
-        חזרה לדף הבית
-      </Link>
-      <ForgotPasswordClient dict={dictionary.auth.forgotPassword} />
+        <Link
+            href="/"
+            className="absolute top-4 left-4 rtl:right-4 rtl:left-auto text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm z-20"
+        >
+            <ArrowLeft className="h-4 w-4 transform rtl:rotate-180" /> {/* Corrected for RTL if needed */}
+            חזרה לדף הבית
+        </Link>
+      <ForgotPasswordForm />
     </div>
   );
 }
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\register
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\register
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\register\RegisterClient.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\register\page.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/[locale]/auth/register/RegisterClient.tsx
-'use client';
+// src/app/auth/register/page.tsx
 
-import React, { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import {
-  RegistrationProvider,
-  useRegistration,
-} from '@/components/auth/RegistrationContext';
-import WelcomeStep from '@/components/auth/steps/WelcomeStep';
-import BasicInfoStep from '@/components/auth/steps/BasicInfoStep';
-import EmailVerificationCodeStep from '@/components/auth/steps/EmailVerificationCodeStep';
-import PersonalDetailsStep from '@/components/auth/steps/PersonalDetailsStep';
-import OptionalInfoStep from '@/components/auth/steps/OptionalInfoStep';
-import CompleteStep from '@/components/auth/steps/CompleteStep';
-import ProgressBar from '@/components/auth/ProgressBar';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowRight, Info, Loader2 } from 'lucide-react';
-import type { User as SessionUserType } from '@/types/next-auth';
-import type { RegisterStepsDict } from '@/types/dictionaries/auth';
-
-interface RegisterClientProps {
-  dict: RegisterStepsDict;
-}
-
-const RegisterStepsContent: React.FC<{ dict: RegisterStepsDict }> = ({
-  dict,
-}) => {
-  const {
-    data: registrationContextData,
-    initializeFromSession,
-    resetForm,
-    goToStep,
-  } = useRegistration();
-  const router = useRouter();
-  const { data: session, status: sessionStatus } = useSession();
-  const searchParams = useSearchParams();
-
-  const [showIncompleteProfileMessage, setShowIncompleteProfileMessage] =
-    useState(false);
-  const [initializationAttempted, setInitializationAttempted] = useState(false);
-
-  useEffect(() => {
-    const reasonParam = searchParams.get('reason');
-    if (
-      (reasonParam === 'complete_profile' || reasonParam === 'verify_phone') &&
-      !registrationContextData.isCompletingProfile
-    ) {
-      setShowIncompleteProfileMessage(true);
-    } else {
-      setShowIncompleteProfileMessage(false);
-    }
-  }, [searchParams, registrationContextData.isCompletingProfile]);
-
-  useEffect(() => {
-    if (sessionStatus === 'loading') return;
-
-    if (sessionStatus === 'authenticated' && session?.user) {
-      const user = session.user as SessionUserType;
-      if (
-        user.isProfileComplete &&
-        user.isPhoneVerified &&
-        user.termsAndPrivacyAcceptedAt
-      ) {
-        if (
-          typeof window !== 'undefined' &&
-          window.location.pathname !== '/profile'
-        ) {
-          router.push('/profile');
-        }
-        return;
-      }
-
-      const needsSetup =
-        !user.termsAndPrivacyAcceptedAt ||
-        !user.isProfileComplete ||
-        !user.isPhoneVerified;
-      if (
-        needsSetup &&
-        (!initializationAttempted ||
-          (registrationContextData.step === 0 &&
-            !registrationContextData.isVerifyingEmailCode))
-      ) {
-        initializeFromSession(user);
-        setInitializationAttempted(true);
-      }
-    } else if (sessionStatus === 'unauthenticated') {
-      // Complex logic for resetting form based on state, remains as is.
-      // This part is logic-heavy and doesn't contain hardcoded strings for translation.
-    }
-  }, [
-    sessionStatus,
-    session,
-    router,
-    registrationContextData,
-    initializeFromSession,
-    resetForm,
-    goToStep,
-    initializationAttempted,
-    searchParams,
-  ]);
-
-  const renderStep = (): React.ReactNode => {
-    if (sessionStatus === 'loading') {
-      return (
-        <div className="flex justify-center p-10">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
-        </div>
-      );
-    }
-
-    if (
-      registrationContextData.isVerifyingEmailCode &&
-      !registrationContextData.isCompletingProfile
-    ) {
-      return <EmailVerificationCodeStep dict={dict.steps.emailVerification} />;
-    }
-
-    if (registrationContextData.isCompletingProfile) {
-      switch (registrationContextData.step) {
-        case 2:
-          return (
-            <PersonalDetailsStep
-              dict={dict.steps.personalDetails}
-              consentDict={dict.consentCheckbox}
-            />
-          );
-        case 3:
-          return <OptionalInfoStep dict={dict.steps.optionalInfo} />;
-        case 4:
-          return <CompleteStep dict={dict.steps.complete} />;
-        default:
-          resetForm();
-          return <WelcomeStep dict={dict.steps.welcome} />;
-      }
-    }
-
-    switch (registrationContextData.step) {
-      case 0:
-        return <WelcomeStep dict={dict.steps.welcome} />;
-      case 1:
-        return (
-          <BasicInfoStep
-            dict={dict.steps.basicInfo}
-            consentDict={dict.consentCheckbox}
-          />
-        );
-      default:
-        resetForm();
-        return <WelcomeStep dict={dict.steps.welcome} />;
-    }
-  };
-
-  let pageTitle = dict.headers.registerTitle;
-  let stepDescription = dict.headers.welcomeDescription;
-  let currentProgressBarStep = 0;
-  let totalProgressBarSteps = 3;
-  let showProgressBar = false;
-
-  if (
-    registrationContextData.isVerifyingEmailCode &&
-    !registrationContextData.isCompletingProfile
-  ) {
-    pageTitle = dict.headers.verifyEmailTitle;
-    stepDescription = dict.headers.verifyEmailDescription.replace(
-      '{{email}}',
-      registrationContextData.emailForVerification || ''
-    );
-    showProgressBar = true;
-    currentProgressBarStep = 1;
-  } else if (registrationContextData.isCompletingProfile) {
-    pageTitle = dict.headers.completeProfileTitle;
-    totalProgressBarSteps = 2;
-    if (registrationContextData.step === 2) {
-      stepDescription = session?.user?.termsAndPrivacyAcceptedAt
-        ? dict.headers.personalDetailsConsentedDescription
-        : dict.headers.personalDetailsDescription;
-      currentProgressBarStep = 1;
-      showProgressBar = true;
-    } else if (registrationContextData.step === 3) {
-      stepDescription = dict.headers.optionalInfoDescription;
-      currentProgressBarStep = 2;
-      showProgressBar = true;
-    } else if (registrationContextData.step === 4) {
-      stepDescription = session?.user?.isPhoneVerified
-        ? dict.headers.completionReadyDescription
-        : dict.headers.completionPhoneVerificationDescription;
-      showProgressBar = false;
-    } else {
-      stepDescription = dict.headers.loadingProfileDescription;
-      showProgressBar =
-        registrationContextData.step > 1 && registrationContextData.step < 4;
-    }
-  } else {
-    if (registrationContextData.step === 1) {
-      pageTitle = dict.headers.registerTitle;
-      stepDescription = dict.headers.accountCreationDescription;
-      currentProgressBarStep = 1;
-      showProgressBar = true;
-    }
-  }
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
-      <div className="mb-6 text-center">
-        <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 text-3xl font-bold mb-2">
-          {pageTitle}
-        </h1>
-        <p className="text-gray-600 max-w-md mx-auto">{stepDescription}</p>
-      </div>
-
-      {showIncompleteProfileMessage && (
-        <Alert className="mb-6 w-full max-w-md bg-yellow-50 border-yellow-200 text-yellow-800 shadow-md">
-          <Info className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
-          <div className="ml-3 rtl:mr-3 rtl:ml-0">
-            <AlertTitle className="font-semibold mb-1">
-              {dict.incompleteProfileAlert.title}
-            </AlertTitle>
-            <AlertDescription className="text-sm">
-              {searchParams.get('reason') === 'verify_phone'
-                ? dict.incompleteProfileAlert.verifyPhoneDescription
-                : dict.incompleteProfileAlert.description}
-            </AlertDescription>
-          </div>
-        </Alert>
-      )}
-
-      {showProgressBar && (
-        <div className="w-full max-w-md mb-6">
-          <ProgressBar
-            currentStep={currentProgressBarStep}
-            totalSteps={totalProgressBarSteps}
-          />
-        </div>
-      )}
-
-      <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
-        <div className="p-6 sm:p-8">{renderStep()}</div>
-      </div>
-
-      <div className="mt-8 text-center text-sm text-gray-500">
-        {dict.contactSupport}{' '}
-        <a href="/contact" className="text-cyan-600 hover:underline">
-          {dict.contactSupportLink}
-        </a>
-      </div>
-    </div>
-  );
-};
-
-export default function RegisterClient({ dict }: RegisterClientProps) {
-  return (
-    <RegistrationProvider>
-      <RegisterStepsContent dict={dict} />
-    </RegistrationProvider>
-  );
-}
---- End of Content for RegisterClient.tsx ---
-
---------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\register\page.tsx
---------------------------------------------------------------------------------
-Content:
-// src/app/[locale]/auth/register/page.tsx
-
+import RegisterSteps from '@/components/auth/RegisterSteps';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
-import { getDictionary } from '@/lib/dictionaries';
-import type { Locale } from '../../../../../i18n-config';
-import RegisterClient from './RegisterClient'; // רכיב הלקוח החדש
 
+// רכיב זמני שיוצג בזמן שהקומפוננטה הראשית נטענת
 function Loading() {
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -557,368 +93,35 @@ function Loading() {
   );
 }
 
-export default async function RegisterPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  const dictionary = await getDictionary(locale);
-
+export default function RegisterPage() {
   return (
     <Suspense fallback={<Loading />}>
-      <RegisterClient dict={dictionary.auth.register} />
+      <RegisterSteps />
     </Suspense>
   );
 }
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\reset-password
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\reset-password
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\reset-password\ResetPasswordClient.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\reset-password\page.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/[locale]/auth/reset-password/ResetPasswordClient.tsx
-'use client';
+// src/app/auth/reset-password/page.tsx
+import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { Suspense } from "react"; // Import Suspense
 
-import { useState, FormEvent, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Lock,
-  KeySquare,
-  Loader2,
-  AlertCircle,
-  CheckCircle,
-  Eye,
-  EyeOff,
-  Mail,
-} from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import Link from 'next/link';
-import type { ResetPasswordDict } from '@/types/dictionaries/auth';
-
-interface ResetPasswordClientProps {
-  dict: ResetPasswordDict;
+// A wrapper component to allow useSearchParams in a Client Component
+function ResetPasswordPageContent() {
+    return <ResetPasswordForm />;
 }
 
-const validatePassword = (
-  value: string,
-  validationMessage: string
-): string | null => {
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
-  if (!passwordRegex.test(value)) {
-    return validationMessage;
-  }
-  return null;
-};
-
-export default function ResetPasswordClient({
-  dict,
-}: ResetPasswordClientProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  useEffect(() => {
-    const emailFromQuery = searchParams.get('email');
-    if (emailFromQuery) setEmail(emailFromQuery);
-  }, [searchParams]);
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    setPasswordError(null);
-
-    if (!email) {
-      setError(dict.errors.missingEmail);
-      setIsLoading(false);
-      return;
-    }
-    if (!otp || otp.length !== 6 || !/^\d+$/.test(otp)) {
-      setError(dict.errors.invalidOtp);
-      setIsLoading(false);
-      return;
-    }
-    const passValidationError = validatePassword(
-      newPassword,
-      dict.passwordValidation.length
-    );
-    if (passValidationError) {
-      setPasswordError(passValidationError);
-      setIsLoading(false);
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError(dict.errors.passwordsMismatch);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, newPassword }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || dict.errors.default);
-
-      setSuccessMessage(dict.successMessage);
-      setTimeout(() => router.push('/auth/signin?reset=success'), 3000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : dict.errors.default);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
-      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
-      <div className="p-6 sm:p-8">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            {dict.title}
-          </h1>
-          <p className="text-gray-600 text-sm">{dict.subtitle}</p>
-        </div>
-
-        {error && (
-          <Alert variant="destructive" className="mb-4" role="alert">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>שגיאה</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        {passwordError && !error && (
-          <Alert variant="destructive" className="mb-4" role="alert">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>שגיאת סיסמה</AlertTitle>
-            <AlertDescription>{passwordError}</AlertDescription>
-          </Alert>
-        )}
-        {successMessage && (
-          <Alert className="mb-4 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertTitle>הצלחה!</AlertTitle>
-            <AlertDescription>
-              {successMessage} {dict.successRedirect}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {!successMessage && (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-1">
-              <label
-                htmlFor="email-reset"
-                className="block text-sm font-medium text-gray-700"
-              >
-                {dict.emailLabel} <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  type="email"
-                  id="email-reset"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={dict.emailPlaceholder}
-                  required
-                  disabled={isLoading || !!searchParams.get('email')}
-                />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <label
-                htmlFor="otp-reset"
-                className="block text-sm font-medium text-gray-700"
-              >
-                {dict.otpLabel} <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <KeySquare className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  type="text"
-                  id="otp-reset"
-                  value={otp}
-                  onChange={(e) =>
-                    setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))
-                  }
-                  placeholder={dict.otpPlaceholder}
-                  maxLength={6}
-                  required
-                  disabled={isLoading}
-                  inputMode="numeric"
-                />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <label
-                htmlFor="new-password-reset"
-                className="block text-sm font-medium text-gray-700"
-              >
-                {dict.newPasswordLabel} <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  id="new-password-reset"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  onBlur={(e) =>
-                    setPasswordError(
-                      validatePassword(
-                        e.target.value,
-                        dict.passwordValidation.length
-                      )
-                    )
-                  }
-                  placeholder={dict.newPasswordPlaceholder}
-                  required
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2"
-                  aria-label={
-                    showPassword ? dict.hidePasswordAria : dict.showPasswordAria
-                  }
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-              {!passwordError && (
-                <p className="mt-1 text-xs text-gray-500">
-                  {dict.passwordHint}
-                </p>
-              )}
-            </div>
-            <div className="space-y-1">
-              <label
-                htmlFor="confirm-password-reset"
-                className="block text-sm font-medium text-gray-700"
-              >
-                {dict.confirmPasswordLabel}{' '}
-                <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  id="confirm-password-reset"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder={dict.confirmPasswordPlaceholder}
-                  required
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2"
-                  aria-label={
-                    showConfirmPassword
-                      ? dict.hidePasswordAria
-                      : dict.showPasswordAria
-                  }
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-            <Button
-              type="submit"
-              disabled={
-                isLoading ||
-                !!passwordError ||
-                !otp ||
-                !newPassword ||
-                !confirmPassword ||
-                newPassword !== confirmPassword
-              }
-              className="w-full"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                  <span>{dict.submitButtonLoading}</span>
-                </>
-              ) : (
-                dict.submitButton
-              )}
-            </Button>
-          </form>
-        )}
-
-        <div className="mt-6 text-center">
-          <Link
-            href="/auth/signin"
-            className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline"
-          >
-            {dict.backToSignInLink}
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
---- End of Content for ResetPasswordClient.tsx ---
-
---------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\reset-password\page.tsx
---------------------------------------------------------------------------------
-Content:
-// src/app/[locale]/auth/reset-password/page.tsx
-import { Suspense } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { getDictionary } from '@/lib/dictionaries';
-import type { Locale } from '../../../../../i18n-config';
-import ResetPasswordClient from './ResetPasswordClient';
-
-// A loader for the Suspense boundary
-function Loading() {
-  return (
-    <div className="flex flex-col items-center justify-center p-8 bg-white rounded-xl shadow-xl">
-      <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-      <p className="mt-4 text-gray-600">טוען...</p>
-    </div>
-  );
-}
-
-export default async function ResetPasswordPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  const dictionary = await getDictionary(locale);
-
+export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
       <Link
@@ -926,11 +129,11 @@ export default async function ResetPasswordPage({
         className="absolute top-4 left-4 rtl:right-4 rtl:left-auto text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm z-20"
       >
         <ArrowLeft className="h-4 w-4 transform rtl:rotate-180" />
-        {/* This text is common and could come from a shared/main dictionary part in a real scenario */}
         חזרה לדף הבית
       </Link>
-      <Suspense fallback={<Loading />}>
-        <ResetPasswordClient dict={dictionary.auth.resetPassword} />
+      {/* Wrap the client component that uses useSearchParams with Suspense */}
+      <Suspense fallback={<div>טוען...</div>}>
+        <ResetPasswordPageContent />
       </Suspense>
     </div>
   );
@@ -938,32 +141,29 @@ export default async function ResetPasswordPage({
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\setup-account
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\setup-account
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\setup-account\SetupAccountClient.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\setup-account\page.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/[locale]/auth/setup-account/SetupAccountClient.tsx
+// src/app/auth/setup-account/page.tsx
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
 import { Loader2, KeyRound, CheckCircle } from "lucide-react";
-import type { SetupAccountDict } from '@/types/dictionaries/auth';
 
-interface SetupAccountClientProps {
-    dict: SetupAccountDict;
-}
-
-export default function SetupAccountClient({ dict }: SetupAccountClientProps) {
+function SetupAccountForm() {
   const searchParams = useSearchParams();
+  const router = useRouter(); 
+  
   const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -976,20 +176,20 @@ export default function SetupAccountClient({ dict }: SetupAccountClientProps) {
     if (tokenFromUrl) {
       setToken(tokenFromUrl);
     } else {
-      setError(dict.errors.linkInvalid);
+      setError("קישור הגדרת החשבון אינו תקין או חסר. אנא השתמש בקישור שנשלח אליך במייל.");
     }
-  }, [searchParams, dict.errors.linkInvalid]);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     if (password.length < 8) {
-      setError(dict.errors.passwordLength);
+      setError("הסיסמה חייבת להכיל לפחות 8 תווים.");
       return;
     }
     if (password !== confirmPassword) {
-      setError(dict.errors.passwordsMismatch);
+      setError("הסיסמאות אינן תואמות.");
       return;
     }
     
@@ -1001,15 +201,27 @@ export default function SetupAccountClient({ dict }: SetupAccountClientProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password }),
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || dict.errors.default);
-      
-      setSuccess(true);
-      toast.success(dict.success.title);
 
-      setTimeout(() => { window.location.assign('/profile'); }, 1500);
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'שגיאה בהגדרת החשבון.');
+      }
+
+      setSuccess(true);
+      toast.success("החשבון הוגדר בהצלחה! הנך מועבר/ת להשלמת הפרופיל.");
+
+      // --- START: התיקון המרכזי ---
+      // נשתמש ב-window.location.assign כדי לכפות רענון מלא והפניה.
+      // זה מבטיח שה-Middleware יקבל את הסשן המעודכן ביותר.
+      // נוסיף השהיה קטנה כדי שהמשתמש יראה את הודעת ההצלחה.
+      setTimeout(() => {
+        window.location.assign('/profile'); 
+      }, 1500); // 1.5 שניות
+      // --- END: התיקון המרכזי ---
+
     } catch (err) {
-      setError(err instanceof Error ? err.message : dict.errors.unexpected);
+      setError(err instanceof Error ? err.message : 'אירעה שגיאה בלתי צפויה.');
       setIsLoading(false); 
     }
   };
@@ -1021,10 +233,10 @@ export default function SetupAccountClient({ dict }: SetupAccountClientProps) {
                 <div className="mx-auto bg-green-100 rounded-full p-3 w-fit">
                     <CheckCircle className="h-10 w-10 text-green-600" />
                 </div>
-                <CardTitle className="mt-4">{dict.success.title}</CardTitle>
+                <CardTitle className="mt-4">החשבון הוגדר בהצלחה!</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="text-muted-foreground">{dict.success.description}</p>
+                <p className="text-muted-foreground">הסיסמה נקבעה. הנך מועבר/ת אוטומטית לשלב הבא של השלמת הפרופיל.</p>
                 <Loader2 className="mt-4 h-6 w-6 animate-spin mx-auto" />
             </CardContent>
         </Card>
@@ -1034,360 +246,76 @@ export default function SetupAccountClient({ dict }: SetupAccountClientProps) {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>{dict.title}</CardTitle>
-        <CardDescription>{dict.description}</CardDescription>
+        <CardTitle>הגדרת חשבון וקביעת סיסמה</CardTitle>
+        <CardDescription>
+          שלב אחרון לפני שתוכל/י להתחיל. אנא בחר/י סיסמה לחשבונך.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {!token ? (
             <div className="text-red-500 text-center p-4 bg-red-50 rounded-md">{error}</div>
         ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <Label htmlFor="password">{dict.newPasswordLabel}</Label>
-                    <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                    <p className="text-xs text-muted-foreground mt-1">{dict.passwordHint}</p>
-                </div>
-                <div>
-                    <Label htmlFor="confirmPassword">{dict.confirmPasswordLabel}</Label>
-                    <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-                </div>
-                {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-                <CardFooter className="p-0 pt-4">
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
-                        {isLoading ? dict.submitButtonLoading : dict.submitButton}
-                    </Button>
-                </CardFooter>
+            <div>
+                <Label htmlFor="password">סיסמה חדשה</Label>
+                <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                />
+                <p className="text-xs text-muted-foreground mt-1">לפחות 8 תווים, כולל אותיות ומספרים.</p>
+            </div>
+            <div>
+                <Label htmlFor="confirmPassword">אישור סיסמה</Label>
+                <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                />
+            </div>
+            {error && <p className="text-sm font-medium text-destructive">{error}</p>}
+             <CardFooter className="p-0 pt-4">
+                 <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
+                    {isLoading ? 'מגדיר סיסמה...' : 'הגדר סיסמה והמשך'}
+                </Button>
+            </CardFooter>
             </form>
         )}
       </CardContent>
     </Card>
   );
 }
---- End of Content for SetupAccountClient.tsx ---
 
---------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\setup-account\page.tsx
---------------------------------------------------------------------------------
-Content:
-// src/app/[locale]/auth/setup-account/page.tsx
-import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
-import { getDictionary } from '@/lib/dictionaries';
-import type { Locale } from '../../../../../i18n-config';
-import SetupAccountClient from './SetupAccountClient';
-
-function Loading() {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
-    </div>
-  );
-}
-
-export default async function SetupAccountPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  const dictionary = await getDictionary(locale);
-
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-      <Suspense fallback={<Loading />}>
-        <SetupAccountClient dict={dictionary.auth.setupAccount} />
-      </Suspense>
-    </div>
-  );
+// Suspense Boundary for useSearchParams
+export default function SetupAccountPage() {
+    return (
+        <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+            <Suspense fallback={<Loader2 className="h-8 w-8 animate-spin" />}>
+                <SetupAccountForm />
+            </Suspense>
+        </div>
+    );
 }
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\signin
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\signin
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\signin\SignInClient.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\signin\page.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/[locale]/auth/signin/SignInClient.tsx
-'use client';
+// src/app/auth/signin/page.tsx
 
-import { useState, useEffect, FormEvent } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useSession, signIn } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
-import Link from 'next/link';
-import type { SignInDict } from '@/types/dictionaries/auth';
-
-interface SignInClientProps {
-  dict: SignInDict;
-}
-
-export default function SignInClient({ dict }: SignInClientProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { data: session, status } = useSession();
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      // @ts-ignore
-      const redirectUrl = session?.redirectUrl || '/profile';
-      router.push(redirectUrl);
-    }
-  }, [status, session, router]);
-
-  useEffect(() => {
-    const errorMessage = searchParams.get('error');
-    if (errorMessage) {
-      switch (errorMessage) {
-        case 'CredentialsSignin':
-          setError(dict.errors.credentialsSignin);
-          break;
-        case 'OAuthAccountNotLinked':
-          setError(dict.errors.oauthAccountNotLinked);
-          break;
-        default:
-          setError(dict.errors.default.replace('{errorMessage}', errorMessage));
-      }
-    }
-  }, [searchParams, dict.errors]);
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    if (!email || !password) {
-      setError(dict.errors.missingFields);
-      setIsLoading(false);
-      return;
-    }
-
-    const result = await signIn('credentials', {
-      email: email.toLowerCase(),
-      password,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      setError(dict.errors.credentialsSignin);
-    }
-
-    setIsLoading(false);
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
-    setError('');
-    await signIn('google');
-  };
-
-  if (status === 'loading' || status === 'authenticated') {
-    return (
-      <div
-        className="flex w-full max-w-md flex-col items-center justify-center rounded-xl bg-white p-8 text-center shadow-xl"
-        style={{ minHeight: '520px' }}
-      >
-        <div className="mb-4 h-12 w-12">
-          <Loader2 className="h-full w-full animate-spin text-cyan-500" />
-        </div>
-        <h2 className="mb-2 text-2xl font-bold text-gray-800">
-          {status === 'authenticated'
-            ? dict.loader.success
-            : dict.loader.loading}
-        </h2>
-        <p className="text-gray-600">
-          {status === 'authenticated'
-            ? dict.loader.redirecting
-            : dict.loader.checking}
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
-      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
-      <div className="p-6 sm:p-8">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            {dict.title}
-          </h1>
-          <p className="text-gray-600">{dict.subtitle}</p>
-        </div>
-        {error && (
-          <div
-            role="alert"
-            className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2"
-          >
-            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-            <p id="form-error-message" className="text-red-600 text-sm">
-              {error}
-            </p>
-          </div>
-        )}
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 mb-6"
-          aria-describedby={error ? 'form-error-message' : undefined}
-        >
-          <div className="space-y-1">
-            <Label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              {dict.emailLabel}
-            </Label>
-            <div className="relative">
-              <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="email"
-                id="email"
-                name="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
-                placeholder={dict.emailPlaceholder}
-                required
-                aria-required="true"
-                disabled={isLoading || isGoogleLoading}
-              />
-            </div>
-          </div>
-          <div className="space-y-1">
-            <Label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              {dict.passwordLabel}
-            </Label>
-            <div className="relative">
-              <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="password"
-                id="password"
-                name="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
-                placeholder={dict.passwordPlaceholder}
-                required
-                aria-required="true"
-                disabled={isLoading || isGoogleLoading}
-              />
-            </div>
-            <div className="flex justify-end">
-              <Link
-                href="/auth/forgot-password"
-                className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline mt-1"
-              >
-                {dict.forgotPasswordLink}
-              </Link>
-            </div>
-          </div>
-          <Button
-            type="submit"
-            disabled={isLoading || isGoogleLoading}
-            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-2"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin mr-1" />
-                <span>{dict.submitButtonLoading}</span>
-              </>
-            ) : (
-              <span>{dict.submitButton}</span>
-            )}
-          </Button>
-        </form>
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">
-              {dict.orDivider}
-            </span>
-          </div>
-        </div>
-        <Button
-          type="button"
-          onClick={handleGoogleSignIn}
-          disabled={isLoading || isGoogleLoading}
-          variant="outline"
-          size="lg"
-          className="w-full relative border-2 border-gray-300 hover:border-gray-400 py-3 rounded-xl flex items-center justify-center gap-3 group"
-        >
-          {isGoogleLoading ? (
-            <>
-              <Loader2 className="animate-spin h-5 w-5 mr-1" />
-              <span>{dict.googleButtonLoading}</span>
-            </>
-          ) : (
-            <>
-              <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  fill="#4285F4"
-                />
-                <path
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  fill="#34A853"
-                />
-                <path
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  fill="#FBBC05"
-                />
-                <path
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  fill="#EA4335"
-                />
-              </svg>
-              <span className="text-gray-700 font-medium">
-                {dict.googleButton}
-              </span>
-            </>
-          )}
-        </Button>
-        <div className="mt-6 text-center">
-          <p className="text-gray-600 text-sm">
-            {dict.noAccountPrompt}{' '}
-            <Link
-              href="/auth/register"
-              className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"
-            >
-              {dict.signUpLink}
-            </Link>
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
---- End of Content for SignInClient.tsx ---
-
---------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\signin\page.tsx
---------------------------------------------------------------------------------
-Content:
-// src/app/[locale]/auth/signin/page.tsx
-
-import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
-import { getDictionary } from '@/lib/dictionaries';
-import type { Locale } from '../../../../../i18n-config';
-import SignInClient from './SignInClient'; // רכיב הלקוח החדש
+import SignInForm from "@/components/auth/SignInForm";
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
 
 function Loading() {
   return (
@@ -1397,35 +325,31 @@ function Loading() {
   );
 }
 
-export default async function SignInPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  const dictionary = await getDictionary(locale);
-
+export default function SignInPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
-      <Suspense fallback={<Loading />}>
-        <SignInClient dict={dictionary.auth.signIn} />
-      </Suspense>
-    </div>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
+
+    <Suspense fallback={<Loading />}>
+      <SignInForm />
+    </Suspense>
+        </div>
+
   );
 }
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\update-phone
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\update-phone
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\update-phone\UpdatePhoneClient.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\update-phone\page.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/[locale]/auth/update-phone/UpdatePhoneClient.tsx
+// app/auth/update-phone/page.tsx
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react'; // Added useCallback
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
@@ -1433,13 +357,8 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Loader2, Phone } from 'lucide-react';
 import Link from 'next/link';
-import type { UpdatePhoneDict } from '@/types/dictionaries/auth';
 
-interface UpdatePhoneClientProps {
-    dict: UpdatePhoneDict;
-}
-
-const UpdatePhoneClient = ({ dict }: UpdatePhoneClientProps) => {
+const UpdatePhonePage = () => {
     const router = useRouter();
     const { status: sessionStatus } = useSession();
     const [newPhone, setNewPhone] = useState('');
@@ -1447,11 +366,12 @@ const UpdatePhoneClient = ({ dict }: UpdatePhoneClientProps) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
+        e.preventDefault(); // Prevent default form submission
+        setError(null); // Clear previous errors
 
+        // Basic phone number format validation
         if (!/^0\d{9}$/.test(newPhone)) {
-            setError(dict.errors.invalidFormat);
+            setError("פורמט מספר הטלפון אינו תקין (לדוגמה: 0501234567).");
             return;
         }
 
@@ -1462,77 +382,101 @@ const UpdatePhoneClient = ({ dict }: UpdatePhoneClientProps) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ newPhone }),
             });
+
             const result = await response.json();
+
             if (!response.ok) {
-                throw new Error(result.error || dict.errors.updateFailed);
+                // Use error message from API if available
+                throw new Error(result.error || 'עדכון מספר הטלפון נכשל.');
             }
+
+            // Success! Redirect back to the verification page to enter the new code
             router.push('/auth/verify-phone');
-        } catch (err: unknown) {
+
+        } catch (err: unknown) { // Catch error as unknown
+             // Type check the error before accessing properties
              if (err instanceof Error) {
                  setError(err.message);
              } else {
-                 setError(dict.errors.unexpected);
+                 setError('אירעה שגיאה בלתי צפויה בעת עדכון מספר הטלפון.');
              }
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Stop loading indicator
         }
-    }, [newPhone, router, dict]);
+    }, [newPhone, router]); // Dependencies for useCallback
 
+    // --- Session Handling & Loading State ---
     if (sessionStatus === 'loading') {
         return (
              <div className="min-h-screen flex items-center justify-center">
                  <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
-                 <span className="ml-2">{dict.loaderText}</span>
+                 <span className="ml-2">טוען נתונים...</span>
              </div>
          );
     }
-    if (sessionStatus === 'unauthenticated') {
+     if (sessionStatus === 'unauthenticated') {
+         // If user somehow gets here unauthenticated, redirect to signin
          router.push('/auth/signin?callbackUrl=/auth/update-phone');
-         return null;
+         return null; // Return null while redirecting
     }
+    // --- End Session Handling ---
 
+
+    // --- Render Component ---
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
-            <div className="w-full max-w-sm bg-white rounded-xl shadow-xl p-6 sm:p-8 space-y-6">
+            <div className="w-full max-w-sm bg-white rounded-xl shadow-xl p-6 sm:p-8 space-y-6"> {/* Adjusted padding */}
                 <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-800">{dict.title}</h1>
-                    <p className="text-gray-600 mt-2 text-sm sm:text-base" dangerouslySetInnerHTML={{ __html: dict.description.replace(/\n/g, '<br />') }} />
+                    <h1 className="text-2xl font-bold text-gray-800">עדכון מספר טלפון</h1>
+                    <p className="text-gray-600 mt-2 text-sm sm:text-base"> {/* Adjusted text size */}
+                        הזן/י את מספר הטלפון הנכון שלך.
+                        <br />קוד אימות חדש יישלח אליו באמצעות WhatsApp.
+                    </p>
                 </div>
 
+                {/* Error Alert */}
                 {error && (
                     <Alert variant="destructive">
                         <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>{dict.errors.title}</AlertTitle>
+                        <AlertTitle>שגיאה</AlertTitle>
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 )}
 
+                {/* Update Phone Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1 text-right">{dict.newPhoneLabel}</label>
+                        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1 text-right">
+                            מספר טלפון חדש
+                        </label>
                          <div className="relative">
+                            {/* Icon on the right for RTL */}
                             <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
                             <Input
-                                type="tel"
+                                type="tel" // Use tel type for better mobile experience
                                 id="phone"
+                                name="phone"
                                 value={newPhone}
                                 onChange={(e) => setNewPhone(e.target.value)}
-                                placeholder={dict.newPhonePlaceholder}
+                                placeholder="0501234567"
+                                className="w-full pr-10 pl-3 py-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500 shadow-sm text-right" // Added text-right
                                 required
                                 disabled={isLoading}
-                                dir="ltr"
-                                autoComplete="tel"
+                                dir="ltr" // Keep input direction LTR for phone numbers
+                                autoComplete="tel" // Add autocomplete hint
                             />
                          </div>
                     </div>
-                    <Button type="submit" disabled={isLoading} className="w-full">
-                        {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : dict.submitButton}
+
+                    <Button type="submit" disabled={isLoading} className="w-full py-3"> {/* Added py-3 */}
+                        {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'עדכן ושלח קוד חדש'}
                     </Button>
                 </form>
 
+                 {/* Link back to Verification Page */}
                  <div className="text-center mt-4">
-                     <Link href="/auth/verify-phone" className="text-sm text-cyan-600 hover:underline">
-                         {dict.backToVerificationLink}
+                     <Link href="/auth/verify-phone" className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline">
+                         חזרה לאימות קוד
                      </Link>
                  </div>
             </div>
@@ -1540,237 +484,47 @@ const UpdatePhoneClient = ({ dict }: UpdatePhoneClientProps) => {
     );
 };
 
-export default UpdatePhoneClient;
---- End of Content for UpdatePhoneClient.tsx ---
-
---------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\update-phone\page.tsx
---------------------------------------------------------------------------------
-Content:
-// src/app/[locale]/auth/update-phone/page.tsx
-import { getDictionary } from '@/lib/dictionaries';
-import type { Locale } from '../../../../../i18n-config';
-import UpdatePhoneClient from './UpdatePhoneClient';
-
-// רכיב זה נשאר פשוט כי הלוגיקה המורכבת נמצאת ברכיב הלקוח.
-// אין צורך ב-Suspense כאן כי רכיב הלקוח עצמו מטפל במצב הטעינה של הסשן.
-export default async function UpdatePhonePage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  const dictionary = await getDictionary(locale);
-
-  return <UpdatePhoneClient dict={dictionary.auth.updatePhone} />;
-}
+export default UpdatePhonePage;
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\verify-email
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\verify-email
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\verify-email\VerifyEmailClient.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\verify-email\page.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/[locale]/auth/verify-email/VerifyEmailClient.tsx
-"use client";
+// src/app/auth/verify-email/page.tsx
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertCircle, CheckCircle, Mail } from "lucide-react";
-import type { VerifyEmailDict } from '@/types/dictionaries/auth';
-
-interface VerificationState {
-  status: "pending" | "verifying" | "success" | "error";
-  message: string;
-}
-
-interface VerifyEmailClientProps {
-    dict: VerifyEmailDict;
-}
-
-export default function VerifyEmailClient({ dict }: VerifyEmailClientProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { data: session } = useSession();
-  const verificationApiCallMadeRef = useRef(false);
-
-  const [verification, setVerification] = useState<VerificationState>({ status: "pending", message: "" });
-  const [isResending, setIsResending] = useState(false);
-  const [infoMessage, setInfoMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (verificationApiCallMadeRef.current) return;
-    verificationApiCallMadeRef.current = true;
-    
-    const token = searchParams.get("token");
-    const email = searchParams.get("email");
-
-    if (!token) {
-        if (email) {
-            setInfoMessage(dict.pendingMessage);
-        } else {
-            setVerification({ status: "error", message: dict.errors.linkInvalid });
-        }
-        return;
-    }
-    
-    verifyToken(token);
-  }, [searchParams, dict]);
-
-  const verifyToken = async (token: string) => {
-    setVerification({ status: "verifying", message: "" });
-
-    if (session?.user?.email && searchParams.get('email') && session.user.email !== searchParams.get('email')) {
-        setVerification({ status: "error", message: dict.errors.sessionMismatch });
-        return;
-    }
-
-    try {
-        const response = await fetch("/api/auth/verify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token: token, type: "EMAIL" }),
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error);
-
-        setVerification({ status: "success", message: dict.successMessage });
-        setTimeout(() => router.push("/auth/signin"), 2000);
-    } catch (error) {
-        let errorMessage = dict.errors.default;
-        if (error instanceof Error) {
-            if (error.message.includes("הטוקן כבר נוצל")) errorMessage = dict.errors.tokenUsed;
-            else if (error.message.includes("תוקף הטוקן פג")) errorMessage = dict.errors.tokenExpired;
-            else errorMessage = error.message;
-        }
-        setVerification({ status: "error", message: errorMessage });
-    }
-  };
-
-  const handleResendVerification = async () => {
-    const email = searchParams.get("email");
-    if (!email) {
-      setVerification({ status: "error", message: dict.errors.noEmail });
-      return;
-    }
-    setIsResending(true);
-    setVerification({ status: "pending", message: "" });
-    try {
-      const response = await fetch("/api/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email, type: "EMAIL" }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || dict.errors.resendFailed);
-      setInfoMessage(dict.alerts.resendSuccess);
-    } catch (error) {
-      setVerification({ status: "error", message: error instanceof Error ? error.message : dict.errors.resendFailed });
-    } finally {
-      setIsResending(false);
-    }
-  };
-
-  const emailParam = searchParams.get('email');
-
-  return (
-    <Card className="w-full max-w-md">
-      <CardContent className="p-6 space-y-4 text-center">
-        {verification.status === "pending" && (
-          <div className="space-y-4">
-            <Mail className="mx-auto h-12 w-12 text-cyan-500" />
-            <h2 className="text-xl font-semibold">{dict.title}</h2>
-            {infoMessage && <Alert><AlertDescription>{infoMessage}</AlertDescription></Alert>}
-            {emailParam && (
-                <>
-                    <p className="text-gray-600">{dict.emailSentTo} <span className="font-medium text-gray-800">{emailParam}</span></p>
-                    <p className="text-gray-600">{dict.checkYourInbox}</p>
-                    <Button onClick={handleResendVerification} disabled={isResending} className="mt-4">
-                      {isResending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{dict.resendButtonLoading}</> : dict.resendButton}
-                    </Button>
-                </>
-            )}
-          </div>
-        )}
-        {verification.status === "verifying" && (
-          <div className="flex flex-col items-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-            <p className="text-gray-600">{dict.verifyingMessage}</p>
-          </div>
-        )}
-        {verification.status === "success" && (
-          <div className="space-y-4">
-            <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
-            <h2 className="text-xl font-semibold text-green-600">{verification.message}</h2>
-            <p className="text-gray-600">{dict.successRedirect}</p>
-            <Loader2 className="h-6 w-6 animate-spin mx-auto mt-4 text-gray-400" />
-          </div>
-        )}
-        {verification.status === "error" && (
-          <div className="space-y-4">
-            <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
-            <h2 className="text-xl font-semibold text-red-600">{dict.errorMessage}</h2>
-            <Alert variant="destructive"><AlertDescription>{verification.message}</AlertDescription></Alert>
-            <Button onClick={() => router.push("/auth/signin")}>{dict.backToSignInButton}</Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
---- End of Content for VerifyEmailClient.tsx ---
-
---------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\verify-email\page.tsx
---------------------------------------------------------------------------------
-Content:
-// src/app/[locale]/auth/verify-email/page.tsx
-import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
-import { getDictionary } from '@/lib/dictionaries';
-import type { Locale } from '../../../../../i18n-config';
-import VerifyEmailClient from './VerifyEmailClient';
+import VerifyEmailPageClient from "@/components/auth/VerifyEmailClient"; // שם הקובץ החדש שיצרת
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
 
 function Loading() {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
-    </div>
-  );
+    return <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />;
 }
 
-export default async function VerifyEmailPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  const dictionary = await getDictionary(locale);
-
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-      <Suspense fallback={<Loading />}>
-        <VerifyEmailClient dict={dictionary.auth.verifyEmail} />
-      </Suspense>
-    </div>
-  );
+export default function VerifyEmailPage() {
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+            <Suspense fallback={<Loading />}>
+                <VerifyEmailPageClient />
+            </Suspense>
+        </div>
+    );
 }
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\verify-phone
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\verify-phone
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\verify-phone\VerifyPhoneClient.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\verify-phone\page.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/[locale]/auth/verify-phone/VerifyPhoneClient.tsx
+// app/auth/verify-phone/page.tsx
 "use client";
 
 import { useState, useEffect, useRef, useCallback, FormEvent } from "react";
@@ -1779,172 +533,369 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Loader2, CheckCircle } from "lucide-react";
+import { AlertCircle, Loader2, CheckCircle } from "lucide-react"; // Mail or Info icon could be added if needed
 import Link from "next/link";
-import type { VerifyPhoneDict } from '@/types/dictionaries/auth';
 
 const OTP_LENGTH = 6;
 
-interface VerifyPhoneClientProps {
-    dict: VerifyPhoneDict;
-}
-
-const VerifyPhoneClient = ({ dict }: VerifyPhoneClientProps) => {
+const VerifyPhonePage = () => {
   const router = useRouter();
-  const { data: session, status: sessionStatus, update: updateSession } = useSession();
+  const {
+    data: session,
+    status: sessionStatus,
+    update: updateSession,
+  } = useSession();
   const [code, setCode] = useState<string[]>(new Array(OTP_LENGTH).fill(""));
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [infoMessage, setInfoMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isResending, setIsResending] = useState(false);
+  const [verifySuccessMessage, setVerifySuccessMessage] = useState<string | null>(null); // Renamed from successMessage
+  const [resendInfoMessage, setResendInfoMessage] = useState<string | null>(null); // New state for resend info
+  const [isLoading, setIsLoading] = useState(false); // For verify code submission
+  const [isResending, setIsResending] = useState(false); // For resend code submission
   const [resendDisabled, setResendDisabled] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  // --- Resend Timer Logic ---
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     if (resendDisabled && resendTimer > 0) {
-      interval = setInterval(() => setResendTimer((prev) => prev - 1), 1000);
+      interval = setInterval(() => {
+        setResendTimer((prev) => Math.max(0, prev - 1));
+      }, 1000);
     } else if (resendTimer === 0 && resendDisabled) {
       setResendDisabled(false);
     }
-    return () => { if (interval) clearInterval(interval); };
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [resendDisabled, resendTimer]);
 
   const startResendTimer = useCallback(() => {
     setResendDisabled(true);
     setResendTimer(60);
   }, []);
+  // --- End Resend Timer Logic ---
 
-  const handleInputChange = useCallback((index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-    const newCode = [...code];
-    newCode[index] = value.slice(-1);
-    setCode(newCode);
-    if (value && index < OTP_LENGTH - 1) inputRefs.current[index + 1]?.focus();
-  }, [code]);
+  // --- Input Handling (Focus and Backspace) ---
+  const handleInputChange = useCallback(
+    (index: number, value: string) => {
+      if (!/^\d*$/.test(value)) return;
 
-  const handleKeyDown = useCallback((index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+      const newCode = [...code];
+      newCode[index] = value.slice(-1);
+      setCode(newCode);
+
+      if (value && index < OTP_LENGTH - 1 && inputRefs.current[index + 1]) {
+        inputRefs.current[index + 1]?.focus();
+      }
+    },
+    [code]
+  );
+
+  const handleKeyDown = useCallback(
+    (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (
+        e.key === "Backspace" &&
+        !code[index] &&
+        index > 0 &&
+        inputRefs.current[index - 1]
+      ) {
+        inputRefs.current[index - 1]?.focus();
+      }
+    },
+    [code]
+  );
+
+  useEffect(() => {
+    if (inputRefs.current[0]) {
+      inputRefs.current[0]?.focus();
     }
-  }, [code]);
-  
-  const handleVerifyCode = useCallback(async (e: FormEvent) => {
+  }, []);
+  // --- End Input Handling ---
+
+  // --- API Calls ---
+  const handleVerifyCode = useCallback(
+    async (e: FormEvent) => {
       e.preventDefault();
       setError(null);
+      setVerifySuccessMessage(null);
+      setResendInfoMessage(null); // Clear resend info message as well
+
       const otp = code.join("");
       if (otp.length !== OTP_LENGTH) {
-        setError(dict.errors.incompleteCode.replace('{{OTP_LENGTH}}', OTP_LENGTH.toString()));
+        setError(`אנא הזן את הקוד בן ${OTP_LENGTH} הספרות במלואו.`);
         return;
       }
+
       setIsLoading(true);
       try {
         const response = await fetch("/api/auth/verify-phone-code", {
-          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: otp }),
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: otp }),
         });
+
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error || dict.errors.default);
-        setSuccessMessage(dict.success.verifying);
-        await updateSession({ isPhoneVerified: true });
+
+        if (!response.ok) {
+          throw new Error(result.error || "אימות הקוד נכשל. אנא נסה שנית.");
+        }
+
+       
+        setVerifySuccessMessage("מספר הטלפון אומת בהצלחה! מעדכן את הפרופיל שלך...");
+
+        console.log(
+          "[VerifyPhonePage] Current session before update:",
+          session
+        );
+        await updateSession({
+          isPhoneVerified: true,
+          isProfileComplete: true,
+          status: "ACTIVE",
+        });
+       
+
         window.location.href = "/profile";
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : dict.errors.unexpected);
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "אירעה שגיאה בלתי צפויה במהלך האימות.";
+        console.error(
+          "[VerifyPhonePage] Error during verification:",
+          errorMessage,
+          err
+        );
+        setError(errorMessage);
+        setCode(new Array(OTP_LENGTH).fill(""));
+        if (inputRefs.current[0]) inputRefs.current[0]?.focus();
         setIsLoading(false);
       }
-  }, [code, updateSession, dict]);
+    },
+    [code, updateSession, session]
+  );
 
   const handleResendCode = useCallback(async () => {
     if (resendDisabled || isResending) return;
     setError(null);
-    setInfoMessage(null);
+    setVerifySuccessMessage(null); // Clear main success message
+    setResendInfoMessage(null); // Clear previous resend info
     setIsResending(true);
+
     try {
-      const response = await fetch("/api/auth/resend-phone-code", { method: "POST" });
-      if (!response.ok) throw new Error((await response.json()).error);
-      setInfoMessage(dict.info.resent);
+      const response = await fetch("/api/auth/resend-phone-code", {
+        method: "POST",
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "שליחת קוד חדש נכשלה.");
+      }
+
+      setResendInfoMessage("קוד חדש נשלח אליך באמצעות WhatsApp."); // Use new state for info
       startResendTimer();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : dict.errors.unexpected);
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "אירעה שגיאה בלתי צפויה בעת שליחת קוד חדש.";
+      setError(errorMessage);
     } finally {
       setIsResending(false);
     }
-  }, [isResending, resendDisabled, startResendTimer, dict]);
+  }, [isResending, resendDisabled, startResendTimer]);
+  // --- End API Calls ---
 
+  // --- Session Handling ---
+  useEffect(() => {
+    console.log(
+      "[VerifyPhonePage] Session useEffect triggered. Status:",
+      sessionStatus,
+      "Session:",
+      session
+    );
+
+    if (sessionStatus === "authenticated") {
+      if (session?.user?.isPhoneVerified && session?.user?.isProfileComplete) {
+        if (window.location.pathname === "/auth/verify-phone") {
+          console.log(
+            "[VerifyPhonePage] User already verified and on verify-phone page. Redirecting to /profile via router.push."
+          );
+          router.push("/profile");
+        }
+      } else if (session?.user && !session.user.isPhoneVerified) {
+        console.log(
+          "[VerifyPhonePage] Authenticated, but phone not yet verified. User should stay on this page."
+        );
+      }
+    } else if (sessionStatus === "unauthenticated") {
+      console.log("[VerifyPhonePage] Unauthenticated. Redirecting to signin.");
+      router.push("/auth/signin?callbackUrl=/auth/verify-phone");
+    }
+  }, [sessionStatus, session, router]);
+
+  // --- Loading State ---
+  if (sessionStatus === "loading") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
+        <div className="flex items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+          <span className="ml-2 text-gray-700">טוען נתונים...</span>
+        </div>
+      </div>
+    );
+  }
+  // --- End Loading State ---
+
+  // --- Helper Function for Displaying Phone ---
   const getHiddenPhone = () => {
     const phone = session?.user?.phone;
-    if (!phone || phone.length < 10) return dict.yourPhoneNumber;
-    return `${phone.substring(0, 3)}••••${phone.substring(phone.length - 3)}`;
+    if (!phone) return "הטלפון שלך";
+    if (phone.length >= 10) {
+      return `${phone.substring(0, 3)}••••${phone.substring(phone.length - 3)}`;
+    }
+    return "הטלפון שלך";
   };
-  
-  const disableForm = isLoading || !!successMessage;
-  const disableResend = isResending || resendDisabled || !!successMessage;
+  // --- End Helper Function ---
+
+  // --- Render Component ---
+  const disableFormInputsAndVerifyButton = isLoading || !!verifySuccessMessage;
+  const disableResendButton = isResending || resendDisabled || !!verifySuccessMessage;
+
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 to-pink-50 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-6 sm:p-8 space-y-6 text-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">{dict.title}</h1>
-          <p className="text-gray-600 mt-2 text-sm" dangerouslySetInnerHTML={{ __html: `${dict.codeSentTo.replace('{{OTP_LENGTH}}', OTP_LENGTH.toString())} <span class="font-medium text-gray-700">${getHiddenPhone()}</span>.<br/>${dict.enterCodePrompt}` }} />
+          <h1 className="text-2xl font-bold text-gray-800">אימות מספר טלפון</h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">
+            כמעט סיימנו! שלחנו קוד בן {OTP_LENGTH} ספרות באמצעות WhatsApp למספר{" "}
+            <span className="font-medium text-gray-700">
+              {getHiddenPhone()}
+            </span>
+            .
+            <br />
+            הזן/י אותו להשלמת ההרשמה.
+          </p>
         </div>
         
-        {error && <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertTitle>{dict.errors.title}</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
-        {successMessage && <Alert className="bg-green-50"><CheckCircle className="h-4 w-4 text-green-600" /><AlertTitle>{dict.success.title}</AlertTitle><AlertDescription>{successMessage}</AlertDescription></Alert>}
-        {infoMessage && <Alert className="bg-blue-50"><AlertCircle className="h-4 w-4" /><AlertTitle>{dict.info.title}</AlertTitle><AlertDescription>{infoMessage}</AlertDescription></Alert>}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>שגיאה</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        {!error && verifySuccessMessage && (
+          <Alert
+            variant="default"
+            className="bg-green-50 border-green-200 text-green-700"
+          >
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertTitle>הצלחה</AlertTitle>
+            <AlertDescription>{verifySuccessMessage}</AlertDescription>
+          </Alert>
+        )}
+        {!error && !verifySuccessMessage && resendInfoMessage && (
+          <Alert
+            variant="default"
+            className="bg-green-50 border-green-200 text-green-700" // Reusing success style for info
+          >
+            <CheckCircle className="h-4 w-4 text-green-600" /> {/* Or a different icon like Info if preferred */}
+            <AlertTitle>הודעה</AlertTitle>
+            <AlertDescription>{resendInfoMessage}</AlertDescription>
+          </Alert>
+        )}
 
         <form onSubmit={handleVerifyCode} className="space-y-6">
-          <div className="flex justify-center gap-2" dir="ltr">
+          <div className="flex justify-center gap-2 sm:gap-3" dir="ltr">
             {code.map((digit, index) => (
               <Input
                 key={index}
-                ref={(el: HTMLInputElement | null) => { inputRefs.current[index] = el; }}
-                type="text" inputMode="numeric" maxLength={1} value={digit}
+                ref={(el: HTMLInputElement | null) => {
+                  inputRefs.current[index] = el;
+                }}
+                type="text"
+                inputMode="numeric"
+                pattern="\d{1}"
+                maxLength={1}
+                value={digit}
                 onChange={(e) => handleInputChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
-                disabled={disableForm} required aria-label={dict.digitAriaLabel.replace('{{index}}', (index + 1).toString())}
+                className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-semibold border-2 border-gray-300 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-md shadow-sm transition-colors disabled:opacity-50 disabled:bg-gray-100"
+                disabled={disableFormInputsAndVerifyButton}
+                required
+                aria-label={`ספרה ${index + 1}`}
               />
             ))}
           </div>
-          <Button type="submit" disabled={disableForm || code.join("").length !== OTP_LENGTH} className="w-full">
-            {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : dict.verifyButton}
+
+          <Button
+            type="submit"
+            disabled={
+              disableFormInputsAndVerifyButton ||
+              code.join("").length !== OTP_LENGTH
+            }
+            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white"
+          >
+            {isLoading ? (
+              <Loader2 className="animate-spin h-5 w-5 mx-auto" />
+            ) : (
+              "אימות קוד"
+            )}
           </Button>
         </form>
-
         <div className="text-sm text-gray-600 space-y-2">
-          <div>{dict.resend.prompt}{' '}
-            <Button type="button" variant="link" onClick={handleResendCode} disabled={disableResend} className="p-0 h-auto">
-              {isResending ? dict.resend.buttonLoading : resendDisabled ? dict.resend.timer.replace('{{timer}}', resendTimer.toString()) : dict.resend.button}
+          <div>
+            לא קיבלת את הקוד?{" "}
+            <Button
+              type="button"
+              variant="link"
+              onClick={handleResendCode}
+              disabled={disableResendButton}
+              className="p-0 h-auto text-cyan-600 hover:text-cyan-700 disabled:text-gray-400 disabled:no-underline"
+            >
+              {isResending
+                ? "שולח שוב..."
+                : resendDisabled
+                ? `שלח קוד חדש (${resendTimer} שניות)`
+                : "שלח קוד חדש"}
             </Button>
           </div>
-          <div><Link href="/auth/update-phone" className={disableForm ? "pointer-events-none text-gray-400" : ""}>{dict.wrongNumberLink}</Link></div>
+          <div>
+            <Link
+              href="/auth/update-phone"
+              className={`text-cyan-600 hover:text-cyan-700 hover:underline ${
+                disableFormInputsAndVerifyButton // Use the more specific disabling logic
+                  ? "pointer-events-none text-gray-400"
+                  : ""
+              }`}
+              aria-disabled={disableFormInputsAndVerifyButton}
+              tabIndex={disableFormInputsAndVerifyButton ? -1 : undefined}
+            >
+              האם מספר הטלפון שגוי?
+            </Link>
+          </div>
         </div>
-        <div className="mt-4 border-t pt-4"><Link href="/auth/signin" className={disableForm ? "pointer-events-none opacity-50" : ""}>{dict.backToSignInLink}</Link></div>
+        <div className="mt-4 border-t border-gray-200 pt-4">
+          <Link
+            href="/auth/signin"
+            className={`text-xs text-gray-500 hover:text-gray-600 ${
+              disableFormInputsAndVerifyButton // Use the more specific disabling logic
+                ? "pointer-events-none opacity-50"
+                : ""
+            }`}
+            aria-disabled={disableFormInputsAndVerifyButton}
+            tabIndex={disableFormInputsAndVerifyButton ? -1 : undefined}
+          >
+            חזרה להתחברות
+          </Link>
+        </div>
       </div>
     </div>
   );
 };
 
-export default VerifyPhoneClient;
---- End of Content for VerifyPhoneClient.tsx ---
-
---------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\verify-phone\page.tsx
---------------------------------------------------------------------------------
-Content:
-// src/app/[locale]/auth/verify-phone/page.tsx
-import { getDictionary } from '@/lib/dictionaries';
-import type { Locale } from '../../../../../i18n-config';
-import VerifyPhoneClient from './VerifyPhoneClient';
-
-export default async function VerifyPhonePage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  const dictionary = await getDictionary(locale);
-
-  return <VerifyPhoneClient dict={dictionary.auth.verifyPhone} />;
-}
+export default VerifyPhonePage;
 --- End of Content for page.tsx ---
 

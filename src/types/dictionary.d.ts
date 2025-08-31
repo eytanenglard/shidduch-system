@@ -1095,7 +1095,9 @@ export type UserStatsDict = {
 
 export type ProfileChecklistDict = {
   welcome: string; // Placeholder: {{firstName}}
+  welcome_female?: string; // הוסף את השורה הזו
   allComplete: string; // Placeholder: {{firstName}}
+  allComplete_female?: string; // הוסף את השורה הזו```
   welcomeSubtitle: string;
   allCompleteSubtitle: string;
   completionLabel: string;
