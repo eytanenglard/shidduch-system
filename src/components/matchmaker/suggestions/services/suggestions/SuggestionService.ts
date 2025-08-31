@@ -8,11 +8,12 @@ import type {
   CreateSuggestionData,
   UpdateSuggestionData,
 } from "@/types/suggestions";
-// ========================= שינוי מרכזי 1: ייבוא טיפוס המילון =========================
 import type { EmailDictionary } from "@/types/dictionary";
 
-// Initialize notification service
+// הפעלת שירות ההתראות. הפעולה מתבצעת פעם אחת כשהמודול נטען.
 const notificationService = initNotificationService();
+
+// רשימת סטטוסים החוסמים יצירת הצעה חדשה עבור מועמד
 const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
   'FIRST_PARTY_APPROVED',
   'SECOND_PARTY_APPROVED',
@@ -27,6 +28,10 @@ const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
   'DATING',
 ];
 
+/**
+ * שירות מרכזי לניהול הלוגיקה העסקית של הצעות שידוכים.
+ * הוא אחראי על יצירה, עדכון, שינוי סטטוס, ואחזור של הצעות.
+ */
 export class SuggestionService {
   private static instance: SuggestionService;
 
@@ -40,9 +45,8 @@ export class SuggestionService {
   }
 
   /**
-   * יצירת הצעת שידוך חדשה
-   * ========================= שינוי מרכזי 2: עדכון חתימת הפונקציה =========================
-   * הפונקציה מקבלת כעת את אובייקט תרגומי המיילים כפרמטר נוסף
+   * יצירת הצעת שידוך חדשה.
+   * הפונקציה מקבלת את נתוני ההצעה ואת המילון המתורגם כדי לשלוח התראות בשפה הנכונה.
    */
   public async createSuggestion(
     data: CreateSuggestionData,
@@ -58,7 +62,7 @@ export class SuggestionService {
       throw new Error("Unauthorized - User must be a Matchmaker or Admin");
     }
   
-    // 2. בדיקה אם קיימת הצעה פעילה
+    // 2. בדיקה אם לאחד המועמדים כבר יש הצעה פעילה
     const [firstParty, secondParty] = await Promise.all([
         prisma.user.findUnique({ where: { id: data.firstPartyId } }),
         prisma.user.findUnique({ where: { id: data.secondPartyId } })
@@ -76,9 +80,7 @@ export class SuggestionService {
                 { firstPartyId: data.secondPartyId },
                 { secondPartyId: data.secondPartyId },
             ],
-            status: {
-                in: BLOCKING_SUGGESTION_STATUSES,
-            },
+            status: { in: BLOCKING_SUGGESTION_STATUSES },
         },
     });
 
@@ -94,7 +96,7 @@ export class SuggestionService {
         }
     }
 
-    // 3. יצירת ההצעה בטרנזקציה
+    // 3. יצירת ההצעה בטרנזקציה להבטחת שלמות הנתונים
     const suggestion = await prisma.$transaction(async (tx) => {
       const cleanedData = {
         matchmakerId: data.matchmakerId,
@@ -136,11 +138,10 @@ export class SuggestionService {
     // 4. שליחת התראות
     try {
       console.log('Sending notifications for new suggestion...');
-      // ========================= שינוי מרכזי 3: תיקון הקריאה לשירות ההתראות =========================
       await notificationService.handleSuggestionStatusChange(
         suggestion,
-        dictionary, // <-- הארגומנט השני הוא המילון
-        { // <-- הארגומנט השלישי הוא אובייקט ההגדרות
+        dictionary, // הארגומנט השני הוא המילון
+        { // הארגומנט השלישי הוא אובייקט ההגדרות
           channels: ['email', 'whatsapp'],
           notifyParties: ['first']
         }
@@ -153,7 +154,7 @@ export class SuggestionService {
   }
 
   /**
-   * עדכון פרטי הצעת שידוך
+   * עדכון פרטי הצעת שידוך (ללא שינוי סטטוס).
    */
   public async updateSuggestion(
     id: string,
@@ -184,7 +185,6 @@ export class SuggestionService {
       ...(data.notes?.internal !== undefined && { internalNotes: data.notes.internal }),
       ...(data.notes?.followUpNotes !== undefined && { followUpNotes: data.notes.followUpNotes }),
       ...(data.priority && { priority: data.priority }),
-      ...(data.responseDeadline && { responseDeadline: new Date(data.responseDeadline) }),
       ...(data.decisionDeadline && { decisionDeadline: new Date(data.decisionDeadline) }),
       lastActivity: new Date()
     };
@@ -201,12 +201,14 @@ export class SuggestionService {
   }
 
   /**
-   * עדכון סטטוס של הצעת שידוך
+   * עדכון סטטוס של הצעת שידוך.
+   * הפונקציה מקבלת את המילון כדי להעביר אותו לשירות המעבר, שישלח התראות מתורגמות.
    */
   public async updateSuggestionStatus(
     id: string,
     newStatus: MatchSuggestionStatus,
     userId: string,
+    dictionary: EmailDictionary, // <-- פרמטר המילון החדש והמתוקן
     notes?: string
   ): Promise<SuggestionWithParties> {
     const suggestion = await prisma.matchSuggestion.findUnique({
@@ -223,11 +225,18 @@ export class SuggestionService {
     }
 
     this.validateStatusChangePermission(suggestion, userId, newStatus);
-    return await statusTransitionService.transitionStatus(suggestion, newStatus, notes);
+    
+    // קריאה מתוקנת לשירות המעבר, עם העברת המילון כפרמטר השלישי
+    return await statusTransitionService.transitionStatus(
+      suggestion, 
+      newStatus, 
+      dictionary, // <-- העברת המילון
+      notes
+    );
   }
 
   /**
-   * קבלת פרטי הצעת שידוך
+   * קבלת פרטי הצעת שידוך מלאים.
    */
   public async getSuggestionDetails(id: string, userId: string): Promise<SuggestionWithParties> {
     const suggestion = await prisma.matchSuggestion.findUnique({
@@ -257,7 +266,7 @@ export class SuggestionService {
   }
 
   /**
-   * קבלת רשימת הצעות שידוך של משתמש
+   * קבלת כל הצעות השידוך הקשורות למשתמש מסוים.
    */
   public async getUserSuggestions(userId: string): Promise<SuggestionWithParties[]> {
     return await prisma.matchSuggestion.findMany({
@@ -280,7 +289,7 @@ export class SuggestionService {
   }
 
   /**
-   * אימות הרשאות לשינוי סטטוס
+   * פונקציית עזר פנימית לאימות הרשאות לשינוי סטטוס.
    */
   private validateStatusChangePermission(
     suggestion: SuggestionWithParties,
@@ -296,10 +305,24 @@ export class SuggestionService {
         if (!isFirstParty) throw new Error("Only first party can approve/decline at this stage");
         break;
 
+      // ניתן להוסיף כאן לוגיקות הרשאה נוספות עבור סטטוסים אחרים בעתיד.
+      
       default:
-        if (!isMatchmaker) throw new Error("Only matchmaker can change status at this stage");
+        // כברירת מחדל, רוב שינויי הסטטוס מבוצעים על ידי השדכן.
+        if (!isMatchmaker) {
+          // חריג: אם הצד השני מאשר/דוחה
+          if (
+            (newStatus === MatchSuggestionStatus.SECOND_PARTY_APPROVED || newStatus === MatchSuggestionStatus.SECOND_PARTY_DECLINED) &&
+            userId === suggestion.secondPartyId
+          ) {
+            // זה תקין
+          } else {
+            throw new Error("Only matchmaker can change status at this stage");
+          }
+        }
     }
   }
 }
 
+// ייצוא מופע יחיד של השירות (Singleton)
 export const suggestionService = SuggestionService.getInstance();

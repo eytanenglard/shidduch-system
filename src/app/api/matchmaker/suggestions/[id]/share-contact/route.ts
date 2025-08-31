@@ -5,7 +5,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
-import { StatusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
+import { statusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
+// ========================= שלב 1: ייבוא טיפוסים ומודולים נדרשים =========================
+import { EmailDictionary } from "@/types/dictionary";
+import { getDictionary } from "@/lib/dictionaries";
+// =====================================================================================
 
 export async function POST(
   req: NextRequest,
@@ -14,80 +18,68 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions);
     
-    // Verify user is logged in
     if (!session?.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    // Verify matchmaker permissions
     if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json(
-        { success: false, error: "Insufficient permissions" },
-        { status: 403 }
-      );
+      return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 });
     }
 
     const suggestionId = params.id;
 
-    // Verify suggestion exists
+    // ========================= שלב 2: טעינת המילון מה-URL =========================
+    const url = new URL(req.url);
+    const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
+    
+    console.log(`[API /share-contact] Received request with locale: '${locale}'`);
+
+    const dictionary = await getDictionary(locale);
+    const emailDict: EmailDictionary = dictionary.email;
+
+    if (!emailDict) {
+        throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
+    }
+    // ============================================================================
+
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
-        firstParty: {
-          include: { profile: true }
-        },
-        secondParty: {
-          include: { profile: true }
-        },
+        firstParty: { include: { profile: true } },
+        secondParty: { include: { profile: true } },
         matchmaker: true
       },
     });
 
     if (!suggestion) {
-      return NextResponse.json(
-        { success: false, error: "Suggestion not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: "Suggestion not found" }, { status: 404 });
     }
 
-    // Verify matchmaker permissions for sharing contact details
-    if (
-      suggestion.matchmakerId !== session.user.id &&
-      session.user.role !== UserRole.ADMIN
-    ) {
-      return NextResponse.json(
-        { success: false, error: "You are not authorized to share contact details for this suggestion" },
-        { status: 403 }
-      );
+    if (suggestion.matchmakerId !== session.user.id && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ success: false, error: "You are not authorized to share contact details for this suggestion" }, { status: 403 });
     }
-
-    // Verify suggestion is in appropriate status for sharing contact details
-    if (
-      suggestion.status !== MatchSuggestionStatus.FIRST_PARTY_APPROVED &&
-      suggestion.status !== MatchSuggestionStatus.SECOND_PARTY_APPROVED &&
-      suggestion.status !== MatchSuggestionStatus.AWAITING_MATCHMAKER_APPROVAL
-    ) {
+    
+    // בודקים שהסטטוס מאפשר שיתוף פרטים. הקוד כאן תקין.
+    if (suggestion.status !== MatchSuggestionStatus.SECOND_PARTY_APPROVED) {
       return NextResponse.json({
         success: false,
-        error: "Suggestion is not in a valid status for sharing contact details"
+        error: "Cannot share contacts until both parties have approved the suggestion."
       }, { status: 400 });
     }
-
-    // Update suggestion status to CONTACT_DETAILS_SHARED using the StatusTransitionService
-    // This will automatically trigger notifications to both parties with contact details
-    const statusTransitionService = StatusTransitionService.getInstance();
+    
+    // ========================= שלב 3: קריאה נכונה לשירות =========================
+    // מעבירים את המילון כארגומנט שלישי, ואת ההערות כארגומנט רביעי.
     const updatedSuggestion = await statusTransitionService.transitionStatus(
       suggestion,
       MatchSuggestionStatus.CONTACT_DETAILS_SHARED,
-      `פרטי קשר שותפו בין ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} ל${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} ע"י ${session.user.firstName} ${session.user.lastName}`,
-      {
+      emailDict, // <-- ארגומנט 3: המילון
+      `פרטי קשר שותפו בין ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} ל${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} ע"י ${session.user.firstName} ${session.user.lastName}`, // <-- ארגומנט 4: הערות
+      { // <-- ארגומנט 5: הגדרות
         sendNotifications: true,
         notifyParties: ['first', 'second', 'matchmaker']
       }
     );
+    // ==========================================================================
 
     return NextResponse.json({
       success: true,
