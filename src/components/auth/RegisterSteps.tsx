@@ -155,18 +155,20 @@ const RegisterStepsContent: React.FC<{
             />
           );
         case 3:
-          return <OptionalInfoStep dict={dict.steps.optionalInfo}  locale={locale}/>;
+          return (
+            <OptionalInfoStep dict={dict.steps.optionalInfo} locale={locale} />
+          );
         case 4:
           return <CompleteStep dict={dict.steps.complete} />;
         default:
           resetForm();
-          return <WelcomeStep dict={dict.steps.welcome}  locale={locale} />;
+          return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
       }
     }
 
     switch (registrationContextData.step) {
       case 0:
-        return <WelcomeStep dict={dict.steps.welcome}  locale={locale}/>;
+        return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
       case 1:
         return (
           <BasicInfoStep
@@ -177,7 +179,7 @@ const RegisterStepsContent: React.FC<{
         );
       default:
         resetForm();
-        return <WelcomeStep dict={dict.steps.welcome}  locale={locale}/>;
+        return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
     }
   };
 
@@ -259,6 +261,8 @@ const RegisterStepsContent: React.FC<{
           <ProgressBar
             currentStep={currentProgressBarStep}
             totalSteps={totalProgressBarSteps}
+            stepLabel={dict.progressBar.stepLabel}
+            locale={locale} // <<-- העברת משתנה השפה לקומפוננטה
           />
         </div>
       )}
