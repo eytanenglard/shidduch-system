@@ -1,3 +1,4 @@
+// src/components/auth/ProgressBar.tsx
 "use client";
 
 import React from "react";
@@ -6,20 +7,22 @@ import { motion } from "framer-motion";
 interface ProgressBarProps {
   currentStep: number;
   totalSteps: number;
+  stepLabel: string;
+  locale: 'he' | 'en'; // 1. הוספת Prop לקבלת השפה
 }
 
 const ProgressBar: React.FC<ProgressBarProps> = ({
   currentStep,
   totalSteps,
+  stepLabel,
+  locale, // 2. קבלת השפה מה-props
 }) => {
-  // Calculate percentage
   const percentage = (currentStep / totalSteps) * 100;
-
-  // Generate step markers
   const steps = Array.from({ length: totalSteps }, (_, i) => i + 1);
 
   return (
-    <div className="w-full relative">
+    // 3. הוספת המאפיין 'dir' כדי לקבוע את כיווניות הקומפוננטה
+    <div className="w-full relative" dir={locale === 'he' ? 'rtl' : 'ltr'}>
       {/* Step labels */}
       <div className="flex justify-between mb-2">
         {steps.map((step) => (
@@ -29,7 +32,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
               step <= currentStep ? "text-gray-800" : "text-gray-400"
             }`}
           >
-            שלב {step}
+            {stepLabel.replace('{{step}}', step.toString())}
           </div>
         ))}
       </div>

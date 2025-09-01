@@ -266,6 +266,8 @@ const RegisterStepsContent: React.FC<{
           <ProgressBar
             currentStep={currentProgressBarStep}
             totalSteps={totalProgressBarSteps}
+            stepLabel={dict.progressBar.stepLabel}
+            locale={locale} // <<-- העברת משתנה השפה לקומפוננטה
           />
         </div>
       )}

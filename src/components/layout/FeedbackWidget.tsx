@@ -40,7 +40,20 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
   const [isPermanentlyHidden, setIsPermanentlyHidden] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false); // <--- שינוי 1: הוספת משתנה State חדש
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // <--- שינוי 2: הוספת useEffect למניעת הקלקה בזמן אנימציה
+  useEffect(() => {
+    if (isOpen) {
+      setIsTransitioning(true);
+      const timer = setTimeout(() => {
+        setIsTransitioning(false);
+      }, 500); // משך זמן זהה לאנימציה (duration-500)
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   // Load hidden state from localStorage on mount
   useEffect(() => {
@@ -289,12 +302,15 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
       )}
 
       {/* Main Widget - Responsive */}
+      {/* <--- שינוי 3: עדכון ה-className של המודאל */}
       <div
-        className={`fixed inset-x-4 top-1/2 -translate-y-1/2 sm:top-1/2 sm:-translate-y-1/2 sm:right-16 sm:left-auto sm:right-24 z-50 w-auto sm:w-96 max-w-lg mx-auto sm:mx-0 transition-all duration-500 ${
+        className={cn(
+          'fixed inset-x-4 top-1/2 -translate-y-1/2 sm:top-1/2 sm:-translate-y-1/2 sm:right-16 sm:left-auto sm:right-24 z-50 w-auto sm:w-96 max-w-lg mx-auto sm:mx-0 transition-all duration-500',
           isOpen
             ? 'opacity-100 translate-x-0 scale-100'
-            : 'opacity-0 translate-x-8 scale-95 pointer-events-none'
-        }`}
+            : 'opacity-0 translate-x-8 scale-95 pointer-events-none',
+          isTransitioning && 'pointer-events-none'
+        )}
       >
         <div className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/50 overflow-hidden max-h-[85vh] sm:max-h-none overflow-y-auto">
           {/* Ambient light effect */}

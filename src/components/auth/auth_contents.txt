@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-09-01 17:29:14
+# Generated on: 2025-09-01 20:07:33
 ################################################################################
 
 ================================================================================
@@ -648,8 +648,8 @@ export default function RegisterSteps({ dict, locale }: RegisterStepsProps) {
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\RegistrationContext.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/components/auth/RegistrationContext.tsx
-"use client";
+// src/components/auth/RegistrationContext.tsx
+'use client';
 
 import React, {
   createContext,
@@ -657,9 +657,9 @@ import React, {
   useState,
   ReactNode,
   useCallback,
-} from "react";
-import { Gender, UserStatus, UserSource } from "@prisma/client";
-import type { User as SessionUserType } from "@/types/next-auth";
+} from 'react';
+import { Gender, UserStatus, UserSource } from '@prisma/client';
+import type { User as SessionUserType } from '@/types/next-auth';
 
 export interface RegistrationData {
   email: string;
@@ -667,7 +667,7 @@ export interface RegistrationData {
   firstName: string;
   lastName: string;
   phone: string;
-  gender: Gender | ""; // "" for unselected, or actual Gender enum value
+  gender: Gender | ''; // "" for unselected, or actual Gender enum value
   birthDate: string;
   maritalStatus: string;
   height?: number;
@@ -681,17 +681,17 @@ export interface RegistrationData {
 }
 
 const initialRegistrationData: RegistrationData = {
-  email: "",
-  password: "",
-  firstName: "",
-  lastName: "",
-  phone: "",
-  gender: "", // Initialized as empty string
-  birthDate: "",
-  maritalStatus: "",
+  email: '',
+  password: '',
+  firstName: '',
+  lastName: '',
+  phone: '',
+  gender: '', // Initialized as empty string
+  birthDate: '',
+  maritalStatus: '',
   height: undefined,
-  occupation: "",
-  education: "",
+  occupation: '',
+  education: '',
   step: 0,
   isGoogleSignup: false,
   isCompletingProfile: false,
@@ -723,17 +723,19 @@ interface RegistrationContextType {
 
 const RegistrationContext = createContext<RegistrationContextType>({
   data: initialRegistrationData,
-  setData: () => console.warn("RegistrationProvider not found"),
-  updateField: () => console.warn("RegistrationProvider not found"),
-  nextStep: () => console.warn("RegistrationProvider not found"),
-  prevStep: () => console.warn("RegistrationProvider not found"),
-  goToStep: () => console.warn("RegistrationProvider not found"),
-  resetForm: () => console.warn("RegistrationProvider not found"),
-  setGoogleSignup: () => console.warn("RegistrationProvider not found"),
-  initializeFromSession: () => console.warn("RegistrationProvider not found"),
-  proceedToEmailVerification: () => console.warn("RegistrationProvider not found"),
-  completeEmailVerification: () => console.warn("RegistrationProvider not found"),
-  exitEmailVerification: () => console.warn("RegistrationProvider not found"),
+  setData: () => console.warn('RegistrationProvider not found'),
+  updateField: () => console.warn('RegistrationProvider not found'),
+  nextStep: () => console.warn('RegistrationProvider not found'),
+  prevStep: () => console.warn('RegistrationProvider not found'),
+  goToStep: () => console.warn('RegistrationProvider not found'),
+  resetForm: () => console.warn('RegistrationProvider not found'),
+  setGoogleSignup: () => console.warn('RegistrationProvider not found'),
+  initializeFromSession: () => console.warn('RegistrationProvider not found'),
+  proceedToEmailVerification: () =>
+    console.warn('RegistrationProvider not found'),
+  completeEmailVerification: () =>
+    console.warn('RegistrationProvider not found'),
+  exitEmailVerification: () => console.warn('RegistrationProvider not found'),
 });
 
 export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
@@ -755,7 +757,8 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     setData((prev) => {
       if (prev.isVerifyingEmailCode) return prev;
       const currentMaxStep = 3;
-      if (prev.step === 1 && !prev.isCompletingProfile && !prev.isGoogleSignup) return prev;
+      if (prev.step === 1 && !prev.isCompletingProfile && !prev.isGoogleSignup)
+        return prev;
       if (prev.step < currentMaxStep) return { ...prev, step: prev.step + 1 };
       if (prev.step === currentMaxStep) return { ...prev, step: 4 };
       return prev;
@@ -765,7 +768,12 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   const prevStep = useCallback(() => {
     setData((prev) => {
       if (prev.isVerifyingEmailCode) {
-        return { ...prev, isVerifyingEmailCode: false, emailForVerification: null, step: 1 };
+        return {
+          ...prev,
+          isVerifyingEmailCode: false,
+          emailForVerification: null,
+          step: 1,
+        };
       }
       if (prev.step > 0) {
         if (prev.step === 4) return { ...prev, step: 3 };
@@ -789,7 +797,11 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const setGoogleSignup = useCallback(
-    (googleUserData: { email: string; firstName?: string; lastName?: string }) => {
+    (googleUserData: {
+      email: string;
+      firstName?: string;
+      lastName?: string;
+    }) => {
       setData({
         ...initialRegistrationData,
         email: googleUserData.email,
@@ -799,95 +811,87 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     []
   );
 
-  const initializeFromSession = useCallback(
-    (sessionUser: SessionUserType) => {
-      // אנחנו משתמשים בצורת העדכון הפונקציונלית של setData
-      // כדי לקבל גישה למצב הקודם של הקונטקסט (prevData).
-      setData((prevData) => {
-        const isGoogleAcc = !!(
-          sessionUser.source === UserSource.REGISTRATION &&
-          sessionUser.accounts?.some(acc => acc.provider === 'google')
-        );
+  // ============================ התיקון המרכזי נמצא כאן ============================
+  const initializeFromSession = useCallback((sessionUser: SessionUserType) => {
+    setData((prevData) => {
+      const isGoogleAcc = !!(
+        sessionUser.source === UserSource.REGISTRATION &&
+        sessionUser.accounts?.some((acc) => acc.provider === 'google')
+      );
 
-        // המרת מגדר מהסשן לטיפוס הנכון
-        const sessionGender: Gender | "" = sessionUser.profile?.gender || "";
+      const sessionGender: Gender | '' = sessionUser.profile?.gender || '';
 
-        // אובייקט זה תמיד יכיל את הנתונים המעודכנים ביותר מהסשן,
-        // וישמש לעדכון שדות הטופס בקונטקסט.
-        const baseStateFromSession = {
-          email: sessionUser.email || "",
-          firstName: sessionUser.firstName || "",
-          lastName: sessionUser.lastName || "",
-          phone: sessionUser.phone || "",
-          gender: sessionGender,
-          birthDate: sessionUser.profile?.birthDate
-            ? new Date(sessionUser.profile.birthDate).toISOString().split("T")[0]
-            : "",
-          maritalStatus: sessionUser.profile?.maritalStatus || "",
-          height: sessionUser.profile?.height ?? undefined,
-          occupation: sessionUser.profile?.occupation || "",
-          education: sessionUser.profile?.education || "",
+      const baseStateFromSession = {
+        email: sessionUser.email || '',
+        firstName: sessionUser.firstName || '',
+        lastName: sessionUser.lastName || '',
+        phone: sessionUser.phone || '',
+        gender: sessionGender,
+        birthDate: sessionUser.profile?.birthDate
+          ? new Date(sessionUser.profile.birthDate).toISOString().split('T')[0]
+          : '',
+        maritalStatus: sessionUser.profile?.maritalStatus || '',
+        height: sessionUser.profile?.height ?? undefined,
+        occupation: sessionUser.profile?.occupation || '',
+        education: sessionUser.profile?.education || '',
+      };
+
+      // תרחיש 1: משתמש חדש צריך לאמת מייל (לפני השלמת פרופיל)
+      if (
+        sessionUser.status === UserStatus.PENDING_EMAIL_VERIFICATION &&
+        !isGoogleAcc &&
+        !sessionUser.isVerified
+      ) {
+        return {
+          ...initialRegistrationData,
+          ...baseStateFromSession,
+          isVerifyingEmailCode: true,
+          emailForVerification: sessionUser.email,
+          step: 1,
+          isCompletingProfile: false,
+          isGoogleSignup: false,
         };
+      }
 
-        // תרחיש 1: משתמש חדש עם אימייל/סיסמה צריך לאמת מייל.
-        // זהו תחילתו של תהליך, ולכן זה בסדר לאפס את המצב לנקודת התחלה נקייה.
-        if (
-          sessionUser.status === UserStatus.PENDING_EMAIL_VERIFICATION &&
-          !isGoogleAcc &&
-          !sessionUser.isVerified
-        ) {
-          return {
-            ...initialRegistrationData, // איפוס המצב
-            ...baseStateFromSession,    // מילוי במידע הבסיסי מהסשן
-            isVerifyingEmailCode: true,
-            emailForVerification: sessionUser.email,
-            step: 1,
-            isCompletingProfile: false,
-            isGoogleSignup: false,
-          };
-        }
-
-        // תרחיש 2: המשתמש נכנס לתהליך השלמת פרופיל בפעם הראשונה
-        // (למשל, אחרי התחברות עם גוגל, או אחרי אימות מייל).
-        // גם זו התחלה של תהליך, ואיפוס המצב הוא תקין.
-        if (!sessionUser.isProfileComplete) {
-          return {
-            ...initialRegistrationData, // איפוס המצב
-            ...baseStateFromSession,    // מילוי במידע הבסיסי מהסשן
-            isCompletingProfile: true,
-            isGoogleSignup: isGoogleAcc,
-            step: 2, // התחל משלב פרטים אישיים
-            isVerifyingEmailCode: false,
-          };
-        }
-
-        // תרחיש 3: הפרופיל הושלם, אך הטלפון עדיין לא אומת.
-        // >>> זהו התיקון הקריטי <<<
-        // מצב זה מתרחש אחרי שהמשתמש לחץ "שלח" ב-OptionalInfoStep.
-        // כאן אסור לנו לאפס את נתוני הטופס.
-        if (sessionUser.isProfileComplete && !sessionUser.isPhoneVerified) {
-          return {
-            ...prevData, // *** התיקון: שמור את נתוני הטופס הקיימים (גובה, עיסוק וכו') ***
-            ...baseStateFromSession, // עדכן את השדות עם המידע העדכני ביותר מה-DB
-            isCompletingProfile: true,
-            isGoogleSignup: isGoogleAcc,
-            step: 4, // זה יעביר נכון לרכיב CompleteStep
-            isVerifyingEmailCode: false,
-          };
-        }
-        
-        // תרחיש ברירת מחדל: המשתמש מאומת אך לא מתאים לאף תרחיש "השלמה" ספציפי.
-        // לדוגמה, בריענון עמוד. אנחנו רק רוצים לסנכרן את הקונטקסט עם הסשן
-        // מבלי לאפס את כל המצב (כמו השלב הנוכחי בתהליך).
-        return { 
-            ...prevData, // שמור על המצב הקיים של הקונטקסט
-            ...baseStateFromSession, // ועדכן אותו עם מידע טרי מהסשן
-            isGoogleSignup: isGoogleAcc,
+      // תרחיש 2: המשתמש צריך להתחיל את תהליך השלמת הפרופיל
+      if (!sessionUser.isProfileComplete) {
+        return {
+          ...initialRegistrationData,
+          ...baseStateFromSession,
+          isCompletingProfile: true,
+          isGoogleSignup: isGoogleAcc,
+          step: 2, // התחל משלב פרטים אישיים
+          isVerifyingEmailCode: false,
         };
-      });
-    },
-    [] // התלויות ריקות כי setData מובטח להיות יציב ולא נעשה שימוש ב-state חיצוני אחר.
-  );
+      }
+
+      // תרחיש 3: הפרופיל הושלם, אך הטלפון לא אומת.
+      // זהו התיקון הקריטי.
+      if (sessionUser.isProfileComplete && !sessionUser.isPhoneVerified) {
+        // אם אנחנו נמצאים כעת בשלב 3 (OptionalInfoStep), אל תשנה את השלב!
+        // תן לרכיב לסיים את עבודתו ולנווט בעצמו.
+        // אם אנחנו בכל שלב אחר (למשל, המשתמש רענן את העמוד), העבר אותו לשלב 4.
+        const nextStep = prevData.step === 3 ? 3 : 4;
+
+        return {
+          ...prevData,
+          ...baseStateFromSession,
+          isCompletingProfile: true,
+          isGoogleSignup: isGoogleAcc,
+          step: nextStep, // <-- שימוש במשתנה שהגדרנו
+          isVerifyingEmailCode: false,
+        };
+      }
+
+      // תרחיש ברירת מחדל: סנכרון נתונים כללי
+      return {
+        ...prevData,
+        ...baseStateFromSession,
+        isGoogleSignup: isGoogleAcc,
+      };
+    });
+  }, []);
+  // ============================ סוף התיקון ============================
 
   const proceedToEmailVerification = useCallback((emailToVerify: string) => {
     setData((prev) => ({
@@ -940,16 +944,18 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
 
 export const useRegistration = (): RegistrationContextType => {
   const context = useContext(RegistrationContext);
-  if (context === undefined || Object.keys(context).every(
+  if (
+    context === undefined ||
+    Object.keys(context).every(
       (key) =>
-        typeof context[key as keyof RegistrationContextType] === "function" &&
+        typeof context[key as keyof RegistrationContextType] === 'function' &&
         context[key as keyof RegistrationContextType]
           .toString()
-          .includes("RegistrationProvider not found")
+          .includes('RegistrationProvider not found')
     )
   ) {
     throw new Error(
-      "useRegistration must be used within a RegistrationProvider"
+      'useRegistration must be used within a RegistrationProvider'
     );
   }
   return context;
@@ -2592,8 +2598,7 @@ const OTP_LENGTH = 6;
 
 interface EmailVerificationCodeStepProps {
   dict: RegisterStepsDict['steps']['emailVerification'];
-    locale: 'he' | 'en'; // הוסף את locale
-
+  locale: 'he' | 'en'; // הוסף את locale
 }
 
 const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
@@ -2649,14 +2654,17 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
     setResendMessage(null);
 
     try {
-      const response = await fetch(`/api/auth/resend-verification-code?locale=${locale}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: registrationData.emailForVerification,
-          code: enteredCode,
-        }),
-      });
+      const response = await fetch(
+        `/api/auth/verify-email-code?locale=${locale}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: registrationData.emailForVerification,
+            code: enteredCode,
+          }),
+        }
+      );
       const result = await response.json();
       if (!response.ok || !result.success || !result.authToken) {
         throw new Error(result.error || dict.errors.default);
@@ -2854,7 +2862,7 @@ Content:
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+// הסרנו את useSession כי אנחנו לא צריכים אותו יותר כאן
 import { useRegistration } from '../RegistrationContext';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -2870,11 +2878,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
-import SubmissionStatusIndicator, {
-  SubmissionStatus,
-} from './SubmissionStatusIndicator';
 
-// הממשק המלא של ה-props
 interface OptionalInfoStepProps {
   dict: RegisterStepsDict['steps']['optionalInfo'];
   locale: 'he' | 'en';
@@ -2886,14 +2890,16 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
 }) => {
   const { data, updateField, prevStep } = useRegistration();
   const router = useRouter();
-  const { update: updateSessionHook } = useSession();
-  const [submissionStatus, setSubmissionStatus] =
-    useState<SubmissionStatus>('idle');
+
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ============================ התיקון הסופי ============================
   const handleSubmit = async () => {
-    setSubmissionStatus('savingProfile');
+    // נעל את הכפתורים כדי למנוע לחיצות כפולות
+    setIsLoading(true);
     setError(null);
+
     try {
       const profileData = {
         firstName: data.firstName,
@@ -2910,14 +2916,12 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
       if (
         !profileData.firstName ||
         !profileData.lastName ||
-        !profileData.phone ||
-        !profileData.gender ||
-        !profileData.birthDate ||
-        !profileData.maritalStatus
+        !profileData.phone
       ) {
         throw new Error(dict.errors.missingData);
       }
 
+      // 1. שמור את הפרופיל. חכה לסיום.
       const profileResponse = await fetch('/api/auth/complete-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2928,10 +2932,7 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
         throw new Error(errorData.error || dict.errors.default);
       }
 
-      setSubmissionStatus('updatingSession');
-      await updateSessionHook();
-
-      setSubmissionStatus('sendingCode');
+      // 2. שלח את קוד האימות. חכה לסיום.
       const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
         method: 'POST',
       });
@@ -2940,49 +2941,15 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
         throw new Error(errorData.error || dict.errors.default);
       }
 
-
-      setTimeout(() => {
-        // ====================== LOGGING START: Client-Side Navigation ======================
-        console.log(
-          `\n\n=========================================================`
-        );
-        console.log(`--- [Client-Side | OptionalInfoStep] ---`);
-        console.log(`Timestamp: ${new Date().toISOString()}`);
-        console.log(
-          `➡️  Preparing to navigate after completing optional info.`
-        );
-
-        // בדיקה קריטית של ה-locale שהתקבל כ-prop
-        console.log(`   Value of 'locale' prop received: "${locale}"`);
-
-        if (!locale || (locale !== 'he' && locale !== 'en')) {
-          console.error(
-            `❌ CRITICAL ERROR: The 'locale' prop is invalid or undefined! Value: "${locale}". This will cause a redirect loop or incorrect language.`
-          );
-          console.log(
-            `   This error originates from how this component is rendered by its parent (RegisterClient.tsx).`
-          );
-        }
-
-        const targetUrl = `/${locale}/auth/verify-phone`;
-
-        console.log(`   Constructed Target URL: "${targetUrl}"`);
-        console.log(`   Executing: router.push("${targetUrl}")`);
-        console.log(
-          `=========================================================\n`
-        );
-        // ======================= LOGGING END =======================
-
-        router.push(targetUrl);
-      }, 1500);
+      // 3. נווט מיידית לדף הבא. בלי שום דבר באמצע.
+      router.push(`/${locale}/auth/verify-phone`);
     } catch (err) {
+      // אם משהו נכשל, הצג שגיאה ושחרר את הכפתורים
       setError(err instanceof Error ? err.message : dict.errors.default);
-      setSubmissionStatus('error');
+      setIsLoading(false);
     }
   };
-
-  const isSubmitting =
-    submissionStatus !== 'idle' && submissionStatus !== 'error';
+  // =====================================================================
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -2994,135 +2961,129 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
   };
 
   return (
-    <>
-      <SubmissionStatusIndicator
-        currentStatus={submissionStatus}
-        dict={dict.status}
-      />
+    <motion.div
+      className="space-y-5"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.h2
+        className="text-xl font-bold text-gray-800"
+        variants={itemVariants}
+      >
+        {dict.title}
+      </motion.h2>
+      <motion.p className="text-gray-600 text-sm" variants={itemVariants}>
+        {dict.subtitle}
+      </motion.p>
+
+      {error && (
+        <motion.div variants={itemVariants}>
+          <Alert variant="destructive" role="alert">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{dict.errors.title}</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
+      <motion.div variants={itemVariants} className="space-y-4">
+        {/* שדות הטופס */}
+        <div className="space-y-1">
+          <label
+            htmlFor="heightOptional"
+            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+          >
+            <Ruler className="h-4 w-4 text-gray-400" />
+            {dict.heightLabel}
+          </label>
+          <Input
+            type="number"
+            id="heightOptional"
+            min="120"
+            max="220"
+            value={data.height ?? ''}
+            onChange={(e) =>
+              updateField(
+                'height',
+                e.target.value ? parseInt(e.target.value, 10) : undefined
+              )
+            }
+            placeholder={dict.heightPlaceholder}
+            disabled={isLoading}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+          />
+        </div>
+        <div className="space-y-1">
+          <label
+            htmlFor="occupationOptional"
+            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+          >
+            <Briefcase className="h-4 w-4 text-gray-400" />
+            {dict.occupationLabel}
+          </label>
+          <Input
+            type="text"
+            id="occupationOptional"
+            value={data.occupation ?? ''}
+            onChange={(e) => updateField('occupation', e.target.value)}
+            placeholder={dict.occupationPlaceholder}
+            disabled={isLoading}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+          />
+        </div>
+        <div className="space-y-1">
+          <label
+            htmlFor="educationOptional"
+            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+          >
+            <GraduationCap className="h-4 w-4 text-gray-400" />
+            {dict.educationLabel}
+          </label>
+          <Input
+            type="text"
+            id="educationOptional"
+            value={data.education ?? ''}
+            onChange={(e) => updateField('education', e.target.value)}
+            placeholder={dict.educationPlaceholder}
+            disabled={isLoading}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+          />
+        </div>
+      </motion.div>
 
       <motion.div
-        className={`space-y-5 ${isSubmitting ? 'blur-sm pointer-events-none' : ''}`}
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+        variants={itemVariants}
+        className="flex justify-between pt-4 mt-6"
       >
-        <motion.h2
-          className="text-xl font-bold text-gray-800"
-          variants={itemVariants}
+        <Button
+          type="button"
+          onClick={prevStep}
+          variant="outline"
+          disabled={isLoading}
         >
-          {dict.title}
-        </motion.h2>
-        <motion.p className="text-gray-600 text-sm" variants={itemVariants}>
-          {dict.subtitle}
-        </motion.p>
-
-        {error && (
-          <motion.div variants={itemVariants}>
-            <Alert variant="destructive" role="alert">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>{dict.errors.title}</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          </motion.div>
-        )}
-
-        <motion.div variants={itemVariants} className="space-y-4">
-          <div className="space-y-1">
-            <label
-              htmlFor="heightOptional"
-              className="block text-sm font-medium text-gray-700 flex items-center gap-1"
-            >
-              <Ruler className="h-4 w-4 text-gray-400" />
-              {dict.heightLabel}
-            </label>
-            <Input
-              type="number"
-              id="heightOptional"
-              min="120"
-              max="220"
-              value={data.height ?? ''}
-              onChange={(e) =>
-                updateField(
-                  'height',
-                  e.target.value ? parseInt(e.target.value, 10) : undefined
-                )
-              }
-              placeholder={dict.heightPlaceholder}
-              disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
-            />
-          </div>
-          <div className="space-y-1">
-            <label
-              htmlFor="occupationOptional"
-              className="block text-sm font-medium text-gray-700 flex items-center gap-1"
-            >
-              <Briefcase className="h-4 w-4 text-gray-400" />
-              {dict.occupationLabel}
-            </label>
-            <Input
-              type="text"
-              id="occupationOptional"
-              value={data.occupation ?? ''}
-              onChange={(e) => updateField('occupation', e.target.value)}
-              placeholder={dict.occupationPlaceholder}
-              disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
-            />
-          </div>
-          <div className="space-y-1">
-            <label
-              htmlFor="educationOptional"
-              className="block text-sm font-medium text-gray-700 flex items-center gap-1"
-            >
-              <GraduationCap className="h-4 w-4 text-gray-400" />
-              {dict.educationLabel}
-            </label>
-            <Input
-              type="text"
-              id="educationOptional"
-              value={data.education ?? ''}
-              onChange={(e) => updateField('education', e.target.value)}
-              placeholder={dict.educationPlaceholder}
-              disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
-            />
-          </div>
-        </motion.div>
-
-        <motion.div
-          variants={itemVariants}
-          className="flex justify-between pt-4 mt-6"
+          <ArrowRight className="h-4 w-4 ml-2" />
+          {dict.backButton}
+        </Button>
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className={`flex items-center gap-2 ${isLoading ? 'bg-gray-400' : 'bg-gradient-to-r from-cyan-500 to-pink-500'}`}
         >
-          <Button
-            type="button"
-            onClick={prevStep}
-            variant="outline"
-            disabled={isSubmitting}
-          >
-            <ArrowRight className="h-4 w-4 ml-2" />
-            {dict.backButton}
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className={`flex items-center gap-2 ${isSubmitting ? 'bg-gray-400' : 'bg-gradient-to-r from-cyan-500 to-pink-500'}`}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                <span>בתהליך...</span>
-              </>
-            ) : (
-              <>
-                {dict.nextButton} <ArrowLeft className="h-4 w-4 mr-2" />
-              </>
-            )}
-          </Button>
-        </motion.div>
+          {isLoading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              <span></span>
+            </>
+          ) : (
+            <>
+              {dict.nextButton} <ArrowLeft className="h-4 w-4 mr-2" />
+            </>
+          )}
+        </Button>
       </motion.div>
-    </>
+    </motion.div>
   );
 };
 

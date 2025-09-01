@@ -25,6 +25,7 @@ import {
   Image as ImageIcon,
   Sliders,
   Trash2,
+  
   AlertCircle,
   Send,
 } from 'lucide-react';
