@@ -610,7 +610,63 @@
       "submitSuccess": "We've received it! Thank you for the partnership. Your feedback is on its way to our team.",
       "submitError": "Oops, there seems to be a slight issue. Please try again, we truly want to hear from you."
     }
+  },
+    "messagesPage": {
+    "header": {
+      "title": "My Activity Center",
+      "subtitle": "All your updates, messages, and actions in one place."
+    },
+    "actionBanner": {
+      "titleSingle": "One action is waiting for you!",
+      "titleMultiple": "{{count}} actions are waiting for you!",
+      "description": "There are suggestions awaiting your response. It's time to move forward on your journey!"
+    },
+    "filters": {
+      "all": "All",
+      "actionRequired": "Action Required",
+      "updates": "Updates",
+      "refresh": "Refresh"
+    },
+    "error": "Error: {{error}}",
+    "emptyState": {
+      "title": "All Quiet Here",
+      "descriptionAll": "No new updates right now. As soon as there's a development, it will appear here.",
+      "descriptionFiltered": "No items match the filter."
+    },
+    "notificationCard": {
+      "matchmakerPrefix": "Suggestion from matchmaker",
+      "suggestionWith": "with {{name}}",
+      "viewDetails": "View Details"
+    },
+    "badges": {
+      "match": "It's a Match!"
+    },
+    "messageList": {
+      "header": "Activity Center",
+      "subtitle": "{{count}} suggestions and updates"
+    },
+    "messageListItem": {
+      "matchBadge": "It's a Match!"
+    },
+    "availabilityRequestCard": {
+      "title": "Availability Request",
+      "fromMatchmaker": "From {{name}}",
+      "firstPartyLabel": "First Party",
+      "secondPartyLabel": "Second Party",
+      "progressLabel": "Progress",
+      "noteLabel": "Note:",
+      "buttons": {
+        "available": "I'm Available",
+        "unavailable": "Not Available Right Now"
+      },
+      "responses": {
+        "PENDING": "Pending",
+        "AVAILABLE": "Available",
+        "UNAVAILABLE": "Unavailable"
+      }
+    }
   }
+
 
 
 

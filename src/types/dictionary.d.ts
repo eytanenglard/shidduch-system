@@ -602,6 +602,7 @@ metadata: MetadataDict
   auth: AuthDictionary; // <--- 2. הוספת המפתח והטיפוס החדש
 contactPage: ContactPageDict;
   feedbackWidget: FeedbackWidgetDict; // <--- הוסף את השורה הזו
+  messagesPage: MessagesPageDict; // <-- הוספנו את המפתח החדש
 
 };
 export type {
@@ -2887,3 +2888,62 @@ export type FeedbackWidgetDict  = {
 
 
 
+export type MessagesPageDict = {
+  header: {
+    title: string;
+    subtitle: string;
+  };
+  actionBanner: {
+    titleSingle: string; // e.g., "פעולה אחת ממתינה לך!"
+    titleMultiple: string; // e.g., "{{count}} פעולות ממתינות לך!"
+    description: string;
+  };
+  filters: {
+    all: string;
+    actionRequired: string;
+    updates: string;
+    refresh: string;
+  };
+  error: string; // e.g., "שגיאה: {{error}}"
+  emptyState: {
+    title: string;
+    descriptionAll: string;
+    descriptionFiltered: string;
+  };
+  notificationCard: {
+    matchmakerPrefix: string; // e.g., "הצעה מהשדכן/ית"
+    suggestionWith: string; // e.g., "עם {{name}}"
+    viewDetails: string;
+  };
+  badges: {
+    match: string; // e.g., "התאמה!"
+  };
+    messageList: MessageListDict;
+  messageListItem: MessageListItemDict;
+  availabilityRequestCard: AvailabilityRequestCardDict;
+
+};
+export type MessageListItemDict = {
+  matchBadge: string;
+};
+
+export type MessageListDict = {
+  header: string;
+  subtitle: string; // e.g., "{{count}} suggestions and updates"
+};
+
+export type AvailabilityRequestCardDict = {
+  title: string;
+  fromMatchmaker: string; // e.g., "From {{name}}"
+  firstPartyLabel: string;
+  secondPartyLabel: string;
+  progressLabel: string;
+  noteLabel: string;
+  buttons: {
+    available: string;
+    unavailable: string;
+  };
+  responses: {
+    [key: string]: string; // PENDING, AVAILABLE, UNAVAILABLE
+  };
+};

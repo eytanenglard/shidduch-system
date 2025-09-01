@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions
-# Generated on: 2025-08-27 15:31:27
+# Generated on: 2025-09-01 13:19:30
 ################################################################################
 
 ================================================================================
@@ -18,6 +18,8 @@ Content:
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useParams } from 'next/navigation'; // ✨ 1. הוסף ייבוא של useParams
+
 import {
   History,
   AlertCircle,
@@ -53,7 +55,10 @@ import {
 } from '@/components/ui/alert-dialog';
 
 // ✅ 1. ייבוא הטיפוסים הנדרשים עבור המילונים
-import type { SuggestionsDictionary, ProfileCardDict } from '@/types/dictionary';
+import type {
+  SuggestionsDictionary,
+  ProfileCardDict,
+} from '@/types/dictionary';
 
 const LoadingSkeleton: React.FC<{
   dict: SuggestionsDictionary['container']['loading'];
@@ -270,6 +275,11 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   suggestionsDict,
   profileCardDict,
 }) => {
+  const params = useParams();
+  const locale = (
+    Array.isArray(params.lang) ? params.lang[0] : params.lang || 'en'
+  ) as 'he' | 'en';
+
   const [activeSuggestions, setActiveSuggestions] = useState<
     ExtendedMatchSuggestion[]
   >([]);
@@ -328,7 +338,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           setHasNewSuggestions(true);
           // ✅ 3. שימוש ב-suggestionsDict במקום dict
           toast.success(suggestionsDict.container.toasts.newSuggestionsTitle, {
-            description: suggestionsDict.container.toasts.newSuggestionsDescription,
+            description:
+              suggestionsDict.container.toasts.newSuggestionsDescription,
             duration: 5000,
           });
         }
@@ -342,7 +353,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             ? error.message
             : suggestionsDict.container.main.unknownError;
         setError(
-          suggestionsDict.container.main.errorLoading.replace('{error}', errorMessage)
+          suggestionsDict.container.main.errorLoading.replace(
+            '{error}',
+            errorMessage
+          )
         );
         toast.error(suggestionsDict.container.toasts.errorTitle, {
           description: suggestionsDict.container.toasts.errorDescription,
@@ -379,17 +393,22 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
         // ✅ 3. שימוש ב-suggestionsDict במקום dict
         const statusMessages: Record<string, string> = {
-          FIRST_PARTY_APPROVED: suggestionsDict.container.toasts.approvedSuccess,
-          SECOND_PARTY_APPROVED: suggestionsDict.container.toasts.approvedSuccess,
-          FIRST_PARTY_DECLINED: suggestionsDict.container.toasts.declinedSuccess,
-          SECOND_PARTY_DECLINED: suggestionsDict.container.toasts.declinedSuccess,
+          FIRST_PARTY_APPROVED:
+            suggestionsDict.container.toasts.approvedSuccess,
+          SECOND_PARTY_APPROVED:
+            suggestionsDict.container.toasts.approvedSuccess,
+          FIRST_PARTY_DECLINED:
+            suggestionsDict.container.toasts.declinedSuccess,
+          SECOND_PARTY_DECLINED:
+            suggestionsDict.container.toasts.declinedSuccess,
         };
 
         let description: string;
         if (newStatus === 'FIRST_PARTY_APPROVED') {
           description = suggestionsDict.container.toasts.approvedFirstPartyDesc;
         } else if (newStatus === 'SECOND_PARTY_APPROVED') {
-          description = suggestionsDict.container.toasts.approvedSecondPartyDesc;
+          description =
+            suggestionsDict.container.toasts.approvedSecondPartyDesc;
         } else if (newStatus.includes('DECLINED')) {
           description = suggestionsDict.container.toasts.declinedDesc;
         } else {
@@ -504,6 +523,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         'min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20',
         className
       )}
+      dir={locale === 'he' ? 'rtl' : 'ltr'}
     >
       <div className="container mx-auto px-4 py-8">
         <WelcomeStats
@@ -609,6 +629,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               )}
               <TabsContent value="active" className="space-y-6">
                 <SuggestionsList
+                  locale={locale}
                   suggestions={activeSuggestions}
                   userId={userId}
                   viewMode={viewMode}
@@ -624,6 +645,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               </TabsContent>
               <TabsContent value="history" className="space-y-6">
                 <SuggestionsList
+                            locale={locale}
+
                   suggestions={historySuggestions}
                   userId={userId}
                   viewMode={viewMode}
@@ -640,6 +663,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               </TabsContent>
               <TabsContent value="urgent" className="space-y-6">
                 <SuggestionsList
+                            locale={locale}
+
                   suggestions={activeSuggestions.filter((s) => {
                     const isFirstParty = s.firstPartyId === userId;
                     return (
@@ -805,6 +830,7 @@ import {
   Briefcase,
   Eye,
   XCircle,
+  ChevronRight,
   MessageCircle,
   Heart,
   BookOpen,
@@ -846,6 +872,7 @@ interface MinimalSuggestionCardProps {
   isHistory?: boolean;
   isApprovalDisabled?: boolean;
   dict: SuggestionsCardDict; // ✨ Add dict prop
+  locale: 'he' | 'en'; // <-- 1. הוסף prop
 }
 
 const calculateAge = (birthDate?: Date | string | null): number | null => {
@@ -872,6 +899,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   isHistory = false,
   isApprovalDisabled = false,
   dict, // ✨ Destructure dict
+  locale,
 }) => {
   const targetParty =
     suggestion.firstPartyId === userId
@@ -1127,7 +1155,11 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
               >
                 <Eye className="w-4 h-4 ml-2" />
                 {dict.buttons.viewDetails}
-                <ChevronLeft className="w-3 h-3 mr-1" />
+                {locale === 'he' ? (
+                  <ChevronLeft className="w-3 h-3" />
+                ) : (
+                  <ChevronRight className="w-3 h-3" />
+                )}
               </Button>
             </div>
           )}
@@ -3704,12 +3736,17 @@ import AskMatchmakerDialog from '../dialogs/AskMatchmakerDialog';
 import { cn } from '@/lib/utils';
 import type { ExtendedMatchSuggestion } from '../types';
 // ✅ 1. ייבוא הטיפוסים הנדרשים
-import type { SuggestionsDictionary, ProfileCardDict } from '@/types/dictionary';
+import type {
+  SuggestionsDictionary,
+  ProfileCardDict,
+} from '@/types/dictionary';
 
 // ✅ 2. עדכון הממשק לקבל props נפרדים
 interface SuggestionsListProps {
   suggestions: ExtendedMatchSuggestion[];
   userId: string;
+  locale: 'he' | 'en'; // <-- 1. הוסף את locale לממשק ה-props
+
   isHistory?: boolean;
   viewMode: 'grid' | 'list';
   isLoading?: boolean;
@@ -3841,6 +3878,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   viewMode: initialViewMode,
   isLoading = false,
   userId,
+  locale,
   className,
   onActionRequest,
   isUserInActiveProcess,
@@ -4015,7 +4053,9 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
                     type="text"
-                    placeholder={suggestionsDict.list.controls.searchPlaceholder}
+                    placeholder={
+                      suggestionsDict.list.controls.searchPlaceholder
+                    }
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pr-12 text-right border-gray-200 focus:border-purple-300 focus:ring-purple-200 rounded-xl h-12"
@@ -4037,23 +4077,64 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                     </DropdownMenuLabel>
                     <DropdownMenuGroup>
                       <DropdownMenuItem onClick={() => setFilterOption('all')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'all' ? 'opacity-100' : 'opacity-0')} />
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'all' ? 'opacity-100' : 'opacity-0'
+                          )}
+                        />
                         {suggestionsDict.list.controls.filterAll}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterOption('pending')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'pending' ? 'opacity-100' : 'opacity-0')} />
+                      <DropdownMenuItem
+                        onClick={() => setFilterOption('pending')}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'pending'
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
                         {suggestionsDict.list.controls.filterPending}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterOption('accepted')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'accepted' ? 'opacity-100' : 'opacity-0')} />
+                      <DropdownMenuItem
+                        onClick={() => setFilterOption('accepted')}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'accepted'
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
                         {suggestionsDict.list.controls.filterAccepted}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterOption('declined')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'declined' ? 'opacity-100' : 'opacity-0')} />
+                      <DropdownMenuItem
+                        onClick={() => setFilterOption('declined')}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'declined'
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
                         {suggestionsDict.list.controls.filterDeclined}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterOption('contact_shared')}>
-                        <Check className={cn('mr-2 h-4 w-4', filterOption === 'contact_shared' ? 'opacity-100' : 'opacity-0')} />
+                      <DropdownMenuItem
+                        onClick={() => setFilterOption('contact_shared')}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterOption === 'contact_shared'
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
                         {suggestionsDict.list.controls.filterContactShared}
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
@@ -4064,7 +4145,11 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   onValueChange={(value) => setSortOption(value as SortOption)}
                 >
                   <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-purple-300 rounded-xl">
-                    <SelectValue placeholder={suggestionsDict.list.controls.sortPlaceholder} />
+                    <SelectValue
+                      placeholder={
+                        suggestionsDict.list.controls.sortPlaceholder
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="newest">
@@ -4096,27 +4181,54 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
               </div>
               {(searchQuery || filterOption !== 'all') && (
                 <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                  <span className="text-sm text-gray-500 font-medium">{suggestionsDict.list.activeFilters.title}</span>
+                  <span className="text-sm text-gray-500 font-medium">
+                    {suggestionsDict.list.activeFilters.title}
+                  </span>
                   {searchQuery && (
-                    <Badge variant="outline" className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200">
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200"
+                    >
                       {suggestionsDict.list.activeFilters.search} {searchQuery}
-                      <Button variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => setSearchQuery('')}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
+                        onClick={() => setSearchQuery('')}
+                      >
                         <XCircle className="h-3 w-3" />
                       </Button>
                     </Badge>
                   )}
                   {filterOption !== 'all' && (
-                    <Badge variant="outline" className="flex items-center gap-1 bg-pink-50 text-pink-700 border-pink-200">
-                      {filterOption === 'pending' && suggestionsDict.list.controls.filterPending}
-                      {filterOption === 'accepted' && suggestionsDict.list.controls.filterAccepted}
-                      {filterOption === 'declined' && suggestionsDict.list.controls.filterDeclined}
-                      {filterOption === 'contact_shared' && suggestionsDict.list.controls.filterContactShared}
-                      <Button variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => setFilterOption('all')}>
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 bg-pink-50 text-pink-700 border-pink-200"
+                    >
+                      {filterOption === 'pending' &&
+                        suggestionsDict.list.controls.filterPending}
+                      {filterOption === 'accepted' &&
+                        suggestionsDict.list.controls.filterAccepted}
+                      {filterOption === 'declined' &&
+                        suggestionsDict.list.controls.filterDeclined}
+                      {filterOption === 'contact_shared' &&
+                        suggestionsDict.list.controls.filterContactShared}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
+                        onClick={() => setFilterOption('all')}
+                      >
                         <XCircle className="h-3 w-3" />
                       </Button>
                     </Badge>
                   )}
-                  <Button variant="ghost" size="sm" className="text-xs text-gray-500 hover:text-gray-700" onClick={clearFilters}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                    onClick={clearFilters}
+                  >
                     {suggestionsDict.list.activeFilters.clearAll}
                   </Button>
                 </div>
@@ -4128,13 +4240,19 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         <div className="flex justify-between items-center text-sm text-gray-600">
           <span>
             {filteredSuggestions.length === 1
-              ? suggestionsDict.list.resultsCount.showingSingle.replace('{{count}}', '1').replace('{{total}}', initialSuggestions.length.toString())
-              : suggestionsDict.list.resultsCount.showingMultiple.replace('{{count}}', filteredSuggestions.length.toString()).replace('{{total}}', initialSuggestions.length.toString())}
+              ? suggestionsDict.list.resultsCount.showingSingle
+                  .replace('{{count}}', '1')
+                  .replace('{{total}}', initialSuggestions.length.toString())
+              : suggestionsDict.list.resultsCount.showingMultiple
+                  .replace('{{count}}', filteredSuggestions.length.toString())
+                  .replace('{{total}}', initialSuggestions.length.toString())}
           </span>
           {filteredSuggestions.length > 0 && (
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-purple-500" />
-              <span className="font-medium">{suggestionsDict.list.resultsCount.qualityMatches}</span>
+              <span className="font-medium">
+                {suggestionsDict.list.resultsCount.qualityMatches}
+              </span>
             </div>
           )}
         </div>
@@ -4166,6 +4284,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
               >
                 <MinimalSuggestionCard
                   suggestion={suggestion}
+                  locale={locale}
                   userId={userId}
                   onClick={() => handleOpenDetails(suggestion)}
                   onInquiry={() => handleInquiry(suggestion)}
@@ -4188,6 +4307,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
       <SuggestionDetailsModal
         suggestion={selectedSuggestion}
         userId={userId}
+        locale={locale}
         isOpen={!!selectedSuggestion && !showAskDialog}
         onClose={() => setSelectedSuggestion(null)}
         onActionRequest={onActionRequest}
@@ -4195,7 +4315,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           selectedSuggestion?.secondParty?.questionnaireResponses?.[0] || null
         }
         // ✅ 4. העברת שני ה-props ליעד הסופי
-       dict={{
+        dict={{
           suggestions: suggestionsDict,
           profileCard: profileCardDict,
         }}
@@ -4252,6 +4372,7 @@ import {
   MapPin,
   Briefcase,
   GraduationCap,
+  ArrowLeft,
   ChevronUp,
   Scroll as ScrollIcon,
   GitCompareArrows,
@@ -4312,6 +4433,8 @@ interface SuggestionDetailsModalProps {
     suggestion: ExtendedMatchSuggestion,
     action: 'approve' | 'decline'
   ) => void;
+  locale: 'he' | 'en'; // <-- 1. הוסף prop
+
   questionnaire: QuestionnaireResponse | null;
   isDemo?: boolean;
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
@@ -4360,6 +4483,8 @@ const EnhancedHeroSection: React.FC<{
   targetParty: ExtendedMatchSuggestion['secondParty'];
   personalNote?: string | null;
   matchingReason?: string | null;
+  locale: 'he' | 'en'; // <-- הוסף prop
+
   onViewProfile: () => void;
   onStartConversation: () => void;
   dict: SuggestionsDictionary['modal']['header'];
@@ -4371,6 +4496,7 @@ const EnhancedHeroSection: React.FC<{
   onViewProfile,
   onStartConversation,
   dict,
+  locale,
 }) => {
   const age = targetParty.profile?.birthDate
     ? new Date().getFullYear() -
@@ -4498,7 +4624,11 @@ const EnhancedHeroSection: React.FC<{
                     >
                       <User className="w-5 h-5 ml-2" />
                       {dict.viewFullProfile}
-                      <ArrowRight className="w-4 h-4 mr-2" />
+                      {locale === 'he' ? (
+                        <ArrowRight className="w-4 h-4" />
+                      ) : (
+                        <ArrowLeft className="w-4 h-4" />
+                      )}
                     </Button>
                     <Button
                       onClick={onStartConversation}
@@ -4782,6 +4912,7 @@ const EnhancedTabsSection: React.FC<{
 const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   suggestion,
   userId,
+  locale,
   isOpen,
   onClose,
   onActionRequest,
@@ -4800,6 +4931,19 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const { isFullscreen, isTransitioning, toggleFullscreen } =
     useFullscreenModal(isOpen);
   const searchParams = useSearchParams();
+  useEffect(() => {
+    if (isOpen && (isMobile || isFullscreen)) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [isOpen, isMobile, isFullscreen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -4862,23 +5006,29 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
 
   // src/components/suggestions/modals/SuggestionDetailsModal.tsx
 
+  // src/app/components/suggestions/modals/SuggestionDetailsModal.tsx
+
+  // החלף את כל הפונקציה הזו בקוד הבא
   const getModalClasses = () => {
-    const base =
+    const baseClasses =
       'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out';
-    if (isMobile)
-      //  <-- כאן התיקון
-      return `${base} !w-screen !h-[100dvh] !max-w-none !max-h-none !rounded-none`;
-    if (isFullscreen)
-      return `${base} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0`;
-    return `${base} md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl`;
+    if (isMobile) {
+      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0`;
+    } else if (isFullscreen) {
+      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !translate-x-0 !translate-y-0 !transform-none`;
+    } else {
+      return `${baseClasses} md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl`;
+    }
   };
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent
           className={cn(getModalClasses())}
-          dir="rtl"
+          dir={locale === 'he' ? 'rtl' : 'ltr'}
           onOpenAutoFocus={(e) => e.preventDefault()}
+          data-fullscreen={isFullscreen}
+          data-mobile={isMobile}
         >
           <ScrollArea className="flex-grow min-h-0 modal-scroll">
             <Tabs
@@ -4903,6 +5053,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 <EnhancedHeroSection
                   matchmaker={suggestion.matchmaker}
                   targetParty={targetParty}
+                  locale={locale}
                   personalNote={
                     isFirstParty
                       ? suggestion.firstPartyNotes
@@ -4942,6 +5093,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     // =============================    KEY CHANGE #3 (Usage)    =============================
                     // מעבירים לקומפוננטת הפרופיל את המילון שלה
                     dict={dict.profileCard}
+                    locale={locale}
                     // ======================================================================================
                   />
                 ) : (

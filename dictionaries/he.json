@@ -585,7 +585,64 @@
       "submitSuccess": "קיבלנו! תודה רבה על השותפות. המשוב שלך בדרך לצוות שלנו.",
       "submitError": "אוי, נראה שיש תקלה קטנה. אנא נסה/י שוב, אנחנו באמת רוצים לשמוע אותך."
     }
+  },
+    "messagesPage": {
+    "header": {
+      "title": "מרכז הפעילות שלי",
+      "subtitle": "כל העדכונים, ההודעות והפעולות שלך במקום אחד."
+    },
+    "actionBanner": {
+      "titleSingle": "פעולה אחת ממתינה לך!",
+      "titleMultiple": "{{count}} פעולות ממתינות לך!",
+      "description": "ישנן הצעות שממתינות לתשובתך. זה הזמן להתקדם במסע!"
+    },
+    "filters": {
+      "all": "הכל",
+      "actionRequired": "דורש פעולה",
+      "updates": "עדכונים",
+      "refresh": "רענן"
+    },
+    "error": "שגיאה: {{error}}",
+    "emptyState": {
+      "title": "הכל שקט ורגוע",
+      "descriptionAll": "אין עדכונים חדשים כרגע. ברגע שתהיה התפתחות, היא תופיע כאן.",
+      "descriptionFiltered": "אין פריטים התואמים לסינון."
+    },
+    "notificationCard": {
+      "matchmakerPrefix": "הצעה מהשדכן/ית",
+      "suggestionWith": "עם {{name}}",
+      "viewDetails": "צפה בפרטים"
+    },
+    "badges": {
+      "match": "התאמה!"
+    },
+        "messageList": {
+      "header": "מרכז הפעילות",
+      "subtitle": "{{count}} הצעות ועדכונים"
+    },
+    "messageListItem": {
+      "matchBadge": "התאמה!"
+    },
+    "availabilityRequestCard": {
+      "title": "בקשת בדיקת זמינות",
+      "fromMatchmaker": "מאת {{name}}",
+      "firstPartyLabel": "צד ראשון",
+      "secondPartyLabel": "צד שני",
+      "progressLabel": "התקדמות",
+      "noteLabel": "הערה:",
+      "buttons": {
+        "available": "אני זמין/ה",
+        "unavailable": "לא זמין/ה כרגע"
+      },
+      "responses": {
+        "PENDING": "ממתין",
+        "AVAILABLE": "זמין/ה",
+        "UNAVAILABLE": "לא זמין/ה"
+      }
+    }
+
   }
+
 
 
 

@@ -1,14 +1,14 @@
 ################################################################################
-# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\messages
-# Generated on: 2025-08-19 17:41:46
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages
+# Generated on: 2025-09-01 13:20:37
 ################################################################################
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\messages
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\messages\AvailabilityRequestCard.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\AvailabilityRequestCard.tsx
 --------------------------------------------------------------------------------
 Content:
 // FILENAME: src/app/components/messages/AvailabilityRequestCard.tsx
@@ -150,7 +150,7 @@ export default function AvailabilityRequestCard({
 --- End of Content for AvailabilityRequestCard.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\messages\MessageList.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\MessageList.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/messages/MessageList.tsx
@@ -199,7 +199,7 @@ export default MessageList;
 --- End of Content for MessageList.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\messages\MessageListItem.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\MessageListItem.tsx
 --------------------------------------------------------------------------------
 Content:
 // FILENAME: src/app/components/messages/MessageListItem.tsx
@@ -326,14 +326,14 @@ export default MessageListItem;
 --- End of Content for MessageListItem.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\messages\MessagesPage.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\MessagesPage.tsx
 --------------------------------------------------------------------------------
 Content:
 // FILENAME: src/app/components/messages/MessagesPage.tsx
 
 'use client';
 
-import { useNotifications } from '@/app/contexts/NotificationContext';
+import { useNotifications } from '@/app/[locale]/contexts/NotificationContext';
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -598,7 +598,7 @@ export default function MessagesPage() {
 --- End of Content for MessagesPage.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\messages\NotificationCard.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\NotificationCard.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/messages/NotificationCard.tsx
@@ -770,7 +770,7 @@ export default NotificationCard;
 --- End of Content for NotificationCard.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\messages\messages_contents.txt
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\messages_contents.txt
 --------------------------------------------------------------------------------
 [This is the output log file itself. Content not included.]
 

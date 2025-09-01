@@ -1,4 +1,4 @@
-// src/app/components/messages/NotificationCard.tsx
+// src/components/messages/NotificationCard.tsx
 
 import React from 'react';
 import Link from 'next/link';
@@ -6,10 +6,8 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
-import { he } from 'date-fns/locale';
-// ================== שינוי 1: הוספת הייבוא ==================
+import { he, enUS } from 'date-fns/locale';
 import { cn, getInitials, getRelativeCloudinaryPath } from '@/lib/utils';
 import type { FeedItem } from '@/types/messages';
 import {
@@ -19,17 +17,26 @@ import {
   Zap,
   CheckCircle,
   Info,
+  ArrowRight,
 } from 'lucide-react';
+import type { MessagesPageDict } from '@/types/dictionary';
+import type { Locale } from '../../../i18n-config';
 
 interface NotificationCardProps {
   item: FeedItem;
   userId: string;
+  // ✨ PROP UPDATE: קבלת חלק מהמילון ו-locale
+  dict: MessagesPageDict['notificationCard'];
+  locale: Locale;
 }
 
 const NotificationCard: React.FC<NotificationCardProps> = ({
   item,
   userId,
+  dict,
+  locale,
 }) => {
+  // ... (לוגיקת האייקונים נשארת זהה)
   const iconMap: Record<
     FeedItem['type'],
     { icon: React.ElementType; color: string; gradient: string }
@@ -68,7 +75,6 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
 
   const { icon: Icon, gradient } = iconMap[item.type] || {
     icon: Info,
-    color: 'text-gray-500',
     gradient: 'from-gray-400 to-slate-500',
   };
   const suggestion = item.payload.suggestion;
@@ -84,7 +90,6 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
   return (
     <Card className="shadow-lg border-0 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white">
       <CardContent className="p-5 flex items-start gap-4">
-        {/* Icons Column */}
         <div className="flex flex-col items-center gap-2 flex-shrink-0">
           <div
             className={cn(
@@ -97,7 +102,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
           {matchmaker && (
             <Avatar
               className="w-10 h-10 border-2 border-white"
-              title={`הצעה מהשדכן/ית ${matchmaker.firstName}`}
+              title={`${dict.matchmakerPrefix} ${matchmaker.firstName}`}
             >
               <AvatarFallback className="bg-gray-200 text-gray-600 text-sm font-bold">
                 {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
@@ -106,7 +111,6 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
           )}
         </div>
 
-        {/* Content Column */}
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start">
             <div className="flex-1">
@@ -116,20 +120,19 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
               <p className="text-sm text-gray-600 mt-1">{item.description}</p>
             </div>
             <span className="text-xs text-gray-400 flex-shrink-0 pl-2">
+              {/* ✨ LOCALE UPDATE: שימוש ב-locale עבור תאריך */}
               {formatDistanceToNow(new Date(item.timestamp), {
                 addSuffix: true,
-                locale: he,
+                locale: locale === 'he' ? he : enUS,
               })}
             </span>
           </div>
 
-          {/* Link to Suggestion */}
           <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
             {otherParty && (
               <div className="flex items-center gap-2">
                 <Avatar className="w-8 h-8 border-2 border-white shadow">
                   {mainImage?.url ? (
-                    // ================== שינוי 2: שימוש בפונקציית העזר ==================
                     <Image
                       src={getRelativeCloudinaryPath(mainImage.url)}
                       alt={otherParty.firstName}
@@ -145,15 +148,24 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
                     </AvatarFallback>
                   )}
                 </Avatar>
+                {/* ✨ TEXT UPDATE: שימוש במילון */}
                 <span className="text-sm font-medium text-gray-700">
-                  עם {otherParty.firstName}
+                  {dict.suggestionWith.replace(
+                    '{{name}}',
+                    otherParty.firstName
+                  )}
                 </span>
               </div>
             )}
             <Link href={item.link} passHref>
               <Button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300">
-                צפה בפרטים
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                {dict.viewDetails}
+                {/* ✨ LOCALE UPDATE: שינוי כיוון החץ */}
+                {locale === 'he' ? (
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                ) : (
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                )}
               </Button>
             </Link>
           </div>
