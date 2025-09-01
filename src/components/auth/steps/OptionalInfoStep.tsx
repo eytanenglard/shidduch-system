@@ -40,10 +40,14 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
     useState<SubmissionStatus>('idle');
   const [error, setError] = useState<string | null>(null);
 
+  // ============================ התיקון מתחיל כאן ============================
   const handleSubmit = async () => {
+    // שלב 1: הצג את הטעינה ומחק שגיאות קודמות
     setSubmissionStatus('savingProfile');
     setError(null);
+
     try {
+      // שלב 2: ודא שכל נתוני החובה מהשלבים הקודמים קיימים
       const profileData = {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -67,6 +71,7 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
         throw new Error(dict.errors.missingData);
       }
 
+      // שלב 3: שמור את הפרופיל בשרת
       const profileResponse = await fetch('/api/auth/complete-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -77,9 +82,11 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
         throw new Error(errorData.error || dict.errors.default);
       }
 
+      // שלב 4: עדכן את הסטטוס למשתמש ורענן את הסשן
       setSubmissionStatus('updatingSession');
       await updateSessionHook();
 
+      // שלב 5: בקש מהשרת לשלוח את קוד האימות לטלפון
       setSubmissionStatus('sendingCode');
       const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
         method: 'POST',
@@ -89,46 +96,16 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
         throw new Error(errorData.error || dict.errors.default);
       }
 
-
-      setTimeout(() => {
-        // ====================== LOGGING START: Client-Side Navigation ======================
-        console.log(
-          `\n\n=========================================================`
-        );
-        console.log(`--- [Client-Side | OptionalInfoStep] ---`);
-        console.log(`Timestamp: ${new Date().toISOString()}`);
-        console.log(
-          `➡️  Preparing to navigate after completing optional info.`
-        );
-
-        // בדיקה קריטית של ה-locale שהתקבל כ-prop
-        console.log(`   Value of 'locale' prop received: "${locale}"`);
-
-        if (!locale || (locale !== 'he' && locale !== 'en')) {
-          console.error(
-            `❌ CRITICAL ERROR: The 'locale' prop is invalid or undefined! Value: "${locale}". This will cause a redirect loop or incorrect language.`
-          );
-          console.log(
-            `   This error originates from how this component is rendered by its parent (RegisterClient.tsx).`
-          );
-        }
-
-        const targetUrl = `/${locale}/auth/verify-phone`;
-
-        console.log(`   Constructed Target URL: "${targetUrl}"`);
-        console.log(`   Executing: router.push("${targetUrl}")`);
-        console.log(
-          `=========================================================\n`
-        );
-        // ======================= LOGGING END =======================
-
-        router.push(targetUrl);
-      }, 1500);
+      // שלב 6 (השינוי המרכזי): נווט מיידית לדף אימות הטלפון, ללא השהייה
+      // רכיב הטעינה יישאר גלוי עד שהדף החדש יתחיל להיטען.
+      const targetUrl = `/${locale}/auth/verify-phone`;
+      router.push(targetUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.errors.default);
-      setSubmissionStatus('error');
+      setSubmissionStatus('error'); // במקרה של שגיאה, הסתר את הטעינה והצג את ההודעה
     }
   };
+  // ============================ התיקון מסתיים כאן ============================
 
   const isSubmitting =
     submissionStatus !== 'idle' && submissionStatus !== 'error';
