@@ -89,7 +89,6 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
         throw new Error(errorData.error || dict.errors.default);
       }
 
-      setSubmissionStatus('allDone');
 
       setTimeout(() => {
         // ====================== LOGGING START: Client-Side Navigation ======================
