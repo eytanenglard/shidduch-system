@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-09-01 00:08:22
+# Generated on: 2025-09-01 12:59:37
 ################################################################################
 
 ================================================================================
@@ -508,18 +508,18 @@ const RegisterStepsContent: React.FC<{
             />
           );
         case 3:
-          return <OptionalInfoStep dict={dict.steps.optionalInfo} />;
+          return <OptionalInfoStep dict={dict.steps.optionalInfo}  locale={locale}/>;
         case 4:
           return <CompleteStep dict={dict.steps.complete} />;
         default:
           resetForm();
-          return <WelcomeStep dict={dict.steps.welcome} />;
+          return <WelcomeStep dict={dict.steps.welcome}  locale={locale} />;
       }
     }
 
     switch (registrationContextData.step) {
       case 0:
-        return <WelcomeStep dict={dict.steps.welcome} />;
+        return <WelcomeStep dict={dict.steps.welcome}  locale={locale}/>;
       case 1:
         return (
           <BasicInfoStep
@@ -530,7 +530,7 @@ const RegisterStepsContent: React.FC<{
         );
       default:
         resetForm();
-        return <WelcomeStep dict={dict.steps.welcome} />;
+        return <WelcomeStep dict={dict.steps.welcome}  locale={locale}/>;
     }
   };
 
@@ -2874,13 +2874,12 @@ import SubmissionStatusIndicator, {
   SubmissionStatus,
 } from './SubmissionStatusIndicator';
 
-// 1. עדכן את הממשק כדי שיקבל את locale
+// הממשק המלא של ה-props
 interface OptionalInfoStepProps {
   dict: RegisterStepsDict['steps']['optionalInfo'];
   locale: 'he' | 'en';
 }
 
-// 2. קבל את locale מה-props
 const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
   dict,
   locale,
@@ -2944,8 +2943,38 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
       setSubmissionStatus('allDone');
 
       setTimeout(() => {
-        // 3. השתמש ב-locale כדי לבנות את הנתיב המלא
-        router.push(`/${locale}/auth/verify-phone`);
+        // ====================== LOGGING START: Client-Side Navigation ======================
+        console.log(
+          `\n\n=========================================================`
+        );
+        console.log(`--- [Client-Side | OptionalInfoStep] ---`);
+        console.log(`Timestamp: ${new Date().toISOString()}`);
+        console.log(
+          `➡️  Preparing to navigate after completing optional info.`
+        );
+
+        // בדיקה קריטית של ה-locale שהתקבל כ-prop
+        console.log(`   Value of 'locale' prop received: "${locale}"`);
+
+        if (!locale || (locale !== 'he' && locale !== 'en')) {
+          console.error(
+            `❌ CRITICAL ERROR: The 'locale' prop is invalid or undefined! Value: "${locale}". This will cause a redirect loop or incorrect language.`
+          );
+          console.log(
+            `   This error originates from how this component is rendered by its parent (RegisterClient.tsx).`
+          );
+        }
+
+        const targetUrl = `/${locale}/auth/verify-phone`;
+
+        console.log(`   Constructed Target URL: "${targetUrl}"`);
+        console.log(`   Executing: router.push("${targetUrl}")`);
+        console.log(
+          `=========================================================\n`
+        );
+        // ======================= LOGGING END =======================
+
+        router.push(targetUrl);
       }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.errors.default);
@@ -2953,7 +2982,6 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
     }
   };
 
-  // ... שאר הקוד של הקומפוננטה וה-JSX נשארים זהים לחלוטין ...
   const isSubmitting =
     submissionStatus !== 'idle' && submissionStatus !== 'error';
 

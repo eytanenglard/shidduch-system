@@ -68,8 +68,19 @@ export type EmailDictionary = {
   accountSetup: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; notice: string; nextStep: string; };
   emailOtpVerification: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
   invitation: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; expiryNotice: string; };
-  suggestion: EmailTemplateContent & { intro: string; previewTitle: string; actionPrompt: string; actionButton: string; closing: string; };
-  shareContactDetails: EmailTemplateContent & { intro: string; detailsOf: string; tipTitle: string; tipContent: string; goodLuck: string; };
+suggestion: EmailTemplateContent & { 
+  intro: string; 
+  previewTitle: string; 
+  actionPrompt: string; 
+  actionButton: string; 
+  closing: string; 
+  details: {
+    age: string;
+    city: string;
+    occupation: string;
+    additionalInfo: string;
+  };
+};  shareContactDetails: EmailTemplateContent & { intro: string; detailsOf: string; tipTitle: string; tipContent: string; goodLuck: string; };
   availabilityCheck: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; noticeTitle: string; noticeContent: string; };
   passwordResetOtp: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
   passwordChangedConfirmation: EmailTemplateContent & { intro: string; securityNote: string; actionButton: string; };

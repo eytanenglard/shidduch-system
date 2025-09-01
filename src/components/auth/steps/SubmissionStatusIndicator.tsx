@@ -10,7 +10,6 @@ export type SubmissionStatus =
   | 'savingProfile'
   | 'updatingSession'
   | 'sendingCode'
-  | 'allDone' // <-- The new success state
   | 'error';
 
 interface Step {
@@ -42,9 +41,7 @@ const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
     currentStatus: SubmissionStatus
   ): 'completed' | 'in-progress' | 'pending' => {
     // === NEW: If the status is 'allDone', all steps are completed ===
-    if (currentStatus === 'allDone') {
-      return 'completed';
-    }
+  
     
     const stepIndex = steps.findIndex((s) => s.id === stepId);
     const currentIndex = steps.findIndex((s) => s.id === currentStatus);
@@ -117,16 +114,7 @@ const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
               </div>
 
               {/* === NEW: Final success message before redirecting === */}
-              {currentStatus === 'allDone' && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="mt-6 flex items-center justify-center gap-2 text-green-600"
-                  >
-                    <CheckCircle className="h-5 w-5" />
-                    <p className="font-semibold">הכל מוכן! מעבירים אותך...</p>
-                  </motion.div>
-              )}
+            
             </div>
           </motion.div>
         </motion.div>

@@ -1,4 +1,3 @@
-// src/components/HomePage/components/LiveSuggestionDemo.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -12,16 +11,13 @@ import type {
   ProfileCardDict,
 } from '@/types/dictionary';
 
-// ✨ 1. הגדרת טיפוס לתרגומי הדמו הספציפיים שנוספו
+// הגדרת טיפוס לתרגומי הדמו הספציפיים שנוספו
 type SuggestionDemoDict = {
   hoverTitle: string;
   hoverSubtitle: string;
 };
 
-/**
- * ✨ 2. עדכון הממשק של ה-props
- * הוספנו את suggestionDemoDict כדי לקבל את התרגומים של שכבת הריחוף.
- */
+// עדכון הממשק של ה-props
 interface LiveSuggestionDemoProps {
   suggestion: ExtendedMatchSuggestion;
   userId: string;
@@ -29,8 +25,7 @@ interface LiveSuggestionDemoProps {
   suggestionsDict: SuggestionsDictionary;
   profileCardDict: ProfileCardDict;
   suggestionDemoDict: SuggestionDemoDict;
-  locale: 'he' | 'en'; // <-- ✨ 1. הוסף את locale לממשק ה-props
-  // הוספנו את ה-prop החדש
+  locale: 'he' | 'en';
 }
 
 /**
@@ -43,7 +38,7 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
   suggestionsDict,
   profileCardDict,
   locale,
-  suggestionDemoDict, // ✨ 3. קבלת ה-prop החדש
+  suggestionDemoDict,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -55,10 +50,25 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
 
   return (
     <div className="w-full max-w-sm lg:max-w-md mx-auto flex flex-col items-center gap-4">
-      <button
-        type="button"
-        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 w-full"
+      {/*
+       * ===================================================================
+       * כאן בוצע התיקון המרכזי:
+       * 1. תג ה-<button> הוחלף ב-<div> כדי למנוע קינון לא חוקי של כפתורים.
+       * 2. נוסף 'role="button"' ו-'tabIndex={0}' לשמירה על נגישות (מיקוד וזיהוי על ידי קוראי מסך).
+       * 3. נוסף אירוע 'onKeyDown' כדי לאפשר הפעלה באמצעות מקלדת (Enter או Space).
+       * ===================================================================
+       */}
+      <div
+        role="button"
+        tabIndex={0}
+        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-500"
         onClick={handleOpenModal}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault(); // מונע גלילה בעת לחיצה על מקש רווח
+            handleOpenModal();
+          }
+        }}
         aria-label={`הצג הצעה עבור ${suggestion.secondParty.firstName}`}
       >
         <MinimalSuggestionCard
@@ -70,13 +80,10 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
           onDecline={handleOpenModal}
           isApprovalDisabled={true}
           dict={suggestionsDict.card}
-           locale={locale}
+          locale={locale}
         />
 
-        {/* 
-          ✨ 4. עדכון הטקסטים הקשיחים לשימוש בתרגומים מה-dict
-          הטקסטים "לחצו להצגה מלאה" וכו' הוחלפו במשתנים דינמיים.
-        */}
+        {/* שכבת הריחוף עם הטקסט הדינמי */}
         <div className="absolute inset-0 bg-black/50 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-4 pointer-events-none">
           <ZoomIn className="w-12 h-12 mb-2" />
           <p className="font-bold text-lg text-center">
@@ -86,7 +93,7 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
             {suggestionDemoDict.hoverSubtitle}
           </p>
         </div>
-      </button>
+      </div>
 
       <SuggestionDetailsModal
         suggestion={suggestion}
@@ -105,7 +112,7 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
           suggestions: suggestionsDict,
           profileCard: profileCardDict,
         }}
-         locale={locale}
+        locale={locale}
       />
     </div>
   );

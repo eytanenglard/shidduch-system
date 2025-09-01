@@ -40,14 +40,21 @@
 "expiryNotice": "Your personal invitation is valid for {{expiresIn}}."
 },
 "suggestion": {
-"subject": "We Have a Good Feeling About This Suggestion for You",
-"title": "A New Suggestion is on its Way",
-"intro": "Your matchmaker, {{matchmakerName}}, was thinking of you and has prepared a new suggestion that looks especially promising. We've put thought into it and believe there's real potential here.",
-"previewTitle": "A small glimpse into the suggestion:",
-"actionPrompt": "To view the full profile and make a decision, we invite you to visit your personal dashboard:",
-"actionButton": "View Full Suggestion",
-"closing": "We look forward to hearing from you,"
+  "subject": "We Have a Good Feeling About This Suggestion for You",
+  "title": "A New Suggestion is on its Way",
+  "intro": "Your matchmaker, {{matchmakerName}}, was thinking of you and has prepared a new suggestion that looks especially promising. We've put thought into it and believe there's real potential here.",
+  "previewTitle": "A small glimpse into the suggestion:",
+  "actionPrompt": "To view the full profile and make a decision, we invite you to visit your personal dashboard:",
+  "actionButton": "View Full Suggestion",
+  "closing": "We look forward to hearing from you,",
+  "details": {
+    "age": "Age",
+    "city": "City",
+    "occupation": "Occupation",
+    "additionalInfo": "Additional Info"
+  }
 },
+
 "shareContactDetails": {
 "subject": "Best of luck! Contact details have been shared",
 "title": "Embarking on a Shared Path",

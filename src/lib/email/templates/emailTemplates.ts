@@ -176,26 +176,50 @@ export const emailTemplates: {
     let detailsHtml = '';
     if (context.suggestionDetails) {
       const detailsList = [
-        context.suggestionDetails.age && `<li><strong>גיל:</strong> ${context.suggestionDetails.age}</li>`,
-        context.suggestionDetails.city && `<li><strong>עיר:</strong> ${context.suggestionDetails.city}</li>`,
-        context.suggestionDetails.occupation && `<li><strong>עיסוק:</strong> ${context.suggestionDetails.occupation}</li>`,
-        context.suggestionDetails.additionalInfo && `<li><strong>מידע נוסף:</strong> ${context.suggestionDetails.additionalInfo}</li>`,
+        context.suggestionDetails.age && `<li><strong>${context.dict.details.age}:</strong> ${context.suggestionDetails.age}</li>`,
+        context.suggestionDetails.city && `<li><strong>${context.dict.details.city}:</strong> ${context.suggestionDetails.city}</li>`,
+        context.suggestionDetails.occupation && `<li><strong>${context.dict.details.occupation}:</strong> ${context.suggestionDetails.occupation}</li>`,
+        context.suggestionDetails.additionalInfo && `<li><strong>${context.dict.details.additionalInfo}:</strong> ${context.suggestionDetails.additionalInfo}</li>`,
       ].filter(Boolean).join('');
+      
       if (detailsList) {
-        detailsHtml = `<ul>${detailsList}</ul>`;
+        detailsHtml = `
+          <div class="attributes-list">
+            <h4>${context.dict.previewTitle}</h4>
+            <ul>${detailsList}</ul>
+          </div>`;
       }
     }
-    return createBaseEmailHtml(context.dict.title, `
-      <p>${context.sharedDict.greeting.replace('{{name}}', context.recipientName)}</p>
-      <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
-      ${detailsHtml ? `<div class="attributes-list"><h4>${context.dict.previewTitle}</h4>${detailsHtml}</div>` : ''}
-      <p>${context.dict.actionPrompt}</p>
-      <p style="text-align: center;">
-        <a href="${context.dashboardUrl}" class="button">${context.dict.actionButton}</a>
-      </p>
-      <p>${context.dict.closing}</p>
-    `, context);
+    
+    // כאן אנו יוצרים קונטקסט חדש שכולל את ה-HTML שנוצר
+    const newContext = { ...context, detailsHtml };
+    
+    // הפונקציה createBaseEmailHtml עדיין לא קיימת כאן, לכן נשתמש בתבנית המלאה
+    // שהגדרנו בקובץ ה-hbs. הקוד כאן רק מדגים את הכנת המשתנים.
+    // מכיוון שקובץ ה-hbs מטפל עכשיו בעיצוב, כל מה שצריך זה להעביר לו את המשתנים.
+    // ודא שקריאת ה-Handlebars שלך יכולה לקבל את `detailsHtml`.
+    // אם אתה משתמש ב-`createBaseEmailHtml`, תצטרך להוסיף את `detailsHtml` ל-content.
+    
+    // החלק החשוב הוא לוודא שהמשתנה `detailsHtml` נוצר כפי שמוצג למעלה.
+    // אם הקוד שלך כבר משתמש בפונקציה שמרנדרת קובץ hbs, הוא אמור לעבוד עם העברת המשתנה החדש.
+
+    // קוד ההחזרה המקורי שלך כנראה נראה כך, ויש לעדכן אותו:
+     return createBaseEmailHtml(
+       context.dict.title, 
+       `
+        <p>${context.sharedDict.greeting.replace('{{name}}', context.recipientName)}</p>
+        <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
+        ${detailsHtml}
+        <p>${context.dict.actionPrompt}</p>
+        <p style="text-align: center;">
+            <a href="${context.dashboardUrl}" class="button">${context.dict.actionButton}</a>
+        </p>
+        <p>${context.dict.closing}</p>
+      `, 
+      context
+    );
   },
+
 
   shareContactDetails: (context) => {
     const contactInfoHtml = [
