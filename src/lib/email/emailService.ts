@@ -6,7 +6,7 @@ import { getDictionary } from '@/lib/dictionaries';
 import { EmailDictionary } from '@/types/dictionary';
 import { Locale } from '../../../i18n-config'; // ודא שהנתיב נכון
 
-// =================  הוספת הממשק החדש לתיקון שגיאת ESLint =================
+// =================  עדכון הממשק הקיים =================
 /**
  * ממשק זה מאגד את כל המאפיינים האפשריים שניתן להעביר לכל תבנית אימייל.
  * הוא מחליף את השימוש ב-'any' ומספק בטיחות טיפוסים מלאה.
@@ -14,15 +14,15 @@ import { Locale } from '../../../i18n-config'; // ודא שהנתיב נכון
  */
 interface TemplateContext {
   // מאפיינים שנוספים אוטומטית בפונקציה sendEmail
-  locale: Locale; // הוספנו את השפה לקונטקסט
   supportEmail: string;
   companyName: string;
   currentYear: string;
   baseUrl: string;
 
   // מאפיינים דינמיים המגיעים מהקונטקסט של כל סוג אימייל
-  dict: EmailDictionary[keyof EmailDictionary];
-  sharedDict: EmailDictionary['shared'];
+  locale?: Locale; // אופציונלי, כי אימיילים פנימיים לא צריכים אותו
+  dict?: EmailDictionary[keyof EmailDictionary]; // אופציונלי
+  sharedDict?: EmailDictionary['shared']; // אופציונלי
   name?: string;
   firstName?: string;
   matchmakerAssigned?: boolean;
@@ -49,8 +49,16 @@ interface TemplateContext {
   otp?: string;
   loginUrl?: string;
   inquiryId?: string;
+
+  // --- הוספת שדות עבור אימייל הפידבק ---
+  feedbackType?: string;
+  userIdentifier?: string;
+  content?: string;
+  pageUrl?: string;
+  screenshotUrl?: string;
+  feedbackId?: string;
 }
-// =================  סוף הוספת הממשק =================
+// =================  סוף עדכון הממשק =================
 
 // הגדרות טיפוסים בסיסיות עם locale
 interface EmailConfig {

@@ -71,6 +71,19 @@ export interface PasswordChangedConfirmationTemplateContext extends BaseTemplate
   loginUrl: string;
 }
 
+// ============================ הוספת הטיפוס החדש כאן ============================
+// ממשק חדש עבור תבנית הודעת פידבק פנימית.
+// הוא אינו מרחיב את BaseTemplateContext כי הוא אינו דורש תרגומים (dict) או שפה (locale).
+export interface InternalFeedbackNotificationTemplateContext {
+    feedbackType: string;
+    userIdentifier: string;
+    content: string;
+    pageUrl: string;
+    screenshotUrl?: string;
+    feedbackId: string;
+}
+// ==============================================================================
+
 // מפה בין שם התבנית לסוג הקונטקסט שלה
 export type TemplateContextMap = {
   welcome: WelcomeTemplateContext;
@@ -82,9 +95,42 @@ export type TemplateContextMap = {
   availabilityCheck: AvailabilityCheckTemplateContext;
   passwordResetOtp: PasswordResetOtpTemplateContext;
   passwordChangedConfirmation: PasswordChangedConfirmationTemplateContext;
+  // ================= הוספת התבנית החדשה למפה =================
+  'internal-feedback-notification': InternalFeedbackNotificationTemplateContext;
+  // ==========================================================
 };
 
-// ============================ התיקון המרכזי כאן ============================
+// --- פונקציית עזר ליצירת HTML בסיסי לאימיילים פנימיים ---
+const createInternalBaseEmailHtml = (title: string, content: string): string => {
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; line-height: 1.6; color: #333; }
+        .container { max-width: 700px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #fff; }
+        h1 { color: #06b6d4; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+        th { background-color: #f7f7f7; font-weight: 600; width: 150px; }
+        pre { white-space: pre-wrap; font-family: inherit; margin: 0; }
+        .screenshot { margin-top: 25px; }
+        .screenshot h2 { font-size: 18px; color: #333; margin-bottom: 10px; }
+        .screenshot img { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+        a { color: #06b6d4; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        ${content}
+    </div>
+</body>
+</html>`;
+};
+
 // --- פונקציית עזר ליצירת HTML בסיסי ---
 const createBaseEmailHtml = (title: string, content: string, context: BaseTemplateContext): string => {
     const isRtl = context.locale === 'he';
@@ -132,7 +178,6 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
 };
 
 // --- מיפוי התבניות עם הטיפוס המדויק ---
-// אין צורך לשנות את הקוד הזה, הוא ישתמש אוטומטית בפונקציה המתוקנת
 export const emailTemplates: {
   [K in keyof TemplateContextMap]: (context: TemplateContextMap[K]) => string;
 } = {
@@ -269,4 +314,43 @@ export const emailTemplates: {
       <a href="${context.loginUrl}" class="button">${context.dict.actionButton}</a>
     </p>
   `, context),
+  
+  // ============================ הוספת התבנית החדשה כאן ============================
+  'internal-feedback-notification': (context) => createInternalBaseEmailHtml('New Feedback Received', `
+    <h1>New Feedback Received</h1>
+    <p>A new piece of feedback has been submitted through the website widget.</p>
+    
+    <table>
+        <tr>
+            <th>Feedback ID</th>
+            <td>${context.feedbackId}</td>
+        </tr>
+        <tr>
+            <th>Type</th>
+            <td><strong>${context.feedbackType}</strong></td>
+        </tr>
+        <tr>
+            <th>Submitted By</th>
+            <td>${context.userIdentifier}</td>
+        </tr>
+        <tr>
+            <th>Page URL</th>
+            <td><a href="${context.pageUrl}" target="_blank">${context.pageUrl}</a></td>
+        </tr>
+        <tr>
+            <th>Content</th>
+            <td><pre>${context.content}</pre></td>
+        </tr>
+    </table>
+
+    ${context.screenshotUrl ? `
+    <div class="screenshot">
+        <h2>Screenshot Attached</h2>
+        <a href="${context.screenshotUrl}" target="_blank">
+            <img src="${context.screenshotUrl}" alt="User-submitted screenshot">
+        </a>
+    </div>
+    ` : ''}
+  `),
+  // ==============================================================================
 };
