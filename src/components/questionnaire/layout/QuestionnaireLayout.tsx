@@ -377,9 +377,6 @@ export default function QuestionnaireLayout({
           >
             {dict.worldLabels[currentWorld]}
           </h1>
-          <div className="text-xs text-slate-500">
-            {completedWorlds.length} / {Object.keys(worldConfig).length} הושלמו
-          </div>
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -474,12 +471,6 @@ export default function QuestionnaireLayout({
       </aside>
       <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto relative scroll-smooth">
         {children}
-        <AccessibilityFeatures
-          isPanelOpen={isAccessibilityPanelOpen}
-          onPanelOpenChange={setAccessibilityPanelOpen}
-          className="fixed bottom-4 right-4 lg:bottom-6 lg:left-6 lg:right-auto z-50"
-          dict={dict.accessibilityFeatures}
-        />
       </main>
       <AnimatePresence>
         {showExitPrompt && (

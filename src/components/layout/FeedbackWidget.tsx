@@ -230,7 +230,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
           {/* Ambient light effect */}
           <div className="absolute -inset-1 bg-gradient-to-r from-teal-400/20 via-orange-400/20 to-amber-400/20 rounded-2xl sm:rounded-3xl blur-xl" />
 
-          <div className="relative">
+          <div className="relative z-10">
             {/* Header - Mobile optimized */}
             <div className="bg-gradient-to-r from-teal-500/20 via-orange-500/15 to-amber-500/20 p-4 sm:p-6 border-b border-white/30">
               <div className="flex items-center justify-between">
