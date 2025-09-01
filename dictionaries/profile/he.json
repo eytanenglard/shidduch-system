@@ -42,7 +42,7 @@
           "missing": "נדרשות לפחות 3 תמונות (הועלו: {{count}})"
         },
         "personalDetails": {
-          "title": "פרטים אישיים",
+          "title": "פרטים כלליים",
           "description": "הבסיס להכיר אותך לעומק."
         },
         "partnerPreferences": {

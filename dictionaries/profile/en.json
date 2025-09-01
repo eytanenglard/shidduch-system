@@ -42,7 +42,7 @@
           "missing": "At least 3 photos required ({{count}} uploaded)"
         },
         "personalDetails": {
-          "title": "Personal Details",
+          "title": "Overview",
           "description": "The heart of your story.",
           "missing": "Fill in essential personal details"
         },

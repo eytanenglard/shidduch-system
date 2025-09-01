@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new
-# Generated on: 2025-08-27 20:08:39
+# Generated on: 2025-09-01 17:20:42
 ################################################################################
 
 ================================================================================
@@ -47,6 +47,7 @@ import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
+import { cn } from '@/lib/utils';
 
 interface MatchmakerEditProfileProps {
   isOpen: boolean;
@@ -55,6 +56,7 @@ interface MatchmakerEditProfileProps {
   onCandidateDeleted?: (candidateId: string) => void;
   dict: MatchmakerPageDictionary['candidatesManager']['editProfile'];
   profileDict: ProfilePageDictionary;
+  locale: string;
 }
 
 const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
@@ -64,9 +66,11 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   onCandidateDeleted,
   dict,
   profileDict,
+  locale,
 }) => {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(true);
@@ -357,7 +361,10 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-5xl max-h-[90vh] p-0 overflow-hidden">
+        <DialogContent
+          className="max-w-5xl max-h-[90vh] p-0 overflow-hidden"
+          dir={direction}
+        >
           {isLoading && !profile ? (
             <div className="flex items-center justify-center h-64">
               <Loader2 className="w-10 h-10 animate-spin text-primary" />
@@ -372,12 +379,22 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
               <DialogHeader className="p-6 border-b">
                 <div className="flex items-center justify-between">
                   <div>
-                    <DialogTitle className="text-2xl font-bold text-primary/90">
+                    <DialogTitle
+                      className={cn(
+                        'text-2xl font-bold text-primary/90',
+                        locale === 'he' ? 'text-right' : 'text-left'
+                      )}
+                    >
                       {dict.header.title
                         .replace('{{firstName}}', candidate.firstName)
                         .replace('{{lastName}}', candidate.lastName)}
                     </DialogTitle>
-                    <DialogDescription className="text-gray-500 mt-1">
+                    <DialogDescription
+                      className={cn(
+                        'text-gray-500 mt-1',
+                        locale === 'he' ? 'text-right' : 'text-left'
+                      )}
+                    >
                       {dict.header.description}
                     </DialogDescription>
                   </div>
@@ -500,7 +517,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                       isSaving || isDeletingCandidate || isSendingInvite
                     }
                   >
-                    <Send className="w-4 h-4 ml-2" />
+                    <Send
+                      className={cn(
+                        'w-4 h-4',
+                        locale === 'he' ? 'mr-2' : 'ml-2'
+                      )}
+                    />
                     {dict.footer.buttons.sendInvite}
                   </Button>
                   {isAdmin && (
@@ -510,7 +532,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                       disabled={isSaving || isUploading || isDeletingCandidate}
                       size="sm"
                     >
-                      <Trash2 className="w-4 h-4 mr-2" />
+                      <Trash2
+                        className={cn(
+                          'w-4 h-4',
+                          locale === 'he' ? 'ml-2' : 'mr-2'
+                        )}
+                      />
                       {dict.footer.buttons.deleteCandidate}
                     </Button>
                   )}
@@ -533,7 +560,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
 
       {candidate && (
         <Dialog open={isSetupInviteOpen} onOpenChange={setIsSetupInviteOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md" dir={direction}>
             <DialogHeader>
               <DialogTitle>{dict.inviteDialog.title}</DialogTitle>
               <DialogDescription>
@@ -544,7 +571,10 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <Label htmlFor="inviteEmail" className="text-right">
+              <Label
+                htmlFor="inviteEmail"
+                className={cn(locale === 'he' ? 'text-right' : 'text-left')}
+              >
                 {dict.inviteDialog.emailLabel}
               </Label>
               <Input
@@ -554,7 +584,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder={dict.inviteDialog.emailPlaceholder}
                 className="col-span-3"
-                dir="ltr"
+                dir="ltr" // Email input should always be LTR
               />
             </div>
             <DialogFooter>
@@ -575,7 +605,9 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 {isSendingInvite ? (
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <Send className="ml-2 h-4 w-4" />
+                  <X
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
                 )}
                 {isSendingInvite
                   ? dict.inviteDialog.buttons.sending
@@ -1972,11 +2004,14 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   const handleCreateSuggestion = async (data: CreateSuggestionData) => {
     try {
-      const response = await fetch('/api/matchmaker/suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        `/api/matchmaker/suggestions?locale=${locale}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        }
+      );
       if (!response.ok) throw new Error('Failed to create suggestion');
       toast.success('ההצעה נוצרה בהצלחה');
       onCandidateAction?.('suggest', dialogCandidate!);
@@ -2214,7 +2249,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
           }
         }}
       >
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent
+          className="max-w-6xl max-h-[90vh] overflow-y-auto"
+          dir={locale === 'he' ? 'rtl' : 'ltr'}
+        >
           <DialogHeader>
             <div className="flex items-center justify-between">
               <DialogTitle>
@@ -2309,7 +2347,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         onClose={() => setShowEditProfileDialog(false)}
         candidate={dialogCandidate}
         dict={dict.candidatesManager.editProfile} // <--- התיקון כאן
-        profileDict={profileDict} // <--- התיקון כאן (הוספנו את המילון השני)
+        profileDict={profileDict}
+        locale={locale}
       />
     </>
   );
@@ -4167,11 +4206,13 @@ const MinimalHeader: React.FC<{
 interface CandidatesManagerProps {
   matchmakerDict: MatchmakerPageDictionary;
   profileDict: ProfilePageDictionary;
+  locale: string;
 }
 
 const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   matchmakerDict,
   profileDict,
+  locale,
 }) => {
   // --- State Management ---
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -4183,9 +4224,6 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const [isHeaderCompact, setIsHeaderCompact] = useState(true);
   const [isQuickViewEnabled, setIsQuickViewEnabled] = useState(true); // <-- הוספת state חדש
   const params = useParams();
-  const locale = Array.isArray(params.lang)
-    ? params.lang[0]
-    : params.lang || 'en';
 
   // --- AI State ---
   const [aiTargetCandidate, setAiTargetCandidate] = useState<Candidate | null>(
@@ -4247,6 +4285,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     const activeToday = candidates.filter((c) => {
       const lastActive = new Date(c.createdAt);
       const today = new Date();
+
       return (
         (today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24) <= 7
       );
@@ -4369,10 +4408,14 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
       setIsBulkUpdating(false);
     }
   };
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   // --- Render ---
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-indigo-50/10 to-purple-50/5">
+    <div
+      className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-indigo-50/10 to-purple-50/5"
+      dir={direction}
+    >
       <MinimalHeader
         stats={heroStats}
         onAddCandidate={() => setShowManualAddDialog(true)}
@@ -4414,7 +4457,12 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                       size="sm"
                       className="bg-white/90 shadow-sm border border-gray-200"
                     >
-                      <ArrowUpDown className="w-4 h-4 ml-1" />
+                      <ArrowUpDown
+                        className={cn(
+                          'w-4 h-4',
+                          locale === 'he' ? 'ml-1' : 'mr-1'
+                        )}
+                      />
                       {matchmakerDict.candidatesManager.controls.sort}
                     </Button>
                   </DropdownMenuTrigger>
@@ -4449,10 +4497,21 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                   className="bg-white/90 shadow-sm border border-gray-200"
                 >
                   {isQuickViewEnabled ? (
-                    <EyeOff className="w-4 h-4 ml-1" />
+                    <EyeOff
+                      className={cn(
+                        'w-4 h-4',
+                        locale === 'he' ? 'ml-1' : 'mr-1'
+                      )}
+                    />
                   ) : (
-                    <Eye className="w-4 h-4 ml-1" />
+                    <Eye
+                      className={cn(
+                        'w-4 h-4',
+                        locale === 'he' ? 'ml-1' : 'mr-1'
+                      )}
+                    />
                   )}
+
                   {isQuickViewEnabled
                     ? matchmakerDict.candidatesManager.controls.disableQuickView
                     : matchmakerDict.candidatesManager.controls.enableQuickView}
@@ -4727,7 +4786,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                 onClick={() => setIsAnalysisDialogOpen(true)}
                 className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold shadow-lg"
               >
-                <GitCompare className="w-4 h-4 ml-2" />
+                <GitCompare
+                  className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />
                 {matchmakerDict.candidatesManager.controls.compareButton.replace(
                   '{{count}}',
                   String(Object.keys(comparisonSelection).length)
@@ -4752,6 +4813,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         onClose={() => setShowManualAddDialog(false)}
         onCandidateAdded={handleCandidateAdded}
         dict={matchmakerDict.candidatesManager.addManualCandidateDialog} // <--- הוספת השורה הזו
+        locale={locale}
       />
       <AiMatchAnalysisDialog
         isOpen={isAnalysisDialogOpen}
@@ -4759,7 +4821,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         targetCandidate={aiTargetCandidate}
         comparisonCandidates={Object.values(comparisonSelection)}
         dict={matchmakerDict.candidatesManager.aiAnalysis}
-        locale={locale as string} // <--- הוסף את השורה הזו
+       locale={locale} // <--- הוסף את השורה הזו
       />
     </div>
   );
@@ -8340,6 +8402,7 @@ interface AddManualCandidateDialogProps {
   onClose: () => void;
   onCandidateAdded: () => void;
   dict: MatchmakerPageDictionary['candidatesManager']['addManualCandidateDialog'];
+  locale: string;
 }
 
 const MAX_IMAGES = 5;

@@ -586,11 +586,11 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
       />
 
       {isHeaderCompact && (
-        <div className="flex-shrink-0 bg-white/80 backdrop-blur-sm border-b border-gray-100 py-2 px-6 mt-16">
-          <div className="container mx-auto px-6">
-            <div className="flex justify-between items-center">
+        <div className="flex-shrink-0 bg-white/80 backdrop-blur-sm border-b border-gray-100 py-3 px-4 mt-16">
+          <div className="container mx-auto px-2">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
               {!filters.separateFiltering && (
-                <div className="flex-1 max-w-md">
+                <div className="w-full md:flex-1 md:max-w-md">
                   <SearchBar
                     value={filters.searchQuery || ''}
                     onChange={handleSearch}
@@ -605,7 +605,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                 </div>
               )}
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between w-full md:w-auto md:justify-start gap-2 flex-wrap">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -646,6 +646,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -977,7 +978,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         targetCandidate={aiTargetCandidate}
         comparisonCandidates={Object.values(comparisonSelection)}
         dict={matchmakerDict.candidatesManager.aiAnalysis}
-       locale={locale} // <--- הוסף את השורה הזו
+        locale={locale} // <--- הוסף את השורה הזו
       />
     </div>
   );
