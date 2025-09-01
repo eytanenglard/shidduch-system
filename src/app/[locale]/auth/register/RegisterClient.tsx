@@ -102,15 +102,11 @@ const RegisterStepsContent: React.FC<{
         initializeFromSession(user);
         setInitializationAttempted(true);
       }
-    } else if (sessionStatus === 'unauthenticated') {
-      // לוגיקה לאיפוס הטופס אם המשתמש לא מחובר
-      const registrationInProgress =
-        registrationContextData.step > 0 ||
-        registrationContextData.isVerifyingEmailCode;
-      if (registrationInProgress) {
-        resetForm();
-      }
     }
+    // ============================ התיקון כאן ============================
+    // פשוט מחקנו לחלוטין את ה- else if (sessionStatus === 'unauthenticated')
+    // אין צורך לאפס את הטופס עבור משתמש לא מחובר.
+    // =====================================================================
   }, [
     sessionStatus,
     session,

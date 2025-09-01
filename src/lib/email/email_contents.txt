@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email
-# Generated on: 2025-09-01 13:03:57
+# Generated on: 2025-09-01 18:38:29
 ################################################################################
 
 ================================================================================
@@ -20,7 +20,7 @@ import { getDictionary } from '@/lib/dictionaries';
 import { EmailDictionary } from '@/types/dictionary';
 // ================= סוף הוספות =================
 
-// Types
+// הגדרות טיפוסים בסיסיות
 interface EmailConfig {
   to: string;
   subject: string;
@@ -28,7 +28,53 @@ interface EmailConfig {
   context: Record<string, unknown>;
 }
 
-// ================= שינוי: הוספת locale לכל הטיפוסים =================
+// =================  הוספת הממשק החדש לתיקון שגיאת ESLint =================
+/**
+ * ממשק זה מאגד את כל המאפיינים האפשריים שניתן להעביר לכל תבנית אימייל.
+ * הוא מחליף את השימוש ב-'any' ומספק בטיחות טיפוסים מלאה.
+ * כל המאפיינים הם אופציונליים מכיוון שכל תבנית משתמשת בתת-קבוצה שונה של מאפיינים.
+ */
+interface TemplateContext {
+  // מאפיינים שנוספים אוטומטית בפונקציה sendEmail
+  supportEmail: string;
+  companyName: string;
+  currentYear: string;
+  baseUrl: string;
+
+  // מאפיינים דינמיים המגיעים מהקונטקסט של כל סוג אימייל
+  dict: EmailDictionary[keyof EmailDictionary];
+  sharedDict: EmailDictionary['shared'];
+  name?: string;
+  firstName?: string;
+  matchmakerAssigned?: boolean;
+  matchmakerName?: string;
+  dashboardUrl?: string;
+  setupToken?: string;
+  setupLink?: string;
+  expiresIn?: string;
+  verificationCode?: string;
+  invitationLink?: string;
+  recipientName?: string;
+  otherPartyName?: string;
+  otherPartyContact?: {
+    phone?: string;
+    email?: string;
+    whatsapp?: string;
+  };
+  suggestionDetails?: {
+    age?: number;
+    city?: string;
+    occupation?: string;
+    additionalInfo?: string | null;
+  };
+  otp?: string;
+  loginUrl?: string;
+  inquiryId?: string;
+}
+// =================  סוף הוספת הממשק =================
+
+
+// ================= הוספת locale לכל הטיפוסים =================
 interface AccountSetupEmailParams {
     locale: 'he' | 'en';
     email: string;
@@ -139,7 +185,7 @@ class EmailService {
   async sendEmail({ to, subject, templateName, context }: EmailConfig): Promise<void> {
     try {
       if (!emailTemplates[templateName]) {
-        console.error(`Email template "${templateName}" not found.`);
+        console.error(`תבנית אימייל "${templateName}" לא נמצאה.`);
         throw new Error(`Template ${templateName} not found`);
       }
 
@@ -151,7 +197,11 @@ class EmailService {
         baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
       };
       
-      const html = emailTemplates[templateName](fullContext as any); // Use 'as any' to bypass strict context type checks here
+      // =================  התיקון המרכזי =================
+      // החלפנו את 'as any' ב-'as TemplateContext' כדי לספק טיפוסים מפורשים
+      // ולפתור את האזהרה של ESLint.
+      const html = emailTemplates[templateName](fullContext as TemplateContext);
+      // =================  סוף התיקון =================
 
       const mailOptions: nodemailer.SendMailOptions = {
         from: `${process.env.EMAIL_FROM_NAME || 'NeshamaTech'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
@@ -164,10 +214,10 @@ class EmailService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent successfully:', info.messageId, 'to:', to, 'subject:', subject);
+      console.log('אימייל נשלח בהצלחה:', info.messageId, 'אל:', to, 'נושא:', subject);
       
     } catch (error) {
-      console.error('Error sending email to:', to, 'Subject:', subject, 'Template:', templateName, 'Error:', error);
+      console.error('שגיאה בשליחת אימייל אל:', to, 'נושא:', subject, 'תבנית:', templateName, 'שגיאה:', error);
       throw new Error(`Failed to send email to ${to} using template ${templateName}`);
     }
   }
@@ -192,8 +242,8 @@ class EmailService {
       context: {
         dict: emailDict.welcome,
         sharedDict: emailDict.shared,
-        name: firstName, // 'name' for the shared greeting
-        firstName, // keep 'firstName' for specific template use if any
+        name: firstName, // 'name' עבור הברכה המשותפת
+        firstName, // שומרים את 'firstName' לשימוש ספציפי בתבנית אם יש
         matchmakerAssigned,
         matchmakerName,
         dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${dashboardUrl}`,
@@ -266,7 +316,7 @@ class EmailService {
       context: {
         dict: emailDict.invitation,
         sharedDict: emailDict.shared,
-        name: email, // Fallback name
+        name: email, // שם חלופי
         matchmakerName,
         invitationLink: fullInvitationLink,
         expiresIn,
@@ -399,14 +449,13 @@ class EmailService {
     });
   }
   
-  // ... (verifyConnection ופונקציות אחרות נשארות ללא שינוי)
   async verifyConnection(): Promise<boolean> {
     try {
       await this.transporter.verify();
-      console.log("Email service connection verified successfully.");
+      console.log("חיבור שירות האימייל אומת בהצלחה.");
       return true;
     } catch (error) {
-      console.error('Email service connection error:', error);
+      console.error('שגיאה בחיבור לשירות האימייל:', error);
       return false;
     }
   }
@@ -860,26 +909,50 @@ export const emailTemplates: {
     let detailsHtml = '';
     if (context.suggestionDetails) {
       const detailsList = [
-        context.suggestionDetails.age && `<li><strong>גיל:</strong> ${context.suggestionDetails.age}</li>`,
-        context.suggestionDetails.city && `<li><strong>עיר:</strong> ${context.suggestionDetails.city}</li>`,
-        context.suggestionDetails.occupation && `<li><strong>עיסוק:</strong> ${context.suggestionDetails.occupation}</li>`,
-        context.suggestionDetails.additionalInfo && `<li><strong>מידע נוסף:</strong> ${context.suggestionDetails.additionalInfo}</li>`,
+        context.suggestionDetails.age && `<li><strong>${context.dict.details.age}:</strong> ${context.suggestionDetails.age}</li>`,
+        context.suggestionDetails.city && `<li><strong>${context.dict.details.city}:</strong> ${context.suggestionDetails.city}</li>`,
+        context.suggestionDetails.occupation && `<li><strong>${context.dict.details.occupation}:</strong> ${context.suggestionDetails.occupation}</li>`,
+        context.suggestionDetails.additionalInfo && `<li><strong>${context.dict.details.additionalInfo}:</strong> ${context.suggestionDetails.additionalInfo}</li>`,
       ].filter(Boolean).join('');
+      
       if (detailsList) {
-        detailsHtml = `<ul>${detailsList}</ul>`;
+        detailsHtml = `
+          <div class="attributes-list">
+            <h4>${context.dict.previewTitle}</h4>
+            <ul>${detailsList}</ul>
+          </div>`;
       }
     }
-    return createBaseEmailHtml(context.dict.title, `
-      <p>${context.sharedDict.greeting.replace('{{name}}', context.recipientName)}</p>
-      <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
-      ${detailsHtml ? `<div class="attributes-list"><h4>${context.dict.previewTitle}</h4>${detailsHtml}</div>` : ''}
-      <p>${context.dict.actionPrompt}</p>
-      <p style="text-align: center;">
-        <a href="${context.dashboardUrl}" class="button">${context.dict.actionButton}</a>
-      </p>
-      <p>${context.dict.closing}</p>
-    `, context);
+    
+    // כאן אנו יוצרים קונטקסט חדש שכולל את ה-HTML שנוצר
+    const newContext = { ...context, detailsHtml };
+    
+    // הפונקציה createBaseEmailHtml עדיין לא קיימת כאן, לכן נשתמש בתבנית המלאה
+    // שהגדרנו בקובץ ה-hbs. הקוד כאן רק מדגים את הכנת המשתנים.
+    // מכיוון שקובץ ה-hbs מטפל עכשיו בעיצוב, כל מה שצריך זה להעביר לו את המשתנים.
+    // ודא שקריאת ה-Handlebars שלך יכולה לקבל את `detailsHtml`.
+    // אם אתה משתמש ב-`createBaseEmailHtml`, תצטרך להוסיף את `detailsHtml` ל-content.
+    
+    // החלק החשוב הוא לוודא שהמשתנה `detailsHtml` נוצר כפי שמוצג למעלה.
+    // אם הקוד שלך כבר משתמש בפונקציה שמרנדרת קובץ hbs, הוא אמור לעבוד עם העברת המשתנה החדש.
+
+    // קוד ההחזרה המקורי שלך כנראה נראה כך, ויש לעדכן אותו:
+     return createBaseEmailHtml(
+       context.dict.title, 
+       `
+        <p>${context.sharedDict.greeting.replace('{{name}}', context.recipientName)}</p>
+        <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
+        ${detailsHtml}
+        <p>${context.dict.actionPrompt}</p>
+        <p style="text-align: center;">
+            <a href="${context.dashboardUrl}" class="button">${context.dict.actionButton}</a>
+        </p>
+        <p>${context.dict.closing}</p>
+      `, 
+      context
+    );
   },
+
 
   shareContactDetails: (context) => {
     const contactInfoHtml = [
@@ -1001,42 +1074,51 @@ Content:
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\invitation.hbs
 --------------------------------------------------------------------------------
 Content:
-<!-- src/lib/email/templates/invitation.hbs -->
+{{! src/lib/email/templates/invitation.hbs - Updated Version }}
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{dict.title}}</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #4F46E5;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
-        }
+        body { font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; direction: rtl; text-align: right; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; }
+        .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden; }
+        .email-header { background-color: #06b6d4; color: #ffffff; padding: 25px; text-align: center; border-bottom: 5px solid #0891b2; }
+        .email-header h1 { margin: 0; font-size: 26px; font-weight: 600; }
+        .email-body { padding: 25px 30px; font-size: 16px; }
+        .email-body p { margin-bottom: 1em; }
+        .button { display: inline-block; padding: 12px 25px; background-color: #06b6d4; color: white !important; text-decoration: none; border-radius: 5px; margin: 15px 0; font-weight: 500; text-align: center; }
+        .button:hover { background-color: #0891b2; }
+        .footer { background-color: #f1f3f5; padding: 20px; text-align: center; font-size: 0.9em; color: #6c757d; border-top: 1px solid #e9ecef; }
+        .footer a { color: #06b6d4; text-decoration: none; }
+        .highlight-box { background-color: #fef9e7; border-right: 4px solid #f7c75c; padding: 15px; margin: 20px 0; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>שלום {{firstName}},</h2>
-        <p>הוזמנת להצטרף למערכת השידוכים על ידי השדכן/ית {{matchmakerName}}.</p>
-        <p>כדי להשלים את תהליך ההרשמה, אנא לחץ/י על הקישור הבא:</p>
-        <a href="{{baseUrl}}/auth/complete-registration?token={{token}}" class="button"></a>להשלמת ההרשמה</a>
-        <p>הקישור תקף ל-{{expiresIn}}.</p>
-        <p>אם לא ביקשת להצטרף למערכת, אנא התעלם/י מהודעה זו.</p>
-        <p>בברכה,<br>צוות מערכת השידוכים</p>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>{{dict.title}}</h1>
+        </div>
+        <div class="email-body">
+            <p>{{sharedDict.greeting.replace '{{name}}' name}}</p>
+            <p>{{dict.intro}}</p>
+            <p>{{dict.actionPrompt}}</p>
+            
+            <p style="text-align: center;">
+                <a href="{{invitationLink}}" class="button">{{dict.actionButton}}</a>
+            </p>
+
+            <div class="highlight-box">
+                <p><strong>{{dict.expiryNotice}}</strong></p>
+            </div>
+
+            <p style="margin-top: 30px;">{{sharedDict.closing}}<br>{{sharedDict.team}}</p>
+        </div>
+        <div class="footer">
+            <p>{{sharedDict.supportPrompt}} <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+            <p>{{sharedDict.rightsReserved}}</p>
+        </div>
     </div>
 </body>
 </html>
@@ -1364,102 +1446,54 @@ Content:
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\suggestion.hbs
 --------------------------------------------------------------------------------
 Content:
+{{! src/lib/email/templates/suggestion.hbs - Updated Version }}
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{dict.title}}</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .header {
-            text-align: center;
-            padding: 20px;
-            background-color: #4F46E5;
-            color: white;
-            border-radius: 8px 8px 0 0;
-            margin-bottom: 20px;
-        }
-        .content {
-            padding: 20px;
-        }
-        .button {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #4F46E5;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
-            text-align: center;
-        }
-        .suggestion-details {
-            background-color: #f8fafc;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
-        }
-        .footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            text-align: center;
-            color: #666;
-        }
+        body { font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; direction: rtl; text-align: right; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; }
+        .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden; }
+        .email-header { background-color: #06b6d4; color: #ffffff; padding: 25px; text-align: center; border-bottom: 5px solid #0891b2; }
+        .email-header h1 { margin: 0; font-size: 26px; font-weight: 600; }
+        .email-body { padding: 25px 30px; font-size: 16px; }
+        .email-body p { margin-bottom: 1em; }
+        .button { display: inline-block; padding: 12px 25px; background-color: #06b6d4; color: white !important; text-decoration: none; border-radius: 5px; margin: 15px 0; font-weight: 500; text-align: center; }
+        .button:hover { background-color: #0891b2; }
+        .footer { background-color: #f1f3f5; padding: 20px; text-align: center; font-size: 0.9em; color: #6c757d; border-top: 1px solid #e9ecef; }
+        .footer a { color: #06b6d4; text-decoration: none; }
+        .attributes-list { background-color: #f8f9fa; border: 1px solid #e9ecef; padding: 20px; border-radius: 8px; margin: 25px 0; }
+        .attributes-list h4 { margin-top: 0; color: #0891b2; }
+        .attributes-list ul { padding-right: 20px; margin: 10px 0; list-style-type: disc; }
+        .attributes-list li { margin-bottom: 8px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>הצעת שידוך חדשה!</h1>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>{{dict.title}}</h1>
         </div>
-        <div class="content">
-            <h2>שלום {{recipientName}}!</h2>
+        <div class="email-body">
+            <p>{{sharedDict.greeting}}</p>
+            <p>{{dict.intro}}</p>
             
-            <p>השדכן/ית {{matchmakerName}} שלח/ה לך הצעת שידוך חדשה.</p>
-            
-            {{#if suggestionDetails}}
-                <div class="suggestion-details">
-                    <h3>פרטי ההצעה:</h3>
-                    {{#if suggestionDetails.additionalInfo}}
-                        <p>{{suggestionDetails.additionalInfo}}</p>
-                    {{/if}}
-                </div>
-            {{/if}}
+            {{{detailsHtml}}}
 
-            <p>
-                לצפייה בהצעה המלאה ולמתן תשובה, אנא היכנס/י למערכת:
-            </p>
+            <p>{{dict.actionPrompt}}</p>
             
-            <div style="text-align: center;">
-                <a href="{{dashboardUrl}}" class="button">
-                    צפייה בהצעה
-                </a>
-            </div>
-
-            <p class="note">
-                <strong>לתשומת לבך:</strong> נשמח לקבל את תגובתך תוך 48 שעות.
+            <p style="text-align: center;">
+                <a href="{{dashboardUrl}}" class="button">{{dict.actionButton}}</a>
             </p>
+
+            <p>{{dict.closing}}</p>
+
+            <p style="margin-top: 30px;">{{sharedDict.closing}}<br>{{sharedDict.team}}</p>
         </div>
-
         <div class="footer">
-            <p>בברכה,<br>צוות מערכת השידוכים</p>
-            {{#if supportEmail}}
-                <p>לתמיכה: {{supportEmail}}</p>
-            {{/if}}
+            <p>{{sharedDict.supportPrompt}} <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+            <p>{{sharedDict.rightsReserved}}</p>
         </div>
     </div>
 </body>

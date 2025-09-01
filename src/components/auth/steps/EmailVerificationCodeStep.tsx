@@ -16,8 +16,7 @@ const OTP_LENGTH = 6;
 
 interface EmailVerificationCodeStepProps {
   dict: RegisterStepsDict['steps']['emailVerification'];
-    locale: 'he' | 'en'; // הוסף את locale
-
+  locale: 'he' | 'en'; // הוסף את locale
 }
 
 const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
@@ -73,14 +72,17 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
     setResendMessage(null);
 
     try {
-      const response = await fetch(`/api/auth/resend-verification-code?locale=${locale}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: registrationData.emailForVerification,
-          code: enteredCode,
-        }),
-      });
+      const response = await fetch(
+        `/api/auth/verify-email-code?locale=${locale}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: registrationData.emailForVerification,
+            code: enteredCode,
+          }),
+        }
+      );
       const result = await response.json();
       if (!response.ok || !result.success || !result.authToken) {
         throw new Error(result.error || dict.errors.default);

@@ -1,19 +1,10 @@
 // src/lib/email/emailService.ts
 
 import nodemailer from 'nodemailer';
-import { emailTemplates } from './templates/emailTemplates';
-// =================  הוספות נדרשות =================
+import { emailTemplates, TemplateContextMap } from './templates/emailTemplates';
 import { getDictionary } from '@/lib/dictionaries';
 import { EmailDictionary } from '@/types/dictionary';
-// ================= סוף הוספות =================
-
-// הגדרות טיפוסים בסיסיות
-interface EmailConfig {
-  to: string;
-  subject: string;
-  templateName: string;
-  context: Record<string, unknown>;
-}
+import { Locale } from '../../../i18n-config'; // ודא שהנתיב נכון
 
 // =================  הוספת הממשק החדש לתיקון שגיאת ESLint =================
 /**
@@ -23,6 +14,7 @@ interface EmailConfig {
  */
 interface TemplateContext {
   // מאפיינים שנוספים אוטומטית בפונקציה sendEmail
+  locale: Locale; // הוספנו את השפה לקונטקסט
   supportEmail: string;
   companyName: string;
   currentYear: string;
@@ -60,10 +52,17 @@ interface TemplateContext {
 }
 // =================  סוף הוספת הממשק =================
 
+// הגדרות טיפוסים בסיסיות עם locale
+interface EmailConfig {
+  to: string;
+  subject: string;
+  templateName: keyof TemplateContextMap;
+  context: Omit<TemplateContext, 'supportEmail' | 'companyName' | 'currentYear' | 'baseUrl'>;
+}
 
 // ================= הוספת locale לכל הטיפוסים =================
 interface AccountSetupEmailParams {
-    locale: 'he' | 'en';
+    locale: Locale;
     email: string;
     firstName: string;
     matchmakerName: string;
@@ -71,7 +70,7 @@ interface AccountSetupEmailParams {
     expiresIn: string;
 }
 interface WelcomeEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   firstName: string;
   matchmakerAssigned?: boolean;
@@ -80,7 +79,7 @@ interface WelcomeEmailParams {
 }
 
 interface VerificationEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   verificationCode: string;
   firstName?: string;
@@ -88,7 +87,7 @@ interface VerificationEmailParams {
 }
 
 interface InvitationEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   invitationLink: string;
   matchmakerName: string;
@@ -96,7 +95,7 @@ interface InvitationEmailParams {
 }
 
 interface SuggestionEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   recipientName: string;
   matchmakerName: string;
@@ -109,7 +108,7 @@ interface SuggestionEmailParams {
 }
 
 interface ContactDetailsEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   recipientName: string;
   otherPartyName: string;
@@ -122,7 +121,7 @@ interface ContactDetailsEmailParams {
 }
 
 interface AvailabilityCheckEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   recipientName: string;
   matchmakerName: string;
@@ -130,7 +129,7 @@ interface AvailabilityCheckEmailParams {
 }
 
 interface PasswordResetOtpEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   otp: string;
   firstName?: string;
@@ -138,7 +137,7 @@ interface PasswordResetOtpEmailParams {
 }
 
 interface PasswordChangedConfirmationParams {
-    locale: 'he' | 'en';
+    locale: Locale;
     email: string;
     firstName?: string;
 }
@@ -171,24 +170,21 @@ class EmailService {
 
   async sendEmail({ to, subject, templateName, context }: EmailConfig): Promise<void> {
     try {
-      if (!emailTemplates[templateName]) {
+      const templateFunction = emailTemplates[templateName];
+      if (!templateFunction) {
         console.error(`תבנית אימייל "${templateName}" לא נמצאה.`);
         throw new Error(`Template ${templateName} not found`);
       }
 
-      const fullContext = {
+      const fullContext: TemplateContext = {
         ...context,
-        supportEmail: context.supportEmail || process.env.SUPPORT_EMAIL || 'support@example.com',
+        supportEmail: process.env.SUPPORT_EMAIL || 'support@example.com',
         companyName: process.env.COMPANY_NAME || 'NeshamaTech',
         currentYear: new Date().getFullYear().toString(),
         baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
       };
       
-      // =================  התיקון המרכזי =================
-      // החלפנו את 'as any' ב-'as TemplateContext' כדי לספק טיפוסים מפורשים
-      // ולפתור את האזהרה של ESLint.
-      const html = emailTemplates[templateName](fullContext as TemplateContext);
-      // =================  סוף התיקון =================
+      const html = templateFunction(fullContext as any); // Use 'as any' here as a bridge, since the function signatures are typed
 
       const mailOptions: nodemailer.SendMailOptions = {
         from: `${process.env.EMAIL_FROM_NAME || 'NeshamaTech'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
@@ -209,7 +205,7 @@ class EmailService {
     }
   }
 
-  // ============================ עדכון כל הפונקציות הבאות ============================
+  // ============================ פונקציות מעודכנות עם locale ============================
 
   async sendWelcomeEmail({
     locale,
@@ -227,10 +223,11 @@ class EmailService {
       subject: emailDict.welcome.subject,
       templateName: 'welcome',
       context: {
+        locale,
         dict: emailDict.welcome,
         sharedDict: emailDict.shared,
-        name: firstName, // 'name' עבור הברכה המשותפת
-        firstName, // שומרים את 'firstName' לשימוש ספציפי בתבנית אם יש
+        name: firstName,
+        firstName,
         matchmakerAssigned,
         matchmakerName,
         dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${dashboardUrl}`,
@@ -248,6 +245,7 @@ class EmailService {
       subject: emailDict.accountSetup.subject,
       templateName: 'accountSetup',
       context: {
+        locale,
         dict: emailDict.accountSetup,
         sharedDict: emailDict.shared,
         name: firstName,
@@ -274,9 +272,10 @@ class EmailService {
       subject: emailDict.emailOtpVerification.subject,
       templateName: 'emailOtpVerification',
       context: {
+        locale,
         dict: emailDict.emailOtpVerification,
         sharedDict: emailDict.shared,
-        name: firstName,
+        name: firstName || email,
         firstName,
         verificationCode,
         expiresIn,
@@ -301,9 +300,10 @@ class EmailService {
       subject: emailDict.invitation.subject.replace('{{matchmakerName}}', matchmakerName),
       templateName: 'invitation',
       context: {
+        locale,
         dict: emailDict.invitation,
         sharedDict: emailDict.shared,
-        name: email, // שם חלופי
+        name: email,
         matchmakerName,
         invitationLink: fullInvitationLink,
         expiresIn,
@@ -327,6 +327,7 @@ class EmailService {
       subject: emailDict.shareContactDetails.subject,
       templateName: 'shareContactDetails',
       context: {
+        locale,
         dict: emailDict.shareContactDetails,
         sharedDict: emailDict.shared,
         name: recipientName,
@@ -353,6 +354,7 @@ class EmailService {
       subject: emailDict.suggestion.subject,
       templateName: 'suggestion',
       context: {
+        locale,
         dict: emailDict.suggestion,
         sharedDict: emailDict.shared,
         name: recipientName,
@@ -379,9 +381,10 @@ class EmailService {
       subject: emailDict.passwordResetOtp.subject,
       templateName: 'passwordResetOtp',
       context: {
+        locale,
         dict: emailDict.passwordResetOtp,
         sharedDict: emailDict.shared,
-        name: firstName,
+        name: firstName || email,
         firstName,
         otp,
         expiresIn,
@@ -402,9 +405,10 @@ class EmailService {
           subject: emailDict.passwordChangedConfirmation.subject,
           templateName: 'passwordChangedConfirmation',
           context: {
+              locale,
               dict: emailDict.passwordChangedConfirmation,
               sharedDict: emailDict.shared,
-              name: firstName,
+              name: firstName || email,
               firstName,
               loginUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/signin`,
           }
@@ -426,6 +430,7 @@ class EmailService {
       subject: emailDict.availabilityCheck.subject,
       templateName: 'availabilityCheck',
       context: {
+        locale,
         dict: emailDict.availabilityCheck,
         sharedDict: emailDict.shared,
         name: recipientName,

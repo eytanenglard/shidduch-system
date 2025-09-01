@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+// הסרנו את useSession כי אנחנו לא צריכים אותו יותר כאן
 import { useRegistration } from '../RegistrationContext';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -20,7 +20,6 @@ import {
 import { motion } from 'framer-motion';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
-// הממשק המלא של ה-props
 interface OptionalInfoStepProps {
   dict: RegisterStepsDict['steps']['optionalInfo'];
   locale: 'he' | 'en';
@@ -32,19 +31,17 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
 }) => {
   const { data, updateField, prevStep } = useRegistration();
   const router = useRouter();
-  const { update: updateSessionHook } = useSession();
 
-  // ============================ התיקון המרכזי ============================
-  // נשתמש במשתנה מצב פשוט אחד בלבד
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ============================ התיקון הסופי ============================
   const handleSubmit = async () => {
-    setIsLoading(true); // 1. נעל את הכפתורים
+    // נעל את הכפתורים כדי למנוע לחיצות כפולות
+    setIsLoading(true);
     setError(null);
 
     try {
-      // 2. בצע את כל קריאות ה-API ההכרחיות ברצף
       const profileData = {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -57,7 +54,6 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
         education: data.education,
       };
 
-      // ודא שהנתונים הבסיסיים קיימים
       if (
         !profileData.firstName ||
         !profileData.lastName ||
@@ -66,7 +62,7 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
         throw new Error(dict.errors.missingData);
       }
 
-      // שמירת הפרופיל
+      // 1. שמור את הפרופיל. חכה לסיום.
       const profileResponse = await fetch('/api/auth/complete-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -77,10 +73,7 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
         throw new Error(errorData.error || dict.errors.default);
       }
 
-      // רענון הסשן
-      await updateSessionHook();
-
-      // שליחת קוד האימות
+      // 2. שלח את קוד האימות. חכה לסיום.
       const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
         method: 'POST',
       });
@@ -89,17 +82,15 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
         throw new Error(errorData.error || dict.errors.default);
       }
 
-      // 3. נווט מיידית לדף הבא
+      // 3. נווט מיידית לדף הבא. בלי שום דבר באמצע.
       router.push(`/${locale}/auth/verify-phone`);
     } catch (err) {
-      // במקרה של שגיאה, הצג אותה ושחרר את הכפתורים
+      // אם משהו נכשל, הצג שגיאה ושחרר את הכפתורים
       setError(err instanceof Error ? err.message : dict.errors.default);
       setIsLoading(false);
     }
-    // הערה: אנחנו לא משחררים את הכפתורים (setIsLoading(false)) במקרה של הצלחה,
-    // כי אנחנו כבר מנווטים מהדף הזה.
   };
-  // ============================ סוף התיקון ============================
+  // =====================================================================
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -138,7 +129,7 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
       )}
 
       <motion.div variants={itemVariants} className="space-y-4">
-        {/* שדות הטופס נשארים ללא שינוי */}
+        {/* שדות הטופס */}
         <div className="space-y-1">
           <label
             htmlFor="heightOptional"
@@ -224,7 +215,7 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
           {isLoading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              <span>שומר...</span>
+              <span></span>
             </>
           ) : (
             <>

@@ -1,10 +1,12 @@
 // src/lib/email/templates/emailTemplates.ts
 
 import { EmailDictionary } from '@/types/dictionary';
+import { Locale } from '../../../../i18n-config'; // ודא שהנתיב נכון
 
 // --- הגדרות טיפוסים לקונטקסט של כל תבנית ---
 
 interface BaseTemplateContext {
+  locale: Locale; // הוספנו את השפה לקונטקסט הבסיסי
   supportEmail: string;
   currentYear: string;
   companyName: string;
@@ -82,16 +84,22 @@ export type TemplateContextMap = {
   passwordChangedConfirmation: PasswordChangedConfirmationTemplateContext;
 };
 
+// ============================ התיקון המרכזי כאן ============================
 // --- פונקציית עזר ליצירת HTML בסיסי ---
-const createBaseEmailHtml = (title: string, content: string, context: BaseTemplateContext): string => `
+const createBaseEmailHtml = (title: string, content: string, context: BaseTemplateContext): string => {
+    const isRtl = context.locale === 'he';
+    const direction = isRtl ? 'rtl' : 'ltr';
+    const textAlign = isRtl ? 'right' : 'left';
+
+    return `
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html dir="${direction}" lang="${context.locale}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
     <style>
-        body { font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; direction: rtl; text-align: right; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; }
+        body { font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; direction: ${direction}; text-align: ${textAlign}; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; }
         .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden; }
         .email-header { background-color: #06b6d4; color: #ffffff; padding: 25px; text-align: center; border-bottom: 5px solid #0891b2; }
         .email-header h1 { margin: 0; font-size: 26px; font-weight: 600; }
@@ -102,7 +110,7 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
         .button:hover { background-color: #0891b2; }
         .footer { background-color: #f1f3f5; padding: 20px; text-align: center; font-size: 0.9em; color: #6c757d; border-top: 1px solid #e9ecef; }
         .footer a { color: #06b6d4; text-decoration: none; }
-        .highlight-box { background-color: #fef9e7; border-right: 4px solid #f7c75c; padding: 15px; margin: 20px 0; border-radius: 5px; }
+        .highlight-box { background-color: #fef9e7; border-${isRtl ? 'right' : 'left'}: 4px solid #f7c75c; padding: 15px; margin: 20px 0; border-radius: 5px; }
         .attributes-list { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
     </style>
 </head>
@@ -121,8 +129,10 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
 </body>
 </html>
 `;
+};
 
 // --- מיפוי התבניות עם הטיפוס המדויק ---
+// אין צורך לשנות את הקוד הזה, הוא ישתמש אוטומטית בפונקציה המתוקנת
 export const emailTemplates: {
   [K in keyof TemplateContextMap]: (context: TemplateContextMap[K]) => string;
 } = {
@@ -191,19 +201,6 @@ export const emailTemplates: {
       }
     }
     
-    // כאן אנו יוצרים קונטקסט חדש שכולל את ה-HTML שנוצר
-    const newContext = { ...context, detailsHtml };
-    
-    // הפונקציה createBaseEmailHtml עדיין לא קיימת כאן, לכן נשתמש בתבנית המלאה
-    // שהגדרנו בקובץ ה-hbs. הקוד כאן רק מדגים את הכנת המשתנים.
-    // מכיוון שקובץ ה-hbs מטפל עכשיו בעיצוב, כל מה שצריך זה להעביר לו את המשתנים.
-    // ודא שקריאת ה-Handlebars שלך יכולה לקבל את `detailsHtml`.
-    // אם אתה משתמש ב-`createBaseEmailHtml`, תצטרך להוסיף את `detailsHtml` ל-content.
-    
-    // החלק החשוב הוא לוודא שהמשתנה `detailsHtml` נוצר כפי שמוצג למעלה.
-    // אם הקוד שלך כבר משתמש בפונקציה שמרנדרת קובץ hbs, הוא אמור לעבוד עם העברת המשתנה החדש.
-
-    // קוד ההחזרה המקורי שלך כנראה נראה כך, ויש לעדכן אותו:
      return createBaseEmailHtml(
        context.dict.title, 
        `
@@ -219,7 +216,6 @@ export const emailTemplates: {
       context
     );
   },
-
 
   shareContactDetails: (context) => {
     const contactInfoHtml = [

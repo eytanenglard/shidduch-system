@@ -1,5 +1,5 @@
-// src/app/components/auth/RegistrationContext.tsx
-"use client";
+// src/components/auth/RegistrationContext.tsx
+'use client';
 
 import React, {
   createContext,
@@ -7,9 +7,9 @@ import React, {
   useState,
   ReactNode,
   useCallback,
-} from "react";
-import { Gender, UserStatus, UserSource } from "@prisma/client";
-import type { User as SessionUserType } from "@/types/next-auth";
+} from 'react';
+import { Gender, UserStatus, UserSource } from '@prisma/client';
+import type { User as SessionUserType } from '@/types/next-auth';
 
 export interface RegistrationData {
   email: string;
@@ -17,7 +17,7 @@ export interface RegistrationData {
   firstName: string;
   lastName: string;
   phone: string;
-  gender: Gender | ""; // "" for unselected, or actual Gender enum value
+  gender: Gender | ''; // "" for unselected, or actual Gender enum value
   birthDate: string;
   maritalStatus: string;
   height?: number;
@@ -31,17 +31,17 @@ export interface RegistrationData {
 }
 
 const initialRegistrationData: RegistrationData = {
-  email: "",
-  password: "",
-  firstName: "",
-  lastName: "",
-  phone: "",
-  gender: "", // Initialized as empty string
-  birthDate: "",
-  maritalStatus: "",
+  email: '',
+  password: '',
+  firstName: '',
+  lastName: '',
+  phone: '',
+  gender: '', // Initialized as empty string
+  birthDate: '',
+  maritalStatus: '',
   height: undefined,
-  occupation: "",
-  education: "",
+  occupation: '',
+  education: '',
   step: 0,
   isGoogleSignup: false,
   isCompletingProfile: false,
@@ -73,17 +73,19 @@ interface RegistrationContextType {
 
 const RegistrationContext = createContext<RegistrationContextType>({
   data: initialRegistrationData,
-  setData: () => console.warn("RegistrationProvider not found"),
-  updateField: () => console.warn("RegistrationProvider not found"),
-  nextStep: () => console.warn("RegistrationProvider not found"),
-  prevStep: () => console.warn("RegistrationProvider not found"),
-  goToStep: () => console.warn("RegistrationProvider not found"),
-  resetForm: () => console.warn("RegistrationProvider not found"),
-  setGoogleSignup: () => console.warn("RegistrationProvider not found"),
-  initializeFromSession: () => console.warn("RegistrationProvider not found"),
-  proceedToEmailVerification: () => console.warn("RegistrationProvider not found"),
-  completeEmailVerification: () => console.warn("RegistrationProvider not found"),
-  exitEmailVerification: () => console.warn("RegistrationProvider not found"),
+  setData: () => console.warn('RegistrationProvider not found'),
+  updateField: () => console.warn('RegistrationProvider not found'),
+  nextStep: () => console.warn('RegistrationProvider not found'),
+  prevStep: () => console.warn('RegistrationProvider not found'),
+  goToStep: () => console.warn('RegistrationProvider not found'),
+  resetForm: () => console.warn('RegistrationProvider not found'),
+  setGoogleSignup: () => console.warn('RegistrationProvider not found'),
+  initializeFromSession: () => console.warn('RegistrationProvider not found'),
+  proceedToEmailVerification: () =>
+    console.warn('RegistrationProvider not found'),
+  completeEmailVerification: () =>
+    console.warn('RegistrationProvider not found'),
+  exitEmailVerification: () => console.warn('RegistrationProvider not found'),
 });
 
 export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
@@ -105,7 +107,8 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     setData((prev) => {
       if (prev.isVerifyingEmailCode) return prev;
       const currentMaxStep = 3;
-      if (prev.step === 1 && !prev.isCompletingProfile && !prev.isGoogleSignup) return prev;
+      if (prev.step === 1 && !prev.isCompletingProfile && !prev.isGoogleSignup)
+        return prev;
       if (prev.step < currentMaxStep) return { ...prev, step: prev.step + 1 };
       if (prev.step === currentMaxStep) return { ...prev, step: 4 };
       return prev;
@@ -115,7 +118,12 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   const prevStep = useCallback(() => {
     setData((prev) => {
       if (prev.isVerifyingEmailCode) {
-        return { ...prev, isVerifyingEmailCode: false, emailForVerification: null, step: 1 };
+        return {
+          ...prev,
+          isVerifyingEmailCode: false,
+          emailForVerification: null,
+          step: 1,
+        };
       }
       if (prev.step > 0) {
         if (prev.step === 4) return { ...prev, step: 3 };
@@ -139,7 +147,11 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const setGoogleSignup = useCallback(
-    (googleUserData: { email: string; firstName?: string; lastName?: string }) => {
+    (googleUserData: {
+      email: string;
+      firstName?: string;
+      lastName?: string;
+    }) => {
       setData({
         ...initialRegistrationData,
         email: googleUserData.email,
@@ -149,95 +161,87 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     []
   );
 
-  const initializeFromSession = useCallback(
-    (sessionUser: SessionUserType) => {
-      // אנחנו משתמשים בצורת העדכון הפונקציונלית של setData
-      // כדי לקבל גישה למצב הקודם של הקונטקסט (prevData).
-      setData((prevData) => {
-        const isGoogleAcc = !!(
-          sessionUser.source === UserSource.REGISTRATION &&
-          sessionUser.accounts?.some(acc => acc.provider === 'google')
-        );
+  // ============================ התיקון המרכזי נמצא כאן ============================
+  const initializeFromSession = useCallback((sessionUser: SessionUserType) => {
+    setData((prevData) => {
+      const isGoogleAcc = !!(
+        sessionUser.source === UserSource.REGISTRATION &&
+        sessionUser.accounts?.some((acc) => acc.provider === 'google')
+      );
 
-        // המרת מגדר מהסשן לטיפוס הנכון
-        const sessionGender: Gender | "" = sessionUser.profile?.gender || "";
+      const sessionGender: Gender | '' = sessionUser.profile?.gender || '';
 
-        // אובייקט זה תמיד יכיל את הנתונים המעודכנים ביותר מהסשן,
-        // וישמש לעדכון שדות הטופס בקונטקסט.
-        const baseStateFromSession = {
-          email: sessionUser.email || "",
-          firstName: sessionUser.firstName || "",
-          lastName: sessionUser.lastName || "",
-          phone: sessionUser.phone || "",
-          gender: sessionGender,
-          birthDate: sessionUser.profile?.birthDate
-            ? new Date(sessionUser.profile.birthDate).toISOString().split("T")[0]
-            : "",
-          maritalStatus: sessionUser.profile?.maritalStatus || "",
-          height: sessionUser.profile?.height ?? undefined,
-          occupation: sessionUser.profile?.occupation || "",
-          education: sessionUser.profile?.education || "",
+      const baseStateFromSession = {
+        email: sessionUser.email || '',
+        firstName: sessionUser.firstName || '',
+        lastName: sessionUser.lastName || '',
+        phone: sessionUser.phone || '',
+        gender: sessionGender,
+        birthDate: sessionUser.profile?.birthDate
+          ? new Date(sessionUser.profile.birthDate).toISOString().split('T')[0]
+          : '',
+        maritalStatus: sessionUser.profile?.maritalStatus || '',
+        height: sessionUser.profile?.height ?? undefined,
+        occupation: sessionUser.profile?.occupation || '',
+        education: sessionUser.profile?.education || '',
+      };
+
+      // תרחיש 1: משתמש חדש צריך לאמת מייל (לפני השלמת פרופיל)
+      if (
+        sessionUser.status === UserStatus.PENDING_EMAIL_VERIFICATION &&
+        !isGoogleAcc &&
+        !sessionUser.isVerified
+      ) {
+        return {
+          ...initialRegistrationData,
+          ...baseStateFromSession,
+          isVerifyingEmailCode: true,
+          emailForVerification: sessionUser.email,
+          step: 1,
+          isCompletingProfile: false,
+          isGoogleSignup: false,
         };
+      }
 
-        // תרחיש 1: משתמש חדש עם אימייל/סיסמה צריך לאמת מייל.
-        // זהו תחילתו של תהליך, ולכן זה בסדר לאפס את המצב לנקודת התחלה נקייה.
-        if (
-          sessionUser.status === UserStatus.PENDING_EMAIL_VERIFICATION &&
-          !isGoogleAcc &&
-          !sessionUser.isVerified
-        ) {
-          return {
-            ...initialRegistrationData, // איפוס המצב
-            ...baseStateFromSession,    // מילוי במידע הבסיסי מהסשן
-            isVerifyingEmailCode: true,
-            emailForVerification: sessionUser.email,
-            step: 1,
-            isCompletingProfile: false,
-            isGoogleSignup: false,
-          };
-        }
-
-        // תרחיש 2: המשתמש נכנס לתהליך השלמת פרופיל בפעם הראשונה
-        // (למשל, אחרי התחברות עם גוגל, או אחרי אימות מייל).
-        // גם זו התחלה של תהליך, ואיפוס המצב הוא תקין.
-        if (!sessionUser.isProfileComplete) {
-          return {
-            ...initialRegistrationData, // איפוס המצב
-            ...baseStateFromSession,    // מילוי במידע הבסיסי מהסשן
-            isCompletingProfile: true,
-            isGoogleSignup: isGoogleAcc,
-            step: 2, // התחל משלב פרטים אישיים
-            isVerifyingEmailCode: false,
-          };
-        }
-
-        // תרחיש 3: הפרופיל הושלם, אך הטלפון עדיין לא אומת.
-        // >>> זהו התיקון הקריטי <<<
-        // מצב זה מתרחש אחרי שהמשתמש לחץ "שלח" ב-OptionalInfoStep.
-        // כאן אסור לנו לאפס את נתוני הטופס.
-        if (sessionUser.isProfileComplete && !sessionUser.isPhoneVerified) {
-          return {
-            ...prevData, // *** התיקון: שמור את נתוני הטופס הקיימים (גובה, עיסוק וכו') ***
-            ...baseStateFromSession, // עדכן את השדות עם המידע העדכני ביותר מה-DB
-            isCompletingProfile: true,
-            isGoogleSignup: isGoogleAcc,
-            step: 4, // זה יעביר נכון לרכיב CompleteStep
-            isVerifyingEmailCode: false,
-          };
-        }
-        
-        // תרחיש ברירת מחדל: המשתמש מאומת אך לא מתאים לאף תרחיש "השלמה" ספציפי.
-        // לדוגמה, בריענון עמוד. אנחנו רק רוצים לסנכרן את הקונטקסט עם הסשן
-        // מבלי לאפס את כל המצב (כמו השלב הנוכחי בתהליך).
-        return { 
-            ...prevData, // שמור על המצב הקיים של הקונטקסט
-            ...baseStateFromSession, // ועדכן אותו עם מידע טרי מהסשן
-            isGoogleSignup: isGoogleAcc,
+      // תרחיש 2: המשתמש צריך להתחיל את תהליך השלמת הפרופיל
+      if (!sessionUser.isProfileComplete) {
+        return {
+          ...initialRegistrationData,
+          ...baseStateFromSession,
+          isCompletingProfile: true,
+          isGoogleSignup: isGoogleAcc,
+          step: 2, // התחל משלב פרטים אישיים
+          isVerifyingEmailCode: false,
         };
-      });
-    },
-    [] // התלויות ריקות כי setData מובטח להיות יציב ולא נעשה שימוש ב-state חיצוני אחר.
-  );
+      }
+
+      // תרחיש 3: הפרופיל הושלם, אך הטלפון לא אומת.
+      // זהו התיקון הקריטי.
+      if (sessionUser.isProfileComplete && !sessionUser.isPhoneVerified) {
+        // אם אנחנו נמצאים כעת בשלב 3 (OptionalInfoStep), אל תשנה את השלב!
+        // תן לרכיב לסיים את עבודתו ולנווט בעצמו.
+        // אם אנחנו בכל שלב אחר (למשל, המשתמש רענן את העמוד), העבר אותו לשלב 4.
+        const nextStep = prevData.step === 3 ? 3 : 4;
+
+        return {
+          ...prevData,
+          ...baseStateFromSession,
+          isCompletingProfile: true,
+          isGoogleSignup: isGoogleAcc,
+          step: nextStep, // <-- שימוש במשתנה שהגדרנו
+          isVerifyingEmailCode: false,
+        };
+      }
+
+      // תרחיש ברירת מחדל: סנכרון נתונים כללי
+      return {
+        ...prevData,
+        ...baseStateFromSession,
+        isGoogleSignup: isGoogleAcc,
+      };
+    });
+  }, []);
+  // ============================ סוף התיקון ============================
 
   const proceedToEmailVerification = useCallback((emailToVerify: string) => {
     setData((prev) => ({
@@ -290,16 +294,18 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
 
 export const useRegistration = (): RegistrationContextType => {
   const context = useContext(RegistrationContext);
-  if (context === undefined || Object.keys(context).every(
+  if (
+    context === undefined ||
+    Object.keys(context).every(
       (key) =>
-        typeof context[key as keyof RegistrationContextType] === "function" &&
+        typeof context[key as keyof RegistrationContextType] === 'function' &&
         context[key as keyof RegistrationContextType]
           .toString()
-          .includes("RegistrationProvider not found")
+          .includes('RegistrationProvider not found')
     )
   ) {
     throw new Error(
-      "useRegistration must be used within a RegistrationProvider"
+      'useRegistration must be used within a RegistrationProvider'
     );
   }
   return context;
