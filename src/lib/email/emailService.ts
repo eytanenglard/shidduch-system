@@ -7,7 +7,7 @@ import { getDictionary } from '@/lib/dictionaries';
 import { EmailDictionary } from '@/types/dictionary';
 // ================= סוף הוספות =================
 
-// Types
+// הגדרות טיפוסים בסיסיות
 interface EmailConfig {
   to: string;
   subject: string;
@@ -15,7 +15,53 @@ interface EmailConfig {
   context: Record<string, unknown>;
 }
 
-// ================= שינוי: הוספת locale לכל הטיפוסים =================
+// =================  הוספת הממשק החדש לתיקון שגיאת ESLint =================
+/**
+ * ממשק זה מאגד את כל המאפיינים האפשריים שניתן להעביר לכל תבנית אימייל.
+ * הוא מחליף את השימוש ב-'any' ומספק בטיחות טיפוסים מלאה.
+ * כל המאפיינים הם אופציונליים מכיוון שכל תבנית משתמשת בתת-קבוצה שונה של מאפיינים.
+ */
+interface TemplateContext {
+  // מאפיינים שנוספים אוטומטית בפונקציה sendEmail
+  supportEmail: string;
+  companyName: string;
+  currentYear: string;
+  baseUrl: string;
+
+  // מאפיינים דינמיים המגיעים מהקונטקסט של כל סוג אימייל
+  dict: EmailDictionary[keyof EmailDictionary];
+  sharedDict: EmailDictionary['shared'];
+  name?: string;
+  firstName?: string;
+  matchmakerAssigned?: boolean;
+  matchmakerName?: string;
+  dashboardUrl?: string;
+  setupToken?: string;
+  setupLink?: string;
+  expiresIn?: string;
+  verificationCode?: string;
+  invitationLink?: string;
+  recipientName?: string;
+  otherPartyName?: string;
+  otherPartyContact?: {
+    phone?: string;
+    email?: string;
+    whatsapp?: string;
+  };
+  suggestionDetails?: {
+    age?: number;
+    city?: string;
+    occupation?: string;
+    additionalInfo?: string | null;
+  };
+  otp?: string;
+  loginUrl?: string;
+  inquiryId?: string;
+}
+// =================  סוף הוספת הממשק =================
+
+
+// ================= הוספת locale לכל הטיפוסים =================
 interface AccountSetupEmailParams {
     locale: 'he' | 'en';
     email: string;
@@ -126,7 +172,7 @@ class EmailService {
   async sendEmail({ to, subject, templateName, context }: EmailConfig): Promise<void> {
     try {
       if (!emailTemplates[templateName]) {
-        console.error(`Email template "${templateName}" not found.`);
+        console.error(`תבנית אימייל "${templateName}" לא נמצאה.`);
         throw new Error(`Template ${templateName} not found`);
       }
 
@@ -138,7 +184,11 @@ class EmailService {
         baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
       };
       
-      const html = emailTemplates[templateName](fullContext as any); // Use 'as any' to bypass strict context type checks here
+      // =================  התיקון המרכזי =================
+      // החלפנו את 'as any' ב-'as TemplateContext' כדי לספק טיפוסים מפורשים
+      // ולפתור את האזהרה של ESLint.
+      const html = emailTemplates[templateName](fullContext as TemplateContext);
+      // =================  סוף התיקון =================
 
       const mailOptions: nodemailer.SendMailOptions = {
         from: `${process.env.EMAIL_FROM_NAME || 'NeshamaTech'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
@@ -151,10 +201,10 @@ class EmailService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent successfully:', info.messageId, 'to:', to, 'subject:', subject);
+      console.log('אימייל נשלח בהצלחה:', info.messageId, 'אל:', to, 'נושא:', subject);
       
     } catch (error) {
-      console.error('Error sending email to:', to, 'Subject:', subject, 'Template:', templateName, 'Error:', error);
+      console.error('שגיאה בשליחת אימייל אל:', to, 'נושא:', subject, 'תבנית:', templateName, 'שגיאה:', error);
       throw new Error(`Failed to send email to ${to} using template ${templateName}`);
     }
   }
@@ -179,8 +229,8 @@ class EmailService {
       context: {
         dict: emailDict.welcome,
         sharedDict: emailDict.shared,
-        name: firstName, // 'name' for the shared greeting
-        firstName, // keep 'firstName' for specific template use if any
+        name: firstName, // 'name' עבור הברכה המשותפת
+        firstName, // שומרים את 'firstName' לשימוש ספציפי בתבנית אם יש
         matchmakerAssigned,
         matchmakerName,
         dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${dashboardUrl}`,
@@ -253,7 +303,7 @@ class EmailService {
       context: {
         dict: emailDict.invitation,
         sharedDict: emailDict.shared,
-        name: email, // Fallback name
+        name: email, // שם חלופי
         matchmakerName,
         invitationLink: fullInvitationLink,
         expiresIn,
@@ -386,14 +436,13 @@ class EmailService {
     });
   }
   
-  // ... (verifyConnection ופונקציות אחרות נשארות ללא שינוי)
   async verifyConnection(): Promise<boolean> {
     try {
       await this.transporter.verify();
-      console.log("Email service connection verified successfully.");
+      console.log("חיבור שירות האימייל אומת בהצלחה.");
       return true;
     } catch (error) {
-      console.error('Email service connection error:', error);
+      console.error('שגיאה בחיבור לשירות האימייל:', error);
       return false;
     }
   }

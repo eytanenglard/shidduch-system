@@ -40,7 +40,7 @@ type EmailTemplateContent = {
   subject: string;
   title: string;
   // מאפשר הוספת שדות נוספים וגמישים לכל תבנית
-  [key: string]: string;
+  [key: string]: string | Record<string, string>; 
 };
 
 // ======================================================================== //
