@@ -238,6 +238,7 @@ interface ProfileChecklistProps {
   questionnaireResponse: QuestionnaireResponse | null;
   dict: ProfileChecklistDict;
   locale: string; // Added: locale prop for directionality
+  onNavigateToTab: (tab: string) => void; // <-- הוסף שורה זו
 }
 
 export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
@@ -247,6 +248,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   questionnaireResponse,
   dict,
   locale, // Added: destructure locale
+  onNavigateToTab, // <-- הוסף את זה
 }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
@@ -395,13 +397,15 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
 
   const questionnaireCompleted = questionnaireResponse?.completed ?? false;
 
+// src/app/[locale]/(authenticated)/profile/components/dashboard/ProfileChecklist.tsx
+
   const tasks = [
     {
       id: 'photo',
       isCompleted: (user.images?.length ?? 0) >= 3,
       title: dict.tasks.photos.title,
       description: dict.tasks.photos.description,
-      link: '/profile?tab=photos',
+      onClick: () => onNavigateToTab('photos'), // <-- שורה זו עודכנה
       icon: Camera,
       missingItems:
         (user.images?.length ?? 0) < 3
@@ -418,7 +422,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       isCompleted: getMissingItems.personalDetails.length === 0,
       title: dict.tasks.personalDetails.title,
       description: dict.tasks.personalDetails.description,
-      link: '/profile?tab=overview',
+      onClick: () => onNavigateToTab('overview'), // <-- שורה זו עודכנה
       icon: User,
       missingItems: getMissingItems.personalDetails,
     },
@@ -427,7 +431,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       isCompleted: getMissingItems.partnerPreferences.length === 0,
       title: dict.tasks.partnerPreferences.title,
       description: dict.tasks.partnerPreferences.description,
-      link: '/profile?tab=preferences',
+      onClick: () => onNavigateToTab('preferences'), // <-- שורה זו עודכנה
       icon: Target,
       missingItems: getMissingItems.partnerPreferences,
     },
@@ -436,7 +440,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       isCompleted: questionnaireCompleted,
       title: dict.tasks.questionnaire.title,
       description: dict.tasks.questionnaire.description,
-      link: '/questionnaire',
+      link: '/questionnaire', // <-- ללא שינוי, מפנה לעמוד אחר
       icon: BookOpen,
       worldProgress: questionnaireProgress ?? undefined,
     },
@@ -445,7 +449,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       isCompleted: hasSeenPreview,
       title: dict.tasks.review.title,
       description: dict.tasks.review.description,
-      onClick: onPreviewClick,
+      onClick: onPreviewClick, // <-- ללא שינוי, פותח דיאלוג
       icon: Edit3,
       missingItems: !hasSeenPreview ? [dict.tasks.review.missing] : [],
     },
@@ -625,18 +629,29 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
             <div className="flex-1 text-center md:text-start">
               {' '}
               {/* Updated: from md:text-right to md:text-start */}
-     <h2 className="text-xl font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
-  {isAllComplete && (
-    <Sparkles className="w-6 h-6 text-amber-500" />
-  )}
-  {(() => {
-    const isFemale = user.profile?.gender === 'FEMALE';
-    const welcomeText = (isFemale && dict.welcome_female) ? dict.welcome_female : dict.welcome;
-    const allCompleteText = (isFemale && dict.allComplete_female) ? dict.allComplete_female : dict.allComplete;
-    const textToShow = isAllComplete ? allCompleteText : welcomeText;
-    return textToShow.replace('{{firstName}}', user.firstName || '');
-  })()}
-</h2>
+              <h2 className="text-xl font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
+                {isAllComplete && (
+                  <Sparkles className="w-6 h-6 text-amber-500" />
+                )}
+                {(() => {
+                  const isFemale = user.profile?.gender === 'FEMALE';
+                  const welcomeText =
+                    isFemale && dict.welcome_female
+                      ? dict.welcome_female
+                      : dict.welcome;
+                  const allCompleteText =
+                    isFemale && dict.allComplete_female
+                      ? dict.allComplete_female
+                      : dict.allComplete;
+                  const textToShow = isAllComplete
+                    ? allCompleteText
+                    : welcomeText;
+                  return textToShow.replace(
+                    '{{firstName}}',
+                    user.firstName || ''
+                  );
+                })()}
+              </h2>
               <AnimatePresence initial={false}>
                 {!isMinimized && (
                   <motion.p

@@ -5,15 +5,19 @@ import React, { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import TestimonialCard from '../components/TestimonialCard';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft , ArrowRight} from 'lucide-react';
 import type { SuccessStoriesDict } from '@/types/dictionary';
 
 // --- Type Definition for Component Props ---
 interface SuccessStoriesProps {
   dict: SuccessStoriesDict;
+  locale: 'he' | 'en';
 }
 
-const SuccessStoriesSection: React.FC<SuccessStoriesProps> = ({ dict }) => {
+const SuccessStoriesSection: React.FC<SuccessStoriesProps> = ({
+  dict,
+  locale,
+}) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.01 });
 
@@ -140,7 +144,11 @@ const SuccessStoriesSection: React.FC<SuccessStoriesProps> = ({ dict }) => {
               className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl group"
             >
               <span>{dict.more_stories_button}</span>
-              <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              {locale === 'he' ? (
+                <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+              ) : (
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              )}{' '}
             </Button>
           </motion.div>
 

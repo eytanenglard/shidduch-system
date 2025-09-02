@@ -11,6 +11,7 @@ import {
   LogOut,
   Settings,
   HelpCircle,
+  ChevronRight,
   CheckCircle,
   Loader2,
   Menu,
@@ -132,7 +133,11 @@ export default function QuestionnaireLayout({
     const statusConfig = {
       active: {
         classes: `bg-${themeColor}-600 text-white shadow-lg hover:bg-${themeColor}-700 ring-2 ring-offset-2 ring-${themeColor}-400`,
-        actionIcon: <ChevronLeft className="h-5 w-5 animate-pulse" />,
+        actionIcon: isRTL ? (
+          <ChevronLeft className="h-5 w-5 animate-pulse" />
+        ) : (
+          <ChevronRight className="h-5 w-5 animate-pulse" />
+        ),
       },
       completed: {
         classes:

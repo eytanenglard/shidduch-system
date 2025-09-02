@@ -153,6 +153,7 @@ const RegisterStepsContent: React.FC<{
             <PersonalDetailsStep
               dict={dict.steps.personalDetails}
               consentDict={dict.consentCheckbox}
+              locale={locale}
             />
           );
         case 3:

@@ -337,7 +337,10 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           // === FIX: Restored specific button styling ===
           className="flex items-center gap-2"
         >
-          <ArrowRight className="h-4 w-4 ml-2" /> {dict.backButton}
+          <ArrowRight
+            className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+          />{' '}
+          {dict.backButton}{' '}
         </Button>
         <Button
           type="button"
@@ -359,7 +362,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           ) : (
             <>
               <span>{dict.nextButton}</span>
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft
+                className={`h-4 w-4 mr-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+              />{' '}
             </>
           )}
         </Button>

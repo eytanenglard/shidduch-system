@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useLocale } from 'next-intl';
 import {
   MessageSquare,
   ThumbsUp,
@@ -21,11 +22,16 @@ import type { FeedbackWidgetDict } from '@/types/dictionary';
 
 interface FeedbackWidgetProps {
   dict: FeedbackWidgetDict;
+  locale: string;
 }
 
 type FeedbackType = 'SUGGESTION' | 'BUG' | 'POSITIVE';
 
-const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
+const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict, locale }) => {
+  // 🌐 הוספת locale לקביעת כיוון השפה
+
+  const isRTL = locale === 'he';
+
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<'type' | 'form'>('type');
   const [feedbackType, setFeedbackType] = useState<FeedbackType | null>(null);
@@ -40,17 +46,19 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
   const [isPermanentlyHidden, setIsPermanentlyHidden] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false); // <--- שינוי 1: הוספת משתנה State חדש
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // <--- שינוי 2: הוספת useEffect למניעת הקלקה בזמן אנימציה
+  // 🔧 הוספת ref למניעת clicks לא רצויים
+  const tabButtonRef = useRef<HTMLButtonElement>(null);
+  const [isProcessingClick, setIsProcessingClick] = useState(false);
+
   useEffect(() => {
     if (isOpen) {
       setIsTransitioning(true);
       const timer = setTimeout(() => {
         setIsTransitioning(false);
-      }, 500); // משך זמן זהה לאנימציה (duration-500)
-
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
@@ -90,23 +98,45 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
   // Minimum swipe distance (in px)
   const minSwipeDistance = 50;
 
+  // 🔧 שיפור Touch Events עם מניעת clicks מיותרים
   const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null); // Reset touchEnd
+    setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
+    // מניעת click event במקביל
+    e.preventDefault();
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart || !touchEnd) {
+      // אם לא היה swipe, נפתח את הווידג'ט
+      if (!isProcessingClick) {
+        setIsProcessingClick(true);
+        setTimeout(() => {
+          setIsOpen(true);
+          setIsProcessingClick(false);
+        }, 50);
+      }
+      return;
+    }
 
     const distance = touchStart - touchEnd;
     const isRightSwipe = distance < -minSwipeDistance;
 
     if (isRightSwipe) {
       handleHidePermanently();
+    } else {
+      // אם לא היה swipe משמעותי, נפתח את הווידג'ט
+      if (!isProcessingClick) {
+        setIsProcessingClick(true);
+        setTimeout(() => {
+          setIsOpen(true);
+          setIsProcessingClick(false);
+        }, 50);
+      }
     }
   };
 
@@ -132,7 +162,15 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
     }
   }, [screenshot]);
 
+  // 🔧 שיפור handleFileChange עם בדיקות נוספות
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // בדיקה שהקובץ נבחר באופן מכוון
+    if (!isOpen || step !== 'form') {
+      // אם הווידג'ט לא פתוח או לא בשלב הנכון, נעצור
+      if (event.target) event.target.value = '';
+      return;
+    }
+
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
@@ -160,6 +198,31 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
       setContent('');
       setScreenshot(null);
       setScreenshotPreview(null);
+    }
+  };
+
+  // 🔧 שיפור handleTabClick עם מניעת conflicts
+  const handleTabClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isProcessingClick || isOpen) return;
+
+    setIsProcessingClick(true);
+    setTimeout(() => {
+      setIsOpen(true);
+      setIsProcessingClick(false);
+    }, 50);
+  };
+
+  // 🔧 הוספת handler מיוחד לכפתור העלאת קבצים
+  const handleFileButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // וידוא שאנחנו בשלב הנכון
+    if (step === 'form' && isOpen && !isTransitioning) {
+      fileInputRef.current?.click();
     }
   };
 
@@ -198,25 +261,29 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
   return (
     <Fragment>
       {/* Floating Tab Button - Responsive */}
-      <div className="fixed top-1/2 -translate-y-1/2 right-0 z-50">
+      <div
+        className={`fixed top-1/2 -translate-y-1/2 z-50 ${isRTL ? 'right-0' : 'left-0'}`}
+      >
         <div
           className={`transition-all duration-700 ${
             isOpen || isPermanentlyHidden
-              ? 'translate-x-4 opacity-0 scale-95'
+              ? `${isRTL ? 'translate-x-4' : '-translate-x-4'} opacity-0 scale-95`
               : 'translate-x-0 opacity-100 scale-100'
           }`}
         >
           <div className="relative group">
             <button
-              onClick={() => setIsOpen(true)}
+              ref={tabButtonRef}
+              onClick={handleTabClick}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
-              className={`relative text-white px-1.5 sm:px-2 py-4 sm:py-6 rounded-l-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-600 via-orange-500 to-amber-400 bg-size-200 hover:bg-pos-100 ${
-                isHovered ? 'w-20 sm:w-32' : 'w-8 sm:w-12'
-              }`}
+              disabled={isProcessingClick}
+              className={`relative text-white px-1.5 sm:px-2 py-4 sm:py-6 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-600 via-orange-500 to-amber-400 bg-size-200 hover:bg-pos-100 disabled:opacity-50 disabled:cursor-not-allowed ${
+                isRTL ? 'rounded-l-2xl' : 'rounded-r-2xl'
+              } ${isHovered ? 'w-20 sm:w-32' : 'w-8 sm:w-12'}`}
               style={{
                 backgroundSize: '200% 100%',
                 backgroundPosition: isHovered ? '100% 0' : '0% 0',
@@ -268,7 +335,9 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                 e.stopPropagation();
                 handleHidePermanently();
               }}
-              className="absolute -top-2 -left-2 w-6 h-6 bg-white/90 hover:bg-red-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/close opacity-0 group-hover:opacity-100 backdrop-blur-sm border border-gray-200 z-20"
+              className={`absolute -top-2 w-6 h-6 bg-white/90 hover:bg-red-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/close opacity-0 group-hover:opacity-100 backdrop-blur-sm border border-gray-200 z-20 ${
+                isRTL ? '-left-2' : '-right-2'
+              }`}
               aria-label="הסתר כפתור פידבק"
             >
               <X className="w-3 h-3 group-hover/close:rotate-45 transition-all duration-300" />
@@ -302,13 +371,13 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
       )}
 
       {/* Main Widget - Responsive */}
-      {/* <--- שינוי 3: עדכון ה-className של המודאל */}
       <div
         className={cn(
-          'fixed inset-x-4 top-1/2 -translate-y-1/2 sm:top-1/2 sm:-translate-y-1/2 sm:right-16 sm:left-auto sm:right-24 z-50 w-auto sm:w-96 max-w-lg mx-auto sm:mx-0 transition-all duration-500',
+          `fixed inset-x-4 top-1/2 -translate-y-1/2 sm:top-1/2 sm:-translate-y-1/2 sm:left-auto z-50 w-auto sm:w-96 max-w-lg mx-auto sm:mx-0 transition-all duration-500`,
+          isRTL ? 'sm:left-16 sm:left-24' : 'sm:right-16 sm:right-24',
           isOpen
             ? 'opacity-100 translate-x-0 scale-100'
-            : 'opacity-0 translate-x-8 scale-95 pointer-events-none',
+            : `opacity-0 scale-95 pointer-events-none ${isRTL ? '-translate-x-8' : 'translate-x-8'}`,
           isTransitioning && 'pointer-events-none'
         )}
       >
@@ -319,10 +388,14 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
           <div className="relative">
             {/* Header - Mobile optimized */}
             <div className="bg-gradient-to-r from-teal-500/20 via-orange-500/15 to-amber-500/20 p-4 sm:p-6 border-b border-white/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 sm:gap-3">
+              <div
+                className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}
+              >
+                <div
+                  className={`flex items-center gap-2 sm:gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}
+                >
                   <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gradient-to-r from-teal-400 to-amber-400 rounded-full animate-pulse shadow-lg" />
-                  <div>
+                  <div className={isRTL ? 'text-right' : 'text-left'}>
                     <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-400 bg-clip-text text-transparent">
                       {dict.title}
                     </h3>
@@ -359,14 +432,18 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                         setFeedbackType(option.type);
                         setStep('form');
                       }}
-                      className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-gray-50/80 to-white/80 hover:from-white to-gray-50 border border-gray-100/50 hover:border-orange-200/50 transition-all duration-300 group flex items-center gap-3 sm:gap-4 hover:shadow-md hover:scale-[1.02]"
+                      className={`w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-gray-50/80 to-white/80 hover:from-white to-gray-50 border border-gray-100/50 hover:border-orange-200/50 transition-all duration-300 group flex items-center gap-3 sm:gap-4 hover:shadow-md hover:scale-[1.02] ${
+                        isRTL ? 'flex-row-reverse' : ''
+                      }`}
                     >
                       <div
                         className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br ${option.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
                       >
                         <option.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-sm" />
                       </div>
-                      <div className="flex-1 text-right">
+                      <div
+                        className={`flex-1 ${isRTL ? 'text-left' : 'text-right'}`}
+                      >
                         <div className="font-medium text-gray-800 mb-1 text-sm sm:text-base">
                           {option.label}
                         </div>
@@ -383,16 +460,28 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                 <div className="space-y-4 sm:space-y-6">
                   <button
                     onClick={() => setStep('type')}
-                    className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-2 transition-colors duration-300 group"
+                    className={`text-sm text-gray-500 hover:text-gray-700 flex items-center gap-2 transition-colors duration-300 group ${
+                      isRTL ? 'flex-row-reverse' : ''
+                    }`}
                   >
-                    <span className="group-hover:translate-x-1 transition-transform">
-                      ←
+                    <span
+                      className={`transition-transform ${
+                        isRTL
+                          ? 'group-hover:-translate-x-1'
+                          : 'group-hover:translate-x-1'
+                      }`}
+                    >
+                      {isRTL ? '→' : '←'}
                     </span>
                     {dict.cancelButton}
                   </button>
 
                   {/* Selected type indicator - Mobile optimized */}
-                  <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gradient-to-r from-gray-50/80 to-white/80 rounded-lg sm:rounded-xl border border-gray-100/50">
+                  <div
+                    className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gradient-to-r from-gray-50/80 to-white/80 rounded-lg sm:rounded-xl border border-gray-100/50 ${
+                      isRTL ? 'flex-row-reverse' : ''
+                    }`}
+                  >
                     {(() => {
                       const selectedOption = feedbackOptions.find(
                         (option) => option.type === feedbackType
@@ -404,7 +493,9 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                           >
                             <selectedOption.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white drop-shadow-sm" />
                           </div>
-                          <div className="flex-1">
+                          <div
+                            className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}
+                          >
                             <div className="font-medium text-gray-800 text-sm sm:text-base">
                               {selectedOption.label}
                             </div>
@@ -421,7 +512,10 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     placeholder={dict.placeholder}
-                    className="min-h-[100px] sm:min-h-[120px] resize-none border-0 bg-gray-50/80 focus:bg-white rounded-xl sm:rounded-2xl shadow-inner transition-all duration-300 placeholder:text-gray-400 text-sm sm:text-base"
+                    className={`min-h-[100px] sm:min-h-[120px] resize-none border-0 bg-gray-50/80 focus:bg-white rounded-xl sm:rounded-2xl shadow-inner transition-all duration-300 placeholder:text-gray-400 text-sm sm:text-base ${
+                      isRTL ? 'text-right' : 'text-left'
+                    }`}
+                    dir={isRTL ? 'rtl' : 'ltr'}
                     required
                   />
 
@@ -430,8 +524,9 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <button
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="group relative px-3 py-2.5 sm:px-4 sm:py-3 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 hover:border-orange-300 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center gap-2 sm:gap-3 hover:shadow-md hover:scale-[1.02] overflow-hidden w-full sm:w-auto"
+                        onClick={handleFileButtonClick}
+                        disabled={isTransitioning}
+                        className="group relative px-3 py-2.5 sm:px-4 sm:py-3 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 hover:border-orange-300 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center gap-2 sm:gap-3 hover:shadow-md hover:scale-[1.02] overflow-hidden w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {/* Background animation */}
                         <div className="absolute inset-0 bg-gradient-to-r from-teal-50/50 via-orange-50/30 to-amber-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -471,7 +566,11 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                             <button
                               type="button"
                               onClick={() => setScreenshot(null)}
-                              className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/remove"
+                              className={`absolute -top-1.5 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/remove ${
+                                isRTL
+                                  ? '-left-1.5 sm:-left-2'
+                                  : '-right-1.5 sm:-right-2'
+                              }`}
                             >
                               <X className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover/remove:rotate-90 transition-transform duration-300" />
                               {/* Glow effect */}
@@ -483,17 +582,23 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                     </div>
 
                     {/* Upload instructions */}
-                    <div className="text-xs text-gray-500 flex items-center gap-2">
+                    <div
+                      className={`text-xs text-gray-500 flex items-center gap-2 ${
+                        isRTL ? 'flex-row-reverse' : ''
+                      }`}
+                    >
                       <div className="w-1.5 h-1.5 bg-gradient-to-r from-teal-400 to-amber-400 rounded-full" />
                       <span>{dict.fileInstructions}</span>
                     </div>
 
+                    {/* 🔧 שיפור input עם תנאי נוסף */}
                     <input
                       type="file"
                       ref={fileInputRef}
                       onChange={handleFileChange}
                       accept="image/png, image/jpeg, image/webp"
                       className="hidden"
+                      tabIndex={-1}
                     />
                   </div>
 
@@ -513,15 +618,19 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                       className="flex-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm sm:text-base"
                     >
                       {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin ml-2" />
-                          {dict.submittingButton}
-                        </>
+                        <div
+                          className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+                        >
+                          <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                          <span>{dict.submittingButton}</span>
+                        </div>
                       ) : (
-                        <>
-                          <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-2" />
-                          {dict.submitButton}
-                        </>
+                        <div
+                          className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+                        >
+                          <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span>{dict.submitButton}</span>
+                        </div>
                       )}
                     </Button>
                   </div>

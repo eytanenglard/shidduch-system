@@ -73,18 +73,19 @@ export default async function RootLayout({
             השפה נקבעת אך ורק על ידי ה-URL.
           */}
           <QuestionnaireStateProvider dict={dictionary}>
-            <FeedbackWidget dict={dictionary.feedbackWidget} />
+            <FeedbackWidget
+              dict={dictionary.feedbackWidget}
+              locale={params.locale}
+            />
 
             {/* 
               אנו מעבירים את המילון וחשוב מכך, את השפה (locale),
               ישירות כ-props לרכיב AppContent. 
               רכיב זה יוכל להעביר אותם הלאה לרכיבים שתחתיו במידת הצורך.
             */}
-            <AppContent dict={dictionary}>
-              {children}
-            </AppContent>
+            <AppContent dict={dictionary}>{children}</AppContent>
           </QuestionnaireStateProvider>
-          
+
           <AccessibilityFeatures
             dict={dictionary.questionnaire.accessibilityFeatures}
           />

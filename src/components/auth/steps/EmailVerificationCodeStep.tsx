@@ -261,7 +261,10 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
           variant="outline"
           disabled={isLoading || isResending}
         >
-          <ArrowRight className="h-4 w-4 ml-2" /> {dict.backButton}
+          <ArrowRight
+            className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+          />{' '}
+          {dict.backButton}{' '}
         </Button>
       </motion.div>
     </motion.div>

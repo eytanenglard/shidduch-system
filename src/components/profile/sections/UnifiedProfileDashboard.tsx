@@ -469,6 +469,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 questionnaireResponse={questionnaireResponse}
                 dict={dict.dashboard.checklist}
                 locale={locale} // Added
+                onNavigateToTab={handleTabChange} // <-- הוסף שורה זו
               />
               <div className="my-6 md:my-8 flex justify-center">
                 <AIProfileAdvisorDialog

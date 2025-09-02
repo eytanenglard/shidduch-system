@@ -12,6 +12,7 @@ import Link from 'next/link';
 import {
   ArrowLeft,
   Sparkles,
+  ArrowRight,
   Heart,
   CheckCircle,
   Quote,
@@ -290,8 +291,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     suggestionsDict={suggestionsDict}
                     profileCardDict={profileCardDict}
                     suggestionDemoDict={dict.suggestionDemo}
-                                  locale={locale} // <-- ✨ 3. העבר את locale לרכיב הבן
-
+                    locale={locale} // <-- ✨ 3. העבר את locale לרכיב הבן
                   />
                 </div>
               </div>
@@ -417,7 +417,11 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                 >
                   <span className="relative z-10 flex items-center justify-center">
                     {dict.finalCta.button}
-                    <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    {locale === 'he' ? (
+                      <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                    ) : (
+                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    )}{' '}
                   </span>
                 </Button>
               </Link>

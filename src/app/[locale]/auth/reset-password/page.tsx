@@ -37,10 +37,12 @@ export default async function ResetPasswordPage({
         href="/"
         className="absolute top-4 left-4 rtl:right-4 rtl:left-auto text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm z-20"
       >
-        <ArrowLeft className="h-4 w-4 transform rtl:rotate-180" />
+        <ArrowLeft
+          className={`h-4 w-4 ${locale === 'he' ? 'transform rotate-180' : ''}`}
+        />{' '}
         חזרה לדף הבית
       </Link>
-      
+
       {/* 
         השימוש ב-Suspense מבטיח שהמשתמש יראה אנימציית טעינה
         אם יש עיכוב כלשהו בטעינת רכיב הלקוח.

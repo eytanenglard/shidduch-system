@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile
-# Generated on: 2025-08-31 15:09:03
+# Generated on: 2025-09-02 20:19:28
 ################################################################################
 
 ================================================================================
@@ -1932,7 +1932,7 @@ const ColorPaletteSelector: React.FC<{
             aria-labelledby="color-palette-button"
             className={cn(
               'absolute top-full mt-2 z-50',
-              direction === 'rtl' ? 'left-0' : 'right-0',
+              direction === 'rtl' ? 'right-0' : 'right-0',
               'bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/80 shadow-xl',
               'min-w-[160px] py-2',
               'animate-in fade-in-0 zoom-in-95 duration-200'
@@ -10040,17 +10040,18 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
             <div className="flex-1 text-center md:text-start">
               {' '}
               {/* Updated: from md:text-right to md:text-start */}
-              <h2 className="text-xl font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
-                {isAllComplete && (
-                  <Sparkles className="w-6 h-6 text-amber-500" />
-                )}
-                {isAllComplete
-                  ? dict.allComplete.replace(
-                      '{{firstName}}',
-                      user.firstName || ''
-                    )
-                  : dict.welcome.replace('{{firstName}}', user.firstName || '')}
-              </h2>
+     <h2 className="text-xl font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
+  {isAllComplete && (
+    <Sparkles className="w-6 h-6 text-amber-500" />
+  )}
+  {(() => {
+    const isFemale = user.profile?.gender === 'FEMALE';
+    const welcomeText = (isFemale && dict.welcome_female) ? dict.welcome_female : dict.welcome;
+    const allCompleteText = (isFemale && dict.allComplete_female) ? dict.allComplete_female : dict.allComplete;
+    const textToShow = isAllComplete ? allCompleteText : welcomeText;
+    return textToShow.replace('{{firstName}}', user.firstName || '');
+  })()}
+</h2>
               <AnimatePresence initial={false}>
                 {!isMinimized && (
                   <motion.p
@@ -13188,6 +13189,9 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       if (!profileResponse.ok || !profileJson.success) {
         throw new Error(profileJson.message || 'Failed to load profile');
       }
+      console.log('---[ CLIENT LOG 1 ]--- Received Profile Data from API:');
+      console.log(profileJson.profile);
+
       setProfileData(profileJson.profile);
       setImages(profileJson.images || []);
       if (profileJson.profile?.hasViewedProfilePreview) {
@@ -13536,7 +13540,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
             </Alert>
           )}
 
-          {isOwnProfile && user && (
+          {isOwnProfile && user && profileData && (
             <>
               <ProfileChecklist
                 user={{

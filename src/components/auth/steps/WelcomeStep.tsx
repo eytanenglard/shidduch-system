@@ -99,7 +99,9 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
           <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
           <Mail className="h-5 w-5 text-white" />
           <span className="text-white font-medium">{dict.emailButton}</span>
-          <ArrowLeft className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+          <ArrowLeft
+            className={`h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity ${locale === 'en' ? 'transform rotate-180' : ''}`}
+          />{' '}
         </Button>
       </div>
 

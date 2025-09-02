@@ -12,6 +12,7 @@ import {
   MessageCircle,
   Shield,
   Clock,
+  ArrowRight,
   Users,
   HelpCircle,
   FileText,
@@ -21,9 +22,10 @@ import type { FaqDict } from '@/types/dictionary';
 // --- Type Definition for Component Props ---
 interface FAQProps {
   dict: FaqDict;
+  locale: 'he' | 'en';
 }
 
-const FAQSection: React.FC<FAQProps> = ({ dict }) => {
+const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.05 });
 
@@ -272,7 +274,11 @@ const FAQSection: React.FC<FAQProps> = ({ dict }) => {
                   >
                     <span className="flex items-center gap-3">
                       {dict.contact_block.button}
-                      <ArrowLeft className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      {locale === 'he' ? (
+                        <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                      ) : (
+                        <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      )}{' '}
                     </span>
                   </Button>
                 </motion.div>

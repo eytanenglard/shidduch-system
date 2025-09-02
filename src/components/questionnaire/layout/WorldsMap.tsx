@@ -111,6 +111,7 @@ interface WorldCardProps {
   dict: WorldsMapDict['worldCard'];
   fullContent: WorldsMapDict['worldsContent'][WorldId];
   stats: { questionCount: number; estimatedTime: number };
+  locale: 'he' | 'en'; // <-- הוסף שורה זו
 }
 
 interface ProgressHeaderProps {
@@ -133,7 +134,6 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
   nextRecommendedWorld,
   onGoToRecommended,
   dict,
-
   worldLabels,
 }) => (
   <motion.div
@@ -186,13 +186,15 @@ const WorldCard: React.FC<WorldCardProps> = ({
   onSelect,
   dict,
   fullContent,
-
+  locale,
   stats,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const config = worldsConfig[worldId];
   const { icon: Icon, themeColor } = config;
+  const isRTL = locale === 'he';
 
+  const ForwardArrow = isRTL ? ArrowLeft : ArrowRight;
   const statusInfo = {
     completed: {
       Icon: CheckCircle2,
@@ -207,21 +209,21 @@ const WorldCard: React.FC<WorldCardProps> = ({
       badge:
         'bg-gradient-to-r from-teal-100 to-orange-100 text-teal-800 border-teal-300',
       action: dict.actions.start,
-      ActionIcon: Sparkles,
+      ActionIcon: ForwardArrow,
     },
     active: {
       Icon: Sparkles,
       text: dict.statuses.active,
       badge: `bg-${themeColor}-100 text-${themeColor}-800 border-${themeColor}-300`,
       action: dict.actions.continue,
-      ActionIcon: ArrowRight,
+      ActionIcon: ForwardArrow,
     },
     available: {
       Icon: ArrowRight,
       text: dict.statuses.available,
       badge: 'bg-gray-100 text-gray-800 border-gray-300',
       action: dict.actions.start,
-      ActionIcon: ArrowRight,
+      ActionIcon: ForwardArrow,
     },
     locked: {
       Icon: Lock,
@@ -492,6 +494,7 @@ export default function WorldsMap({
                 dict={dict.worldCard}
                 fullContent={dict.worldsContent[worldId]}
                 stats={worldStats[worldId]}
+                locale={locale} // <-- הוסף שורה זו
               />
             </motion.div>
           ))}

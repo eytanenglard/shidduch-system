@@ -11,9 +11,11 @@ import type { PrivacyAssuranceDict } from '@/types/dictionary';
 // --- Type Definition for Component Props ---
 interface PrivacyAssuranceProps {
   dict: PrivacyAssuranceDict;
+    locale: 'he' | 'en';
+
 }
 
-const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({ dict }) => {
+const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({ dict, locale }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 

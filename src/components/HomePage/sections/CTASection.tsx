@@ -5,15 +5,16 @@ import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles, ArrowRight } from 'lucide-react';
 import type { CtaDict } from '@/types/dictionary';
 
 // --- Type Definition for Component Props ---
 interface CTAProps {
   dict: CtaDict;
+  locale: 'he' | 'en';
 }
 
-const CTASection: React.FC<CTAProps> = ({ dict }) => {
+const CTASection: React.FC<CTAProps> = ({ dict, locale }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 
@@ -140,7 +141,11 @@ const CTASection: React.FC<CTAProps> = ({ dict }) => {
                 >
                   <span className="relative z-10 flex items-center">
                     {dict.button}
-                    <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    {locale === 'he' ? (
+                      <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                    ) : (
+                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    )}{' '}
                   </span>
                 </Button>
               </motion.div>

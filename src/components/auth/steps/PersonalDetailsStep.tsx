@@ -25,11 +25,13 @@ import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 interface PersonalDetailsStepProps {
   dict: RegisterStepsDict['steps']['personalDetails'];
   consentDict: RegisterStepsDict['consentCheckbox'];
+  locale: string;
 }
 
 const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
   dict,
   consentDict,
+  locale,
 }) => {
   const {
     data: registrationState,
@@ -311,7 +313,9 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           variant="outline"
           disabled={isSubmittingConsent}
         >
-          <ArrowRight className="h-4 w-4 ml-2" />
+          <ArrowRight
+            className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+          />{' '}
           {dict.backButton}
         </Button>
         <Button
@@ -326,7 +330,10 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             </>
           ) : (
             <>
-              {dict.nextButton} <ArrowLeft className="h-4 w-4 mr-2" />
+              {dict.nextButton}{' '}
+              <ArrowLeft
+                className={`h-4 w-4 mr-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+              />{' '}
             </>
           )}
         </Button>

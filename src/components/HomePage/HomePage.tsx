@@ -42,7 +42,6 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -97,10 +96,10 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         locale={locale}
       />
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
-      <SuccessStoriesSection dict={dict.successStories} />
-      <FAQSection dict={dict.faq} />
-      <PrivacyAssuranceSection dict={dict.privacyAssurance} />
-      <CTASection dict={dict.cta} />
+      <SuccessStoriesSection dict={dict.successStories} locale={locale} />
+      <FAQSection dict={dict.faq} locale={locale} />
+      <PrivacyAssuranceSection dict={dict.privacyAssurance} locale={locale} />
+      <CTASection dict={dict.cta} locale={locale} />
       <FooterSection dict={dict.footer} />
 
       <ChatWidget dict={dict.chatWidget} />

@@ -203,7 +203,9 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
           variant="outline"
           disabled={isLoading}
         >
-          <ArrowRight className="h-4 w-4 ml-2" />
+          <ArrowRight
+            className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+          />{' '}
           {dict.backButton}
         </Button>
         <Button
@@ -219,7 +221,10 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
             </>
           ) : (
             <>
-              {dict.nextButton} <ArrowLeft className="h-4 w-4 mr-2" />
+              {dict.nextButton}{' '}
+              <ArrowLeft
+                className={`h-4 w-4 mr-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+              />{' '}
             </>
           )}
         </Button>
