@@ -304,8 +304,15 @@
         "updateSuccess": "התשובה עודכנה בהצלחה",
         "updateError": "שגיאה בעדכון התשובה",
         "visibilitySuccess": "הגדרות הנראות עודכנו",
-        "visibilityError": "שגיאה בעדכון הנראות"
+        "visibilityError": "שגיאה בעדכון הנראות",
+                "deleteSuccess": "התשובה נמחקה בהצלחה.",
+        "deleteError": "שגיאה במחיקת התשובה."
+
       },
+            "deleteConfirm": {
+        "message": "האם למחוק את התשובה לצמיתות? לא ניתן לשחזר פעולה זו."
+      },
+
       "visibilityButton": {
         "visible": "גלוי למועמדים",
         "hidden": "מוסתר"
@@ -328,7 +335,9 @@
       "dateTooltip": "תאריך עדכון אחרון",
       "editTooltip": {
         "text": "עריכת תשובה",
-        "budget": "עריכה בשאלון המלא"
+        "budget": "עריכה בשאלון המלא",
+                "delete": "מחק תשובה"
+
       }
     }
   }

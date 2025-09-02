@@ -149,6 +149,41 @@ export default function QuestionnaireLandingPage({
           >
             {dict.hero.subtitle}
           </motion.p>
+          <motion.div
+            className="mt-12 space-y-4 flex flex-col items-center"
+            variants={fadeInUp}
+          >
+            <Button
+              size="lg"
+              className="w-full max-w-sm text-lg font-semibold px-8 py-7 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
+              onClick={onStartQuestionnaire}
+              disabled={isLoading}
+            >
+              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+              <div className="relative z-10 flex items-center justify-center">
+                {isLoading ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                  <>
+                    <CtaIcon className="h-6 w-6 ms-2 fill-white" />
+                    <span>{getCtaText()}</span>
+                  </>
+                )}
+              </div>
+            </Button>
+            {status !== 'authenticated' && (
+              <Link href="/auth/signin" className="w-full max-w-sm">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full text-md font-medium px-8 py-6 border-2 border-teal-200 text-teal-600 hover:bg-teal-50 hover:border-teal-300 rounded-full transition-all duration-300 bg-white/70 backdrop-blur-sm"
+                >
+                  <Lock className="h-5 w-5 ms-2" />
+                  {dict.cta.loginButton}
+                </Button>
+              </Link>
+            )}
+          </motion.div>
         </div>
       </motion.section>
 

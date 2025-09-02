@@ -2549,7 +2549,14 @@ export type QuestionnaireSectionDictionary = {
       updateError: string;
       visibilitySuccess: string;
       visibilityError: string;
+            deleteSuccess: string; // <-- הוסף שורה זו
+      deleteError: string; // <-- הוסף שורה זו
+
     };
+        deleteConfirm: { // <-- הוסף את כל האובייקט הזה
+      message: string;
+    };
+
        visibilityButton: {
       visible: string;
       hidden: string;
@@ -2574,6 +2581,8 @@ export type QuestionnaireSectionDictionary = {
     editTooltip: {
       text: string;
       budget: string;
+            delete: string; // <-- הוסף שורה זו
+
     };
   };
 };

@@ -560,8 +560,15 @@
         "updateSuccess": "Answer updated successfully.",
         "updateError": "Error updating answer.",
         "visibilitySuccess": "Visibility updated.",
-        "visibilityError": "Error updating visibility."
+        "visibilityError": "Error updating visibility.",
+                "deleteSuccess": "Answer deleted successfully.",
+        "deleteError": "Error deleting answer."
+
       },
+            "deleteConfirm": {
+        "message": "Are you sure you want to permanently delete this answer? This action cannot be undone."
+      },
+
       "visibilityButton": {
         "visible": "Visible to Matches",
         "hidden": "Private"
@@ -584,7 +591,9 @@
       "dateTooltip": "Last updated date",
       "editTooltip": {
         "text": "Edit answer",
-        "budget": "Edit in the full questionnaire"
+        "budget": "Edit in the full questionnaire",
+                "delete": "Delete answer"
+
       }
     }
   },

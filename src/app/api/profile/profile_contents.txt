@@ -1,0 +1,1549 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile
+# Generated on: 2025-09-02 21:12:54
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\profile_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\route.ts
+--------------------------------------------------------------------------------
+Content:
+// File: app/api/profile/route.ts (GET handler)
+
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { Gender, HeadCoveringType, KippahType, ServiceType, ReligiousJourney  } from "@prisma/client";
+import type { UserProfile } from "@/types/next-auth";
+export const dynamic = 'force-dynamic';
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const requestedUserId = searchParams.get('userId');
+
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    let targetUserId: string;
+    if (requestedUserId) {
+      targetUserId = requestedUserId;
+    } else if (session.user.id) {
+      targetUserId = session.user.id;
+    } else {
+       return NextResponse.json(
+        { success: false, message: 'User ID not found in session' },
+        { status: 400 }
+      );
+    }
+
+    const userWithProfile = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        isProfileComplete: true,
+        profile: {
+          select: {
+            id: true,
+            userId: true,
+            gender: true,
+            birthDate: true,
+            nativeLanguage: true,
+            additionalLanguages: true,
+            height: true,
+            city: true,
+            origin: true,
+            aliyaCountry: true,
+            aliyaYear: true,
+            maritalStatus: true,
+            hasChildrenFromPrevious: true,
+            parentStatus: true,
+            fatherOccupation: true,
+            motherOccupation: true,
+            siblings: true,
+            position: true,
+            educationLevel: true,
+            education: true,
+            occupation: true,
+            serviceType: true,
+            serviceDetails: true,
+            religiousLevel: true,
+            religiousJourney: true,
+            shomerNegiah: true,
+            headCovering: true,
+            kippahType: true,
+            profileCharacterTraits: true,
+            profileHobbies: true,
+            about: true,
+            // --- START: הוספת שדות חדשים ---
+            profileHeadline: true,
+            humorStory: true,
+            inspiringCoupleStory: true,
+            influentialRabbi: true,
+            // --- END: הוספת שדות חדשים ---
+            matchingNotes: true,
+            preferredAgeMin: true,
+            preferredAgeMax: true,
+            preferredHeightMin: true,
+            preferredHeightMax: true,
+            preferredReligiousLevels: true,
+            preferredLocations: true,
+            preferredEducation: true,
+            preferredOccupations: true,
+            preferredReligiousJourneys: true,
+            contactPreference: true,
+            isProfileVisible: true,
+            preferredMatchmakerGender: true,
+            availabilityStatus: true,
+            availabilityNote: true,
+            availabilityUpdatedAt: true,
+            preferredMaritalStatuses: true,
+            preferredOrigins: true,
+            preferredServiceTypes: true,
+            preferredHeadCoverings: true,
+            preferredKippahTypes: true,
+            preferredShomerNegiah: true,
+            preferredHasChildrenFromPrevious: true,
+            preferredCharacterTraits: true,
+            preferredHobbies: true,
+            preferredAliyaStatus: true,
+            createdAt: true,
+            updatedAt: true,
+            lastActive: true,
+            verifiedBy: true,
+            hasViewedProfilePreview: true,
+            hasMedicalInfo: true,
+            medicalInfoDetails: true,
+            medicalInfoDisclosureTiming: true,
+            isMedicalInfoVisible: true,
+            needsAiProfileUpdate: true,
+          }
+        },
+        images: {
+          select: {
+            id: true,
+            url: true,
+            isMain: true,
+            createdAt: true,
+            cloudinaryPublicId: true,
+            updatedAt: true,
+          }
+        }
+      }
+    });
+
+    if (!userWithProfile) {
+      return NextResponse.json(
+        { success: false, message: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    const dbProfile = userWithProfile.profile;
+
+    if (!dbProfile) {
+        console.error(`Profile data not found for user ID: ${targetUserId}`);
+        return NextResponse.json(
+            { success: false, message: 'Profile data not found for user.' },
+            { status: 404 }
+        );
+    }
+
+    if (!dbProfile.birthDate) {
+        console.error(`birthDate is null or undefined for profile ID: ${dbProfile.id}`);
+        return NextResponse.json(
+            { success: false, message: 'Data integrity issue: birthDate is missing for the profile.' },
+            { status: 500 }
+        );
+    }
+
+    const profileResponseData: UserProfile = {
+      id: dbProfile.id,
+      userId: dbProfile.userId,
+      gender: dbProfile.gender,
+      birthDate: new Date(dbProfile.birthDate),
+      nativeLanguage: dbProfile.nativeLanguage || undefined,
+      additionalLanguages: dbProfile.additionalLanguages || [],
+      height: dbProfile.height ?? null,
+      city: dbProfile.city || "",
+      origin: dbProfile.origin || "",
+      aliyaCountry: dbProfile.aliyaCountry || "",
+      aliyaYear: dbProfile.aliyaYear ?? null,
+      maritalStatus: dbProfile.maritalStatus || undefined,
+      hasChildrenFromPrevious: dbProfile.hasChildrenFromPrevious ?? undefined,
+      fatherOccupation: dbProfile.fatherOccupation || "",
+      motherOccupation: dbProfile.motherOccupation || "",
+      parentStatus: dbProfile.parentStatus || undefined,
+      siblings: dbProfile.siblings ?? null,
+      position: dbProfile.position ?? null,
+      educationLevel: dbProfile.educationLevel || undefined,
+      education: dbProfile.education || "",
+      occupation: dbProfile.occupation || "",
+      serviceType: dbProfile.serviceType as ServiceType | null || undefined,
+      serviceDetails: dbProfile.serviceDetails || "",
+      religiousLevel: dbProfile.religiousLevel || undefined,
+      religiousJourney: dbProfile.religiousJourney || undefined,
+      shomerNegiah: dbProfile.shomerNegiah ?? undefined,
+      headCovering: dbProfile.headCovering as HeadCoveringType | null || undefined,
+      kippahType: dbProfile.kippahType as KippahType | null || undefined,
+      profileCharacterTraits: dbProfile.profileCharacterTraits || [],
+      profileHobbies: dbProfile.profileHobbies || [],
+      about: dbProfile.about || "",
+      // --- START: הוספת שדות חדשים ---
+      profileHeadline: dbProfile.profileHeadline || undefined,
+      humorStory: dbProfile.humorStory || undefined,
+      inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
+      influentialRabbi: dbProfile.influentialRabbi || undefined,
+      // --- END: הוספת שדות חדשים ---
+      matchingNotes: dbProfile.matchingNotes || "",
+      preferredAgeMin: dbProfile.preferredAgeMin ?? null,
+      preferredAgeMax: dbProfile.preferredAgeMax ?? null,
+      preferredHeightMin: dbProfile.preferredHeightMin ?? null,
+      preferredHeightMax: dbProfile.preferredHeightMax ?? null,
+      preferredReligiousLevels: dbProfile.preferredReligiousLevels || [],
+      preferredLocations: dbProfile.preferredLocations || [],
+      preferredEducation: dbProfile.preferredEducation || [],
+      preferredOccupations: dbProfile.preferredOccupations || [],
+      contactPreference: dbProfile.contactPreference || undefined,
+      isProfileVisible: dbProfile.isProfileVisible,
+      isProfileComplete: userWithProfile.isProfileComplete,
+      preferredMatchmakerGender: dbProfile.preferredMatchmakerGender as Gender | null || undefined,
+      availabilityStatus: dbProfile.availabilityStatus,
+      availabilityNote: dbProfile.availabilityNote || "",
+      availabilityUpdatedAt: dbProfile.availabilityUpdatedAt ? new Date(dbProfile.availabilityUpdatedAt) : null,
+      preferredMaritalStatuses: dbProfile.preferredMaritalStatuses || [],
+      preferredOrigins: dbProfile.preferredOrigins || [],
+      preferredServiceTypes: (dbProfile.preferredServiceTypes as ServiceType[]) || [],
+      preferredHeadCoverings: (dbProfile.preferredHeadCoverings as HeadCoveringType[]) || [],
+      preferredKippahTypes: (dbProfile.preferredKippahTypes as KippahType[]) || [],
+      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined,
+      preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined,
+      preferredCharacterTraits: dbProfile.preferredCharacterTraits || [],
+      preferredHobbies: dbProfile.preferredHobbies || [],
+      preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
+      preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
+      verifiedBy: dbProfile.verifiedBy || undefined,
+      createdAt: new Date(dbProfile.createdAt),
+      updatedAt: new Date(dbProfile.updatedAt),
+      lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
+      hasViewedProfilePreview: dbProfile.hasViewedProfilePreview,
+      hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
+      medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
+      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
+      isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
+       needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
+      user: {
+        id: userWithProfile.id,
+        firstName: userWithProfile.firstName,
+        lastName: userWithProfile.lastName,
+        email: userWithProfile.email,
+      }
+    };
+    
+    return NextResponse.json({
+      success: true,
+      profile: profileResponseData,
+      images: userWithProfile.images || []
+    });
+
+  } catch (error) {
+    console.error('Profile fetch error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred while fetching profile.';
+    return NextResponse.json(
+      { success: false, message: 'Internal server error', details: errorMessage },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\availability
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\availability\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/profile/availability/route.ts
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import type { UpdateAvailabilityRequest } from "@/types/profile";
+
+export async function PUT(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const data = await req.json() as UpdateAvailabilityRequest;
+
+    const updatedProfile = await prisma.profile.update({
+      where: { userId: session.user.id },
+      data: {
+        availabilityStatus: data.availabilityStatus,
+        availabilityNote: data.availabilityNote || null,
+        updatedAt: new Date()
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+          }
+        }
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      profile: updatedProfile
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to update status" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/profile/images/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { v2 as cloudinary } from 'cloudinary';
+export const dynamic = 'force-dynamic';
+// Configure Cloudinary
+if (
+  !process.env.CLOUDINARY_CLOUD_NAME ||
+  !process.env.CLOUDINARY_API_KEY ||
+  !process.env.CLOUDINARY_API_SECRET
+) {
+  throw new Error('Missing required Cloudinary environment variables');
+}
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
+});
+
+// פונקציה עוטפת ל-Upload עם Promise נכון
+function uploadToCloudinary(
+  buffer: Buffer
+): Promise<{ secure_url: string; public_id: string }> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'profile-images',
+        resource_type: 'image',
+      },
+      (error, result) => {
+        if (error) {
+          console.error('[Cloudinary] Upload error:', error);
+          reject(error);
+        } else if (result) {
+          resolve({
+            secure_url: result.secure_url,
+            public_id: result.public_id,
+          });
+        } else {
+          reject(new Error('Upload failed - no result'));
+        }
+      }
+    );
+    uploadStream.end(buffer);
+  });
+}
+
+// GET - Fetch all images for a user
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userImages = await prisma.userImage.findMany({
+      where: {
+        user: {
+          email: session.user.email,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return NextResponse.json({ success: true, images: userImages });
+  } catch (error) {
+    console.error('[GetImages] Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch images' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST - Upload new images (can be adapted for multiple files)
+export async function POST(req: NextRequest) {
+  // Apply rate limiting: 20 image uploads per user per hour (prevents resource abuse)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+  const startTime = Date.now();
+
+  try {
+    console.log('[Upload] Starting upload process');
+
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      console.error('[Upload] Authentication failed - No user session');
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unauthorized',
+        },
+        { status: 401 }
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true, email: true, _count: { select: { images: true } } },
+    });
+
+    if (!user) {
+      console.error(`[Upload] User not found for email: ${session.user.email}`);
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    const formData = await req.formData();
+    const file = formData.get('file') as File;
+
+    if (!file) {
+      console.error('[Upload] No file provided in request');
+      return NextResponse.json(
+        { success: false, error: 'No file provided' },
+        { status: 400 }
+      );
+    }
+
+    if (user._count.images >= 5) {
+      console.warn(`[Upload] User ${user.id} has reached maximum images limit`);
+      return NextResponse.json(
+        { success: false, error: 'Maximum number of images reached' },
+        { status: 400 }
+      );
+    }
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      console.error(`[Upload] Invalid file type: ${file.type}`);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid file type. Only JPG, PNG and WEBP are allowed',
+        },
+        { status: 400 }
+      );
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      console.error(`[Upload] File too large: ${file.size} bytes`);
+      return NextResponse.json(
+        { success: false, error: 'File size must be less than 5MB' },
+        { status: 400 }
+      );
+    }
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    console.log(`[Upload] File processed, uploading to Cloudinary...`);
+
+    const cloudinaryResult = await uploadToCloudinary(buffer);
+
+    const isFirstImage = user._count.images === 0;
+
+    const image = await prisma.userImage.create({
+      data: {
+        userId: user.id,
+        url: cloudinaryResult.secure_url,
+        cloudinaryPublicId: cloudinaryResult.public_id,
+        isMain: isFirstImage,
+      },
+    });
+
+    console.log(
+      `[Upload] Database save completed in ${Date.now() - startTime}ms`
+    );
+    return NextResponse.json({
+      success: true,
+      image,
+      timing: `${Date.now() - startTime}ms`,
+    });
+  } catch (error) {
+    console.error('[Upload] General error:', error);
+    console.log(`[Upload] Failed after ${Date.now() - startTime}ms`);
+    return NextResponse.json(
+      { success: false, error: 'Failed to upload image' },
+      { status: 500 }
+    );
+  }
+}
+
+// --- NEW ---
+// DELETE - Bulk delete images
+export async function DELETE(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    const userId = session.user.id;
+
+    const { imageIds } = await req.json();
+
+    if (!Array.isArray(imageIds) || imageIds.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Image IDs must be a non-empty array' },
+        { status: 400 }
+      );
+    }
+
+    // 1. Find images to verify ownership and get necessary data
+    const imagesToDelete = await prisma.userImage.findMany({
+      where: {
+        id: { in: imageIds },
+        userId: userId, // CRUCIAL: Ensures user only deletes their own images
+      },
+      select: {
+        id: true,
+        cloudinaryPublicId: true,
+        isMain: true,
+      },
+    });
+
+    if (imagesToDelete.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'No matching images found to delete.' },
+        { status: 404 }
+      );
+    }
+
+    // 2. Check if the main image is being deleted
+    const wasMainImageDeleted = imagesToDelete.some((image) => image.isMain);
+
+    // 3. Delete from Cloudinary
+    const cloudinaryIdsToDelete = imagesToDelete
+      .map((image) => image.cloudinaryPublicId)
+      .filter((id): id is string => !!id);
+
+    if (cloudinaryIdsToDelete.length > 0) {
+      const cloudinaryDeletions = cloudinaryIdsToDelete.map((publicId) =>
+        cloudinary.uploader.destroy(publicId).catch((err) => {
+          console.error(
+            `[Bulk Delete] Failed to delete image ${publicId} from Cloudinary:`,
+            err
+          );
+        })
+      );
+      await Promise.all(cloudinaryDeletions);
+    }
+
+    // 4. Delete from database
+    await prisma.userImage.deleteMany({
+      where: {
+        id: { in: imagesToDelete.map((img) => img.id) }, // Use validated IDs
+        userId: userId,
+      },
+    });
+
+    // 5. If main image was deleted, assign a new one if possible
+    if (wasMainImageDeleted) {
+      const newMainImage = await prisma.userImage.findFirst({
+        where: { userId: userId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (newMainImage) {
+        await prisma.userImage.update({
+          where: { id: newMainImage.id },
+          data: { isMain: true },
+        });
+      }
+    }
+
+    // 6. Fetch the updated list of images to return to the client
+    const updatedImages = await prisma.userImage.findMany({
+      where: { userId: userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return NextResponse.json({ success: true, images: updatedImages });
+  } catch (error) {
+    console.error('[Bulk Delete Images] Error:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to delete images',
+        details: errorMessage,
+      },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\[imageId]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\[imageId]\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { v2 as cloudinary } from "cloudinary";
+
+// Configure Cloudinary
+if (!process.env.CLOUDINARY_CLOUD_NAME || 
+    !process.env.CLOUDINARY_API_KEY || 
+    !process.env.CLOUDINARY_API_SECRET) {
+  throw new Error("Missing required Cloudinary environment variables");
+}
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { imageId: string } }
+) {
+  try {
+    // Verify authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const { imageId } = params;
+    
+    // Find the image and include user data for ownership verification
+    const image = await prisma.userImage.findUnique({
+      where: { id: imageId },
+      include: { user: true },
+    });
+
+    // Check if image exists
+    if (!image) {
+      return NextResponse.json(
+        { success: false, error: "Image not found" }, 
+        { status: 404 }
+      );
+    }
+
+    // Verify image ownership
+    if (image.user.email !== session.user.email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" }, 
+        { status: 403 }
+      );
+    }
+
+    // Delete from Cloudinary if cloudinaryPublicId exists
+    if (image.cloudinaryPublicId) {
+      try {
+        await cloudinary.uploader.destroy(image.cloudinaryPublicId);
+      } catch (error) {
+        console.error("[Delete Image] Cloudinary deletion error:", error);
+        // Continue with database deletion even if Cloudinary deletion fails
+      }
+    }
+
+    // Delete from database
+    await prisma.userImage.delete({
+      where: { id: imageId },
+    });
+
+    // If this was the main image, set another image as main if available
+    if (image.isMain) {
+      const remainingImage = await prisma.userImage.findFirst({
+        where: { userId: image.userId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (remainingImage) {
+        await prisma.userImage.update({
+          where: { id: remainingImage.id },
+          data: { isMain: true },
+        });
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[Delete Image] Error:", error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Failed to delete image",
+        details: error instanceof Error ? error.message : "Unknown error"
+      }, 
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: Request,
+  { params }: { params: { imageId: string } }
+) {
+  try {
+    // Verify authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const { imageId } = params;
+
+    // Find the image and include user data for ownership verification
+    const image = await prisma.userImage.findUnique({
+      where: { id: imageId },
+      include: { user: true },
+    });
+
+    // Check if image exists
+    if (!image) {
+      return NextResponse.json(
+        { success: false, error: "Image not found" }, 
+        { status: 404 }
+      );
+    }
+
+    // Verify image ownership
+    if (image.user.email !== session.user.email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" }, 
+        { status: 403 }
+      );
+    }
+
+    // Reset all user's images to non-main
+    await prisma.userImage.updateMany({
+      where: { userId: image.userId },
+      data: { isMain: false },
+    });
+
+    // Set the selected image as main
+    await prisma.userImage.update({
+      where: { id: imageId },
+      data: { isMain: true },
+    });
+
+    // Get updated images list
+    const updatedImages = await prisma.userImage.findMany({
+      where: { userId: image.userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      images: updatedImages 
+    });
+  } catch (error) {
+    console.error("[Set Main Image] Error:", error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Failed to set main image",
+        details: error instanceof Error ? error.message : "Unknown error"
+      }, 
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\questionnaire
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\questionnaire\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/profile/questionnaire/route.ts
+
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { Prisma, UserRole } from '@prisma/client';
+
+// --- START: שינוי מרכזי - ייבוא הפונקציות המרכזיות במקום להגדיר אותן כאן ---
+import { formatAnswers, KEY_MAPPING } from '@/lib/questionnaireFormatter';
+import type { DbWorldKey, FormattedAnswersType } from '@/lib/questionnaireFormatter';
+// --- END: שינוי מרכזי ---
+
+import type { WorldId, FormattedAnswer } from '@/types/next-auth';
+
+// --- הגדרות הטיפוסים נשארות כאן כי הן ספציפיות ל-API הזה ---
+type JsonAnswerData = {
+  questionId: string;
+  value: Prisma.JsonValue;
+  answeredAt: string;
+  isVisible: boolean;
+};
+
+interface UpdateData {
+  type: 'answer' | 'visibility';
+  value?: Prisma.JsonValue;
+  isVisible?: boolean;
+}
+
+// --- פונקציות העזר שהיו כאן נמחקו, כי הן נמצאות עכשיו ב-questionnaireFormatter.ts ---
+
+export async function GET(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const url = new URL(req.url);
+    const userId = url.searchParams.get('userId') || session.user.id;
+
+    const questionnaireResponse = await prisma.questionnaireResponse.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (!questionnaireResponse) {
+       return NextResponse.json({ success: true, questionnaireResponse: null });
+    }
+
+    // שימוש בפונקציה המיובאת
+    const formattedAnswers: Partial<FormattedAnswersType> = {};
+    (Object.keys(KEY_MAPPING) as WorldId[]).forEach(worldKey => {
+       const dbKey = KEY_MAPPING[worldKey];
+       formattedAnswers[worldKey] = formatAnswers(questionnaireResponse[dbKey]);
+    });
+
+    const formattedResponse = {
+      ...questionnaireResponse,
+      formattedAnswers: formattedAnswers
+    };
+
+    // בדיקת הרשאות צפייה
+    const performingUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+    if (!performingUser) {
+      return NextResponse.json({ success: false, error: 'Performing user not found' }, { status: 404 });
+    }
+    const viewerIsAdminOrMatchmaker = performingUser.role === 'ADMIN' || performingUser.role === 'MATCHMAKER';
+
+    if (!viewerIsAdminOrMatchmaker && userId !== session.user.id) {
+        Object.keys(formattedResponse.formattedAnswers).forEach((worldKey) => {
+            const key = worldKey as WorldId;
+            if (formattedResponse.formattedAnswers[key]) {
+                formattedResponse.formattedAnswers[key] =
+                  formattedResponse.formattedAnswers[key]!.filter(answer => answer.isVisible !== false);
+            }
+        });
+    }
+
+    return NextResponse.json({
+      success: true,
+      questionnaireResponse: formattedResponse
+    });
+
+  } catch (error) {
+    console.error('Error in GET /api/profile/questionnaire:', error);
+    return NextResponse.json({ success: false, error: "Failed to fetch questionnaire" }, { status: 500 });
+  }
+}
+
+
+export async function PATCH(req: Request) {
+   try {
+     const session = await getServerSession(authOptions);
+     if (!session?.user?.id) {
+       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+     }
+     const userId = session.user.id;
+
+     const body = await req.json();
+     
+     const { worldKey, questionId, value } = body as {
+       worldKey: WorldId;
+       questionId: string;
+       value: UpdateData;
+     };
+
+     if (!worldKey || !questionId || !value || !value.type || !KEY_MAPPING[worldKey]) {
+        return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
+     }
+
+     const dbKey = KEY_MAPPING[worldKey];
+
+     const questionnaire = await prisma.questionnaireResponse.findFirst({
+       where: { userId: session.user.id },
+       orderBy: { createdAt: 'desc' }
+     });
+
+     if (!questionnaire) {
+       return NextResponse.json({ success: false, error: "שאלון לא נמצא" }, { status: 404 });
+     }
+
+     const currentAnswersJson = questionnaire[dbKey];
+     const currentAnswers = Array.isArray(currentAnswersJson) ? currentAnswersJson as unknown as JsonAnswerData[] : [];
+
+     const existingAnswerIndex = currentAnswers.findIndex((a) => a.questionId === questionId);
+     const existingAnswer = existingAnswerIndex !== -1 ? currentAnswers[existingAnswerIndex] : null;
+
+     let updatedAnswer: JsonAnswerData;
+
+     if (value.type === 'visibility') {
+        if (!existingAnswer) return NextResponse.json({ success: false, error: "לא נמצאה תשובה לעדכון נראות" }, { status: 404 });
+        if (typeof value.isVisible !== 'boolean') return NextResponse.json({ success: false, error: "ערך נראות לא תקין" }, { status: 400 });
+        updatedAnswer = { ...existingAnswer, isVisible: value.isVisible, answeredAt: new Date().toISOString() };
+     } else if (value.type === 'answer') {
+       if (value.value === undefined) return NextResponse.json({ success: false, error: "ערך תשובה חסר" }, { status: 400 });
+       updatedAnswer = {
+         questionId,
+         value: value.value,
+         isVisible: existingAnswer?.isVisible ?? true,
+         answeredAt: new Date().toISOString()
+       };
+     } else {
+         return NextResponse.json({ success: false, error: "סוג עדכון לא תקין" }, { status: 400 });
+     }
+
+     const updatedAnswers = [...currentAnswers];
+     if (existingAnswerIndex !== -1) {
+         updatedAnswers[existingAnswerIndex] = updatedAnswer;
+     } else if (value.type === 'answer') {
+         updatedAnswers.push(updatedAnswer);
+     }
+
+     const updated = await prisma.questionnaireResponse.update({
+       where: { id: questionnaire.id },
+       data: {
+         [dbKey]: updatedAnswers as Prisma.JsonValue,
+         lastSaved: new Date()
+       }
+     });
+
+     await prisma.profile.update({
+       where: { userId },
+       data: { needsAiProfileUpdate: true }
+     });
+
+    // שימוש חוזר בפונקציה המיובאת
+    const formattedAnswers: Partial<FormattedAnswersType> = {};
+    (Object.keys(KEY_MAPPING) as WorldId[]).forEach(key => {
+       const currentDbKey = KEY_MAPPING[key];
+        formattedAnswers[key] = formatAnswers(updated[currentDbKey]);
+    });
+
+     const formattedResponse = {
+       ...updated,
+       formattedAnswers: formattedAnswers
+     };
+
+     return NextResponse.json({
+       success: true,
+       data: formattedResponse
+     });
+
+   } catch (error) {
+       console.error('FATAL Error in PATCH /api/profile/questionnaire:', error);
+       if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            return NextResponse.json({ success: false, error: "שגיאת מסד נתונים" }, { status: 500 });
+       }
+       if (error instanceof SyntaxError && error.message.includes("JSON")) {
+           return NextResponse.json({ success: false, error: "גוף הבקשה אינו JSON תקין" }, { status: 400 });
+       }
+       if (error instanceof Error) {
+         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+       }
+       return NextResponse.json({ success: false, error: "שגיאה בעדכון השאלון" }, { status: 500 });
+   }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\update
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\update\route.ts
+--------------------------------------------------------------------------------
+Content:
+// File: app/api/profile/update/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from '@/lib/rate-limiter';
+
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import {
+  Prisma,
+  Gender,
+  ServiceType,
+  HeadCoveringType,
+  KippahType,
+  AvailabilityStatus,
+  ReligiousJourney,
+  Profile, // Import Prisma's Profile type
+} from "@prisma/client";
+import type { UserProfile } from "@/types/next-auth";
+import { updateUserAiProfile } from '@/lib/services/profileAiService'; // <--- 1. ייבוא
+
+// Helper to convert to number or null
+const toNumberOrNull = (value: string | number | null | undefined): number | null => {
+  if (value === null || value === undefined || String(value).trim() === "") {
+    return null;
+  }
+  const num = Number(value);
+  return isNaN(num) ? null : num;
+};
+
+// Helper to convert to Date or error if invalid for required fields
+const toRequiredDate = (value: string | number | Date | null | undefined, fieldName: string): Date => {
+  if (value === null || value === undefined || String(value).trim() === "") {
+    throw new Error(`Required date field '${fieldName}' is missing or empty.`);
+  }
+  let date: Date;
+  if (value instanceof Date) {
+    date = value;
+  } else {
+    date = new Date(value);
+  }
+  if (isNaN(date.getTime())) {
+    throw new Error(`Invalid date value for required field '${fieldName}'.`);
+  }
+  return date;
+};
+
+// Helper to convert to Date or null for optional fields
+const toDateOrNull = (value: string | number | Date | null | undefined): Date | null => {
+  if (value === null || value === undefined || String(value).trim() === "") {
+    return null;
+  }
+  if (value instanceof Date) {
+    return isNaN(value.getTime()) ? null : value;
+  }
+  const date = new Date(value);
+  return isNaN(date.getTime()) ? null : date;
+};
+
+// Helper to convert empty string or null to null, otherwise return the string
+const emptyStringToNull = (value: string | null | undefined): string | null => {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+  return value;
+};
+
+export async function PUT(req: NextRequest) {
+  // Apply rate limiting: 50 profile updates per user per 10 minutes (prevents DB heavy load)
+  const rateLimitResponse = await applyRateLimit(req, { requests: 50, window: '10 m' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    const userId = session.user.id;
+
+    let body;
+    try {
+      body = await req.json();
+    } catch (error) {
+      console.error("Invalid JSON body:", error);
+      return NextResponse.json(
+        { success: false, message: "Invalid JSON body" },
+        { status: 400 }
+      );
+    }
+
+    const {
+      gender,
+      birthDate,
+      nativeLanguage,
+      additionalLanguages,
+      height,
+      maritalStatus,
+      occupation,
+      education,
+      educationLevel,
+      city,
+      origin,
+      religiousLevel,
+      religiousJourney,
+      preferredReligiousJourneys, 
+      about,
+      // --- START: הוספת שדות חדשים ---
+      profileHeadline,
+      humorStory,
+      inspiringCoupleStory,
+      influentialRabbi,
+      // --- END: הוספת שדות חדשים ---
+      parentStatus,
+      fatherOccupation,
+      motherOccupation,
+      siblings,
+      position,
+      isProfileVisible,
+      preferredMatchmakerGender,
+      availabilityStatus,
+      availabilityNote,
+      availabilityUpdatedAt,
+      matchingNotes,
+      shomerNegiah,
+      serviceType,
+      serviceDetails,
+      headCovering,
+      kippahType,
+      hasChildrenFromPrevious,
+      profileCharacterTraits,
+      profileHobbies,
+      aliyaCountry,
+      aliyaYear,
+      preferredAgeMin,
+      preferredAgeMax,
+      preferredHeightMin,
+      preferredHeightMax,
+      preferredReligiousLevels,
+      preferredLocations,
+      preferredEducation,
+      preferredOccupations,
+      contactPreference,
+      preferredMaritalStatuses,
+      preferredOrigins,
+      preferredServiceTypes,
+      preferredHeadCoverings,
+      preferredKippahTypes,
+      preferredShomerNegiah,
+      preferredHasChildrenFromPrevious,
+      preferredCharacterTraits,
+      preferredHobbies,
+      preferredAliyaStatus,
+      hasViewedProfilePreview,
+      hasMedicalInfo,
+      medicalInfoDetails,
+      medicalInfoDisclosureTiming,
+      isMedicalInfoVisible,
+    } = body as Partial<UserProfile>;
+
+    const dataToUpdate: Prisma.ProfileUpdateInput = {};
+
+    // --- Personal & Demographic ---
+    if (gender !== undefined) dataToUpdate.gender = gender as Gender;
+    if (birthDate !== undefined) {
+      try {
+        dataToUpdate.birthDate = toRequiredDate(birthDate, "birthDate");
+      } catch (e) {
+         if (e instanceof Error) return NextResponse.json({ success: false, message: e.message }, { status: 400 });
+         return NextResponse.json({ success: false, message: "Invalid birthDate provided." }, { status: 400 });
+      }
+    }
+    if (nativeLanguage !== undefined) dataToUpdate.nativeLanguage = emptyStringToNull(nativeLanguage);
+    if (additionalLanguages !== undefined) dataToUpdate.additionalLanguages = additionalLanguages || [];
+    if (height !== undefined) dataToUpdate.height = toNumberOrNull(height);
+    if (city !== undefined) dataToUpdate.city = emptyStringToNull(city);
+    if (origin !== undefined) dataToUpdate.origin = emptyStringToNull(origin);
+    if (aliyaCountry !== undefined) dataToUpdate.aliyaCountry = emptyStringToNull(aliyaCountry);
+    if (aliyaYear !== undefined) dataToUpdate.aliyaYear = toNumberOrNull(aliyaYear);
+
+    // --- Marital Status & Background (User's own) ---
+    if (maritalStatus !== undefined) dataToUpdate.maritalStatus = emptyStringToNull(maritalStatus);
+    if (hasChildrenFromPrevious !== undefined) dataToUpdate.hasChildrenFromPrevious = hasChildrenFromPrevious; // User's own
+    if (parentStatus !== undefined) dataToUpdate.parentStatus = emptyStringToNull(parentStatus);
+     if (fatherOccupation !== undefined) dataToUpdate.fatherOccupation = emptyStringToNull(fatherOccupation);
+    if (motherOccupation !== undefined) dataToUpdate.motherOccupation = emptyStringToNull(motherOccupation);
+    if (siblings !== undefined) dataToUpdate.siblings = toNumberOrNull(siblings);
+    if (position !== undefined) dataToUpdate.position = toNumberOrNull(position);
+
+    // --- Education, Occupation & Service (User's own) ---
+    if (educationLevel !== undefined) dataToUpdate.educationLevel = emptyStringToNull(educationLevel);
+    if (education !== undefined) dataToUpdate.education = emptyStringToNull(education);
+    if (occupation !== undefined) dataToUpdate.occupation = emptyStringToNull(occupation);
+    if (serviceType !== undefined) dataToUpdate.serviceType = emptyStringToNull(serviceType) as ServiceType | null;
+    if (serviceDetails !== undefined) dataToUpdate.serviceDetails = emptyStringToNull(serviceDetails);
+
+    // --- Religion & Lifestyle (User's own) ---
+    if (religiousLevel !== undefined) dataToUpdate.religiousLevel = emptyStringToNull(religiousLevel);
+        if (religiousJourney !== undefined) dataToUpdate.religiousJourney = emptyStringToNull(religiousJourney) as ReligiousJourney | null;
+
+    if (shomerNegiah !== undefined) dataToUpdate.shomerNegiah = shomerNegiah;
+
+    const existingProfileMinimal = await prisma.profile.findUnique({ where: { userId }, select: { gender: true }});
+    const currentGenderForLogic = gender !== undefined ? gender : existingProfileMinimal?.gender;
+
+    if (currentGenderForLogic === Gender.FEMALE) {
+        if (headCovering !== undefined) dataToUpdate.headCovering = emptyStringToNull(headCovering) as HeadCoveringType | null;
+        if (gender !== undefined && gender === Gender.FEMALE) dataToUpdate.kippahType = null;
+        else if (body.hasOwnProperty('kippahType') && kippahType === null) dataToUpdate.kippahType = null;
+    } else if (currentGenderForLogic === Gender.MALE) {
+        if (kippahType !== undefined) dataToUpdate.kippahType = emptyStringToNull(kippahType) as KippahType | null;
+        if (gender !== undefined && gender === Gender.MALE) dataToUpdate.headCovering = null;
+        else if (body.hasOwnProperty('headCovering') && headCovering === null) dataToUpdate.headCovering = null;
+    } else {
+        if (gender !== undefined && gender === null) {
+           dataToUpdate.headCovering = null; dataToUpdate.kippahType = null;
+        } else {
+            if (headCovering !== undefined) dataToUpdate.headCovering = emptyStringToNull(headCovering) as HeadCoveringType | null;
+            if (kippahType !== undefined) dataToUpdate.kippahType = emptyStringToNull(kippahType) as KippahType | null;
+        }
+    }
+    if (preferredMatchmakerGender !== undefined) dataToUpdate.preferredMatchmakerGender = emptyStringToNull(preferredMatchmakerGender) as Gender | null;
+
+    // --- Traits & Hobbies (User's own) ---
+    if (profileCharacterTraits !== undefined) dataToUpdate.profileCharacterTraits = profileCharacterTraits || [];
+    if (profileHobbies !== undefined) dataToUpdate.profileHobbies = profileHobbies || []; // User's own hobbies
+
+    // --- About & Additional Info ---
+    if (about !== undefined) dataToUpdate.about = emptyStringToNull(about);
+      if (profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(profileHeadline);
+    if (humorStory !== undefined) dataToUpdate.humorStory = emptyStringToNull(humorStory);
+    if (inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(inspiringCoupleStory);
+    if (influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(influentialRabbi);
+    if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
+    
+    // --- Preferences (related to matching partner) ---
+    if (preferredAgeMin !== undefined) dataToUpdate.preferredAgeMin = toNumberOrNull(preferredAgeMin);
+    if (preferredAgeMax !== undefined) dataToUpdate.preferredAgeMax = toNumberOrNull(preferredAgeMax);
+    if (preferredHeightMin !== undefined) dataToUpdate.preferredHeightMin = toNumberOrNull(preferredHeightMin);
+    if (preferredHeightMax !== undefined) dataToUpdate.preferredHeightMax = toNumberOrNull(preferredHeightMax);
+    if (preferredReligiousLevels !== undefined) dataToUpdate.preferredReligiousLevels = preferredReligiousLevels || [];
+    if (preferredLocations !== undefined) dataToUpdate.preferredLocations = preferredLocations || [];
+    if (preferredEducation !== undefined) dataToUpdate.preferredEducation = preferredEducation || [];
+    if (preferredOccupations !== undefined) dataToUpdate.preferredOccupations = preferredOccupations || [];
+    if (contactPreference !== undefined) dataToUpdate.contactPreference = emptyStringToNull(contactPreference);
+    if (preferredMaritalStatuses !== undefined) dataToUpdate.preferredMaritalStatuses = preferredMaritalStatuses || [];
+    if (preferredOrigins !== undefined) dataToUpdate.preferredOrigins = preferredOrigins || [];
+    if (preferredServiceTypes !== undefined) dataToUpdate.preferredServiceTypes = preferredServiceTypes || [];
+    if (preferredHeadCoverings !== undefined) dataToUpdate.preferredHeadCoverings = preferredHeadCoverings || [];
+    if (preferredKippahTypes !== undefined) dataToUpdate.preferredKippahTypes = preferredKippahTypes || [];
+    if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah); // Assuming it's a string like "yes", "no" that needs to be nullable
+    
+    if (preferredHasChildrenFromPrevious !== undefined) {
+      dataToUpdate.preferredHasChildrenFromPrevious = preferredHasChildrenFromPrevious;
+    }
+
+    if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || []; // Preference for partner
+    if (preferredHobbies !== undefined) dataToUpdate.preferredHobbies = preferredHobbies || []; // Preference for partner's hobbies
+    if (preferredAliyaStatus !== undefined) dataToUpdate.preferredAliyaStatus = emptyStringToNull(preferredAliyaStatus);
+    if (preferredReligiousJourneys !== undefined) dataToUpdate.preferredReligiousJourneys = preferredReligiousJourneys || [];
+
+    // --- Profile Management ---
+    if (isProfileVisible !== undefined) dataToUpdate.isProfileVisible = isProfileVisible;
+    if (hasViewedProfilePreview !== undefined) dataToUpdate.hasViewedProfilePreview = hasViewedProfilePreview;
+   
+    // --- START: הוספת לוגיקת עדכון לשדות רפואיים ---
+    if (hasMedicalInfo !== undefined) dataToUpdate.hasMedicalInfo = hasMedicalInfo;
+    if (medicalInfoDetails !== undefined) dataToUpdate.medicalInfoDetails = emptyStringToNull(medicalInfoDetails);
+    if (medicalInfoDisclosureTiming !== undefined) dataToUpdate.medicalInfoDisclosureTiming = emptyStringToNull(medicalInfoDisclosureTiming);
+    if (isMedicalInfoVisible !== undefined) dataToUpdate.isMedicalInfoVisible = isMedicalInfoVisible;
+    // --- END: הוספת לוגיקת עדכון לשדות רפואיים ---
+
+    if (availabilityStatus !== undefined) {
+      const statusValue = emptyStringToNull(availabilityStatus);
+      dataToUpdate.availabilityStatus = (statusValue === null ? "AVAILABLE" : statusValue) as AvailabilityStatus;
+      if (!body.hasOwnProperty('availabilityUpdatedAt') || availabilityUpdatedAt === undefined) {
+        dataToUpdate.availabilityUpdatedAt = new Date();
+      }
+    }
+    if (availabilityNote !== undefined) dataToUpdate.availabilityNote = emptyStringToNull(availabilityNote);
+    if (body.hasOwnProperty('availabilityUpdatedAt') && availabilityUpdatedAt !== undefined) {
+        dataToUpdate.availabilityUpdatedAt = toDateOrNull(availabilityUpdatedAt);
+    }
+    dataToUpdate.lastActive = new Date();
+
+    // --- Perform the database update ---
+    let updatedProfileRecord: Profile | null = null;
+    if (Object.keys(dataToUpdate).length > 0) {
+      try {
+         dataToUpdate.needsAiProfileUpdate = true;
+         
+        updatedProfileRecord = await prisma.profile.update({
+          where: { userId: userId },
+          data: dataToUpdate,
+        });
+    
+      } catch (dbError) {
+        console.error('Prisma profile update error:', dbError);
+        if (dbError instanceof Prisma.PrismaClientKnownRequestError && dbError.code === 'P2025') {
+          return NextResponse.json({ success: false, message: 'Profile not found for this user to update.' }, { status: 404 });
+        }
+        throw dbError;
+      }
+    } else {
+      updatedProfileRecord = await prisma.profile.findUnique({ where: { userId } });
+    }
+
+    if (!updatedProfileRecord) {
+      return NextResponse.json({ success: false, message: "Profile not found or no update performed." }, { status: 404 });
+    }
+
+    const refreshedUserWithProfile = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { profile: true }
+    });
+
+    if (!refreshedUserWithProfile || !refreshedUserWithProfile.profile) {
+      console.error("Failed to retrieve user or profile after update for userId:", userId);
+      return NextResponse.json({ success: false, message: "Failed to retrieve updated profile after update." }, { status: 500 });
+    }
+    
+    const dbProfile = refreshedUserWithProfile.profile;
+
+    // Construct the response, ensuring all UserProfile fields are mapped
+    const responseUserProfile: UserProfile = {
+      id: dbProfile.id,
+      userId: dbProfile.userId,
+      gender: dbProfile.gender, 
+      birthDate: new Date(dbProfile.birthDate),
+      nativeLanguage: dbProfile.nativeLanguage || undefined,
+      additionalLanguages: dbProfile.additionalLanguages || [],
+      height: dbProfile.height ?? null,
+      maritalStatus: dbProfile.maritalStatus || undefined,
+      occupation: dbProfile.occupation || "",
+      education: dbProfile.education || "",
+      educationLevel: dbProfile.educationLevel || undefined,
+      city: dbProfile.city || "",
+      origin: dbProfile.origin || "",
+      religiousLevel: dbProfile.religiousLevel || undefined,
+      religiousJourney: dbProfile.religiousJourney || undefined,
+      preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
+      about: dbProfile.about || "",
+        profileHeadline: dbProfile.profileHeadline || undefined,
+      humorStory: dbProfile.humorStory || undefined,
+      inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
+      influentialRabbi: dbProfile.influentialRabbi || undefined,
+      parentStatus: dbProfile.parentStatus || undefined,
+      fatherOccupation: dbProfile.fatherOccupation || "",
+      motherOccupation: dbProfile.motherOccupation || "",
+      siblings: dbProfile.siblings ?? null,
+      position: dbProfile.position ?? null,
+      isProfileVisible: dbProfile.isProfileVisible,
+      isProfileComplete: refreshedUserWithProfile.isProfileComplete,
+      // --- START: הוספת שדות רפואיים לתגובה ---
+      hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
+      medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
+      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
+      isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
+            needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
+
+      // --- END: הוספת שדות רפואיים לתגובה ---
+      preferredMatchmakerGender: dbProfile.preferredMatchmakerGender || undefined,
+      availabilityStatus: dbProfile.availabilityStatus,
+      availabilityNote: dbProfile.availabilityNote || "",
+      availabilityUpdatedAt: dbProfile.availabilityUpdatedAt ? new Date(dbProfile.availabilityUpdatedAt) : null,
+      matchingNotes: dbProfile.matchingNotes || "",
+      shomerNegiah: dbProfile.shomerNegiah ?? undefined,
+      serviceType: dbProfile.serviceType || undefined,
+      serviceDetails: dbProfile.serviceDetails || "",
+      headCovering: dbProfile.headCovering || undefined,
+      kippahType: dbProfile.kippahType || undefined,
+      hasChildrenFromPrevious: dbProfile.hasChildrenFromPrevious ?? undefined, 
+      profileCharacterTraits: dbProfile.profileCharacterTraits || [], 
+      profileHobbies: dbProfile.profileHobbies || [],                 
+      aliyaCountry: dbProfile.aliyaCountry || "",
+      aliyaYear: dbProfile.aliyaYear ?? null,
+      preferredAgeMin: dbProfile.preferredAgeMin ?? null,
+      preferredAgeMax: dbProfile.preferredAgeMax ?? null,
+      preferredHeightMin: dbProfile.preferredHeightMin ?? null,
+      preferredHeightMax: dbProfile.preferredHeightMax ?? null,
+      preferredReligiousLevels: dbProfile.preferredReligiousLevels || [],
+      preferredLocations: dbProfile.preferredLocations || [],
+      preferredEducation: dbProfile.preferredEducation || [],
+      preferredOccupations: dbProfile.preferredOccupations || [],
+      contactPreference: dbProfile.contactPreference || undefined,
+      preferredMaritalStatuses: dbProfile.preferredMaritalStatuses || [],
+      preferredOrigins: dbProfile.preferredOrigins || [],
+      preferredServiceTypes: (dbProfile.preferredServiceTypes as ServiceType[]) || [], 
+      preferredHeadCoverings: (dbProfile.preferredHeadCoverings as HeadCoveringType[]) || [],
+      preferredKippahTypes: (dbProfile.preferredKippahTypes as KippahType[]) || [],
+      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined, 
+      preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined, 
+      preferredCharacterTraits: dbProfile.preferredCharacterTraits || [], 
+      preferredHobbies: dbProfile.preferredHobbies || [],                 
+      preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
+      hasViewedProfilePreview: dbProfile.hasViewedProfilePreview, 
+
+      createdAt: new Date(dbProfile.createdAt),
+      updatedAt: new Date(dbProfile.updatedAt),
+      lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
+      user: {
+        id: refreshedUserWithProfile.id,
+        firstName: refreshedUserWithProfile.firstName,
+        lastName: refreshedUserWithProfile.lastName,
+        email: refreshedUserWithProfile.email,
+      },
+    };
+
+    return NextResponse.json({
+      success: true,
+      profile: responseUserProfile,
+    });
+
+  } catch (error) {
+    console.error('Profile update route error:', error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2002' && error.meta?.target) {
+         return NextResponse.json({ success: false, message: `Error: A field violates a unique constraint (${JSON.stringify(error.meta.target)}).` }, { status: 409 });
+      }
+      if (error.code === 'P2025') { 
+        return NextResponse.json({ success: false, message: 'Record to update or affect not found.' }, { status: 404 });
+      }
+      return NextResponse.json(
+        { success: false, message: 'Database operation failed.', code: error.code, details: error.message },
+        { status: 400 }
+      );
+    } 
+    if (error instanceof Prisma.PrismaClientValidationError) {
+        return NextResponse.json(
+          { success: false, message: 'Data validation failed for database operation.', details: error.message },
+          { status: 400 }
+        );
+    }
+    let errorMessage = 'An unexpected error occurred during profile update.';
+    if (error instanceof Error && error.message) {
+        errorMessage = error.message;
+    }
+    return NextResponse.json(
+      { success: false, message: errorMessage },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\viewed-preview
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\viewed-preview\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/profile/viewed-preview/route.ts
+
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+
+export async function POST() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const updatedProfile = await prisma.profile.update({
+      where: {
+        userId: session.user.id,
+      },
+      data: {
+        hasViewedProfilePreview: true,
+      },
+      select: {
+        userId: true,
+        hasViewedProfilePreview: true,
+      }
+    });
+
+    if (!updatedProfile) {
+        return NextResponse.json({ success: false, error: 'Profile not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, profile: updatedProfile }, { status: 200 });
+
+  } catch (error) {
+    console.error('Error updating profile preview status:', error);
+    const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+

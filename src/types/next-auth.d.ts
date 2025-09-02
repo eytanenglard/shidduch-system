@@ -327,7 +327,9 @@ declare module 'next-auth/jwt' {
 // --- Other Exported Types (Keep these as they were if still used) ---
 export type UpdateValue =
   | { type: "answer"; value: string }
-  | { type: "visibility"; isVisible: boolean };
+  | { type: "visibility"; isVisible: boolean } | {
+      type: 'delete'; // הוספת סוג הפעולה 'delete'
+    };
 
 export type ContactPreference = "direct" | "matchmaker" | "both"; // Already in UserProfile
 

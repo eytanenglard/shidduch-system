@@ -73,7 +73,7 @@ export interface MatchmakingQuestionnaireProps {
   initialWorld?: WorldId;
   initialQuestionId?: string;
   dict: QuestionnaireDictionary;
-  locale,// <-- הוספה: קבלת locale כ-prop
+  locale; // <-- הוספה: קבלת locale כ-prop
 }
 
 export default function MatchmakingQuestionnaire({
@@ -84,6 +84,11 @@ export default function MatchmakingQuestionnaire({
   dict,
   locale,
 }: MatchmakingQuestionnaireProps) {
+  console.log(
+    `%c[LOG | MatchmakingQuestionnaire] Component rendering. Received props: initialWorld='${initialWorld}', initialQuestionId='${initialQuestionId}'`,
+    'color: #9c27b0; font-weight: bold;'
+  );
+
   const router = useRouter();
   const sessionId = useMemo(() => `session_${Date.now()}`, []);
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(
@@ -326,6 +331,11 @@ export default function MatchmakingQuestionnaire({
 
   useEffect(() => {
     const loadExistingAnswers = async () => {
+      console.log(
+        `%c[LOG | MatchmakingQuestionnaire] loadExistingAnswers useEffect triggered. initialWorld='${initialWorld}', initialQuestionId='${initialQuestionId}'`,
+        'color: #9c27b0;'
+      );
+
       if (!userId) {
         setIsLoading(false);
         const tempData = localStorage.getItem('tempQuestionnaire');
@@ -379,10 +389,20 @@ export default function MatchmakingQuestionnaire({
             }
 
             if (initialWorld && initialQuestionId) {
+              console.log(
+                `%c[LOG | MatchmakingQuestionnaire] Handling direct navigation to question...`,
+                'color: #9c27b0; font-weight: bold;'
+              );
+
               const worldQuestions = worldConfig[initialWorld].questions;
               const questionIndex = worldQuestions.findIndex(
                 (q) => q.id === initialQuestionId
               );
+              console.log(
+                `%c[LOG | MatchmakingQuestionnaire] Searching for question '${initialQuestionId}' in world '${initialWorld}'. Found at index: ${questionIndex}`,
+                'color: #9c27b0;'
+              );
+
               if (questionIndex !== -1) {
                 setCurrentQuestionIndices((prev) => ({
                   ...prev,
@@ -391,11 +411,22 @@ export default function MatchmakingQuestionnaire({
                 setCurrentWorld(initialWorld);
                 setCurrentStep(OnboardingStep.WORLDS);
                 setIsDirectNavigation(true);
+                console.log(
+                  `%c[LOG | MatchmakingQuestionnaire] SUCCESS: Setting step to WORLDS and question index to ${questionIndex}.`,
+                  'color: #9c27b0; font-weight: bold;'
+                );
               } else {
+                console.warn(
+                  `%c[LOG | MatchmakingQuestionnaire] WARN: Question ID not found. Defaulting to MAP for world ${initialWorld}.`,
+                  'color: #9c27b0;'
+                );
+
                 setCurrentWorld(initialWorld);
                 setCurrentStep(OnboardingStep.MAP);
               }
             } else if (isQuestionnaireComplete) {
+                            console.log(`%c[LOG | MatchmakingQuestionnaire] Questionnaire is complete, setting step to MAP.`, 'color: #9c27b0;');
+
               setCurrentWorld(initialWorld || WORLD_ORDER[0]);
               setCurrentStep(OnboardingStep.MAP);
             } else if (

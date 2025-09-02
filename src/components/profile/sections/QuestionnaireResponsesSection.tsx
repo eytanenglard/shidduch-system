@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+// Textarea is no longer needed for editing here, but might be used elsewhere.
+// Keeping it for now, but it can be removed if not used in other contexts.
 import { Textarea } from '@/components/ui/textarea';
 import {
   Book,
@@ -23,7 +25,8 @@ import {
   EyeOff,
   Loader2,
   ArrowRight,
-  ArrowLeft, // ייבוא אייקון חץ שמאלה
+  ArrowLeft,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -45,7 +48,6 @@ import { WORLDS_CONFIG } from '../constants';
 
 const QUESTIONNAIRE_URL = '/questionnaire';
 
-// --- ממשקים מעודכנים ---
 interface QuestionnaireResponsesSectionProps {
   questionnaire: QuestionnaireResponse | null;
   onUpdate?: (
@@ -55,7 +57,7 @@ interface QuestionnaireResponsesSectionProps {
   ) => Promise<void>;
   isEditable?: boolean;
   dict: ProfilePageDictionary;
-  locale: string; // הוספת Prop לשפה
+  locale: string;
 }
 
 interface QuestionCardProps {
@@ -70,7 +72,7 @@ interface QuestionCardProps {
   ) => Promise<void>;
   isFirstInList?: boolean;
   dict: ProfilePageDictionary;
-  locale: string; // הוספת Prop לשפה
+  locale: string;
 }
 
 interface WorldSectionProps {
@@ -86,10 +88,9 @@ interface WorldSectionProps {
   isCompleted: boolean;
   className?: string;
   dict: ProfilePageDictionary;
-  locale: string; // הוספת Prop לשפה
+  locale: string;
 }
 
-// --- רכיב QuestionCard ---
 const QuestionCard: React.FC<QuestionCardProps> = ({
   question,
   answer,
@@ -99,13 +100,17 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   dict,
   locale,
 }) => {
-  const [isEditingText, setIsEditingText] = useState(false);
-  const [editValue, setEditValue] = useState(answer.displayText);
-  const [isSavingText, setIsSavingText] = useState(false);
+  // --- START: שינויים ---
+  // הסרת מצבים הקשורים לעריכת טקסט מקומית
+  // const [isEditingText, setIsEditingText] = useState(false);
+  // const [editValue, setEditValue] = useState(answer.displayText);
+  // const [isSavingText, setIsSavingText] = useState(false);
   const [isSavingVisibility, setIsSavingVisibility] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [currentIsVisible, setCurrentIsVisible] = useState(
     answer.isVisible ?? true
   );
+  // --- END: שינויים ---
 
   const direction = locale === 'he' ? 'rtl' : 'ltr';
   const t = dict.questionnaireSection.questionCard;
@@ -114,8 +119,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     setCurrentIsVisible(answer.isVisible ?? true);
   }, [answer.isVisible]);
 
-  const isSaving = isSavingText || isSavingVisibility;
+  // --- START: שינויים ---
+  // עדכון המשתנה isSaving כדי שיכלול רק את המצבים הרלוונטיים
+  const isSaving = isSavingVisibility || isDeleting;
+  // --- END: שינויים ---
 
+  // --- START: שינויים ---
+  // הסרת פונקציות הקשורות לעריכת טקסט מקומית
+  /*
   const handleStartEdit = () => {
     if (isSaving) return;
     setIsEditingText(true);
@@ -152,6 +163,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     setIsEditingText(false);
     setEditValue(answer.displayText);
   };
+  */
+  // --- END: שינויים ---
 
   const handleVisibilityChange = async (newIsVisibleState: boolean) => {
     setCurrentIsVisible(newIsVisibleState);
@@ -168,6 +181,28 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       setCurrentIsVisible(answer.isVisible ?? true);
     } finally {
       setIsSavingVisibility(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (isSaving) return;
+
+    const isConfirmed = window.confirm(t.deleteConfirm.message);
+    if (!isConfirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await onUpdate(worldKey, answer.questionId, {
+        type: 'delete',
+      });
+      toast.success(t.toasts.deleteSuccess);
+    } catch (error) {
+      console.error('Error deleting answer:', error);
+      toast.error(t.toasts.deleteError);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -205,6 +240,16 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       : t.visibilityTooltip.viewing.hidden;
   };
 
+  // --- START: שינויים ---
+  // הגדרת ה-URL לעריכה שיהיה זהה לכל סוגי השאלות
+  const editUrl = `/${locale}/questionnaire?world=${worldKey}&question=${answer.questionId}`;
+  // בחירת טקסט גנרי עבור ה-Tooltip. אפשר להוסיף מפתח חדש ל-dictionary אם רוצים.
+  const editTooltipText =
+    answer.questionType === 'budgetAllocation'
+      ? t.editTooltip.budget
+      : t.editTooltip.text;
+  // --- END: שינויים ---
+
   return (
     <div
       className="rounded-lg border bg-card p-4 shadow-sm transition-shadow duration-300 hover:shadow-md"
@@ -217,6 +262,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               {question}
             </h4>
             <div className="flex items-center gap-2 self-end sm:self-center">
+              {isDeleting && (
+                <Loader2 className="h-4 w-4 animate-spin text-red-500" />
+              )}
               {isSavingVisibility && (
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               )}
@@ -267,121 +315,86 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               </TooltipProvider>
             </div>
           </div>
-
-          {isEditingText ? (
-            <div className="space-y-2 mt-1">
-              <Textarea
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                className="min-h-[80px] text-sm focus:ring-cyan-500 focus:border-cyan-500"
-                placeholder={t.editTextareaPlaceholder}
-                disabled={isSavingText}
-                dir={direction}
-              />
-              <div className="flex justify-end gap-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleCancelEdit}
-                  disabled={isSavingText}
-                  className="text-gray-600 hover:bg-gray-100"
-                >
-                  <X className="h-4 w-4 ms-1" />
-                  {t.editButtons.cancel}
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleSaveText}
-                  disabled={isSavingText || !editValue?.trim()}
-                  className="bg-cyan-600 hover:bg-cyan-700 text-white"
-                >
-                  {isSavingText ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <CheckCircle className="h-4 w-4 ms-1" />
-                  )}
-                  {t.editButtons.save}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="relative group overflow-hidden mt-1">
-              <div className="p-3 bg-gray-50/50 rounded-md border border-gray-200/60 min-h-[40px]">
-                {renderAnswerContent()}
-                <TooltipProvider delayDuration={200}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="text-xs text-gray-400 block mt-2 text-start">
-                        {new Date(answer.answeredAt).toLocaleDateString(
-                          locale === 'he' ? 'he-IL' : 'en-US',
-                          { year: 'numeric', month: '2-digit', day: '2-digit' }
-                        )}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" dir={direction}>
-                      <p>{t.dateTooltip}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-
-              {isEditingGlobally && !isSaving && (
-                <TooltipProvider delayDuration={200}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      {answer.questionType === 'budgetAllocation' ? (
-                        <Button
-                          asChild
-                          variant="ghost"
-                          size="icon"
-                          className="absolute top-0 end-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
-                        >
-                          <Link
-                            href={`/questionnaire?world=${worldKey}&question=${answer.questionId}`}
-                          >
-                            <Pencil className="h-4 w-4" />
-                            <span className="sr-only">
-                              {t.editTooltip.budget}
-                            </span>
-                          </Link>
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute top-0 end-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
-                          onClick={handleStartEdit}
-                        >
-                          <Pencil className="h-4 w-4" />
-                          <span className="sr-only">{t.editTooltip.text}</span>
-                        </Button>
+          {/* --- START: שינויים --- */}
+          {/* הסרת ה-Conditional Rendering של עריכה מקומית */}
+          <div className="relative group overflow-hidden mt-1">
+            <div className="p-3 bg-gray-50/50 rounded-md border border-gray-200/60 min-h-[40px]">
+              {renderAnswerContent()}
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-xs text-gray-400 block mt-2 text-start">
+                      {new Date(answer.answeredAt).toLocaleDateString(
+                        locale === 'he' ? 'he-IL' : 'en-US',
+                        { year: 'numeric', month: '2-digit', day: '2-digit' }
                       )}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" dir={direction}>
+                    <p>{t.dateTooltip}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+
+            {isEditingGlobally && !isSaving && (
+              <div className="absolute top-0 end-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center">
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-red-500 hover:bg-red-50"
+                        onClick={handleDelete}
+                        disabled={isSaving}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">{t.editTooltip.delete}</span>
+                      </Button>
                     </TooltipTrigger>
                     <TooltipContent side="top" dir={direction}>
-                      <p>
-                        {answer.questionType === 'budgetAllocation'
-                          ? t.editTooltip.budget
-                          : t.editTooltip.text}
-                      </p>
+                      <p>{t.editTooltip.delete}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              )}
 
-              {isSavingText && !isEditingText && (
-                <div className="absolute top-1 end-1">
-                  <Loader2 className="h-4 w-4 animate-spin text-cyan-500" />
-                </div>
-              )}
-            </div>
-          )}
+                {/* --- START: התיקון המרכזי כאן --- */}
+                {/* איחוד כפתור העריכה כך שתמיד יקשר לשאלון הראשי */}
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-cyan-600 hover:bg-cyan-50"
+                      >
+                        {/* שימוש בתג <a> כדי לכפות ריענון, כפי שהיה בתיקון המקורי */}
+                        <a href={editUrl}>
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">{editTooltipText}</span>
+                        </a>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" dir={direction}>
+                      <p>{editTooltipText}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                {/* --- END: התיקון המרכזי --- */}
+              </div>
+            )}
+          </div>
+          {/* --- END: שינויים --- */}
         </div>
       </div>
     </div>
   );
 };
 
-// --- רכיב WorldSection ---
+// ... (שאר הרכיבים WorldSection ו-QuestionnaireResponsesSection נשארים ללא שינוי)
+
 const WorldSection: React.FC<WorldSectionProps> = ({
   worldKey,
   worldConfig,
@@ -476,7 +489,6 @@ const WorldSection: React.FC<WorldSectionProps> = ({
   );
 };
 
-// --- רכיב QuestionnaireResponsesSection הראשי ---
 const QuestionnaireResponsesSection: React.FC<
   QuestionnaireResponsesSectionProps
 > = ({ questionnaire, onUpdate, isEditable = false, dict, locale }) => {
