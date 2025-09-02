@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { useLocale } from 'next-intl';
 import {
   MessageSquare,
   ThumbsUp,
@@ -22,15 +21,17 @@ import type { FeedbackWidgetDict } from '@/types/dictionary';
 
 interface FeedbackWidgetProps {
   dict: FeedbackWidgetDict;
-  locale: string;
+  locale?: string; // 🌐 הוספת locale כ-prop
 }
 
 type FeedbackType = 'SUGGESTION' | 'BUG' | 'POSITIVE';
 
-const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict, locale }) => {
-  // 🌐 הוספת locale לקביעת כיוון השפה
-
-  const isRTL = locale === 'he';
+const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
+  dict,
+  locale = 'en',
+}) => {
+  // 🌐 שימוש ב-locale מה-props במקום useLocale
+  const isRTL = locale === 'he' || locale === 'ar';
 
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<'type' | 'form'>('type');
@@ -260,14 +261,12 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict, locale }) => {
 
   return (
     <Fragment>
-      {/* Floating Tab Button - Responsive */}
-      <div
-        className={`fixed top-1/2 -translate-y-1/2 z-50 ${isRTL ? 'right-0' : 'left-0'}`}
-      >
+      {/* Floating Tab Button - Responsive - תמיד בצד ימין */}
+      <div className="fixed top-1/2 -translate-y-1/2 right-0 z-50">
         <div
           className={`transition-all duration-700 ${
             isOpen || isPermanentlyHidden
-              ? `${isRTL ? 'translate-x-4' : '-translate-x-4'} opacity-0 scale-95`
+              ? 'translate-x-4 opacity-0 scale-95'
               : 'translate-x-0 opacity-100 scale-100'
           }`}
         >
@@ -281,9 +280,9 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict, locale }) => {
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
               disabled={isProcessingClick}
-              className={`relative text-white px-1.5 sm:px-2 py-4 sm:py-6 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-600 via-orange-500 to-amber-400 bg-size-200 hover:bg-pos-100 disabled:opacity-50 disabled:cursor-not-allowed ${
-                isRTL ? 'rounded-l-2xl' : 'rounded-r-2xl'
-              } ${isHovered ? 'w-20 sm:w-32' : 'w-8 sm:w-12'}`}
+              className={`relative text-white px-1.5 sm:px-2 py-4 sm:py-6 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-600 via-orange-500 to-amber-400 bg-size-200 hover:bg-pos-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-2xl ${
+                isHovered ? 'w-20 sm:w-32' : 'w-8 sm:w-12'
+              }`}
               style={{
                 backgroundSize: '200% 100%',
                 backgroundPosition: isHovered ? '100% 0' : '0% 0',
@@ -329,15 +328,13 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict, locale }) => {
               )}
             </button>
 
-            {/* Close button (X) - Both mobile and desktop */}
+            {/* Close button (X) - תמיד בצד שמאל של הכפתור */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleHidePermanently();
               }}
-              className={`absolute -top-2 w-6 h-6 bg-white/90 hover:bg-red-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/close opacity-0 group-hover:opacity-100 backdrop-blur-sm border border-gray-200 z-20 ${
-                isRTL ? '-left-2' : '-right-2'
-              }`}
+              className="absolute -top-2 -left-2 w-6 h-6 bg-white/90 hover:bg-red-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/close opacity-0 group-hover:opacity-100 backdrop-blur-sm border border-gray-200 z-20"
               aria-label="הסתר כפתור פידבק"
             >
               <X className="w-3 h-3 group-hover/close:rotate-45 transition-all duration-300" />
@@ -370,14 +367,13 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict, locale }) => {
         />
       )}
 
-      {/* Main Widget - Responsive */}
+      {/* Main Widget - Responsive - תמיד בצד ימין */}
       <div
         className={cn(
-          `fixed inset-x-4 top-1/2 -translate-y-1/2 sm:top-1/2 sm:-translate-y-1/2 sm:left-auto z-50 w-auto sm:w-96 max-w-lg mx-auto sm:mx-0 transition-all duration-500`,
-          isRTL ? 'sm:left-16 sm:left-24' : 'sm:right-16 sm:right-24',
+          'fixed inset-x-4 top-1/2 -translate-y-1/2 sm:top-1/2 sm:-translate-y-1/2 sm:right-16 sm:left-auto sm:right-24 z-50 w-auto sm:w-96 max-w-lg mx-auto sm:mx-0 transition-all duration-500',
           isOpen
             ? 'opacity-100 translate-x-0 scale-100'
-            : `opacity-0 scale-95 pointer-events-none ${isRTL ? '-translate-x-8' : 'translate-x-8'}`,
+            : 'opacity-0 translate-x-8 scale-95 pointer-events-none',
           isTransitioning && 'pointer-events-none'
         )}
       >
@@ -442,7 +438,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict, locale }) => {
                         <option.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-sm" />
                       </div>
                       <div
-                        className={`flex-1 ${isRTL ? 'text-left' : 'text-right'}`}
+                        className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}
                       >
                         <div className="font-medium text-gray-800 mb-1 text-sm sm:text-base">
                           {option.label}
@@ -562,15 +558,11 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict, locale }) => {
                               <div className="absolute inset-0 bg-black/0 group-hover/preview:bg-black/20 transition-colors duration-300" />
                             </div>
 
-                            {/* Remove button */}
+                            {/* Remove button - תמיד בצד ימין של התמונה */}
                             <button
                               type="button"
                               onClick={() => setScreenshot(null)}
-                              className={`absolute -top-1.5 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/remove ${
-                                isRTL
-                                  ? '-left-1.5 sm:-left-2'
-                                  : '-right-1.5 sm:-right-2'
-                              }`}
+                              className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/remove"
                             >
                               <X className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover/remove:rotate-90 transition-transform duration-300" />
                               {/* Glow effect */}
