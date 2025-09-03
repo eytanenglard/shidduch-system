@@ -58,6 +58,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   dict,
   locale, // Destructure locale
 }) => {
+  console.log(
+    `---[ CLIENT LOG 3 | UnifiedProfileDashboard.tsx ]--- הרכיב נטען. הוא קיבל את ה-prop "initialTab" עם הערך: "${initialTab}".`
+  );
+
   const {
     data: session,
     status: sessionStatus,
@@ -71,6 +75,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const [questionnaireResponse, setQuestionnaireResponse] =
     useState<QuestionnaireResponse | null>(null);
   const [activeTab, setActiveTab] = useState(initialTab);
+  console.log(
+    `---[ CLIENT LOG 4 | UnifiedProfileDashboard.tsx ]--- מאתחל את ה-state של "activeTab". הערך כעת הוא: "${activeTab}". ערך זה שולט על רכיב ה-Tabs.`
+  );
+
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');

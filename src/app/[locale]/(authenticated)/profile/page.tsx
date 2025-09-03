@@ -10,6 +10,9 @@ export default async function ProfilePage({
 }: {
   params: { locale: Locale };
 }) {
+  console.log(
+    `---[ SERVER LOG | page.tsx ]--- עמוד הפרופיל נטען עבור שפה: "${locale}". הוא יטען את ProfilePageClient שאחראי על קריאת הטאב מה-URL.`
+  );
   // 1. טעינת המילון בצד השרת
   const dictionary = await getDictionary(locale);
 

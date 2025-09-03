@@ -114,6 +114,11 @@ export default function QuestionnaireLayout({
     }
   }, [onSaveProgress]);
 
+  const profileLinkWithTab = `/${locale}/profile?tab=questionnaire`;
+  console.log(
+    `---[ LOG | QuestionnaireLayout.tsx ]--- הקישורים לסקירת התשובות ינווטו אל: ${profileLinkWithTab}`
+  );
+
   const NavButton = ({
     worldId,
     isMobile,
@@ -195,27 +200,6 @@ export default function QuestionnaireLayout({
               <Eye className="inline-block h-3 w-3 mr-1 text-slate-500" />
             </span>
             {dict.layout.profileNotice.textPart2}
-            <br />
-            <Link
-              href="/profile?tab=questionnaire"
-              className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
-              target="_blank"
-            >
-              {dict.layout.profileNotice.link}
-              <svg
-                className="w-3 h-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
-            </Link>
           </p>
         </div>
       </div>
@@ -319,7 +303,7 @@ export default function QuestionnaireLayout({
             </div>
             {!isLoggedIn && <UnauthenticatedPrompt />}
             <div className="pt-4 mt-4 border-t space-y-2">
-              <Link href="/profile?tab=questionnaire">
+              <Link href={profileLinkWithTab}>
                 <Button
                   variant="outline"
                   size="sm"
@@ -458,7 +442,7 @@ export default function QuestionnaireLayout({
               </>
             )}
           </Button>
-          <Link href="/profile?tab=questionnaire">
+          <Link href={profileLinkWithTab}>
             <Button variant="outline" className="w-full">
               <BookUser className="w-4 h-4 mr-2" />
               {dict.layout.buttons.review}

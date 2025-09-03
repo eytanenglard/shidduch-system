@@ -1,6 +1,26 @@
 {
   "pageLoader": "טוען פרופיל...",
-  "dashboard": {
+ "dashboard": {
+    "loading": {
+      "title": "מכינים עבורך את מרכז הבקרה...",
+      "subtitle": "אנו אוספים את כל הפרטים שלך כדי ליצור חוויה אישית. זה ייקח רק רגע."
+    },
+    "stats": {
+      "title": "ברוך הבא למרכז ניהול הפרופיל",
+      "subtitle": "זהו המרחב האישי שלך לנהל את המסע למציאת התאמה. הנה מבט מהיר על ההתקדמות שלך.",
+      "profileCompletion": "השלמת הפרופיל",
+      "profileCompletionDesc": "פרופיל מלא זוכה ליותר צפיות.",
+      "photos": "תמונות שהועלו",
+      "photosDesc": "יותר תמונות מגדילות מעורבות.",
+      "questionnaire": "שאלון התאמה",
+      "questionnaireDesc": "המפתח להתאמות החכמות שלנו.",
+      "completed": "הושלם",
+      "pending": "ממתין"
+    },
+    "main": {
+      "title": "ניהול הפרופיל שלך"
+    },
+    "refreshSuccess": "נתוני הפרופיל רועננו בהצלחה.",
     "loadingData": "טוען נתונים...",
     "loadError": "שגיאה בטעינת הנתונים: {{error}}",
     "updateSuccess": "הפרופיל עודכן בהצלחה",
@@ -11,9 +31,13 @@
     "viewedPreviewError": "שגיאה בעדכון סטטוס הצפייה בתצוגה המקדימה.",
     "tabs": {
       "overview": "פרטים כלליים",
+      "overviewShort": "פרופיל",
       "photos": "תמונות",
+      "photosShort": "תמונות",
       "preferences": "העדפות",
-      "questionnaire": "שאלון"
+      "preferencesShort": "העדפות",
+      "questionnaire": "שאלון",
+      "questionnaireShort": "תשובות"
     },
     "tabContent": {
       "loadingOverview": "טוען סקירה כללית...",

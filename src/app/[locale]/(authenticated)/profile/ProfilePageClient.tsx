@@ -15,10 +15,17 @@ interface ProfilePageContentProps {
 // הקומפוננטה מקבלת עכשיו locale
 const ProfilePageContent = ({ dict, locale }: ProfilePageContentProps) => {
   const searchParams = useSearchParams();
+   const tabFromUrl = searchParams.get('tab');
+  console.log(
+    '---[ CLIENT LOG 1 | ProfilePageClient.tsx ]--- קורא את פרמטר ה-URL. הערך של "tab" הוא:',
+    tabFromUrl
+  );
   const viewOnly = searchParams.get('viewOnly') === 'true';
   const userId = searchParams.get('userId') || undefined;
   const initialTab = searchParams.get('tab') || 'overview';
-
+ console.log(
+    `---[ CLIENT LOG 2 | ProfilePageClient.tsx ]--- מגדיר את initialTab לערך "${initialTab}". הערך הזה מועבר ל-UnifiedProfileDashboard.`
+  );
   // הערה: אין צורך ב-dir="rtl" כאן, כי הקומפוננטה הפנימית תטפל בזה
   return (
     <div className="min-h-screen bg-background">
