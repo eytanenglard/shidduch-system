@@ -28,6 +28,8 @@ import {
   ArrowLeft,
   Trash2,
 } from 'lucide-react';
+import { Languages } from 'lucide-react'; // הוספת אייקון חדש
+
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import {
@@ -249,7 +251,20 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       ? t.editTooltip.budget
       : t.editTooltip.text;
   // --- END: שינויים ---
+  const answerLang = useMemo(() => {
+    if (
+      answer.questionType === 'openText' &&
+      typeof answer.rawValue === 'object' &&
+      answer.rawValue &&
+      'lang' in answer.rawValue
+    ) {
+      return (answer.rawValue as { lang: string }).lang;
+    }
+    return null;
+  }, [answer.rawValue, answer.questionType]);
 
+  const needsLanguageBadge = answerLang && answerLang !== locale;
+  // --- סוף הוספת הלוגיקה ---
   return (
     <div
       className="rounded-lg border bg-card p-4 shadow-sm transition-shadow duration-300 hover:shadow-md"
@@ -262,6 +277,31 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               {question}
             </h4>
             <div className="flex items-center gap-2 self-end sm:self-center">
+              {needsLanguageBadge && (
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Badge
+                        variant="outline"
+                        className="flex items-center gap-1 border-amber-300 bg-amber-50 text-amber-800"
+                      >
+                        <Languages className="h-3 w-3" />
+                        <span className="text-xs">
+                          {
+                            dict.questionnaireSection.questionCard
+                              .languageBadge[answerLang as 'he' | 'en']
+                          }
+                        </span>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p className="text-xs">
+                        {dict.questionnaireSection.questionCard.languageTooltip}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               {isDeleting && (
                 <Loader2 className="h-4 w-4 animate-spin text-red-500" />
               )}
@@ -271,45 +311,22 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={currentIsVisible}
-                      disabled={!isEditingGlobally || isSaving}
-                      onClick={() => handleVisibilityChange(!currentIsVisible)}
-                      className={cn(
-                        'inline-flex items-center justify-center h-8 px-3 rounded-full gap-2 transition-all duration-200 ease-in-out',
-                        'disabled:opacity-100 disabled:cursor-default',
-                        currentIsVisible
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-gray-200 text-gray-600',
-                        isEditingGlobally &&
-                          !isSaving &&
-                          'hover:shadow-md active:scale-95',
-                        isEditingGlobally &&
-                          !isSaving &&
-                          currentIsVisible &&
-                          'hover:bg-emerald-200',
-                        isEditingGlobally &&
-                          !isSaving &&
-                          !currentIsVisible &&
-                          'hover:bg-gray-300'
-                      )}
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-cyan-600 hover:bg-cyan-50"
                     >
-                      {currentIsVisible ? (
-                        <Eye className="h-3.5 w-3.5" />
-                      ) : (
-                        <EyeOff className="h-3.5 w-3.5" />
-                      )}
-                      <span className="text-xs font-medium whitespace-nowrap">
-                        {currentIsVisible
-                          ? t.visibilityButton.visible
-                          : t.visibilityButton.hidden}
-                      </span>
-                    </button>
+                      <a
+                        href={`/${locale}/questionnaire?world=${worldKey}&question=${answer.questionId}`}
+                      >
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">{t.editTooltip.text}</span>
+                      </a>
+                    </Button>
                   </TooltipTrigger>
                   <TooltipContent side="top" dir={direction}>
-                    <p>{getVisibilityTooltip()}</p>
+                    <p>{t.editTooltip.text}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

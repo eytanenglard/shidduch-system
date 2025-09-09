@@ -8,8 +8,12 @@ import { VerificationType, Prisma } from '@prisma/client';
 import { z } from 'zod';
 
 const updatePhoneSchema = z.object({
-  newPhone: z.string().regex(/^0\d{9}$/, "Invalid phone number format (e.g., 0501234567)"),
+  newPhone: z.string().refine(
+    (phone) => /^\+[1-9]\d{1,14}$/.test(phone), 
+    { message: "Invalid international phone number format (E.164 required)." }
+  ),
 });
+
 
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);

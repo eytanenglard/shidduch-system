@@ -103,3 +103,15 @@ export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
     email: email as EmailDictionary,
   } as Dictionary;
 };
+
+/**
+ * טוען באופן ספציפי רק את מילון השאלות של השאלון עבור שפה נתונה.
+ * פונקציה זו שימושית עבור רכיבי צד-שרת או API routes שצריכים גישה לתרגומי השאלות.
+ * @param locale השפה לטעינה ('en' או 'he').
+ * @returns Promise שנפתר לאובייקט מילון השאלות (questions).
+ */
+export const getQuestionnaireQuestionsDictionary = async (locale: Locale) => {
+  const targetLocale = questionnaireQuestionsDictionaries[locale] ? locale : 'he';
+  const questionsContent = await questionnaireQuestionsDictionaries[targetLocale]();
+  return questionsContent;
+};

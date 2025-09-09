@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-09-02 19:47:26
+# Generated on: 2025-09-09 19:50:47
 ################################################################################
 
 ================================================================================
@@ -508,6 +508,7 @@ const RegisterStepsContent: React.FC<{
             <PersonalDetailsStep
               dict={dict.steps.personalDetails}
               consentDict={dict.consentCheckbox}
+              locale={locale}
             />
           );
         case 3:
@@ -2331,7 +2332,10 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           // === FIX: Restored specific button styling ===
           className="flex items-center gap-2"
         >
-          <ArrowRight className="h-4 w-4 ml-2" /> {dict.backButton}
+          <ArrowRight
+            className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+          />{' '}
+          {dict.backButton}{' '}
         </Button>
         <Button
           type="button"
@@ -2353,7 +2357,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           ) : (
             <>
               <span>{dict.nextButton}</span>
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft
+                className={`h-4 w-4 mr-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+              />{' '}
             </>
           )}
         </Button>
@@ -2850,7 +2856,10 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
           variant="outline"
           disabled={isLoading || isResending}
         >
-          <ArrowRight className="h-4 w-4 ml-2" /> {dict.backButton}
+          <ArrowRight
+            className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+          />{' '}
+          {dict.backButton}{' '}
         </Button>
       </motion.div>
     </motion.div>
@@ -3069,7 +3078,9 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
           variant="outline"
           disabled={isLoading}
         >
-          <ArrowRight className="h-4 w-4 ml-2" />
+          <ArrowRight
+            className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+          />{' '}
           {dict.backButton}
         </Button>
         <Button
@@ -3085,7 +3096,10 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
             </>
           ) : (
             <>
-              {dict.nextButton} <ArrowLeft className="h-4 w-4 mr-2" />
+              {dict.nextButton}{' '}
+              <ArrowLeft
+                className={`h-4 w-4 mr-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+              />{' '}
             </>
           )}
         </Button>
@@ -3128,11 +3142,13 @@ import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 interface PersonalDetailsStepProps {
   dict: RegisterStepsDict['steps']['personalDetails'];
   consentDict: RegisterStepsDict['consentCheckbox'];
+  locale: string;
 }
 
 const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
   dict,
   consentDict,
+  locale,
 }) => {
   const {
     data: registrationState,
@@ -3414,7 +3430,9 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           variant="outline"
           disabled={isSubmittingConsent}
         >
-          <ArrowRight className="h-4 w-4 ml-2" />
+          <ArrowRight
+            className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+          />{' '}
           {dict.backButton}
         </Button>
         <Button
@@ -3429,7 +3447,10 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             </>
           ) : (
             <>
-              {dict.nextButton} <ArrowLeft className="h-4 w-4 mr-2" />
+              {dict.nextButton}{' '}
+              <ArrowLeft
+                className={`h-4 w-4 mr-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+              />{' '}
             </>
           )}
         </Button>
@@ -3678,7 +3699,9 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
           <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
           <Mail className="h-5 w-5 text-white" />
           <span className="text-white font-medium">{dict.emailButton}</span>
-          <ArrowLeft className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+          <ArrowLeft
+            className={`h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity ${locale === 'en' ? 'transform rotate-180' : ''}`}
+          />{' '}
         </Button>
       </div>
 

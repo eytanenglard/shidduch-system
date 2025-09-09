@@ -466,7 +466,7 @@ export default function WorldsMap({
                     </p>
                   </div>
                 </div>
-                <Link href="/profile?tab=questionnaire">
+                <Link href={`/${locale}/profile?tab=questionnaire`}>
                   <Button
                     variant="outline"
                     className="w-full sm:w-auto bg-white/80 border-teal-200 text-teal-600 hover:bg-teal-50 hover:border-teal-300"

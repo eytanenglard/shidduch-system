@@ -48,35 +48,23 @@ export async function sendOtpViaWhatsApp(phoneNumber: string, otpCode: string, r
         return false;
     }
 
-    // הוסף קידומת בינלאומית תקינה (לוודא שזה בפורמט E.164)
-    // נניח שהמספרים מישראל ומתחילים ב-05. שנה בהתאם לפורמט שלך.
-    let formattedPhoneNumber = phoneNumber;
-    if (formattedPhoneNumber.startsWith('0')) {
-        // נניח קידומת ישראל +972 למספרים שמתחילים ב-0
-        formattedPhoneNumber = '+972' + formattedPhoneNumber.substring(1);
-    } else if (!formattedPhoneNumber.startsWith('+')) {
-        // נניח ברירת מחדל לישראל אם אין קידומת בכלל
-        formattedPhoneNumber = '+972' + formattedPhoneNumber;
+    // --- התיקון המרכזי ---
+    // אנו מניחים שה-phoneNumber כבר מגיע בפורמט E.164 מלא (למשל +14155552671)
+    // ולכן מסירים את כל הלוגיקה שניסתה לנחש את הקידומת.
+    if (!phoneNumber || !phoneNumber.startsWith('+')) {
+        console.error(`[PhoneVerificationService] Error: Invalid phone number format. Expected E.164 format (e.g., +14155552671). Received: ${phoneNumber}`);
+        return false;
     }
-    // ודא הסרת תווים לא מספריים מלבד ה-+ בהתחלה
-    formattedPhoneNumber = '+' + formattedPhoneNumber.substring(1).replace(/[^0-9]/g, '');
 
-    const recipientWhatsAppNumber = `whatsapp:${formattedPhoneNumber}`;
-    // ודא ש-TWILIO_WHATSAPP_NUMBER אינו מכיל את הקידומת 'whatsapp:'
-    const senderWhatsAppNumber = `whatsapp:${twilioWhatsAppNumber.startsWith('+') ? twilioWhatsAppNumber : '+' + twilioWhatsAppNumber}`;
+    const recipientWhatsAppNumber = `whatsapp:${phoneNumber}`;
+    const senderWhatsAppNumber = `whatsapp:${twilioWhatsAppNumber}`;
 
     console.log(`[PhoneVerificationService] Attempting to send OTP via WhatsApp to ${recipientWhatsAppNumber}. Recipient: ${recipientName || 'N/A'}`);
 
     try {
-        // הגדרת המשתנים שיוחלפו בתבנית
-        // אנו שולחים את otpCode למשתנה {{1}}
         const contentVariables = JSON.stringify({
             '1': otpCode,
-            // אם התבנית 'match_suggestion_notification' דורשת משתנים נוספים,
-            // תצטרך להוסיף אותם כאן (עם ערכי ברירת מחדל במידת הצורך),
-            // אחרת הקריאה ל-Twilio תיכשל עם שגיאה מתאימה.
-            // לדוגמה, אם היא דורשת {{2}}:
-            // '2': recipientName || 'User'
+            // '2': recipientName || 'User' // Add if your template requires it
         });
 
         const message = await twilioClient.messages.create({
@@ -86,9 +74,10 @@ export async function sendOtpViaWhatsApp(phoneNumber: string, otpCode: string, r
             from: senderWhatsAppNumber,
         });
 
-        console.log(`[PhoneVerificationService] WhatsApp OTP message sent successfully via Twilio. Message SID: ${message.sid}, Template SID used: ${otpTemplateSid}`);
+        console.log(`[PhoneVerificationService] WhatsApp OTP message sent successfully. SID: ${message.sid}`);
         return true;
     } catch (error) {
+
         console.error('[PhoneVerificationService] Error: Failed to send WhatsApp message via Twilio.');
         if (error instanceof Error) {
             console.error(`  Message: ${error.message}`);

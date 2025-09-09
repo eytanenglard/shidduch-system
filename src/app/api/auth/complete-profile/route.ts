@@ -14,7 +14,10 @@ const completeProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required").max(100, "First name too long"),
   lastName: z.string().min(1, "Last name is required").max(100, "Last name too long"),
   // --- סוף הוספה ---
-  phone: z.string().regex(/^0\d{9}$/, "Invalid phone number format (e.g., 0501234567)"),
+  phone: z.string().refine(
+    (phone) => /^\+[1-9]\d{1,14}$/.test(phone), 
+    { message: "Invalid international phone number format (E.164 required)." }
+  ),
   gender: z.nativeEnum(Gender),
   birthDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
      message: "Invalid birth date format",

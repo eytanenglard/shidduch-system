@@ -1859,3 +1859,227 @@ button,
   outline: 2px solid rgba(59, 130, 246, 0.7);
   outline-offset: 2px;
 }
+/* src/styles/phone-input.css */
+
+/* אנימציות חלקות לכל האלמנטים */
+.phone-input-container * {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* סגנון מיוחד לכפתור בחירת המדינה */
+.country-selector {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.country-selector:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.country-selector:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* עיצוב הרשימה הנפתחת */
+.country-dropdown {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* אפקט hover על פריטי הרשימה */
+.country-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.country-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.country-item:hover::before {
+  left: 100%;
+}
+
+/* עיצוב שדה החיפוש */
+.search-input {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border: 1px solid #e2e8f0;
+}
+
+.search-input:focus {
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* אינדיקטור המדינות הפופולאריות */
+.popular-indicator {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* עיצוב שדה מספר הטלפון */
+.phone-number-input {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
+  letter-spacing: 0.5px;
+}
+
+.phone-number-input:focus {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+}
+
+/* אנימציות לשגיאות */
+.error-message {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+  30%, 50%, 70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+  40%, 60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+/* אפקט loading לכפתור */
+.loading-button {
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: gradient 1.5s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* עיצוב מותאם למובייל */
+@media (max-width: 640px) {
+  .country-dropdown {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 90vw !important;
+    max-width: 400px !important;
+    max-height: 70vh !important;
+    z-index: 9999 !important;
+  }
+  
+  .country-selector {
+    min-width: 120px;
+  }
+  
+  .phone-number-input {
+    font-size: 16px; /* מניעת zoom ב-iOS */
+  }
+}
+
+/* עיצוב כהה (אם נדרש בעתיד) */
+@media (prefers-color-scheme: dark) {
+  .country-selector {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    color: #f9fafb;
+    border-color: #374151;
+  }
+  
+  .country-dropdown {
+    background: rgba(31, 41, 55, 0.95);
+    border-color: #374151;
+  }
+  
+  .search-input {
+    background: #374151;
+    color: #f9fafb;
+    border-color: #4b5563;
+  }
+}
+
+/* אנימציה לפתיחת/סגירת הרשימה */
+.dropdown-enter {
+  opacity: 0;
+  transform: scale(0.95) translateY(-10px);
+}
+
+.dropdown-enter-active {
+  opacity: 1;
+  transform: scale(1) translateY(0px);
+  transition: opacity 200ms, transform 200ms;
+}
+
+.dropdown-exit {
+  opacity: 1;
+  transform: scale(1) translateY(0px);
+}
+
+.dropdown-exit-active {
+  opacity: 0;
+  transform: scale(0.95) translateY(-10px);
+  transition: opacity 150ms, transform 150ms;
+}
+
+/* גלילה חלקה */
+.countries-list {
+  scroll-behavior: smooth;
+}
+
+/* עיצוב מותאם לעברית */
+[dir="rtl"] .country-selector {
+  text-align: right;
+}
+
+[dir="rtl"] .search-input {
+  text-align: right;
+}
+
+/* הסתרת חצי הגלילה הברירת מחדל */
+.countries-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.countries-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.countries-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #cbd5e1, #94a3b8);
+  border-radius: 3px;
+}
+
+.countries-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #94a3b8, #64748b);
+}

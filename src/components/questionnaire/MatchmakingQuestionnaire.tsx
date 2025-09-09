@@ -425,7 +425,10 @@ export default function MatchmakingQuestionnaire({
                 setCurrentStep(OnboardingStep.MAP);
               }
             } else if (isQuestionnaireComplete) {
-                            console.log(`%c[LOG | MatchmakingQuestionnaire] Questionnaire is complete, setting step to MAP.`, 'color: #9c27b0;');
+              console.log(
+                `%c[LOG | MatchmakingQuestionnaire] Questionnaire is complete, setting step to MAP.`,
+                'color: #9c27b0;'
+              );
 
               setCurrentWorld(initialWorld || WORLD_ORDER[0]);
               setCurrentStep(OnboardingStep.MAP);
@@ -473,18 +476,27 @@ export default function MatchmakingQuestionnaire({
         const newAnswerBase = {
           questionId,
           worldId: currentWorld,
-          value,
           answeredAt: new Date().toISOString(),
           isVisible:
             answerIndex > -1 ? prevAnswers[answerIndex].isVisible : true,
         };
 
+        // --- הוסף/שנה לקוד הבא ---
+        let finalValue = value;
+        // בודקים אם זו שאלת טקסט פתוח ואם הערך הוא מחרוזת
+        if (currentQuestion?.type === 'openText' && typeof value === 'string') {
+          // עוטפים את התשובה באובייקט שכולל את הטקסט והשפה
+          finalValue = {
+            text: value,
+            lang: locale, // ה-locale זמין כ-prop מהרכיב
+          };
+        }
+
         const finalNewAnswer: QuestionnaireAnswer = {
           ...newAnswerBase,
-          ...(currentQuestion?.type === 'openText' && {
-            language: locale as 'en' | 'he',
-          }),
+          value: finalValue, // משתמשים בערך המעודכן
         };
+        // --- סוף השינוי ---
 
         if (answerIndex > -1) {
           const updatedAnswers = [...prevAnswers];
@@ -495,7 +507,7 @@ export default function MatchmakingQuestionnaire({
         }
       });
     },
-    [currentWorld, locale]
+    [currentWorld, locale] // ודא ש-locale נמצא במערך התלויות
   );
 
   const handleVisibilityChange = useCallback(

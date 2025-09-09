@@ -199,7 +199,13 @@ export default function InteractiveScale({
                           'bg-gray-200',
                         isDisabled && 'cursor-not-allowed'
                       )}
-                      onClick={() => handleClick(item.value)}
+                      // ================== START: התיקון ==================
+                      // שינינו את onClick ל-onMouseDown והוספנו עצירת התפשטות האירוע
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        handleClick(item.value);
+                      }}
+                      // =================== END: התיקון ===================
                       onKeyDown={(e) => handleKeyPress(e, item.value)}
                       onMouseEnter={() =>
                         !isDisabled && setHoveredValue(item.value)

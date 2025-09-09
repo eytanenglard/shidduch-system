@@ -1109,6 +1109,8 @@ export type ProfileChecklistDict = {
   allComplete_female?: string; // הוסף את השורה הזו```
   welcomeSubtitle: string;
   allCompleteSubtitle: string;
+    checklistPurpose: string; // ✨ הוסף שורה זו
+
   completionLabel: string;
   expandLabel: string;
   minimizeLabel: string;
@@ -2543,6 +2545,12 @@ export type QuestionnaireSectionDictionary = {
 
   // טקסטים עבור רכיב QuestionCard
   questionCard: {
+    languageBadge: {
+      en: string;
+      he: string;
+    };
+    languageTooltip: string;
+
     toasts: {
       emptyAnswer: string;
       updateSuccess: string;

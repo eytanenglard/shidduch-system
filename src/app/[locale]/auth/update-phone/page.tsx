@@ -12,5 +12,7 @@ export default async function UpdatePhonePage({
 }) {
   const dictionary = await getDictionary(locale);
 
-  return <UpdatePhoneClient dict={dictionary.auth.updatePhone} />;
+  return (
+    <UpdatePhoneClient dict={dictionary.auth.updatePhone} locale={locale} />
+  );
 }

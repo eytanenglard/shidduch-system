@@ -31,6 +31,8 @@
   "allComplete_female": "Excellent work, {{firstName}}! Your profile is complete and ready to shine.",
       "welcomeSubtitle": "Completing these steps is the key to unlocking meaningful, high-quality matches.",
       "allCompleteSubtitle": "You've completed all the steps. A rich, detailed profile is essential for finding your best match.",
+        "checklistPurpose": "This checklist outlines the necessary steps to build a standout profile that attracts the best possible matches for you.",
+
       "completionLabel": "Profile Completion",
       "expandLabel": "Expand",
       "minimizeLabel": "Minimize",
@@ -555,6 +557,11 @@
       }
     },
     "questionCard": {
+        "languageBadge": {
+          "en": "אנגלית",
+          "he": "עברית"
+        },
+        "languageTooltip": "תשובה זו נכתבה במקור בשפה המוצגת",
       "toasts": {
         "emptyAnswer": "Cannot save an empty answer.",
         "updateSuccess": "Answer updated successfully.",

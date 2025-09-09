@@ -82,16 +82,12 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
     (missingItems && missingItems.length > 0) ||
     (worldProgress && worldProgress.length > 0);
   const isExpanded = isActive && canExpand;
-
   const handleInteraction = () => {
     if (isCompleted) return;
     if (onClick) {
       onClick();
-    } else if (canExpand && !link) {
-      setActiveItemId((prev) => (prev === id ? null : id));
     }
   };
-
   const cardContent = (
     <>
       <div className="relative w-full flex justify-center mb-3">
@@ -163,15 +159,40 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
   return (
     <motion.div
       layout
-      onMouseEnter={() => canExpand && setActiveItemId(id)}
+      // onMouseEnter has been removed from here
       className={cn(
         'relative flex flex-col rounded-2xl transition-all duration-300 group overflow-hidden',
         isCompleted ? 'bg-white/40' : 'bg-white/70 shadow-md',
         isExpanded && 'shadow-xl bg-white'
       )}
     >
-      <div className={cn('p-4', !isCompleted && 'cursor-pointer')}>
+      <div
+        className={cn(
+          'p-4 relative', // Added 'relative'
+          !isCompleted && 'cursor-pointer'
+        )}
+      >
         {interactiveContent}
+        {/* START: Added expansion button */}
+        {canExpand && !isCompleted && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent card's main click from firing
+              setActiveItemId((prev) => (prev === id ? null : id));
+            }}
+            className="absolute bottom-1 end-1 w-8 h-8 rounded-full text-gray-500 hover:bg-gray-200/50"
+            aria-label={isExpanded ? dict.minimizeLabel : dict.expandLabel}
+          >
+            {isExpanded ? (
+              <ChevronUp className="w-5 h-5" />
+            ) : (
+              <ChevronDown className="w-5 h-5" />
+            )}
+          </Button>
+        )}
+        {/* END: Added expansion button */}
       </div>
       <AnimatePresence>
         {isExpanded && (
@@ -250,7 +271,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   locale, // Added: destructure locale
   onNavigateToTab, // <-- הוסף את זה
 }) => {
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true);
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const missingItemsDict = dict.missingItems;
 
@@ -397,7 +418,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
 
   const questionnaireCompleted = questionnaireResponse?.completed ?? false;
 
-// src/app/[locale]/(authenticated)/profile/components/dashboard/ProfileChecklist.tsx
+  // src/app/[locale]/(authenticated)/profile/components/dashboard/ProfileChecklist.tsx
 
   const tasks = [
     {
@@ -717,7 +738,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
                 }}
                 exit={{ height: 0, opacity: 0, transition: { duration: 0.3 } }}
                 className="overflow-hidden"
-                onMouseLeave={() => setActiveItemId(null)}
+                // The onMouseLeave event handler has been removed from here.
               >
                 <ul className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
                   {tasks.map((task) => (

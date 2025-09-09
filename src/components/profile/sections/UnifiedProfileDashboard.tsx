@@ -92,9 +92,60 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     setActiveTab(initialTab);
   }, [initialTab]);
 
+  // --- קוד מעודכן ---
+  // src/app/[locale]/(authenticated)/profile/components/dashboard/UnifiedProfileDashboard.tsx
+
   const handleTabChange = (newTab: string) => {
+    // --- לוג מקדים ---
+    console.log(
+      `---[ CLIENT LOG 5 | UnifiedProfileDashboard.tsx ]--- handleTabChange נקראה עם הטאב החדש: "${newTab}".`
+    );
+
     setActiveTab(newTab);
     router.push(`/profile?tab=${newTab}`, { scroll: false });
+
+    // הגדלנו מעט את ההשהיה כדי לתת ל-React יותר זמן לעבד את השינוי ב-DOM.
+    setTimeout(() => {
+      console.log(
+        `---[ CLIENT LOG 6 | UnifiedProfileDashboard.tsx ]--- ה-setTimeout של הגלילה החל. מנסה לגלול לטאב: "${newTab}".`
+      );
+
+      const elementId = `${newTab}-content`;
+      console.log(
+        `---[ CLIENT LOG 7 | UnifiedProfileDashboard.tsx ]--- מחפש אלמנט עם ID דינמי: "${elementId}".`
+      );
+
+      const element = document.getElementById(elementId);
+
+      // --- זהו הלוג הקריטי ביותר ---
+      if (element) {
+        console.log(
+          `✅ ---[ CLIENT LOG 8 | UnifiedProfileDashboard.tsx ]--- הצלחה! האלמנט נמצא. גולל אליו.`,
+          element
+        );
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        console.error(
+          `❌ ---[ CLIENT LOG 8 | UnifiedProfileDashboard.tsx ]--- כישלון! האלמנט עם ID "${elementId}" לא נמצא ב-DOM ברגע זה. הגלילה נכשלה.`
+        );
+
+        // ננסה לגלוש לאלמנט החלופי כדי לראות אם הוא קיים
+        const fallbackElement = document.getElementById('profile-tabs-content');
+        if (fallbackElement) {
+          console.warn(
+            `---[ CLIENT LOG 9 | UnifiedProfileDashboard.tsx ]--- נסוג לגלילה לאלמנט החלופי "profile-tabs-content".`
+          );
+          fallbackElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+        } else {
+          console.error(
+            `❌ ---[ CLIENT LOG 9 | UnifiedProfileDashboard.tsx ]--- כישלון קריטי! גם אלמנט הגיבוי "profile-tabs-content" לא נמצא.`
+          );
+        }
+      }
+    }, 150); // הגדלתי מעט את הזמן ל-150ms
   };
 
   const isOwnProfile = !userId || session?.user?.id === userId;
@@ -540,24 +591,44 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
             <div className="flex justify-center mb-6 md:mb-8">
               <ScrollArea dir={direction} className="w-auto max-w-full">
                 <TabsList className="h-auto p-1.5 bg-white/70 backdrop-blur-sm rounded-full shadow-md gap-1 inline-flex flex-nowrap">
-                  <TabsTrigger value="overview">
+                  <TabsTrigger
+                    value="overview"
+                    className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 transition-colors duration-200 ease-in-out hover:bg-cyan-100/50 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
                     {dict.dashboard.tabs.overview}
                   </TabsTrigger>
-                  <TabsTrigger value="photos">
+                  <TabsTrigger
+                    value="photos"
+                    className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 transition-colors duration-200 ease-in-out hover:bg-cyan-100/50 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
                     {dict.dashboard.tabs.photos}
                   </TabsTrigger>
-                  <TabsTrigger value="preferences">
+                  <TabsTrigger
+                    value="preferences"
+                    className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 transition-colors duration-200 ease-in-out hover:bg-cyan-100/50 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
                     {dict.dashboard.tabs.preferences}
                   </TabsTrigger>
-                  <TabsTrigger value="questionnaire">
+                  <TabsTrigger
+                    value="questionnaire"
+                    className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 transition-colors duration-200 ease-in-out hover:bg-cyan-100/50 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
                     {dict.dashboard.tabs.questionnaire}
                   </TabsTrigger>
                 </TabsList>
                 <ScrollBar orientation="horizontal" className="mt-1" />
               </ScrollArea>
             </div>
-            <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-8 lg:p-10 transition-all duration-300 ease-in-out">
-              <TabsContent value="overview">
+            <div
+              id="profile-tabs-content"
+              className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl transition-all duration-300 ease-in-out scroll-mt-4"
+            >
+              {/* הוסף id ו-className לכל TabsContent */}
+              <TabsContent
+                value="overview"
+                id="overview-content"
+                className="scroll-mt-24" // ✨ שינוי: הגדלת המרווח
+              >
                 {profileData ? (
                   <ProfileSection
                     profile={profileData}
@@ -566,7 +637,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     onSave={handleSave}
                     viewOnly={viewOnly || !isOwnProfile}
                     dict={dict.profileSection}
-                    locale={locale} // Pass locale
+                    locale={locale}
                   />
                 ) : (
                   <p className="text-center text-gray-500 py-10">
@@ -574,7 +645,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   </p>
                 )}
               </TabsContent>
-              <TabsContent value="photos">
+              <TabsContent
+                value="photos"
+                id="photos-content"
+                className="scroll-mt-4"
+              >
                 <PhotosSection
                   images={images}
                   isUploading={isLoading}
@@ -586,7 +661,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   locale={locale}
                 />
               </TabsContent>
-              <TabsContent value="preferences">
+              <TabsContent
+                value="preferences"
+                id="preferences-content"
+                className="scroll-mt-4"
+              >
                 {profileData ? (
                   <PreferencesSection
                     profile={profileData}
@@ -595,7 +674,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     onChange={handleSave}
                     viewOnly={viewOnly || !isOwnProfile}
                     dictionary={dict.preferencesSection}
-                    locale={locale} // Pass locale
+                    locale={locale}
                   />
                 ) : (
                   <p className="text-center text-gray-500 py-10">
@@ -603,14 +682,18 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   </p>
                 )}
               </TabsContent>
-              <TabsContent value="questionnaire">
+              <TabsContent
+                value="questionnaire"
+                id="questionnaire-content"
+                className="scroll-mt-4"
+              >
                 {questionnaireResponse ? (
                   <QuestionnaireResponsesSection
                     questionnaire={questionnaireResponse}
                     onUpdate={handleQuestionnaireUpdate}
                     isEditable={!viewOnly && isOwnProfile}
                     dict={dict}
-                    locale={locale} // Pass locale
+                    locale={locale}
                   />
                 ) : (
                   <div className="text-center py-12 text-gray-500">

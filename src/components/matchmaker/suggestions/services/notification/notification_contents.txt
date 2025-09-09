@@ -1,0 +1,599 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification
+# Generated on: 2025-09-09 19:47:11
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\NotificationService.ts
+--------------------------------------------------------------------------------
+Content:
+// src/components/matchmaker/suggestions/services/notification/NotificationService.ts
+
+import { MatchSuggestionStatus } from '@prisma/client';
+import { SuggestionWithParties } from '../suggestions/StatusTransitionService';
+import { EmailDictionary } from '@/types/dictionary'; // ייבוא הטיפוס המאוחד
+
+// --- הגדרות טיפוסים פנימיות של השירות ---
+
+export type RecipientInfo = {
+  email: string;
+  phone?: string;
+  name: string;
+};
+
+export type NotificationContent = {
+  subject: string;
+  body: string;
+  htmlBody?: string;
+};
+
+export type NotificationChannel = 'email' | 'whatsapp' | 'sms';
+
+export type NotificationOptions = {
+  channels: NotificationChannel[];
+  notifyParties?: ('first' | 'second' | 'matchmaker')[];
+  customMessage?: string;
+};
+
+export interface NotificationAdapter {
+  canSendTo(recipient: RecipientInfo): boolean;
+  send(recipient: RecipientInfo, content: NotificationContent): Promise<boolean>;
+  getChannelType(): NotificationChannel;
+}
+
+// --- שירות ההודעות המלא והמשוכתב ---
+
+export class NotificationService {
+  private static instance: NotificationService;
+  private adapters: Map<NotificationChannel, NotificationAdapter> = new Map();
+
+  private constructor() {}
+
+  public static getInstance(): NotificationService {
+    if (!NotificationService.instance) {
+      NotificationService.instance = new NotificationService();
+    }
+    return NotificationService.instance;
+  }
+
+  public registerAdapter(adapter: NotificationAdapter): void {
+    this.adapters.set(adapter.getChannelType(), adapter);
+    console.log(`Registered ${adapter.getChannelType()} adapter`);
+  }
+
+  public async sendNotification(
+    recipient: RecipientInfo,
+    content: NotificationContent,
+    options: Pick<NotificationOptions, 'channels'>
+  ): Promise<Record<NotificationChannel, boolean>> {
+    const results: Record<NotificationChannel, boolean> = {} as any;
+
+    for (const channel of options.channels) {
+      const adapter = this.adapters.get(channel);
+      if (adapter && adapter.canSendTo(recipient)) {
+        try {
+          console.log(`Sending ${channel} notification to ${recipient.name}`);
+          results[channel] = await adapter.send(recipient, content);
+          console.log(`${channel} notification sent successfully: ${results[channel]}`);
+        } catch (error) {
+          console.error(`Error sending notification via ${channel}:`, error);
+          results[channel] = false;
+        }
+      } else {
+        if (!adapter) console.warn(`No adapter registered for channel: ${channel}`);
+        if (adapter && !adapter.canSendTo(recipient)) console.warn(`Cannot send to recipient via ${channel}: missing required info`);
+        results[channel] = false;
+      }
+    }
+    return results;
+  }
+
+  public async handleSuggestionStatusChange(
+    suggestion: SuggestionWithParties,
+    dictionary: EmailDictionary,
+    options: Partial<NotificationOptions> = {}
+  ): Promise<void> {
+    console.log(`Processing notifications for suggestion ${suggestion.id} with status ${suggestion.status}`);
+    
+    // אנו עובדים עם תת-המילון של ההתראות
+    const notificationDict = dictionary.notifications; 
+    
+    const contentGenerator = options.customMessage 
+      ? this.getCustomMessageContent(options.customMessage, suggestion.id, notificationDict)
+      : this.getSuggestionContentFromDict(suggestion, notificationDict);
+
+    if (!contentGenerator) {
+      console.log(`No template found for status ${suggestion.status} - skipping notification`);
+      return;
+    }
+  
+    const recipientsWithChannels = this.getRecipientsForSuggestion(suggestion);
+  
+    for (const { recipient, preferredChannels, partyType } of recipientsWithChannels) {
+      if (options.notifyParties && !options.notifyParties.includes(partyType)) {
+        console.log(`Skipping recipient ${recipient.name} (${partyType}) - not in notifyParties`, options.notifyParties);
+        continue;
+      }
+      
+      const personalizedContent = contentGenerator(partyType);
+      
+      const channelsToUse = options.channels || preferredChannels || ['email'];
+      
+      await this.sendNotification(
+        recipient,
+        personalizedContent,
+        { channels: channelsToUse }
+      );
+    }
+    console.log(`Finished processing notifications for suggestion ${suggestion.id}`);
+  }
+
+  private getSuggestionContentFromDict(
+    suggestion: SuggestionWithParties,
+    dictionary: EmailDictionary['notifications']
+  ): ((partyType: 'first' | 'second' | 'matchmaker') => NotificationContent) | null {
+      
+    const status = suggestion.status;
+    const template = dictionary.suggestionStatusChange[status];
+
+    if (!template) {
+      return null;
+    }
+    
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const reviewUrl = `${baseUrl}/suggestions/${suggestion.id}/review`;
+    const dashboardUrl = `${baseUrl}/dashboard/suggestions/${suggestion.id}`;
+
+    return (partyType: 'first' | 'second' | 'matchmaker'): NotificationContent => {
+      let partyName = '';
+      if(partyType === 'first') partyName = suggestion.firstParty.firstName;
+      if(partyType === 'second') partyName = suggestion.secondParty.firstName;
+      
+      const replacements: Record<string, string> = {
+        '{{partyName}}': partyName,
+        '{{matchmakerName}}': suggestion.matchmaker.firstName,
+        '{{reviewUrl}}': reviewUrl,
+        '{{dashboardUrl}}': dashboardUrl,
+      };
+
+      const replacePlaceholders = (text: string) => text.replace(/{{partyName}}|{{matchmakerName}}|{{reviewUrl}}|{{dashboardUrl}}/g, (match) => replacements[match]);
+
+      return {
+        subject: replacePlaceholders(template.subject),
+        body: replacePlaceholders(template.body),
+        htmlBody: replacePlaceholders(template.htmlBody),
+      };
+    };
+  }
+  
+  private getCustomMessageContent(
+    customMessage: string,
+    suggestionId: string,
+    dictionary: EmailDictionary['notifications']
+  ): (partyType: 'first' | 'second' | 'matchmaker') => NotificationContent {
+    const reviewUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/suggestions/${suggestionId}/review`;
+    return () => ({
+        subject: dictionary.customMessage.subject,
+        body: `${customMessage}\n\nלצפייה בפרטי ההצעה: ${reviewUrl}`,
+        htmlBody: `<div dir="rtl"><p>${customMessage}</p><p>לצפייה בפרטי ההצעה: <a href="${reviewUrl}">לחץ כאן</a></p></div>`
+    });
+  }
+
+  private getRecipientsForSuggestion(suggestion: SuggestionWithParties): Array<{
+    recipient: RecipientInfo;
+    preferredChannels: NotificationChannel[];
+    partyType: 'first' | 'second' | 'matchmaker';
+  }> {
+    const recipients: Array<{ recipient: RecipientInfo; preferredChannels: NotificationChannel[]; partyType: 'first' | 'second' | 'matchmaker'}> = [];
+    const { firstParty, secondParty, matchmaker } = suggestion;
+
+    const party1 = {
+      recipient: { email: firstParty.email, phone: firstParty.phone || undefined, name: `${firstParty.firstName} ${firstParty.lastName}`},
+      preferredChannels: ['email', 'whatsapp'] as NotificationChannel[],
+      partyType: 'first' as const,
+    };
+    const party2 = {
+      recipient: { email: secondParty.email, phone: secondParty.phone || undefined, name: `${secondParty.firstName} ${secondParty.lastName}`},
+      preferredChannels: ['email', 'whatsapp'] as NotificationChannel[],
+      partyType: 'second' as const,
+    };
+    const mk = {
+      recipient: { email: matchmaker.email, phone: matchmaker.phone || undefined, name: `${matchmaker.firstName} ${matchmaker.lastName}`},
+      preferredChannels: ['email', 'whatsapp'] as NotificationChannel[],
+      partyType: 'matchmaker' as const,
+    };
+    
+    switch (suggestion.status) {
+      case MatchSuggestionStatus.PENDING_FIRST_PARTY:
+        recipients.push(party1);
+        break;
+      case MatchSuggestionStatus.FIRST_PARTY_APPROVED:
+      case MatchSuggestionStatus.FIRST_PARTY_DECLINED:
+      case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
+      case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
+      case MatchSuggestionStatus.THINKING_AFTER_DATE:
+      case MatchSuggestionStatus.DATING:
+      case MatchSuggestionStatus.EXPIRED:
+        recipients.push(mk);
+        break;
+      case MatchSuggestionStatus.PENDING_SECOND_PARTY:
+        recipients.push(party2);
+        break;
+      case MatchSuggestionStatus.CONTACT_DETAILS_SHARED:
+      case MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK:
+        recipients.push(party1, party2);
+        break;
+      case MatchSuggestionStatus.ENGAGED:
+      case MatchSuggestionStatus.MARRIED:
+        recipients.push(party1, party2, mk);
+        break;
+      default:
+        console.log(`No specific recipient rule for status ${suggestion.status}, defaulting to matchmaker.`);
+        recipients.push(mk);
+        break;
+    }
+    return recipients;
+  }
+}
+
+export const notificationService = NotificationService.getInstance();
+--- End of Content for NotificationService.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\initNotifications.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/matchmaker/suggestions/services/notification/initNotifications.ts
+
+import { notificationService } from './NotificationService';
+import { emailAdapter } from './adapters/EmailAdapter';
+import { whatsAppAdapter } from './adapters/WhatsAppAdapter';
+
+// Define notification channel type
+export type NotificationChannel = 'email' | 'whatsapp' | 'sms';
+
+export type NotificationOptions = {
+    channels: NotificationChannel[];
+    notifyParties?: ('first' | 'second' | 'matchmaker')[];
+    customMessage?: string;
+  };
+
+/**
+ * Initializes the notification service by registering all available adapters
+ * @returns The initialized notification service
+ */
+export function initNotificationService() {
+  // Register adapters
+  notificationService.registerAdapter(emailAdapter);
+  notificationService.registerAdapter(whatsAppAdapter);
+  
+  console.log('Notification service initialized with email and WhatsApp adapters');
+  
+  return notificationService;
+}
+--- End of Content for initNotifications.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\notification_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\adapters
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\adapters\EmailAdapter.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/matchmaker/suggestions/services/notification/adapters/EmailAdapter.ts
+
+import { NotificationAdapter, NotificationChannel, RecipientInfo, NotificationContent } from '../NotificationService';
+import nodemailer from 'nodemailer';
+
+export class EmailAdapter implements NotificationAdapter {
+  private static instance: EmailAdapter;
+  private transporter: nodemailer.Transporter;
+
+  private constructor() {
+    // Configure the transporter exactly like in EmailService
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER || '',
+        pass: process.env.GMAIL_APP_PASSWORD || '',
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+
+    // Verify email configuration on initialization
+    this.verifyEmailConfig();
+  }
+
+  private async verifyEmailConfig(): Promise<void> {
+    try {
+      await this.transporter.verify();
+      console.log('Email configuration verified successfully');
+    } catch (error) {
+      console.error('Email configuration verification failed:', error);
+      // Don't throw, to allow the system to continue even if verification fails
+    }
+  }
+
+  public static getInstance(): EmailAdapter {
+    if (!EmailAdapter.instance) {
+      EmailAdapter.instance = new EmailAdapter();
+    }
+    return EmailAdapter.instance;
+  }
+
+  public getChannelType(): NotificationChannel {
+    return 'email';
+  }
+
+  public canSendTo(recipient: RecipientInfo): boolean {
+    return !!recipient.email;
+  }
+
+  public async send(recipient: RecipientInfo, content: NotificationContent): Promise<boolean> {
+    try {
+      const result = await this.transporter.sendMail({
+        from: `${process.env.EMAIL_FROM_NAME || 'מערכת השידוכים'} <${process.env.GMAIL_USER || ''}>`,
+        to: recipient.email,
+        subject: content.subject,
+        text: content.body,
+        html: content.htmlBody || content.body.replace(/\n/g, '<br>'),
+      });
+
+      console.log('Email sent successfully:', {
+        messageId: result.messageId,
+        response: result.response,
+        to: recipient.email,
+        subject: content.subject
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Detailed error sending email:', {
+        error: error instanceof Error ? {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        } : error,
+        recipient: recipient.email,
+        subject: content.subject
+      });
+      return false;
+    }
+  }
+}
+
+export const emailAdapter = EmailAdapter.getInstance();
+--- End of Content for EmailAdapter.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\adapters\WhatsAppAdapter.ts
+--------------------------------------------------------------------------------
+Content:
+// lib/WhatsAppAdapter.ts
+import {
+  NotificationAdapter,
+  NotificationChannel,
+  RecipientInfo,
+  NotificationContent as BaseNotificationContent
+} from './NotificationService';
+import twilio from 'twilio';
+import { MessageListInstanceCreateOptions } from 'twilio/lib/rest/api/v2010/account/message';
+
+interface NotificationContent extends BaseNotificationContent {
+  _adapterSpecificData?: {
+      contentSid?: string;
+      contentVariables?: string;
+  };
+}
+
+interface PotentialTwilioError {
+  code?: number | string;
+  message?: string;
+}
+
+function isPotentialTwilioError(error: unknown): error is PotentialTwilioError {
+  return typeof error === 'object' && error !== null && ('code' in error || 'message' in error);
+}
+
+const logger = {
+  info: (message: string, meta?: Record<string, unknown> | object) => {
+    console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', service: 'WhatsAppAdapter', message, ...(meta || {}) }));
+  },
+  warn: (message: string, meta?: Record<string, unknown> | object) => {
+    console.warn(JSON.stringify({ timestamp: new Date().toISOString(), level: 'warn', service: 'WhatsAppAdapter', message, ...(meta || {}) }));
+  },
+  error: (message: string, meta?: Record<string, unknown> | object) => {
+    let logMeta = meta || {};
+    if (meta instanceof Error) {
+        logMeta = { name: meta.name, message: meta.message, stack: meta.stack };
+    } else if (isPotentialTwilioError(meta)) {
+        logMeta = { code: meta.code, message: meta.message, ...meta };
+    }
+    console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', service: 'WhatsAppAdapter', message, ...logMeta }));
+  },
+};
+
+
+export class WhatsAppAdapter implements NotificationAdapter {
+  private static instance: WhatsAppAdapter;
+  private client: twilio.Twilio | null = null;
+  private fromNumber: string = '';
+
+  private constructor() {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    this.fromNumber = process.env.TWILIO_WHATSAPP_NUMBER || '';
+
+    if (!accountSid || !authToken || !this.fromNumber) {
+      logger.error('Missing Twilio configuration details', {
+          hasSid: !!accountSid,
+          hasToken: !!authToken,
+          hasWhatsAppNumber: !!this.fromNumber,
+          detail: "WhatsApp notifications will be unavailable."
+      });
+    } else if (!this.fromNumber.startsWith('+')) {
+      // --- NEW VALIDATION ---
+      logger.error('Invalid TWILIO_WHATSAPP_NUMBER format in .env. It must start with a "+".', {
+          providedNumber: this.fromNumber
+      });
+      this.fromNumber = ''; // Invalidate the number to prevent sending
+      // --- END NEW VALIDATION ---
+    } else {
+      try {
+        this.client = twilio(accountSid, authToken);
+        logger.info('Twilio client initialized successfully', { fromWhatsAppNumber: this.fromNumber });
+      } catch (error: unknown) {
+        logger.error('Failed to initialize Twilio client during constructor', { error });
+        this.client = null;
+      }
+    }
+  }
+
+  public static getInstance(): WhatsAppAdapter {
+    if (!WhatsAppAdapter.instance) {
+      WhatsAppAdapter.instance = new WhatsAppAdapter();
+    }
+    return WhatsAppAdapter.instance;
+  }
+
+  public getChannelType(): NotificationChannel {
+    return 'whatsapp';
+  }
+
+  public canSendTo(recipient: RecipientInfo): boolean {
+    // --- UPDATED VALIDATION ---
+    // Using a more robust check for E.164 format
+    const hasValidPhone = !!recipient.phone && /^\+[1-9]\d{1,14}$/.test(recipient.phone);
+    // --- END UPDATED VALIDATION ---
+    const isClientReady = this.client !== null;
+    const hasFromNumber = this.fromNumber !== '';
+    const canSend = hasValidPhone && isClientReady && hasFromNumber;
+
+    if (!canSend) {
+        let reason = 'Unknown';
+        if (!hasValidPhone) reason = 'Invalid or missing phone number (must be in E.164 format, e.g., +14155552671)';
+        else if (!isClientReady) reason = 'Twilio client not initialized';
+        else if (!hasFromNumber) reason = 'Twilio "from" number not configured or invalid';
+        logger.warn('Cannot send WhatsApp message due to configuration or recipient data', {
+            reason: reason,
+            recipientPhone: recipient.phone
+        });
+    }
+    return canSend;
+  }
+
+  // --- REMOVED `formatPhoneNumber` method ---
+  // This method is no longer needed as we expect a valid E.164 number directly.
+
+  public async send(recipient: RecipientInfo, content: NotificationContent): Promise<boolean> {
+    logger.info('Attempting to send WhatsApp message', {
+      recipientPhone: recipient.phone,
+      fromNumber: this.fromNumber,
+      hasClient: !!this.client,
+      contentSid: content._adapterSpecificData?.contentSid,
+      hasContentVariables: !!content._adapterSpecificData?.contentVariables,
+    });
+
+    if (!this.client || !this.fromNumber) {
+      logger.error('Pre-send check failed: Twilio client or fromNumber is not configured.');
+      return false;
+    }
+    
+    // --- SIMPLIFIED VALIDATION ---
+    if (!recipient.phone || !recipient.phone.startsWith('+')) {
+      logger.error('Recipient phone number is missing or not in E.164 format.', { phone: recipient.phone });
+      return false;
+    }
+    // --- END SIMPLIFIED VALIDATION ---
+
+    try {
+      // --- SIMPLIFIED NUMBER FORMATTING ---
+      const fromWhatsAppFormatted = `whatsapp:${this.fromNumber}`;
+      const toWhatsAppFormatted = `whatsapp:${recipient.phone}`; // Use the number directly
+      // --- END SIMPLIFIED NUMBER FORMATTING ---
+
+      logger.info(`Formatted numbers for sending via Twilio`, { from: fromWhatsAppFormatted, to: toWhatsAppFormatted });
+
+      let messagePayload: MessageListInstanceCreateOptions;
+      const adapterData = content._adapterSpecificData;
+
+      if (adapterData?.contentSid && adapterData?.contentVariables) {
+         logger.info(`Preparing WhatsApp template message`, { contentSid: adapterData.contentSid });
+         messagePayload = {
+            from: fromWhatsAppFormatted,
+            to: toWhatsAppFormatted,
+            contentSid: adapterData.contentSid,
+            contentVariables: adapterData.contentVariables,
+         };
+      } else {
+         const bodyText = content.body || content.subject || 'הודעה ממערכת השידוכים';
+         logger.warn(`Preparing raw text WhatsApp message (using fallback, might fail)`, { bodyLength: bodyText.length });
+         messagePayload = {
+            from: fromWhatsAppFormatted,
+            to: toWhatsAppFormatted,
+            body: bodyText,
+         };
+      }
+      
+      logger.info("Sending message payload to Twilio API", { payload: {from: messagePayload.from, to: messagePayload.to, contentSid: messagePayload.contentSid} }); // Log safer data
+      const message = await this.client.messages.create(messagePayload);
+      
+      logger.info('WhatsApp message request processed successfully by Twilio', {
+        messageSid: message.sid,
+        status: message.status,
+        to: toWhatsAppFormatted,
+        from: fromWhatsAppFormatted,
+        price: message.price,
+        priceUnit: message.priceUnit,
+        errorCode: message.errorCode,
+        errorMessage: message.errorMessage,
+      });
+      return true;
+
+    } catch (error: unknown) {
+      let errorMessage = 'Unknown error occurred while sending WhatsApp message.';
+      let errorCode: number | string | undefined;
+
+      if (isPotentialTwilioError(error)) {
+          errorCode = error.code;
+          errorMessage = error.message || errorMessage;
+      } else if (error instanceof Error) {
+          errorMessage = error.message;
+      } else if (typeof error === 'string') {
+          errorMessage = error;
+      }
+
+      logger.error('Failed to send WhatsApp message via Twilio', {
+        errorCode,
+        errorMessage,
+        recipient: recipient.phone,
+        from: this.fromNumber,
+        errorDetails: error
+      });
+
+      if (errorCode === 63018 || errorCode === 21614) {
+           logger.error(`Recipient number appears invalid or not registered on WhatsApp.`, { phone: recipient.phone, errorCode });
+      } else if (errorCode === 63016) {
+            logger.warn(`Failed to send non-template message outside 24-hour window.`, { phone: recipient.phone, errorCode });
+      }
+
+      return false;
+    }
+  }
+}
+
+export const whatsAppAdapter = WhatsAppAdapter.getInstance();
+--- End of Content for WhatsAppAdapter.ts ---
+

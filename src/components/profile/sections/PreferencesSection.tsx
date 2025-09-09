@@ -332,7 +332,8 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
 
   return (
     <div className="relative" dir={direction}>
-      <div className="sticky top-0 z-10 bg-gradient-to-b from-white via-white/95 to-white/0 pt-4 pb-3 backdrop-blur-sm">
+      <div className="sticky top-4 z-10 bg-gradient-to-b from-white via-white/95 to-white/0 pt-4 pb-3 backdrop-blur-sm">
+        {' '}
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="flex items-center justify-between">
             <div>

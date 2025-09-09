@@ -22,13 +22,7 @@ export type QuestionType =
 
 export type QuestionDepth = 'BASIC' | 'ADVANCED' | 'EXPERT';
 
-export type AnswerValue =
-  | string
-  | number
-  | string[]
-  | number[]
-  | Record<string, number>
-  | undefined;
+export type AnswerValue = string | number | string[] | number[] | Record<string, number> | { text: string; lang: string } | undefined;
 
 export type AnswerStatus = 'COMPLETE' | 'PARTIAL' | 'SKIPPED';
 
@@ -107,7 +101,7 @@ export interface QuestionnaireAnswer {
   value: AnswerValue;
   answeredAt: string;
   isVisible?: boolean;
-  language?: 'en' | 'he';
+  language?: 'en' | 'he'; 
 }
 
 export interface Answer extends QuestionnaireAnswer {
