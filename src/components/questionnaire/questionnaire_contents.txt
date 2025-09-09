@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-09-09 13:53:41
+# Generated on: 2025-09-09 22:10:25
 ################################################################################
 
 ================================================================================
@@ -438,7 +438,10 @@ export default function MatchmakingQuestionnaire({
                 setCurrentStep(OnboardingStep.MAP);
               }
             } else if (isQuestionnaireComplete) {
-                            console.log(`%c[LOG | MatchmakingQuestionnaire] Questionnaire is complete, setting step to MAP.`, 'color: #9c27b0;');
+              console.log(
+                `%c[LOG | MatchmakingQuestionnaire] Questionnaire is complete, setting step to MAP.`,
+                'color: #9c27b0;'
+              );
 
               setCurrentWorld(initialWorld || WORLD_ORDER[0]);
               setCurrentStep(OnboardingStep.MAP);
@@ -501,14 +504,10 @@ export default function MatchmakingQuestionnaire({
             lang: locale, // ה-locale זמין כ-prop מהרכיב
           };
         }
-        
+
         const finalNewAnswer: QuestionnaireAnswer = {
           ...newAnswerBase,
           value: finalValue, // משתמשים בערך המעודכן
-          // הקוד למטה הוא אופציונלי אבל שומר על מבנה קוהרנטי אם תרצה להשתמש בו בהמשך
-          ...(currentQuestion?.type === 'openText' && {
-            language: locale as 'en' | 'he',
-          }),
         };
         // --- סוף השינוי ---
 
@@ -9423,7 +9422,7 @@ export interface QuestionnaireAnswer {
   value: AnswerValue;
   answeredAt: string;
   isVisible?: boolean;
-  language?: 'en' | 'he';
+  language?: 'en' | 'he'; 
 }
 
 export interface Answer extends QuestionnaireAnswer {

@@ -101,8 +101,13 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       `---[ CLIENT LOG 5 | UnifiedProfileDashboard.tsx ]--- handleTabChange נקראה עם הטאב החדש: "${newTab}".`
     );
 
+    console.log(
+      `---[ CLIENT LOG 5 | UnifiedProfileDashboard.tsx ]--- handleTabChange נקראה עם הטאב החדש: "${newTab}".`
+    );
+
     setActiveTab(newTab);
-    router.push(`/profile?tab=${newTab}`, { scroll: false });
+    // ✨ התיקון המרכזי: הוספת משתנה ה-locale לכתובת ה-URL
+    router.push(`/${locale}/profile?tab=${newTab}`, { scroll: false });
 
     // הגדלנו מעט את ההשהיה כדי לתת ל-React יותר זמן לעבד את השינוי ב-DOM.
     setTimeout(() => {
@@ -174,10 +179,16 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       }
 
       // Fetch questionnaire data
-      const questionnaireUrl = userId
-        ? `/api/profile/questionnaire?userId=${userId}`
-        : '/api/profile/questionnaire';
+      const params = new URLSearchParams();
+      if (userId) {
+        params.append('userId', userId);
+      }
+      params.append('locale', locale); // ✨ הוספת פרמטר השפה
+
+      const questionnaireUrl = `/api/profile/questionnaire?${params.toString()}`;
+
       const questionnaireFetchResponse = await fetch(questionnaireUrl);
+
       console.log(
         `---[ CLIENT LOG | Dashboard loadData ]--- סטטוס תגובה מ-API השאלון: ${questionnaireFetchResponse.status}`
       );
@@ -186,6 +197,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setQuestionnaireResponse(null);
       } else if (questionnaireFetchResponse.ok) {
         const questionnaireJson = await questionnaireFetchResponse.json();
+        console.log(
+          '---[ DEBUG LOG | Questionnaire API Response ]---',
+          questionnaireJson
+        );
+
         console.log(
           '---[ CLIENT LOG | Dashboard loadData ]--- התקבל JSON מה-API:',
           questionnaireJson
