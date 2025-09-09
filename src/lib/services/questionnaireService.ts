@@ -10,14 +10,14 @@ import {
 } from '@/types/next-auth';
 import { Question, WorldId } from '@/components/questionnaire/types/types';
 
-// ייבוא מבני השאלות המקוריים
+// Importowanie oryginalnych struktur pytań
 import { personalityQuestions } from '@/components/questionnaire/questions/personality/personalityQuestions';
 import { valuesQuestions } from '@/components/questionnaire/questions/values/valuesQuestions';
 import { relationshipQuestions } from '@/components/questionnaire/questions/relationship/relationshipQuestions';
 import { partnerQuestions } from '@/components/questionnaire/questions/partner/partnerQuestions';
 import { religionQuestions } from '@/components/questionnaire/questions/religion/religionQuestions';
 
-// מיפוי מבני השאלות
+// Mapowanie struktur pytań
 const allQuestionStructures: Record<WorldId, Question[]> = {
   PERSONALITY: personalityQuestions,
   VALUES: valuesQuestions,
@@ -27,16 +27,18 @@ const allQuestionStructures: Record<WorldId, Question[]> = {
 };
 
 /**
- * פונקציה זו מעצבת את תשובות השאלון הגולמיות לתצוגה,
- * תוך יישום לוגיקת תרגום דינמית בהתאם לשפת הצופה.
- * @param questionnaireResponse - אובייקט השאלון הגולמי ממסד הנתונים.
- * @param viewerLocale - שפת הממשק של המשתמש הצופה בפרופיל.
- * @returns אובייקט QuestionnaireResponse עם שדה 'formattedAnswers' מעוצב.
+ * Ta funkcja formatuje surowe odpowiedzi z kwestionariusza do wyświetlenia,
+ * stosując dynamiczną logikę tłumaczenia w zależności od języka przeglądającego.
+ * @param questionnaireResponse - Surowy obiekt kwestionariusza z bazy danych.
+ * @param viewerLocale - Język interfejsu użytkownika przeglądającego profil.
+ * @returns Obiekt QuestionnaireResponse ze sformatowanym polem 'formattedAnswers'.
  */
 export async function formatQuestionnaireForDisplay(
   questionnaireResponse: QuestionnaireResponse,
   viewerLocale: Locale
 ): Promise<QuestionnaireResponse> {
+  console.log('---[ SERVER LOG | questionnaireService ]--- Rozpoczęcie przetwarzania odpowiedzi dla języka:', viewerLocale);
+
   const questionsDict = await getQuestionnaireQuestionsDictionary(viewerLocale);
 
   const formattedAnswers: { [key: string]: FormattedAnswer[] } = {};
@@ -46,53 +48,93 @@ export async function formatQuestionnaireForDisplay(
     const worldKey = `${world.toLowerCase()}Answers` as keyof QuestionnaireResponse;
     const rawAnswers = (questionnaireResponse[worldKey] as Prisma.JsonArray) || [];
     
+    console.log(`---[ SERVER LOG | questionnaireService ]--- Przetwarzanie świata "${world}". Znaleziono ${Array.isArray(rawAnswers) ? rawAnswers.length : 0} surowych odpowiedzi.`);
+    
     if (!Array.isArray(rawAnswers)) continue;
 
     formattedAnswers[world] = rawAnswers
       .map((rawAns: any): FormattedAnswer | null => {
+        // Upewnij się, że rawAns jest obiektem i ma questionId
+        if (typeof rawAns !== 'object' || rawAns === null || !rawAns.questionId) {
+            console.warn(`---[ SERVER LOG | questionnaireService ]--- Pomijanie nieprawidłowego wpisu odpowiedzi w świecie "${world}":`, rawAns);
+            return null;
+        }
+
         const questionStructure = allQuestionStructures[world].find(q => q.id === rawAns.questionId);
-        if (!questionStructure) return null;
+        if (!questionStructure) {
+            console.warn(`---[ SERVER LOG | questionnaireService ]--- Nie znaleziono struktury dla pytania ID "${rawAns.questionId}" w świecie "${world}".`);
+            return null;
+        }
 
         const questionContent = questionsDict[world]?.[rawAns.questionId];
-        if (!questionContent) return null;
+        if (!questionContent || !questionContent.question) {
+            console.warn(`---[ SERVER LOG | questionnaireService ]--- Brak treści w słowniku dla pytania ID "${rawAns.questionId}" w świecie "${world}".`);
+            return null;
+        }
 
         let displayText = 'N/A';
         
-        // כלל מס' 2: טיפול בשאלות פתוחות
+        // Zasada nr 2: Obsługa pytań otwartych
         if (questionStructure.type === 'openText' && typeof rawAns.value === 'object' && rawAns.value?.text) {
-          displayText = rawAns.value.text; // הצג תמיד את הטקסט המקורי
+          displayText = rawAns.value.text; // Zawsze wyświetlaj oryginalny tekst
         } 
-        // כלל מס' 1: טיפול בשאלות סגורות
+        // Zasada nr 1: Obsługa pytań zamkniętych
         else if (typeof rawAns.value === 'string' && questionContent.options?.[rawAns.value]) {
-          // בחירה יחידה
-          displayText = questionContent.options[rawAns.value];
+          // Pojedynczy wybór
+          const optionContent = questionContent.options[rawAns.value];
+          displayText = typeof optionContent === 'string' ? optionContent : optionContent.text;
         } else if (Array.isArray(rawAns.value)) {
-          // רב-ברירתי
+          // Wielokrotny wybór
           displayText = rawAns.value
-            .map(val => questionContent.options?.[val] || val.replace('custom:', ''))
+            .map(val => {
+                const optionContent = questionContent.options?.[val];
+                if (optionContent) {
+                    return typeof optionContent === 'string' ? optionContent : optionContent.text;
+                }
+                // Obsługa opcji "inne"
+                if (typeof val === 'string' && val.startsWith('custom:')) {
+                    return val.replace('custom:', '');
+                }
+                return val;
+            })
             .join(', ');
         } else if (typeof rawAns.value === 'number' && questionStructure.type === 'scale') {
-            // סולם דירוג
+            // Skala ocen
             displayText = `${rawAns.value} / ${questionStructure.max || 10}`;
-        } else if (typeof rawAns.value === 'object' && !Array.isArray(rawAns.value) && questionStructure.type === 'budgetAllocation') {
-            // הקצאת תקציב
+        } else if (typeof rawAns.value === 'object' && !Array.isArray(rawAns.value) && rawAns.value !== null && questionStructure.type === 'budgetAllocation') {
+            // Alokacja budżetu
             displayText = Object.entries(rawAns.value)
-              .map(([key, val]) => `${questionContent.categories?.[key]?.label || key}: ${val}%`)
+              .map(([key, val]) => {
+                  const categoryContent = questionContent.categories?.[key];
+                  const label = categoryContent ? (typeof categoryContent === 'string' ? categoryContent : categoryContent.label) : key;
+                  return `${label}: ${val}%`;
+              })
               .join(' | ');
+        } else if (rawAns.value !== null && rawAns.value !== undefined) {
+          // Fallback na wypadek, gdyby wartość nie została sformatowana
+          displayText = String(rawAns.value);
         }
         
         return {
           questionId: rawAns.questionId,
           question: questionContent.question,
           questionType: questionStructure.type,
-          rawValue: rawAns.value, // שומרים את הערך המקורי (בין אם key או אובייקט)
+          rawValue: rawAns.value, // Zapisujemy oryginalną wartość (czy to klucz, czy obiekt)
           displayText,
           isVisible: rawAns.isVisible ?? true,
           answeredAt: rawAns.answeredAt,
         };
       })
-     .filter((ans): ans is FormattedAnswer => ans !== null && ans.isVisible === true); // סנן רק תשובות שהן במפורש גלויות
+      .filter((ans): ans is FormattedAnswer => ans !== null); // Najpierw filtruj nullowe, a potem isVisible
   }
+
+  // Drugi etap filtrowania dla isVisible, aby uniknąć błędów
+  for (const world in formattedAnswers) {
+      formattedAnswers[world] = formattedAnswers[world].filter(ans => ans.isVisible === true);
+  }
+
+
+  console.log('---[ SERVER LOG | questionnaireService ]--- Przetwarzanie zakończone. Sformatowana struktura danych:', JSON.stringify(formattedAnswers, null, 2));
 
   return {
     ...questionnaireResponse,

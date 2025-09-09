@@ -1,4 +1,4 @@
-// src/app/components/profile/sections/QuestionnaireResponsesSection.tsx
+// src/components/profile/sections/QuestionnaireResponsesSection.tsx
 
 import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
@@ -11,25 +11,20 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-// Textarea is no longer needed for editing here, but might be used elsewhere.
-// Keeping it for now, but it can be removed if not used in other contexts.
-import { Textarea } from '@/components/ui/textarea';
 import {
   Book,
   CheckCircle,
   Clock,
   Pencil,
-  X,
-  Save,
   Eye,
   EyeOff,
   Loader2,
+  Save,
   ArrowRight,
   ArrowLeft,
   Trash2,
+  Languages, // Import
 } from 'lucide-react';
-import { Languages } from 'lucide-react'; // הוספת אייקון חדש
-
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import {
@@ -72,7 +67,6 @@ interface QuestionCardProps {
     questionId: string,
     value: UpdateValue
   ) => Promise<void>;
-  isFirstInList?: boolean;
   dict: ProfilePageDictionary;
   locale: string;
 }
@@ -102,17 +96,11 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   dict,
   locale,
 }) => {
-  // --- START: שינויים ---
-  // הסרת מצבים הקשורים לעריכת טקסט מקומית
-  // const [isEditingText, setIsEditingText] = useState(false);
-  // const [editValue, setEditValue] = useState(answer.displayText);
-  // const [isSavingText, setIsSavingText] = useState(false);
   const [isSavingVisibility, setIsSavingVisibility] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentIsVisible, setCurrentIsVisible] = useState(
     answer.isVisible ?? true
   );
-  // --- END: שינויים ---
 
   const direction = locale === 'he' ? 'rtl' : 'ltr';
   const t = dict.questionnaireSection.questionCard;
@@ -121,52 +109,21 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     setCurrentIsVisible(answer.isVisible ?? true);
   }, [answer.isVisible]);
 
-  // --- START: שינויים ---
-  // עדכון המשתנה isSaving כדי שיכלול רק את המצבים הרלוונטיים
+  const answerLang = useMemo(() => {
+    if (
+      answer.questionType === 'openText' &&
+      typeof answer.rawValue === 'object' &&
+      answer.rawValue &&
+      'lang' in answer.rawValue
+    ) {
+      return (answer.rawValue as { lang: string }).lang;
+    }
+    return null;
+  }, [answer.rawValue, answer.questionType]);
+
+  const needsLanguageBadge = answerLang && answerLang !== locale;
+
   const isSaving = isSavingVisibility || isDeleting;
-  // --- END: שינויים ---
-
-  // --- START: שינויים ---
-  // הסרת פונקציות הקשורות לעריכת טקסט מקומית
-  /*
-  const handleStartEdit = () => {
-    if (isSaving) return;
-    setIsEditingText(true);
-    setEditValue(answer.displayText);
-  };
-
-  const handleSaveText = async () => {
-    if (!editValue?.trim()) {
-      toast.error(t.toasts.emptyAnswer);
-      return;
-    }
-    if (editValue.trim() === answer.displayText) {
-      setIsEditingText(false);
-      return;
-    }
-
-    setIsSavingText(true);
-    try {
-      await onUpdate(worldKey, answer.questionId, {
-        type: 'answer',
-        value: editValue.trim(),
-      });
-      toast.success(t.toasts.updateSuccess);
-      setIsEditingText(false);
-    } catch (error) {
-      console.error('Error updating answer:', error);
-      toast.error(t.toasts.updateError);
-    } finally {
-      setIsSavingText(false);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditingText(false);
-    setEditValue(answer.displayText);
-  };
-  */
-  // --- END: שינויים ---
 
   const handleVisibilityChange = async (newIsVisibleState: boolean) => {
     setCurrentIsVisible(newIsVisibleState);
@@ -242,29 +199,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       : t.visibilityTooltip.viewing.hidden;
   };
 
-  // --- START: שינויים ---
-  // הגדרת ה-URL לעריכה שיהיה זהה לכל סוגי השאלות
   const editUrl = `/${locale}/questionnaire?world=${worldKey}&question=${answer.questionId}`;
-  // בחירת טקסט גנרי עבור ה-Tooltip. אפשר להוסיף מפתח חדש ל-dictionary אם רוצים.
-  const editTooltipText =
-    answer.questionType === 'budgetAllocation'
-      ? t.editTooltip.budget
-      : t.editTooltip.text;
-  // --- END: שינויים ---
-  const answerLang = useMemo(() => {
-    if (
-      answer.questionType === 'openText' &&
-      typeof answer.rawValue === 'object' &&
-      answer.rawValue &&
-      'lang' in answer.rawValue
-    ) {
-      return (answer.rawValue as { lang: string }).lang;
-    }
-    return null;
-  }, [answer.rawValue, answer.questionType]);
+  const editTooltipText = t.editTooltip.text;
 
-  const needsLanguageBadge = answerLang && answerLang !== locale;
-  // --- סוף הוספת הלוגיקה ---
   return (
     <div
       className="rounded-lg border bg-card p-4 shadow-sm transition-shadow duration-300 hover:shadow-md"
@@ -287,17 +224,12 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                       >
                         <Languages className="h-3 w-3" />
                         <span className="text-xs">
-                          {
-                            dict.questionnaireSection.questionCard
-                              .languageBadge[answerLang as 'he' | 'en']
-                          }
+                          {t.languageBadge[answerLang as 'he' | 'en']}
                         </span>
                       </Badge>
                     </TooltipTrigger>
                     <TooltipContent side="top">
-                      <p className="text-xs">
-                        {dict.questionnaireSection.questionCard.languageTooltip}
-                      </p>
+                      <p className="text-xs">{t.languageTooltip}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -311,29 +243,50 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      asChild
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-cyan-600 hover:bg-cyan-50"
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={currentIsVisible}
+                      disabled={!isEditingGlobally || isSaving}
+                      onClick={() => handleVisibilityChange(!currentIsVisible)}
+                      className={cn(
+                        'inline-flex items-center justify-center h-8 px-3 rounded-full gap-2 transition-all duration-200 ease-in-out',
+                        'disabled:opacity-100 disabled:cursor-default',
+                        currentIsVisible
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-gray-200 text-gray-600',
+                        isEditingGlobally &&
+                          !isSaving &&
+                          'hover:shadow-md active:scale-95',
+                        isEditingGlobally &&
+                          !isSaving &&
+                          currentIsVisible &&
+                          'hover:bg-emerald-200',
+                        isEditingGlobally &&
+                          !isSaving &&
+                          !currentIsVisible &&
+                          'hover:bg-gray-300'
+                      )}
                     >
-                      <a
-                        href={`/${locale}/questionnaire?world=${worldKey}&question=${answer.questionId}`}
-                      >
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">{t.editTooltip.text}</span>
-                      </a>
-                    </Button>
+                      {currentIsVisible ? (
+                        <Eye className="h-3.5 w-3.5" />
+                      ) : (
+                        <EyeOff className="h-3.5 w-3.5" />
+                      )}
+                      <span className="text-xs font-medium whitespace-nowrap">
+                        {currentIsVisible
+                          ? t.visibilityButton.visible
+                          : t.visibilityButton.hidden}
+                      </span>
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent side="top" dir={direction}>
-                    <p>{t.editTooltip.text}</p>
+                    <p>{getVisibilityTooltip()}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
           </div>
-          {/* --- START: שינויים --- */}
-          {/* הסרת ה-Conditional Rendering של עריכה מקומית */}
           <div className="relative group overflow-hidden mt-1">
             <div className="p-3 bg-gray-50/50 rounded-md border border-gray-200/60 min-h-[40px]">
               {renderAnswerContent()}
@@ -353,7 +306,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 </Tooltip>
               </TooltipProvider>
             </div>
-
             {isEditingGlobally && !isSaving && (
               <div className="absolute top-0 end-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center">
                 <TooltipProvider delayDuration={200}>
@@ -375,9 +327,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-
-                {/* --- START: התיקון המרכזי כאן --- */}
-                {/* איחוד כפתור העריכה כך שתמיד יקשר לשאלון הראשי */}
                 <TooltipProvider delayDuration={200}>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -387,7 +336,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                         size="icon"
                         className="h-7 w-7 text-cyan-600 hover:bg-cyan-50"
                       >
-                        {/* שימוש בתג <a> כדי לכפות ריענון, כפי שהיה בתיקון המקורי */}
                         <a href={editUrl}>
                           <Pencil className="h-4 w-4" />
                           <span className="sr-only">{editTooltipText}</span>
@@ -399,18 +347,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                {/* --- END: התיקון המרכזי --- */}
               </div>
             )}
           </div>
-          {/* --- END: שינויים --- */}
         </div>
       </div>
     </div>
   );
 };
-
-// ... (שאר הרכיבים WorldSection ו-QuestionnaireResponsesSection נשארים ללא שינוי)
 
 const WorldSection: React.FC<WorldSectionProps> = ({
   worldKey,
@@ -487,12 +431,11 @@ const WorldSection: React.FC<WorldSectionProps> = ({
       </CardHeader>
       <CardContent className="p-4 pt-4">
         <div className="space-y-4">
-          {answers.map((answer, index) => (
+          {answers.map((answer) => (
             <QuestionCard
               key={answer.questionId}
               question={answer.question}
               answer={answer}
-              isFirstInList={index === 0}
               isEditingGlobally={isEditingGlobally}
               worldKey={worldKey}
               onUpdate={onUpdate}
@@ -506,172 +449,198 @@ const WorldSection: React.FC<WorldSectionProps> = ({
   );
 };
 
-const QuestionnaireResponsesSection: React.FC<
-  QuestionnaireResponsesSectionProps
-> = ({ questionnaire, onUpdate, isEditable = false, dict, locale }) => {
-  const [isEditingGlobally, setIsEditingGlobally] = useState(false);
+const QuestionnaireResponsesSection: React.FC<QuestionnaireResponsesSectionProps> =
+  React.memo(
+    ({ questionnaire, onUpdate, isEditable = false, dict, locale }) => {
+      const [isEditingGlobally, setIsEditingGlobally] = useState(false);
 
-  const direction = locale === 'he' ? 'rtl' : 'ltr';
-  const ArrowIcon = direction === 'rtl' ? ArrowLeft : ArrowRight;
-  const t = dict.questionnaireSection;
+      const direction = locale === 'he' ? 'rtl' : 'ltr';
+      const ArrowIcon = direction === 'rtl' ? ArrowLeft : ArrowRight;
+      const t = dict.questionnaireSection;
 
-  const worldsWithAnswers = useMemo(() => {
-    if (!questionnaire?.formattedAnswers) return [];
-    return Object.entries(WORLDS_CONFIG)
-      .map(([key, config]) => ({
-        key: key as keyof typeof WORLDS_CONFIG,
-        config,
-        answers:
-          questionnaire.formattedAnswers?.[
-            key as keyof typeof questionnaire.formattedAnswers
-          ] ?? [],
-        isCompleted:
-          (questionnaire[
-            `${key}Completed` as keyof QuestionnaireResponse
-          ] as boolean) ?? false,
-      }))
-      .filter((world) => world.answers.length > 0);
-  }, [questionnaire]);
+      console.log(
+        '---[ CLIENT LOG | QuestionnaireResponsesSection ]--- הרכיב מתרנדר. ה-prop "questionnaire" שהתקבל:',
+        questionnaire
+      );
 
-  if (!questionnaire) {
-    const emptyStateT = t.emptyState;
-    return (
-      <Card
-        className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed"
-        dir={direction}
-      >
-        <Book className="h-10 w-10 mx-auto mb-3 opacity-50 text-gray-400" />
-        <p className="font-medium">{emptyStateT.title}</p>
-        <p className="text-sm mt-1">{emptyStateT.subtitle}</p>
-        <div className="mt-6">
-          <Button
-            asChild
-            variant="default"
-            className="bg-cyan-600 hover:bg-cyan-700"
+      const worldsWithAnswers = useMemo(() => {
+        if (!questionnaire?.formattedAnswers) {
+          console.log(
+            '---[ CLIENT LOG | QuestionnaireResponsesSection useMemo ]--- אין "formattedAnswers". מחזיר מערך ריק.'
+          );
+          return [];
+        }
+
+        console.log(
+          '---[ CLIENT LOG | QuestionnaireResponsesSection useMemo ]--- נמצא "formattedAnswers". מעבד את העולמות.'
+        );
+
+        return Object.entries(WORLDS_CONFIG)
+          .map(([key, config]) => ({
+            key: key as keyof typeof WORLDS_CONFIG,
+            config,
+            answers:
+              questionnaire.formattedAnswers?.[
+                key as keyof typeof questionnaire.formattedAnswers
+              ] ?? [],
+            isCompleted:
+              (questionnaire[
+                `${key.toLowerCase()}Completed` as keyof QuestionnaireResponse
+              ] as boolean) ?? false,
+          }))
+          .filter((world) => world.answers.length > 0);
+      }, [questionnaire]);
+
+      console.log(
+        '---[ CLIENT LOG | QuestionnaireResponsesSection ]--- התוצאה לאחר useMemo, "worldsWithAnswers":',
+        worldsWithAnswers
+      );
+
+      if (!questionnaire) {
+        const emptyStateT = t.emptyState;
+        return (
+          <Card
+            className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed"
+            dir={direction}
           >
-            <Link
-              href={QUESTIONNAIRE_URL}
-              className="flex items-center gap-1.5"
-            >
-              {emptyStateT.button} <ArrowIcon className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      </Card>
-    );
-  }
-
-  const hasAnyAnswers = worldsWithAnswers.length > 0;
-  const headerT = t.header;
-
-  return (
-    <div className="space-y-6" dir={direction}>
-      <Card className="shadow-sm border">
-        <CardHeader className="p-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              {questionnaire.completed ? (
-                <CheckCircle className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-              ) : (
-                <Clock className="h-5 w-5 text-blue-500 flex-shrink-0" />
-              )}
-              <div>
-                <p className="font-semibold text-base text-gray-800">
-                  {questionnaire.completed
-                    ? headerT.title.completed
-                    : headerT.title.inProgress}
-                </p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {hasAnyAnswers
-                    ? `${headerT.lastUpdated}: ${new Date(
-                        questionnaire.lastSaved
-                      ).toLocaleDateString(
-                        locale === 'he' ? 'he-IL' : 'en-US'
-                      )}`
-                    : headerT.notStarted}
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row items-center gap-2 self-end sm:self-center">
+            <Book className="h-10 w-10 mx-auto mb-3 opacity-50 text-gray-400" />
+            <p className="font-medium">{emptyStateT.title}</p>
+            <p className="text-sm mt-1">{emptyStateT.subtitle}</p>
+            <div className="mt-6">
               <Button
                 asChild
-                variant="outline"
-                size="sm"
-                className="rounded-full px-4 py-2 text-xs sm:text-sm"
+                variant="default"
+                className="bg-cyan-600 hover:bg-cyan-700"
               >
                 <Link
                   href={QUESTIONNAIRE_URL}
                   className="flex items-center gap-1.5"
                 >
-                  {headerT.goToButton} <ArrowIcon className="h-4 w-4" />
+                  {emptyStateT.button} <ArrowIcon className="h-4 w-4" />
                 </Link>
               </Button>
-              {isEditable && hasAnyAnswers && onUpdate && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditingGlobally(!isEditingGlobally)}
-                  className="gap-1.5 rounded-full px-4 py-2 text-xs sm:text-sm"
-                >
-                  {isEditingGlobally ? (
-                    <>
-                      <Save className="h-4 w-4" />
-                      {headerT.editButton.finish}
-                    </>
+            </div>
+          </Card>
+        );
+      }
+
+      const hasAnyAnswers = worldsWithAnswers.length > 0;
+      const headerT = t.header;
+
+      return (
+        <div className="space-y-6" dir={direction}>
+          <Card className="shadow-sm border">
+            <CardHeader className="p-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  {questionnaire.completed ? (
+                    <CheckCircle className="h-5 w-5 text-emerald-500 flex-shrink-0" />
                   ) : (
-                    <>
-                      <Pencil className="h-4 w-4" />
-                      {headerT.editButton.start}
-                    </>
+                    <Clock className="h-5 w-5 text-blue-500 flex-shrink-0" />
                   )}
-                </Button>
+                  <div>
+                    <p className="font-semibold text-base text-gray-800">
+                      {questionnaire.completed
+                        ? headerT.title.completed
+                        : headerT.title.inProgress}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {hasAnyAnswers
+                        ? `${headerT.lastUpdated}: ${new Date(
+                            questionnaire.lastSaved
+                          ).toLocaleDateString(
+                            locale === 'he' ? 'he-IL' : 'en-US'
+                          )}`
+                        : headerT.notStarted}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row items-center gap-2 self-end sm:self-center">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full px-4 py-2 text-xs sm:text-sm"
+                  >
+                    <Link
+                      href={QUESTIONNAIRE_URL}
+                      className="flex items-center gap-1.5"
+                    >
+                      {headerT.goToButton} <ArrowIcon className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  {isEditable && hasAnyAnswers && onUpdate && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditingGlobally(!isEditingGlobally)}
+                      className="gap-1.5 rounded-full px-4 py-2 text-xs sm:text-sm"
+                    >
+                      {isEditingGlobally ? (
+                        <>
+                          <Save className="h-4 w-4" />
+                          {headerT.editButton.finish}
+                        </>
+                      ) : (
+                        <>
+                          <Pencil className="h-4 w-4" />
+                          {headerT.editButton.start}
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+
+          {hasAnyAnswers ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {worldsWithAnswers.map(
+                ({ key, config, answers, isCompleted }) => (
+                  <WorldSection
+                    key={key}
+                    worldKey={key}
+                    worldConfig={config}
+                    answers={answers}
+                    isEditingGlobally={isEditingGlobally}
+                    onUpdate={onUpdate!}
+                    isCompleted={isCompleted}
+                    dict={dict}
+                    locale={locale}
+                  />
+                )
               )}
             </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {hasAnyAnswers ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {worldsWithAnswers.map(({ key, config, answers, isCompleted }) => (
-            <WorldSection
-              key={key}
-              worldKey={key}
-              worldConfig={config}
-              answers={answers}
-              isEditingGlobally={isEditingGlobally}
-              onUpdate={onUpdate!}
-              isCompleted={isCompleted}
-              dict={dict}
-              locale={locale}
-            />
-          ))}
+          ) : (
+            <div className="text-center py-10 text-gray-500 bg-gray-50/50 rounded-lg border border-gray-200">
+         
+              <Book className="h-8 w-8 mx-auto mb-2 opacity-50 text-gray-400" />
+              <p className="font-medium text-lg">{t.noAnswersState.title}</p>
+              <p className="text-sm mt-1 text-gray-600">
+                {t.noAnswersState.subtitle}
+              </p>
+              <div className="mt-6">
+                <Button
+                  asChild
+                  variant="default"
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                >
+                  <Link
+                    href={QUESTIONNAIRE_URL}
+                    className="flex items-center gap-1.5 px-6 py-2"
+                  >
+                    {t.noAnswersState.button} <ArrowIcon className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="text-center py-10 text-gray-500 bg-gray-50/50 rounded-lg border border-gray-200">
-          <Book className="h-8 w-8 mx-auto mb-2 opacity-50 text-gray-400" />
-          <p className="font-medium text-lg">{t.noAnswersState.title}</p>
-          <p className="text-sm mt-1 text-gray-600">
-            {t.noAnswersState.subtitle}
-          </p>
-          <div className="mt-6">
-            <Button
-              asChild
-              variant="default"
-              className="bg-cyan-600 hover:bg-cyan-700 text-white"
-            >
-              <Link
-                href={QUESTIONNAIRE_URL}
-                className="flex items-center gap-1.5 px-6 py-2"
-              >
-                {t.noAnswersState.button} <ArrowIcon className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+      );
+    }
   );
-};
+
+QuestionnaireResponsesSection.displayName = 'QuestionnaireResponsesSection';
 
 export default QuestionnaireResponsesSection;

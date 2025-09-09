@@ -4,7 +4,7 @@ import {
   NotificationChannel,
   RecipientInfo,
   NotificationContent as BaseNotificationContent
-} from './NotificationService';
+} from '../NotificationService';
 import twilio from 'twilio';
 import { MessageListInstanceCreateOptions } from 'twilio/lib/rest/api/v2010/account/message';
 

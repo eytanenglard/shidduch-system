@@ -178,11 +178,19 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         ? `/api/profile/questionnaire?userId=${userId}`
         : '/api/profile/questionnaire';
       const questionnaireFetchResponse = await fetch(questionnaireUrl);
+      console.log(
+        `---[ CLIENT LOG | Dashboard loadData ]--- סטטוס תגובה מ-API השאלון: ${questionnaireFetchResponse.status}`
+      );
 
       if (questionnaireFetchResponse.status === 404) {
         setQuestionnaireResponse(null);
       } else if (questionnaireFetchResponse.ok) {
         const questionnaireJson = await questionnaireFetchResponse.json();
+        console.log(
+          '---[ CLIENT LOG | Dashboard loadData ]--- התקבל JSON מה-API:',
+          questionnaireJson
+        );
+
         if (questionnaireJson.success) {
           setQuestionnaireResponse(questionnaireJson.questionnaireResponse);
         } else {

@@ -31,6 +31,7 @@ export async function GET(req: Request) {
     const viewerLocale = (url.searchParams.get('locale') as Locale) || 'he';
     const targetUserId = url.searchParams.get('userId') || session.user.id;
 
+    console.log(`---[ SERVER LOG | API questionnaire GET ]--- שליפת שאלון עבור משתמש: ${targetUserId}, שפת צפייה: ${viewerLocale}`);
 
     const rawQuestionnaire = await prisma.questionnaireResponse.findFirst({
       where: { userId: targetUserId },
@@ -38,11 +39,15 @@ export async function GET(req: Request) {
     });
 
     if (!rawQuestionnaire) {
+              console.warn('---[ SERVER LOG | API questionnaire GET ]--- לא נמצא שאלון עבור המשתמש.');
+
       return NextResponse.json({ success: false, message: 'No questionnaire found' }, { status: 404 });
     }
+    console.log('---[ SERVER LOG | API questionnaire GET ]--- נתוני שאלון גולמיים מה-DB:', JSON.stringify(rawQuestionnaire, null, 2));
 
     // שימוש בפונקציית העיצוב החדשה
     const formattedQuestionnaire = await formatQuestionnaireForDisplay(rawQuestionnaire, viewerLocale);
+    console.log('---[ SERVER LOG | API questionnaire GET ]--- נתונים מעובדים שמוחזרים לקליינט:', JSON.stringify(formattedQuestionnaire, null, 2));
 
     return NextResponse.json({
       success: true,
@@ -52,6 +57,7 @@ export async function GET(req: Request) {
     console.error('Error fetching formatted questionnaire:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json({ success: false, message: errorMessage }, { status: 500 });
+ 
   }
 }
 
