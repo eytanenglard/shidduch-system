@@ -557,11 +557,11 @@
       }
     },
     "questionCard": {
-        "languageBadge": {
-          "en": "אנגלית",
-          "he": "עברית"
-        },
-        "languageTooltip": "תשובה זו נכתבה במקור בשפה המוצגת",
+          "languageBadge": {
+  "en": "English",
+  "he": "Hebrew"
+},
+"languageTooltip": "This answer was originally written in the displayed language",
       "toasts": {
         "emptyAnswer": "Cannot save an empty answer.",
         "updateSuccess": "Answer updated successfully.",

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries
-# Generated on: 2025-08-28 12:44:57
+# Generated on: 2025-09-09 21:37:08
 ################################################################################
 
 ================================================================================
@@ -17,10 +17,44 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\en.json
 --------------------------------------------------------------------------------
 Content:
 {
-  "metadata": {
+"metadata": {
+  "title": "NeshamaTech | Where Soul Meets Technology",
+  "description": "Relationships that start from the soul. At NeshamaTech, we use advanced technology and personal guidance to uncover true compatibility beyond the profile. Join a discreet and respectful journey to find a serious and meaningful connection.",
+  "keywords": [
+    "Matchmaking",
+    "Soul and Technology",
+    "Relationships from the soul",
+    "NeshamaTech",
+    "Serious relationship",
+    "Deep dating",
+    "Modern matchmaking",
+    "Personality matching",
+    "Jewish Matchmaking"
+  ],
+  "openGraph": {
     "title": "NeshamaTech | Where Soul Meets Technology",
-    "description": "Relationships that start from the soul. At NeshamaTech, we combine advanced technology and personal guidance to uncover true compatibility that goes beyond the profile."
+    "description": "Relationships that start from the soul. A platform combining technology and personal guidance to create genuine connections.",
+    "url": "https://www.neshamatech.com",
+    "siteName": "NeshamaTech",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png",
+        "width": 1200,
+        "height": 630,
+        "alt": "NeshamaTech Logo - Technology and Soul"
+      }
+    ],
+    "locale": "en_US",
+    "type": "website"
   },
+  "twitter": {
+    "card": "summary_large_image",
+    "title": "NeshamaTech | Where Soul Meets Technology",
+    "description": "Relationships that start from the soul. Genuine connections based on technology and personal guidance.",
+    "images": ["https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png"]
+  }
+},
+
   "navbar": {
     "myMatches": "My Matches",
     "matchmakingQuestionnaire": "Questionnaire",
@@ -442,7 +476,7 @@ Content:
       "composeEmailPrompt": "Excellent. Now, please write your message, and one of our team members will get back to you personally.",
       "emailError": "It seems the email address is not valid. Please check and try again.",
       "genericError": "We apologize, a small technical error occurred. Please try refreshing or come back in a few moments. You can always contact us directly by email as well.",
-      "sendEmailError": "We apologize, there was an error sending the email. Please try again, or contact us directly at info@neshamatech.com.",
+      "sendEmailError": "We apologize, there was an error sending the email. Please try again, or contact us directly at jewish.matchpoint@gmail.com.",
       "placeholderDefault": "Ask us about our approach...",
       "placeholderGatheringEmail": "Enter your email address...",
       "placeholderComposingEmail": "Write your message here...",
@@ -541,7 +575,7 @@ Content:
       "otherWays": {
         "title": "Direct Contact Information",
         "phone": "054-321-0040",
-        "email": ".matchpoint@gmail.com",
+        "email": "jewish.matchpoint@gmail.com",
         "hours": "Sun-Thu 9:00 AM - 6:00 PM",
         "commitment": {
           "title": "Our Promise to You:",
@@ -559,7 +593,100 @@ Content:
       "tagline": "Relationships that Start from the Soul",
       "copyright": "© {year} NeshamaTech. All rights reserved."
     }
+  },
+  "feedbackWidget": {
+    "tabLabel": "Your Feedback",
+    "openAriaLabel": "Open feedback widget",
+    "closeAriaLabel": "Close feedback widget",
+    "title": "Building the Future, Together",
+    "subtitle": "Your insights help us refine the journey to a deep and meaningful connection.",
+    "step_type_title": "How can we improve, together?",
+    "types": {
+      "suggestion": {
+        "label": "I have an idea to improve",
+        "description": "A new idea? A missing feature? We'd love to hear it."
+      },
+      "bug": {
+        "label": "I found an issue",
+        "description": "Something isn't working as expected? Help us fix it."
+      },
+      "positive": {
+        "label": "I wanted to say thanks",
+        "description": "A good experience? A success story? Share it with us."
+      }
+    },
+    "placeholder": "This is the place to share what's on your mind. Every thought or idea helps us grow...",
+    "attachScreenshot": "Attach an Image",
+    "screenshotTooltip": "Screenshot Preview",
+    "fileInstructions": "PNG, JPG, or WebP files (up to 2MB)",
+    "cancelButton": "Cancel",
+    "submitButton": "Send Insight",
+    "submittingButton": "Sending...",
+    "toasts": {
+      "imageTooLarge": "This file is a bit too large. Please upload a file under 2MB.",
+      "contentRequired": "So we can listen, we'd appreciate you writing something for us.",
+      "submitSuccess": "We've received it! Thank you for the partnership. Your feedback is on its way to our team.",
+      "submitError": "Oops, there seems to be a slight issue. Please try again, we truly want to hear from you."
+    }
+  },
+    "messagesPage": {
+    "header": {
+      "title": "My Activity Center",
+      "subtitle": "All your updates, messages, and actions in one place."
+    },
+    "actionBanner": {
+      "titleSingle": "One action is waiting for you!",
+      "titleMultiple": "{{count}} actions are waiting for you!",
+      "description": "There are suggestions awaiting your response. It's time to move forward on your journey!"
+    },
+    "filters": {
+      "all": "All",
+      "actionRequired": "Action Required",
+      "updates": "Updates",
+      "refresh": "Refresh"
+    },
+    "error": "Error: {{error}}",
+    "emptyState": {
+      "title": "All Quiet Here",
+      "descriptionAll": "No new updates right now. As soon as there's a development, it will appear here.",
+      "descriptionFiltered": "No items match the filter."
+    },
+    "notificationCard": {
+      "matchmakerPrefix": "Suggestion from matchmaker",
+      "suggestionWith": "with {{name}}",
+      "viewDetails": "View Details"
+    },
+    "badges": {
+      "match": "It's a Match!"
+    },
+    "messageList": {
+      "header": "Activity Center",
+      "subtitle": "{{count}} suggestions and updates"
+    },
+    "messageListItem": {
+      "matchBadge": "It's a Match!"
+    },
+    "availabilityRequestCard": {
+      "title": "Availability Request",
+      "fromMatchmaker": "From {{name}}",
+      "firstPartyLabel": "First Party",
+      "secondPartyLabel": "Second Party",
+      "progressLabel": "Progress",
+      "noteLabel": "Note:",
+      "buttons": {
+        "available": "I'm Available",
+        "unavailable": "Not Available Right Now"
+      },
+      "responses": {
+        "PENDING": "Pending",
+        "AVAILABLE": "Available",
+        "UNAVAILABLE": "Unavailable"
+      }
+    }
   }
+
+
+
 
 
 }
@@ -570,10 +697,44 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\he.json
 --------------------------------------------------------------------------------
 Content:
 {
-  "metadata": {
+"metadata": {
+  "title": "NeshamaTech | המקום בו נשמה פוגשת טכנולוגיה",
+  "description": "זוגיות שמתחילה מהנשמה. ב-NeshamaTech, אנו משתמשים בטכנולוגיה מתקדמת וליווי אישי כדי לחשוף את התאימות האמיתית שמעבר לפרופיל. הצטרפו למסע דיסקרטי ומכבד למציאת קשר רציני ומשמעותי.",
+  "keywords": [
+    "שידוכים",
+    "נשמה וטכנולוגיה",
+    "זוגיות שמתחילה מהנשמה",
+    "NeshamaTech",
+    "קשר רציני",
+    "היכרויות עומק",
+    "שדכנות מודרנית",
+    "התאמה לפי אישיות",
+    "Jewish Matchmaking"
+  ],
+  "openGraph": {
     "title": "NeshamaTech | המקום בו נשמה פוגשת טכנולוגיה",
-    "description": "זוגיות שמתחילה מהנשמה. ב-NeshamaTech, אנו משתמשים בטכנולוגיה מתקדמת וליווי אישי כדי לחשוף את התאימות האמיתית שמעבר לפרופיל."
+    "description": "זוגיות שמתחילה מהנשמה. פלטפורמה המשלבת טכנולוגיה וליווי אישי ליצירת חיבורים אמיתיים.",
+    "url": "https://www.neshamatech.com",
+    "siteName": "NeshamaTech",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png",
+        "width": 1200,
+        "height": 630,
+        "alt": "הלוגו של NeshamaTech - טכנולוגיה ונשמה"
+      }
+    ],
+    "locale": "he_IL",
+    "type": "website"
   },
+  "twitter": {
+    "card": "summary_large_image",
+    "title": "NeshamaTech | נשמה פוגשת טכנולוגיה",
+    "description": "זוגיות שמתחילה מהנשמה. חיבורים אמיתיים המבוססים על טכנולוגיה וליווי אישי.",
+    "images": ["https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png"]
+  }
+},
+
   "navbar": {
     "myMatches": "ההצעות שלי",
     "matchmakingQuestionnaire": "שאלון התאמה",
@@ -941,7 +1102,7 @@ Content:
         "title": "יצירת קשר",
         "items": [
           { "icon": "📱", "text": "054-321-0040" },
-          { "icon": "✉️", "text": "" },
+          { "icon": "✉️", "text": "jewish.matchpoint@gmail.com" },
           { "icon": "📍", "text": "רעננה, ישראל" },
           { "icon": "🕒", "text": "א'-ה' 9:00-18:00" }
         ]
@@ -1087,7 +1248,102 @@ Content:
       "tagline": "זוגיות שמתחילה מהנשמה",
       "copyright": "© {year} NeshamaTech. כל הזכויות שמורות."
     }
+  },
+  "feedbackWidget": {
+    "tabLabel": "הפידבק שלך",
+    "openAriaLabel": "פתיחת חלונית משוב",
+    "closeAriaLabel": "סגירת חלונית המשוב",
+    "title": "בונים יחד את הבית הבא",
+    "subtitle": "כל תובנה שלכם עוזרת לנו לדייק את המסע לקשר אמיתי ועמוק.",
+    "step_type_title": "איך נוכל להשתפר יחד?",
+    "types": {
+      "suggestion": {
+        "label": "יש לי רעיון לשיפור",
+        "description": "רעיון חדש? פיצ'ר שחסר? נשמח לשמוע."
+      },
+      "bug": {
+        "label": "מצאתי תקלה במערכת",
+        "description": "משהו לא עובד כמצופה? עזרו לנו לתקן."
+      },
+      "positive": {
+        "label": "רציתי לומר תודה",
+        "description": "חוויה טובה? סיפור הצלחה? שתפו אותנו."
+      }
+    },
+    "placeholder": "כאן המקום לשתף מה שעל ליבך. כל מחשבה, הארה או הצעה תעזור לנו לגדול...",
+    "attachScreenshot": "צרף תמונה להמחשה",
+    "screenshotTooltip": "תצוגה מקדימה",
+    "fileInstructions": "קבצי PNG, JPG או WebP (עד 2MB)",
+    "cancelButton": "ביטול",
+    "submitButton": "שלח תובנה",
+    "submittingButton": "שולחים...",
+    "toasts": {
+      "imageTooLarge": "הקובץ גדול מדי. נשמח אם תעלה/י קובץ עד 2MB.",
+      "contentRequired": "כדי שנוכל להקשיב, נשמח אם תכתוב/י לנו משהו.",
+      "submitSuccess": "קיבלנו! תודה רבה על השותפות. המשוב שלך בדרך לצוות שלנו.",
+      "submitError": "אוי, נראה שיש תקלה קטנה. אנא נסה/י שוב, אנחנו באמת רוצים לשמוע אותך."
+    }
+  },
+    "messagesPage": {
+    "header": {
+      "title": "מרכז הפעילות שלי",
+      "subtitle": "כל העדכונים, ההודעות והפעולות שלך במקום אחד."
+    },
+    "actionBanner": {
+      "titleSingle": "פעולה אחת ממתינה לך!",
+      "titleMultiple": "{{count}} פעולות ממתינות לך!",
+      "description": "ישנן הצעות שממתינות לתשובתך. זה הזמן להתקדם במסע!"
+    },
+    "filters": {
+      "all": "הכל",
+      "actionRequired": "דורש פעולה",
+      "updates": "עדכונים",
+      "refresh": "רענן"
+    },
+    "error": "שגיאה: {{error}}",
+    "emptyState": {
+      "title": "הכל שקט ורגוע",
+      "descriptionAll": "אין עדכונים חדשים כרגע. ברגע שתהיה התפתחות, היא תופיע כאן.",
+      "descriptionFiltered": "אין פריטים התואמים לסינון."
+    },
+    "notificationCard": {
+      "matchmakerPrefix": "הצעה מהשדכן/ית",
+      "suggestionWith": "עם {{name}}",
+      "viewDetails": "צפה בפרטים"
+    },
+    "badges": {
+      "match": "התאמה!"
+    },
+        "messageList": {
+      "header": "מרכז הפעילות",
+      "subtitle": "{{count}} הצעות ועדכונים"
+    },
+    "messageListItem": {
+      "matchBadge": "התאמה!"
+    },
+    "availabilityRequestCard": {
+      "title": "בקשת בדיקת זמינות",
+      "fromMatchmaker": "מאת {{name}}",
+      "firstPartyLabel": "צד ראשון",
+      "secondPartyLabel": "צד שני",
+      "progressLabel": "התקדמות",
+      "noteLabel": "הערה:",
+      "buttons": {
+        "available": "אני זמין/ה",
+        "unavailable": "לא זמין/ה כרגע"
+      },
+      "responses": {
+        "PENDING": "ממתין",
+        "AVAILABLE": "זמין/ה",
+        "UNAVAILABLE": "לא זמין/ה"
+      }
+    }
+
   }
+
+
+
+
 
 }
 --- End of Content for he.json ---
@@ -1139,6 +1395,8 @@ Content:
     "submitButtonLoading": "Sending...",
     "backToSignInLink": "Back to Sign In",
     "errors": {
+            "title": "Error",
+
       "missingEmail": "Please enter your email address.",
       "default": "An error occurred while requesting a password reset."
     }
@@ -1443,179 +1701,182 @@ Content:
     }
   }, 
     "legal": {
-    "accessibilityStatement": {
-      "pageTitle": "Accessibility Statement | {brandName}",
-      "pageDescription": "The accessibility statement for the {brandName} website. We are committed to providing an equal and accessible experience for all users, including advanced customization tools.",
-      "mainTitle": "Accessibility Statement",
-      "siteName": "The {brandName} Matchmaking Website",
-      "lastUpdated": "Last Updated: {lastUpdatedDate}",
-      "commitment": {
-        "title": "Our Commitment to Accessibility",
-        "p1": "{companyNameLegal}, operating the <strong>{brandName}</strong> website, considers it of utmost importance to make its services accessible to people with disabilities, to enable a comfortable, efficient, and equal browsing experience for all users. We invest significant effort and resources to ensure the website meets the requirements of the Equal Rights for People with Disabilities Regulations (Service Accessibility Adjustments), 2013.",
-        "p2": "Accessibility adjustments were made in accordance with the recommendations of the Israeli Standard (IS 5568) for web content accessibility at the AA level, based on the international WCAG 2.1 guidelines."
+ "accessibilityStatement": {
+  "pageTitle": "Accessibility Statement | {brandName}",
+  "pageDescription": "The accessibility statement for the {brandName} website. We are committed to providing an equal and accessible experience for all users, including advanced customization tools.",
+  "mainTitle": "Accessibility Statement",
+  "siteName": "The {brandName} Matchmaking Website",
+  "lastUpdated": "Last Updated: {lastUpdatedDate}",
+  "commitment": {
+    "title": "Our Commitment to Accessibility",
+    "p1": "{companyNameLegal}, operating the {brandName} website, considers it of utmost importance to make its services accessible to people with disabilities, to enable a comfortable, efficient, and equal browsing experience for all users. We invest significant effort and resources to ensure the website meets the requirements of the Equal Rights for People with Disabilities Regulations (Service Accessibility Adjustments), 2013.",
+    "p2": "Accessibility adjustments were made in accordance with the recommendations of the Israeli Standard (IS 5568) for web content accessibility at the AA level, based on the international WCAG 2.1 guidelines."
+  },
+  "level": {
+    "title": "Accessibility Level and Compliance",
+    "item1": "Accessibility Level: The site supports the standard's requirements at the AA level.",
+    "item2": "Supported Browsers: The site has been tested and supports the most common modern browsers, including Google Chrome, Mozilla Firefox, Safari, and Microsoft Edge in their latest versions."
+  },
+  "features": {
+    "title": "Accessibility Measures on the Site",
+    "p1": "A wide range of technological measures have been implemented on the site to ensure an optimal user experience for all visitors.",
+    "dedicatedToolbarTitle": "Dedicated Accessibility Toolbar",
+    "p2": "The site features a dedicated accessibility tool that allows users to customize the site's display to their personal needs. The accessibility menu can be opened by clicking the floating accessibility button in the corner of the screen. The tool offers the following options:",
+    "fontAdjustment": {
+      "title": "Font Size Adjustment",
+      "description": "Allows increasing and decreasing the text on the site to the user's comfortable reading level."
+    },
+    "contrastModes": {
+      "title": "Display and Contrast Modes",
+      "description": "Includes a high-contrast mode and a dark display mode (inverted contrast) to improve readability for users with visual impairments."
+    },
+    "readableFont": {
+      "title": "Readable Font",
+      "description": "Switches the site's font to a basic, readable, sans-serif font to improve the reading experience."
+    },
+    "largeCursor": {
+      "title": "Large Cursor",
+      "description": "Enlarges the mouse cursor for easier identification and navigation."
+    },
+    "textToSpeech": {
+      "title": "Text-to-Speech",
+      "description": "Enables a text reader that reads selected content with a mouse click, assisting those with reading difficulties."
+    },
+    "reduceMotion": {
+      "title": "Reduce Motion",
+      "description": "Disables or reduces animations and movements on the site for users sensitive to motion."
+    },
+    "additionalAdjustmentsTitle": "Additional Adjustments on the Site",
+    "keyboardNav": "Keyboard Navigation: The site is fully adapted for keyboard-only navigation (using Tab, Shift+Tab, Enter, and arrow keys). We have ensured a clear visual indication of the focus location.",
+    "screenReader": "Screen Reader Compatibility: The site was built using correct semantic structure (headings, paragraphs, lists) and ARIA (Accessible Rich Internet Applications) attributes to ensure full compatibility with screen reader software such as NVDA and JAWS.",
+    "altText": "Alternative Text for Images: All significant images on the site have alternative text (Alt Text) detailing their content. Decorative images are hidden from screen readers.",
+    "accessibleForms": "Accessible Forms: All forms on the site, including registration forms and questionnaires, include clear labels, group definitions (Fieldset), and filling instructions.",
+    "noFlashing": "Avoidance of Flashing Content: The site does not contain flashing or rapidly moving content that could endanger users."
+  },
+  "limitations": {
+    "title": "Non-Accessible Areas and Contact",
+    "p1": "We do our best to ensure that all parts of the site are fully accessible. However, some parts or capabilities may be discovered that have not yet been fully made accessible. We are continuing our efforts to improve the site's accessibility as part of our commitment to enabling its use for the entire population.",
+    "p2": "If you encounter an accessibility issue or have a suggestion for improvement, we would appreciate it if you contact us. We see your inquiries as an opportunity for improvement."
+  },
+  "contact": {
+    "title": "Accessibility Coordinator Details",
+    "p1": "For any accessibility-related inquiries, you can contact the company's accessibility coordinator:",
+    "name": "Name: {accessibilityCoordinatorName}",
+    "email": "Email:",
+    "p2": "In your inquiry, please include as many details as possible: a description of the problem, a link to the page where you encountered the problem, and details of your operating system and browser.",
+    "p3": "This statement was last updated on: {lastUpdatedDate}."
+  }
+},
+
+"privacyPolicy": {
+  "pageTitle": "Privacy Policy | {brandName}",
+  "pageDescription": "{brandName}'s privacy policy. How we collect, use, and protect your personal information.",
+  "mainTitle": "Privacy Policy – Neshama Tech (Jewish Matchpoint Ltd.)",
+  "lastUpdated": "Last Updated: {lastUpdatedDate}",
+  "introduction": {
+    "title": "Introduction",
+    "p1": "We at {companyNameLegal} (Co. No. {companyNumber}), operating under the brand name \"Neshama Tech\" (hereinafter: \"the Company\", \"the System\", \"the Service\", \"Neshama Tech\", \"we\", or \"our\"), respect your privacy and are committed to protecting the personal information you share with us. This Privacy Policy (hereinafter: \"the Policy\") describes how we collect, use, process, disclose, transfer, and store your personal information in connection with your use of the Company's website (hereinafter: \"the Website\") and the services offered through it.",
+    "p2": "\"Personal Information\" or \"Information\" is defined as information as defined in the Privacy Protection Law, 1981 (hereinafter: \"the Law\"), including data about an identified or identifiable person, such as name, identification number, location data, an online identifier, or information concerning their physical, mental, economic, or social status.",
+    "p3": "This policy is an integral part of the System's Terms of Use. We recommend that you read it carefully to understand our practices regarding your personal information and your rights."
+  },
+  "consent": {
+    "title": "1. Consent, Database, and Legal Clarification",
+    "p1": "By registering for the system, using it, and particularly by providing your personal details (whether directly or through an authorized matchmaker of the Company acting with your consent), you express your free, explicit, and informed consent to the terms set out in this Policy. This consent includes the collection, processing, storage, use, and sharing of your personal information, including sensitive information, as detailed below.",
+    "p2": "You are under no legal obligation to provide us with information, and the provision of information is done of your own free will and with your consent. However, if you choose not to provide certain information required for the provision of the service, we may not be able to provide you with the services, in whole or in part. For example, without filling out a personal profile, we cannot offer you matches.",
+    "p3": "You acknowledge that the information you provide will be stored in the Company's database (hereinafter: \"the Database\"), which is legally registered. The owner of the database is {companyNameLegal}, Co. No. {companyNumber}, and its registered address is {companyRegisteredAddress}.",
+    "p4": "If you do not agree to the terms of this Policy, in whole or in part, you must refrain from any use of the system and from providing your personal details."
+  },
+  "collectedInfo": {
+    "title": "2. What information do we collect?",
+    "p1": "We collect various types of personal information, whether provided directly by you, collected automatically, or provided to us by Company matchmakers acting with your consent:",
+    "subTitle1": "2.1. Information provided directly by you:",
+    "list1": {
+      "item1": "Identification, registration, and contact details: Full name, email address, phone number (used for verification and contact), password (encrypted).",
+      "item2": {
+        "title": "Detailed profile information (which may include sensitive information):",
+        "subItem1": "Demographics and personality: Gender, date of birth, languages, height, marital status, occupation, education, city of residence, ethnicity, religious background (self-definition, type of kippah/head covering, observance of 'negi'a'), military/national service, existence of children from a previous relationship, character traits, hobbies, immigration details, free text \"about myself\", parental status, and number of siblings.",
+        "subItem2": "Matchmaking preferences: Age and height ranges, religious levels, geographical locations, preferred education and occupations, preference regarding children from a previous relationship, ethnic origins, and more.",
+        "subItem3": "Medical information (subject to your separate consent): If you choose to do so, the system allows you to provide information regarding a specific medical condition. Providing this information is completely voluntary and is intended to assist in finding a match with understanding and transparency. You have full control over the visibility of medical information, and it will only be disclosed to other parties if you explicitly indicate that you want the information to be visible."
       },
-      "level": {
-        "title": "Accessibility Level and Compliance",
-        "item1": "<strong>Accessibility Level:</strong> The site supports the standard's requirements at the AA level.",
-        "item2": "<strong>Supported Browsers:</strong> The site has been tested and supports the most common modern browsers, including Google Chrome, Mozilla Firefox, Safari, and Microsoft Edge in their latest versions."
-      },
-      "features": {
-        "title": "Accessibility Measures on the Site",
-        "p1": "A wide range of technological measures have been implemented on the site to ensure an optimal user experience for all visitors.",
-        "dedicatedToolbarTitle": "Dedicated Accessibility Toolbar",
-        "p2": "The site features a dedicated accessibility tool that allows users to customize the site's display to their personal needs. The accessibility menu can be opened by clicking the floating accessibility button in the corner of the screen. The tool offers the following options:",
-        "fontAdjustment": {
-          "title": "Font Size Adjustment",
-          "description": "Allows increasing and decreasing the text on the site to the user's comfortable reading level."
-        },
-        "contrastModes": {
-          "title": "Display and Contrast Modes",
-          "description": "Includes a high-contrast mode and a dark display mode (inverted contrast) to improve readability for users with visual impairments."
-        },
-        "readableFont": {
-          "title": "Readable Font",
-          "description": "Switches the site's font to a basic, readable, sans-serif font to improve the reading experience."
-        },
-        "largeCursor": {
-          "title": "Large Cursor",
-          "description": "Enlarges the mouse cursor for easier identification and navigation."
-        },
-        "textToSpeech": {
-          "title": "Text-to-Speech",
-          "description": "Enables a text reader that reads selected content with a mouse click, assisting those with reading difficulties."
-        },
-        "reduceMotion": {
-          "title": "Reduce Motion",
-          "description": "Disables or reduces animations and movements on the site for users sensitive to motion."
-        },
-        "additionalAdjustmentsTitle": "Additional Adjustments on the Site",
-        "keyboardNav": "<strong>Keyboard Navigation:</strong> The site is fully adapted for keyboard-only navigation (using Tab, Shift+Tab, Enter, and arrow keys). We have ensured a clear visual indication of the focus location.",
-        "screenReader": "<strong>Screen Reader Compatibility:</strong> The site was built using correct semantic structure (headings, paragraphs, lists) and ARIA (Accessible Rich Internet Applications) attributes to ensure full compatibility with screen reader software such as NVDA and JAWS.",
-        "altText": "<strong>Alternative Text for Images:</strong> All significant images on the site have alternative text (Alt Text) detailing their content. Decorative images are hidden from screen readers.",
-        "accessibleForms": "<strong>Accessible Forms:</strong> All forms on the site, including registration forms and questionnaires, include clear labels, group definitions (Fieldset), and filling instructions.",
-        "noFlashing": "<strong>Avoidance of Flashing Content:</strong> The site does not contain flashing or rapidly moving content that could endanger users."
-      },
-      "limitations": {
-        "title": "Non-Accessible Areas and Contact",
-        "p1": "We do our best to ensure that all parts of the site are fully accessible. However, some parts or capabilities may be discovered that have not yet been fully made accessible. We are continuing our efforts to improve the site's accessibility as part of our commitment to enabling its use for the entire population.",
-        "p2": "If you encounter an accessibility issue or have a suggestion for improvement, we would appreciate it if you contact us. We see your inquiries as an opportunity for improvement."
-      },
-      "contact": {
-        "title": "Accessibility Coordinator Details",
-        "p1": "For any accessibility-related inquiries, you can contact the company's accessibility coordinator:",
-        "name": "<strong>Name:</strong> {accessibilityCoordinatorName}",
-        "email": "<strong>Email:</strong>",
-        "p2": "In your inquiry, please include as many details as possible: a description of the problem, a link to the page where you encountered the problem, and details of your operating system and browser.",
-        "p3": "This statement was last updated on: <strong>{lastUpdatedDate}</strong>."
-      }
+      "item3": "Photos and videos: Photos you have uploaded to your profile and videos you have uploaded to the system.",
+      "item4": "Questionnaire answers (highly sensitive information): Detailed answers to the system's questionnaires on values, personality, relationships, preferences, religion, and faith.",
+      "item5": "Interaction and feedback information: Responses to match suggestions and feedback on meetings.",
+      "item6": "Payment details (if and when relevant): When purchasing paid services, you may be asked to provide payment details. We clarify that these payment details are processed through an external PCI-compliant payment provider and are not stored in the Company's databases."
     },
-   "privacyPolicy": {
-    "pageTitle": "Privacy Policy | {brandName}",
-    "pageDescription": "{brandName}'s privacy policy. How we collect, use, and protect your personal information.",
-    "mainTitle": "Privacy Policy – Neshama Tech (Jewish Matchpoint Ltd.)",
-    "lastUpdated": "Last Updated: {lastUpdatedDate}",
-    "introduction": {
-      "title": "Introduction",
-      "p1": "We at {companyNameLegal} (Co. No. {companyNumber}), operating under the brand name \"Neshama Tech\" (hereinafter: \"the Company\", \"the System\", \"the Service\", \"Neshama Tech\", \"we\", or \"our\"), respect your privacy and are committed to protecting the personal information you share with us. This Privacy Policy (hereinafter: \"the Policy\") describes how we collect, use, process, disclose, transfer, and store your personal information in connection with your use of the Company's website (hereinafter: \"the Website\") and the services offered through it.",
-      "p2": "\"Personal Information\" or \"Information\" is defined as information as defined in the Privacy Protection Law, 1981 (hereinafter: \"the Law\"), including data about an identified or identifiable person, such as name, identification number, location data, an online identifier, or information concerning their physical, mental, economic, or social status.",
-      "p3": "This policy is an integral part of the System's Terms of Use. We recommend that you read it carefully to understand our practices regarding your personal information and your rights."
-    },
-    "consent": {
-      "title": "1. Consent, Database, and Legal Clarification",
-      "p1": "By registering for the system, using it, and particularly by providing your personal details (whether directly or through an authorized matchmaker of the Company acting with your consent), you express your free, explicit, and informed consent to the terms set out in this Policy. This consent includes the collection, processing, storage, use, and sharing of your personal information, including sensitive information, as detailed below.",
-      "p2": "You are under no legal obligation to provide us with information, and the provision of information is done of your own free will and with your consent. However, if you choose not to provide certain information required for the provision of the service, we may not be able to provide you with the services, in whole or in part. For example, without filling out a personal profile, we cannot offer you matches.",
-      "p3": "You acknowledge that the information you provide will be stored in the Company's database (hereinafter: \"the Database\"), which is legally registered. The owner of the database is {companyNameLegal}, Co. No. {companyNumber}, and its registered address is {companyRegisteredAddress}.",
-      "p4": "<strong>If you do not agree to the terms of this Policy, in whole or in part, you must refrain from any use of the system and from providing your personal details.</strong>"
-    },
-    "collectedInfo": {
-      "title": "2. What information do we collect?",
-      "p1": "We collect various types of personal information, whether provided directly by you, collected automatically, or provided to us by Company matchmakers acting with your consent:",
-      "subTitle1": "2.1. Information provided directly by you:",
-      "list1": {
-        "item1": "<strong>Identification, registration, and contact details:</strong> Full name, email address, phone number (used for verification and contact), password (encrypted).",
-        "item2": {
-          "title": "<strong>Detailed profile information (which may include sensitive information):</strong>",
-          "subItem1": "<strong>Demographics and personality:</strong> Gender, date of birth, languages, height, marital status, occupation, education, city of residence, ethnicity, religious background (self-definition, type of kippah/head covering, observance of 'negi'a'), military/national service, existence of children from a previous relationship, character traits, hobbies, immigration details, free text \"about myself\", parental status, and number of siblings.",
-          "subItem2": "<strong>Matchmaking preferences:</strong> Age and height ranges, religious levels, geographical locations, preferred education and occupations, preference regarding children from a previous relationship, ethnic origins, and more.",
-          "subItem3": "<strong>Medical information (subject to your separate consent):</strong> If you choose to do so, the system allows you to provide information regarding a specific medical condition. Providing this information is completely voluntary and is intended to assist in finding a match with understanding and transparency. You have full control over the visibility of medical information, and it will only be disclosed to other parties if you explicitly indicate that you want the information to be visible."
-        },
-        "item3": "<strong>Photos and videos:</strong> Photos you have uploaded to your profile and videos you have uploaded to the system.",
-        "item4": "<strong>Questionnaire answers (highly sensitive information):</strong> Detailed answers to the system's questionnaires on values, personality, relationships, preferences, religion, and faith.",
-        "item5": "<strong>Interaction and feedback information:</strong> Responses to match suggestions and feedback on meetings.",
-        "item6": "<strong>Payment details (if and when relevant):</strong> When purchasing paid services, you may be asked to provide payment details. We clarify that these payment details are processed through an external PCI-compliant payment provider and are not stored in the Company's databases."
-      },
-      "subTitle2": "2.2. Information entered into the system by an authorized Company matchmaker:",
-      "p2": "An authorized matchmaker may enter details about you into the system, which were provided to them by you directly. In these cases, the matchmaker will act to obtain your explicit consent, we will act to inform you of the inclusion of your details in the database, and you will be given the option to create an account and manage your information.",
-      "subTitle3": "2.3. Information collected or generated automatically:",
-      "p3_1": "<strong>Cookies, Google Analytics, and tracking technologies:</strong>",
-      "p3_2": "A \"Cookie\" is a small text file stored on your device used to collect information about your activity, save your preferences, and improve the user experience. We use cookies essential for the proper functioning of the site (e.g., for managing your account connection), as well as analytical and statistical cookies.",
-      "p3_3": "The use of non-essential cookies, particularly those of the Google Analytics service, is subject to your explicit consent, which can be expressed and managed through the \"cookie banner\" that appears on your first visit to the site.",
-      "p3_4": "We use the Google Analytics service to collect and analyze anonymous statistical information about the use of the site. This service helps us understand visitor behavior (such as which pages are popular, how long users stay on the site, and from which traffic sources they come), in order to continuously improve the service and user experience. Google Analytics uses \"cookies\" and other anonymous identifiers to collect this information. It is important to emphasize that we do not combine the information collected through Google Analytics with personally identifiable information.",
-      "p3_5": "In accordance with Google's terms of service, we inform you that our use of Google Analytics is subject to how Google collects and processes data. You can read more about this at the link: <a href='https://policies.google.com/technologies/partner-sites' target='_blank' rel='noopener noreferrer' class='text-cyan-600 hover:text-cyan-700'>\"How Google uses information from sites or apps that use our services\"</a>.",
-      "p3_6": "You can control and manage your cookie preferences. If you wish to prevent Google Analytics from collecting data about your browsing, you can install the <a href='https://tools.google.com/dlpage/gaoptout' target='_blank' rel='noopener noreferrer' class='text-cyan-600 hover:text-cyan-700'>Google Analytics Opt-out Browser Add-on</a>. Additionally, most modern browsers allow you to block or delete existing cookies through the browser settings.",
-      "p3_7": "<strong>Log Files and Device Data:</strong> Like most internet services, our servers automatically collect basic technical information that your browser or device sends, such as IP address, browser type, operating system, and timestamps. We use this information to analyze trends, properly manage the site, for security, and to troubleshoot issues.",
-      "subTitle4": "2.4. Information from additional interactions:",
-      "list2": {
-        "item1": "<strong>Call recordings:</strong> Phone calls with Company representatives may be recorded for quality control, service improvement, documentation, and legal defense purposes.",
-        "item2": "<strong>Social networks:</strong> When you contact us through channels like WhatsApp or other platforms, the information you provide will also be subject to the privacy policy of that platform."
-      }
-    },
-    "howWeUse": {
-      "title": "3. How and why do we use your information (Purposes of Processing)?",
-      "p1": "Your personal information is used by us for the following essential purposes:",
-      "list": {
-        "item1": "<strong>Providing matchmaking services:</strong> Creating and managing your profile; analyzing information (including with the help of algorithms and AI models) to find and suggest matches; displaying profiles and coordinating contact between users. To find accurate matches, our system processes your profile and questionnaire data, converting them into mathematical representations (vectors). This automated processing helps our team of matchmakers to efficiently identify potential candidates for you from the database, while maintaining human discretion and control by a matchmaker in the process.",
-        "item2": "<strong>Operating and managing the system:</strong> Verifying your details, providing support, securing the system, and handling technical issues.",
-        "item3": "<strong>Improving and personalizing the service:</strong> Analyzing the use of the system (usually in an anonymous and aggregated manner) to develop new tools and improve the user experience.",
-        "item4": "<strong>Contacting you:</strong> Sending essential system messages (e.g., match suggestions, updates). Subject to your separate consent, we will also send marketing communications and newsletters, from which you can unsubscribe at any time via an \"unsubscribe\" link or by contacting us.",
-        "item5": "<strong>Enforcement and legal protection:</strong> Enforcing the terms of use and protecting our legal rights and the rights of users.",
-        "item6": "<strong>Compliance with legal requirements:</strong> Fulfilling the instructions of any law, court order, or competent authority's demand.",
-        "item7": "<strong>Use of success stories:</strong> Subject to receiving your separate, explicit, and active consent, we will publish your success story."
-      }
-    },
-    "sharingInfo": {
-      "title": "4. Sharing information with third parties",
-      "p1": "We will not sell or rent your personal information. We may share it only with the following parties:",
-      "list": {
-        "item1": "<strong>Other users of the system (potential candidates):</strong> When a matchmaker identifies a match, some of your profile details (such as first name, age, general description, and main photo) will be shared with the other user. More detailed information and direct contact details will be shared only at an advanced stage and after explicit mutual consent.",
-        "item2": "<strong>Authorized Company matchmakers:</strong> Your full information is accessible to our team of matchmakers, who are bound by full confidentiality, for the purpose of carrying out their professional work.",
-        "item3": "<strong>Service providers (data processors):</strong> We use external providers who assist us in operating the system (such as cloud storage providers like Neon and Heroku, email marketing providers, and analytics providers). These providers are contractually obligated to maintain the confidentiality of the information and to use it only for the purpose for which it was provided.",
-        "item4": "<strong>Law enforcement authorities and legal entities:</strong> If we are required to do so by law, court order, or if we believe in good faith that it is necessary to protect public safety or legal rights.",
-        "item5": "<strong>In the event of a structural change in the business:</strong> In the event of a merger, acquisition, or sale of the Company's assets, the information may be transferred to the acquiring entity, which will be obligated to honor our commitments in this policy."
-      }
-    },
-    "security": {
-      "title": "5. Information Security",
-      "p1": "We attribute paramount importance to information security and employ reasonable and accepted technical and organizational security measures, including password encryption, use of secure communication protocols (SSL/TLS), role-based access controls, and secure development procedures. However, it is important to remember that no system is 100% immune. We cannot guarantee absolute security. You are responsible for maintaining the confidentiality of your account access details."
-    },
-    "retention": {
-      "title": "6. Data Retention",
-      "p1": "We will retain your personal information for the time necessary to provide the services, as long as your account is active, or as required to fulfill our legal obligations and defend against claims. Following a deletion request or when the information is no longer needed, we will act to delete or anonymize the identifying information, subject to technical limitations (such as retention in backup systems for a limited period)."
-    },
-    "yourRights": {
-      "title": "7. Your Rights Regarding Your Personal Information (\"Right to Access, Correct, and Delete\")",
-      "p1": "According to the law, you are entitled to review the information we hold about you, request its correction if it is incorrect, and request its deletion. Most of the information is available for you to review and edit directly through your personal profile. To exercise your rights over information that is not directly available, or to request deletion, please contact us. Your request will be handled in accordance with the provisions of the law. Note that deleting essential information may prevent us from providing you with the service."
-    },
-    "crossBorder": {
-      "title": "8. Transfer of Information Outside of Israel's Borders",
-      "p1": "You explicitly agree that your personal information may be stored and processed on servers located outside of Israel (e.g., in the USA and Europe), where our service providers (such as Neon and Heroku) operate. We take steps to ensure that any such transfer is carried out while maintaining an adequate level of protection for your information, in accordance with the requirements of the law."
-    },
-    "minors": {
-      "title": "9. Minors",
-      "p1": "The service is intended for adults over the age of 18 only. We do not knowingly collect information from minors. If you become aware that such information has been provided to us, please contact us immediately for its deletion."
-    },
-    "changes": {
-      "title": "10. Changes to the Privacy Policy",
-      "p1": "We reserve the right to update this policy from time to time. In the event of a material change, we will notify you in advance by reasonable means (a notice on the site or by email). Your continued use of the system after the changes are published will constitute your consent to the updated policy. It is your responsibility to review this policy periodically."
-    },
-    "contact": {
-      "title": "11. Contact Us",
-      "p1": "For any question, request, or issue regarding your privacy, please contact us:",
-      "companyName": "<strong>Company Name:</strong> {companyNameLegal} (Co. No. {companyNumber})",
-      "email": "<strong>Email:</strong>",
-      "address": "<strong>Mailing Address:</strong> {companyRegisteredAddress}"
+    "subTitle2": "2.2. Information entered into the system by an authorized Company matchmaker:",
+    "p2": "An authorized matchmaker may enter details about you into the system, which were provided to them by you directly. In these cases, the matchmaker will act to obtain your explicit consent, we will act to inform you of the inclusion of your details in the database, and you will be given the option to create an account and manage your information.",
+    "subTitle3": "2.3. Information collected or generated automatically:",
+    "p3_1": "Cookies, Google Analytics, and tracking technologies:",
+    "p3_2": "A \"Cookie\" is a small text file stored on your device used to collect information about your activity, save your preferences, and improve the user experience. We use cookies essential for the proper functioning of the site (e.g., for managing your account connection), as well as analytical and statistical cookies.",
+    "p3_3": "The use of non-essential cookies, particularly those of the Google Analytics service, is subject to your explicit consent, which can be expressed and managed through the \"cookie banner\" that appears on your first visit to the site.",
+    "p3_4": "We use the Google Analytics service to collect and analyze anonymous statistical information about the use of the site. This service helps us understand visitor behavior (such as which pages are popular, how long users stay on the site, and from which traffic sources they come), in order to continuously improve the service and user experience. Google Analytics uses \"cookies\" and other anonymous identifiers to collect this information. It is important to emphasize that we do not combine the information collected through Google Analytics with personally identifiable information.",
+    "p3_5": "In accordance with Google's terms of service, we inform you that our use of Google Analytics is subject to how Google collects and processes data. You can read more about this at the link: <a href='https://policies.google.com/technologies/partner-sites' target='_blank' rel='noopener noreferrer' class='text-cyan-600 hover:text-cyan-700'>\"How Google uses information from sites or apps that use our services\"</a>.",
+    "p3_6": "You can control and manage your cookie preferences. If you wish to prevent Google Analytics from collecting data about your browsing, you can install the <a href='https://tools.google.com/dlpage/gaoptout' target='_blank' rel='noopener noreferrer' class='text-cyan-600 hover:text-cyan-700'>Google Analytics Opt-out Browser Add-on</a>. Additionally, most modern browsers allow you to block or delete existing cookies through the browser settings.",
+    "p3_7": "Log Files and Device Data: Like most internet services, our servers automatically collect basic technical information that your browser or device sends, such as IP address, browser type, operating system, and timestamps. We use this information to analyze trends, properly manage the site, for security, and to troubleshoot issues.",
+    "subTitle4": "2.4. Information from additional interactions:",
+    "list2": {
+      "item1": "Call recordings: Phone calls with Company representatives may be recorded for quality control, service improvement, documentation, and legal defense purposes.",
+      "item2": "Social networks: When you contact us through channels like WhatsApp or other platforms, the information you provide will also be subject to the privacy policy of that platform."
     }
   },
+  "howWeUse": {
+    "title": "3. How We Use Your Information",
+    "p1": "We use the information we collect for the following purposes:",
+    "list": {
+      "item1": "To Provide and Operate the Service: To grant you access to the system, create and manage your profile, and provide you with relevant match suggestions.",
+      "item2": "Communication: To contact you regarding your account, update you on new suggestions, and provide technical support and customer service.",
+      "item3": "Service Improvement and Development: To analyze usage patterns, collect feedback, and improve our algorithms, features, and user experience.",
+      "item4": "Security and Safety: To verify identities, prevent fraud and prohibited activities, and enforce our Terms of Service.",
+      "item5": "Marketing (subject to your consent): To send you updates, promotions, and marketing materials that may be of interest to you.",
+      "item6": "Legal Obligations: To comply with legal requirements, regulations, and judicial orders.",
+      "item7": "Research and Statistics: To conduct statistical analyses and research based on aggregated and anonymous information."
+    }
+  },
+  "sharingInfo": {
+    "title": "4. With Whom We Share Your Information",
+    "p1": "We do not sell or rent your personal information. We may share your information with third parties only in the following cases:",
+    "list": {
+      "item1": "Other Users and Matchmakers: The core of the service is sharing your profile with other users and authorized matchmakers in the system for the purpose of finding a match.",
+      "item2": "Service Providers: We use external providers who assist us in operating the service (such as cloud hosting providers, mailing services, payment processors). We share only the necessary information with them to provide their services, and they are obligated to maintain confidentiality.",
+      "item3": "Legal Requirement: If we are required to do so by law, court order, or in the context of a legal proceeding.",
+      "item4": "Protection of Rights: To enforce our terms, protect the security of the system, or protect the rights, property, and safety of the Company, its employees, its users, or the public.",
+      "item5": "Merger or Acquisition: In the event of a merger, acquisition, or sale of company assets, the information may be transferred to the acquiring entity."
+    }
+  },
+  "security": {
+    "title": "5. Data Security",
+    "p1": "We take reasonable technological and organizational security measures to protect your personal information from unauthorized access, use, or disclosure. These include using encryption (such as SSL), access controls, firewalls, and internal security procedures. However, no system is 100% secure, and we cannot absolutely guarantee the security of the information."
+  },
+  "retention": {
+    "title": "6. Data Retention",
+    "p1": "We will retain your personal information as long as your account is active or as needed to provide you with services, as well as to comply with our legal obligations, resolve disputes, and enforce our agreements. After account closure, we may retain certain information in an anonymous or aggregated form for analytical purposes."
+  },
+  "yourRights": {
+    "title": "7. Your Rights",
+    "p1": "According to the Privacy Protection Law, you are entitled to review the information about you held in our database. Additionally, if you find that the information is incorrect, incomplete, unclear, or not up-to-date, you may contact us with a request to correct or delete the information. These rights can be exercised by contacting us via the contact details provided at the end of this policy."
+  },
+  "crossBorder": {
+    "title": "8. International Data Transfer",
+    "p1": "The Company may use cloud services whose servers are located outside the borders of Israel. By using the service, you consent to the transfer of your information outside of Israel, with the understanding that the Company will take reasonable steps to ensure that your information continues to be protected in accordance with this policy."
+  },
+  "minors": {
+    "title": "9. Minors",
+    "p1": "The service is intended for users over the age of 18 only. We do not knowingly collect personal information from minors. If we become aware that we have collected such information, we will take steps to delete it immediately."
+  },
+  "changes": {
+    "title": "10. Changes to the Privacy Policy",
+    "p1": "We reserve the right to update this policy from time to time. In the event of a material change, we will notify you through a prominent notice on the site or by sending an email. We recommend reviewing this policy periodically."
+  },
+  "contact": {
+    "title": "11. Contact Us",
+    "p1": "For any question, request, or issue regarding your privacy, please contact us:",
+    "companyName": "Company Name: {companyNameLegal} (Co. No. {companyNumber})",
+    "email": "Email:",
+    "address": "Mailing Address: {companyRegisteredAddress}"
+  }
+}
+
+,
   "termsOfService": {
     "pageTitle": "Terms of Service | {brandName}",
     "pageDescription": "The terms of use for the {brandName} matchmaking system. Please read carefully before using the system.",
@@ -1747,6 +2008,8 @@ Content:
     "submitButtonLoading": "שולח...",
     "backToSignInLink": "חזרה להתחברות",
     "errors": {
+            "title": "שגיאה",
+
       "missingEmail": "אנא הזן את כתובת המייל שלך.",
       "default": "אירעה שגיאה בבקשת איפוס הסיסמה."
     }
@@ -2051,179 +2314,182 @@ Content:
     }
   },
     "legal": {
-    "accessibilityStatement": {
-      "pageTitle": "הצהרת נגישות | {brandName}",
-      "pageDescription": "הצהרת הנגישות של אתר {brandName}. אנו מחויבים לספק חוויה שוויונית ונגישה לכלל המשתמשים, כולל כלים מתקדמים להתאמה אישית.",
-      "mainTitle": "הצהרת נגישות",
-      "siteName": "אתר השידוכים {brandName}",
-      "lastUpdated": "עדכון אחרון: {lastUpdatedDate}",
-      "commitment": {
-        "title": "מחויבותנו לנגישות",
-        "p1": "חברת {companyNameLegal}, המפעילה את אתר <strong>{brandName}</strong>, רואה חשיבות עליונה בהנגשת שירותיה לאנשים עם מוגבלות, על מנת לאפשר חווית גלישה נוחה, יעילה ושוויונית לכלל המשתמשים. אנו משקיעים מאמצים ומשאבים רבים על מנת להבטיח כי האתר עומד בדרישות תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), התשע\"ג-2013.",
-        "p2": "התאמות הנגישות בוצעו בהתאם להמלצות התקן הישראלי (ת\"י 5568) לנגישות תכנים באינטרנט ברמת AA, המבוסס על הנחיות WCAG 2.1 הבינלאומיות."
+  "accessibilityStatement": {
+  "pageTitle": "הצהרת נגישות | {brandName}",
+  "pageDescription": "הצהרת הנגישות של אתר {brandName}. אנו מחויבים לספק חוויה שוויונית ונגישה לכלל המשתמשים, כולל כלים מתקדמים להתאמה אישית.",
+  "mainTitle": "הצהרת נגישות",
+  "siteName": "אתר השידוכים {brandName}",
+  "lastUpdated": "עדכון אחרון: {lastUpdatedDate}",
+  "commitment": {
+    "title": "מחויבותנו לנגישות",
+    "p1": "חברת {companyNameLegal}, המפעילה את אתר {brandName}, רואה חשיבות עליונה בהנגשת שירותיה לאנשים עם מוגבלות, על מנת לאפשר חווית גלישה נוחה, יעילה ושוויונית לכלל המשתמשים. אנו משקיעים מאמצים ומשאבים רבים על מנת להבטיח כי האתר עומד בדרישות תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), התשע\"ג-2013.",
+    "p2": "התאמות הנגישות בוצעו בהתאם להמלצות התקן הישראלי (ת\"י 5568) לנגישות תכנים באינטרנט ברמת AA, המבוסס על הנחיות WCAG 2.1 הבינלאומיות."
+  },
+  "level": {
+    "title": "רמת הנגישות ותאימות",
+    "item1": "רמת נגישות: האתר תומך בדרישות התקן ברמה AA.",
+    "item2": "דפדפנים נתמכים: האתר נבדק ותומך בדפדפנים המודרניים והנפוצים ביותר, לרבות Google Chrome, Mozilla Firefox, Safari, ו-Microsoft Edge בגרסאותיהם העדכניות ביותר."
+  },
+  "features": {
+    "title": "אמצעי הנגישות הקיימים באתר",
+    "p1": "באתר הוטמעו מגוון רחב של אמצעים טכנולוגיים על מנת להבטיח חווית שימוש מיטבית לכלל הגולשים.",
+    "dedicatedToolbarTitle": "סרגל נגישות ייעודי",
+    "p2": "באתר מוטמע כלי נגישות ייעודי המאפשר למשתמשים להתאים את תצוגת האתר לצרכיהם האישיים. ניתן לפתוח את תפריט הנגישות באמצעות לחיצה על כפתור הנגישות הצף בפינת המסך. הכלי מציע את האפשרויות הבאות:",
+    "fontAdjustment": {
+      "title": "התאמת גודל הגופן",
+      "description": "מאפשר הגדלה והקטנה של הטקסטים באתר לרמת הקריאות הנוחה למשתמש."
+    },
+    "contrastModes": {
+      "title": "מצבי תצוגה וניגודיות",
+      "description": "כולל מצב ניגודיות גבוהה ומצב תצוגה כהה (ניגודיות הפוכה), לשיפור הקריאות עבור משתמשים עם לקויות ראייה."
+    },
+    "readableFont": {
+      "title": "גופן קריא",
+      "description": "החלפת גופן האתר לגופן בסיסי וקריא, נטול תגים (Sans-Serif), לשיפור חווית הקריאה."
+    },
+    "largeCursor": {
+      "title": "סמן גדול",
+      "description": "הגדלת סמן העכבר כדי לאפשר זיהוי וניווט קלים יותר."
+    },
+    "textToSpeech": {
+      "title": "הקראת טקסט",
+      "description": "אפשרות להפעלת קורא טקסטים המקריא את התוכן הנבחר בלחיצת עכבר, לסיוע למתקשים בקריאה."
+    },
+    "reduceMotion": {
+      "title": "הפחתת תנועה",
+      "description": "ביטול או הפחתה של אנימציות ותנועות באתר, עבור משתמשים הרגישים לתנועה."
+    },
+    "additionalAdjustmentsTitle": "התאמות נוספות באתר",
+    "keyboardNav": "ניווט באמצעות מקלדת: האתר מותאם באופן מלא לניווט באמצעות מקלדת בלבד (שימוש במקשי Tab, Shift+Tab, Enter והחצים). דאגנו למתן אינדיקציה ויזואלית ברורה למיקום הפוקוס.",
+    "screenReader": "התאמה לקוראי מסך: האתר נבנה תוך שימוש במבנה סמנטי נכון (כותרות, פסקאות, רשימות) ושימוש בתכונות ARIA (Accessible Rich Internet Applications) על מנת להבטיח תאימות מלאה עם תוכנות קורא מסך כגון NVDA ו-JAWS.",
+    "altText": "טקסט חלופי לתמונות: לכל התמונות המשמעותיות באתר נוסף טקסט אלטרנטיבי (Alt Text) המפרט את תוכנן. תמונות דקורטיביות מוסתרות מקוראי מסך.",
+    "accessibleForms": "טפסים נגישים: כל הטפסים באתר, כולל טפסי ההרשמה והשאלונים, כוללים תוויות (Labels) ברורות, הגדרות קבוצתיות (Fieldset) והנחיות למילוי.",
+    "noFlashing": "הימנעות מהבהובים: האתר אינו מכיל תכנים מהבהבים או נעים במהירות העלולים לסכן משתמשים."
+  },
+  "limitations": {
+    "title": "אזורים שאינם נגישים ופניות",
+    "p1": "אנו עושים כל שביכולתנו להבטיח שכל חלקי האתר יהיו נגישים באופן מלא. עם זאת, ייתכן ויתגלו חלקים או יכולות מסוימות שטרם הונגשו במלואם. אנו ממשיכים במאמצים לשפר את נגישות האתר כחלק ממחויבותנו לאפשר שימוש בו עבור כלל האוכלוסייה.",
+    "p2": "אם נתקלתם בבעיית נגישות או יש לכם הצעה לשיפור, נשמח אם תפנו אלינו. אנו רואים בפניותיכם הזדמנות לשיפור."
+  },
+  "contact": {
+    "title": "פרטי רכז הנגישות",
+    "p1": "לכל פנייה בנושא נגישות, ניתן ליצור קשר עם רכז הנגישות של החברה:",
+    "name": "שם: {accessibilityCoordinatorName}",
+    "email": "דוא\"ל:",
+    "p2": "בפנייתכם, אנא צרפו כמה שיותר פרטים: תיאור הבעיה, קישור לעמוד בו נתקלתם בבעיה, ופרטי מערכת ההפעלה והדפדפן שלכם.",
+    "p3": "הצהרה זו עודכנה לאחרונה בתאריך: {lastUpdatedDate}."
+  }
+},
+
+"privacyPolicy": {
+  "pageTitle": "מדיניות פרטיות | {brandName}",
+  "pageDescription": "מדיניות הפרטיות של {brandName}. כיצד אנו אוספים, משתמשים ושומרים על המידע האישי שלך.",
+  "mainTitle": "מדיניות פרטיות – נשמה טק (ג'ואיש מאצ'פוינט בע\"מ)",
+  "lastUpdated": "עדכון אחרון: {lastUpdatedDate}",
+  "introduction": {
+    "title": "הקדמה",
+    "p1": "אנו ב-{companyNameLegal} (ח.פ. {companyNumber}), הפועלת תחת שם המותג \"נשמה טק\" (NeshamaTech) (להלן: \"החברה\", \"המערכת\", \"השירות\", \"נשמה טק\", \"אנו\" או \"שלנו\"), מכבדים את פרטיותך ומחויבים להגן על המידע האישי שאתה חולק איתנו. מדיניות פרטיות זו (להלן: \"המדיניות\") מתארת את האופן בו אנו אוספים, משתמשים, מעבדים, חושפים, מעבירים ומאחסנים את המידע האישי שלך בנוגע לשימוש באתר האינטרנט של החברה (להלן: \"האתר\") ובשירותים המוצעים דרכו.",
+    "p2": "\"מידע אישי\" או \"מידע\" מוגדר כמידע כהגדרתו בחוק הגנת הפרטיות, התשמ\"א-1981 (להלן: \"החוק\"), ובכלל זה נתונים על אדם מזוהה או הניתן לזיהוי, כגון שם, מספר זהות, נתוני מיקום, מזהה מקוון, או מידע הנוגע למצבו הפיזי, הנפשי, הכלכלי או החברתי.",
+    "p3": "מדיניות זו מהווה חלק בלתי נפרד מתנאי השימוש של המערכת. אנו ממליצים לך לקרוא אותה בעיון רב על מנת להבין את נהלינו ביחס למידע האישי שלך ואת זכויותיך."
+  },
+  "consent": {
+    "title": "1. הסכמה, מאגר מידע והבהרה משפטית",
+    "p1": "בעצם הרשמתך למערכת, השימוש בה, ובפרט במסירת פרטיך האישיים (בין אם ישירות ובין אם באמצעות שדכן מורשה של החברה הפועל בהסכמתך), הינך מביע את הסכמתך החופשית, המפורשת והמיודעת לתנאים המפורטים במדיניות זו. הסכמה זו כוללת את איסוף, עיבוד, שמירה, שימוש ושיתוף המידע האישי שלך, לרבות מידע רגיש, כמפורט להלן.",
+    "p2": "לא מוטלת עליך חובה חוקית למסור לנו מידע, ומסירת המידע נעשית מרצונך החופשי ובהסכמתך. עם זאת, אם תחליט שלא לספק מידע מסוים הנדרש לצורך מתן השירות, ייתכן שלא נוכל לספק לך את השירותים, במלואם או בחלקם. לדוגמה, ללא מילוי פרופיל אישי, לא נוכל להציע לך התאמות.",
+    "p3": "הינך מאשר כי ידוע לך שהמידע שתמסור יישמר במאגר המידע של החברה (להלן: \"מאגר המידע\"), אשר רשום כדין. שם בעלת המאגר הוא {companyNameLegal}, ח.פ. {companyNumber}, וכתובתה הרשומה היא {companyRegisteredAddress}.",
+    "p4": "אם אינך מסכים/ה לתנאי מדיניות זו, במלואם או בחלקם, עליך להימנע מכל שימוש במערכת וממסירת פרטיך האישיים."
+  },
+  "collectedInfo": {
+    "title": "2. איזה מידע אנו אוספים?",
+    "p1": "אנו אוספים סוגים שונים של מידע אישי, בין אם נמסר ישירות על ידך, בין אם נאסף באופן אוטומטי, ובין אם נמסר לנו על ידי שדכנים של החברה הפועלים בהסכמתך:",
+    "subTitle1": "2.1. מידע הנמסר ישירות על ידך:",
+    "list1": {
+      "item1": "פרטי זיהוי, הרשמה וקשר: שם מלא, כתובת דוא\"ל, מספר טלפון (המשמש לאימות וליצירת קשר), סיסמה (מוצפנת).",
+      "item2": {
+        "title": "מידע פרופיל מפורט (העשוי לכלול מידע רגיש):",
+        "subItem1": "דמוגרפיה ואישיות: מין, תאריך לידה, שפות, גובה, מצב משפחתי, עיסוק, השכלה, עיר מגורים, עדתיות, רקע דתי (הגדרה עצמית, סוג כיפה/כיסוי ראש, שמירת נגיעה), שירות צבאי/לאומי, קיום ילדים מקשר קודם, תכונות אופי, תחביבים, פרטי עלייה, טקסט חופשי \"על עצמי\", סטטוס הורי, ומספר אחים.",
+        "subItem2": "העדפות לשידוך: טווחי גיל וגובה, רמות דתיות, מיקומים גאוגרפיים, השכלה ועיסוקים מועדפים, העדפה לגבי ילדים מקשר קודם, מוצאים עדתיים, ועוד.",
+        "subItem3": "מידע רפואי (בכפוף להסכמתך הנפרדת): במידה ותבחר/י לעשות זאת, המערכת מאפשרת לך למסור מידע הנוגע למצב רפואי מסוים. מסירת מידע זה הינה וולונטרית לחלוטין ונועדה לסייע במציאת התאמה מתוך הבנה ושקיפות. הינך שולט/ת באופן מלא על נראות המידע הרפואי, והוא ייחשף לצדדים אחרים רק אם תסמן/י במפורש כי ברצונך שהמידע יהיה גלוי."
       },
-      "level": {
-        "title": "רמת הנגישות ותאימות",
-        "item1": "<strong>רמת נגישות:</strong> האתר תומך בדרישות התקן ברמה AA.",
-        "item2": "<strong>דפדפנים נתמכים:</strong> האתר נבדק ותומך בדפדפנים המודרניים והנפוצים ביותר, לרבות Google Chrome, Mozilla Firefox, Safari, ו-Microsoft Edge בגרסאותיהם העדכניות ביותר."
-      },
-      "features": {
-        "title": "אמצעי הנגישות הקיימים באתר",
-        "p1": "באתר הוטמעו מגוון רחב של אמצעים טכנולוגיים על מנת להבטיח חווית שימוש מיטבית לכלל הגולשים.",
-        "dedicatedToolbarTitle": "סרגל נגישות ייעודי",
-        "p2": "באתר מוטמע כלי נגישות ייעודי המאפשר למשתמשים להתאים את תצוגת האתר לצרכיהם האישיים. ניתן לפתוח את תפריט הנגישות באמצעות לחיצה על כפתור הנגישות הצף בפינת המסך. הכלי מציע את האפשרויות הבאות:",
-        "fontAdjustment": {
-          "title": "התאמת גודל הגופן",
-          "description": "מאפשר הגדלה והקטנה של הטקסטים באתר לרמת הקריאות הנוחה למשתמש."
-        },
-        "contrastModes": {
-          "title": "מצבי תצוגה וניגודיות",
-          "description": "כולל מצב ניגודיות גבוהה ומצב תצוגה כהה (ניגודיות הפוכה), לשיפור הקריאות עבור משתמשים עם לקויות ראייה."
-        },
-        "readableFont": {
-          "title": "גופן קריא",
-          "description": "החלפת גופן האתר לגופן בסיסי וקריא, נטול תגים (Sans-Serif), לשיפור חווית הקריאה."
-        },
-        "largeCursor": {
-          "title": "סמן גדול",
-          "description": "הגדלת סמן העכבר כדי לאפשר זיהוי וניווט קלים יותר."
-        },
-        "textToSpeech": {
-          "title": "הקראת טקסט",
-          "description": "אפשרות להפעלת קורא טקסטים המקריא את התוכן הנבחר בלחיצת עכבר, לסיוע למתקשים בקריאה."
-        },
-        "reduceMotion": {
-          "title": "הפחתת תנועה",
-          "description": "ביטול או הפחתה של אנימציות ותנועות באתר, עבור משתמשים הרגישים לתנועה."
-        },
-        "additionalAdjustmentsTitle": "התאמות נוספות באתר",
-        "keyboardNav": "<strong>ניווט באמצעות מקלדת:</strong> האתר מותאם באופן מלא לניווט באמצעות מקלדת בלבד (שימוש במקשי Tab, Shift+Tab, Enter והחצים). דאגנו למתן אינדיקציה ויזואלית ברורה למיקום הפוקוס.",
-        "screenReader": "<strong>התאמה לקוראי מסך:</strong> האתר נבנה תוך שימוש במבנה סמנטי נכון (כותרות, פסקאות, רשימות) ושימוש בתכונות ARIA (Accessible Rich Internet Applications) על מנת להבטיח תאימות מלאה עם תוכנות קורא מסך כגון NVDA ו-JAWS.",
-        "altText": "<strong>טקסט חלופי לתמונות:</strong> לכל התמונות המשמעותיות באתר נוסף טקסט אלטרנטיבי (Alt Text) המפרט את תוכנן. תמונות דקורטיביות מוסתרות מקוראי מסך.",
-        "accessibleForms": "<strong>טפסים נגישים:</strong> כל הטפסים באתר, כולל טפסי ההרשמה והשאלונים, כוללים תוויות (Labels) ברורות, הגדרות קבוצתיות (Fieldset) והנחיות למילוי.",
-        "noFlashing": "<strong>הימנעות מהבהובים:</strong> האתר אינו מכיל תכנים מהבהבים או נעים במהירות העלולים לסכן משתמשים."
-      },
-      "limitations": {
-        "title": "אזורים שאינם נגישים ופניות",
-        "p1": "אנו עושים כל שביכולתנו להבטיח שכל חלקי האתר יהיו נגישים באופן מלא. עם זאת, ייתכן ויתגלו חלקים או יכולות מסוימות שטרם הונגשו במלואם. אנו ממשיכים במאמצים לשפר את נגישות האתר כחלק ממחויבותנו לאפשר שימוש בו עבור כלל האוכלוסייה.",
-        "p2": "אם נתקלתם בבעיית נגישות או יש לכם הצעה לשיפור, נשמח אם תפנו אלינו. אנו רואים בפניותיכם הזדמנות לשיפור."
-      },
-      "contact": {
-        "title": "פרטי רכז הנגישות",
-        "p1": "לכל פנייה בנושא נגישות, ניתן ליצור קשר עם רכז הנגישות של החברה:",
-        "name": "<strong>שם:</strong> {accessibilityCoordinatorName}",
-        "email": "<strong>דוא\"ל:</strong>",
-        "p2": "בפנייתכם, אנא צרפו כמה שיותר פרטים: תיאור הבעיה, קישור לעמוד בו נתקלתם בבעיה, ופרטי מערכת ההפעלה והדפדפן שלכם.",
-        "p3": "הצהרה זו עודכנה לאחרונה בתאריך: <strong>{lastUpdatedDate}</strong>."
-      }
+      "item3": "תמונות וסרטונים: תמונות שהעלית לפרופיל שלך וסרטוני וידאו שהעלית למערכת.",
+      "item4": "תשובות לשאלונים (מידע רגיש ביותר): תשובות מפורטות לשאלונים של המערכת בנושאי ערכים, אישיות, זוגיות, העדפות, דת ואמונה.",
+      "item5": "מידע על אינטראקציות ומשובים: תגובות להצעות שידוך ומשובים על פגישות.",
+      "item6": "פרטי תשלום (אם וכאשר יהיה רלוונטי): בעת רכישת שירותים בתשלום, ייתכן שתתבקש למסור פרטי תשלום. נבהיר כי פרטי תשלום אלו מעובדים באמצעות ספק סליקה חיצוני העומד בתקן PCI, ואינם נשמרים במאגרי המידע של החברה."
     },
-  "privacyPolicy": {
-    "pageTitle": "מדיניות פרטיות | {brandName}",
-    "pageDescription": "מדיניות הפרטיות של {brandName}. כיצד אנו אוספים, משתמשים ושומרים על המידע האישי שלך.",
-    "mainTitle": "מדיניות פרטיות – נשמה טק (ג'ואיש מאצ'פוינט בע\"מ)",
-    "lastUpdated": "עדכון אחרון: {lastUpdatedDate}",
-    "introduction": {
-      "title": "הקדמה",
-      "p1": "אנו ב-{companyNameLegal} (ח.פ. {companyNumber}), הפועלת תחת שם המותג \"נשמה טק\" (NeshamaTech) (להלן: \"החברה\", \"המערכת\", \"השירות\", \"נשמה טק\", \"אנו\" או \"שלנו\"), מכבדים את פרטיותך ומחויבים להגן על המידע האישי שאתה חולק איתנו. מדיניות פרטיות זו (להלן: \"המדיניות\") מתארת את האופן בו אנו אוספים, משתמשים, מעבדים, חושפים, מעבירים ומאחסנים את המידע האישי שלך בנוגע לשימוש באתר האינטרנט של החברה (להלן: \"האתר\") ובשירותים המוצעים דרכו.",
-      "p2": "\"מידע אישי\" או \"מידע\" מוגדר כמידע כהגדרתו בחוק הגנת הפרטיות, התשמ\"א-1981 (להלן: \"החוק\"), ובכלל זה נתונים על אדם מזוהה או הניתן לזיהוי, כגון שם, מספר זהות, נתוני מיקום, מזהה מקוון, או מידע הנוגע למצבו הפיזי, הנפשי, הכלכלי או החברתי.",
-      "p3": "מדיניות זו מהווה חלק בלתי נפרד מתנאי השימוש של המערכת. אנו ממליצים לך לקרוא אותה בעיון רב על מנת להבין את נהלינו ביחס למידע האישי שלך ואת זכויותיך."
-    },
-    "consent": {
-      "title": "1. הסכמה, מאגר מידע והבהרה משפטית",
-      "p1": "בעצם הרשמתך למערכת, השימוש בה, ובפרט במסירת פרטיך האישיים (בין אם ישירות ובין אם באמצעות שדכן מורשה של החברה הפועל בהסכמתך), הינך מביע את הסכמתך החופשית, המפורשת והמיודעת לתנאים המפורטים במדיניות זו. הסכמה זו כוללת את איסוף, עיבוד, שמירה, שימוש ושיתוף המידע האישי שלך, לרבות מידע רגיש, כמפורט להלן.",
-      "p2": "לא מוטלת עליך חובה חוקית למסור לנו מידע, ומסירת המידע נעשית מרצונך החופשי ובהסכמתך. עם זאת, אם תחליט שלא לספק מידע מסוים הנדרש לצורך מתן השירות, ייתכן שלא נוכל לספק לך את השירותים, במלואם או בחלקם. לדוגמה, ללא מילוי פרופיל אישי, לא נוכל להציע לך התאמות.",
-      "p3": "הינך מאשר כי ידוע לך שהמידע שתמסור יישמר במאגר המידע של החברה (להלן: \"מאגר המידע\"), אשר רשום כדין. שם בעלת המאגר הוא {companyNameLegal}, ח.פ. {companyNumber}, וכתובתה הרשומה היא {companyRegisteredAddress}.",
-      "p4": "<strong>אם אינך מסכים/ה לתנאי מדיניות זו, במלואם או בחלקם, עליך להימנע מכל שימוש במערכת וממסירת פרטיך האישיים.</strong>"
-    },
-    "collectedInfo": {
-      "title": "2. איזה מידע אנו אוספים?",
-      "p1": "אנו אוספים סוגים שונים של מידע אישי, בין אם נמסר ישירות על ידך, בין אם נאסף באופן אוטומטי, ובין אם נמסר לנו על ידי שדכנים של החברה הפועלים בהסכמתך:",
-      "subTitle1": "2.1. מידע הנמסר ישירות על ידך:",
-      "list1": {
-        "item1": "<strong>פרטי זיהוי, הרשמה וקשר:</strong> שם מלא, כתובת דוא\"ל, מספר טלפון (המשמש לאימות וליצירת קשר), סיסמה (מוצפנת).",
-        "item2": {
-          "title": "<strong>מידע פרופיל מפורט (העשוי לכלול מידע רגיש):</strong>",
-          "subItem1": "<strong>דמוגרפיה ואישיות:</strong> מין, תאריך לידה, שפות, גובה, מצב משפחתי, עיסוק, השכלה, עיר מגורים, עדתיות, רקע דתי (הגדרה עצמית, סוג כיפה/כיסוי ראש, שמירת נגיעה), שירות צבאי/לאומי, קיום ילדים מקשר קודם, תכונות אופי, תחביבים, פרטי עלייה, טקסט חופשי \"על עצמי\", סטטוס הורי, ומספר אחים.",
-          "subItem2": "<strong>העדפות לשידוך:</strong> טווחי גיל וגובה, רמות דתיות, מיקומים גאוגרפיים, השכלה ועיסוקים מועדפים, העדפה לגבי ילדים מקשר קודם, מוצאים עדתיים, ועוד.",
-          "subItem3": "<strong>מידע רפואי (בכפוף להסכמתך הנפרדת):</strong> במידה ותבחר/י לעשות זאת, המערכת מאפשרת לך למסור מידע הנוגע למצב רפואי מסוים. מסירת מידע זה הינה וולונטרית לחלוטין ונועדה לסייע במציאת התאמה מתוך הבנה ושקיפות. הינך שולט/ת באופן מלא על נראות המידע הרפואי, והוא ייחשף לצדדים אחרים רק אם תסמן/י במפורש כי ברצונך שהמידע יהיה גלוי."
-        },
-        "item3": "<strong>תמונות וסרטונים:</strong> תמונות שהעלית לפרופיל שלך וסרטוני וידאו שהעלית למערכת.",
-        "item4": "<strong>תשובות לשאלונים (מידע רגיש ביותר):</strong> תשובות מפורטות לשאלונים של המערכת בנושאי ערכים, אישיות, זוגיות, העדפות, דת ואמונה.",
-        "item5": "<strong>מידע על אינטראקציות ומשובים:</strong> תגובות להצעות שידוך ומשובים על פגישות.",
-        "item6": "<strong>פרטי תשלום (אם וכאשר יהיה רלוונטי):</strong> בעת רכישת שירותים בתשלום, ייתכן שתתבקש למסור פרטי תשלום. נבהיר כי פרטי תשלום אלו מעובדים באמצעות ספק סליקה חיצוני העומד בתקן PCI, ואינם נשמרים במאגרי המידע של החברה."
-      },
-      "subTitle2": "2.2. מידע שהוזן למערכת על ידי שדכן מורשה של החברה:",
-      "p2": "שדכן מורשה עשוי להזין למערכת פרטים אודותיך, אשר נמסרו לו על ידך ישירות. במקרים אלו, השדכן יפעל לקבל את הסכמתך המפורשת, אנו נפעל ליידע אותך על הכללת פרטיך במאגר, ותינתן לך האפשרות ליצור חשבון ולנהל את המידע שלך.",
-      "subTitle3": "2.3. מידע הנאסף או נוצר באופן אוטומטי:",
-      "p3_1": "<strong>עוגיות, Google Analytics וטכנולוגיות מעקב (Cookies):</strong>",
-      "p3_2": "\"עוגייה\" (Cookie) היא קובץ טקסט קטן המאוחסן במכשירך ומשמש לאיסוף מידע על פעילותך, שמירת העדפותיך ושיפור חוויית המשתמש. אנו משתמשים בעוגיות החיוניות לתפקוד תקין של האתר (למשל, לצורך ניהול החיבור לחשבונך), וכן בעוגיות אנליטיות וסטטיסטיות.",
-      "p3_3": "השימוש בעוגיות שאינן חיוניות, ובפרט אלו של שירות Google Analytics, נעשה בכפוף לקבלת הסכמתך המפורשת, אותה ניתן לבטא ולנהל דרך \"באנר העוגיות\" המופיע בביקורך הראשון באתר.",
-      "p3_4": "אנו משתמשים בשירות Google Analytics כדי לאסוף ולנתח מידע סטטיסטי אנונימי על השימוש באתר. שירות זה מסייע לנו להבין את התנהגות המבקרים (כגון אילו עמודים פופולריים, כמה זמן משתמשים נשארים באתר, ומאילו מקורות תנועה הם מגיעים), במטרה לשפר באופן מתמיד את השירות וחוויית המשתמש. Google Analytics משתמש ב\"עוגיות\" ובמזהים אנונימיים אחרים כדי לאסוף מידע זה. חשוב להדגיש, איננו משלבים את המידע הנאסף דרך Google Analytics עם מידע אישי המאפשר זיהוי ישיר שלך.",
-      "p3_5": "בהתאם לתנאי השירות של גוגל, אנו מיידעים אותך כי השימוש שלנו ב-Google Analytics כפוף לאופן שבו גוגל אוספת ומעבדת נתונים. תוכל/י לקרוא על כך בהרחבה בקישור: <a href='https://policies.google.com/technologies/partner-sites' target='_blank' rel='noopener noreferrer' class='text-cyan-600 hover:text-cyan-700'>\"כיצד Google משתמשת במידע מאתרים או מאפליקציות שמשתמשים בשירותים שלנו\"</a>.",
-      "p3_6": "באפשרותך לשלוט ולנהל את העדפותיך בנוגע לעוגיות. אם ברצונך למנוע מ-Google Analytics לאסוף נתונים על גלישתך, באפשרותך להתקין את <a href='https://tools.google.com/dlpage/gaoptout' target='_blank' rel='noopener noreferrer' class='text-cyan-600 hover:text-cyan-700'>תוסף הדפדפן לביטול ההסכמה של Google Analytics</a>. כמו כן, רוב הדפדפנים המודרניים מאפשרים לך לחסום או למחוק עוגיות קיימות דרך הגדרות הדפדפן.",
-      "p3_7": "<strong>קבצי לוג (Log Files) ונתוני מכשירים:</strong> בדומה לרוב שירותי האינטרנט, השרתים שלנו אוספים באופן אוטומטי מידע טכני בסיסי שהדפדפן או המכשיר שלך שולחים, כגון כתובת IP, סוג דפדפן, מערכת הפעלה וחותמות זמן. אנו משתמשים במידע זה לניתוח מגמות, ניהול תקין של האתר, אבטחה ופתרון תקלות.",
-      "subTitle4": "2.4. מידע מאינטראקציות נוספות:",
-      "list2": {
-        "item1": "<strong>הקלטת שיחות:</strong> שיחות טלפוניות עם נציגי החברה עשויות להיות מוקלטות לצורכי בקרה, שיפור השירות, תיעוד והתגוננות משפטית.",
-        "item2": "<strong>רשתות חברתיות:</strong> בעת פנייה אלינו דרך ערוצים כמו WhatsApp או פלטפורמות אחרות, המידע שתספק יהיה כפוף גם למדיניות הפרטיות של אותה פלטפורמה."
-      }
-    },
-    "howWeUse": {
-      "title": "3. כיצד ומדוע אנו משתמשים במידע שלך (מטרות העיבוד)?",
-      "p1": "המידע האישי משמש אותנו למטרות החיוניות הבאות:",
-      "list": {
-        "item1": "<strong>מתן שירותי השידוכים:</strong> יצירה וניהול הפרופיל שלך; ניתוח המידע (לרבות בסיוע אלגוריתמים ומודלי AI) לאיתור והצעת התאמות; הצגת פרופילים ותיאום קשר בין משתמשים. לצורך איתור התאמות מדויקות, המערכת שלנו מעבדת את נתוני הפרופיל והשאלונים שלך והופכת אותם לייצוגים מתמטיים (וקטורים). עיבוד אוטומטי זה מסייע לצוות השדכנים שלנו לזהות עבורך מועמדים פוטנציאליים מתוך המאגר באופן יעיל, תוך שמירה על שיקול דעת אנושי ובקרה של שדכן בתהליך.",
-        "item2": "<strong>תפעול וניהול המערכת:</strong> אימות פרטיך, מתן תמיכה, אבטחת המערכת וטיפול בתקלות.",
-        "item3": "<strong>שיפור והתאמה אישית של השירות:</strong> ניתוח השימוש במערכת (לרוב באופן אנונימי ומצטבר) לפיתוח כלים חדשים ושיפור חוויית המשתמש.",
-        "item4": "<strong>יצירת קשר איתך:</strong> שליחת הודעות מערכת חיוניות (למשל, הצעות שידוך, עדכונים). בכפוף להסכמתך הנפרדת, נשלח גם דיוורים שיווקיים וניוזלטרים, מהם תוכל להסיר את עצמך בכל עת באמצעות קישור \"הסרה\" או פנייה אלינו.",
-        "item5": "<strong>אכיפה והגנה משפטית:</strong> אכיפת תנאי השימוש והגנה על זכויותינו המשפטיות וזכויות המשתמשים.",
-        "item6": "<strong>עמידה בדרישות החוק:</strong> מילוי אחר הוראות כל דין, צו שיפוטי או דרישת רשות מוסמכת.",
-        "item7": "<strong>שימוש בסיפורי הצלחה:</strong> בכפוף לקבלת הסכמתך הנפרדת, המפורשת והאקטיבית, נפרסם את סיפור הצלחתכם."
-      }
-    },
-    "sharingInfo": {
-      "title": "4. שיתוף מידע עם צדדים שלישיים",
-      "p1": "לא נמכור או נשכיר את המידע האישי שלך. אנו עשויים לשתף אותו עם הגורמים הבאים בלבד:",
-      "list": {
-        "item1": "<strong>משתמשים אחרים במערכת (מועמדים פוטנציאליים):</strong> כאשר שדכן מזהה התאמה, חלק מפרטי הפרופיל שלך (כמו שם פרטי, גיל, תיאור כללי ותמונה ראשית) ישותפו עם המשתמש האחר. מידע מפורט יותר ופרטי קשר ישירים ישותפו רק בשלב מתקדם ולאחר הסכמה הדדית מפורשת.",
-        "item2": "<strong>שדכנים מורשים של החברה:</strong> המידע המלא שלך נגיש לצוות השדכנים שלנו, המחויבים לסודיות מלאה, לצורך ביצוע עבודתם המקצועית.",
-        "item3": "<strong>ספקי שירותים (מעבדי מידע):</strong> אנו נעזרים בספקים חיצוניים המסייעים לנו בתפעול המערכת (כגון ספקי אחסון ענן כמו Neon ו-Heroku, ספקי דיוור אלקטרוני וספקי אנליטיקה). ספקים אלו מחויבים חוזית לשמור על סודיות המידע ולהשתמש בו רק למטרה שלשמה נמסר.",
-        "item4": "<strong>רשויות אכיפת חוק וגורמים משפטיים:</strong> אם נידרש לכך על פי דין, צו שיפוטי, או אם נאמין בתום לב שהדבר נחוץ להגנה על בטיחות הציבור או זכויות משפטיות.",
-        "item5": "<strong>במקרה של שינוי מבני בעסק:</strong> במקרה של מיזוג, רכישה או מכירת נכסי החברה, המידע עשוי להיות מועבר לישות הרוכשת, אשר תהיה מחויבת לכבד את התחייבויותינו במדיניות זו."
-      }
-    },
-    "security": {
-      "title": "5. אבטחת מידע",
-      "p1": "אנו מייחסים חשיבות עליונה לאבטחת המידע ונוקטים באמצעי אבטחה טכניים וארגוניים סבירים ומקובלים, הכוללים הצפנת סיסמאות, שימוש בפרוטוקולי תקשורת מאובטחים (SSL/TLS), בקרות גישה מבוססות תפקידים ונהלי פיתוח מאובטח. עם זאת, חשוב לזכור כי אף מערכת אינה חסינה במאת האחוזים. איננו יכולים להבטיח ביטחון מוחלט. הינך אחראי/ת לשמירת סודיות פרטי הגישה לחשבונך."
-    },
-    "retention": {
-      "title": "6. שמירת מידע (Data Retention)",
-      "p1": "אנו נשמור את המידע האישי שלך למשך הזמן הדרוש למתן השירותים, כל עוד חשבונך פעיל, או כפי שנדרש למילוי חובותינו המשפטיות והגנה מפני תביעות. לאחר בקשת מחיקה או כאשר המידע אינו נחוץ עוד, נפעל למחוק או לאנונימיזציה של המידע המזהה, בכפוף למגבלות טכניות (כגון שמירה במערכות גיבוי לפרק זמן מוגבל)."
-    },
-    "yourRights": {
-      "title": "7. זכויותיך בנוגע למידע האישי (\"זכות עיון, תיקון ומחיקה\")",
-      "p1": "על פי החוק, הינך זכאי/ת לעיין במידע שאנו מחזיקים אודותיך, לבקש את תיקונו אם אינו נכון, ולבקש את מחיקתו. רוב המידע זמין לך לעיון ועריכה ישירה דרך הפרופיל האישי. למימוש זכויותיך על מידע שאינו זמין ישירות, או לבקשת מחיקה, אנא פנה אלינו. בקשתך תטופל בהתאם להוראות החוק. שים לב שמחיקת מידע חיוני עלולה למנוע מאיתנו לספק לך את השירות."
-    },
-    "crossBorder": {
-      "title": "8. העברת מידע מחוץ לגבולות ישראל",
-      "p1": "הינך מסכים/ה במפורש כי המידע האישי שלך עשוי להיות מאוחסן ומעובד בשרתים הממוקמים מחוץ לישראל (למשל, בארה\"ב ובאירופה), שם פועלים ספקי השירותים שלנו (כגון Neon ו-Heroku). אנו נוקטים צעדים להבטיח שכל העברה כזו תתבצע תוך שמירה על רמת הגנה נאותה על המידע שלך, בהתאם לדרישות הדין."
-    },
-    "minors": {
-      "title": "9. קטינים",
-      "p1": "השירות מיועד לבגירים מעל גיל 18 בלבד. איננו אוספים ביודעין מידע מקטינים. אם נודע לך כי נמסר לנו מידע כזה, אנא פנה אלינו מיד למחיקתו."
-    },
-    "changes": {
-      "title": "10. שינויים במדיניות הפרטיות",
-      "p1": "אנו שומרים לעצמנו את הזכות לעדכן מדיניות זו מעת לעת. במקרה של שינוי מהותי, נודיע לך מראש באמצעים סבירים (הודעה באתר או בדוא\"ל). המשך שימושך במערכת לאחר פרסום השינויים יהווה הסכמה למדיניות המעודכנת. באחריותך לעיין במדיניות זו באופן תקופתי."
-    },
-    "contact": {
-      "title": "11. יצירת קשר",
-      "p1": "בכל שאלה, בקשה או בעיה הנוגעת לפרטיותך, אנא פנה אלינו:",
-      "companyName": "<strong>שם החברה:</strong> {companyNameLegal} (ח.פ. {companyNumber})",
-      "email": "<strong>דוא\"ל:</strong>",
-      "address": "<strong>כתובת למשלוח דואר:</strong> {companyRegisteredAddress}"
+    "subTitle2": "2.2. מידע שהוזן למערכת על ידי שדכן מורשה של החברה:",
+    "p2": "שדכן מורשה עשוי להזין למערכת פרטים אודותיך, אשר נמסרו לו על ידך ישירות. במקרים אלו, השדכן יפעל לקבל את הסכמתך המפורשת, אנו נפעל ליידע אותך על הכללת פרטיך במאגר, ותינתן לך האפשרות ליצור חשבון ולנהל את המידע שלך.",
+    "subTitle3": "2.3. מידע הנאסף או נוצר באופן אוטומטי:",
+    "p3_1": "עוגיות, Google Analytics וטכנולוגיות מעקב (Cookies):",
+    "p3_2": "\"עוגייה\" (Cookie) היא קובץ טקסט קטן המאוחסן במכשירך ומשמש לאיסוף מידע על פעילותך, שמירת העדפותיך ושיפור חוויית המשתמש. אנו משתמשים בעוגיות החיוניות לתפקוד תקין של האתר (למשל, לצורך ניהול החיבור לחשבונך), וכן בעוגיות אנליטיות וסטטיסטיות.",
+    "p3_3": "השימוש בעוגיות שאינן חיוניות, ובפרט אלו של שירות Google Analytics, נעשה בכפוף לקבלת הסכמתך המפורשת, אותה ניתן לבטא ולנהל דרך \"באנר העוגיות\" המופיע בביקורך הראשון באתר.",
+    "p3_4": "אנו משתמשים בשירות Google Analytics כדי לאסוף ולנתח מידע סטטיסטי אנונימי על השימוש באתר. שירות זה מסייע לנו להבין את התנהגות המבקרים (כגון אילו עמודים פופולריים, כמה זמן משתמשים נשארים באתר, ומאילו מקורות תנועה הם מגיעים), במטרה לשפר באופן מתמיד את השירות וחוויית המשתמש. Google Analytics משתמש ב\"עוגיות\" ובמזהים אנונימיים אחרים כדי לאסוף מידע זה. חשוב להדגיש, איננו משלבים את המידע הנאסף דרך Google Analytics עם מידע אישי המאפשר זיהוי ישיר שלך.",
+    "p3_5": "בהתאם לתנאי השירות של גוגל, אנו מיידעים אותך כי השימוש שלנו ב-Google Analytics כפוף לאופן שבו גוגל אוספת ומעבדת נתונים. תוכל/י לקרוא על כך בהרחבה בקישור: <a href='https://policies.google.com/technologies/partner-sites' target='_blank' rel='noopener noreferrer' class='text-cyan-600 hover:text-cyan-700'>\"כיצד Google משתמשת במידע מאתרים או מאפליקציות שמשתמשים בשירותים שלנו\"</a>.",
+    "p3_6": "באפשרותך לשלוט ולנהל את העדפותיך בנוגע לעוגיות. אם ברצונך למנוע מ-Google Analytics לאסוף נתונים על גלישתך, באפשרותך להתקין את <a href='https://tools.google.com/dlpage/gaoptout' target='_blank' rel='noopener noreferrer' class='text-cyan-600 hover:text-cyan-700'>תוסף הדפדפן לביטול ההסכמה של Google Analytics</a>. כמו כן, רוב הדפדפנים המודרניים מאפשרים לך לחסום או למחוק עוגיות קיימות דרך הגדרות הדפדפן.",
+    "p3_7": "קבצי לוג (Log Files) ונתוני מכשירים: בדומה לרוב שירותי האינטרנט, השרתים שלנו אוספים באופן אוטומטי מידע טכני בסיסי שהדפדפן או המכשיר שלך שולחים, כגון כתובת IP, סוג דפדפן, מערכת הפעלה וחותמות זמן. אנו משתמשים במידע זה לניתוח מגמות, ניהול תקין של האתר, אבטחה ופתרון תקלות.",
+    "subTitle4": "2.4. מידע מאינטראקציות נוספות:",
+    "list2": {
+      "item1": "הקלטת שיחות: שיחות טלפוניות עם נציגי החברה עשויות להיות מוקלטות לצורכי בקרה, שיפור השירות, תיעוד והתגוננות משפטית.",
+      "item2": "רשתות חברתיות: בעת פנייה אלינו דרך ערוצים כמו WhatsApp או פלטפורמות אחרות, המידע שתספק יהיה כפוף גם למדיניות הפרטיות של אותה פלטפורמה."
     }
   },
+  "howWeUse": {
+    "title": "3. כיצד אנו משתמשים במידע שלך?",
+    "p1": "אנו משתמשים במידע שאנו אוספים למטרות הבאות:",
+    "list": {
+      "item1": "מתן והפעלת השירות: לספק לך גישה למערכת, ליצור ולנהל את הפרופיל שלך, ולהציע לך הצעות שידוך רלוונטיות.",
+      "item2": "תקשורת: ליצור איתך קשר בנוגע לחשבונך, לעדכן אותך על הצעות חדשות, ולספק תמיכה טכנית ושירות לקוחות.",
+      "item3": "שיפור ופיתוח השירות: לנתח דפוסי שימוש, לאסוף משובים, ולשפר את האלגוריתמים, התכונות וחוויית המשתמש.",
+      "item4": "אבטחה ובטיחות: לאמת זהויות, למנוע הונאות ופעילויות אסורות, ולאכוף את תנאי השימוש שלנו.",
+      "item5": "שיווק (בכפוף להסכמתך): לשלוח לך עדכונים, מבצעים וחומרים שיווקיים שעשויים לעניין אותך.",
+      "item6": "מילוי חובות משפטיות: לעמוד בדרישות החוק, בתקנות ובצווים שיפוטיים.",
+      "item7": "מחקר וסטטיסטיקה: לערוך ניתוחים סטטיסטיים ומחקרים על בסיס מידע מצטבר ואנונימי."
+    }
+  },
+  "sharingInfo": {
+    "title": "4. עם מי אנו חולקים את המידע שלך?",
+    "p1": "אנו לא מוכרים או משכירים את המידע האישי שלך. אנו עשויים לחלוק את המידע שלך עם צדדים שלישיים רק במקרים הבאים:",
+    "list": {
+      "item1": "משתמשים אחרים ושדכנים: ליבת השירות היא שיתוף הפרופיל שלך עם משתמשים אחרים ושדכנים מורשים במערכת לצורך מציאת התאמה.",
+      "item2": "ספקי שירותים: אנו נעזרים בספקים חיצוניים המסייעים לנו בתפעול השירות (כגון ספקי אחסון בענן, שירותי דיוור, ספקי סליקה). אנו חולקים איתם רק את המידע הנחוץ למתן שירותיהם והם מחויבים לשמור על סודיות המידע.",
+      "item3": "דרישה משפטית: אם נידרש לכך על פי חוק, צו בית משפט, או במסגרת הליך משפטי.",
+      "item4": "הגנה על זכויות: כדי לאכוף את תנאינו, להגן על בטחון המערכת, או להגן על זכויותיה, רכושה ובטחונה של החברה, עובדיה, משתמשיה או הציבור.",
+      "item5": "מיזוג או רכישה: במקרה של מיזוג, רכישה או מכירת נכסי החברה, המידע עשוי להיות מועבר לישות הרוכשת."
+    }
+  },
+  "security": {
+    "title": "5. אבטחת מידע",
+    "p1": "אנו נוקטים באמצעי אבטחה טכנולוגיים וארגוניים סבירים כדי להגן על המידע האישי שלך מפני גישה, שימוש או חשיפה בלתי מורשים. אלה כוללים שימוש בהצפנה (כגון SSL), בקרות גישה, חומות אש ונהלי אבטחה פנימיים. עם זאת, אף מערכת אינה מאובטחת במאה אחוז, ואיננו יכולים להבטיח באופן מוחלט את אבטחת המידע."
+  },
+  "retention": {
+    "title": "6. שמירת מידע",
+    "p1": "אנו נשמור את המידע האישי שלך כל עוד חשבונך פעיל או ככל שנדרש כדי לספק לך את השירותים, וכן כדי לעמוד בחובותינו המשפטיות, לפתור סכסוכים ולאכוף את הסכמינו. לאחר סגירת החשבון, אנו עשויים לשמור מידע מסוים בצורה אנונימית או מצטברת למטרות ניתוח."
+  },
+  "yourRights": {
+    "title": "7. זכויותיך",
+    "p1": "על פי חוק הגנת הפרטיות, הינך זכאי/ת לעיין במידע אודותיך המוחזק במאגר המידע שלנו. בנוסף, אם מצאת שהמידע אינו נכון, שלם, ברור או מעודכן, הינך רשאי/ת לפנות אלינו בבקשה לתקן את המידע או למחוק אותו. ניתן לממש זכויות אלה באמצעות פנייה לפרטי הקשר המצוינים בסוף מדיניות זו."
+  },
+  "crossBorder": {
+    "title": "8. העברת נתונים בינלאומית",
+    "p1": "החברה עשויה להשתמש בשירותי ענן ששרתיהם ממוקמים מחוץ לגבולות ישראל. בעצם השימוש בשירות, הינך מסכים/ה להעברת המידע שלך אל מחוץ לישראל, תוך הבנה כי החברה תנקוט בצעדים סבירים להבטיח שהמידע שלך ימשיך להיות מוגן בהתאם למדיניות זו."
+  },
+  "minors": {
+    "title": "9. קטינים",
+    "p1": "השירות מיועד למשתמשים מעל גיל 18 בלבד. איננו אוספים ביודעין מידע אישי מקטינים. אם נודע לנו כי אספנו מידע כזה, נפעל למחיקתו לאלתר."
+  },
+  "changes": {
+    "title": "10. שינויים במדיניות הפרטיות",
+    "p1": "אנו שומרים לעצמנו את הזכות לעדכן מדיניות זו מעת לעת. במקרה של שינוי מהותי, ניידע אותך באמצעות הודעה בולטת באתר או באמצעות שליחת דוא\"ל. אנו ממליצים לחזור ולעיין במדיניות זו באופן תקופתי."
+  },
+  "contact": {
+    "title": "11. יצירת קשר",
+    "p1": "בכל שאלה, בקשה או בעיה הנוגעת לפרטיותך, אנא פנה אלינו:",
+    "companyName": "שם החברה: {companyNameLegal} (ח.פ. {companyNumber})",
+    "email": "דוא\"ל:",
+    "address": "כתובת למשלוח דואר: {companyRegisteredAddress}"
+  }
+}
+
+,
   "termsOfService": {
     "pageTitle": "תנאי שימוש | {brandName}",
     "pageDescription": "תנאי השימוש של מערכת השידוכים {brandName}. קרא בעיון לפני השימוש במערכת.",
@@ -2308,6 +2574,293 @@ Content:
 
   }
 
+}
+--- End of Content for he.json ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\email
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\email\en.json
+--------------------------------------------------------------------------------
+Content:
+{
+"shared": {
+"greeting": "Hello {{name}},",
+"closing": "Wishing you the best,",
+"team": "The NeshamaTech Team",
+"supportPrompt": "For any questions or assistance, we're here for you at:",
+"rightsReserved": "© {{year}} NeshamaTech. All rights reserved."
+},
+"welcome": {
+"subject": "Welcome to NeshamaTech | Your Journey Begins Here",
+"title": "Your Journey Begins Here",
+"intro": "We are thrilled and excited that you've joined the NeshamaTech family. We are here to guide you, step by step, on the journey to finding a true and meaningful connection. This isn't just another app; it's a home.",
+"matchmakerAssigned": "We're happy to let you know that a personal matchmaker, {{matchmakerName}}, has been assigned to you. They will be in touch soon to get to know you on a deeper level.",
+"getStarted": "Your account is ready. The first step is to complete your personal profile so we can start finding precise matches that truly resonate with your soul.",
+"dashboardButton": "Go to My Dashboard"
+},
+"accountSetup": {
+"subject": "An Invitation to Activate Your NeshamaTech Account",
+"title": "Your Profile is Waiting",
+"intro": "Your matchmaker, {{matchmakerName}}, believes in your potential and has created a profile for you in our system. To take ownership, update your details, and start seeing suggestions, all you need to do is set a personal password.",
+"actionPrompt": "Click the button to set your password and activate your account:",
+"actionButton": "Set Password & Activate Account",
+"notice": "Please note: This link is personal, single-use, and valid for {{expiresIn}}.",
+"nextStep": "After setting your password, you can log in with your email address and begin your journey."
+},
+"emailOtpVerification": {
+"subject": "Your NeshamaTech Verification Code",
+"title": "Almost There...",
+"intro": "To complete the verification and ensure your account is secure, please use the following code:",
+"codeInstruction": "Your verification code is:",
+"expiryNotice": "This code is valid for {{expiresIn}}.",
+"securityNote": "This code is just for you. For your safety, never share it with anyone."
+},
+"invitation": {
+"subject": "{{matchmakerName}} is inviting you to join NeshamaTech",
+"title": "You've Received a Personal Invitation",
+"intro": "Your matchmaker, {{matchmakerName}}, thinks you would be a great fit for NeshamaTech, a community of high-quality individuals seeking serious relationships. We would be delighted for you to join us on this journey.",
+"actionPrompt": "To join and create your profile, please click the link below:",
+"actionButton": "Join the Community",
+"expiryNotice": "Your personal invitation is valid for {{expiresIn}}."
+},
+"suggestion": {
+  "subject": "We Have a Good Feeling About This Suggestion for You",
+  "title": "A New Suggestion is on its Way",
+  "intro": "Your matchmaker, {{matchmakerName}}, was thinking of you and has prepared a new suggestion that looks especially promising. We've put thought into it and believe there's real potential here.",
+  "previewTitle": "A small glimpse into the suggestion:",
+  "actionPrompt": "To view the full profile and make a decision, we invite you to visit your personal dashboard:",
+  "actionButton": "View Full Suggestion",
+  "closing": "We look forward to hearing from you,",
+  "details": {
+    "age": "Age",
+    "city": "City",
+    "occupation": "Occupation",
+    "additionalInfo": "Additional Info"
+  }
+},
+
+"shareContactDetails": {
+"subject": "Best of luck! Contact details have been shared",
+"title": "Embarking on a Shared Path",
+"intro": "How wonderful! Both sides have approved the suggestion, which is always an exciting moment for us. It's time to take the next step and get to know each other. The contact details have also been sent to the other party.",
+"detailsOf": "Contact details for {{otherPartyName}}:",
+"tipTitle": "A little tip from us:",
+"tipContent": "A first phone call can be a bit nerve-wracking, and that's natural. Take a breath, remember the goal is simply to get acquainted, and most importantly - be yourself. We recommend making initial contact within the next 24-48 hours.",
+"goodLuck": "We wish you a pleasant conversation and a successful meeting!"
+},
+"availabilityCheck": {
+"subject": "An availability check from your matchmaker",
+"title": "Checking if This is a Good Time",
+"intro": "Your matchmaker, {{matchmakerName}}, is considering a suggestion for you and wants to ensure you are available and open to a new connection before proceeding.",
+"actionPrompt": "We would appreciate it if you could update us on your availability through your personal dashboard:",
+"actionButton": "Update Availability Status",
+"noticeTitle": "Good to know:",
+"noticeContent": "Your response will help your matchmaker focus on the most relevant suggestions for you right now."
+},
+"passwordResetOtp": {
+"subject": "Password Reset Code for NeshamaTech",
+"title": "Resetting Your Password",
+"intro": "We received a request to reset your password. To proceed, please use the following one-time code:",
+"codeInstruction": "Your reset code is:",
+"expiryNotice": "The code is valid for {{expiresIn}}.",
+"securityNote": "Didn't request a password reset? You can safely ignore this message. Your account is secure."
+},
+"passwordChangedConfirmation": {
+"subject": "Your NeshamaTech Password Has Been Successfully Updated",
+"title": "Security Update: Your Password Was Changed",
+"intro": "This is a confirmation that the password for your NeshamaTech account has been successfully changed. Your account is now secured with the new password.",
+"securityNote": "If you did not make this change, please contact us immediately so we can investigate.",
+"actionButton": "Log in to Your Account"
+},
+  "notifications": {
+
+    "customMessage": {
+      "subject": "A personal message from your matchmaker",
+      "reminderText": "This is a friendly reminder that a match suggestion from {{matchmakerName}} is awaiting your response. To view the details and reply, please log in to the system."
+    },
+
+  "suggestionStatusChange": {
+    "PENDING_FIRST_PARTY": {
+      "subject": "We have a good feeling about this new suggestion for you",
+      "body": "Hello {{partyName}}, {{matchmakerName}} has sent you a new and promising suggestion. For more details and to make your decision, please log in to your personal dashboard: {{reviewUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>Your matchmaker, {{matchmakerName}}, was thinking of you and has prepared a new suggestion that looks especially promising.</p><p>To review the full profile and make a decision, we invite you <a href='{{reviewUrl}}'>to visit your personal dashboard</a>.</p><p>We look forward to hearing from you,</p><p>The NeshamaTech Team</p></div>"
+    },
+    "FIRST_PARTY_APPROVED": {
+      "subject": "Update: The first party has approved the suggestion",
+      "body": "Hello {{matchmakerName}}, great news: {{partyName}} has approved the suggestion. The system will now forward it to the second party. To view details: {{dashboardUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>Great news: <strong>{{partyName}}</strong> has approved the suggestion.</p><p>It will now be automatically sent to the second party. You can track its progress on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+    },
+    "FIRST_PARTY_DECLINED": {
+      "subject": "Update: Suggestion declined by the first party",
+      "body": "Hello {{matchmakerName}}, for your information, {{partyName}} has reviewed the suggestion and decided to decline. More details and the reason for declining (if provided) are available on your dashboard: {{dashboardUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>For your information, <strong>{{partyName}}</strong> has reviewed the suggestion and decided it's not the right fit at this time.</p><p>More details and the reason for declining (if provided) are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+    },
+    "PENDING_SECOND_PARTY": {
+      "subject": "A new suggestion for you, with high potential",
+      "body": "Hello {{partyName}}, {{matchmakerName}} has sent you a new suggestion, and the first party has already expressed interest. We'd love for you to take a look. For details: {{reviewUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>We have exciting news! Your matchmaker, {{matchmakerName}}, has sent you a new suggestion, and <strong>the first party has already approved it</strong>.</p><p>There seems to be high potential here, and we invite you to <a href='{{reviewUrl}}'>review the details and make a decision</a>.</p></div>"
+    },
+    "SECOND_PARTY_APPROVED": {
+      "subject": "It's a match! Both parties have approved",
+      "body": "Hello {{matchmakerName}}, great news! {{partyName}} has approved the suggestion. Both parties have now approved, and you can proceed to share contact details. For more info: {{dashboardUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p><strong>It's a match!</strong> 🎉</p><p>We are happy to report that <strong>{{partyName}}</strong> has also approved the suggestion. With mutual consent from both parties, you can now <a href='{{dashboardUrl}}'>proceed to share contact details</a>.</p></div>"
+    },
+    "SECOND_PARTY_DECLINED": {
+      "subject": "Update: Suggestion declined by the second party",
+      "body": "Hello {{matchmakerName}}, for your information, {{partyName}} has reviewed the suggestion and decided to decline. More details are available on your dashboard: {{dashboardUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>For your information, <strong>{{partyName}}</strong> has reviewed the suggestion and decided it's not the right fit at this time.</p><p>More details are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+    },
+    "CONTACT_DETAILS_SHARED": {
+      "subject": "Best of luck! Your contact details have been exchanged",
+      "body": "Congratulations! You both approved the suggestion. Your full contact details have been sent to you in a separate email. We recommend making contact within the next 24-48 hours. Best of luck!",
+      "htmlBody": "<div dir='ltr'><h2>Time to connect!</h2><p>You both approved the suggestion, which is always an exciting moment. Your full and detailed contact information has been sent to you in a separate email.</p><p><strong>A little tip from us:</strong> Take a breath, remember the goal is simply to get acquainted, and most importantly - be yourself. We recommend making initial contact within the next 24-48 hours.</p><p>Wishing you a pleasant conversation and a wonderful meeting!</p></div>"
+    }
+  }
+  }
+}
+--- End of Content for en.json ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\email\he.json
+--------------------------------------------------------------------------------
+Content:
+{
+  "shared": {
+    "greeting": "שלום {{name}},",
+    "closing": "בהצלחה רבה,",
+    "team": "צוות NeshamaTech",
+    "supportPrompt": "לכל שאלה או עזרה, אנחנו כאן בשבילך במייל:",
+    "rightsReserved": "© {{year}} כל הזכויות שמורות ל-NeshamaTech."
+  },
+  "welcome": {
+    "subject": "ברוכים הבאים ל-NeshamaTech | המסע שלך מתחיל כאן",
+    "title": "המסע שלך מתחיל כאן",
+    "intro": "שמחים ומתרגשים שהצטרפת למשפחת NeshamaTech. אנחנו כאן כדי ללוות אותך, צעד אחר צעד, במסע למציאת קשר אמיתי ומשמעותי. זו לא עוד אפליקציה, זה בית.",
+    "matchmakerAssigned": "שמחים לעדכן שהוקצה לך שדכן/ית אישי/ת, {{matchmakerName}}, שי/תיצור איתך קשר בקרוב כדי להכיר אותך לעומק.",
+    "getStarted": "חשבונך מוכן. הצעד הראשון הוא להשלים את הפרופיל האישי שלך, כדי שנוכל להתחיל למצוא עבורך הצעות מדויקות שבאמת נוגעות בנשמה.",
+    "dashboardButton": "לכניסה לאזור האישי"
+  },
+  "accountSetup": {
+    "subject": "הזמנה להפעלת חשבונך ב-NeshamaTech",
+    "title": "הפרופיל שלך ממתין לך",
+    "intro": "השדכן/ית {{matchmakerName}} מאמין/ה בפוטנציאל שלך ומצאנו לנכון ליצור עבורך פרופיל במערכת שלנו. כדי לקחת בעלות, לעדכן פרטים ולהתחיל לראות הצעות, כל מה שצריך זה לקבוע סיסמה אישית.",
+    "actionPrompt": "לחץ/י על הכפתור כדי להגדיר סיסמה ולהפעיל את חשבונך:",
+    "actionButton": "הגדרת סיסמה והפעלת החשבון",
+    "notice": "שימ/י לב: הקישור הוא אישי, חד-פעמי ותקף למשך {{expiresIn}}.",
+    "nextStep": "לאחר קביעת הסיסמה, תוכל/י להתחבר עם כתובת המייל שלך ולהתחיל את המסע."
+  },
+  "emailOtpVerification": {
+    "subject": "קוד האימות שלך ל-NeshamaTech",
+    "title": "כמעט שם...",
+    "intro": "כדי להשלים את האימות ולוודא שחשבונך מאובטח, אנא השתמש/י בקוד הבא:",
+    "codeInstruction": "קוד האימות שלך הוא:",
+    "expiryNotice": "הקוד תקף למשך {{expiresIn}}.",
+    "securityNote": "הקוד הזה הוא רק שלך. למען בטיחותך, לעולם אל תשתף/י אותו עם איש."
+  },
+  "invitation": {
+    "subject": "{{matchmakerName}} מזמין/ה אותך להצטרף ל-NeshamaTech",
+    "title": "קיבלת הזמנה אישית",
+    "intro": "השדכן/ית {{matchmakerName}} חושב/ת שיש לך מקום אצלנו ב-NeshamaTech, קהילה של אנשים איכותיים שמחפשים קשר רציני. נשמח שתצטרף/י אלינו למסע.",
+    "actionPrompt": "כדי להצטרף וליצור פרופיל, יש ללחוץ על הקישור:",
+    "actionButton": "הצטרפות למערכת",
+    "expiryNotice": "ההזמנה האישית שלך בתוקף למשך {{expiresIn}}."
+  },
+"suggestion": {
+  "subject": "יש לנו הרגשה טובה לגבי ההצעה הזו עבורך",
+  "title": "הצעה חדשה בדרך אליך",
+  "intro": "השדכן/ית שלך, {{matchmakerName}}, חשב/ה עליך והרכיב/ה עבורך הצעה חדשה, שנראית מבטיחה במיוחד. השקענו בה מחשבה ואנחנו מאמינים שיש כאן פוטנציאל אמיתי.",
+  "previewTitle": "הצצה קטנה לפרטי ההצעה:",
+  "actionPrompt": "כדי לעיין בפרופיל המלא ולקבל החלטה, אנו מזמינים אותך להיכנס לאזור האישי:",
+  "actionButton": "צפייה בהצעה המלאה",
+  "closing": "מחכים לשמוע ממך,",
+  "details": {
+    "age": "גיל",
+    "city": "עיר",
+    "occupation": "עיסוק",
+    "additionalInfo": "מידע נוסף"
+  }
+},
+
+  "shareContactDetails": {
+    "subject": "בהצלחה! פרטי הקשר הועברו",
+    "title": "יוצאים לדרך משותפת",
+    "intro": "איזה יופי! שני הצדדים אישרו את ההצעה, וזו תמיד התרגשות גדולה עבורנו. הגיע הזמן לעשות את הצעד הבא ולהכיר. פרטי הקשר נשלחו במקביל גם לצד השני.",
+    "detailsOf": "פרטי הקשר של {{otherPartyName}}:",
+    "tipTitle": "טיפ קטן מאיתנו:",
+    "tipContent": "שיחת טלפון ראשונה יכולה להיות קצת מלחיצה, וזה טבעי. קחו נשימה, זכרו שהמטרה היא פשוט להכיר, והכי חשוב - תהיו אתם. מומלץ ליצור קשר ראשוני ב-24-48 השעות הקרובות.",
+    "goodLuck": "אנו מאחלים לכם שיחה נעימה ופגישה מוצלחת!"
+  },
+  "availabilityCheck": {
+    "subject": "בדיקת זמינות מהשדכן/ית שלך",
+    "title": "בודקים אם זה זמן טוב",
+    "intro": "השדכן/ית {{matchmakerName}} חושב/ת על הצעה עבורך ורוצה לוודא שאת/ה פנוי/ה וזמין/ה לקשר חדש לפני שממשיכים.",
+    "actionPrompt": "נשמח אם תוכל/י לעדכן אותנו על זמינותך דרך האזור האישי:",
+    "actionButton": "עדכון סטטוס זמינות",
+    "noticeTitle": "חשוב לדעת:",
+    "noticeContent": "תשובתך תסייע לשדכן/ית להתמקד בהצעות הרלוונטיות ביותר עבורך כרגע."
+  },
+  "passwordResetOtp": {
+    "subject": "קוד לאיפוס סיסמה ב-NeshamaTech",
+    "title": "מאפסים סיסמה",
+    "intro": "קיבלנו בקשה לאיפוס סיסמתך. כדי להמשיך, אנא השתמש/י בקוד החד-פעמי הבא:",
+    "codeInstruction": "קוד האיפוס שלך הוא:",
+    "expiryNotice": "הקוד תקף למשך {{expiresIn}}.",
+    "securityNote": "לא ביקשת לאפס סיסמה? אפשר להתעלם מהודעה זו בבטחה. חשבונך מוגן."
+  },
+  "passwordChangedConfirmation": {
+    "subject": "הסיסמה שלך ב-NeshamaTech עודכנה בהצלחה",
+    "title": "עדכון אבטחה: סיסמתך שונתה",
+    "intro": "זהו אישור לכך שהסיסמה לחשבונך ב-NeshamaTech שונתה בהצלחה. חשבונך מאובטח כעת עם הסיסמה החדשה.",
+    "securityNote": "אם לא ביצעת את השינוי, אנא פנה/י אלינו באופן מיידי כדי שנבדוק את הנושא.",
+    "actionButton": "התחברות לחשבון"
+  },
+    "notifications": {
+    "customMessage": {
+      "subject": "הודעה אישית מהשדכן/ית שלך",
+      "reminderText": "זוהי תזכורת ידידותית שהצעת שידוך מאת {{matchmakerName}} ממתינה לתשובתך. לצפייה בפרטי ההצעה ומענה, אנא היכנס/י למערכת."
+    },
+
+  "suggestionStatusChange": {
+    "PENDING_FIRST_PARTY": {
+      "subject": "יש לנו הרגשה טובה לגבי ההצעה הזו עבורך",
+      "body": "שלום {{partyName}}, {{matchmakerName}} שלח/ה לך הצעת שידוך חדשה ומבטיחה. לפרטים נוספים ולהחלטתך, אנא היכנס/י לאזור האישי שלך: {{reviewUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>השדכן/ית שלך, {{matchmakerName}}, חשב/ה עליך והרכיב/ה עבורך הצעה חדשה, שנראית מבטיחה במיוחד.</p><p>כדי לעיין בפרופיל המלא ולקבל החלטה, אנו מזמינים אותך <a href='{{reviewUrl}}'>להיכנס לאזור האישי</a>.</p><p>מחכים לשמוע ממך,</p><p>צוות NeshamaTech</p></div>"
+    },
+    "FIRST_PARTY_APPROVED": {
+      "subject": "עדכון: הצד הראשון אישר את ההצעה",
+      "body": "שלום {{matchmakerName}}, עדכון נהדר: {{partyName}} אישר/ה את הצעת השידוך. המערכת תעביר אותה כעת לצד השני. לעיון בפרטים: {{dashboardUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>עדכון נהדר: <strong>{{partyName}}</strong> אישר/ה את הצעת השידוך.</p><p>ההצעה תועבר כעת באופן אוטומטי לצד השני. ניתן לעקוב אחר ההתקדמות <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+    },
+    "FIRST_PARTY_DECLINED": {
+      "subject": "עדכון: הצעה נדחתה על ידי הצד הראשון",
+      "body": "שלום {{matchmakerName}}, לידיעתך, {{partyName}} בחנ/ה את ההצעה והחליט/ה לדחות אותה. פרטים נוספים וסיבת הדחייה (אם נמסרה) זמינים בלוח הבקרה: {{dashboardUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>לידיעתך, <strong>{{partyName}}</strong> בחנ/ה את ההצעה והחליט/ה שאינה מתאימה בשלב זה.</p><p>פרטים נוספים וסיבת הדחייה (אם נמסרה) זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+    },
+    "PENDING_SECOND_PARTY": {
+      "subject": "הצעה חדשה עבורך, עם התאמה גבוהה",
+      "body": "שלום {{partyName}}, {{matchmakerName}} שלח/ה לך הצעה חדשה, והצד הראשון כבר הביע עניין. נשמח שתעיף/י מבט. לפרטים נוספים: {{reviewUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>יש לנו חדשות מרגשות! השדכן/ית {{matchmakerName}} שלח/ה לך הצעה חדשה, <strong>והצד הראשון כבר אישר אותה</strong>.</p><p>נראה שיש כאן פוטנציאל גבוה ואנו מזמינים אותך <a href='{{reviewUrl}}'>לעיין בפרטים ולקבל החלטה</a>.</p></div>"
+    },
+    "SECOND_PARTY_APPROVED": {
+      "subject": "זה מאצ'! שני הצדדים אישרו את ההצעה",
+      "body": "שלום {{matchmakerName}}, בשורות טובות! {{partyName}} אישר/ה את ההצעה. שני הצדדים אישרו וכעת ניתן להתקדם לשלב החלפת פרטי הקשר. לפרטים נוספים: {{dashboardUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p><strong>זה מאצ'!</strong> 🎉</p><p>אנו שמחים לעדכן שגם <strong>{{partyName}}</strong> אישר/ה את ההצעה. כעת, שני הצדדים הביעו הסכמה וניתן <a href='{{dashboardUrl}}'>להתקדם לשלב החלפת פרטי הקשר</a>.</p></div>"
+    },
+    "SECOND_PARTY_DECLINED": {
+      "subject": "עדכון: הצעה נדחתה על ידי הצד השני",
+      "body": "שלום {{matchmakerName}}, לידיעתך, {{partyName}} בחנ/ה את ההצעה והחליט/ה לדחות אותה. פרטים נוספים זמינים בלוח הבקרה: {{dashboardUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>לידיעתך, <strong>{{partyName}}</strong> בחנ/ה את ההצעה והחליט/ה שאינה מתאימה בשלב זה.</p><p>פרטים נוספים זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+    },
+    "CONTACT_DETAILS_SHARED": {
+      "subject": "בהצלחה! פרטי הקשר שלכם הוחלפו",
+      "body": "ברכות! שניכם אישרתם את ההצעה. פרטי הקשר המלאים נשלחו אליכם במייל נפרד. אנו ממליצים ליצור קשר ב-24-48 השעות הקרובות. שיהיה בהצלחה!",
+      "htmlBody": "<div dir='rtl'><h2>יוצאים לדרך!</h2><p>שניכם אישרתם את ההצעה, וזו תמיד התרגשות גדולה. פרטי הקשר המלאים נשלחו אליכם במייל נפרד ומפורט.</p><p><strong>טיפ קטן מאיתנו:</strong> קחו נשימה, זכרו שהמטרה היא פשוט להכיר, והכי חשוב - תהיו אתם. מומלץ ליצור קשר ראשוני ב-24-48 השעות הקרובות.</p><p>מאחלים לכם שיחה נעימה ופגישה מוצלחת!</p></div>"
+    }
+  }
+    }
 }
 --- End of Content for he.json ---
 
@@ -5612,10 +6165,14 @@ Content:
       "questionnaireUpdateError": "Error updating questionnaire."
     },
     "checklist": {
-      "welcome": "Welcome, {{firstName}}! Let's create a profile that truly tells your story.",
-      "allComplete": "Excellent work, {{firstName}}! Your profile is complete and ready to shine.",
+  "welcome": "Welcome, {{firstName}}! Let's create a profile that truly tells your story.",
+  "welcome_female": "Welcome, {{firstName}}! Let's create a profile that truly tells your story.",
+  "allComplete": "Excellent work, {{firstName}}! Your profile is complete and ready to shine.",
+  "allComplete_female": "Excellent work, {{firstName}}! Your profile is complete and ready to shine.",
       "welcomeSubtitle": "Completing these steps is the key to unlocking meaningful, high-quality matches.",
       "allCompleteSubtitle": "You've completed all the steps. A rich, detailed profile is essential for finding your best match.",
+        "checklistPurpose": "This checklist outlines the necessary steps to build a standout profile that attracts the best possible matches for you.",
+
       "completionLabel": "Profile Completion",
       "expandLabel": "Expand",
       "minimizeLabel": "Minimize",
@@ -5627,7 +6184,7 @@ Content:
           "missing": "At least 3 photos required ({{count}} uploaded)"
         },
         "personalDetails": {
-          "title": "Personal Details",
+          "title": "Overview",
           "description": "The heart of your story.",
           "missing": "Fill in essential personal details"
         },
@@ -5647,12 +6204,58 @@ Content:
           "missing": "View your profile preview"
         }
       },
-      "missingItems": {
-        "photos": "Upload at least 3 photos",
-        "personalDetails": "Fill in required personal details",
-        "partnerPreferences": "Set your partner preferences",
-        "questionnaire": "Complete the matchmaking questionnaire",
-        "review": "View your profile preview"
+        "missingItems": {
+        "profileHeadline": "Profile Headline",
+        "about": "'About Me' section (min. 100 characters)",
+        "inspiringCoupleStory": "Story of an inspiring couple",
+        "influentialRabbi": "Influential rabbinic/spiritual figure",
+        "medicalInfoReference": "Reference to sensitive/medical info",
+        "medicalInfoDetails": "Details for medical info (when 'Yes' is selected)",
+        "medicalInfoDisclosureTiming": "Disclosure timing for medical info",
+        "birthDate": "Date of Birth",
+        "height": "Height",
+        "city": "City of Residence",
+        "origin": "Origin / Heritage",
+        "nativeLanguage": "Native Language",
+        "aliyaYear": "Year of Aliyah (when country is specified)",
+        "maritalStatus": "Marital Status",
+        "childrenFromPreviousReference": "Reference to children from a previous relationship",
+        "parentStatus": "Parents' Marital Status",
+        "fatherOccupation": "Father's Occupation",
+        "motherOccupation": "Mother's Occupation",
+        "siblings": "Number of Siblings",
+        "position": "Birth Order",
+        "religiousLevel": "Religious Observance",
+        "religiousJourney": "Religious Background",
+        "shomerNegiah": "Shomer Negiah observance",
+        "educationLevel": "Education Level",
+        "educationDetails": "Education Details",
+        "occupation": "Occupation",
+        "serviceType": "Service Type (Military/National)",
+        "serviceDetails": "Service Details",
+        "characterTraits": "At least one character trait",
+        "hobbies": "At least one hobby",
+        "headCovering": "Head covering type (for women)",
+        "kippahType": "Kippah type (for men)",
+        "matchingNotes": "General description of desired partner",
+        "contactPreference": "Contact preference",
+        "preferredAgeRange": "Preferred age range",
+        "preferredHeightRange": "Preferred height range",
+        "preferredLocations": "Preferred locations",
+        "preferredReligiousLevels": "Preferred religious levels",
+        "preferredReligiousJourneys": "Preferred religious background",
+        "preferredShomerNegiah": "Preference for Shomer Negiah",
+        "preferredEducation": "Preferred education levels",
+        "preferredOccupations": "Preferred occupations",
+        "preferredServiceTypes": "Preferred service types",
+        "preferredMaritalStatuses": "Preferred marital statuses",
+        "preferredPartnerHasChildren": "Preference regarding partner's children",
+        "preferredOrigins": "Preferred origins",
+        "preferredAliyaStatus": "Preferred Aliyah status",
+        "preferredCharacterTraits": "Preferred character traits",
+        "preferredHobbies": "Preferred hobbies",
+        "preferredKippahTypes": "Preferred Kippah types (for women's preference)",
+        "preferredHeadCoverings": "Preferred head covering types (for men's preference)"
       }
     },
     "aiAdvisor": {
@@ -6094,13 +6697,25 @@ Content:
       }
     },
     "questionCard": {
+        "languageBadge": {
+          "en": "אנגלית",
+          "he": "עברית"
+        },
+        "languageTooltip": "תשובה זו נכתבה במקור בשפה המוצגת",
       "toasts": {
         "emptyAnswer": "Cannot save an empty answer.",
         "updateSuccess": "Answer updated successfully.",
         "updateError": "Error updating answer.",
         "visibilitySuccess": "Visibility updated.",
-        "visibilityError": "Error updating visibility."
+        "visibilityError": "Error updating visibility.",
+                "deleteSuccess": "Answer deleted successfully.",
+        "deleteError": "Error deleting answer."
+
       },
+            "deleteConfirm": {
+        "message": "Are you sure you want to permanently delete this answer? This action cannot be undone."
+      },
+
       "visibilityButton": {
         "visible": "Visible to Matches",
         "hidden": "Private"
@@ -6123,7 +6738,9 @@ Content:
       "dateTooltip": "Last updated date",
       "editTooltip": {
         "text": "Edit answer",
-        "budget": "Edit in the full questionnaire"
+        "budget": "Edit in the full questionnaire",
+                "delete": "Delete answer"
+
       }
     }
   },
@@ -6821,7 +7438,27 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\profile\he
 Content:
 {
   "pageLoader": "טוען פרופיל...",
-  "dashboard": {
+ "dashboard": {
+    "loading": {
+      "title": "מכינים עבורך את מרכז הבקרה...",
+      "subtitle": "אנו אוספים את כל הפרטים שלך כדי ליצור חוויה אישית. זה ייקח רק רגע."
+    },
+    "stats": {
+      "title": "ברוך הבא למרכז ניהול הפרופיל",
+      "subtitle": "זהו המרחב האישי שלך לנהל את המסע למציאת התאמה. הנה מבט מהיר על ההתקדמות שלך.",
+      "profileCompletion": "השלמת הפרופיל",
+      "profileCompletionDesc": "פרופיל מלא זוכה ליותר צפיות.",
+      "photos": "תמונות שהועלו",
+      "photosDesc": "יותר תמונות מגדילות מעורבות.",
+      "questionnaire": "שאלון התאמה",
+      "questionnaireDesc": "המפתח להתאמות החכמות שלנו.",
+      "completed": "הושלם",
+      "pending": "ממתין"
+    },
+    "main": {
+      "title": "ניהול הפרופיל שלך"
+    },
+    "refreshSuccess": "נתוני הפרופיל רועננו בהצלחה.",
     "loadingData": "טוען נתונים...",
     "loadError": "שגיאה בטעינת הנתונים: {{error}}",
     "updateSuccess": "הפרופיל עודכן בהצלחה",
@@ -6832,9 +7469,13 @@ Content:
     "viewedPreviewError": "שגיאה בעדכון סטטוס הצפייה בתצוגה המקדימה.",
     "tabs": {
       "overview": "פרטים כלליים",
+      "overviewShort": "פרופיל",
       "photos": "תמונות",
+      "photosShort": "תמונות",
       "preferences": "העדפות",
-      "questionnaire": "שאלון"
+      "preferencesShort": "העדפות",
+      "questionnaire": "שאלון",
+      "questionnaireShort": "תשובות"
     },
     "tabContent": {
       "loadingOverview": "טוען סקירה כללית...",
@@ -6846,10 +7487,14 @@ Content:
       "questionnaireUpdateError": "שגיאה בעדכון השאלון"
     },
     "checklist": {
-      "welcome": "ברוך הבא, {{firstName}}! בוא נכין את הפרופיל שלך להצלחה",
-      "allComplete": "כל הכבוד, {{firstName}}! הפרופיל שלך מושלם!",
+  "welcome": "ברוך הבא, {{firstName}}! בוא נכין את הפרופיל שלך להצלחה",
+  "welcome_female": "ברוכה הבאה, {{firstName}}! בואי נכין את הפרופיל שלךְ להצלחה",
+  "allComplete": "כל הכבוד, {{firstName}}! הפרופיל שלך מושלם!",
+  "allComplete_female": "כל הכבוד, {{firstName}}! הפרופיל שלךְ מושלם!",
       "welcomeSubtitle": "השלמת הצעדים הבאים תקדם אותך משמעותית למציאת התאמה.",
       "allCompleteSubtitle": "השלמת את כל השלבים. פרופיל עשיר הוא המפתח למציאת ההתאמה המדויקת ביותר.",
+        "checklistPurpose": "הרשימה הזו מציגה את הפעולות הנדרשות להשלמת פרופיל שימשוך את ההצעות הנכונות ביותר עבורך.",
+
       "completionLabel": "השלמת הפרופיל",
       "expandLabel": "הרחב",
       "minimizeLabel": "מזער",
@@ -6861,7 +7506,7 @@ Content:
           "missing": "נדרשות לפחות 3 תמונות (הועלו: {{count}})"
         },
         "personalDetails": {
-          "title": "פרטים אישיים",
+          "title": "פרטים כלליים",
           "description": "הבסיס להכיר אותך לעומק."
         },
         "partnerPreferences": {
@@ -6878,13 +7523,59 @@ Content:
           "missing": "יש לצפות בתצוגה המקדימה של הפרופיל"
         }
       },
-        "missingItems": {
-    "photos": "העלה/י לפחות 3 תמונות",
-    "personalDetails": "מלא/י פרטים אישיים חיוניים",
-    "partnerPreferences": "הגדר/י את העדפות בן/בת הזוג",
-    "questionnaire": "השלם/י את שאלון ההתאמה",
-    "review": "צפה/י בתצוגה המקדימה של הפרופיל"
-  }
+      "missingItems": {
+        "profileHeadline": "כותרת פרופיל",
+        "about": "שדה 'אודותיי' (לפחות 100 תווים)",
+        "inspiringCoupleStory": "סיפור על זוג מעורר השראה",
+        "influentialRabbi": "דמות רבנית/רוחנית משפיעה",
+        "medicalInfoReference": "התייחסות למידע רפואי/רגיש",
+        "medicalInfoDetails": "פירוט מידע רפואי (כאשר סומן 'כן')",
+        "medicalInfoDisclosureTiming": "תזמון חשיפת מידע רפואי",
+        "birthDate": "תאריך לידה",
+        "height": "גובה",
+        "city": "עיר מגורים",
+        "origin": "מוצא/עדה",
+        "nativeLanguage": "שפת אם",
+        "aliyaYear": "שנת עליה (כאשר מדינת עליה צוינה)",
+        "maritalStatus": "מצב משפחתי",
+        "childrenFromPreviousReference": "התייחסות לילדים מקשר קודם",
+        "parentStatus": "מצב משפחתי של ההורים",
+        "fatherOccupation": "מקצוע האב",
+        "motherOccupation": "מקצוע האם",
+        "siblings": "מספר אחים ואחיות",
+        "position": "מיקום במשפחה",
+        "religiousLevel": "רמה דתית",
+        "religiousJourney": "מסע/רקע דתי",
+        "shomerNegiah": "שמירת נגיעה",
+        "educationLevel": "רמת השכלה",
+        "educationDetails": "פירוט השכלה",
+        "occupation": "עיסוק",
+        "serviceType": "סוג שירות (צבאי/לאומי)",
+        "serviceDetails": "פירוט על השירות",
+        "characterTraits": "לפחות תכונת אופי אחת",
+        "hobbies": "לפחות תחביב אחד",
+        "headCovering": "סוג כיסוי ראש (רלוונטי לנשים)",
+        "kippahType": "סוג כיפה (רלוונטי לגברים)",
+        "matchingNotes": "תיאור כללי על בן/בת הזוג",
+        "contactPreference": "העדפת אופן יצירת קשר",
+        "preferredAgeRange": "טווח גילאים מועדף",
+        "preferredHeightRange": "טווח גבהים מועדף",
+        "preferredLocations": "אזורי מגורים מועדפים",
+        "preferredReligiousLevels": "רמות דתיות מועדפות",
+        "preferredReligiousJourneys": "מסע/רקע דתי מועדף",
+        "preferredShomerNegiah": "העדפה לשמירת נגיעה",
+        "preferredEducation": "רמות השכלה מועדפות",
+        "preferredOccupations": "תחומי עיסוק מועדפים",
+        "preferredServiceTypes": "סוגי שירות מועדפים",
+        "preferredMaritalStatuses": "מצבים משפחתיים מועדפים",
+        "preferredPartnerHasChildren": "העדפה לגבי ילדים של בן/בת הזוג",
+        "preferredOrigins": "מוצא/עדה מועדפים",
+        "preferredAliyaStatus": "סטטוס עליה מועדף",
+        "preferredCharacterTraits": "תכונות אופי מועדפות",
+        "preferredHobbies": "תחביבים מועדפים",
+        "preferredKippahTypes": "סוגי כיפה מועדפים (רלוונטי לנשים)",
+        "preferredHeadCoverings": "סוגי כיסוי ראש מועדפים (רלוונטי לגברים)"
+      }
 
     },
     "aiAdvisor": {
@@ -7077,8 +7768,15 @@ Content:
         "updateSuccess": "התשובה עודכנה בהצלחה",
         "updateError": "שגיאה בעדכון התשובה",
         "visibilitySuccess": "הגדרות הנראות עודכנו",
-        "visibilityError": "שגיאה בעדכון הנראות"
+        "visibilityError": "שגיאה בעדכון הנראות",
+                "deleteSuccess": "התשובה נמחקה בהצלחה.",
+        "deleteError": "שגיאה במחיקת התשובה."
+
       },
+            "deleteConfirm": {
+        "message": "האם למחוק את התשובה לצמיתות? לא ניתן לשחזר פעולה זו."
+      },
+
       "visibilityButton": {
         "visible": "גלוי למועמדים",
         "hidden": "מוסתר"
@@ -7101,7 +7799,9 @@ Content:
       "dateTooltip": "תאריך עדכון אחרון",
       "editTooltip": {
         "text": "עריכת תשובה",
-        "budget": "עריכה בשאלון המלא"
+        "budget": "עריכה בשאלון המלא",
+                "delete": "מחק תשובה"
+
       }
     }
   }

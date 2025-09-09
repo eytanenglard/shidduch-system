@@ -325,6 +325,12 @@
       }
     },
     "questionCard": {
+          "languageBadge": {
+          "en": "אנגלית",
+          "he": "עברית"
+        },
+        "languageTooltip": "תשובה זו נכתבה במקור בשפה המוצגת",
+
       "toasts": {
         "emptyAnswer": "לא ניתן לשמור תשובה ריקה.",
         "updateSuccess": "התשובה עודכנה בהצלחה",
