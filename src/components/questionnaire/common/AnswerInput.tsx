@@ -866,7 +866,21 @@ export default function AnswerInput({
         );
 
       case 'openText':
-        const textValue = (internalValue as string) || '';
+        let textValue = '';
+        // קודם כל, נטפל במקרה הפשוט שבו הערך הוא מחרוזת
+        if (typeof internalValue === 'string') {
+          textValue = internalValue;
+        }
+        // לאחר מכן, נטפל במקרה המורכב יותר של אובייקט
+        else if (
+          typeof internalValue === 'object' &&
+          internalValue !== null &&
+          !Array.isArray(internalValue) &&
+          'text' in internalValue
+        ) {
+          // TypeScript מבין כעת שב-internalValue בהכרח קיים המאפיין 'text'
+          textValue = String(internalValue.text || ''); // המרה בטוחה למחרוזת
+        }
         const hasMinLength =
           question.minLength !== undefined && question.minLength > 0;
         const hasMaxLength =
@@ -927,7 +941,13 @@ export default function AnswerInput({
                 aria-describedby={question.id + '-length-info'}
               />
               {textValue.length > 0 && (
-                <div className="absolute top-2 left-2 flex flex-col gap-1">
+                <div
+                  className={cn(
+                    'absolute top-2 flex flex-col gap-1',
+                    isRTL ? 'left-2' : 'right-2'
+                  )}
+                >
+                  {' '}
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>

@@ -210,8 +210,17 @@ export default function WorldComponent({
     if (!question.isRequired && isValueEmpty) return null;
     switch (question.type) {
       case 'openText': {
-        const textValue = value as string;
-        const trimmedLength = textValue?.trim().length || 0;
+        let textString = '';
+        // בודקים אם הערך הוא אובייקט עם המאפיין 'text'
+        if (typeof value === 'object' && value !== null && 'text' in value) {
+          textString = String((value as { text: any }).text || '');
+        }
+        // אחרת, בודקים אם הוא מחרוזת (למקרה קצה)
+        else if (typeof value === 'string') {
+          textString = value;
+        }
+
+        const trimmedLength = textString.trim().length;
         if (
           question.minLength &&
           trimmedLength < question.minLength &&
