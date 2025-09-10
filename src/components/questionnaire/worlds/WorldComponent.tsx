@@ -11,6 +11,8 @@ import {
   AlertCircle,
   CheckCircle,
   List,
+  Loader2,
+  Save,
   PanelLeftClose,
   PanelRightClose,
   ListChecks,
@@ -350,98 +352,118 @@ export default function WorldComponent({
               .replace('{{total}}', allQuestions.length.toString())}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {isDesktop && (
-            <Button
-              variant={isListVisible ? 'secondary' : 'outline'}
-              size="sm"
-              onClick={() => setIsListVisible(!isListVisible)}
-              className="gap-2"
-            >
-              {isListVisible ? (
-                isRTL ? (
-                  <PanelRightClose className="h-4 w-4" />
-                ) : (
-                  <PanelLeftClose className="h-4 w-4" />
-                )
-              ) : (
-                <List className="h-4 w-4" />
-              )}
-              {isListVisible
-                ? dict.world.buttons.hideList
-                : dict.world.buttons.showList}
-            </Button>
+  <div className="flex items-center gap-2">
+  {isDesktop && (
+    <>
+      {/* --- הכפתור החדש --- */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onSave}
+        disabled={isSaving}
+        className="gap-2 bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+      >
+        {isSaving ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Save className="h-4 w-4" />
+        )}
+        {isSaving ? dict.world.buttons.saving : dict.world.buttons.save}
+      </Button>
+      {/* --- סוף הכפתור החדש --- */}
+
+      <Button
+        variant={isListVisible ? 'secondary' : 'outline'}
+        size="sm"
+        onClick={() => setIsListVisible(!isListVisible)}
+        className="gap-2"
+      >
+        {isListVisible ? (
+          isRTL ? (
+            <PanelRightClose className="h-4 w-4" />
+          ) : (
+            <PanelLeftClose className="h-4 w-4" />
+          )
+        ) : (
+          <List className="h-4 w-4" />
+        )}
+        {isListVisible
+          ? dict.world.buttons.hideList
+          : dict.world.buttons.showList}
+      </Button>
+    </>
+  )}
+  {!isDesktop && (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn(
+            'gap-2 font-medium transition-all',
+            `border-${themeColor}-200 text-${themeColor}-700 bg-white hover:bg-${themeColor}-50`
           )}
-          {!isDesktop && (
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
+        >
+          <List className="h-4 w-4" />
+          <span>{dict.world.buttons.questionList}</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent
+        side={isRTL ? 'left' : 'right'}
+        className="w-[300px] sm:w-[400px] flex flex-col"
+      >
+        <SheetHeader>
+          <SheetTitle>
+            <div className="flex items-center gap-2">
+              <ListChecks className="h-5 w-5 text-blue-600" />
+              <span>
+                {dict.world.listSheet.title.replace(
+                  '{{worldTitle}}',
+                  title
+                )}
+              </span>
+            </div>
+          </SheetTitle>
+          <SheetDescription>
+            {dict.world.listSheet.description}
+            <div className="mt-3 pt-3 border-t space-y-1">
+              <div className="flex items-center text-xs text-slate-600">
+                <CheckCircle
                   className={cn(
-                    'gap-2 font-medium transition-all',
-                    `border-${themeColor}-200 text-${themeColor}-700 bg-white hover:bg-${themeColor}-50`
+                    'h-3 w-3 me-1.5',
+                    `text-${themeColor}-600`
                   )}
-                >
-                  <List className="h-4 w-4" />
-                  <span>{dict.world.buttons.questionList}</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent
-                side={isRTL ? 'left' : 'right'}
-                className="w-[300px] sm:w-[400px] flex flex-col"
-              >
-                <SheetHeader>
-                  <SheetTitle>
-                    <div className="flex items-center gap-2">
-                      <ListChecks className="h-5 w-5 text-blue-600" />
-                      <span>
-                        {dict.world.listSheet.title.replace(
-                          '{{worldTitle}}',
-                          title
-                        )}
-                      </span>
-                    </div>
-                  </SheetTitle>
-                  <SheetDescription>
-                    {dict.world.listSheet.description}
-                    <div className="mt-3 pt-3 border-t space-y-1">
-                      <div className="flex items-center text-xs text-slate-600">
-                        <CheckCircle
-                          className={cn(
-                            'h-3 w-3 me-1.5',
-                            `text-${themeColor}-600`
-                          )}
-                        />
-                        <span>{dict.world.listSheet.legend.completed}</span>
-                      </div>
-                      <div className="flex items-center text-xs text-slate-600">
-                        <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
-                        <span>{dict.world.listSheet.legend.required}</span>
-                      </div>
-                      <div className="flex items-center text-xs text-slate-600">
-                        <CircleDot className="h-3 w-3 text-slate-400 me-1.5" />
-                        <span>{dict.world.listSheet.legend.notAnswered}</span>
-                      </div>
-                    </div>
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="mt-4 flex-1 overflow-hidden">
-                  <QuestionsList
-                    allQuestions={allQuestions}
-                    currentQuestionIndex={currentQuestionIndex}
-                    setCurrentQuestionIndex={setCurrentQuestionIndex}
-                    answers={answers}
-                    locale={locale}
-                    themeColor={themeColor}
-                    className="h-full"
-                    dict={dict.questionsList}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
-          )}
+                />
+                <span>{dict.world.listSheet.legend.completed}</span>
+              </div>
+              <div className="flex items-center text-xs text-slate-600">
+                <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
+                <span>{dict.world.listSheet.legend.required}</span>
+              </div>
+              <div className="flex items-center text-xs text-slate-600">
+                <CircleDot className="h-3 w-3 text-slate-400 me-1.5" />
+                <span>{dict.world.listSheet.legend.notAnswered}</span>
+              </div>
+            </div>
+          </SheetDescription>
+        </SheetHeader>
+        <div className="mt-4 flex-1 overflow-hidden">
+          <QuestionsList
+            allQuestions={allQuestions}
+            currentQuestionIndex={currentQuestionIndex}
+            setCurrentQuestionIndex={setCurrentQuestionIndex}
+            answers={answers}
+            locale={locale}
+            themeColor={themeColor}
+            className="h-full"
+            dict={dict.questionsList}
+          />
         </div>
+      </SheetContent>
+    </Sheet>
+  )}
+</div>
+
       </div>
       <Progress
         value={progress}

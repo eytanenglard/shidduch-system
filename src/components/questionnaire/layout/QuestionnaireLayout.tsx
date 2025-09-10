@@ -342,6 +342,7 @@ export default function QuestionnaireLayout({
     <div
       className={`flex flex-col min-h-screen lg:flex-row bg-slate-50 ${directionClass}`}
     >
+      {/* --- START: CODE TO REPLACE --- */}
       <header
         className={cn(
           'lg:hidden sticky top-0 z-40 bg-white shadow-sm p-3 flex items-center justify-between',
@@ -368,6 +369,7 @@ export default function QuestionnaireLayout({
           </h1>
         </div>
         <div className="flex items-center gap-1">
+          {/* הוספנו כפתור שמירה כאן */}
           <Button
             variant="ghost"
             size="icon"
@@ -388,6 +390,7 @@ export default function QuestionnaireLayout({
           </Button>
         </div>
       </header>
+      {/* --- END: CODE TO REPLACE --- */}
       <MobileNav />
       <aside
         className={cn(

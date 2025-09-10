@@ -751,16 +751,15 @@
       "EXPERT": "מעמיק"
     },
     
-    "buttons": {
-      "reject": "לא מתאים",
-      "confirmReject": "לאשר דחייה",
-      "cancel": "בטל",
-      "accept": "מעוניין/ת",
-      "continueChat": "המשך שיחה",
-      "showMore": "הצג פרטים נוספים",
-      "hideMore": "הסתר פרטים נוספים",
-      "viewFullProfile": "צפייה בפרופיל מלא"
-    },
+ "buttons": {
+  "backToMap": "חזרה למפה",
+  "hideList": "הסתר רשימה",
+  "showList": "הצג רשימה",
+  "questionList": "רשימת שאלות",
+  "previous": "שאלה קודמת",
+  "next": "שאלה הבאה",
+  "finish": "סיים עולם זה"
+},
     "sections": {
       "about": "קצת על {{name}}",
       "topMatches": "תחומי התאמה בולטים",

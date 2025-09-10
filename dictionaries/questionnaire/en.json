@@ -341,15 +341,17 @@
       "loadingFailedDescription": "We couldn't load the questions for this world. Please try returning to the map and re-entering.",
       "invalidQuestion": "Invalid question. Please try again."
     },
-    "buttons": {
-      "backToMap": "Back to Map",
-      "hideList": "Hide List",
-      "showList": "Show List",
-      "questionList": "Question List",
-      "previous": "Previous",
-      "next": "Next",
-      "finish": "Finish World"
-    },
+ "buttons": {
+  "backToMap": "Back to Map",
+  "hideList": "Hide List",
+  "showList": "Show List",
+  "questionList": "Question List",
+  "previous": "Previous",
+  "next": "Next",
+  "finish": "Finish World",
+  "save": "Save",
+  "saving": "Saving..."
+},
     "listSheet": {
       "title": "All Questions in {{worldTitle}}",
       "description": "Navigate to any question or review your progress.",

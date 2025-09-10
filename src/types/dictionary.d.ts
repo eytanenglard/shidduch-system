@@ -1665,6 +1665,8 @@ export type WorldComponentDict = {
     previous: string;
     next: string;
     finish: string;
+    save: string;
+    saving: string;
   };
   listSheet: {
     title: string; // e.g., "כל השאלות ב{{worldTitle}}"
