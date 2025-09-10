@@ -20,7 +20,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer }) => {
     <div className="border-b border-gray-200 last:border-0">
       <button
         className="flex justify-between items-center w-full py-4 text-right text-gray-800 hover:text-cyan-600 focus:outline-none transition-colors duration-300"
-        onClick={() => setIsOpen(!isOpen)}
+        onPointerDown={() => setIsOpen(!isOpen)}
         // <<< הוספה: תכונות נגישות לכפתור >>>
         aria-expanded={isOpen}
         aria-controls={contentId}

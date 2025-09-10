@@ -267,6 +267,9 @@
     display: inline-block;
     text-align: center;
   }
+  .tap-highlight-transparent {
+    -webkit-tap-highlight-color: transparent;
+  }
 
   /* Enhanced Suggestions Utilities */
   .animate-fade-in-up {

@@ -172,6 +172,7 @@ export default function WorldComponent({
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const [isListVisible, setIsListVisible] = useState(true);
   const isRTL = locale === 'he';
+  const [animateError, setAnimateError] = useState(false);
 
   useEffect(() => {
     console.log(
@@ -259,6 +260,8 @@ export default function WorldComponent({
     const error = validateAnswer(currentQuestion, value);
     if (error && currentQuestion.isRequired) {
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
+      setAnimateError(true);
+      setTimeout(() => setAnimateError(false), 500);
       return;
     }
     setValidationErrors((prev) => ({ ...prev, [currentQuestion.id]: '' }));
@@ -439,50 +442,65 @@ export default function WorldComponent({
     </div>
   );
 
-  const renderQuestionCard = () => (
-    <motion.div
-      className="transition-opacity duration-300"
-      key={currentQuestionIndex}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <QuestionCard
-        question={currentQuestion}
-        depth={currentQuestion.depth}
-        isRequired={currentQuestion.isRequired}
-        validationError={validationErrors[currentQuestion.id]}
-        locale={locale}
-        themeColor={themeColor}
-        isVisible={currentAnswerObject?.isVisible ?? true}
-        onVisibilityChange={(isVisible) =>
-          onVisibilityChange(currentQuestion.id, isVisible)
-        }
-        onSave={onSave}
-        isSaving={isSaving}
-        dict={dict.questionCard}
+  const renderQuestionCard = () => {
+    // --- START: התיקון ---
+    const cardAnimationVariants = {
+      visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
+      hidden: { opacity: 0, x: 0 },
+      exit: { opacity: 0, x: 0 },
+      shake: {
+        x: [-8, 8, -8, 8, 0],
+        transition: { duration: 0.4 },
+      },
+    };
+
+    return (
+      <motion.div
+        className="transition-opacity duration-300"
+        key={currentQuestionIndex}
+        variants={cardAnimationVariants}
+        initial="hidden"
+        animate={animateError ? 'shake' : 'visible'}
+        exit="exit"
       >
-        <AnswerInput
+        <QuestionCard
           question={currentQuestion}
-          value={currentValue}
-          onChange={(value) => {
-            setValidationErrors((prev) => ({
-              ...prev,
-              [currentQuestion.id]: '',
-            }));
-            onAnswer(currentQuestion.id, value);
-          }}
-          onClear={() => handleClearAnswer(currentQuestion.id)}
+          depth={currentQuestion.depth}
+          isRequired={currentQuestion.isRequired}
           validationError={validationErrors[currentQuestion.id]}
-          dict={{
-            answerInput: dict.answerInput,
-            interactiveScale: dict.interactiveScale,
-          }}
           locale={locale}
-        />
-      </QuestionCard>
-    </motion.div>
-  );
+          themeColor={themeColor}
+          isVisible={currentAnswerObject?.isVisible ?? true}
+          onVisibilityChange={(isVisible) =>
+            onVisibilityChange(currentQuestion.id, isVisible)
+          }
+          onSave={onSave}
+          isSaving={isSaving}
+          dict={dict.questionCard}
+        >
+          <AnswerInput
+            question={currentQuestion}
+            value={currentValue}
+            onChange={(value) => {
+              setValidationErrors((prev) => ({
+                ...prev,
+                [currentQuestion.id]: '',
+              }));
+              onAnswer(currentQuestion.id, value);
+            }}
+            onClear={() => handleClearAnswer(currentQuestion.id)}
+            validationError={validationErrors[currentQuestion.id]}
+            dict={{
+              answerInput: dict.answerInput,
+              interactiveScale: dict.interactiveScale,
+            }}
+            locale={locale}
+          />
+        </QuestionCard>
+      </motion.div>
+    );
+    // --- END: התיקון ---
+  };
 
   const renderNavigationButtons = () => {
     const PrevIcon = isRTL ? ArrowRight : ArrowLeft;
@@ -492,7 +510,7 @@ export default function WorldComponent({
       <div className="flex justify-between pt-4 mt-6 border-t border-slate-200">
         <Button
           variant="outline"
-          onClick={handlePrevious}
+          onPointerDown={handlePrevious}
           className="flex items-center gap-2"
         >
           <PrevIcon className="h-4 w-4" />
@@ -505,7 +523,7 @@ export default function WorldComponent({
         {currentQuestionIndex < allQuestions.length - 1 ? (
           <Button
             variant="default"
-            onClick={handleNext}
+            onPointerDown={handleNext}
             className={cn(
               'flex items-center gap-2',
               `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`
@@ -516,7 +534,7 @@ export default function WorldComponent({
           </Button>
         ) : (
           <Button
-            onClick={handleNext}
+            onPointerDown={handleNext}
             className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
           >
             <span>{dict.world.buttons.finish}</span>

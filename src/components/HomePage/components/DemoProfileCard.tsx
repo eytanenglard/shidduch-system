@@ -139,9 +139,18 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
               variant="ghost"
               size="icon"
               className="absolute top-1/2 -translate-y-1/2 left-2 sm:left-4 bg-white/20 text-white backdrop-blur-sm rounded-full hover:bg-white/30"
-              onClick={() => handleImageNav('prev')}
-              // <<< שינוי נגישות: הוספת תווית ברורה לכפתור אייקון >>>
+              onPointerDown={() => handleImageNav('prev')}
               aria-label="התמונה הקודמת"
+            >
+              <ChevronLeft />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-4 bg-white/20 text-white backdrop-blur-sm rounded-full hover:bg-white/30"
+              // --- שינוי 2: החלף onClick ---
+              onPointerDown={() => handleImageNav('next')}
+              aria-label="התמונה הבאה"
             >
               <ChevronLeft />
             </Button>
@@ -166,7 +175,7 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
                     ? 'ring-2 ring-offset-2 ring-purple-500 shadow-md'
                     : 'opacity-60 hover:opacity-100'
                 )}
-                onClick={() => setMainImageIndex(index)}
+                onPointerDown={() => setMainImageIndex(index)}
                 // <<< שינוי נגישות: הוספת תווית ברורה לכפתור תמונה >>>
                 aria-label={`הצג תמונה מספר ${index + 1}`}
               >
@@ -213,7 +222,7 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
                 role="tab"
                 aria-selected={activeTab === tab.id}
                 aria-controls={`panel-${tab.id}`}
-                onClick={() => setActiveTab(tab.id)}
+                onPointerDown={() => setActiveTab(tab.id)}
                 className={cn(
                   'relative w-full rounded-full py-2 text-sm font-semibold transition-colors duration-300',
                   activeTab === tab.id

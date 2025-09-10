@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2025-09-02 20:02:12
+# Generated on: 2025-09-10 14:39:25
 ################################################################################
 
 ================================================================================
@@ -54,7 +54,6 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
   const { data: session } = useSession();
   const [isVisible, setIsVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-
 
   useEffect(() => {
     const handleScroll = () => {
@@ -110,10 +109,10 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         locale={locale}
       />
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
-      <SuccessStoriesSection dict={dict.successStories} />
-      <FAQSection dict={dict.faq} />
-      <PrivacyAssuranceSection dict={dict.privacyAssurance} />
-      <CTASection dict={dict.cta} />
+      <SuccessStoriesSection dict={dict.successStories} locale={locale} />
+      <FAQSection dict={dict.faq} locale={locale} />
+      <PrivacyAssuranceSection dict={dict.privacyAssurance} locale={locale} />
+      <CTASection dict={dict.cta} locale={locale} />
       <FooterSection dict={dict.footer} />
 
       <ChatWidget dict={dict.chatWidget} />
@@ -216,6 +215,7 @@ import {
   Target,
   ChevronLeft,
   ChevronRight,
+  ArrowRight,
   Quote,
   MapPin,
   Briefcase,
@@ -292,7 +292,7 @@ const QandAItem: React.FC<{ q: string; a: string }> = ({ q, a }) => (
 );
 
 // --- Main Component ---
-export const DemoProfileCard = () => {
+export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
   const [activeTab, setActiveTab] = useState('essence');
   const [mainImageIndex, setMainImageIndex] = useState(0);
 
@@ -516,7 +516,11 @@ export const DemoProfileCard = () => {
               >
                 <span className="relative z-10 flex items-center justify-center">
                   רוצים לקבל הצעות כאלה?
-                  <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  {locale === 'he' ? (
+                    <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                  ) : (
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  )}{' '}
                 </span>
               </Button>
             </Link>
@@ -2208,15 +2212,16 @@ import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles, ArrowRight } from 'lucide-react';
 import type { CtaDict } from '@/types/dictionary';
 
 // --- Type Definition for Component Props ---
 interface CTAProps {
   dict: CtaDict;
+  locale: 'he' | 'en';
 }
 
-const CTASection: React.FC<CTAProps> = ({ dict }) => {
+const CTASection: React.FC<CTAProps> = ({ dict, locale }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 
@@ -2343,7 +2348,11 @@ const CTASection: React.FC<CTAProps> = ({ dict }) => {
                 >
                   <span className="relative z-10 flex items-center">
                     {dict.button}
-                    <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    {locale === 'he' ? (
+                      <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                    ) : (
+                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    )}{' '}
                   </span>
                 </Button>
               </motion.div>
@@ -2376,6 +2385,7 @@ import {
   MessageCircle,
   Shield,
   Clock,
+  ArrowRight,
   Users,
   HelpCircle,
   FileText,
@@ -2385,9 +2395,10 @@ import type { FaqDict } from '@/types/dictionary';
 // --- Type Definition for Component Props ---
 interface FAQProps {
   dict: FaqDict;
+  locale: 'he' | 'en';
 }
 
-const FAQSection: React.FC<FAQProps> = ({ dict }) => {
+const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.05 });
 
@@ -2636,7 +2647,11 @@ const FAQSection: React.FC<FAQProps> = ({ dict }) => {
                   >
                     <span className="flex items-center gap-3">
                       {dict.contact_block.button}
-                      <ArrowLeft className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      {locale === 'he' ? (
+                        <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                      ) : (
+                        <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      )}{' '}
                     </span>
                   </Button>
                 </motion.div>
@@ -3655,6 +3670,7 @@ import Link from 'next/link';
 import {
   ArrowLeft,
   Sparkles,
+  ArrowRight,
   Heart,
   CheckCircle,
   Quote,
@@ -3933,8 +3949,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     suggestionsDict={suggestionsDict}
                     profileCardDict={profileCardDict}
                     suggestionDemoDict={dict.suggestionDemo}
-                                  locale={locale} // <-- ✨ 3. העבר את locale לרכיב הבן
-
+                    locale={locale} // <-- ✨ 3. העבר את locale לרכיב הבן
                   />
                 </div>
               </div>
@@ -4060,7 +4075,11 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                 >
                   <span className="relative z-10 flex items-center justify-center">
                     {dict.finalCta.button}
-                    <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    {locale === 'he' ? (
+                      <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                    ) : (
+                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    )}{' '}
                   </span>
                 </Button>
               </Link>
@@ -5328,9 +5347,11 @@ import type { PrivacyAssuranceDict } from '@/types/dictionary';
 // --- Type Definition for Component Props ---
 interface PrivacyAssuranceProps {
   dict: PrivacyAssuranceDict;
+    locale: 'he' | 'en';
+
 }
 
-const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({ dict }) => {
+const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({ dict, locale }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
@@ -5516,15 +5537,19 @@ import React, { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import TestimonialCard from '../components/TestimonialCard';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft , ArrowRight} from 'lucide-react';
 import type { SuccessStoriesDict } from '@/types/dictionary';
 
 // --- Type Definition for Component Props ---
 interface SuccessStoriesProps {
   dict: SuccessStoriesDict;
+  locale: 'he' | 'en';
 }
 
-const SuccessStoriesSection: React.FC<SuccessStoriesProps> = ({ dict }) => {
+const SuccessStoriesSection: React.FC<SuccessStoriesProps> = ({
+  dict,
+  locale,
+}) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.01 });
 
@@ -5651,7 +5676,11 @@ const SuccessStoriesSection: React.FC<SuccessStoriesProps> = ({ dict }) => {
               className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl group"
             >
               <span>{dict.more_stories_button}</span>
-              <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              {locale === 'he' ? (
+                <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+              ) : (
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              )}{' '}
             </Button>
           </motion.div>
 

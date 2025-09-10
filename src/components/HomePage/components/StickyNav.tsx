@@ -124,10 +124,11 @@ const StickyNav: React.FC<StickyNavProps> = ({
   }, [navLinks, isMobile]); // Dependencies remain the same
 
   const handleLinkClick = (
-    e: React.MouseEvent<HTMLAnchorElement>,
+    e: React.PointerEvent<HTMLAnchorElement>, // שנה את סוג האירוע
     href: string
   ) => {
     e.preventDefault();
+
     const element = document.querySelector(href);
     if (element) {
       const navHeight = isMobile ? 64 : 80;
@@ -201,7 +202,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                   <a
                     key={link.id}
                     href={`#${link.id}`}
-                    onClick={(e) => handleLinkClick(e, `#${link.id}`)}
+                    onPointerDown={(e) => handleLinkClick(e, `#${link.id}`)}
                     className={cn(
                       'relative px-3 py-2 rounded-full text-sm transition-colors duration-200',
                       activeSection === link.id
@@ -232,7 +233,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                       <a
                         key={link.id}
                         href={`#${link.id}`}
-                        onClick={(e) => handleLinkClick(e, `#${link.id}`)}
+                        onPointerDown={(e) => handleLinkClick(e, `#${link.id}`)}
                         className={cn(
                           'relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0',
                           activeSection === link.id

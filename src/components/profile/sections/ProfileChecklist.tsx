@@ -82,12 +82,19 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
     (missingItems && missingItems.length > 0) ||
     (worldProgress && worldProgress.length > 0);
   const isExpanded = isActive && canExpand;
-  const handleInteraction = () => {
+
+  // --- שינוי 1: שם הפונקציה שונה כדי לשקף את השימוש ב-onPointerDown ---
+  const handleInteraction = (event: React.PointerEvent) => {
     if (isCompleted) return;
+
+    // מונע מהאירוע להפעיל אירועי עכבר מדומים שעלולים לגרום ללחיצה כפולה
+    event.preventDefault();
+
     if (onClick) {
       onClick();
     }
   };
+
   const cardContent = (
     <>
       <div className="relative w-full flex justify-center mb-3">
@@ -116,7 +123,7 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
               damping: 20,
               delay: 0.2,
             }}
-            className="absolute -top-1 -end-1" // Updated: from -right-1 to -end-1 for RTL support
+            className="absolute -top-1 -end-1"
           >
             <CheckCircle
               className="w-5 h-5 text-emerald-500 bg-white rounded-full p-0.5"
@@ -148,8 +155,9 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
       </Link>
     ) : (
       <button
-        onClick={handleInteraction}
-        className="h-full w-full text-start" // Updated: from text-left to text-start
+        // --- שינוי 2: החלפת onClick ב-onPointerDown ---
+        onPointerDown={handleInteraction}
+        className="h-full w-full text-start"
         disabled={isCompleted}
       >
         {cardContent}
@@ -159,27 +167,21 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
   return (
     <motion.div
       layout
-      // onMouseEnter has been removed from here
       className={cn(
         'relative flex flex-col rounded-2xl transition-all duration-300 group overflow-hidden',
         isCompleted ? 'bg-white/40' : 'bg-white/70 shadow-md',
         isExpanded && 'shadow-xl bg-white'
       )}
     >
-      <div
-        className={cn(
-          'p-4 relative', // Added 'relative'
-          !isCompleted && 'cursor-pointer'
-        )}
-      >
+      <div className={cn('p-4 relative', !isCompleted && 'cursor-pointer')}>
         {interactiveContent}
-        {/* START: Added expansion button */}
         {canExpand && !isCompleted && (
           <Button
             variant="ghost"
             size="icon"
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent card's main click from firing
+            // --- שינוי 3: החלפת onClick ב-onPointerDown בכפתור ההרחבה ---
+            onPointerDown={(e) => {
+              e.stopPropagation(); // עדיין חשוב מאוד למנוע bubbling
               setActiveItemId((prev) => (prev === id ? null : id));
             }}
             className="absolute bottom-1 end-1 w-8 h-8 rounded-full text-gray-500 hover:bg-gray-200/50"
@@ -192,7 +194,6 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
             )}
           </Button>
         )}
-        {/* END: Added expansion button */}
       </div>
       <AnimatePresence>
         {isExpanded && (
@@ -210,8 +211,6 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
               </h4>
               {missingItems && (
                 <ul className="list-disc ps-4 space-y-1.5 text-gray-600 text-xs">
-                  {' '}
-                  {/* Updated: from pr-4 to ps-4 */}
                   {missingItems.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
@@ -230,7 +229,8 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
                           world.isDone ? 'text-emerald-600' : 'text-gray-700'
                         )}
                       >
-                        {world.world}
+                        {WORLD_NAMES_MAP[world.world as WorldKey] ||
+                          world.world}
                       </span>
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-xs">
