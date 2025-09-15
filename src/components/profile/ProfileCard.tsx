@@ -3141,6 +3141,41 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       (profile.preferredHobbies && profile.preferredHobbies.length > 0)
     );
   }, [profile]);
+  const hasEducationAndCareerDetails = useMemo(() => {
+    return (
+      !!profile.educationLevel ||
+      !!profile.education ||
+      !!profile.occupation ||
+      !!profile.serviceType ||
+      !!profile.serviceDetails
+    );
+  }, [
+    profile.educationLevel,
+    profile.education,
+    profile.occupation,
+    profile.serviceType,
+    profile.serviceDetails,
+  ]);
+
+  const hasFamilyBackgroundDetails = useMemo(() => {
+    return (
+      !!profile.parentStatus ||
+      !!profile.fatherOccupation ||
+      !!profile.motherOccupation ||
+      (profile.siblings !== null && profile.siblings !== undefined) ||
+      !!profile.position ||
+      !!profile.aliyaCountry ||
+      !!profile.aliyaYear
+    );
+  }, [
+    profile.parentStatus,
+    profile.fatherOccupation,
+    profile.motherOccupation,
+    profile.siblings,
+    profile.position,
+    profile.aliyaCountry,
+    profile.aliyaYear,
+  ]);
 
   const orderedImages = useMemo(() => {
     const validImages = (images || []).filter((img) => img.url);
@@ -3186,10 +3221,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     return true;
   };
 
+  // הקוד המתוקן
   const getVisibleAnswers = useCallback(
     (world: keyof NonNullable<QuestionnaireResponse['formattedAnswers']>) => {
-      if (!questionnaire?.formattedAnswers?.[world]) return [];
-      return questionnaire.formattedAnswers[world].filter((a) => {
+      // התיקון: המרת המפתח לאותיות גדולות (UPPERCASE)
+      const worldKey = world.toUpperCase() as keyof NonNullable<
+        QuestionnaireResponse['formattedAnswers']
+      >;
+
+      // שימוש במפתח המתוקן כדי לגשת לנתונים
+      if (!questionnaire?.formattedAnswers?.[worldKey]) return [];
+
+      return questionnaire.formattedAnswers[worldKey].filter((a) => {
         const hasContent = isRawValueAnswered(a.rawValue);
         if (!hasContent) return false;
         if (viewMode === 'matchmaker') return true;
@@ -3859,172 +3902,182 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   />
                 )}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-                  <SectionCard
-                    title={displayDict.content.educationAndCareer}
-                    subtitle={displayDict.content.academicAndProfessionalPath}
-                    icon={GraduationCap}
-                    variant="elegant"
-                    gradient={THEME.colors.secondary.sky}
-                  >
-                    <div className="space-y-4 sm:space-y-5">
-                      <DetailItem
-                        icon={GraduationCap}
-                        label={displayDict.content.detailLabels.educationLevel}
-                        value={
-                          formatEnumValue(
-                            profile.educationLevel,
-                            educationLevelMap,
-                            displayDict.placeholders.willDiscover
-                          ).label
-                        }
-                        variant="highlight"
-                        textAlign="start"
-                        placeholder={displayDict.placeholders.willDiscover}
-                      />
-                      {profile.education && (
-                        <DetailItem
-                          icon={BookOpen}
-                          label={
-                            displayDict.content.detailLabels.educationDetails
-                          }
-                          value={profile.education}
-                          variant="elegant"
-                          valueClassName="whitespace-pre-wrap"
-                          placeholder={displayDict.placeholders.willDiscover}
-                        />
-                      )}
-                      <DetailItem
-                        icon={Briefcase}
-                        label={
-                          displayDict.content.detailLabels.professionalField
-                        }
-                        value={
-                          profile.occupation ||
-                          displayDict.placeholders.professionWaiting
-                        }
-                        variant="elegant"
-                        textAlign="start"
-                        placeholder={displayDict.placeholders.willDiscover}
-                      />
-                      <DetailItem
-                        icon={Award}
-                        label={displayDict.content.detailLabels.militaryService}
-                        value={
-                          formatEnumValue(
-                            profile.serviceType,
-                            serviceTypeMap,
-                            displayDict.placeholders.willDiscover
-                          ).label
-                        }
-                        variant="elegant"
-                        textAlign="start"
-                        placeholder={displayDict.placeholders.willDiscover}
-                      />
-                      {profile.serviceDetails && (
-                        <DetailItem
-                          icon={InfoIcon}
-                          label={
-                            displayDict.content.detailLabels.serviceDetails
-                          }
-                          value={profile.serviceDetails}
-                          variant="elegant"
-                          valueClassName="whitespace-pre-wrap"
-                          placeholder={displayDict.placeholders.willDiscover}
-                        />
-                      )}
-                    </div>
-                  </SectionCard>
-                  <SectionCard
-                    title={displayDict.content.familyAndCulturalBackground}
-                    subtitle={displayDict.content.familyThatShapedMe}
-                    icon={Users2}
-                    variant="romantic"
-                    gradient={THEME.colors.primary.accent}
-                  >
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                      <DetailItem
-                        icon={Users2}
-                        label={displayDict.content.detailLabels.parentStatus}
-                        value={
-                          profile.parentStatus ||
-                          displayDict.placeholders.willDiscover
-                        }
-                        variant="elegant"
-                        textAlign="start"
-                        placeholder={displayDict.placeholders.willDiscover}
-                      />
-                      {profile.fatherOccupation && (
-                        <DetailItem
-                          icon={Briefcase}
-                          label={
-                            displayDict.content.detailLabels.fatherOccupation
-                          }
-                          value={profile.fatherOccupation}
-                          variant="elegant"
-                          textAlign="start"
-                          placeholder={displayDict.placeholders.willDiscover}
-                        />
-                      )}
-                      {profile.motherOccupation && (
-                        <DetailItem
-                          icon={Briefcase}
-                          label={
-                            displayDict.content.detailLabels.motherOccupation
-                          }
-                          value={profile.motherOccupation}
-                          variant="elegant"
-                          textAlign="start"
-                          placeholder={displayDict.placeholders.willDiscover}
-                        />
-                      )}
-                      <DetailItem
-                        icon={Users}
-                        label={displayDict.content.detailLabels.siblings}
-                        value={
-                          profile.siblings
-                            ? `${profile.siblings} אחים/אחיות`
-                            : displayDict.placeholders.willDiscover
-                        }
-                        variant="elegant"
-                        textAlign="start"
-                        placeholder={displayDict.placeholders.willDiscover}
-                      />
-                      <DetailItem
-                        icon={Crown}
-                        label={displayDict.content.detailLabels.birthOrder}
-                        value={
-                          profile.position
-                            ? `מקום ${profile.position}`
-                            : displayDict.placeholders.willDiscover
-                        }
-                        variant="elegant"
-                        textAlign="start"
-                        placeholder={displayDict.placeholders.willDiscover}
-                      />
-                      {profile.aliyaCountry && (
-                        <DetailItem
-                          icon={Globe}
-                          label={
-                            displayDict.content.detailLabels.countryOfOrigin
-                          }
-                          value={`${profile.aliyaCountry} - השורשים שלי`}
-                          variant="elegant"
-                          textAlign="start"
-                          placeholder={displayDict.placeholders.willDiscover}
-                        />
-                      )}
-                      {profile.aliyaYear && (
-                        <DetailItem
-                          icon={Calendar}
-                          label={displayDict.content.detailLabels.aliyaYear}
-                          value={`${profile.aliyaYear} - הגעתי הביתה`}
-                          variant="elegant"
-                          textAlign="start"
-                          placeholder={displayDict.placeholders.willDiscover}
-                        />
-                      )}
-                    </div>
-                  </SectionCard>
+                  {hasEducationAndCareerDetails && (
+                    <SectionCard
+                      title={displayDict.content.educationAndCareer}
+                      subtitle={displayDict.content.academicAndProfessionalPath}
+                      icon={GraduationCap}
+                      variant="elegant"
+                      gradient={THEME.colors.secondary.sky}
+                    >
+                      <div className="space-y-4 sm:space-y-5">
+                        {profile.educationLevel && (
+                          <DetailItem
+                            icon={GraduationCap}
+                            label={
+                              displayDict.content.detailLabels.educationLevel
+                            }
+                            value={
+                              formatEnumValue(
+                                profile.educationLevel,
+                                educationLevelMap,
+                                ''
+                              ).label
+                            }
+                            variant="highlight"
+                            textAlign="start"
+                            placeholder=""
+                          />
+                        )}
+                        {profile.education && (
+                          <DetailItem
+                            icon={BookOpen}
+                            label={
+                              displayDict.content.detailLabels.educationDetails
+                            }
+                            value={profile.education}
+                            variant="elegant"
+                            valueClassName="whitespace-pre-wrap"
+                            placeholder={displayDict.placeholders.willDiscover}
+                          />
+                        )}
+                        {profile.occupation && (
+                          <DetailItem
+                            icon={Briefcase}
+                            label={
+                              displayDict.content.detailLabels.professionalField
+                            }
+                            value={profile.occupation}
+                            variant="elegant"
+                            textAlign="start"
+                            placeholder=""
+                          />
+                        )}
+                        {profile.serviceType && (
+                          <DetailItem
+                            icon={Award}
+                            label={
+                              displayDict.content.detailLabels.militaryService
+                            }
+                            value={
+                              formatEnumValue(
+                                profile.serviceType,
+                                serviceTypeMap,
+                                ''
+                              ).label
+                            }
+                            variant="elegant"
+                            textAlign="start"
+                            placeholder=""
+                          />
+                        )}
+
+                        {profile.serviceDetails && (
+                          <DetailItem
+                            icon={InfoIcon}
+                            label={
+                              displayDict.content.detailLabels.serviceDetails
+                            }
+                            value={profile.serviceDetails}
+                            variant="elegant"
+                            valueClassName="whitespace-pre-wrap"
+                            placeholder={displayDict.placeholders.willDiscover}
+                          />
+                        )}
+                      </div>
+                    </SectionCard>
+                  )}
+                  {hasFamilyBackgroundDetails && (
+                    <SectionCard
+                      title={displayDict.content.familyAndCulturalBackground}
+                      subtitle={displayDict.content.familyThatShapedMe}
+                      icon={Users2}
+                      variant="romantic"
+                      gradient={THEME.colors.primary.accent}
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                        {profile.parentStatus && (
+                          <DetailItem
+                            icon={Users2}
+                            label={
+                              displayDict.content.detailLabels.parentStatus
+                            }
+                            value={profile.parentStatus}
+                            variant="elegant"
+                            textAlign="start"
+                            placeholder=""
+                          />
+                        )}
+                        {profile.fatherOccupation && (
+                          <DetailItem
+                            icon={Briefcase}
+                            label={
+                              displayDict.content.detailLabels.fatherOccupation
+                            }
+                            value={profile.fatherOccupation}
+                            variant="elegant"
+                            textAlign="start"
+                            placeholder={displayDict.placeholders.willDiscover}
+                          />
+                        )}
+                        {profile.motherOccupation && (
+                          <DetailItem
+                            icon={Briefcase}
+                            label={
+                              displayDict.content.detailLabels.motherOccupation
+                            }
+                            value={profile.motherOccupation}
+                            variant="elegant"
+                            textAlign="start"
+                            placeholder={displayDict.placeholders.willDiscover}
+                          />
+                        )}
+                        {profile.siblings !== null &&
+                          profile.siblings !== undefined && (
+                            <DetailItem
+                              icon={Users}
+                              label={displayDict.content.detailLabels.siblings}
+                              value={`${profile.siblings} אחים/אחיות`}
+                              variant="elegant"
+                              textAlign="start"
+                              placeholder=""
+                            />
+                          )}
+                        {profile.position && (
+                          <DetailItem
+                            icon={Crown}
+                            label={displayDict.content.detailLabels.birthOrder}
+                            value={`מקום ${profile.position}`}
+                            variant="elegant"
+                            textAlign="start"
+                            placeholder=""
+                          />
+                        )}
+                        {profile.aliyaCountry && (
+                          <DetailItem
+                            icon={Globe}
+                            label={
+                              displayDict.content.detailLabels.countryOfOrigin
+                            }
+                            value={`${profile.aliyaCountry} - השורשים שלי`}
+                            variant="elegant"
+                            textAlign="start"
+                            placeholder={displayDict.placeholders.willDiscover}
+                          />
+                        )}
+                        {profile.aliyaYear && (
+                          <DetailItem
+                            icon={Calendar}
+                            label={displayDict.content.detailLabels.aliyaYear}
+                            value={`${profile.aliyaYear} - הגעתי הביתה`}
+                            variant="elegant"
+                            textAlign="start"
+                            placeholder={displayDict.placeholders.willDiscover}
+                          />
+                        )}
+                      </div>
+                    </SectionCard>
+                  )}
                 </div>
                 {valuesContent.deeperAnswers.length > 0 && (
                   <SectionCard
@@ -4084,20 +4137,22 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   gradient={THEME.colors.primary.gold}
                 >
                   <div className="space-y-4 sm:space-y-5">
-                    <DetailItem
-                      icon={BookMarked}
-                      label="השקפת העולם שמנחה אותי"
-                      value={
-                        formatEnumValue(
-                          profile.religiousLevel,
-                          religiousLevelMap,
-                          displayDict.placeholders.willDiscover
-                        ).label
-                      }
-                      variant="highlight"
-                      textAlign="start"
-                      placeholder={displayDict.placeholders.willDiscover}
-                    />
+                    {profile.religiousLevel && (
+                      <DetailItem
+                        icon={BookMarked}
+                        label="השקפת העולם שמנחה אותי"
+                        value={
+                          formatEnumValue(
+                            profile.religiousLevel,
+                            religiousLevelMap,
+                            ''
+                          ).label
+                        }
+                        variant="highlight"
+                        textAlign="start"
+                        placeholder=""
+                      />
+                    )}
                     {profile.religiousJourney && (
                       <DetailItem
                         icon={Compass}
@@ -4116,23 +4171,26 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         placeholder={displayDict.placeholders.willDiscover}
                       />
                     )}
-                    <DetailItem
-                      icon={Heart}
-                      label={displayDict.content.detailLabels.shomerNegiah}
-                      value={
-                        formatBooleanPreference(
-                          profile.shomerNegiah,
-                          {
-                            ...displayDict.booleanPrefs,
-                            willDiscover: displayDict.placeholders.willDiscover,
-                          },
-                          true
-                        ).label
-                      }
-                      variant="elegant"
-                      textAlign="start"
-                      placeholder={displayDict.placeholders.willDiscover}
-                    />
+                    {profile.shomerNegiah !== null &&
+                      profile.shomerNegiah !== undefined && (
+                        <DetailItem
+                          icon={Heart}
+                          label={displayDict.content.detailLabels.shomerNegiah}
+                          value={
+                            formatBooleanPreference(
+                              profile.shomerNegiah,
+                              {
+                                ...displayDict.booleanPrefs,
+                                willDiscover: '',
+                              },
+                              true
+                            ).label
+                          }
+                          variant="elegant"
+                          textAlign="start"
+                          placeholder=""
+                        />
+                      )}
                     {profile.gender === 'FEMALE' && profile.headCovering && (
                       <DetailItem
                         icon={Crown}
@@ -4437,41 +4495,44 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 >
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <DetailItem
-                        icon={Phone}
-                        label={
-                          displayDict.content.professionalInfo.contactPreference
-                        }
-                        value={
-                          formatEnumValue(
-                            profile.contactPreference,
-                            contactPreferenceMap,
-                            displayDict.placeholders.willDiscover
-                          ).label
-                        }
-                        variant="elegant"
-                        textAlign="start"
-                        placeholder={displayDict.placeholders.willDiscover}
-                      />
-                      <DetailItem
-                        icon={Users}
-                        label={
-                          displayDict.content.professionalInfo
-                            .matchmakerGenderPref
-                        }
-                        value={
-                          profile.preferredMatchmakerGender
-                            ? profile.preferredMatchmakerGender === 'MALE'
+                      {profile.contactPreference && (
+                        <DetailItem
+                          icon={Phone}
+                          label={
+                            displayDict.content.professionalInfo
+                              .contactPreference
+                          }
+                          value={
+                            formatEnumValue(
+                              profile.contactPreference,
+                              contactPreferenceMap,
+                              ''
+                            ).label
+                          }
+                          variant="elegant"
+                          textAlign="start"
+                          placeholder=""
+                        />
+                      )}
+                      {profile.preferredMatchmakerGender && (
+                        <DetailItem
+                          icon={Users}
+                          label={
+                            displayDict.content.professionalInfo
+                              .matchmakerGenderPref
+                          }
+                          value={
+                            profile.preferredMatchmakerGender === 'MALE'
                               ? displayDict.content.professionalInfo
                                   .matchmakerMale
                               : displayDict.content.professionalInfo
                                   .matchmakerFemale
-                            : displayDict.content.professionalInfo.noPreference
-                        }
-                        variant="elegant"
-                        textAlign="start"
-                        placeholder={displayDict.placeholders.willDiscover}
-                      />
+                          }
+                          variant="elegant"
+                          textAlign="start"
+                          placeholder=""
+                        />
+                      )}
                     </div>
                     {profile.hasMedicalInfo && (
                       <DetailItem
@@ -4750,62 +4811,72 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               className="min-w-0 max-w-full"
             >
               <div className="grid grid-cols-1 gap-2 sm:gap-3 min-w-0 max-w-full">
-                <DetailItem
-                  icon={BookMarked}
-                  label={dict.display.keyFacts.outlook}
-                  value={
-                    formatEnumValue(
-                      profile.religiousLevel,
-                      religiousLevelMap,
+                {profile.religiousLevel && (
+                  <DetailItem
+                    icon={BookMarked}
+                    label={dict.display.keyFacts.outlook}
+                    value={
+                      formatEnumValue(
+                        profile.religiousLevel,
+                        religiousLevelMap,
+                        displayDict.placeholders.willDiscover
+                      ).label
+                    }
+                    variant="elegant"
+                    size="sm"
+                    useMobileLayout={true}
+                    textAlign="center"
+                    placeholder={displayDict.placeholders.willDiscover}
+                  />
+                )}
+                {profile.shomerNegiah !== null &&
+                  profile.shomerNegiah !== undefined && (
+                    <DetailItem
+                      icon={Heart}
+                      label={displayDict.content.detailLabels.shomerNegiah}
+                      value={
+                        formatBooleanPreference(profile.shomerNegiah, {
+                          ...displayDict.booleanPrefs,
+                          willDiscover: displayDict.placeholders.willDiscover,
+                        }).label
+                      }
+                      variant="elegant"
+                      size="sm"
+                      useMobileLayout={true}
+                      placeholder={displayDict.placeholders.willDiscover}
+                    />
+                  )}
+                {profile.occupation && (
+                  <DetailItem
+                    icon={Briefcase}
+                    label={dict.display.keyFacts.occupation}
+                    value={
+                      profile.occupation ||
                       displayDict.placeholders.willDiscover
-                    ).label
-                  }
-                  variant="elegant"
-                  size="sm"
-                  useMobileLayout={true}
-                  textAlign="center"
-                  placeholder={displayDict.placeholders.willDiscover}
-                />
-                <DetailItem
-                  icon={Heart}
-                  label={displayDict.content.detailLabels.shomerNegiah}
-                  value={
-                    formatBooleanPreference(profile.shomerNegiah, {
-                      ...displayDict.booleanPrefs,
-                      willDiscover: displayDict.placeholders.willDiscover,
-                    }).label
-                  }
-                  variant="elegant"
-                  size="sm"
-                  useMobileLayout={true}
-                  placeholder={displayDict.placeholders.willDiscover}
-                />
-                <DetailItem
-                  icon={Briefcase}
-                  label={dict.display.keyFacts.occupation}
-                  value={
-                    profile.occupation || displayDict.placeholders.willDiscover
-                  }
-                  variant="elegant"
-                  size="sm"
-                  useMobileLayout={true}
-                  placeholder={displayDict.placeholders.willDiscover}
-                />
-                <DetailItem
-                  icon={GraduationCap}
-                  label={displayDict.content.detailLabels.educationLevel}
-                  value={
-                    formatEnumValue(
-                      profile.educationLevel,
-                      educationLevelMap,
-                      displayDict.placeholders.willDiscover
-                    ).label
-                  }
-                  variant="elegant"
-                  size="sm"
-                  useMobileLayout={true}
-                  placeholder={displayDict.placeholders.willDiscover}
-                />
+                    }
+                    variant="elegant"
+                    size="sm"
+                    useMobileLayout={true}
+                    placeholder={displayDict.placeholders.willDiscover}
+                  />
+                )}
+                {profile.educationLevel && (
+                  <DetailItem
+                    icon={GraduationCap}
+                    label={displayDict.content.detailLabels.educationLevel}
+                    value={
+                      formatEnumValue(
+                        profile.educationLevel,
+                        educationLevelMap,
+                        displayDict.placeholders.willDiscover
+                      ).label
+                    }
+                    variant="elegant"
+                    size="sm"
+                    useMobileLayout={true}
+                    placeholder={displayDict.placeholders.willDiscover}
+                  />
+                )}
               </div>
             </SectionCard>
             <SectionCard

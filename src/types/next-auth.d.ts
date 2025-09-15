@@ -169,8 +169,8 @@ export interface QuestionnaireResponse extends Omit<PrismaQuestionnaireResponse,
   religionAnswers: QuestionAnswers | Prisma.JsonValue | null;
 
   // This formattedAnswers seems like a client-side computed property
-  formattedAnswers?: {
-    [key: string]: FormattedAnswer[]; // <--- התיקון! עכשיו הוא משתמש בטיפוס הנכון
+ formattedAnswers?: {
+    [key in WorldId | Uppercase<WorldId>]?: FormattedAnswer[];
   } | null;
   // Other fields from PrismaQuestionnaireResponse are inherited
   // id: string;

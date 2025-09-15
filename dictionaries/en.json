@@ -101,11 +101,7 @@
         "shortTitle": "Full Story",
         "description": "Our in-depth questionnaire translates who you are into a rich narrative, allowing for a genuine connection from the very first moment."
       },
-      {
-        "title": "Complete Privacy, Total Control",
-        "shortTitle": "Complete Privacy",
-        "description": "Your profile is only visible to your personal matchmaker. Every step and sharing of information is done only with your explicit approval."
-      },
+     { "title": "A Discreet & Managed Process", "shortTitle": "Discretion", "description": "Your profile is visible only to our team of matchmakers, who act on your behalf. They present you in a controlled manner only to potential matches, after a high probability of success has been identified." },
       {
         "title": "Smart Technology, Human Heart",
         "shortTitle": "Human Heart",
@@ -149,8 +145,7 @@
         },
         {
      "bold": "Absolute Discretion:",
-"text": "Your profile remains completely confidential and is accessible only to our matchmaking team. When a potential match is found, your profile will be shared with the other party only after receiving your explicit approval, ensuring you are always in full control of who sees your information."
-},
+"text": "Your profile is completely confidential and accessible only to our matchmaking team, who act as your ambassadors. As part of the service, they present it in a focused and respectful manner to relevant potential matches to create high-quality opportunities for you."},
         {
           "bold": "Respect for Tradition, Tools of Tomorrow:",
           "text": "A platform that understands and respects your world of values, using technology to make the search more efficient and respectful."
@@ -369,8 +364,7 @@
       },
       {
         "question": "How is my privacy maintained?",
-        "answer": "Privacy is a supreme value and our absolute commitment. Your profile is visible only to the small team of matchmakers handling your case. Personal details and photos are disclosed to the other party only after we have received your explicit approval for each suggestion. Your information will never be sold or shared with any outside party. You are in complete control of your story."
-      },
+        "answer":"Privacy is a core value and our absolute commitment. Your profile is visible only to your matchmaking team. As part of the professional process, your matchmaker presents your profile to potential matches identified as having a high likelihood of success. This process is handled discreetly and with focus. Your information will never be exposed in a public database or shared with external parties." },
       {
         "question": "Your questionnaire seems in-depth. Is it really necessary?",
         "answer": "Absolutely, and it's your biggest advantage. The questionnaire is not a \"form,\" but a guided \"discovery journey\" that examines five key worlds in your life. This brief initial investment is what allows us and our technology to truly get to know you, saving you valuable time on irrelevant suggestions, and presenting you with matches based on depth and shared values, not just superficial details."
@@ -391,8 +385,7 @@
       "Your profile is visible only to your personal matchmaking team, ensuring complete discretion.",
       "Every conversation and detail you share with us is kept confidential, using advanced security technologies.",
       "Your information is sacred. It will never be sold or shared with any party outside the system. That's a promise.",
-      "You are in full control. No detail will be revealed to a potential match without your explicit approval."
-    ]
+"Your matchmakers act on your behalf. As part of the matchmaking process, they present your profile in a controlled manner to the other party, only when they identify a high potential for a match."    ]
   },
   "cta": {
     "title_part1": "Your Journey to a Relationship",
