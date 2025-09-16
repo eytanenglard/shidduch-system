@@ -170,21 +170,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         );
         const data = await response.json();
         if (data.success && data.questionnaireResponse) {
-          const formattedQuestionnaire = {
-            ...data.questionnaireResponse,
-            formattedAnswers: {
-              values: data.questionnaireResponse.formattedAnswers.values || [],
-              personality:
-                data.questionnaireResponse.formattedAnswers.personality || [],
-              relationship:
-                data.questionnaireResponse.formattedAnswers.relationship || [],
-              partner:
-                data.questionnaireResponse.formattedAnswers.partner || [],
-              religion:
-                data.questionnaireResponse.formattedAnswers.religion || [],
-            },
-          };
-          setQuestionnaireResponse(formattedQuestionnaire);
+          // קוד מתוקן
+          setQuestionnaireResponse(data.questionnaireResponse);
         }
       } catch (error) {
         console.error('Failed to load questionnaire:', error);
