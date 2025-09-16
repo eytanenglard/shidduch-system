@@ -457,12 +457,14 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     }
   };
 
+  // src/app/[locale]/(authenticated)/profile/components/dashboard/UnifiedProfileDashboard.tsx
+
   const handleQuestionnaireUpdate = async (
     world: string,
     questionId: string,
-    value: UpdateValue // <-- שימוש בטיפוס הנכון במקום any
+    value: UpdateValue
   ) => {
-    setIsLoading(true);
+    // אין צורך ב-setIsLoading(true) כאן, כי loadData עושה זאת בעצמו.
     try {
       const payload = { worldKey: world, questionId: questionId, value };
       const response = await fetch('/api/profile/questionnaire', {
@@ -473,22 +475,29 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 
       const data = await response.json();
       if (data.success) {
-        setQuestionnaireResponse(data.data);
         toast.success(dict.dashboard.tabContent.questionnaireUpdateSuccess);
         setError('');
+
+        // ✨ התיקון: במקום לעדכן עם תגובה חלקית מהשרת,
+        // נטען מחדש את כל המידע כדי להבטיח סנכרון מלא.
+        await loadData();
       } else {
         const errorMsg =
           data.message || dict.dashboard.tabContent.questionnaireUpdateError;
         setError(errorMsg);
         toast.error(errorMsg);
+        // במקרה של שגיאה, נחזיר את המצב הטעינה לקדמותו
+        setIsLoading(false);
       }
     } catch (err) {
       console.error('Failed to update questionnaire:', err);
       setError(dict.dashboard.tabContent.questionnaireUpdateError);
       toast.error(dict.dashboard.tabContent.questionnaireUpdateError);
-    } finally {
+      // גם במקרה של חריגה, נחזיר את המצב הטעינה לקדמותו
       setIsLoading(false);
     }
+    // פונקציית loadData כבר משנה את isLoading ל-false בסופה,
+    // כך שאין צורך בלוק 'finally'.
   };
 
   // --- סוף החלק שהושלם ---

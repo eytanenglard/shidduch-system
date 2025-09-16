@@ -1,6 +1,7 @@
 // src/app/components/profile/sections/QuestionnaireResponsesSection.tsx
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
 import {
   Card,
@@ -206,29 +207,48 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     }
   };
 
-  const renderAnswerContent = () => {
-    if (
-      answer.questionType === 'budgetAllocation' &&
-      typeof answer.rawValue === 'object' &&
-      answer.rawValue !== null &&
-      !Array.isArray(answer.rawValue)
-    ) {
-      const budgetData = answer.rawValue as Record<string, number>;
-      return (
-        <BudgetDisplay
-          data={budgetData}
-          dict={dict.budgetDisplay}
-          locale={locale}
-        />
-      );
-    }
-    return (
-      <p className="text-sm text-gray-800 break-words overflow-wrap-anywhere whitespace-pre-wrap">
-        {answer.displayText}
-      </p>
-    );
-  };
 
+const renderAnswerContent = () => {
+  // --- START: התיקון המרכזי ---
+  if (
+    answer.questionType === 'budgetAllocation' &&
+    typeof answer.rawValue === 'object' &&
+    answer.rawValue !== null &&
+    !Array.isArray(answer.rawValue)
+  ) {
+    // השרת כבר הכין לנו את הטקסט המתורגם ב-displayText.
+    // נשתמש בו ונוסיף את העיצוב הגרפי.
+    const budgetData = answer.rawValue as Record<string, number>;
+    
+    // פיצול ה-displayText כדי לקבל את התוויות המתורגמות
+    const displayItems = answer.displayText.split(' | ').map(item => {
+      const parts = item.split(': ');
+      return { label: parts[0].trim(), value: parseInt(parts[1], 10) };
+    });
+
+    return (
+      <div className="w-full space-y-3">
+        {displayItems.map(({ label, value }) => (
+          <div key={label}>
+            <div className="flex justify-between items-center text-sm mb-1">
+              <span className="text-gray-800 font-medium">{label}</span>
+              <span className="text-gray-600 font-semibold">{value}{question.includes('%') ? '%' : ''}</span>
+            </div>
+            <Progress value={value} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  // --- END: התיקון המרכזי ---
+  
+  // הלוגיקה הקיימת לשאר סוגי השאלות נשארת זהה
+  return (
+    <p className="text-sm text-gray-800 break-words overflow-wrap-anywhere whitespace-pre-wrap">
+      {answer.displayText}
+    </p>
+  );
+};
   const getVisibilityTooltip = () => {
     if (isEditingGlobally) {
       return currentIsVisible
@@ -337,54 +357,52 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               </TooltipProvider>
             </div>
 
-            {isEditingGlobally && !isSaving && (
-              <div className="absolute top-0 end-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center">
-                <TooltipProvider delayDuration={200}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-red-500 hover:bg-red-50"
-                        onClick={handleDelete}
-                        disabled={isSaving}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">{t.editTooltip.delete}</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" dir={direction}>
-                      <p>{t.editTooltip.delete}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
 
-                {/* --- START: התיקון המרכזי כאן --- */}
-                {/* איחוד כפתור העריכה כך שתמיד יקשר לשאלון הראשי */}
-                <TooltipProvider delayDuration={200}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        asChild
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-cyan-600 hover:bg-cyan-50"
-                      >
-                        {/* שימוש בתג <a> כדי לכפות ריענון, כפי שהיה בתיקון המקורי */}
-                        <a href={editUrl}>
-                          <Pencil className="h-4 w-4" />
-                          <span className="sr-only">{editTooltipText}</span>
-                        </a>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" dir={direction}>
-                      <p>{editTooltipText}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                {/* --- END: התיקון המרכזי --- */}
-              </div>
-            )}
+{isEditingGlobally && !isSaving && (
+  // --- START: התיקון כאן ---
+  <div className="absolute top-0 end-0 opacity-100 transition-opacity duration-200 flex items-center">
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-red-500 hover:bg-red-50"
+            onClick={handleDelete}
+            disabled={isSaving}
+          >
+            <Trash2 className="h-4 w-4" />
+            <span className="sr-only">{t.editTooltip.delete}</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top" dir={direction}>
+          <p>{t.editTooltip.delete}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-cyan-600 hover:bg-cyan-50"
+          >
+            <a href={editUrl}>
+              <Pencil className="h-4 w-4" />
+              <span className="sr-only">{editTooltipText}</span>
+            </a>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top" dir={direction}>
+          <p>{editTooltipText}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  </div>
+)}
           </div>
           {/* --- END: שינויים --- */}
         </div>

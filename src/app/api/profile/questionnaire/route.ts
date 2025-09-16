@@ -30,8 +30,15 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const viewerLocale = (url.searchParams.get('locale') as Locale) || 'he';
     const targetUserId = url.searchParams.get('userId') || session.user.id;
+const isOwnProfile = session.user.id === targetUserId;
+const hasElevatedPermissions = 
+    session.user.role === UserRole.ADMIN || 
+    session.user.role === UserRole.MATCHMAKER;
+const canViewAllAnswers = isOwnProfile || hasElevatedPermissions;
+console.log(`---[ SERVER LOG | API questionnaire GET ]--- שליפת שאלון עבור: ${targetUserId}, צופה: ${session.user.id}, תפקיד צופה: ${session.user.role}, יכול לראות הכל: ${canViewAllAnswers}`);
 
-    console.log(`---[ SERVER LOG | API questionnaire GET ]--- שליפת שאלון עבור משתמש: ${targetUserId}, שפת צפייה: ${viewerLocale}`);
+console.log(`---[ SERVER LOG | API questionnaire GET ]--- שליפת שאלון עבור משתמש: ${targetUserId}, שפת צפייה: ${viewerLocale}, האם בעל הפרופיל: ${isOwnProfile}`);
+
 
     const rawQuestionnaire = await prisma.questionnaireResponse.findFirst({
       where: { userId: targetUserId },
@@ -46,7 +53,11 @@ export async function GET(req: Request) {
     console.log('---[ SERVER LOG | API questionnaire GET ]--- נתוני שאלון גולמיים מה-DB:', JSON.stringify(rawQuestionnaire, null, 2));
 
     // שימוש בפונקציית העיצוב החדשה
-    const formattedQuestionnaire = await formatQuestionnaireForDisplay(rawQuestionnaire, viewerLocale);
+const formattedQuestionnaire = await formatQuestionnaireForDisplay(
+  rawQuestionnaire,
+  viewerLocale,
+  canViewAllAnswers  // <-- הוספת הפרמטר החדש
+);    console.log('---[ DEBUG 4: FINAL API RESPONSE ]--- Data being sent to client:', JSON.stringify(formattedQuestionnaire.formattedAnswers, null, 2));
     console.log('---[ SERVER LOG | API questionnaire GET ]--- נתונים מעובדים שמוחזרים לקליינט:', JSON.stringify(formattedQuestionnaire, null, 2));
 
     return NextResponse.json({

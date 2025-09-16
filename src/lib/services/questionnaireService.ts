@@ -27,18 +27,21 @@ const allQuestionStructures: Record<WorldId, Question[]> = {
 };
 
 /**
- * Ta funkcja formatuje surowe odpowiedzi z kwestionariusza do wyświetlenia,
- * stosując dynamiczną logikę tłumaczenia w zależności od języka przeglądającego.
- * @param questionnaireResponse - Surowy obiekt kwestionariusza z bazy danych.
- * @param viewerLocale - Język interfejsu użytkownika przeglądającego profil.
- * @returns Obiekt QuestionnaireResponse ze sformatowanym polem 'formattedAnswers'.
+ * פונקציה זו מעצבת את התשובות הגולמיות מהשאלון לתצוגה,
+ * תוך שימוש בלוגיקת תרגום דינמית בהתאם לשפת הצופה.
+ * @param questionnaireResponse - אובייקט השאלון הגולמי ממסד הנתונים.
+ * @param viewerLocale - שפת הממשק של המשתמש הצופה בפרופיל.
+ * @returns אובייקט QuestionnaireResponse עם שדה 'formattedAnswers' מעוצב ומתורגם.
  */
 export async function formatQuestionnaireForDisplay(
   questionnaireResponse: QuestionnaireResponse,
-  viewerLocale: Locale
-): Promise<QuestionnaireResponse> {
-  console.log('---[ SERVER LOG | questionnaireService ]--- Rozpoczęcie przetwarzania odpowiedzi dla języka:', viewerLocale);
+  viewerLocale: Locale,
+   canViewAll: boolean // <-- הוספת הפרמטר החדש
 
+): Promise<QuestionnaireResponse> {
+  console.log('---[ SERVER LOG | questionnaireService ]--- מתחיל עיבוד תשובות עבור שפה:', viewerLocale);
+
+  // טעינת מילון התרגומים המתאים לשפת הצפייה
   const questionsDict = await getQuestionnaireQuestionsDictionary(viewerLocale);
 
   const formattedAnswers: { [key: string]: FormattedAnswer[] } = {};
@@ -48,70 +51,89 @@ export async function formatQuestionnaireForDisplay(
     const worldKey = `${world.toLowerCase()}Answers` as keyof QuestionnaireResponse;
     const rawAnswers = (questionnaireResponse[worldKey] as Prisma.JsonArray) || [];
     
-    console.log(`---[ SERVER LOG | questionnaireService ]--- Przetwarzanie świata "${world}". Znaleziono ${Array.isArray(rawAnswers) ? rawAnswers.length : 0} surowych odpowiedzi.`);
+    console.log(`---[ SERVER LOG | questionnaireService ]--- מעבד את עולם "${world}". נמצאו ${Array.isArray(rawAnswers) ? rawAnswers.length : 0} תשובות גולמיות.`);
     
     if (!Array.isArray(rawAnswers)) continue;
 
     formattedAnswers[world] = rawAnswers
       .map((rawAns: any): FormattedAnswer | null => {
-        // Upewnij się, że rawAns jest obiektem i ma questionId
+        // ולידציה בסיסית של מבנה התשובה
         if (typeof rawAns !== 'object' || rawAns === null || !rawAns.questionId) {
-            console.warn(`---[ SERVER LOG | questionnaireService ]--- Pomijanie nieprawidłowego wpisu odpowiedzi w świecie "${world}":`, rawAns);
+            console.warn(`---[ SERVER LOG | questionnaireService ]--- מדלג על רשומת תשובה לא תקינה בעולם "${world}":`, rawAns);
             return null;
         }
 
+        // איתור מבנה השאלה המקורי (מכיל הגדרות כמו type, totalPoints וכו')
         const questionStructure = allQuestionStructures[world].find(q => q.id === rawAns.questionId);
         if (!questionStructure) {
-            console.warn(`---[ SERVER LOG | questionnaireService ]--- Nie znaleziono struktury dla pytania ID "${rawAns.questionId}" w świecie "${world}".`);
+            console.warn(`---[ SERVER LOG | questionnaireService ]--- לא נמצאה הגדרת מבנה עבור שאלה עם ID "${rawAns.questionId}" בעולם "${world}".`);
             return null;
         }
 
+        // איתור התרגומים עבור השאלה הספציפית מהמילון שנטען
         const questionContent = questionsDict[world]?.[rawAns.questionId];
         if (!questionContent || !questionContent.question) {
-            console.warn(`---[ SERVER LOG | questionnaireService ]--- Brak treści w słowniku dla pytania ID "${rawAns.questionId}" w świecie "${world}".`);
+            console.warn(`---[ SERVER LOG | questionnaireService ]--- חסר תוכן במילון עבור שאלה עם ID "${rawAns.questionId}" בעולם "${world}".`);
             return null;
         }
 
-        let displayText = 'N/A';
+        let displayText = 'לא נענה';
         
-        // Zasada nr 2: Obsługa pytań otwartych
+        // --- לוגיקת עיצוב התשובות לפי סוג השאלה ---
+
         if (questionStructure.type === 'openText' && typeof rawAns.value === 'object' && rawAns.value?.text) {
-          displayText = rawAns.value.text; // Zawsze wyświetlaj oryginalny tekst
-        } 
-        // Zasada nr 1: Obsługa pytań zamkniętych
-        else if (typeof rawAns.value === 'string' && questionContent.options?.[rawAns.value]) {
-          // Pojedynczy wybór
+          // שאלת טקסט פתוח (עם תמיכה בשפה)
+          displayText = rawAns.value.text;
+        
+        } else if (typeof rawAns.value === 'string' && questionContent.options?.[rawAns.value]) {
+          // שאלת בחירה יחידה
           const optionContent = questionContent.options[rawAns.value];
           displayText = typeof optionContent === 'string' ? optionContent : optionContent.text;
+        
         } else if (Array.isArray(rawAns.value)) {
-          // Wielokrotny wybór
+          // שאלת בחירה מרובה
           displayText = rawAns.value
             .map(val => {
                 const optionContent = questionContent.options?.[val];
                 if (optionContent) {
                     return typeof optionContent === 'string' ? optionContent : optionContent.text;
                 }
-                // Obsługa opcji "inne"
                 if (typeof val === 'string' && val.startsWith('custom:')) {
                     return val.replace('custom:', '');
                 }
                 return val;
             })
             .join(', ');
+        
         } else if (typeof rawAns.value === 'number' && questionStructure.type === 'scale') {
-            // Skala ocen
+            // שאלת סולם
             displayText = `${rawAns.value} / ${questionStructure.max || 10}`;
+        
         } else if (typeof rawAns.value === 'object' && !Array.isArray(rawAns.value) && rawAns.value !== null && questionStructure.type === 'budgetAllocation') {
-            // Alokacja budżetu
-            displayText = Object.entries(rawAns.value)
+            // #############################################################
+            // # START: *** התיקון המרכזי והסופי לשאלות תקציב ***
+            // #############################################################
+            displayText = Object.entries(rawAns.value as Record<string, number>)
               .map(([key, val]) => {
-                  const categoryContent = questionContent.categories?.[key];
-                  const label = categoryContent ? (typeof categoryContent === 'string' ? categoryContent : categoryContent.label) : key;
-                  return `${label}: ${val}%`;
+                  // 1. שלוף את התרגום עבור המפתח (למשל, 'family_connections') מתוך המילון שנטען
+                  const translatedLabel = questionContent.categories?.[key];
+
+                  // 2. השתמש בתרגום אם נמצא, אחרת חזור למפתח המקורי באנגלית (כגיבוי)
+                  const finalLabel = translatedLabel || key;
+
+                  // 3. קבע את יחידת המידה: אם מוגדר `totalPoints`, אלו נקודות ולא אחוזים
+                  const unit = questionStructure.totalPoints ? '' : '%';
+                  
+                  // 4. הרכב את הטקסט הסופי לתצוגה
+                  return `${finalLabel}: ${val}${unit}`;
               })
-              .join(' | ');
+              .join(' | '); // הפרדה ברורה בין הפריטים
+            // #############################################################
+            // # END: *** התיקון המרכזי והסופי לשאלות תקציב ***
+            // #############################################################
+        
         } else if (rawAns.value !== null && rawAns.value !== undefined) {
-          // Fallback na wypadek, gdyby wartość nie została sformatowana
+          // גיבוי כללי לכל מקרה אחר
           displayText = String(rawAns.value);
         }
         
@@ -119,22 +141,28 @@ export async function formatQuestionnaireForDisplay(
           questionId: rawAns.questionId,
           question: questionContent.question,
           questionType: questionStructure.type,
-          rawValue: rawAns.value, // Zapisujemy oryginalną wartość (czy to klucz, czy obiekt)
+          rawValue: rawAns.value,
           displayText,
           isVisible: rawAns.isVisible ?? true,
           answeredAt: rawAns.answeredAt,
         };
       })
-      .filter((ans): ans is FormattedAnswer => ans !== null); // Najpierw filtruj nullowe, a potem isVisible
+      .filter((ans): ans is FormattedAnswer => ans !== null);
   }
 
-  // Drugi etap filtrowania dla isVisible, aby uniknąć błędów
-  for (const world in formattedAnswers) {
-      formattedAnswers[world] = formattedAnswers[world].filter(ans => ans.isVisible === true);
+// סינון תשובות שאינן גלויות (isVisible: false)
+// יתבצע רק אם הצופה הוא לא הבעלים של הפרופיל.
+  if (!canViewAll) { // <-- שימוש בשם החדש
+    console.log('---[ SERVER LOG | questionnaireService ]--- מבצע סינון תשובות מוסתרות עבור צופה ללא הרשאה.');
+    for (const world in formattedAnswers) {
+        formattedAnswers[world] = formattedAnswers[world].filter(ans => ans.isVisible === true);
+    }
+  } else {
+    console.log('---[ SERVER LOG | questionnaireService ]--- מדלג על סינון תשובות. לצופה יש הרשאה לראות הכל.');
   }
 
 
-  console.log('---[ SERVER LOG | questionnaireService ]--- Przetwarzanie zakończone. Sformatowana struktura danych:', JSON.stringify(formattedAnswers, null, 2));
+  console.log('---[ SERVER LOG | questionnaireService ]--- העיבוד הסתיים. מבנה הנתונים המעוצב:', JSON.stringify(formattedAnswers, null, 2));
 
   return {
     ...questionnaireResponse,
