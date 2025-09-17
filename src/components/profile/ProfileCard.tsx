@@ -3584,12 +3584,38 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               typeof answer.rawValue === 'object' &&
               answer.rawValue &&
               !Array.isArray(answer.rawValue) ? (
-                <BudgetDisplay
-                  data={answer.rawValue as Record<string, number>}
-                  dict={dict.budgetDisplay}
-                  locale={locale}
-                />
+                // --- START: התיקון ---
+                // אנו משתמשים בפונקציה המפעילה את עצמה כדי להכיל את לוגיקת הטרנספורמציה
+                (() => {
+                  // השרת מספק מחרוזת מתורגמת מראש ב-displayText, לדוגמה: "משפחה: 50% | חברים: 30%"
+                  // אנו מפרקים אותה בחזרה לאובייקט שהמפתחות שלו כבר מתורגמים.
+                  const translatedData = answer.displayText.split(' | ').reduce(
+                    (acc, item) => {
+                      const parts = item.split(': ');
+                      if (parts.length === 2) {
+                        const label = parts[0].trim();
+                        // הסרת תו ה-% והמרה למספר
+                        const value = parseInt(parts[1].replace('%', ''), 10);
+                        if (label && !isNaN(value)) {
+                          acc[label] = value;
+                        }
+                      }
+                      return acc;
+                    },
+                    {} as Record<string, number>
+                  );
+
+                  // כעת אנו מעבירים לרכיב התצוגה את האובייקט עם התוויות המתורגמות
+                  return (
+                    <BudgetDisplay
+                      data={translatedData}
+                      dict={dict.budgetDisplay}
+                      locale={locale}
+                    />
+                  );
+                })()
               ) : (
+                // --- END: התיקון ---
                 <p
                   className={cn(
                     'text-gray-700 leading-relaxed italic break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',

@@ -158,6 +158,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     };
   }, []);
 
+  // --- קוד חדש ומתוקן ---
   useEffect(() => {
     const loadQuestionnaire = async () => {
       if (!selectedCandidate) {
@@ -165,13 +166,22 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         return;
       }
       try {
+        // ✨ בניית פרמטרים בצורה בטוחה
+        const params = new URLSearchParams();
+        params.append('userId', selectedCandidate.id);
+        params.append('locale', locale); // ✨ הוספת פרמטר השפה החסר
+
         const response = await fetch(
-          `/api/profile/questionnaire?userId=${selectedCandidate.id}`
+          `/api/profile/questionnaire?${params.toString()}`
         );
+
         const data = await response.json();
         if (data.success && data.questionnaireResponse) {
-          // קוד מתוקן
           setQuestionnaireResponse(data.questionnaireResponse);
+        } else {
+          // טיפול במקרה שהתגובה לא מוצלחת
+          console.warn('Could not load questionnaire:', data.message);
+          setQuestionnaireResponse(null);
         }
       } catch (error) {
         console.error('Failed to load questionnaire:', error);
@@ -179,7 +189,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       }
     };
     loadQuestionnaire();
-  }, [selectedCandidate]);
+  }, [selectedCandidate, locale]); // ✨ הוספת locale למערך התלויות של ה-hook
+
 
   // Action handlers
   const handleInvite = async (candidate: Candidate, email: string) => {
