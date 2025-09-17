@@ -2869,7 +2869,7 @@ const ImageDialogComponent: React.FC<{
   );
 };
 
-const MobileTabNavigation: React.FC<{
+const TabNavigationButtons: React.FC<{
   activeTab: string;
   tabItems: {
     value: string;
@@ -2909,7 +2909,13 @@ const MobileTabNavigation: React.FC<{
   const NextIcon = direction === 'rtl' ? ChevronLeft : ChevronRight;
 
   return (
-    <div className="mt-8 pt-6 border-t border-gray-200/80 flex items-stretch justify-between gap-3 sm:gap-4 w-full">
+    <div
+      className={cn(
+        'mt-8 pt-6 border-t border-gray-200/80 flex items-stretch justify-between gap-3 sm:gap-4 w-full',
+        direction === 'rtl' && 'flex-row-reverse'
+      )}
+    >
+      {' '}
       {prevTab ? (
         <button
           className={cn(
@@ -2978,6 +2984,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   locale,
 }) => {
   const direction = locale === 'he' ? 'rtl' : 'ltr';
+
+  const contentScrollAreaRef = useRef<HTMLDivElement>(null);
 
   const profile = useMemo(
     () => ({
@@ -3057,9 +3065,21 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     activeTabRef.current = activeTab;
   }, [activeTab]);
 
+  // החלף את הפונקציה הקיימת בזו
   const handleTabChange = (newTab: string) => {
     if (activeTabRef.current === newTab) return;
+
     setActiveTab(newTab);
+
+    // גולל את אזור התוכן למעלה בעת החלפת טאב
+    setTimeout(() => {
+      const scrollViewport = contentScrollAreaRef.current?.querySelector(
+        '[data-radix-scroll-area-viewport]'
+      );
+      if (scrollViewport) {
+        scrollViewport.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 50); // השהיה קטנה כדי לאפשר לתוכן להתעדכן
   };
 
   const THEME = useMemo(
@@ -3175,6 +3195,30 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     profile.position,
     profile.aliyaCountry,
     profile.aliyaYear,
+  ]);
+  const hasUniqueTraitsOrHobbies = useMemo(() => {
+    return (
+      (profile.profileCharacterTraits &&
+        profile.profileCharacterTraits.length > 0) ||
+      (profile.profileHobbies && profile.profileHobbies.length > 0)
+    );
+  }, [profile.profileCharacterTraits, profile.profileHobbies]);
+
+  const hasJudaismConnectionDetails = useMemo(() => {
+    return (
+      !!profile.religiousLevel ||
+      !!profile.religiousJourney ||
+      (profile.shomerNegiah !== null && profile.shomerNegiah !== undefined) ||
+      (profile.gender === 'FEMALE' && !!profile.headCovering) ||
+      (profile.gender === 'MALE' && !!profile.kippahType)
+    );
+  }, [
+    profile.religiousLevel,
+    profile.religiousJourney,
+    profile.shomerNegiah,
+    profile.gender,
+    profile.headCovering,
+    profile.kippahType,
   ]);
 
   const orderedImages = useMemo(() => {
@@ -3585,17 +3629,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               answer.rawValue &&
               !Array.isArray(answer.rawValue) ? (
                 // --- START: התיקון ---
-                // אנו משתמשים בפונקציה המפעילה את עצמה כדי להכיל את לוגיקת הטרנספורמציה
                 (() => {
-                  // השרת מספק מחרוזת מתורגמת מראש ב-displayText, לדוגמה: "משפחה: 50% | חברים: 30%"
+                  // השרת מספק מחרוזת מתורגמת מראש ב-displayText.
                   // אנו מפרקים אותה בחזרה לאובייקט שהמפתחות שלו כבר מתורגמים.
                   const translatedData = answer.displayText.split(' | ').reduce(
                     (acc, item) => {
                       const parts = item.split(': ');
                       if (parts.length === 2) {
                         const label = parts[0].trim();
-                        // הסרת תו ה-% והמרה למספר
-                        const value = parseInt(parts[1].replace('%', ''), 10);
+                        const value = parseInt(
+                          parts[1].replace(/[^0-9]/g, ''),
+                          10
+                        );
                         if (label && !isNaN(value)) {
                           acc[label] = value;
                         }
@@ -3605,7 +3650,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     {} as Record<string, number>
                   );
 
-                  // כעת אנו מעבירים לרכיב התצוגה את האובייקט עם התוויות המתורגמות
                   return (
                     <BudgetDisplay
                       data={translatedData}
@@ -3655,7 +3699,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     };
   }, []);
 
-  const MainContentTabs = () => {
+  const MainContentTabs: React.FC<{ isDesktop: boolean }> = ({ isDesktop }) => {
     const activeTabConfig = tabItems.find((tab) => tab.value === activeTab);
 
     // --- START: Refactored Logic for Content Slicing ---
@@ -3736,6 +3780,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <ScrollArea
           id="profile-card-tabs-content"
           className="flex-1 overflow-auto h-full max-w-full"
+          ref={contentScrollAreaRef}
         >
           <div className="space-y-3 sm:space-y-4 md:space-y-6 p-1 sm:p-2 min-w-0 max-w-full">
             {!(activeTabConfig && activeTabConfig.hasContent) && (
@@ -3900,7 +3945,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </SectionCard>
                 )}
                 {!isDesktop && mobileViewLayout === 'detailed' && (
-                  <MobileTabNavigation
+                  <TabNavigationButtons
                     activeTab={activeTab}
                     tabItems={tabItems}
                     onTabChange={handleTabChange}
@@ -4128,7 +4173,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </SectionCard>
                 )}
                 {!isDesktop && mobileViewLayout === 'detailed' && (
-                  <MobileTabNavigation
+                  <TabNavigationButtons
                     activeTab={activeTab}
                     tabItems={tabItems}
                     onTabChange={handleTabChange}
@@ -4155,102 +4200,106 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     direction={direction}
                   />
                 )}
-                <SectionCard
-                  title={displayDict.content.myConnectionToJudaism}
-                  subtitle={displayDict.content.faithAndTraditionInMyLife}
-                  icon={BookMarked}
-                  variant="elegant"
-                  gradient={THEME.colors.primary.gold}
-                >
-                  <div className="space-y-4 sm:space-y-5">
-                    {profile.religiousLevel && (
-                      <DetailItem
-                        icon={BookMarked}
-                        label="השקפת העולם שמנחה אותי"
-                        value={
-                          formatEnumValue(
-                            profile.religiousLevel,
-                            religiousLevelMap,
-                            ''
-                          ).label
-                        }
-                        variant="highlight"
-                        textAlign="start"
-                        placeholder=""
-                      />
-                    )}
-                    {profile.religiousJourney && (
-                      <DetailItem
-                        icon={Compass}
-                        label={
-                          displayDict.content.detailLabels.religiousJourney
-                        }
-                        value={
-                          formatEnumValue(
-                            profile.religiousJourney,
-                            religiousJourneyMap,
-                            displayDict.placeholders.willDiscover
-                          ).label
-                        }
-                        variant="elegant"
-                        textAlign="start"
-                        placeholder={displayDict.placeholders.willDiscover}
-                      />
-                    )}
-                    {profile.shomerNegiah !== null &&
-                      profile.shomerNegiah !== undefined && (
+                {hasJudaismConnectionDetails && (
+                  <SectionCard
+                    title={displayDict.content.myConnectionToJudaism}
+                    subtitle={displayDict.content.faithAndTraditionInMyLife}
+                    icon={BookMarked}
+                    variant="elegant"
+                    gradient={THEME.colors.primary.gold}
+                  >
+                    <div className="space-y-4 sm:space-y-5">
+                      {profile.religiousLevel && (
                         <DetailItem
-                          icon={Heart}
-                          label={displayDict.content.detailLabels.shomerNegiah}
+                          icon={BookMarked}
+                          label="השקפת העולם שמנחה אותי"
                           value={
-                            formatBooleanPreference(
-                              profile.shomerNegiah,
-                              {
-                                ...displayDict.booleanPrefs,
-                                willDiscover: '',
-                              },
-                              true
+                            formatEnumValue(
+                              profile.religiousLevel,
+                              religiousLevelMap,
+                              ''
                             ).label
                           }
-                          variant="elegant"
+                          variant="highlight"
                           textAlign="start"
                           placeholder=""
                         />
                       )}
-                    {profile.gender === 'FEMALE' && profile.headCovering && (
-                      <DetailItem
-                        icon={Crown}
-                        label={displayDict.content.detailLabels.headCovering}
-                        value={
-                          formatEnumValue(
-                            profile.headCovering,
-                            headCoveringMap,
-                            displayDict.placeholders.willDiscover
-                          ).label
-                        }
-                        variant="elegant"
-                        textAlign="start"
-                        placeholder={displayDict.placeholders.willDiscover}
-                      />
-                    )}
-                    {profile.gender === 'MALE' && profile.kippahType && (
-                      <DetailItem
-                        icon={Crown}
-                        label={displayDict.content.detailLabels.kippahType}
-                        value={
-                          formatEnumValue(
-                            profile.kippahType,
-                            kippahTypeMap,
-                            displayDict.placeholders.willDiscover
-                          ).label
-                        }
-                        variant="elegant"
-                        textAlign="start"
-                        placeholder={displayDict.placeholders.willDiscover}
-                      />
-                    )}
-                  </div>
-                </SectionCard>
+                      {profile.religiousJourney && (
+                        <DetailItem
+                          icon={Compass}
+                          label={
+                            displayDict.content.detailLabels.religiousJourney
+                          }
+                          value={
+                            formatEnumValue(
+                              profile.religiousJourney,
+                              religiousJourneyMap,
+                              displayDict.placeholders.willDiscover
+                            ).label
+                          }
+                          variant="elegant"
+                          textAlign="start"
+                          placeholder={displayDict.placeholders.willDiscover}
+                        />
+                      )}
+                      {profile.shomerNegiah !== null &&
+                        profile.shomerNegiah !== undefined && (
+                          <DetailItem
+                            icon={Heart}
+                            label={
+                              displayDict.content.detailLabels.shomerNegiah
+                            }
+                            value={
+                              formatBooleanPreference(
+                                profile.shomerNegiah,
+                                {
+                                  ...displayDict.booleanPrefs,
+                                  willDiscover: '',
+                                },
+                                true
+                              ).label
+                            }
+                            variant="elegant"
+                            textAlign="start"
+                            placeholder=""
+                          />
+                        )}
+                      {profile.gender === 'FEMALE' && profile.headCovering && (
+                        <DetailItem
+                          icon={Crown}
+                          label={displayDict.content.detailLabels.headCovering}
+                          value={
+                            formatEnumValue(
+                              profile.headCovering,
+                              headCoveringMap,
+                              displayDict.placeholders.willDiscover
+                            ).label
+                          }
+                          variant="elegant"
+                          textAlign="start"
+                          placeholder={displayDict.placeholders.willDiscover}
+                        />
+                      )}
+                      {profile.gender === 'MALE' && profile.kippahType && (
+                        <DetailItem
+                          icon={Crown}
+                          label={displayDict.content.detailLabels.kippahType}
+                          value={
+                            formatEnumValue(
+                              profile.kippahType,
+                              kippahTypeMap,
+                              displayDict.placeholders.willDiscover
+                            ).label
+                          }
+                          variant="elegant"
+                          textAlign="start"
+                          placeholder={displayDict.placeholders.willDiscover}
+                        />
+                      )}
+                    </div>
+                  </SectionCard>
+                )}
                 {profile.influentialRabbi && (
                   <SectionCard
                     title={displayDict.content.inspiringSpiritualFigure}
@@ -4293,7 +4342,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </SectionCard>
                 )}
                 {!isDesktop && mobileViewLayout === 'detailed' && (
-                  <MobileTabNavigation
+                  <TabNavigationButtons
                     activeTab={activeTab}
                     tabItems={tabItems}
                     onTabChange={handleTabChange}
@@ -4395,7 +4444,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </SectionCard>
                 )}
                 {!isDesktop && mobileViewLayout === 'detailed' && (
-                  <MobileTabNavigation
+                  <TabNavigationButtons
                     activeTab={activeTab}
                     tabItems={tabItems}
                     onTabChange={handleTabChange}
@@ -4494,7 +4543,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </SectionCard>
                 )}
                 {!isDesktop && mobileViewLayout === 'detailed' && (
-                  <MobileTabNavigation
+                  <TabNavigationButtons
                     activeTab={activeTab}
                     tabItems={tabItems}
                     onTabChange={handleTabChange}
@@ -4604,7 +4653,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 </SectionCard>
                 {!isDesktop && mobileViewLayout === 'detailed' && (
-                  <MobileTabNavigation
+                  <TabNavigationButtons
                     activeTab={activeTab}
                     tabItems={tabItems}
                     onTabChange={handleTabChange}
@@ -4614,6 +4663,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   />
                 )}
               </TabsContent>
+            )}
+            {isDesktop && (
+              <TabNavigationButtons
+                activeTab={activeTab}
+                tabItems={tabItems}
+                onTabChange={handleTabChange}
+                THEME={THEME}
+                dict={displayDict.mobileNav}
+                direction={direction}
+              />
             )}
           </div>
         </ScrollArea>
@@ -4730,7 +4789,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             `bg-gradient-to-br ${THEME.colors.neutral.cool}`
           )}
         >
-          <MainContentTabs />
+          <MainContentTabs isDesktop={false} />
         </div>
       </div>
     </ScrollArea>
@@ -4774,7 +4833,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               `bg-gradient-to-br ${THEME.colors.neutral.warm}`
             )}
           >
-            {profile.about ? (
+            {profile.about && (
               <SectionCard
                 title={displayDict.content.focus.aboutMe}
                 subtitle={displayDict.content.focus.myStory}
@@ -4809,22 +4868,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     />
                   </p>
                 </div>
-              </SectionCard>
-            ) : (
-              <SectionCard
-                title={displayDict.content.focus.myStory}
-                subtitle={displayDict.content.focus.myStory}
-                icon={Telescope}
-                variant="romantic"
-                compact={true}
-              >
-                <EmptyState
-                  icon={Telescope}
-                  title={displayDict.content.emptyPrefsTitle}
-                  description={displayDict.content.emptyPrefsDescription}
-                  variant="romantic"
-                  compact={true}
-                />
               </SectionCard>
             )}
             <SectionCard
@@ -4905,94 +4948,96 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
               </div>
             </SectionCard>
-            <SectionCard
-              title={displayDict.content.focus.whatMakesMeUnique}
-              subtitle={displayDict.content.focus.traitsAndHobbies}
-              icon={Sparkles}
-              variant="romantic"
-              gradient={THEME.colors.primary.romantic}
-              compact={true}
-              className="min-w-0 max-w-full"
-            >
-              <div className="space-y-4 sm:space-y-5 min-w-0 max-w-full">
-                {profile.profileCharacterTraits &&
-                  profile.profileCharacterTraits.length > 0 && (
-                    <div className="min-w-0 max-w-full">
-                      <h4 className="text-sm font-bold text-purple-700 mb-2 sm:mb-3 flex items-center justify-center gap-2">
-                        <span className="break-words">
-                          {displayDict.content.focus.myTraits}
-                        </span>
-                        <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                      </h4>
-                      <div className="flex flex-wrap gap-2 min-w-0 max-w-full justify-center">
-                        {profile.profileCharacterTraits
-                          .slice(0, 4)
-                          .map((trait) => {
-                            const traitData = formatEnumValue(
-                              trait,
-                              characterTraitMap,
-                              trait,
+            {hasUniqueTraitsOrHobbies && (
+              <SectionCard
+                title={displayDict.content.focus.whatMakesMeUnique}
+                subtitle={displayDict.content.focus.traitsAndHobbies}
+                icon={Sparkles}
+                variant="romantic"
+                gradient={THEME.colors.primary.romantic}
+                compact={true}
+                className="min-w-0 max-w-full"
+              >
+                <div className="space-y-4 sm:space-y-5 min-w-0 max-w-full">
+                  {profile.profileCharacterTraits &&
+                    profile.profileCharacterTraits.length > 0 && (
+                      <div className="min-w-0 max-w-full">
+                        <h4 className="text-sm font-bold text-purple-700 mb-2 sm:mb-3 flex items-center justify-center gap-2">
+                          <span className="break-words">
+                            {displayDict.content.focus.myTraits}
+                          </span>
+                          <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        </h4>
+                        <div className="flex flex-wrap gap-2 min-w-0 max-w-full justify-center">
+                          {profile.profileCharacterTraits
+                            .slice(0, 4)
+                            .map((trait) => {
+                              const traitData = formatEnumValue(
+                                trait,
+                                characterTraitMap,
+                                trait,
+                                true
+                              );
+                              return (
+                                <Badge
+                                  key={trait}
+                                  className={cn(
+                                    'flex items-center gap-1 px-2 py-1 text-xs font-semibold min-w-0 max-w-full',
+                                    'bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800',
+                                    'border border-purple-200 rounded-full',
+                                    'break-words'
+                                  )}
+                                >
+                                  <traitData.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
+                                  <span className="break-words min-w-0 overflow-hidden">
+                                    {traitData.shortLabel || traitData.label}
+                                  </span>
+                                </Badge>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    )}
+                  {profile.profileHobbies &&
+                    profile.profileHobbies.length > 0 && (
+                      <div className="min-w-0 max-w-full">
+                        <h4 className="text-sm font-bold text-emerald-700 mb-2 sm:mb-3 flex items-center justify-center gap-2">
+                          <span className="break-words">
+                            {displayDict.content.focus.whatILove}
+                          </span>
+                          <Heart className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        </h4>
+                        <div className="flex flex-wrap gap-2 min-w-0 max-w-full justify-center">
+                          {profile.profileHobbies.slice(0, 4).map((hobby) => {
+                            const hobbyData = formatEnumValue(
+                              hobby,
+                              hobbiesMap,
+                              hobby,
                               true
                             );
                             return (
                               <Badge
-                                key={trait}
+                                key={hobby}
                                 className={cn(
                                   'flex items-center gap-1 px-2 py-1 text-xs font-semibold min-w-0 max-w-full',
-                                  'bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800',
-                                  'border border-purple-200 rounded-full',
+                                  'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-800',
+                                  'border border-emerald-200 rounded-full',
                                   'break-words'
                                 )}
                               >
-                                <traitData.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
+                                <hobbyData.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
                                 <span className="break-words min-w-0 overflow-hidden">
-                                  {traitData.shortLabel || traitData.label}
+                                  {hobbyData.shortLabel || hobbyData.label}
                                 </span>
                               </Badge>
                             );
                           })}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                {profile.profileHobbies &&
-                  profile.profileHobbies.length > 0 && (
-                    <div className="min-w-0 max-w-full">
-                      <h4 className="text-sm font-bold text-emerald-700 mb-2 sm:mb-3 flex items-center justify-center gap-2">
-                        <span className="break-words">
-                          {displayDict.content.focus.whatILove}
-                        </span>
-                        <Heart className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                      </h4>
-                      <div className="flex flex-wrap gap-2 min-w-0 max-w-full justify-center">
-                        {profile.profileHobbies.slice(0, 4).map((hobby) => {
-                          const hobbyData = formatEnumValue(
-                            hobby,
-                            hobbiesMap,
-                            hobby,
-                            true
-                          );
-                          return (
-                            <Badge
-                              key={hobby}
-                              className={cn(
-                                'flex items-center gap-1 px-2 py-1 text-xs font-semibold min-w-0 max-w-full',
-                                'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-800',
-                                'border border-emerald-200 rounded-full',
-                                'break-words'
-                              )}
-                            >
-                              <hobbyData.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
-                              <span className="break-words min-w-0 overflow-hidden">
-                                {hobbyData.shortLabel || hobbyData.label}
-                              </span>
-                            </Badge>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-              </div>
-            </SectionCard>
+                    )}
+                </div>
+              </SectionCard>
+            )}
             <div
               className={cn(
                 'text-center p-4 sm:p-6 rounded-2xl text-white min-w-0 max-w-full overflow-hidden',
@@ -5145,7 +5190,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   locale={locale}
                 />
                 <div className="p-4 sm:p-6 overflow-hidden flex max-w-full">
-                  <MainContentTabs />
+                  <MainContentTabs isDesktop={isDesktop} />
                 </div>
               </ScrollArea>
             </ResizablePanel>

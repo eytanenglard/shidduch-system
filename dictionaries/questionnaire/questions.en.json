@@ -82,14 +82,15 @@
       }
     },
     "personality_plan_change_reaction": {
-      "question": "An important plan you've been looking forward to is canceled at the last minute for a valid reason. How well do you 'go with the flow'?",
+      "question": "An important plan you've been looking forward to is canceled at the last minute for a valid reason. How well do you 'go with the flow'? (1 = Easily adapt, 10 = Very disappointed)",
       "helpText": "This explores our ability to cope with small disappointments, a key skill in partnership.",
       "labels": {
         "min": "Easily adapt",
         "max": "Very disappointed",
         "middle": "Disappointed, but I move on"
       }
-    },
+    }
+,
     "personality_stress_management_revised": {
       "question": "When you feel overwhelmed, what are your top 'go-to' strategies for resetting? (Choose up to 3)",
       "options": {
@@ -263,13 +264,14 @@
       }
     },
     "values_health_lifestyle_importance": {
-      "question": "To what extent are physical health, nutrition, and fitness a central value in your daily life?",
+      "question": "To what extent are physical health, nutrition, and fitness a central value in your daily life? (1 = Not a primary focus, 10 = A core part of my life)",
       "helpText": "Shared lifestyle habits contribute to daily harmony. Compatibility in this area can make building a life together smoother.",
       "labels": {
         "min": "Not a primary focus",
         "max": "A core part of my life"
       }
     },
+
     "values_feeling_of_home": {
       "question": "Beyond a physical space, what three things make you feel truly 'at home'?",
       "placeholder": "For example: The smell of cooking, favorite books, a sense of security, people who love me, order and cleanliness...",
@@ -300,13 +302,14 @@
       "helpText": "This scenario explores integrity and resourcefulness in action. The process you describe is what matters, not just the outcome."
     },
     "values_giving_tzedaka_importance_revised": {
-      "question": "How central is giving back (Tzedakah, volunteering, acts of kindness) to your life?",
+      "question": "How central is giving back (Tzedakah, volunteering, acts of kindness) to your life? (1 = Spontaneous, 10 = Systematic & Central)",
       "helpText": "1 = 'I give when an opportunity arises.' 10 = 'It is a planned and integral part of my life.'",
       "labels": {
         "min": "Spontaneous",
         "max": "Systematic & Central"
       }
     },
+
     "values_education_pursuit_revised": {
       "question": "What is your approach to learning and intellectual growth now that your formal education may be complete?",
       "options": {
@@ -322,12 +325,13 @@
       "helpText": "This is a common challenge. Your approach reveals maturity, communication skills, and how you manage complex loyalties."
     },
     "values_social_political_stance_importance_partner_revised": {
-      "question": "In a relationship, which is more important to you: general agreement on social and political issues, or the ability to have open, challenging discussions even with differing views?",
+      "question": "In a relationship, which is more important to you: general agreement on social and political issues, or the ability to have open, challenging discussions even with differing views? (1 = Open discussion is key, 10 = General alignment is vital)",
       "labels": {
         "min": "Open discussion is key",
         "max": "General alignment is vital"
       }
-    },
+    }
+,
     "values_dealing_with_disagreement_partner_revised": {
       "question": "When a deep disagreement on values arises with someone close to you, what do you believe is the most constructive approach?",
       "options": {
@@ -437,13 +441,14 @@
       }
     },
     "relationship_silent_treatment_view": {
-      "question": "What is your view on using the 'silent treatment' as a response to conflict in a relationship?",
+      "question": "What is your view on using the 'silent treatment' as a response to conflict in a relationship? (1 = Can be necessary sometimes, 10 = Harmful and unacceptable)",
       "helpText": "Please distinguish between a healthy 'time-out' to cool down and a prolonged silence used to punish.",
       "labels": {
         "min": "Can be necessary sometimes",
         "max": "Harmful and unacceptable"
       }
     },
+
     "relationship_partner_bad_day": {
       "question": "Your partner comes home after a terrible day, clearly upset. What is your most natural way of offering support?",
       "helpText": "This reveals your 'language of support' in action. There's no single right answer.",
@@ -460,21 +465,23 @@
       "helpText": "This question reveals your perspective on practical partnership, which goes far beyond who does the dishes."
     },
     "relationship_daily_togetherness_vs_autonomy_revised": {
-      "question": "In the balance between 'We' time and 'Me' time in a relationship, where do you naturally fall?",
+      "question": "In the balance between 'We' time and 'Me' time in a relationship, where do you naturally fall? (1 = I value independence and personal space, 10 = I thrive on shared time and activities)",
       "labels": {
         "min": "I value independence and personal space",
         "max": "I thrive on shared time and activities",
         "middle": "A healthy, flexible balance"
       }
     },
+
     "relationship_role_in_growth": {
-      "question": "What is more important to you in a partner: someone who accepts you completely as you are, or someone who challenges you to grow?",
+      "question": "What is more important to you in a partner: someone who accepts you completely as you are, or someone who challenges you to grow? (1 = Unconditional Acceptance, 10 = Mutual Growth & Challenge)",
       "helpText": "1 = 'Complete acceptance is key.' 10 = 'Helping each other grow is the goal.' Which speaks more to you?",
       "labels": {
         "min": "Unconditional Acceptance",
         "max": "Mutual Growth & Challenge"
       }
-    },
+    }
+,
     "relationship_celebrating_success": {
       "question": "Your partner achieves a major personal or professional milestone. What's your ideal way to celebrate their success together?",
       "placeholder": "For example: A romantic dinner, a surprise gathering with friends, a heartfelt conversation about what it means, a thoughtful gift...",
@@ -522,13 +529,14 @@
       }
     },
     "partner_appearance_importance_scale_revised": {
-      "question": "How significant is physical attraction in creating the initial spark for you?",
+      "question": "How significant is physical attraction in creating the initial spark for you? (1 = Personality is key, 10 = Essential for me)",
       "helpText": "Attraction is a key component of romance. Your honesty here helps us find matches where that spark is possible.",
       "labels": {
         "min": "Personality is key",
         "max": "Essential for me"
       }
     },
+
     "partner_intelligence_types": {
       "question": "When you think of an 'intelligent' partner, which type of intelligence do you value most? Allocate 100 points.",
       "helpText": "This helps us understand what kind of 'smarts' you're most drawn to.",
@@ -567,13 +575,14 @@
       }
     },
     "partner_financial_habits_scale": {
-      "question": "What approach to personal finances would you prefer in a partner?",
+      "question": "What approach to personal finances would you prefer in a partner? (1 = Cautious & Frugal, 10 = Generous & Spontaneous)",
       "helpText": "This isn't about wealth, but about their day-to-day financial mindset.",
       "labels": {
         "min": "Cautious & Frugal",
         "max": "Generous & Spontaneous"
       }
-    },
+    }
+,
     "partner_career_ambition_preference_revised": {
       "question": "What is your ideal perspective on a partner's career?",
       "options": {
@@ -659,7 +668,7 @@
       "helpText": "Your answer offers a beautiful glimpse into your inner spiritual world."
     },
     "religion_rabbinic_guidance_role_revised": {
-      "question": "When making significant life decisions, what role does spiritual guidance (from a Rabbi, Rebbetzin, or mentor) play for you?",
+      "question": "When making significant life decisions, what role does spiritual guidance (from a Rabbi, Rebbetzin, or mentor) play for you? (1 = I decide independently, 10 = I always consult)",
       "helpText": "1 = 'I rely primarily on my own judgment.' 10 = 'Consulting with a spiritual figure is an integral part of my process.'",
       "labels": {
         "min": "I decide independently",
@@ -667,6 +676,7 @@
         "middle": "For major issues"
       }
     },
+
     "religion_shabbat_experience": {
       "question": "What is the core experience you seek and receive from Shabbat?",
       "helpText": "Two people can observe Shabbat identically but experience it differently. What is your 'Shabbat experience'?",
@@ -709,13 +719,14 @@
       }
     },
     "religion_general_culture_consumption": {
-      "question": "What is your general approach to consuming mainstream culture (movies, music, books)?",
+      "question": "What is your general approach to consuming mainstream culture (movies, music, books)? (1 = I largely avoid it, 10 = I engage with it freely)",
       "helpText": "This practical question helps clarify the degree of openness or conservatism in daily life, which can prevent future friction.",
       "labels": {
         "min": "I largely avoid it",
         "max": "I engage with it freely"
       }
     },
+
     "religion_doubts_and_struggles": {
       "question": "How do you approach moments of spiritual questioning, doubt, or struggle, if and when they arise?",
       "placeholder": "For example: Do you tend to suppress them, discuss them with a mentor or friends, study the topic more deeply, or find strength in the process of wrestling with the question?",
@@ -727,13 +738,14 @@
       "helpText": "The phrase 'starting point' acknowledges that a relationship is a journey. We're looking for a match for the beginning of that shared journey."
     },
     "religion_flexibility_religious_differences_partner_revised": {
-      "question": "How flexible or open would you be if you discovered differences in halachic practice or religious outlook between you and a partner?",
+      "question": "How flexible or open would you be if you discovered differences in halachic practice or religious outlook between you and a partner? (1 = I have a very defined path, 10 = Very flexible and open)",
       "helpText": "Consider areas where you might have more or less room for compromise.",
       "labels": {
         "min": "I have a very defined path",
         "max": "Very flexible and open"
       }
-    },
+    }
+,
     "religion_gender_roles_philosophy": {
       "question": "In building a Jewish home, how do you envision the partnership regarding roles and responsibilities? Allocate 100 points.",
       "helpText": "This is a nuanced way to explore a complex topic. There is no right answer, only what feels right for you.",
