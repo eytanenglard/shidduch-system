@@ -207,48 +207,50 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     }
   };
 
+  const renderAnswerContent = () => {
+    // --- START: התיקון המרכזי ---
+    if (
+      answer.questionType === 'budgetAllocation' &&
+      typeof answer.rawValue === 'object' &&
+      answer.rawValue !== null &&
+      !Array.isArray(answer.rawValue)
+    ) {
+      // השרת כבר הכין לנו את הטקסט המתורגם ב-displayText.
+      // נשתמש בו ונוסיף את העיצוב הגרפי.
+      const budgetData = answer.rawValue as Record<string, number>;
 
-const renderAnswerContent = () => {
-  // --- START: התיקון המרכזי ---
-  if (
-    answer.questionType === 'budgetAllocation' &&
-    typeof answer.rawValue === 'object' &&
-    answer.rawValue !== null &&
-    !Array.isArray(answer.rawValue)
-  ) {
-    // השרת כבר הכין לנו את הטקסט המתורגם ב-displayText.
-    // נשתמש בו ונוסיף את העיצוב הגרפי.
-    const budgetData = answer.rawValue as Record<string, number>;
-    
-    // פיצול ה-displayText כדי לקבל את התוויות המתורגמות
-    const displayItems = answer.displayText.split(' | ').map(item => {
-      const parts = item.split(': ');
-      return { label: parts[0].trim(), value: parseInt(parts[1], 10) };
-    });
+      // פיצול ה-displayText כדי לקבל את התוויות המתורגמות
+      const displayItems = answer.displayText.split(' | ').map((item) => {
+        const parts = item.split(': ');
+        return { label: parts[0].trim(), value: parseInt(parts[1], 10) };
+      });
 
-    return (
-      <div className="w-full space-y-3">
-        {displayItems.map(({ label, value }) => (
-          <div key={label}>
-            <div className="flex justify-between items-center text-sm mb-1">
-              <span className="text-gray-800 font-medium">{label}</span>
-              <span className="text-gray-600 font-semibold">{value}{question.includes('%') ? '%' : ''}</span>
+      return (
+        <div className="w-full space-y-3">
+          {displayItems.map(({ label, value }) => (
+            <div key={label}>
+              <div className="flex justify-between items-center text-sm mb-1">
+                <span className="text-gray-800 font-medium">{label}</span>
+                <span className="text-gray-600 font-semibold">
+                  {value}
+                  {question.includes('%') ? '%' : ''}
+                </span>
+              </div>
+              <Progress value={value} />
             </div>
-            <Progress value={value} />
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      );
+    }
+    // --- END: התיקון המרכזי ---
+
+    // הלוגיקה הקיימת לשאר סוגי השאלות נשארת זהה
+    return (
+      <p className="text-sm text-gray-800 break-words overflow-wrap-anywhere whitespace-pre-wrap">
+        {answer.displayText}
+      </p>
     );
-  }
-  // --- END: התיקון המרכזי ---
-  
-  // הלוגיקה הקיימת לשאר סוגי השאלות נשארת זהה
-  return (
-    <p className="text-sm text-gray-800 break-words overflow-wrap-anywhere whitespace-pre-wrap">
-      {answer.displayText}
-    </p>
-  );
-};
+  };
   const getVisibilityTooltip = () => {
     if (isEditingGlobally) {
       return currentIsVisible
@@ -357,52 +359,51 @@ const renderAnswerContent = () => {
               </TooltipProvider>
             </div>
 
+            {isEditingGlobally && !isSaving && (
+              // --- START: התיקון כאן ---
+              <div className="absolute top-0 end-0 opacity-100 transition-opacity duration-200 flex items-center">
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-red-500 hover:bg-red-50"
+                        onClick={handleDelete}
+                        disabled={isSaving}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">{t.editTooltip.delete}</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" dir={direction}>
+                      <p>{t.editTooltip.delete}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
 
-{isEditingGlobally && !isSaving && (
-  // --- START: התיקון כאן ---
-  <div className="absolute top-0 end-0 opacity-100 transition-opacity duration-200 flex items-center">
-    <TooltipProvider delayDuration={200}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-red-500 hover:bg-red-50"
-            onClick={handleDelete}
-            disabled={isSaving}
-          >
-            <Trash2 className="h-4 w-4" />
-            <span className="sr-only">{t.editTooltip.delete}</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="top" dir={direction}>
-          <p>{t.editTooltip.delete}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-
-    <TooltipProvider delayDuration={200}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            asChild
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-cyan-600 hover:bg-cyan-50"
-          >
-            <a href={editUrl}>
-              <Pencil className="h-4 w-4" />
-              <span className="sr-only">{editTooltipText}</span>
-            </a>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="top" dir={direction}>
-          <p>{editTooltipText}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  </div>
-)}
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-cyan-600 hover:bg-cyan-50"
+                      >
+                        <a href={editUrl}>
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">{editTooltipText}</span>
+                        </a>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" dir={direction}>
+                      <p>{editTooltipText}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
           </div>
           {/* --- END: שינויים --- */}
         </div>
@@ -576,72 +577,70 @@ const QuestionnaireResponsesSection: React.FC<
   const headerT = t.header;
 
   return (
+
+
     <div className="space-y-6" dir={direction}>
       <Card className="shadow-sm border">
-        <CardHeader className="p-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              {questionnaire.completed ? (
-                <CheckCircle className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-              ) : (
-                <Clock className="h-5 w-5 text-blue-500 flex-shrink-0" />
-              )}
-              <div>
-                <p className="font-semibold text-base text-gray-800">
-                  {questionnaire.completed
-                    ? headerT.title.completed
-                    : headerT.title.inProgress}
-                </p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {hasAnyAnswers
-                    ? `${headerT.lastUpdated}: ${new Date(
-                        questionnaire.lastSaved
-                      ).toLocaleDateString(
-                        locale === 'he' ? 'he-IL' : 'en-US'
-                      )}`
-                    : headerT.notStarted}
-                </p>
-              </div>
+        <CardHeader className="p-6 space-y-4">
+          {/* שורה ראשונה - כותרת ומידע */}
+          <div className="flex items-center gap-3">
+            {questionnaire.completed ? (
+              <CheckCircle className="h-6 w-6 text-emerald-500 flex-shrink-0" />
+            ) : (
+              <Clock className="h-6 w-6 text-blue-500 flex-shrink-0" />
+            )}
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800">
+                {questionnaire.completed
+                  ? headerT.title.completed
+                  : headerT.title.inProgress}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {hasAnyAnswers
+                  ? `${headerT.lastUpdated}: ${new Date(
+                      questionnaire.lastSaved
+                    ).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US')}`
+                  : headerT.notStarted}
+              </p>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-2 self-end sm:self-center">
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="rounded-full px-4 py-2 text-xs sm:text-sm"
+          </div>
+
+          {/* שורה שנייה - כפתורים */}
+          <div className="flex items-center justify-center gap-3 pt-2 border-t border-gray-100">
+            <Button asChild variant="outline" size="sm" className="h-9 px-4">
+              <Link
+                href={QUESTIONNAIRE_URL}
+                className="flex items-center gap-2"
               >
-                <Link
-                  href={QUESTIONNAIRE_URL}
-                  className="flex items-center gap-1.5"
-                >
-                  {headerT.goToButton} <ArrowIcon className="h-4 w-4" />
-                </Link>
+                {headerT.goToButton}
+                <ArrowIcon className="h-4 w-4" />
+              </Link>
+            </Button>
+
+            {isEditable && hasAnyAnswers && onUpdate && (
+              <Button
+                variant={isEditingGlobally ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setIsEditingGlobally(!isEditingGlobally)}
+                className="h-9 px-4 gap-2"
+              >
+                {isEditingGlobally ? (
+                  <>
+                    <Save className="h-4 w-4" />
+                    {headerT.editButton.finish}
+                  </>
+                ) : (
+                  <>
+                    <Pencil className="h-4 w-4" />
+                    {headerT.editButton.start}
+                  </>
+                )}
               </Button>
-              {isEditable && hasAnyAnswers && onUpdate && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditingGlobally(!isEditingGlobally)}
-                  className="gap-1.5 rounded-full px-4 py-2 text-xs sm:text-sm"
-                >
-                  {isEditingGlobally ? (
-                    <>
-                      <Save className="h-4 w-4" />
-                      {headerT.editButton.finish}
-                    </>
-                  ) : (
-                    <>
-                      <Pencil className="h-4 w-4" />
-                      {headerT.editButton.start}
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
+            )}
           </div>
         </CardHeader>
       </Card>
-
+      {/* שאר הקוד נשאר זהה... */}
       {hasAnyAnswers ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {worldsWithAnswers.map(({ key, config, answers, isCompleted }) => (

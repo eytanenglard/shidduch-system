@@ -19,7 +19,10 @@ import { cn } from '@/lib/utils'; // Import cn utility
 
 import AnalysisResultDisplay from './AnalysisResultDisplay';
 import type { AiProfileAnalysisResult } from '@/lib/services/aiService';
-import { AIAdvisorDialogDict, AnalysisResultDisplayDict } from '@/types/dictionary';
+import {
+  AIAdvisorDialogDict,
+  AnalysisResultDisplayDict,
+} from '@/types/dictionary';
 
 interface AIProfileAdvisorDialogProps {
   userId: string;
@@ -35,7 +38,9 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
   locale,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [analysis, setAnalysis] = useState<AiProfileAnalysisResult | null>(null);
+  const [analysis, setAnalysis] = useState<AiProfileAnalysisResult | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,7 +75,10 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
         err instanceof Error ? err.message : 'An unexpected error occurred.';
       setError(errorMessage);
       toast.error(dict.toast.errorTitle, {
-        description: dict.toast.errorDescription.replace('{{error}}', errorMessage),
+        description: dict.toast.errorDescription.replace(
+          '{{error}}',
+          errorMessage
+        ),
       });
     } finally {
       setIsLoading(false);
@@ -108,26 +116,27 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
         className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0"
         dir={direction} // Dynamically set direction
       >
-        <DialogClose asChild>
-          <button
-            className={cn(
-              'absolute top-3 text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10',
-              direction === 'rtl' ? 'left-4' : 'right-4'
-            )}
-          >
-            <X className="h-5 w-5" />
-            <span className="sr-only">{dict.closeButton}</span>
-          </button>
-        </DialogClose>
-
         <DialogHeader className="p-4 border-b">
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Sparkles className="w-6 h-6 text-purple-500" />
-            <span>{dict.dialogTitle}</span>
-          </DialogTitle>
-          <DialogDescription>
-            {dict.dialogDescription}
-          </DialogDescription>
+          <div className="flex justify-between items-start gap-4">
+            {/* Wrapper for title and description */}
+            <div className="flex-grow">
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <Sparkles className="w-6 h-6 text-purple-500" />
+                <span>{dict.dialogTitle}</span>
+              </DialogTitle>
+              <DialogDescription className="mt-1">
+                {dict.dialogDescription}
+              </DialogDescription>
+            </div>
+
+            {/* Close Button - now part of the flex layout */}
+            <DialogClose asChild>
+              <button className="rounded-full p-1.5 text-gray-500 hover:text-gray-800 shrink-0 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                <X className="h-5 w-5" />
+                <span className="sr-only">{dict.closeButton}</span>
+              </button>
+            </DialogClose>
+          </div>
         </DialogHeader>
 
         <div className="flex-grow overflow-y-auto p-4 md:p-6 bg-slate-50/50">
