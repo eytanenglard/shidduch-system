@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html dir="{{#if (eq locale 'he')}}rtl{{else}}ltr{{/if}}" lang="{{locale}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{dict.title}}</title>
+    <style>
+        body { 
+            font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; 
+            direction: {{#if (eq locale 'he')}}rtl{{else}}ltr{{/if}}; 
+            text-align: {{#if (eq locale 'he')}}right{{else}}left{{/if}}; 
+            line-height: 1.6; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f8f9fa; 
+            color: #343a40; 
+        }
+        
+        .email-container { 
+            max-width: 600px; 
+            margin: 20px auto; 
+            background-color: #ffffff; 
+            border: 1px solid #dee2e6; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+            overflow: hidden; 
+        }
+        
+        .email-header { 
+            background-color: #06b6d4; 
+            color: #ffffff; 
+            padding: 25px; 
+            text-align: center; 
+            border-bottom: 5px solid #0891b2; 
+        }
+        
+        .email-header h1 { 
+            margin: 0; 
+            font-size: 24px; 
+            font-weight: 600; 
+        }
+        
+        .email-body { 
+            padding: 25px 30px; 
+            font-size: 16px; 
+        }
+        
+        .email-body p { 
+            margin-bottom: 1em; 
+        }
+        
+        /* Progress Section - משופר */
+        .progress-section {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .progress-title {
+            color: #0891b2;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar-container {
+            background-color: #e1e5e9;
+            border-radius: 20px;
+            height: 24px;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #06b6d4, #0891b2);
+            height: 100%;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            transition: width 0.8s ease-in-out;
+            min-width: 60px;
+        }
+        
+        .progress-text {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        
+        /* AI Summary - משופר */
+        .ai-summary {
+            background: linear-gradient(135deg, #fefce8, #fef3c7);
+            border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .ai-summary h4 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: #b45309;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .ai-summary p {
+            margin: 8px 0;
+            font-style: italic;
+            color: #78716c;
+            line-height: 1.5;
+        }
+        
+        .ai-disclaimer {
+            font-size: 14px; 
+            color: #64748b; 
+            margin-top: 8px;
+        }
+        
+        /* Status Cards - משופר */
+        .status-section {
+            margin: 25px 0;
+        }
+        
+        .status-section h2 {
+            font-size: 20px; 
+            color: #4f46e5; 
+            margin-bottom: 20px; 
+            padding-bottom: 10px; 
+            border-bottom: 2px solid #e0e7ff;
+        }
+        
+        .status-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .status-card {
+            border-radius: 8px;
+            padding: 18px;
+            border: 1px solid;
+        }
+        
+        .completed-card {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border-color: #bbf7d0;
+        }
+        
+        .missing-card {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border-color: #fde68a;
+        }
+        
+        .status-card h4 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .completed-card h4 {
+            color: #15803d;
+        }
+        
+        .missing-card h4 {
+            color: #b45309;
+        }
+        
+        .status-card ul {
+            padding-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 0;
+            margin: 0;
+            list-style: none;
+        }
+        
+        .status-card li {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: flex-start;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .status-card li::before {
+            margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 8px;
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        
+        .completed-card li::before {
+            content: '✅';
+        }
+        
+        .missing-card li::before {
+            content: '📝';
+        }
+        
+        /* Questionnaire Section - משופר */
+        .questionnaire-section {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 18px;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .questionnaire-section::before {
+            content: '📋';
+            position: absolute;
+            top: 15px;
+            {{#if (eq locale 'he')}}right{{else}}left{{/if}}: 15px;
+            font-size: 20px;
+        }
+        
+        .questionnaire-section h4 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: #0e7490;
+            font-size: 16px;
+            font-weight: 600;
+            padding-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 35px;
+        }
+        
+        .questionnaire-section ul {
+            padding-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 0;
+            margin: 0;
+            list-style: none;
+        }
+        
+        .questionnaire-section li {
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .questionnaire-section a {
+            color: #0891b2;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .questionnaire-section a:hover {
+            text-decoration: underline;
+        }
+        
+        .world-label {
+            color: #64748b; 
+            font-size: 12px;
+        }
+        
+        /* CTA Section - משופר */
+        .cta-section {
+            text-align: center;
+            margin: 30px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+        }
+        
+        .cta-section h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 20px;
+            color: #1e293b;
+        }
+        
+        .cta-section p {
+            color: #64748b;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #06b6d4;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .button:hover {
+            background-color: #0891b2;
+        }
+        
+        /* Footer - כמו בתבניות אחרות */
+        .footer {
+            background-color: #f1f3f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .footer a {
+            color: #06b6d4;
+            text-decoration: none;
+        }
+        
+        /* Responsive - לכיסוי מובייל */
+        @media (max-width: 600px) {
+            .status-cards {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .email-body {
+                padding: 20px;
+            }
+            
+            .email-header {
+                padding: 20px;
+            }
+            
+            .email-header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>{{dict.title}}</h1>
+        </div>
+        
+        <div class="email-body">
+            <p style="font-size: 18px;">{{greeting}}</p>
+            
+            {{#if isAutomated}}
+                <p>{{dict.systemIntro}}</p>
+            {{else}}
+                <p>{{dict.matchmakerIntro}}</p>
+            {{/if}}
+
+            <!-- Progress Section -->
+            <div class="progress-section">
+                <div class="progress-title">{{dict.progressHeader}}</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: {{report.completionPercentage}}%;">{{report.completionPercentage}}%</div>
+                </div>
+                <div class="progress-text">השקעת עד כה והגעת ל-<strong>{{report.completionPercentage}}% השלמה</strong>. כל הכבוד! עוד מאמץ קטן והפרופיל שלך יהיה מוכן למצוא את ההתאמה המושלמת.</div>
+            </div>
+
+            {{#if report.aiSummary}}
+            <!-- AI Summary -->
+            <div class="ai-summary">
+                <h4>{{dict.aiSummaryHeader}}</h4>
+                <p><strong>{{dict.aiSummary.personalityTitle}}:</strong> "{{report.aiSummary.personality}}"</p>
+                <p style="margin-top: 15px;"><strong>{{dict.aiSummary.lookingForTitle}}:</strong> "{{report.aiSummary.lookingFor}}"</p>
+            </div>
+            
+            <p class="ai-disclaimer">זוהי רק טעימה מהתובנות שה-AI שלנו יכול להפיק מפרופיל מלא. ככל שתוסיף יותר מידע, כך נוכל לחדד יותר את ההתאמות עבורך.</p>
+            {{/if}}
+
+            <!-- Status Section -->
+            <div class="status-section">
+                <h2>סטטוס הפרופיל שלך</h2>
+                
+                <div class="status-cards">
+                    <div class="status-card completed-card">
+                        <h4>כל הכבוד! מה שכבר השלמת:</h4>
+                        <ul>
+                            {{#each report.completedProfileItems}}
+                                <li>{{this}}</li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                    
+                    <div class="status-card missing-card">
+                        <h4>השלב הבא: מה חסר:</h4>
+                        <ul>
+                             {{#each report.missingProfileItems}}
+                                <li>{{this}}</li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                </div>
+                
+                {{#if report.missingQuestionnaireItems}}
+                <div class="questionnaire-section">
+                    <h4>שאלות להשלמה בשאלון המעמיק:</h4>
+                     <ul>
+                        {{#each report.missingQuestionnaireItems}}
+                            <li>
+                                <a href="{{this.link}}">"{{this.question}}"</a> 
+                                <span class="world-label">(מעולם {{this.world}})</span>
+                            </li>
+                        {{/each}}
+                    </ul>
+                </div>
+                {{/if}}
+            </div>
+
+            <!-- CTA Section -->
+            <div class="cta-section">
+                <h3>{{dict.cta.title}}</h3>
+                <p>השלמת הפרופיל מגדילה משמעותית את הסיכוי למצוא התאמה איכותית.</p>
+                <a href="{{baseUrl}}/profile" class="button">{{dict.cta.button}}</a>
+            </div>
+
+        </div>
+        
+        <div class="footer">
+             <p>{{sharedDict.supportPrompt}} <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+             <p>{{sharedDict.rightsReserved}}</p>
+        </div>
+    </div>
+</body>
+</html>

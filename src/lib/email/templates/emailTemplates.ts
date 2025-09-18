@@ -2,6 +2,7 @@
 
 import { EmailDictionary } from '@/types/dictionary';
 import { Locale } from '../../../../i18n-config'; // ודא שהנתיב נכון
+import { ProfileFeedbackReport } from '@/lib/services/profileFeedbackService'; // ייבוא חדש
 
 // --- הגדרות טיפוסים לקונטקסט של כל תבנית ---
 
@@ -13,6 +14,12 @@ interface BaseTemplateContext {
   baseUrl: string;
   sharedDict: EmailDictionary['shared'];
   name: string;
+}
+export interface ProfileFeedbackTemplateContext extends BaseTemplateContext {
+  dict: EmailDictionary['profileFeedback'];
+  report: ProfileFeedbackReport;
+  isAutomated: boolean;
+  matchmakerName: string;
 }
 
 // הגדרות ספציפיות
@@ -95,9 +102,9 @@ export type TemplateContextMap = {
   availabilityCheck: AvailabilityCheckTemplateContext;
   passwordResetOtp: PasswordResetOtpTemplateContext;
   passwordChangedConfirmation: PasswordChangedConfirmationTemplateContext;
-  // ================= הוספת התבנית החדשה למפה =================
   'internal-feedback-notification': InternalFeedbackNotificationTemplateContext;
-  // ==========================================================
+  // שים לב: אנחנו משאירים את הטיפוס כאן, אך לא נגדיר עבורו פונקציה
+  'profileFeedback': ProfileFeedbackTemplateContext;
 };
 
 // --- פונקציית עזר ליצירת HTML בסיסי לאימיילים פנימיים ---
@@ -261,7 +268,16 @@ export const emailTemplates: {
       context
     );
   },
-
+'profileFeedback': (context) => {
+    // כאן, במקום לבנות HTML ידנית, אנו משתמשים במנוע התבניות
+    // שנטען על ידי השרת שלך (למשל, hbs). הלוגיקה עצמה נמצאת בקובץ ה-hbs.
+    // הקוד כאן רק צריך להעביר את האובייקט 'context' למנוע העיבוד.
+    // לצורך הדוגמה, אני מדמה את זה. ודא שהתשתית שלך תומכת בזה.
+    const Handlebars = require('handlebars'); // ייבוא סימבולי
+    const templateSource = require('./profile-feedback.hbs'); // טעינה סימבולית של הקובץ
+    const compiledTemplate = Handlebars.compile(templateSource);
+    return compiledTemplate(context);
+},
   shareContactDetails: (context) => {
     const contactInfoHtml = [
       context.otherPartyContact.phone && `<p><strong>טלפון:</strong> ${context.otherPartyContact.phone}</p>`,

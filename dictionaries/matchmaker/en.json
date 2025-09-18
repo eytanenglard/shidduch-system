@@ -154,7 +154,9 @@
         "deleteCandidateError": "Error deleting candidate",
         "sendInviteErrorEmail": "Please enter a valid email address.",
         "sendInviteErrorGeneral": "Error sending invitation.",
-        "sendInviteSuccess": "Account setup invitation sent successfully!"
+        "sendInviteSuccess": "Account setup invitation sent successfully!",
+                  "aiSummarySuccess": "AI draft generated successfully!",
+          "aiSummaryError": "Error generating AI draft"
       },
       "header": {
         "title": "Edit Profile - {{firstName}} {{lastName}}",
@@ -201,9 +203,17 @@
           "delete": "Permanently Delete Candidate",
           "deleting": "Deleting..."
         }
-      }
+      },
+       "neshamaTechSummary": {
+          "title": "Introduction Summary (Matchmaker's Perspective)",
+          "description": "This summary, written by you (with AI assistance), will be displayed on the candidate's profile, providing the professional and personal touch of NeshamaTech.",
+          "aiButton": "Generate Draft with AI",
+          "aiButtonLoading": "Generating draft...",
+          "placeholder": "Write your professional summary of the candidate here..."
+        }
     }
 ,
+
     "actionDialogs": {
       "invite": {
         "title": "Send Invitation to Candidate",
@@ -608,6 +618,23 @@
         }
       }
     },
+      "profileFeedbackDialog": {
+    "title": "Profile Feedback Report for {{name}}",
+    "preparingEmail": "Preparing email draft...",
+    "emailSubject": "Your Personal Report from NeshamaTech, {{name}}",
+    "editPrompt": "This is an automated draft. You can edit the content before sending.",
+    "buttons": {
+      "cancel": "Cancel",
+      "send": "Send Email",
+      "sending": "Sending..."
+    },
+    "toasts": {
+      "loadError": "Error preparing the email draft.",
+      "sendSuccess": "Feedback email sent successfully!",
+      "sendError": "Error sending the email."
+    }
+  },
+
       "aiAnalysis": {
       "header": {
         "title": "AI-Powered Match Analysis",

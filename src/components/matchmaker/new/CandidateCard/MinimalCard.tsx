@@ -24,7 +24,15 @@ import {
   Crown,
   Zap,
   Award,
+  MoreHorizontal,
+  Mail,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import type { Candidate } from '../types/candidates';
 import { UserSource } from '@prisma/client';
 import { formatDistanceToNow } from 'date-fns';
@@ -42,10 +50,10 @@ import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 interface MinimalCandidateCardProps {
   candidate: Candidate;
-  onAnalyze?: (candidate: Candidate, e: React.MouseEvent) => void; // <-- הוסף
-
   onClick: (candidate: Candidate) => void;
   onEdit?: (candidate: Candidate, e: React.MouseEvent) => void;
+  onAnalyze?: (candidate: Candidate, e: React.MouseEvent) => void;
+  onSendProfileFeedback?: (candidate: Candidate, e: React.MouseEvent) => void;
   isHighlighted?: boolean;
   highlightTerm?: string;
   className?: string;
@@ -73,9 +81,9 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   candidate,
   onClick,
   onEdit,
-  isHighlighted = false,
   onAnalyze,
-
+  onSendProfileFeedback,
+  isHighlighted = false,
   highlightTerm = '',
   className,
   aiScore,
@@ -295,46 +303,83 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
           </div>
         </div>
 
+        {/* ======================= הקוד החדש והמתוקן לפינה השמאלית ======================= */}
         <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform lg:translate-y-2 group-hover:translate-y-0">
-       {onAnalyze && (
-    <TooltipProvider>
-        <Tooltip>
-            <TooltipTrigger asChild>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-9 w-9 bg-white/90 backdrop-blur-sm shadow-xl border-0 hover:bg-white hover:scale-110 transition-all duration-300 text-indigo-600"
-                    onClick={(e) => onAnalyze(candidate, e)}
-                >
-                    <Sparkles className="h-4 w-4" />
-                </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-                <p>{dict.tooltips.aiAnalysis}</p>
-            </TooltipContent>
-        </Tooltip>
-    </TooltipProvider>
-)}
-          {onEdit && (
+          {/* --- כפתור אימייל --- */}
+          {candidate.email &&
+            !candidate.email.endsWith('@shidduch.placeholder.com') && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 bg-white/90 backdrop-blur-sm shadow-xl border-0 hover:bg-white hover:scale-110 transition-all duration-300"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <a href={`mailto:${candidate.email}`}>
+                        <Mail className="h-4 w-4 text-gray-600" />
+                      </a>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{candidate.email}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+
+          {/* --- תפריט פעולות נוספות --- */}
+          <DropdownMenu>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-9 w-9 bg-white/90 backdrop-blur-sm shadow-xl border-0 hover:bg-white hover:scale-110 transition-all duration-300"
-                    onClick={(e) => onEdit(candidate, e)}
-                  >
-                    <Edit2 className="h-4 w-4 text-blue-600" />
-                  </Button>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 bg-white/90 backdrop-blur-sm shadow-xl border-0 hover:bg-white hover:scale-110 transition-all duration-300"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreHorizontal className="h-4 w-4 text-gray-600" />
+                    </Button>
+                  </DropdownMenuTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{dict.tooltips.editProfile}</p>
+                  <p>פעולות נוספות</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          )}
 
+            <DropdownMenuContent
+              onClick={(e) => e.stopPropagation()}
+              align="start"
+            >
+              {onEdit && (
+                <DropdownMenuItem onClick={(e) => onEdit(candidate, e)}>
+                  <Edit2 className="h-4 w-4 ml-2" />
+                  <span>{dict.tooltips.editProfile}</span>
+                </DropdownMenuItem>
+              )}
+              {onAnalyze && (
+                <DropdownMenuItem onClick={(e) => onAnalyze(candidate, e)}>
+                  <Sparkles className="h-4 w-4 ml-2" />
+                  <span>{dict.tooltips.aiAnalysis}</span>
+                </DropdownMenuItem>
+              )}
+              {onSendProfileFeedback && (
+                <DropdownMenuItem
+                  onClick={(e) => onSendProfileFeedback(candidate, e)}
+                >
+                  <Mail className="h-4 w-4 ml-2" />
+                  <span>שלח דוח פרופיל</span>
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* --- כפתור קביעת מטרה (כוכב) --- */}
           {onSetAiTarget && (
             <TooltipProvider>
               <Tooltip>
@@ -369,6 +414,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
             </TooltipProvider>
           )}
         </div>
+        {/* ======================= סוף הקוד החדש ======================= */}
 
         <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300">
           <div className="flex items-center gap-1 bg-black/60 text-white px-3 py-1 rounded-full backdrop-blur-sm text-xs font-bold">

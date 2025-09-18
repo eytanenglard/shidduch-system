@@ -475,6 +475,54 @@
     }
   },
     "profileSection": {
+          "aboutMe": {
+      "cardTitle": "הסיפור שלי, במילים שלי",
+      "placeholder": "כאן המקום לחבר את הנקודות. ספר/י על הדרך שלך – תחנות משמעותיות שעברת (לימודים, שירות, טיול), מה מניע אותך היום ומה החלומות שלך לעתיד. זה הסיפור שמאחורי הנתונים, והוא יעזור לנו ולצד השני להכיר אותך באמת.",
+      "tooltip": "הטקסט שתכתוב/י כאן ישמש את השדכנים להכיר אותך לעומק ויכול להיות מוצג בפרופיל שלך.",
+      "visibilityTooltip": "האם להציג את החלק 'הסיפור שלי' בכרטיס הפרופיל שיישלח להצעות?"
+    },
+    "neshamaTechSummary": {
+      "cardTitle": "איך אנחנו רואים אותך ב-NeshamaTech",
+      "emptyState": "סיכום מקצועי מאיתנו יופיע כאן לאחר שהצוות שלנו יכיר את הפרופיל שלך לעומק.",
+      "visibilityTooltip": "האם לכלול את הסיכום המקצועי שלנו בכרטיס הפרופיל שיישלח להצעות? (מומלץ!)"
+    },
+    "friendTestimonials": {
+      "cardTitle": "ניהול המלצות מחברים",
+      "addManualButton": "הוסף המלצה ידנית",
+      "requestLinkButton": "בקש המלצה מחבר/ה",
+      "pendingApproval": "ממתין לאישורך",
+      "approvedAndVisible": "מאושר ומוצג",
+      "hidden": "מוסתר",
+      "approveButton": "אשר והצג",
+      "hideButton": "הסתר",
+      "showButton": "הצג",
+      "deleteButton": "מחק",
+      "deleteConfirm": "האם למחוק את ההמלצה לצמיתות?",
+      "addModal": {
+        "title": "הוספת המלצה ידנית",
+        "authorNameLabel": "שם הממליצ/ה",
+        "authorNamePlaceholder": "לדוגמה: יוסי כהן",
+        "relationshipLabel": "הקשר שלכם",
+        "relationshipPlaceholder": "לדוגמה: חבר מהצבא, שותפה לדירה",
+        "contentLabel": "תוכן ההמלצה",
+        "contentPlaceholder": "כתוב/י את ההמלצה כפי שנמסרה לך...",
+        "phoneLabel": "מספר טלפון של הממליצ/ה (אופציונלי)",
+        "phonePlaceholder": "לדוגמה: 050-1234567",
+        "consentLabel": "קיבלתי אישור מפורש מהממליצ/ה להציג את מספר הטלפון שלו/ה למועמדים רלוונטיים.",
+        "saveButton": "שמור המלצה",
+        "cancelButton": "ביטול"
+      },
+      "linkModal": {
+        "title": "בקשת המלצה מחבר/ה",
+        "description": "העתק/י את הקישור הייחודי ושלח/י לחברים או בני משפחה שאת/ה סומך/ת עליהם. ההמלצה תופיע כאן לאישורך לאחר שימלאו אותה.",
+        "copyButton": "העתק קישור",
+        "copiedTooltip": "הקישור הועתק!",
+        "closeButton": "סגור"
+      },
+      "visibilityTooltip": "האם להציג את חלק ההמלצות בכרטיס הפרופיל שיישלח להצעות?",
+      "emptyState": "עדיין לא נוספו המלצות. המלצות אישיות בונות אמון ומסייעות לצד השני להכיר אותך טוב יותר."
+    }
+,
     "loading": "טוען נתוני פרופיל...",
      "budgetDisplay": {
     "errorInvalidData": "שגיאה: נתונים לא תקינים לתצוגה.",
@@ -844,7 +892,9 @@
         "next": "הבא"
       },
       "tabs": {
+        
         "essence": { "label": "המהות שלי", "shortLabel": "מהות" },
+        "deepDive": { "label": "צלילה לעומק", "shortLabel": "עומק" },
         "journey": { "label": "הדרך שלי", "shortLabel": "הדרך" },
         "spirit": { "label": "עולם הרוח", "shortLabel": "רוחניות" },
         "vision": { "label": "חזון לזוגיות", "shortLabel": "חזון" },
@@ -852,10 +902,12 @@
         "professional": { "label": "מידע לשדכן", "shortLabel": "לשדכן" }
       },
       "content": {
+        "inspiringCouple": { "title": "הזוג שנותן לי השראה" },
+"influentialRabbi": { "title": "דמות רוחנית משפיעה" },
+"humorStory": { "title": "סיפור שמדגים את חוש ההומור שלי" },
         "emptyStateTitle": "אין כאן מה להציג כרגע",
         "emptyStateDescription": "נראה שהמועמד/ת עדיין לא מילא/ה את החלק הזה בפרופיל. זו הזדמנות נהדרת לגלות יחד!",
         "openingSentence": "משפט פתיחה",
-        "aboutMe": "מי אני, בקצרה",
         "aboutMeSubtitle": "הסיפור האישי של {{name}}",
         "whatMakesMeSpecial": "מה שמייחד אותי",
         "myTraits": "תכונות האופי שלי",
@@ -891,6 +943,18 @@
         "professionalDetails": "פרטים מקצועיים לתהליך השידוך",
         "emptyPrefsTitle": "פתוח/ה להכיר את האדם הנכון",
         "emptyPrefsDescription": "אין כאן רשימת דרישות, אלא הזמנה פתוחה להכיר אדם מיוחד. יש כאן מקום לגילויים מרגשים יחד.",
+               "neshamaTechSummary": {
+          "title": "ההיכרות שלנו עם {{name}}"
+        },
+        "aboutMe": {
+          "titleCard": "בקצרה על {{name}}"
+        },
+        "friendTestimonials": {
+          "title": "חברים מספרים",
+          "callButton": "דבר/י עם {{name}}",
+          "callDisclaimer": "אנו מעודדים יצירת קשר מכבדת בשעות המקובלות. זוהי הזדמנות ייחודית לקבל תמונה רחבה ואמיתית."
+        }
+,
         "focus": {
           "aboutMe": "קצת עליי",
           "myStory": "המילים שמגדירות אותי",

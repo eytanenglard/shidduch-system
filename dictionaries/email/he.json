@@ -88,6 +88,26 @@
     "securityNote": "אם לא ביצעת את השינוי, אנא פנה/י אלינו באופן מיידי כדי שנבדוק את הנושא.",
     "actionButton": "התחברות לחשבון"
   },
+    "profileFeedback": {
+       "subject": "דוח התקדמות הפרופיל שלך מ-NeshamaTech",
+      "title": "דוח התקדמות הפרופיל שלך ב-NeshamaTech",
+      "greeting": "שלום {{name}}",
+      "systemIntro": "כחלק מהמאמצים שלנו לעזור לך למצוא את ההתאמה הטובה ביותר, המערכת החכמה שלנו הכינה עבורך דוח מותאם אישית על מצב הפרופיל שלך.",
+      "matchmakerIntro": "רציתי לעדכן אותך באופן אישי לגבי התקדמות הפרופיל שלך ולתת לך כמה טיפים שיעזרו לנו למצוא עבורך הצעות מדויקות יותר.",
+      "progressHeader": "סטטוס ההתקדמות שלך",
+      "aiSummaryHeader": "תובנות ה-AI על הפרופיל שלך",
+      "aiSummary": {
+        "personalityTitle": "איך ה-AI מבין את האישיות שלך:",
+        "lookingForTitle": "איך ה-AI מבין את מה שאת/ה מחפש/ת:"
+      },
+      "missingItemsHeader": "הצעדים הבאים להשלמת הפרופיל",
+      "missingProfileItemsTitle": "פרטים חסרים בפרופיל הראשי:",
+      "missingQuestionnaireItemsTitle": "שאלות להשלמה בשאלון המעמיק:",
+      "cta": {
+        "title": "מוכנ/ה להתקדם?",
+        "button": "להשלמת הפרופיל שלי"
+      }
+    },
     "notifications": {
     "customMessage": {
       "subject": "הודעה אישית מהשדכן/ית שלך",

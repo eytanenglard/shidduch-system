@@ -84,17 +84,14 @@ export async function analyzePairCompatibility(
     },
   });
 
-  // --- START OF CHANGE ---
-  // שינוי הדרך שבה אנו מגדירים את השפה עבור הפרומפט
   const targetLanguage = language === 'he' ? 'Hebrew' : 'English';
-  // --- END OF CHANGE ---
 
   const prompt = `
     You are a "Matchmaking AI Expert" for a religious Jewish dating platform. Your goal is to analyze the compatibility of two user profiles and provide a structured, insightful, and helpful analysis for the matchmaker.
     
     IMPORTANT: Your entire JSON output, including all string values (keys and explanations), must be in ${targetLanguage}.
 
-    Your output MUST be a valid JSON object.
+    Your output MUST be a valid JSON object. Do NOT wrap the JSON in markdown backticks (e.g., \`\`\`json). Output ONLY the raw JSON object.
     The JSON structure: { "overallScore": number, "matchSummary": "string", "compatibilityPoints": [{ "area": "string", "explanation": "string", "strength": "HIGH" | "MEDIUM" | "LOW" }], "potentialChallenges": [{ "area": "string", "explanation": "string", "severity": "HIGH" | "MEDIUM" | "LOW" }], "suggestedConversationStarters": ["string"] }
     --- Profile 1 ---
     ${profileAText}
@@ -115,6 +112,7 @@ export async function analyzePairCompatibility(
     console.log(
       `--- Successfully received compatibility analysis from Gemini API in ${language} ---`
     );
+    // כאן אין צורך בניקוי מיוחד כי אנחנו מצפים ל-JSON נקי, אבל אם יתחילו בעיות נוסיף גם פה
     return JSON.parse(jsonString) as AiAnalysisResult;
   } catch (error) {
     console.error(
@@ -128,7 +126,6 @@ export async function analyzePairCompatibility(
 /**
  * מגדיר את מבנה ה-JSON של ניתוח פרופיל עבור המשתמש עצמו.
  */
-// --- START OF CHANGE ---
 export interface AiProfileAnalysisResult {
   personalitySummary: string;
   lookingForSummary: string;
@@ -141,9 +138,7 @@ export interface AiProfileAnalysisResult {
     area: string;
     tip: string;
   }>;
-  // photoFeedback הוסר
 }
-// --- END OF CHANGE ---
 
 /**
  * מנתח פרופיל של משתמש ומספק משוב וטיפים לשיפור.
@@ -172,21 +167,21 @@ export async function getProfileAnalysis(
     },
   });
 
-  // --- START OF CHANGE ---
-  // עודכנה ההנחיה כדי להסיר את photoFeedback ממבנה ה-JSON המבוקש
   const prompt = `
-    You are an expert, warm, and encouraging dating profile coach for a religious Jewish audience. Your goal is to help the user improve their profile to attract the best possible matches. Based on the following comprehensive user profile, provide a structured JSON analysis. The entire output MUST be a valid JSON object in Hebrew.
+    You are an expert, warm, and encouraging dating profile coach for a religious Jewish audience. Your goal is to help the user improve their profile to attract the best possible matches. Based on the following comprehensive user profile, provide a structured JSON analysis.
+    The entire output MUST be a valid JSON object in Hebrew.
+    IMPORTANT: Do NOT wrap the JSON in markdown backticks (e.g., \`\`\`json). Output ONLY the raw JSON object.
     The JSON structure must be: { "personalitySummary": "string", "lookingForSummary": "string", "completenessReport": [{ "area": "string", "status": "COMPLETE" | "PARTIAL" | "MISSING", "feedback": "string" }], "actionableTips": [{ "area": "string", "tip": "string" }] }
+    
     --- User Profile Narrative ---
     ${userNarrativeProfile}
     --- End of User Profile Narrative ---
   `;
-  // --- END OF CHANGE ---
 
   try {
     const result = await model.generateContent(prompt);
     const response = result.response;
-    const jsonString = response.text();
+    let jsonString = response.text();
 
     if (!jsonString) {
       console.error(
@@ -195,13 +190,41 @@ export async function getProfileAnalysis(
       return null;
     }
 
-    console.log(
-      '--- [AI Profile Advisor] Successfully received analysis from Gemini API. ---'
-    );
-    return JSON.parse(jsonString) as AiProfileAnalysisResult;
+    // ======================= תהליך הניקוי והפענוח הבטוח =======================
+    
+    // שלב 1: בדוק אם התשובה עטופה ב-markdown והסר אותו אם כן.
+    if (jsonString.startsWith('```json')) {
+      jsonString = jsonString.slice(7, -3).trim();
+    } else if (jsonString.startsWith('```')) {
+        jsonString = jsonString.slice(3, -3).trim();
+    }
+
+    try {
+        // שלב 2: נסה לפענח את ה-JSON הנקי.
+        const parsedJson = JSON.parse(jsonString) as AiProfileAnalysisResult;
+        console.log(
+          '--- [AI Profile Advisor] Successfully received and parsed analysis from Gemini API. ---'
+        );
+        return parsedJson;
+    } catch (parseError) {
+        // שלב 3: אם הפענוח נכשל, הדפס שגיאה מפורטת ואת התשובה הגולמית לטובת דיבאגינג.
+        console.error(
+          '[AI Profile Advisor] Failed to parse JSON response from Gemini.',
+          parseError
+        );
+        console.error('--- RAW AI RESPONSE THAT FAILED PARSING ---');
+        console.error(jsonString);
+        console.error('--- END OF RAW AI RESPONSE ---');
+        
+        // זרוק שגיאה חדשה כדי שהפונקציה שקראה לנו תדע שהתהליך נכשל.
+        throw new Error('Invalid JSON response from AI service.');
+    }
+    // ======================= סוף תהליך הניקוי =======================
+
   } catch (error) {
+    // תפיסת שגיאות תקשורת עם ה-API או את השגיאה שזרקנו מה-catch הפנימי.
     console.error(
-      '[AI Profile Advisor] Error generating profile analysis:',
+      '[AI Profile Advisor] Error during profile analysis process:',
       error
     );
     return null;
@@ -221,11 +244,7 @@ export interface AiSuggestionAnalysisResult {
 }
 
 /**
- * מנתח התאמה בין שני פרופילים ומחזיר ניתוח מותאם למשתמש הקצה,
- * עם דגש על טון חיובי ומעודד.
- * @param currentUserProfileText הפרופיל הנרטיבי של המשתמש הנוכחי.
- * @param suggestedUserProfileText הפרופיל הנרטיבי של המשתמש המוצע.
- * @returns Promise שמחזיר אובייקט ניתוח מובנה, או null במקרה של כישלון.
+ * מנתח התאמה בין שני פרופילים ומחזיר ניתוח מותאם למשתמש הקצה.
  */
 export async function analyzeSuggestionForUser(
   currentUserProfileText: string,
@@ -253,6 +272,7 @@ export async function analyzeSuggestionForUser(
   const prompt = `
     You are a 'Matchmaking AI Advisor'. Your tone is positive, warm, and encouraging. Your goal is to help a user understand the potential of a match suggestion they received. Analyze the compatibility between 'My Profile' and the 'Suggested Profile'.
     Your entire output MUST be a valid JSON object in Hebrew.
+    IMPORTANT: Do NOT wrap the JSON in markdown backticks (e.g., \`\`\`json). Output ONLY the raw JSON object.
     The JSON structure must be: { "overallScore": number, "matchTitle": "string", "matchSummary": "string", "compatibilityPoints": [{ "area": "string", "explanation": "string (user-friendly explanation)" }], "pointsToConsider": [{ "area": "string", "explanation": "string (rephrased positively, e.g., 'הוא אוהב טיולים ואת מעדיפה בית. זו הזדמנות נהדרת לחוות דברים חדשים יחד!')" }], "suggestedConversationStarters": ["string"] }
     
     --- My Profile ---
@@ -289,9 +309,6 @@ export async function analyzeSuggestionForUser(
 
 /**
  * מייצר טקסט נימוק מותאם אישית עבור הצעת שידוך.
- * @param profile1Text הפרופיל הנרטיבי של צד א'.
- * @param profile2Text הפרופיל הנרטיבי של צד ב'.
- * @returns Promise שמחזיר מחרוזת טקסט עם הנימוק, או null במקרה של כישלון.
  */
 export async function generateSuggestionRationale(
   profile1Text: string,
@@ -359,10 +376,7 @@ export interface FullRationaleResult {
 }
 
 /**
- * מייצר חבילת נימוקים מלאה עבור הצעת שידוך: כללי, ואישי לכל צד.
- * @param profile1Text הפרופיל הנרטיבי של צד א'.
- * @param profile2Text הפרופיל הנרטיבי של צד ב'.
- * @returns Promise שמחזיר אובייקט עם שלושת סוגי הנימוקים, או null במקרה של כישלון.
+ * מייצר חבילת נימוקים מלאה עבור הצעת שידוך.
  */
 export async function generateFullSuggestionRationale(
   profile1Text: string,
@@ -394,13 +408,7 @@ export async function generateFullSuggestionRationale(
       "rationaleForParty1": "A personal and warm message for Party 1, explaining why Party 2 is a great match for them. Address them directly and highlight how Party 2's qualities align with Party 1's stated needs and desires. Use encouraging and persuasive language.",
       "rationaleForParty2": "A personal and warm message for Party 2, explaining why Party 1 is a great match for them. Do the same as above, but from Party 2's perspective."
     }
-
-    **Key instructions for personal rationales (rationaleForParty1, rationaleForParty2):**
-    - Start with a warm opening.
-    - Reference specific details from the person's own profile to show you understand them.
-    - Connect those details to specific strengths of the suggested partner.
-    - Maintain a positive, professional, and slightly persuasive tone, without being pushy.
-    - The goal is to make each person feel understood and that this suggestion was made with careful consideration for them personally.
+    IMPORTANT: Do NOT wrap the JSON in markdown backticks (e.g., \`\`\`json). Output ONLY the raw JSON object.
 
     --- Profile 1 ---
     ${profile1Text}
@@ -433,7 +441,88 @@ export async function generateFullSuggestionRationale(
     return null;
   }
 }
+export interface AiNeshamaTechSummary {
+  summaryText: string;
+}
 
+/**
+ * יוצר סיכום היכרות מקצועי וחם עבור פרופיל מועמד.
+ * @param userNarrativeProfile הטקסט הנרטיבי המקיף של פרופיל המשתמש.
+ * @returns Promise שמחזיר אובייקט עם טקסט הסיכום, או null במקרה של כישלון.
+ */
+export async function generateNeshamaTechSummary(
+  userNarrativeProfile: string
+): Promise<AiNeshamaTechSummary | null> {
+  console.log(
+    '--- [AI NeshamaTech Summary] Starting summary generation with Gemini API ---'
+  );
+
+  if (!userNarrativeProfile) {
+    console.error(
+      '[AI NeshamaTech Summary] Called with an empty user narrative profile.'
+    );
+    return null;
+  }
+
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-1.5-pro-latest',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.7, // מעט יותר יצירתיות לטקסט שיווקי
+    },
+  });
+
+  const prompt = `
+    You are an expert Israeli matchmaker, marketer, and copywriter for NeshamaTech, a premium matchmaking service for the Israeli National-Religious/Academic community.
+    Your task is to write a warm, engaging, and insightful "Introduction Summary" (תקציר היכרות) for a candidate's profile in Hebrew.
+    The summary will be shown to potential matches and serves as the professional, human-touch introduction from the NeshamaTech team.
+    
+    **Your Goal:** Synthesize the provided data into a flowing, compelling narrative of 3-4 short paragraphs. Do NOT just list facts. Weave them into a story that reveals the person's essence. Highlight strengths, core values, and what they seek in a partner. The tone must be authentic, respectful, and professional yet personal.
+
+    **Output Format:** Your entire output MUST be a valid JSON object in Hebrew. Do NOT wrap it in markdown backticks. Output ONLY the raw JSON object with the following structure:
+    {
+      "summaryText": "The full, multi-paragraph summary text in Hebrew."
+    }
+    
+    --- User Profile Narrative for Analysis ---
+    ${userNarrativeProfile}
+    --- End of User Profile Narrative ---
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const jsonString = response.text();
+
+    if (!jsonString) {
+      console.error(
+        '[AI NeshamaTech Summary] Gemini API returned an empty response.'
+      );
+      return null;
+    }
+
+    // ניקוי ופענוח בטוח של ה-JSON
+    let cleanJsonString = jsonString;
+    if (cleanJsonString.startsWith('```json')) {
+      cleanJsonString = cleanJsonString.slice(7, -3).trim();
+    }
+    
+    const parsedJson = JSON.parse(cleanJsonString) as AiNeshamaTechSummary;
+    console.log(
+      '--- [AI NeshamaTech Summary] Successfully received and parsed summary from Gemini API. ---'
+    );
+    return parsedJson;
+
+  } catch (error) {
+    console.error(
+      '[AI NeshamaTech Summary] Error during summary generation:',
+      error
+    );
+    return null;
+  }
+}
+
+// ייצוא כל הפונקציות כאובייקט אחד
 const aiService = {
   generateTextEmbedding,
   analyzePairCompatibility,
@@ -441,6 +530,7 @@ const aiService = {
   analyzeSuggestionForUser,
   generateSuggestionRationale,
   generateFullSuggestionRationale,
+  generateNeshamaTechSummary, 
 };
 
 export default aiService;

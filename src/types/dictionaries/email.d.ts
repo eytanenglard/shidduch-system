@@ -84,9 +84,31 @@ suggestion: EmailTemplateContent & {
   availabilityCheck: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; noticeTitle: string; noticeContent: string; };
   passwordResetOtp: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
   passwordChangedConfirmation: EmailTemplateContent & { intro: string; securityNote: string; actionButton: string; };
-  
+    profileFeedback: ProfileFeedbackEmailDict;
+
   /**
    * מילון ההתראות, מקונן כאן כחלק מהמודול המאוחד.
    */
   notifications: NotificationDictionary;
+};
+/**
+ * מגדיר את המבנה של מילון התרגומים עבור מייל "דוח פרופיל אישי".
+ */
+type ProfileFeedbackEmailDict = EmailTemplateContent & {
+  greeting: string;
+  matchmakerIntro: string;
+  systemIntro: string;
+  progressHeader: string;
+  aiSummaryHeader: string;
+  aiSummary: {
+    personalityTitle: string;
+    lookingForTitle: string;
+  };
+  missingItemsHeader: string;
+  missingProfileItemsTitle: string;
+  missingQuestionnaireItemsTitle: string;
+  cta: {
+    title: string;
+    button: string;
+  };
 };

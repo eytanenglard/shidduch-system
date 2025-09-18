@@ -47,6 +47,7 @@ interface SplitViewProps {
   femaleCandidates: Candidate[];
   allCandidates: Candidate[];
   onOpenAiAnalysis: (candidate: Candidate) => void; // <-- הוסף
+  onSendProfileFeedback: (candidate: Candidate, e?: React.MouseEvent) => void; // <-- הוספת '?'
 
   onCandidateAction: (type: CandidateAction, candidate: Candidate) => void;
   onCandidateClick: (candidate: Candidate) => void;
@@ -292,6 +293,7 @@ const EmptyStateComponent: React.FC<{
 const SplitView: React.FC<SplitViewProps> = ({
   dict,
   onOpenAiAnalysis,
+  onSendProfileFeedback, // <-- הוסף את זה
 
   profileDict,
   isQuickViewEnabled,
@@ -446,6 +448,7 @@ const SplitView: React.FC<SplitViewProps> = ({
         allCandidates={allCandidates}
         onOpenAiAnalysis={onOpenAiAnalysis}
         onCandidateClick={onCandidateClick}
+        onSendProfileFeedback={onSendProfileFeedback} // <-- הוסף את השורה הזו
         onCandidateAction={onCandidateAction}
         viewMode={viewMode}
         mobileView={mobileView}
@@ -682,6 +685,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                 candidates={maleCandidatesWithScores}
                 allCandidates={allCandidates}
                 onOpenAiAnalysis={onOpenAiAnalysis}
+                onSendProfileFeedback={onSendProfileFeedback} // <-- הוסף את השורה הזו
                 onCandidateClick={onCandidateClick}
                 onCandidateAction={onCandidateAction}
                 viewMode={viewMode}
@@ -727,6 +731,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                 candidates={femaleCandidatesWithScores}
                 allCandidates={allCandidates}
                 onOpenAiAnalysis={onOpenAiAnalysis}
+                onSendProfileFeedback={onSendProfileFeedback} // <-- הוסף את השורה הזו
                 onCandidateClick={onCandidateClick}
                 onCandidateAction={onCandidateAction}
                 viewMode={viewMode}

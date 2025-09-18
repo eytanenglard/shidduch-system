@@ -85,6 +85,7 @@
     "react-hook-form": "^7.54.1",
     "react-input-mask": "^2.0.4",
     "react-phone-number-input": "^3.4.12",
+    "react-quill": "^2.0.0",
     "react-resizable-panels": "^2.1.7",
     "react-tooltip": "^5.28.1",
     "react-transition-group": "^4.4.5",

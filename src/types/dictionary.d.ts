@@ -1004,6 +1004,8 @@ export type QuestionnairePageDict = {
 export type QuestionnaireDictionary = {
   worldIntro: WorldIntroDict;
   questionCard: QuestionCardDict;
+    worlds: Record<WorldId, { title: string; description: string }>; // <--- הוסף מפתח זה לנוחות
+
   completion: QuestionnaireCompletionDict;
   matchmaking: MatchmakingQuestionnaireDict;
   page: QuestionnairePageDict;
@@ -1592,12 +1594,14 @@ export type WorldsMapDict = {
       available: string;
       locked: string;
     };
+
     actions: {
       edit: string;
       start: string;
       continue: string;
       locked: string;
     };
+     progress: string; 
   };
   completionBanner: {
     title: string; // e.g., "כל הכבוד, {{name}}!"
@@ -1809,6 +1813,20 @@ export type AccessibilityFeaturesDict = {
 // END: Additions for AccessibilityFeatures.tsx
 
 export type ProfileSectionDict = {
+    // --- הוספות חדשות ---
+  aboutMe: {
+    cardTitle: string;
+    placeholder: string;
+    tooltip: string;
+    visibilityTooltip: string;
+  };
+  neshamaTechSummary: {
+    cardTitle: string;
+    emptyState: string;
+    visibilityTooltip: string;
+  };
+  friendTestimonials: FriendTestimonialsDict; // שימוש בממשק החדש שיצרנו
+  // --- סוף הוספות ---
   loading: string;
   header: {
     title: string;
@@ -2039,7 +2057,44 @@ export interface UnsavedChangesModalDict {
   saveAndContinueButton: string;
   savingButton: string;
 }
+// בקובץ: src/types/dictionary.d.ts
 
+export type FriendTestimonialsDict = {
+  cardTitle: string;
+  addManualButton: string;
+  requestLinkButton: string;
+  pendingApproval: string;
+  approvedAndVisible: string;
+  hidden: string;
+  approveButton: string;
+  hideButton: string;
+  showButton: string;
+  deleteButton: string;
+  deleteConfirm: string;
+  addModal: {
+    title: string;
+    authorNameLabel: string;
+    authorNamePlaceholder: string;
+    relationshipLabel: string;
+    relationshipPlaceholder: string;
+    contentLabel: string;
+    contentPlaceholder: string;
+    phoneLabel: string;
+    phonePlaceholder: string;
+    consentLabel: string;
+    saveButton: string;
+    cancelButton: string;
+  };
+  linkModal: {
+    title: string;
+    description: string;
+    copyButton: string;
+    copiedTooltip: string;
+    closeButton: string;
+  };
+  visibilityTooltip: string;
+  emptyState: string;
+};
 export type ProfileCardDisplayDict = {
   placeholders: {
     willDiscover: string;
@@ -2121,6 +2176,8 @@ export type ProfileCardDisplayDict = {
   };
   tabs: {
     essence: { label: string; shortLabel: string };
+    deepDive: { label: string; shortLabel: string };
+
     journey: { label: string; shortLabel: string };
     spirit: { label: string; shortLabel: string };
     vision: { label: string; shortLabel: string };
@@ -2129,9 +2186,11 @@ export type ProfileCardDisplayDict = {
   };
   content: {
     emptyStateTitle: string;
+          inspiringCouple: { title: string };
+influentialRabbi: { title: string };
+humorStory: { title: string };
     emptyStateDescription: string;
     openingSentence: string;
-    aboutMe: string;
     aboutMeSubtitle: string; // Placeholder: {{name}}
     whatMakesMeSpecial: string;
     myTraits: string;
@@ -2167,6 +2226,18 @@ export type ProfileCardDisplayDict = {
     professionalDetails: string;
     emptyPrefsTitle: string;
     emptyPrefsDescription: string;
+        neshamaTechSummary: {
+      title: string; // e.g., "Our Introduction to {{name}}"
+    };
+    aboutMe: {
+      titleCard: string; // e.g., "A Bit About {{name}}"
+    };
+    friendTestimonials: {
+      title: string;
+      callButton: string; // e.g., "Talk to {{name}}"
+      callDisclaimer: string;
+    };
+
     focus: {
       aboutMe: string;
       myStory: string;
@@ -2198,6 +2269,7 @@ export type ProfileCardDisplayDict = {
       lastActive: string;
       unknown: string;
     };
+    
         detailLabels: {
       worldview: string;
       religiousJourney: string;
@@ -2305,6 +2377,7 @@ export type ProfileCardDict = {
       influentialRabbiLabel: string;
       influentialRabbiPlaceholder: string;
       influentialRabbiEmpty: string;
+
     };
     about: {
       title: string;

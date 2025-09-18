@@ -157,6 +157,10 @@ model Profile {
   aliyaCountry            String?
   aliyaYear               Int?
   about                   String?
+  isAboutVisible Boolean? @default(true)
+  testimonials          FriendTestimonial[]
+isFriendsSectionVisible Boolean? @default(true)
+isNeshamaTechSummaryVisible Boolean? @default(true)
     profileHeadline       String? // כותרת אישית לפרופיל
   humorStory            String? // סיפור קצר על חוש הומור
   inspiringCoupleStory  String? // סיפור על זוג מעורר השראה
@@ -628,4 +632,37 @@ enum FeedbackStatus {
   IN_PROGRESS
   RESOLVED
   WONT_FIX
+}
+
+model FriendTestimonial {
+  id           String   @id @default(cuid())
+  profileId    String
+  profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  authorName   String   // שם החבר/ה הממליצ/ה
+  relationship String   // הקשר למועמד/ת (למשל: "חבר ילדות")
+  content      String   @db.Text
+  authorPhone  String?  // מספר הטלפון של הממליצ/ה (אופציונלי)
+  
+  // --- שדות בקרה ופרטיות ---
+  isPhoneVisibleToMatch Boolean   @default(false) // הסכמה מפורשת להצגת המספר
+  status                TestimonialStatus @default(PENDING) // סטטוס ההמלצה
+  submittedBy           SubmissionSource  @default(USER)   // איך ההמלצה הוגשה
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([profileId])
+}
+
+// --- הוספת Enums חדשים ---
+enum TestimonialStatus {
+  PENDING   // ממתין לאישור המועמד/ת
+  APPROVED  // מאושר ומוצג בפרופיל
+  HIDDEN    // מאושר אך מוסתר זמנית על ידי המועמד/ת
+}
+
+enum SubmissionSource {
+  USER   // הוזן ידנית על ידי המועמד/ת
+  FRIEND // הוגש על ידי חבר דרך קישור מאובטח
 }

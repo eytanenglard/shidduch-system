@@ -1,0 +1,251 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials
+# Generated on: 2025-09-18 22:40:39
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/profile/testimonials/route.ts
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+
+// GET all testimonials for the logged-in user
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.profile?.id) {
+    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const testimonials = await prisma.friendTestimonial.findMany({
+    where: { profileId: session.user.profile.id },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return NextResponse.json({ success: true, testimonials });
+}
+
+// POST a new manual testimonial
+export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.profile?.id) {
+    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+  }
+  
+  const body = await req.json();
+  const { authorName, relationship, content, authorPhone, isPhoneVisibleToMatch } = body;
+
+  if (!authorName || !relationship || !content) {
+    return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
+  }
+
+  const newTestimonial = await prisma.friendTestimonial.create({
+    data: {
+      profileId: session.user.profile.id,
+      authorName,
+      relationship,
+      content,
+      authorPhone: authorPhone || null,
+      isPhoneVisibleToMatch: isPhoneVisibleToMatch && !!authorPhone,
+      status: 'APPROVED', // Manual entries are pre-approved by the user
+      submittedBy: 'USER',
+    },
+  });
+
+  return NextResponse.json({ success: true, testimonial: newTestimonial }, { status: 201 });
+}
+--- End of Content for route.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\testimonials_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\[testimonialId]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\[testimonialId]\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/profile/testimonials/[testimonialId]/route.ts
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { TestimonialStatus } from '@prisma/client';
+
+// PUT - Update a testimonial's status
+export async function PUT(req: Request, { params }: { params: { testimonialId: string } }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.profile?.id) {
+    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { status } = await req.json() as { status: TestimonialStatus };
+  if (!Object.values(TestimonialStatus).includes(status)) {
+    return NextResponse.json({ success: false, message: 'Invalid status provided' }, { status: 400 });
+  }
+
+  const updatedTestimonial = await prisma.friendTestimonial.updateMany({
+    where: {
+      id: params.testimonialId,
+      profileId: session.user.profile.id, // Ensure ownership
+    },
+    data: { status },
+  });
+
+  if (updatedTestimonial.count === 0) {
+    return NextResponse.json({ success: false, message: 'Testimonial not found or you do not have permission to edit it' }, { status: 404 });
+  }
+
+  return NextResponse.json({ success: true });
+}
+
+// DELETE a testimonial
+export async function DELETE(req: Request, { params }: { params: { testimonialId: string } }) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.profile?.id) {
+        return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const deletedTestimonial = await prisma.friendTestimonial.deleteMany({
+        where: {
+            id: params.testimonialId,
+            profileId: session.user.profile.id, // Ensure ownership
+        },
+    });
+
+    if (deletedTestimonial.count === 0) {
+        return NextResponse.json({ success: false, message: 'Testimonial not found or you do not have permission to delete it' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true });
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\[token]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\[token]\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/testimonials/[token]/route.ts
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { jwtVerify, JWTPayload } from 'jose'; // ייבוא JWTPayload עוזר לבהירות
+
+interface TokenPayload extends JWTPayload {
+  profileId: string;
+}
+
+export async function POST(req: Request, { params }: { params: { token: string } }) {
+  const { token } = params;
+  if (!token) {
+    return NextResponse.json({ success: false, message: 'Token is missing' }, { status: 400 });
+  }
+
+  const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
+  if (!secret) {
+      console.error("FATAL: NEXTAUTH_SECRET is not defined.");
+      return NextResponse.json({ success: false, message: 'Server configuration error' }, { status: 500 });
+  }
+
+  try {
+    // --- שינוי 1: פירוק האימות וההגדרה (Casting) לשני שלבים ---
+    // שלב א': אימות הטוקן ללא גנריקה
+    const verificationResult = await jwtVerify(token, secret);
+    
+    // שלב ב': הגדרת ה-payload לטיפוס המדויק שלנו. זה פותר את שתי השגיאות.
+    const payload = verificationResult.payload as TokenPayload;
+    const { profileId } = payload;
+    // --- סוף השינוי ---
+    
+    const body = await req.json();
+    const { authorName, relationship, content, authorPhone, isPhoneVisibleToMatch } = body;
+
+    if (!authorName || !relationship || !content) {
+      return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
+    }
+
+    await prisma.friendTestimonial.create({
+      data: {
+        profileId, // עכשיו TypeScript יודע שזה string
+        authorName,
+        relationship,
+        content,
+        authorPhone: authorPhone || null,
+        isPhoneVisibleToMatch: isPhoneVisibleToMatch && !!authorPhone,
+        status: 'PENDING',
+        submittedBy: 'FRIEND',
+      },
+    });
+
+    return NextResponse.json({ success: true, message: 'Testimonial submitted successfully' });
+
+  } catch (error) {
+    console.error("Error processing testimonial submission:", error);
+    if (error instanceof Error && (error.name === 'JWTExpired' || error.name === 'JWSInvalid' || error.name === 'JOSEError')) {
+        return NextResponse.json({ success: false, message: 'Link is invalid or has expired.' }, { status: 401 });
+    }
+    return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\request-link
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\request-link\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/profile/testimonials/request-link/route.ts
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { SignJWT } from 'jose';
+
+export async function POST() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || !session.user.profile?.id) {
+      return NextResponse.json({ success: false, message: 'Unauthorized or profile not found' }, { status: 401 });
+    }
+
+    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
+    if (!secret) throw new Error("NEXTAUTH_SECRET is not defined.");
+
+    const payload = {
+      profileId: session.user.profile.id,
+      userId: session.user.id, // Include userId for verification if needed
+    };
+
+    const token = await new SignJWT(payload)
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('7d') // הקישור יהיה תקף לשבוע
+      .sign(secret);
+
+    const link = `${process.env.NEXT_PUBLIC_BASE_URL}/testimonial/${token}`;
+
+    return NextResponse.json({ success: true, link });
+
+  } catch (error) {
+    console.error("Error creating testimonial request link:", error);
+    return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+

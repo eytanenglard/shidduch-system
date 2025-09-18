@@ -88,6 +88,28 @@
 "securityNote": "If you did not make this change, please contact us immediately so we can investigate.",
 "actionButton": "Log in to Your Account"
 },
+    "profileFeedback": {
+            "subject": "Your Profile Progress Report from NeshamaTech",
+
+      "title": "Your NeshamaTech Profile Progress Report",
+      "greeting": "Hello {{name}},",
+      "systemIntro": "As part of our effort to help you find the best possible match, our intelligent system has prepared a personalized report on the status of your profile.",
+      "matchmakerIntro": "I wanted to personally update you on your profile's progress and give you a few tips that will help us find more accurate suggestions for you.",
+      "progressHeader": "Your Progress Status",
+      "aiSummaryHeader": "AI Insights About Your Profile",
+      "aiSummary": {
+        "personalityTitle": "How our AI understands your personality:",
+        "lookingForTitle": "How our AI understands what you're looking for:"
+      },
+      "missingItemsHeader": "Your Next Steps to Complete Your Profile",
+      "missingProfileItemsTitle": "Missing details in your main profile:",
+      "missingQuestionnaireItemsTitle": "In-depth questions awaiting your answers:",
+      "cta": {
+        "title": "Ready to move forward?",
+        "button": "Complete My Profile"
+      }
+    },
+
   "notifications": {
 
     "customMessage": {

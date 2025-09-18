@@ -680,6 +680,23 @@ export default function MatchmakingQuestionnaire({
     isVisible: boolean;
     action?: { label: string; onClick: () => void };
   }
+  const worldStats = {
+    PERSONALITY: {
+      questionCount: personalityQuestions.length,
+    },
+    VALUES: {
+      questionCount: valuesQuestions.length,
+    },
+    RELATIONSHIP: {
+      questionCount: relationshipQuestions.length,
+    },
+    PARTNER: {
+      questionCount: partnerQuestions.length,
+    },
+    RELIGION: {
+      questionCount: religionQuestions.length,
+    },
+  };
 
   function renderCurrentStep() {
     if (isLoading) {
@@ -693,13 +710,16 @@ export default function MatchmakingQuestionnaire({
     switch (currentStep) {
       case OnboardingStep.MAP:
         return (
-          <WorldsMap
+                 <WorldsMap
             currentWorld={currentWorld}
             completedWorlds={completedWorlds}
             onWorldChange={handleWorldChange}
             dict={dict.worldsMap}
             locale={locale}
+            answers={answers}
+             worldStats={worldStats}
           />
+
         );
 
       case OnboardingStep.WORLDS:

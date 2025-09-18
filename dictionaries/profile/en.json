@@ -222,6 +222,54 @@
     }
   },
   "profileSection": {
+        "aboutMe": {
+      "cardTitle": "My Story, In My Own Words",
+      "placeholder": "This is your space to connect the dots. Tell us about your journey, significant milestones (studies, service, travel), what drives you today, and your dreams for the future. This is the story behind the data, and it will help us and potential matches truly get to know you.",
+      "tooltip": "The text you write here will be used by our matchmakers to get to know you on a deeper level and can be displayed on your profile.",
+      "visibilityTooltip": "Show the 'My Story' section on the profile card sent in suggestions?"
+    },
+    "neshamaTechSummary": {
+      "cardTitle": "How We See You at NeshamaTech",
+      "emptyState": "A professional summary from us will appear here after our team gets to know your profile in depth.",
+      "visibilityTooltip": "Include our professional summary on the profile card sent in suggestions? (Recommended!)"
+    },
+    "friendTestimonials": {
+      "cardTitle": "Manage Friend Testimonials",
+      "addManualButton": "Add Testimonial Manually",
+      "requestLinkButton": "Request via Link",
+      "pendingApproval": "Pending Your Approval",
+      "approvedAndVisible": "Approved & Visible",
+      "hidden": "Hidden",
+      "approveButton": "Approve & Show",
+      "hideButton": "Hide",
+      "showButton": "Show",
+      "deleteButton": "Delete",
+      "deleteConfirm": "Are you sure you want to permanently delete this testimonial?",
+      "addModal": {
+        "title": "Add Manual Testimonial",
+        "authorNameLabel": "Recommender's Name",
+        "authorNamePlaceholder": "e.g., Yossi Cohen",
+        "relationshipLabel": "Your Relationship",
+        "relationshipPlaceholder": "e.g., Army buddy, roommate",
+        "contentLabel": "Testimonial Content",
+        "contentPlaceholder": "Write the testimonial as it was given to you...",
+        "phoneLabel": "Recommender's Phone (Optional)",
+        "phonePlaceholder": "e.g., 050-1234567",
+        "consentLabel": "I have received explicit permission from the recommender to display their phone number to relevant candidates.",
+        "saveButton": "Save Testimonial",
+        "cancelButton": "Cancel"
+      },
+      "linkModal": {
+        "title": "Request a Testimonial",
+        "description": "Copy this unique link and send it to friends or family you trust. Their recommendation will appear here for your approval once submitted.",
+        "copyButton": "Copy Link",
+        "copiedTooltip": "Link Copied!",
+        "closeButton": "Close"
+      },
+      "visibilityTooltip": "Show the testimonials section on the profile card sent in suggestions?",
+      "emptyState": "No testimonials yet. Personal recommendations build trust and help the other side get to know you better."
+    }
+,
     "loading": "Loading profile data...",
     "budgetDisplay": {
       "errorInvalidData": "Error: Invalid data for display.",
@@ -691,6 +739,8 @@
       },
       "tabs": {
         "essence": { "label": "My Essence", "shortLabel": "Essence" },
+              "deepDive": { "label": "Deep Dive", "shortLabel": "Depth" },
+
         "journey": { "label": "My Journey", "shortLabel": "Journey" },
         "spirit": { "label": "Spirituality", "shortLabel": "Spirit" },
         "vision": { "label": "Relationship Vision", "shortLabel": "Vision" },
@@ -698,10 +748,18 @@
         "professional": { "label": "For Matchmaker", "shortLabel": "Pro" }
       },
       "content": {
+         "inspiringCouple": {
+          "title": "A Couple That Inspires Me"
+        },
+        "influentialRabbi": {
+          "title": "An Influential Spiritual Figure"
+        },
+        "humorStory": {
+          "title": "A Story About My Sense of Humor"
+        },
         "emptyStateTitle": "Nothing to show here yet",
         "emptyStateDescription": "It seems this candidate hasn't filled out this part of their profile yet. A great opportunity to discover together!",
         "openingSentence": "Opening Line",
-        "aboutMe": "A Little About Me",
         "aboutMeSubtitle": "The personal story of {{name}}",
         "whatMakesMeSpecial": "What Makes Me Special",
         "myTraits": "My Character Traits",
@@ -737,6 +795,18 @@
         "professionalDetails": "Professional details for the matchmaking process",
         "emptyPrefsTitle": "Open to meeting the right person",
         "emptyPrefsDescription": "There's no checklist here, but an open invitation to meet a special person. There's room for exciting discoveries together.",
+                "neshamaTechSummary": {
+          "title": "Our Introduction to {{name}}"
+        },
+        "aboutMe": {
+          "titleCard": "A Bit About {{name}}"
+        },
+        "friendTestimonials": {
+          "title": "What Friends Say",
+          "callButton": "Talk to {{name}}",
+          "callDisclaimer": "We encourage respectful contact during reasonable hours. This is a unique opportunity to get a broader, authentic picture."
+        }
+,
         "focus": {
           "aboutMe": "About Me",
           "myStory": "The words that define me",

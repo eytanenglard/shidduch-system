@@ -16,6 +16,28 @@
     "startButton": "Begin This Chapter"
    
   },
+"worlds": {
+    "PERSONALITY": {
+      "title": "Personality",
+      "description": "Discover your core traits, energy sources, and communication style."
+    },
+    "VALUES": {
+      "title": "Values",
+      "description": "Define the principles that guide your life and your vision for the future."
+    },
+    "RELATIONSHIP": {
+      "title": "Partnership",
+      "description": "Explore your expectations for communication, intimacy, and daily life together."
+    },
+    "PARTNER": {
+      "title": "The Partner",
+      "description": "Clarify the essential qualities and characteristics you're seeking in a partner."
+    },
+    "RELIGION": {
+      "title": "Religion",
+      "description": "Detail your spiritual connection, practices, and vision for a Jewish home."
+    }
+  },
 
    "questionCard": {
     "depthLabels": {
@@ -224,7 +246,8 @@
         "start": "Start This World",
         "continue": "Continue Here",
         "locked": "Locked"
-      }
+      },
+       "progress": "Progress"
     },
     "completionBanner": {
       "title": "Congratulations, {{name}}!",

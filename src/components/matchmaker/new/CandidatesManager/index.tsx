@@ -4,6 +4,7 @@
 
 // --- React & Next.js Imports ---
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { ProfileFeedbackDialog } from '../dialogs/ProfileFeedbackDialog';
 import { useSession } from 'next-auth/react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import { AiMatchmakerProfileAdvisorDialog } from '../dialogs/AiMatchmakerProfileAdvisorDialog';
@@ -393,7 +394,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isAnalysisDialogOpen, setIsAnalysisDialogOpen] = useState(false);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
-
+  const [feedbackCandidate, setFeedbackCandidate] = useState<Candidate | null>(
+    null
+  );
   // --- Session & Permissions ---
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';
@@ -403,6 +406,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
 
   const handleOpenAiAnalysis = useCallback((candidate: Candidate) => {
     setAnalyzedCandidate(candidate);
+  }, []);
+  const handleOpenProfileFeedback = useCallback((candidate: Candidate) => {
+    setFeedbackCandidate(candidate);
   }, []);
 
   const handleCloseAiAnalysis = () => {
@@ -872,6 +878,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
               <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border-0 overflow-hidden h-full">
                 <SplitView
                   onOpenAiAnalysis={handleOpenAiAnalysis}
+                  onSendProfileFeedback={handleOpenProfileFeedback} // <--- הוסף את השורה הזו
                   maleCandidates={maleCandidates}
                   femaleCandidates={femaleCandidates}
                   allCandidates={candidates}
@@ -981,6 +988,13 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         candidate={analyzedCandidate}
         dict={matchmakerDict.candidatesManager.aiProfileAdvisor}
         locale={locale}
+      />
+      <ProfileFeedbackDialog
+        isOpen={!!feedbackCandidate}
+        onClose={() => setFeedbackCandidate(null)}
+        candidate={feedbackCandidate}
+        locale={locale}
+        dict={matchmakerDict.candidatesManager.profileFeedbackDialog}
       />
       {/* --- Dialogs --- */}
       <AddManualCandidateDialog

@@ -415,8 +415,10 @@ compareButton: string;
         stats: CandidatesStatsDict;
             editProfile: MatchmakerEditProfileDict;
     actionDialogs: ActionDialogsDict;
-
+ 
     addManualCandidateDialog: AddManualCandidateDialogDict;
+        profileFeedbackDialog: ProfileFeedbackDialogDict; // <-- הוסף את השורה הזו
+
   };
     statusBadges: StatusBadgeDict;
       pagination: PaginationDict;
@@ -424,7 +426,44 @@ compareButton: string;
 suggestionsDashboard: MatchmakerSuggestionsDashboardDict; 
 
 };
+// הגדרת המילון עבור דיאלוג העריכה והשליחה
+type ProfileFeedbackDialogDict = {
+  title: string; // e.g., "Profile Feedback for {{name}}"
+  preparingEmail: string;
+  emailSubject: string;
+  editPrompt: string;
+  buttons: {
+    cancel: string;
+    send: string;
+    sending: string;
+  };
+  toasts: {
+    loadError: string;
+    sendSuccess: string;
+    sendError: string;
+  };
+};
 
+// הגדרת המילון עבור תוכן המייל עצמו
+type ProfileFeedbackEmailDict = {
+  title: string;
+  greeting: string; // {{firstName}}
+  matchmakerIntro: string; // {{matchmakerName}}
+  systemIntro: string; // For automated emails
+  progressHeader: string;
+  aiSummaryHeader: string;
+  aiSummary: {
+    personalityTitle: string;
+    lookingForTitle: string;
+  };
+  missingItemsHeader: string;
+  missingProfileItemsTitle: string;
+  missingQuestionnaireItemsTitle: string;
+  cta: {
+    title: string;
+    button: string;
+  };
+};
 type CandidatesStatsDict = {
   hero: {
     title: string;
@@ -584,6 +623,13 @@ type SavedFiltersDict = {
 
 type MatchmakerEditProfileDict = {
   deleteConfirmationPhrase: string;
+   neshamaTechSummary: {
+        title: string;
+        description: string;
+        aiButton: string;
+        aiButtonLoading: string;
+        placeholder: string;
+      };
   toasts: {
     loadError: string;
     updateSuccess: string;
@@ -603,6 +649,8 @@ type MatchmakerEditProfileDict = {
     sendInviteErrorEmail: string;
     sendInviteErrorGeneral: string;
     sendInviteSuccess: string;
+    aiSummarySuccess: string;
+        aiSummaryError: string;
   };
   header: {
     title: string; // e.g., "Edit Profile - {{firstName}} {{lastName}}"

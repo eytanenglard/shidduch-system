@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\questionnaire
-# Generated on: 2025-09-09 13:53:58
+# Generated on: 2025-09-18 15:51:12
 ################################################################################
 
 ================================================================================
@@ -48,13 +48,19 @@ type WorldId = z.infer<typeof WorldId>;
 const baseAnswerSchema = z.object({
   questionId: z.string().min(1),
   worldId: WorldId,
+  // --- עדכון השדה value ---
   value: z.union([
     z.string(),
     z.number(),
     z.array(z.string()),
     z.array(z.number()),
     z.record(z.string(), z.number()),
+    z.object({ // הוספת האובייקט החדש לסכמה
+      text: z.string(),
+      lang: z.string(),
+    }),
   ]),
+
   answeredAt: z.string().datetime(),
   isVisible: z.boolean().optional().default(true), // הוספת השדה החדש עם ברירת מחדל
 });
@@ -156,7 +162,7 @@ export async function GET() {
 type Answer = {
   questionId: string;
   worldId: WorldId;
-  value: string | number | string[] | number[] | Record<string, number>;
+  value: string | number | string[] | number[] | Record<string, number> | { text: string; lang: string };
   answeredAt: string;
   isVisible?: boolean; // הוספת השדה
 };

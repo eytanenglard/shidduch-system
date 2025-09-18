@@ -16,12 +16,24 @@ import type {
   UserSource,
   ReligiousJourney,
     Prisma,
+     TestimonialStatus, // <-- הוספה חדשה
+  SubmissionSource, // <-- הוספה חדשה
 } from '@prisma/client';
 import { DefaultSession, DefaultUser } from 'next-auth';
 import { DefaultJWT } from 'next-auth/jwt';
 
 // --- Standalone Interface Definitions ---
-
+export interface FriendTestimonial {
+  id: string;
+  authorName: string;
+  relationship: string;
+  content: string;
+  authorPhone?: string | null;
+  isPhoneVisibleToMatch: boolean;
+  status: TestimonialStatus;
+  submittedBy: SubmissionSource;
+  createdAt: Date;
+}
 export type WorldId = 'values' | 'personality' | 'relationship' | 'partner' | 'religion';
 
 export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' | 'height' | 'additionalLanguages' | 'profileCharacterTraits' | 'profileHobbies' | 'preferredReligiousLevels' | 'preferredLocations' | 'preferredEducation' | 'preferredOccupations' | 'preferredMaritalStatuses' | 'preferredOrigins' | 'preferredServiceTypes' | 'preferredHeadCoverings' | 'preferredKippahTypes' | 'preferredCharacterTraits' | 'preferredHobbies' | 'availabilityStatus' | 'isProfileVisible' | 'createdAt' | 'updatedAt'| 'birthDateIsApproximate'> {
@@ -72,7 +84,13 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
  hasMedicalInfo?: boolean | null;
   medicalInfoDetails?: string | null;
   medicalInfoDisclosureTiming?: string | null; // הערך כאן צריך להיות תואם ל-enum אם תגדיר
-
+ // --- הוספה חדשה: שדות שליטה על נראות ---
+  isAboutVisible?: boolean | null;
+  isFriendsSectionVisible?: boolean | null;
+  isNeshamaTechSummaryVisible?: boolean | null;
+  
+  // --- הוספה חדשה: מערך המלצות ---
+  testimonials?: FriendTestimonial[];
   // --- הוספה חדשה ---
   isMedicalInfoVisible: boolean; // זה לא אופציונלי כי יש לו ברירת מחדל בדאטהבייס
   // --- Existing Preference Fields ---

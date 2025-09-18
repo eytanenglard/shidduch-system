@@ -7,7 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Gender,
   AvailabilityStatus,
@@ -33,8 +33,14 @@ import {
   Pencil,
   Save,
   X,
+  MessageSquare, // אייקון חדש לסיפור אישי
+  Award, // אייקון חדש לסיכום מקצועי
+  Send, // אייקון חדש לשליחת קישור
+  Copy, // אייקון להעתקה
   Users,
   BookOpen,
+  Loader2,
+  Trash2,
   Briefcase,
   Shield,
   Heart,
@@ -49,14 +55,22 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react';
-import { UserProfile } from '@/types/next-auth';
+import { UserProfile, FriendTestimonial } from '@/types/next-auth';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { languageOptions } from '@/lib/languageOptions';
 import { toast } from 'sonner';
 import Autocomplete from 'react-google-autocomplete';
 import { Switch } from '@/components/ui/switch';
-import { ProfileSectionDict } from '@/types/dictionary';
+import { ProfileSectionDict, FriendTestimonialsDict } from '@/types/dictionary';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 interface ProfileSectionProps {
   profile: UserProfile | null;
@@ -83,6 +97,504 @@ const ensureDateObject = (
   }
   return undefined;
 };
+const AboutMeCard: React.FC<{
+  profile: UserProfile | null;
+  isEditing: boolean;
+  dict: ProfileSectionDict;
+  handleChange: (field: keyof UserProfile, value: any) => void;
+  formData: Partial<UserProfile>;
+}> = ({ profile, isEditing, dict, handleChange, formData }) => {
+  if (!profile) return null;
+  const t = dict.aboutMe;
+  return (
+    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-cyan-50/40 to-pink-50/40 border-b border-gray-200/50 p-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="w-5 h-5 text-cyan-700" />
+          <CardTitle className="text-base font-semibold text-gray-700">
+            {t.cardTitle}
+          </CardTitle>
+        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Switch
+                checked={formData.isAboutVisible ?? true}
+                onCheckedChange={(checked) =>
+                  handleChange('isAboutVisible', checked)
+                }
+                disabled={!isEditing}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t.visibilityTooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </CardHeader>
+      <CardContent className="p-4 md:p-6">
+        {isEditing ? (
+          <Textarea
+            value={formData.about || ''}
+            onChange={(e) => handleChange('about', e.target.value)}
+            placeholder={t.placeholder}
+            className="min-h-[150px] text-sm"
+          />
+        ) : (
+          <p className="text-sm text-gray-700 whitespace-pre-wrap min-h-[60px]">
+            {formData.about || (
+              <span className="italic text-gray-500">{t.placeholder}</span>
+            )}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// --- רכיב משנה לניהול "תקציר NeshamaTech" (מימוש מלא) ---
+const NeshamaTechSummaryCard: React.FC<{
+  profile: UserProfile | null;
+  isEditing: boolean;
+  dict: ProfileSectionDict;
+  handleChange: (field: keyof UserProfile, value: any) => void;
+  formData: Partial<UserProfile>;
+}> = ({ profile, isEditing, dict, handleChange, formData }) => {
+  if (!profile) return null;
+  const t = dict.neshamaTechSummary;
+  return (
+    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-purple-50/40 to-indigo-50/40 border-b border-gray-200/50 p-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Award className="w-5 h-5 text-purple-700" />
+          <CardTitle className="text-base font-semibold text-gray-700">
+            {t.cardTitle}
+          </CardTitle>
+        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Switch
+                checked={formData.isNeshamaTechSummaryVisible ?? true}
+                onCheckedChange={(checked) =>
+                  handleChange('isNeshamaTechSummaryVisible', checked)
+                }
+                disabled={!isEditing}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t.visibilityTooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </CardHeader>
+      <CardContent className="p-4 md:p-6">
+        <p className="text-sm text-gray-700 whitespace-pre-wrap min-h-[60px]">
+          {profile.manualEntryText || (
+            <span className="italic text-gray-500">{t.emptyState}</span>
+          )}
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
+
+// --- רכיב משנה לניהול "המלצות חברים" ---
+// src/app/components/profile/sections/ProfileSection.tsx
+
+// ... (כל הקוד הקודם, כולל Imports ורכיבי המשנה האחרים)
+
+// --- רכיב משנה לניהול "המלצות חברים" (מימוש מלא וסופי) ---
+const FriendTestimonialsManager: React.FC<{
+  profile: UserProfile | null;
+  isEditing: boolean;
+  dict: ProfileSectionDict;
+  handleChange: (field: keyof UserProfile, value: any) => void;
+  formData: Partial<UserProfile>;
+}> = ({ profile, isEditing, dict, handleChange, formData }) => {
+  const [testimonials, setTestimonials] = useState<FriendTestimonial[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [requestLink, setRequestLink] = useState('');
+
+  const t = dict.friendTestimonials;
+
+  const fetchTestimonials = useCallback(async () => {
+    if (!profile) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/profile/testimonials');
+      const data = await response.json();
+      if (data.success) {
+        setTestimonials(data.testimonials);
+      } else {
+        throw new Error(data.message || 'Failed to fetch');
+      }
+    } catch (error) {
+      toast.error('Failed to load testimonials.');
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    fetchTestimonials();
+  }, [fetchTestimonials]);
+
+  const handleStatusChange = async (
+    id: string,
+    status: 'APPROVED' | 'HIDDEN'
+  ) => {
+    try {
+      const response = await fetch(`/api/profile/testimonials/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) throw new Error('Failed to update status');
+      toast.success('סטטוס ההמלצה עודכן!');
+      fetchTestimonials(); // Refresh list
+    } catch (error) {
+      toast.error('שגיאה בעדכון סטטוס ההמלצה.');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm(t.deleteConfirm)) {
+      try {
+        const response = await fetch(`/api/profile/testimonials/${id}`, {
+          method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Failed to delete');
+        toast.success('ההמלצה נמחקה.');
+        fetchTestimonials(); // Refresh list
+      } catch (error) {
+        toast.error('שגיאה במחיקת ההמלצה.');
+      }
+    }
+  };
+
+  const handleGenerateLink = async () => {
+    try {
+      const response = await fetch('/api/profile/testimonials/request-link', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.success) {
+        setRequestLink(data.link);
+        setIsLinkModalOpen(true);
+      } else {
+        throw new Error(data.message || 'Failed to generate link');
+      }
+    } catch (error) {
+      toast.error('שגיאה ביצירת קישור לבקשת המלצה.');
+    }
+  };
+
+  const getStatusBadge = (status: 'PENDING' | 'APPROVED' | 'HIDDEN') => {
+    switch (status) {
+      case 'PENDING':
+        return <Badge variant="warning">{t.pendingApproval}</Badge>;
+      case 'APPROVED':
+        return <Badge variant="success">{t.approvedAndVisible}</Badge>;
+      case 'HIDDEN':
+        return <Badge variant="secondary">{t.hidden}</Badge>;
+    }
+  };
+
+  return (
+    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-teal-50/40 to-green-50/40 border-b border-gray-200/50 p-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Users className="w-5 h-5 text-teal-700" />
+          <CardTitle className="text-base font-semibold text-gray-700">
+            {t.cardTitle}
+          </CardTitle>
+        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Switch
+                checked={formData.isFriendsSectionVisible ?? true}
+                onCheckedChange={(checked) =>
+                  handleChange('isFriendsSectionVisible', checked)
+                }
+                disabled={!isEditing}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t.visibilityTooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </CardHeader>
+      <CardContent className="p-4 md:p-6">
+        {isEditing && (
+          <div className="flex flex-col sm:flex-row gap-2 mb-4 p-4 bg-slate-50 rounded-lg border">
+            <Button
+              size="sm"
+              className="flex-1"
+              onClick={() => setIsAddModalOpen(true)}
+            >
+              {t.addManualButton}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1"
+              onClick={handleGenerateLink}
+            >
+              <Send className="w-4 h-4 mr-2" />
+              {t.requestLinkButton}
+            </Button>
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="flex justify-center p-4">
+            <Loader2 className="animate-spin" />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {testimonials.length === 0 ? (
+              <p className="text-sm text-center text-gray-500 py-4">
+                {t.emptyState}
+              </p>
+            ) : (
+              testimonials.map((item) => (
+                <div
+                  key={item.id}
+                  className="border rounded-md p-3 bg-white/50"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p className="italic text-sm text-gray-600">
+                        "{item.content}"
+                      </p>
+                      <p className="text-xs font-semibold mt-2">
+                        - {item.authorName}, {item.relationship}
+                      </p>
+                    </div>
+                    {isEditing && getStatusBadge(item.status)}
+                  </div>
+                  {isEditing && (
+                    <div className="flex items-center gap-2 mt-2 pt-2 border-t">
+                      {item.status !== 'APPROVED' && (
+                        <Button
+                          size="xs"
+                          onClick={() =>
+                            handleStatusChange(item.id, 'APPROVED')
+                          }
+                        >
+                          {t.approveButton}
+                        </Button>
+                      )}
+                      {item.status === 'APPROVED' && (
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          onClick={() => handleStatusChange(item.id, 'HIDDEN')}
+                        >
+                          {t.hideButton}
+                        </Button>
+                      )}
+                      {item.status === 'HIDDEN' && (
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          onClick={() =>
+                            handleStatusChange(item.id, 'APPROVED')
+                          }
+                        >
+                          {t.showButton}
+                        </Button>
+                      )}
+                      <Button
+                        size="xs"
+                        variant="destructive"
+                        onClick={() => handleDelete(item.id)}
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" />
+                        {t.deleteButton}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </CardContent>
+
+      <AddTestimonialModal
+        isOpen={isAddModalOpen}
+        setIsOpen={setIsAddModalOpen}
+        dict={t.addModal}
+        onSuccess={fetchTestimonials}
+      />
+
+      <Dialog open={isLinkModalOpen} onOpenChange={setIsLinkModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t.linkModal.title}</DialogTitle>
+            <DialogDescription>{t.linkModal.description}</DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+            <Input value={requestLink} readOnly />
+            <Button
+              onClick={() =>
+                navigator.clipboard
+                  .writeText(requestLink)
+                  .then(() => toast.success(t.linkModal.copiedTooltip))
+              }
+              size="icon"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsLinkModalOpen(false)}>
+              {t.linkModal.closeButton}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+};
+
+// --- רכיב עזר: דיאלוג להוספת המלצה ידנית ---
+const AddTestimonialModal: React.FC<{
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  dict: FriendTestimonialsDict['addModal'];
+  onSuccess: () => void;
+}> = ({ isOpen, setIsOpen, dict, onSuccess }) => {
+  const [formData, setFormData] = useState({
+    authorName: '',
+    relationship: '',
+    content: '',
+    authorPhone: '',
+    isPhoneVisibleToMatch: false,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/profile/testimonials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!response.ok) throw new Error('Failed to add testimonial');
+      toast.success('Testimonial added!');
+      onSuccess();
+      setIsOpen(false);
+      setFormData({
+        authorName: '',
+        relationship: '',
+        content: '',
+        authorPhone: '',
+        isPhoneVisibleToMatch: false,
+      });
+    } catch (error) {
+      toast.error('Error adding testimonial.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{dict.title}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label>{dict.authorNameLabel}</Label>
+            <Input
+              name="authorName"
+              value={formData.authorName}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, authorName: e.target.value }))
+              }
+              required
+              placeholder={dict.authorNamePlaceholder}
+            />
+          </div>
+          <div>
+            <Label>{dict.relationshipLabel}</Label>
+            <Input
+              name="relationship"
+              value={formData.relationship}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, relationship: e.target.value }))
+              }
+              required
+              placeholder={dict.relationshipPlaceholder}
+            />
+          </div>
+          <div>
+            <Label>{dict.contentLabel}</Label>
+            <Textarea
+              name="content"
+              value={formData.content}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, content: e.target.value }))
+              }
+              required
+              placeholder={dict.contentPlaceholder}
+            />
+          </div>
+          <div>
+            <Label>{dict.phoneLabel}</Label>
+            <Input
+              name="authorPhone"
+              type="tel"
+              value={formData.authorPhone}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, authorPhone: e.target.value }))
+              }
+              placeholder={dict.phonePlaceholder}
+            />
+          </div>
+          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+            <Checkbox
+              id="consent"
+              checked={formData.isPhoneVisibleToMatch}
+              onCheckedChange={(c) =>
+                setFormData((p) => ({ ...p, isPhoneVisibleToMatch: !!c }))
+              }
+              disabled={!formData.authorPhone}
+            />
+            <Label htmlFor="consent">{dict.consentLabel}</Label>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsOpen(false)}
+            >
+              {dict.cancelButton}
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                dict.saveButton
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const ProfileSection: React.FC<ProfileSectionProps> = ({
   profile: profileProp,
@@ -96,6 +608,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [loading, setLoading] = useState(true);
   const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
+  const [testimonials, setTestimonials] = useState<FriendTestimonial[]>([]);
 
   const [cityInputValue, setCityInputValue] = useState('');
   const [aliyaCountryInputValue, setAliyaCountryInputValue] = useState('');
@@ -302,6 +815,22 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
     setLoading(true);
     if (profileProp) {
       initializeFormData(profileProp);
+      setLoading(false);
+      setTestimonials(profileProp.testimonials || []);
+      setFormData((prev) => ({
+        ...prev,
+        isAboutVisible: profileProp.isAboutVisible ?? true,
+        isFriendsSectionVisible: profileProp.isFriendsSectionVisible ?? true,
+        isNeshamaTechSummaryVisible:
+          profileProp.isNeshamaTechSummaryVisible ?? true,
+      }));
+      setInitialData((prev) => ({
+        ...prev,
+        isAboutVisible: profileProp.isAboutVisible ?? true,
+        isFriendsSectionVisible: profileProp.isFriendsSectionVisible ?? true,
+        isNeshamaTechSummaryVisible:
+          profileProp.isNeshamaTechSummaryVisible ?? true,
+      }));
       setLoading(false);
     }
   }, [profileProp]);
@@ -2241,6 +2770,30 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </fieldset>
               </CardContent>
             </Card>
+          </div>
+          <div className="space-y-6">
+            {/* כאן נשלב את הכרטיסים החדשים */}
+            <AboutMeCard
+              profile={profileProp}
+              isEditing={isEditing}
+              dict={dict}
+              handleChange={handleChange}
+              formData={formData}
+            />
+            <NeshamaTechSummaryCard
+              profile={profileProp}
+              isEditing={isEditing}
+              dict={dict}
+              handleChange={handleChange}
+              formData={formData}
+            />
+            <FriendTestimonialsManager
+              profile={profileProp}
+              isEditing={isEditing}
+              dict={dict}
+              handleChange={handleChange}
+              formData={formData}
+            />
           </div>
         </div>
       </div>

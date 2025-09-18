@@ -422,6 +422,26 @@ class EmailService {
           }
       });
   }
+  async sendRawEmail({ to, subject, html }: { to: string; subject: string; html: string }): Promise<void> {
+    try {
+      const mailOptions: nodemailer.SendMailOptions = {
+        from: `${process.env.EMAIL_FROM_NAME || 'NeshamaTech'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
+        to,
+        subject,
+        html,
+        headers: {
+          'Content-Type': 'text/html; charset=UTF-8',
+        }
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log('אימייל גולמי נשלח בהצלחה:', info.messageId, 'אל:', to, 'נושא:', subject);
+      
+    } catch (error) {
+      console.error('שגיאה בשליחת אימייל גולמי אל:', to, 'נושא:', subject, 'שגיאה:', error);
+      throw new Error(`Failed to send raw email to ${to}`);
+    }
+  }
 
   async sendAvailabilityCheck({
     locale,

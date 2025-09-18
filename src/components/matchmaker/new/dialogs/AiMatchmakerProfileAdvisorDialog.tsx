@@ -1,7 +1,7 @@
 // src/components/matchmaker/new/dialogs/AiMatchmakerProfileAdvisorDialog.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // הוספנו useCallback
 import {
   Dialog,
   DialogContent,
@@ -11,19 +11,19 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertTriangle, X, Bot } from 'lucide-react';
+import { Loader2, AlertTriangle, X, Bot, RefreshCw } from 'lucide-react'; // הוספנו אייקון לרענון
 import { toast } from 'sonner';
 import type { Candidate } from '../types/candidates';
 import type { AiProfileAnalysisResult } from '@/lib/services/aiService';
-// שימוש חוזר חכם ברכיב התצוגה שכבר קיים אצלך!
 import AnalysisResultDisplay from '@/components/profile/sections/AnalysisResultDisplay';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
+import { Button } from '@/components/ui/button'; // הוספנו ייבוא לכפתור
 
 interface AiMatchmakerProfileAdvisorDialogProps {
   candidate: Candidate | null;
   isOpen: boolean;
   onClose: () => void;
-  dict: MatchmakerPageDictionary['candidatesManager']['aiProfileAdvisor']; // <-- התיקון כאן
+  dict: MatchmakerPageDictionary['candidatesManager']['aiProfileAdvisor'];
   locale: string;
 }
 
@@ -36,49 +36,62 @@ export const AiMatchmakerProfileAdvisorDialog: React.FC<
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const getAnalysis = async () => {
-      if (isOpen && candidate) {
-        setIsLoading(true);
-        setError(null);
-        setAnalysis(null);
+  // 1. הוספנו פונקציה ייעודית לאחזור הנתונים, בדומה לקובץ שהצגת.
+  // השימוש ב-useCallback מונע יצירה מחדש של הפונקציה בכל רינדור.
+  const getAnalysis = useCallback(
+    async (forceRefresh = false) => {
+      // אם אין מועמד או שאנחנו כבר טוענים, אין מה להמשיך
+      if (!candidate || isLoading) return;
 
-        try {
-          const response = await fetch('/api/ai/matchmaker/analyze-profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: candidate.id }),
-          });
-          const result = await response.json();
+      // אם יש כבר ניתוח ולא ביקשנו לרענן בכוח, אל תעשה כלום
+      if (analysis && !forceRefresh) return;
 
-          if (!response.ok || !result.success) {
-            throw new Error(
-              result.message || 'Error getting profile analysis.'
-            );
-          }
-          setAnalysis(result.data);
-        } catch (err) {
-          const errorMessage =
-            err instanceof Error
-              ? err.message
-              : 'An unexpected error occurred.';
-          setError(errorMessage);
-          toast.error(dict.toast.errorTitle, {
-            description: dict.toast.errorDescription.replace(
-              '{{error}}',
-              errorMessage
-            ),
-          });
-        } finally {
-          setIsLoading(false);
-        }
+      setIsLoading(true);
+      setError(null);
+      if (!forceRefresh) {
+        setAnalysis(null); // אפס רק אם זו לא טעינה חוזרת
       }
-    };
 
+      try {
+        const response = await fetch('/api/ai/matchmaker/analyze-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: candidate.id }),
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || 'Error getting profile analysis.');
+        }
+        setAnalysis(result.data);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'An unexpected error occurred.';
+        setError(errorMessage);
+        toast.error(dict.toast.errorTitle, {
+          description: dict.toast.errorDescription.replace(
+            '{{error}}',
+            errorMessage
+          ),
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [candidate, isLoading, analysis, dict.toast]
+  ); // התלויות של הפונקציה
+
+  // 2. useEffect חדש וחכם שמפעיל את האחזור רק פעם אחת כשהדיאלוג נפתח
+  useEffect(() => {
     if (isOpen) {
       getAnalysis();
+    } else {
+      // 3. איפוס ה-State כשהדיאלוג נסגר, כדי שתמיד יטען מחדש עבור מועמד חדש
+      setAnalysis(null);
+      setError(null);
+      setIsLoading(false);
     }
-  }, [isOpen, candidate, dict.toast, locale]); // הוספתי locale למערך התלויות
+  }, [isOpen, getAnalysis]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -123,7 +136,7 @@ export const AiMatchmakerProfileAdvisorDialog: React.FC<
               </p>
             </div>
           )}
-          {error && (
+          {error && !isLoading && (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <Alert variant="destructive" className="max-w-md">
                 <AlertTriangle className="h-5 w-5" />
@@ -133,6 +146,15 @@ export const AiMatchmakerProfileAdvisorDialog: React.FC<
                   <p className="text-xs mt-2">{error}</p>
                 </AlertDescription>
               </Alert>
+              {/* כפתור לניסיון חוזר */}
+              <Button
+                onClick={() => getAnalysis(true)}
+                variant="outline"
+                className="mt-4"
+              >
+                <RefreshCw className="w-4 h-4 ml-2" />
+                {dict.retryButton || 'נסה שוב'}
+              </Button>
             </div>
           )}
           {analysis && !isLoading && (

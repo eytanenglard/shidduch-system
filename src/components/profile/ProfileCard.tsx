@@ -145,6 +145,126 @@ import type { Candidate } from '@/components/matchmaker/new/types/candidates';
 import NewSuggestionForm from '@/components/matchmaker/suggestions/NewSuggestionForm';
 import { ProfileCardDict, ProfileCardDisplayDict } from '@/types/dictionary';
 
+const NeshamaTechSummary: React.FC<{
+  profile: UserProfile;
+  dict: ProfileCardDict;
+}> = ({ profile, dict }) => {
+  // בדיקת נראות ותוכן
+  if (!profile.isNeshamaTechSummaryVisible || !profile.manualEntryText) {
+    return null;
+  }
+
+  return (
+    <SectionCard
+      title={dict.display.content.neshamaTechSummary.title.replace(
+        '{{name}}',
+        profile.user?.firstName || ''
+      )}
+      icon={Sparkles}
+      variant="elegant"
+      gradient={COLOR_PALETTES.luxury.colors.primary.main}
+    >
+      <div className="text-center italic p-4 bg-amber-50/50 rounded-lg border border-amber-200/50">
+        <p className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+          {profile.manualEntryText}
+        </p>
+      </div>
+    </SectionCard>
+  );
+};
+
+// רכיב 2: הסיפור של המשתמש
+const AboutMeSection: React.FC<{
+  profile: UserProfile;
+  dict: ProfileCardDict;
+}> = ({ profile, dict }) => {
+  // בדיקת נראות ותוכן
+  if (!profile.isAboutVisible || !profile.about) {
+    return null;
+  }
+
+  return (
+    <SectionCard
+      title={dict.display.content.aboutMe.titleCard.replace(
+        '{{name}}',
+        profile.user?.firstName || ''
+      )}
+      icon={User}
+      variant="romantic"
+    >
+      <div className="relative p-4 bg-rose-50/30 rounded-lg border border-rose-200/50">
+        <p className="whitespace-pre-wrap text-gray-800 leading-relaxed italic">
+          {profile.about}
+        </p>
+      </div>
+    </SectionCard>
+  );
+};
+
+// רכיב 3: המלצות חברים
+const FriendTestimonialsSection: React.FC<{
+  profile: UserProfile;
+  dict: ProfileCardDict;
+}> = ({ profile, dict }) => {
+  const approvedTestimonials = (profile.testimonials || []).filter(
+    (t) => t.status === 'APPROVED'
+  );
+
+  // בדיקת נראות ותוכן
+  if (!profile.isFriendsSectionVisible || approvedTestimonials.length === 0) {
+    return null;
+  }
+
+  return (
+    <SectionCard
+      title={dict.display.content.friendTestimonials.title}
+      icon={Users}
+      variant="default"
+    >
+      <div className="space-y-4">
+        {approvedTestimonials.map((testimonial) => (
+          <div
+            key={testimonial.id}
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+          >
+            <blockquote className="italic text-gray-700 border-r-4 border-cyan-400 pr-4">
+              "{testimonial.content}"
+            </blockquote>
+            <div className="flex items-center justify-between mt-3 pt-3 border-t">
+              <p className="text-sm font-semibold text-gray-800">
+                - {testimonial.authorName},{' '}
+                <span className="font-normal text-gray-600">
+                  {testimonial.relationship}
+                </span>
+              </p>
+              {testimonial.isPhoneVisibleToMatch && testimonial.authorPhone && (
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full text-cyan-700 border-cyan-300 hover:bg-cyan-50"
+                >
+                  <a href={`tel:${testimonial.authorPhone}`}>
+                    <Phone className="w-3 h-3 me-2" />
+                    {dict.display.content.friendTestimonials.callButton.replace(
+                      '{{name}}',
+                      testimonial.authorName.split(' ')[0]
+                    )}
+                  </a>
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      {approvedTestimonials.some((t) => t.isPhoneVisibleToMatch) && (
+        <p className="text-xs text-center text-gray-500 mt-4 px-4">
+          {dict.display.content.friendTestimonials.callDisclaimer}
+        </p>
+      )}
+    </SectionCard>
+  );
+};
 // --- Maps Creation ---
 const createMaritalStatusMap = (
   dict: ProfileCardDict['options']['maritalStatus']
@@ -3378,6 +3498,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             (profile.profileHobbies && profile.profileHobbies.length > 0),
         },
         {
+          value: 'deepDive',
+          label: dict.display.tabs.deepDive.label,
+          shortLabel: dict.display.tabs.deepDive.shortLabel,
+          icon: Telescope, // אייקון שמתאים לצלילה לעומק
+          gradient: THEME.colors.secondary.lavender,
+          hasContent:
+            !!profile.inspiringCoupleStory ||
+            !!profile.influentialRabbi ||
+            !!profile.humorStory,
+        },
+        {
           value: 'journey',
           label: displayDict.tabs.journey.label,
           shortLabel: displayDict.tabs.journey.shortLabel,
@@ -3795,6 +3926,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             {/* Essence Tab - REFACTORED */}
             <TabsContent value="essence" className="mt-0 max-w-full min-w-0">
               <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
+                <NeshamaTechSummary profile={profile} dict={dict} />
+                <AboutMeSection profile={profile} dict={dict} />
+                <FriendTestimonialsSection profile={profile} dict={dict} />
                 {personalityContent.hookAnswer && (
                   <QuestionnaireItem
                     answer={personalityContent.hookAnswer}
@@ -3818,7 +3952,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
                 {profile.about && (
                   <SectionCard
-                    title={displayDict.content.aboutMe}
+                    title={displayDict.content.aboutMe.titleCard.replace(
+                      '{{name}}',
+                      profile.user?.firstName || 'המועמד/ת'
+                    )}
                     subtitle={displayDict.content.aboutMeSubtitle.replace(
                       '{{name}}',
                       profile.user?.firstName || 'המועמד/ת'
@@ -3957,6 +4094,43 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               </div>
             </TabsContent>
 
+            <TabsContent value="deepDive" className="mt-0 max-w-full min-w-0">
+              <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
+                {profile.inspiringCoupleStory && (
+                  <SectionCard
+                    title={dict.display.content.inspiringCouple.title}
+                    icon={Heart}
+                    variant="romantic"
+                  >
+                    <p className="italic text-gray-700">
+                      "{profile.inspiringCoupleStory}"
+                    </p>
+                  </SectionCard>
+                )}
+                {profile.influentialRabbi && (
+                  <SectionCard
+                    title={dict.display.content.influentialRabbi.title}
+                    icon={BookOpen}
+                    variant="elegant"
+                  >
+                    <p className="italic text-gray-700">
+                      "{profile.influentialRabbi}"
+                    </p>
+                  </SectionCard>
+                )}
+                {profile.humorStory && (
+                  <SectionCard
+                    title={dict.display.content.humorStory.title}
+                    icon={Smile}
+                    variant="default"
+                  >
+                    <p className="italic text-gray-700">
+                      "{profile.humorStory}"
+                    </p>
+                  </SectionCard>
+                )}
+              </div>
+            </TabsContent>
             {/* Journey Tab - REFACTORED */}
             <TabsContent
               value="journey"

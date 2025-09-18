@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email
-# Generated on: 2025-09-01 18:38:29
+# Generated on: 2025-09-18 16:38:41
 ################################################################################
 
 ================================================================================
@@ -14,21 +14,12 @@ Content:
 // src/lib/email/emailService.ts
 
 import nodemailer from 'nodemailer';
-import { emailTemplates } from './templates/emailTemplates';
-// =================  הוספות נדרשות =================
+import { emailTemplates, TemplateContextMap } from './templates/emailTemplates';
 import { getDictionary } from '@/lib/dictionaries';
 import { EmailDictionary } from '@/types/dictionary';
-// ================= סוף הוספות =================
+import { Locale } from '../../../i18n-config'; // ודא שהנתיב נכון
 
-// הגדרות טיפוסים בסיסיות
-interface EmailConfig {
-  to: string;
-  subject: string;
-  templateName: string;
-  context: Record<string, unknown>;
-}
-
-// =================  הוספת הממשק החדש לתיקון שגיאת ESLint =================
+// =================  עדכון הממשק הקיים =================
 /**
  * ממשק זה מאגד את כל המאפיינים האפשריים שניתן להעביר לכל תבנית אימייל.
  * הוא מחליף את השימוש ב-'any' ומספק בטיחות טיפוסים מלאה.
@@ -42,8 +33,9 @@ interface TemplateContext {
   baseUrl: string;
 
   // מאפיינים דינמיים המגיעים מהקונטקסט של כל סוג אימייל
-  dict: EmailDictionary[keyof EmailDictionary];
-  sharedDict: EmailDictionary['shared'];
+  locale?: Locale; // אופציונלי, כי אימיילים פנימיים לא צריכים אותו
+  dict?: EmailDictionary[keyof EmailDictionary]; // אופציונלי
+  sharedDict?: EmailDictionary['shared']; // אופציונלי
   name?: string;
   firstName?: string;
   matchmakerAssigned?: boolean;
@@ -70,13 +62,28 @@ interface TemplateContext {
   otp?: string;
   loginUrl?: string;
   inquiryId?: string;
-}
-// =================  סוף הוספת הממשק =================
 
+  // --- הוספת שדות עבור אימייל הפידבק ---
+  feedbackType?: string;
+  userIdentifier?: string;
+  content?: string;
+  pageUrl?: string;
+  screenshotUrl?: string;
+  feedbackId?: string;
+}
+// =================  סוף עדכון הממשק =================
+
+// הגדרות טיפוסים בסיסיות עם locale
+interface EmailConfig {
+  to: string;
+  subject: string;
+  templateName: keyof TemplateContextMap;
+  context: Omit<TemplateContext, 'supportEmail' | 'companyName' | 'currentYear' | 'baseUrl'>;
+}
 
 // ================= הוספת locale לכל הטיפוסים =================
 interface AccountSetupEmailParams {
-    locale: 'he' | 'en';
+    locale: Locale;
     email: string;
     firstName: string;
     matchmakerName: string;
@@ -84,7 +91,7 @@ interface AccountSetupEmailParams {
     expiresIn: string;
 }
 interface WelcomeEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   firstName: string;
   matchmakerAssigned?: boolean;
@@ -93,7 +100,7 @@ interface WelcomeEmailParams {
 }
 
 interface VerificationEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   verificationCode: string;
   firstName?: string;
@@ -101,7 +108,7 @@ interface VerificationEmailParams {
 }
 
 interface InvitationEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   invitationLink: string;
   matchmakerName: string;
@@ -109,7 +116,7 @@ interface InvitationEmailParams {
 }
 
 interface SuggestionEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   recipientName: string;
   matchmakerName: string;
@@ -122,7 +129,7 @@ interface SuggestionEmailParams {
 }
 
 interface ContactDetailsEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   recipientName: string;
   otherPartyName: string;
@@ -135,7 +142,7 @@ interface ContactDetailsEmailParams {
 }
 
 interface AvailabilityCheckEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   recipientName: string;
   matchmakerName: string;
@@ -143,7 +150,7 @@ interface AvailabilityCheckEmailParams {
 }
 
 interface PasswordResetOtpEmailParams {
-  locale: 'he' | 'en';
+  locale: Locale;
   email: string;
   otp: string;
   firstName?: string;
@@ -151,7 +158,7 @@ interface PasswordResetOtpEmailParams {
 }
 
 interface PasswordChangedConfirmationParams {
-    locale: 'he' | 'en';
+    locale: Locale;
     email: string;
     firstName?: string;
 }
@@ -184,24 +191,21 @@ class EmailService {
 
   async sendEmail({ to, subject, templateName, context }: EmailConfig): Promise<void> {
     try {
-      if (!emailTemplates[templateName]) {
+      const templateFunction = emailTemplates[templateName];
+      if (!templateFunction) {
         console.error(`תבנית אימייל "${templateName}" לא נמצאה.`);
         throw new Error(`Template ${templateName} not found`);
       }
 
-      const fullContext = {
+      const fullContext: TemplateContext = {
         ...context,
-        supportEmail: context.supportEmail || process.env.SUPPORT_EMAIL || 'support@example.com',
+        supportEmail: process.env.SUPPORT_EMAIL || 'support@example.com',
         companyName: process.env.COMPANY_NAME || 'NeshamaTech',
         currentYear: new Date().getFullYear().toString(),
         baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
       };
       
-      // =================  התיקון המרכזי =================
-      // החלפנו את 'as any' ב-'as TemplateContext' כדי לספק טיפוסים מפורשים
-      // ולפתור את האזהרה של ESLint.
-      const html = emailTemplates[templateName](fullContext as TemplateContext);
-      // =================  סוף התיקון =================
+      const html = templateFunction(fullContext as any); // Use 'as any' here as a bridge, since the function signatures are typed
 
       const mailOptions: nodemailer.SendMailOptions = {
         from: `${process.env.EMAIL_FROM_NAME || 'NeshamaTech'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
@@ -222,7 +226,7 @@ class EmailService {
     }
   }
 
-  // ============================ עדכון כל הפונקציות הבאות ============================
+  // ============================ פונקציות מעודכנות עם locale ============================
 
   async sendWelcomeEmail({
     locale,
@@ -240,10 +244,11 @@ class EmailService {
       subject: emailDict.welcome.subject,
       templateName: 'welcome',
       context: {
+        locale,
         dict: emailDict.welcome,
         sharedDict: emailDict.shared,
-        name: firstName, // 'name' עבור הברכה המשותפת
-        firstName, // שומרים את 'firstName' לשימוש ספציפי בתבנית אם יש
+        name: firstName,
+        firstName,
         matchmakerAssigned,
         matchmakerName,
         dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${dashboardUrl}`,
@@ -261,6 +266,7 @@ class EmailService {
       subject: emailDict.accountSetup.subject,
       templateName: 'accountSetup',
       context: {
+        locale,
         dict: emailDict.accountSetup,
         sharedDict: emailDict.shared,
         name: firstName,
@@ -287,9 +293,10 @@ class EmailService {
       subject: emailDict.emailOtpVerification.subject,
       templateName: 'emailOtpVerification',
       context: {
+        locale,
         dict: emailDict.emailOtpVerification,
         sharedDict: emailDict.shared,
-        name: firstName,
+        name: firstName || email,
         firstName,
         verificationCode,
         expiresIn,
@@ -314,9 +321,10 @@ class EmailService {
       subject: emailDict.invitation.subject.replace('{{matchmakerName}}', matchmakerName),
       templateName: 'invitation',
       context: {
+        locale,
         dict: emailDict.invitation,
         sharedDict: emailDict.shared,
-        name: email, // שם חלופי
+        name: email,
         matchmakerName,
         invitationLink: fullInvitationLink,
         expiresIn,
@@ -340,6 +348,7 @@ class EmailService {
       subject: emailDict.shareContactDetails.subject,
       templateName: 'shareContactDetails',
       context: {
+        locale,
         dict: emailDict.shareContactDetails,
         sharedDict: emailDict.shared,
         name: recipientName,
@@ -366,6 +375,7 @@ class EmailService {
       subject: emailDict.suggestion.subject,
       templateName: 'suggestion',
       context: {
+        locale,
         dict: emailDict.suggestion,
         sharedDict: emailDict.shared,
         name: recipientName,
@@ -392,9 +402,10 @@ class EmailService {
       subject: emailDict.passwordResetOtp.subject,
       templateName: 'passwordResetOtp',
       context: {
+        locale,
         dict: emailDict.passwordResetOtp,
         sharedDict: emailDict.shared,
-        name: firstName,
+        name: firstName || email,
         firstName,
         otp,
         expiresIn,
@@ -415,13 +426,34 @@ class EmailService {
           subject: emailDict.passwordChangedConfirmation.subject,
           templateName: 'passwordChangedConfirmation',
           context: {
+              locale,
               dict: emailDict.passwordChangedConfirmation,
               sharedDict: emailDict.shared,
-              name: firstName,
+              name: firstName || email,
               firstName,
               loginUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/signin`,
           }
       });
+  }
+  async sendRawEmail({ to, subject, html }: { to: string; subject: string; html: string }): Promise<void> {
+    try {
+      const mailOptions: nodemailer.SendMailOptions = {
+        from: `${process.env.EMAIL_FROM_NAME || 'NeshamaTech'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
+        to,
+        subject,
+        html,
+        headers: {
+          'Content-Type': 'text/html; charset=UTF-8',
+        }
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log('אימייל גולמי נשלח בהצלחה:', info.messageId, 'אל:', to, 'נושא:', subject);
+      
+    } catch (error) {
+      console.error('שגיאה בשליחת אימייל גולמי אל:', to, 'נושא:', subject, 'שגיאה:', error);
+      throw new Error(`Failed to send raw email to ${to}`);
+    }
   }
 
   async sendAvailabilityCheck({
@@ -439,6 +471,7 @@ class EmailService {
       subject: emailDict.availabilityCheck.subject,
       templateName: 'availabilityCheck',
       context: {
+        locale,
         dict: emailDict.availabilityCheck,
         sharedDict: emailDict.shared,
         name: recipientName,
@@ -734,16 +767,25 @@ Content:
 // src/lib/email/templates/emailTemplates.ts
 
 import { EmailDictionary } from '@/types/dictionary';
+import { Locale } from '../../../../i18n-config'; // ודא שהנתיב נכון
+import { ProfileFeedbackReport } from '@/lib/services/profileFeedbackService'; // ייבוא חדש
 
 // --- הגדרות טיפוסים לקונטקסט של כל תבנית ---
 
 interface BaseTemplateContext {
+  locale: Locale; // הוספנו את השפה לקונטקסט הבסיסי
   supportEmail: string;
   currentYear: string;
   companyName: string;
   baseUrl: string;
   sharedDict: EmailDictionary['shared'];
   name: string;
+}
+export interface ProfileFeedbackTemplateContext extends BaseTemplateContext {
+  dict: EmailDictionary['profileFeedback'];
+  report: ProfileFeedbackReport;
+  isAutomated: boolean;
+  matchmakerName: string;
 }
 
 // הגדרות ספציפיות
@@ -802,6 +844,19 @@ export interface PasswordChangedConfirmationTemplateContext extends BaseTemplate
   loginUrl: string;
 }
 
+// ============================ הוספת הטיפוס החדש כאן ============================
+// ממשק חדש עבור תבנית הודעת פידבק פנימית.
+// הוא אינו מרחיב את BaseTemplateContext כי הוא אינו דורש תרגומים (dict) או שפה (locale).
+export interface InternalFeedbackNotificationTemplateContext {
+    feedbackType: string;
+    userIdentifier: string;
+    content: string;
+    pageUrl: string;
+    screenshotUrl?: string;
+    feedbackId: string;
+}
+// ==============================================================================
+
 // מפה בין שם התבנית לסוג הקונטקסט שלה
 export type TemplateContextMap = {
   welcome: WelcomeTemplateContext;
@@ -813,18 +868,57 @@ export type TemplateContextMap = {
   availabilityCheck: AvailabilityCheckTemplateContext;
   passwordResetOtp: PasswordResetOtpTemplateContext;
   passwordChangedConfirmation: PasswordChangedConfirmationTemplateContext;
+  'internal-feedback-notification': InternalFeedbackNotificationTemplateContext;
+  // שים לב: אנחנו משאירים את הטיפוס כאן, אך לא נגדיר עבורו פונקציה
+  'profileFeedback': ProfileFeedbackTemplateContext;
+};
+
+// --- פונקציית עזר ליצירת HTML בסיסי לאימיילים פנימיים ---
+const createInternalBaseEmailHtml = (title: string, content: string): string => {
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; line-height: 1.6; color: #333; }
+        .container { max-width: 700px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #fff; }
+        h1 { color: #06b6d4; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+        th { background-color: #f7f7f7; font-weight: 600; width: 150px; }
+        pre { white-space: pre-wrap; font-family: inherit; margin: 0; }
+        .screenshot { margin-top: 25px; }
+        .screenshot h2 { font-size: 18px; color: #333; margin-bottom: 10px; }
+        .screenshot img { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+        a { color: #06b6d4; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        ${content}
+    </div>
+</body>
+</html>`;
 };
 
 // --- פונקציית עזר ליצירת HTML בסיסי ---
-const createBaseEmailHtml = (title: string, content: string, context: BaseTemplateContext): string => `
+const createBaseEmailHtml = (title: string, content: string, context: BaseTemplateContext): string => {
+    const isRtl = context.locale === 'he';
+    const direction = isRtl ? 'rtl' : 'ltr';
+    const textAlign = isRtl ? 'right' : 'left';
+
+    return `
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html dir="${direction}" lang="${context.locale}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
     <style>
-        body { font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; direction: rtl; text-align: right; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; }
+        body { font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; direction: ${direction}; text-align: ${textAlign}; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; }
         .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden; }
         .email-header { background-color: #06b6d4; color: #ffffff; padding: 25px; text-align: center; border-bottom: 5px solid #0891b2; }
         .email-header h1 { margin: 0; font-size: 26px; font-weight: 600; }
@@ -835,7 +929,7 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
         .button:hover { background-color: #0891b2; }
         .footer { background-color: #f1f3f5; padding: 20px; text-align: center; font-size: 0.9em; color: #6c757d; border-top: 1px solid #e9ecef; }
         .footer a { color: #06b6d4; text-decoration: none; }
-        .highlight-box { background-color: #fef9e7; border-right: 4px solid #f7c75c; padding: 15px; margin: 20px 0; border-radius: 5px; }
+        .highlight-box { background-color: #fef9e7; border-${isRtl ? 'right' : 'left'}: 4px solid #f7c75c; padding: 15px; margin: 20px 0; border-radius: 5px; }
         .attributes-list { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
     </style>
 </head>
@@ -854,6 +948,7 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
 </body>
 </html>
 `;
+};
 
 // --- מיפוי התבניות עם הטיפוס המדויק ---
 export const emailTemplates: {
@@ -924,19 +1019,6 @@ export const emailTemplates: {
       }
     }
     
-    // כאן אנו יוצרים קונטקסט חדש שכולל את ה-HTML שנוצר
-    const newContext = { ...context, detailsHtml };
-    
-    // הפונקציה createBaseEmailHtml עדיין לא קיימת כאן, לכן נשתמש בתבנית המלאה
-    // שהגדרנו בקובץ ה-hbs. הקוד כאן רק מדגים את הכנת המשתנים.
-    // מכיוון שקובץ ה-hbs מטפל עכשיו בעיצוב, כל מה שצריך זה להעביר לו את המשתנים.
-    // ודא שקריאת ה-Handlebars שלך יכולה לקבל את `detailsHtml`.
-    // אם אתה משתמש ב-`createBaseEmailHtml`, תצטרך להוסיף את `detailsHtml` ל-content.
-    
-    // החלק החשוב הוא לוודא שהמשתנה `detailsHtml` נוצר כפי שמוצג למעלה.
-    // אם הקוד שלך כבר משתמש בפונקציה שמרנדרת קובץ hbs, הוא אמור לעבוד עם העברת המשתנה החדש.
-
-    // קוד ההחזרה המקורי שלך כנראה נראה כך, ויש לעדכן אותו:
      return createBaseEmailHtml(
        context.dict.title, 
        `
@@ -952,8 +1034,16 @@ export const emailTemplates: {
       context
     );
   },
-
-
+'profileFeedback': (context) => {
+    // כאן, במקום לבנות HTML ידנית, אנו משתמשים במנוע התבניות
+    // שנטען על ידי השרת שלך (למשל, hbs). הלוגיקה עצמה נמצאת בקובץ ה-hbs.
+    // הקוד כאן רק צריך להעביר את האובייקט 'context' למנוע העיבוד.
+    // לצורך הדוגמה, אני מדמה את זה. ודא שהתשתית שלך תומכת בזה.
+    const Handlebars = require('handlebars'); // ייבוא סימבולי
+    const templateSource = require('./profile-feedback.hbs'); // טעינה סימבולית של הקובץ
+    const compiledTemplate = Handlebars.compile(templateSource);
+    return compiledTemplate(context);
+},
   shareContactDetails: (context) => {
     const contactInfoHtml = [
       context.otherPartyContact.phone && `<p><strong>טלפון:</strong> ${context.otherPartyContact.phone}</p>`,
@@ -1006,6 +1096,45 @@ export const emailTemplates: {
       <a href="${context.loginUrl}" class="button">${context.dict.actionButton}</a>
     </p>
   `, context),
+  
+  // ============================ הוספת התבנית החדשה כאן ============================
+  'internal-feedback-notification': (context) => createInternalBaseEmailHtml('New Feedback Received', `
+    <h1>New Feedback Received</h1>
+    <p>A new piece of feedback has been submitted through the website widget.</p>
+    
+    <table>
+        <tr>
+            <th>Feedback ID</th>
+            <td>${context.feedbackId}</td>
+        </tr>
+        <tr>
+            <th>Type</th>
+            <td><strong>${context.feedbackType}</strong></td>
+        </tr>
+        <tr>
+            <th>Submitted By</th>
+            <td>${context.userIdentifier}</td>
+        </tr>
+        <tr>
+            <th>Page URL</th>
+            <td><a href="${context.pageUrl}" target="_blank">${context.pageUrl}</a></td>
+        </tr>
+        <tr>
+            <th>Content</th>
+            <td><pre>${context.content}</pre></td>
+        </tr>
+    </table>
+
+    ${context.screenshotUrl ? `
+    <div class="screenshot">
+        <h2>Screenshot Attached</h2>
+        <a href="${context.screenshotUrl}" target="_blank">
+            <img src="${context.screenshotUrl}" alt="User-submitted screenshot">
+        </a>
+    </div>
+    ` : ''}
+  `),
+  // ==============================================================================
 };
 --- End of Content for emailTemplates.ts ---
 
@@ -1339,6 +1468,133 @@ Content:
 </body>
 </html>
 --- End of Content for password-reset.hbs ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\profile-feedback.hbs
+--------------------------------------------------------------------------------
+Content:
+<!DOCTYPE html>
+<html dir="{{#if (eq locale 'he')}}rtl{{else}}ltr{{/if}}" lang="{{locale}}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{dict.title}}</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; direction: rtl; text-align: right; line-height: 1.6; margin: 0; padding: 0; background-color: #f4f7f9; color: #333; }
+        .email-container { max-width: 680px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.07); overflow: hidden; border: 1px solid #e2e8f0; }
+        .email-header { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #ffffff; padding: 30px; text-align: center; border-bottom: 5px solid #a78bfa; }
+        .email-header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .email-body { padding: 30px 35px; font-size: 16px; }
+        .section { margin-bottom: 30px; }
+        .section h2 { font-size: 22px; color: #4f46e5; margin-top: 0; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e0e7ff; display: inline-block; }
+        .progress-container { margin-bottom: 25px; }
+        .progress-bar-bg { background-color: #e5e7eb; border-radius: 50px; padding: 4px; }
+        .progress-bar { height: 16px; background: linear-gradient(to right, #34d399, #10b981); border-radius: 50px; text-align: center; color: white; font-size: 12px; line-height: 16px; font-weight: 500; transition: width 0.5s ease-in-out; }
+        .ai-summary { background-color: #f8fafc; border-left: 4px solid #6366f1; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .ai-summary h4 { margin-top: 0; margin-bottom: 8px; color: #4338ca; font-size: 17px; }
+        .ai-summary p { margin: 0; font-style: italic; color: #475569; }
+        .checklist-container { display: flex; gap: 20px; }
+        .checklist-column { flex: 1; padding: 20px; border-radius: 8px; }
+        .completed { background-color: #f0fdf4; border: 1px solid #bbf7d0; }
+        .missing { background-color: #fffbeb; border: 1px solid #fde68a; }
+        .checklist-column h4 { margin-top: 0; font-size: 18px; }
+        .completed h4 { color: #15803d; }
+        .missing h4 { color: #b45309; }
+        .checklist-column ul { padding-right: 20px; margin: 0; list-style-type: none; }
+        .checklist-column li { margin-bottom: 10px; display: flex; align-items: center; }
+        .checklist-column li::before { margin-left: 10px; font-size: 20px; }
+        .completed li::before { content: '✅'; }
+        .missing li::before { content: '✏️'; }
+        .questionnaire-missing h4 { margin-top: 25px; margin-bottom: 10px; color: #0e7490; }
+        .cta-section { text-align: center; margin-top: 35px; padding: 25px; background-color: #f1f5f9; border-radius: 8px; }
+        .cta-section h3 { margin-top: 0; font-size: 20px; color: #1e293b; }
+        .button { display: inline-block; padding: 14px 30px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #ffffff !important; text-decoration: none; border-radius: 8px; margin-top: 15px; font-weight: 600; font-size: 17px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); transition: all 0.3s ease; }
+        .button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); }
+        .footer { background-color: #e2e8f0; padding: 25px; text-align: center; font-size: 13px; color: #475569; }
+        .footer a { color: #4f46e5; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>{{dict.title}}</h1>
+        </div>
+        <div class="email-body">
+<p style="font-size: 18px;">{{greeting}},</p>            
+            {{#if isAutomated}}
+                <p>{{dict.systemIntro}}</p>
+            {{else}}
+                <p>{{dict.matchmakerIntro}}</p>
+            {{/if}}
+
+            <div class="section progress-container">
+                <h2>{{dict.progressHeader}}</h2>
+                <p>השקעת עד כה והגעת ל-<b>{{report.completionPercentage}}%</b> השלמה. כל הכבוד! עוד מאמץ קטן והפרופיל שלך יהיה מוכן למצוא את ההתאמה המושלמת.</p>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar" style="width: {{report.completionPercentage}}%;">{{report.completionPercentage}}%</div>
+                </div>
+            </div>
+
+            {{#if report.aiSummary}}
+            <div class="section">
+                <h2>{{dict.aiSummaryHeader}}</h2>
+                <div class="ai-summary">
+                    <h4>{{dict.aiSummary.personalityTitle}}</h4>
+                    <p>"{{report.aiSummary.personality}}"</p>
+                    <h4 style="margin-top: 15px;">{{dict.aiSummary.lookingForTitle}}</h4>
+                    <p>"{{report.aiSummary.lookingFor}}"</p>
+                </div>
+                 <p style="font-size: 14px; color: #64748b;">זוהי רק טעימה מהתובנות שה-AI שלנו יכול להפיק מפרופיל מלא. ככל שתוסיף/י יותר מידע, כך נוכל לדייק יותר את ההתאמות עבורך.</p>
+            </div>
+            {{/if}}
+
+            <div class="section">
+                <h2>סטטוס הפרופיל שלך</h2>
+                <div class="checklist-container">
+                    <div class="checklist-column completed">
+                        <h4>כל הכבוד! מה שכבר השלמת:</h4>
+                        <ul>
+                            {{#each report.completedProfileItems}}
+                                <li>{{this}}</li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                    <div class="checklist-column missing">
+                        <h4>השלב הבא: מה חסר:</h4>
+                        <ul>
+                             {{#each report.missingProfileItems}}
+                                <li>{{this}}</li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                </div>
+                
+                {{#if report.missingQuestionnaireItems}}
+                <div class="questionnaire-missing">
+                    <h4>שאלות להשלמה בשאלון המעמיק:</h4>
+                     <ul>
+                        {{#each report.missingQuestionnaireItems}}
+                            <li><a href="{{this.link}}">"{{this.question}}"</a> (מעולם {{this.world}})</li>
+                        {{/each}}
+                    </ul>
+                </div>
+                {{/if}}
+            </div>
+
+            <div class="cta-section">
+                <h3>{{dict.cta.title}}</h3>
+                <p>השלמת הפרופיל מגדילה משמעותית את הסיכוי למצוא התאמה איכותית.</p>
+                <a href="{{baseUrl}}/profile" class="button">{{dict.cta.button}}</a>
+            </div>
+
+        </div>
+        <div class="footer">
+             <p>{{sharedDict.supportPrompt}} <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+             <p>{{sharedDict.rightsReserved}}</p>
+        </div>
+    </div>
+</body>
+</html>
+--- End of Content for profile-feedback.hbs ---
 
 --------------------------------------------------------------------------------
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\share-contact-details.hbs

@@ -1,6 +1,6 @@
 // src/components/questionnaire/layout/WorldsMap.tsx
 
-import React, { useState, useEffect } from 'react'; // הוסף את useEffect אם הוא חסר
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,6 +30,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import type { WorldsMapDict } from '@/types/dictionary';
+import type { QuestionnaireAnswer } from '../types/types';
 
 // Importowanie pytań w celu uzyskania dynamicznych statystyk
 import { personalityQuestions } from '../questions/personality/personalityQuestions';
@@ -71,34 +72,14 @@ type WorldStatus =
   | 'locked';
 
 // Dynamiczne obliczanie statystyk dla każdego świata
-const worldStats = {
-  PERSONALITY: {
-    questionCount: personalityQuestions.length,
-    estimatedTime: Math.max(5, Math.round(personalityQuestions.length * 0.4)),
-  },
-  VALUES: {
-    questionCount: valuesQuestions.length,
-    estimatedTime: Math.max(5, Math.round(valuesQuestions.length * 0.4)),
-  },
-  RELATIONSHIP: {
-    questionCount: relationshipQuestions.length,
-    estimatedTime: Math.max(5, Math.round(relationshipQuestions.length * 0.4)),
-  },
-  PARTNER: {
-    questionCount: partnerQuestions.length,
-    estimatedTime: Math.max(5, Math.round(partnerQuestions.length * 0.4)),
-  },
-  RELIGION: {
-    questionCount: religionQuestions.length,
-    estimatedTime: Math.max(5, Math.round(religionQuestions.length * 0.4)),
-  },
-};
 
 // Interfejsy propsów komponentów
 interface WorldsMapProps {
   currentWorld: WorldId;
   completedWorlds: WorldId[];
   onWorldChange: (worldId: WorldId) => void;
+  answers: QuestionnaireAnswer[];
+  worldStats: Record<WorldId, { questionCount: number }>;
   className?: string;
   dict: WorldsMapDict;
   locale: 'he' | 'en';
@@ -111,6 +92,7 @@ interface WorldCardProps {
   dict: WorldsMapDict['worldCard'];
   fullContent: WorldsMapDict['worldsContent'][WorldId];
   stats: { questionCount: number; estimatedTime: number };
+  progress: { completed: number; total: number };
   locale: 'he' | 'en'; // <-- הוסף שורה זו
 }
 
@@ -188,6 +170,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
   fullContent,
   locale,
   stats,
+  progress,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const config = worldsConfig[worldId];
@@ -329,6 +312,22 @@ const WorldCard: React.FC<WorldCardProps> = ({
 
       <div className="flex-grow" />
 
+{progress.total > 0 && (
+        <div className="px-6 pt-2 pb-4 space-y-2">
+          <div className="flex justify-between text-xs font-medium text-gray-600">
+            <span>{dict.progress}</span>
+            <span className="font-mono">
+              {progress.completed}/{progress.total}
+            </span>
+          </div>
+          <Progress
+            value={(progress.completed / progress.total) * 100}
+            className="h-1.5 rounded-full"
+            indicatorClassName={`bg-${themeColor}-500`}
+          />
+        </div>
+      )}
+
       <div className="p-4 bg-gray-50/80 mt-auto border-t">
         <div className="flex justify-between text-xs text-gray-500 mb-3 px-2">
           <span className="flex items-center gap-1">
@@ -370,6 +369,8 @@ export default function WorldsMap({
   className = '',
   dict,
   locale,
+  answers,
+  worldStats,
 }: WorldsMapProps) {
   const { data: session } = useSession();
 
@@ -380,6 +381,31 @@ export default function WorldsMap({
       'color: #007acc; font-weight: bold;'
     );
   }, [locale]);
+
+  const worldsProgress = useMemo(() => {
+    const progressMap: Record<WorldId, { completed: number; total: number }> = {
+      PERSONALITY: {
+        completed: 0,
+        total: worldStats.PERSONALITY.questionCount,
+      },
+      VALUES: { completed: 0, total: worldStats.VALUES.questionCount },
+      RELATIONSHIP: {
+        completed: 0,
+        total: worldStats.RELATIONSHIP.questionCount,
+      },
+      PARTNER: { completed: 0, total: worldStats.PARTNER.questionCount },
+      RELIGION: { completed: 0, total: worldStats.RELIGION.questionCount },
+    };
+
+    for (const worldId of WORLD_ORDER) {
+      const answeredQuestionsInWorld = new Set(
+        answers.filter((a) => a.worldId === worldId).map((a) => a.questionId)
+      );
+      progressMap[worldId].completed = answeredQuestionsInWorld.size;
+    }
+
+    return progressMap;
+  }, [answers]);
 
   const completionPercent = Math.round(
     (completedWorlds.length / WORLD_ORDER.length) * 100
@@ -485,19 +511,30 @@ export default function WorldsMap({
           initial="hidden"
           animate="visible"
         >
-          {WORLD_ORDER.map((worldId) => (
-            <motion.div variants={itemVariants} key={worldId}>
-              <WorldCard
-                worldId={worldId}
-                status={getWorldStatus(worldId)}
-                onSelect={() => onWorldChange(worldId)}
-                dict={dict.worldCard}
-                fullContent={dict.worldsContent[worldId]}
-                stats={worldStats[worldId]}
-                locale={locale} // <-- הוסף שורה זו
-              />
-            </motion.div>
-          ))}
+          {WORLD_ORDER.map((worldId) => {
+            const stats = {
+              // <-- צור אובייקט stats חדש כאן
+              questionCount: worldStats[worldId].questionCount,
+              estimatedTime: Math.max(
+                5,
+                Math.round(worldStats[worldId].questionCount * 0.4)
+              ),
+            };
+            return (
+              <motion.div variants={itemVariants} key={worldId}>
+                <WorldCard
+                  worldId={worldId}
+                  status={getWorldStatus(worldId)}
+                  onSelect={() => onWorldChange(worldId)}
+                  dict={dict.worldCard}
+                  fullContent={dict.worldsContent[worldId]}
+                  stats={stats} // <-- העבר את האובייקט החדש
+                  locale={locale}
+                  progress={worldsProgress[worldId]}
+                />
+              </motion.div>
+            );
+          })}
         </motion.div>
         {completionPercent === 100 && (
           <motion.div

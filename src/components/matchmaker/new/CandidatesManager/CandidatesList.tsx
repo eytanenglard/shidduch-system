@@ -59,6 +59,7 @@ interface CandidatesListProps {
   candidates: (Candidate & { aiScore?: number })[];
   allCandidates: Candidate[];
   onOpenAiAnalysis: (candidate: Candidate) => void; // <-- הוסף
+  onSendProfileFeedback: (candidate: Candidate, e?: React.MouseEvent) => void; // <-- הוספת '?'
 
   onCandidateClick?: (candidate: Candidate) => void;
   onCandidateAction?: (type: CandidateAction, candidate: Candidate) => void;
@@ -86,6 +87,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   onCandidateAction,
   isQuickViewEnabled, // <-- שימוש ב-prop החדש
   onOpenAiAnalysis,
+  onSendProfileFeedback, // <-- הוסף את זה
 
   viewMode,
   mobileView,
@@ -313,35 +315,43 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     }, 100);
   };
 
-  const handleAction = useCallback(
-  (action: CandidateAction | 'analyze', candidate: Candidate) => { // <-- שנה כאן      setDialogCandidate(candidate);
-      setHoveredCandidate(null);
-      switch (action) {
-        case 'invite':
-          setShowInviteDialog(true);
-          break;
-        case 'contact':
-          setShowAvailabilityDialog(true);
-          break;
-        case 'suggest':
-          setShowSuggestDialog(true);
-          break;
-        case 'view':
-          setSelectedCandidate(candidate);
-          onCandidateClick?.(candidate);
-          break;
-        case 'edit':
-          handleEditProfile(candidate);
-          break;
-              case 'analyze': // <-- הוסף את המקרה החדש
-          onOpenAiAnalysis(candidate);
-          break;
-        default:
-          onCandidateAction?.(action as CandidateAction, candidate);
-      }
-    },
-    [onCandidateAction, onCandidateClick]
-  );
+const handleAction = useCallback(
+  (action: CandidateAction | 'analyze' | 'sendFeedback', candidate: Candidate) => { // <-- הוסף 'sendFeedback'
+    setDialogCandidate(candidate);
+    setHoveredCandidate(null);
+    switch (action) {
+      case 'invite':
+        setShowInviteDialog(true);
+        break;
+      case 'contact':
+        setShowAvailabilityDialog(true);
+        break;
+      case 'suggest':
+        setShowSuggestDialog(true);
+        break;
+      case 'view':
+        setSelectedCandidate(candidate);
+        onCandidateClick?.(candidate);
+        break;
+      case 'edit':
+        handleEditProfile(candidate);
+        break;
+      case 'analyze':
+        onOpenAiAnalysis(candidate);
+        break;
+           case 'sendFeedback':
+        // פשוט קוראים לפונקציה בלי האירוע המזויף
+        if (onSendProfileFeedback) {
+          onSendProfileFeedback(candidate); 
+        }
+        break;
+
+      default:
+        onCandidateAction?.(action as CandidateAction, candidate);
+    }
+  },
+  [onCandidateAction, onCandidateClick, onOpenAiAnalysis, onSendProfileFeedback] // <-- הוסף את התלות החדשה
+);
 
   const gridLayoutClass = useMemo(() => {
     if (isMobile) {
@@ -409,7 +419,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         e.stopPropagation();
         handleAction('analyze', c);
     }}
-
+  onSendProfileFeedback={(c, e) => { // <-- הוסף את כל הבלוק הזה
+            e.stopPropagation();
+            handleAction('sendFeedback', c);
+          }}
               onEdit={(c, e) => {
                 e.stopPropagation();
                 handleAction('edit', c);

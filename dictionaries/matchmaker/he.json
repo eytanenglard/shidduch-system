@@ -47,7 +47,9 @@
         "deleteCandidateError": "שגיאה במחיקת המועמד",
         "sendInviteErrorEmail": "נא להזין כתובת אימייל תקינה.",
         "sendInviteErrorGeneral": "שגיאה בשליחת ההזמנה.",
-        "sendInviteSuccess": "הזמנה להגדרת חשבון נשלחה בהצלחה!"
+        "sendInviteSuccess": "הזמנה להגדרת חשבון נשלחה בהצלחה!",
+      "aiSummarySuccess": "טיוטת AI נוצרה בהצלחה!",
+          "aiSummaryError": "שגיאה ביצירת טיוטת AI"
       },
       "header": {
         "title": "עריכת פרופיל - {{firstName}} {{lastName}}",
@@ -94,9 +96,17 @@
           "delete": "מחק מועמד לצמיתות",
           "deleting": "מוחק..."
         }
-      }
-    }
-,
+      },
+       "neshamaTechSummary": {
+          "title": "תקציר היכרות (מנקודת מבט השדכן/ית)",
+          "description": "סיכום זה, שנכתב על ידך (בסיוע AI), יוצג בפרופיל המועמד/ת וייתן את הטאץ' המקצועי והאישי של NeshamaTech.",
+          "aiButton": "צור טיוטה עם AI",
+          "aiButtonLoading": "יוצר טיוטה...",
+          "placeholder": "כתוב/י כאן את הסיכום המקצועי על המועמד/ת..."
+        }
+    },
+     
+
     "actionDialogs": {
       "invite": {
         "title": "שליחת הזמנה למועמד",
@@ -605,6 +615,22 @@
         }
       }
     },
+  "profileFeedbackDialog": {
+    "title": "דוח פרופיל אישי עבור {{name}}",
+    "preparingEmail": "מכין טיוטת אימייל...",
+    "emailSubject": "הדוח האישי שלך מ-NeshamaTech, {{name}}",
+    "editPrompt": "זוהי טיוטה אוטומטית. באפשרותך לערוך את התוכן לפני השליחה.",
+    "buttons": {
+      "cancel": "ביטול",
+      "send": "שלח מייל",
+      "sending": "שולח..."
+    },
+    "toasts": {
+      "loadError": "שגיאה בהכנת טיוטת המייל.",
+      "sendSuccess": "מייל המשוב נשלח בהצלחה!",
+      "sendError": "שגיאה בשליחת המייל."
+    }
+  },
 
      "aiAnalysis": {
       "header": {

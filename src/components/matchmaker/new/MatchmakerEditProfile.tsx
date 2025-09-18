@@ -22,10 +22,12 @@ import {
   Loader2,
   X,
   UserCog,
+  Sparkles,
+  Award,
   Image as ImageIcon,
   Sliders,
-  Trash2,
   
+  Trash2,
   AlertCircle,
   Send,
 } from 'lucide-react';
@@ -36,6 +38,8 @@ import { useSession } from 'next-auth/react';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 import { cn } from '@/lib/utils';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 
 interface MatchmakerEditProfileProps {
   isOpen: boolean;
@@ -77,8 +81,37 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const [isSetupInviteOpen, setIsSetupInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [isSendingInvite, setIsSendingInvite] = useState(false);
-
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false); // <-- הוספה חדשה
   const DELETE_CANDIDATE_CONFIRMATION_PHRASE = dict.deleteConfirmationPhrase;
+  const handleGenerateSummary = async () => {
+    if (!candidate) return;
+    setIsGeneratingSummary(true);
+    try {
+      const response = await fetch('/api/ai/matchmaker/generate-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: candidate.id }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to generate summary');
+      }
+
+      // עדכון ה-state של הפרופיל עם הטקסט החדש
+      setProfile((prevProfile) => {
+        if (!prevProfile) return null;
+        return { ...prevProfile, manualEntryText: result.summary };
+      });
+
+      toast.success(dict.toasts.aiSummarySuccess);
+    } catch (error) {
+      toast.error(
+        `${dict.toasts.aiSummaryError}: ${error instanceof Error ? error.message : ''}`
+      );
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  };
 
   const fetchProfileData = useCallback(async () => {
     if (!candidate) return;
@@ -430,15 +463,66 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                     className="flex-1 overflow-auto p-4 m-0 pb-16"
                   >
                     {profile ? (
-                      <div className="bg-white rounded-xl shadow-sm border">
-                        <ProfileSection
-                          profile={profile}
-                          isEditing={isEditing}
-                          setIsEditing={setIsEditing}
-                          onSave={handleProfileUpdate}
-                          dict={profileDict.profileSection}
-                          locale={locale}
-                        />
+                      <div className="space-y-4">
+                        {' '}
+                        {/* הוספת div עוטף אם לא קיים */}
+                        {/* --- קטע קוד חדש להוספה --- */}
+                        <Card className="bg-white rounded-xl shadow-sm border">
+                          <CardHeader>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="flex items-center gap-2">
+                                  <Award className="w-5 h-5 text-indigo-600" />
+                                  {dict.neshamaTechSummary.title}
+                                </CardTitle>
+                                <CardDescription className="mt-1">
+                                  {dict.neshamaTechSummary.description}
+                                </CardDescription>
+                              </div>
+                              <Button
+                                size="sm"
+                                onClick={handleGenerateSummary}
+                                disabled={isGeneratingSummary}
+                                className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md hover:scale-105 transition-transform"
+                              >
+                                {isGeneratingSummary ? (
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                  <Sparkles className="w-4 h-4 mr-2" />
+                                )}
+                                {isGeneratingSummary
+                                  ? dict.neshamaTechSummary.aiButtonLoading
+                                  : dict.neshamaTechSummary.aiButton}
+                              </Button>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <Textarea
+                              value={profile.manualEntryText || ''}
+                              onChange={(e) =>
+                                setProfile((p) =>
+                                  p
+                                    ? { ...p, manualEntryText: e.target.value }
+                                    : null
+                                )
+                              }
+                              placeholder={dict.neshamaTechSummary.placeholder}
+                              rows={8}
+                              className="min-h-[150px]"
+                            />
+                          </CardContent>
+                        </Card>
+                        {/* --- סוף קטע קוד חדש --- */}
+                        <div className="bg-white rounded-xl shadow-sm border">
+                          <ProfileSection
+                            profile={profile}
+                            isEditing={isEditing}
+                            setIsEditing={setIsEditing}
+                            onSave={handleProfileUpdate}
+                            dict={profileDict.profileSection}
+                            locale={locale}
+                          />
+                        </div>
                       </div>
                     ) : (
                       <div className="flex items-center justify-center h-full">
