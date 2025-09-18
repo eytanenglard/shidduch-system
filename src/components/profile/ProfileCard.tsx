@@ -228,7 +228,7 @@ const FriendTestimonialsSection: React.FC<{
             className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
           >
             <blockquote className="italic text-gray-700 border-r-4 border-cyan-400 pr-4">
-              "{testimonial.content}"
+              &quot;{testimonial.content}&quot;
             </blockquote>
             <div className="flex items-center justify-between mt-3 pt-3 border-t">
               <p className="text-sm font-semibold text-gray-800">
@@ -4103,7 +4103,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     variant="romantic"
                   >
                     <p className="italic text-gray-700">
-                      "{profile.inspiringCoupleStory}"
+                      &quot;{profile.inspiringCoupleStory}&quot;
                     </p>
                   </SectionCard>
                 )}
@@ -4114,7 +4114,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     variant="elegant"
                   >
                     <p className="italic text-gray-700">
-                      "{profile.influentialRabbi}"
+                      &quot;{profile.influentialRabbi}&quot;
                     </p>
                   </SectionCard>
                 )}
@@ -4125,7 +4125,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     variant="default"
                   >
                     <p className="italic text-gray-700">
-                      "{profile.humorStory}"
+                      &quot;{profile.humorStory}&quot;
                     </p>
                   </SectionCard>
                 )}
