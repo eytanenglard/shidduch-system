@@ -525,7 +525,9 @@
         "tooltips": {
           "editProfile": "Edit Profile",
           "setAsAiTarget": "Set as AI Search Target",
-          "clearAiTarget": "Clear AI Target"
+          "clearAiTarget": "Clear AI Target",
+              "aiAnalysis": "Show AI Profile Analysis"
+
         }
       },
       "quickView": {

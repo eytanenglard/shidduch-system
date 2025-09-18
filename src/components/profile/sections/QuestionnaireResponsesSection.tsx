@@ -577,13 +577,12 @@ const QuestionnaireResponsesSection: React.FC<
   const headerT = t.header;
 
   return (
-
-
     <div className="space-y-6" dir={direction}>
       <Card className="shadow-sm border">
         <CardHeader className="p-6 space-y-4">
           {/* שורה ראשונה - כותרת ומידע */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center gap-3">
+            {' '}
             {questionnaire.completed ? (
               <CheckCircle className="h-6 w-6 text-emerald-500 flex-shrink-0" />
             ) : (

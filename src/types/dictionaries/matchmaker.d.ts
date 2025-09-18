@@ -281,6 +281,8 @@ type CandidatesListDict = {
       editProfile: string;
       setAsAiTarget: string;
       clearAiTarget: string;
+            aiAnalysis: string; // <-- הוסף את השורה הזו
+
     };
   };
   quickView: QuickViewDict;

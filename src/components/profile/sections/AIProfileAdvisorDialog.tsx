@@ -118,7 +118,15 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
       >
         <DialogHeader className="p-4 border-b">
           <div className="flex justify-between items-start gap-4">
-            {/* Wrapper for title and description */}
+            {/* Step 1: Move the Close Button to be the first element */}
+            <DialogClose asChild>
+              <button className="rounded-full p-1.5 text-gray-500 hover:text-gray-800 shrink-0 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                <X className="h-5 w-5" />
+                <span className="sr-only">{dict.closeButton}</span>
+              </button>
+            </DialogClose>
+
+            {/* Wrapper for title and description - now the second element */}
             <div className="flex-grow">
               <DialogTitle className="flex items-center gap-2 text-xl">
                 <Sparkles className="w-6 h-6 text-purple-500" />
@@ -128,14 +136,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                 {dict.dialogDescription}
               </DialogDescription>
             </div>
-
-            {/* Close Button - now part of the flex layout */}
-            <DialogClose asChild>
-              <button className="rounded-full p-1.5 text-gray-500 hover:text-gray-800 shrink-0 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-                <X className="h-5 w-5" />
-                <span className="sr-only">{dict.closeButton}</span>
-              </button>
-            </DialogClose>
           </div>
         </DialogHeader>
 

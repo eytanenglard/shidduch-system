@@ -46,6 +46,8 @@ interface SplitViewProps {
   maleCandidates: Candidate[];
   femaleCandidates: Candidate[];
   allCandidates: Candidate[];
+  onOpenAiAnalysis: (candidate: Candidate) => void; // <-- הוסף
+
   onCandidateAction: (type: CandidateAction, candidate: Candidate) => void;
   onCandidateClick: (candidate: Candidate) => void;
   viewMode: 'grid' | 'list';
@@ -289,6 +291,8 @@ const EmptyStateComponent: React.FC<{
 
 const SplitView: React.FC<SplitViewProps> = ({
   dict,
+  onOpenAiAnalysis,
+
   profileDict,
   isQuickViewEnabled,
   locale,
@@ -440,6 +444,7 @@ const SplitView: React.FC<SplitViewProps> = ({
       <CandidatesList
         candidates={candidates}
         allCandidates={allCandidates}
+        onOpenAiAnalysis={onOpenAiAnalysis}
         onCandidateClick={onCandidateClick}
         onCandidateAction={onCandidateAction}
         viewMode={viewMode}
@@ -676,6 +681,7 @@ const SplitView: React.FC<SplitViewProps> = ({
               <CandidatesList
                 candidates={maleCandidatesWithScores}
                 allCandidates={allCandidates}
+                onOpenAiAnalysis={onOpenAiAnalysis}
                 onCandidateClick={onCandidateClick}
                 onCandidateAction={onCandidateAction}
                 viewMode={viewMode}
@@ -720,6 +726,7 @@ const SplitView: React.FC<SplitViewProps> = ({
               <CandidatesList
                 candidates={femaleCandidatesWithScores}
                 allCandidates={allCandidates}
+                onOpenAiAnalysis={onOpenAiAnalysis}
                 onCandidateClick={onCandidateClick}
                 onCandidateAction={onCandidateAction}
                 viewMode={viewMode}

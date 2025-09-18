@@ -521,7 +521,9 @@
         "tooltips": {
           "editProfile": "עריכת פרופיל",
           "setAsAiTarget": "בחר כמטרה לחיפוש AI",
-          "clearAiTarget": "בטל בחירת מטרה"
+          "clearAiTarget": "בטל בחירת מטרה",
+              "aiAnalysis": "הצג ניתוח פרופיל AI"
+
         }
       },
       "quickView": {

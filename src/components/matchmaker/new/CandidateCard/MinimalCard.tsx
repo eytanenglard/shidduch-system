@@ -42,6 +42,8 @@ import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 interface MinimalCandidateCardProps {
   candidate: Candidate;
+  onAnalyze?: (candidate: Candidate, e: React.MouseEvent) => void; // <-- הוסף
+
   onClick: (candidate: Candidate) => void;
   onEdit?: (candidate: Candidate, e: React.MouseEvent) => void;
   isHighlighted?: boolean;
@@ -72,6 +74,8 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   onClick,
   onEdit,
   isHighlighted = false,
+  onAnalyze,
+
   highlightTerm = '',
   className,
   aiScore,
@@ -292,6 +296,25 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
         </div>
 
         <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform lg:translate-y-2 group-hover:translate-y-0">
+       {onAnalyze && (
+    <TooltipProvider>
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 bg-white/90 backdrop-blur-sm shadow-xl border-0 hover:bg-white hover:scale-110 transition-all duration-300 text-indigo-600"
+                    onClick={(e) => onAnalyze(candidate, e)}
+                >
+                    <Sparkles className="h-4 w-4" />
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+                <p>{dict.tooltips.aiAnalysis}</p>
+            </TooltipContent>
+        </Tooltip>
+    </TooltipProvider>
+)}
           {onEdit && (
             <TooltipProvider>
               <Tooltip>

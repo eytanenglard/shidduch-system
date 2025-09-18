@@ -58,6 +58,8 @@ interface CreateSuggestionData {
 interface CandidatesListProps {
   candidates: (Candidate & { aiScore?: number })[];
   allCandidates: Candidate[];
+  onOpenAiAnalysis: (candidate: Candidate) => void; // <-- הוסף
+
   onCandidateClick?: (candidate: Candidate) => void;
   onCandidateAction?: (type: CandidateAction, candidate: Candidate) => void;
   viewMode: 'grid' | 'list';
@@ -83,6 +85,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   onCandidateClick,
   onCandidateAction,
   isQuickViewEnabled, // <-- שימוש ב-prop החדש
+  onOpenAiAnalysis,
 
   viewMode,
   mobileView,
@@ -190,7 +193,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     };
     loadQuestionnaire();
   }, [selectedCandidate, locale]); // ✨ הוספת locale למערך התלויות של ה-hook
-
 
   // Action handlers
   const handleInvite = async (candidate: Candidate, email: string) => {
@@ -312,8 +314,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   };
 
   const handleAction = useCallback(
-    (action: CandidateAction, candidate: Candidate) => {
-      setDialogCandidate(candidate);
+  (action: CandidateAction | 'analyze', candidate: Candidate) => { // <-- שנה כאן      setDialogCandidate(candidate);
       setHoveredCandidate(null);
       switch (action) {
         case 'invite':
@@ -332,8 +333,11 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         case 'edit':
           handleEditProfile(candidate);
           break;
+              case 'analyze': // <-- הוסף את המקרה החדש
+          onOpenAiAnalysis(candidate);
+          break;
         default:
-          onCandidateAction?.(action, candidate);
+          onCandidateAction?.(action as CandidateAction, candidate);
       }
     },
     [onCandidateAction, onCandidateClick]
@@ -401,6 +405,11 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             <MinimalCard
               candidate={candidate}
               onClick={() => handleAction('view', candidate)}
+                  onAnalyze={(c, e) => { // <-- הוסף את זה
+        e.stopPropagation();
+        handleAction('analyze', c);
+    }}
+
               onEdit={(c, e) => {
                 e.stopPropagation();
                 handleAction('edit', c);

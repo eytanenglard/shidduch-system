@@ -6,6 +6,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
+import { AiMatchmakerProfileAdvisorDialog } from '../dialogs/AiMatchmakerProfileAdvisorDialog';
 // --- Third-party Libraries ---
 import {
   UserPlus,
@@ -378,7 +379,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [showManualAddDialog, setShowManualAddDialog] = useState(false);
   const [isHeaderCompact, setIsHeaderCompact] = useState(true);
-  const [isQuickViewEnabled, setIsQuickViewEnabled] = useState(true); // <-- הוספת state חדש
+  const [isQuickViewEnabled, setIsQuickViewEnabled] = useState(false); // <-- הוספת state חדש
   const params = useParams();
 
   // --- AI State ---
@@ -396,7 +397,17 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   // --- Session & Permissions ---
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';
+  const [analyzedCandidate, setAnalyzedCandidate] = useState<Candidate | null>(
+    null
+  );
 
+  const handleOpenAiAnalysis = useCallback((candidate: Candidate) => {
+    setAnalyzedCandidate(candidate);
+  }, []);
+
+  const handleCloseAiAnalysis = () => {
+    setAnalyzedCandidate(null);
+  };
   // --- Custom Hooks ---
   const {
     loading,
@@ -860,6 +871,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
             ) : (
               <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border-0 overflow-hidden h-full">
                 <SplitView
+                  onOpenAiAnalysis={handleOpenAiAnalysis}
                   maleCandidates={maleCandidates}
                   femaleCandidates={femaleCandidates}
                   allCandidates={candidates}
@@ -963,7 +975,13 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-
+      <AiMatchmakerProfileAdvisorDialog
+        isOpen={!!analyzedCandidate}
+        onClose={handleCloseAiAnalysis}
+        candidate={analyzedCandidate}
+        dict={matchmakerDict.candidatesManager.aiAnalysis}
+        locale={locale}
+      />
       {/* --- Dialogs --- */}
       <AddManualCandidateDialog
         isOpen={showManualAddDialog}

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new
-# Generated on: 2025-09-16 15:40:25
+# Generated on: 2025-09-18 08:26:01
 ################################################################################
 
 ================================================================================
@@ -1963,6 +1963,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     };
     loadQuestionnaire();
   }, [selectedCandidate, locale]); // ✨ הוספת locale למערך התלויות של ה-hook
+
+
   // Action handlers
   const handleInvite = async (candidate: Candidate, email: string) => {
     try {
