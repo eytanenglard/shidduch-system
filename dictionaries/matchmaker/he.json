@@ -571,6 +571,7 @@
           "contact": "תיאום פגישה",
           "edit": "ערוך פרופיל"
         },
+
         "stats": {
           "rating": "דירוג",
           "match": "התאמה",
@@ -660,7 +661,43 @@
       }
     }
 ,
-
+  "aiProfileAdvisor": {
+    "dialogTitle": "ניתוח פרופיל AI עבור",
+    "dialogDescription": "תובנות אוטומטיות המבוססות על כלל נתוני המועמד/ת.",
+    "loadingTitle": "ה-AI מנתח את הפרופיל...",
+    "loadingDescription": "זה עשוי לקחת מספר רגעים. תודה על סבלנותך.",
+    "errorAlertTitle": "שגיאה בניתוח",
+    "errorAlertDescription": "אירעה שגיאה בעת הפקת ניתוח הפרופIL.",
+    "retryButton": "נסה שוב",
+    "initialState": "ממתין להפעלה...",
+    "closeButton": "סגור",
+    "toast": {
+      "errorTitle": "שגיאת ניתוח AI",
+      "errorDescription": "אירעה שגיאה: {{error}}"
+    },
+    "analysisResult": {
+       "tabs": {
+        "summary": "סיכום",
+        "completeness": "שלמות הפרופיל",
+        "tips": "טיפים לשיפור"
+      },
+      "summary": {
+        "personalityTitle": "סיכום אישיות",
+        "lookingForTitle": "מה הוא/היא מחפש/ת"
+      },
+      "completeness": {
+        "title": "דוח שלמות פרופיל",
+        "status": {
+          "COMPLETE": "מלא",
+          "PARTIAL": "חלקי",
+          "MISSING": "חסר"
+        }
+      },
+      "tips": {
+        "title": "טיפים ונקודות לשיפור"
+      }
+    }
+  },
 
         "stats": {
       "hero": {

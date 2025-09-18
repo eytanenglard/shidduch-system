@@ -663,6 +663,43 @@
       }
     }
 ,
+  "aiProfileAdvisor": {
+    "dialogTitle": "AI Profile Analysis for",
+    "dialogDescription": "Automated insights based on the candidate's complete data.",
+    "loadingTitle": "The AI is analyzing the profile...",
+    "loadingDescription": "This may take a few moments. Thank you for your patience.",
+    "errorAlertTitle": "Analysis Error",
+    "errorAlertDescription": "An error occurred while generating the profile analysis.",
+    "retryButton": "Retry",
+    "initialState": "Awaiting initiation...",
+    "closeButton": "Close",
+    "toast": {
+      "errorTitle": "AI Analysis Error",
+      "errorDescription": "An error occurred: {{error}}"
+    },
+    "analysisResult": {
+      "tabs": {
+        "summary": "Summary",
+        "completeness": "Profile Completeness",
+        "tips": "Improvement Tips"
+      },
+      "summary": {
+        "personalityTitle": "Personality Summary",
+        "lookingForTitle": "What They're Looking For"
+      },
+      "completeness": {
+        "title": "Profile Completeness Report",
+        "status": {
+          "COMPLETE": "Complete",
+          "PARTIAL": "Partial",
+          "MISSING": "Missing"
+        }
+      },
+      "tips": {
+        "title": "Actionable Tips & Areas for Improvement"
+      }
+    }
+  },
 
         "stats": {
       "hero": {

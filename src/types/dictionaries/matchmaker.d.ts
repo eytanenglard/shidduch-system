@@ -288,6 +288,27 @@ type CandidatesListDict = {
   quickView: QuickViewDict;
 };
 
+// src/types/dictionaries/matchmaker.d.ts
+
+// ... (איפשהו לפני type MatchmakerPageDictionary)
+type AiAdvisorDialogDict = {
+  dialogTitle: string; // e.g., "AI Analysis for {{name}}"
+  dialogDescription: string;
+  loadingTitle: string;
+  loadingDescription: string;
+  errorAlertTitle: string;
+  errorAlertDescription: string;
+  retryButton: string;
+  initialState: string;
+  closeButton: string;
+  toast: {
+    errorTitle: string;
+    errorDescription: string; // e.g., "An error occurred: {{error}}"
+  };
+  // This will nest the existing type for the display component
+  analysisResult: AnalysisResultDisplayDict; 
+};
+
 type SplitViewDict = {
   panelHeaders: {
     male: { title: string; subtitle: string; };
@@ -389,6 +410,8 @@ compareButton: string;
     // --- התיקון כאן ---
     // העברנו את aiAnalysis להיות חלק מ-candidatesManager
     aiAnalysis: AiMatchAnalysisDialogDict;
+        aiProfileAdvisor: AiAdvisorDialogDict; // <-- הוסף את השורה הזו
+
         stats: CandidatesStatsDict;
             editProfile: MatchmakerEditProfileDict;
     actionDialogs: ActionDialogsDict;

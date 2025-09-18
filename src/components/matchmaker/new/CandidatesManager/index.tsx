@@ -979,7 +979,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         isOpen={!!analyzedCandidate}
         onClose={handleCloseAiAnalysis}
         candidate={analyzedCandidate}
-        dict={matchmakerDict.candidatesManager.aiAnalysis}
+        dict={matchmakerDict.candidatesManager.aiProfileAdvisor}
         locale={locale}
       />
       {/* --- Dialogs --- */}
