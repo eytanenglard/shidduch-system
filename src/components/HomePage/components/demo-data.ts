@@ -67,7 +67,13 @@ export const generateDemoData = async (locale: Locale) => {
       preferredKippahTypes: [], preferredCharacterTraits: [], preferredHobbies: [], preferredAliyaStatus: 'no_preference', preferredReligiousJourneys: [],
       isProfileVisible: true, preferredMatchmakerGender: null, matchingNotes: '', verifiedBy: null, availabilityStatus: AvailabilityStatus.AVAILABLE,
       availabilityNote: null, availabilityUpdatedAt: null, lastActive: null, hasViewedProfilePreview: false, needsAiProfileUpdate: false,
+    
+    isAboutVisible: true,
+      isFriendsSectionVisible: true,
+      isNeshamaTechSummaryVisible: true,
+      // END: Added missing properties
     },
+    
     questionnaireResponses: [noaQuestionnaireResponse],
   };
 
@@ -94,6 +100,10 @@ export const generateDemoData = async (locale: Locale) => {
       preferredKippahTypes: [], preferredCharacterTraits: [], preferredHobbies: [], preferredAliyaStatus: 'no_preference', preferredReligiousJourneys: [],
       isProfileVisible: true, preferredMatchmakerGender: null, matchingNotes: '', verifiedBy: null, availabilityStatus: AvailabilityStatus.AVAILABLE,
       availabilityNote: null, availabilityUpdatedAt: null, lastActive: null, hasViewedProfilePreview: false, needsAiProfileUpdate: false,
+ isAboutVisible: true,
+      isFriendsSectionVisible: true,
+      isNeshamaTechSummaryVisible: true,
+      // END: Added missing properties
     },
     questionnaireResponses: [danielQuestionnaireResponse],
   };
