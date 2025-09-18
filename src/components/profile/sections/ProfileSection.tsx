@@ -371,7 +371,7 @@ const FriendTestimonialsManager: React.FC<{
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <p className="italic text-sm text-gray-600">
-                        "{item.content}"
+                        &quot;{item.content}&quot;
                       </p>
                       <p className="text-xs font-semibold mt-2">
                         - {item.authorName}, {item.relationship}
