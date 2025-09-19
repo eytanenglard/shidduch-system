@@ -33,10 +33,10 @@ import {
   Pencil,
   Save,
   X,
-  MessageSquare, // אייקון חדש לסיפור אישי
-  Award, // אייקון חדש לסיכום מקצועי
-  Send, // אייקון חדש לשליחת קישור
-  Copy, // אייקון להעתקה
+  MessageSquare,
+  Award,
+  Send,
+  Copy,
   Users,
   BookOpen,
   Loader2,
@@ -79,7 +79,7 @@ interface ProfileSectionProps {
   viewOnly?: boolean;
   onSave: (data: Partial<UserProfile>) => void;
   dict: ProfileSectionDict;
-  locale: string; // Adicionado para controle de direção
+  locale: string;
 }
 
 const ensureDateObject = (
@@ -97,7 +97,67 @@ const ensureDateObject = (
   }
   return undefined;
 };
-const AboutMeCard: React.FC<{
+
+// ========================================================================
+// ✨ Helper Functions (Moved outside the main component)
+// ========================================================================
+
+const renderDisplayValue = (
+  value: unknown,
+  dict: ProfileSectionDict,
+  placeholder?: string
+): React.ReactNode => {
+  const finalPlaceholder = placeholder || dict.placeholders.notSpecified;
+  if (value === null || value === undefined || value === '') {
+    return <span className="italic text-gray-500">{finalPlaceholder}</span>;
+  }
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return new Intl.DateTimeFormat('he-IL').format(value);
+  }
+  return String(value);
+};
+
+const renderSelectDisplayValue = (
+  value: string | undefined | null,
+  options: { value: string; label: string }[],
+  dict: ProfileSectionDict,
+  placeholder?: string
+) => {
+  const finalPlaceholder = placeholder || dict.placeholders.notSpecified;
+  if (!value) {
+    return <span className="italic text-gray-500">{finalPlaceholder}</span>;
+  }
+  const option = options.find((opt) => opt.value === value);
+  return option ? (
+    option.label
+  ) : (
+    <span className="italic text-gray-500">{finalPlaceholder}</span>
+  );
+};
+
+const renderBooleanDisplayValue = (
+  value: boolean | undefined | null,
+  dict: ProfileSectionDict,
+  trueLabel?: string,
+  falseLabel?: string,
+  placeholder?: string
+) => {
+  const finalPlaceholder = placeholder || dict.placeholders.notSpecified;
+  const finalTrueLabel = trueLabel || dict.cards.family.hasChildrenYes;
+  const finalFalseLabel = falseLabel || dict.cards.medical.display.no;
+
+  if (value === undefined || value === null) {
+    return <span className="italic text-gray-500">{finalPlaceholder}</span>;
+  }
+  return value ? finalTrueLabel : finalFalseLabel;
+};
+
+
+// ========================================================================
+// ✨ Sub-Components
+// ========================================================================
+
+const StoryAndMoreCard: React.FC<{
   profile: UserProfile | null;
   isEditing: boolean;
   dict: ProfileSectionDict;
@@ -105,54 +165,276 @@ const AboutMeCard: React.FC<{
   formData: Partial<UserProfile>;
 }> = ({ profile, isEditing, dict, handleChange, formData }) => {
   if (!profile) return null;
-  const t = dict.aboutMe;
+  const tAboutCard = dict.cards.about;
+  const tAboutMe = dict.aboutMe;
+
   return (
     <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-cyan-50/40 to-pink-50/40 border-b border-gray-200/50 p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="w-5 h-5 text-cyan-700" />
-          <CardTitle className="text-base font-semibold text-gray-700">
-            {t.cardTitle}
-          </CardTitle>
-        </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Switch
-                checked={formData.isAboutVisible ?? true}
-                onCheckedChange={(checked) =>
-                  handleChange('isAboutVisible', checked)
-                }
-                disabled={!isEditing}
-              />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{t.visibilityTooltip}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+      <CardHeader className="bg-gradient-to-r from-slate-50/40 to-gray-100/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
+        <Info className="w-5 h-5 text-slate-600" />
+        <CardTitle className="text-base font-semibold text-gray-700">
+          {tAboutCard.title}
+        </CardTitle>
       </CardHeader>
       <CardContent className="p-4 md:p-6">
-        {isEditing ? (
-          <Textarea
-            value={formData.about || ''}
-            onChange={(e) => handleChange('about', e.target.value)}
-            placeholder={t.placeholder}
-            className="min-h-[150px] text-sm"
-          />
-        ) : (
-          <p className="text-sm text-gray-700 whitespace-pre-wrap min-h-[60px]">
-            {formData.about || (
-              <span className="italic text-gray-500">{t.placeholder}</span>
+        <div className="space-y-6">
+          {/* Profile Headline Section */}
+          <div>
+            <div className="flex items-center gap-1.5 mb-2">
+              <Label
+                htmlFor="profileHeadline"
+                className="text-sm font-medium text-gray-700"
+              >
+                {tAboutCard.headlineLabel}
+              </Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" aria-describedby="headline-tooltip">
+                      <Info className="w-4 h-4 text-gray-400" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    id="headline-tooltip"
+                    side="top"
+                    className="max-w-xs text-center"
+                  >
+                    <p>{dict.tooltips.headline}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            {isEditing ? (
+              <Input
+                id="profileHeadline"
+                value={formData.profileHeadline || ''}
+                onChange={(e) =>
+                  handleChange('profileHeadline', e.target.value)
+                }
+                className="text-sm focus:ring-cyan-500 rounded-lg"
+                placeholder={tAboutCard.headlinePlaceholder}
+                maxLength={80}
+              />
+            ) : (
+              <div className="mt-1">
+                {formData.profileHeadline &&
+                typeof formData.profileHeadline === 'string' &&
+                formData.profileHeadline.trim() ? (
+                  <p className="text-lg font-semibold text-cyan-700 italic">
+                    {`"${formData.profileHeadline}"`}
+                  </p>
+                ) : (
+                  <div className="rounded-lg bg-slate-50 p-3 text-base italic border border-slate-200/80">
+                    <p className="font-medium not-italic text-slate-600">
+                      {tAboutCard.headlineEmpty.title}
+                    </p>
+                    <p className="mt-1.5 text-slate-500">
+                      {tAboutCard.headlineEmpty.subtitle}
+                      <span className="block mt-1 font-semibold text-slate-700">
+                        {tAboutCard.headlineEmpty.example}
+                      </span>
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
-          </p>
-        )}
+          </div>
+
+          {/* My Story Section (formerly AboutMeCard) */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <Label
+                  htmlFor="about"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  {tAboutMe.cardTitle}
+                </Label>
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        aria-describedby="about-tooltip"
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <Info className="w-4 h-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      id="about-tooltip"
+                      side="top"
+                      className="max-w-xs text-center"
+                    >
+                      <p>{dict.tooltips.about.replace('{{count}}', '100')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={formData.isAboutVisible ?? true}
+                        onCheckedChange={(checked) =>
+                          handleChange('isAboutVisible', checked)
+                        }
+                        disabled={!isEditing}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{tAboutMe.visibilityTooltip}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            {isEditing ? (
+              <div>
+                <Textarea
+                  id="about"
+                  value={formData.about || ''}
+                  onChange={(e) => handleChange('about', e.target.value)}
+                  className={cn(
+                    'text-sm focus:ring-cyan-500 min-h-[120px] rounded-lg',
+                    formData.about && formData.about.trim().length < 100
+                      ? 'border-red-400 focus:ring-red-300'
+                      : ''
+                  )}
+                  placeholder={tAboutMe.placeholder}
+                  rows={5}
+                  aria-describedby="about-char-count"
+                />
+                {formData.about && (
+                  <div
+                    id="about-char-count"
+                    className={cn(
+                      'text-xs mt-1 text-end',
+                      formData.about.trim().length < 100
+                        ? 'text-red-600'
+                        : 'text-gray-500'
+                    )}
+                  >
+                    {formData.about.trim().length}
+                    {dict.charCount.replace('{{count}}', '100')}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[60px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
+                {formData.about || (
+                  <span className="text-gray-500 italic">
+                    {tAboutCard.aboutEmpty}
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
+
+          {/* Inspiring Couple Section */}
+          <div>
+            <div className="flex items-center gap-1.5 mb-2">
+              <Label
+                htmlFor="inspiringCoupleStory"
+                className="text-sm font-medium text-gray-700"
+              >
+                {tAboutCard.inspiringCoupleLabel}
+              </Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" aria-describedby="couple-tooltip">
+                      <Info className="w-4 h-4 text-gray-400" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    id="couple-tooltip"
+                    side="top"
+                    className="max-w-xs text-center"
+                  >
+                    <p>{dict.tooltips.inspiringCouple}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            {isEditing ? (
+              <Textarea
+                id="inspiringCoupleStory"
+                value={formData.inspiringCoupleStory || ''}
+                onChange={(e) =>
+                  handleChange('inspiringCoupleStory', e.target.value)
+                }
+                className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
+                placeholder={tAboutCard.inspiringCouplePlaceholder}
+                rows={3}
+              />
+            ) : (
+              <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
+                {renderDisplayValue(
+                  formData.inspiringCoupleStory,
+                  dict,
+                  tAboutCard.inspiringCoupleEmpty
+                )}
+              </p>
+            )}
+          </div>
+
+          {/* Private Notes Section */}
+          <div>
+            <div className="flex items-center gap-1.5 mb-2">
+              <Label
+                htmlFor="matchingNotes-private"
+                className="text-sm font-medium text-gray-700"
+              >
+                {tAboutCard.privateNotesLabel}
+              </Label>
+              <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-describedby="private-notes-tooltip"
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <Info className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    id="private-notes-tooltip"
+                    side="top"
+                    className="max-w-xs text-center"
+                  >
+                    <p>{dict.tooltips.privateNotes}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            {isEditing ? (
+              <Textarea
+                id="matchingNotes-private"
+                value={formData.matchingNotes || ''}
+                onChange={(e) => handleChange('matchingNotes', e.target.value)}
+                className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
+                placeholder={tAboutCard.privateNotesPlaceholder}
+                rows={3}
+              />
+            ) : (
+              <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
+                {formData.matchingNotes || (
+                  <span className="text-gray-500 italic">
+                    {tAboutCard.privateNotesEmpty}
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
 };
 
-// --- רכיב משנה לניהול "תקציר NeshamaTech" (מימוש מלא) ---
 const NeshamaTechSummaryCard: React.FC<{
   profile: UserProfile | null;
   isEditing: boolean;
@@ -199,12 +481,6 @@ const NeshamaTechSummaryCard: React.FC<{
   );
 };
 
-// --- רכיב משנה לניהול "המלצות חברים" ---
-// src/app/components/profile/sections/ProfileSection.tsx
-
-// ... (כל הקוד הקודם, כולל Imports ורכיבי המשנה האחרים)
-
-// --- רכיב משנה לניהול "המלצות חברים" (מימוש מלא וסופי) ---
 const FriendTestimonialsManager: React.FC<{
   profile: UserProfile | null;
   isEditing: boolean;
@@ -465,7 +741,6 @@ const FriendTestimonialsManager: React.FC<{
   );
 };
 
-// --- רכיב עזר: דיאלוג להוספת המלצה ידנית ---
 const AddTestimonialModal: React.FC<{
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
@@ -596,6 +871,10 @@ const AddTestimonialModal: React.FC<{
   );
 };
 
+// ========================================================================
+// ✨ Main Component: ProfileSection
+// ========================================================================
+
 const ProfileSection: React.FC<ProfileSectionProps> = ({
   profile: profileProp,
   isEditing,
@@ -603,17 +882,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   viewOnly = false,
   onSave,
   dict,
-  locale, // Recebendo o locale
+  locale,
 }) => {
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [loading, setLoading] = useState(true);
   const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
-  const [testimonials, setTestimonials] = useState<FriendTestimonial[]>([]);
-
+  
   const [cityInputValue, setCityInputValue] = useState('');
   const [aliyaCountryInputValue, setAliyaCountryInputValue] = useState('');
 
-  // Determina a direção com base no locale
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   const characterTraitsOptions = useMemo(
@@ -734,7 +1011,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
     [dict.options.matchmakerGender]
   );
 
-  const initializeFormData = (profileData: UserProfile | null) => {
+  const initializeFormData = useCallback((profileData: UserProfile | null) => {
     let headline = profileData?.profileHeadline || '';
     if (typeof headline === 'object' && headline !== null) {
       headline = '';
@@ -781,15 +1058,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       profileHobbies: profileData?.profileHobbies || [],
       aliyaCountry: profileData?.aliyaCountry || '',
       aliyaYear: profileData?.aliyaYear ?? undefined,
-      preferredAgeMin: profileData?.preferredAgeMin ?? undefined,
-      preferredAgeMax: profileData?.preferredAgeMax ?? undefined,
-      preferredHeightMin: profileData?.preferredHeightMin ?? undefined,
-      preferredHeightMax: profileData?.preferredHeightMax ?? undefined,
-      preferredReligiousLevels: profileData?.preferredReligiousLevels || [],
-      preferredLocations: profileData?.preferredLocations || [],
-      preferredEducation: profileData?.preferredEducation || [],
-      preferredOccupations: profileData?.preferredOccupations || [],
-      contactPreference: profileData?.contactPreference || undefined,
       id: profileData?.id,
       userId: profileData?.userId,
       createdAt: ensureDateObject(profileData?.createdAt),
@@ -803,37 +1071,24 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       profileHeadline: headline,
       inspiringCoupleStory: profileData?.inspiringCoupleStory || '',
       influentialRabbi: profileData?.influentialRabbi || '',
+      isAboutVisible: profileData?.isAboutVisible ?? true,
+      isFriendsSectionVisible: profileData?.isFriendsSectionVisible ?? true,
+      isNeshamaTechSummaryVisible: profileData?.isNeshamaTechSummaryVisible ?? true,
     };
     setFormData(dataToSet);
     setInitialData(dataToSet);
 
     setCityInputValue(dataToSet.city || '');
     setAliyaCountryInputValue(dataToSet.aliyaCountry || '');
-  };
+  }, []);
 
   useEffect(() => {
     setLoading(true);
     if (profileProp) {
       initializeFormData(profileProp);
       setLoading(false);
-      setTestimonials(profileProp.testimonials || []);
-      setFormData((prev) => ({
-        ...prev,
-        isAboutVisible: profileProp.isAboutVisible ?? true,
-        isFriendsSectionVisible: profileProp.isFriendsSectionVisible ?? true,
-        isNeshamaTechSummaryVisible:
-          profileProp.isNeshamaTechSummaryVisible ?? true,
-      }));
-      setInitialData((prev) => ({
-        ...prev,
-        isAboutVisible: profileProp.isAboutVisible ?? true,
-        isFriendsSectionVisible: profileProp.isFriendsSectionVisible ?? true,
-        isNeshamaTechSummaryVisible:
-          profileProp.isNeshamaTechSummaryVisible ?? true,
-      }));
-      setLoading(false);
     }
-  }, [profileProp]);
+  }, [profileProp, initializeFormData]);
 
   const handleChange = (
     field: keyof UserProfile,
@@ -854,11 +1109,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           'height',
           'siblings',
           'position',
-          'aliyaYear',
-          'preferredAgeMin',
-          'preferredAgeMax',
-          'preferredHeightMin',
-          'preferredHeightMax',
+          'aliyaYear'
         ].includes(field)
       ) {
         const rawValue = value as string | number;
@@ -874,16 +1125,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         finalValue = ensureDateObject(
           value as string | Date | null | undefined
         ) as UserProfile[typeof field];
-      } else if (
-        [
-          'shomerNegiah',
-          'hasChildrenFromPrevious',
-          'isProfileVisible',
-          'hasMedicalInfo',
-          'isMedicalInfoVisible',
-        ].includes(field)
-      ) {
-        finalValue = value as boolean as UserProfile[typeof field];
       } else {
         finalValue = (
           value === '' || value === null ? undefined : value
@@ -930,47 +1171,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
     setCityInputValue(initialData.city || '');
     setAliyaCountryInputValue(initialData.aliyaCountry || '');
     setIsEditing(false);
-  };
-
-  const renderDisplayValue = (
-    value: unknown,
-    placeholder: string = dict.placeholders.notSpecified
-  ): React.ReactNode => {
-    if (value === null || value === undefined || value === '') {
-      return <span className="italic text-gray-500">{placeholder}</span>;
-    }
-    if (value instanceof Date && !isNaN(value.getTime())) {
-      return new Intl.DateTimeFormat('he-IL').format(value);
-    }
-    return String(value);
-  };
-
-  const renderSelectDisplayValue = (
-    value: string | undefined | null,
-    options: { value: string; label: string }[],
-    placeholder: string = dict.placeholders.notSpecified
-  ) => {
-    if (!value) {
-      return <span className="italic text-gray-500">{placeholder}</span>;
-    }
-    const option = options.find((opt) => opt.value === value);
-    return option ? (
-      option.label
-    ) : (
-      <span className="italic text-gray-500">{placeholder}</span>
-    );
-  };
-
-  const renderBooleanDisplayValue = (
-    value: boolean | undefined | null,
-    trueLabel: string = dict.cards.family.hasChildrenYes,
-    falseLabel: string = dict.cards.medical.display.no,
-    placeholder: string = dict.placeholders.notSpecified
-  ) => {
-    if (value === undefined || value === null) {
-      return <span className="italic text-gray-500">{placeholder}</span>;
-    }
-    return value ? trueLabel : falseLabel;
   };
 
   if (loading) {
@@ -1110,7 +1310,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         {renderDisplayValue(
                           formData.gender
                             ? dict.options.gender[formData.gender]
-                            : undefined
+                            : undefined,
+                          dict
                         )}
                       </p>
                     )}
@@ -1140,7 +1341,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
-                        {renderDisplayValue(formData.birthDate)}
+                        {renderDisplayValue(formData.birthDate, dict)}
                       </p>
                     )}
                   </div>
@@ -1165,7 +1366,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderDisplayValue(
-                          formData.height ? `${formData.height} cm` : undefined
+                          formData.height ? `${formData.height} cm` : undefined,
+                          dict
                         )}
                       </p>
                     )}
@@ -1210,7 +1412,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
-                        {renderDisplayValue(formData.city)}
+                        {renderDisplayValue(formData.city, dict)}
                       </p>
                     )}
                   </div>
@@ -1231,7 +1433,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
-                        {renderDisplayValue(formData.origin)}
+                        {renderDisplayValue(formData.origin, dict)}
                       </p>
                     )}
                   </div>
@@ -1283,6 +1485,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderDisplayValue(
                           formData.aliyaCountry,
+                          dict,
                           dict.placeholders.notRelevant
                         )}
                       </p>
@@ -1313,6 +1516,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderDisplayValue(
                           formData.aliyaYear,
+                          dict,
                           formData.aliyaCountry
                             ? dict.placeholders.noYear
                             : dict.placeholders.notRelevant
@@ -1357,7 +1561,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderSelectDisplayValue(
                           formData.nativeLanguage,
-                          languageOptions
+                          languageOptions,
+                          dict
                         )}
                       </p>
                     )}
@@ -1503,7 +1708,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderSelectDisplayValue(
                           formData.maritalStatus,
-                          maritalStatusOptions
+                          maritalStatusOptions,
+                          dict
                         )}
                       </p>
                     )}
@@ -1545,7 +1751,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       ) : (
                         <p className="text-sm text-gray-800 font-medium mt-1">
                           {renderBooleanDisplayValue(
-                            formData.hasChildrenFromPrevious
+                            formData.hasChildrenFromPrevious,
+                            dict
                           )}
                         </p>
                       )}
@@ -1570,7 +1777,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
-                        {renderDisplayValue(formData.parentStatus)}
+                        {renderDisplayValue(formData.parentStatus, dict)}
                       </p>
                     )}
                   </div>
@@ -1596,7 +1803,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
-                        {renderDisplayValue(formData.fatherOccupation)}
+                        {renderDisplayValue(formData.fatherOccupation, dict)}
                       </p>
                     )}
                   </div>
@@ -1622,7 +1829,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
-                        {renderDisplayValue(formData.motherOccupation)}
+                        {renderDisplayValue(formData.motherOccupation, dict)}
                       </p>
                     )}
                   </div>
@@ -1648,7 +1855,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
-                        {renderDisplayValue(formData.siblings)}
+                        {renderDisplayValue(formData.siblings, dict)}
                       </p>
                     )}
                   </div>
@@ -1673,7 +1880,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
-                        {renderDisplayValue(formData.position)}
+                        {renderDisplayValue(formData.position, dict)}
                       </p>
                     )}
                   </div>
@@ -1727,7 +1934,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderSelectDisplayValue(
                           formData.religiousLevel,
-                          religiousLevelOptions
+                          religiousLevelOptions,
+                          dict
                         )}
                       </p>
                     )}
@@ -1772,7 +1980,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderSelectDisplayValue(
                           formData.religiousJourney,
-                          religiousJourneyOptions
+                          religiousJourneyOptions,
+                          dict
                         )}
                       </p>
                     )}
@@ -1806,6 +2015,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderBooleanDisplayValue(
                           formData.shomerNegiah,
+                          dict,
                           dict.cards.religion.shomerNegiahYes
                         )}
                       </p>
@@ -1853,6 +2063,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           {renderSelectDisplayValue(
                             formData.headCovering,
                             headCoveringOptions,
+                            dict,
                             dict.cards.religion.headCoveringDefault
                           )}
                         </p>
@@ -1901,6 +2112,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           {renderSelectDisplayValue(
                             formData.kippahType,
                             kippahTypeOptions,
+                            dict,
                             dict.cards.religion.kippahTypeDefault
                           )}
                         </p>
@@ -1948,6 +2160,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         {renderSelectDisplayValue(
                           formData.preferredMatchmakerGender,
                           preferredMatchmakerGenderOptions,
+                          dict,
                           dict.cards.religion.matchmakerGenderDefault
                         )}
                       </p>
@@ -2000,6 +2213,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
                       {renderDisplayValue(
                         formData.influentialRabbi,
+                        dict,
                         dict.cards.religion.influentialRabbiEmpty
                       )}
                     </p>
@@ -2007,263 +2221,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </div>
               </CardContent>
             </Card>
-          </div>
-
-          <div className="space-y-6">
-            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-slate-50/40 to-gray-100/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
-                <Info className="w-5 h-5 text-slate-600" />
-                <CardTitle className="text-base font-semibold text-gray-700">
-                  {dict.cards.about.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 md:p-6">
-                <div className="space-y-6">
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Label
-                        htmlFor="profileHeadline"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        {dict.cards.about.headlineLabel}
-                      </Label>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              aria-describedby="headline-tooltip"
-                            >
-                              <Info className="w-4 h-4 text-gray-400" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent
-                            id="headline-tooltip"
-                            side="top"
-                            className="max-w-xs text-center"
-                          >
-                            <p>{dict.tooltips.headline}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    {isEditing && !viewOnly ? (
-                      <Input
-                        id="profileHeadline"
-                        value={formData.profileHeadline || ''}
-                        onChange={(e) =>
-                          handleChange('profileHeadline', e.target.value)
-                        }
-                        className="text-sm focus:ring-cyan-500 rounded-lg"
-                        placeholder={dict.cards.about.headlinePlaceholder}
-                        maxLength={80}
-                      />
-                    ) : (
-                      <div className="mt-1">
-                        {formData.profileHeadline &&
-                        typeof formData.profileHeadline === 'string' &&
-                        formData.profileHeadline.trim() ? (
-                          <p className="text-lg font-semibold text-cyan-700 italic">
-                            {`"${formData.profileHeadline}"`}
-                          </p>
-                        ) : (
-                          <div className="rounded-lg bg-slate-50 p-3 text-base italic border border-slate-200/80">
-                            <p className="font-medium not-italic text-slate-600">
-                              {dict.cards.about.headlineEmpty.title}
-                            </p>
-                            <p className="mt-1.5 text-slate-500">
-                              {dict.cards.about.headlineEmpty.subtitle}
-                              <span className="block mt-1 font-semibold text-slate-700">
-                                {dict.cards.about.headlineEmpty.example}
-                              </span>
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Label
-                        htmlFor="about"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        {dict.cards.about.aboutLabel}
-                      </Label>
-                      <TooltipProvider delayDuration={100}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              aria-describedby="about-tooltip"
-                              className="text-gray-400 hover:text-gray-600"
-                            >
-                              <Info className="w-4 h-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent
-                            id="about-tooltip"
-                            side="top"
-                            className="max-w-xs text-center"
-                          >
-                            <p>
-                              {dict.tooltips.about.replace('{{count}}', '100')}
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    {isEditing && !viewOnly ? (
-                      <div>
-                        <Textarea
-                          id="about"
-                          value={formData.about || ''}
-                          onChange={(e) =>
-                            handleChange('about', e.target.value)
-                          }
-                          className={cn(
-                            'text-sm focus:ring-cyan-500 min-h-[120px] rounded-lg',
-                            formData.about && formData.about.trim().length < 100
-                              ? 'border-red-400 focus:ring-red-300'
-                              : ''
-                          )}
-                          placeholder={dict.cards.about.aboutPlaceholder}
-                          rows={5}
-                          aria-describedby="about-char-count"
-                        />
-                        {formData.about && (
-                          <div
-                            id="about-char-count"
-                            className={cn(
-                              'text-xs mt-1 text-end',
-                              formData.about.trim().length < 100
-                                ? 'text-red-600'
-                                : 'text-gray-500'
-                            )}
-                          >
-                            {formData.about.trim().length}
-                            {dict.charCount.replace('{{count}}', '100')}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[60px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
-                        {formData.about || (
-                          <span className="text-gray-500 italic">
-                            {dict.cards.about.aboutEmpty}
-                          </span>
-                        )}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Label
-                        htmlFor="inspiringCoupleStory"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        {dict.cards.about.inspiringCoupleLabel}
-                      </Label>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              aria-describedby="couple-tooltip"
-                            >
-                              <Info className="w-4 h-4 text-gray-400" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent
-                            id="couple-tooltip"
-                            side="top"
-                            className="max-w-xs text-center"
-                          >
-                            <p>{dict.tooltips.inspiringCouple}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    {isEditing && !viewOnly ? (
-                      <Textarea
-                        id="inspiringCoupleStory"
-                        value={formData.inspiringCoupleStory || ''}
-                        onChange={(e) =>
-                          handleChange('inspiringCoupleStory', e.target.value)
-                        }
-                        className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
-                        placeholder={
-                          dict.cards.about.inspiringCouplePlaceholder
-                        }
-                        rows={3}
-                      />
-                    ) : (
-                      <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
-                        {renderDisplayValue(
-                          formData.inspiringCoupleStory,
-                          dict.cards.about.inspiringCoupleEmpty
-                        )}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Label
-                        htmlFor="matchingNotes-private"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        {dict.cards.about.privateNotesLabel}
-                      </Label>
-                      <TooltipProvider delayDuration={100}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              aria-describedby="private-notes-tooltip"
-                              className="text-gray-400 hover:text-gray-600"
-                            >
-                              <Info className="w-4 h-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent
-                            id="private-notes-tooltip"
-                            side="top"
-                            className="max-w-xs text-center"
-                          >
-                            <p>{dict.tooltips.privateNotes}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    {isEditing && !viewOnly ? (
-                      <Textarea
-                        id="matchingNotes-private"
-                        value={formData.matchingNotes || ''}
-                        onChange={(e) =>
-                          handleChange('matchingNotes', e.target.value)
-                        }
-                        className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
-                        placeholder={dict.cards.about.privateNotesPlaceholder}
-                        rows={3}
-                      />
-                    ) : (
-                      <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
-                        {formData.matchingNotes || (
-                          <span className="text-gray-500 italic">
-                            {dict.cards.about.privateNotesEmpty}
-                          </span>
-                        )}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+            
+               <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-red-50/40 to-pink-50/40 border-b border-gray-200/50 p-4">
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
                   <HeartPulse className="w-5 h-5 text-red-700" />
@@ -2412,6 +2371,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderBooleanDisplayValue(
                           formData.hasMedicalInfo,
+                          dict,
                           dict.cards.medical.display.yes,
                           dict.cards.medical.display.no
                         )}
@@ -2440,7 +2400,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                               formData.medicalInfoDisclosureTiming,
                               Object.entries(dict.options.medicalTiming).map(
                                 ([value, label]) => ({ value, label })
-                              )
+                              ),
+                              dict
                             )}
                           </p>
                         </div>
@@ -2474,6 +2435,24 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 )}
               </CardContent>
             </Card>
+              <FriendTestimonialsManager
+              profile={profileProp}
+              isEditing={isEditing}
+              dict={dict}
+              handleChange={handleChange}
+              formData={formData}
+            />
+          </div>
+
+          <div className="space-y-6">
+         <StoryAndMoreCard
+              profile={profileProp}
+              isEditing={isEditing}
+              dict={dict}
+              handleChange={handleChange}
+              formData={formData}
+            />
+         
 
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-teal-50/40 to-green-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
@@ -2519,7 +2498,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderSelectDisplayValue(
                           formData.educationLevel,
-                          educationLevelOptions
+                          educationLevelOptions,
+                          dict
                         )}
                       </p>
                     )}
@@ -2543,7 +2523,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
-                        {renderDisplayValue(formData.education)}
+                        {renderDisplayValue(formData.education, dict)}
                       </p>
                     )}
                   </div>
@@ -2567,7 +2547,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
-                        {renderDisplayValue(formData.occupation)}
+                        {renderDisplayValue(formData.occupation, dict)}
                       </p>
                     )}
                   </div>
@@ -2611,7 +2591,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderSelectDisplayValue(
                           formData.serviceType,
-                          serviceTypeOptions
+                          serviceTypeOptions,
+                          dict
                         )}
                       </p>
                     )}
@@ -2637,7 +2618,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
-                        {renderDisplayValue(formData.serviceDetails)}
+                        {renderDisplayValue(formData.serviceDetails, dict)}
                       </p>
                     )}
                   </div>
@@ -2770,30 +2751,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </fieldset>
               </CardContent>
             </Card>
-          </div>
-          <div className="space-y-6">
-            {/* כאן נשלב את הכרטיסים החדשים */}
-            <AboutMeCard
+                    <NeshamaTechSummaryCard
               profile={profileProp}
               isEditing={isEditing}
               dict={dict}
               handleChange={handleChange}
               formData={formData}
             />
-            <NeshamaTechSummaryCard
-              profile={profileProp}
-              isEditing={isEditing}
-              dict={dict}
-              handleChange={handleChange}
-              formData={formData}
-            />
-            <FriendTestimonialsManager
-              profile={profileProp}
-              isEditing={isEditing}
-              dict={dict}
-              handleChange={handleChange}
-              formData={formData}
-            />
+          
           </div>
         </div>
       </div>

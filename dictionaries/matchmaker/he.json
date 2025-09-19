@@ -534,7 +534,9 @@
           "clearAiTarget": "בטל בחירת מטרה",
               "aiAnalysis": "הצג ניתוח פרופיל AI"
 
-        }
+        },
+          "hasTestimonials": "{{count}} המלצות",
+          "testimonialsTooltip": "למועמד/ת זה/זו יש המלצות מאושרות"
       },
       "quickView": {
         "availability": {

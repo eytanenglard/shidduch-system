@@ -284,6 +284,8 @@ type CandidatesListDict = {
             aiAnalysis: string; // <-- הוסף את השורה הזו
 
     };
+      hasTestimonials: string; 
+  testimonialsTooltip: string;
   };
   quickView: QuickViewDict;
 };

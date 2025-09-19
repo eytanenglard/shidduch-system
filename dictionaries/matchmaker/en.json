@@ -538,7 +538,9 @@
           "clearAiTarget": "Clear AI Target",
               "aiAnalysis": "Show AI Profile Analysis"
 
-        }
+        },
+         "hasTestimonials": "{{count}} Testimonials",
+          "testimonialsTooltip": "This candidate has approved testimonials"
       },
       "quickView": {
         "availability": {

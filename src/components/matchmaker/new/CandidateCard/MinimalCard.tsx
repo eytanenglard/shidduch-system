@@ -21,6 +21,7 @@ import {
   Eye,
   Clock,
   Shield,
+  Users,
   Crown,
   Zap,
   Award,
@@ -217,6 +218,24 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
               <Edit2 className="w-3 h-3" />
               {dict.manualEntry}
             </Badge>
+          )}
+
+              {candidate.profile.testimonials && candidate.profile.testimonials.filter(t => t.status === 'APPROVED').length > 0 && (
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2 }}>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge className="px-3 py-1.5 text-xs font-bold shadow-lg bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0 flex items-center gap-1.5">
+                      <Users className="w-3 h-3" />
+                      {dict.hasTestimonials.replace("{{count}}", String(candidate.profile.testimonials.filter(t => t.status === 'APPROVED').length))}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{dict.testimonialsTooltip}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </motion.div>
           )}
         </div>
 

@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import aiService from "./aiService";
-import type { User, Profile, QuestionnaireResponse, Prisma as PrismaTypes, ReligiousJourney } from '@prisma/client';
+import type { User, Profile, QuestionnaireResponse, Prisma as PrismaTypes, ReligiousJourney, FriendTestimonial } from '@prisma/client';
 
 // 1. --- Import types and questions from the questionnaire module ---
 import type { Question } from '@/components/questionnaire/types/types';
@@ -42,7 +42,9 @@ interface JsonAnswerData {
 }
 
 type UserWithRelations = User & {
-  profile: Profile | null;
+  profile: (Profile & {
+    testimonials?: FriendTestimonial[]; // הוספת השדה האופציונלי
+  }) | null;
   questionnaireResponses: QuestionnaireResponse[];
 };
 
@@ -227,7 +229,9 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     where: { id: userId },
     include: {
       profile: true,
+      
       questionnaireResponses: { orderBy: { lastSaved: 'desc' }, take: 1 },
+    
     },
   });
 
@@ -331,7 +335,16 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     `- **אחוז השלמה:** ${questionnaireData.completionPercentage}%`,
     `\n## תובנות מהשאלון (תשובות מפורטות)\n${questionnaireData.answersNarrative}`
   );
-
+  const approvedTestimonials = profile.testimonials?.filter(t => t.status === 'APPROVED');
+  if (approvedTestimonials && approvedTestimonials.length > 0) {
+    narrativeParts.push(`## המלצות מחברים`);
+    approvedTestimonials.forEach(t => {
+      narrativeParts.push(
+        `**ממליץ/ה:** ${t.authorName} (${t.relationship})\n` +
+        `**תוכן ההמלצה:** "${t.content}"`
+      );
+    });
+  }
   return narrativeParts.join('\n\n').trim();
 }
 
