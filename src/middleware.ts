@@ -19,6 +19,7 @@ const PUBLIC_PATHS = [
   '/legal/terms-of-service',
   '/questionnaire',
   '/contact',
+  '/feedback',
 ];
 
 // נתיבים שחיוניים להשלמת פרופיל, גם אם המשתמש כבר מחובר

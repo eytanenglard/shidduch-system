@@ -662,6 +662,7 @@ enum TestimonialStatus {
   HIDDEN    // מאושר אך מוסתר זמנית על ידי המועמד/ת
 }
 
+
 enum SubmissionSource {
   USER   // הוזן ידנית על ידי המועמד/ת
   FRIEND // הוגש על ידי חבר דרך קישור מאובטח

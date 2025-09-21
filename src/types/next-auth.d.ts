@@ -77,6 +77,11 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   siblings?: number | null;
   position?: number | null;
  manualEntryText?: string | null; 
+   isAboutVisible?: boolean | null;
+  isFriendsSectionVisible?: boolean | null;
+  isNeshamaTechSummaryVisible?: boolean | null;
+    testimonials?: FriendTestimonial[];
+
   // Array fields - ensure they default to empty arrays if not present
   additionalLanguages: string[];
   profileCharacterTraits: string[];

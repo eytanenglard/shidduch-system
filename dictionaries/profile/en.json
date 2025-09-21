@@ -234,7 +234,7 @@
       "visibilityTooltip": "Include our professional summary on the profile card sent in suggestions? (Recommended!)"
     },
     "friendTestimonials": {
-      "cardTitle": "Manage Friend Testimonials",
+      "cardTitle": "Manage Personal Testimonials",
       "addManualButton": "Add Testimonial Manually",
       "requestLinkButton": "Request via Link",
       "pendingApproval": "Pending Your Approval",
@@ -267,7 +267,7 @@
         "closeButton": "Close"
       },
       "visibilityTooltip": "Show the testimonials section on the profile card sent in suggestions?",
-      "emptyState": "No testimonials yet. Personal recommendations build trust and help the other side get to know you better."
+      "emptyState": "Testimonials from people who know you well are a powerful way to build trust and give others an authentic glimpse into your personality."
     }
 ,
     "loading": "Loading profile data...",
@@ -739,7 +739,8 @@
       },
       "tabs": {
         "essence": { "label": "My Essence", "shortLabel": "Essence" },
-              "deepDive": { "label": "Deep Dive", "shortLabel": "Depth" },
+       "recommendations": { "label": "Testimonials", "shortLabel": "Testimonials" },
+        "deepDive": { "label": "Deep Dive", "shortLabel": "Depth" },
 
         "journey": { "label": "My Journey", "shortLabel": "Journey" },
         "spirit": { "label": "Spirituality", "shortLabel": "Spirit" },
@@ -748,6 +749,10 @@
         "professional": { "label": "For Matchmaker", "shortLabel": "Pro" }
       },
       "content": {
+        "systemRationaleTitle": "Matchmaker's Insight",
+          "recommendationsTitle": "What People Say About {{name}}",
+          "recommendationsSubtitle": "Another perspective from people who know them well.",
+          "noRecommendationsYet": "No testimonials have been added to this profile yet.",
          "inspiringCouple": {
           "title": "A Couple That Inspires Me"
         },
@@ -798,17 +803,26 @@
                 "neshamaTechSummary": {
           "title": "Our Introduction to {{name}}"
         },
-        "aboutMe": {
-          "titleCard": "A Bit About {{name}}"
-        },
-        "friendTestimonials": {
-          "title": "What Friends Say",
-          "callButton": "Talk to {{name}}",
-          "callDisclaimer": "We encourage respectful contact during reasonable hours. This is a unique opportunity to get a broader, authentic picture."
-        }
-,
+   "aboutMe": {
+  "titleCard": "The Story of {{name}}"
+},
+
+                  "friendTestimonials": {
+            "title": "What People Say About {{name}}",
+            "callButton": "Call {{name}}",
+            "callDisclaimer": "Phone numbers are only visible after mutual approval.",
+            "focusSubtitle": "{{count}} personal testimonials await",
+            "viewButton": "View Testimonials",
+            "emptyState": {
+              "title": "No Testimonials to Display",
+              "description": "When testimonials are added, they will appear here."
+            }
+          },
+
         "focus": {
           "aboutMe": "About Me",
+          "readFullStory": "Read the full story",
+
           "myStory": "The words that define me",
           "quickSummary": "Quick Summary",
           "importantDetails": "The important details at a glance",

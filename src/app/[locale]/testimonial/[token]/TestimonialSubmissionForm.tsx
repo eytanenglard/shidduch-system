@@ -32,11 +32,24 @@ export function TestimonialSubmissionForm({ token, userName }: FormProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/testimonials/${token}`, {
+      // ======================= התיקון מתחיל כאן =======================
+
+      // 1. נבנה את המטען (payload) שישלח לשרת.
+      // הוא יכיל את כל פרטי הטופס, ובנוסף את הטוקן.
+      const payload = {
+        ...formData,
+        token: token,
+      };
+
+      // 2. נשנה את כתובת ה-API לכתובת הנכונה שיצרנו ליצירת המלצות.
+      const response = await fetch(`/api/profile/testimonials`, {
+        // <-- שינוי הנתיב
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload), // <-- שליחת המטען המלא
       });
+
+      // ======================= התיקון מסתיים כאן =======================
 
       const result = await response.json();
 
@@ -47,55 +60,103 @@ export function TestimonialSubmissionForm({ token, userName }: FormProps) {
       toast.success('ההמלצה נשלחה בהצלחה!');
       setIsSubmitted(true);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה.';
+      const errorMessage =
+        error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה.';
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   if (isSubmitted) {
     return (
       <div className="text-center p-8 bg-white rounded-lg shadow-md">
         <h2 className="text-xl font-bold text-green-600">תודה רבה!</h2>
-        <p className="mt-2 text-gray-700">ההמלצה שלך נשלחה ל{userName} ותעזור לו/לה המון במסע. מעריכים את זה מאוד!</p>
+        <p className="mt-2 text-gray-700">
+          ההמלצה שלך נשלחה ל{userName} ותעזור לו/לה המון במסע. מעריכים את זה
+          מאוד!
+        </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-8 bg-white rounded-lg shadow-md space-y-6">
+    <form
+      onSubmit={handleSubmit}
+      className="p-8 bg-white rounded-lg shadow-md space-y-6"
+    >
       <div className="space-y-2">
         <Label htmlFor="authorName">שמך המלא</Label>
-        <Input id="authorName" name="authorName" value={formData.authorName} onChange={handleChange} required placeholder="לדוגמה: יוסי כהן" />
+        <Input
+          id="authorName"
+          name="authorName"
+          value={formData.authorName}
+          onChange={handleChange}
+          required
+          placeholder="לדוגמה: יוסי כהן"
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="relationship">הקשר שלכם</Label>
-        <Input id="relationship" name="relationship" value={formData.relationship} onChange={handleChange} required placeholder="לדוגמה: חבר מהצבא, שותפה לדירה" />
+        <Input
+          id="relationship"
+          name="relationship"
+          value={formData.relationship}
+          onChange={handleChange}
+          required
+          placeholder="לדוגמה: חבר מהצבא, שותפה לדירה"
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="content">ההמלצה שלך</Label>
-        <Textarea id="content" name="content" value={formData.content} onChange={handleChange} required minLength={50} rows={5} placeholder={`ספר/י קצת על ${userName}, על התכונות הבולטות שלו/ה, וכל מה שחשוב שהצד השני יכיר...`} />
+        <Textarea
+          id="content"
+          name="content"
+          value={formData.content}
+          onChange={handleChange}
+          required
+          minLength={50}
+          rows={5}
+          placeholder={`ספר/י קצת על ${userName}, על התכונות הבולטות שלו/ה, וכל מה שחשוב שהצד השני יכיר...`}
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="authorPhone">מספר טלפון (אופציונלי)</Label>
-        <Input id="authorPhone" name="authorPhone" type="tel" value={formData.authorPhone} onChange={handleChange} placeholder="למקרה שירצו לשמוע ממך עוד" />
+        <Input
+          id="authorPhone"
+          name="authorPhone"
+          type="tel"
+          value={formData.authorPhone}
+          onChange={handleChange}
+          placeholder="למקרה שירצו לשמוע ממך עוד"
+        />
       </div>
       <div className="flex items-start space-x-2 rtl:space-x-reverse rounded-md border p-4">
-        <Checkbox 
-          id="isPhoneVisibleToMatch" 
+        <Checkbox
+          id="isPhoneVisibleToMatch"
           checked={formData.isPhoneVisibleToMatch}
-          onCheckedChange={(checked) => setFormData(prev => ({...prev, isPhoneVisibleToMatch: !!checked}))}
+          onCheckedChange={(checked) =>
+            setFormData((prev) => ({
+              ...prev,
+              isPhoneVisibleToMatch: !!checked,
+            }))
+          }
           disabled={!formData.authorPhone}
         />
         <div className="grid gap-1.5 leading-none">
-          <label htmlFor="isPhoneVisibleToMatch" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            אני מאשר/ת שמספר הטלפון שלי יישמר ויוצג למועמדים רלוונטיים שאושרו על ידי צוות NeshamaTech.
+          <label
+            htmlFor="isPhoneVisibleToMatch"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            אני מאשר/ת שמספר הטלפון שלי יישמר ויוצג למועמדים רלוונטיים שאושרו על
+            ידי צוות NeshamaTech.
           </label>
           <p className="text-xs text-muted-foreground">
             זוהי הזדמנות נהדרת לתת המלצה אישית וחמה.

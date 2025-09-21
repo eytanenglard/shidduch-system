@@ -285,6 +285,12 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
     const personalDetails = [
       !p.profileHeadline && missingItemsDict.profileHeadline,
       (!p.about || p.about.trim().length < 100) && missingItemsDict.about,
+      // --- START: הוספת בדיקות חדשות ---
+      !p.humorStory && missingItemsDict.humorStory,
+      (!p.testimonials ||
+        p.testimonials.filter((t) => t.status === 'APPROVED').length < 1) &&
+        missingItemsDict.testimonials,
+      // --- END: הוספת בדיקות חדשות ---
       !p.inspiringCoupleStory && missingItemsDict.inspiringCoupleStory,
       !p.influentialRabbi && missingItemsDict.influentialRabbi,
       (p.hasMedicalInfo === null || p.hasMedicalInfo === undefined) &&
@@ -504,6 +510,15 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       // Personal Details Checks
       otherTasksStatus.push(!!p.profileHeadline);
       otherTasksStatus.push(!!(p.about && p.about.trim().length >= 100));
+      // --- START: הוספת בדיקות חדשות לסרגל ההתקדמות ---
+      otherTasksStatus.push(!!p.humorStory);
+      otherTasksStatus.push(
+        !!(
+          p.testimonials &&
+          p.testimonials.filter((t) => t.status === 'APPROVED').length >= 1
+        )
+      );
+      // --- END: הוספת בדיקות חדשות לסרגל ההתקדמות ---
       otherTasksStatus.push(!!p.inspiringCoupleStory);
       otherTasksStatus.push(!!p.influentialRabbi);
       otherTasksStatus.push(
@@ -612,7 +627,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       // --- END OF UPDATED LOGIC FOR PROGRESS BAR ---
     } else {
       // If no profile, add placeholders for all items
-      const totalProfileFields = 54; // Calculated number of fields including gender-specific ones
+      const totalProfileFields = 56; // Calculated number of fields including gender-specific and new ones
       otherTasksStatus.push(...Array(totalProfileFields).fill(false));
     }
 

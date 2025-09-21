@@ -1,11 +1,13 @@
-// File: app/api/profile/route.ts (GET handler)
+// File: src/app/api/profile/route.ts
 
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { Gender, HeadCoveringType, KippahType, ServiceType, ReligiousJourney  } from "@prisma/client";
+import { Gender, HeadCoveringType, KippahType, ServiceType, ReligiousJourney, AvailabilityStatus } from "@prisma/client";
 import type { UserProfile } from "@/types/next-auth";
+
+// הגדרה זו מבטיחה שה-Route Handler ירוץ תמיד מחדש ולא ישמר ב-Cache.
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
@@ -15,120 +17,36 @@ export async function GET(req: Request) {
 
     const session = await getServerSession(authOptions);
     
-    if (!session?.user?.email) {
+    // ודא שהמשתמש מחובר. נדרש סשן כדי לגשת לכל פרופיל.
+    if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    let targetUserId: string;
-    if (requestedUserId) {
-      targetUserId = requestedUserId;
-    } else if (session.user.id) {
-      targetUserId = session.user.id;
-    } else {
-       return NextResponse.json(
-        { success: false, message: 'User ID not found in session' },
-        { status: 400 }
-      );
-    }
+    // קבע עבור איזה משתמש נשלפים הנתונים:
+    // אם צוין ID בבקשה, השתמש בו. אחרת, השתמש ב-ID של המשתמש המחובר.
+    const targetUserId = requestedUserId || session.user.id;
 
+    // שלוף את המשתמש יחד עם כל המידע המקושר שלו (פרופיל, תמונות, והמלצות)
     const userWithProfile = await prisma.user.findUnique({
       where: { id: targetUserId },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        isProfileComplete: true,
+      include: {
         profile: {
-          select: {
-            id: true,
-            userId: true,
-            gender: true,
-            birthDate: true,
-            nativeLanguage: true,
-            additionalLanguages: true,
-            height: true,
-            city: true,
-            origin: true,
-            aliyaCountry: true,
-            aliyaYear: true,
-            maritalStatus: true,
-            hasChildrenFromPrevious: true,
-            parentStatus: true,
-            fatherOccupation: true,
-            motherOccupation: true,
-            siblings: true,
-            position: true,
-            educationLevel: true,
-            education: true,
-            occupation: true,
-            serviceType: true,
-            serviceDetails: true,
-            religiousLevel: true,
-            religiousJourney: true,
-            shomerNegiah: true,
-            headCovering: true,
-            kippahType: true,
-            profileCharacterTraits: true,
-            profileHobbies: true,
-            about: true,
-            // --- START: הוספת שדות חדשים ---
-            profileHeadline: true,
-            humorStory: true,
-            inspiringCoupleStory: true,
-            influentialRabbi: true,
-            // --- END: הוספת שדות חדשים ---
-            matchingNotes: true,
-            preferredAgeMin: true,
-            preferredAgeMax: true,
-            preferredHeightMin: true,
-            preferredHeightMax: true,
-            preferredReligiousLevels: true,
-            preferredLocations: true,
-            preferredEducation: true,
-            preferredOccupations: true,
-            preferredReligiousJourneys: true,
-            contactPreference: true,
-            isProfileVisible: true,
-            preferredMatchmakerGender: true,
-            availabilityStatus: true,
-            availabilityNote: true,
-            availabilityUpdatedAt: true,
-            preferredMaritalStatuses: true,
-            preferredOrigins: true,
-            preferredServiceTypes: true,
-            preferredHeadCoverings: true,
-            preferredKippahTypes: true,
-            preferredShomerNegiah: true,
-            preferredHasChildrenFromPrevious: true,
-            preferredCharacterTraits: true,
-            preferredHobbies: true,
-            preferredAliyaStatus: true,
-            createdAt: true,
-            updatedAt: true,
-            lastActive: true,
-            verifiedBy: true,
-            hasViewedProfilePreview: true,
-            hasMedicalInfo: true,
-            medicalInfoDetails: true,
-            medicalInfoDisclosureTiming: true,
-            isMedicalInfoVisible: true,
-            needsAiProfileUpdate: true,
+          include: {
+            testimonials: {
+              orderBy: {
+                createdAt: 'desc',
+              }
+            }
           }
         },
         images: {
-          select: {
-            id: true,
-            url: true,
-            isMain: true,
-            createdAt: true,
-            cloudinaryPublicId: true,
-            updatedAt: true,
-          }
-        }
+            orderBy: {
+                isMain: 'desc' // ודא שהתמונה הראשית תמיד ראשונה
+            }
+        },
       }
     });
 
@@ -157,6 +75,7 @@ export async function GET(req: Request) {
         );
     }
 
+    // בנה את אובייקט התגובה המלא שישלח חזרה ללקוח
     const profileResponseData: UserProfile = {
       id: dbProfile.id,
       userId: dbProfile.userId,
@@ -171,30 +90,39 @@ export async function GET(req: Request) {
       aliyaYear: dbProfile.aliyaYear ?? null,
       maritalStatus: dbProfile.maritalStatus || undefined,
       hasChildrenFromPrevious: dbProfile.hasChildrenFromPrevious ?? undefined,
+      parentStatus: dbProfile.parentStatus || undefined,
       fatherOccupation: dbProfile.fatherOccupation || "",
       motherOccupation: dbProfile.motherOccupation || "",
-      parentStatus: dbProfile.parentStatus || undefined,
       siblings: dbProfile.siblings ?? null,
       position: dbProfile.position ?? null,
       educationLevel: dbProfile.educationLevel || undefined,
       education: dbProfile.education || "",
       occupation: dbProfile.occupation || "",
-      serviceType: dbProfile.serviceType as ServiceType | null || undefined,
+      serviceType: dbProfile.serviceType,
       serviceDetails: dbProfile.serviceDetails || "",
       religiousLevel: dbProfile.religiousLevel || undefined,
-      religiousJourney: dbProfile.religiousJourney || undefined,
+      religiousJourney: dbProfile.religiousJourney,
       shomerNegiah: dbProfile.shomerNegiah ?? undefined,
-      headCovering: dbProfile.headCovering as HeadCoveringType | null || undefined,
-      kippahType: dbProfile.kippahType as KippahType | null || undefined,
+      headCovering: dbProfile.headCovering,
+      kippahType: dbProfile.kippahType,
       profileCharacterTraits: dbProfile.profileCharacterTraits || [],
       profileHobbies: dbProfile.profileHobbies || [],
+      
+      // שדות הסיפור והתוכן האישי
       about: dbProfile.about || "",
-      // --- START: הוספת שדות חדשים ---
+      isAboutVisible: dbProfile.isAboutVisible ?? true,
       profileHeadline: dbProfile.profileHeadline || undefined,
       humorStory: dbProfile.humorStory || undefined,
       inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
       influentialRabbi: dbProfile.influentialRabbi || undefined,
-      // --- END: הוספת שדות חדשים ---
+      
+      // דבר המערכת והמלצות
+      manualEntryText: dbProfile.manualEntryText || undefined,
+      isNeshamaTechSummaryVisible: dbProfile.isNeshamaTechSummaryVisible ?? true,
+      testimonials: dbProfile.testimonials || [],
+      isFriendsSectionVisible: dbProfile.isFriendsSectionVisible ?? true,
+
+      // העדפות שידוך
       matchingNotes: dbProfile.matchingNotes || "",
       preferredAgeMin: dbProfile.preferredAgeMin ?? null,
       preferredAgeMax: dbProfile.preferredAgeMax ?? null,
@@ -204,34 +132,42 @@ export async function GET(req: Request) {
       preferredLocations: dbProfile.preferredLocations || [],
       preferredEducation: dbProfile.preferredEducation || [],
       preferredOccupations: dbProfile.preferredOccupations || [],
-      contactPreference: dbProfile.contactPreference || undefined,
-      isProfileVisible: dbProfile.isProfileVisible,
-      isProfileComplete: userWithProfile.isProfileComplete,
-      preferredMatchmakerGender: dbProfile.preferredMatchmakerGender as Gender | null || undefined,
-      availabilityStatus: dbProfile.availabilityStatus,
-      availabilityNote: dbProfile.availabilityNote || "",
-      availabilityUpdatedAt: dbProfile.availabilityUpdatedAt ? new Date(dbProfile.availabilityUpdatedAt) : null,
       preferredMaritalStatuses: dbProfile.preferredMaritalStatuses || [],
       preferredOrigins: dbProfile.preferredOrigins || [],
-      preferredServiceTypes: (dbProfile.preferredServiceTypes as ServiceType[]) || [],
-      preferredHeadCoverings: (dbProfile.preferredHeadCoverings as HeadCoveringType[]) || [],
-      preferredKippahTypes: (dbProfile.preferredKippahTypes as KippahType[]) || [],
+      preferredServiceTypes: dbProfile.preferredServiceTypes || [],
+      preferredHeadCoverings: dbProfile.preferredHeadCoverings || [],
+      preferredKippahTypes: dbProfile.preferredKippahTypes || [],
       preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined,
       preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined,
       preferredCharacterTraits: dbProfile.preferredCharacterTraits || [],
       preferredHobbies: dbProfile.preferredHobbies || [],
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
       preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
+
+      // הגדרות והעדפות מקצועיות
+      contactPreference: dbProfile.contactPreference || undefined,
+      preferredMatchmakerGender: dbProfile.preferredMatchmakerGender,
+
+      // סטטוס ומידע מערכתי
+      isProfileVisible: dbProfile.isProfileVisible,
+      isProfileComplete: userWithProfile.isProfileComplete,
+      availabilityStatus: dbProfile.availabilityStatus,
+      availabilityNote: dbProfile.availabilityNote || "",
+      availabilityUpdatedAt: dbProfile.availabilityUpdatedAt ? new Date(dbProfile.availabilityUpdatedAt) : null,
       verifiedBy: dbProfile.verifiedBy || undefined,
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
       hasViewedProfilePreview: dbProfile.hasViewedProfilePreview,
+      needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
+      
+      // מידע רפואי (חסוי)
       hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
       medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
       medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
-       needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
+      
+      // מידע בסיסי על המשתמש
       user: {
         id: userWithProfile.id,
         firstName: userWithProfile.firstName,
@@ -240,6 +176,7 @@ export async function GET(req: Request) {
       }
     };
     
+    // החזרת תשובה מוצלחת עם כל הנתונים
     return NextResponse.json({
       success: true,
       profile: profileResponseData,

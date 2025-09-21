@@ -2177,6 +2177,7 @@ export type ProfileCardDisplayDict = {
   tabs: {
     essence: { label: string; shortLabel: string };
     deepDive: { label: string; shortLabel: string };
+    recommendations: { label: string; shortLabel: string }; // <-- הוספה
 
     journey: { label: string; shortLabel: string };
     spirit: { label: string; shortLabel: string };
@@ -2185,6 +2186,10 @@ export type ProfileCardDisplayDict = {
     professional: { label: string; shortLabel: string };
   };
   content: {
+      systemRationaleTitle: string; // <-- הוספה (לדוגמה: "תובנת השדכן")
+    recommendationsTitle: string; // <-- הוספה
+    recommendationsSubtitle: string; // <-- הוספה
+    noRecommendationsYet: string; // <-- הוספה
     emptyStateTitle: string;
           inspiringCouple: { title: string };
 influentialRabbi: { title: string };
@@ -2232,17 +2237,24 @@ humorStory: { title: string };
     aboutMe: {
       titleCard: string; // e.g., "A Bit About {{name}}"
     };
-    friendTestimonials: {
+friendTestimonials: {
+  title: string;
+  callButton: string; // e.g., "Talk to {{name}}"
+  callDisclaimer: string;
+  focusSubtitle: string; // e.g., "{{count}} personal testimonials await"
+  viewButton: string; // e.g., "View Testimonials"
+  emptyState: {
       title: string;
-      callButton: string; // e.g., "Talk to {{name}}"
-      callDisclaimer: string;
-    };
+      description: string;
+  }
+};
 
     focus: {
       aboutMe: string;
       myStory: string;
       quickSummary: string;
       importantDetails: string;
+       readFullStory: string;
       whatMakesMeUnique: string;
       traitsAndHobbies: string;
       myTraits: string;

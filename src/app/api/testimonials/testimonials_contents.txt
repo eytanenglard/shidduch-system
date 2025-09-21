@@ -1,0 +1,157 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials
+# Generated on: 2025-09-21 18:51:06
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/profile/testimonials/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import jwt from 'jsonwebtoken';
+// הגדרת טיפוס עבור המידע המפוענח מהטוקן
+interface TestimonialTokenPayload {
+profileId: string;
+userId: string;
+}
+/**
+POST - מקבל בקשה עם טוקן ותוכן המלצה, ומייצר רשומה חדשה.
+*/
+export async function POST(req: NextRequest) {
+try {
+const body = await req.json();
+const { token, authorName, relationship, content } = body;
+// 1. ולידציה של הקלט
+if (!token || !authorName || !relationship || !content) {
+return NextResponse.json({ success: false, error: "Missing required fields (token, authorName, relationship, content)." }, { status: 400 });
+}
+// 2. אימות ופענוח הטוקן
+const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET!) as TestimonialTokenPayload;
+if (!decoded || !decoded.profileId) {
+return NextResponse.json({ success: false, error: "Invalid or expired token." }, { status: 401 });
+}
+// 3. שמירה ב-Prisma (ודא שהמודל שלך נקרא friendTestimonial)
+await prisma.friendTestimonial.create({
+data: {
+profileId: decoded.profileId,
+authorName: authorName,
+relationship: relationship,
+content: content,
+status: 'PENDING', // ברירת מחדל - ממתין לאישור
+},
+});
+// 4. החזרת תשובת הצלחה
+return NextResponse.json({ success: true, message: "Thank you! Your testimonial has been submitted." });
+} catch (error) {
+console.error("Error in POST /api/profile/testimonials:", error);
+if (error instanceof jwt.JsonWebTokenError || error instanceof jwt.TokenExpiredError) {
+return NextResponse.json({ success: false, error: "Invalid or expired link. Please ask for a new one." }, { status: 401 });
+}
+return NextResponse.json({ success: false, error: "An internal server error occurred." }, { status: 500 });
+}
+}
+--- End of Content for route.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials\testimonials_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials\[testimonialId]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials\[testimonialId]\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/profile/testimonials/[testimonialId]/route.ts
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { TestimonialStatus } from '@prisma/client';
+
+// PUT - Update a testimonial's status
+export async function PUT(req: Request, { params }: { params: { testimonialId: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userProfile = await prisma.profile.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true }
+    });
+
+    if (!userProfile) {
+        return NextResponse.json({ success: false, message: 'Profile not found for current user' }, { status: 404 });
+    }
+
+    const { status } = await req.json() as { status: TestimonialStatus };
+    if (!Object.values(TestimonialStatus).includes(status)) {
+      return NextResponse.json({ success: false, message: 'Invalid status provided' }, { status: 400 });
+    }
+
+    const updatedTestimonial = await prisma.friendTestimonial.updateMany({
+      where: {
+        id: params.testimonialId,
+        profileId: userProfile.id, // Ensure ownership
+      },
+      data: { status },
+    });
+
+    if (updatedTestimonial.count === 0) {
+      return NextResponse.json({ success: false, message: 'Testimonial not found or you do not have permission to edit it' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: 'Testimonial status updated.' });
+  } catch (error) {
+    console.error("Error in PUT /api/profile/testimonials/[id]:", error);
+    return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
+  }
+}
+
+// DELETE a testimonial
+export async function DELETE(req: Request, { params }: { params: { testimonialId: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userProfile = await prisma.profile.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true }
+    });
+
+    if (!userProfile) {
+        return NextResponse.json({ success: false, message: 'Profile not found for current user' }, { status: 404 });
+    }
+
+    const deletedTestimonial = await prisma.friendTestimonial.deleteMany({
+        where: {
+            id: params.testimonialId,
+            profileId: userProfile.id, // Ensure ownership
+        },
+    });
+
+    if (deletedTestimonial.count === 0) {
+        return NextResponse.json({ success: false, message: 'Testimonial not found or you do not have permission to delete it' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: 'Testimonial deleted.' });
+  } catch (error) {
+    console.error("Error in DELETE /api/profile/testimonials/[id]:", error);
+    return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+

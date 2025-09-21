@@ -487,7 +487,7 @@
       "visibilityTooltip": "האם לכלול את הסיכום המקצועי שלנו בכרטיס הפרופיל שיישלח להצעות? (מומלץ!)"
     },
     "friendTestimonials": {
-      "cardTitle": "ניהול המלצות מחברים",
+      "cardTitle": "ניהול המלצות אישיות",
       "addManualButton": "הוסף המלצה ידנית",
       "requestLinkButton": "בקש המלצה מחבר/ה",
       "pendingApproval": "ממתין לאישורך",
@@ -520,7 +520,8 @@
         "closeButton": "סגור"
       },
       "visibilityTooltip": "האם להציג את חלק ההמלצות בכרטיס הפרופיל שיישלח להצעות?",
-      "emptyState": "עדיין לא נוספו המלצות. המלצות אישיות בונות אמון ומסייעות לצד השני להכיר אותך טוב יותר."
+      "emptyState": "המלצות מאנשים שמכירים אותך היטב הן דרך מצוינת לבנות אמון ולתת לצד השני הצצה אותנטית לאישיות שלך."
+
     }
 ,
     "loading": "טוען נתוני פרופיל...",
@@ -894,6 +895,7 @@
       "tabs": {
         
         "essence": { "label": "המהות שלי", "shortLabel": "מהות" },
+        "recommendations": { "label": "המלצות", "shortLabel": "המלצות" },
         "deepDive": { "label": "צלילה לעומק", "shortLabel": "עומק" },
         "journey": { "label": "הדרך שלי", "shortLabel": "הדרך" },
         "spirit": { "label": "עולם הרוח", "shortLabel": "רוחניות" },
@@ -902,6 +904,10 @@
         "professional": { "label": "מידע לשדכן", "shortLabel": "לשדכן" }
       },
       "content": {
+        "systemRationaleTitle": "תובנת השדכן",
+          "recommendationsTitle": "מה מספרים על {{name}}",
+          "recommendationsSubtitle": "זווית נוספת מאנשים שמכירים מקרוב.",
+          "noRecommendationsYet": "עדיין לא נוספו המלצות לפרופיל זה.",
         "inspiringCouple": { "title": "הזוג שנותן לי השראה" },
 "influentialRabbi": { "title": "דמות רוחנית משפיעה" },
 "humorStory": { "title": "סיפור שמדגים את חוש ההומור שלי" },
@@ -946,17 +952,25 @@
                "neshamaTechSummary": {
           "title": "ההיכרות שלנו עם {{name}}"
         },
-        "aboutMe": {
-          "titleCard": "בקצרה על {{name}}"
-        },
+  "aboutMe": {
+  "titleCard": "הסיפור של {{name}}"
+},
         "friendTestimonials": {
-          "title": "חברים מספרים",
-          "callButton": "דבר/י עם {{name}}",
-          "callDisclaimer": "אנו מעודדים יצירת קשר מכבדת בשעות המקובלות. זוהי הזדמנות ייחודית לקבל תמונה רחבה ואמיתית."
-        }
-,
+    "title": "מה מספרים על {{name}}",
+    "callButton": "שיחה עם {{name}}",
+    "callDisclaimer": "מספרי הטלפון גלויים רק לאחר אישור הדדי.",
+    "focusSubtitle": "{{count}} המלצות אישיות מחכות לך",
+    "viewButton": "צפה בהמלצות",
+    "emptyState": {
+        "title": "אין המלצות להציג",
+        "description": "כאשר יתווספו המלצות, הן יופיעו כאן."
+    }
+},
+
         "focus": {
           "aboutMe": "קצת עליי",
+              "readFullStory": "קרא/י את הסיפור המלא"
+,
           "myStory": "המילים שמגדירות אותי",
           "quickSummary": "תמצית מהירה",
           "importantDetails": "הפרטים החשובים שכדאי לדעת עליי במבט ראשון",

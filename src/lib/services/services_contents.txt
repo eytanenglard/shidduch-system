@@ -1,0 +1,2011 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services
+# Generated on: 2025-09-21 21:01:00
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\aiService.ts
+--------------------------------------------------------------------------------
+Content:
+// src/lib/services/aiService.ts
+
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const apiKey = process.env.GOOGLE_API_KEY;
+
+if (!apiKey) {
+  console.error(
+    '[FATAL ERROR] GOOGLE_API_KEY is not set in .env or .env.local!'
+  );
+  throw new Error('GOOGLE_API_KEY must be set.');
+}
+
+const genAI = new GoogleGenerativeAI(apiKey);
+
+/**
+ * יוצר וקטור הטמעה (embedding) עבור טקסט נתון.
+ * @param text הטקסט להטמעה.
+ * @returns Promise שמחזיר מערך של מספרים (הווקטור), או null במקרה של כישלון.
+ */
+export async function generateTextEmbedding(
+  text: string
+): Promise<number[] | null> {
+  try {
+    const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
+    const result = await model.embedContent(text);
+    const embedding = result.embedding;
+    if (embedding && embedding.values) {
+      return embedding.values;
+    }
+    console.error('Embedding generation returned no values.');
+    return null;
+  } catch (error) {
+    console.error('Error generating text embedding:', error);
+    return null;
+  }
+}
+
+/**
+ * מגדיר את מבנה ה-JSON של ניתוח התאמה עבור שדכנים.
+ */
+export interface AiAnalysisResult {
+  overallScore: number;
+  matchSummary: string;
+  compatibilityPoints: Array<{
+    area: string;
+    explanation: string;
+    strength: 'HIGH' | 'MEDIUM' | 'LOW';
+  }>;
+  potentialChallenges: Array<{
+    area: string;
+    explanation: string;
+    severity: 'HIGH' | 'MEDIUM' | 'LOW';
+  }>;
+  suggestedConversationStarters: string[];
+}
+
+/**
+ * מנתח את ההתאמה בין שני פרופילים נרטיביים עבור שדכן.
+ * @param profileAText הפרופיל הנרטיבי של המשתמש הראשון.
+ * @param profileBText הפרופיל הנרטיבי של המשתמש השני.
+ * @param language שפת הפלט הרצויה.
+ * @returns Promise שמחזיר אובייקט ניתוח מובנה, או null במקרה של כישלון.
+ */
+export async function analyzePairCompatibility(
+  profileAText: string,
+  profileBText: string,
+  language: 'he' | 'en' = 'he'
+): Promise<AiAnalysisResult | null> {
+  console.log(
+    `--- Attempting to analyze compatibility for matchmaker in ${language} ---`
+  );
+  if (!profileAText || !profileBText) {
+    console.error(
+      'analyzePairCompatibility called with one or more empty profiles.'
+    );
+    return null;
+  }
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-1.5-pro-latest',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.3,
+    },
+  });
+
+  const targetLanguage = language === 'he' ? 'Hebrew' : 'English';
+
+  const prompt = `
+    You are a "Matchmaking AI Expert" for a religious Jewish dating platform. Your goal is to analyze the compatibility of two user profiles and provide a structured, insightful, and helpful analysis for the matchmaker.
+    
+    IMPORTANT: Your entire JSON output, including all string values (keys and explanations), must be in ${targetLanguage}.
+
+    Your output MUST be a valid JSON object. Do NOT wrap the JSON in markdown backticks (e.g., \`\`\`json). Output ONLY the raw JSON object.
+    The JSON structure: { "overallScore": number, "matchSummary": "string", "compatibilityPoints": [{ "area": "string", "explanation": "string", "strength": "HIGH" | "MEDIUM" | "LOW" }], "potentialChallenges": [{ "area": "string", "explanation": "string", "severity": "HIGH" | "MEDIUM" | "LOW" }], "suggestedConversationStarters": ["string"] }
+    --- Profile 1 ---
+    ${profileAText}
+    --- Profile 2 ---
+    ${profileBText}
+    `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const jsonString = response.text();
+
+    if (!jsonString) {
+      console.error('Direct Gemini API returned an empty response.');
+      return null;
+    }
+
+    console.log(
+      `--- Successfully received compatibility analysis from Gemini API in ${language} ---`
+    );
+    // כאן אין צורך בניקוי מיוחד כי אנחנו מצפים ל-JSON נקי, אבל אם יתחילו בעיות נוסיף גם פה
+    return JSON.parse(jsonString) as AiAnalysisResult;
+  } catch (error) {
+    console.error(
+      `Error generating compatibility analysis from Direct Gemini API in ${language}:`,
+      error
+    );
+    return null;
+  }
+}
+
+/**
+ * מגדיר את מבנה ה-JSON של ניתוח פרופיל עבור המשתמש עצמו.
+ */
+export interface AiProfileAnalysisResult {
+  personalitySummary: string;
+  lookingForSummary: string;
+  completenessReport: Array<{
+    area: string;
+    status: 'COMPLETE' | 'PARTIAL' | 'MISSING';
+    feedback: string;
+  }>;
+  actionableTips: Array<{
+    area: string;
+    tip: string;
+  }>;
+}
+
+/**
+ * מנתח פרופיל של משתמש ומספק משוב וטיפים לשיפור.
+ * @param userNarrativeProfile הטקסט הנרטיבי המקיף של פרופיל המשתמש.
+ * @returns Promise שמחזיר אובייקט ניתוח מובנה, או null במקרה של כישלון.
+ */
+export async function getProfileAnalysis(
+  userNarrativeProfile: string
+): Promise<AiProfileAnalysisResult | null> {
+  console.log(
+    '--- [AI Profile Advisor] Starting profile analysis with Gemini API ---'
+  );
+
+  if (!userNarrativeProfile) {
+    console.error(
+      '[AI Profile Advisor] Called with an empty user narrative profile.'
+    );
+    return null;
+  }
+
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-1.5-pro-latest',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.4,
+    },
+  });
+
+  const prompt = `
+    You are an expert, warm, and encouraging dating profile coach for a religious Jewish audience. Your goal is to help the user improve their profile to attract the best possible matches. Based on the following comprehensive user profile, provide a structured JSON analysis.
+    The entire output MUST be a valid JSON object in Hebrew.
+    IMPORTANT: Do NOT wrap the JSON in markdown backticks (e.g., \`\`\`json). Output ONLY the raw JSON object.
+    The JSON structure must be: { "personalitySummary": "string", "lookingForSummary": "string", "completenessReport": [{ "area": "string", "status": "COMPLETE" | "PARTIAL" | "MISSING", "feedback": "string" }], "actionableTips": [{ "area": "string", "tip": "string" }] }
+    
+    --- User Profile Narrative ---
+    ${userNarrativeProfile}
+    --- End of User Profile Narrative ---
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    let jsonString = response.text();
+
+    if (!jsonString) {
+      console.error(
+        '[AI Profile Advisor] Gemini API returned an empty response.'
+      );
+      return null;
+    }
+
+    // ======================= תהליך הניקוי והפענוח הבטוח =======================
+    
+    // שלב 1: בדוק אם התשובה עטופה ב-markdown והסר אותו אם כן.
+    if (jsonString.startsWith('```json')) {
+      jsonString = jsonString.slice(7, -3).trim();
+    } else if (jsonString.startsWith('```')) {
+        jsonString = jsonString.slice(3, -3).trim();
+    }
+
+    try {
+        // שלב 2: נסה לפענח את ה-JSON הנקי.
+        const parsedJson = JSON.parse(jsonString) as AiProfileAnalysisResult;
+        console.log(
+          '--- [AI Profile Advisor] Successfully received and parsed analysis from Gemini API. ---'
+        );
+        return parsedJson;
+    } catch (parseError) {
+        // שלב 3: אם הפענוח נכשל, הדפס שגיאה מפורטת ואת התשובה הגולמית לטובת דיבאגינג.
+        console.error(
+          '[AI Profile Advisor] Failed to parse JSON response from Gemini.',
+          parseError
+        );
+        console.error('--- RAW AI RESPONSE THAT FAILED PARSING ---');
+        console.error(jsonString);
+        console.error('--- END OF RAW AI RESPONSE ---');
+        
+        // זרוק שגיאה חדשה כדי שהפונקציה שקראה לנו תדע שהתהליך נכשל.
+        throw new Error('Invalid JSON response from AI service.');
+    }
+    // ======================= סוף תהליך הניקוי =======================
+
+  } catch (error) {
+    // תפיסת שגיאות תקשורת עם ה-API או את השגיאה שזרקנו מה-catch הפנימי.
+    console.error(
+      '[AI Profile Advisor] Error during profile analysis process:',
+      error
+    );
+    return null;
+  }
+}
+
+/**
+ * מגדיר את מבנה ה-JSON של ניתוח הצעה עבור משתמש הקצה.
+ */
+export interface AiSuggestionAnalysisResult {
+  overallScore: number;
+  matchTitle: string;
+  matchSummary: string;
+  compatibilityPoints: Array<{ area: string; explanation: string }>;
+  pointsToConsider: Array<{ area: string; explanation: string }>;
+  suggestedConversationStarters: string[];
+}
+
+/**
+ * מנתח התאמה בין שני פרופילים ומחזיר ניתוח מותאם למשתמש הקצה.
+ */
+export async function analyzeSuggestionForUser(
+  currentUserProfileText: string,
+  suggestedUserProfileText: string
+): Promise<AiSuggestionAnalysisResult | null> {
+  console.log(
+    '--- [AI Suggestion Advisor] Starting suggestion analysis for user ---'
+  );
+
+  if (!currentUserProfileText || !suggestedUserProfileText) {
+    console.error(
+      '[AI Suggestion Advisor] Called with one or more empty profiles.'
+    );
+    return null;
+  }
+
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-1.5-pro-latest',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.5,
+    },
+  });
+
+  const prompt = `
+    You are a 'Matchmaking AI Advisor'. Your tone is positive, warm, and encouraging. Your goal is to help a user understand the potential of a match suggestion they received. Analyze the compatibility between 'My Profile' and the 'Suggested Profile'.
+    Your entire output MUST be a valid JSON object in Hebrew.
+    IMPORTANT: Do NOT wrap the JSON in markdown backticks (e.g., \`\`\`json). Output ONLY the raw JSON object.
+    The JSON structure must be: { "overallScore": number, "matchTitle": "string", "matchSummary": "string", "compatibilityPoints": [{ "area": "string", "explanation": "string (user-friendly explanation)" }], "pointsToConsider": [{ "area": "string", "explanation": "string (rephrased positively, e.g., 'הוא אוהב טיולים ואת מעדיפה בית. זו הזדמנות נהדרת לחוות דברים חדשים יחד!')" }], "suggestedConversationStarters": ["string"] }
+    
+    --- My Profile ---
+    ${currentUserProfileText}
+
+    --- Suggested Profile ---
+    ${suggestedUserProfileText}
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const jsonString = response.text();
+
+    if (!jsonString) {
+      console.error(
+        '[AI Suggestion Advisor] Gemini API returned an empty response.'
+      );
+      return null;
+    }
+
+    console.log(
+      '--- [AI Suggestion Advisor] Successfully received analysis from Gemini API. ---'
+    );
+    return JSON.parse(jsonString) as AiSuggestionAnalysisResult;
+  } catch (error) {
+    console.error(
+      '[AI Suggestion Advisor] Error generating suggestion analysis:',
+      error
+    );
+    return null;
+  }
+}
+
+/**
+ * מייצר טקסט נימוק מותאם אישית עבור הצעת שידוך.
+ */
+export async function generateSuggestionRationale(
+  profile1Text: string,
+  profile2Text: string
+): Promise<string | null> {
+  console.log(
+    '--- [AI Rationale Writer] Starting suggestion rationale generation ---'
+  );
+  if (!profile1Text || !profile2Text) {
+    console.error(
+      '[AI Rationale Writer] Called with one or more empty profiles.'
+    );
+    return null;
+  }
+
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+  const prompt = `
+    You are a professional and sensitive matchmaker in the religious Jewish community. Your task is to write a warm, personal, and compelling justification ('matchingReason') for a match suggestion.
+    Based on the two profiles provided, identify 2-3 key points of compatibility (values, life goals, personality traits, background) and weave them into a concise and positive paragraph.
+    The output should be ONLY the justification text in Hebrew, without any additional titles, formatting, or explanations. Start directly with the text.
+
+    **Example Output Structure:**
+    "אני חושב/ת שיש כאן פוטנציאל להתאמה מצוינת מכמה סיבות. ראשית, שניכם ציינתם ש... וזה מראה על... שנית, הרקע ה... שלכם יכול להוות בסיס משותף חזק. בנוסף, נראה ששניכם חולקים... וזה יכול לתרום רבות לבניית קשר..."
+
+    --- Profile 1 ---
+    ${profile1Text}
+
+    --- Profile 2 ---
+    ${profile2Text}
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+
+    if (!text) {
+      console.error(
+        '[AI Rationale Writer] Gemini API returned an empty response.'
+      );
+      return null;
+    }
+
+    console.log(
+      '--- [AI Rationale Writer] Successfully generated rationale. ---'
+    );
+    return text.trim();
+  } catch (error) {
+    console.error(
+      '[AI Rationale Writer] Error generating suggestion rationale:',
+      error
+    );
+    return null;
+  }
+}
+
+/**
+ * מגדיר את מבנה ה-JSON של אובייקט הנימוקים המלא.
+ */
+export interface FullRationaleResult {
+  generalRationale: string;
+  rationaleForParty1: string;
+  rationaleForParty2: string;
+}
+
+/**
+ * מייצר חבילת נימוקים מלאה עבור הצעת שידוך.
+ */
+export async function generateFullSuggestionRationale(
+  profile1Text: string,
+  profile2Text: string
+): Promise<FullRationaleResult | null> {
+  console.log(
+    '--- [AI Rationale Writer] Starting full rationale package generation ---'
+  );
+  if (!profile1Text || !profile2Text) {
+    console.error(
+      '[AI Rationale Writer] Called with one or more empty profiles.'
+    );
+    return null;
+  }
+
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-1.5-pro-latest',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.6,
+    },
+  });
+
+  const prompt = `
+    You are a professional and sensitive matchmaker in the religious Jewish community. Your task is to write three distinct texts for a match suggestion based on the two provided user profiles.
+    The entire output MUST be a valid JSON object in Hebrew, with the following exact structure:
+    {
+      "generalRationale": "A general, objective summary of the compatibility points. This is for the matchmaker's internal use.",
+      "rationaleForParty1": "A personal and warm message for Party 1, explaining why Party 2 is a great match for them. Address them directly and highlight how Party 2's qualities align with Party 1's stated needs and desires. Use encouraging and persuasive language.",
+      "rationaleForParty2": "A personal and warm message for Party 2, explaining why Party 1 is a great match for them. Do the same as above, but from Party 2's perspective."
+    }
+    IMPORTANT: Do NOT wrap the JSON in markdown backticks (e.g., \`\`\`json). Output ONLY the raw JSON object.
+
+    --- Profile 1 ---
+    ${profile1Text}
+
+    --- Profile 2 ---
+    ${profile2Text}
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const jsonString = response.text();
+
+    if (!jsonString) {
+      console.error(
+        '[AI Rationale Writer] Gemini API returned an empty response for full rationale.'
+      );
+      return null;
+    }
+
+    console.log(
+      '--- [AI Rationale Writer] Successfully generated full rationale package. ---'
+    );
+    return JSON.parse(jsonString) as FullRationaleResult;
+  } catch (error) {
+    console.error(
+      '[AI Rationale Writer] Error generating full suggestion rationale:',
+      error
+    );
+    return null;
+  }
+}
+export interface AiNeshamaTechSummary {
+  summaryText: string;
+}
+
+/**
+ * יוצר סיכום היכרות מקצועי וחם עבור פרופיל מועמד.
+ * @param userNarrativeProfile הטקסט הנרטיבי המקיף של פרופיל המשתמש.
+ * @returns Promise שמחזיר אובייקט עם טקסט הסיכום, או null במקרה של כישלון.
+ */
+export async function generateNeshamaTechSummary(
+  userNarrativeProfile: string
+): Promise<AiNeshamaTechSummary | null> {
+  console.log(
+    '--- [AI NeshamaTech Summary] Starting summary generation with Gemini API ---'
+  );
+
+  if (!userNarrativeProfile) {
+    console.error(
+      '[AI NeshamaTech Summary] Called with an empty user narrative profile.'
+    );
+    return null;
+  }
+
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-1.5-pro-latest',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.7, // מעט יותר יצירתיות לטקסט שיווקי
+    },
+  });
+
+  const prompt = `
+    You are an expert Israeli matchmaker, marketer, and copywriter for NeshamaTech, a premium matchmaking service for the Israeli National-Religious/Academic community.
+    Your task is to write a warm, engaging, and insightful "Introduction Summary" (תקציר היכרות) for a candidate's profile in Hebrew.
+    The summary will be shown to potential matches and serves as the professional, human-touch introduction from the NeshamaTech team.
+    
+    **Your Goal:** Synthesize the provided data into a flowing, compelling narrative of 3-4 short paragraphs. Do NOT just list facts. Weave them into a story that reveals the person's essence. Highlight strengths, core values, and what they seek in a partner. The tone must be authentic, respectful, and professional yet personal.
+
+    **Output Format:** Your entire output MUST be a valid JSON object in Hebrew. Do NOT wrap it in markdown backticks. Output ONLY the raw JSON object with the following structure:
+    {
+      "summaryText": "The full, multi-paragraph summary text in Hebrew."
+    }
+    
+    --- User Profile Narrative for Analysis ---
+    ${userNarrativeProfile}
+    --- End of User Profile Narrative ---
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const jsonString = response.text();
+
+    if (!jsonString) {
+      console.error(
+        '[AI NeshamaTech Summary] Gemini API returned an empty response.'
+      );
+      return null;
+    }
+
+    // ניקוי ופענוח בטוח של ה-JSON
+    let cleanJsonString = jsonString;
+    if (cleanJsonString.startsWith('```json')) {
+      cleanJsonString = cleanJsonString.slice(7, -3).trim();
+    }
+    
+    const parsedJson = JSON.parse(cleanJsonString) as AiNeshamaTechSummary;
+    console.log(
+      '--- [AI NeshamaTech Summary] Successfully received and parsed summary from Gemini API. ---'
+    );
+    return parsedJson;
+
+  } catch (error) {
+    console.error(
+      '[AI NeshamaTech Summary] Error during summary generation:',
+      error
+    );
+    return null;
+  }
+}
+
+// ייצוא כל הפונקציות כאובייקט אחד
+const aiService = {
+  generateTextEmbedding,
+  analyzePairCompatibility,
+  getProfileAnalysis,
+  analyzeSuggestionForUser,
+  generateSuggestionRationale,
+  generateFullSuggestionRationale,
+  generateNeshamaTechSummary, 
+};
+
+export default aiService;
+--- End of Content for aiService.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\availabilityService.ts
+--------------------------------------------------------------------------------
+Content:
+// src/lib/services/availabilityService.ts
+
+import prisma from '@/lib/prisma';
+import { AvailabilityStatus, Prisma } from '@prisma/client';
+import { emailService } from '@/lib/email/emailService';
+
+// ============================ INICIO DE LA MODIFICACIÓN ============================
+// Se ha añadido 'locale' a las interfaces para que se pueda pasar a los servicios de correo electrónico.
+interface SendInquiryParams {
+  matchmakerId: string;
+  firstPartyId: string;
+  note?: string;
+  locale: 'he' | 'en'; // El 'locale' es ahora obligatorio.
+}
+
+interface UpdateInquiryResponse {
+  inquiryId: string;
+  userId: string;
+  isAvailable: boolean;
+  note?: string;
+  locale: 'he' | 'en'; // El 'locale' es ahora obligatorio.
+}
+// ============================= FIN DE LA MODIFICACIÓN ==============================
+
+interface GetInquiriesOptions {
+  status?: 'pending' | 'completed' | 'expired';
+  orderBy?: 'createdAt' | 'updatedAt';
+  limit?: number;
+}
+
+interface AvailabilityStats {
+  available: number;
+  unavailable: number;
+  dating: number;
+  pending: number;
+}
+
+export class AvailabilityService {
+  static async sendAvailabilityInquiry({
+    matchmakerId,
+    firstPartyId,
+    note,
+    locale, // Destructurar el nuevo parámetro 'locale'.
+  }: SendInquiryParams) {
+    try {
+      console.log('Starting availability inquiry process', {
+        matchmakerId,
+        firstPartyId,
+        note,
+        locale,
+      });
+
+      // Comprobar si existe una consulta activa.
+      const existingInquiry = await prisma.availabilityInquiry.findFirst({
+        where: {
+          firstPartyId,
+          expiresAt: {
+            gt: new Date(),
+          },
+        },
+      });
+
+      if (existingInquiry) {
+        console.log('Found existing active inquiry:', existingInquiry);
+        throw new Error('קיימת כבר בקשת זמינות פעילה');
+      }
+
+      // Crear una nueva consulta.
+      console.log('Creating new inquiry...');
+      const inquiry = await prisma.availabilityInquiry.create({
+        data: {
+          matchmakerId,
+          firstPartyId,
+          secondPartyId: firstPartyId,
+          note,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
+        },
+        include: {
+          firstParty: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              profile: {
+                select: {
+                  availabilityStatus: true,
+                  availabilityNote: true,
+                  availabilityUpdatedAt: true,
+                },
+              },
+            },
+          },
+          secondParty: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              profile: {
+                select: {
+                  availabilityStatus: true,
+                  availabilityNote: true,
+                  availabilityUpdatedAt: true,
+                },
+              },
+            },
+          },
+          matchmaker: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      console.log('Successfully created inquiry:', inquiry);
+
+      // Enviar notificación por correo electrónico.
+      if (inquiry.firstParty.email) {
+        console.log('Attempting to send email to:', inquiry.firstParty.email);
+        
+        try {
+          // ============================ INICIO DE LA MODIFICACIÓN ============================
+          // Pasar el 'locale' al servicio de correo electrónico.
+          await emailService.sendAvailabilityCheck({
+            locale, // Pasar el 'locale' recibido.
+            email: inquiry.firstParty.email,
+            recipientName: `${inquiry.firstParty.firstName} ${inquiry.firstParty.lastName}`,
+            matchmakerName: `${inquiry.matchmaker.firstName} ${inquiry.matchmaker.lastName}`,
+            inquiryId: inquiry.id,
+          });
+          // ============================= FIN DE LA MODIFICACIÓN ==============================
+          console.log('Email sent successfully');
+        } catch (emailError) {
+          console.error('Failed to send email:', emailError);
+          // Continuar aunque el correo electrónico falle; queremos que la consulta se guarde.
+        }
+      } else {
+        console.warn('No email found for first party');
+      }
+
+      return inquiry;
+    } catch (error) {
+      console.error('Error in sendAvailabilityInquiry:', error);
+      throw error;
+    }
+  }
+
+  static async updateInquiryResponse({
+    inquiryId,
+    userId,
+    isAvailable,
+    note,
+    locale, // Destructurar el nuevo parámetro 'locale'.
+  }: UpdateInquiryResponse) {
+    try {
+      console.log('Starting to update inquiry response:', {
+        inquiryId,
+        userId,
+        isAvailable,
+        note,
+        locale
+      });
+
+      // Comprobar si la consulta existe.
+      const inquiry = await prisma.availabilityInquiry.findUnique({
+        where: { id: inquiryId },
+        include: {
+          firstParty: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+              profile: true,
+            },
+          },
+          secondParty: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+              profile: true,
+            },
+          },
+          matchmaker: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      if (!inquiry) {
+        console.log('Inquiry not found:', inquiryId);
+        throw new Error('בקשת הזמינות לא נמצאה');
+      }
+
+      console.log('Found inquiry:', inquiry);
+
+      if (inquiry.expiresAt < new Date()) {
+        console.log('Inquiry expired:', inquiry.expiresAt);
+        throw new Error('תוקף הבקשה פג');
+      }
+
+      const isFirstParty = inquiry.firstPartyId === userId;
+      const isSecondParty = inquiry.secondPartyId === userId;
+
+      if (!isFirstParty && !isSecondParty) {
+        console.log('Unauthorized response attempt. User:', userId);
+        throw new Error('אין הרשאה לעדכן בקשה זו');
+      }
+
+      // Actualizar tanto la consulta como el perfil en una transacción.
+      console.log('Updating inquiry and profile...');
+      const result = await prisma.$transaction(async (tx) => {
+        // Actualizar el perfil del usuario.
+        const updatedProfile = await tx.profile.update({
+          where: { userId },
+          data: {
+            availabilityStatus: isAvailable
+              ? AvailabilityStatus.AVAILABLE
+              : AvailabilityStatus.UNAVAILABLE,
+            availabilityNote: note,
+            availabilityUpdatedAt: new Date(),
+          },
+        });
+        console.log('Profile updated:', updatedProfile);
+
+        // Actualizar la consulta.
+        const updatedInquiry = await tx.availabilityInquiry.update({
+          where: { id: inquiryId },
+          data: {
+            ...(isFirstParty
+              ? { firstPartyResponse: isAvailable }
+              : { secondPartyResponse: isAvailable }),
+            updatedAt: new Date(),
+          },
+          include: {
+            firstParty: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+                profile: true,
+              },
+            },
+            secondParty: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+                profile: true,
+              },
+            },
+            matchmaker: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+        });
+        console.log('Inquiry updated:', updatedInquiry);
+
+        // Enviar notificación al matchmaker.
+        if (inquiry.matchmaker.email) {
+          // ============================ INICIO DE LA MODIFICACIÓN ============================
+          // Pasar el 'locale' al servicio de correo electrónico.
+          await emailService.sendSuggestionNotification({
+            locale, // Pasar el 'locale' recibido.
+            email: inquiry.matchmaker.email,
+            recipientName: `${inquiry.matchmaker.firstName} ${inquiry.matchmaker.lastName}`,
+            matchmakerName: 'המערכת',
+            suggestionDetails: {
+              additionalInfo: `${
+                isFirstParty ? 'הצד הראשון' : 'הצד השני'
+              } ${isAvailable ? 'זמין' : 'אינו זמין'} ${
+                note ? `(הערה: ${note})` : ''
+              }`,
+            },
+          });
+          // ============================= FIN DE LA MODIFICACIÓN ==============================
+        }
+
+        return updatedInquiry;
+      });
+
+      return result;
+    } catch (error) {
+      console.error('Error in updateInquiryResponse:', error);
+      throw error;
+    }
+  }
+
+  static async getInquiryById(inquiryId: string) {
+    console.log('Fetching inquiry by ID:', inquiryId);
+    try {
+      const inquiry = await prisma.availabilityInquiry.findUnique({
+        where: { id: inquiryId },
+        include: {
+          firstParty: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+              profile: {
+                select: {
+                  availabilityStatus: true,
+                  availabilityNote: true,
+                  availabilityUpdatedAt: true,
+                },
+              },
+            },
+          },
+          secondParty: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+              profile: {
+                select: {
+                  availabilityStatus: true,
+                  availabilityNote: true,
+                  availabilityUpdatedAt: true,
+                },
+              },
+            },
+          },
+          matchmaker: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      if (!inquiry) {
+        console.log('No inquiry found with ID:', inquiryId);
+        throw new Error('הבקשה לא נמצאה');
+      }
+
+      console.log('Found inquiry:', inquiry);
+      return inquiry;
+    } catch (error) {
+      console.error('Error in getInquiryById:', error);
+      throw error;
+    }
+  }
+
+  static async getAvailabilityStats(
+    matchmakerId: string
+  ): Promise<AvailabilityStats> {
+    console.log('Calculating availability stats for matchmaker:', matchmakerId);
+    try {
+      const stats = await prisma.profile.groupBy({
+        by: ['availabilityStatus'],
+        where: {
+          user: {
+            OR: [
+              { firstPartyInquiries: { some: { matchmakerId } } },
+              { secondPartyInquiries: { some: { matchmakerId } } },
+            ],
+          },
+        },
+        _count: true,
+      });
+
+      console.log('Raw stats:', stats);
+
+      const result: AvailabilityStats = {
+        available:
+          stats.find((s) => s.availabilityStatus === AvailabilityStatus.AVAILABLE)
+            ?._count || 0,
+        unavailable:
+          stats.find(
+            (s) => s.availabilityStatus === AvailabilityStatus.UNAVAILABLE
+          )?._count || 0,
+        dating:
+          stats.find((s) => s.availabilityStatus === AvailabilityStatus.DATING)
+            ?._count || 0,
+        pending: stats.find((s) => s.availabilityStatus === null)?._count || 0,
+      };
+
+      console.log('Processed stats:', result);
+      return result;
+    } catch (error) {
+      console.error('Error in getAvailabilityStats:', error);
+      throw error;
+    }
+  }
+
+  static async getAllInquiries(
+    userId: string,
+    { status = 'pending', orderBy = 'createdAt', limit }: GetInquiriesOptions = {}
+  ) {
+    try {
+      // Construir la cláusula 'where' basada en el estado.
+      const where: Prisma.AvailabilityInquiryWhereInput = {
+        OR: [
+          { matchmakerId: userId },
+          { firstPartyId: userId },
+          { secondPartyId: userId },
+        ],
+        ...(status === 'pending' && {
+          expiresAt: { gt: new Date() },
+          OR: [
+            { firstPartyResponse: null },
+            { secondPartyResponse: null },
+          ],
+        }),
+        ...(status === 'completed' && {
+          firstPartyResponse: { not: null },
+          secondPartyResponse: { not: null },
+        }),
+        ...(status === 'expired' && {
+          expiresAt: { lt: new Date() },
+        }),
+      };
+
+      const validOrderBy = orderBy || 'createdAt';
+
+      const inquiries = await prisma.availabilityInquiry.findMany({
+        where,
+        include: {
+          firstParty: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+              profile: {
+                select: {
+                  availabilityStatus: true,
+                  availabilityNote: true,
+                  availabilityUpdatedAt: true,
+                },
+              },
+            },
+          },
+          secondParty: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+              profile: {
+                select: {
+                  availabilityStatus: true,
+                  availabilityNote: true,
+                  availabilityUpdatedAt: true,
+                },
+              },
+            },
+          },
+          matchmaker: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          [validOrderBy]: 'desc',
+        },
+        ...(limit ? { take: limit } : {}),
+      });
+
+      return inquiries;
+    } catch (error) {
+      console.error('Error in getAllInquiries:', error);
+      throw error;
+    }
+  }
+}
+--- End of Content for availabilityService.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\profileAiService.ts
+--------------------------------------------------------------------------------
+Content:
+// File: src/lib/services/profileAiService.ts
+
+import prisma from "@/lib/prisma";
+import aiService from "./aiService";
+import type { User, Profile, QuestionnaireResponse, Prisma as PrismaTypes, ReligiousJourney, FriendTestimonial } from '@prisma/client';
+
+// 1. --- Import types and questions from the questionnaire module ---
+import type { Question } from '@/components/questionnaire/types/types';
+import { valuesQuestions } from '@/components/questionnaire/questions/values/valuesQuestions';
+import { personalityQuestions } from '@/components/questionnaire/questions/personality/personalityQuestions';
+import { relationshipQuestions } from '@/components/questionnaire/questions/relationship/relationshipQuestions';
+import { partnerQuestions } from '@/components/questionnaire/questions/partner/partnerQuestions';
+import { religionQuestions } from '@/components/questionnaire/questions/religion/religionQuestions';
+
+// 2. --- Centralized Question Data ---
+const allQuestions: Map<string, Question> = new Map();
+[
+  ...valuesQuestions,
+  ...personalityQuestions,
+  ...relationshipQuestions,
+  ...partnerQuestions,
+  ...religionQuestions
+].forEach(q => allQuestions.set(q.id, q));
+
+// 3. --- Strongly-typed interfaces for data handling ---
+type WorldKey = 'values' | 'personality' | 'relationship' | 'partner' | 'religion';
+type DbWorldKey = `${WorldKey}Answers`;
+
+const KEY_MAPPING: Record<WorldKey, DbWorldKey> = {
+  values: 'valuesAnswers',
+  personality: 'personalityAnswers',
+  relationship: 'relationshipAnswers',
+  partner: 'partnerAnswers',
+  religion: 'religionAnswers'
+};
+
+interface JsonAnswerData {
+  questionId: string;
+  value: PrismaTypes.JsonValue;
+  answeredAt: string;
+  isVisible?: boolean;
+}
+
+type UserWithRelations = User & {
+  profile: (Profile & {
+    testimonials?: FriendTestimonial[]; // הוספת השדה האופציונלי
+  }) | null;
+  questionnaireResponses: QuestionnaireResponse[];
+};
+
+// 4. --- Helper Functions for Formatting ---
+
+function formatDisplayValue(value: PrismaTypes.JsonValue | null | undefined, fallback: string = "לא צוין"): string {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+  if (typeof value === 'string' && value.trim() === '') {
+    return fallback;
+  }
+  if (typeof value === 'boolean') {
+    return value ? "כן" : "לא";
+  }
+  if (typeof value === 'number') {
+    return String(value);
+  }
+  if (value instanceof Date) {
+    return value.toLocaleDateString('he-IL');
+  }
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value.map(String).join(', ') : fallback;
+  }
+  if (typeof value === 'object') {
+     if (Object.keys(value).length > 0) {
+         return Object.entries(value)
+             .map(([key, val]) => `${key}: ${val}`)
+             .join('; ');
+     }
+     return fallback;
+  }
+  return String(value);
+}
+
+function formatArray(arr: string[] | null | undefined, fallback: string = "לא צוין"): string {
+  if (!arr || arr.length === 0) {
+    return fallback;
+  }
+  return arr.join(', ');
+}
+
+function isValidAnswerObject(item: unknown): item is PrismaTypes.JsonObject & { value: PrismaTypes.JsonValue; questionId: unknown; answeredAt: unknown } {
+  return (
+    typeof item === 'object' &&
+    item !== null &&
+    'questionId' in item &&
+    'value' in item &&
+    item.value !== undefined &&
+    'answeredAt' in item
+  );
+}
+
+function safeParseAnswers(jsonValue: PrismaTypes.JsonValue | null): JsonAnswerData[] {
+  if (Array.isArray(jsonValue)) {
+    return jsonValue
+      .filter(isValidAnswerObject)
+      .map(item => ({
+        questionId: String(item.questionId || ''),
+        value: item.value,
+        answeredAt: String(item.answeredAt || new Date().toISOString()),
+        isVisible: typeof item.isVisible === 'boolean' ? item.isVisible : true,
+      }))
+      .filter(item => item.questionId);
+  }
+  return [];
+}
+
+function formatSingleAnswer(answer: JsonAnswerData): string | null {
+  const questionDef = allQuestions.get(answer.questionId);
+  if (!questionDef) {
+    return `**שאלה לא מזוהה (${answer.questionId}):** ${formatDisplayValue(answer.value)}\n`;
+  }
+
+  if (answer.value === null || answer.value === undefined || answer.value === '') return null;
+  if (Array.isArray(answer.value) && answer.value.length === 0) return null;
+
+  let narrativePart = `**${questionDef.question}**\n`;
+  
+  switch (questionDef.type) {
+    case 'singleChoice':
+    case 'iconChoice':
+    case 'scenario': {
+      const selectedOption = questionDef.options?.find(o => o.value === answer.value);
+      narrativePart += `תשובה: ${selectedOption ? selectedOption.text : formatDisplayValue(answer.value)}\n`;
+      break;
+    }
+    case 'multiChoice':
+    case 'multiSelect':
+    case 'multiSelectWithOther': {
+      if (Array.isArray(answer.value)) {
+        const selectedTexts = answer.value.map(val => {
+          if (typeof val === 'string' && val.startsWith('custom:')) {
+            return `(אחר) ${val.replace('custom:', '').trim()}`;
+          }
+          const option = questionDef.options?.find(o => o.value === val);
+          return option ? option.text : String(val);
+        });
+        narrativePart += `תשובות: ${selectedTexts.join(', ')}\n`;
+      }
+      break;
+    }
+    case 'openText': {
+      narrativePart += `תשובה: "${formatDisplayValue(answer.value)}"\n`;
+      break;
+    }
+    case 'scale': {
+      const minLabel = questionDef.labels?.min || 'נמוך';
+      const maxLabel = questionDef.labels?.max || 'גבוה';
+      narrativePart += `דירוג: ${answer.value}/10 (כאשר 1=${minLabel} ו-10=${maxLabel})\n`;
+      break;
+    }
+    case 'budgetAllocation': {
+      if (typeof answer.value === 'object' && answer.value && !Array.isArray(answer.value)) {
+          const allocations = Object.entries(answer.value)
+              .filter(([, points]) => typeof points === 'number' && points > 0)
+              .map(([category, points]) => `${category}: ${points}%`)
+              .join('; ');
+          narrativePart += `הקצאת חשיבות: ${allocations || 'לא צוין'}\n`;
+      }
+      break;
+    }
+    default: {
+      narrativePart += `תשובה: ${formatDisplayValue(answer.value)}\n`;
+    }
+  }
+  
+  return narrativePart + '\n';
+}
+
+function processQuestionnaireData(questionnaire: QuestionnaireResponse | null | undefined) {
+    const totalCount = allQuestions.size;
+    if (!questionnaire) {
+        return {
+            answeredCount: 0,
+            totalCount,
+            completionPercentage: 0,
+            answersNarrative: "המשתמש עדיין לא החל למלא את השאלון."
+        };
+    }
+
+    const worldKeys: WorldKey[] = ['values', 'personality', 'relationship', 'partner', 'religion'];
+    let answeredCount = 0;
+    const narrativeChunks: string[] = [];
+
+    worldKeys.forEach(worldKey => {
+        const dbKey = KEY_MAPPING[worldKey];
+        const answers = safeParseAnswers(questionnaire[dbKey]);
+        
+        if (answers.length > 0) {
+            answeredCount += answers.length;
+            
+            const worldInfo = allQuestions.get(answers[0].questionId);
+            const worldTitle = worldInfo?.worldId ? worldInfo.worldId.charAt(0) + worldInfo.worldId.slice(1).toLowerCase() : worldKey;
+            
+            narrativeChunks.push(`### עולם ה${worldTitle}`);
+            
+            answers.forEach(answer => {
+                const formattedPart = formatSingleAnswer(answer);
+                if (formattedPart) {
+                    narrativeChunks.push(formattedPart);
+                }
+            });
+        }
+    });
+
+    const completionPercentage = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0;
+    
+    return {
+        answeredCount,
+        totalCount,
+        completionPercentage,
+        answersNarrative: narrativeChunks.length > 0 ? narrativeChunks.join('\n') : "המשתמש החל למלא את השאלון אך לא נמצאו תשובות תקפות לעיבוד."
+    };
+}
+
+
+// 5. --- Main Service Functions ---
+
+export async function generateNarrativeProfile(userId: string): Promise<string | null> {
+  const user: UserWithRelations | null = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      profile: true,
+      
+      questionnaireResponses: { orderBy: { lastSaved: 'desc' }, take: 1 },
+    
+    },
+  });
+
+  if (!user || !user.profile) {
+    console.error(`Could not generate narrative profile: User or Profile not found for userId: ${userId}`);
+    return null;
+  }
+
+  const { profile, questionnaireResponses } = user;
+  const questionnaire = questionnaireResponses[0];
+
+  const calculateAge = (birthDate: Date): number => {
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    return (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) ? age - 1 : age;
+  };
+  const age = calculateAge(profile.birthDate);
+  
+  const questionnaireData = processQuestionnaireData(questionnaire);
+
+  const religiousJourneyMap: Record<ReligiousJourney, string> = {
+      BORN_INTO_CURRENT_LIFESTYLE: "גדל/ה בסביבה דתית הדומה לרמתו/ה כיום",
+      BORN_SECULAR: "גדל/ה בסביבה חילונית",
+      BAAL_TESHUVA: "חוזר/ת בתשובה",
+      DATLASH: "יצא/ה בשאלה (דתל\"ש)",
+      CONVERT: "גר/גיורת",
+      IN_PROCESS: "בתהליך של שינוי/התחזקות/התלבטות דתית",
+      OTHER: "בעל/ת רקע דתי אחר או מורכב"
+  };
+
+  const narrativeParts: string[] = [
+    `# פרופיל AI עבור ${user.firstName} ${user.lastName}, ${profile.gender === 'MALE' ? 'גבר' : 'אישה'} בן/בת ${age}`,
+    `## סיכום כללי`,
+    `- **שם:** ${user.firstName} ${user.lastName}`,
+    `- **גיל:** ${age} ${profile.birthDateIsApproximate ? '(משוער)' : ''}`,
+    `- **מצב משפחתי:** ${formatDisplayValue(profile.maritalStatus)}`,
+    `- **מגורים:** ${formatDisplayValue(profile.city)}`,
+    `- **רמה דתית:** ${formatDisplayValue(profile.religiousLevel)}`,
+    profile.religiousJourney ? `- **רקע/מסע דתי:** ${formatDisplayValue(religiousJourneyMap[profile.religiousJourney])}` : '',
+    `- **עיסוק:** ${formatDisplayValue(profile.occupation)}`,
+    `- **השכלה:** ${formatDisplayValue(profile.educationLevel)}, ${formatDisplayValue(profile.education)}`,
+    `- **שומר/ת נגיעה:** ${formatDisplayValue(profile.shomerNegiah)}`,
+    `- **רקע משפחתי:** מצב הורים: ${formatDisplayValue(profile.parentStatus)}. מקצוע האב: ${formatDisplayValue(profile.fatherOccupation)}. מקצוע האם: ${formatDisplayValue(profile.motherOccupation)}.`,
+  ].filter(Boolean);
+
+  if (user.source === 'MANUAL_ENTRY' && profile.manualEntryText) {
+    narrativeParts.push(`\n**הערת שדכן (למועמד ידני):** ${profile.manualEntryText}`);
+  }
+
+  if (profile.about) {
+    narrativeParts.push(`## קצת עליי (מהפרופיל)\n"${profile.about}"`);
+  }
+
+  // --- START: הוספת השדות הנרטיביים החדשים ---
+  const personalInsightsParts = [
+    profile.profileHeadline ? `**הכותרת האישית שלי:**\n"${profile.profileHeadline}"` : '',
+    profile.humorStory ? `**סיפור שמדגים את חוש ההומור שלי:**\n${profile.humorStory}` : '',
+    profile.inspiringCoupleStory ? `**זוג שמעורר בי השראה:**\n${profile.inspiringCoupleStory}` : '',
+    profile.influentialRabbi ? `**דמות רוחנית שהשפיעה עליי:**\n${profile.influentialRabbi}` : ''
+  ].filter(Boolean);
+
+  if (personalInsightsParts.length > 0) {
+    narrativeParts.push(`## תובנות אישיות נוספות\n${personalInsightsParts.join('\n\n')}`);
+  }
+  // --- END: הוספת השדות הנרטיביים החדשים ---
+
+  if (profile.hasMedicalInfo) {
+    narrativeParts.push(
+      `## מידע רפואי`,
+      `- **פירוט המידע:** ${formatDisplayValue(profile.medicalInfoDetails)}`,
+      `- **תזמון חשיפה:** ${formatDisplayValue(profile.medicalInfoDisclosureTiming)}`,
+      `- **המידע גלוי בפרופיל הציבורי:** ${profile.isMedicalInfoVisible ? 'כן' : 'לא'}`
+    );
+  }
+  
+  narrativeParts.push(
+    `## תכונות אופי ותחביבים`,
+    `- **תכונות בולטות:** ${formatArray(profile.profileCharacterTraits)}`,
+    `- **תחביבים עיקריים:** ${formatArray(profile.profileHobbies)}`
+  );
+  
+  const preferredJourneysText = (profile.preferredReligiousJourneys && profile.preferredReligiousJourneys.length > 0)
+    ? formatArray(profile.preferredReligiousJourneys.map(j => religiousJourneyMap[j] || j))
+    : "לא צוין";
+
+  narrativeParts.push(
+    `## מה אני מחפש/ת בבן/בת הזוג (העדפות מהפרופיל)`,
+    `- **תיאור כללי:** ${formatDisplayValue(profile.matchingNotes)}`,
+    `- **טווח גילאים מועדף:** ${formatDisplayValue(profile.preferredAgeMin, '?')} - ${formatDisplayValue(profile.preferredAgeMax, '?')}`,
+    `- **רמות דתיות מועדפות:** ${formatArray(profile.preferredReligiousLevels)}`,
+    `- **רקע/מסע דתי מועדף:** ${preferredJourneysText}`,
+    `- **רמות השכלה מועדפות:** ${formatArray(profile.preferredEducation)}`,
+    `- **מוצאים מועדפים:** ${formatArray(profile.preferredOrigins)}`
+  );
+
+  narrativeParts.push(
+    `\n## ניתוח השלמת השאלון`,
+    `- **סך הכל שאלות במערכת:** ${questionnaireData.totalCount}`,
+    `- **שאלות שנענו:** ${questionnaireData.answeredCount}`,
+    `- **אחוז השלמה:** ${questionnaireData.completionPercentage}%`,
+    `\n## תובנות מהשאלון (תשובות מפורטות)\n${questionnaireData.answersNarrative}`
+  );
+  const approvedTestimonials = profile.testimonials?.filter(t => t.status === 'APPROVED');
+  if (approvedTestimonials && approvedTestimonials.length > 0) {
+    narrativeParts.push(`## המלצות מחברים`);
+    approvedTestimonials.forEach(t => {
+      narrativeParts.push(
+        `**ממליץ/ה:** ${t.authorName} (${t.relationship})\n` +
+        `**תוכן ההמלצה:** "${t.content}"`
+      );
+    });
+  }
+  return narrativeParts.join('\n\n').trim();
+}
+
+export async function updateUserAiProfile(userId: string): Promise<void> {
+  console.log(`Starting AI profile update for userId: ${userId}`);
+  const profileText = await generateNarrativeProfile(userId);
+  if (!profileText) {
+    console.error(`Failed to generate narrative profile for userId: ${userId}. Aborting AI update.`);
+    return;
+  }
+
+  const vector = await aiService.generateTextEmbedding(profileText);
+  if (!vector) {
+    console.error(`Failed to generate vector embedding for userId: ${userId}. Aborting DB update.`);
+    return;
+  }
+
+  try {
+    const profile = await prisma.profile.findUnique({
+      where: { userId },
+      select: { id: true }
+    });
+    if (!profile) {
+      console.error(`No profile found for userId: ${userId} to save the vector against.`);
+      return;
+    }
+    
+    const vectorSqlString = `[${vector.join(',')}]`;
+    await prisma.$executeRaw`
+      INSERT INTO "profile_vectors" ("profileId", vector, "updatedAt")
+      VALUES (${profile.id}, ${vectorSqlString}::vector, NOW())
+      ON CONFLICT ("profileId")
+      DO UPDATE SET
+        vector = EXCLUDED.vector,
+        "updatedAt" = NOW();
+    `;
+    console.log(`Successfully updated AI profile and vector for userId: ${userId} (profileId: ${profile.id})`);
+  } catch (error) {
+    console.error(`Error saving profile vector to DB for userId: ${userId}:`, error);
+  }
+}
+
+const profileAiService = {
+  generateNarrativeProfile,
+  updateUserAiProfile,
+};
+
+export default profileAiService;
+--- End of Content for profileAiService.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\profileFeedbackService.ts
+--------------------------------------------------------------------------------
+Content:
+// src/lib/services/profileFeedbackService.ts
+
+import prisma from "@/lib/prisma";
+import aiService from "./aiService";
+import { generateNarrativeProfile } from "./profileAiService";
+import { getQuestionnaireQuestionsDictionary } from "@/lib/dictionaries";
+
+// Import types
+import type { UserProfile, QuestionnaireResponse, UserImage } from '@/types/next-auth';
+import type { Question } from '@/components/questionnaire/types/types';
+import type { User } from '@prisma/client';
+import { Gender } from '@prisma/client';
+import type { Locale } from "../../../i18n-config";
+import type { QuestionnaireDictionary } from "@/types/dictionary"; // <-- ייבוא חשוב למילון השאלון
+
+// Import all question definitions
+import { personalityQuestions } from '@/components/questionnaire/questions/personality/personalityQuestions';
+import { valuesQuestions } from '@/components/questionnaire/questions/values/valuesQuestions';
+import { relationshipQuestions } from '@/components/questionnaire/questions/relationship/relationshipQuestions';
+import { partnerQuestions } from '@/components/questionnaire/questions/partner/partnerQuestions';
+import { religionQuestions } from '@/components/questionnaire/questions/religion/religionQuestions';
+
+const allQuestions: Question[] = [
+  ...personalityQuestions,
+  ...valuesQuestions,
+  ...relationshipQuestions,
+  ...partnerQuestions,
+  ...religionQuestions
+];
+
+export interface ProfileFeedbackReport {
+  name: string;
+  aiSummary: {
+    personality: string;
+    lookingFor: string;
+  } | null;
+  completedProfileItems: string[];
+  missingProfileItems: string[];
+  missingQuestionnaireItems: {
+    world: string;
+    question: string;
+    link: string;
+  }[];
+  completionPercentage: number;
+}
+
+type FullUserForFeedback = User & {
+    profile: UserProfile | null;
+    images: UserImage[];
+    questionnaireResponses: QuestionnaireResponse[];
+};
+
+class ProfileFeedbackService {
+  private static instance: ProfileFeedbackService;
+  private constructor() {}
+
+  public static getInstance(): ProfileFeedbackService {
+    if (!ProfileFeedbackService.instance) {
+      ProfileFeedbackService.instance = new ProfileFeedbackService();
+    }
+    return ProfileFeedbackService.instance;
+  }
+
+  public async compileFeedbackReport(
+    userId: string, 
+    locale: Locale,
+    questionnaireDict: QuestionnaireDictionary // <-- מקבלים את כל מילון השאלון
+  ): Promise<ProfileFeedbackReport> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { 
+        profile: true, 
+        images: true, 
+        questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } }
+      },
+    });
+
+    if (!user || !user.profile) {
+      throw new Error(`User or profile not found for userId: ${userId}`);
+    }
+
+    const narrativeProfile = await generateNarrativeProfile(userId);
+    const aiAnalysis = narrativeProfile ? await aiService.getProfileAnalysis(narrativeProfile) : null;
+    
+    const { completed, missing } = this.analyzeProfileFields(user as FullUserForFeedback);
+    
+    const missingQuestionnaireItems = this.analyzeMissingQuestionnaireAnswers(
+      user.questionnaireResponses[0], 
+      locale,
+      questionnaireDict // <-- מעבירים את כל המילון
+    );
+
+    const completionPercentage = this.calculateCompletionPercentage(user as FullUserForFeedback);
+
+    return {
+      name: user.firstName,
+      aiSummary: aiAnalysis ? {
+        personality: aiAnalysis.personalitySummary,
+        lookingFor: aiAnalysis.lookingForSummary,
+      } : null,
+      completedProfileItems: completed,
+      missingProfileItems: missing,
+      missingQuestionnaireItems,
+      completionPercentage,
+    };
+  }
+  
+  private calculateCompletionPercentage(user: FullUserForFeedback): number {
+    if (!user.profile) return 0;
+    
+    const checks: boolean[] = [];
+    const p = user.profile;
+
+    checks.push((user.images?.length ?? 0) >= 1);
+    checks.push(!!p.profileHeadline);
+    checks.push(!!p.about && p.about.trim().length >= 100);
+    checks.push(!!p.inspiringCoupleStory);
+    checks.push(p.height !== null && p.height !== undefined);
+    checks.push(!!p.city);
+    checks.push(!!p.maritalStatus);
+    checks.push(!!p.religiousLevel);
+    checks.push(!!p.educationLevel);
+    checks.push(!!p.occupation);
+    checks.push(!!(p.matchingNotes && p.matchingNotes.trim().length > 0));
+    
+    const totalProfileChecks = checks.length;
+    const completedProfileChecks = checks.filter(Boolean).length;
+    const profileScore = totalProfileChecks > 0 ? (completedProfileChecks / totalProfileChecks) : 0;
+    
+    const totalQuestions = allQuestions.length;
+    const answeredQuestionsCount = this.getAnsweredQuestionIds(user.questionnaireResponses[0]).size;
+    const questionnaireScore = totalQuestions > 0 ? (answeredQuestionsCount / totalQuestions) : 0;
+    
+    const finalPercentage = (profileScore * 60) + (questionnaireScore * 40);
+
+    return Math.round(finalPercentage);
+  }
+
+  private analyzeProfileFields(user: FullUserForFeedback): { completed: string[], missing: string[] } {
+    const completed: string[] = [];
+    const missing: string[] = [];
+    const profile = user.profile;
+
+    const fields = [
+      { key: 'images', label: "תמונת פרופיל אחת לפחות", check: () => (user.images?.length ?? 0) > 0 },
+      { key: 'profileHeadline', label: "כותרת פרופיל אישית", check: () => !!profile?.profileHeadline },
+      { key: 'about', label: "שדה 'אודותיי' (לפחות 100 תווים)", check: () => !!profile?.about && profile.about.trim().length >= 100 },
+      { key: 'inspiringCoupleStory', label: "סיפור על זוג מעורר השראה", check: () => !!profile?.inspiringCoupleStory },
+      { key: 'height', label: "גובה", check: () => !!profile?.height },
+      { key: 'city', label: "עיר מגורים", check: () => !!profile?.city },
+      { key: 'maritalStatus', label: "מצב משפחתי", check: () => !!profile?.maritalStatus },
+      { key: 'religiousLevel', label: "רמה דתית", check: () => !!profile?.religiousLevel },
+      { key: 'educationLevel', label: "רמת השכלה", check: () => !!profile?.educationLevel },
+      { key: 'occupation', label: "עיסוק", check: () => !!profile?.occupation },
+      { key: 'matchingNotes', label: "תיאור על בן/בת הזוג", check: () => !!profile?.matchingNotes && profile.matchingNotes.trim().length > 0 },
+    ];
+
+    fields.forEach(field => {
+      if (field.check()) {
+        completed.push(field.label);
+      } else {
+        missing.push(field.label);
+      }
+    });
+
+    return { completed, missing };
+  }
+  
+  private getAnsweredQuestionIds(questionnaire: QuestionnaireResponse | undefined): Set<string> {
+    const answeredIds = new Set<string>();
+    if (!questionnaire) return answeredIds;
+
+    const worldKeys: (keyof QuestionnaireResponse)[] = ['valuesAnswers', 'personalityAnswers', 'relationshipAnswers', 'partnerAnswers', 'religionAnswers'];
+    
+    worldKeys.forEach(worldKey => {
+      const answers = questionnaire[worldKey] as { questionId: string }[] | undefined;
+      if(Array.isArray(answers)) {
+        answers.forEach(ans => ans && ans.questionId && answeredIds.add(ans.questionId));
+      }
+    });
+    return answeredIds;
+  }
+
+ private analyzeMissingQuestionnaireAnswers(
+    questionnaire: QuestionnaireResponse | undefined, 
+    locale: Locale,
+    questionnaireDict: QuestionnaireDictionary // מקבלים את כל מילון השאלון
+  ): { world: string; question: string; link: string }[] {
+    const answeredIds = this.getAnsweredQuestionIds(questionnaire);
+
+    return allQuestions
+      .filter(q => !answeredIds.has(q.id))
+      .map(q => {
+        const worldId = q.worldId.toUpperCase() as keyof QuestionnaireDictionary['worlds'];
+        
+const translatedQuestion = questionnaireDict.questions[worldId]?.[q.id]?.question || q.question || q.id;        
+        // ======================= התיקון הסופי כאן =======================
+        // גישה למפתח 'worlds' שהגדרנו שיהיה ברור
+        const translatedWorld = questionnaireDict.worlds[worldId]?.title || q.worldId;
+        // ================================================================
+
+        return {
+            world: translatedWorld,
+            question: translatedQuestion,
+            link: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/${locale}/questionnaire?world=${q.worldId.toUpperCase()}&question=${q.id}`
+        };
+      });
+  }
+}
+
+export const profileFeedbackService = ProfileFeedbackService.getInstance();
+--- End of Content for profileFeedbackService.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\questionnaireService.ts
+--------------------------------------------------------------------------------
+Content:
+// src/lib/services/questionnaireService.ts
+
+import 'server-only';
+import { Prisma } from '@prisma/client';
+import type { Locale } from '../../../i18n-config';
+import { getQuestionnaireQuestionsDictionary } from '@/lib/dictionaries';
+import {
+  FormattedAnswer,
+  QuestionnaireResponse,
+} from '@/types/next-auth';
+import { Question, WorldId } from '@/components/questionnaire/types/types';
+
+// Importowanie oryginalnych struktur pytań
+import { personalityQuestions } from '@/components/questionnaire/questions/personality/personalityQuestions';
+import { valuesQuestions } from '@/components/questionnaire/questions/values/valuesQuestions';
+import { relationshipQuestions } from '@/components/questionnaire/questions/relationship/relationshipQuestions';
+import { partnerQuestions } from '@/components/questionnaire/questions/partner/partnerQuestions';
+import { religionQuestions } from '@/components/questionnaire/questions/religion/religionQuestions';
+
+// Mapowanie struktur pytań
+const allQuestionStructures: Record<WorldId, Question[]> = {
+  PERSONALITY: personalityQuestions,
+  VALUES: valuesQuestions,
+  RELATIONSHIP: relationshipQuestions,
+  PARTNER: partnerQuestions,
+  RELIGION: religionQuestions,
+};
+
+/**
+ * פונקציה זו מעצבת את התשובות הגולמיות מהשאלון לתצוגה,
+ * תוך שימוש בלוגיקת תרגום דינמית בהתאם לשפת הצופה.
+ * @param questionnaireResponse - אובייקט השאלון הגולמי ממסד הנתונים.
+ * @param viewerLocale - שפת הממשק של המשתמש הצופה בפרופיל.
+ * @returns אובייקט QuestionnaireResponse עם שדה 'formattedAnswers' מעוצב ומתורגם.
+ */
+export async function formatQuestionnaireForDisplay(
+  questionnaireResponse: QuestionnaireResponse,
+  viewerLocale: Locale,
+   canViewAll: boolean // <-- הוספת הפרמטר החדש
+
+): Promise<QuestionnaireResponse> {
+  console.log('---[ SERVER LOG | questionnaireService ]--- מתחיל עיבוד תשובות עבור שפה:', viewerLocale);
+
+  // טעינת מילון התרגומים המתאים לשפת הצפייה
+  const questionsDict = await getQuestionnaireQuestionsDictionary(viewerLocale);
+
+  const formattedAnswers: { [key: string]: FormattedAnswer[] } = {};
+  const worlds: WorldId[] = ['PERSONALITY', 'VALUES', 'RELATIONSHIP', 'PARTNER', 'RELIGION'];
+
+  for (const world of worlds) {
+    const worldKey = `${world.toLowerCase()}Answers` as keyof QuestionnaireResponse;
+    const rawAnswers = (questionnaireResponse[worldKey] as Prisma.JsonArray) || [];
+    
+    console.log(`---[ SERVER LOG | questionnaireService ]--- מעבד את עולם "${world}". נמצאו ${Array.isArray(rawAnswers) ? rawAnswers.length : 0} תשובות גולמיות.`);
+    
+    if (!Array.isArray(rawAnswers)) continue;
+
+    formattedAnswers[world] = rawAnswers
+      .map((rawAns: any): FormattedAnswer | null => {
+        // ולידציה בסיסית של מבנה התשובה
+        if (typeof rawAns !== 'object' || rawAns === null || !rawAns.questionId) {
+            console.warn(`---[ SERVER LOG | questionnaireService ]--- מדלג על רשומת תשובה לא תקינה בעולם "${world}":`, rawAns);
+            return null;
+        }
+
+        // איתור מבנה השאלה המקורי (מכיל הגדרות כמו type, totalPoints וכו')
+        const questionStructure = allQuestionStructures[world].find(q => q.id === rawAns.questionId);
+        if (!questionStructure) {
+            console.warn(`---[ SERVER LOG | questionnaireService ]--- לא נמצאה הגדרת מבנה עבור שאלה עם ID "${rawAns.questionId}" בעולם "${world}".`);
+            return null;
+        }
+
+        // איתור התרגומים עבור השאלה הספציפית מהמילון שנטען
+        const questionContent = questionsDict[world]?.[rawAns.questionId];
+        if (!questionContent || !questionContent.question) {
+            console.warn(`---[ SERVER LOG | questionnaireService ]--- חסר תוכן במילון עבור שאלה עם ID "${rawAns.questionId}" בעולם "${world}".`);
+            return null;
+        }
+
+        let displayText = 'לא נענה';
+        
+        // --- לוגיקת עיצוב התשובות לפי סוג השאלה ---
+
+        if (questionStructure.type === 'openText' && typeof rawAns.value === 'object' && rawAns.value?.text) {
+          // שאלת טקסט פתוח (עם תמיכה בשפה)
+          displayText = rawAns.value.text;
+        
+        } else if (typeof rawAns.value === 'string' && questionContent.options?.[rawAns.value]) {
+          // שאלת בחירה יחידה
+          const optionContent = questionContent.options[rawAns.value];
+          displayText = typeof optionContent === 'string' ? optionContent : optionContent.text;
+        
+        } else if (Array.isArray(rawAns.value)) {
+          // שאלת בחירה מרובה
+          displayText = rawAns.value
+            .map(val => {
+                const optionContent = questionContent.options?.[val];
+                if (optionContent) {
+                    return typeof optionContent === 'string' ? optionContent : optionContent.text;
+                }
+                if (typeof val === 'string' && val.startsWith('custom:')) {
+                    return val.replace('custom:', '');
+                }
+                return val;
+            })
+            .join(', ');
+        
+        } else if (typeof rawAns.value === 'number' && questionStructure.type === 'scale') {
+            // שאלת סולם
+            displayText = `${rawAns.value} / ${questionStructure.max || 10}`;
+        
+        } else if (typeof rawAns.value === 'object' && !Array.isArray(rawAns.value) && rawAns.value !== null && questionStructure.type === 'budgetAllocation') {
+            // #############################################################
+            // # START: *** התיקון המרכזי והסופי לשאלות תקציב ***
+            // #############################################################
+            displayText = Object.entries(rawAns.value as Record<string, number>)
+              .map(([key, val]) => {
+                  // 1. שלוף את התרגום עבור המפתח (למשל, 'family_connections') מתוך המילון שנטען
+                  const translatedLabel = questionContent.categories?.[key];
+
+                  // 2. השתמש בתרגום אם נמצא, אחרת חזור למפתח המקורי באנגלית (כגיבוי)
+                  const finalLabel = translatedLabel || key;
+
+                  // 3. קבע את יחידת המידה: אם מוגדר `totalPoints`, אלו נקודות ולא אחוזים
+                  const unit = questionStructure.totalPoints ? '' : '%';
+                  
+                  // 4. הרכב את הטקסט הסופי לתצוגה
+                  return `${finalLabel}: ${val}${unit}`;
+              })
+              .join(' | '); // הפרדה ברורה בין הפריטים
+            // #############################################################
+            // # END: *** התיקון המרכזי והסופי לשאלות תקציב ***
+            // #############################################################
+        
+        } else if (rawAns.value !== null && rawAns.value !== undefined) {
+          // גיבוי כללי לכל מקרה אחר
+          displayText = String(rawAns.value);
+        }
+        
+        return {
+          questionId: rawAns.questionId,
+          question: questionContent.question,
+          questionType: questionStructure.type,
+          rawValue: rawAns.value,
+          displayText,
+          isVisible: rawAns.isVisible ?? true,
+          answeredAt: rawAns.answeredAt,
+        };
+      })
+      .filter((ans): ans is FormattedAnswer => ans !== null);
+  }
+
+// סינון תשובות שאינן גלויות (isVisible: false)
+// יתבצע רק אם הצופה הוא לא הבעלים של הפרופיל.
+  if (!canViewAll) { // <-- שימוש בשם החדש
+    console.log('---[ SERVER LOG | questionnaireService ]--- מבצע סינון תשובות מוסתרות עבור צופה ללא הרשאה.');
+    for (const world in formattedAnswers) {
+        formattedAnswers[world] = formattedAnswers[world].filter(ans => ans.isVisible === true);
+    }
+  } else {
+    console.log('---[ SERVER LOG | questionnaireService ]--- מדלג על סינון תשובות. לצופה יש הרשאה לראות הכל.');
+  }
+
+
+  console.log('---[ SERVER LOG | questionnaireService ]--- העיבוד הסתיים. מבנה הנתונים המעוצב:', JSON.stringify(formattedAnswers, null, 2));
+
+  return {
+    ...questionnaireResponse,
+    formattedAnswers,
+  };
+}
+--- End of Content for questionnaireService.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\services_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\verificationService.ts
+--------------------------------------------------------------------------------
+Content:
+// src/lib/services/verificationService.ts
+import { VerificationType, VerificationStatus, UserStatus, Prisma } from '@prisma/client';
+import { randomInt } from 'crypto'; // For OTP generation
+import prisma from '@/lib/prisma'; // Assuming global prisma instance
+
+const OTP_LENGTH = 6;
+const MAX_VERIFICATION_ATTEMPTS = 5; // Example value
+
+interface VerificationResult {
+  success: boolean;
+  message: string;
+  userId?: string | null; // Can be null if user association isn't direct or fails
+  id?: string; // ID of the verification record
+}
+
+export class VerificationService {
+  static async createVerification(
+    userId: string,
+    type: VerificationType,
+    target: string, // e.g., email address or phone number
+    expiresInHours: number,
+    tx?: Prisma.TransactionClient // Optional transaction client
+  ): Promise<{ otp: string; verification: { id: string; token: string; expiresAt: Date } }> {
+    const effectivePrisma = tx || prisma;
+    const otp = randomInt(10**(OTP_LENGTH - 1), 10**OTP_LENGTH -1).toString().padStart(OTP_LENGTH, '0');
+    const expiresAt = new Date(Date.now() + expiresInHours * 60 * 60 * 1000);
+
+    // Invalidate previous PENDING verifications of the same type for this user/target
+    // This is especially important for OTPs to ensure only the latest one is active.
+    // For PASSWORD_RESET, this is handled in the API route before calling createVerification.
+    // For EMAIL verification during registration, this might also be good practice.
+    if (type === VerificationType.EMAIL || type === VerificationType.PHONE_WHATSAPP) {
+        await effectivePrisma.verification.updateMany({
+            where: {
+                // If userId is available and relevant for uniqueness (e.g. for EMAIL type)
+                ...(userId && { userId }), 
+                // For PHONE_WHATSAPP, target (phone number) is more critical for pending check
+                ...(!userId && { target }), 
+                type: type,
+                status: VerificationStatus.PENDING,
+            },
+            data: {
+                status: VerificationStatus.EXPIRED, // Or 'CANCELLED'
+            },
+        });
+    }
+
+
+    const verification = await effectivePrisma.verification.create({
+      data: {
+        userId,
+        type,
+        token: otp,
+        target: target.toLowerCase(), // Normalize target (e.g. email)
+        expiresAt,
+        status: VerificationStatus.PENDING,
+        attempts: 0,
+      },
+      select: { id: true, token: true, expiresAt: true } // Return only necessary fields
+    });
+
+    return { otp, verification };
+  }
+
+  static async verifyCode(
+    code: string,
+    type: VerificationType,
+    target?: string // Target (e.g., email for password reset, phone for phone verify)
+  ): Promise<VerificationResult & { userId: string | null }> { // Ensure userId is part of the promise
+    const normalizedTarget = target?.toLowerCase();
+
+    const verification = await prisma.verification.findFirst({
+      where: {
+        token: code,
+        type,
+        ...(normalizedTarget && { target: normalizedTarget }), // Use target if provided
+        status: VerificationStatus.PENDING,
+      },
+      orderBy: {
+        createdAt: 'desc', // Get the most recent one if multiple match (should be rare)
+      },
+    });
+
+    if (!verification) {
+      throw new Error('קוד אימות לא תקין או שלא קיימת בקשת אימות פעילה.');
+    }
+
+    if (new Date() > verification.expiresAt) {
+      await prisma.verification.update({
+        where: { id: verification.id },
+        data: { status: VerificationStatus.EXPIRED },
+      });
+      throw new Error('תוקף הקוד פג. אנא בקש קוד חדש.');
+    }
+
+    if (verification.attempts >= MAX_VERIFICATION_ATTEMPTS) {
+      await prisma.verification.update({
+        where: { id: verification.id },
+        data: { status: VerificationStatus.FAILED },
+      });
+      throw new Error('חרגת ממספר ניסיונות האימות המותר. אנא בקש קוד חדש.');
+    }
+
+    // If code is correct (Implicitly, as we found it by token)
+    // Increment attempts
+    await prisma.verification.update({
+      where: { id: verification.id },
+      data: { 
+        attempts: { increment: 1 },
+        // DO NOT set to COMPLETED yet for PASSWORD_RESET.
+        // Only set to COMPLETED after password has been updated in DB by the calling API.
+        // For EMAIL verification, we can set to COMPLETED here.
+        ...(type === VerificationType.EMAIL && { 
+            status: VerificationStatus.COMPLETED,
+            completedAt: new Date()
+        })
+      },
+    });
+    
+    if (!verification.userId) {
+        // This should not happen if the verification record was created correctly with a userId
+        console.error(`VerificationService: userId missing on verification record ${verification.id} for type ${type} and target ${target}`);
+        throw new Error('שגיאה פנימית: רשומת האימות אינה משויכת למשתמש.');
+    }
+
+    // For EMAIL verification type, update user status as well
+    if (type === VerificationType.EMAIL && verification.userId) {
+      const user = await prisma.user.findUnique({ where: {id: verification.userId }});
+      if (user && !user.isVerified) { // Only update if not already verified
+        await prisma.user.update({
+          where: { id: verification.userId },
+          data: {
+            isVerified: true,
+            // Only update status if it's PENDING_EMAIL_VERIFICATION
+            ...(user.status === UserStatus.PENDING_EMAIL_VERIFICATION && {
+                status: UserStatus.PENDING_PHONE_VERIFICATION, // Or ACTIVE if phone verification is not mandatory next
+            }),
+            updatedAt: new Date(),
+          },
+        });
+      }
+    }
+    
+    // For PASSWORD_RESET, the calling API (`/api/auth/reset-password`) will handle updating the password
+    // and THEN it should explicitly mark the verification record as COMPLETED.
+    // This function's role is just to validate the OTP itself.
+
+    return {
+      success: true,
+      message: 'Code verified.',
+      userId: verification.userId, // Return userId
+      id: verification.id // Return verification record id
+    };
+  }
+
+  // New method to explicitly complete a verification, e.g., after password reset
+  static async completeVerification(verificationId: string): Promise<void> {
+    await prisma.verification.update({
+        where: { id: verificationId },
+        data: {
+            status: VerificationStatus.COMPLETED,
+            completedAt: new Date(),
+        },
+    });
+  }
+}
+--- End of Content for verificationService.ts ---
+

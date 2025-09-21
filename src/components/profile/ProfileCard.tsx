@@ -127,6 +127,7 @@ import {
   Wind,
   Shield,
   ArrowLeft,
+  MessageSquareQuote,
 } from 'lucide-react';
 
 // Types and Interfaces
@@ -138,31 +139,32 @@ import type {
   ServiceType,
   HeadCoveringType,
   KippahType,
+  FriendTestimonial,
 } from '@/types/next-auth';
 import { languageOptions } from '@/lib/languageOptions';
 import type { Candidate } from '@/components/matchmaker/new/types/candidates';
 
 import NewSuggestionForm from '@/components/matchmaker/suggestions/NewSuggestionForm';
 import { ProfileCardDict, ProfileCardDisplayDict } from '@/types/dictionary';
+// הוסף CSS משתנים דינמיים
 
 const NeshamaTechSummary: React.FC<{
   profile: UserProfile;
-  dict: ProfileCardDict;
-}> = ({ profile, dict }) => {
-  // בדיקת נראות ותוכן
+  dict: ProfileCardDisplayDict;
+  THEME: ThemeType;
+}> = ({ profile, dict, THEME }) => {
   if (!profile.isNeshamaTechSummaryVisible || !profile.manualEntryText) {
     return null;
   }
-
   return (
     <SectionCard
-      title={dict.display.content.neshamaTechSummary.title.replace(
+      title={dict.content.neshamaTechSummary.title.replace(
         '{{name}}',
         profile.user?.firstName || ''
       )}
-      icon={Sparkles}
+      icon={Bot}
       variant="elegant"
-      gradient={COLOR_PALETTES.luxury.colors.primary.main}
+      gradient={THEME.colors.primary.gold}
     >
       <div className="text-center italic p-4 bg-amber-50/50 rounded-lg border border-amber-200/50">
         <p className="whitespace-pre-wrap text-gray-800 leading-relaxed">
@@ -173,98 +175,113 @@ const NeshamaTechSummary: React.FC<{
   );
 };
 
-// רכיב 2: הסיפור של המשתמש
+// רכיב 2: הסיפור של המשתמש (קצת עליי)
 const AboutMeSection: React.FC<{
   profile: UserProfile;
-  dict: ProfileCardDict;
-}> = ({ profile, dict }) => {
-  // בדיקת נראות ותוכן
+  dict: ProfileCardDisplayDict;
+  THEME: ThemeType;
+}> = ({ profile, dict, THEME }) => {
   if (!profile.isAboutVisible || !profile.about) {
     return null;
   }
-
   return (
     <SectionCard
-      title={dict.display.content.aboutMe.titleCard.replace(
+      title={dict.content.aboutMe.titleCard.replace(
         '{{name}}',
         profile.user?.firstName || ''
       )}
       icon={User}
       variant="romantic"
+      gradient={THEME.colors.primary.romantic}
     >
       <div className="relative p-4 bg-rose-50/30 rounded-lg border border-rose-200/50">
-        <p className="whitespace-pre-wrap text-gray-800 leading-relaxed italic">
+        <Quote className="absolute top-2 right-2 w-6 h-6 text-rose-200" />
+        <p className="whitespace-pre-wrap text-gray-800 leading-relaxed italic px-4">
           {profile.about}
         </p>
+        <Quote className="absolute bottom-2 left-2 w-6 h-6 text-rose-200 transform rotate-180" />
       </div>
     </SectionCard>
   );
 };
 
-// רכיב 3: המלצות חברים
+// רכיב 3: המלצות חברים (תצוגה מלאה)
 const FriendTestimonialsSection: React.FC<{
   profile: UserProfile;
-  dict: ProfileCardDict;
-}> = ({ profile, dict }) => {
+  dict: ProfileCardDisplayDict;
+  THEME: ThemeType;
+}> = ({ profile, dict, THEME }) => {
   const approvedTestimonials = (profile.testimonials || []).filter(
     (t) => t.status === 'APPROVED'
   );
 
-  // בדיקת נראות ותוכן
   if (!profile.isFriendsSectionVisible || approvedTestimonials.length === 0) {
-    return null;
+    return (
+      <EmptyState
+        icon={MessageSquareQuote}
+        title={dict.content.friendTestimonials.emptyState.title}
+        description={dict.content.friendTestimonials.emptyState.description}
+        variant="discovery"
+         THEME={THEME}
+      />
+    );
   }
 
   return (
-    <SectionCard
-      title={dict.display.content.friendTestimonials.title}
-      icon={Users}
-      variant="default"
-    >
-      <div className="space-y-4">
-        {approvedTestimonials.map((testimonial) => (
-          <div
-            key={testimonial.id}
-            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-          >
-            <blockquote className="italic text-gray-700 border-r-4 border-cyan-400 pr-4">
-              &quot;{testimonial.content}&quot;
-            </blockquote>
-            <div className="flex items-center justify-between mt-3 pt-3 border-t">
-              <p className="text-sm font-semibold text-gray-800">
-                - {testimonial.authorName},{' '}
-                <span className="font-normal text-gray-600">
-                  {testimonial.relationship}
-                </span>
-              </p>
-              {testimonial.isPhoneVisibleToMatch && testimonial.authorPhone && (
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full text-cyan-700 border-cyan-300 hover:bg-cyan-50"
-                >
-                  <a href={`tel:${testimonial.authorPhone}`}>
-                    <Phone className="w-3 h-3 me-2" />
-                    {dict.display.content.friendTestimonials.callButton.replace(
-                      '{{name}}',
-                      testimonial.authorName.split(' ')[0]
-                    )}
-                  </a>
-                </Button>
-              )}
-            </div>
+    <div className="space-y-4">
+      {approvedTestimonials.map((testimonial) => (
+        <div
+          key={testimonial.id}
+          className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+        >
+          <blockquote className={cn(
+  "italic pr-4",
+  THEME.colors.primary.main.includes('cyan') ? 'text-cyan-800 border-r-4 border-cyan-500' :
+  THEME.colors.primary.main.includes('blue') ? 'text-blue-800 border-r-4 border-blue-500' :
+  'text-gray-800 border-r-4 border-gray-500'
+)}
+>
+            &quot;{testimonial.content}&quot;
+          </blockquote>
+          <div className="flex items-center justify-between mt-3 pt-3 border-t">
+            <p className="text-sm font-semibold text-gray-800">
+              - {testimonial.authorName},{' '}
+              <span className="font-normal text-gray-600">
+                {testimonial.relationship}
+              </span>
+            </p>
+            {testimonial.isPhoneVisibleToMatch && testimonial.authorPhone && (
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+className={cn(
+  "rounded-full",
+  `text-${THEME.colors.primary.main.includes('cyan') ? 'cyan' : 'blue'}-700`,
+  `border-${THEME.colors.primary.main.includes('cyan') ? 'cyan' : 'blue'}-300`,
+  `hover:bg-${THEME.colors.primary.main.includes('cyan') ? 'cyan' : 'blue'}-50`
+)}              >
+                <a href={`tel:${testimonial.authorPhone}`}>
+                  <Phone className="w-3 h-3 me-2" />
+                  {dict.content.friendTestimonials.callButton.replace(
+                    '{{name}}',
+                    testimonial.authorName.split(' ')[0]
+                  )}
+                </a>
+              </Button>
+            )}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
       {approvedTestimonials.some((t) => t.isPhoneVisibleToMatch) && (
         <p className="text-xs text-center text-gray-500 mt-4 px-4">
-          {dict.display.content.friendTestimonials.callDisclaimer}
+          {dict.content.friendTestimonials.callDisclaimer}
         </p>
       )}
-    </SectionCard>
+    </div>
   );
 };
+
 // --- Maps Creation ---
 const createMaritalStatusMap = (
   dict: ProfileCardDict['options']['maritalStatus']
@@ -1098,6 +1115,24 @@ const COLOR_PALETTES = {
 
 type ColorPaletteName = keyof typeof COLOR_PALETTES;
 
+const SPACING = {
+  xs: 'gap-1 sm:gap-1.5',
+  sm: 'gap-2 sm:gap-3', 
+  md: 'gap-3 sm:gap-4',
+  lg: 'gap-4 sm:gap-5',
+} as const;
+
+const getGradientClasses = (gradient: string, isMobile: boolean = false) => {
+  const baseGradient = `bg-gradient-to-r ${gradient}`;
+  const hoverGradient = gradient.replace('from-', 'hover:from-').replace('to-', 'hover:to-');
+  
+  return cn(
+    baseGradient,
+    !isMobile && hoverGradient,
+    'transition-all duration-300'
+  );
+};
+
 type ThemeType = {
   colors: {
     primary: {
@@ -1244,8 +1279,8 @@ const formatAvailabilityStatus = (
       gradientSm: THEME.colors.primary.mainSm,
       icon: Heart,
       pulse: false,
-      bgColor: 'bg-gradient-to-r from-emerald-500 to-green-500',
-      bgColorSm: 'bg-gradient-to-r from-emerald-400 to-green-400',
+      bgColor: `bg-gradient-to-r ${THEME.colors.primary.main}`,
+  bgColorSm: `bg-gradient-to-r ${THEME.colors.primary.mainSm}`,
       mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
     },
     UNAVAILABLE: {
@@ -1640,6 +1675,7 @@ const EmptyState: React.FC<{
   variant?: 'mystery' | 'adventure' | 'discovery' | 'romantic';
   size?: 'sm' | 'md' | 'lg';
   compact?: boolean;
+  THEME?: ThemeType;
 }> = ({
   icon: Icon,
   title,
@@ -1649,7 +1685,9 @@ const EmptyState: React.FC<{
   variant = 'discovery',
   size = 'md',
   compact = false,
+  THEME,
 }) => {
+  
   const sizes = {
     sm: {
       container: compact ? 'py-4 px-3' : 'py-6 px-4',
@@ -1738,7 +1776,7 @@ const EmptyState: React.FC<{
           currentSize.iconContainer,
           currentSize.spacing,
           currentVariant.iconBg,
-          'shadow-md hover:shadow-lg sm:shadow-lg sm:hover:shadow-xl'
+    THEME ? `${THEME.shadows.warm} hover:${THEME.shadows.elegant}` : 'shadow-md hover:shadow-lg sm:shadow-lg sm:hover:shadow-xl'
         )}
       >
         <Icon
@@ -2016,7 +2054,9 @@ const ColorPaletteSelector: React.FC<{
           compact
             ? 'w-8 h-8 min-h-[44px] min-w-[44px]'
             : 'w-10 h-10 min-h-[44px] min-w-[44px]',
-          'touch-manipulation'
+          'touch-manipulation',
+            'active:scale-95 transition-transform', // הוסף
+
         )}
         onClick={() => setIsOpen(!isOpen)}
         aria-label={dict.selectLabel}
@@ -2377,8 +2417,8 @@ const ProfileHeader: React.FC<{
                   'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
                   'text-center max-w-full overflow-hidden',
                   'px-1 sm:px-2',
-                  'bg-gradient-to-r from-gray-800 via-gray-900 to-black bg-clip-text text-transparent',
-                  'hover:from-rose-600 hover:via-pink-600 hover:to-purple-600'
+                  `bg-gradient-to-r ${THEME.colors.primary.main} bg-clip-text text-transparent`,
+                  `hover:bg-gradient-to-r hover:${THEME.colors.primary.accent} bg-clip-text`
                 )}
               >
                 {profile.user?.firstName
@@ -2555,7 +2595,7 @@ const ProfileHeader: React.FC<{
                 <Button
                   size={compact ? 'default' : 'lg'}
                   className={cn(
-                    'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:from-rose-600 hover:via-pink-600 hover:to-rose-700',
+                    `bg-gradient-to-r ${THEME.colors.primary.main} hover:${THEME.colors.primary.accent}`,
                     'text-white font-bold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95',
                     compact
                       ? 'px-4 py-2 text-sm'
@@ -2741,8 +2781,16 @@ const MobileImageGallery: React.FC<{
           )}
         >
           <Camera
+           aria-label={dict.title || "תמונות"}
             className={cn(
-              'text-rose-500 flex-shrink-0',
+              THEME.colors.primary.main.includes('rose')
+                ? 'text-rose-500'
+                : THEME.colors.primary.main.includes('blue')
+                  ? 'text-blue-500'
+                  : THEME.colors.primary.main.includes('amber')
+                    ? 'text-amber-500'
+                    : 'text-gray-500',
+              'flex-shrink-0',
               compact ? 'w-4 h-4' : 'w-4 h-4 sm:w-5 sm:h-5'
             )}
           />
@@ -3104,7 +3152,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   locale,
 }) => {
   const direction = locale === 'he' ? 'rtl' : 'ltr';
-
+  const useFormattedValue = (value: string, map: any, placeholder: string) => {
+    return useMemo(() => 
+      formatEnumValue(value, map, placeholder), 
+      [value, map, placeholder]
+    );
+  };
   const contentScrollAreaRef = useRef<HTMLDivElement>(null);
 
   const profile = useMemo(
@@ -3492,21 +3545,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           hasContent:
             !!profile.profileHeadline ||
             !!profile.about ||
+            !!profile.humorStory || // <-- תוכן שהועבר
+            (profile.isFriendsSectionVisible &&
+              (profile.testimonials || []).filter(
+                (t) => t.status === 'APPROVED'
+              ).length > 0) || // <-- תוכן שהועבר
             personalityAnswers.length > 0 ||
             (profile.profileCharacterTraits &&
               profile.profileCharacterTraits.length > 0) ||
             (profile.profileHobbies && profile.profileHobbies.length > 0),
-        },
-        {
-          value: 'deepDive',
-          label: dict.display.tabs.deepDive.label,
-          shortLabel: dict.display.tabs.deepDive.shortLabel,
-          icon: Telescope, // אייקון שמתאים לצלילה לעומק
-          gradient: THEME.colors.secondary.lavender,
-          hasContent:
-            !!profile.inspiringCoupleStory ||
-            !!profile.influentialRabbi ||
-            !!profile.humorStory,
         },
         {
           value: 'journey',
@@ -3531,7 +3578,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             religionAnswers.length > 0 ||
             !!profile.religiousLevel ||
             !!profile.religiousJourney ||
-            !!profile.influentialRabbi,
+            !!profile.influentialRabbi, // <-- תוכן שהועבר
         },
         {
           value: 'vision',
@@ -3542,7 +3589,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           hasContent:
             relationshipAnswers.length > 0 ||
             !!profile.matchingNotes?.trim() ||
-            !!profile.inspiringCoupleStory?.trim(),
+            !!profile.inspiringCoupleStory?.trim(), // <-- תוכן שהועבר
         },
         {
           value: 'connection',
@@ -3920,29 +3967,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 title={displayDict.content.emptyStateTitle}
                 description={displayDict.content.emptyStateDescription}
                 variant="discovery"
+                 THEME={THEME}
               />
             )}
 
             {/* Essence Tab - REFACTORED */}
             <TabsContent value="essence" className="mt-0 max-w-full min-w-0">
               <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
-                <NeshamaTechSummary profile={profile} dict={dict} />
-                <AboutMeSection profile={profile} dict={dict} />
-                <FriendTestimonialsSection profile={profile} dict={dict} />
-                {personalityContent.hookAnswer && (
-                  <QuestionnaireItem
-                    answer={personalityContent.hookAnswer}
-                    worldName={WORLDS.personality.label}
-                    worldColor={WORLDS.personality.accentColor}
-                    worldGradient={WORLDS.personality.gradient}
-                    direction={direction}
-                  />
-                )}
+                {/* 1. משפט הפתיחה מופיע ראשון */}
                 {profile.profileHeadline && (
                   <SectionCard
                     title={displayDict.content.openingSentence}
                     icon={Quote}
-                    variant="highlight"
+                    variant="elegant"
                     gradient={THEME.colors.primary.main}
                   >
                     <p className="text-center text-lg italic font-semibold text-gray-700">
@@ -3950,35 +3987,81 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </p>
                   </SectionCard>
                 )}
-                {profile.about && (
+
+                {/* 2. הסיפור האישי עם כותרת משופרת */}
+                <SectionCard
+                  title={dict.display.content.aboutMe.titleCard.replace(
+                    '{{name}}',
+                    profile.user?.firstName || ''
+                  )}
+                  icon={User}
+                  variant="romantic"
+                  gradient={THEME.colors.primary.romantic}
+                >
+                  <div className="relative p-4 bg-rose-50/30 rounded-lg border border-rose-200/50">
+                    <Quote className="absolute top-2 right-2 w-6 h-6 text-rose-200" />
+                    <p className="whitespace-pre-wrap text-gray-800 leading-relaxed italic px-4">
+                      {profile.about}
+                    </p>
+                    <Quote className="absolute bottom-2 left-2 w-6 h-6 text-rose-200 transform rotate-180" />
+                  </div>
+                </SectionCard>
+
+                {/* 3. חלק ההמלצות מופיע כאן */}
+                <SectionCard
+                  title={displayDict.content.recommendationsTitle.replace(
+                    '{{name}}',
+                    profile.user?.firstName || ''
+                  )}
+                  subtitle={displayDict.content.recommendationsSubtitle}
+                  icon={MessageSquareQuote}
+                  variant="default"
+                  gradient={THEME.colors.primary.light}
+                >
+                  <FriendTestimonialsSection
+                    profile={profile}
+                    dict={displayDict}
+                    THEME={THEME}
+                  />
+                </SectionCard>
+
+                {/* 4. שילוב סיפור חוש ההומור שהיה בטאב "צלילה לעומק" */}
+                {profile.humorStory && (
                   <SectionCard
-                    title={displayDict.content.aboutMe.titleCard.replace(
-                      '{{name}}',
-                      profile.user?.firstName || 'המועמד/ת'
-                    )}
-                    subtitle={displayDict.content.aboutMeSubtitle.replace(
-                      '{{name}}',
-                      profile.user?.firstName || 'המועמד/ת'
-                    )}
-                    icon={Heart}
-                    variant="romantic"
-                    gradient={THEME.colors.primary.main}
+                    title={dict.display.content.humorStory.title}
+                    icon={Smile}
+                    variant="default"
                   >
-                    <div
-                      className={cn(
-                        'relative p-4 sm:p-6 rounded-2xl border border-rose-200/50 max-w-full min-w-0 overflow-hidden',
-                        `bg-gradient-to-r ${THEME.colors.neutral.warm}`,
-                        THEME.shadows.soft
-                      )}
-                    >
-                      <Quote className="absolute top-3 end-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300" />
-                      <p className="text-base sm:text-lg text-gray-800 leading-relaxed italic font-medium text-center lg:text-start break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
-                        {profile.about}
-                      </p>
-                      <Quote className="absolute bottom-3 start-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300 transform rotate-180" />
+                    <p className="italic text-gray-700">
+                      &quot;{profile.humorStory}&quot;
+                    </p>
+                  </SectionCard>
+                )}
+
+                {/* 5. כל התשובות מעולם "אישיות" */}
+                {personalityAnswers.length > 0 && (
+                  <SectionCard
+                    title={displayDict.content.deepDivePersonality}
+                    subtitle={displayDict.content.moreAnswersPersonality}
+                    icon={Telescope}
+                    variant="elegant"
+                    gradient={WORLDS.personality.gradient}
+                  >
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                      {personalityAnswers.map((answer) => (
+                        <QuestionnaireItem
+                          key={answer.questionId}
+                          answer={answer}
+                          worldName={WORLDS.personality.label}
+                          worldColor={WORLDS.personality.accentColor}
+                          worldGradient={WORLDS.personality.gradient}
+                          direction={direction}
+                        />
+                      ))}
                     </div>
                   </SectionCard>
                 )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-full min-w-0">
                   {profile.profileCharacterTraits &&
                     profile.profileCharacterTraits.length > 0 && (
@@ -4093,18 +4176,47 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
               </div>
             </TabsContent>
-
+            <TabsContent
+              value="recommendations"
+              className="mt-0 max-w-full min-w-0"
+            >
+              <SectionCard
+                title={displayDict.content.recommendationsTitle.replace(
+                  '{{name}}',
+                  profile.user?.firstName || ''
+                )}
+                subtitle={displayDict.content.recommendationsSubtitle}
+                icon={MessageSquareQuote}
+                variant="default"
+                gradient={THEME.colors.primary.light}
+              >
+                <FriendTestimonialsSection
+                  profile={profile}
+                  dict={displayDict}
+                  THEME={THEME}
+                />
+              </SectionCard>
+            </TabsContent>
             <TabsContent value="deepDive" className="mt-0 max-w-full min-w-0">
               <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
                 {profile.inspiringCoupleStory && (
                   <SectionCard
-                    title={dict.display.content.inspiringCouple.title}
-                    icon={Heart}
-                    variant="romantic"
+                    title={displayDict.content.myRoleModelForRelationship}
+                    subtitle={displayDict.content.theCoupleThatInspiresMe}
+                    icon={Stars}
+                    variant="elegant"
+                    gradient={THEME.colors.primary.gold}
                   >
-                    <p className="italic text-gray-700">
-                      &quot;{profile.inspiringCoupleStory}&quot;
-                    </p>
+                    <div
+                      className={cn(
+                        'p-4 sm:p-6 rounded-2xl border border-amber-200',
+                        `bg-gradient-to-r ${THEME.colors.neutral.warm}`
+                      )}
+                    >
+                      <p className="text-amber-800 leading-relaxed italic">
+                        &quot;{profile.inspiringCoupleStory}&quot;
+                      </p>
+                    </div>
                   </SectionCard>
                 )}
                 {profile.influentialRabbi && (
@@ -4493,6 +4605,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </div>
                   </SectionCard>
                 )}
+
                 {religionContent.deeperAnswers.length > 0 && (
                   <SectionCard
                     title={displayDict.content.myReligiousAndSpiritualWorld}
@@ -4691,6 +4804,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       title={displayDict.content.emptyPrefsTitle}
                       description={displayDict.content.emptyPrefsDescription}
                       variant="discovery"
+                       THEME={THEME}
                     />
                   )
                 )}
@@ -5007,6 +5121,83 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               `bg-gradient-to-br ${THEME.colors.neutral.warm}`
             )}
           >
+            <NeshamaTechSummary
+              profile={profile}
+              dict={displayDict}
+              THEME={THEME}
+            />
+
+            {profile.isAboutVisible && profile.about && (
+              <SectionCard
+                title={displayDict.content.focus.aboutMe}
+                subtitle={displayDict.content.focus.myStory}
+                icon={Heart}
+                variant="romantic"
+                gradient={THEME.colors.primary.main}
+                compact={true}
+              >
+                <div className="p-3 text-start">
+                  <p className="text-gray-800 leading-relaxed italic font-medium break-words line-clamp-4">
+                    {profile.about}
+                  </p>
+                  <div className="text-center mt-3">
+                    <Button
+                      variant="link"
+                      className={cn(
+                        'font-bold',
+                        THEME.colors.primary.main.includes('rose')
+                          ? 'text-rose-600'
+                          : THEME.colors.primary.main.includes('blue')
+                            ? 'text-blue-600'
+                            : THEME.colors.primary.main.includes('amber')
+                              ? 'text-amber-600'
+                              : 'text-gray-600'
+                      )}
+                      onClick={() => setMobileViewLayout('detailed')}
+                    >
+                      {dict.display.content.focus.readFullStory}{' '}
+                      <ArrowLeft className="w-4 h-4 mr-1" />
+                    </Button>
+                  </div>
+                </div>
+              </SectionCard>
+            )}
+
+            {profile.isFriendsSectionVisible &&
+              (profile.testimonials || []).filter(
+                (t) => t.status === 'APPROVED'
+              ).length > 0 && (
+                <SectionCard
+                  title={dict.display.content.friendTestimonials.title.replace(
+                    // <-- התחלנו את השינוי כאן
+                    '{{name}}',
+                    profile.user?.firstName || ''
+                  )} // <-- סיימנו את השינוי כאן
+                  subtitle={dict.display.content.friendTestimonials.focusSubtitle.replace(
+                    '{{count}}',
+                    (profile.testimonials || [])
+                      .filter((t) => t.status === 'APPROVED')
+                      .length.toString()
+                  )}
+                  icon={MessageSquareQuote}
+                  variant="default"
+                  compact={true}
+                >
+                  <div className="text-center p-2">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setMobileViewLayout('detailed');
+                        setActiveTab('recommendations');
+                      }}
+                    >
+                      {dict.display.content.friendTestimonials.viewButton}
+                    </Button>
+                  </div>
+                </SectionCard>
+              )}
+
             {profile.about && (
               <SectionCard
                 title={displayDict.content.focus.aboutMe}
@@ -5065,7 +5256,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         displayDict.placeholders.willDiscover
                       ).label
                     }
-                    variant="elegant"
+                    variant="highlight" // <-- כתוב "highlight" במקום "elegant"
                     size="sm"
                     useMobileLayout={true}
                     textAlign="center"
@@ -5157,7 +5348,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                   key={trait}
                                   className={cn(
                                     'flex items-center gap-1 px-2 py-1 text-xs font-semibold min-w-0 max-w-full',
-                                    'bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800',
+                                    `bg-gradient-to-r ${THEME.colors.secondary.lavender} text-purple-800`,
                                     'border border-purple-200 rounded-full',
                                     'break-words'
                                   )}
@@ -5194,7 +5385,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                 key={hobby}
                                 className={cn(
                                   'flex items-center gap-1 px-2 py-1 text-xs font-semibold min-w-0 max-w-full',
-                                  'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-800',
+                                  `bg-gradient-to-r ${THEME.colors.secondary.sage} text-emerald-800`,
                                   'border border-emerald-200 rounded-full',
                                   'break-words'
                                 )}
@@ -5214,9 +5405,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             )}
             <div
               className={cn(
-                'text-center p-4 sm:p-6 rounded-2xl text-white min-w-0 max-w-full overflow-hidden',
-                `bg-gradient-to-r ${THEME.colors.primary.main}`,
-                THEME.shadows.elegant
+                'bg-white hover:bg-gray-50 font-bold rounded-full min-h-[44px]',
+                'px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base',
+                // הוסף צבע טקסט דינמי:
+                THEME.colors.primary.main.includes('rose')
+                  ? 'text-rose-700'
+                  : THEME.colors.primary.main.includes('blue')
+                    ? 'text-blue-700'
+                    : THEME.colors.primary.main.includes('amber')
+                      ? 'text-amber-700'
+                      : 'text-gray-700',
+                THEME.shadows.warm
               )}
             >
               <h3 className="text-base sm:text-lg font-bold mb-2 break-words">
@@ -5382,6 +5581,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             >
               <ScrollArea className="flex-grow min-h-0 max-w-full">
                 <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 min-w-0 max-w-full">
+                  <NeshamaTechSummary
+                    profile={profile}
+                    dict={displayDict}
+                    THEME={THEME}
+                  />
                   <SectionCard
                     title={displayDict.gallery.title.replace(
                       '{{name}}',
@@ -5389,8 +5593,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     )}
                     subtitle={displayDict.gallery.subtitle}
                     icon={Camera}
-                    variant="romantic"
-                    gradient={THEME.colors.primary.rose}
+                    variant="elegant"
+                    gradient={THEME.colors.primary.main}
                     className="min-w-0 max-w-full"
                   >
                     {orderedImages.length > 0 ? (
