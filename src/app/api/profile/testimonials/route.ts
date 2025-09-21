@@ -1,82 +1,165 @@
 // src/app/api/profile/testimonials/route.ts
-import { NextResponse } from 'next/server';
+
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import prisma from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
 
-// GET all testimonials for the logged-in user
-export async function GET() {
+/**
+ * GET - מאחזר המלצות.
+ * לוגיקה זו משמשת לשני תרחישים:
+ * 1. אם נשלח 'userId' בפרמטרים: אחזר המלצות *מאושרות* עבור פרופיל ציבורי.
+ * 2. אם לא נשלח 'userId': אחזר את *כל* ההמלצות עבור המשתמש המחובר, כדי שיוכל לנהל אותן.
+ */
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const userId = searchParams.get('userId');
+
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    // תרחיש 1: בקשה להצגת המלצות בפרופיל של משתמש ספציפי (לצפייה ציבורית)
+    if (userId) {
+      const testimonials = await prisma.friendTestimonial.findMany({
+        where: {
+          profile: {
+            userId: userId,
+          },
+          // חשוב: החזר רק המלצות שאושרו לצפייה ציבורית
+          status: 'APPROVED',
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+      return NextResponse.json({ success: true, testimonials });
     }
 
-    const userProfile = await prisma.profile.findUnique({
-        where: { userId: session.user.id },
-        select: { id: true }
-    });
-
-    if (!userProfile) {
-        return NextResponse.json({ success: false, message: 'Profile not found for current user' }, { status: 404 });
+    // תרחיש 2: בקשה לניהול המלצות של המשתמש המחובר (בתוך עמוד הפרופיל האישי)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
     const testimonials = await prisma.friendTestimonial.findMany({
-      where: { profileId: userProfile.id },
-      orderBy: { createdAt: 'desc' },
+      where: {
+        profile: {
+          userId: session.user.id,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
 
     return NextResponse.json({ success: true, testimonials });
   } catch (error) {
-    console.error("Error in GET /api/profile/testimonials:", error);
-    return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
+    console.error('Error in GET /api/profile/testimonials:', error);
+    return NextResponse.json(
+      { success: false, error: 'An internal server error occurred.' },
+      { status: 500 }
+    );
   }
 }
 
-// POST a new manual testimonial
-export async function POST(req: Request) {
+/**
+ * POST - יוצר המלצה חדשה באמצעות טוקן חד-פעמי ומאובטח.
+ * נקודת קצה זו משמשת את הטופס הציבורי שחברים ממלאים.
+ * היא מבטיחה שכל קישור ישמש פעם אחת בלבד.
+ */
+export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
-    
-    const userProfile = await prisma.profile.findUnique({
-        where: { userId: session.user.id },
-        select: { id: true }
-    });
-
-    if (!userProfile) {
-        return NextResponse.json({ success: false, message: 'Profile not found for current user' }, { status: 404 });
-    }
-    
     const body = await req.json();
-    const { authorName, relationship, content, authorPhone, isPhoneVisibleToMatch } = body;
+    const {
+      token,
+      authorName,
+      relationship,
+      content,
+      authorPhone,
+      isPhoneVisibleToMatch,
+    } = body;
 
-    if (!authorName || !relationship || !content) {
-      return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
+    // 1. ולידציה בסיסית של שדות החובה
+    if (!token || !authorName || !relationship || !content) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields.' },
+        { status: 400 }
+      );
     }
 
-    const newTestimonial = await prisma.friendTestimonial.create({
-      data: {
-        profileId: userProfile.id,
-        authorName,
-        relationship,
-        content,
-        authorPhone: authorPhone || null,
-        isPhoneVisibleToMatch: isPhoneVisibleToMatch && !!authorPhone,
-        status: 'APPROVED', // Manual entries are pre-approved by the user
-        submittedBy: 'USER',
-      },
+    // 2. שימוש בטרנזקציה כדי להבטיח אטומיות.
+    // שתי הפעולות (יצירת המלצה ועדכון הטוקן) חייבות להצליח יחד.
+    const result = await prisma.$transaction(async (tx) => {
+      // שלב א': חפש את בקשת הטוקן. היא חייבת להיות קיימת, בתוקף ובסטטוס PENDING.
+      const request = await tx.testimonialRequest.findUnique({
+        where: {
+          token: token,
+          status: 'PENDING',
+          expiresAt: { gt: new Date() }, // ודא שהטוקן לא פג תוקף
+        },
+      });
+
+      // אם לא נמצאה בקשה תקינה, זרוק שגיאה. זה יבטל את הטרנזקציה אוטומטית.
+      if (!request) {
+        throw new Error('Invalid, expired, or already used link.');
+      }
+
+      // שלב ב': צור את רשומת ההמלצה במסד הנתונים.
+      const testimonial = await tx.friendTestimonial.create({
+        data: {
+          profileId: request.profileId,
+          authorName,
+          relationship,
+          content,
+          authorPhone: authorPhone || null,
+          isPhoneVisibleToMatch: isPhoneVisibleToMatch || false,
+          status: 'PENDING', // המלצה חדשה תמיד ממתינה לאישור המשתמש
+          submittedBy: 'FRIEND', // סמן שההמלצה הגיעה מחבר
+        },
+      });
+
+      // שלב ג': קריטי! שנה את סטטוס הטוקן ל-COMPLETED כדי למנוע שימוש חוזר.
+      await tx.testimonialRequest.update({
+        where: { id: request.id },
+        data: { status: 'COMPLETED' },
+      });
+
+      return { success: true, testimonial };
     });
 
-    return NextResponse.json({ success: true, testimonial: newTestimonial }, { status: 201 });
-  } catch (error) {
-    console.error("Error in POST /api/profile/testimonials:", error);
-    if (error instanceof Prisma.PrismaClientValidationError) {
-      return NextResponse.json({ success: false, message: "Invalid data provided for testimonial.", details: error.message }, { status: 400 });
+    // 3. אם הטרנזקציה הצליחה, החזר תשובת הצלחה.
+    if (result.success) {
+      return NextResponse.json({
+        success: true,
+        message: 'Thank you! Your testimonial has been submitted.',
+      });
+    } else {
+      // מצב זה לא אמור לקרות אם לוגיקת הטרנזקציה נכונה
+      throw new Error('Transaction failed unexpectedly.');
     }
-    return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
+  } catch (error) {
+    console.error('Error in POST /api/profile/testimonials:', error);
+
+    // 4. טיפול ייעודי בשגיאות ידועות
+    if (
+      error instanceof Error &&
+      error.message.includes('Invalid, expired, or already used link')
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            'This link is invalid, has expired, or has already been used.',
+        },
+        { status: 400 }
+      );
+    }
+
+    // 5. טיפול בשגיאות לא צפויות אחרות
+    return NextResponse.json(
+      { success: false, error: 'An internal server error occurred.' },
+      { status: 500 }
+    );
   }
 }

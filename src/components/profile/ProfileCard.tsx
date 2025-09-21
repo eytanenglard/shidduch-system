@@ -222,7 +222,7 @@ const FriendTestimonialsSection: React.FC<{
         title={dict.content.friendTestimonials.emptyState.title}
         description={dict.content.friendTestimonials.emptyState.description}
         variant="discovery"
-         THEME={THEME}
+        THEME={THEME}
       />
     );
   }
@@ -234,13 +234,16 @@ const FriendTestimonialsSection: React.FC<{
           key={testimonial.id}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
         >
-          <blockquote className={cn(
-  "italic pr-4",
-  THEME.colors.primary.main.includes('cyan') ? 'text-cyan-800 border-r-4 border-cyan-500' :
-  THEME.colors.primary.main.includes('blue') ? 'text-blue-800 border-r-4 border-blue-500' :
-  'text-gray-800 border-r-4 border-gray-500'
-)}
->
+          <blockquote
+            className={cn(
+              'italic pr-4',
+              THEME.colors.primary.main.includes('cyan')
+                ? 'text-cyan-800 border-r-4 border-cyan-500'
+                : THEME.colors.primary.main.includes('blue')
+                  ? 'text-blue-800 border-r-4 border-blue-500'
+                  : 'text-gray-800 border-r-4 border-gray-500'
+            )}
+          >
             &quot;{testimonial.content}&quot;
           </blockquote>
           <div className="flex items-center justify-between mt-3 pt-3 border-t">
@@ -255,12 +258,13 @@ const FriendTestimonialsSection: React.FC<{
                 asChild
                 variant="outline"
                 size="sm"
-className={cn(
-  "rounded-full",
-  `text-${THEME.colors.primary.main.includes('cyan') ? 'cyan' : 'blue'}-700`,
-  `border-${THEME.colors.primary.main.includes('cyan') ? 'cyan' : 'blue'}-300`,
-  `hover:bg-${THEME.colors.primary.main.includes('cyan') ? 'cyan' : 'blue'}-50`
-)}              >
+                className={cn(
+                  'rounded-full',
+                  `text-${THEME.colors.primary.main.includes('cyan') ? 'cyan' : 'blue'}-700`,
+                  `border-${THEME.colors.primary.main.includes('cyan') ? 'cyan' : 'blue'}-300`,
+                  `hover:bg-${THEME.colors.primary.main.includes('cyan') ? 'cyan' : 'blue'}-50`
+                )}
+              >
                 <a href={`tel:${testimonial.authorPhone}`}>
                   <Phone className="w-3 h-3 me-2" />
                   {dict.content.friendTestimonials.callButton.replace(
@@ -1117,15 +1121,17 @@ type ColorPaletteName = keyof typeof COLOR_PALETTES;
 
 const SPACING = {
   xs: 'gap-1 sm:gap-1.5',
-  sm: 'gap-2 sm:gap-3', 
+  sm: 'gap-2 sm:gap-3',
   md: 'gap-3 sm:gap-4',
   lg: 'gap-4 sm:gap-5',
 } as const;
 
 const getGradientClasses = (gradient: string, isMobile: boolean = false) => {
   const baseGradient = `bg-gradient-to-r ${gradient}`;
-  const hoverGradient = gradient.replace('from-', 'hover:from-').replace('to-', 'hover:to-');
-  
+  const hoverGradient = gradient
+    .replace('from-', 'hover:from-')
+    .replace('to-', 'hover:to-');
+
   return cn(
     baseGradient,
     !isMobile && hoverGradient,
@@ -1280,7 +1286,7 @@ const formatAvailabilityStatus = (
       icon: Heart,
       pulse: false,
       bgColor: `bg-gradient-to-r ${THEME.colors.primary.main}`,
-  bgColorSm: `bg-gradient-to-r ${THEME.colors.primary.mainSm}`,
+      bgColorSm: `bg-gradient-to-r ${THEME.colors.primary.mainSm}`,
       mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
     },
     UNAVAILABLE: {
@@ -1687,7 +1693,6 @@ const EmptyState: React.FC<{
   compact = false,
   THEME,
 }) => {
-  
   const sizes = {
     sm: {
       container: compact ? 'py-4 px-3' : 'py-6 px-4',
@@ -1715,44 +1720,67 @@ const EmptyState: React.FC<{
     },
   };
 
-  const variants = {
-    mystery: {
-      bg: `bg-gradient-to-br from-purple-50 via-violet-50 to-purple-100`,
-      bgSm: `bg-gradient-to-br from-purple-25 via-violet-25 to-purple-50`,
-      border: 'border-purple-200 hover:border-purple-300',
-      iconBg: `bg-gradient-to-r from-purple-500 via-violet-500 to-purple-600`,
-      iconBgSm: `bg-gradient-to-r from-purple-400 via-violet-400 to-purple-500`,
-      textColor: 'text-purple-700 sm:text-purple-800',
-      titleColor: 'text-purple-800 sm:text-purple-900',
-    },
-    adventure: {
-      bg: `bg-gradient-to-br from-emerald-50 via-teal-50 to-green-100`,
-      bgSm: `bg-gradient-to-br from-emerald-25 via-teal-25 to-green-50`,
-      border: 'border-emerald-200 hover:border-emerald-300',
-      iconBg: `bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600`,
-      iconBgSm: `bg-gradient-to-r from-emerald-400 via-teal-400 to-green-500`,
-      textColor: 'text-emerald-700 sm:text-emerald-800',
-      titleColor: 'text-emerald-800 sm:text-emerald-900',
-    },
-    discovery: {
-      bg: `bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-100`,
-      bgSm: `bg-gradient-to-br from-amber-25 via-yellow-25 to-orange-50`,
-      border: 'border-amber-200 hover:border-amber-300',
-      iconBg: `bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-600`,
-      iconBgSm: `bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-500`,
-      textColor: 'text-amber-700 sm:text-amber-800',
-      titleColor: 'text-amber-800 sm:text-amber-900',
-    },
-    romantic: {
-      bg: `bg-gradient-to-br from-rose-50 via-pink-50 to-red-100`,
-      bgSm: `bg-gradient-to-br from-rose-25 via-pink-25 to-red-50`,
-      border: 'border-rose-200 hover:border-rose-300',
-      iconBg: `bg-gradient-to-r from-rose-500 via-pink-500 to-red-600`,
-      iconBgSm: `bg-gradient-to-r from-rose-400 via-pink-400 to-red-500`,
-      textColor: 'text-rose-700 sm:text-rose-800',
-      titleColor: 'text-rose-800 sm:text-rose-900',
-    },
-  };
+  const variants = useMemo(() => {
+    const baseVariants = {
+      mystery: {
+        bg: `bg-gradient-to-br from-purple-50 via-violet-50 to-purple-100`,
+        bgSm: `bg-gradient-to-br from-purple-25 via-violet-25 to-purple-50`,
+        border: 'border-purple-200 hover:border-purple-300',
+        iconBg: `bg-gradient-to-r from-purple-500 via-violet-500 to-purple-600`,
+        iconBgSm: `bg-gradient-to-r from-purple-400 via-violet-400 to-purple-500`,
+        textColor: 'text-purple-700 sm:text-purple-800',
+        titleColor: 'text-purple-800 sm:text-purple-900',
+      },
+      adventure: {
+        bg: `bg-gradient-to-br from-emerald-50 via-teal-50 to-green-100`,
+        bgSm: `bg-gradient-to-br from-emerald-25 via-teal-25 to-green-50`,
+        border: 'border-emerald-200 hover:border-emerald-300',
+        iconBg: `bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600`,
+        iconBgSm: `bg-gradient-to-r from-emerald-400 via-teal-400 to-green-500`,
+        textColor: 'text-emerald-700 sm:text-emerald-800',
+        titleColor: 'text-emerald-800 sm:text-emerald-900',
+      },
+      discovery: {
+        bg: `bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-100`,
+        bgSm: `bg-gradient-to-br from-amber-25 via-yellow-25 to-orange-50`,
+        border: 'border-amber-200 hover:border-amber-300',
+        iconBg: `bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-600`,
+        iconBgSm: `bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-500`,
+        textColor: 'text-amber-700 sm:text-amber-800',
+        titleColor: 'text-amber-800 sm:text-amber-900',
+      },
+      romantic: {
+        bg: `bg-gradient-to-br from-rose-50 via-pink-50 to-red-100`,
+        bgSm: `bg-gradient-to-br from-rose-25 via-pink-25 to-red-50`,
+        border: 'border-rose-200 hover:border-rose-300',
+        iconBg: `bg-gradient-to-r from-rose-500 via-pink-500 to-red-600`,
+        iconBgSm: `bg-gradient-to-r from-rose-400 via-pink-400 to-red-500`,
+        textColor: 'text-rose-700 sm:text-rose-800',
+        titleColor: 'text-rose-800 sm:text-rose-900',
+      },
+    };
+
+    if (THEME) {
+      return {
+        ...baseVariants,
+        discovery: {
+          bg: `bg-gradient-to-br ${THEME.colors.neutral.warm}`,
+          bgSm: `bg-gradient-to-br ${THEME.colors.neutral.warmSm}`,
+          border: 'border-gray-200 hover:border-gray-300',
+          iconBg: `bg-gradient-to-r ${THEME.colors.primary.main}`,
+          iconBgSm: `bg-gradient-to-r ${THEME.colors.primary.mainSm}`,
+          textColor: 'text-gray-700 sm:text-gray-800',
+          titleColor: 'text-gray-800 sm:text-gray-900',
+        },
+        romantic: {
+          ...baseVariants.romantic,
+          iconBg: `bg-gradient-to-r ${THEME.colors.primary.romantic}`,
+          iconBgSm: `bg-gradient-to-r ${THEME.colors.primary.romanticSm}`,
+        },
+      };
+    }
+    return baseVariants;
+  }, [THEME]);
 
   const currentSize = sizes[size];
   const currentVariant = variants[variant];
@@ -1776,7 +1804,9 @@ const EmptyState: React.FC<{
           currentSize.iconContainer,
           currentSize.spacing,
           currentVariant.iconBg,
-    THEME ? `${THEME.shadows.warm} hover:${THEME.shadows.elegant}` : 'shadow-md hover:shadow-lg sm:shadow-lg sm:hover:shadow-xl'
+          THEME
+            ? `${THEME.shadows.warm} hover:${THEME.shadows.elegant}`
+            : 'shadow-md hover:shadow-lg sm:shadow-lg sm:hover:shadow-xl'
         )}
       >
         <Icon
@@ -1920,6 +1950,13 @@ const SectionCard: React.FC<{
 
   const currentSize = sizes[size];
   const currentVariant = variants[variant];
+  // --- START MODIFICATION ---
+  // If a gradient is provided for elegant or romantic variants, use it for the icon background.
+  const iconBgClass =
+    (variant === 'elegant' || variant === 'romantic' || variant === 'highlight') && gradient
+      ? `bg-gradient-to-r ${gradient} text-white shadow-md`
+      : currentVariant.iconBg;
+  // --- END MODIFICATION ---
 
   return (
     <div
@@ -1950,7 +1987,7 @@ const SectionCard: React.FC<{
               className={cn(
                 'flex-shrink-0 rounded-lg transition-all duration-300',
                 currentSize.iconPadding,
-                currentVariant.iconBg,
+                iconBgClass, // Use the dynamic icon class here
                 'hover:scale-110 active:scale-95'
               )}
             >
@@ -2055,8 +2092,7 @@ const ColorPaletteSelector: React.FC<{
             ? 'w-8 h-8 min-h-[44px] min-w-[44px]'
             : 'w-10 h-10 min-h-[44px] min-w-[44px]',
           'touch-manipulation',
-            'active:scale-95 transition-transform', // הוסף
-
+          'active:scale-95 transition-transform' // הוסף
         )}
         onClick={() => setIsOpen(!isOpen)}
         aria-label={dict.selectLabel}
@@ -2781,15 +2817,9 @@ const MobileImageGallery: React.FC<{
           )}
         >
           <Camera
-           aria-label={dict.title || "תמונות"}
+            aria-label={dict.title || 'תמונות'}
             className={cn(
-              THEME.colors.primary.main.includes('rose')
-                ? 'text-rose-500'
-                : THEME.colors.primary.main.includes('blue')
-                  ? 'text-blue-500'
-                  : THEME.colors.primary.main.includes('amber')
-                    ? 'text-amber-500'
-                    : 'text-gray-500',
+              'text-white',
               'flex-shrink-0',
               compact ? 'w-4 h-4' : 'w-4 h-4 sm:w-5 sm:h-5'
             )}
@@ -2893,6 +2923,7 @@ const ImageDialogComponent: React.FC<{
   onNavigate: (direction: 'next' | 'prev') => void;
   onImageSelect: (image: UserImageType) => void;
   dict: ProfileCardDisplayDict['imageDialog'];
+  THEME: ThemeType;
   direction: 'ltr' | 'rtl';
 }> = ({
   selectedImageForDialog,
@@ -2902,6 +2933,7 @@ const ImageDialogComponent: React.FC<{
   onNavigate,
   onImageSelect,
   dict,
+  THEME,
   direction,
 }) => {
   if (!selectedImageForDialog) return null;
@@ -2976,7 +3008,7 @@ const ImageDialogComponent: React.FC<{
                 className={cn(
                   'absolute top-1/2 -translate-y-1/2 rounded-full',
                   direction === 'rtl' ? 'right-4' : 'left-4',
-                  'bg-black/50 hover:bg-black/70 text-white border border-white/20',
+                  `bg-gradient-to-r ${THEME.colors.primary.accent} hover:opacity-90 text-white border-0`,
                   'backdrop-blur-sm transition-all hover:scale-110 active:scale-95',
                   'w-12 h-12 sm:w-14 sm:h-14 min-h-[44px] min-w-[44px]'
                 )}
@@ -2990,7 +3022,7 @@ const ImageDialogComponent: React.FC<{
                 className={cn(
                   'absolute top-1/2 -translate-y-1/2 rounded-full',
                   direction === 'rtl' ? 'left-4' : 'right-4',
-                  'bg-black/50 hover:bg-black/70 text-white border border-white/20',
+                  `bg-gradient-to-r ${THEME.colors.primary.accent} hover:opacity-90 text-white border-0`,
                   'backdrop-blur-sm transition-all hover:scale-110 active:scale-95',
                   'w-12 h-12 sm:w-14 sm:h-14 min-h-[44px] min-w-[44px]'
                 )}
@@ -3113,20 +3145,21 @@ const TabNavigationButtons: React.FC<{
           className={cn(
             baseButtonClasses,
             'items-end text-end',
-            'bg-rose-50 border border-rose-200/80 hover:border-rose-300',
-            'focus-visible:ring-rose-500'
+            `bg-gradient-to-r ${THEME.colors.primary.main} hover:${THEME.colors.primary.accent}`,
+            'text-white',
+            'focus-visible:ring-rose-500' // TODO: Make this dynamic
           )}
           onClick={() => onTabChange(nextTab.value)}
         >
-          <div className="flex items-center gap-2">
-            <p className="text-xs font-medium text-rose-700">{dict.next}</p>
-            <NextIcon className="w-6 h-6 text-rose-500 flex-shrink-0" />
+          <div className="flex items-center gap-2 justify-end">
+            <p className="text-xs font-medium text-white/90">{dict.next}</p>
+            <NextIcon className="w-6 h-6 text-white flex-shrink-0" />
           </div>
           <div className="flex items-center justify-end gap-2 mt-1.5">
-            <span className="text-base font-bold text-rose-900 text-end break-words min-w-0">
+            <span className="text-base font-bold text-white text-end break-words min-w-0">
               {nextTab.label}
             </span>
-            <nextTab.icon className="w-5 h-5 text-rose-600 flex-shrink-0" />
+            <nextTab.icon className="w-5 h-5 text-white flex-shrink-0" />
           </div>
         </button>
       ) : (
@@ -3153,8 +3186,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 }) => {
   const direction = locale === 'he' ? 'rtl' : 'ltr';
   const useFormattedValue = (value: string, map: any, placeholder: string) => {
-    return useMemo(() => 
-      formatEnumValue(value, map, placeholder), 
+    return useMemo(
+      () => formatEnumValue(value, map, placeholder),
       [value, map, placeholder]
     );
   };
@@ -3967,7 +4000,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 title={displayDict.content.emptyStateTitle}
                 description={displayDict.content.emptyStateDescription}
                 variant="discovery"
-                 THEME={THEME}
+                THEME={THEME}
               />
             )}
 
@@ -4804,7 +4837,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       title={displayDict.content.emptyPrefsTitle}
                       description={displayDict.content.emptyPrefsDescription}
                       variant="discovery"
-                       THEME={THEME}
+                      THEME={THEME}
                     />
                   )
                 )}
@@ -5660,6 +5693,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         title={displayDict.content.emptyStateTitle}
                         description={displayDict.content.emptyStateDescription}
                         variant="romantic"
+                        THEME={THEME}
                       />
                     )}
                   </SectionCard>
@@ -5687,6 +5721,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           onImageSelect={setSelectedImageForDialog}
           dict={displayDict.imageDialog}
           direction={direction}
+          THEME={THEME}
         />
       </Card>
     </TooltipProvider>

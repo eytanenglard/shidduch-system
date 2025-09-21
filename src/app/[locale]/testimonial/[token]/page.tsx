@@ -1,55 +1,55 @@
 // src/app/testimonial/[token]/page.tsx
-import { jwtVerify, JWTPayload } from 'jose'; // <-- שינוי 1: ייבוא JWTPayload
 import { TestimonialSubmissionForm } from './TestimonialSubmissionForm';
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
-
-// --- ממשקים (Interfaces) ---
-// --- שינוי 2: הרחבת JWTPayload מבטיחה תאימות ---
-interface TokenPayload extends JWTPayload {
-  profileId: string;
-  userId: string;
-}
 
 interface PageProps {
   params: { token: string };
 }
 
-// --- פונקציית אימות הטוקן (Token Validation) ---
+// --- פונקציית אימות הטוקן (Token Validation) - גרסה חדשה ---
 async function validateToken(
   token: string
 ): Promise<{ profileId: string; userName: string } | null> {
-  const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
-  if (!secret) {
-    console.error('FATAL: NEXTAUTH_SECRET is not defined.');
-    return null;
-  }
-
   try {
-    // --- שינוי 3: פירוק האימות וההגדרה (Casting) לשני שלבים ---
-    // שלב א': אימות הטוקן ללא גנריקה
-    const verificationResult = await jwtVerify(token, secret);
-
-    // שלב ב': המרה בטוחה של המטען לטיפוס המוגדר שלנו
-    const payload = verificationResult.payload as TokenPayload;
-    const { profileId, userId } = payload;
-    // --- סוף השינוי ---
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId }, // עכשיו TypeScript יודע ש-userId הוא string
-      select: { firstName: true, lastName: true },
+    // Search for a request that matches the token, is still PENDING, and has NOT expired.
+    const request = await prisma.testimonialRequest.findUnique({
+      where: {
+        token: token,
+        status: 'PENDING', // Must be unused
+        expiresAt: {
+          gt: new Date(), // Must not be expired
+        },
+      },
+      // Include related user data to get the name
+      include: {
+        profile: {
+          select: {
+            user: {
+              select: { firstName: true, lastName: true },
+            },
+          },
+        },
+      },
     });
 
-    if (!user) return null;
+    // If no such request exists, the link is invalid
+    if (!request || !request.profile.user) {
+      return null;
+    }
 
-    return { profileId, userName: `${user.firstName} ${user.lastName}` };
+    const { user } = request.profile;
+    return {
+      profileId: request.profileId,
+      userName: `${user.firstName} ${user.lastName}`,
+    };
   } catch (error) {
     console.error('Token validation failed:', error);
     return null;
   }
 }
 
-// --- רכיב העמוד (Page Component) - ללא שינוי ---
+// --- רכיב העמוד (Page Component) - נשאר כמעט זהה ---
 export default async function TestimonialPage({ params }: PageProps) {
   const validationResult = await validateToken(params.token);
 
@@ -57,7 +57,7 @@ export default async function TestimonialPage({ params }: PageProps) {
     return notFound();
   }
 
-  const { profileId, userName } = validationResult;
+  const { userName } = validationResult; // We don't need profileId here
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
@@ -70,6 +70,7 @@ export default async function TestimonialPage({ params }: PageProps) {
             תודה רבה שהקדשת מזמנך! המילים החמות שלך יכולות לעשות את כל ההבדל.
           </p>
         </div>
+        {/* Pass the token to the form for submission */}
         <TestimonialSubmissionForm token={params.token} userName={userName} />
       </div>
     </main>

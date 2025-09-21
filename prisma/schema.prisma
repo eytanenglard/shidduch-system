@@ -144,7 +144,7 @@ model Profile {
   origin                  String? // Origin of the user
   religiousLevel          String? // Religious level of the user
   religiousJourney        ReligiousJourney? // <--- הוספת השדה החדש
-
+  testimonialRequests     TestimonialRequest[] // <-- ADD THIS LINE
   shomerNegiah            Boolean?
   serviceType             ServiceType? // Service type of the user
   serviceDetails          String?
@@ -666,4 +666,24 @@ enum TestimonialStatus {
 enum SubmissionSource {
   USER   // הוזן ידנית על ידי המועמד/ת
   FRIEND // הוגש על ידי חבר דרך קישור מאובטח
+}
+
+enum TestimonialRequestStatus {
+  PENDING
+  COMPLETED
+}
+
+model TestimonialRequest {
+  id        String    @id @default(cuid())
+  token     String    @unique // The secure, random token for the URL
+  expiresAt DateTime  // The date when the link will expire
+  status    TestimonialRequestStatus @default(PENDING) // Tracks if the token has been used
+  
+  profileId String
+  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([profileId])
 }
