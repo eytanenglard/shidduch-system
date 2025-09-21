@@ -11,7 +11,6 @@ import type { Question } from '@/components/questionnaire/types/types';
 import type { User } from '@prisma/client';
 import { Gender } from '@prisma/client';
 import type { Locale } from "../../../i18n-config";
-import type { QuestionnaireDictionary } from "@/types/dictionary"; // <-- ייבוא חשוב למילון השאלון
 
 // Import all question definitions
 import { personalityQuestions } from '@/components/questionnaire/questions/personality/personalityQuestions';
@@ -27,6 +26,18 @@ const allQuestions: Question[] = [
   ...partnerQuestions,
   ...religionQuestions
 ];
+
+// טיפוס מפושט רק לשאלות
+type QuestionnaireQuestionsDict = {
+  [worldKey: string]: {
+    [questionId: string]: {
+      question: string;
+      placeholder?: string;
+      helpText?: string;
+      [key: string]: any;
+    };
+  };
+};
 
 export interface ProfileFeedbackReport {
   name: string;
@@ -64,7 +75,7 @@ class ProfileFeedbackService {
   public async compileFeedbackReport(
     userId: string, 
     locale: Locale,
-    questionnaireDict: QuestionnaireDictionary // <-- מקבלים את כל מילון השאלון
+    questionsDict: QuestionnaireQuestionsDict
   ): Promise<ProfileFeedbackReport> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -87,7 +98,7 @@ class ProfileFeedbackService {
     const missingQuestionnaireItems = this.analyzeMissingQuestionnaireAnswers(
       user.questionnaireResponses[0], 
       locale,
-      questionnaireDict // <-- מעבירים את כל המילון
+      questionsDict
     );
 
     const completionPercentage = this.calculateCompletionPercentage(user as FullUserForFeedback);
@@ -181,23 +192,32 @@ class ProfileFeedbackService {
     return answeredIds;
   }
 
- private analyzeMissingQuestionnaireAnswers(
+  private analyzeMissingQuestionnaireAnswers(
     questionnaire: QuestionnaireResponse | undefined, 
     locale: Locale,
-    questionnaireDict: QuestionnaireDictionary // מקבלים את כל מילון השאלון
+    questionsDict: QuestionnaireQuestionsDict
   ): { world: string; question: string; link: string }[] {
     const answeredIds = this.getAnsweredQuestionIds(questionnaire);
+
+    // מפת שמות העולמות בעברית
+    const worldNames: Record<string, string> = {
+      'personality': 'האישיות',
+      'values': 'הערכים', 
+      'relationship': 'הזוגיות',
+      'partner': 'הפרטנר',
+      'religion': 'דת ומסורת'
+    };
 
     return allQuestions
       .filter(q => !answeredIds.has(q.id))
       .map(q => {
-        const worldId = q.worldId.toUpperCase() as keyof QuestionnaireDictionary['worlds'];
+        const worldKey = q.worldId.toUpperCase();
         
-const translatedQuestion = questionnaireDict.questions[worldId]?.[q.id]?.question || q.question || q.id;        
-        // ======================= התיקון הסופי כאן =======================
-        // גישה למפתח 'worlds' שהגדרנו שיהיה ברור
-        const translatedWorld = questionnaireDict.worlds[worldId]?.title || q.worldId;
-        // ================================================================
+        // נסה למצוא את השאלה במילון
+        const translatedQuestion = questionsDict[worldKey]?.[q.id]?.question || q.question || q.id;
+        
+        // השתמש בשם העולם בעברית
+        const translatedWorld = worldNames[q.worldId] || q.worldId;
 
         return {
             world: translatedWorld,

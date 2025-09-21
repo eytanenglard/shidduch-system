@@ -631,6 +631,8 @@ type MatchmakerEditProfileDict = {
         aiButton: string;
         aiButtonLoading: string;
         placeholder: string;
+         saveButton: string; // <-- הוסף שורה זו
+        saveButtonLoading: string; // <-- הוסף שורה זו
       };
   toasts: {
     loadError: string;

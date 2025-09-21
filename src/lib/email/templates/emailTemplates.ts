@@ -5,9 +5,8 @@ import { Locale } from '../../../../i18n-config'; // ודא שהנתיב נכו�
 import { ProfileFeedbackReport } from '@/lib/services/profileFeedbackService'; // ייבוא חדש
 
 // --- הגדרות טיפוסים לקונטקסט של כל תבנית ---
-
 interface BaseTemplateContext {
-  locale: Locale; // הוספנו את השפה לקונטקסט הבסיסי
+  locale: Locale;
   supportEmail: string;
   currentYear: string;
   companyName: string;
@@ -15,14 +14,16 @@ interface BaseTemplateContext {
   sharedDict: EmailDictionary['shared'];
   name: string;
 }
+
 export interface ProfileFeedbackTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['profileFeedback'];
   report: ProfileFeedbackReport;
   isAutomated: boolean;
   matchmakerName: string;
+  greeting?: string; // הוספת שדה greeting אופציונלי
 }
 
-// הגדרות ספציפיות
+// שאר הטיפוסים נשארים זהים...
 export interface WelcomeTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['welcome'];
   firstName: string;
@@ -30,6 +31,7 @@ export interface WelcomeTemplateContext extends BaseTemplateContext {
   matchmakerName?: string;
   dashboardUrl: string;
 }
+
 export interface AccountSetupTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['accountSetup'];
   firstName: string;
@@ -37,17 +39,20 @@ export interface AccountSetupTemplateContext extends BaseTemplateContext {
   setupLink: string;
   expiresIn: string;
 }
+
 export interface EmailOtpVerificationTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['emailOtpVerification'];
   verificationCode: string;
   expiresIn: string;
 }
+
 export interface InvitationTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['invitation'];
   matchmakerName: string;
   invitationLink: string;
   expiresIn: string;
 }
+
 export interface SuggestionTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['suggestion'];
   recipientName: string;
@@ -55,6 +60,7 @@ export interface SuggestionTemplateContext extends BaseTemplateContext {
   suggestionDetails?: { age?: number; city?: string; occupation?: string; additionalInfo?: string | null; };
   dashboardUrl: string;
 }
+
 export interface ContactDetailsTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['shareContactDetails'];
   recipientName: string;
@@ -62,25 +68,25 @@ export interface ContactDetailsTemplateContext extends BaseTemplateContext {
   otherPartyContact: { phone?: string; email?: string; whatsapp?: string; };
   matchmakerName: string;
 }
+
 export interface AvailabilityCheckTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['availabilityCheck'];
   recipientName: string;
   matchmakerName: string;
   inquiryId: string;
 }
+
 export interface PasswordResetOtpTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['passwordResetOtp'];
   otp: string;
   expiresIn: string;
 }
+
 export interface PasswordChangedConfirmationTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['passwordChangedConfirmation'];
   loginUrl: string;
 }
 
-// ============================ הוספת הטיפוס החדש כאן ============================
-// ממשק חדש עבור תבנית הודעת פידבק פנימית.
-// הוא אינו מרחיב את BaseTemplateContext כי הוא אינו דורש תרגומים (dict) או שפה (locale).
 export interface InternalFeedbackNotificationTemplateContext {
     feedbackType: string;
     userIdentifier: string;
@@ -89,7 +95,6 @@ export interface InternalFeedbackNotificationTemplateContext {
     screenshotUrl?: string;
     feedbackId: string;
 }
-// ==============================================================================
 
 // מפה בין שם התבנית לסוג הקונטקסט שלה
 export type TemplateContextMap = {

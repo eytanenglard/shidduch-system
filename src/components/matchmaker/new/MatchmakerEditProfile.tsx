@@ -26,10 +26,10 @@ import {
   Award,
   Image as ImageIcon,
   Sliders,
-  
   Trash2,
   AlertCircle,
   Send,
+  Save, // --- הוספה חדשה ---
 } from 'lucide-react';
 import type { UserProfile, UserImage } from '@/types/next-auth';
 import type { Candidate } from './types/candidates';
@@ -38,7 +38,14 @@ import { useSession } from 'next-auth/react';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 import { cn } from '@/lib/utils';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+  CardFooter, // --- הוספה חדשה ---
+} from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 
 interface MatchmakerEditProfileProps {
@@ -81,7 +88,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const [isSetupInviteOpen, setIsSetupInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [isSendingInvite, setIsSendingInvite] = useState(false);
-  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false); // <-- הוספה חדשה
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const DELETE_CANDIDATE_CONFIRMATION_PHRASE = dict.deleteConfirmationPhrase;
   const handleGenerateSummary = async () => {
     if (!candidate) return;
@@ -97,7 +104,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         throw new Error(result.message || 'Failed to generate summary');
       }
 
-      // עדכון ה-state של הפרופיל עם הטקסט החדש
       setProfile((prevProfile) => {
         if (!prevProfile) return null;
         return { ...prevProfile, manualEntryText: result.summary };
@@ -148,7 +154,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     if (isOpen && candidate) {
       fetchProfileData();
     } else if (!isOpen) {
-      // Reset state on close
       setProfile(null);
       setImages([]);
       setActiveTab('profile');
@@ -464,9 +469,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                   >
                     {profile ? (
                       <div className="space-y-4">
-                        {' '}
-                        {/* הוספת div עוטף אם לא קיים */}
-                        {/* --- קטע קוד חדש להוספה --- */}
                         <Card className="bg-white rounded-xl shadow-sm border">
                           <CardHeader>
                             <div className="flex justify-between items-start">
@@ -482,7 +484,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                               <Button
                                 size="sm"
                                 onClick={handleGenerateSummary}
-                                disabled={isGeneratingSummary}
+                                disabled={isGeneratingSummary || isSaving}
                                 className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md hover:scale-105 transition-transform"
                               >
                                 {isGeneratingSummary ? (
@@ -511,8 +513,33 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                               className="min-h-[150px]"
                             />
                           </CardContent>
+                          {/* --- START: כפתור שמירה חדש --- */}
+                          <CardFooter className="flex justify-end pt-4">
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                handleProfileUpdate({
+                                  manualEntryText:
+                                    profile.manualEntryText || null,
+                                })
+                              }
+                              disabled={isSaving || isGeneratingSummary}
+                              className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md hover:scale-105 transition-transform"
+                            >
+                              {isSaving ? (
+                                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                              ) : (
+                                <Save className="w-4 h-4 ml-2" />
+                              )}
+                              {isSaving
+                                ? dict.neshamaTechSummary.saveButtonLoading ||
+                                  'שומר...'
+                                : dict.neshamaTechSummary.saveButton ||
+                                  'שמור תקציר'}
+                            </Button>
+                          </CardFooter>
+                          {/* --- END: כפתור שמירה חדש --- */}
                         </Card>
-                        {/* --- סוף קטע קוד חדש --- */}
                         <div className="bg-white rounded-xl shadow-sm border">
                           <ProfileSection
                             profile={profile}
@@ -592,7 +619,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                     <Send
                       className={cn(
                         'w-4 h-4',
-                        locale === 'he' ? 'mr-2' : 'ml-2'
+                        locale === 'he' ? 'ml-2' : 'mr-2'
                       )}
                     />
                     {dict.footer.buttons.sendInvite}
@@ -656,7 +683,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder={dict.inviteDialog.emailPlaceholder}
                 className="col-span-3"
-                dir="ltr" // Email input should always be LTR
+                dir="ltr"
               />
             </div>
             <DialogFooter>
@@ -677,7 +704,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 {isSendingInvite ? (
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <X
+                  <Send // Using Send icon for consistency
                     className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
                   />
                 )}
