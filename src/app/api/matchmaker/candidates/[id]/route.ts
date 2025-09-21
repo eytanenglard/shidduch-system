@@ -4,8 +4,13 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Prisma, UserRole } from "@prisma/client";
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
+
 export const dynamic = 'force-dynamic';
 
+/**
+ * GET: אחזור פרופיל של מועמד ספציפי.
+ * נגיש לשדכנים ומנהלים.
+ */
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -81,6 +86,10 @@ export async function GET(
   }
 }
 
+/**
+ * PATCH: עדכון פרטי פרופיל של מועמד.
+ * נגיש לשדכנים ומנהלים. מעבד רק את השדות שנשלחו בבקשה.
+ */
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -128,74 +137,90 @@ export async function PATCH(
         );
     }
 
-    const profileData = await req.json();
+    const incomingData = await req.json();
+    const dataForUpdate: Prisma.ProfileUpdateInput = {};
 
+    // הגדרת סוגי השדות לצורך טיפול נכון בערכים
     const numericFields = ['height', 'siblings', 'position', 'preferredAgeMin', 'preferredAgeMax', 'preferredHeightMin', 'preferredHeightMax', 'aliyaYear'];
-    numericFields.forEach(field => {
-        if (profileData[field] === "" || profileData[field] === undefined) {
-            profileData[field] = null;
-        } else if (profileData[field] !== null) {
-            profileData[field] = parseInt(profileData[field], 10);
-            if (isNaN(profileData[field])) {
-                console.warn(`Invalid number for ${field}: ${profileData[field]}, setting to null`);
-                profileData[field] = null;
-            }
-        }
-    });
-    
-    // --- START: הוספת שדות מקצוע הורים לרשימת העיבוד ---
-    const stringAndEnumFields = ['gender', 'preferredMatchmakerGender', 'maritalStatus', 'serviceType', 'headCovering', 'kippahType', 'contactPreference', 'preferredShomerNegiah', 'preferredPartnerHasChildren', 'preferredAliyaStatus', 'availabilityStatus' , 'religiousJourney', 'medicalInfoDetails', 'medicalInfoDisclosureTiming', 'fatherOccupation', 'motherOccupation'];
-    // --- END: הוספת שדות מקצוע הורים לרשימת העיבוד ---
-    stringAndEnumFields.forEach(field => {
-        if (profileData[field] === "" || profileData[field] === undefined) {
-            profileData[field] = null;
-        }
-    });
-
-    const booleanFields = ['shomerNegiah', 'hasChildrenFromPrevious', 'preferredHasChildrenFromPrevious', 'isProfileVisible', 'hasMedicalInfo', 'isMedicalInfoVisible'];
-    booleanFields.forEach(field => {
-        if (profileData[field] === undefined) {
-            profileData[field] = null;
-        } else if (typeof profileData[field] !== 'boolean' && profileData[field] !== null) {
-            if (profileData[field] === 'true') profileData[field] = true;
-            else if (profileData[field] === 'false') profileData[field] = false;
-            else profileData[field] = null;
-        }
-    });
-
+    const stringAndEnumFields = ['gender', 'preferredMatchmakerGender', 'maritalStatus', 'serviceType', 'headCovering', 'kippahType', 'contactPreference', 'preferredShomerNegiah', 'preferredPartnerHasChildren', 'preferredAliyaStatus', 'availabilityStatus' , 'religiousJourney', 'medicalInfoDetails', 'medicalInfoDisclosureTiming', 'fatherOccupation', 'motherOccupation', 'manualEntryText', 'about', 'profileHeadline'];
+    const booleanFields = ['shomerNegiah', 'hasChildrenFromPrevious', 'preferredHasChildrenFromPrevious', 'isProfileVisible', 'hasMedicalInfo', 'isMedicalInfoVisible', 'birthDateIsApproximate'];
     const arrayFields = ['additionalLanguages', 'profileCharacterTraits', 'profileHobbies', 'preferredReligiousLevels', 'preferredLocations', 'preferredEducation', 'preferredOccupations', 'preferredMaritalStatuses', 'preferredOrigins', 'preferredServiceTypes', 'preferredHeadCoverings', 'preferredKippahTypes', 'preferredCharacterTraits', 'preferredHobbies', 'preferredReligiousJourneys'];
-    arrayFields.forEach(field => {
-        if (profileData[field] === undefined || profileData[field] === null) {
-            profileData[field] = [];
-        } else if (!Array.isArray(profileData[field])) {
-            console.warn(`Field ${field} is not an array, attempting to convert or defaulting to empty.`);
-            if (typeof profileData[field] === 'string' && profileData[field].includes(',')) {
-                profileData[field] = profileData[field].split(',').map((s: string) => s.trim());
-            } else if (typeof profileData[field] === 'string' && profileData[field].trim() !== '') {
-                 profileData[field] = [profileData[field].trim()];
+    const dateFields = ['birthDate'];
+
+    // מעבר על השדות שהתקבלו בבקשה בלבד
+    for (const key in incomingData) {
+      if (Object.prototype.hasOwnProperty.call(incomingData, key)) {
+        let value = incomingData[key];
+
+        if (numericFields.includes(key)) {
+            if (value === "" || value === undefined || value === null) {
+                dataForUpdate[key] = null;
             } else {
-                profileData[field] = [];
+                const parsed = parseInt(String(value), 10);
+                dataForUpdate[key] = isNaN(parsed) ? null : parsed;
+            }
+        } else if (stringAndEnumFields.includes(key)) {
+            dataForUpdate[key] = (value === "" || value === undefined) ? null : value;
+        } else if (booleanFields.includes(key)) {
+            if (value === undefined || value === null) {
+                dataForUpdate[key] = null;
+            } else if (typeof value === 'boolean') {
+                dataForUpdate[key] = value;
+            } else {
+                dataForUpdate[key] = value === 'true';
+            }
+        } else if (arrayFields.includes(key)) {
+            if (value === undefined || value === null) {
+                dataForUpdate[key] = [];
+            } else if (Array.isArray(value)) {
+                dataForUpdate[key] = value;
+            }
+        } else if (dateFields.includes(key)) {
+            if (value) {
+                const date = new Date(value);
+                if (!isNaN(date.getTime())) {
+                    dataForUpdate[key] = date;
+                }
+            } else {
+                dataForUpdate[key] = null;
             }
         }
-    });
-    
-    const updatedProfile = await prisma.profile.update({
-      where: { userId: candidateIdToUpdate },
-      data: {
-        ...profileData,
-        updatedAt: new Date(),
-        lastActive: new Date()
+        else {
+          // עבור כל שדה אחר שלא ברשימות, פשוט נעביר אותו הלאה
+          // זה מכסה שדות כמו הערות וכו' שלא צריכים טיפול מיוחד
+          if (incomingData[key] !== undefined) {
+             dataForUpdate[key] = incomingData[key];
+          }
+        }
       }
-    });
+    }
+    
+    // בצע את העדכון רק אם יש נתונים לעדכן
+    if (Object.keys(dataForUpdate).length > 0) {
+        const updatedProfile = await prisma.profile.update({
+          where: { userId: candidateIdToUpdate },
+          data: {
+            ...dataForUpdate,
+            updatedAt: new Date(),
+            lastActive: new Date(),
+            needsAiProfileUpdate: true,
+          }
+        });
 
-    updateUserAiProfile(candidateIdToUpdate).catch(err => {
-        console.error(`[AI Profile Trigger - Matchmaker Update] Failed to update AI profile in the background for candidate ${candidateIdToUpdate}:`, err);
-    });
+        updateUserAiProfile(candidateIdToUpdate).catch(err => {
+            console.error(`[AI Profile Trigger - Matchmaker Update] Failed to update AI profile in the background for candidate ${candidateIdToUpdate}:`, err);
+        });
 
-    return NextResponse.json({
-      success: true,
-      profile: updatedProfile
-    });
+        return NextResponse.json({
+          success: true,
+          profile: updatedProfile
+        });
+    }
+
+    // אם לא נשלחו נתונים, החזר את הפרופיל הקיים ללא שינוי
+    const currentProfile = await prisma.profile.findUnique({ where: { userId: candidateIdToUpdate } });
+    return NextResponse.json({ success: true, profile: currentProfile, message: "No data provided for update." });
+
   } catch (error) {
     console.error("Error updating candidate profile:", error);
     let errorMessage = "Failed to update candidate profile";
@@ -213,7 +238,8 @@ export async function PATCH(
         }
         console.error("Prisma Known Error on PATCH:", error.code, error.message, error.meta);
     } else if (error instanceof Prisma.PrismaClientValidationError) {
-        errorMessage = `שגיאת ולידציה בעדכון הפרופיל: ${error.message}`;
+        const relevantError = error.message.split('\n').pop() || error.message;
+        errorMessage = `שגיאת ולידציה בעדכון הפרופיל: ${relevantError}`;
         statusCode = 400;
         console.error("Prisma Validation Error on PATCH:", error.message);
     } else if (error instanceof Error) {
@@ -227,6 +253,10 @@ export async function PATCH(
   }
 }
 
+/**
+ * DELETE: מחיקת מועמד.
+ * נגיש למנהלים בלבד.
+ */
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -287,6 +317,7 @@ export async function DELETE(
       );
     }
 
+    // הפעולה 'onDelete: Cascade' בסכמת Prisma תדאג למחיקת כל הנתונים המקושרים (פרופיל, תמונות וכו')
     await prisma.user.delete({
       where: { id: candidateIdToDelete },
     });
