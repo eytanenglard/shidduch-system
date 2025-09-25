@@ -12,6 +12,15 @@ import { Locale } from '../../../i18n-config'; // ודא שהנתיב נכון
  * הוא מחליף את השימוש ב-'any' ומספק בטיחות טיפוסים מלאה.
  * כל המאפיינים הם אופציונליים מכיוון שכל תבנית משתמשת בתת-קבוצה שונה של מאפיינים.
  */
+
+interface ProfileSummaryUpdateEmailParams {
+    locale: Locale;
+    email: string;
+    firstName: string;
+    matchmakerName: string;
+}
+
+
 interface TemplateContext {
   // מאפיינים שנוספים אוטומטית בפונקציה sendEmail
   supportEmail: string;
@@ -264,6 +273,30 @@ class EmailService {
       },
     });
   }
+  async sendProfileSummaryUpdateEmail({
+    locale,
+    email,
+    firstName,
+    matchmakerName,
+  }: ProfileSummaryUpdateEmailParams): Promise<void> {
+    const dictionary = await getDictionary(locale);
+    const emailDict = dictionary.email;
+
+    await this.sendEmail({
+      to: email,
+      subject: emailDict.profileSummaryUpdate.subject,
+      templateName: 'profileSummaryUpdate',
+      context: {
+        locale,
+        dict: emailDict.profileSummaryUpdate,
+        sharedDict: emailDict.shared,
+        name: firstName,
+        firstName,
+        matchmakerName,
+        dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/profile`,
+      }
+    });
+  }
 
   async sendVerificationEmail({
     locale,
@@ -493,4 +526,5 @@ export type {
   PasswordResetOtpEmailParams,
   PasswordChangedConfirmationParams,
   AccountSetupEmailParams,
+  ProfileSummaryUpdateEmailParams,
 };

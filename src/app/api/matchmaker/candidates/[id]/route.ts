@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Prisma, UserRole } from "@prisma/client";
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
+import { Locale } from "../../../../../../i18n-config";
+import { emailService } from "@/lib/email/emailService";
 
 export const dynamic = 'force-dynamic';
 
@@ -103,10 +105,14 @@ export async function PATCH(
         { status: 401 }
       );
     }
+    
+    // קבלת שפה (locale) מפרמטר ב-URL לצורך שליחת מייל מתורגם
+    const url = new URL(req.url);
+    const locale = (url.searchParams.get('locale') as Locale) || 'he';
 
     const performingUser = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true }
+select: { role: true, firstName: true, lastName: true } // נשלוף את השם הפרטי ושם המשפחה
     });
 
     if (!performingUser || (performingUser.role !== UserRole.MATCHMAKER && performingUser.role !== UserRole.ADMIN)) {
@@ -118,19 +124,19 @@ export async function PATCH(
     
     const { id: candidateIdToUpdate } = params;
 
-    const candidateExists = await prisma.user.findUnique({
+    const candidateToUpdate = await prisma.user.findUnique({
       where: { id: candidateIdToUpdate },
-      select: { id: true, role: true }
+      select: { id: true, role: true, email: true, firstName: true } // נשלוף פרטים הנדרשים למייל
     });
 
-    if (!candidateExists) {
+    if (!candidateToUpdate) {
       return NextResponse.json(
         { success: false, error: "Candidate not found" },
         { status: 404 }
       );
     }
 
-    if (candidateExists.role === UserRole.ADMIN && performingUser.role !== UserRole.ADMIN) {
+    if (candidateToUpdate.role === UserRole.ADMIN && performingUser.role !== UserRole.ADMIN) {
         return NextResponse.json(
             { success: false, error: "Unauthorized - Admins can only be edited by other Admins." },
             { status: 403 }
@@ -138,6 +144,13 @@ export async function PATCH(
     }
 
     const incomingData = await req.json();
+
+    // שלב מקדים: נשלוף את הפרופיל המקורי כדי שנוכל להשוות את 'דבר המערכת'
+    const originalProfile = await prisma.profile.findUnique({
+        where: { userId: candidateIdToUpdate },
+        select: { manualEntryText: true }
+    });
+    
     const dataForUpdate: Prisma.ProfileUpdateInput = {};
 
     // הגדרת סוגי השדות לצורך טיפול נכון בערכים
@@ -147,7 +160,7 @@ export async function PATCH(
     const arrayFields = ['additionalLanguages', 'profileCharacterTraits', 'profileHobbies', 'preferredReligiousLevels', 'preferredLocations', 'preferredEducation', 'preferredOccupations', 'preferredMaritalStatuses', 'preferredOrigins', 'preferredServiceTypes', 'preferredHeadCoverings', 'preferredKippahTypes', 'preferredCharacterTraits', 'preferredHobbies', 'preferredReligiousJourneys'];
     const dateFields = ['birthDate'];
 
-    // מעבר על השדות שהתקבלו בבקשה בלבד
+    // מעבר על כל השדות שהתקבלו בבקשה
     for (const key in incomingData) {
       if (Object.prototype.hasOwnProperty.call(incomingData, key)) {
         let value = incomingData[key];
@@ -185,13 +198,6 @@ export async function PATCH(
                 dataForUpdate[key] = null;
             }
         }
-        else {
-          // עבור כל שדה אחר שלא ברשימות, פשוט נעביר אותו הלאה
-          // זה מכסה שדות כמו הערות וכו' שלא צריכים טיפול מיוחד
-          if (incomingData[key] !== undefined) {
-             dataForUpdate[key] = incomingData[key];
-          }
-        }
       }
     }
     
@@ -203,10 +209,34 @@ export async function PATCH(
             ...dataForUpdate,
             updatedAt: new Date(),
             lastActive: new Date(),
-            needsAiProfileUpdate: true,
+            needsAiProfileUpdate: true, // נסמן תמיד לעדכון AI לאחר שינוי ידני
           }
         });
 
+        // --- לוגיקת שליחת המייל ---
+        const newSummaryText = incomingData.manualEntryText;
+        const oldSummaryText = originalProfile?.manualEntryText;
+
+        // שלח מייל רק אם השדה 'manualEntryText' נשלח בבקשת העדכון,
+        // הוא לא ריק, והתוכן שלו השתנה מהערך הקודם.
+        if (newSummaryText !== undefined && newSummaryText.trim() !== '' && newSummaryText !== oldSummaryText) {
+            try {
+                await emailService.sendProfileSummaryUpdateEmail({
+                    locale,
+                    email: candidateToUpdate.email,
+                    firstName: candidateToUpdate.firstName,
+                    matchmakerName: session.user.name || "השדכן/ית שלך"
+                });
+                console.log(`[Email Notification] Profile summary update email sent successfully to ${candidateToUpdate.email}.`);
+            } catch (emailError) {
+                // חשוב: לא נכשיל את כל הבקשה אם שליחת המייל נכשלה.
+                // נתעד את השגיאה ונמשיך בזרימה התקינה של עדכון הפרופיל.
+                console.error(`[Email Notification] Failed to send profile summary update email to ${candidateToUpdate.email}:`, emailError);
+            }
+        }
+        // --- סוף לוגיקת שליחת המייל ---
+
+        // הפעלת עדכון פרופיל AI ברקע
         updateUserAiProfile(candidateIdToUpdate).catch(err => {
             console.error(`[AI Profile Trigger - Matchmaker Update] Failed to update AI profile in the background for candidate ${candidateIdToUpdate}:`, err);
         });
@@ -217,7 +247,7 @@ export async function PATCH(
         });
     }
 
-    // אם לא נשלחו נתונים, החזר את הפרופיל הקיים ללא שינוי
+    // אם לא נשלחו נתונים רלוונטיים לעדכון, החזר את הפרופיל הקיים ללא שינוי
     const currentProfile = await prisma.profile.findUnique({ where: { userId: candidateIdToUpdate } });
     return NextResponse.json({ success: true, profile: currentProfile, message: "No data provided for update." });
 
@@ -252,6 +282,7 @@ export async function PATCH(
     );
   }
 }
+
 
 /**
  * DELETE: מחיקת מועמד.

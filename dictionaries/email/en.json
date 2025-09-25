@@ -88,6 +88,15 @@
 "securityNote": "If you did not make this change, please contact us immediately so we can investigate.",
 "actionButton": "Log in to Your Account"
 },
+"profileSummaryUpdate": {
+  "subject": "A personal update to your NeshamaTech profile",
+  "title": "Your Profile Just Got an Upgrade",
+  "intro": "Your personal matchmaker, {{matchmakerName}}, has carefully reviewed your profile and added a professional summary to highlight the most important aspects of your personality. This summary helps other matchmakers and potential matches get a richer, more accurate picture of who you are.",
+  "highlight": "This new summary will help us find more precise and high-quality matches for you.",
+  "encouragement": "We encourage you to review your updated profile to ensure the summary reflects you authentically. Your feedback is valuable to us!",
+  "actionButton": "View Updated Profile"
+},
+
     "profileFeedback": {
             "subject": "Your Profile Progress Report from NeshamaTech",
 

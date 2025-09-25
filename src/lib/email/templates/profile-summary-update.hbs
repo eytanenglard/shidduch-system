@@ -1,0 +1,44 @@
+{{! src/lib/email/templates/profile-summary-update.hbs }}
+<!DOCTYPE html>
+<html dir="{{#if (eq locale 'he')}}rtl{{else}}ltr{{/if}}" lang="{{locale}}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{dict.title}}</title>
+    <style>
+        body { font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; direction: {{#if (eq locale 'he')}}rtl{{else}}ltr{{/if}}; text-align: {{#if (eq locale 'he')}}right{{else}}left{{/if}}; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; }
+        .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden; }
+        .email-header { background-color: #06b6d4; color: #ffffff; padding: 25px; text-align: center; border-bottom: 5px solid #0891b2; }
+        .email-header h1 { margin: 0; font-size: 26px; font-weight: 600; }
+        .email-body { padding: 25px 30px; font-size: 16px; }
+        .email-body p { margin-bottom: 1em; }
+        .button { display: inline-block; padding: 12px 25px; background-color: #06b6d4; color: white !important; text-decoration: none; border-radius: 5px; margin: 15px 0; font-weight: 500; text-align: center; }
+        .button:hover { background-color: #0891b2; }
+        .footer { background-color: #f1f3f5; padding: 20px; text-align: center; font-size: 0.9em; color: #6c757d; border-top: 1px solid #e9ecef; }
+        .footer a { color: #06b6d4; text-decoration: none; }
+        .highlight-box { background-color: #f0f9ff; border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #38bdf8; padding: 15px; margin: 20px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>{{dict.title}}</h1>
+        </div>
+        <div class="email-body">
+            <p>{{replace sharedDict.greeting '{{name}}' name}}</p>
+            <p>{{replace dict.intro '{{matchmakerName}}' matchmakerName}}</p>
+            <div class="highlight-box">
+                <p><strong>{{dict.highlight}}</strong></p>
+            </div>
+            <p>{{dict.encouragement}}</p>
+            <p style="text-align: center;">
+                <a href="{{dashboardUrl}}" class="button">{{dict.actionButton}}</a>
+            </p>
+            <p style="margin-top: 30px;">{{sharedDict.closing}}<br>{{sharedDict.team}}</p>
+        </div>
+        <div class="footer">
+            <p>{{sharedDict.supportPrompt}} <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+            <p>{{replace sharedDict.rightsReserved '{{year}}' currentYear}}</p>
+        </div>
+    </div>
+</body>
+</html>

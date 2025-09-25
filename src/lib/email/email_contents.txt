@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email
-# Generated on: 2025-09-18 16:38:41
+# Generated on: 2025-09-25 18:03:15
 ################################################################################
 
 ================================================================================
@@ -771,9 +771,8 @@ import { Locale } from '../../../../i18n-config'; // ודא שהנתיב נכו�
 import { ProfileFeedbackReport } from '@/lib/services/profileFeedbackService'; // ייבוא חדש
 
 // --- הגדרות טיפוסים לקונטקסט של כל תבנית ---
-
 interface BaseTemplateContext {
-  locale: Locale; // הוספנו את השפה לקונטקסט הבסיסי
+  locale: Locale;
   supportEmail: string;
   currentYear: string;
   companyName: string;
@@ -781,14 +780,16 @@ interface BaseTemplateContext {
   sharedDict: EmailDictionary['shared'];
   name: string;
 }
+
 export interface ProfileFeedbackTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['profileFeedback'];
   report: ProfileFeedbackReport;
   isAutomated: boolean;
   matchmakerName: string;
+  greeting?: string; // הוספת שדה greeting אופציונלי
 }
 
-// הגדרות ספציפיות
+// שאר הטיפוסים נשארים זהים...
 export interface WelcomeTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['welcome'];
   firstName: string;
@@ -796,6 +797,7 @@ export interface WelcomeTemplateContext extends BaseTemplateContext {
   matchmakerName?: string;
   dashboardUrl: string;
 }
+
 export interface AccountSetupTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['accountSetup'];
   firstName: string;
@@ -803,17 +805,20 @@ export interface AccountSetupTemplateContext extends BaseTemplateContext {
   setupLink: string;
   expiresIn: string;
 }
+
 export interface EmailOtpVerificationTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['emailOtpVerification'];
   verificationCode: string;
   expiresIn: string;
 }
+
 export interface InvitationTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['invitation'];
   matchmakerName: string;
   invitationLink: string;
   expiresIn: string;
 }
+
 export interface SuggestionTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['suggestion'];
   recipientName: string;
@@ -821,6 +826,7 @@ export interface SuggestionTemplateContext extends BaseTemplateContext {
   suggestionDetails?: { age?: number; city?: string; occupation?: string; additionalInfo?: string | null; };
   dashboardUrl: string;
 }
+
 export interface ContactDetailsTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['shareContactDetails'];
   recipientName: string;
@@ -828,25 +834,25 @@ export interface ContactDetailsTemplateContext extends BaseTemplateContext {
   otherPartyContact: { phone?: string; email?: string; whatsapp?: string; };
   matchmakerName: string;
 }
+
 export interface AvailabilityCheckTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['availabilityCheck'];
   recipientName: string;
   matchmakerName: string;
   inquiryId: string;
 }
+
 export interface PasswordResetOtpTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['passwordResetOtp'];
   otp: string;
   expiresIn: string;
 }
+
 export interface PasswordChangedConfirmationTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['passwordChangedConfirmation'];
   loginUrl: string;
 }
 
-// ============================ הוספת הטיפוס החדש כאן ============================
-// ממשק חדש עבור תבנית הודעת פידבק פנימית.
-// הוא אינו מרחיב את BaseTemplateContext כי הוא אינו דורש תרגומים (dict) או שפה (locale).
 export interface InternalFeedbackNotificationTemplateContext {
     feedbackType: string;
     userIdentifier: string;
@@ -855,7 +861,6 @@ export interface InternalFeedbackNotificationTemplateContext {
     screenshotUrl?: string;
     feedbackId: string;
 }
-// ==============================================================================
 
 // מפה בין שם התבנית לסוג הקונטקסט שלה
 export type TemplateContextMap = {
@@ -1477,116 +1482,457 @@ Content:
 <html dir="{{#if (eq locale 'he')}}rtl{{else}}ltr{{/if}}" lang="{{locale}}">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{dict.title}}</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; direction: rtl; text-align: right; line-height: 1.6; margin: 0; padding: 0; background-color: #f4f7f9; color: #333; }
-        .email-container { max-width: 680px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.07); overflow: hidden; border: 1px solid #e2e8f0; }
-        .email-header { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #ffffff; padding: 30px; text-align: center; border-bottom: 5px solid #a78bfa; }
-        .email-header h1 { margin: 0; font-size: 28px; font-weight: 600; }
-        .email-body { padding: 30px 35px; font-size: 16px; }
-        .section { margin-bottom: 30px; }
-        .section h2 { font-size: 22px; color: #4f46e5; margin-top: 0; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e0e7ff; display: inline-block; }
-        .progress-container { margin-bottom: 25px; }
-        .progress-bar-bg { background-color: #e5e7eb; border-radius: 50px; padding: 4px; }
-        .progress-bar { height: 16px; background: linear-gradient(to right, #34d399, #10b981); border-radius: 50px; text-align: center; color: white; font-size: 12px; line-height: 16px; font-weight: 500; transition: width 0.5s ease-in-out; }
-        .ai-summary { background-color: #f8fafc; border-left: 4px solid #6366f1; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .ai-summary h4 { margin-top: 0; margin-bottom: 8px; color: #4338ca; font-size: 17px; }
-        .ai-summary p { margin: 0; font-style: italic; color: #475569; }
-        .checklist-container { display: flex; gap: 20px; }
-        .checklist-column { flex: 1; padding: 20px; border-radius: 8px; }
-        .completed { background-color: #f0fdf4; border: 1px solid #bbf7d0; }
-        .missing { background-color: #fffbeb; border: 1px solid #fde68a; }
-        .checklist-column h4 { margin-top: 0; font-size: 18px; }
-        .completed h4 { color: #15803d; }
-        .missing h4 { color: #b45309; }
-        .checklist-column ul { padding-right: 20px; margin: 0; list-style-type: none; }
-        .checklist-column li { margin-bottom: 10px; display: flex; align-items: center; }
-        .checklist-column li::before { margin-left: 10px; font-size: 20px; }
-        .completed li::before { content: '✅'; }
-        .missing li::before { content: '✏️'; }
-        .questionnaire-missing h4 { margin-top: 25px; margin-bottom: 10px; color: #0e7490; }
-        .cta-section { text-align: center; margin-top: 35px; padding: 25px; background-color: #f1f5f9; border-radius: 8px; }
-        .cta-section h3 { margin-top: 0; font-size: 20px; color: #1e293b; }
-        .button { display: inline-block; padding: 14px 30px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #ffffff !important; text-decoration: none; border-radius: 8px; margin-top: 15px; font-weight: 600; font-size: 17px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); transition: all 0.3s ease; }
-        .button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); }
-        .footer { background-color: #e2e8f0; padding: 25px; text-align: center; font-size: 13px; color: #475569; }
-        .footer a { color: #4f46e5; text-decoration: none; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif; 
+            direction: {{#if (eq locale 'he')}}rtl{{else}}ltr{{/if}}; 
+            text-align: {{#if (eq locale 'he')}}right{{else}}left{{/if}}; 
+            line-height: 1.6; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f8fafc; 
+            color: #374151; 
+        }
+        
+        .email-container { 
+            max-width: 600px; 
+            margin: 20px auto; 
+            background-color: #ffffff; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08); 
+            overflow: hidden; 
+        }
+        
+        .email-header { 
+            background: linear-gradient(135deg, #06b6d4, #0891b2); 
+            color: #ffffff; 
+            padding: 30px; 
+            text-align: center; 
+        }
+        
+        .email-header h1 { 
+            margin: 0; 
+            font-size: 26px; 
+            font-weight: 700; 
+            letter-spacing: -0.5px;
+        }
+        
+        .email-body { 
+            padding: 30px; 
+            font-size: 16px; 
+        }
+        
+        .greeting {
+            font-size: 20px;
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .intro-text {
+            font-size: 16px;
+            color: #475569;
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+        
+        /* Progress Section */
+        .progress-section {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border: 2px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .progress-title {
+            color: #1e40af;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .progress-number {
+            font-size: 48px;
+            font-weight: 900;
+            color: #06b6d4;
+            margin: 10px 0;
+        }
+        
+        .progress-bar-container {
+            background-color: #e2e8f0;
+            border-radius: 25px;
+            height: 20px;
+            margin: 20px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #06b6d4, #0891b2);
+            height: 100%;
+            border-radius: 25px;
+            transition: width 1s ease-out;
+            position: relative;
+        }
+        
+        .progress-text {
+            color: #64748b;
+            font-size: 15px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        
+        /* AI Summary */
+        .ai-summary {
+            background: linear-gradient(135deg, #fefce8, #fef3c7);
+            border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 5px solid #f59e0b;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+        }
+        
+        .ai-summary h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #b45309;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .ai-insight {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .ai-insight strong {
+            color: #92400e;
+            font-weight: 600;
+        }
+        
+        .ai-disclaimer {
+            font-size: 14px;
+            color: #6b7280;
+            font-style: italic;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 6px;
+        }
+        
+        /* Status Section */
+        .status-section {
+            margin: 30px 0;
+        }
+        
+        .section-title {
+            font-size: 22px;
+            color: #1e293b;
+            margin-bottom: 25px;
+            font-weight: 700;
+            border-bottom: 3px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .status-card {
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid;
+        }
+        
+        .completed-card {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border-color: #22c55e;
+        }
+        
+        .missing-card {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border-color: #f59e0b;
+        }
+        
+        .card-title {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .completed-card .card-title {
+            color: #15803d;
+        }
+        
+        .missing-card .card-title {
+            color: #b45309;
+        }
+        
+        .status-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .status-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-icon {
+            margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 10px;
+            font-size: 18px;
+        }
+        
+        /* Questionnaire Section */
+        .questionnaire-section {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border: 2px solid #0ea5e9;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .questionnaire-title {
+            color: #0369a1;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .questionnaire-icon {
+            margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 10px;
+            font-size: 24px;
+        }
+        
+        .question-summary {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+            color: #0369a1;
+            font-size: 16px;
+        }
+        
+        .question-details {
+            color: #0369a1;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border: 2px solid #94a3b8;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .cta-title {
+            font-size: 24px;
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .cta-text {
+            color: #64748b;
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
+        
+        .cta-button {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white !important;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 18px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+            transition: transform 0.2s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+        }
+        
+        /* Footer */
+        .footer {
+            background-color: #f8fafc;
+            padding: 25px;
+            text-align: center;
+            font-size: 14px;
+            color: #64748b;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .footer a {
+            color: #06b6d4;
+            text-decoration: none;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 600px) {
+            .status-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .email-body {
+                padding: 20px;
+            }
+            
+            .progress-number {
+                font-size: 36px;
+            }
+            
+            .cta-title {
+                font-size: 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="email-container">
+        <!-- Header -->
         <div class="email-header">
             <h1>{{dict.title}}</h1>
         </div>
+        
+        <!-- Body -->
         <div class="email-body">
-<p style="font-size: 18px;">{{greeting}},</p>            
-            {{#if isAutomated}}
-                <p>{{dict.systemIntro}}</p>
-            {{else}}
-                <p>{{dict.matchmakerIntro}}</p>
-            {{/if}}
+            <!-- Greeting -->
+            <div class="greeting">{{greeting}}</div>
+            
+            <div class="intro-text">
+                {{#if isAutomated}}
+                    {{dict.systemIntro}}
+                {{else}}
+                    {{dict.matchmakerIntro}}
+                {{/if}}
+            </div>
 
-            <div class="section progress-container">
-                <h2>{{dict.progressHeader}}</h2>
-                <p>השקעת עד כה והגעת ל-<b>{{report.completionPercentage}}%</b> השלמה. כל הכבוד! עוד מאמץ קטן והפרופיל שלך יהיה מוכן למצוא את ההתאמה המושלמת.</p>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar" style="width: {{report.completionPercentage}}%;">{{report.completionPercentage}}%</div>
+            <!-- Progress Section -->
+            <div class="progress-section">
+                <div class="progress-title">{{dict.progressHeader}}</div>
+                <div class="progress-number">{{report.completionPercentage}}%</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: {{report.completionPercentage}}%;"></div>
+                </div>
+                <div class="progress-text">
+                    השקעת עד כה והגעת ל-<strong>{{report.completionPercentage}}% השלמה</strong>.<br>
+                    כל הכבוד! עוד מאמץ קטן והפרופיל שלך יהיה מוכן למצוא את ההתאמה המושלמת.
                 </div>
             </div>
 
             {{#if report.aiSummary}}
-            <div class="section">
-                <h2>{{dict.aiSummaryHeader}}</h2>
-                <div class="ai-summary">
-                    <h4>{{dict.aiSummary.personalityTitle}}</h4>
-                    <p>"{{report.aiSummary.personality}}"</p>
-                    <h4 style="margin-top: 15px;">{{dict.aiSummary.lookingForTitle}}</h4>
-                    <p>"{{report.aiSummary.lookingFor}}"</p>
+            <!-- AI Summary -->
+            <div class="ai-summary">
+                <h3>{{dict.aiSummaryHeader}}</h3>
+                
+                <div class="ai-insight">
+                    <strong>{{dict.aiSummary.personalityTitle}}:</strong><br>
+                    "{{report.aiSummary.personality}}"
                 </div>
-                 <p style="font-size: 14px; color: #64748b;">זוהי רק טעימה מהתובנות שה-AI שלנו יכול להפיק מפרופיל מלא. ככל שתוסיף/י יותר מידע, כך נוכל לדייק יותר את ההתאמות עבורך.</p>
+                
+                <div class="ai-insight">
+                    <strong>{{dict.aiSummary.lookingForTitle}}:</strong><br>
+                    "{{report.aiSummary.lookingFor}}"
+                </div>
+                
+                <div class="ai-disclaimer">
+                    זוהי רק טעימה מהתובנות שה-AI שלנו יכול להפיק מפרופיל מלא. ככל שתוסיף יותר מידע, כך נוכל לחדד יותר את ההתאמות עבורך.
+                </div>
             </div>
             {{/if}}
 
-            <div class="section">
-                <h2>סטטוס הפרופיל שלך</h2>
-                <div class="checklist-container">
-                    <div class="checklist-column completed">
-                        <h4>כל הכבוד! מה שכבר השלמת:</h4>
-                        <ul>
+            <!-- Status Section -->
+            <div class="status-section">
+                <h2 class="section-title">סטטוס הפרופיל שלך</h2>
+                
+                <div class="status-grid">
+                    <!-- Completed Items -->
+                    <div class="status-card completed-card">
+                        <h4 class="card-title">כל הכבוד! מה שכבר השלמת:</h4>
+                        <ul class="status-list">
                             {{#each report.completedProfileItems}}
-                                <li>{{this}}</li>
+                                <li class="status-item">
+                                    <span class="status-icon">✅</span>
+                                    {{this}}
+                                </li>
                             {{/each}}
                         </ul>
                     </div>
-                    <div class="checklist-column missing">
-                        <h4>השלב הבא: מה חסר:</h4>
-                        <ul>
+                    
+                    <!-- Missing Items -->
+                    <div class="status-card missing-card">
+                        <h4 class="card-title">השלב הבא: מה חסר</h4>
+                        <ul class="status-list">
                              {{#each report.missingProfileItems}}
-                                <li>{{this}}</li>
+                                <li class="status-item">
+                                    <span class="status-icon">📝</span>
+                                    {{this}}
+                                </li>
                             {{/each}}
                         </ul>
                     </div>
                 </div>
                 
                 {{#if report.missingQuestionnaireItems}}
-                <div class="questionnaire-missing">
-                    <h4>שאלות להשלמה בשאלון המעמיק:</h4>
-                     <ul>
-                        {{#each report.missingQuestionnaireItems}}
-                            <li><a href="{{this.link}}">"{{this.question}}"</a> (מעולם {{this.world}})</li>
-                        {{/each}}
-                    </ul>
+                <div class="questionnaire-section">
+                    <div class="questionnaire-title">
+                        <span class="questionnaire-icon">📋</span>
+                        שאלון המעמיק - הזדמנות זהב!
+                    </div>
+                    
+                    <div class="question-summary">
+                        יש לנו {{report.missingQuestionnaireItems.length}} שאלות מעמיקות שמחכות לך!<br>
+                        הן יעזרו לנו להכיר אותך טוב יותר ולמצוא התאמות מדויקות.
+                    </div>
+                    
+                    <p class="question-details">
+                        השאלות מחולקות לעולמות: אישיות, ערכים, זוגיות, פרטנר ודת ומסורת
+                    </p>
                 </div>
                 {{/if}}
             </div>
 
+            <!-- CTA Section -->
             <div class="cta-section">
-                <h3>{{dict.cta.title}}</h3>
-                <p>השלמת הפרופיל מגדילה משמעותית את הסיכוי למצוא התאמה איכותית.</p>
-                <a href="{{baseUrl}}/profile" class="button">{{dict.cta.button}}</a>
+                <h3 class="cta-title">{{dict.cta.title}}</h3>
+                <p class="cta-text">השלמת הפרופיל מגדילה משמעותית את הסיכוי למצוא התאמה איכותית.</p>
+                <a href="{{baseUrl}}/profile" class="cta-button">{{dict.cta.button}}</a>
             </div>
 
         </div>
+        
+        <!-- Footer -->
         <div class="footer">
              <p>{{sharedDict.supportPrompt}} <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
              <p>{{sharedDict.rightsReserved}}</p>

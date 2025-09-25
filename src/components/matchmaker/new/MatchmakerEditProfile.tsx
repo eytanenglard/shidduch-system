@@ -124,7 +124,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     setIsLoading(true);
     try {
       const response = await fetch(
-        `/api/matchmaker/candidates/${candidate.id}`
+        `/api/matchmaker/candidates/${candidate.id}?locale=${locale}`,
       );
       if (!response.ok) throw new Error('Failed to fetch candidate profile');
       const data = await response.json();

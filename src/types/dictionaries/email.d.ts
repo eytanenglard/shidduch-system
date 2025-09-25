@@ -85,6 +85,7 @@ suggestion: EmailTemplateContent & {
   passwordResetOtp: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
   passwordChangedConfirmation: EmailTemplateContent & { intro: string; securityNote: string; actionButton: string; };
     profileFeedback: ProfileFeedbackEmailDict;
+  profileSummaryUpdate: EmailTemplateContent & { intro: string; highlight: string; encouragement: string; actionButton: string; };
 
   /**
    * מילון ההתראות, מקונן כאן כחלק מהמודול המאוחד.

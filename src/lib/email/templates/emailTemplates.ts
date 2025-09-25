@@ -52,6 +52,12 @@ export interface InvitationTemplateContext extends BaseTemplateContext {
   invitationLink: string;
   expiresIn: string;
 }
+export interface ProfileSummaryUpdateTemplateContext extends BaseTemplateContext {
+  dict: EmailDictionary['profileSummaryUpdate'];
+  firstName: string;
+  matchmakerName: string;
+  dashboardUrl: string;
+}
 
 export interface SuggestionTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['suggestion'];
@@ -107,6 +113,8 @@ export type TemplateContextMap = {
   availabilityCheck: AvailabilityCheckTemplateContext;
   passwordResetOtp: PasswordResetOtpTemplateContext;
   passwordChangedConfirmation: PasswordChangedConfirmationTemplateContext;
+    profileSummaryUpdate: ProfileSummaryUpdateTemplateContext; // ✨ הוספת התבנית החדשה למפה
+
   'internal-feedback-notification': InternalFeedbackNotificationTemplateContext;
   // שים לב: אנחנו משאירים את הטיפוס כאן, אך לא נגדיר עבורו פונקציה
   'profileFeedback': ProfileFeedbackTemplateContext;
@@ -220,6 +228,19 @@ export const emailTemplates: {
     <p>${context.dict.nextStep}</p>
   `, context),
   
+    profileSummaryUpdate: (context) => createBaseEmailHtml(context.dict.title, `
+    <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
+    <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
+    <div class="highlight-box">
+      <p><strong>${context.dict.highlight}</strong></p>
+    </div>
+    <p>${context.dict.encouragement}</p>
+    <p style="text-align: center;">
+      <a href="${context.dashboardUrl}" class="button">${context.dict.actionButton}</a>
+    </p>
+  `, context),
+  // ✨ END: הוספת לוגיקת תבנית חדשה
+
   emailOtpVerification: (context) => createBaseEmailHtml(context.dict.title, `
     <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>
     <p>${context.dict.intro}</p>
