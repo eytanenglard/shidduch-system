@@ -64,7 +64,6 @@ export const authOptions: NextAuthOptions = {
           lastLogin: null, 
           createdAt: now,
           updatedAt: now,
-           hasCompletedOnboarding: false,
           source: UserSource.REGISTRATION, 
           addedByMatchmakerId: null,  
            termsAndPrivacyAcceptedAt: null,
@@ -128,7 +127,6 @@ export const authOptions: NextAuthOptions = {
           images: [],
           questionnaireResponses: [],
           questionnaireCompleted: false, // Will be determined in JWT callback
-          hasCompletedOnboarding: userFromDb.hasCompletedOnboarding,
           source: userFromDb.source,
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
            termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
@@ -188,7 +186,6 @@ export const authOptions: NextAuthOptions = {
           images: [],
           questionnaireResponses: [],
           questionnaireCompleted: false,
-          hasCompletedOnboarding: userFromDb.hasCompletedOnboarding,
           source: userFromDb.source,
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
            termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
@@ -370,7 +367,6 @@ export const authOptions: NextAuthOptions = {
         typedToken.isVerified = typedUserFromCallback.isVerified;
         typedToken.isProfileComplete = typedUserFromCallback.isProfileComplete || false;
         typedToken.isPhoneVerified = typedUserFromCallback.isPhoneVerified || false;
-        typedToken.hasCompletedOnboarding = typedUserFromCallback.hasCompletedOnboarding;
         typedToken.questionnaireCompleted = typedUserFromCallback.questionnaireCompleted; 
         typedToken.source = typedUserFromCallback.source;
         typedToken.addedByMatchmakerId = typedUserFromCallback.addedByMatchmakerId;
@@ -402,7 +398,6 @@ export const authOptions: NextAuthOptions = {
             typedToken.isVerified = dbUserForJwt.isVerified;
             typedToken.isProfileComplete = dbUserForJwt.isProfileComplete;
             typedToken.isPhoneVerified = dbUserForJwt.isPhoneVerified;
-            typedToken.hasCompletedOnboarding = dbUserForJwt.hasCompletedOnboarding;
             typedToken.source = dbUserForJwt.source;
             typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId;
             typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
