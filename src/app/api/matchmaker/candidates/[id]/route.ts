@@ -156,7 +156,7 @@ select: { role: true, firstName: true, lastName: true } // נשלוף את הש�
     // הגדרת סוגי השדות לצורך טיפול נכון בערכים
     const numericFields = ['height', 'siblings', 'position', 'preferredAgeMin', 'preferredAgeMax', 'preferredHeightMin', 'preferredHeightMax', 'aliyaYear'];
     const stringAndEnumFields = ['gender', 'preferredMatchmakerGender', 'maritalStatus', 'serviceType', 'headCovering', 'kippahType', 'contactPreference', 'preferredShomerNegiah', 'preferredPartnerHasChildren', 'preferredAliyaStatus', 'availabilityStatus' , 'religiousJourney', 'medicalInfoDetails', 'medicalInfoDisclosureTiming', 'fatherOccupation', 'motherOccupation', 'manualEntryText', 'about', 'profileHeadline'];
-    const booleanFields = ['shomerNegiah', 'hasChildrenFromPrevious', 'preferredHasChildrenFromPrevious', 'isProfileVisible', 'hasMedicalInfo', 'isMedicalInfoVisible', 'birthDateIsApproximate'];
+    const booleanFields = ['shomerNegiah', 'hasChildrenFromPrevious',  'isProfileVisible', 'hasMedicalInfo', 'isMedicalInfoVisible', 'birthDateIsApproximate'];
     const arrayFields = ['additionalLanguages', 'profileCharacterTraits', 'profileHobbies', 'preferredReligiousLevels', 'preferredLocations', 'preferredEducation', 'preferredOccupations', 'preferredMaritalStatuses', 'preferredOrigins', 'preferredServiceTypes', 'preferredHeadCoverings', 'preferredKippahTypes', 'preferredCharacterTraits', 'preferredHobbies', 'preferredReligiousJourneys'];
     const dateFields = ['birthDate'];
 

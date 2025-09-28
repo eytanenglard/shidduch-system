@@ -111,7 +111,6 @@ export async function PUT(req: NextRequest) {
       about,
       // --- START: הוספת שדות חדשים ---
       profileHeadline,
-      humorStory,
       inspiringCoupleStory,
       influentialRabbi,
       // --- END: הוספת שדות חדשים ---
@@ -151,7 +150,6 @@ export async function PUT(req: NextRequest) {
       preferredHeadCoverings,
       preferredKippahTypes,
       preferredShomerNegiah,
-      preferredHasChildrenFromPrevious,
       preferredCharacterTraits,
       preferredHobbies,
       preferredAliyaStatus,
@@ -232,7 +230,6 @@ export async function PUT(req: NextRequest) {
     // --- About & Additional Info ---
     if (about !== undefined) dataToUpdate.about = emptyStringToNull(about);
       if (profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(profileHeadline);
-    if (humorStory !== undefined) dataToUpdate.humorStory = emptyStringToNull(humorStory);
     if (inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(inspiringCoupleStory);
     if (influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(influentialRabbi);
     if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
@@ -254,9 +251,7 @@ export async function PUT(req: NextRequest) {
     if (preferredKippahTypes !== undefined) dataToUpdate.preferredKippahTypes = preferredKippahTypes || [];
     if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah); // Assuming it's a string like "yes", "no" that needs to be nullable
     
-    if (preferredHasChildrenFromPrevious !== undefined) {
-      dataToUpdate.preferredHasChildrenFromPrevious = preferredHasChildrenFromPrevious;
-    }
+
 
     if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || []; // Preference for partner
     if (preferredHobbies !== undefined) dataToUpdate.preferredHobbies = preferredHobbies || []; // Preference for partner's hobbies
@@ -345,7 +340,6 @@ export async function PUT(req: NextRequest) {
       preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
       about: dbProfile.about || "",
         profileHeadline: dbProfile.profileHeadline || undefined,
-      humorStory: dbProfile.humorStory || undefined,
       inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
       influentialRabbi: dbProfile.influentialRabbi || undefined,
       parentStatus: dbProfile.parentStatus || undefined,
@@ -393,7 +387,6 @@ export async function PUT(req: NextRequest) {
       preferredHeadCoverings: (dbProfile.preferredHeadCoverings as HeadCoveringType[]) || [],
       preferredKippahTypes: (dbProfile.preferredKippahTypes as KippahType[]) || [],
       preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined, 
-      preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined, 
       preferredCharacterTraits: dbProfile.preferredCharacterTraits || [], 
       preferredHobbies: dbProfile.preferredHobbies || [],                 
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,

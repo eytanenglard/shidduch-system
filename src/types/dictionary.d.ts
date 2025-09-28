@@ -2193,7 +2193,6 @@ export type ProfileCardDisplayDict = {
     emptyStateTitle: string;
           inspiringCouple: { title: string };
 influentialRabbi: { title: string };
-humorStory: { title: string };
     emptyStateDescription: string;
     openingSentence: string;
     aboutMeSubtitle: string; // Placeholder: {{name}}

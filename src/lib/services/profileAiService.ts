@@ -289,7 +289,6 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
   // --- START: הוספת השדות הנרטיביים החדשים ---
   const personalInsightsParts = [
     profile.profileHeadline ? `**הכותרת האישית שלי:**\n"${profile.profileHeadline}"` : '',
-    profile.humorStory ? `**סיפור שמדגים את חוש ההומור שלי:**\n${profile.humorStory}` : '',
     profile.inspiringCoupleStory ? `**זוג שמעורר בי השראה:**\n${profile.inspiringCoupleStory}` : '',
     profile.influentialRabbi ? `**דמות רוחנית שהשפיעה עליי:**\n${profile.influentialRabbi}` : ''
   ].filter(Boolean);
