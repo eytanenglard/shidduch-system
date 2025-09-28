@@ -97,7 +97,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       const response = await fetch('/api/ai/matchmaker/generate-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: candidate.id }),
+body: JSON.stringify({ userId: candidate.id, locale: locale }),
       });
       const result = await response.json();
       if (!response.ok || !result.success) {

@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
     // 2. קבלת ID המועמד מגוף הבקשה
     const body = await req.json();
-    const { userId } = body;
+const { userId, locale } = body;
 
     if (!userId || typeof userId !== 'string') {
       return NextResponse.json({ success: false, message: 'Bad Request: userId is required.' }, { status: 400 });
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. שליחת הנרטיב ל-AI ליצירת הסיכום
-    const summaryResult = await aiService.generateNeshamaTechSummary(narrativeProfile);
+const summaryResult = await aiService.generateNeshamaTechSummary(narrativeProfile, locale);
     if (!summaryResult || !summaryResult.summaryText) {
       return NextResponse.json({ success: false, message: 'AI service failed to produce a summary.' }, { status: 500 });
     }

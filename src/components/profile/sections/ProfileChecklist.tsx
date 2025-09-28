@@ -286,7 +286,6 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       !p.profileHeadline && missingItemsDict.profileHeadline,
       (!p.about || p.about.trim().length < 100) && missingItemsDict.about,
       // --- START: הוספת בדיקות חדשות ---
-      !p.humorStory && missingItemsDict.humorStory,
       (!p.testimonials ||
         p.testimonials.filter((t) => t.status === 'APPROVED').length < 1) &&
         missingItemsDict.testimonials,
@@ -511,7 +510,6 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       otherTasksStatus.push(!!p.profileHeadline);
       otherTasksStatus.push(!!(p.about && p.about.trim().length >= 100));
       // --- START: הוספת בדיקות חדשות לסרגל ההתקדמות ---
-      otherTasksStatus.push(!!p.humorStory);
       otherTasksStatus.push(
         !!(
           p.testimonials &&

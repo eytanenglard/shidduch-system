@@ -112,7 +112,6 @@ export async function GET(req: Request) {
       about: dbProfile.about || "",
       isAboutVisible: dbProfile.isAboutVisible ?? true,
       profileHeadline: dbProfile.profileHeadline || undefined,
-      humorStory: dbProfile.humorStory || undefined,
       inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
       influentialRabbi: dbProfile.influentialRabbi || undefined,
       
@@ -138,7 +137,6 @@ export async function GET(req: Request) {
       preferredHeadCoverings: dbProfile.preferredHeadCoverings || [],
       preferredKippahTypes: dbProfile.preferredKippahTypes || [],
       preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined,
-      preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined,
       preferredCharacterTraits: dbProfile.preferredCharacterTraits || [],
       preferredHobbies: dbProfile.preferredHobbies || [],
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,

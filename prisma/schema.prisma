@@ -28,7 +28,6 @@ model User {
   addedByMatchmakerId       String? // Optional: ID of matchmaker who added this manual user
   matchmakerWhoAdded        User?      @relation("ManuallyAddedBy", fields: [addedByMatchmakerId], references: [id]) // New relation
   termsAndPrivacyAcceptedAt DateTime? // מתי המשתמש אישר את התנאים ומדיניות הפרטיות
-  hasCompletedOnboarding    Boolean    @default(false)
   marketingConsent          Boolean    @default(false) // הסכמה לקבלת דיוור שיווקי
 
   firstPartyInquiries             AvailabilityInquiry[]   @relation("FirstPartyInquiries")
@@ -162,7 +161,6 @@ model Profile {
 isFriendsSectionVisible Boolean? @default(true)
 isNeshamaTechSummaryVisible Boolean? @default(true)
     profileHeadline       String? // כותרת אישית לפרופיל
-  humorStory            String? // סיפור קצר על חוש הומור
   inspiringCoupleStory  String? // סיפור על זוג מעורר השראה
   influentialRabbi      String? // דמות רבנית/רוחנית משפיעה
   parentStatus            String?
@@ -185,7 +183,6 @@ isNeshamaTechSummaryVisible Boolean? @default(true)
   preferredEducation               String[] @default([]) // Corresponds to educationPreferenceOptions
   preferredOccupations             String[] @default([]) // Corresponds to occupationPreferenceOptions
   contactPreference                String?
-  preferredHasChildrenFromPrevious Boolean? @map("preferred_has_children_from_previous")
 
   // --- New Preference Fields ---
   preferredMaritalStatuses    String[]           @default([]) // Preferred marital status(es) of the partner

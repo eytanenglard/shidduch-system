@@ -60,7 +60,6 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   about?: string | null;
   shomerNegiah?: boolean | null;
   profileHeadline?: string | null;
-  humorStory?: string | null;
   inspiringCoupleStory?: string | null;
   influentialRabbi?: string | null;
   religiousJourney?: ReligiousJourney | null; 
@@ -123,7 +122,6 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   preferredCharacterTraits: string[]; // UserProfile was missing this
   preferredHobbies: string[]; // UserProfile was missing this
   preferredAliyaStatus?: string | null;
- preferredHasChildrenFromPrevious?: boolean | null; // Added this as it was in the error message from before
 preferredReligiousJourneys: ReligiousJourney[]; 
   // Management fields
   isProfileVisible: boolean; // from PrismaProfile
@@ -223,7 +221,6 @@ export interface User extends DefaultUser {
   images: UserImage[];
   questionnaireResponses: QuestionnaireResponse[];
       questionnaireCompleted?: boolean;
-    hasCompletedOnboarding?: boolean; // <-- הוספה כאן
 
   accounts?: PrismaAccount[];
   redirectUrl?: string;

@@ -3578,7 +3578,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           hasContent:
             !!profile.profileHeadline ||
             !!profile.about ||
-            !!profile.humorStory || // <-- תוכן שהועבר
             (profile.isFriendsSectionVisible &&
               (profile.testimonials || []).filter(
                 (t) => t.status === 'APPROVED'
@@ -4058,18 +4057,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   />
                 </SectionCard>
 
-                {/* 4. שילוב סיפור חוש ההומור שהיה בטאב "צלילה לעומק" */}
-                {profile.humorStory && (
-                  <SectionCard
-                    title={dict.display.content.humorStory.title}
-                    icon={Smile}
-                    variant="default"
-                  >
-                    <p className="italic text-gray-700">
-                      &quot;{profile.humorStory}&quot;
-                    </p>
-                  </SectionCard>
-                )}
+      
 
                 {/* 5. כל התשובות מעולם "אישיות" */}
                 {personalityAnswers.length > 0 && (
@@ -4263,17 +4251,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </p>
                   </SectionCard>
                 )}
-                {profile.humorStory && (
-                  <SectionCard
-                    title={dict.display.content.humorStory.title}
-                    icon={Smile}
-                    variant="default"
-                  >
-                    <p className="italic text-gray-700">
-                      &quot;{profile.humorStory}&quot;
-                    </p>
-                  </SectionCard>
-                )}
+            
               </div>
             </TabsContent>
             {/* Journey Tab - REFACTORED */}

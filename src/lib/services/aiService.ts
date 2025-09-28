@@ -451,10 +451,11 @@ export interface AiNeshamaTechSummary {
  * @returns Promise שמחזיר אובייקט עם טקסט הסיכום, או null במקרה של כישלון.
  */
 export async function generateNeshamaTechSummary(
-  userNarrativeProfile: string
+  userNarrativeProfile: string,
+  locale: 'he' | 'en' = 'he' // קבלת פרמטר שפה עם ערך ברירת מחדל
 ): Promise<AiNeshamaTechSummary | null> {
   console.log(
-    '--- [AI NeshamaTech Summary] Starting summary generation with Gemini API ---'
+    `--- [AI NeshamaTech Summary] Starting DYNAMIC summary generation for locale: ${locale} ---`
   );
 
   if (!userNarrativeProfile) {
@@ -468,22 +469,54 @@ export async function generateNeshamaTechSummary(
     model: 'gemini-1.5-pro-latest',
     generationConfig: {
       responseMimeType: 'application/json',
-      temperature: 0.7, // מעט יותר יצירתיות לטקסט שיווקי
+      temperature: 0.6,
     },
   });
 
-  const prompt = `
-    You are an expert Israeli matchmaker, marketer, and copywriter for NeshamaTech, a premium matchmaking service for the Israeli National-Religious/Academic community.
-    Your task is to write a warm, engaging, and insightful "Introduction Summary" (תקציר היכרות) for a candidate's profile in Hebrew.
-    The summary will be shown to potential matches and serves as the professional, human-touch introduction from the NeshamaTech team.
-    
-    **Your Goal:** Synthesize the provided data into a flowing, compelling narrative of 3-4 short paragraphs. Do NOT just list facts. Weave them into a story that reveals the person's essence. Highlight strengths, core values, and what they seek in a partner. The tone must be authentic, respectful, and professional yet personal.
+  // --- הגדרת פרומפטים נפרדים לכל שפה ---
 
-    **Output Format:** Your entire output MUST be a valid JSON object in Hebrew. Do NOT wrap it in markdown backticks. Output ONLY the raw JSON object with the following structure:
-    {
-      "summaryText": "The full, multi-paragraph summary text in Hebrew."
-    }
-    
+  const hebrewPromptInstructions = `
+    את/ה שדכן/ית מומחה/ית וקופירייטר/ית ב-NeshamaTech, שירות שידוכים יוקרתי לקהילה הדתית-לאומית/אקדמית בישראל. את/ה משלב/ת אינטליגנציה רגשית עמוקה עם יכולות אנליטיות חדות. המשימה שלך היא לכתוב "תקציר היכרות" בעברית – שהוא חם, מרגש, מקצועי ובעל תובנות – עבור מועמד/ת, בהתבסס על פרופיל הנתונים המקיף שלו/ה.
+
+    הסיכום מיועד להצגה בפני התאמות פוטנציאליות. המטרה היא לרקום נרטיב סוחף הלוכד את מהות האדם, מעבר לרשימת עובדות. הטון צריך להיות אותנטי, מכבד, מקצועי, ועם זאת להרגיש אישי וחם.
+
+    **יש לבנות את הפלט מ-3-4 פסקאות נפרדות בעברית, לפי המבנה הבא:**
+
+    1.  **הפורטרט האישי (פתיחה):** פתח/י במשפט סוחף הלוכד את אישיות הליבה של המועמד/ת. שלב/י את שמם עם תכונה מרכזית או שילוב ייחודי שמאפיין אותם.
+    2.  **עמודי התווך של החיים (גוף הסיכום):** בפסקה זו, סנתז/י את המידע על עמודי התווך המרכזיים בחייו/ה (מקצועי/אקדמי, רוחני/ערכי, ואישי/חברתי) וקשר/י ביניהם כדי לספר סיפור על מי הם.
+    3.  **החזון לזוגיות (לקראת סיום):** תאר/י מה הם מחפשים בבן/בת זוג ובחיים המשותפים כחזון לבית שהם שואפים לבנות.
+    4.  **הערת NeshamaTech (סיום אופציונלי):** סיים/י במשפט מקצועי קצר מנקודת המבט של השירות.
+
+    **הנחיות מפתח:** השתמש/י בשפה חיובית ועשירה, הדגש/י סינתזה וחיבור בין נתונים, ושמור/י על טון מקצועי אך נגיש וחם.
+  `;
+
+  const englishPromptInstructions = `
+    You are an expert matchmaker and copywriter at NeshamaTech, a premium matchmaking service for the Israeli National-Religious/Academic community. You blend deep emotional intelligence with sharp analytical skills. Your task is to write an "Introduction Summary" in English – one that is warm, engaging, professional, and insightful – for a candidate, based on their comprehensive profile data.
+
+    This summary is for potential matches. Your goal is to weave a compelling narrative that captures the person's essence, moving beyond a simple list of facts. The tone must be authentic, respectful, and professional, yet feel personal and warm.
+
+    **Structure the output into 3-4 distinct paragraphs in English, following this structure:**
+
+    1.  **The Personal Portrait (Opening):** Start with a compelling sentence that captures the candidate's core personality. Blend their name with a key trait or a unique combination that defines them.
+    2.  **Pillars of Life (Body):** In this paragraph, synthesize information about the main pillars of their life (Professional/Academic, Spiritual/Values, and Personal/Social), connecting the facts to tell a story of who they are.
+    3.  **The Vision for Partnership (Towards the end):** Describe what they are looking for in a life partner and the home they envision building, focusing on shared values and mutual growth.
+    4.  **NeshamaTech's Note (Optional Closing):** Conclude with a brief, professional sentence from the service's perspective.
+
+    **Key Guidelines:** Use positive, rich language. Emphasize synthesis and connection over mere listing. Maintain a professional yet warm and accessible tone.
+  `;
+
+  // בחירה דינמית של הפרומפט ושפת היעד
+  const targetLanguage = locale === 'he' ? 'Hebrew' : 'English';
+  const promptInstructions = locale === 'he' ? hebrewPromptInstructions : englishPromptInstructions;
+
+  const prompt = `
+    ${promptInstructions}
+
+    **Output Format:** Your entire output MUST be a valid JSON object in ${targetLanguage}. Do NOT wrap it in markdown backticks. Output ONLY the raw JSON object with the following structure:
+      {
+        "summaryText": "The full, multi-paragraph summary text in ${targetLanguage}, with paragraphs separated by a newline character (\\n)."
+      }
+
     --- User Profile Narrative for Analysis ---
     ${userNarrativeProfile}
     --- End of User Profile Narrative ---
@@ -496,7 +529,7 @@ export async function generateNeshamaTechSummary(
 
     if (!jsonString) {
       console.error(
-        '[AI NeshamaTech Summary] Gemini API returned an empty response.'
+        `[AI NeshamaTech Summary] Gemini API returned an empty response for locale: ${locale}.`
       );
       return null;
     }
@@ -505,22 +538,36 @@ export async function generateNeshamaTechSummary(
     let cleanJsonString = jsonString;
     if (cleanJsonString.startsWith('```json')) {
       cleanJsonString = cleanJsonString.slice(7, -3).trim();
+    } else if (cleanJsonString.startsWith('```')) {
+      cleanJsonString = cleanJsonString.slice(3, -3).trim();
     }
     
-    const parsedJson = JSON.parse(cleanJsonString) as AiNeshamaTechSummary;
-    console.log(
-      '--- [AI NeshamaTech Summary] Successfully received and parsed summary from Gemini API. ---'
-    );
-    return parsedJson;
+    try {
+      const parsedJson = JSON.parse(cleanJsonString) as AiNeshamaTechSummary;
+      console.log(
+        `--- [AI NeshamaTech Summary] Successfully received and parsed summary from Gemini API for locale: ${locale}. ---`
+      );
+      return parsedJson;
+    } catch (parseError) {
+      console.error(
+        `[AI NeshamaTech Summary] Failed to parse JSON response for locale: ${locale}.`,
+        parseError
+      );
+      console.error('--- RAW AI RESPONSE THAT FAILED PARSING ---');
+      console.error(jsonString);
+      console.error('--- END OF RAW AI RESPONSE ---');
+      throw new Error('Invalid JSON response from AI service.');
+    }
 
   } catch (error) {
     console.error(
-      '[AI NeshamaTech Summary] Error during summary generation:',
+      `[AI NeshamaTech Summary] Error during summary generation for locale: ${locale}:`,
       error
     );
     return null;
   }
 }
+
 
 // ייצוא כל הפונקציות כאובייקט אחד
 const aiService = {
