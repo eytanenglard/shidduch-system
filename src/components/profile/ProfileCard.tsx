@@ -140,6 +140,7 @@ import type {
   HeadCoveringType,
   KippahType,
   FriendTestimonial,
+  WorldId,
 } from '@/types/next-auth';
 import { languageOptions } from '@/lib/languageOptions';
 import type { Candidate } from '@/components/matchmaker/new/types/candidates';
@@ -152,7 +153,8 @@ const NeshamaTechSummary: React.FC<{
   profile: UserProfile;
   dict: ProfileCardDisplayDict;
   THEME: ThemeType;
-}> = ({ profile, dict, THEME }) => {
+  direction: 'ltr' | 'rtl';
+}> = ({ profile, dict, THEME, direction }) => {
   if (!profile.isNeshamaTechSummaryVisible || !profile.manualEntryText) {
     return null;
   }
@@ -167,7 +169,11 @@ const NeshamaTechSummary: React.FC<{
       gradient={THEME.colors.primary.gold}
     >
       <div className="text-center italic p-4 bg-amber-50/50 rounded-lg border border-amber-200/50">
-        <p className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+        <p
+          dir={direction}
+          className="whitespace-pre-wrap text-gray-800 leading-relaxed"
+        >
+          {' '}
           {profile.manualEntryText}
         </p>
       </div>
@@ -210,7 +216,8 @@ const FriendTestimonialsSection: React.FC<{
   profile: UserProfile;
   dict: ProfileCardDisplayDict;
   THEME: ThemeType;
-}> = ({ profile, dict, THEME }) => {
+  direction: 'ltr' | 'rtl';
+}> = ({ profile, dict, THEME, direction }) => {
   const approvedTestimonials = (profile.testimonials || []).filter(
     (t) => t.status === 'APPROVED'
   );
@@ -247,7 +254,8 @@ const FriendTestimonialsSection: React.FC<{
             &quot;{testimonial.content}&quot;
           </blockquote>
           <div className="flex items-center justify-between mt-3 pt-3 border-t">
-            <p className="text-sm font-semibold text-gray-800">
+            <p className="text-sm font-semibold text-gray-800 text-start">
+              {' '}
               - {testimonial.authorName},{' '}
               <span className="font-normal text-gray-600">
                 {testimonial.relationship}
@@ -1953,7 +1961,10 @@ const SectionCard: React.FC<{
   // --- START MODIFICATION ---
   // If a gradient is provided for elegant or romantic variants, use it for the icon background.
   const iconBgClass =
-    (variant === 'elegant' || variant === 'romantic' || variant === 'highlight') && gradient
+    (variant === 'elegant' ||
+      variant === 'romantic' ||
+      variant === 'highlight') &&
+    gradient
       ? `bg-gradient-to-r ${gradient} text-white shadow-md`
       : currentVariant.iconBg;
   // --- END MODIFICATION ---
@@ -2562,22 +2573,31 @@ const ProfileHeader: React.FC<{
                           compact={compact}
                         />
                       )}
-                      {profile.religiousLevel && (
-                        <KeyFactCard
-                          icon={BookMarked}
-                          label={dict.keyFacts.outlook}
-                          value={
-                            formatEnumValue(
+                      {(() => {
+                        const religiousLevelData = profile.religiousLevel
+                          ? formatEnumValue(
                               profile.religiousLevel,
                               religiousLevelMap,
                               '',
                               true
-                            ).shortLabel || ''
-                          }
-                          color="purple"
-                          compact={compact}
-                        />
-                      )}
+                            )
+                          : null;
+                        if (
+                          religiousLevelData &&
+                          religiousLevelData.shortLabel?.trim()
+                        ) {
+                          return (
+                            <KeyFactCard
+                              icon={BookMarked}
+                              label={dict.keyFacts.outlook}
+                              value={religiousLevelData.shortLabel}
+                              color="purple"
+                              compact={compact}
+                            />
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                     <ScrollBar orientation="horizontal" />
                   </ScrollArea>
@@ -2602,21 +2622,30 @@ const ProfileHeader: React.FC<{
                       compact={compact}
                     />
                   )}
-                  {profile.religiousLevel && (
-                    <KeyFactCard
-                      icon={BookMarked}
-                      label={dict.keyFacts.outlook}
-                      value={
-                        formatEnumValue(
+                  {(() => {
+                    const religiousLevelData = profile.religiousLevel
+                      ? formatEnumValue(
                           profile.religiousLevel,
                           religiousLevelMap,
                           ''
-                        ).label
-                      }
-                      color="purple"
-                      compact={compact}
-                    />
-                  )}
+                        )
+                      : null;
+                    if (
+                      religiousLevelData &&
+                      religiousLevelData.label?.trim()
+                    ) {
+                      return (
+                        <KeyFactCard
+                          icon={BookMarked}
+                          label={dict.keyFacts.outlook}
+                          value={religiousLevelData.label}
+                          color="purple"
+                          compact={compact}
+                        />
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               )}
             </div>
@@ -3473,16 +3502,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   // הקוד המתוקן
   const getVisibleAnswers = useCallback(
-    (world: keyof NonNullable<QuestionnaireResponse['formattedAnswers']>) => {
-      // התיקון: המרת המפתח לאותיות גדולות (UPPERCASE)
-      const worldKey = world.toUpperCase() as keyof NonNullable<
-        QuestionnaireResponse['formattedAnswers']
-      >;
+    (world: WorldId) => {
+      // <-- שימוש בטיפוס המתוקן שלנו
+      // ניגשים ישירות למפתח הנכון, ללא המרות מיותרות
+      if (!questionnaire?.formattedAnswers?.[world]) return [];
 
-      // שימוש במפתח המתוקן כדי לגשת לנתונים
-      if (!questionnaire?.formattedAnswers?.[worldKey]) return [];
-
-      return questionnaire.formattedAnswers[worldKey].filter((a) => {
+      return questionnaire.formattedAnswers[world].filter((a) => {
         const hasContent = isRawValueAnswered(a.rawValue);
         if (!hasContent) return false;
         if (viewMode === 'matchmaker') return true;
@@ -3493,23 +3518,23 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   );
 
   const personalityAnswers = useMemo(
-    () => getVisibleAnswers('personality'),
+    () => getVisibleAnswers('PERSONALITY'),
     [getVisibleAnswers]
   );
   const valuesAnswers = useMemo(
-    () => getVisibleAnswers('values'),
+    () => getVisibleAnswers('VALUES'),
     [getVisibleAnswers]
   );
   const relationshipAnswers = useMemo(
-    () => getVisibleAnswers('relationship'),
+    () => getVisibleAnswers('RELATIONSHIP'),
     [getVisibleAnswers]
   );
   const partnerAnswers = useMemo(
-    () => getVisibleAnswers('partner'),
+    () => getVisibleAnswers('PARTNER'),
     [getVisibleAnswers]
   );
   const religionAnswers = useMemo(
-    () => getVisibleAnswers('religion'),
+    () => getVisibleAnswers('RELIGION'),
     [getVisibleAnswers]
   );
 
@@ -4039,25 +4064,31 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 </SectionCard>
 
-                {/* 3. חלק ההמלצות מופיע כאן */}
-                <SectionCard
-                  title={displayDict.content.recommendationsTitle.replace(
-                    '{{name}}',
-                    profile.user?.firstName || ''
+                {/* --- START OF CHANGE --- */}
+                {/* 3. חלק ההמלצות מופיע כאן (עם תנאי הצגה) */}
+                {profile.isFriendsSectionVisible &&
+                  (profile.testimonials || []).filter(
+                    (t) => t.status === 'APPROVED'
+                  ).length > 0 && (
+                    <SectionCard
+                      title={displayDict.content.recommendationsTitle.replace(
+                        '{{name}}',
+                        profile.user?.firstName || ''
+                      )}
+                      subtitle={displayDict.content.recommendationsSubtitle}
+                      icon={MessageSquareQuote}
+                      variant="default"
+                      gradient={THEME.colors.primary.light}
+                    >
+                      <FriendTestimonialsSection
+                        profile={profile}
+                        dict={displayDict}
+                        THEME={THEME}
+                        direction={direction}
+                      />
+                    </SectionCard>
                   )}
-                  subtitle={displayDict.content.recommendationsSubtitle}
-                  icon={MessageSquareQuote}
-                  variant="default"
-                  gradient={THEME.colors.primary.light}
-                >
-                  <FriendTestimonialsSection
-                    profile={profile}
-                    dict={displayDict}
-                    THEME={THEME}
-                  />
-                </SectionCard>
-
-      
+                {/* --- END OF CHANGE --- */}
 
                 {/* 5. כל התשובות מעולם "אישיות" */}
                 {personalityAnswers.length > 0 && (
@@ -4215,12 +4246,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   profile={profile}
                   dict={displayDict}
                   THEME={THEME}
+                  direction={direction}
                 />
               </SectionCard>
             </TabsContent>
             <TabsContent value="deepDive" className="mt-0 max-w-full min-w-0">
               <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
-                {profile.inspiringCoupleStory && (
+                {profile.inspiringCoupleStory?.trim() && (
                   <SectionCard
                     title={displayDict.content.myRoleModelForRelationship}
                     subtitle={displayDict.content.theCoupleThatInspiresMe}
@@ -4251,7 +4283,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </p>
                   </SectionCard>
                 )}
-            
               </div>
             </TabsContent>
             {/* Journey Tab - REFACTORED */}
@@ -4506,22 +4537,31 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     gradient={THEME.colors.primary.gold}
                   >
                     <div className="space-y-4 sm:space-y-5">
-                      {profile.religiousLevel && (
-                        <DetailItem
-                          icon={BookMarked}
-                          label="השקפת העולם שמנחה אותי"
-                          value={
-                            formatEnumValue(
+                      {(() => {
+                        const religiousLevelData = profile.religiousLevel
+                          ? formatEnumValue(
                               profile.religiousLevel,
                               religiousLevelMap,
                               ''
-                            ).label
-                          }
-                          variant="highlight"
-                          textAlign="start"
-                          placeholder=""
-                        />
-                      )}
+                            )
+                          : null;
+                        if (
+                          religiousLevelData &&
+                          religiousLevelData.label?.trim()
+                        ) {
+                          return (
+                            <DetailItem
+                              icon={BookMarked}
+                              label="השקפת העולם שמנחה אותי"
+                              value={religiousLevelData.label}
+                              variant="highlight"
+                              textAlign="start"
+                              placeholder=""
+                            />
+                          );
+                        }
+                        return null;
+                      })()}
                       {profile.religiousJourney && (
                         <DetailItem
                           icon={Compass}
@@ -5136,6 +5176,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               profile={profile}
               dict={displayDict}
               THEME={THEME}
+              direction={direction}
             />
 
             {profile.isAboutVisible && profile.about && (
@@ -5180,10 +5221,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               ).length > 0 && (
                 <SectionCard
                   title={dict.display.content.friendTestimonials.title.replace(
-                    // <-- התחלנו את השינוי כאן
                     '{{name}}',
                     profile.user?.firstName || ''
-                  )} // <-- סיימנו את השינוי כאן
+                  )}
                   subtitle={dict.display.content.friendTestimonials.focusSubtitle.replace(
                     '{{count}}',
                     (profile.testimonials || [])
@@ -5200,7 +5240,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       className="w-full"
                       onClick={() => {
                         setMobileViewLayout('detailed');
-                        setActiveTab('recommendations');
+                        setActiveTab('essence'); // Changed from 'recommendations' to 'essence' to ensure it goes to the right place
                       }}
                     >
                       {dict.display.content.friendTestimonials.viewButton}
@@ -5208,6 +5248,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 </SectionCard>
               )}
+            {/* --- END: VERIFY THIS CODE BLOCK --- */}
 
             {profile.about && (
               <SectionCard
@@ -5256,24 +5297,35 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               className="min-w-0 max-w-full"
             >
               <div className="grid grid-cols-1 gap-2 sm:gap-3 min-w-0 max-w-full">
-                {profile.religiousLevel && (
-                  <DetailItem
-                    icon={BookMarked}
-                    label={dict.display.keyFacts.outlook}
-                    value={
-                      formatEnumValue(
+                {(() => {
+                  const religiousLevelData = profile.religiousLevel
+                    ? formatEnumValue(
                         profile.religiousLevel,
                         religiousLevelMap,
                         displayDict.placeholders.willDiscover
-                      ).label
-                    }
-                    variant="highlight" // <-- כתוב "highlight" במקום "elegant"
-                    size="sm"
-                    useMobileLayout={true}
-                    textAlign="center"
-                    placeholder={displayDict.placeholders.willDiscover}
-                  />
-                )}
+                      )
+                    : null;
+                  if (
+                    religiousLevelData &&
+                    religiousLevelData.label?.trim() &&
+                    religiousLevelData.label !==
+                      displayDict.placeholders.willDiscover
+                  ) {
+                    return (
+                      <DetailItem
+                        icon={BookMarked}
+                        label={dict.display.keyFacts.outlook}
+                        value={religiousLevelData.label}
+                        variant="highlight"
+                        size="sm"
+                        useMobileLayout={true}
+                        textAlign="center"
+                        placeholder={displayDict.placeholders.willDiscover}
+                      />
+                    );
+                  }
+                  return null;
+                })()}
                 {profile.shomerNegiah !== null &&
                   profile.shomerNegiah !== undefined && (
                     <DetailItem
@@ -5596,6 +5648,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     profile={profile}
                     dict={displayDict}
                     THEME={THEME}
+                    direction={direction}
                   />
                   <SectionCard
                     title={displayDict.gallery.title.replace(

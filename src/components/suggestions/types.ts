@@ -2,13 +2,32 @@
 
 import type {
   MatchSuggestion,
-  Profile,
+  Profile as PrismaProfile, // שינינו את השם כדי למנוע התנגשות
   User,
   UserImage,
   QuestionnaireResponse as PrismaQuestionnaireResponse,
+  TestimonialStatus, // ייבוא הטיפוסים הנדרשים
+  SubmissionSource,   // ייבוא הטיפוסים הנדרשים
 } from '@prisma/client';
 
-// --- הוספה חדשה ---
+// 1. הגדרת טיפוס עבור המלצת חבר בודדת
+export interface FriendTestimonial {
+  id: string;
+  authorName: string;
+  relationship: string;
+  content: string;
+  authorPhone?: string | null;
+  isPhoneVisibleToMatch: boolean;
+  status: TestimonialStatus;
+  submittedBy: SubmissionSource;
+  createdAt: Date;
+}
+
+// 2. הגדרת הטיפוס UserProfile כך שירחיב את הטיפוס של פריזמה ויוסיף את ההמלצות
+export interface UserProfile extends PrismaProfile {
+  testimonials?: FriendTestimonial[]; // הוספנו את השדה החסר כאן
+}
+
 // הגדרת טיפוס מרכזי לעולמות השאלון
 export type WorldId =
   | 'values'
@@ -17,13 +36,9 @@ export type WorldId =
   | 'partner'
   | 'religion';
 
-// This type now accurately reflects the structure of Prisma's Profile model.
-export type UserProfile = Profile;
-
-// --- שינוי קל להוספת טיפוס ברור יותר ---
 export type QuestionnaireResponse = PrismaQuestionnaireResponse;
 
-// PartyInfo now includes fields from both User and Profile, creating a complete picture.
+// PartyInfo עכשיו ישתמש ב-UserProfile המעודכן שלנו
 export interface PartyInfo {
   // Fields from User model
   id: string;
@@ -33,12 +48,11 @@ export interface PartyInfo {
   isProfileComplete: boolean;
 
   // Relation to Profile (which can be null)
-  profile: UserProfile | null;
+  profile: UserProfile | null; // כאן יבוא לידי ביטוי התיקון
 
   // Relation to Images (which is a full UserImage array)
   images: UserImage[];
 
-  // --- שינוי: שימוש בטיפוס המדויק ---
   questionnaireResponses?: QuestionnaireResponse[];
 }
 
@@ -50,7 +64,6 @@ export interface StatusHistoryItem {
   createdAt: Date | string;
 }
 
-// This now correctly expects PartyInfo which can have a null profile.
 export interface ExtendedMatchSuggestion
   extends Omit<MatchSuggestion, 'firstParty' | 'secondParty' | 'matchmaker'> {
   matchmaker: {

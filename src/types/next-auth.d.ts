@@ -34,7 +34,7 @@ export interface FriendTestimonial {
   submittedBy: SubmissionSource;
   createdAt: Date;
 }
-export type WorldId = 'values' | 'personality' | 'relationship' | 'partner' | 'religion';
+export type WorldId = 'VALUES' | 'PERSONALITY' | 'RELATIONSHIP' | 'PARTNER' | 'RELIGION';
 
 export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' | 'height' | 'additionalLanguages' | 'profileCharacterTraits' | 'profileHobbies' | 'preferredReligiousLevels' | 'preferredLocations' | 'preferredEducation' | 'preferredOccupations' | 'preferredMaritalStatuses' | 'preferredOrigins' | 'preferredServiceTypes' | 'preferredHeadCoverings' | 'preferredKippahTypes' | 'preferredCharacterTraits' | 'preferredHobbies' | 'availabilityStatus' | 'isProfileVisible' | 'createdAt' | 'updatedAt'| 'birthDateIsApproximate'> {
   // Overriding PrismaProfile fields with more specific or frontend-friendly types
@@ -78,7 +78,6 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
  manualEntryText?: string | null; 
    isAboutVisible?: boolean | null;
   isFriendsSectionVisible?: boolean | null;
-  isNeshamaTechSummaryVisible?: boolean | null;
     testimonials?: FriendTestimonial[];
 
   // Array fields - ensure they default to empty arrays if not present

@@ -452,7 +452,7 @@ export interface AiNeshamaTechSummary {
  */
 export async function generateNeshamaTechSummary(
   userNarrativeProfile: string,
-  locale: 'he' | 'en' = 'he' // קבלת פרמטר שפה עם ערך ברירת מחדל
+  locale: 'he' | 'en' = 'he'
 ): Promise<AiNeshamaTechSummary | null> {
   console.log(
     `--- [AI NeshamaTech Summary] Starting DYNAMIC summary generation for locale: ${locale} ---`
@@ -476,38 +476,55 @@ export async function generateNeshamaTechSummary(
   // --- הגדרת פרומפטים נפרדים לכל שפה ---
 
   const hebrewPromptInstructions = `
-    את/ה שדכן/ית מומחה/ית וקופירייטר/ית ב-NeshamaTech, שירות שידוכים יוקרתי לקהילה הדתית-לאומית/אקדמית בישראל. את/ה משלב/ת אינטליגנציה רגשית עמוקה עם יכולות אנליטיות חדות. המשימה שלך היא לכתוב "תקציר היכרות" בעברית – שהוא חם, מרגש, מקצועי ובעל תובנות – עבור מועמד/ת, בהתבסס על פרופיל הנתונים המקיף שלו/ה.
+    את/ה שדכן/ית מומחה/ית וקופירייטר/ית ב-NeshamaTech, שירות שידוכים המשלב טכנולוגיה מתקדמת עם ליווי אנושי וחם. את/ה לא רק כותב/ת, את/ה מספר/ת סיפורים שרואה את הנשמה (Neshama) שמאחורי הנתונים. המשימה שלך היא לזקק את פרופיל הנתונים המקיף של המועמד/ת ל"תקציר היכרות" ('דבר המערכת') – טקסט פורטרט בן 3-4 פסקאות, שהוא אישי, מעורר כבוד, ומצית סקרנות אמיתית אצל התאמה פוטנציאלית. הטון הוא שיא של מקצועיות, חום, ענווה ואותנטיות.
 
-    הסיכום מיועד להצגה בפני התאמות פוטנציאליות. המטרה היא לרקום נרטיב סוחף הלוכד את מהות האדם, מעבר לרשימת עובדות. הטון צריך להיות אותנטי, מכבד, מקצועי, ועם זאת להרגיש אישי וחם.
+    **עקרונות מנחים לסינתזה עמוקה (החלק החשוב ביותר):**
+    המטרה שלך היא לא לדווח על עובדות, אלא לחבר אותן לנרטיב משמעותי. חפש/י את החוט המקשר בין ה"עולמות" השונים בפרופיל:
+    - **חיבור אישיות-ערכים:** איך תכונות האופי של המועמד/ת (עולם האישיות) באות לידי ביטוי בסדרי העדיפויות שהגדיר/ה (עולם הערכים)?
+    - **חיבור סיפור-חזון:** כיצד מסלול החיים (השכלה, קריירה, מסע דתי) עיצב את מה שהם מחפשים בזוגיות ובפרטנר (עולמות הזוגיות והפרטנר)?
+    - **איתור "המתח היצירתי":** חפש/י שילובים ייחודיים ומעניינים. למשל: "איש הייטק עם נשמה של אמן", "אשת אקדמיה שמוצאת את הרוחניות שלה בטבע", "קצין קרבי שמנגן ניגונים חסידיים". אלו היהלומים שיוצרים סיפור בלתי נשכח.
 
-    **יש לבנות את הפלט מ-3-4 פסקאות נפרדות בעברית, לפי המבנה הבא:**
+    **מבנה התקציר (נוסחת NeshamaTech):**
 
-    1.  **הפורטרט האישי (פתיחה):** פתח/י במשפט סוחף הלוכד את אישיות הליבה של המועמד/ת. שלב/י את שמם עם תכונה מרכזית או שילוב ייחודי שמאפיין אותם.
-    2.  **עמודי התווך של החיים (גוף הסיכום):** בפסקה זו, סנתז/י את המידע על עמודי התווך המרכזיים בחייו/ה (מקצועי/אקדמי, רוחני/ערכי, ואישי/חברתי) וקשר/י ביניהם כדי לספר סיפור על מי הם.
-    3.  **החזון לזוגיות (לקראת סיום):** תאר/י מה הם מחפשים בבן/בת זוג ובחיים המשותפים כחזון לבית שהם שואפים לבנות.
-    4.  **הערת NeshamaTech (סיום אופציונלי):** סיים/י במשפט מקצועי קצר מנקודת המבט של השירות.
+    1.  **הפתיחה (הפורטרט):** פתח/י במשפט אחד, חזק ומדויק, הלוכד קונפליקט פנימי מעניין או שילוב תכונות ייחודי של המועמד/ת. זו הכותרת הבלתי נראית של הפרופיל. (ראה דוגמת "דניאל": קוד לוגי מול סוגיה תלמודית).
+    2.  **מסלול החיים (הנרטיב):** בפסקה זו, ארג/י את נקודות המפתח בחייו/ה (לימודים, צבא, קריירה, רקע דתי) לסיפור קוהרנטי של צמיחה ותכלית. הראה/י כיצד אירוע אחד הוביל לאחר, ואיך כל שלב עיצב את מי שהם היום. אל תציין/י עובדות, הסבר/י את משמעותן.
+    3.  **החזון לזוגיות (השאיפה):** תאר/י באופן חי וברור את הבית והשותפות שהם שואפים לבנות, בהתבסס על תשובותיהם בעולמות הזוגיות והפרטנר. השתמש/י בשפה של ערכים, חזון וצמיחה משותפת, לא ברשימת מכולת של דרישות.
+    4.  **חותמת המערכת (הערת NeshamaTech):** סיים/י במשפט מקצועי אחד, מנקודת המבט שלנו כשדכנים, המסכם תכונה מרכזית או שילוב נדיר שהופך את המועמד/ת למיוחד/ת בעינינו. (ראה דוגמת "דניאל": "אנו מתרשמים מהשילוב הנדיר של רצינות, עומק תורני ויכולת ביצוע...").
 
-    **הנחיות מפתח:** השתמש/י בשפה חיובית ועשירה, הדגש/י סינתזה וחיבור בין נתונים, ושמור/י על טון מקצועי אך נגיש וחם.
+    **כללי ברזל (עשה ואל תעשה):**
+    - **עשה:** השתמש/י בשפה חיובית, עשירה ומכבדת.
+    - **עשה:** חבר/י את הנקודות, סנתז/י ולא רק סכם/י.
+    - **אל תעשה:** אל תשתמש/י בקלישאות ("בחור/ה איכותי/ת", "טוב/ת לב"). הראה/י את האיכות, אל תצהיר/י עליה.
+    - **אל תעשה:** אל תפרט/י רשימות של תכונות או תחביבים. שלב/י אותם בתוך הסיפור.
   `;
 
   const englishPromptInstructions = `
-    You are an expert matchmaker and copywriter at NeshamaTech, a premium matchmaking service for the Israeli National-Religious/Academic community. You blend deep emotional intelligence with sharp analytical skills. Your task is to write an "Introduction Summary" in English – one that is warm, engaging, professional, and insightful – for a candidate, based on their comprehensive profile data.
+    You are an expert matchmaker and copywriter at NeshamaTech, a service that blends advanced technology with warm, human guidance. You are not just a writer; you are a storyteller who sees the soul (Neshama) behind the data. Your mission is to distill a candidate's comprehensive profile into an "Introduction Summary" – a 3-4 paragraph portrait that is personal, respectful, and sparks genuine curiosity in a potential match. The tone is the pinnacle of professionalism, warmth, humility, and authenticity.
 
-    This summary is for potential matches. Your goal is to weave a compelling narrative that captures the person's essence, moving beyond a simple list of facts. The tone must be authentic, respectful, and professional, yet feel personal and warm.
+    **Guiding Principles for Deep Synthesis (The Most Important Part):**
+    Your goal is not to report facts, but to connect them into a meaningful narrative. Look for the thread that connects the different "Worlds" of the profile:
+    - **Personality-Values Connection:** How do the candidate's character traits (Personality World) manifest in their stated priorities (Values World)?
+    - **Story-Vision Connection:** How has their life path (education, career, spiritual journey) shaped what they seek in a relationship and a partner (Relationship & Partner Worlds)?
+    - **Find the "Creative Tension":** Look for unique and interesting combinations. For example: "A high-tech professional with an artist's soul," "An academic who finds her spirituality in nature," "A combat officer who plays soulful Hasidic melodies." These are the gems that create an unforgettable story.
 
-    **Structure the output into 3-4 distinct paragraphs in English, following this structure:**
+    **The Summary Structure (The NeshamaTech Formula):**
 
-    1.  **The Personal Portrait (Opening):** Start with a compelling sentence that captures the candidate's core personality. Blend their name with a key trait or a unique combination that defines them.
-    2.  **Pillars of Life (Body):** In this paragraph, synthesize information about the main pillars of their life (Professional/Academic, Spiritual/Values, and Personal/Social), connecting the facts to tell a story of who they are.
-    3.  **The Vision for Partnership (Towards the end):** Describe what they are looking for in a life partner and the home they envision building, focusing on shared values and mutual growth.
-    4.  **NeshamaTech's Note (Optional Closing):** Conclude with a brief, professional sentence from the service's perspective.
+    1.  **The Overture (The Portrait):** Open with a single, powerful, and precise sentence that captures an interesting internal conflict or a unique combination of traits. This is the profile's invisible headline. (Reference the "Daniel" example: logical code vs. Talmudic discourse).
+    2.  **The Life Path (The Narrative):** In this paragraph, weave the key points of their life (studies, army service, career, religious background) into a coherent story of growth and purpose. Show how one event led to the next, and how each stage shaped who they are today. Don't state facts; explain their significance.
+    3.  **The Vision for Partnership (The Aspiration):** Vividly describe the home and partnership they aspire to build, based on their answers in the Relationship and Partner worlds. Use the language of values, vision, and mutual growth, not a grocery list of requirements.
+    4.  **The System's Stamp (NeshamaTech's Note):** Conclude with a single professional sentence, from our perspective as matchmakers, summarizing a key trait or a rare combination that makes the candidate special in our eyes. (Reference the "Daniel" example: "we are impressed by the rare combination of seriousness, Torah depth, and executive ability...").
 
-    **Key Guidelines:** Use positive, rich language. Emphasize synthesis and connection over mere listing. Maintain a professional yet warm and accessible tone.
+    **Golden Rules (Dos and Don'ts):**
+    - **Do:** Use positive, rich, and respectful language.
+    - **Do:** Connect the dots. Synthesize, don't just summarize.
+    - **Don't:** Use clichés ("a quality person," "kind-hearted"). Show the quality, don't just state it.
+    - **Don't:** List traits or hobbies. Weave them into the story.
   `;
 
   // בחירה דינמית של הפרומפט ושפת היעד
   const targetLanguage = locale === 'he' ? 'Hebrew' : 'English';
-  const promptInstructions = locale === 'he' ? hebrewPromptInstructions : englishPromptInstructions;
+  const promptInstructions =
+    locale === 'he' ? hebrewPromptInstructions : englishPromptInstructions;
 
   const prompt = `
     ${promptInstructions}
@@ -541,7 +558,7 @@ export async function generateNeshamaTechSummary(
     } else if (cleanJsonString.startsWith('```')) {
       cleanJsonString = cleanJsonString.slice(3, -3).trim();
     }
-    
+
     try {
       const parsedJson = JSON.parse(cleanJsonString) as AiNeshamaTechSummary;
       console.log(
@@ -558,7 +575,6 @@ export async function generateNeshamaTechSummary(
       console.error('--- END OF RAW AI RESPONSE ---');
       throw new Error('Invalid JSON response from AI service.');
     }
-
   } catch (error) {
     console.error(
       `[AI NeshamaTech Summary] Error during summary generation for locale: ${locale}:`,
@@ -567,6 +583,7 @@ export async function generateNeshamaTechSummary(
     return null;
   }
 }
+
 
 
 // ייצוא כל הפונקציות כאובייקט אחד

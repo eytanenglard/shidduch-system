@@ -27,11 +27,11 @@ export type DbWorldKey =
   | 'religionAnswers';
 
 export const KEY_MAPPING: Record<WorldId, DbWorldKey> = {
-  values: 'valuesAnswers',
-  personality: 'personalityAnswers',
-  relationship: 'relationshipAnswers',
-  partner: 'partnerAnswers',
-  religion: 'religionAnswers'
+  VALUES: 'valuesAnswers',
+  PERSONALITY: 'personalityAnswers',
+  RELATIONSHIP: 'relationshipAnswers',
+  PARTNER: 'partnerAnswers',
+  RELIGION: 'religionAnswers'
 };
 
 type JsonAnswerData = {

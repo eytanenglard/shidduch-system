@@ -426,7 +426,7 @@
     "tooltips": {
       "headline": "Write one catchy sentence that sums you up or what you're looking for. e.g., 'Engineer by day, dreamer by night.'",
       "about": "This is your place to shine! Tell us about yourself freely: what you do, significant milestones, and of course, your personality. A minimum of {{count}} characters helps create a richer picture.",
-      "inspiringCouple": "Think of a couple (from your life, history, etc.) whose relationship inspires you. What do you learn from them about partnership?",
+      "inspiringCouple": "This story helps us understand your vision for a relationship. Think of a couple whose connection inspires you—from your personal life, history, or stories. What about their bond resonates with you and what does it teach you about love?",
       "influentialRabbi": "Tell us about a figure (rabbi, thinker, teacher) who has shaped your worldview. This helps us understand your spiritual and intellectual side.",
       "privateNotes": "Share anything important for us to know that you don't want on your public profile. e.g., sensitive topics, very specific preferences, or additional background."
     },
@@ -899,6 +899,8 @@
         "genderPlaceholder": "Select gender",
         "birthDateLabel": "Date of Birth",
         "heightLabel": "Height (cm)",
+          "heightUnit": "cm",
+
         "heightPlaceholder": "e.g., 175",
         "cityLabel": "City of Residence",
         "cityPlaceholder": "Start typing a city name...",
@@ -966,7 +968,7 @@
         "aboutPlaceholder": "Describe yourself, what makes you unique, and what's important to you...",
         "aboutEmpty": "No personal description provided.",
         "inspiringCoupleLabel": "A Couple That Inspires Me",
-        "inspiringCouplePlaceholder": "Who is the couple and what do you admire about their relationship...",
+        "inspiringCouplePlaceholder": "Who is the couple whose relationship serves as a model for you? Share what you learn from them about communication, facing challenges together, and true partnership...",
         "inspiringCoupleEmpty": "No inspiring couple specified.",
         "privateNotesLabel": "Private Notes for the Matchmaker",
         "privateNotesPlaceholder": "Anything else you feel is important for your matchmaker to know...",

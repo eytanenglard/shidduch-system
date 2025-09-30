@@ -1846,6 +1846,8 @@ export type ProfileSectionDict = {
       genderPlaceholder: string;
       birthDateLabel: string;
       heightLabel: string;
+        heightUnit: string; // <--- הוסף שורה זו
+
       heightPlaceholder: string;
       cityLabel: string;
       cityPlaceholder: string;

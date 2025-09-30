@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useParams } from 'next/navigation'; // ✨ 1. הוסף ייבוא של useParams
+import { useParams } from 'next/navigation';
 
 import {
   History,
@@ -41,7 +41,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-// ✅ 1. ייבוא הטיפוסים הנדרשים עבור המילונים
 import type {
   SuggestionsDictionary,
   ProfileCardDict,
@@ -248,7 +247,6 @@ const WelcomeStats: React.FC<{
   );
 };
 
-// ✅ 2. עדכון הממשק לקבל props נפרדים
 interface MatchSuggestionsContainerProps {
   userId: string;
   className?: string;
@@ -323,7 +321,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           activeData.suggestions.length > activeSuggestions.length
         ) {
           setHasNewSuggestions(true);
-          // ✅ 3. שימוש ב-suggestionsDict במקום dict
           toast.success(suggestionsDict.container.toasts.newSuggestionsTitle, {
             description:
               suggestionsDict.container.toasts.newSuggestionsDescription,
@@ -334,7 +331,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         setActiveSuggestions(activeData.suggestions);
         setHistorySuggestions(historyData.suggestions);
       } catch (error) {
-        // ✅ 3. שימוש ב-suggestionsDict במקום dict
         const errorMessage =
           error instanceof Error
             ? error.message
@@ -353,7 +349,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         setIsRefreshing(false);
       }
     },
-    // ✅ 3. שימוש ב-suggestionsDict במקום dict
     [activeSuggestions.length, suggestionsDict]
   );
 
@@ -378,7 +373,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
         await fetchSuggestions(false);
 
-        // ✅ 3. שימוש ב-suggestionsDict במקום dict
         const statusMessages: Record<string, string> = {
           FIRST_PARTY_APPROVED:
             suggestionsDict.container.toasts.approvedSuccess,
@@ -408,7 +402,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           { description }
         );
       } catch (error) {
-        // ✅ 3. שימוש ב-suggestionsDict במקום dict
         const errorMessage =
           error instanceof Error
             ? error.message
@@ -493,14 +486,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
   const handleRefresh = useCallback(async () => {
     await fetchSuggestions(false);
-    // ✅ 3. שימוש ב-suggestionsDict במקום dict
     toast.success(suggestionsDict.container.toasts.refreshSuccessTitle, {
       description: suggestionsDict.container.toasts.refreshSuccessDescription,
     });
   }, [fetchSuggestions, suggestionsDict]);
 
   if (isLoading) {
-    // ✅ 3. שימוש ב-suggestionsDict במקום dict
     return <LoadingSkeleton dict={suggestionsDict.container.loading} />;
   }
 
@@ -517,7 +508,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           activeSuggestions={activeSuggestions}
           historySuggestions={historySuggestions}
           userId={userId}
-          // ✅ 3. שימוש ב-suggestionsDict במקום dict
           dict={suggestionsDict.container.stats}
         />
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden">
@@ -530,7 +520,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onClick={handleRefresh}
                   disabled={isRefreshing}
                   className="rounded-full h-10 w-10 hover:bg-cyan-100 transition-colors"
-                  // ✅ 3. שימוש ב-suggestionsDict במקום dict
                   aria-label={suggestionsDict.container.main.refreshAriaLabel}
                 >
                   <RefreshCw
@@ -542,7 +531,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 </Button>
                 {hasNewSuggestions && (
                   <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse">
-                    <Bell className="w-3 h-3 ml-1" />
+                    <Bell
+                      className={cn(
+                        'w-3 h-3',
+                        locale === 'he' ? 'ml-1' : 'mr-1'
+                      )}
+                    />
                     {suggestionsDict.container.main.newSuggestions}
                   </Badge>
                 )}
@@ -559,7 +553,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
-              dir="rtl"
+              dir={locale === 'he' ? 'rtl' : 'ltr'}
               className="space-y-6"
             >
               <div className="flex justify-center">
@@ -606,9 +600,11 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 <Alert
                   variant="destructive"
                   className="border-red-200 bg-red-50"
-                  dir="rtl"
+                  dir={locale === 'he' ? 'rtl' : 'ltr'}
                 >
-                  <AlertCircle className="h-5 w-5 ml-2" />
+                  <AlertCircle
+                    className={cn('h-5 w-5', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
                   <AlertDescription className="text-red-800 font-medium">
                     {error}
                   </AlertDescription>
@@ -625,15 +621,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
                   isUserInActiveProcess={isUserInActiveProcess}
-                  // ✅ 4. העברת שני ה-props הלאה
                   suggestionsDict={suggestionsDict}
                   profileCardDict={profileCardDict}
                 />
               </TabsContent>
               <TabsContent value="history" className="space-y-6">
                 <SuggestionsList
-                            locale={locale}
-
+                  locale={locale}
                   suggestions={historySuggestions}
                   userId={userId}
                   viewMode={viewMode}
@@ -643,15 +637,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
                   isUserInActiveProcess={isUserInActiveProcess}
-                  // ✅ 4. העברת שני ה-props הלאה
                   suggestionsDict={suggestionsDict}
                   profileCardDict={profileCardDict}
                 />
               </TabsContent>
               <TabsContent value="urgent" className="space-y-6">
                 <SuggestionsList
-                            locale={locale}
-
+                  locale={locale}
                   suggestions={activeSuggestions.filter((s) => {
                     const isFirstParty = s.firstPartyId === userId;
                     return (
@@ -666,7 +658,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
                   isUserInActiveProcess={isUserInActiveProcess}
-                  // ✅ 4. העברת שני ה-props הלאה
                   suggestionsDict={suggestionsDict}
                   profileCardDict={profileCardDict}
                 />
@@ -704,12 +695,16 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             >
               {actionType === 'approve' ? (
                 <>
-                  <CheckCircle className="w-4 h-4 ml-2" />
+                  <CheckCircle
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
                   {suggestionsDict.container.dialogs.confirmApproval}
                 </>
               ) : (
                 <>
-                  <XCircle className="w-4 h-4 ml-2" />
+                  <XCircle
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
                   {suggestionsDict.container.dialogs.confirmDecline}
                 </>
               )}

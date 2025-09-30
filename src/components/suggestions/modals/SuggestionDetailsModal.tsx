@@ -71,13 +71,10 @@ import InquiryThreadView from '../inquiries/InquiryThreadView';
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
 import type { ExtendedMatchSuggestion } from '../types';
-// =============================    KEY CHANGE #1    =============================
-// ייבאנו את שני הטיפוסים הדרושים למילון
 import type {
   SuggestionsDictionary,
   ProfileCardDict,
 } from '@/types/dictionary';
-// ==============================================================================
 
 interface SuggestionDetailsModalProps {
   suggestion: ExtendedMatchSuggestion | null;
@@ -88,19 +85,14 @@ interface SuggestionDetailsModalProps {
     suggestion: ExtendedMatchSuggestion,
     action: 'approve' | 'decline'
   ) => void;
-  locale: 'he' | 'en'; // <-- 1. הוסף prop
-
+  locale: 'he' | 'en';
   questionnaire: QuestionnaireResponse | null;
   isDemo?: boolean;
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
-  // =============================    KEY CHANGE #2    =============================
-  // עדכנו את ה-prop כך שיקבל אובייקט המכיל את שני המילונים
-  // שהקומפוננטה הזו צריכה כדי לתפקד ולרנדר את ילדיה.
   dict: {
     suggestions: SuggestionsDictionary;
     profileCard: ProfileCardDict;
   };
-  // ==============================================================================
 }
 
 const useIsMobile = () => {
@@ -138,8 +130,7 @@ const EnhancedHeroSection: React.FC<{
   targetParty: ExtendedMatchSuggestion['secondParty'];
   personalNote?: string | null;
   matchingReason?: string | null;
-  locale: 'he' | 'en'; // <-- הוסף prop
-
+  locale: 'he' | 'en';
   onViewProfile: () => void;
   onStartConversation: () => void;
   dict: SuggestionsDictionary['modal']['header'];
@@ -178,7 +169,7 @@ const EnhancedHeroSection: React.FC<{
                 {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
               </AvatarFallback>
             </Avatar>
-            <div className="text-right">
+            <div className={cn(locale === 'he' ? 'text-right' : 'text-left')}>
               <p className="text-xs font-medium text-purple-600 mb-1">
                 {dict.suggestedBy}
               </p>
@@ -236,7 +227,12 @@ const EnhancedHeroSection: React.FC<{
                         </h2>
                         {age && (
                           <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-lg text-lg px-4 py-2">
-                            <Calendar className="w-4 h-4 ml-2" />
+                            <Calendar
+                              className={cn(
+                                'w-4 h-4',
+                                locale === 'he' ? 'ml-2' : 'mr-2'
+                              )}
+                            />
                             {dict.ageInYears.replace('{{age}}', age.toString())}
                           </Badge>
                         )}
@@ -265,7 +261,6 @@ const EnhancedHeroSection: React.FC<{
           >
             <Card className="border-0 shadow-2xl bg-gradient-to-br from-purple-50 via-pink-50 to-white overflow-hidden">
               <CardContent className="p-8 relative">
-                {/* Decorative elements */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-2xl"></div>
                 <div className="relative z-10">
                   <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4 leading-tight text-center">
@@ -277,12 +272,17 @@ const EnhancedHeroSection: React.FC<{
                       size="lg"
                       className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-xl rounded-xl h-14 font-bold text-base transform hover:scale-105 transition-all"
                     >
-                      <User className="w-5 h-5 ml-2" />
+                      <User
+                        className={cn(
+                          'w-5 h-5',
+                          locale === 'he' ? 'ml-2' : 'mr-2'
+                        )}
+                      />
                       {dict.viewFullProfile}
                       {locale === 'he' ? (
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowLeft className="w-4 h-4 mr-2" />
                       ) : (
-                        <ArrowLeft className="w-4 h-4" />
+                        <ArrowRight className="w-4 h-4 ml-2" />
                       )}
                     </Button>
                     <Button
@@ -291,7 +291,12 @@ const EnhancedHeroSection: React.FC<{
                       size="lg"
                       className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50 shadow-lg rounded-xl h-14 font-bold text-base transform hover:scale-105 transition-all"
                     >
-                      <MessageCircle className="w-5 h-5 ml-2" />
+                      <MessageCircle
+                        className={cn(
+                          'w-5 h-5',
+                          locale === 'he' ? 'ml-2' : 'mr-2'
+                        )}
+                      />
                       {dict.iHaveQuestions}
                     </Button>
                   </div>
@@ -301,23 +306,57 @@ const EnhancedHeroSection: React.FC<{
             {(personalNote || matchingReason) && (
               <Card className="border-0 shadow-xl bg-gradient-to-br from-cyan-50 to-blue-50 overflow-hidden">
                 <CardContent className="p-6 relative">
-                  <div className="flex items-start gap-4">
+                  {/* 🎨 FIX: Dynamic direction for this whole insight card */}
+                  <div
+                    className={cn(
+                      'flex items-start gap-4',
+                      locale === 'he' ? 'flex-row-reverse' : 'flex-row'
+                    )}
+                  >
                     <div className="p-4 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg flex-shrink-0">
                       <Lightbulb className="w-7 h-7" />
                     </div>
-                    <div className="flex-1">
+                    <div
+                      className={cn(
+                        'flex-1',
+                        locale === 'he' ? 'text-right' : 'text-left'
+                      )}
+                    >
                       <h3 className="font-bold text-cyan-800 text-xl mb-4">
                         {dict.matchmakerInsight}
                       </h3>
                       {personalNote && (
-                        <div className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-cyan-100">
-                          <div className="flex items-start gap-2">
-                            <Quote className="w-5 h-5 text-cyan-500 mt-1 flex-shrink-0" />
+                        <div
+                          className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-cyan-100"
+                          dir={locale === 'he' ? 'rtl' : 'ltr'}
+                        >
+                          <div
+                            className={cn(
+                              'flex items-start gap-2',
+                              locale === 'he' ? 'flex-row-reverse' : 'flex-row'
+                            )}
+                          >
+                            <Quote
+                              className={cn(
+                                'w-5 h-5 text-cyan-500 mt-1 flex-shrink-0',
+                                locale === 'he' ? 'ml-2' : 'mr-2'
+                              )}
+                            />
                             <div>
-                              <h4 className="font-semibold text-cyan-800 mb-2">
+                              <h4
+                                className={cn(
+                                  'font-semibold text-cyan-800 mb-2',
+                                  locale === 'he' ? 'text-right' : 'text-left'
+                                )}
+                              >
                                 {dict.whyYou}
                               </h4>
-                              <p className="text-cyan-900 leading-relaxed italic font-medium">
+                              <p
+                                className={cn(
+                                  'text-cyan-900 leading-relaxed italic font-medium',
+                                  locale === 'he' ? 'text-right' : 'text-left' // 🎨 FIX: Apply text alignment here
+                                )}
+                              >
                                 “{personalNote}”
                               </p>
                             </div>
@@ -325,14 +364,37 @@ const EnhancedHeroSection: React.FC<{
                         </div>
                       )}
                       {matchingReason && (
-                        <div className="p-4 bg-white/70 rounded-xl shadow-inner border border-blue-100">
-                          <div className="flex items-start gap-2">
-                            <Puzzle className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
+                        <div
+                          className="p-4 bg-white/70 rounded-xl shadow-inner border border-blue-100"
+                          dir={locale === 'he' ? 'rtl' : 'ltr'}
+                        >
+                          <div
+                            className={cn(
+                              'flex items-start gap-2',
+                              locale === 'he' ? 'flex-row-reverse' : 'flex-row'
+                            )}
+                          >
+                            <Puzzle
+                              className={cn(
+                                'w-5 h-5 text-blue-500 mt-1 flex-shrink-0',
+                                locale === 'he' ? 'ml-2' : 'mr-2'
+                              )}
+                            />
                             <div>
-                              <h4 className="font-semibold text-blue-800 mb-2">
+                              <h4
+                                className={cn(
+                                  'font-semibold text-blue-800 mb-2',
+                                  locale === 'he' ? 'text-right' : 'text-left'
+                                )}
+                              >
                                 {dict.ourConnection}
                               </h4>
-                              <p className="text-blue-900 leading-relaxed font-medium">
+                              <p
+                                className={cn(
+                                  'text-blue-900 leading-relaxed font-medium',
+                                  locale === 'he' ? 'text-right' : 'text-left' // 🎨 FIX: Apply text alignment here
+                                )}
+                              >
                                 “{matchingReason}”
                               </p>
                             </div>
@@ -359,6 +421,7 @@ const EnhancedQuickActions: React.FC<{
   onApprove: () => void;
   onDecline: () => void;
   onAskQuestion: () => void;
+  locale: 'he' | 'en';
   dict: SuggestionsDictionary['modal']['actions'];
 }> = ({
   isExpanded,
@@ -369,6 +432,7 @@ const EnhancedQuickActions: React.FC<{
   onDecline,
   onAskQuestion,
   dict,
+  locale,
 }) => (
   <div
     className={cn(
@@ -417,14 +481,29 @@ const EnhancedQuickActions: React.FC<{
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-6 h-6 animate-spin ml-3" />
+                    <Loader2
+                      className={cn(
+                        'w-6 h-6 animate-spin',
+                        locale === 'he' ? 'ml-3' : 'mr-3'
+                      )}
+                    />
                     <span>{dict.sending}</span>
                   </>
                 ) : (
                   <>
-                    <Heart className="w-6 h-6 animate-pulse ml-3" />
+                    <Heart
+                      className={cn(
+                        'w-6 h-6 animate-pulse',
+                        locale === 'he' ? 'ml-3' : 'mr-3'
+                      )}
+                    />
                     <span>{dict.approve}</span>
-                    <Sparkles className="w-5 h-5 ml-2" />
+                    <Sparkles
+                      className={cn(
+                        'w-5 h-5',
+                        locale === 'he' ? 'mr-2' : 'ml-2'
+                      )}
+                    />
                   </>
                 )}
               </Button>
@@ -435,7 +514,9 @@ const EnhancedQuickActions: React.FC<{
               disabled={isSubmitting}
               className="w-full md:flex-1 border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 rounded-2xl h-16 font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
             >
-              <MessageCircle className="w-6 h-6 ml-3" />
+              <MessageCircle
+                className={cn('w-6 h-6', locale === 'he' ? 'ml-3' : 'mr-3')}
+              />
               <span>{dict.ask}</span>
             </Button>
             {canAct && (
@@ -447,12 +528,22 @@ const EnhancedQuickActions: React.FC<{
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin ml-2" />
+                    <Loader2
+                      className={cn(
+                        'w-5 h-5 animate-spin',
+                        locale === 'he' ? 'ml-2' : 'mr-2'
+                      )}
+                    />
                     <span>{dict.updating}</span>
                   </>
                 ) : (
                   <>
-                    <XCircle className="w-5 h-5 ml-3" />
+                    <XCircle
+                      className={cn(
+                        'w-5 h-5',
+                        locale === 'he' ? 'ml-3' : 'mr-3'
+                      )}
+                    />
                     <span>{dict.decline}</span>
                   </>
                 )}
@@ -659,11 +750,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     onClose();
   };
 
-  // src/components/suggestions/modals/SuggestionDetailsModal.tsx
-
-  // src/app/components/suggestions/modals/SuggestionDetailsModal.tsx
-
-  // החלף את כל הפונקציה הזו בקוד הבא
   const getModalClasses = () => {
     const baseClasses =
       'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out';
@@ -699,10 +785,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 onToggleFullscreen={toggleFullscreen}
                 isMobile={isMobile}
                 isTransitioning={isTransitioning}
-                // =============================    KEY CHANGE #3 (Usage)    =============================
-                // ניגשים למילון דרך המפתח המתאים
                 dict={dict.suggestions.modal.tabs}
-                // ======================================================================================
               />
               <TabsContent value="presentation" className="mt-0">
                 <EnhancedHeroSection
@@ -717,9 +800,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   matchingReason={suggestion.matchingReason}
                   onViewProfile={() => setActiveTab('profile')}
                   onStartConversation={() => setShowAskDialog(true)}
-                  // =============================    KEY CHANGE #3 (Usage)    =============================
                   dict={dict.suggestions.modal.header}
-                  // ======================================================================================
                 />
               </TabsContent>
               <TabsContent
@@ -745,11 +826,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     images={targetParty.images}
                     questionnaire={questionnaire}
                     viewMode="candidate"
-                    // =============================    KEY CHANGE #3 (Usage)    =============================
-                    // מעבירים לקומפוננטת הפרופיל את המילון שלה
                     dict={dict.profileCard}
                     locale={locale}
-                    // ======================================================================================
                   />
                 ) : (
                   <div className="text-center p-12">
@@ -856,6 +934,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
             onDecline={handleDecline}
             onAskQuestion={() => setShowAskDialog(true)}
             dict={dict.suggestions.modal.actions}
+            locale={locale}
           />
         </DialogContent>
       </Dialog>

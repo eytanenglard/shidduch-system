@@ -152,7 +152,6 @@ const renderBooleanDisplayValue = (
   return value ? finalTrueLabel : finalFalseLabel;
 };
 
-
 // ========================================================================
 // ✨ Sub-Components
 // ========================================================================
@@ -887,7 +886,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [loading, setLoading] = useState(true);
   const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
-  
+
   const [cityInputValue, setCityInputValue] = useState('');
   const [aliyaCountryInputValue, setAliyaCountryInputValue] = useState('');
 
@@ -1073,7 +1072,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       influentialRabbi: profileData?.influentialRabbi || '',
       isAboutVisible: profileData?.isAboutVisible ?? true,
       isFriendsSectionVisible: profileData?.isFriendsSectionVisible ?? true,
-      isNeshamaTechSummaryVisible: profileData?.isNeshamaTechSummaryVisible ?? true,
+      isNeshamaTechSummaryVisible:
+        profileData?.isNeshamaTechSummaryVisible ?? true,
     };
     setFormData(dataToSet);
     setInitialData(dataToSet);
@@ -1104,14 +1104,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
     setFormData((prev) => {
       let finalValue: UserProfile[keyof UserProfile] | undefined = undefined;
 
-      if (
-        [
-          'height',
-          'siblings',
-          'position',
-          'aliyaYear'
-        ].includes(field)
-      ) {
+      if (['height', 'siblings', 'position', 'aliyaYear'].includes(field)) {
         const rawValue = value as string | number;
         if (rawValue === '' || rawValue === null || rawValue === undefined) {
           finalValue = undefined;
@@ -1366,7 +1359,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderDisplayValue(
-                          formData.height ? `${formData.height} cm` : undefined,
+                          formData.height
+                            ? `${formData.height} ${dict.cards.personal.heightUnit}`
+                            : undefined,
                           dict
                         )}
                       </p>
@@ -2221,8 +2216,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </div>
               </CardContent>
             </Card>
-            
-               <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+
+            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-red-50/40 to-pink-50/40 border-b border-gray-200/50 p-4">
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
                   <HeartPulse className="w-5 h-5 text-red-700" />
@@ -2435,7 +2430,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 )}
               </CardContent>
             </Card>
-              <FriendTestimonialsManager
+            <FriendTestimonialsManager
               profile={profileProp}
               isEditing={isEditing}
               dict={dict}
@@ -2445,14 +2440,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           </div>
 
           <div className="space-y-6">
-         <StoryAndMoreCard
+            <StoryAndMoreCard
               profile={profileProp}
               isEditing={isEditing}
               dict={dict}
               handleChange={handleChange}
               formData={formData}
             />
-         
 
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-teal-50/40 to-green-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
@@ -2751,14 +2745,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </fieldset>
               </CardContent>
             </Card>
-                    <NeshamaTechSummaryCard
+            <NeshamaTechSummaryCard
               profile={profileProp}
               isEditing={isEditing}
               dict={dict}
               handleChange={handleChange}
               formData={formData}
             />
-          
           </div>
         </div>
       </div>

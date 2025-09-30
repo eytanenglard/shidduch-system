@@ -7,12 +7,12 @@ export const femaleProfileContent = {
   city: 'Tel Aviv',
   education: 'B.Des in Visual Communication, Bezalel; Graduate of Lindenbaum Midrasha',
   serviceDetails: 'Meaningful two-year National Service at "Krembo Wings" with children with special needs.',
-  religiousLevel: 'Liberal Orthodox',
-  about: 'An optimist who loves deep conversations over coffee. I find beauty in life\'s small things, whether it\'s a walk in nature or a good playlist. After a few attempts that didn\'t work out, I now know better what\'s right for me, and I\'m looking for a partner for the journey, to build a home together filled with laughter, mutual respect, and shared growth.',
+  religiousLevel: 'dati_leumi_liberal',
+  about: 'An optimist, creative, and a lover of good conversations. I grew up in a warm home where I learned what a partnership based on friendship and mutual respect looks like. After a challenging and fulfilling National Service at "Krembo Wings," I pursued a career in design, where I express my artistic soul. I\'m a people person, but I also enjoy my quiet time with a good book or a walk in nature. I\'m looking for a life partner, a man with a good heart and an open mind, to build a happy home together, with space for personal and mutual growth, where communication is the key to everything.',
   profileHeadline: 'Designing life with a smile, looking for a partner for the adventure.',
 
   formattedAnswers: {
-    personality: [
+    PERSONALITY: [
       {
         questionId: 'demo_noa_p1',
         question: "How would you describe yourself in 3-5 sentences?",
@@ -38,7 +38,7 @@ export const femaleProfileContent = {
         isVisible: true, answeredAt: new Date(),
       },
     ],
-    values: [
+    VALUES: [
       {
         questionId: 'demo_noa_v1',
         question: "Share a story of a time you followed your most important value.",
@@ -64,7 +64,7 @@ export const femaleProfileContent = {
         isVisible: true, answeredAt: new Date(),
       }
     ],
-    relationship: [
+    RELATIONSHIP: [
       {
         questionId: 'demo_noa_r1',
         question: "What's your 'formula' for sharing responsibilities in managing a home?",
@@ -90,7 +90,7 @@ export const femaleProfileContent = {
         isVisible: true, answeredAt: new Date(),
       }
     ],
-    partner: [
+    PARTNER: [
       {
         questionId: 'demo_noa_pa1',
         question: "What is the one character trait your partner must have?",
@@ -116,7 +116,7 @@ export const femaleProfileContent = {
         isVisible: true, answeredAt: new Date(),
       }
     ],
-    religion: [
+    RELIGION: [
       {
         questionId: 'demo_noa_re1',
         question: "What is your vision for the education of the children in the home you'll build?",
@@ -152,12 +152,12 @@ export const maleProfileContent = {
   city: 'Jerusalem',
   education: 'Graduate of Yeshivat Har Etzion; B.Sc. in Software Engineering, Technion',
   serviceDetails: 'Significant service as an officer in the Combat Engineering Corps, company commander and platoon leader.',
-  religiousLevel: 'Torani Leumi',
-  about: 'A man of people and action. I love the combination of the dynamic high-tech world and setting aside time for Torah study. I believe true growth happens outside the comfort zone. I\'m looking for a life partner to build a home together with reverence for God, open-mindedness, and a lot of joy.',
+  religiousLevel: 'dati_leumi_torani',
+  about: 'A man of people and action, I combine worlds that seem distant but for me are one - the dynamism of high-tech and the depth of the Beit Midrash. My service as a combat officer shaped me and taught me a great deal about responsibility, leadership, and true friendship. I believe true growth happens outside the comfort zone, whether in a complex project at work or a challenging sugya in Gemara. I\'m looking for a true life partner to build a home together with reverence for God, open-mindedness, a lot of joy, and a constant desire to grow and develop together.',
   profileHeadline: 'Engineer by day, Torah scholar by night. Seeking a partner to build a world with.',
   
   formattedAnswers: {
-    personality: [
+    PERSONALITY: [
       {
         questionId: 'demo_daniel_p1',
         question: "What are the 3-5 key things you'd want us to highlight so people understand who you truly are?",
@@ -183,7 +183,7 @@ export const maleProfileContent = {
         isVisible: true, answeredAt: new Date(),
       }
     ],
-    values: [
+    VALUES: [
       {
         questionId: 'demo_daniel_v1',
         question: "Share a story of a time you followed your most important value.",
@@ -209,7 +209,7 @@ export const maleProfileContent = {
         isVisible: true, answeredAt: new Date(),
       }
     ],
-    relationship: [
+    RELATIONSHIP: [
       {
         questionId: 'demo_daniel_r1',
         question: "What's one thing a relationship can't survive without for you, and what is your greatest aspiration?",
@@ -235,7 +235,7 @@ export const maleProfileContent = {
         isVisible: true, answeredAt: new Date(),
       }
     ],
-    partner: [
+    PARTNER: [
       {
         questionId: 'demo_daniel_pa1',
         question: "Which trait, perhaps less developed in you, would you be happy to find in a partner to complement you?",
@@ -261,7 +261,7 @@ export const maleProfileContent = {
         isVisible: true, answeredAt: new Date(),
       }
     ],
-    religion: [
+    RELIGION: [
       {
         questionId: 'demo_daniel_re1',
         question: "What prayer, Jewish concept, or idea resonates most with you?",
@@ -291,9 +291,9 @@ export const maleProfileContent = {
 };
 
 export const suggestionContent = {
-  femaleToMaleReason: 'What particularly resonated with me in your connection is the rare blend of depth and lightness. You both seek a "partner for the journey" with an "open mind." I believe Daniel\'s stability and responsibility, evident from his service as an officer, combined with your creativity and optimism, create a wonderful foundation for a real connection.',
+  femaleToMaleReason: 'I connected you because I identified in both of you a similar aspiration for a life of meaning, where there is room for both depth and lightness. Daniel\'s stability, responsibility, and calmness, combined with Noa\'s warmth, creativity, and optimism, create tremendous potential for a partnership based on both security and inspiration. I believe your conversations could be fascinating, and you have a strong shared value base to build a real home upon.',
   femaleToMalePersonalNote: 'Daniel is a serious, value-driven man with a heart of gold. He impressively combines the world of Torah (a graduate of HaGush) with the world of action (a Technion-educated engineer) and is looking for a true life partner. I think you two have a lot to talk about.',
-  maleToFemaleReason: 'What particularly resonated with me in your connection is the rare blend of depth and lightness. Both of you are looking for a "partner for the journey." I believe your stability and pursuit of meaning, together with Noa\'s creativity, optimism, and empathy (having served with special needs children), create an amazing foundation for a real relationship.',
+  maleToFemaleReason: 'What particularly resonated with me in your connection is the shared search for a "true partnership" – a relationship based on friendship, growth, and mutual respect. Your stability and pursuit of meaning, together with Noa\'s creativity, optimism, and empathy, which are also reflected in her professional and volunteer choices, create an amazing foundation for a real, deep, and joyful relationship.',
   maleToFemalePersonalNote: 'This is a suggestion I am particularly excited to present to you. Noa is a high-quality woman, with a depth and sensitivity that are rare to find. I think she is exactly what you were looking for.',
 };
 

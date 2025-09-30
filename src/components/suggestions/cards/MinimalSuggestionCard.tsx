@@ -1,5 +1,4 @@
 // src/app/components/suggestions/cards/MinimalSuggestionCard.tsx
-
 import React from 'react';
 import Image from 'next/image';
 import { isAfter, subDays } from 'date-fns';
@@ -38,7 +37,7 @@ import {
   getPartyIndicator,
 } from '@/lib/utils/suggestionUtils';
 import type { ExtendedMatchSuggestion } from '../types';
-import type { SuggestionsCardDict } from '@/types/dictionary'; // ✨ Import dictionary type
+import type { SuggestionsCardDict } from '@/types/dictionary';
 
 interface MinimalSuggestionCardProps {
   suggestion: ExtendedMatchSuggestion;
@@ -50,8 +49,8 @@ interface MinimalSuggestionCardProps {
   className?: string;
   isHistory?: boolean;
   isApprovalDisabled?: boolean;
-  dict: SuggestionsCardDict; // ✨ Add dict prop
-  locale: 'he' | 'en'; // <-- 1. הוסף prop
+  dict: SuggestionsCardDict;
+  locale: 'he' | 'en';
 }
 
 const calculateAge = (birthDate?: Date | string | null): number | null => {
@@ -77,7 +76,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   className,
   isHistory = false,
   isApprovalDisabled = false,
-  dict, // ✨ Destructure dict
+  dict,
   locale,
 }) => {
   const targetParty =
@@ -167,7 +166,13 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 )}
               >
                 {partyIndicator.text === dict.yourTurn && (
-                  <Zap className="w-2.5 h-2.5 ml-1" aria-hidden="true" />
+                  <Zap
+                    className={cn(
+                      'w-2.5 h-2.5',
+                      locale === 'he' ? 'ml-1' : 'mr-1'
+                    )}
+                    aria-hidden="true"
+                  />
                 )}
                 {partyIndicator.text}
               </Badge>
@@ -276,7 +281,9 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                   onDecline?.(suggestion);
                 }}
               >
-                <XCircle className="w-4 h-4 ml-2" />
+                <XCircle
+                  className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />
                 {dict.buttons.decline}
               </Button>
               <TooltipProvider>
@@ -299,7 +306,12 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                           }
                         }}
                       >
-                        <Heart className="w-4 h-4 ml-2" />
+                        <Heart
+                          className={cn(
+                            'w-4 h-4',
+                            locale === 'he' ? 'ml-2' : 'mr-2'
+                          )}
+                        />
                         {dict.buttons.approve}
                       </Button>
                     </div>
@@ -323,21 +335,26 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                   onInquiry?.(suggestion);
                 }}
               >
-                <MessageCircle className="w-4 h-4 ml-2" />
+                <MessageCircle
+                  className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />
                 {dict.buttons.askMatchmaker}
               </Button>
+              {/* 🎨 שינוי כאן: כפתור דינמי לכיווניות */}
               <Button
                 size="sm"
                 variant="default"
                 className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
                 onClick={() => onClick(suggestion)}
               >
-                <Eye className="w-4 h-4 ml-2" />
+                <Eye
+                  className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />
                 {dict.buttons.viewDetails}
                 {locale === 'he' ? (
-                  <ChevronLeft className="w-3 h-3" />
+                  <ChevronLeft className="w-3 h-3 mr-2" />
                 ) : (
-                  <ChevronRight className="w-3 h-3" />
+                  <ChevronRight className="w-3 h-3 ml-2" />
                 )}
               </Button>
             </div>
@@ -347,5 +364,4 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
     </Card>
   );
 };
-
 export default MinimalSuggestionCard;
