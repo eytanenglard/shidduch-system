@@ -547,6 +547,7 @@
         "genderPlaceholder": "בחר/י מגדר",
         "birthDateLabel": "תאריך לידה",
         "heightLabel": "גובה (סמ)",
+        "heightUnit": "ס\"מ",
         "heightPlaceholder": "גובה בסמ",
         "cityLabel": "עיר מגורים",
         "cityPlaceholder": "התחל/י להקליד שם עיר...",
