@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services
-# Generated on: 2025-09-28 20:42:57
+# Generated on: 2025-10-01 12:03:09
 ################################################################################
 
 ================================================================================
@@ -464,10 +464,11 @@ export interface AiNeshamaTechSummary {
  * @returns Promise שמחזיר אובייקט עם טקסט הסיכום, או null במקרה של כישלון.
  */
 export async function generateNeshamaTechSummary(
-  userNarrativeProfile: string
+  userNarrativeProfile: string,
+  locale: 'he' | 'en' = 'he'
 ): Promise<AiNeshamaTechSummary | null> {
   console.log(
-    '--- [AI NeshamaTech Summary] Starting summary generation with Gemini API ---'
+    `--- [AI NeshamaTech Summary] Starting DYNAMIC summary generation for locale: ${locale} ---`
   );
 
   if (!userNarrativeProfile) {
@@ -481,22 +482,71 @@ export async function generateNeshamaTechSummary(
     model: 'gemini-1.5-pro-latest',
     generationConfig: {
       responseMimeType: 'application/json',
-      temperature: 0.7, // מעט יותר יצירתיות לטקסט שיווקי
+      temperature: 0.6,
     },
   });
 
-  const prompt = `
-    You are an expert Israeli matchmaker, marketer, and copywriter for NeshamaTech, a premium matchmaking service for the Israeli National-Religious/Academic community.
-    Your task is to write a warm, engaging, and insightful "Introduction Summary" (תקציר היכרות) for a candidate's profile in Hebrew.
-    The summary will be shown to potential matches and serves as the professional, human-touch introduction from the NeshamaTech team.
-    
-    **Your Goal:** Synthesize the provided data into a flowing, compelling narrative of 3-4 short paragraphs. Do NOT just list facts. Weave them into a story that reveals the person's essence. Highlight strengths, core values, and what they seek in a partner. The tone must be authentic, respectful, and professional yet personal.
+  // --- הגדרת פרומפטים נפרדים לכל שפה ---
 
-    **Output Format:** Your entire output MUST be a valid JSON object in Hebrew. Do NOT wrap it in markdown backticks. Output ONLY the raw JSON object with the following structure:
-    {
-      "summaryText": "The full, multi-paragraph summary text in Hebrew."
-    }
-    
+  const hebrewPromptInstructions = `
+    את/ה שדכן/ית מומחה/ית וקופירייטר/ית ב-NeshamaTech, שירות שידוכים המשלב טכנולוגיה מתקדמת עם ליווי אנושי וחם. את/ה לא רק כותב/ת, את/ה מספר/ת סיפורים שרואה את הנשמה (Neshama) שמאחורי הנתונים. המשימה שלך היא לזקק את פרופיל הנתונים המקיף של המועמד/ת ל"תקציר היכרות" ('דבר המערכת') – טקסט פורטרט בן 3-4 פסקאות, שהוא אישי, מעורר כבוד, ומצית סקרנות אמיתית אצל התאמה פוטנציאלית. הטון הוא שיא של מקצועיות, חום, ענווה ואותנטיות.
+
+    **עקרונות מנחים לסינתזה עמוקה (החלק החשוב ביותר):**
+    המטרה שלך היא לא לדווח על עובדות, אלא לחבר אותן לנרטיב משמעותי. חפש/י את החוט המקשר בין ה"עולמות" השונים בפרופיל:
+    - **חיבור אישיות-ערכים:** איך תכונות האופי של המועמד/ת (עולם האישיות) באות לידי ביטוי בסדרי העדיפויות שהגדיר/ה (עולם הערכים)?
+    - **חיבור סיפור-חזון:** כיצד מסלול החיים (השכלה, קריירה, מסע דתי) עיצב את מה שהם מחפשים בזוגיות ובפרטנר (עולמות הזוגיות והפרטנר)?
+    - **איתור "המתח היצירתי":** חפש/י שילובים ייחודיים ומעניינים. למשל: "איש הייטק עם נשמה של אמן", "אשת אקדמיה שמוצאת את הרוחניות שלה בטבע", "קצין קרבי שמנגן ניגונים חסידיים". אלו היהלומים שיוצרים סיפור בלתי נשכח.
+
+    **מבנה התקציר (נוסחת NeshamaTech):**
+
+    1.  **הפתיחה (הפורטרט):** פתח/י במשפט אחד, חזק ומדויק, הלוכד קונפליקט פנימי מעניין או שילוב תכונות ייחודי של המועמד/ת. זו הכותרת הבלתי נראית של הפרופיל. (ראה דוגמת "דניאל": קוד לוגי מול סוגיה תלמודית).
+    2.  **מסלול החיים (הנרטיב):** בפסקה זו, ארג/י את נקודות המפתח בחייו/ה (לימודים, צבא, קריירה, רקע דתי) לסיפור קוהרנטי של צמיחה ותכלית. הראה/י כיצד אירוע אחד הוביל לאחר, ואיך כל שלב עיצב את מי שהם היום. אל תציין/י עובדות, הסבר/י את משמעותן.
+    3.  **החזון לזוגיות (השאיפה):** תאר/י באופן חי וברור את הבית והשותפות שהם שואפים לבנות, בהתבסס על תשובותיהם בעולמות הזוגיות והפרטנר. השתמש/י בשפה של ערכים, חזון וצמיחה משותפת, לא ברשימת מכולת של דרישות.
+    4.  **חותמת המערכת (הערת NeshamaTech):** סיים/י במשפט מקצועי אחד, מנקודת המבט שלנו כשדכנים, המסכם תכונה מרכזית או שילוב נדיר שהופך את המועמד/ת למיוחד/ת בעינינו. (ראה דוגמת "דניאל": "אנו מתרשמים מהשילוב הנדיר של רצינות, עומק תורני ויכולת ביצוע...").
+
+    **כללי ברזל (עשה ואל תעשה):**
+    - **עשה:** השתמש/י בשפה חיובית, עשירה ומכבדת.
+    - **עשה:** חבר/י את הנקודות, סנתז/י ולא רק סכם/י.
+    - **אל תעשה:** אל תשתמש/י בקלישאות ("בחור/ה איכותי/ת", "טוב/ת לב"). הראה/י את האיכות, אל תצהיר/י עליה.
+    - **אל תעשה:** אל תפרט/י רשימות של תכונות או תחביבים. שלב/י אותם בתוך הסיפור.
+  `;
+
+  const englishPromptInstructions = `
+    You are an expert matchmaker and copywriter at NeshamaTech, a service that blends advanced technology with warm, human guidance. You are not just a writer; you are a storyteller who sees the soul (Neshama) behind the data. Your mission is to distill a candidate's comprehensive profile into an "Introduction Summary" – a 3-4 paragraph portrait that is personal, respectful, and sparks genuine curiosity in a potential match. The tone is the pinnacle of professionalism, warmth, humility, and authenticity.
+
+    **Guiding Principles for Deep Synthesis (The Most Important Part):**
+    Your goal is not to report facts, but to connect them into a meaningful narrative. Look for the thread that connects the different "Worlds" of the profile:
+    - **Personality-Values Connection:** How do the candidate's character traits (Personality World) manifest in their stated priorities (Values World)?
+    - **Story-Vision Connection:** How has their life path (education, career, spiritual journey) shaped what they seek in a relationship and a partner (Relationship & Partner Worlds)?
+    - **Find the "Creative Tension":** Look for unique and interesting combinations. For example: "A high-tech professional with an artist's soul," "An academic who finds her spirituality in nature," "A combat officer who plays soulful Hasidic melodies." These are the gems that create an unforgettable story.
+
+    **The Summary Structure (The NeshamaTech Formula):**
+
+    1.  **The Overture (The Portrait):** Open with a single, powerful, and precise sentence that captures an interesting internal conflict or a unique combination of traits. This is the profile's invisible headline. (Reference the "Daniel" example: logical code vs. Talmudic discourse).
+    2.  **The Life Path (The Narrative):** In this paragraph, weave the key points of their life (studies, army service, career, religious background) into a coherent story of growth and purpose. Show how one event led to the next, and how each stage shaped who they are today. Don't state facts; explain their significance.
+    3.  **The Vision for Partnership (The Aspiration):** Vividly describe the home and partnership they aspire to build, based on their answers in the Relationship and Partner worlds. Use the language of values, vision, and mutual growth, not a grocery list of requirements.
+    4.  **The System's Stamp (NeshamaTech's Note):** Conclude with a single professional sentence, from our perspective as matchmakers, summarizing a key trait or a rare combination that makes the candidate special in our eyes. (Reference the "Daniel" example: "we are impressed by the rare combination of seriousness, Torah depth, and executive ability...").
+
+    **Golden Rules (Dos and Don'ts):**
+    - **Do:** Use positive, rich, and respectful language.
+    - **Do:** Connect the dots. Synthesize, don't just summarize.
+    - **Don't:** Use clichés ("a quality person," "kind-hearted"). Show the quality, don't just state it.
+    - **Don't:** List traits or hobbies. Weave them into the story.
+  `;
+
+  // בחירה דינמית של הפרומפט ושפת היעד
+  const targetLanguage = locale === 'he' ? 'Hebrew' : 'English';
+  const promptInstructions =
+    locale === 'he' ? hebrewPromptInstructions : englishPromptInstructions;
+
+  const prompt = `
+    ${promptInstructions}
+
+    **Output Format:** Your entire output MUST be a valid JSON object in ${targetLanguage}. Do NOT wrap it in markdown backticks. Output ONLY the raw JSON object with the following structure:
+      {
+        "summaryText": "The full, multi-paragraph summary text in ${targetLanguage}, with paragraphs separated by a newline character (\\n)."
+      }
+
     --- User Profile Narrative for Analysis ---
     ${userNarrativeProfile}
     --- End of User Profile Narrative ---
@@ -509,7 +559,7 @@ export async function generateNeshamaTechSummary(
 
     if (!jsonString) {
       console.error(
-        '[AI NeshamaTech Summary] Gemini API returned an empty response.'
+        `[AI NeshamaTech Summary] Gemini API returned an empty response for locale: ${locale}.`
       );
       return null;
     }
@@ -518,22 +568,36 @@ export async function generateNeshamaTechSummary(
     let cleanJsonString = jsonString;
     if (cleanJsonString.startsWith('```json')) {
       cleanJsonString = cleanJsonString.slice(7, -3).trim();
+    } else if (cleanJsonString.startsWith('```')) {
+      cleanJsonString = cleanJsonString.slice(3, -3).trim();
     }
-    
-    const parsedJson = JSON.parse(cleanJsonString) as AiNeshamaTechSummary;
-    console.log(
-      '--- [AI NeshamaTech Summary] Successfully received and parsed summary from Gemini API. ---'
-    );
-    return parsedJson;
 
+    try {
+      const parsedJson = JSON.parse(cleanJsonString) as AiNeshamaTechSummary;
+      console.log(
+        `--- [AI NeshamaTech Summary] Successfully received and parsed summary from Gemini API for locale: ${locale}. ---`
+      );
+      return parsedJson;
+    } catch (parseError) {
+      console.error(
+        `[AI NeshamaTech Summary] Failed to parse JSON response for locale: ${locale}.`,
+        parseError
+      );
+      console.error('--- RAW AI RESPONSE THAT FAILED PARSING ---');
+      console.error(jsonString);
+      console.error('--- END OF RAW AI RESPONSE ---');
+      throw new Error('Invalid JSON response from AI service.');
+    }
   } catch (error) {
     console.error(
-      '[AI NeshamaTech Summary] Error during summary generation:',
+      `[AI NeshamaTech Summary] Error during summary generation for locale: ${locale}:`,
       error
     );
     return null;
   }
 }
+
+
 
 // ייצוא כל הפונקציות כאובייקט אחד
 const aiService = {
@@ -1332,7 +1396,6 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
   // --- START: הוספת השדות הנרטיביים החדשים ---
   const personalInsightsParts = [
     profile.profileHeadline ? `**הכותרת האישית שלי:**\n"${profile.profileHeadline}"` : '',
-    profile.humorStory ? `**סיפור שמדגים את חוש ההומור שלי:**\n${profile.humorStory}` : '',
     profile.inspiringCoupleStory ? `**זוג שמעורר בי השראה:**\n${profile.inspiringCoupleStory}` : '',
     profile.influentialRabbi ? `**דמות רוחנית שהשפיעה עליי:**\n${profile.influentialRabbi}` : ''
   ].filter(Boolean);

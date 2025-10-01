@@ -52,10 +52,10 @@ export const generateDemoData = async (locale: Locale) => {
         { id: 'img3', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967770/IMG-20250731-WA0076_wy6uhe.jpg', isMain: false, userId: 'demo-profile-noa', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
     ],
     profile: {
-      id: 'profile-noa-demo', userId: 'demo-profile-noa', gender: Gender.FEMALE, birthDate: new Date('1996-05-15T00:00:00.000Z'), height: 168, maritalStatus: 'single',
-      occupation: femaleProfileContent.occupation, education: femaleProfileContent.education, city: femaleProfileContent.city, religiousLevel: femaleProfileContent.religiousLevel,
+      id: 'profile-noa-demo', userId: 'demo-profile-noa', gender: Gender.FEMALE, birthDate: new Date('1996-05-15T00:00:00.000Z'), height: 168, maritalStatus: 'רווקה',
+      occupation: femaleProfileContent.occupation, education: femaleProfileContent.education, city: femaleProfileContent.city, religiousLevel: 'דתי-לאומי ליברלי',
       shomerNegiah: false, serviceType: ServiceType.NATIONAL_SERVICE_TWO_YEARS, serviceDetails: femaleProfileContent.serviceDetails, about: femaleProfileContent.about,
-      profileHeadline: femaleProfileContent.profileHeadline, birthDateIsApproximate: false, nativeLanguage: 'עברית', educationLevel: 'academic_ba', origin: 'מעורב (אשכנזי-מזרחי)',
+      profileHeadline: femaleProfileContent.profileHeadline, birthDateIsApproximate: false, nativeLanguage: 'עברית', educationLevel: 'תואר ראשון', origin: 'מעורב (אשכנזי-מזרחי)',
       religiousJourney: ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE, additionalLanguages: ['אנגלית'], hasChildrenFromPrevious: false, createdAt: new Date(), updatedAt: new Date(),
       headCovering: null, kippahType: null, 
       manualEntryText: isHebrew 
@@ -67,9 +67,16 @@ export const generateDemoData = async (locale: Locale) => {
       influentialRabbi: 'הרבנית ימימה מזרחי',
       parentStatus: 'נשואים באושר', fatherOccupation: 'יועץ פיננסי', motherOccupation: 'אמנית ובעלת סטודיו לקרמיקה', siblings: 2, position: 2,
       hasMedicalInfo: false, isMedicalInfoVisible: false, medicalInfoDetails: null, medicalInfoDisclosureTiming: null, preferredAgeMin: 28, preferredAgeMax: 35,
-      preferredHeightMin: 175, preferredHeightMax: 190, preferredReligiousLevels: ['dati_leumi_liberal', 'masorti_strong'], preferredLocations: ['תל אביב', 'רמת גן', 'גבעתיים'],
-      preferredEducation: ['academic_ba'], preferredOccupations: [], contactPreference: 'both', preferredMaritalStatuses: ['single'],
-      preferredShomerNegiah: 'flexible', preferredPartnerHasChildren: 'no_preferred', preferredOrigins: [], preferredServiceTypes: [], preferredHeadCoverings: [],
+      preferredHeightMin: 175, preferredHeightMax: 190, 
+      // --- START: עדכון ערכים ---
+      preferredReligiousLevels: ['דתי-לאומי ליברלי', 'דתי-לאומי תורני', 'דתי-לאומי סטנדרטי'], 
+      preferredLocations: ['תל אביב', 'רמת גן', 'גבעתיים', 'ירושלים'],
+      preferredEducation: ['תואר ראשון', 'תואר שני'], 
+      preferredOccupations: ['הייטק', 'הנדסה', 'חינוך', 'מחקר'],
+      preferredOrigins: ['אנגלו-סקסי', 'מעורב', 'צפון אפריקאי'],
+      // --- END: עדכון ערכים ---
+      contactPreference: 'both', preferredMaritalStatuses: ['רווק/ה'],
+      preferredShomerNegiah: 'flexible', preferredPartnerHasChildren: 'no_preferred', preferredServiceTypes: [], preferredHeadCoverings: [],
       preferredKippahTypes: [], preferredCharacterTraits: [], preferredHobbies: [], preferredAliyaStatus: 'no_preference', preferredReligiousJourneys: [],
       isProfileVisible: true, preferredMatchmakerGender: null, matchingNotes: '', verifiedBy: null, availabilityStatus: AvailabilityStatus.AVAILABLE,
       availabilityNote: null, availabilityUpdatedAt: null, lastActive: null, hasViewedProfilePreview: false, needsAiProfileUpdate: false,
@@ -110,10 +117,10 @@ export const generateDemoData = async (locale: Locale) => {
         { id: 'img3m', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0061_aug5ix.jpg', isMain: false, userId: 'demo-profile-daniel', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
     ],
     profile: {
-      id: 'profile-daniel-demo', userId: 'demo-profile-daniel', gender: Gender.MALE, birthDate: new Date('1994-08-20T00:00:00.000Z'), height: 182, maritalStatus: 'single',
-      occupation: maleProfileContent.occupation, education: maleProfileContent.education, city: maleProfileContent.city, religiousLevel: maleProfileContent.religiousLevel,
+      id: 'profile-daniel-demo', userId: 'demo-profile-daniel', gender: Gender.MALE, birthDate: new Date('1994-08-20T00:00:00.000Z'), height: 182, maritalStatus: 'רווק',
+      occupation: maleProfileContent.occupation, education: maleProfileContent.education, city: maleProfileContent.city, religiousLevel: 'דתי-לאומי תורני',
       shomerNegiah: true, serviceType: ServiceType.MILITARY_OFFICER, serviceDetails: maleProfileContent.serviceDetails, about: maleProfileContent.about, profileHeadline: maleProfileContent.profileHeadline,
-      birthDateIsApproximate: false, nativeLanguage: 'עברית', additionalLanguages: ['אנגלית'], educationLevel: 'academic_student', origin: 'אנגלו-סקסי',
+      birthDateIsApproximate: false, nativeLanguage: 'עברית', additionalLanguages: ['אנגלית'], educationLevel: 'תואר ראשון', origin: 'אנגלו-סקסי',
       religiousJourney: ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE, kippahType: KippahType.KNITTED_SMALL, hasChildrenFromPrevious: false, createdAt: new Date(), updatedAt: new Date(),
       headCovering: null, 
       manualEntryText: isHebrew 
@@ -125,9 +132,16 @@ export const generateDemoData = async (locale: Locale) => {
       influentialRabbi: 'הרב זקס זצ"ל',
       parentStatus: 'נשואים', fatherOccupation: 'מהנדס תוכנה', motherOccupation: 'רופאת משפחה', siblings: 3, position: 2,
       hasMedicalInfo: false, isMedicalInfoVisible: false, medicalInfoDetails: null, medicalInfoDisclosureTiming: null, preferredAgeMin: 26, preferredAgeMax: 32,
-      preferredHeightMin: 160, preferredHeightMax: 175, preferredReligiousLevels: ['dati_leumi_torani', 'dati_leumi_standard'], preferredLocations: ['ירושלים והסביבה'],
-      preferredEducation: [], preferredOccupations: [], contactPreference: 'matchmaker', preferredMaritalStatuses: ['single'],
-      preferredShomerNegiah: 'yes', preferredPartnerHasChildren: 'no_preferred', preferredOrigins: [], preferredServiceTypes: [], preferredHeadCoverings: [],
+      preferredHeightMin: 160, preferredHeightMax: 175, 
+      // --- START: עדכון ערכים ---
+      preferredReligiousLevels: ['דתי-לאומי תורני', 'דתי-לאומי סטנדרטי'], 
+      preferredLocations: ['ירושלים', 'גוש עציון', 'מודיעין'],
+      preferredEducation: ['תואר ראשון', 'תואר שני'],
+      preferredOccupations: ['עיצוב', 'אמנות', 'חינוך', 'טיפול'],
+      preferredOrigins: [], // פתוח לכל המוצאים
+      // --- END: עדכון ערכים ---
+      contactPreference: 'matchmaker', preferredMaritalStatuses: ['רווק/ה'],
+      preferredShomerNegiah: 'yes', preferredPartnerHasChildren: 'no_preferred', preferredServiceTypes: [], preferredHeadCoverings: [],
       preferredKippahTypes: [], preferredCharacterTraits: [], preferredHobbies: [], preferredAliyaStatus: 'no_preference', preferredReligiousJourneys: [],
       isProfileVisible: true, preferredMatchmakerGender: null, matchingNotes: '', verifiedBy: null, availabilityStatus: AvailabilityStatus.AVAILABLE,
       availabilityNote: null, availabilityUpdatedAt: null, lastActive: null, hasViewedProfilePreview: false, needsAiProfileUpdate: false,
@@ -187,13 +201,23 @@ export const generateDemoData = async (locale: Locale) => {
   };
   
   const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {
-    overallScore: 91, matchTitle: aiAnalysisContent.forMaleTitle, matchSummary: aiAnalysisContent.forMaleSummary,
-    compatibilityPoints: [], pointsToConsider: [], suggestedConversationStarters: [],
+    overallScore: 91, 
+    matchTitle: aiAnalysisContent.forMaleTitle, 
+    matchSummary: aiAnalysisContent.forMaleSummary,
+    // עכשיו המערכים האלה יתמלאו מהתוכן שהוספנו
+    compatibilityPoints: aiAnalysisContent.compatibilityPoints,
+    pointsToConsider: aiAnalysisContent.pointsToConsider,
+    suggestedConversationStarters: aiAnalysisContent.suggestedConversationStarters,
   };
 
   const demoAiAnalysisForNoa: AiSuggestionAnalysisResult = {
-    overallScore: 91, matchTitle: aiAnalysisContent.forFemaleTitle, matchSummary: aiAnalysisContent.forFemaleSummary,
-    compatibilityPoints: [], pointsToConsider: [], suggestedConversationStarters: [],
+    overallScore: 91, 
+    matchTitle: aiAnalysisContent.forFemaleTitle, 
+    matchSummary: aiAnalysisContent.forFemaleSummary,
+    // עכשיו המערכים האלה יתמלאו מהתוכן שהוספנו
+    compatibilityPoints: aiAnalysisContent.compatibilityPoints,
+    pointsToConsider: aiAnalysisContent.pointsToConsider,
+    suggestedConversationStarters: aiAnalysisContent.suggestedConversationStarters,
   };
 
   return { demoSuggestionDataFemale, demoSuggestionDataMale, demoAiAnalysisForDaniel, demoAiAnalysisForNoa };

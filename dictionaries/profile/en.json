@@ -328,7 +328,7 @@
         "positionPlaceholder": "e.g., 1 (for eldest)"
       },
       "religion": {
-        "title": "Religion & Lifestyle",
+        "title": "Worldview & Faith",
         "religiousLevelLabel": "Religious Observance",
         "religiousLevelPlaceholder": "Select level",
         "religiousJourneyLabel": "Religious Background",
@@ -360,7 +360,7 @@
         "aboutLabel": "About Me (in your own words)",
         "aboutPlaceholder": "Describe yourself, what makes you unique, and what's important to you...",
         "aboutEmpty": "No personal description provided.",
-        "inspiringCoupleLabel": "A Couple That Inspires Me",
+"inspiringCoupleLabel": "A Couple Whose Relationship Inspires Me",
         "inspiringCouplePlaceholder": "Who is the couple and what do you admire about their relationship...",
         "inspiringCoupleEmpty": "No inspiring couple specified.",
         "privateNotesLabel": "Private Notes for the Matchmaker",
@@ -935,8 +935,8 @@
         "positionPlaceholder": "e.g., 1 (for eldest)"
       },
       "religion": {
-        "title": "Religion & Lifestyle",
-        "religiousLevelLabel": "Religious Observance",
+        "title": "Worldview & Faith",
+"religiousLevelLabel": "Religious Style",
         "religiousLevelPlaceholder": "Select level",
         "religiousJourneyLabel": "Religious Background",
         "religiousJourneyPlaceholder": "Select background",
@@ -967,7 +967,7 @@
         "aboutLabel": "About Me (in your own words)",
         "aboutPlaceholder": "Describe yourself, what makes you unique, and what's important to you...",
         "aboutEmpty": "No personal description provided.",
-        "inspiringCoupleLabel": "A Couple That Inspires Me",
+"inspiringCoupleLabel": "A Couple Whose Relationship Inspires Me",
         "inspiringCouplePlaceholder": "Who is the couple whose relationship serves as a model for you? Share what you learn from them about communication, facing challenges together, and true partnership...",
         "inspiringCoupleEmpty": "No inspiring couple specified.",
         "privateNotesLabel": "Private Notes for the Matchmaker",

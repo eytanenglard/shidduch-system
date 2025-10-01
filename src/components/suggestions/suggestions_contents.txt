@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions
-# Generated on: 2025-09-30 20:42:17
+# Generated on: 2025-10-01 12:02:53
 ################################################################################
 
 ================================================================================
@@ -18,7 +18,7 @@ Content:
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useParams } from 'next/navigation'; // ✨ 1. הוסף ייבוא של useParams
+import { useParams } from 'next/navigation';
 
 import {
   History,
@@ -54,7 +54,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-// ✅ 1. ייבוא הטיפוסים הנדרשים עבור המילונים
 import type {
   SuggestionsDictionary,
   ProfileCardDict,
@@ -261,7 +260,6 @@ const WelcomeStats: React.FC<{
   );
 };
 
-// ✅ 2. עדכון הממשק לקבל props נפרדים
 interface MatchSuggestionsContainerProps {
   userId: string;
   className?: string;
@@ -336,7 +334,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           activeData.suggestions.length > activeSuggestions.length
         ) {
           setHasNewSuggestions(true);
-          // ✅ 3. שימוש ב-suggestionsDict במקום dict
           toast.success(suggestionsDict.container.toasts.newSuggestionsTitle, {
             description:
               suggestionsDict.container.toasts.newSuggestionsDescription,
@@ -347,7 +344,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         setActiveSuggestions(activeData.suggestions);
         setHistorySuggestions(historyData.suggestions);
       } catch (error) {
-        // ✅ 3. שימוש ב-suggestionsDict במקום dict
         const errorMessage =
           error instanceof Error
             ? error.message
@@ -366,7 +362,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         setIsRefreshing(false);
       }
     },
-    // ✅ 3. שימוש ב-suggestionsDict במקום dict
     [activeSuggestions.length, suggestionsDict]
   );
 
@@ -391,7 +386,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
         await fetchSuggestions(false);
 
-        // ✅ 3. שימוש ב-suggestionsDict במקום dict
         const statusMessages: Record<string, string> = {
           FIRST_PARTY_APPROVED:
             suggestionsDict.container.toasts.approvedSuccess,
@@ -421,7 +415,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           { description }
         );
       } catch (error) {
-        // ✅ 3. שימוש ב-suggestionsDict במקום dict
         const errorMessage =
           error instanceof Error
             ? error.message
@@ -506,14 +499,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
   const handleRefresh = useCallback(async () => {
     await fetchSuggestions(false);
-    // ✅ 3. שימוש ב-suggestionsDict במקום dict
     toast.success(suggestionsDict.container.toasts.refreshSuccessTitle, {
       description: suggestionsDict.container.toasts.refreshSuccessDescription,
     });
   }, [fetchSuggestions, suggestionsDict]);
 
   if (isLoading) {
-    // ✅ 3. שימוש ב-suggestionsDict במקום dict
     return <LoadingSkeleton dict={suggestionsDict.container.loading} />;
   }
 
@@ -530,7 +521,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           activeSuggestions={activeSuggestions}
           historySuggestions={historySuggestions}
           userId={userId}
-          // ✅ 3. שימוש ב-suggestionsDict במקום dict
           dict={suggestionsDict.container.stats}
         />
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden">
@@ -543,7 +533,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onClick={handleRefresh}
                   disabled={isRefreshing}
                   className="rounded-full h-10 w-10 hover:bg-cyan-100 transition-colors"
-                  // ✅ 3. שימוש ב-suggestionsDict במקום dict
                   aria-label={suggestionsDict.container.main.refreshAriaLabel}
                 >
                   <RefreshCw
@@ -555,7 +544,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 </Button>
                 {hasNewSuggestions && (
                   <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse">
-                    <Bell className="w-3 h-3 ml-1" />
+                    <Bell
+                      className={cn(
+                        'w-3 h-3',
+                        locale === 'he' ? 'ml-1' : 'mr-1'
+                      )}
+                    />
                     {suggestionsDict.container.main.newSuggestions}
                   </Badge>
                 )}
@@ -572,7 +566,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
-              dir="rtl"
+              dir={locale === 'he' ? 'rtl' : 'ltr'}
               className="space-y-6"
             >
               <div className="flex justify-center">
@@ -619,9 +613,11 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 <Alert
                   variant="destructive"
                   className="border-red-200 bg-red-50"
-                  dir="rtl"
+                  dir={locale === 'he' ? 'rtl' : 'ltr'}
                 >
-                  <AlertCircle className="h-5 w-5 ml-2" />
+                  <AlertCircle
+                    className={cn('h-5 w-5', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
                   <AlertDescription className="text-red-800 font-medium">
                     {error}
                   </AlertDescription>
@@ -638,15 +634,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
                   isUserInActiveProcess={isUserInActiveProcess}
-                  // ✅ 4. העברת שני ה-props הלאה
                   suggestionsDict={suggestionsDict}
                   profileCardDict={profileCardDict}
                 />
               </TabsContent>
               <TabsContent value="history" className="space-y-6">
                 <SuggestionsList
-                            locale={locale}
-
+                  locale={locale}
                   suggestions={historySuggestions}
                   userId={userId}
                   viewMode={viewMode}
@@ -656,15 +650,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
                   isUserInActiveProcess={isUserInActiveProcess}
-                  // ✅ 4. העברת שני ה-props הלאה
                   suggestionsDict={suggestionsDict}
                   profileCardDict={profileCardDict}
                 />
               </TabsContent>
               <TabsContent value="urgent" className="space-y-6">
                 <SuggestionsList
-                            locale={locale}
-
+                  locale={locale}
                   suggestions={activeSuggestions.filter((s) => {
                     const isFirstParty = s.firstPartyId === userId;
                     return (
@@ -679,7 +671,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
                   isUserInActiveProcess={isUserInActiveProcess}
-                  // ✅ 4. העברת שני ה-props הלאה
                   suggestionsDict={suggestionsDict}
                   profileCardDict={profileCardDict}
                 />
@@ -717,12 +708,16 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             >
               {actionType === 'approve' ? (
                 <>
-                  <CheckCircle className="w-4 h-4 ml-2" />
+                  <CheckCircle
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
                   {suggestionsDict.container.dialogs.confirmApproval}
                 </>
               ) : (
                 <>
-                  <XCircle className="w-4 h-4 ml-2" />
+                  <XCircle
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
                   {suggestionsDict.container.dialogs.confirmDecline}
                 </>
               )}
@@ -833,7 +828,6 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggesti
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/cards/MinimalSuggestionCard.tsx
-
 import React from 'react';
 import Image from 'next/image';
 import { isAfter, subDays } from 'date-fns';
@@ -872,7 +866,7 @@ import {
   getPartyIndicator,
 } from '@/lib/utils/suggestionUtils';
 import type { ExtendedMatchSuggestion } from '../types';
-import type { SuggestionsCardDict } from '@/types/dictionary'; // ✨ Import dictionary type
+import type { SuggestionsCardDict } from '@/types/dictionary';
 
 interface MinimalSuggestionCardProps {
   suggestion: ExtendedMatchSuggestion;
@@ -884,8 +878,8 @@ interface MinimalSuggestionCardProps {
   className?: string;
   isHistory?: boolean;
   isApprovalDisabled?: boolean;
-  dict: SuggestionsCardDict; // ✨ Add dict prop
-  locale: 'he' | 'en'; // <-- 1. הוסף prop
+  dict: SuggestionsCardDict;
+  locale: 'he' | 'en';
 }
 
 const calculateAge = (birthDate?: Date | string | null): number | null => {
@@ -911,7 +905,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   className,
   isHistory = false,
   isApprovalDisabled = false,
-  dict, // ✨ Destructure dict
+  dict,
   locale,
 }) => {
   const targetParty =
@@ -1001,7 +995,13 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 )}
               >
                 {partyIndicator.text === dict.yourTurn && (
-                  <Zap className="w-2.5 h-2.5 ml-1" aria-hidden="true" />
+                  <Zap
+                    className={cn(
+                      'w-2.5 h-2.5',
+                      locale === 'he' ? 'ml-1' : 'mr-1'
+                    )}
+                    aria-hidden="true"
+                  />
                 )}
                 {partyIndicator.text}
               </Badge>
@@ -1110,7 +1110,9 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                   onDecline?.(suggestion);
                 }}
               >
-                <XCircle className="w-4 h-4 ml-2" />
+                <XCircle
+                  className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />
                 {dict.buttons.decline}
               </Button>
               <TooltipProvider>
@@ -1133,7 +1135,12 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                           }
                         }}
                       >
-                        <Heart className="w-4 h-4 ml-2" />
+                        <Heart
+                          className={cn(
+                            'w-4 h-4',
+                            locale === 'he' ? 'ml-2' : 'mr-2'
+                          )}
+                        />
                         {dict.buttons.approve}
                       </Button>
                     </div>
@@ -1157,21 +1164,26 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                   onInquiry?.(suggestion);
                 }}
               >
-                <MessageCircle className="w-4 h-4 ml-2" />
+                <MessageCircle
+                  className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />
                 {dict.buttons.askMatchmaker}
               </Button>
+              {/* 🎨 שינוי כאן: כפתור דינמי לכיווניות */}
               <Button
                 size="sm"
                 variant="default"
                 className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
                 onClick={() => onClick(suggestion)}
               >
-                <Eye className="w-4 h-4 ml-2" />
+                <Eye
+                  className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />
                 {dict.buttons.viewDetails}
                 {locale === 'he' ? (
-                  <ChevronLeft className="w-3 h-3" />
+                  <ChevronLeft className="w-3 h-3 mr-2" />
                 ) : (
-                  <ChevronRight className="w-3 h-3" />
+                  <ChevronRight className="w-3 h-3 ml-2" />
                 )}
               </Button>
             </div>
@@ -1181,7 +1193,6 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
     </Card>
   );
 };
-
 export default MinimalSuggestionCard;
 --- End of Content for MinimalSuggestionCard.tsx ---
 
@@ -4429,13 +4440,10 @@ import InquiryThreadView from '../inquiries/InquiryThreadView';
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
 import type { ExtendedMatchSuggestion } from '../types';
-// =============================    KEY CHANGE #1    =============================
-// ייבאנו את שני הטיפוסים הדרושים למילון
 import type {
   SuggestionsDictionary,
   ProfileCardDict,
 } from '@/types/dictionary';
-// ==============================================================================
 
 interface SuggestionDetailsModalProps {
   suggestion: ExtendedMatchSuggestion | null;
@@ -4446,19 +4454,14 @@ interface SuggestionDetailsModalProps {
     suggestion: ExtendedMatchSuggestion,
     action: 'approve' | 'decline'
   ) => void;
-  locale: 'he' | 'en'; // <-- 1. הוסף prop
-
+  locale: 'he' | 'en';
   questionnaire: QuestionnaireResponse | null;
   isDemo?: boolean;
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
-  // =============================    KEY CHANGE #2    =============================
-  // עדכנו את ה-prop כך שיקבל אובייקט המכיל את שני המילונים
-  // שהקומפוננטה הזו צריכה כדי לתפקד ולרנדר את ילדיה.
   dict: {
     suggestions: SuggestionsDictionary;
     profileCard: ProfileCardDict;
   };
-  // ==============================================================================
 }
 
 const useIsMobile = () => {
@@ -4496,8 +4499,7 @@ const EnhancedHeroSection: React.FC<{
   targetParty: ExtendedMatchSuggestion['secondParty'];
   personalNote?: string | null;
   matchingReason?: string | null;
-  locale: 'he' | 'en'; // <-- הוסף prop
-
+  locale: 'he' | 'en';
   onViewProfile: () => void;
   onStartConversation: () => void;
   dict: SuggestionsDictionary['modal']['header'];
@@ -4536,7 +4538,7 @@ const EnhancedHeroSection: React.FC<{
                 {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
               </AvatarFallback>
             </Avatar>
-            <div className="text-right">
+            <div className={cn(locale === 'he' ? 'text-right' : 'text-left')}>
               <p className="text-xs font-medium text-purple-600 mb-1">
                 {dict.suggestedBy}
               </p>
@@ -4594,7 +4596,12 @@ const EnhancedHeroSection: React.FC<{
                         </h2>
                         {age && (
                           <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-lg text-lg px-4 py-2">
-                            <Calendar className="w-4 h-4 ml-2" />
+                            <Calendar
+                              className={cn(
+                                'w-4 h-4',
+                                locale === 'he' ? 'ml-2' : 'mr-2'
+                              )}
+                            />
                             {dict.ageInYears.replace('{{age}}', age.toString())}
                           </Badge>
                         )}
@@ -4623,7 +4630,6 @@ const EnhancedHeroSection: React.FC<{
           >
             <Card className="border-0 shadow-2xl bg-gradient-to-br from-purple-50 via-pink-50 to-white overflow-hidden">
               <CardContent className="p-8 relative">
-                {/* Decorative elements */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-2xl"></div>
                 <div className="relative z-10">
                   <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4 leading-tight text-center">
@@ -4635,12 +4641,17 @@ const EnhancedHeroSection: React.FC<{
                       size="lg"
                       className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-xl rounded-xl h-14 font-bold text-base transform hover:scale-105 transition-all"
                     >
-                      <User className="w-5 h-5 ml-2" />
+                      <User
+                        className={cn(
+                          'w-5 h-5',
+                          locale === 'he' ? 'ml-2' : 'mr-2'
+                        )}
+                      />
                       {dict.viewFullProfile}
                       {locale === 'he' ? (
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowLeft className="w-4 h-4 mr-2" />
                       ) : (
-                        <ArrowLeft className="w-4 h-4" />
+                        <ArrowRight className="w-4 h-4 ml-2" />
                       )}
                     </Button>
                     <Button
@@ -4649,7 +4660,12 @@ const EnhancedHeroSection: React.FC<{
                       size="lg"
                       className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50 shadow-lg rounded-xl h-14 font-bold text-base transform hover:scale-105 transition-all"
                     >
-                      <MessageCircle className="w-5 h-5 ml-2" />
+                      <MessageCircle
+                        className={cn(
+                          'w-5 h-5',
+                          locale === 'he' ? 'ml-2' : 'mr-2'
+                        )}
+                      />
                       {dict.iHaveQuestions}
                     </Button>
                   </div>
@@ -4659,23 +4675,57 @@ const EnhancedHeroSection: React.FC<{
             {(personalNote || matchingReason) && (
               <Card className="border-0 shadow-xl bg-gradient-to-br from-cyan-50 to-blue-50 overflow-hidden">
                 <CardContent className="p-6 relative">
-                  <div className="flex items-start gap-4">
+                  {/* 🎨 FIX: Dynamic direction for this whole insight card */}
+                  <div
+                    className={cn(
+                      'flex items-start gap-4',
+                      locale === 'he' ? 'flex-row-reverse' : 'flex-row'
+                    )}
+                  >
                     <div className="p-4 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg flex-shrink-0">
                       <Lightbulb className="w-7 h-7" />
                     </div>
-                    <div className="flex-1">
+                    <div
+                      className={cn(
+                        'flex-1',
+                        locale === 'he' ? 'text-right' : 'text-left'
+                      )}
+                    >
                       <h3 className="font-bold text-cyan-800 text-xl mb-4">
                         {dict.matchmakerInsight}
                       </h3>
                       {personalNote && (
-                        <div className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-cyan-100">
-                          <div className="flex items-start gap-2">
-                            <Quote className="w-5 h-5 text-cyan-500 mt-1 flex-shrink-0" />
+                        <div
+                          className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-cyan-100"
+                          dir={locale === 'he' ? 'rtl' : 'ltr'}
+                        >
+                          <div
+                            className={cn(
+                              'flex items-start gap-2',
+                              locale === 'he' ? 'flex-row-reverse' : 'flex-row'
+                            )}
+                          >
+                            <Quote
+                              className={cn(
+                                'w-5 h-5 text-cyan-500 mt-1 flex-shrink-0',
+                                locale === 'he' ? 'ml-2' : 'mr-2'
+                              )}
+                            />
                             <div>
-                              <h4 className="font-semibold text-cyan-800 mb-2">
+                              <h4
+                                className={cn(
+                                  'font-semibold text-cyan-800 mb-2',
+                                  locale === 'he' ? 'text-right' : 'text-left'
+                                )}
+                              >
                                 {dict.whyYou}
                               </h4>
-                              <p className="text-cyan-900 leading-relaxed italic font-medium">
+                              <p
+                                className={cn(
+                                  'text-cyan-900 leading-relaxed italic font-medium',
+                                  locale === 'he' ? 'text-right' : 'text-left' // 🎨 FIX: Apply text alignment here
+                                )}
+                              >
                                 “{personalNote}”
                               </p>
                             </div>
@@ -4683,14 +4733,37 @@ const EnhancedHeroSection: React.FC<{
                         </div>
                       )}
                       {matchingReason && (
-                        <div className="p-4 bg-white/70 rounded-xl shadow-inner border border-blue-100">
-                          <div className="flex items-start gap-2">
-                            <Puzzle className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
+                        <div
+                          className="p-4 bg-white/70 rounded-xl shadow-inner border border-blue-100"
+                          dir={locale === 'he' ? 'rtl' : 'ltr'}
+                        >
+                          <div
+                            className={cn(
+                              'flex items-start gap-2',
+                              locale === 'he' ? 'flex-row-reverse' : 'flex-row'
+                            )}
+                          >
+                            <Puzzle
+                              className={cn(
+                                'w-5 h-5 text-blue-500 mt-1 flex-shrink-0',
+                                locale === 'he' ? 'ml-2' : 'mr-2'
+                              )}
+                            />
                             <div>
-                              <h4 className="font-semibold text-blue-800 mb-2">
+                              <h4
+                                className={cn(
+                                  'font-semibold text-blue-800 mb-2',
+                                  locale === 'he' ? 'text-right' : 'text-left'
+                                )}
+                              >
                                 {dict.ourConnection}
                               </h4>
-                              <p className="text-blue-900 leading-relaxed font-medium">
+                              <p
+                                className={cn(
+                                  'text-blue-900 leading-relaxed font-medium',
+                                  locale === 'he' ? 'text-right' : 'text-left' // 🎨 FIX: Apply text alignment here
+                                )}
+                              >
                                 “{matchingReason}”
                               </p>
                             </div>
@@ -4717,6 +4790,7 @@ const EnhancedQuickActions: React.FC<{
   onApprove: () => void;
   onDecline: () => void;
   onAskQuestion: () => void;
+  locale: 'he' | 'en';
   dict: SuggestionsDictionary['modal']['actions'];
 }> = ({
   isExpanded,
@@ -4727,6 +4801,7 @@ const EnhancedQuickActions: React.FC<{
   onDecline,
   onAskQuestion,
   dict,
+  locale,
 }) => (
   <div
     className={cn(
@@ -4775,14 +4850,29 @@ const EnhancedQuickActions: React.FC<{
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-6 h-6 animate-spin ml-3" />
+                    <Loader2
+                      className={cn(
+                        'w-6 h-6 animate-spin',
+                        locale === 'he' ? 'ml-3' : 'mr-3'
+                      )}
+                    />
                     <span>{dict.sending}</span>
                   </>
                 ) : (
                   <>
-                    <Heart className="w-6 h-6 animate-pulse ml-3" />
+                    <Heart
+                      className={cn(
+                        'w-6 h-6 animate-pulse',
+                        locale === 'he' ? 'ml-3' : 'mr-3'
+                      )}
+                    />
                     <span>{dict.approve}</span>
-                    <Sparkles className="w-5 h-5 ml-2" />
+                    <Sparkles
+                      className={cn(
+                        'w-5 h-5',
+                        locale === 'he' ? 'mr-2' : 'ml-2'
+                      )}
+                    />
                   </>
                 )}
               </Button>
@@ -4793,7 +4883,9 @@ const EnhancedQuickActions: React.FC<{
               disabled={isSubmitting}
               className="w-full md:flex-1 border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 rounded-2xl h-16 font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
             >
-              <MessageCircle className="w-6 h-6 ml-3" />
+              <MessageCircle
+                className={cn('w-6 h-6', locale === 'he' ? 'ml-3' : 'mr-3')}
+              />
               <span>{dict.ask}</span>
             </Button>
             {canAct && (
@@ -4805,12 +4897,22 @@ const EnhancedQuickActions: React.FC<{
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin ml-2" />
+                    <Loader2
+                      className={cn(
+                        'w-5 h-5 animate-spin',
+                        locale === 'he' ? 'ml-2' : 'mr-2'
+                      )}
+                    />
                     <span>{dict.updating}</span>
                   </>
                 ) : (
                   <>
-                    <XCircle className="w-5 h-5 ml-3" />
+                    <XCircle
+                      className={cn(
+                        'w-5 h-5',
+                        locale === 'he' ? 'ml-3' : 'mr-3'
+                      )}
+                    />
                     <span>{dict.decline}</span>
                   </>
                 )}
@@ -5017,11 +5119,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     onClose();
   };
 
-  // src/components/suggestions/modals/SuggestionDetailsModal.tsx
-
-  // src/app/components/suggestions/modals/SuggestionDetailsModal.tsx
-
-  // החלף את כל הפונקציה הזו בקוד הבא
   const getModalClasses = () => {
     const baseClasses =
       'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out';
@@ -5057,10 +5154,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 onToggleFullscreen={toggleFullscreen}
                 isMobile={isMobile}
                 isTransitioning={isTransitioning}
-                // =============================    KEY CHANGE #3 (Usage)    =============================
-                // ניגשים למילון דרך המפתח המתאים
                 dict={dict.suggestions.modal.tabs}
-                // ======================================================================================
               />
               <TabsContent value="presentation" className="mt-0">
                 <EnhancedHeroSection
@@ -5075,9 +5169,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   matchingReason={suggestion.matchingReason}
                   onViewProfile={() => setActiveTab('profile')}
                   onStartConversation={() => setShowAskDialog(true)}
-                  // =============================    KEY CHANGE #3 (Usage)    =============================
                   dict={dict.suggestions.modal.header}
-                  // ======================================================================================
                 />
               </TabsContent>
               <TabsContent
@@ -5103,11 +5195,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     images={targetParty.images}
                     questionnaire={questionnaire}
                     viewMode="candidate"
-                    // =============================    KEY CHANGE #3 (Usage)    =============================
-                    // מעבירים לקומפוננטת הפרופיל את המילון שלה
                     dict={dict.profileCard}
                     locale={locale}
-                    // ======================================================================================
                   />
                 ) : (
                   <div className="text-center p-12">
@@ -5214,6 +5303,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
             onDecline={handleDecline}
             onAskQuestion={() => setShowAskDialog(true)}
             dict={dict.suggestions.modal.actions}
+            locale={locale}
           />
         </DialogContent>
       </Dialog>

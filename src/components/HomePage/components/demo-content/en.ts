@@ -302,6 +302,47 @@ export const aiAnalysisContent = {
   forMaleSummary: 'The connection between Daniel and Noa shows particularly high potential, based on a fascinating balance between shared core values and complementary personalities. The combination of Daniel\'s practical, ambitious nature and Noa\'s emotional depth and creativity creates a solid foundation for a long-term partnership.',
   forFemaleTitle: 'A Connection of Optimism and Responsibility',
   forFemaleSummary: 'The match between Noa and Daniel is very promising, based on a deep connection at the level of values and personality. Noa\'s creativity and optimism harmoniously complement Daniel\'s stability and responsibility, creating potential for a balanced and supportive relationship.',
+
+  // START: Expanded AI Content
+  compatibilityPoints: [
+    {
+      area: 'Shared Values and Worldview',
+      explanation: 'You both see a relationship as a "true partnership" and family as a core value. Noa\'s desire for "kindness" and Daniel\'s emphasis on "integrity and responsibility" connect perfectly to form the basis of a healthy, mature relationship.'
+    },
+    {
+      area: 'Intellectual and Emotional Compatibility',
+      explanation: 'Noa\'s desire for "deep conversations" and her search for intelligence and curiosity align with Daniel\'s analytical and scholarly nature (a graduate of both Yeshivat Har Etzion and the Technion). There is potential for a fascinating intellectual connection and conversations late into the night.'
+    },
+    {
+      area: 'Complementary Personalities',
+      explanation: 'The combination of Daniel\'s practical, mission-oriented nature and Noa\'s artistic and creative soul creates a beautiful balance. He can provide stability and security, while she can bring spontaneity, color, and sensitivity to their shared life.'
+    },
+    {
+      area: 'Balanced Lifestyle',
+      explanation: 'You both appreciate a balance between career and ambition on one hand, and quality time, friends, and nature on the other. A shared love for hiking could be a source of many wonderful shared experiences.'
+    }
+  ],
+  pointsToConsider: [
+    {
+      area: 'Shomer Negiah (Observing Touch)',
+      explanation: 'Noa, it\'s important to know that Daniel is Shomer Negiah. This is a significant point to discuss openly and respectfully to understand its implications for both of you at the beginning of the relationship.'
+    },
+    {
+      area: 'Geographic Location',
+      explanation: 'Daniel lives in Jerusalem and you live in Tel Aviv. This is a gap that needs to be acknowledged and discussed, exploring both of your flexibility regarding a future place of residence.'
+    },
+    {
+      area: 'Communication Styles',
+      explanation: 'Daniel tends to analyze and solve problems, while you, Noa, seek more emotional processing and conversation. This is a wonderful opportunity to learn each other\'s languages of support.'
+    }
+  ],
+  suggestedConversationStarters: [
+    'You both defined "partnership" as an important value. What does a "true partnership" look like to you in daily life?',
+    'How do you balance your professional ambitions with your desire for a full personal, spiritual, and creative life?',
+    'Tell me about a project or challenge (personal or professional) that you took on and what you learned from the process.',
+    'What is the most important thing you want a partner to understand about you right from the start?'
+  ]
+  // END: Expanded AI Content
 };
 
 export const matchmakerContent = {

@@ -99,7 +99,7 @@ const ensureDateObject = (
 };
 
 // ========================================================================
-// ✨ Helper Functions (Moved outside the main component)
+// ✨ Helper Functions
 // ========================================================================
 
 const renderDisplayValue = (
@@ -162,7 +162,8 @@ const StoryAndMoreCard: React.FC<{
   dict: ProfileSectionDict;
   handleChange: (field: keyof UserProfile, value: any) => void;
   formData: Partial<UserProfile>;
-}> = ({ profile, isEditing, dict, handleChange, formData }) => {
+  direction: string; // Added direction prop
+}> = ({ profile, isEditing, dict, handleChange, formData, direction }) => {
   if (!profile) return null;
   const tAboutCard = dict.cards.about;
   const tAboutMe = dict.aboutMe;
@@ -197,8 +198,12 @@ const StoryAndMoreCard: React.FC<{
                     id="headline-tooltip"
                     side="top"
                     className="max-w-xs text-center"
+                    dir={direction}
+                    sideOffset={5}
+                    collisionPadding={10}
                   >
-                    <p>{dict.tooltips.headline}</p>
+                    {/* UPDATED: Use placeholder text */}
+                    <p>{tAboutCard.headlinePlaceholder}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -264,8 +269,12 @@ const StoryAndMoreCard: React.FC<{
                       id="about-tooltip"
                       side="top"
                       className="max-w-xs text-center"
+                      dir={direction}
+                      sideOffset={5}
+                      collisionPadding={10}
                     >
-                      <p>{dict.tooltips.about.replace('{{count}}', '100')}</p>
+                      {/* UPDATED: Use placeholder text */}
+                      <p>{tAboutMe.placeholder}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -283,7 +292,11 @@ const StoryAndMoreCard: React.FC<{
                       />
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent
+                    dir={direction}
+                    sideOffset={5}
+                    collisionPadding={10}
+                  >
                     <p>{tAboutMe.visibilityTooltip}</p>
                   </TooltipContent>
                 </Tooltip>
@@ -351,8 +364,12 @@ const StoryAndMoreCard: React.FC<{
                     id="couple-tooltip"
                     side="top"
                     className="max-w-xs text-center"
+                    dir={direction}
+                    sideOffset={5}
+                    collisionPadding={10}
                   >
-                    <p>{dict.tooltips.inspiringCouple}</p>
+                    {/* UPDATED: Use placeholder text */}
+                    <p>{tAboutCard.inspiringCouplePlaceholder}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -403,8 +420,12 @@ const StoryAndMoreCard: React.FC<{
                     id="private-notes-tooltip"
                     side="top"
                     className="max-w-xs text-center"
+                    dir={direction}
+                    sideOffset={5}
+                    collisionPadding={10}
                   >
-                    <p>{dict.tooltips.privateNotes}</p>
+                    {/* UPDATED: Use placeholder text */}
+                    <p>{tAboutCard.privateNotesPlaceholder}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -440,7 +461,8 @@ const NeshamaTechSummaryCard: React.FC<{
   dict: ProfileSectionDict;
   handleChange: (field: keyof UserProfile, value: any) => void;
   formData: Partial<UserProfile>;
-}> = ({ profile, isEditing, dict, handleChange, formData }) => {
+  direction: string; // Added direction prop
+}> = ({ profile, isEditing, dict, handleChange, formData, direction }) => {
   if (!profile) return null;
   const t = dict.neshamaTechSummary;
   return (
@@ -463,7 +485,11 @@ const NeshamaTechSummaryCard: React.FC<{
                 disabled={!isEditing}
               />
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent
+              dir={direction}
+              sideOffset={5}
+              collisionPadding={10}
+            >
               <p>{t.visibilityTooltip}</p>
             </TooltipContent>
           </Tooltip>
@@ -486,7 +512,8 @@ const FriendTestimonialsManager: React.FC<{
   dict: ProfileSectionDict;
   handleChange: (field: keyof UserProfile, value: any) => void;
   formData: Partial<UserProfile>;
-}> = ({ profile, isEditing, dict, handleChange, formData }) => {
+  direction: string; // Added direction prop
+}> = ({ profile, isEditing, dict, handleChange, formData, direction }) => {
   const [testimonials, setTestimonials] = useState<FriendTestimonial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -599,7 +626,11 @@ const FriendTestimonialsManager: React.FC<{
                 disabled={!isEditing}
               />
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent
+              dir={direction}
+              sideOffset={5}
+              collisionPadding={10}
+            >
               <p>{t.visibilityTooltip}</p>
             </TooltipContent>
           </Tooltip>
@@ -2185,8 +2216,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           id="rabbi-tooltip"
                           side="top"
                           className="max-w-xs text-center"
+                          dir={direction}
+                          sideOffset={5}
+                          collisionPadding={10}
                         >
-                          <p>{dict.tooltips.influentialRabbi}</p>
+                          {/* UPDATED: Use placeholder text */}
+                          <p>{dict.cards.religion.influentialRabbiPlaceholder}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -2234,7 +2269,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           <Lock className="w-4 h-4 text-gray-400" />
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent id="medical-tooltip">
+                      <TooltipContent
+                        id="medical-tooltip"
+                        dir={direction}
+                        sideOffset={5}
+                        collisionPadding={10}
+                      >
                         <p>{dict.cards.medical.tooltip}</p>
                       </TooltipContent>
                     </Tooltip>
@@ -2436,6 +2476,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               dict={dict}
               handleChange={handleChange}
               formData={formData}
+              direction={direction} // Pass direction
             />
           </div>
 
@@ -2446,6 +2487,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               dict={dict}
               handleChange={handleChange}
               formData={formData}
+              direction={direction} // Pass direction
             />
 
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
@@ -2751,6 +2793,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               dict={dict}
               handleChange={handleChange}
               formData={formData}
+              direction={direction} // Pass direction
             />
           </div>
         </div>

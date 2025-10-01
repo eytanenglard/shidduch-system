@@ -582,7 +582,7 @@
         "positionPlaceholder": "לדוגמה: 1 (בכור/ה)"
       },
       "religion": {
-        "title": "דת ואורח חיים",
+        "title": "השקפה ואמונה",
         "religiousLevelLabel": "רמה דתית",
         "religiousLevelPlaceholder": "בחר/י רמה",
         "religiousJourneyLabel": "מסע דתי",
@@ -614,7 +614,8 @@
         "aboutLabel": "ספר/י קצת על עצמך (תיאור חופשי)",
         "aboutPlaceholder": "תאר/י את עצמך, מה מאפיין אותך, מה חשוב לך...",
         "aboutEmpty": "לא הוזן תיאור אישי.",
-        "inspiringCoupleLabel": "הזוג שנותן לי השראה",
+        "inspiringCoupleLabel": "הזוג שמהווה עבורי מודל והשראה",
+
         "inspiringCouplePlaceholder": "מי הזוג שהזוגיות שלהם היא מודל עבורך? ספר/י מה את/ה לומד/ת מהם על תקשורת, התמודדות משותפת ושותפות אמת...",
         "inspiringCoupleEmpty": "לא צוין זוג מעורר השראה.",
         "privateNotesLabel": "הערות נוספות לשדכן/ית (לא יוצג לצד השני)",
@@ -1087,8 +1088,8 @@
         "positionPlaceholder": "לדוגמה: 1 (בכור/ה)"
       },
       "religion": {
-        "title": "דת ואורח חיים",
-        "religiousLevelLabel": "רמה דתית",
+        "title": "השקפה ואמונה",
+"religiousLevelLabel": "סגנון דתי",
         "religiousLevelPlaceholder": "בחר/י רמה",
         "religiousJourneyLabel": "מסע דתי",
         "religiousJourneyPlaceholder": "בחר/י רקע דתי",
@@ -1119,7 +1120,7 @@
         "aboutLabel": "ספר/י קצת על עצמך (תיאור חופשי)",
         "aboutPlaceholder": "תאר/י את עצמך, מה מאפיין אותך, מה חשוב לך...",
         "aboutEmpty": "לא הוזן תיאור אישי.",
-        "inspiringCoupleLabel": "הזוג שנותן לי השראה",
+"inspiringCoupleLabel": "הזוג שמהווה עבורי מודל והשראה",
         "inspiringCouplePlaceholder": "מי הזוג ומה מיוחד בזוגיות שלהם בעיניך...",
         "inspiringCoupleEmpty": "לא צוין זוג מעורר השראה.",
         "privateNotesLabel": "הערות נוספות לשדכן/ית (לא יוצג לצד השני)",
