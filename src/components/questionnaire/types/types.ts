@@ -152,4 +152,5 @@ export interface QuestionnaireSubmission {
   completed: boolean;
   startedAt: string;
   completedAt?: string;
+    currentQuestionIndices?: Record<WorldId, number>;
 }

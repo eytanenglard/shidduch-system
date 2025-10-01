@@ -199,8 +199,10 @@ export default function MatchmakingQuestionnaire({
       completed: isCompleted,
       startedAt: startTime,
       completedAt: isCompleted ? new Date().toISOString() : undefined,
+          currentQuestionIndices: currentQuestionIndices, 
+
     };
-  }, [answers, completedWorlds, sessionId, startTime, userId]);
+  }, [answers, completedWorlds, sessionId, startTime, userId, currentQuestionIndices]);
 
   const handleQuestionnaireSave = useCallback(
     async (isAutoSave = false) => {
@@ -332,18 +334,13 @@ export default function MatchmakingQuestionnaire({
   useEffect(() => {
     const loadExistingAnswers = async () => {
       console.log(
-        `%c[LOG | MatchmakingQuestionnaire] loadExistingAnswers useEffect triggered. initialWorld='${initialWorld}', initialQuestionId='${initialQuestionId}'`,
+        `%c[LOG | MatchmakingQuestionnaire] loadExistingAnswers triggered. initialWorld='${initialWorld}', initialQuestionId='${initialQuestionId}'`,
         'color: #9c27b0;'
       );
 
       if (!userId) {
         setIsLoading(false);
-        const tempData = localStorage.getItem('tempQuestionnaire');
-        if (tempData) {
-          console.warn(
-            'Found temp data but user ID is missing. This should be handled by /questionnaire/restore.'
-          );
-        }
+        // טיפול במשתמש לא מחובר נשאר כפי שהיה
         return;
       }
 
@@ -363,6 +360,7 @@ export default function MatchmakingQuestionnaire({
         } else {
           const data = await response.json();
           if (data.success && data.data) {
+            // איחוד תשובות נשאר כפי שהיה
             const allAnswers = [
               ...(data.data.answers || []),
               ...(data.data.valuesAnswers || []),
@@ -380,27 +378,20 @@ export default function MatchmakingQuestionnaire({
             const loadedCompletedWorlds = data.data.worldsCompleted || [];
             setCompletedWorlds(loadedCompletedWorlds);
 
-            const isQuestionnaireComplete =
-              data.data.completed ||
-              loadedCompletedWorlds.length === WORLD_ORDER.length;
+            const isQuestionnaireComplete = data.data.completed || loadedCompletedWorlds.length === WORLD_ORDER.length;
 
-            if (data.data.currentQuestionIndices) {
-              setCurrentQuestionIndices(data.data.currentQuestionIndices);
+            // ================== START: התיקון המרכזי ==================
+
+            const loadedIndices = data.data.currentQuestionIndices;
+            if (loadedIndices && typeof loadedIndices === 'object') {
+              setCurrentQuestionIndices(prev => ({ ...prev, ...loadedIndices }));
             }
 
+            // 1. טיפול בניווט ישיר דרך URL (התנהגות קיימת)
             if (initialWorld && initialQuestionId) {
-              console.log(
-                `%c[LOG | MatchmakingQuestionnaire] Handling direct navigation to question...`,
-                'color: #9c27b0; font-weight: bold;'
-              );
-
               const worldQuestions = worldConfig[initialWorld].questions;
               const questionIndex = worldQuestions.findIndex(
                 (q) => q.id === initialQuestionId
-              );
-              console.log(
-                `%c[LOG | MatchmakingQuestionnaire] Searching for question '${initialQuestionId}' in world '${initialWorld}'. Found at index: ${questionIndex}`,
-                'color: #9c27b0;'
               );
 
               if (questionIndex !== -1) {
@@ -411,53 +402,50 @@ export default function MatchmakingQuestionnaire({
                 setCurrentWorld(initialWorld);
                 setCurrentStep(OnboardingStep.WORLDS);
                 setIsDirectNavigation(true);
-                console.log(
-                  `%c[LOG | MatchmakingQuestionnaire] SUCCESS: Setting step to WORLDS and question index to ${questionIndex}.`,
-                  'color: #9c27b0; font-weight: bold;'
-                );
               } else {
-                console.warn(
-                  `%c[LOG | MatchmakingQuestionnaire] WARN: Question ID not found. Defaulting to MAP for world ${initialWorld}.`,
-                  'color: #9c27b0;'
-                );
-
-                setCurrentWorld(initialWorld);
                 setCurrentStep(OnboardingStep.MAP);
               }
-            } else if (isQuestionnaireComplete) {
-              console.log(
-                `%c[LOG | MatchmakingQuestionnaire] Questionnaire is complete, setting step to MAP.`,
-                'color: #9c27b0;'
-              );
-
-              setCurrentWorld(initialWorld || WORLD_ORDER[0]);
+            } 
+            // 2. אם השאלון הושלם, שלח למפת העולמות
+            else if (isQuestionnaireComplete) {
               setCurrentStep(OnboardingStep.MAP);
-            } else if (
-              loadedCompletedWorlds.length > 0 ||
-              allAnswers.length > 0
-            ) {
-              const nextWorld = WORLD_ORDER.find(
+            } 
+            // 3. אם יש התקדמות שמורה (אך השאלון לא הושלם), המשך מהנקודה האחרונה
+            else if (allAnswers.length > 0) {
+              // מצא את העולם הראשון שעדיין לא הושלם
+              const worldToResume = WORLD_ORDER.find(
                 (world) => !loadedCompletedWorlds.includes(world)
+              ) || WORLD_ORDER[0]; // אם יש בעיה, חזור לעולם הראשון
+
+              setCurrentWorld(worldToResume);
+              setCurrentStep(OnboardingStep.WORLDS); // <-- השינוי המהותי: כניסה ישירה לעולם השאלות
+              console.log(
+                `%c[LOG | MatchmakingQuestionnaire] Resuming questionnaire at world: ${worldToResume}. Indices loaded.`,
+                'color: #28a745; font-weight: bold;'
               );
-              setCurrentWorld(nextWorld || WORLD_ORDER[0]);
-              setCurrentStep(OnboardingStep.MAP);
-            } else {
+            }
+            // 4. אם אין שום התקדמות, התחל מהמפה
+            else {
               setCurrentStep(OnboardingStep.MAP);
             }
+            // =================== END: התיקון המרכזי ===================
+
           } else {
+            // אין מידע קיים, התחל מהמפה
             setCurrentStep(OnboardingStep.MAP);
           }
         }
       } catch (err) {
         console.error('Failed to load existing answers:', err);
         setError(dict.matchmaking.errors.genericLoadError);
-        setCurrentStep(OnboardingStep.MAP);
+        setCurrentStep(OnboardingStep.MAP); // במקרה של שגיאה, חזור למפה
       } finally {
         setIsLoading(false);
       }
     };
     loadExistingAnswers();
-  }, [userId, initialWorld, initialQuestionId, dict]);
+  }, [userId, initialWorld, initialQuestionId, dict]); // תלויות נשארות כפי שהיו
+
 
   const handleAnswer = useCallback(
     (questionId: string, value: AnswerValue) => {
