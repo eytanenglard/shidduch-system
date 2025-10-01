@@ -67,6 +67,7 @@
         "missingItems": {
         "profileHeadline": "Profile Headline",
         "about": "'About Me' section (min. 100 characters)",
+                "testimonials": "At least one approved testimonial from a friend",
         "inspiringCoupleStory": "Story of an inspiring couple",
         "influentialRabbi": "Influential rabbinic/spiritual figure",
         "medicalInfoReference": "Reference to sensitive/medical info",

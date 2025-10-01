@@ -88,6 +88,7 @@
       "missingItems": {
         "profileHeadline": "כותרת פרופיל",
         "about": "שדה 'אודותיי' (לפחות 100 תווים)",
+                "testimonials": "לפחות המלצה מאושרת אחת מחבר/ה",
         "inspiringCoupleStory": "סיפור על זוג מעורר השראה",
         "influentialRabbi": "דמות רבנית/רוחנית משפיעה",
         "medicalInfoReference": "התייחסות למידע רפואי/רגיש",
