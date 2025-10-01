@@ -3301,21 +3301,21 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   }, [activeTab]);
 
   // החלף את הפונקציה הקיימת בזו
-  const handleTabChange = (newTab: string) => {
-    if (activeTabRef.current === newTab) return;
+const handleTabChange = (newTab: string) => {
+  if (activeTabRef.current === newTab) return;
 
-    setActiveTab(newTab);
+  setActiveTab(newTab);
 
-    // גולל את אזור התוכן למעלה בעת החלפת טאב
-    setTimeout(() => {
-      const scrollViewport = contentScrollAreaRef.current?.querySelector(
-        '[data-radix-scroll-area-viewport]'
-      );
-      if (scrollViewport) {
-        scrollViewport.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }, 50); // השהיה קטנה כדי לאפשר לתוכן להתעדכן
-  };
+  // גלילה לראש הטאב
+  requestAnimationFrame(() => {
+    const scrollViewport = contentScrollAreaRef.current?.querySelector(
+      '[data-radix-scroll-area-viewport]'
+    );
+    if (scrollViewport) {
+      scrollViewport.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+};
 
   const THEME = useMemo(
     () => COLOR_PALETTES[selectedPalette],
