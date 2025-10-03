@@ -188,6 +188,13 @@ export interface QuestionnaireResponse extends Omit<PrismaQuestionnaireResponse,
   partnerAnswers: QuestionAnswers | Prisma.JsonValue | null;
   religionAnswers: QuestionAnswers | Prisma.JsonValue | null;
 
+   currentQuestionIndices?: {
+    PERSONALITY: number;
+    VALUES: number;
+    RELATIONSHIP: number;
+    PARTNER: number;
+    RELIGION: number;
+  } | Prisma.JsonValue | null;
   // This formattedAnswers seems like a client-side computed property
  formattedAnswers?: {
     [key in WorldId | Uppercase<WorldId>]?: FormattedAnswer[];
