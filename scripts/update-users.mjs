@@ -38,7 +38,7 @@ let textGenerationModel;
 let embeddingModel; // מודל עבור וקטורים
 try {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  textGenerationModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+  textGenerationModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash-latest" });
   embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" }); // הגדרת מודל ההטמעה
   console.log('Successfully connected to Google Gemini AI for both text generation and embeddings.');
 } catch (error) {

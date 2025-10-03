@@ -77,7 +77,7 @@ export async function analyzePairCompatibility(
     return null;
   }
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-pro-latest',
+    model: 'gemini-2.5-flash',
     generationConfig: {
       responseMimeType: 'application/json',
       temperature: 0.3,
@@ -160,7 +160,7 @@ export async function getProfileAnalysis(
   }
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-pro-latest',
+    model: 'gemini-2.5-flash',
     generationConfig: {
       responseMimeType: 'application/json',
       temperature: 0.4,
@@ -262,7 +262,7 @@ export async function analyzeSuggestionForUser(
   }
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-pro-latest',
+    model: 'gemini-2.5-flash',
     generationConfig: {
       responseMimeType: 'application/json',
       temperature: 0.5,
@@ -324,7 +324,7 @@ export async function generateSuggestionRationale(
     return null;
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const prompt = `
     You are a professional and sensitive matchmaker in the religious Jewish community. Your task is to write a warm, personal, and compelling justification ('matchingReason') for a match suggestion.
@@ -393,7 +393,7 @@ export async function generateFullSuggestionRationale(
   }
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-pro-latest',
+    model: 'gemini-2.5-flash',
     generationConfig: {
       responseMimeType: 'application/json',
       temperature: 0.6,
@@ -466,7 +466,7 @@ export async function generateNeshamaTechSummary(
   }
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-pro-latest',
+    model: 'gemini-2.5-flash',
     generationConfig: {
       responseMimeType: 'application/json',
       temperature: 0.6,

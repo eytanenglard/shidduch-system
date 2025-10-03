@@ -263,7 +263,7 @@ export async function POST(req: NextRequest) {
         .map((item) => `שאלה: ${item.question}\nתשובה: ${item.answer}`)
         .join('\n\n');
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash', safetySettings });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', safetySettings });
     
     const prompt = getPrompt(lang, knowledgeContext, message);
 
