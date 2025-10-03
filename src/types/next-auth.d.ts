@@ -198,8 +198,7 @@ export interface QuestionnaireResponse extends Omit<PrismaQuestionnaireResponse,
   // valuesCompleted: boolean;
   // personalityCompleted: boolean;
   // etc.
-    currentQuestionIndices?: Prisma.JsonValue | null; 
-
+  
 }
 
 export interface User extends DefaultUser {
