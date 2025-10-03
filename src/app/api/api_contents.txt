@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api
-# Generated on: 2025-10-03 16:42:01
+# Generated on: 2025-10-03 16:46:33
 ################################################################################
 
 ================================================================================
@@ -1128,7 +1128,7 @@ export async function GET() {
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }); 
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }); 
     const prompt = 'Say "Connection Successful" in one sentence.';
 
     console.log('--- [API TEST] Sending a simple prompt to Google AI...');
@@ -6509,7 +6509,7 @@ export async function POST(req: NextRequest) {
         .map((item) => `שאלה: ${item.question}\nתשובה: ${item.answer}`)
         .join('\n\n');
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash', safetySettings });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', safetySettings });
     
     const prompt = getPrompt(lang, knowledgeContext, message);
 
