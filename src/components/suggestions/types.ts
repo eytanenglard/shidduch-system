@@ -9,6 +9,7 @@ import type {
   TestimonialStatus, // ייבוא הטיפוסים הנדרשים
   SubmissionSource,   // ייבוא הטיפוסים הנדרשים
 } from '@prisma/client';
+import { QuestionnaireResponse as CustomQuestionnaireResponse } from '@/types/next-auth';
 
 // 1. הגדרת טיפוס עבור המלצת חבר בודדת
 export interface FriendTestimonial {
@@ -36,7 +37,7 @@ export type WorldId =
   | 'partner'
   | 'religion';
 
-export type QuestionnaireResponse = PrismaQuestionnaireResponse;
+export type QuestionnaireResponse = CustomQuestionnaireResponse;
 
 // PartyInfo עכשיו ישתמש ב-UserProfile המעודכן שלנו
 export interface PartyInfo {
