@@ -58,6 +58,7 @@ const QuestionnaireSubmission = z.object({
   completed: z.boolean(),
   startedAt: z.string().datetime(),
   completedAt: z.string().datetime().optional(),
+  currentQuestionIndices: z.record(WorldId, z.number()).optional(), // <--- הוסף את השורה הזו
 });
 
 type QuestionnaireSubmission = z.infer<typeof QuestionnaireSubmission>;
@@ -284,7 +285,9 @@ export async function PUT(req: Request) {
             validatedData.worldsCompleted.includes('RELATIONSHIP'),
           partnerCompleted: validatedData.worldsCompleted.includes('PARTNER'),
           religionCompleted: validatedData.worldsCompleted.includes('RELIGION'),
+           currentQuestionIndices: validatedData.currentQuestionIndices,
           lastSaved: new Date(),
+
         },
         update: {
           ...mergedAnswers,
@@ -300,6 +303,7 @@ export async function PUT(req: Request) {
             validatedData.worldsCompleted.includes('RELATIONSHIP'),
           partnerCompleted: validatedData.worldsCompleted.includes('PARTNER'),
           religionCompleted: validatedData.worldsCompleted.includes('RELIGION'),
+          currentQuestionIndices: validatedData.currentQuestionIndices,
           lastSaved: new Date(),
         },
       });

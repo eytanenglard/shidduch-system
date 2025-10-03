@@ -151,7 +151,12 @@ export async function PATCH(
     });
 
     console.log("Suggestion updated successfully:", updatedSuggestion.id);
-
+    if (updatedSuggestion.firstParty.profile && !updatedSuggestion.firstParty.profile.isMedicalInfoVisible) {
+      updatedSuggestion.firstParty.profile.medicalInfoDetails = null; // או undefined
+    }
+    if (updatedSuggestion.secondParty.profile && !updatedSuggestion.secondParty.profile.isMedicalInfoVisible) {
+      updatedSuggestion.secondParty.profile.medicalInfoDetails = null; // או undefined
+    }
     // פורמט התאריכים ל-ISO strings
     const formattedSuggestion = {
       ...updatedSuggestion,

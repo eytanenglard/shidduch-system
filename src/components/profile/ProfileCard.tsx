@@ -3294,28 +3294,42 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     [dict.options.hobbies]
   );
 
-  const activeTabRef = useRef(activeTab);
+ const activeTabRef = useRef(activeTab);
 
   useEffect(() => {
     activeTabRef.current = activeTab;
   }, [activeTab]);
 
-  // החלף את הפונקציה הקיימת בזו
-const handleTabChange = (newTab: string) => {
-  if (activeTabRef.current === newTab) return;
+  // גלילה אוטומטית לראש כשמשנים טאב
+  useEffect(() => {
+    // השהיה קטנה כדי לתת לטאב להירנדר
+    const timer = setTimeout(() => {
+      // מחשב - גלילה בתוך ה-ScrollArea של התוכן
+      const scrollViewport = contentScrollAreaRef.current?.querySelector(
+        '[data-radix-scroll-area-viewport]'
+      );
+      if (scrollViewport) {
+        scrollViewport.scrollTo({ top: 0, behavior: 'smooth' });
+      }
 
-  setActiveTab(newTab);
+      // מובייל - גלילה גם בחלון הראשי
+      const mainContainer = document.querySelector('#profile-card-tabs-content [data-radix-scroll-area-viewport]');
+      if (mainContainer) {
+        mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
+      }
 
-  // גלילה לראש הטאב
-  requestAnimationFrame(() => {
-    const scrollViewport = contentScrollAreaRef.current?.querySelector(
-      '[data-radix-scroll-area-viewport]'
-    );
-    if (scrollViewport) {
-      scrollViewport.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  });
-};
+      // fallback - אם יש scroll ברמת המסמך
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50); // 50ms השהיה
+
+    return () => clearTimeout(timer);
+  }, [activeTab]); // רץ כל פעם שמשנים טאב
+
+  // פונקציה פשוטה לשינוי טאב
+  const handleTabChange = (newTab: string) => {
+    if (activeTabRef.current === newTab) return;
+    setActiveTab(newTab);
+  };
 
   const THEME = useMemo(
     () => COLOR_PALETTES[selectedPalette],

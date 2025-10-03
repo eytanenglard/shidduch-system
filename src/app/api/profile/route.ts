@@ -161,8 +161,9 @@ export async function GET(req: Request) {
       
       // מידע רפואי (חסוי)
       hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
-      medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
-      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
+   medicalInfoDetails: dbProfile.isMedicalInfoVisible 
+        ? dbProfile.medicalInfoDetails ?? undefined 
+        : undefined,      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
       
       // מידע בסיסי על המשתמש

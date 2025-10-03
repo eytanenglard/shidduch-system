@@ -359,6 +359,9 @@ export default function MatchmakingQuestionnaire({
           }
         } else {
           const data = await response.json();
+          // LOG: Show the raw data from the API
+          console.log('%c[DEBUG | loadExistingAnswers] Received data from API:', 'color: #03a9f4;', data);
+
           if (data.success && data.data) {
             // איחוד תשובות נשאר כפי שהיה
             const allAnswers = [
@@ -380,15 +383,24 @@ export default function MatchmakingQuestionnaire({
 
             const isQuestionnaireComplete = data.data.completed || loadedCompletedWorlds.length === WORLD_ORDER.length;
 
+            // LOG: Show parsed critical values
+console.log(`%c[DEBUG | loadExistingAnswers] Parsed values:\n- Answers count: ${allAnswers.length}\n- Completed worlds: [${loadedCompletedWorlds.join(', ')}]\n- Is questionnaire complete? ${isQuestionnaireComplete}`, 'color: #03a9f4;');
+
             // ================== START: התיקון המרכזי ==================
 
             const loadedIndices = data.data.currentQuestionIndices;
             if (loadedIndices && typeof loadedIndices === 'object') {
+              console.log('%c[DEBUG | loadExistingAnswers] Loading question indices from server:', 'color: #03a9f4;', loadedIndices);
               setCurrentQuestionIndices(prev => ({ ...prev, ...loadedIndices }));
+            } else {
+                console.warn('%c[DEBUG | loadExistingAnswers] No currentQuestionIndices found in server data.', 'color: #ff9800;');
             }
 
+
             // 1. טיפול בניווט ישיר דרך URL (התנהגות קיימת)
+            console.log('%c[DEBUG | loadExistingAnswers] Checking Condition 1: Direct navigation...', 'color: #ff9800;');
             if (initialWorld && initialQuestionId) {
+              console.log('%c[DEBUG | loadExistingAnswers] Condition 1 MET: Direct navigation detected.', 'color: #4caf50;');
               const worldQuestions = worldConfig[initialWorld].questions;
               const questionIndex = worldQuestions.findIndex(
                 (q) => q.id === initialQuestionId
@@ -408,15 +420,17 @@ export default function MatchmakingQuestionnaire({
             } 
             // 2. אם השאלון הושלם, שלח למפת העולמות
             else if (isQuestionnaireComplete) {
+              console.log('%c[DEBUG | loadExistingAnswers] Condition 2 MET: Questionnaire is already complete. Navigating to MAP.', 'color: #4caf50;');
               setCurrentStep(OnboardingStep.MAP);
             } 
             // 3. אם יש התקדמות שמורה (אך השאלון לא הושלם), המשך מהנקודה האחרונה
             else if (allAnswers.length > 0) {
+              console.log('%c[DEBUG | loadExistingAnswers] Condition 3 MET: Saved progress found (answers exist). Attempting to resume.', 'color: #4caf50;');
               // מצא את העולם הראשון שעדיין לא הושלם
               const worldToResume = WORLD_ORDER.find(
                 (world) => !loadedCompletedWorlds.includes(world)
               ) || WORLD_ORDER[0]; // אם יש בעיה, חזור לעולם הראשון
-
+              console.log(`%c[DEBUG | loadExistingAnswers] Determined world to resume: ${worldToResume}. Setting step to WORLDS.`, 'color: #4caf50; font-weight: bold;');
               setCurrentWorld(worldToResume);
               setCurrentStep(OnboardingStep.WORLDS); // <-- השינוי המהותי: כניסה ישירה לעולם השאלות
               console.log(
@@ -426,11 +440,13 @@ export default function MatchmakingQuestionnaire({
             }
             // 4. אם אין שום התקדמות, התחל מהמפה
             else {
+              console.log('%c[DEBUG | loadExistingAnswers] Condition 4 MET: No saved progress. Starting from MAP.', 'color: #4caf50;');
               setCurrentStep(OnboardingStep.MAP);
             }
             // =================== END: התיקון המרכזי ===================
 
           } else {
+            console.log('%c[DEBUG | loadExistingAnswers] API response indicates no existing data (data.success is false or data.data is null). Starting from MAP.', 'color: #f44336;');
             // אין מידע קיים, התחל מהמפה
             setCurrentStep(OnboardingStep.MAP);
           }
