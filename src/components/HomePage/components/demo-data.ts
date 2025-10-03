@@ -29,6 +29,14 @@ export const generateDemoData = async (locale: Locale) => {
     worldsCompleted: ['VALUES', 'RELATIONSHIP', 'PARTNER', 'PERSONALITY', 'RELIGION'],
     completed: true, startedAt: new Date(), completedAt: new Date(), lastSaved: new Date(), createdAt: new Date(), updatedAt: new Date(),
     formattedAnswers: femaleProfileContent.formattedAnswers,
+        currentQuestionIndices: {
+      PERSONALITY: 0,
+      VALUES: 0,
+      RELATIONSHIP: 0,
+      PARTNER: 0,
+      RELIGION: 0,
+    },
+
   };
 
   const danielQuestionnaireResponse: QuestionnaireResponseType = {
@@ -42,6 +50,13 @@ export const generateDemoData = async (locale: Locale) => {
     worldsCompleted: ['VALUES', 'PERSONALITY', 'PARTNER', 'RELATIONSHIP', 'RELIGION'],
     completed: true, startedAt: new Date(), completedAt: new Date(), lastSaved: new Date(), createdAt: new Date(), updatedAt: new Date(),
     formattedAnswers: maleProfileContent.formattedAnswers,
+    currentQuestionIndices: {
+      PERSONALITY: 0,
+      VALUES: 0,
+      RELATIONSHIP: 0,
+      PARTNER: 0,
+      RELIGION: 0,
+    },
   };
   
   const noaProfile: PartyInfo = {
