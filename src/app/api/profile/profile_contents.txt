@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile
-# Generated on: 2025-09-21 22:14:09
+# Generated on: 2025-10-05 16:04:14
 ################################################################################
 
 ================================================================================
@@ -130,7 +130,6 @@ export async function GET(req: Request) {
       about: dbProfile.about || "",
       isAboutVisible: dbProfile.isAboutVisible ?? true,
       profileHeadline: dbProfile.profileHeadline || undefined,
-      humorStory: dbProfile.humorStory || undefined,
       inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
       influentialRabbi: dbProfile.influentialRabbi || undefined,
       
@@ -156,7 +155,6 @@ export async function GET(req: Request) {
       preferredHeadCoverings: dbProfile.preferredHeadCoverings || [],
       preferredKippahTypes: dbProfile.preferredKippahTypes || [],
       preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined,
-      preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined,
       preferredCharacterTraits: dbProfile.preferredCharacterTraits || [],
       preferredHobbies: dbProfile.preferredHobbies || [],
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
@@ -181,8 +179,9 @@ export async function GET(req: Request) {
       
       // מידע רפואי (חסוי)
       hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
-      medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
-      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
+   medicalInfoDetails: dbProfile.isMedicalInfoVisible 
+        ? dbProfile.medicalInfoDetails ?? undefined 
+        : undefined,      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
       
       // מידע בסיסי על המשתמש
@@ -284,8 +283,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\ima
 Content:
 // src/app/api/profile/images/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
@@ -367,8 +365,7 @@ export async function GET() {
 // POST - Upload new images (can be adapted for multiple files)
 export async function POST(req: NextRequest) {
   // Apply rate limiting: 20 image uploads per user per hour (prevents resource abuse)
-  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
   const startTime = Date.now();
@@ -1641,7 +1638,6 @@ export async function PUT(req: NextRequest) {
       about,
       // --- START: הוספת שדות חדשים ---
       profileHeadline,
-      humorStory,
       inspiringCoupleStory,
       influentialRabbi,
       // --- END: הוספת שדות חדשים ---
@@ -1681,7 +1677,6 @@ export async function PUT(req: NextRequest) {
       preferredHeadCoverings,
       preferredKippahTypes,
       preferredShomerNegiah,
-      preferredHasChildrenFromPrevious,
       preferredCharacterTraits,
       preferredHobbies,
       preferredAliyaStatus,
@@ -1762,7 +1757,6 @@ export async function PUT(req: NextRequest) {
     // --- About & Additional Info ---
     if (about !== undefined) dataToUpdate.about = emptyStringToNull(about);
       if (profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(profileHeadline);
-    if (humorStory !== undefined) dataToUpdate.humorStory = emptyStringToNull(humorStory);
     if (inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(inspiringCoupleStory);
     if (influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(influentialRabbi);
     if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
@@ -1784,9 +1778,7 @@ export async function PUT(req: NextRequest) {
     if (preferredKippahTypes !== undefined) dataToUpdate.preferredKippahTypes = preferredKippahTypes || [];
     if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah); // Assuming it's a string like "yes", "no" that needs to be nullable
     
-    if (preferredHasChildrenFromPrevious !== undefined) {
-      dataToUpdate.preferredHasChildrenFromPrevious = preferredHasChildrenFromPrevious;
-    }
+
 
     if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || []; // Preference for partner
     if (preferredHobbies !== undefined) dataToUpdate.preferredHobbies = preferredHobbies || []; // Preference for partner's hobbies
@@ -1875,7 +1867,6 @@ export async function PUT(req: NextRequest) {
       preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
       about: dbProfile.about || "",
         profileHeadline: dbProfile.profileHeadline || undefined,
-      humorStory: dbProfile.humorStory || undefined,
       inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
       influentialRabbi: dbProfile.influentialRabbi || undefined,
       parentStatus: dbProfile.parentStatus || undefined,
@@ -1923,7 +1914,6 @@ export async function PUT(req: NextRequest) {
       preferredHeadCoverings: (dbProfile.preferredHeadCoverings as HeadCoveringType[]) || [],
       preferredKippahTypes: (dbProfile.preferredKippahTypes as KippahType[]) || [],
       preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined, 
-      preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined, 
       preferredCharacterTraits: dbProfile.preferredCharacterTraits || [], 
       preferredHobbies: dbProfile.preferredHobbies || [],                 
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,

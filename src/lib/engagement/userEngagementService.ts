@@ -138,3 +138,5 @@ export class UserEngagementService {
     });
   }
 }
+// At the very end of src/lib/engagement/userEngagementService.ts
+module.exports = { UserEngagementService };

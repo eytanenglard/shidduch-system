@@ -17,7 +17,7 @@ import {
   Profile, // Import Prisma's Profile type
 } from "@prisma/client";
 import type { UserProfile } from "@/types/next-auth";
-import { updateUserAiProfile } from '@/lib/services/profileAiService'; // <--- 1. ייבוא
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
 
 // Helper to convert to number or null
 const toNumberOrNull = (value: string | number | null | undefined): number | null => {
@@ -107,13 +107,14 @@ export async function PUT(req: NextRequest) {
       origin,
       religiousLevel,
       religiousJourney,
-      preferredReligiousJourneys, 
+      preferredReligiousJourneys,
       about,
-      // --- START: הוספת שדות חדשים ---
       profileHeadline,
       inspiringCoupleStory,
       influentialRabbi,
-      // --- END: הוספת שדות חדשים ---
+      isAboutVisible,
+      isFriendsSectionVisible,
+      isNeshamaTechSummaryVisible,
       parentStatus,
       fatherOccupation,
       motherOccupation,
@@ -182,9 +183,9 @@ export async function PUT(req: NextRequest) {
 
     // --- Marital Status & Background (User's own) ---
     if (maritalStatus !== undefined) dataToUpdate.maritalStatus = emptyStringToNull(maritalStatus);
-    if (hasChildrenFromPrevious !== undefined) dataToUpdate.hasChildrenFromPrevious = hasChildrenFromPrevious; // User's own
+    if (hasChildrenFromPrevious !== undefined) dataToUpdate.hasChildrenFromPrevious = hasChildrenFromPrevious;
     if (parentStatus !== undefined) dataToUpdate.parentStatus = emptyStringToNull(parentStatus);
-     if (fatherOccupation !== undefined) dataToUpdate.fatherOccupation = emptyStringToNull(fatherOccupation);
+    if (fatherOccupation !== undefined) dataToUpdate.fatherOccupation = emptyStringToNull(fatherOccupation);
     if (motherOccupation !== undefined) dataToUpdate.motherOccupation = emptyStringToNull(motherOccupation);
     if (siblings !== undefined) dataToUpdate.siblings = toNumberOrNull(siblings);
     if (position !== undefined) dataToUpdate.position = toNumberOrNull(position);
@@ -198,8 +199,7 @@ export async function PUT(req: NextRequest) {
 
     // --- Religion & Lifestyle (User's own) ---
     if (religiousLevel !== undefined) dataToUpdate.religiousLevel = emptyStringToNull(religiousLevel);
-        if (religiousJourney !== undefined) dataToUpdate.religiousJourney = emptyStringToNull(religiousJourney) as ReligiousJourney | null;
-
+    if (religiousJourney !== undefined) dataToUpdate.religiousJourney = emptyStringToNull(religiousJourney) as ReligiousJourney | null;
     if (shomerNegiah !== undefined) dataToUpdate.shomerNegiah = shomerNegiah;
 
     const existingProfileMinimal = await prisma.profile.findUnique({ where: { userId }, select: { gender: true }});
@@ -225,11 +225,11 @@ export async function PUT(req: NextRequest) {
 
     // --- Traits & Hobbies (User's own) ---
     if (profileCharacterTraits !== undefined) dataToUpdate.profileCharacterTraits = profileCharacterTraits || [];
-    if (profileHobbies !== undefined) dataToUpdate.profileHobbies = profileHobbies || []; // User's own hobbies
+    if (profileHobbies !== undefined) dataToUpdate.profileHobbies = profileHobbies || [];
 
     // --- About & Additional Info ---
     if (about !== undefined) dataToUpdate.about = emptyStringToNull(about);
-      if (profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(profileHeadline);
+    if (profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(profileHeadline);
     if (inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(inspiringCoupleStory);
     if (influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(influentialRabbi);
     if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
@@ -249,26 +249,26 @@ export async function PUT(req: NextRequest) {
     if (preferredServiceTypes !== undefined) dataToUpdate.preferredServiceTypes = preferredServiceTypes || [];
     if (preferredHeadCoverings !== undefined) dataToUpdate.preferredHeadCoverings = preferredHeadCoverings || [];
     if (preferredKippahTypes !== undefined) dataToUpdate.preferredKippahTypes = preferredKippahTypes || [];
-    if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah); // Assuming it's a string like "yes", "no" that needs to be nullable
-    
-
-
-    if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || []; // Preference for partner
-    if (preferredHobbies !== undefined) dataToUpdate.preferredHobbies = preferredHobbies || []; // Preference for partner's hobbies
+    if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah);
+    if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || [];
+    if (preferredHobbies !== undefined) dataToUpdate.preferredHobbies = preferredHobbies || [];
     if (preferredAliyaStatus !== undefined) dataToUpdate.preferredAliyaStatus = emptyStringToNull(preferredAliyaStatus);
     if (preferredReligiousJourneys !== undefined) dataToUpdate.preferredReligiousJourneys = preferredReligiousJourneys || [];
 
-    // --- Profile Management ---
+    // --- Profile Management & Visibility ---
     if (isProfileVisible !== undefined) dataToUpdate.isProfileVisible = isProfileVisible;
     if (hasViewedProfilePreview !== undefined) dataToUpdate.hasViewedProfilePreview = hasViewedProfilePreview;
+    if (isAboutVisible !== undefined) dataToUpdate.isAboutVisible = isAboutVisible;
+    if (isFriendsSectionVisible !== undefined) dataToUpdate.isFriendsSectionVisible = isFriendsSectionVisible;
+    if (isNeshamaTechSummaryVisible !== undefined) dataToUpdate.isNeshamaTechSummaryVisible = isNeshamaTechSummaryVisible;
    
-    // --- START: הוספת לוגיקת עדכון לשדות רפואיים ---
+    // --- Medical Info ---
     if (hasMedicalInfo !== undefined) dataToUpdate.hasMedicalInfo = hasMedicalInfo;
     if (medicalInfoDetails !== undefined) dataToUpdate.medicalInfoDetails = emptyStringToNull(medicalInfoDetails);
     if (medicalInfoDisclosureTiming !== undefined) dataToUpdate.medicalInfoDisclosureTiming = emptyStringToNull(medicalInfoDisclosureTiming);
     if (isMedicalInfoVisible !== undefined) dataToUpdate.isMedicalInfoVisible = isMedicalInfoVisible;
-    // --- END: הוספת לוגיקת עדכון לשדות רפואיים ---
 
+    // --- Availability ---
     if (availabilityStatus !== undefined) {
       const statusValue = emptyStringToNull(availabilityStatus);
       dataToUpdate.availabilityStatus = (statusValue === null ? "AVAILABLE" : statusValue) as AvailabilityStatus;
@@ -339,9 +339,12 @@ export async function PUT(req: NextRequest) {
       religiousJourney: dbProfile.religiousJourney || undefined,
       preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
       about: dbProfile.about || "",
-        profileHeadline: dbProfile.profileHeadline || undefined,
+      profileHeadline: dbProfile.profileHeadline || undefined,
       inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
       influentialRabbi: dbProfile.influentialRabbi || undefined,
+      isAboutVisible: dbProfile.isAboutVisible ?? true,
+      isFriendsSectionVisible: dbProfile.isFriendsSectionVisible ?? true,
+      isNeshamaTechSummaryVisible: dbProfile.isNeshamaTechSummaryVisible ?? true,
       parentStatus: dbProfile.parentStatus || undefined,
       fatherOccupation: dbProfile.fatherOccupation || "",
       motherOccupation: dbProfile.motherOccupation || "",
@@ -349,14 +352,11 @@ export async function PUT(req: NextRequest) {
       position: dbProfile.position ?? null,
       isProfileVisible: dbProfile.isProfileVisible,
       isProfileComplete: refreshedUserWithProfile.isProfileComplete,
-      // --- START: הוספת שדות רפואיים לתגובה ---
       hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
       medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
       medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
-            needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
-
-      // --- END: הוספת שדות רפואיים לתגובה ---
+      needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
       preferredMatchmakerGender: dbProfile.preferredMatchmakerGender || undefined,
       availabilityStatus: dbProfile.availabilityStatus,
       availabilityNote: dbProfile.availabilityNote || "",
@@ -391,7 +391,6 @@ export async function PUT(req: NextRequest) {
       preferredHobbies: dbProfile.preferredHobbies || [],                 
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
       hasViewedProfilePreview: dbProfile.hasViewedProfilePreview, 
-
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,

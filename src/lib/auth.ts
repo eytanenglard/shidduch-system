@@ -195,7 +195,9 @@ export const authOptions: NextAuthOptions = {
   ],
 
  // הדבק את הקוד הזה במקום כל בלוק ה-callbacks הקיים
+// lib/auth.ts
 
+  // הדבק את הקוד הזה במקום כל בלוק ה-callbacks הקיים
   callbacks: {
     async signIn({ user, account, profile }) {
       const typedUser = user as ExtendedUser; 
@@ -351,10 +353,7 @@ export const authOptions: NextAuthOptions = {
       const typedToken = token as ExtendedUserJWT;
       const typedUserFromCallback = user as ExtendedUser | undefined;
 
-      // שלב 1: אנו שומרים את התאריכים כאובייקט Date תקין בתוך הטוקן.
-      // next-auth יהפוך אותם למחרוזת טקסט באופן אוטומטי "מאחורי הקלעים".
-
-      // בכניסה ראשונית למערכת
+      // Upon initial sign-in, populate the token with user data
       if (typedUserFromCallback) {
         typedToken.id = typedUserFromCallback.id;
         typedToken.email = typedUserFromCallback.email.toLowerCase();
@@ -374,13 +373,13 @@ export const authOptions: NextAuthOptions = {
         typedToken.requiresCompletion = typedUserFromCallback.requiresCompletion;
         typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
         typedToken.marketingConsent = typedUserFromCallback.marketingConsent;
-        // לקיחת התאריכים כאובייקט Date
+        // Store dates as Date objects; they will be serialized automatically
         typedToken.createdAt = typedUserFromCallback.createdAt;
         typedToken.updatedAt = typedUserFromCallback.updatedAt;
         typedToken.lastLogin = typedUserFromCallback.lastLogin;
       }
       
-      // ברענון של הסשן או עדכון
+      // On subsequent JWT creations (e.g., session access) or manual updates
       if (typedToken.id && (trigger === "update" || trigger === "signIn")) {
           const dbUserForJwt = await prisma.user.findUnique({
             where: { id: typedToken.id },
@@ -402,7 +401,7 @@ export const authOptions: NextAuthOptions = {
             typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId;
             typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
             typedToken.marketingConsent = dbUserForJwt.marketingConsent;
-            // רענון התאריכים מה-DB כאובייקט Date
+            // Refresh dates from the DB
             typedToken.createdAt = dbUserForJwt.createdAt;
             typedToken.updatedAt = dbUserForJwt.updatedAt;
             typedToken.lastLogin = dbUserForJwt.lastLogin;
@@ -446,9 +445,9 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.marketingConsent = typedToken.marketingConsent;
         
         // =================== התיקון הסופי והנכון ===================
-        // אנו משתמשים ב- 'as unknown as string' כדי לבצע המרה בטוחה
-        // שהיא גם מפורשת ומסבירה ל-TypeScript את כוונתנו.
-        
+        // המרת כל מחרוזות התאריך מהטוקן בחזרה לאובייקטי Date
+        // שימוש ב- 'as unknown as string' הוא דרך בטוחה ומפורשת
+        // להגיד ל-TypeScript שאנחנו יודעים שהערך הוא מחרוזת בשלב זה.
         if (typedToken.createdAt) {
           typedSession.user.createdAt = new Date(typedToken.createdAt as unknown as string);
         }

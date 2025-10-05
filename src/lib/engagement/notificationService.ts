@@ -74,3 +74,6 @@ class NotificationServiceImpl {
 }
 
 export const notificationService = new NotificationServiceImpl();
+
+// At the very end of src/lib/engagement/notificationService.ts
+module.exports = { notificationService };

@@ -914,6 +914,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   dict,
   locale,
 }) => {
+  console.log('✅ ProfileSection component has successfully loaded!');
+
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [loading, setLoading] = useState(true);
   const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
@@ -1398,6 +1400,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </p>
                     )}
                   </div>
+
                   <div>
                     <Label
                       htmlFor="city-autocomplete"
@@ -1406,42 +1409,74 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       {dict.cards.personal.cityLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
-                      <Autocomplete
-                        apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-                        inputProps={{ id: 'city-autocomplete' }}
-                        value={cityInputValue}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                          setCityInputValue(e.target.value);
-                        }}
-                        onPlaceSelected={(place) => {
-                          const cityComponent = place.address_components?.find(
-                            (component) => component.types.includes('locality')
-                          );
-                          const selectedCity =
-                            cityComponent?.long_name ||
-                            place.formatted_address ||
-                            '';
-                          handleChange('city', selectedCity);
-                          setCityInputValue(selectedCity);
-                        }}
-                        onBlur={() => {
-                          if (cityInputValue !== formData.city) {
-                            setCityInputValue(formData.city || '');
-                          }
-                        }}
-                        options={{
-                          types: ['(cities)'],
-                          componentRestrictions: { country: 'il' },
-                        }}
-                        className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
-                        placeholder={dict.cards.personal.cityPlaceholder}
-                      />
+                      <>
+                        {/* ========== START DEBUGGING LOGS ========== */}
+                        <script>
+                          {`
+          console.log('[DEBUG 1] Google Maps API Key:', "${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? 'Loaded' : 'NOT LOADED OR EMPTY'}");
+        `}
+                        </script>
+                        {/* ========== END DEBUGGING LOGS ========== */}
+                        <Autocomplete
+                          apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                          inputProps={{ id: 'city-autocomplete' }}
+                          value={cityInputValue}
+                          onChange={(
+                            e: React.ChangeEvent<HTMLInputElement>
+                          ) => {
+                            console.log(
+                              '[DEBUG 2] User is typing in city input:',
+                              e.target.value
+                            ); // לוג שמראה הקלדה
+                            setCityInputValue(e.target.value);
+                          }}
+                          onPlaceSelected={(place, inputRef, autocomplete) => {
+                            // ========== START DEBUGGING LOGS ==========
+                            console.log(
+                              '[DEBUG 3] Place selected object from Google:',
+                              place
+                            );
+                            // ========== END DEBUGGING LOGS ==========
+
+                            const cityComponent =
+                              place.address_components?.find((component) =>
+                                component.types.includes('locality')
+                              );
+                            const selectedCity =
+                              cityComponent?.long_name ||
+                              place.formatted_address ||
+                              '';
+
+                            // ========== START DEBUGGING LOGS ==========
+                            console.log(
+                              '[DEBUG 4] Extracted city name:',
+                              selectedCity
+                            );
+                            // ========== END DEBUGGING LOGS ==========
+
+                            handleChange('city', selectedCity);
+                            setCityInputValue(selectedCity);
+                          }}
+                          onBlur={() => {
+                            if (cityInputValue !== formData.city) {
+                              setCityInputValue(formData.city || '');
+                            }
+                          }}
+                          options={{
+                            types: ['(cities)'],
+                            componentRestrictions: { country: 'il' },
+                          }}
+                          className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+                          placeholder={dict.cards.personal.cityPlaceholder}
+                        />
+                      </>
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderDisplayValue(formData.city, dict)}
                       </p>
                     )}
                   </div>
+
                   <div>
                     <Label
                       htmlFor="origin"
@@ -2221,7 +2256,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           collisionPadding={10}
                         >
                           {/* UPDATED: Use placeholder text */}
-                          <p>{dict.cards.religion.influentialRabbiPlaceholder}</p>
+                          <p>
+                            {dict.cards.religion.influentialRabbiPlaceholder}
+                          </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

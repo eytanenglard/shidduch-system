@@ -55,6 +55,8 @@ model User {
   manuallyAddedCandidates         User[]                  @relation("ManuallyAddedBy") // New relation back to matchmaker
   feedbacks                       Feedback[]
   dripCampaign              UserDripCampaign?
+lastOnboardingEmailSent DateTime? // מתי שלחנו מייל onboarding אחרון
+  onboardingCompleted     Boolean   @default(false) // סיים את ה-onboarding?
 
 
   @@index([email])

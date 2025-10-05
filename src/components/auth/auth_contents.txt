@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-09-09 19:50:47
+# Generated on: 2025-10-05 16:43:40
 ################################################################################
 
 ================================================================================
@@ -269,6 +269,902 @@ export default function ForgotPasswordForm() {
   );
 }
 --- End of Content for ForgotPasswordForm.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\PhoneNumberInput.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/PhoneNumberInput.tsx
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { Phone, ChevronDown, Search, X, Edit } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// רשימת מדינות מורחבת עם קהילות יהודיות
+const COUNTRIES = [
+  // מדינות פופולאריות
+  {
+    code: 'IL',
+    name: 'Israel',
+    nameHe: 'ישראל',
+    flag: '🇮🇱',
+    prefix: '+972',
+    popular: true,
+    placeholder: '50-123-4567',
+  },
+  {
+    code: 'US',
+    name: 'United States',
+    nameHe: 'ארצות הברית',
+    flag: '🇺🇸',
+    prefix: '+1',
+    popular: true,
+    placeholder: '555-123-4567',
+  },
+  {
+    code: 'GB',
+    name: 'United Kingdom',
+    nameHe: 'בריטניה',
+    flag: '🇬🇧',
+    prefix: '+44',
+    popular: true,
+    placeholder: '7123 456789',
+  },
+  {
+    code: 'CA',
+    name: 'Canada',
+    nameHe: 'קנדה',
+    flag: '🇨🇦',
+    prefix: '+1',
+    popular: true,
+    placeholder: '555-123-4567',
+  },
+  {
+    code: 'FR',
+    name: 'France',
+    nameHe: 'צרפת',
+    flag: '🇫🇷',
+    prefix: '+33',
+    popular: true,
+    placeholder: '06 12 34 56 78',
+  },
+
+  // מדינות עם קהילות יהודיות משמעותיות
+  {
+    code: 'AR',
+    name: 'Argentina',
+    nameHe: 'ארגנטינה',
+    flag: '🇦🇷',
+    prefix: '+54',
+    popular: false,
+    placeholder: '11 1234-5678',
+  },
+  {
+    code: 'AU',
+    name: 'Australia',
+    nameHe: 'אוסטרליה',
+    flag: '🇦🇺',
+    prefix: '+61',
+    popular: false,
+    placeholder: '412 345 678',
+  },
+  {
+    code: 'AT',
+    name: 'Austria',
+    nameHe: 'אוסטריה',
+    flag: '🇦🇹',
+    prefix: '+43',
+    popular: false,
+    placeholder: '664 123456',
+  },
+  {
+    code: 'BE',
+    name: 'Belgium',
+    nameHe: 'בלגיה',
+    flag: '🇧🇪',
+    prefix: '+32',
+    popular: false,
+    placeholder: '470 12 34 56',
+  },
+  {
+    code: 'BR',
+    name: 'Brazil',
+    nameHe: 'ברזיל',
+    flag: '🇧🇷',
+    prefix: '+55',
+    popular: false,
+    placeholder: '11 91234-5678',
+  },
+  {
+    code: 'BG',
+    name: 'Bulgaria',
+    nameHe: 'בולגריה',
+    flag: '🇧🇬',
+    prefix: '+359',
+    popular: false,
+    placeholder: '87 123 4567',
+  },
+  {
+    code: 'CL',
+    name: 'Chile',
+    nameHe: "צ'ילה",
+    flag: '🇨🇱',
+    prefix: '+56',
+    popular: false,
+    placeholder: '9 1234 5678',
+  },
+  {
+    code: 'CO',
+    name: 'Colombia',
+    nameHe: 'קולומביה',
+    flag: '🇨🇴',
+    prefix: '+57',
+    popular: false,
+    placeholder: '300 123 4567',
+  },
+  {
+    code: 'HR',
+    name: 'Croatia',
+    nameHe: 'קרואטיה',
+    flag: '🇭🇷',
+    prefix: '+385',
+    popular: false,
+    placeholder: '91 234 567',
+  },
+  {
+    code: 'CZ',
+    name: 'Czech Republic',
+    nameHe: "צ'כיה",
+    flag: '🇨🇿',
+    prefix: '+420',
+    popular: false,
+    placeholder: '601 123 456',
+  },
+  {
+    code: 'DK',
+    name: 'Denmark',
+    nameHe: 'דנמרק',
+    flag: '🇩🇰',
+    prefix: '+45',
+    popular: false,
+    placeholder: '20 12 34 56',
+  },
+  {
+    code: 'EE',
+    name: 'Estonia',
+    nameHe: 'אסטוניה',
+    flag: '🇪🇪',
+    prefix: '+372',
+    popular: false,
+    placeholder: '5123 4567',
+  },
+  {
+    code: 'FI',
+    name: 'Finland',
+    nameHe: 'פינלנד',
+    flag: '🇫🇮',
+    prefix: '+358',
+    popular: false,
+    placeholder: '40 123 4567',
+  },
+  {
+    code: 'GE',
+    name: 'Georgia',
+    nameHe: 'גאורגיה',
+    flag: '🇬🇪',
+    prefix: '+995',
+    popular: false,
+    placeholder: '555 12 34 56',
+  },
+  {
+    code: 'DE',
+    name: 'Germany',
+    nameHe: 'גרמניה',
+    flag: '🇩🇪',
+    prefix: '+49',
+    popular: false,
+    placeholder: '1512 3456789',
+  },
+  {
+    code: 'GR',
+    name: 'Greece',
+    nameHe: 'יוון',
+    flag: '🇬🇷',
+    prefix: '+30',
+    popular: false,
+    placeholder: '694 123 4567',
+  },
+  {
+    code: 'HU',
+    name: 'Hungary',
+    nameHe: 'הונגריה',
+    flag: '🇭🇺',
+    prefix: '+36',
+    popular: false,
+    placeholder: '20 123 4567',
+  },
+  {
+    code: 'IN',
+    name: 'India',
+    nameHe: 'הודו',
+    flag: '🇮🇳',
+    prefix: '+91',
+    popular: false,
+    placeholder: '91234 56789',
+  },
+  {
+    code: 'IE',
+    name: 'Ireland',
+    nameHe: 'אירלנד',
+    flag: '🇮🇪',
+    prefix: '+353',
+    popular: false,
+    placeholder: '85 123 4567',
+  },
+  {
+    code: 'IT',
+    name: 'Italy',
+    nameHe: 'איטליה',
+    flag: '🇮🇹',
+    prefix: '+39',
+    popular: false,
+    placeholder: '312 345 6789',
+  },
+  {
+    code: 'LV',
+    name: 'Latvia',
+    nameHe: 'לטביה',
+    flag: '🇱🇻',
+    prefix: '+371',
+    popular: false,
+    placeholder: '21 234 567',
+  },
+  {
+    code: 'LT',
+    name: 'Lithuania',
+    nameHe: 'ליטא',
+    flag: '🇱🇹',
+    prefix: '+370',
+    popular: false,
+    placeholder: '612 34567',
+  },
+  {
+    code: 'LU',
+    name: 'Luxembourg',
+    nameHe: 'לוקסמבורג',
+    flag: '🇱🇺',
+    prefix: '+352',
+    popular: false,
+    placeholder: '621 123 456',
+  },
+  {
+    code: 'MX',
+    name: 'Mexico',
+    nameHe: 'מקסיקו',
+    flag: '🇲🇽',
+    prefix: '+52',
+    popular: false,
+    placeholder: '55 1234 5678',
+  },
+  {
+    code: 'MD',
+    name: 'Moldova',
+    nameHe: 'מולדובה',
+    flag: '🇲🇩',
+    prefix: '+373',
+    popular: false,
+    placeholder: '621 12 345',
+  },
+  {
+    code: 'NL',
+    name: 'Netherlands',
+    nameHe: 'הולנד',
+    flag: '🇳🇱',
+    prefix: '+31',
+    popular: false,
+    placeholder: '6 12345678',
+  },
+  {
+    code: 'NZ',
+    name: 'New Zealand',
+    nameHe: 'ניו זילנד',
+    flag: '🇳🇿',
+    prefix: '+64',
+    popular: false,
+    placeholder: '21 123 4567',
+  },
+  {
+    code: 'NO',
+    name: 'Norway',
+    nameHe: 'נורווגיה',
+    flag: '🇳🇴',
+    prefix: '+47',
+    popular: false,
+    placeholder: '412 34 567',
+  },
+  {
+    code: 'PA',
+    name: 'Panama',
+    nameHe: 'פנמה',
+    flag: '🇵🇦',
+    prefix: '+507',
+    popular: false,
+    placeholder: '6123-4567',
+  },
+  {
+    code: 'PE',
+    name: 'Peru',
+    nameHe: 'פרו',
+    flag: '🇵🇪',
+    prefix: '+51',
+    popular: false,
+    placeholder: '912 345 678',
+  },
+  {
+    code: 'PL',
+    name: 'Poland',
+    nameHe: 'פולין',
+    flag: '🇵🇱',
+    prefix: '+48',
+    popular: false,
+    placeholder: '501 234 567',
+  },
+  {
+    code: 'PT',
+    name: 'Portugal',
+    nameHe: 'פורטוגל',
+    flag: '🇵🇹',
+    prefix: '+351',
+    popular: false,
+    placeholder: '912 345 678',
+  },
+  {
+    code: 'RO',
+    name: 'Romania',
+    nameHe: 'רומניה',
+    flag: '🇷🇴',
+    prefix: '+40',
+    popular: false,
+    placeholder: '712 345 678',
+  },
+  {
+    code: 'RU',
+    name: 'Russia',
+    nameHe: 'רוסיה',
+    flag: '🇷🇺',
+    prefix: '+7',
+    popular: false,
+    placeholder: '912 123-45-67',
+  },
+  {
+    code: 'RS',
+    name: 'Serbia',
+    nameHe: 'סרביה',
+    flag: '🇷🇸',
+    prefix: '+381',
+    popular: false,
+    placeholder: '60 1234567',
+  },
+  {
+    code: 'SK',
+    name: 'Slovakia',
+    nameHe: 'סלובקיה',
+    flag: '🇸🇰',
+    prefix: '+421',
+    popular: false,
+    placeholder: '901 123 456',
+  },
+  {
+    code: 'SI',
+    name: 'Slovenia',
+    nameHe: 'סלובניה',
+    flag: '🇸🇮',
+    prefix: '+386',
+    popular: false,
+    placeholder: '31 234 567',
+  },
+  {
+    code: 'ZA',
+    name: 'South Africa',
+    nameHe: 'דרום אפריקה',
+    flag: '🇿🇦',
+    prefix: '+27',
+    popular: false,
+    placeholder: '82 123 4567',
+  },
+  {
+    code: 'ES',
+    name: 'Spain',
+    nameHe: 'ספרד',
+    flag: '🇪🇸',
+    prefix: '+34',
+    popular: false,
+    placeholder: '612 34 56 78',
+  },
+  {
+    code: 'SE',
+    name: 'Sweden',
+    nameHe: 'שבדיה',
+    flag: '🇸🇪',
+    prefix: '+46',
+    popular: false,
+    placeholder: '70 123 45 67',
+  },
+  {
+    code: 'CH',
+    name: 'Switzerland',
+    nameHe: 'שוויץ',
+    flag: '🇨🇭',
+    prefix: '+41',
+    popular: false,
+    placeholder: '78 123 45 67',
+  },
+  {
+    code: 'TR',
+    name: 'Turkey',
+    nameHe: 'טורקיה',
+    flag: '🇹🇷',
+    prefix: '+90',
+    popular: false,
+    placeholder: '531 234 56 78',
+  },
+  {
+    code: 'UA',
+    name: 'Ukraine',
+    nameHe: 'אוקראינה',
+    flag: '🇺🇦',
+    prefix: '+380',
+    popular: false,
+    placeholder: '50 123 4567',
+  },
+  {
+    code: 'UY',
+    name: 'Uruguay',
+    nameHe: 'אורוגוואי',
+    flag: '🇺🇾',
+    prefix: '+598',
+    popular: false,
+    placeholder: '91 123 456',
+  },
+  {
+    code: 'VE',
+    name: 'Venezuela',
+    nameHe: 'ונצואלה',
+    flag: '🇻🇪',
+    prefix: '+58',
+    popular: false,
+    placeholder: '412-1234567',
+  },
+
+  // מדינות נוספות
+  {
+    code: 'JP',
+    name: 'Japan',
+    nameHe: 'יפן',
+    flag: '🇯🇵',
+    prefix: '+81',
+    popular: false,
+    placeholder: '90-1234-5678',
+  },
+  {
+    code: 'CN',
+    name: 'China',
+    nameHe: 'סין',
+    flag: '🇨🇳',
+    prefix: '+86',
+    popular: false,
+    placeholder: '138 0013 8000',
+  },
+  {
+    code: 'KR',
+    name: 'South Korea',
+    nameHe: 'דרום קוריאה',
+    flag: '🇰🇷',
+    prefix: '+82',
+    popular: false,
+    placeholder: '10-1234-5678',
+  },
+];
+
+interface PhoneNumberInputProps {
+  value: string | undefined;
+  onChange: (value: string | undefined) => void;
+  disabled?: boolean;
+  locale: 'he' | 'en';
+  error?: string;
+}
+
+const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
+  value,
+  onChange,
+  disabled = false,
+  locale,
+  error,
+}) => {
+  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isManualPrefix, setIsManualPrefix] = useState(false);
+  const [manualPrefix, setManualPrefix] = useState('');
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // סינון מדינות לפי חיפוש
+  const filteredCountries = COUNTRIES.filter((country) => {
+    const searchLower = searchTerm.toLowerCase();
+    const name = locale === 'he' ? country.nameHe : country.name;
+    return (
+      name.toLowerCase().includes(searchLower) ||
+      country.prefix.includes(searchTerm) ||
+      country.code.toLowerCase().includes(searchLower)
+    );
+  });
+
+  // מיון: פופולאריות קודם, אחר כך א"ב
+  const sortedCountries = filteredCountries.sort((a, b) => {
+    if (a.popular && !b.popular) return -1;
+    if (!a.popular && b.popular) return 1;
+    const nameA = locale === 'he' ? a.nameHe : a.name;
+    const nameB = locale === 'he' ? b.nameHe : b.name;
+    return nameA.localeCompare(nameB);
+  });
+
+  // עדכון הערך המלא
+  const updateFullValue = (prefix: string, number: string) => {
+    const fullNumber = number ? `${prefix}${number.replace(/\D/g, '')}` : '';
+    onChange(fullNumber);
+  };
+
+  // טיפול בשינוי מספר טלפון
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setPhoneNumber(newValue);
+
+    const currentPrefix = isManualPrefix
+      ? manualPrefix
+      : selectedCountry.prefix;
+    updateFullValue(currentPrefix, newValue);
+  };
+
+  // טיפול בשינוי קידומת ידנית
+  const handleManualPrefixChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newPrefix = e.target.value;
+
+    // וידוא שהקידומת מתחילה ב-+
+    if (newPrefix && !newPrefix.startsWith('+')) {
+      newPrefix = '+' + newPrefix;
+    }
+
+    setManualPrefix(newPrefix);
+    updateFullValue(newPrefix, phoneNumber);
+  };
+
+  // בחירת מדינה
+  const handleCountrySelect = (country: (typeof COUNTRIES)[0]) => {
+    setSelectedCountry(country);
+    setIsOpen(false);
+    setSearchTerm('');
+    setIsManualPrefix(false);
+    setManualPrefix('');
+    updateFullValue(country.prefix, phoneNumber);
+  };
+
+  // מעבר למצב קידומת ידנית
+  const enableManualPrefix = () => {
+    setIsManualPrefix(true);
+    setManualPrefix(selectedCountry.prefix);
+    setIsOpen(false);
+  };
+
+  // חזרה למצב בחירת מדינה
+  const disableManualPrefix = () => {
+    setIsManualPrefix(false);
+    setManualPrefix('');
+    updateFullValue(selectedCountry.prefix, phoneNumber);
+  };
+
+  // פירוק הערך הנכנס לקידומת ומספר
+  useEffect(() => {
+    if (value && value.startsWith('+')) {
+      // נסה למצוא מדינה מתאימה
+      const matchingCountry = COUNTRIES.find((country) =>
+        value.startsWith(country.prefix)
+      );
+
+      if (matchingCountry) {
+        setSelectedCountry(matchingCountry);
+        setIsManualPrefix(false);
+        setManualPrefix('');
+        const numberPart = value.substring(matchingCountry.prefix.length);
+        setPhoneNumber(numberPart);
+      } else {
+        // אם לא נמצאה מדינה מתאימה, השתמש בקידומת ידנית
+        const prefixMatch = value.match(/^\+\d+/);
+        if (prefixMatch) {
+          setIsManualPrefix(true);
+          setManualPrefix(prefixMatch[0]);
+          const numberPart = value.substring(prefixMatch[0].length);
+          setPhoneNumber(numberPart);
+        }
+      }
+    } else if (!value) {
+      setPhoneNumber('');
+      setIsManualPrefix(false);
+      setManualPrefix('');
+    }
+  }, [value]);
+
+  // סגירת dropdown בלחיצה מחוץ
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+        setSearchTerm('');
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () =>
+        document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isOpen]);
+
+  // פוקוס על חיפוש כשהרשימה נפתחת
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    }
+  }, [isOpen]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setIsOpen(false);
+      setSearchTerm('');
+    }
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full"
+      onKeyDown={handleKeyDown}
+    >
+      <div className="flex gap-2">
+        {/* בוחר מדינה או קידומת ידנית */}
+        <div className="relative">
+          {isManualPrefix ? (
+            // מצב קידומת ידנית
+            <div className="flex items-center gap-1">
+              <input
+                type="text"
+                value={manualPrefix}
+                onChange={handleManualPrefixChange}
+                placeholder="+1"
+                disabled={disabled}
+                className={`
+                  w-20 px-2 py-3 text-sm border rounded-lg text-center font-mono
+                  transition-all duration-200
+                  ${
+                    disabled
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white hover:border-blue-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                  }
+                  ${
+                    error
+                      ? 'border-red-400 focus:ring-red-200 focus:border-red-500'
+                      : 'border-gray-300'
+                  }
+                `}
+              />
+              <button
+                type="button"
+                onClick={disableManualPrefix}
+                disabled={disabled}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                title={
+                  locale === 'he'
+                    ? 'חזור לבחירת מדינה'
+                    : 'Back to country selection'
+                }
+              >
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            // מצב בחירת מדינה
+            <button
+              type="button"
+              onClick={() => !disabled && setIsOpen(!isOpen)}
+              disabled={disabled}
+              className={`
+                flex items-center gap-2 px-3 py-3 border rounded-lg bg-white
+                transition-all duration-200 min-w-[140px]
+                ${
+                  disabled
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'hover:border-blue-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                }
+                ${
+                  error
+                    ? 'border-red-400 focus:ring-red-200 focus:border-red-500'
+                    : 'border-gray-300'
+                }
+                ${isOpen ? 'border-blue-500 ring-2 ring-blue-200' : ''}
+              `}
+              aria-expanded={isOpen}
+              aria-haspopup="listbox"
+            >
+              <span className="text-lg">{selectedCountry.flag}</span>
+              <span className="text-sm font-medium truncate">
+                {locale === 'he'
+                  ? selectedCountry.nameHe
+                  : selectedCountry.name}
+              </span>
+              <span className="text-xs text-gray-500 font-mono">
+                ({selectedCountry.prefix})
+              </span>
+              <ChevronDown
+                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                  isOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+          )}
+
+          {/* Dropdown */}
+          <AnimatePresence>
+            {isOpen && !isManualPrefix && (
+              <motion.div
+                ref={dropdownRef}
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-full mt-1 left-0 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96"
+              >
+                {/* חיפוש */}
+                <div className="p-3 border-b border-gray-100">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder={
+                        locale === 'he' ? 'חפש מדינה...' : 'Search country...'
+                      }
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-10 py-2 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+                      dir={locale === 'he' ? 'rtl' : 'ltr'}
+                    />
+                    {searchTerm && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchTerm('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* אפשרות לקידומת ידנית */}
+                <div className="p-2 border-b border-gray-100">
+                  <button
+                    type="button"
+                    onClick={enableManualPrefix}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>
+                      {locale === 'he'
+                        ? 'הכנס קידומת בעצמך'
+                        : 'Enter custom prefix'}
+                    </span>
+                  </button>
+                </div>
+
+                {/* רשימת מדינות */}
+                <div className="max-h-60 overflow-y-auto">
+                  {sortedCountries.length === 0 ? (
+                    <div className="p-4 text-sm text-gray-500 text-center">
+                      {locale === 'he'
+                        ? 'לא נמצאו מדינות'
+                        : 'No countries found'}
+                    </div>
+                  ) : (
+                    sortedCountries.map((country) => (
+                      <button
+                        key={country.code}
+                        type="button"
+                        onClick={() => handleCountrySelect(country)}
+                        className={`
+                          w-full flex items-center gap-3 px-4 py-3 text-sm
+                          hover:bg-blue-50 transition-colors duration-150
+                          ${selectedCountry.code === country.code ? 'bg-blue-100 text-blue-700' : 'text-gray-700'}
+                        `}
+                        dir={locale === 'he' ? 'rtl' : 'ltr'}
+                      >
+                        <span className="text-lg">{country.flag}</span>
+                        <span className="flex-1 text-left">
+                          {locale === 'he' ? country.nameHe : country.name}
+                        </span>
+                        <span className="text-xs text-gray-500 font-mono">
+                          {country.prefix}
+                        </span>
+                        {country.popular && (
+                          <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                        )}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* שדה מספר טלפון */}
+        <div className="flex-1 relative">
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={handlePhoneChange}
+            disabled={disabled}
+            placeholder={
+              isManualPrefix
+                ? locale === 'he'
+                  ? 'מספר טלפון'
+                  : 'Phone number'
+                : locale === 'he'
+                  ? `לדוגמה: ${selectedCountry.placeholder}`
+                  : `Example: ${selectedCountry.placeholder}`
+            }
+            className={`
+              w-full pl-3 pr-10 py-3 border rounded-lg
+              transition-all duration-200 text-left
+              ${
+                disabled
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-white hover:border-blue-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+              }
+              ${
+                error
+                  ? 'border-red-400 focus:ring-red-200 focus:border-red-500'
+                  : 'border-gray-300'
+              }
+            `}
+            dir="ltr"
+          />
+          <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+        </div>
+      </div>
+
+      {/* הודעת שגיאה */}
+      {error && (
+        <motion.p
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-red-500 text-xs mt-2"
+        >
+          {error}
+        </motion.p>
+      )}
+    </div>
+  );
+};
+
+export default PhoneNumberInput;
+--- End of Content for PhoneNumberInput.tsx ---
 
 --------------------------------------------------------------------------------
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ProgressBar.tsx
@@ -3119,6 +4015,8 @@ Content:
 'use client';
 
 import { useState, useEffect } from 'react';
+import PhoneNumberInput from '../PhoneNumberInput';
+
 import { useSession } from 'next-auth/react';
 import { useRegistration } from '../RegistrationContext';
 import { Button } from '@/components/ui/button';
@@ -3126,7 +4024,6 @@ import { Input } from '@/components/ui/input';
 import {
   ArrowLeft,
   ArrowRight,
-  Phone,
   Calendar,
   Users,
   Edit3,
@@ -3144,6 +4041,16 @@ interface PersonalDetailsStepProps {
   consentDict: RegisterStepsDict['consentCheckbox'];
   locale: string;
 }
+
+// פונקציה לולידציה של מספר טלפון
+const validatePhoneNumber = (phone: string): boolean => {
+  if (!phone) return false;
+  // ולידציה בסיסית - מספר צריך להתחיל ב+ ולהכיל לפחות 10 ספרות
+  const cleanPhone = phone.replace(/\D/g, '');
+  return (
+    cleanPhone.length >= 10 && cleanPhone.length <= 15 && phone.startsWith('+')
+  );
+};
 
 const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
   dict,
@@ -3172,58 +4079,109 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
 
   const userHasAlreadyConsented = !!session?.user?.termsAndPrivacyAcceptedAt;
 
-  const validateFirstName = (name: string) =>
-    name.trim()
-      ? setFirstNameError('')
-      : setFirstNameError(dict.errors.firstNameRequired);
-  const validateLastName = (name: string) =>
-    name.trim()
-      ? setLastNameError('')
-      : setLastNameError(dict.errors.lastNameRequired);
-  const validatePhone = (phone: string) => {
-    if (!phone.trim()) setPhoneError(dict.errors.phoneRequired);
-    else if (!/^0\d{9}$/.test(phone)) setPhoneError(dict.errors.phoneInvalid);
-    else setPhoneError('');
-  };
-  const validateAge = (birthDate: string) => {
-    if (!birthDate) return setAgeError(dict.errors.birthDateRequired);
-    const age = new Date().getFullYear() - new Date(birthDate).getFullYear();
-    if (age < 18) setAgeError(dict.errors.ageTooLow);
-    else if (age > 120) setAgeError(dict.errors.ageTooHigh);
-    else setAgeError('');
+  // פונקציות ולידציה
+  const validateFirstName = (name: string) => {
+    if (!name.trim()) {
+      setFirstNameError(dict.errors.firstNameRequired);
+      return false;
+    }
+    setFirstNameError('');
+    return true;
   };
 
+  const validateLastName = (name: string) => {
+    if (!name.trim()) {
+      setLastNameError(dict.errors.lastNameRequired);
+      return false;
+    }
+    setLastNameError('');
+    return true;
+  };
+
+  const validatePhone = (phone: string) => {
+    if (!phone) {
+      setPhoneError(dict.errors.phoneRequired);
+      return false;
+    }
+    if (!validatePhoneNumber(phone)) {
+      setPhoneError(dict.errors.phoneInvalid);
+      return false;
+    }
+    setPhoneError('');
+    return true;
+  };
+
+  const validateAge = (birthDate: string) => {
+    if (!birthDate) {
+      setAgeError(dict.errors.birthDateRequired);
+      return false;
+    }
+
+    const today = new Date();
+    const birth = new Date(birthDate);
+    const age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    const dayDiff = today.getDate() - birth.getDate();
+
+    // חישוב גיל מדויק
+    const exactAge =
+      monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+
+    if (exactAge < 18) {
+      setAgeError(dict.errors.ageTooLow);
+      return false;
+    }
+    if (exactAge > 120) {
+      setAgeError(dict.errors.ageTooHigh);
+      return false;
+    }
+    setAgeError('');
+    return true;
+  };
+
+  // בדיקת תקינות הטופס
   useEffect(() => {
     const isFieldsValid =
       registrationState.firstName.trim() &&
       registrationState.lastName.trim() &&
-      /^0\d{9}$/.test(registrationState.phone) &&
+      registrationState.phone &&
+      validatePhoneNumber(registrationState.phone) &&
       registrationState.birthDate &&
       registrationState.gender &&
       registrationState.maritalStatus;
+
     const consentRequirementMet = userHasAlreadyConsented || consentChecked;
     setIsFormValid(!!isFieldsValid && consentRequirementMet);
   }, [registrationState, consentChecked, userHasAlreadyConsented]);
 
   const handleContinue = async () => {
-    validateFirstName(registrationState.firstName);
-    validateLastName(registrationState.lastName);
-    validatePhone(registrationState.phone);
-    validateAge(registrationState.birthDate);
+    // ולידציה של כל השדות
+    const isFirstNameValid = validateFirstName(registrationState.firstName);
+    const isLastNameValid = validateLastName(registrationState.lastName);
+    const isPhoneValid = validatePhone(registrationState.phone);
+    const isAgeValid = validateAge(registrationState.birthDate);
 
+    // בדיקת הסכמה
     if (!userHasAlreadyConsented && !consentChecked) {
       setConsentError(dict.errors.consentRequired);
       return;
     }
-    if (!isFormValid) return;
 
+    // אם יש שגיאות, לא ממשיכים
+    if (!isFirstNameValid || !isLastNameValid || !isPhoneValid || !isAgeValid) {
+      return;
+    }
+
+    // טיפול בהסכמה אם נדרש
     if (!userHasAlreadyConsented) {
       setIsSubmittingConsent(true);
       try {
         const consentResponse = await fetch('/api/user/accept-terms', {
           method: 'POST',
         });
-        if (!consentResponse.ok) throw new Error();
+        if (!consentResponse.ok) {
+          throw new Error('Failed to accept terms');
+        }
         await updateSessionHook();
       } catch (error) {
         setGeneralApiError(dict.errors.consentApiError);
@@ -3232,13 +4190,17 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
       }
       setIsSubmittingConsent(false);
     }
+
+    // מעבר לשלב הבא
     nextStep();
   };
 
+  // אנימציות
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
   };
+
   const itemVariants = {
     hidden: { opacity: 0, y: 15 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
@@ -3246,36 +4208,40 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
 
   return (
     <motion.div
-      className="space-y-5"
+      className="space-y-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <motion.h2
-        className="text-xl font-semibold text-gray-800"
-        variants={itemVariants}
-      >
-        {dict.title}
-      </motion.h2>
-      <motion.p className="text-sm text-gray-500" variants={itemVariants}>
-        {dict.subtitle}
-      </motion.p>
+      {/* כותרת */}
+      <motion.div variants={itemVariants} className="text-center">
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">{dict.title}</h2>
+        <p className="text-gray-600">{dict.subtitle}</p>
+      </motion.div>
+
+      {/* הודעת שגיאה כללית */}
       {generalApiError && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{generalApiError}</AlertDescription>
-        </Alert>
+        <motion.div variants={itemVariants}>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>שגיאה</AlertTitle>
+            <AlertDescription>{generalApiError}</AlertDescription>
+          </Alert>
+        </motion.div>
       )}
 
-      <motion.div variants={itemVariants} className="space-y-4">
-        {/* === FIX: Restored classNames for all inputs and select elements === */}
-        <div className="space-y-1">
-          <label htmlFor="firstNamePersonal">
+      {/* טופס */}
+      <motion.div variants={itemVariants} className="space-y-5">
+        {/* שם פרטי */}
+        <div className="space-y-2">
+          <label
+            htmlFor="firstNamePersonal"
+            className="text-sm font-medium text-gray-700"
+          >
             {dict.firstNameLabel} <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" />
             <Input
               id="firstNamePersonal"
               value={registrationState.firstName}
@@ -3284,19 +4250,34 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
               placeholder={dict.firstNamePlaceholder}
               required
               disabled={isSubmittingConsent}
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none ${firstNameError ? 'border-red-400 focus:ring-red-200' : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'}`}
+              className={`pr-12 py-3 transition-all duration-200 ${
+                firstNameError
+                  ? 'border-red-400 focus:ring-red-200 focus:border-red-500'
+                  : 'focus:ring-blue-200 focus:border-blue-500'
+              }`}
             />
           </div>
           {firstNameError && (
-            <p className="text-red-500 text-xs mt-1">{firstNameError}</p>
+            <motion.p
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-red-500 text-sm"
+            >
+              {firstNameError}
+            </motion.p>
           )}
         </div>
-        <div className="space-y-1">
-          <label htmlFor="lastNamePersonal">
+
+        {/* שם משפחה */}
+        <div className="space-y-2">
+          <label
+            htmlFor="lastNamePersonal"
+            className="text-sm font-medium text-gray-700"
+          >
             {dict.lastNameLabel} <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" />
             <Input
               id="lastNamePersonal"
               value={registrationState.lastName}
@@ -3305,41 +4286,44 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
               placeholder={dict.lastNamePlaceholder}
               required
               disabled={isSubmittingConsent}
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none ${lastNameError ? 'border-red-400 focus:ring-red-200' : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'}`}
+              className={`pr-12 py-3 transition-all duration-200 ${
+                lastNameError
+                  ? 'border-red-400 focus:ring-red-200 focus:border-red-500'
+                  : 'focus:ring-blue-200 focus:border-blue-500'
+              }`}
             />
           </div>
           {lastNameError && (
-            <p className="text-red-500 text-xs mt-1">{lastNameError}</p>
+            <motion.p
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-red-500 text-sm"
+            >
+              {lastNameError}
+            </motion.p>
           )}
         </div>
-        <div className="space-y-1">
-          <label htmlFor="phonePersonal">
+
+        {/* מספר טלפון - הרכיب החדש */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">
             {dict.phoneLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <Input
-              id="phonePersonal"
-              type="tel"
-              value={registrationState.phone}
-              onChange={(e) => updateField('phone', e.target.value)}
-              onBlur={(e) => validatePhone(e.target.value)}
-              placeholder={dict.phonePlaceholder}
-              required
-              maxLength={10}
-              disabled={isSubmittingConsent}
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none ${phoneError ? 'border-red-400 focus:ring-red-200' : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'}`}
-            />
-          </div>
-          {phoneError && (
-            <p className="text-red-500 text-xs mt-1">{phoneError}</p>
-          )}
+          <PhoneNumberInput
+            value={registrationState.phone}
+            onChange={(value) => updateField('phone', value || '')}
+            disabled={isSubmittingConsent}
+            locale={locale as 'he' | 'en'}
+            error={phoneError}
+          />
         </div>
-        <div className="space-y-1">
-          <label>
+
+        {/* מגדר */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">
             {dict.genderLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="grid grid-cols-2 gap-3 mt-1">
+          <div className="grid grid-cols-2 gap-3">
             <Button
               type="button"
               onClick={() => updateField('gender', Gender.MALE)}
@@ -3347,9 +4331,14 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
                 registrationState.gender === Gender.MALE ? 'default' : 'outline'
               }
               disabled={isSubmittingConsent}
-              className={`flex items-center justify-center gap-2 py-3 rounded-lg border-2 ${registrationState.gender === Gender.MALE ? 'border-cyan-500 bg-cyan-50 text-cyan-700' : 'border-gray-200'}`}
+              className={`flex items-center justify-center gap-2 py-4 transition-all duration-200 ${
+                registrationState.gender === Gender.MALE
+                  ? 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500'
+                  : 'hover:bg-blue-50 hover:border-blue-300'
+              }`}
             >
-              👨 {dict.male}
+              <span className="text-xl">👨</span>
+              {dict.male}
             </Button>
             <Button
               type="button"
@@ -3360,18 +4349,28 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
                   : 'outline'
               }
               disabled={isSubmittingConsent}
-              className={`flex items-center justify-center gap-2 py-3 rounded-lg border-2 ${registrationState.gender === Gender.FEMALE ? 'border-pink-500 bg-pink-50 text-pink-700' : 'border-gray-200'}`}
+              className={`flex items-center justify-center gap-2 py-4 transition-all duration-200 ${
+                registrationState.gender === Gender.FEMALE
+                  ? 'bg-pink-500 hover:bg-pink-600 text-white border-pink-500'
+                  : 'hover:bg-pink-50 hover:border-pink-300'
+              }`}
             >
-              👩 {dict.female}
+              <span className="text-xl">👩</span>
+              {dict.female}
             </Button>
           </div>
         </div>
-        <div className="space-y-1">
-          <label htmlFor="birthDatePersonal">
+
+        {/* תאריך לידה */}
+        <div className="space-y-2">
+          <label
+            htmlFor="birthDatePersonal"
+            className="text-sm font-medium text-gray-700"
+          >
             {dict.birthDateLabel} <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" />
             <Input
               id="birthDatePersonal"
               type="date"
@@ -3380,24 +4379,41 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
               onBlur={(e) => validateAge(e.target.value)}
               required
               disabled={isSubmittingConsent}
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none ${ageError ? 'border-red-400 focus:ring-red-200' : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'}`}
+              className={`pr-12 py-3 transition-all duration-200 ${
+                ageError
+                  ? 'border-red-400 focus:ring-red-200 focus:border-red-500'
+                  : 'focus:ring-blue-200 focus:border-blue-500'
+              }`}
             />
           </div>
-          {ageError && <p className="text-red-500 text-xs mt-1">{ageError}</p>}
+          {ageError && (
+            <motion.p
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-red-500 text-sm"
+            >
+              {ageError}
+            </motion.p>
+          )}
         </div>
-        <div className="space-y-1">
-          <label htmlFor="maritalStatusPersonal">
+
+        {/* מצב משפחתי */}
+        <div className="space-y-2">
+          <label
+            htmlFor="maritalStatusPersonal"
+            className="text-sm font-medium text-gray-700"
+          >
             {dict.maritalStatusLabel} <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <Users className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Users className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" />
             <select
               id="maritalStatusPersonal"
               value={registrationState.maritalStatus}
               onChange={(e) => updateField('maritalStatus', e.target.value)}
               required
               disabled={isSubmittingConsent}
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none appearance-none bg-white ${'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'}`}
+              className={`w-full pr-12 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none appearance-none bg-white transition-all duration-200 ${'focus:ring-blue-200 focus:border-blue-500 border-gray-300'}`}
             >
               <option value="" disabled>
                 {dict.maritalStatusPlaceholder}
@@ -3410,8 +4426,12 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         </div>
       </motion.div>
 
+      {/* הסכמה לתנאים אם נדרש */}
       {!userHasAlreadyConsented && (
-        <motion.div variants={itemVariants} className="mt-6 pt-4 border-t">
+        <motion.div
+          variants={itemVariants}
+          className="pt-6 border-t border-gray-200"
+        >
           <ConsentCheckbox
             checked={consentChecked}
             onChange={setConsentChecked}
@@ -3421,36 +4441,43 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         </motion.div>
       )}
 
+      {/* כפתורי ניווט */}
       <motion.div
         variants={itemVariants}
-        className="flex justify-between items-center pt-5 mt-6 border-t"
+        className="flex justify-between items-center pt-6 border-t border-gray-200"
       >
         <Button
           onClick={prevStep}
           variant="outline"
           disabled={isSubmittingConsent}
+          className="flex items-center gap-2 px-6 py-3 hover:bg-gray-50"
         >
           <ArrowRight
-            className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
-          />{' '}
+            className={`h-4 w-4 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+          />
           {dict.backButton}
         </Button>
+
         <Button
           onClick={handleContinue}
           disabled={!isFormValid || isSubmittingConsent}
-          className={`flex items-center gap-2 ${!isFormValid || isSubmittingConsent ? 'bg-gray-300' : 'bg-gradient-to-r from-cyan-500 to-pink-500'}`}
+          className={`flex items-center gap-2 px-8 py-3 transition-all duration-200 ${
+            !isFormValid || isSubmittingConsent
+              ? 'bg-gray-300 cursor-not-allowed'
+              : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+          }`}
         >
           {isSubmittingConsent ? (
             <>
-              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              <Loader2 className="h-5 w-5 animate-spin" />
               <span>{dict.nextButtonLoading}</span>
             </>
           ) : (
             <>
-              {dict.nextButton}{' '}
+              <span>{dict.nextButton}</span>
               <ArrowLeft
-                className={`h-4 w-4 mr-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
-              />{' '}
+                className={`h-4 w-4 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+              />
             </>
           )}
         </Button>

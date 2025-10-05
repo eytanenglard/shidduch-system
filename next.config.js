@@ -107,14 +107,16 @@ const nextConfig = {
             value: [
               "default-src 'self'",
               // --- START: כאן השינוי ---
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.google-analytics.com www.googletagmanager.com",
-              "script-src-elem 'self' 'unsafe-inline' *.google-analytics.com www.googletagmanager.com",
-              // --- END: כאן השינוי ---
+             "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.google-analytics.com www.googletagmanager.com maps.googleapis.com",
+              // `script-src-elem` אינו נדרש אם `script-src` מוגדר כך. נשאיר אותו ליתר ביטחון.
+              "script-src-elem 'self' 'unsafe-inline' *.google-analytics.com www.googletagmanager.com maps.googleapis.com",
+              // ========================== END: הקוד המתוקן ==========================
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
               "img-src 'self' data: https://res.cloudinary.com",
               "font-src 'self' fonts.gstatic.com",
-              // הוספנו גם לכאן את הכתובת, למקרה שגוגל עושה fetchים
-              `connect-src 'self' ${siteUrl} *.google-analytics.com www.googletagmanager.com https://api.upstash.com vitals.vercel-insights.com`,
+              // הוספנו את הדומיין של Google Maps גם ל-connect-src,
+              // מכיוון שה-API מבצע בקשות רשת (fetch) ברקע.
+              `connect-src 'self' ${siteUrl} *.google-analytics.com www.googletagmanager.com https://api.upstash.com vitals.vercel-insights.com maps.googleapis.com`,
               "form-action 'self'",
               "frame-ancestors 'self'",
             ].join('; '),
