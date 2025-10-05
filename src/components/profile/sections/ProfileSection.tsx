@@ -1409,67 +1409,62 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       {dict.cards.personal.cityLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
-                      <>
-                        {/* ========== START DEBUGGING LOGS ========== */}
-                        <script>
-                          {`
-          console.log('[DEBUG 1] Google Maps API Key:', "${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? 'Loaded' : 'NOT LOADED OR EMPTY'}");
-        `}
-                        </script>
-                        {/* ========== END DEBUGGING LOGS ========== */}
-                        <Autocomplete
-                          apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-                          inputProps={{ id: 'city-autocomplete' }}
-                          value={cityInputValue}
-                          onChange={(
-                            e: React.ChangeEvent<HTMLInputElement>
-                          ) => {
-                            console.log(
-                              '[DEBUG 2] User is typing in city input:',
-                              e.target.value
-                            ); // לוג שמראה הקלדה
-                            setCityInputValue(e.target.value);
-                          }}
-                          onPlaceSelected={(place, inputRef, autocomplete) => {
-                            // ========== START DEBUGGING LOGS ==========
-                            console.log(
-                              '[DEBUG 3] Place selected object from Google:',
+                      <Autocomplete
+                        apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                        inputProps={{ id: 'city-autocomplete' }}
+                        value={cityInputValue}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setCityInputValue(e.target.value);
+                        }}
+                        // =========================== START: הקוד המתוקן ===========================
+                        onPlaceSelected={(place) => {
+                          // 1. הוספנו בדיקה קריטית: ודא שהאובייקט 'place' קיים ויש לו את המידע שאנו צריכים.
+                          if (!place || !place.address_components) {
+                            console.error(
+                              "Google Autocomplete error: 'place' object or 'address_components' is undefined.",
                               place
                             );
-                            // ========== END DEBUGGING LOGS ==========
 
-                            const cityComponent =
-                              place.address_components?.find((component) =>
-                                component.types.includes('locality')
-                              );
-                            const selectedCity =
-                              cityComponent?.long_name ||
-                              place.formatted_address ||
-                              '';
+                            // במקרה של שגיאה, אנו יכולים להשתמש בערך שהוקלד כברירת מחדל,
+                            // או להציג שגיאה למשתמש. כאן נשתמש בערך שהוקלד.
+                            handleChange('city', cityInputValue);
+                            return;
+                          }
 
-                            // ========== START DEBUGGING LOGS ==========
-                            console.log(
-                              '[DEBUG 4] Extracted city name:',
-                              selectedCity
-                            );
-                            // ========== END DEBUGGING LOGS ==========
+                          const cityComponent = place.address_components.find(
+                            (component) => component.types.includes('locality')
+                          );
 
-                            handleChange('city', selectedCity);
-                            setCityInputValue(selectedCity);
-                          }}
-                          onBlur={() => {
-                            if (cityInputValue !== formData.city) {
-                              setCityInputValue(formData.city || '');
-                            }
-                          }}
-                          options={{
-                            types: ['(cities)'],
-                            componentRestrictions: { country: 'il' },
-                          }}
-                          className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
-                          placeholder={dict.cards.personal.cityPlaceholder}
-                        />
-                      </>
+                          // 2. חיזוק לוגיקת החילוץ של שם העיר
+                          const selectedCity =
+                            cityComponent?.long_name || // העדפה לשם העיר הנקי
+                            place.formatted_address || // אם אין, השתמש בכתובת המלאה
+                            cityInputValue; // אם הכל נכשל, השתמש במה שהמשתמש הקליד
+
+                          handleChange('city', selectedCity);
+                          setCityInputValue(selectedCity);
+                        }}
+                        // ============================ END: הקוד המתוקן ============================
+                        onBlur={() => {
+                          if (cityInputValue !== formData.city) {
+                            setCityInputValue(formData.city || '');
+                          }
+                        }}
+                        // =========================== START: שינוי חשוב נוסף ===========================
+                        options={{
+                          types: ['(cities)'],
+                          componentRestrictions: { country: 'il' },
+                          // 3. הוספנו בקשה מפורשת לקבל את השדה 'address_components'
+                          fields: [
+                            'address_components',
+                            'formatted_address',
+                            'geometry',
+                          ],
+                        }}
+                        // ============================ END: שינוי חשוב נוסף ============================
+                        className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+                        placeholder={dict.cards.personal.cityPlaceholder}
+                      />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderDisplayValue(formData.city, dict)}
@@ -1613,7 +1608,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         <SelectContent>
                           {languageOptions.map((lang) => (
                             <SelectItem key={lang.value} value={lang.value}>
-                              {lang.label}
+                              {/* ✨ שינוי כאן: ניגשים לשפה הנכונה לפי ה-locale */}
+                              {lang.label[locale] || lang.label.en}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -1622,7 +1618,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderSelectDisplayValue(
                           formData.nativeLanguage,
-                          languageOptions,
+                          // ✨ שינוי כאן: אנו ממפים את האובייקט המורכב למבנה שהפונקציה מצפה לו
+                          languageOptions.map((opt) => ({
+                            value: opt.value,
+                            label: opt.label[locale] || opt.label.en,
+                          })),
                           dict
                         )}
                       </p>
@@ -1669,7 +1669,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             )
                             .map((lang) => (
                               <SelectItem key={lang.value} value={lang.value}>
-                                {lang.label}
+                                {lang.label[locale] || lang.label['en']}{' '}
+                                {/* שינוי כאן */}
                               </SelectItem>
                             ))}
                         </SelectContent>
@@ -1686,7 +1687,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             variant="secondary"
                             className="bg-cyan-100/70 text-cyan-800 px-2 py-0.5 rounded-full text-[11px] font-medium flex items-center"
                           >
-                            {lang.label}
+                            {lang.label[locale] || lang.label['en']}{' '}
+                            {/* שינוי כאן */}
                             {isEditing && !viewOnly && (
                               <button
                                 type="button"
@@ -1701,7 +1703,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                 className="ms-1.5 text-cyan-600 hover:text-cyan-800 text-xs"
                                 aria-label={dict.cards.personal.removeLanguageLabel.replace(
                                   '{{lang}}',
-                                  lang.label
+                                  lang.label[locale] || lang.label['en'] // וגם כאן
                                 )}
                               >
                                 ×

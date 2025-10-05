@@ -107,7 +107,6 @@ export async function PUT(req: NextRequest) {
       origin,
       religiousLevel,
       religiousJourney,
-      preferredReligiousJourneys,
       about,
       profileHeadline,
       inspiringCoupleStory,
@@ -136,6 +135,7 @@ export async function PUT(req: NextRequest) {
       profileHobbies,
       aliyaCountry,
       aliyaYear,
+      // --- START: PREFERENCE FIELDS ---
       preferredAgeMin,
       preferredAgeMax,
       preferredHeightMin,
@@ -151,9 +151,12 @@ export async function PUT(req: NextRequest) {
       preferredHeadCoverings,
       preferredKippahTypes,
       preferredShomerNegiah,
+      preferredPartnerHasChildren,
       preferredCharacterTraits,
       preferredHobbies,
       preferredAliyaStatus,
+      preferredReligiousJourneys,
+      // --- END: PREFERENCE FIELDS ---
       hasViewedProfilePreview,
       hasMedicalInfo,
       medicalInfoDetails,
@@ -232,29 +235,30 @@ export async function PUT(req: NextRequest) {
     if (profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(profileHeadline);
     if (inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(inspiringCoupleStory);
     if (influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(influentialRabbi);
-    if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
     
     // --- Preferences (related to matching partner) ---
+    if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
+    if (contactPreference !== undefined) dataToUpdate.contactPreference = emptyStringToNull(contactPreference);
     if (preferredAgeMin !== undefined) dataToUpdate.preferredAgeMin = toNumberOrNull(preferredAgeMin);
     if (preferredAgeMax !== undefined) dataToUpdate.preferredAgeMax = toNumberOrNull(preferredAgeMax);
     if (preferredHeightMin !== undefined) dataToUpdate.preferredHeightMin = toNumberOrNull(preferredHeightMin);
     if (preferredHeightMax !== undefined) dataToUpdate.preferredHeightMax = toNumberOrNull(preferredHeightMax);
-    if (preferredReligiousLevels !== undefined) dataToUpdate.preferredReligiousLevels = preferredReligiousLevels || [];
     if (preferredLocations !== undefined) dataToUpdate.preferredLocations = preferredLocations || [];
-    if (preferredEducation !== undefined) dataToUpdate.preferredEducation = preferredEducation || [];
-    if (preferredOccupations !== undefined) dataToUpdate.preferredOccupations = preferredOccupations || [];
-    if (contactPreference !== undefined) dataToUpdate.contactPreference = emptyStringToNull(contactPreference);
-    if (preferredMaritalStatuses !== undefined) dataToUpdate.preferredMaritalStatuses = preferredMaritalStatuses || [];
-    if (preferredOrigins !== undefined) dataToUpdate.preferredOrigins = preferredOrigins || [];
-    if (preferredServiceTypes !== undefined) dataToUpdate.preferredServiceTypes = preferredServiceTypes || [];
+    if (preferredReligiousLevels !== undefined) dataToUpdate.preferredReligiousLevels = preferredReligiousLevels || [];
+    if (preferredReligiousJourneys !== undefined) dataToUpdate.preferredReligiousJourneys = preferredReligiousJourneys || [];
+    if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah);
     if (preferredHeadCoverings !== undefined) dataToUpdate.preferredHeadCoverings = preferredHeadCoverings || [];
     if (preferredKippahTypes !== undefined) dataToUpdate.preferredKippahTypes = preferredKippahTypes || [];
-    if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah);
+    if (preferredEducation !== undefined) dataToUpdate.preferredEducation = preferredEducation || [];
+    if (preferredOccupations !== undefined) dataToUpdate.preferredOccupations = preferredOccupations || [];
+    if (preferredServiceTypes !== undefined) dataToUpdate.preferredServiceTypes = preferredServiceTypes || [];
+    if (preferredMaritalStatuses !== undefined) dataToUpdate.preferredMaritalStatuses = preferredMaritalStatuses || [];
+    if (preferredPartnerHasChildren !== undefined) dataToUpdate.preferredPartnerHasChildren = emptyStringToNull(preferredPartnerHasChildren);
+    if (preferredOrigins !== undefined) dataToUpdate.preferredOrigins = preferredOrigins || [];
+    if (preferredAliyaStatus !== undefined) dataToUpdate.preferredAliyaStatus = emptyStringToNull(preferredAliyaStatus);
     if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || [];
     if (preferredHobbies !== undefined) dataToUpdate.preferredHobbies = preferredHobbies || [];
-    if (preferredAliyaStatus !== undefined) dataToUpdate.preferredAliyaStatus = emptyStringToNull(preferredAliyaStatus);
-    if (preferredReligiousJourneys !== undefined) dataToUpdate.preferredReligiousJourneys = preferredReligiousJourneys || [];
-
+    
     // --- Profile Management & Visibility ---
     if (isProfileVisible !== undefined) dataToUpdate.isProfileVisible = isProfileVisible;
     if (hasViewedProfilePreview !== undefined) dataToUpdate.hasViewedProfilePreview = hasViewedProfilePreview;
@@ -337,7 +341,6 @@ export async function PUT(req: NextRequest) {
       origin: dbProfile.origin || "",
       religiousLevel: dbProfile.religiousLevel || undefined,
       religiousJourney: dbProfile.religiousJourney || undefined,
-      preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
       about: dbProfile.about || "",
       profileHeadline: dbProfile.profileHeadline || undefined,
       inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
@@ -376,8 +379,9 @@ export async function PUT(req: NextRequest) {
       preferredAgeMax: dbProfile.preferredAgeMax ?? null,
       preferredHeightMin: dbProfile.preferredHeightMin ?? null,
       preferredHeightMax: dbProfile.preferredHeightMax ?? null,
-      preferredReligiousLevels: dbProfile.preferredReligiousLevels || [],
       preferredLocations: dbProfile.preferredLocations || [],
+      preferredReligiousLevels: dbProfile.preferredReligiousLevels || [],
+      preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
       preferredEducation: dbProfile.preferredEducation || [],
       preferredOccupations: dbProfile.preferredOccupations || [],
       contactPreference: dbProfile.contactPreference || undefined,
@@ -386,7 +390,8 @@ export async function PUT(req: NextRequest) {
       preferredServiceTypes: (dbProfile.preferredServiceTypes as ServiceType[]) || [], 
       preferredHeadCoverings: (dbProfile.preferredHeadCoverings as HeadCoveringType[]) || [],
       preferredKippahTypes: (dbProfile.preferredKippahTypes as KippahType[]) || [],
-      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined, 
+      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined,
+      preferredPartnerHasChildren: dbProfile.preferredPartnerHasChildren || undefined,
       preferredCharacterTraits: dbProfile.preferredCharacterTraits || [], 
       preferredHobbies: dbProfile.preferredHobbies || [],                 
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
