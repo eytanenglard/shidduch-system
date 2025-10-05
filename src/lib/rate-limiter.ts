@@ -4,6 +4,7 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { UserRole } from '@prisma/client';
 
 // Initialize Redis client only once
 let redis: Redis | null = null;
@@ -57,6 +58,31 @@ export async function applyRateLimit(req: NextRequest, config: RateLimitConfig):
   }
 
   return null;
+}
+
+/**
+ * Applies rate limiting with role-based exemptions.
+ * MATCHMAKER and ADMIN roles are exempt from rate limiting.
+ *
+ * @param req The NextRequest object.
+ * @param config The rate limit configuration (applied only to regular users).
+ * @returns A NextResponse object if rate-limited, otherwise null.
+ */
+export async function applyRateLimitWithRoleCheck(
+  req: NextRequest,
+  config: RateLimitConfig
+): Promise<NextResponse | null> {
+  
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  
+  // שדכנים ואדמינים פטורים לחלוטין מהגבלות
+  if (token?.role === UserRole.MATCHMAKER || token?.role === UserRole.ADMIN) {
+    console.log(`[Rate Limiter] Skipping rate limit for ${token.role}: ${token.sub}`);
+    return null;
+  }
+  
+  // משתמשים רגילים כפופים להגבלה
+  return applyRateLimit(req, config);
 }
 
 // THIS IS THE FIX: Explicitly mark the file as a module.

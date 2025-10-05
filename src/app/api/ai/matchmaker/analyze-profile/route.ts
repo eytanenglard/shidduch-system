@@ -1,8 +1,7 @@
 // src/app/api/ai/matchmaker/analyze-profile/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-import { getServerSession } from 'next-auth/next';
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import profileAiService from '@/lib/services/profileAiService';
 import aiService from '@/lib/services/aiService';
@@ -13,8 +12,7 @@ import { UserRole } from "@prisma/client";
  * מטפל בבקשות POST לניתוח פרופיל של משתמש ספציפי על ידי שדכן.
  */
 export async function POST(req: NextRequest) {
-  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
 

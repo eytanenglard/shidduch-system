@@ -4,13 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { AvailabilityService } from "@/lib/services/availabilityService";
-import { applyRateLimit } from "@/lib/rate-limiter";
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 export async function POST(req: NextRequest) {
   try {
     // 1. Aplicar un límite de peticiones para prevenir el abuso.
-    const rateLimitResponse = await applyRateLimit(req, { requests: 30, window: '1 h' });
-    if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });    if (rateLimitResponse) {
       return rateLimitResponse;
     }
     

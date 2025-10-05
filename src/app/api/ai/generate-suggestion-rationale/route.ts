@@ -1,8 +1,7 @@
 // src/app/api/ai/generate-suggestion-rationale/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
@@ -10,8 +9,7 @@ import { generateNarrativeProfile } from "@/lib/services/profileAiService";
 import aiService from "@/lib/services/aiService";
 
 export async function POST(req: NextRequest) {
-    const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
 

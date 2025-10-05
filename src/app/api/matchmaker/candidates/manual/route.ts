@@ -1,7 +1,6 @@
 // src/app/api/matchmaker/candidates/manual/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -46,8 +45,7 @@ async function uploadImageToCloudinary(file: File, userId: string): Promise<{ ur
 
 export async function POST(req: NextRequest) {
   // Apply rate limiting: 15 manual creations per matchmaker per hour (resource intensive)
-  const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
   try {

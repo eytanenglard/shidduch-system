@@ -4,8 +4,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { AvailabilityService } from "@/lib/services/availabilityService";
-import { applyRateLimit } from "@/lib/rate-limiter";
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -16,11 +15,10 @@ type RouteSegment<T> = (
 ) => Promise<NextResponse> | NextResponse;
 
 // El manejador de la solicitud.
-const handler: RouteSegment<{ id: string }> = async (request, { params }) => {
+const handler: RouteSegment<{ id: string }> = async (req, { params }) => {
   try {
     // 1. Aplicar un límite de peticiones para prevenir el abuso.
-    const rateLimitResponse = await applyRateLimit(request, { requests: 20, window: '1 h' });
-    if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });    if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
@@ -32,11 +30,11 @@ const handler: RouteSegment<{ id: string }> = async (request, { params }) => {
 
     // 3. Extraer el 'locale' de los parámetros de la URL.
     //    Esta es la corrección principal para que coincida con la firma del servicio.
-    const url = new URL(request.url);
+    const url = new URL(req.url);
     const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he'; // Por defecto, se establece en hebreo.
 
     // 4. Extraer los datos del cuerpo de la solicitud.
-    const { isAvailable, note } = await request.json();
+    const { isAvailable, note } = await req.json();
 
     // Validar que 'isAvailable' sea un booleano.
     if (typeof isAvailable !== 'boolean') {

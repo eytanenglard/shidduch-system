@@ -1,16 +1,14 @@
 // src/app/api/ai/find-matches/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, Prisma } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
-    const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
 

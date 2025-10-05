@@ -7,16 +7,14 @@ import prisma from "@/lib/prisma";
 import { UserRole, VerificationType, Prisma, VerificationStatus } from "@prisma/client";
 import { VerificationService } from "@/lib/services/verificationService";
 import { emailService } from "@/lib/email/emailService";
-import { applyRateLimit } from "@/lib/rate-limiter";
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 /**
  * Handles a matchmaker's request to send an account setup invitation to a candidate.
  * This allows a manually-created user to set their own password and take control of their profile.
  */
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   // 1. Apply Rate Limiting
-  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
   
