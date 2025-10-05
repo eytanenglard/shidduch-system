@@ -659,23 +659,25 @@ const Navbar = ({ dict }: NavbarProps) => {
           </div>
 
           {/* ✨ עדכון: כפתור השפה הועבר לכאן, ומוצמד לתחתית */}
+      {/* ✨ עדכון: כפתור השפה הועבר לכאן, ומוצמד לתחתית */}
+    {/* ✨ עדכון: כפתור השפה הועבר לכאן, ומוצמד לתחתית */}
           <div className="p-4 border-t border-gray-100 shrink-0">
             <Button
               variant="outline"
               onClick={handleLanguageChange}
-              className="w-full font-medium border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-pink-50 hover:border-cyan-300 flex items-center justify-center py-4 text-base gap-4 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
+              className="w-full font-medium border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-pink-50 hover:border-cyan-300 flex items-center justify-center py-3 text-base gap-3 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
             >
-              <div className="relative">
-                <Globe className="h-6 w-6 text-cyan-600 transition-transform duration-300 hover:scale-110" />
-                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gradient-to-r from-cyan-500 to-pink-500 rounded-full flex items-center justify-center shadow-md border-2 border-white">
-                  <span className="text-[10px] font-bold text-white leading-none">
+              <div className="relative flex-shrink-0">
+                <Globe className="h-5 w-5 text-cyan-600 transition-transform duration-300 hover:scale-110" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-cyan-500 to-pink-500 rounded-full flex items-center justify-center shadow-md border border-white">
+                  <span className="text-[9px] font-bold text-white leading-none">
                     {locale === 'he' ? 'ע' : 'E'}
                   </span>
                 </div>
               </div>
-              <div className="flex flex-col items-start">
+              <div className="flex flex-col items-start flex-grow">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-lg bg-gradient-to-r from-cyan-600 to-pink-600 bg-clip-text text-transparent">
+                  <span className="font-bold text-base bg-gradient-to-r from-cyan-600 to-pink-600 bg-clip-text text-transparent">
                     {locale === 'he' ? 'EN' : 'HE'}
                   </span>
                   <span className="text-sm text-gray-400">•</span>

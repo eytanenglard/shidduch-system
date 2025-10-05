@@ -54,6 +54,7 @@ model User {
   oneTimeAuthTokens               OneTimeAuthToken[]
   manuallyAddedCandidates         User[]                  @relation("ManuallyAddedBy") // New relation back to matchmaker
   feedbacks                       Feedback[]
+  dripCampaign              UserDripCampaign?
 
 
   @@index([email])
@@ -685,4 +686,25 @@ model TestimonialRequest {
   updatedAt DateTime @updatedAt
 
   @@index([profileId])
+}
+
+model UserDripCampaign {
+  id            String         @id @default(cuid())
+  userId        String         @unique
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentStep   Int            @default(1)
+  nextSendDate  DateTime
+  status        CampaignStatus @default(ACTIVE)
+  lastSentType  String?        // To track which type of message was last sent
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([nextSendDate, status])
+}
+
+enum CampaignStatus {
+  ACTIVE
+  PAUSED
+  UNSUBSCRIBED
+  COMPLETED
 }

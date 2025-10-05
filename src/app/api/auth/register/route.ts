@@ -6,6 +6,7 @@ import { hash } from 'bcryptjs';
 import { emailService } from '@/lib/email/emailService';
 import { VerificationService } from '@/lib/services/verificationService'; 
 import { applyRateLimit } from '@/lib/rate-limiter';
+import { UserEngagementService } from '@/lib/engagement/userEngagementService';
 
 const prisma = new PrismaClient();
 
@@ -221,7 +222,20 @@ export async function POST(req: NextRequest) {
     });
 
     logger.info('Database transaction completed successfully', { userId: result.user.id });
-    
+    // --- ✨ הוספה חדשה: הפעלת קמפיין המיילים ✨ ---
+// קריאה זו אינה שולחת מייל מיידית, אלא רק מתזמנת את המייל הראשון בעוד מספר ימים.
+try {
+  await UserEngagementService.startCampaignForNewUser(result.user.id);
+  logger.info('User engagement campaign successfully scheduled', { userId: result.user.id });
+} catch (campaignError) {
+  // אם יש בעיה בתזמון הקמפיין, אנחנו רק מתעדים אותה ולא עוצרים את תהליך ההרשמה.
+  logger.error('Failed to start user engagement campaign', { 
+    userId: result.user.id,
+    errorObject: campaignError 
+  });
+}
+// --- סוף ההוספה ---
+
     let emailSentSuccess = false;
         const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour"; 
 

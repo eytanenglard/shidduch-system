@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification
-# Generated on: 2025-09-09 19:47:11
+# Generated on: 2025-10-05 13:49:41
 ################################################################################
 
 ================================================================================
@@ -387,7 +387,7 @@ import {
   NotificationChannel,
   RecipientInfo,
   NotificationContent as BaseNotificationContent
-} from './NotificationService';
+} from '../NotificationService';
 import twilio from 'twilio';
 import { MessageListInstanceCreateOptions } from 'twilio/lib/rest/api/v2010/account/message';
 
