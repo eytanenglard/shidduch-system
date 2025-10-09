@@ -371,35 +371,48 @@ export class SmartEngagementOrchestrator {
     return this.getOnboardingEmail(profile, dict); // Placeholder
   }
 
-  private static getPhotoNudgeEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
+   private static getPhotoNudgeEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
+    // ✅ שיפרנו את התוכן להיות ממוקד ב"למה"
     const emailDict = dict.engagement.photoNudge;
     const missingCount = 3 - profile.completionStatus.photos.current;
     
     return {
       type: 'NUDGE',
       priority: 'HIGH',
-      subject: emailDict.subject,
+      subject: populateTemplate(emailDict.subject, { firstName: profile.firstName }),
       content: {
-        hook: emailDict.hook,
+        // ✅ הוק (Hook) חם ומסביר יותר
+        hook: populateTemplate(emailDict.hook, { firstName: profile.firstName }),
+        // ✅ מסר מרכזי שמדבר על חיבור אנושי, לא על דרישה טכנית
         mainMessage: populateTemplate(emailDict.mainMessage, { missingCount }),
+        // ✅ קריאה לפעולה ספציפית
         specificAction: emailDict.specificAction,
+        // ✅ עידוד שמחבר את הפעולה למטרה הגדולה
         encouragement: emailDict.encouragement
       },
       sendInDays: 0
     };
   }
 
+
+
   private static getQuestionnaireNudgeEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
+    // ✅ שיפרנו את התוכן כדי להדגיש את הערך למשתמש
     const emailDict = dict.engagement.questionnaireNudge;
     const { worldsStatus } = profile.completionStatus.questionnaire;
-    const mostEmptyWorld = worldsStatus.sort((a, b) => a.completed - b.completed)[0] || { world: 'כללי' };
+    
+    // знаходи את העולם הכי פחות מלא כדי לתת הנחיה ממוקדת
+    const mostEmptyWorld = worldsStatus
+        .filter(w => !w.isDone)
+        .sort((a, b) => a.completed - b.completed)[0] || { world: 'כללי' };
     
     return {
       type: 'NUDGE',
       priority: 'NORMAL',
-      subject: emailDict.subject,
+      subject: populateTemplate(emailDict.subject, { firstName: profile.firstName }),
       content: {
         hook: populateTemplate(emailDict.hook, { firstName: profile.firstName }),
+        // ✅ מסר מרכזי שמסביר שהשאלון הוא "מצפן" ולא "מטלה"
         mainMessage: populateTemplate(emailDict.mainMessage, { worldName: mostEmptyWorld.world }),
         specificAction: this.getNextBestAction(profile),
         encouragement: emailDict.encouragement
@@ -407,6 +420,7 @@ export class SmartEngagementOrchestrator {
       sendInDays: 0
     };
   }
+
 
   private static getAlmostDoneEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
     const emailDict = dict.engagement.almostDone;
@@ -451,21 +465,26 @@ export class SmartEngagementOrchestrator {
   }
 
   private static getValueEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
-    const topics = dict.engagement.value;
+    // ✅ שיפרנו את הלוגיקה כדי לתמוך במגוון נושאים
+    const topics = dict.engagement.value; // 'value' הוא עכשיו מערך של אובייקטים
+    
+    // בחר נושא אקראי מתוך המערך
     const topic = topics[Math.floor(Math.random() * topics.length)];
     
     return {
       type: 'VALUE',
       priority: 'LOW',
-      subject: topic.subject,
+      subject: populateTemplate(topic.subject, { firstName: profile.firstName }),
       content: {
-        hook: topic.hook,
+        hook: populateTemplate(topic.hook, { firstName: profile.firstName }),
+        // ✅ התוכן מגיע ישירות מהמילון, מה שמאפשר גמישות רבה
         mainMessage: topic.mainMessage,
         encouragement: topic.encouragement
       },
       sendInDays: 0
     };
   }
+
 
   // ========== Helper Methods ==========
   

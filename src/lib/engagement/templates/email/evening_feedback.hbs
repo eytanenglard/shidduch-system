@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{#if (eq locale 'he')}}סיכום ההתקדמות שלך{{else}}Your Progress Summary{{/if}}</title>
+    <title>{{#if (eq locale 'he')}}התקדמות מצוינת, {{firstName}}!{{else}}Excellent progress, {{firstName}}!{{/if}}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); direction: {{getDir locale}};">
     <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -19,12 +19,12 @@
                                 {{#if (eq locale 'he')}}
                                     כל הכבוד על ההשקעה, {{firstName}}!
                                 {{else}}
-                                    Great job today, {{firstName}}!
+                                    Great work today, {{firstName}}!
                                 {{/if}}
                             </h1>
                             <p style="color: rgba(255,255,255,0.95); margin: 15px 0 0 0; font-size: 17px; font-weight: 500;">
                                 {{#if (eq locale 'he')}}
-                                    ראינו את ההתקדמות שלך היום
+                                    שמנו לב להתקדמות שלך היום
                                 {{else}}
                                     We noticed your progress today
                                 {{/if}}
@@ -41,23 +41,16 @@
                             
                             <p style="font-size: 16px; color: #4a5568; margin: 0 0 25px 0; line-height: 1.7;">
                                 {{#if (eq locale 'he')}}
-                                    הפרופיל שלך כבר ב-<strong>{{progressPercentage}}%</strong> - איזו התקדמות נהדרת!
+                                    רצינו לעצור לרגע ולומר תודה על הזמן והמחשבה שהשקעת היום בפרופיל שלך. כל פרט שאתה מוסיף לא רק מקדם אותך, אלא גם עוזר למערכת שלנו ללמוד אותך לעומק ולחפש עבורך בצורה מדויקת יותר.
                                 {{else}}
-                                    Your profile is now at <strong>{{progressPercentage}}%</strong> - excellent progress!
+                                    We wanted to take a moment to thank you for the time and thought you invested in your profile today. Every detail you add not only moves you forward but also helps our system learn more about you and search more accurately on your behalf.
                                 {{/if}}
                             </p>
-
-                            <!-- Progress Bar -->
-                            <div style="margin: 20px 0;">
-                                <div style="background: #e2e8f0; border-radius: 10px; height: 12px; overflow: hidden;">
-                                    <div style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: {{progressPercentage}};"></div>
-                                </div>
-                            </div>
 
                             <!-- What was done today -->
                             <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%); border-radius: 16px; padding: 24px; margin: 25px 0;">
                                 <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 20px; font-weight: 700;">
-                                    {{#if (eq locale 'he')}}✅ מה השלמת היום{{else}}✅ What you completed today{{/if}}
+                                    {{#if (eq locale 'he')}}✅ הפעולות שלך היום{{else}}✅ Your Actions Today{{/if}}
                                 </h3>
                                 <ul style="color: #1e40af; margin: 0; padding-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 20px; line-height: 1.8;">
                                     {{#each todayCompletedItems}}
@@ -66,55 +59,53 @@
                                 </ul>
                             </div>
 
-                            {{#if systemSummary}}
-                            <!-- AI System Summary -->
-                            <div style="background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%); border-radius: 16px; padding: 24px; margin: 25px 0; border: 2px solid #a78bfa;">
-                                <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                                    <span style="font-size: 32px; margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 12px;">🧠</span>
-                                    <h3 style="color: #5b21b6; margin: 0; font-size: 20px; font-weight: 700;">
-                                        {{#if (eq locale 'he')}}דבר המערכת (סיכום השדכן){{else}}System Summary (Matchmaker's View){{/if}}
-                                    </h3>
-                                </div>
-                                <div style="background: white; border-radius: 12px; padding: 20px;">
-                                    <p style="color: #4c1d95; margin: 0; font-size: 15px; line-height: 1.7; font-style: italic;">
-                                        "{{systemSummary}}"
-                                    </p>
-                                </div>
-                            </div>
-                            {{/if}}
-
                             {{#if aiInsight}}
                             <!-- AI Insight -->
                             <div style="background: #f0fdfa; border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #06b6d4; border-radius: 12px; padding: 20px; margin: 25px 0;">
                                 <h3 style="color: #0f766e; margin: 0 0 12px 0; font-size: 18px; font-weight: 700;">
-                                    {{#if (eq locale 'he')}}💡 תובנת AI ראשונית{{else}}💡 Initial AI Insight{{/if}}
+                                    {{#if (eq locale 'he')}}💡 תובנה ראשונית מהמערכת{{else}}💡 An Initial Insight From Our System{{/if}}
                                 </h3>
                                 <p style="color: #115e59; margin: 0; font-size: 15px; line-height: 1.7;">
-                                    {{aiInsight}}
+                                    "{{aiInsight}}"
                                 </p>
                                 <p style="font-size: 13px; color: #134e4a; margin-top: 12px; font-style: italic;">
                                     {{#if (eq locale 'he')}}
-                                        זוהי רק טעימה ממה שהמערכת לומדת. ככל שתשלים יותר פרטים, כך התמונה תהיה מדויקת יותר.
+                                        זוהי רק טעימה מהתמונה שהמערכת מרכיבה. ככל שהפרופיל יהיה מלא יותר, כך התובנות יהיו עמוקות ומדויקות יותר.
                                     {{else}}
-                                        This is just a glimpse of what the system is learning. The more details you complete, the more accurate the picture will be.
+                                        This is just a glimpse of the picture our system is building. The more complete your profile becomes, the deeper and more accurate the insights will be.
                                     {{/if}}
                                 </p>
                             </div>
                             {{/if}}
+                            
+                            <!-- Overall Progress Bar -->
+                            <div style="margin: 30px 0;">
+                                 <p style="text-align: center; color: #4a5568; margin-bottom: 10px; font-size: 16px;">
+                                    {{#if (eq locale 'he')}}
+                                        ההתקדמות הכוללת שלך: <strong>{{progressPercentage}}%</strong>
+                                    {{else}}
+                                        Your overall progress: <strong>{{progressPercentage}}%</strong>
+                                    {{/if}}
+                                </p>
+                                <div style="background: #e2e8f0; border-radius: 10px; height: 12px; overflow: hidden;">
+                                    <div style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: {{progressPercentage}}%;"></div>
+                                </div>
+                            </div>
+
 
                             <!-- Next Step -->
                             <div style="background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #f59e0b; border-radius: 12px; padding: 24px; margin: 25px 0;">
                                 <h3 style="color: #92400e; margin: 0 0 12px 0; font-size: 19px; font-weight: 700;">
-                                    {{#if (eq locale 'he')}}🎯 הצעד הבא שלך{{else}}🎯 Your Next Step{{/if}}
+                                    {{#if (eq locale 'he')}}🎯 הצעד הבא במסע{{else}}🎯 The Next Step on Your Journey{{/if}}
                                 </h3>
                                 <p style="color: #78350f; margin: 0; font-size: 17px; line-height: 1.6; font-weight: 500;">
                                     {{nextAction}}
                                 </p>
                                 <p style="color: #92400e; margin: 15px 0 0 0; font-size: 14px;">
                                     {{#if (eq locale 'he')}}
-                                        זה ייקח בערך {{estimatedTime}} - נשמע סביר?
+                                        זמן מוערך: {{estimatedTime}}
                                     {{else}}
-                                        This will take about {{estimatedTime}} - sound good?
+                                        Estimated time: {{estimatedTime}}
                                     {{/if}}
                                 </p>
                             </div>
@@ -129,25 +120,14 @@
                                     </td>
                                 </tr>
                             </table>
-
-                            <p style="font-size: 14px; color: #718096; margin: 25px 0 0 0; line-height: 1.6; border-top: 1px solid #e2e8f0; padding-top: 20px; text-align: center;">
-                                {{#if (eq locale 'he')}}
-                                    יש שאלה? פשוט תשיב למייל - אנחנו כאן בשבילך!
-                                {{else}}
-                                    Questions? Just reply to this email - we're here for you!
-                                {{/if}}
-                            </p>
                         </td>
                     </tr>
 
                     <!-- Footer -->
                     <tr>
                         <td style="background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); padding: 25px 30px; text-align: center; border-top: 1px solid #d1d5db;">
-                            <p style="margin: 0 0 10px 0; color: #4b5563; font-size: 14px; font-weight: 600;">
-                                {{#if (eq locale 'he')}}ממשיכים לעבוד!{{else}}Keep going!{{/if}} 🔥
-                            </p>
-                            <p style="margin: 0; color: #9ca3af; font-size: 13px;">
-                                {{#if (eq locale 'he')}}צוות{{else}}Team{{/if}} NeshamaTech
+                            <p style="margin: 0; color: #4b5563; font-size: 14px; font-weight: 600;">
+                                {{#if (eq locale 'he')}}אנחנו ממשיכים לעבוד בשבילך!{{else}}We're continuing to work for you!{{/if}}
                             </p>
                         </td>
                     </tr>
