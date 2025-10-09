@@ -221,7 +221,8 @@ export class SmartEngagementOrchestrator {
     let aiInsights: UserEngagementProfile['aiInsights'] = null;
     const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
     if (narrativeProfile) {
-      const analysis = await aiService.getProfileAnalysis(narrativeProfile);
+       const analysis = await aiService.getProfileAnalysis(narrativeProfile, user.language as Language);
+
       if (analysis) {
         aiInsights = {
           personalitySummary: analysis.personalitySummary,

@@ -6,6 +6,8 @@ import { SmartEngagementOrchestrator } from '@/lib/engagement/SmartEngagementOrc
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { getEmailDictionary } from '@/lib/dictionaries';
+import { Language } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,6 +43,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // טען את מילון המיילים המתאים לשפת המשתמש
+    const dict = await getEmailDictionary(user.language as Language);
+
     // בנה פרופיל engagement
     const profile = await SmartEngagementOrchestrator['buildUserEngagementProfile'](userId);
     
@@ -49,13 +54,13 @@ export async function POST(request: NextRequest) {
     switch (emailType) {
       case 'EVENING_FEEDBACK':
         const dailyActivity = await SmartEngagementOrchestrator['detectDailyActivity'](userId);
-        email = await SmartEngagementOrchestrator['getEveningFeedbackEmail'](profile, dailyActivity);
+        email = await SmartEngagementOrchestrator['getEveningFeedbackEmail'](profile, dailyActivity, dict);
         break;
       case 'AI_SUMMARY':
-        email = await SmartEngagementOrchestrator['getAiSummaryEmail'](profile);
+        email = await SmartEngagementOrchestrator['getAiSummaryEmail'](profile, dict);
         break;
       case 'NUDGE':
-        email = await SmartEngagementOrchestrator['getQuestionnaireNudgeEmail'](profile);
+        email = await SmartEngagementOrchestrator['getQuestionnaireNudgeEmail'](profile, dict);
         break;
       // הוסף עוד מקרים לפי הצורך
       default:

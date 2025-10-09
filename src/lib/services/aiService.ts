@@ -146,12 +146,13 @@ export interface AiProfileAnalysisResult {
  * @returns Promise שמחזיר אובייקט ניתוח מובנה, או null במקרה של כישלון.
  */
 export async function getProfileAnalysis(
-  userNarrativeProfile: string
+  userNarrativeProfile: string,
+   language: 'he' | 'en' = 'he' 
 ): Promise<AiProfileAnalysisResult | null> {
   console.log(
     '--- [AI Profile Advisor] Starting profile analysis with Gemini API ---'
   );
-
+ 
   if (!userNarrativeProfile) {
     console.error(
       '[AI Profile Advisor] Called with an empty user narrative profile.'
@@ -166,13 +167,14 @@ export async function getProfileAnalysis(
       temperature: 0.4,
     },
   });
+ const targetLanguage = language === 'he' ? 'Hebrew' : 'English'; 
 
   const prompt = `
     You are an expert, warm, and encouraging dating profile coach for a religious Jewish audience. Your goal is to help the user improve their profile to attract the best possible matches. Based on the following comprehensive user profile, provide a structured JSON analysis.
     The entire output MUST be a valid JSON object in Hebrew.
     IMPORTANT: Do NOT wrap the JSON in markdown backticks (e.g., \`\`\`json). Output ONLY the raw JSON object.
     The JSON structure must be: { "personalitySummary": "string", "lookingForSummary": "string", "completenessReport": [{ "area": "string", "status": "COMPLETE" | "PARTIAL" | "MISSING", "feedback": "string" }], "actionableTips": [{ "area": "string", "tip": "string" }] }
-    
+    The entire output MUST be a valid JSON object in ${targetLanguage}.
     --- User Profile Narrative ---
     ${userNarrativeProfile}
     --- End of User Profile Narrative ---
