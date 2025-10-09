@@ -374,7 +374,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
 }) => {
   // --- State Management ---
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [mobileView, setMobileView] = useState<MobileView>('split');
+  const [mobileView, setMobileView] = useState<MobileView>('double');
   const [isMobile, setIsMobile] = useState(false);
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);

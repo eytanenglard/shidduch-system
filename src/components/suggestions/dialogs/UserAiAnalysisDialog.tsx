@@ -419,35 +419,34 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
   props
 ) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { dict } = props; // ✨ Destructure dict
+  const { dict } = props;
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
   };
 
-  const triggerButton = (
-    <Button
-      variant="outline"
-      size="lg"
-      className="relative overflow-hidden group bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border-2 border-blue-200 text-blue-700 hover:from-blue-100 hover:to-pink-100 hover:border-blue-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl"
-    >
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent transform -translate-x-full group-hover:animate-shimmer" />
-      <div className="relative z-10 flex items-center gap-3">
-        <div className="relative">
-          <Brain className="w-6 h-6 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110 text-blue-600" />
-          <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-purple-500 opacity-0 group-hover:opacity-100" />
-        </div>
-        <span className="text-lg font-bold">{dict.triggerButton}</span>
-      </div>
-    </Button>
-  );
-
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{triggerButton}</DialogTrigger>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          size="lg"
+          className="relative overflow-hidden group bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border-2 border-blue-200 text-blue-700 hover:from-blue-100 hover:to-pink-100 hover:border-blue-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent transform -translate-x-full group-hover:animate-shimmer" />
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="relative">
+              <Brain className="w-6 h-6 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110 text-blue-600" />
+              <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-purple-500 opacity-0 group-hover:opacity-100" />
+            </div>
+            <span className="text-lg font-bold">{dict.triggerButton}</span>
+          </div>
+        </Button>
+      </DialogTrigger>
       <DialogContent
-        className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-2xl bg-gray-50"
+        className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-2xl bg-gray-50 z-[9999]"
         dir="rtl"
+        style={{ zIndex: 9999 }}
       >
         {isOpen && <DialogBody {...props} onOpenChange={handleOpenChange} />}
       </DialogContent>
@@ -459,6 +458,14 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
         }
         .animate-shimmer {
           animation: shimmer 2s infinite;
+        }
+        
+        [data-radix-dialog-overlay] {
+          z-index: 9998 !important;
+        }
+        
+        [data-radix-dialog-content] {
+          z-index: 9999 !important;
         }
       `}</style>
     </Dialog>

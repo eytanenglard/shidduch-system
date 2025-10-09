@@ -360,24 +360,28 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   </Button>
                 ) : (
                   <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCancel}
-                      className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50"
-                    >
-                      <X className="w-3.5 h-3.5 ltr:ml-1.5 rtl:mr-1.5" />
-                      {t.buttons.cancel}
-                    </Button>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={handleSave}
-                      className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white"
-                    >
-                      <Save className="w-3.5 h-3.5 ltr:ml-1.5 rtl:mr-1.5" />
-                      {t.buttons.save}
-                    </Button>
+                    {/* ======================= START: DESKTOP BUTTONS ======================= */}
+                    <div className="hidden sm:flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCancel}
+                        className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50"
+                      >
+                        <X className="w-3.5 h-3.5 ltr:ml-1.5 rtl:mr-1.5" />
+                        {t.buttons.cancel}
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={handleSave}
+                        className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white"
+                      >
+                        <Save className="w-3.5 h-3.5 ltr:ml-1.5 rtl:mr-1.5" />
+                        {t.buttons.save}
+                      </Button>
+                    </div>
+                    {/* ======================= END: DESKTOP BUTTONS ======================= */}
                   </>
                 )}
               </div>
@@ -1540,6 +1544,33 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ======================= START: MOBILE STICKY FOOTER ======================= */}
+      {isEditing && !viewOnly && (
+        <div className="sticky bottom-0 z-20 mt-4 border-t border-gray-200 bg-white/90 p-4 backdrop-blur-md shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.15)] sm:hidden">
+          <div className="flex items-center justify-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCancel}
+              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-2"
+            >
+              <X className="w-4 h-4" />
+              {t.buttons.cancel}
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleSave}
+              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2"
+            >
+              <Save className="w-4 h-4" />
+              {t.buttons.save}{' '}
+            </Button>
+          </div>
+        </div>
+      )}
+      {/* ======================= END: MOBILE STICKY FOOTER ======================= */}
     </div>
   );
 };

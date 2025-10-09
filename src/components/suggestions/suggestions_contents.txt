@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions
-# Generated on: 2025-10-03 13:27:52
+# Generated on: 2025-10-09 23:25:13
 ################################################################################
 
 ================================================================================
@@ -752,6 +752,7 @@ import type {
   TestimonialStatus, // ייבוא הטיפוסים הנדרשים
   SubmissionSource,   // ייבוא הטיפוסים הנדרשים
 } from '@prisma/client';
+import { QuestionnaireResponse as CustomQuestionnaireResponse } from '@/types/next-auth';
 
 // 1. הגדרת טיפוס עבור המלצת חבר בודדת
 export interface FriendTestimonial {
@@ -779,7 +780,7 @@ export type WorldId =
   | 'partner'
   | 'religion';
 
-export type QuestionnaireResponse = PrismaQuestionnaireResponse;
+export type QuestionnaireResponse = CustomQuestionnaireResponse;
 
 // PartyInfo עכשיו ישתמש ב-UserProfile המעודכן שלנו
 export interface PartyInfo {

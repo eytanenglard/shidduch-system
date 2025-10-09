@@ -715,6 +715,7 @@ enum CampaignStatus {
   ACTIVE
   PAUSED
   UNSUBSCRIBED
+  PROCESSING 
   COMPLETED
 }
 

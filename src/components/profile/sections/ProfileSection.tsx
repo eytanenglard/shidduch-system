@@ -1259,6 +1259,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   </Button>
                 ) : (
                   <>
+                    {/* ======================= START: DESKTOP BUTTONS ======================= */}
                     <div className="hidden sm:flex gap-2">
                       <Button
                         variant="outline"
@@ -1279,6 +1280,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         {dict.buttons.save}
                       </Button>
                     </div>
+                    {/* ======================= END: DESKTOP BUTTONS ======================= */}
                   </>
                 )}
               </div>
@@ -2837,6 +2839,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         </div>
       </div>
 
+      {/* ======================= START: MOBILE STICKY FOOTER ======================= */}
       {isEditing && !viewOnly && (
         <div className="sticky bottom-0 z-20 mt-4 border-t border-gray-200 bg-white/90 p-4 backdrop-blur-md shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.15)] sm:hidden">
           <div className="flex items-center justify-center gap-3">
@@ -2861,6 +2864,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           </div>
         </div>
       )}
+      {/* ======================= END: MOBILE STICKY FOOTER ======================= */}
     </div>
   );
 };
