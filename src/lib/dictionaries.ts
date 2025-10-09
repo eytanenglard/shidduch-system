@@ -1,6 +1,6 @@
 // src/lib/dictionaries.ts
 
-import 'server-only';
+/* import 'server-only'; */
 import type { Locale } from '../../i18n-config';
 import type { 
   Dictionary, 

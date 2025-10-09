@@ -1,24 +1,23 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html dir="{{getDir locale}}" lang="{{locale}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ברוכים הבאים ל-NeshamaTech</title>
+    <title>{{#if (eq locale 'he')}}ברוכים הבאים ל-NeshamaTech{{else}}Welcome to NeshamaTech{{/if}}</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); direction: rtl;">
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); direction: {{getDir locale}};">
     <table role="presentation" style="width: 100%; border-collapse: collapse;">
         <tr>
             <td align="center" style="padding: 40px 20px;">
                 <table role="presentation" style="max-width: 600px; width: 100%; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.5); overflow: hidden;">
-                    <!-- Header with gradient matching site -->
+                    <!-- Header -->
                     <tr>
                         <td style="background: linear-gradient(135deg, #06b6d4 0%, #ec4899 100%); padding: 50px 30px; text-align: center; position: relative;">
-                            <div style="position: absolute; top: 20px; right: 20px; width: 80px; height: 80px; background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%); border-radius: 50%; filter: blur(20px);"></div>
                             <h1 style="color: white; margin: 0; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                                🎉 ברוך הבא ל-NeshamaTech!
+                                🎉 {{#if (eq locale 'he')}}ברוך הבא ל-NeshamaTech!{{else}}Welcome to NeshamaTech!{{/if}}
                             </h1>
                             <p style="color: rgba(255,255,255,0.95); margin: 12px 0 0 0; font-size: 17px; font-weight: 500;">
-                                המסע שלך להתאמה מושלמת מתחיל כאן
+                                {{#if (eq locale 'he')}}המסע שלך להתאמה מושלמת מתחיל כאן{{else}}Your journey to the perfect match starts here{{/if}}
                             </p>
                         </td>
                     </tr>
@@ -27,47 +26,48 @@
                     <tr>
                         <td style="padding: 40px 30px;">
                             <p style="font-size: 18px; color: #2d3748; margin: 0 0 20px 0; line-height: 1.6;">
-                                שלום {{firstName}},
+                                {{#if (eq locale 'he')}}שלום{{else}}Hello{{/if}} {{firstName}},
                             </p>
                             
                             <p style="font-size: 16px; color: #4a5568; margin: 0 0 20px 0; line-height: 1.7;">
-                                כמה מרגש! הצטרפת למשפחת NeshamaTech - מערכת השידוכים החכמה שמשלבת טכנולוגיה מתקדמת עם הבינה והחום האנושיים של שדכנים מקצועיים.
+                                {{#if (eq locale 'he')}}
+                                    כמה מרגש! הצטרפת למשפחת NeshamaTech - מערכת השידוכים החכמה שמשלבת טכנולוגיה מתקדמת עם הבינה והחום האנושיים של שדכנים מקצועיים.
+                                {{else}}
+                                    How exciting! You've joined the NeshamaTech family - the smart matchmaking system that combines advanced technology with the human wisdom and warmth of professional matchmakers.
+                                {{/if}}
                             </p>
 
                             <div style="background: linear-gradient(135deg, #e0e7ff 0%, #fce7f3 100%); border-radius: 12px; padding: 25px; margin: 25px 0;">
                                 <h2 style="color: #5a67d8; margin: 0 0 15px 0; font-size: 20px; font-weight: 600;">
-                                    💡 מה הלאה?
+                                    💡 {{#if (eq locale 'he')}}מה הלאה?{{else}}What's next?{{/if}}
                                 </h2>
-                                <ul style="color: #4a5568; margin: 0; padding-right: 20px; line-height: 1.8;">
+                                <ul style="color: #4a5568; margin: 0; padding-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 20px; line-height: 1.8;">
                                     <li style="margin-bottom: 10px;">
-                                        <strong>השלם את הפרופיל שלך</strong> - ככל שנדע אותך יותר, כך נוכל למצוא לך התאמה טובה יותר
+                                        <strong>{{#if (eq locale 'he')}}השלם את הפרופיל שלך{{else}}Complete your profile{{/if}}</strong> - {{#if (eq locale 'he')}}ככל שנדע עליך יותר, כך נוכל למצוא לך התאמה טובה יותר{{else}}the more we know about you, the better we can find a match{{/if}}
                                     </li>
                                     <li style="margin-bottom: 10px;">
-                                        <strong>הוסף תמונות</strong> - תמונה שווה אלף מילים, ו-3 תמונות? זה הרבה יותר!
-                                    </li>
-                                    <li style="margin-bottom: 10px;">
-                                        <strong>מלא את השאלון</strong> - זה עוזר לנו להבין מי אתה באמת ומה חשוב לך
+                                        <strong>{{#if (eq locale 'he')}}הוסף תמונות{{else}}Add photos{{/if}}</strong> - {{#if (eq locale 'he')}}תמונה שווה אלף מילים, ו-3 תמונות? זה הרבה יותר!{{else}}a picture is worth a thousand words, and 3 pictures? Even more!{{/if}}
                                     </li>
                                 </ul>
                             </div>
 
                             <p style="font-size: 16px; color: #4a5568; margin: 20px 0; line-height: 1.7;">
-                                <strong>טיפ חשוב:</strong> פרופילים מלאים עם תמונות איכותיות מקבלים פי 3 יותר התאמות! אז כדאי להשקיע כמה דקות עכשיו.
+                                <strong>{{#if (eq locale 'he')}}טיפ חשוב:{{else}}Important tip:{{/if}}</strong> {{#if (eq locale 'he')}}פרופילים מלאים מקבלים פי 3 יותר התאמות!{{else}}Complete profiles get 3 times more matches!{{/if}}
                             </p>
 
                             <!-- CTA Button -->
-                            <table role="presentation" style="margin: 30px 0;">
+                            <table role="presentation" style="margin: 30px 0; width: 100%;">
                                 <tr>
                                     <td style="text-align: center;">
                                         <a href="{{baseUrl}}/profile" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 16px 40px; border-radius: 50px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: transform 0.2s;">
-                                            להשלמת הפרופיל שלי
+                                            {{#if (eq locale 'he')}}להשלמת הפרופיל שלי{{else}}Complete My Profile{{/if}}
                                         </a>
                                     </td>
                                 </tr>
                             </table>
 
                             <p style="font-size: 15px; color: #718096; margin: 25px 0 0 0; line-height: 1.6; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-                                יש שאלות? אנחנו כאן בשבילך! פשוט תשיב למייל הזה ונחזור אליך בהקדם.
+                                {{#if (eq locale 'he')}}יש שאלות? אנחנו כאן בשבילך! פשוט תשיב למייל הזה.{{else}}Questions? We're here for you! Just reply to this email.{{/if}}
                             </p>
                         </td>
                     </tr>
@@ -75,11 +75,12 @@
                     <!-- Footer -->
                     <tr>
                         <td style="background: #f7fafc; padding: 25px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
-                            <p style="margin: 0 0 10px 0; color: #718096; font-size: 14px;">
-                                בהצלחה במסע שלך! 💙
-                            </p>
                             <p style="margin: 0; color: #a0aec0; font-size: 13px;">
-                                צוות NeshamaTech
+                                {{#if (eq locale 'he')}}
+                                    בברכה,<br>צוות NeshamaTech
+                                {{else}}
+                                    Best regards,<br>The NeshamaTech Team
+                                {{/if}}
                             </p>
                         </td>
                     </tr>

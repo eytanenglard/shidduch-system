@@ -6,15 +6,24 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * 📧 שירות מיילים משופר עם תמיכה בתבניות Handlebars
+ * 📧 שירות מיילים משופר עם תמיכה בתבניות Handlebars ותמיכה דו-לשונית
  */
+
+// ✅ רישום Handlebars Helpers
+Handlebars.registerHelper('eq', function(a, b) {
+  return a === b;
+});
+
+Handlebars.registerHelper('getDir', function(locale: string) {
+  return locale === 'he' ? 'rtl' : 'ltr';
+});
 
 interface EmailData {
   to: string;
   subject: string;
   templateName: string;
   context: Record<string, any>;
-  locale?: 'he' | 'en'; // הוספת פרמטר שפה אופציונלי
+  locale?: 'he' | 'en';
 }
 
 class EmailService {
@@ -48,7 +57,7 @@ class EmailService {
       process.cwd(),
       'src',
       'lib',
-      'engagement', // <-- הנתיב הנכון לתבניות
+      'engagement',
       'templates',
       'email',
       `${templateName}.hbs`
@@ -70,7 +79,7 @@ class EmailService {
         ...data.context,
         baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
         currentYear: new Date().getFullYear(),
-        locale: data.locale || 'he', // הוספת השפה לקונטקסט של התבנית
+        locale: data.locale || 'he',
       };
 
       const template = this.loadTemplate(data.templateName);
@@ -93,7 +102,7 @@ class EmailService {
   }
 
   async sendOnboardingDay1(user: {
-    locale: 'he' | 'en'; // פרמטר חובה
+    locale: 'he' | 'en';
     email: string;
     firstName: string;
     completionData: {
@@ -189,7 +198,7 @@ class EmailService {
     subject: string,
     templateName: string,
     context: Record<string, any>,
-    locale: 'he' | 'en' = 'he' // פרמטר locale בסוף עם ערך ברירת מחדל
+    locale: 'he' | 'en' = 'he'
   ): Promise<boolean> {
     return this.sendTemplateEmail({
       to,

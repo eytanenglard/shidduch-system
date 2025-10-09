@@ -1,0 +1,1008 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts
+# Generated on: 2025-10-09 14:02:26
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\checkEmailLogs.ts
+--------------------------------------------------------------------------------
+Content:
+// src/scripts/checkEmailLogs.ts
+import 'dotenv/config';
+import prisma from '../lib/prisma';
+
+const TEST_USER_ID = 'cmefd7ics0000xn0l6z2vcsjm';
+
+async function checkEmailLogs() {
+  console.log('\n========================================');
+  console.log('📧 Email Campaign Status Check');
+  console.log('========================================\n');
+
+  try {
+    await prisma.$connect();
+
+    const user = await prisma.user.findUnique({
+      where: { id: TEST_USER_ID },
+      include: {
+        dripCampaign: true,
+      },
+    });
+
+    if (!user) {
+      console.error('❌ User not found');
+      process.exit(1);
+    }
+
+    console.log(`User: ${user.firstName} ${user.lastName}`);
+    console.log(`Email: ${user.email}\n`);
+
+    // בדוק אם הקמפיין קיים
+    if (!user.dripCampaign) {
+      console.log('❌ PROBLEM FOUND: No campaign record exists!');
+      console.log('\n💡 This means:');
+      console.log('   - The user is NOT enrolled in the email campaign');
+      console.log('   - The campaign scripts will SKIP this user');
+      console.log('\n🔧 Solution:');
+      console.log('   Run the daily campaign once to auto-enroll:');
+      console.log('   npm run engagement:daily');
+      console.log('\n   Or manually enroll:');
+      console.log(`   npx prisma studio`);
+      console.log(`   Create UserDripCampaign for userId: ${TEST_USER_ID}`);
+      
+      await prisma.$disconnect();
+      process.exit(1);
+    }
+
+    // אם הקמפיין קיים, הצג פרטים
+    console.log('✅ Campaign Record Found!\n');
+    console.log('Campaign Details:');
+    console.log('─────────────────────────────────────');
+    console.log(`Status:           ${user.dripCampaign.status}`);
+    console.log(`Current Step:     ${user.dripCampaign.currentStep}`);
+    console.log(`Last Email Type:  ${user.dripCampaign.lastSentType || 'None yet'}`);
+    console.log(`Last Updated:     ${user.dripCampaign.updatedAt.toLocaleString('he-IL')}`);
+    console.log(`Next Send Date:   ${user.dripCampaign.nextSendDate.toLocaleString('he-IL')}`);
+
+    const now = new Date();
+    const nextSend = user.dripCampaign.nextSendDate;
+    
+    if (nextSend > now) {
+      const hoursUntil = Math.floor((nextSend.getTime() - now.getTime()) / (1000 * 60 * 60));
+      console.log(`\n⏰ Next email scheduled in: ${hoursUntil} hours`);
+    } else {
+      console.log(`\n✅ Next email is DUE NOW (or overdue)`);
+    }
+
+    // Evening campaign counters
+    if (user.dripCampaign.eveningEmailsCount && user.dripCampaign.eveningEmailsCount > 0) {
+      console.log('\nEvening Emails:');
+      console.log(`  Count:      ${user.dripCampaign.eveningEmailsCount}`);
+      console.log(`  Last Sent:  ${user.dripCampaign.lastEveningEmailSent?.toLocaleString('he-IL') || 'Never'}`);
+    }
+
+    // AI Summary counters
+    if (user.dripCampaign.aiSummaryCount && user.dripCampaign.aiSummaryCount > 0) {
+      console.log('\nAI Summary Emails:');
+      console.log(`  Count:      ${user.dripCampaign.aiSummaryCount}`);
+      console.log(`  Last Sent:  ${user.dripCampaign.lastAiSummarySent?.toLocaleString('he-IL') || 'Never'}`);
+    }
+
+    // בדוק אם היו מיילים היום
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const emailsSentToday = user.dripCampaign.updatedAt >= today;
+    
+    console.log('\n📊 Today\'s Activity:');
+    console.log(`  Emails sent today: ${emailsSentToday ? '✅ YES' : '❌ NO'}`);
+    
+    if (emailsSentToday) {
+      console.log(`  Last email: ${user.dripCampaign.lastSentType}`);
+      console.log(`  Sent at: ${user.dripCampaign.updatedAt.toLocaleTimeString('he-IL')}`);
+    }
+
+    console.log('\n========================================');
+    console.log('💡 What to do next:');
+    console.log('========================================\n');
+
+    if (!emailsSentToday) {
+      console.log('📧 To send emails NOW:');
+      console.log('   npm run engagement:daily    # For daily campaign');
+      console.log('   npm run engagement:evening  # For evening feedback\n');
+    }
+
+    console.log('🔍 To verify email delivery:');
+    console.log(`   1. Check inbox: ${user.email}`);
+    console.log('   2. Check spam/junk folder');
+    console.log('   3. Check Gmail logs (if using Gmail)');
+    console.log('   4. Verify GMAIL_USER and GMAIL_APP_PASSWORD in .env');
+
+    await prisma.$disconnect();
+    process.exit(0);
+
+  } catch (error) {
+    console.error('\n❌ Error:', error);
+    await prisma.$disconnect();
+    process.exit(1);
+  }
+}
+
+checkEmailLogs();
+--- End of Content for checkEmailLogs.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\debugCampaignRun.ts
+--------------------------------------------------------------------------------
+Content:
+// src/scripts/debugCampaignRun.ts
+import 'dotenv/config';
+import prisma from '../lib/prisma';
+
+async function debugCampaignRun() {
+  console.log('\n========================================');
+  console.log('🔍 Debug: Why didn\'t campaign run?');
+  console.log('========================================\n');
+
+  try {
+    await prisma.$connect();
+
+    // בדוק כמה משתמשים מתאימים לקריטריונים
+    const eligibleUsers = await prisma.user.findMany({
+      where: {
+        status: 'ACTIVE',
+        marketingConsent: true,
+        isProfileComplete: false,
+      },
+      include: {
+        dripCampaign: true,
+      },
+    });
+
+    console.log(`✅ Found ${eligibleUsers.length} eligible users\n`);
+
+    if (eligibleUsers.length === 0) {
+      console.log('❌ NO USERS FOUND!');
+      console.log('\nPossible reasons:');
+      console.log('  1. All users have isProfileComplete: true');
+      console.log('  2. No users have marketingConsent: true');
+      console.log('  3. No users have status: ACTIVE');
+      console.log('\nTo fix:');
+      console.log('  Run: npm run test:force');
+      console.log('  This will set the test user to incomplete profile');
+    } else {
+      console.log('Users that SHOULD receive emails:\n');
+      eligibleUsers.forEach((user, i) => {
+        console.log(`${i + 1}. ${user.firstName} ${user.lastName}`);
+        console.log(`   ID: ${user.id}`);
+        console.log(`   Email: ${user.email}`);
+        console.log(`   Language: ${user.language}`);
+        console.log(`   Has Campaign: ${user.dripCampaign ? '✅' : '❌ NO'}`);
+        
+        if (user.dripCampaign) {
+          console.log(`   Last Email: ${user.dripCampaign.lastSentType || 'None'}`);
+          console.log(`   Last Sent: ${user.dripCampaign.updatedAt.toLocaleString('he-IL')}`);
+        }
+        console.log('');
+      });
+
+      console.log('========================================');
+      console.log('💡 Next Steps:');
+      console.log('========================================\n');
+      console.log('To send emails to these users:');
+      console.log('  npm run engagement:daily\n');
+      console.log('To test with evening campaign:');
+      console.log('  npm run engagement:evening\n');
+    }
+
+    await prisma.$disconnect();
+    process.exit(0);
+
+  } catch (error) {
+    console.error('\n❌ Error:', error);
+    await prisma.$disconnect();
+    process.exit(1);
+  }
+}
+
+debugCampaignRun();
+--- End of Content for debugCampaignRun.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\runEveningEngagement.ts
+--------------------------------------------------------------------------------
+Content:
+// src/scripts/runEveningEngagement.ts
+
+import 'dotenv/config';
+import { SmartEngagementOrchestrator } from '../lib/engagement/SmartEngagementOrchestrator';
+import db from '../lib/prisma';
+
+/**
+ * 🌙 סקריפט לריצת קמפיין ערב - פידבק על פעילות יומית
+ * 
+ * שימוש:
+ * 1. הרץ ידנית: `npm run engagement:evening`
+ * 2. Heroku Scheduler: Daily at 17:00 UTC (19:00 Israel)
+ */
+
+async function main() {
+  const startTime = new Date();
+  
+  console.log('\n========================================');
+  console.log('🌙 Evening Feedback Campaign Starting');
+  console.log('========================================');
+  console.log(`📅 Date: ${startTime.toLocaleString('he-IL')}`);
+  console.log('========================================\n');
+  
+  try {
+    await db.$connect();
+    console.log('✅ Database connected\n');
+    
+    console.log('🔄 Starting evening campaign...\n');
+    const results = await SmartEngagementOrchestrator.runEveningCampaign();
+    
+    const endTime = new Date();
+    const duration = endTime.getTime() - startTime.getTime();
+    
+    console.log('\n========================================');
+    console.log('✅ Evening Campaign Completed!');
+    console.log('========================================');
+    console.log(`📊 Active Users Today: ${results.processed}`);
+    console.log(`📧 Evening Emails Sent: ${results.sent}`);
+    console.log(`⏱️  Duration: ${(duration / 1000).toFixed(2)}s`);
+    console.log('========================================\n');
+    
+    process.exit(0);
+    
+  } catch (error) {
+    console.error('\n========================================');
+    console.error('❌ Evening Campaign Failed!');
+    console.error('========================================');
+    
+    if (error instanceof Error) {
+      console.error(`Error: ${error.message}`);
+      console.error(error.stack);
+    }
+    
+    console.error('========================================\n');
+    process.exit(1);
+    
+  } finally {
+    try {
+      await db.$disconnect();
+      console.log('🔌 Database disconnected');
+    } catch (err) {
+      console.error('Error disconnecting:', err);
+    }
+  }
+}
+
+main().catch((error) => {
+  console.error('💥 Unhandled error:', error);
+  process.exit(1);
+});
+--- End of Content for runEveningEngagement.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\runSmartEngagement.ts
+--------------------------------------------------------------------------------
+Content:
+// src/scripts/runSmartEngagement.ts
+
+import 'dotenv/config';
+import { SmartEngagementOrchestrator } from '../lib/engagement/SmartEngagementOrchestrator';
+import db from '../lib/prisma';
+
+/**
+ * 🤖 סקריפט לריצה יומית של מערכת ה-Engagement החכמה
+ * 
+ * שימוש:
+ * 1. הרץ ידנית: `npm run engagement:daily`
+ * 2. Heroku Scheduler: Daily at 09:00 UTC
+ */
+
+// =============== קונפיגורציה ===============
+
+const CONFIG = {
+  runInDev: process.env.RUN_ENGAGEMENT_IN_DEV === 'true',
+  maxRuntime: 10 * 60 * 1000, // 10 דקות
+  notifyOnError: process.env.NOTIFY_ON_ERROR === 'true',
+  adminEmail: process.env.ADMIN_EMAIL || 'admin@neshamatech.com',
+};
+
+// =============== פונקציות עזר ===============
+
+function shouldRun(): boolean {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  if (isProduction) return true;
+  
+  if (isDevelopment && CONFIG.runInDev) {
+    console.log('⚠️  Running in DEVELOPMENT mode');
+    return true;
+  }
+  
+  console.log('❌ Skipping - not in production and dev mode not enabled');
+  return false;
+}
+
+function createTimeout(): NodeJS.Timeout {
+  return setTimeout(() => {
+    console.error('⏱️  TIMEOUT: Script exceeded maximum runtime. Forcing exit.');
+    process.exit(1);
+  }, CONFIG.maxRuntime);
+}
+
+async function notifyAdminOnError(error: Error, context: string) {
+  if (!CONFIG.notifyOnError) return;
+  
+  try {
+    // TODO: implement email notification
+    console.log(`📧 Would send admin notification about: ${context}`);
+    console.log(`   Error: ${error.message}`);
+  } catch (notifyError) {
+    console.error('Failed to send admin notification:', notifyError);
+  }
+}
+
+// =============== הפונקציה הראשית ===============
+
+async function main() {
+  const startTime = new Date();
+  
+  console.log('\n========================================');
+  console.log('🚀 Smart Engagement Campaign Starting');
+  console.log('========================================');
+  console.log(`📅 Date: ${startTime.toLocaleString('he-IL')}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+  console.log('========================================\n');
+  
+  if (!shouldRun()) {
+    console.log('✋ Exiting without running campaign');
+    return;
+  }
+  
+  const timeoutHandle = createTimeout();
+  
+  try {
+    await db.$connect();
+    console.log('✅ Database connected successfully\n');
+    
+    console.log('🔄 Starting campaign orchestrator...\n');
+    const results = await SmartEngagementOrchestrator.runDailyCampaign();
+    
+    const endTime = new Date();
+    const duration = endTime.getTime() - startTime.getTime();
+    
+    console.log('\n========================================');
+    console.log('✅ Campaign Completed Successfully!');
+    console.log('========================================');
+    console.log(`📊 Users Processed: ${results.processed}`);
+    console.log(`📧 Emails Sent: ${results.sent}`);
+    console.log(`⏱️  Duration: ${(duration / 1000).toFixed(2)}s`);
+    console.log(`🎯 Success Rate: ${results.processed > 0 ? ((results.sent / results.processed) * 100).toFixed(1) : 0}%`);
+    console.log('========================================\n');
+    
+    process.exit(0);
+    
+  } catch (error) {
+    const endTime = new Date();
+    const duration = endTime.getTime() - startTime.getTime();
+    
+    console.error('\n========================================');
+    console.error('❌ Campaign Failed!');
+    console.error('========================================');
+    
+    if (error instanceof Error) {
+      console.error(`Error: ${error.message}`);
+      console.error('\nStack Trace:');
+      console.error(error.stack);
+    } else {
+      console.error('Unknown error:', error);
+    }
+    
+    console.error('========================================\n');
+    
+    await notifyAdminOnError(
+      error instanceof Error ? error : new Error(String(error)),
+      'Smart Engagement Campaign'
+    );
+    
+    process.exit(1);
+    
+  } finally {
+    clearTimeout(timeoutHandle);
+    
+    try {
+      await db.$disconnect();
+      console.log('🔌 Database disconnected');
+    } catch (disconnectError) {
+      console.error('Error disconnecting from database:', disconnectError);
+    }
+  }
+}
+
+// =============== הרצת הסקריפט ===============
+
+main().catch((error) => {
+  console.error('💥 Unhandled error in main:', error);
+  process.exit(1);
+});
+--- End of Content for runSmartEngagement.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\scripts_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\testDryRun.ts
+--------------------------------------------------------------------------------
+Content:
+// src/scripts/testDryRun.ts
+import 'dotenv/config';
+import { SmartEngagementOrchestrator } from '../lib/engagement/SmartEngagementOrchestrator';
+import { getEmailDictionary } from '../lib/dictionaries';
+import { Language } from '@prisma/client';
+import prisma from '../lib/prisma';
+
+const TEST_USER_ID = 'cmefd7ics0000xn0l6z2vcsjm';
+
+async function testDryRun() {
+  console.log('\n========================================');
+  console.log('🧪 DRY RUN - Testing Email Generation');
+  console.log('(No emails will actually be sent)');
+  console.log('========================================\n');
+
+  try {
+    await prisma.$connect();
+
+    // טען משתמש
+    const user = await prisma.user.findUnique({
+      where: { id: TEST_USER_ID },
+      include: {
+        profile: true,
+        images: true,
+        questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } },
+        dripCampaign: true,
+      },
+    });
+
+    if (!user) {
+      console.error('❌ User not found');
+      process.exit(1);
+    }
+
+    console.log(`Testing for: ${user.firstName} ${user.lastName}`);
+    console.log(`Language: ${user.language}\n`);
+
+    // טען מילון
+    const dict = await getEmailDictionary(user.language as Language);
+
+    // בנה פרופיל
+    const profile = await SmartEngagementOrchestrator['buildUserEngagementProfile'](user.id);
+
+    // קבע מייל
+    const emailToSend = await SmartEngagementOrchestrator['decideNextEmail'](profile, dict);
+
+    if (!emailToSend) {
+      console.log('❌ No email would be sent (this is unexpected!)');
+      process.exit(1);
+    }
+
+    console.log('✅ EMAIL GENERATED SUCCESSFULLY!\n');
+    console.log('═══════════════════════════════════════════════════');
+    console.log(`📧 Email Type: ${emailToSend.type}`);
+    console.log(`🎯 Priority: ${emailToSend.priority}`);
+    console.log(`🌐 Language: ${user.language}`);
+    console.log('═══════════════════════════════════════════════════\n');
+
+    console.log('📝 SUBJECT:');
+    console.log(`   "${emailToSend.subject}"\n`);
+
+    console.log('🎣 HOOK (Opening):');
+    console.log(`   "${emailToSend.content.hook}"\n`);
+
+    console.log('📄 MAIN MESSAGE:');
+    console.log('───────────────────────────────────────────────────');
+    console.log(emailToSend.content.mainMessage);
+    console.log('───────────────────────────────────────────────────\n');
+
+    if (emailToSend.content.specificAction) {
+      console.log('🎯 SPECIFIC ACTION:');
+      console.log(`   "${emailToSend.content.specificAction}"\n`);
+    }
+
+    if (emailToSend.content.progressVisualization) {
+      console.log('📊 PROGRESS:');
+      console.log(`   ${emailToSend.content.progressVisualization}\n`);
+    }
+
+    console.log('💪 ENCOURAGEMENT:');
+    console.log(`   "${emailToSend.content.encouragement}"\n`);
+
+    // בדוק גם מייל ערב
+    console.log('\n========================================');
+    console.log('🌙 Testing Evening Email');
+    console.log('========================================\n');
+
+    const dailyActivity = await SmartEngagementOrchestrator['detectDailyActivity'](user.id);
+    
+    if (!dailyActivity.hasActivity) {
+      console.log('❌ No activity today - evening email would NOT be sent\n');
+    } else {
+      console.log(`✅ Activity detected: ${dailyActivity.completedToday.join(', ')}\n`);
+      
+      const eveningEmail = await SmartEngagementOrchestrator['getEveningFeedbackEmail'](
+        profile,
+        dailyActivity,
+        dict
+      );
+
+      if (eveningEmail) {
+        console.log('✅ EVENING EMAIL GENERATED!\n');
+        console.log('═══════════════════════════════════════════════════');
+        console.log(`📧 Email Type: ${eveningEmail.type}`);
+        console.log(`🌐 Language: ${user.language}`);
+        console.log('═══════════════════════════════════════════════════\n');
+
+        console.log('📝 SUBJECT:');
+        console.log(`   "${eveningEmail.subject}"\n`);
+
+        console.log('🎣 HOOK:');
+        console.log(`   "${eveningEmail.content.hook}"\n`);
+
+        console.log('📄 MAIN MESSAGE:');
+        console.log('───────────────────────────────────────────────────');
+        console.log(eveningEmail.content.mainMessage);
+        console.log('───────────────────────────────────────────────────\n');
+
+        if (eveningEmail.content.todayProgress) {
+          console.log('📊 TODAY\'S PROGRESS:');
+          console.log(`   Items: ${eveningEmail.content.todayProgress.itemsCompleted.join(', ')}`);
+          console.log(`   Progress Delta: ${eveningEmail.content.todayProgress.newCompletion}%\n`);
+        }
+      }
+    }
+
+    console.log('========================================');
+    console.log('✅ DRY RUN COMPLETE!');
+    console.log('========================================\n');
+
+    console.log('📋 SUMMARY:');
+    console.log(`   ✅ Daily email: ${emailToSend.type} in ${user.language}`);
+    console.log(`   ${dailyActivity.hasActivity ? '✅' : '❌'} Evening email: ${dailyActivity.hasActivity ? `EVENING_FEEDBACK in ${user.language}` : 'Not sent (no activity)'}`);
+
+    console.log('\n💡 NEXT STEPS:');
+    console.log('   1. Verify the email content looks correct');
+    console.log('   2. Check that language matches user preference');
+    console.log('   3. If all good, test actual sending with:');
+    console.log('      npm run engagement:daily');
+    console.log('      npm run engagement:evening');
+
+    await prisma.$disconnect();
+    process.exit(0);
+
+  } catch (error) {
+    console.error('\n❌ Error during dry run:', error);
+    await prisma.$disconnect();
+    process.exit(1);
+  }
+}
+
+testDryRun();
+--- End of Content for testDryRun.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\testSingleUser.ts
+--------------------------------------------------------------------------------
+Content:
+// src/scripts/testUserSimple.ts
+import 'dotenv/config';
+import prisma from '../lib/prisma';
+import { Language } from '@prisma/client';
+
+// 🔧 שנה את זה ל-ID של המשתמש שאתה רוצה לבדוק
+const TEST_USER_ID = 'cmefd7ics0000xn0l6z2vcsjm';
+
+async function testUser() {
+  console.log('\n========================================');
+  console.log('🧪 Testing User Language Support');
+  console.log('========================================\n');
+
+  try {
+    await prisma.$connect();
+    console.log('✅ Database connected\n');
+
+    // 1️⃣ טען משתמש
+    const user = await prisma.user.findUnique({
+      where: { id: TEST_USER_ID },
+      include: {
+        profile: true,
+        images: true,
+        questionnaireResponses: { 
+          orderBy: { lastSaved: 'desc' },
+          take: 1 
+        },
+        dripCampaign: true,
+      },
+    });
+
+    if (!user) {
+      console.error(`❌ User not found: ${TEST_USER_ID}`);
+      process.exit(1);
+    }
+
+    // 2️⃣ הצג מידע על המשתמש
+    console.log('👤 USER INFO:');
+    console.log('─────────────────────────────');
+    console.log(`ID:                ${user.id}`);
+    console.log(`Name:              ${user.firstName} ${user.lastName}`);
+    console.log(`Email:             ${user.email}`);
+    console.log(`Language:          ${user.language} ${user.language === 'he' ? '🇮🇱 Hebrew' : '🇺🇸 English'}`);
+    console.log(`Status:            ${user.status}`);
+    console.log(`Marketing Consent: ${user.marketingConsent ? '✅ YES' : '❌ NO'}`);
+    console.log(`Profile Complete:  ${user.isProfileComplete ? '✅ YES' : '❌ NO'}`);
+    console.log(`Created:           ${user.createdAt.toLocaleString('he-IL')}`);
+    console.log(`Last Login:        ${user.lastLogin?.toLocaleString('he-IL') || 'Never'}`);
+
+    const daysInSystem = Math.floor(
+      (Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    console.log(`Days in system:    ${daysInSystem}`);
+
+    // 3️⃣ בדוק סטטוס פרופיל
+    console.log('\n📊 PROFILE STATUS:');
+    console.log('─────────────────────────────');
+    console.log(`Photos:            ${user.images.length}/3 ${user.images.length >= 3 ? '✅' : '❌'}`);
+    
+    if (user.profile) {
+      const profileFields = [
+        'birthDate',
+        'city',
+        'occupation',
+        'education',
+        'religiousLevel',
+        'about',
+      ];
+      
+      let filledFields = 0;
+      profileFields.forEach(field => {
+        const value = user.profile![field as keyof typeof user.profile];
+        if (value) filledFields++;
+      });
+      
+      console.log(`Profile Fields:    ${filledFields}/${profileFields.length} ${filledFields === profileFields.length ? '✅' : '❌'}`);
+      console.log(`About Text:        ${user.profile.about ? '✅' : '❌'} ${user.profile.about ? `(${user.profile.about.length} chars)` : ''}`);
+    } else {
+      console.log('Profile:           ❌ Not created');
+    }
+
+    const questionnaire = user.questionnaireResponses[0];
+    if (questionnaire) {
+      console.log(`Questionnaire:     ${questionnaire.completed ? '✅ Complete' : '⏳ In progress'}`);
+      console.log(`  - Values:        ${questionnaire.valuesCompleted ? '✅' : '❌'}`);
+      console.log(`  - Personality:   ${questionnaire.personalityCompleted ? '✅' : '❌'}`);
+      console.log(`  - Relationship:  ${questionnaire.relationshipCompleted ? '✅' : '❌'}`);
+      console.log(`  - Partner:       ${questionnaire.partnerCompleted ? '✅' : '❌'}`);
+      console.log(`  - Religion:      ${questionnaire.religionCompleted ? '✅' : '❌'}`);
+    } else {
+      console.log('Questionnaire:     ❌ Not started');
+    }
+
+    // 4️⃣ בדוק פעילות היום
+    console.log('\n🌙 TODAY\'S ACTIVITY:');
+    console.log('─────────────────────────────');
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const recentPhotos = await prisma.userImage.count({
+      where: {
+        userId: user.id,
+        createdAt: { gte: today }
+      }
+    });
+    
+    const recentQuestionnaire = await prisma.questionnaireResponse.count({
+      where: {
+        userId: user.id,
+        lastSaved: { gte: today }
+      }
+    });
+    
+    const profileUpdatedToday = user.profile && user.profile.updatedAt >= today;
+    
+    const hasActivity = recentPhotos > 0 || recentQuestionnaire > 0 || profileUpdatedToday;
+    
+    console.log(`Active today:      ${hasActivity ? '✅ YES' : '❌ NO'}`);
+    if (recentPhotos > 0) console.log(`  - Photos uploaded:  ${recentPhotos}`);
+    if (recentQuestionnaire > 0) console.log(`  - Questionnaire updated: ✅`);
+    if (profileUpdatedToday) console.log(`  - Profile updated: ✅`);
+
+    // 5️⃣ בדוק מצב קמפיין
+    console.log('\n📧 CAMPAIGN STATUS:');
+    console.log('─────────────────────────────');
+    
+    if (user.dripCampaign) {
+      console.log(`Campaign Status:   ${user.dripCampaign.status}`);
+      console.log(`Current Step:      ${user.dripCampaign.currentStep}`);
+      console.log(`Last Email Type:   ${user.dripCampaign.lastSentType || 'None'}`);
+      console.log(`Last Email Sent:   ${user.dripCampaign.updatedAt.toLocaleString('he-IL')}`);
+      console.log(`Next Send Date:    ${user.dripCampaign.nextSendDate.toLocaleString('he-IL')}`);
+      
+      const daysSinceLastEmail = Math.floor(
+        (Date.now() - user.dripCampaign.updatedAt.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      console.log(`Days since last:   ${daysSinceLastEmail}`);
+      
+      if (user.dripCampaign.eveningEmailsCount) {
+        console.log(`Evening Emails:    ${user.dripCampaign.eveningEmailsCount}`);
+        if (user.dripCampaign.lastEveningEmailSent) {
+          console.log(`Last Evening:      ${user.dripCampaign.lastEveningEmailSent.toLocaleString('he-IL')}`);
+        }
+      }
+      
+      if (user.dripCampaign.aiSummaryCount) {
+        console.log(`AI Summary Emails: ${user.dripCampaign.aiSummaryCount}`);
+        if (user.dripCampaign.lastAiSummarySent) {
+          console.log(`Last AI Summary:   ${user.dripCampaign.lastAiSummarySent.toLocaleString('he-IL')}`);
+        }
+      }
+    } else {
+      console.log('Campaign:          ❌ Not enrolled');
+    }
+
+    // 6️⃣ תחזית - איזה מיילים יישלחו
+    console.log('\n🔮 EMAIL FORECAST:');
+    console.log('─────────────────────────────');
+    
+    if (!user.marketingConsent) {
+      console.log('❌ BLOCKED: User has not given marketing consent');
+      console.log('   This user will NOT receive ANY emails');
+    } else if (user.isProfileComplete) {
+      console.log('ℹ️  Profile is complete - may not receive onboarding emails');
+    } else {
+      // קבע איזה מייל יישלח
+      let willSendDaily = false;
+      let emailType = '';
+      
+      const daysSinceLastEmail = user.dripCampaign 
+        ? Math.floor((Date.now() - user.dripCampaign.updatedAt.getTime()) / (1000 * 60 * 60 * 24))
+        : 999;
+      
+      if (daysSinceLastEmail >= 3) {
+        if (daysInSystem === 1) {
+          willSendDaily = true;
+          emailType = 'ONBOARDING_DAY_1';
+        } else if (daysInSystem === 3) {
+          willSendDaily = true;
+          emailType = 'ONBOARDING_DAY_3';
+        } else if (daysInSystem === 7) {
+          willSendDaily = true;
+          emailType = 'ONBOARDING_DAY_7_INSIGHT';
+        } else if (user.images.length < 3) {
+          willSendDaily = true;
+          emailType = 'PHOTO_NUDGE';
+        } else if (!questionnaire?.completed) {
+          willSendDaily = true;
+          emailType = 'QUESTIONNAIRE_NUDGE';
+        }
+      }
+      
+      console.log('Daily Campaign:');
+      if (willSendDaily) {
+        console.log(`  ✅ Will send: ${emailType}`);
+        console.log(`  📧 Language: ${user.language}`);
+      } else if (daysSinceLastEmail < 3) {
+        console.log(`  ⏳ Too soon (last email ${daysSinceLastEmail} days ago)`);
+      } else {
+        console.log(`  ℹ️  No email needed at this time`);
+      }
+      
+      console.log('\nEvening Campaign:');
+      if (hasActivity) {
+        console.log(`  ✅ Will send: EVENING_FEEDBACK`);
+        console.log(`  📧 Language: ${user.language}`);
+      } else {
+        console.log(`  ❌ Won't send (no activity today)`);
+      }
+    }
+
+    // 7️⃣ סיכום והמלצות
+    console.log('\n========================================');
+    console.log('✅ Test Complete!');
+    console.log('========================================\n');
+
+    console.log('📋 SUMMARY:');
+    console.log(`✅ Language: ${user.language}`);
+    console.log(`${user.marketingConsent ? '✅' : '❌'} Marketing Consent: ${user.marketingConsent ? 'Enabled' : 'DISABLED'}`);
+    console.log(`${user.images.length >= 3 ? '✅' : '❌'} Photos: ${user.images.length}/3`);
+    console.log(`${questionnaire?.completed ? '✅' : '❌'} Questionnaire: ${questionnaire?.completed ? 'Complete' : 'Incomplete'}`);
+    console.log(`${hasActivity ? '✅' : '❌'} Active Today: ${hasActivity ? 'Yes' : 'No'}`);
+
+    console.log('\n💡 RECOMMENDATIONS:');
+    if (!user.marketingConsent) {
+      console.log('⚠️  Enable marketing consent to receive emails');
+    }
+    if (user.language !== 'he' && user.language !== 'en') {
+      console.log(`⚠️  Unsupported language: ${user.language} (will default to Hebrew)`);
+    }
+    if (user.images.length < 3) {
+      console.log('💡 User should upload more photos for better matches');
+    }
+    if (!questionnaire?.completed) {
+      console.log('💡 User should complete the questionnaire');
+    }
+
+    await prisma.$disconnect();
+    console.log('\n🔌 Database disconnected\n');
+    process.exit(0);
+
+  } catch (error) {
+    console.error('\n❌ Error:', error);
+    await prisma.$disconnect();
+    process.exit(1);
+  }
+}
+
+testUser();
+--- End of Content for testSingleUser.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\testUserLanguageSupport.ts
+--------------------------------------------------------------------------------
+Content:
+// src/scripts/testUserLanguageSupport.ts
+
+import 'dotenv/config';
+import prisma from '../lib/prisma';
+import { SmartEngagementOrchestrator } from '../lib/engagement/SmartEngagementOrchestrator';
+import { getEmailDictionary } from '../lib/dictionaries';
+import { Language } from '@prisma/client';
+
+/**
+ * 🧪 סקריפט לבדיקת תמיכה רב-לשונית במערכת ה-Engagement
+ * 
+ * שימוש:
+ * npm run test:user-lang <userId>
+ * 
+ * דוגמה:
+ * npm run test:user-lang clxy123abc
+ */
+
+async function testUserLanguageSupport(userId: string) {
+  console.log('\n========================================');
+  console.log('🌐 Testing Multi-Language Support');
+  console.log('========================================\n');
+
+  try {
+    // 1️⃣ טען את המשתמש
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        profile: true,
+        images: true,
+        questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } },
+        dripCampaign: true,
+      },
+    });
+
+    if (!user) {
+      console.error(`❌ User not found: ${userId}`);
+      process.exit(1);
+    }
+
+    console.log('✅ User found:');
+    console.log(`   Name: ${user.firstName} ${user.lastName}`);
+    console.log(`   Email: ${user.email}`);
+    console.log(`   Language: ${user.language}`);
+    console.log(`   Status: ${user.status}`);
+    console.log(`   Marketing Consent: ${user.marketingConsent}`);
+    console.log(`   Profile Complete: ${user.isProfileComplete}`);
+
+    // 2️⃣ בדוק טעינת מילון
+    console.log('\n📚 Loading Dictionary...');
+    const dict = await getEmailDictionary(user.language as Language);
+    console.log(`   ✅ Dictionary loaded successfully for language: ${user.language}`);
+    console.log(`   Sample text (onboardingDay1.subject): ${dict.engagement.onboardingDay1.subject}`);
+
+    // 3️⃣ בנה פרופיל engagement
+    console.log('\n🔨 Building Engagement Profile...');
+    const profile = await SmartEngagementOrchestrator.testBuildUserEngagementProfile(userId);
+    console.log(`   ✅ Profile built successfully`);
+    console.log(`   Days in system: ${profile.daysInSystem}`);
+    console.log(`   Completion: ${profile.completionStatus.overall}%`);
+    console.log(`   Photos: ${profile.completionStatus.photos.current}/3`);
+    console.log(`   Last email type: ${profile.lastEmailType || 'None'}`);
+
+    // 4️⃣ קבע איזה מייל יישלח
+    console.log('\n📧 Deciding Next Email...');
+    const emailToSend = await SmartEngagementOrchestrator.testDecideNextEmail(profile, dict);
+    
+    if (!emailToSend) {
+      console.log('   ℹ️  No email needed at this time');
+    } else {
+      console.log(`   ✅ Email type: ${emailToSend.type}`);
+      console.log(`   Priority: ${emailToSend.priority}`);
+      console.log(`   Subject: ${emailToSend.subject}`);
+      console.log(`   Hook: ${emailToSend.content.hook}`);
+      console.log(`   Main message (first 100 chars): ${emailToSend.content.mainMessage.slice(0, 100)}...`);
+    }
+
+    // 5️⃣ בדוק פעילות יומית (עבור מייל ערב)
+    console.log('\n🌙 Checking Daily Activity (for Evening Email)...');
+    const dailyActivity = await SmartEngagementOrchestrator.testDetectDailyActivity(userId);
+    console.log(`   Has activity today: ${dailyActivity.hasActivity}`);
+    console.log(`   Completed today: ${dailyActivity.completedToday.join(', ') || 'Nothing'}`);
+    
+    if (dailyActivity.hasActivity) {
+      console.log('\n   Testing Evening Feedback Email...');
+      const eveningEmail = await SmartEngagementOrchestrator.testGetEveningFeedbackEmail(
+        profile,
+        dailyActivity,
+        dict
+      );
+      
+      if (eveningEmail) {
+        console.log(`   ✅ Evening email generated`);
+        console.log(`   Subject: ${eveningEmail.subject}`);
+        console.log(`   Content hook: ${eveningEmail.content.hook}`);
+      } else {
+        console.log('   ℹ️  No evening email needed');
+      }
+    }
+
+    // 6️⃣ סיכום
+    console.log('\n========================================');
+    console.log('✅ Test Completed Successfully!');
+    console.log('========================================');
+    console.log('\n📋 Summary:');
+    console.log(`   User ID: ${userId}`);
+    console.log(`   Language: ${user.language}`);
+    console.log(`   Dictionary loaded: ✅`);
+    console.log(`   Profile built: ✅`);
+    console.log(`   Email decision: ${emailToSend ? `✅ ${emailToSend.type}` : 'ℹ️  None needed'}`);
+    console.log(`   Daily activity: ${dailyActivity.hasActivity ? '✅ Active today' : 'ℹ️  Not active'}`);
+
+    // 7️⃣ המלצות
+    console.log('\n💡 Recommendations:');
+    if (user.language === 'he') {
+      console.log('   ✅ Hebrew language detected - emails will be in Hebrew');
+    } else if (user.language === 'en') {
+      console.log('   ✅ English language detected - emails will be in English');
+    }
+    
+    if (!user.marketingConsent) {
+      console.log('   ⚠️  Marketing consent is FALSE - user will NOT receive emails');
+    }
+    
+    if (user.isProfileComplete) {
+      console.log('   ℹ️  Profile is complete - user may not receive onboarding emails');
+    }
+
+    process.exit(0);
+
+  } catch (error) {
+    console.error('\n❌ Test Failed!');
+    console.error(error);
+    process.exit(1);
+  }
+}
+
+// קבל userId מהשורת פקודה
+const userId = process.argv[2];
+
+if (!userId) {
+  console.error('❌ Usage: npm run test:user-lang <userId>');
+  process.exit(1);
+}
+
+testUserLanguageSupport(userId);
+--- End of Content for testUserLanguageSupport.ts ---
+

@@ -4,9 +4,25 @@ import prisma from "@/lib/prisma";
 import aiService from "./aiService";
 import type { User, Profile, QuestionnaireResponse, Prisma as PrismaTypes, ReligiousJourney, FriendTestimonial } from '@prisma/client';
 
-// ❌ הסרנו את הייבוא של קבצי React components
-// ✅ במקום זה נשתמש רק במידע הגולמי מה-DB
+// 1. --- Import types and questions from the questionnaire module ---
+import type { Question } from '@/components/questionnaire/types/types';
+import { valuesQuestions } from '@/components/questionnaire/questions/values/valuesQuestions';
+import { personalityQuestions } from '@/components/questionnaire/questions/personality/personalityQuestions';
+import { relationshipQuestions } from '@/components/questionnaire/questions/relationship/relationshipQuestions';
+import { partnerQuestions } from '@/components/questionnaire/questions/partner/partnerQuestions';
+import { religionQuestions } from '@/components/questionnaire/questions/religion/religionQuestions';
 
+// 2. --- Centralized Question Data ---
+const allQuestions: Map<string, Question> = new Map();
+[
+  ...valuesQuestions,
+  ...personalityQuestions,
+  ...relationshipQuestions,
+  ...partnerQuestions,
+  ...religionQuestions
+].forEach(q => allQuestions.set(q.id, q));
+
+// 3. --- Strongly-typed interfaces for data handling ---
 type WorldKey = 'values' | 'personality' | 'relationship' | 'partner' | 'religion';
 type DbWorldKey = `${WorldKey}Answers`;
 
@@ -27,12 +43,13 @@ interface JsonAnswerData {
 
 type UserWithRelations = User & {
   profile: (Profile & {
-    testimonials?: FriendTestimonial[];
+    testimonials?: FriendTestimonial[]; // הוספת השדה האופציונלי
   }) | null;
   questionnaireResponses: QuestionnaireResponse[];
 };
 
-// Helper Functions
+// 4. --- Helper Functions for Formatting ---
+
 function formatDisplayValue(value: PrismaTypes.JsonValue | null | undefined, fallback: string = "לא צוין"): string {
   if (value === null || value === undefined) {
     return fallback;
@@ -70,11 +87,7 @@ function formatArray(arr: string[] | null | undefined, fallback: string = "לא 
   return arr.join(', ');
 }
 
-function isValidAnswerObject(item: unknown): item is PrismaTypes.JsonObject & { 
-  value: PrismaTypes.JsonValue; 
-  questionId: unknown; 
-  answeredAt: unknown 
-} {
+function isValidAnswerObject(item: unknown): item is PrismaTypes.JsonObject & { value: PrismaTypes.JsonValue; questionId: unknown; answeredAt: unknown } {
   return (
     typeof item === 'object' &&
     item !== null &&
@@ -100,24 +113,74 @@ function safeParseAnswers(jsonValue: PrismaTypes.JsonValue | null): JsonAnswerDa
   return [];
 }
 
-// ✅ פונקציה מפושטת שלא תלויה בקבצי React
-function formatAnswerSimplified(answer: JsonAnswerData, worldName: string): string {
-  if (answer.value === null || answer.value === undefined || answer.value === '') {
-    return '';
-  }
-  if (Array.isArray(answer.value) && answer.value.length === 0) {
-    return '';
+function formatSingleAnswer(answer: JsonAnswerData): string | null {
+  const questionDef = allQuestions.get(answer.questionId);
+  if (!questionDef) {
+    return `**שאלה לא מזוהה (${answer.questionId}):** ${formatDisplayValue(answer.value)}\n`;
   }
 
-  // פשוט מציג את השאלה והתשובה
-  return `**שאלה מעולם ${worldName}:**\nתשובה: ${formatDisplayValue(answer.value)}\n`;
+  if (answer.value === null || answer.value === undefined || answer.value === '') return null;
+  if (Array.isArray(answer.value) && answer.value.length === 0) return null;
+
+  let narrativePart = `**${questionDef.question}**\n`;
+  
+  switch (questionDef.type) {
+    case 'singleChoice':
+    case 'iconChoice':
+    case 'scenario': {
+      const selectedOption = questionDef.options?.find(o => o.value === answer.value);
+      narrativePart += `תשובה: ${selectedOption ? selectedOption.text : formatDisplayValue(answer.value)}\n`;
+      break;
+    }
+    case 'multiChoice':
+    case 'multiSelect':
+    case 'multiSelectWithOther': {
+      if (Array.isArray(answer.value)) {
+        const selectedTexts = answer.value.map(val => {
+          if (typeof val === 'string' && val.startsWith('custom:')) {
+            return `(אחר) ${val.replace('custom:', '').trim()}`;
+          }
+          const option = questionDef.options?.find(o => o.value === val);
+          return option ? option.text : String(val);
+        });
+        narrativePart += `תשובות: ${selectedTexts.join(', ')}\n`;
+      }
+      break;
+    }
+    case 'openText': {
+      narrativePart += `תשובה: "${formatDisplayValue(answer.value)}"\n`;
+      break;
+    }
+    case 'scale': {
+      const minLabel = questionDef.labels?.min || 'נמוך';
+      const maxLabel = questionDef.labels?.max || 'גבוה';
+      narrativePart += `דירוג: ${answer.value}/10 (כאשר 1=${minLabel} ו-10=${maxLabel})\n`;
+      break;
+    }
+    case 'budgetAllocation': {
+      if (typeof answer.value === 'object' && answer.value && !Array.isArray(answer.value)) {
+          const allocations = Object.entries(answer.value)
+              .filter(([, points]) => typeof points === 'number' && points > 0)
+              .map(([category, points]) => `${category}: ${points}%`)
+              .join('; ');
+          narrativePart += `הקצאת חשיבות: ${allocations || 'לא צוין'}\n`;
+      }
+      break;
+    }
+    default: {
+      narrativePart += `תשובה: ${formatDisplayValue(answer.value)}\n`;
+    }
+  }
+  
+  return narrativePart + '\n';
 }
 
 function processQuestionnaireData(questionnaire: QuestionnaireResponse | null | undefined) {
+    const totalCount = allQuestions.size;
     if (!questionnaire) {
         return {
             answeredCount: 0,
-            totalCount: 100, // הערכה גסה
+            totalCount,
             completionPercentage: 0,
             answersNarrative: "המשתמש עדיין לא החל למלא את השאלון."
         };
@@ -127,14 +190,6 @@ function processQuestionnaireData(questionnaire: QuestionnaireResponse | null | 
     let answeredCount = 0;
     const narrativeChunks: string[] = [];
 
-    const worldNames: Record<WorldKey, string> = {
-      values: 'ערכים',
-      personality: 'אישיות',
-      relationship: 'זוגיות',
-      partner: 'בן/בת זוג',
-      religion: 'דת ורוחניות'
-    };
-
     worldKeys.forEach(worldKey => {
         const dbKey = KEY_MAPPING[worldKey];
         const answers = safeParseAnswers(questionnaire[dbKey]);
@@ -142,10 +197,13 @@ function processQuestionnaireData(questionnaire: QuestionnaireResponse | null | 
         if (answers.length > 0) {
             answeredCount += answers.length;
             
-            narrativeChunks.push(`### עולם ${worldNames[worldKey]}`);
+            const worldInfo = allQuestions.get(answers[0].questionId);
+            const worldTitle = worldInfo?.worldId ? worldInfo.worldId.charAt(0) + worldInfo.worldId.slice(1).toLowerCase() : worldKey;
+            
+            narrativeChunks.push(`### עולם ה${worldTitle}`);
             
             answers.forEach(answer => {
-                const formattedPart = formatAnswerSimplified(answer, worldNames[worldKey]);
+                const formattedPart = formatSingleAnswer(answer);
                 if (formattedPart) {
                     narrativeChunks.push(formattedPart);
                 }
@@ -153,31 +211,27 @@ function processQuestionnaireData(questionnaire: QuestionnaireResponse | null | 
         }
     });
 
-    const totalCount = 100; // הערכה
     const completionPercentage = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0;
     
     return {
         answeredCount,
         totalCount,
         completionPercentage,
-        answersNarrative: narrativeChunks.length > 0 
-          ? narrativeChunks.join('\n') 
-          : "המשתמש החל למלא את השאלון אך לא נמצאו תשובות תקפות לעיבוד."
+        answersNarrative: narrativeChunks.length > 0 ? narrativeChunks.join('\n') : "המשתמש החל למלא את השאלון אך לא נמצאו תשובות תקפות לעיבוד."
     };
 }
+
+
+// 5. --- Main Service Functions ---
 
 export async function generateNarrativeProfile(userId: string): Promise<string | null> {
   const user: UserWithRelations | null = await prisma.user.findUnique({
     where: { id: userId },
     include: {
-      profile: {
-        include: {
-          testimonials: {
-            where: { status: 'APPROVED' }
-          }
-        }
-      },
+      profile: true,
+      
       questionnaireResponses: { orderBy: { lastSaved: 'desc' }, take: 1 },
+    
     },
   });
 
@@ -221,7 +275,7 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     `- **עיסוק:** ${formatDisplayValue(profile.occupation)}`,
     `- **השכלה:** ${formatDisplayValue(profile.educationLevel)}, ${formatDisplayValue(profile.education)}`,
     `- **שומר/ת נגיעה:** ${formatDisplayValue(profile.shomerNegiah)}`,
-    `- **רקע משפחתי:** מצב הורי: ${formatDisplayValue(profile.parentStatus)}. מקצוע האב: ${formatDisplayValue(profile.fatherOccupation)}. מקצוע האם: ${formatDisplayValue(profile.motherOccupation)}.`,
+    `- **רקע משפחתי:** מצב הורים: ${formatDisplayValue(profile.parentStatus)}. מקצוע האב: ${formatDisplayValue(profile.fatherOccupation)}. מקצוע האם: ${formatDisplayValue(profile.motherOccupation)}.`,
   ].filter(Boolean);
 
   if (user.source === 'MANUAL_ENTRY' && profile.manualEntryText) {
@@ -232,6 +286,7 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     narrativeParts.push(`## קצת עליי (מהפרופיל)\n"${profile.about}"`);
   }
 
+  // --- START: הוספת השדות הנרטיביים החדשים ---
   const personalInsightsParts = [
     profile.profileHeadline ? `**הכותרת האישית שלי:**\n"${profile.profileHeadline}"` : '',
     profile.inspiringCoupleStory ? `**זוג שמעורר בי השראה:**\n${profile.inspiringCoupleStory}` : '',
@@ -241,13 +296,14 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
   if (personalInsightsParts.length > 0) {
     narrativeParts.push(`## תובנות אישיות נוספות\n${personalInsightsParts.join('\n\n')}`);
   }
+  // --- END: הוספת השדות הנרטיביים החדשים ---
 
   if (profile.hasMedicalInfo) {
     narrativeParts.push(
       `## מידע רפואי`,
       `- **פירוט המידע:** ${formatDisplayValue(profile.medicalInfoDetails)}`,
       `- **תזמון חשיפה:** ${formatDisplayValue(profile.medicalInfoDisclosureTiming)}`,
-      `- **המידע גלוי בפרופיל הציבורי:** ${profile.isMedicalInfoVisible ? 'כן' : 'לג'}`
+      `- **המידע גלוי בפרופיל הציבורי:** ${profile.isMedicalInfoVisible ? 'כן' : 'לא'}`
     );
   }
   
@@ -278,8 +334,7 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     `- **אחוז השלמה:** ${questionnaireData.completionPercentage}%`,
     `\n## תובנות מהשאלון (תשובות מפורטות)\n${questionnaireData.answersNarrative}`
   );
-
-  const approvedTestimonials = profile.testimonials;
+  const approvedTestimonials = profile.testimonials?.filter(t => t.status === 'APPROVED');
   if (approvedTestimonials && approvedTestimonials.length > 0) {
     narrativeParts.push(`## המלצות מחברים`);
     approvedTestimonials.forEach(t => {
@@ -289,7 +344,6 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
       );
     });
   }
-  
   return narrativeParts.join('\n\n').trim();
 }
 

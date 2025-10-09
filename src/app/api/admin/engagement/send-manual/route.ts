@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
     }
 
     // טען את מילון המיילים המתאים לשפת המשתמש
-    const dict = await getEmailDictionary(user.language as Language);
-
+// ✅ קוד מתוקן
+const dict = await getEmailDictionary(user.language as Language);
     // בנה פרופיל engagement
     const profile = await SmartEngagementOrchestrator['buildUserEngagementProfile'](userId);
     
