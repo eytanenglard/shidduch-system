@@ -211,7 +211,7 @@
         "signInPrompt": "כבר יש לך חשבון?",
         "signInLink": "התחברות"
       },
-      "basicInfo": {
+           "basicInfo": {
         "title": "פרטי חשבון",
         "emailLabel": "אימייל",
         "emailPlaceholder": "you@example.com",
@@ -222,6 +222,7 @@
         "firstNamePlaceholder": "ישראל",
         "lastNameLabel": "שם משפחה",
         "lastNamePlaceholder": "ישראלי",
+        "languageLabel": "שפת התקשורת המועדפת",
         "backButton": "חזרה",
         "nextButton": "צור חשבון והמשך לאימות",
         "nextButtonLoading": "יוצר חשבון...",

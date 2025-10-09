@@ -146,6 +146,7 @@ export async function POST(req: NextRequest) {
                 id: true,
                 email: true,
                 firstName: true,
+                language: true, 
                 isPhoneVerified: true,
                 isProfileComplete: true,
                 status: true,
@@ -158,7 +159,7 @@ export async function POST(req: NextRequest) {
     // 6ג: שליחת מייל "ברוכים הבאים" - רק לאחר שהטרנזקציה הצליחה
     try {
         await emailService.sendWelcomeEmail({
-            locale, // << העברת השפה הדינמית שהתקבלה מהלקוח
+            locale: updatedUser.language || locale, // << העברת השפה הדינמית שהתקבלה מהלקוח
             email: updatedUser.email,
             firstName: updatedUser.firstName || 'חבר',
             dashboardUrl: '/profile'

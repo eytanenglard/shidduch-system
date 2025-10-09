@@ -8,6 +8,7 @@ import { VerificationService } from '@/lib/services/verificationService';
 import { emailService } from '@/lib/email/emailService';
 import { z } from 'zod';
 
+
 // Zod schema for validating the request body
 const requestPasswordResetSchema = z.object({
   email: z.string().email({ message: "כתובת מייל לא תקינה" }),
@@ -79,6 +80,7 @@ export async function POST(req: NextRequest) {
       logger.info('User not found for password reset request', { action, email: normalizedEmail });
       return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
     }
+const finalLocale = user.language || locale;
 
     if (!user.password) {
       logger.info('Password reset attempted for account without a password (e.g., OAuth user)', { action, email: normalizedEmail, userId: user.id });
@@ -118,7 +120,7 @@ export async function POST(req: NextRequest) {
       const expiresInText = locale === 'he' ? `${expiresInMinutes} דקות` : `${expiresInMinutes} minutes`;
 
       await emailService.sendPasswordResetOtpEmail({
-        locale,
+         locale: finalLocale,
         email: user.email,
         otp: generatedOtp,
         firstName: user.firstName,

@@ -25,6 +25,7 @@ export interface RegistrationData {
   education?: string;
   step: number;
   isGoogleSignup: boolean;
+  language: 'he' | 'en'; 
   isCompletingProfile: boolean;
   isVerifyingEmailCode: boolean;
   emailForVerification: string | null;
@@ -44,6 +45,7 @@ const initialRegistrationData: RegistrationData = {
   education: '',
   step: 0,
   isGoogleSignup: false,
+  language: 'he',
   isCompletingProfile: false,
   isVerifyingEmailCode: false,
   emailForVerification: null,

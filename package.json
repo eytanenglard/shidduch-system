@@ -12,8 +12,9 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "npx prisma generate",
-    "run:drip": "tsx src/scripts/process-drip-campaign.ts",
-    "test:notification": "tsx src/scripts/test-notification.ts"
+    "engagement:daily": "tsx src/scripts/runSmartEngagement.ts",
+    "engagement:evening": "tsx src/scripts/runEveningEngagement.ts"
+
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.817.0",

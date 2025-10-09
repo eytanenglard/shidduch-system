@@ -18,6 +18,7 @@ import type {
     Prisma,
      TestimonialStatus, // <-- הוספה חדשה
   SubmissionSource, // <-- הוספה חדשה
+  Language, 
 } from '@prisma/client';
 import { DefaultSession, DefaultUser } from 'next-auth';
 import { DefaultJWT } from 'next-auth/jwt';
@@ -237,6 +238,7 @@ export interface User extends DefaultUser {
   addedByMatchmakerId?: string | null; // Add new field
    termsAndPrivacyAcceptedAt?: Date | null;
      marketingConsent?: boolean;
+  language: Language; // <-- 2. הוסף את השדה לממשק הראשי
 
 }
 
@@ -278,6 +280,7 @@ declare module 'next-auth' {
       addedByMatchmakerId?: string | null; // Add new field
        termsAndPrivacyAcceptedAt?: Date | null;
              marketingConsent?: boolean;
+  language: Language; // <-- 2. הוסף את השדה לממשק הראשי
 
     }; // Omit to avoid type conflicts if DefaultSession changes
 
@@ -346,6 +349,7 @@ declare module 'next-auth/jwt' {
     addedByMatchmakerId?: string | null; // Add new field
         termsAndPrivacyAcceptedAt?: Date | null; // <--- הוספה
     marketingConsent?: boolean;
+  language: Language; // <-- 2. הוסף את השדה לממשק הראשי
 
 
   }
@@ -361,4 +365,4 @@ export type UpdateValue =
 export type ContactPreference = "direct" | "matchmaker" | "both"; // Already in UserProfile
 
 // Re-export enums for convenience if they are used directly in other parts of the app
-export { Gender, UserRole, UserStatus, AvailabilityStatus, ServiceType, HeadCoveringType, KippahType };
+export { Gender, UserRole, UserStatus, AvailabilityStatus, ServiceType, HeadCoveringType, KippahType, Language };

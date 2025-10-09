@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>סיכום ההתקדמות שלך</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); direction: rtl;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; width: 100%; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); overflow: hidden;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 50px 30px; text-align: center;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">✨</div>
+                            <h1 style="color: white; margin: 0; font-size: 32px; font-weight: 800; text-shadow: 0 2px 15px rgba(0,0,0,0.2);">
+                                כל הכבוד על ההשקעה, {{firstName}}!
+                            </h1>
+                            <p style="color: rgba(255,255,255,0.95); margin: 15px 0 0 0; font-size: 17px; font-weight: 500;">
+                                ראינו את ההתקדמות שלך היום
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Main Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="font-size: 18px; color: #2d3748; margin: 0 0 20px 0; line-height: 1.6;">
+                                היי {{firstName}},
+                            </p>
+                            
+                            <p style="font-size: 16px; color: #4a5568; margin: 0 0 25px 0; line-height: 1.7;">
+                                הפרופיל שלך כבר ב-<strong>{{progressPercentage}}%</strong> - איזו התקדמות נהדרת!
+                            </p>
+
+                            <!-- Progress Bar -->
+                            <div style="margin: 20px 0;">
+                                <div style="background: #e2e8f0; border-radius: 10px; height: 12px; overflow: hidden;">
+                                    <div style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: {{progressPercentage}}%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- What was done today -->
+                            <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%); border-radius: 16px; padding: 24px; margin: 25px 0;">
+                                <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 20px; font-weight: 700;">
+                                    ✅ מה השלמת היום
+                                </h3>
+                                <ul style="color: #1e40af; margin: 0; padding-right: 20px; line-height: 1.8;">
+                                    {{#each todayCompletedItems}}
+                                    <li style="margin-bottom: 8px;">{{this}}</li>
+                                    {{/each}}
+                                </ul>
+                            </div>
+
+                            <!-- AI System Summary (דבר המערכת) -->
+                            {{#if systemSummary}}
+                            <div style="background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%); border-radius: 16px; padding: 24px; margin: 25px 0; border: 2px solid #a78bfa;">
+                                <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                    <span style="font-size: 32px; margin-left: 12px;">🧠</span>
+                                    <h3 style="color: #5b21b6; margin: 0; font-size: 20px; font-weight: 700;">
+                                        דבר המערכת (סיכום השדכן)
+                                    </h3>
+                                </div>
+                                <div style="background: white; border-radius: 12px; padding: 20px;">
+                                    <p style="color: #4c1d95; margin: 0; font-size: 15px; line-height: 1.7; font-style: italic;">
+                                        "{{systemSummary}}"
+                                    </p>
+                                </div>
+                            </div>
+                            {{/if}}
+
+                            <!-- AI Insight -->
+                            {{#if aiInsight}}
+                            <div style="background: #f0fdfa; border-right: 4px solid #06b6d4; border-radius: 12px; padding: 20px; margin: 25px 0;">
+                                <h3 style="color: #0f766e; margin: 0 0 12px 0; font-size: 18px; font-weight: 700;">
+                                    💡 תובנת AI ראשונית
+                                </h3>
+                                <p style="color: #115e59; margin: 0; font-size: 15px; line-height: 1.7;">
+                                    {{aiInsight}}
+                                </p>
+                                <p style="font-size: 13px; color: #134e4a; margin-top: 12px; font-style: italic;">
+                                    זוהי רק טעימה ממה שהמערכת לומדת. ככל שתשלים יותר פרטים, כך התמונה תהיה מדויקת יותר.
+                                </p>
+                            </div>
+                            {{/if}}
+
+                            <!-- Next Step -->
+                            <div style="background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border-right: 4px solid #f59e0b; border-radius: 12px; padding: 24px; margin: 25px 0;">
+                                <h3 style="color: #92400e; margin: 0 0 12px 0; font-size: 19px; font-weight: 700;">
+                                    🎯 הצעד הבא שלך
+                                </h3>
+                                <p style="color: #78350f; margin: 0; font-size: 17px; line-height: 1.6; font-weight: 500;">
+                                    {{nextAction}}
+                                </p>
+                                <p style="color: #92400e; margin: 15px 0 0 0; font-size: 14px;">
+                                    זה ייקח בערך {{estimatedTime}} - נשמע סביר?
+                                </p>
+                            </div>
+
+                            <!-- CTA -->
+                            <table role="presentation" style="margin: 35px 0;">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <a href="{{ctaLink}}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 20px 50px; border-radius: 50px; font-weight: 800; font-size: 18px; box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);">
+                                            {{ctaText}} 💪
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 14px; color: #718096; margin: 25px 0 0 0; line-height: 1.6; border-top: 1px solid #e2e8f0; padding-top: 20px; text-align: center;">
+                                יש שאלה? פשוט תשיב למייל - אנחנו כאן בשבילך!
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); padding: 25px 30px; text-align: center; border-top: 1px solid #d1d5db;">
+                            <p style="margin: 0 0 10px 0; color: #4b5563; font-size: 14px; font-weight: 600;">
+                                ממשיכים לעבוד! 🔥
+                            </p>
+                            <p style="margin: 0; color: #9ca3af; font-size: 13px;">
+                                צוות NeshamaTech
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

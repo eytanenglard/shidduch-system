@@ -1329,7 +1329,12 @@
         "title": "מחיקת חשבון",
         "description": "מחיקת החשבון היא פעולה בלתי הפיכה ותסיר את כל הנתונים שלך.",
         "deleteButton": "מחק חשבון"
-      }
+      },
+      "language": {
+          "title": "שפה והתראות",
+          "label": "שפת תקשורת מועדפת",
+          "description": "השפה בה נשלח אליך מיילים ועדכונים מהמערכת."
+        }
     },
     "cardFooter": {
       "notice": "פרטי החשבון שלך מוגנים בהתאם למדיניות הפרטיות של האתר"
@@ -1362,7 +1367,9 @@
       "deleteError": "שגיאה במחיקת החשבון",
       "deleteErrorDesc": "נסה שוב מאוחר יותר או פנה לתמיכה",
       "marketingUpdateSuccess": "העדפות דיוור עודכנו בהצלחה",
-      "marketingUpdateError": "שגיאה בעדכון העדפות הדיוור"
+      "marketingUpdateError": "שגיאה בעדכון העדפות הדיוור",
+       "languageUpdateSuccess": "השפה עודכנה בהצלחה!",
+        "languageUpdateError": "שגיאה בעדכון השפה"
     },
     "passwordDialog": {
       "title": "שינוי סיסמה",

@@ -3,6 +3,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { Languages } from 'lucide-react'; 
 import {
   Card,
   CardContent,
@@ -47,8 +48,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession, signOut } from 'next-auth/react';
-import { UserRole, UserStatus } from '@prisma/client';
-import type { AccountSettingsDict } from '@/types/dictionary';
+import { UserRole, UserStatus, Language } from '@prisma/client';import type { AccountSettingsDict } from '@/types/dictionary';
 import type { Locale } from '../../../i18n-config'; // ייבוא טיפוס השפה
 
 interface AccountSettingsProps {
@@ -63,9 +63,10 @@ interface AccountSettingsProps {
     lastLogin: Date | null;
     createdAt: Date;
     marketingConsent?: boolean;
+    language?: Language; // <-- הוסף את השורה הזו
   };
   dict: AccountSettingsDict;
-  locale: Locale; // ✨ הוספת locale לממשק
+  locale: Locale;
 }
 
 const PASSWORD_MIN_LENGTH = 8;
@@ -80,6 +81,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
     status: sessionStatus,
     update: updateSession,
   } = useSession();
+
+    const [preferredLanguage, setPreferredLanguage] = useState(propUser.language || 'he');
+  const [isLanguageLoading, setIsLanguageLoading] = useState(false);
 
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isSendingVerification, setIsSendingVerification] = useState(false);
@@ -387,6 +391,35 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
       setIsMarketingLoading(false);
     }
   };
+ const handleLanguageChange = async (newLanguage: 'he' | 'en') => {
+    setIsLanguageLoading(true);
+    try {
+      const response = await fetch('/api/user/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language: newLanguage }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to update language.');
+      }
+      toast.success(dict.toasts.languageUpdateSuccess, {
+        icon: <CheckCircle className="h-5 w-5 text-green-500" />,
+      });
+      await updateSession(); // מרענן את הסשן בצד הלקוח עם המידע המעודכן
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : dict.toasts.languageUpdateError,
+        {
+          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
+        }
+      );
+      // החזר את הערך הקודם במקרה של שגיאה
+      setPreferredLanguage(propUser.language || 'he'); 
+    } finally {
+      setIsLanguageLoading(false);
+    }
+  };
 
   const getPasswordStrengthColor = () => {
     if (passwordStrength === 0) return 'bg-gray-200';
@@ -489,6 +522,40 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
               </div>
             </div>
           </div>
+          <div className="py-4">
+            <h3 className="text-base font-semibold mb-4 flex items-center">
+              <Languages className="w-4 h-4 text-blue-600 me-2" />
+              {dict.sections.language.title}
+            </h3>
+            <div className="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
+              <div>
+                <Label htmlFor="language-select" className="cursor-pointer text-start">
+                  {dict.sections.language.label}
+                </Label>
+                <p className="text-xs text-gray-600 text-start">
+                  {dict.sections.language.description}
+                </p>
+              </div>
+              <div className="relative">
+                <select
+                  id="language-select"
+                  value={preferredLanguage}
+                  onChange={(e) => {
+                    const newLang = e.target.value as 'he' | 'en';
+                    setPreferredLanguage(newLang);
+                    handleLanguageChange(newLang);
+                  }}
+                  disabled={isLanguageLoading}
+                  className="w-32 appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                >
+                  <option value="he">עברית</option>
+                  <option value="en">English</option>
+                </select>
+                {isLanguageLoading && <Loader2 className="absolute top-1/2 -translate-y-1/2 left-2 h-4 w-4 animate-spin text-gray-500" />}
+              </div>
+            </div>
+          </div>
+
           <div className="py-4">
             <h3 className="text-base font-semibold mb-4 flex items-center">
               <Shield className="w-4 h-4 text-blue-600 me-2" />
@@ -647,6 +714,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
             </div>
           </div>
         </CardContent>
+        
         <CardFooter className="bg-gradient-to-r from-gray-50 to-white border-t p-4 text-sm text-gray-500 relative">
           <div className="flex items-center">
             <Bell className="w-4 h-4 text-blue-600 me-2" />

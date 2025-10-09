@@ -266,6 +266,8 @@
         "firstNamePlaceholder": "e.g., John",
         "lastNameLabel": "Last Name",
         "lastNamePlaceholder": "e.g., Doe",
+                "languageLabel": "Preferred Communication Language",
+
         "phoneLabel": "Mobile Phone",
         "phonePlaceholder": "0501234567",
         "genderLabel": "Gender",

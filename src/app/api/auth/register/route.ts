@@ -1,12 +1,12 @@
 // app/api/auth/register/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType, UserSource  } from '@prisma/client';
+import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType, UserSource, Language } from '@prisma/client'; // <-- 1. הוספנו את Language
 import { hash } from 'bcryptjs';
 import { emailService } from '@/lib/email/emailService';
 import { VerificationService } from '@/lib/services/verificationService'; 
 import { applyRateLimit } from '@/lib/rate-limiter';
-import { UserEngagementService } from '@/lib/engagement/userEngagementService';
+// <-- 2. הסרנו את UserEngagementService שאינו קיים
 
 const prisma = new PrismaClient();
 
@@ -29,8 +29,8 @@ type LogMetadata = {
   hasFirstName?: boolean;
   hasLastName?: boolean;
   verificationId?: string;
-    marketingConsent?: boolean;
-
+  marketingConsent?: boolean;
+   language?: 'he' | 'en';
 };
 
 const logger = {
@@ -46,7 +46,6 @@ const logger = {
     const loggableMeta = { ...meta };
     if (loggableMeta.errorObject && process.env.NODE_ENV !== 'development') {
         // In production, we might want to remove the full object if not handled properly.
-        // For now, we'll keep it.
     }
     console.error(JSON.stringify({
       timestamp: new Date().toISOString(),
@@ -62,9 +61,8 @@ interface InitialRegistrationData {
   password: string;
   firstName: string;
   lastName: string;
-  // --- START OF CHANGE ---
   marketingConsent?: boolean;
-  // --- END OF CHANGE ---
+  language?: Language; // <-- 3. עדכנו את הטיפוס
 }
 
 function handleError(error: unknown): { message: string; status: number } {
@@ -144,9 +142,8 @@ export async function POST(req: NextRequest) {
       firstName: body.firstName,
       lastName: body.lastName,
       hasPassword: !!body.password,
-      // --- START OF CHANGE ---
       marketingConsent: body.marketingConsent,
-      // --- END OF CHANGE ---
+      language: body.language,
     });
 
     if (!body.email || !body.password || !body.firstName || !body.lastName) {
@@ -194,6 +191,7 @@ export async function POST(req: NextRequest) {
             password: hashedPassword,
             firstName: body.firstName,
             lastName: body.lastName,
+            language: body.language || 'he', // <-- 4. הוספת השדה כאן
             role: UserRole.CANDIDATE,
             status: UserStatus.PENDING_EMAIL_VERIFICATION,
             isVerified: false, 
@@ -201,9 +199,7 @@ export async function POST(req: NextRequest) {
             isPhoneVerified: false, 
             source: UserSource.REGISTRATION,
             termsAndPrivacyAcceptedAt: new Date(),
-            // --- START OF CHANGE ---
             marketingConsent: body.marketingConsent || false,
-            // --- END OF CHANGE ---
           },
       });
       logger.info('User created successfully within transaction', { userId: user.id });
@@ -222,27 +218,16 @@ export async function POST(req: NextRequest) {
     });
 
     logger.info('Database transaction completed successfully', { userId: result.user.id });
-    // --- ✨ הוספה חדשה: הפעלת קמפיין המיילים ✨ ---
-// קריאה זו אינה שולחת מייל מיידית, אלא רק מתזמנת את המייל הראשון בעוד מספר ימים.
-try {
-  await UserEngagementService.startCampaignForNewUser(result.user.id);
-  logger.info('User engagement campaign successfully scheduled', { userId: result.user.id });
-} catch (campaignError) {
-  // אם יש בעיה בתזמון הקמפיין, אנחנו רק מתעדים אותה ולא עוצרים את תהליך ההרשמה.
-  logger.error('Failed to start user engagement campaign', { 
-    userId: result.user.id,
-    errorObject: campaignError 
-  });
-}
-// --- סוף ההוספה ---
+    
+    // <-- 5. הסרנו את כל הבלוק של UserEngagementService מכאן
 
     let emailSentSuccess = false;
-        const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour"; 
+    const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour"; 
 
     try {
       logger.info('Sending verification OTP email', { userId: result.user.id, email: result.user.email });
         await emailService.sendVerificationEmail({
-                locale, // <<<<<<<<<<<< הוספת ה-locale
+                locale,
                 email: result.user.email,
                 verificationCode: result.generatedOtp, 
                 firstName: result.user.firstName,

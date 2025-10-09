@@ -1605,10 +1605,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             }
                           />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent position="item-aligned">
                           {languageOptions.map((lang) => (
                             <SelectItem key={lang.value} value={lang.value}>
-                              {/* ✨ שינוי כאן: ניגשים לשפה הנכונה לפי ה-locale */}
                               {lang.label[locale] || lang.label.en}
                             </SelectItem>
                           ))}
@@ -1618,7 +1617,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderSelectDisplayValue(
                           formData.nativeLanguage,
-                          // ✨ שינוי כאן: אנו ממפים את האובייקט המורכב למבנה שהפונקציה מצפה לו
                           languageOptions.map((opt) => ({
                             value: opt.value,
                             label: opt.label[locale] || opt.label.en,
@@ -1659,7 +1657,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             }
                           />
                         </SelectTrigger>
-                        <SelectContent className="max-h-[200px]">
+                        <SelectContent
+                          className="max-h-[200px]"
+                          position="item-aligned"
+                        >
                           {languageOptions
                             .filter(
                               (lang) =>
@@ -1670,7 +1671,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             .map((lang) => (
                               <SelectItem key={lang.value} value={lang.value}>
                                 {lang.label[locale] || lang.label['en']}{' '}
-                                {/* שינוי כאן */}
                               </SelectItem>
                             ))}
                         </SelectContent>
@@ -1688,7 +1688,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             className="bg-cyan-100/70 text-cyan-800 px-2 py-0.5 rounded-full text-[11px] font-medium flex items-center"
                           >
                             {lang.label[locale] || lang.label['en']}{' '}
-                            {/* שינוי כאן */}
                             {isEditing && !viewOnly && (
                               <button
                                 type="button"
@@ -1703,7 +1702,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                 className="ms-1.5 text-cyan-600 hover:text-cyan-800 text-xs"
                                 aria-label={dict.cards.personal.removeLanguageLabel.replace(
                                   '{{lang}}',
-                                  lang.label[locale] || lang.label['en'] // וגם כאן
+                                  lang.label[locale] || lang.label['en']
                                 )}
                               >
                                 ×

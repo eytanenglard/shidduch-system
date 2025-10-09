@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api
-# Generated on: 2025-10-03 16:46:33
+# Generated on: 2025-10-08 07:17:21
 ################################################################################
 
 ================================================================================
@@ -13,10 +13,668 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\api_content
 [This is the output log file itself. Content not included.]
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin
 ================================================================================
 
 (This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\engagement_contents.txt
+--------------------------------------------------------------------------------
+Content:
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement
+# Generated on: 2025-10-07 23:51:32
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\engagement_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\run-now
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\run-now\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/admin/engagement/run-now/route.ts
+// ============================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { SmartEngagementOrchestrator } from '@/lib/engagement/SmartEngagementOrchestrator';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    console.log('🚀 Manual campaign triggered by admin');
+    
+    const results = await SmartEngagementOrchestrator.runDailyCampaign();
+    
+    return NextResponse.json({
+      success: true,
+      processed: results.processed,
+      sent: results.sent
+    });
+
+  } catch (error) {
+    console.error('Error running campaign:', error);
+    return NextResponse.json(
+      { error: 'Campaign failed' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\send-manual
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\send-manual\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/admin/engagement/send-manual/route.ts
+// ============================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { SmartEngagementOrchestrator } from '@/lib/engagement/SmartEngagementOrchestrator';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { userId, emailType } = await request.json();
+
+    if (!userId || !emailType) {
+      return NextResponse.json(
+        { error: 'Missing userId or emailType' },
+        { status: 400 }
+      );
+    }
+
+    // מצא את המשתמש
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        profile: true,
+        images: true,
+        questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } },
+        dripCampaign: true
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // בנה פרופיל engagement
+    const profile = await SmartEngagementOrchestrator['buildUserEngagementProfile'](userId);
+    
+    // צור מייל מתאים
+    let email;
+    switch (emailType) {
+      case 'EVENING_FEEDBACK':
+        const dailyActivity = await SmartEngagementOrchestrator['detectDailyActivity'](userId);
+        email = await SmartEngagementOrchestrator['getEveningFeedbackEmail'](profile, dailyActivity);
+        break;
+      case 'AI_SUMMARY':
+        email = await SmartEngagementOrchestrator['getAiSummaryEmail'](profile);
+        break;
+      case 'NUDGE':
+        email = await SmartEngagementOrchestrator['getQuestionnaireNudgeEmail'](profile);
+        break;
+      // הוסף עוד מקרים לפי הצורך
+      default:
+        return NextResponse.json(
+          { error: 'Unsupported email type' },
+          { status: 400 }
+        );
+    }
+
+    if (!email) {
+      return NextResponse.json(
+        { error: 'Could not generate email for this user state' },
+        { status: 400 }
+      );
+    }
+
+    // שלח
+    await SmartEngagementOrchestrator['sendEmail'](user, email);
+    await SmartEngagementOrchestrator['updateCampaignRecord'](userId, emailType);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Email sent successfully',
+      emailType: email.type
+    });
+
+  } catch (error) {
+    console.error('Error sending manual email:', error);
+    return NextResponse.json(
+      { error: 'Failed to send email' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\stats
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\stats\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/admin/engagement/stats/route.ts
+// ============================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+
+export async function GET(request: NextRequest) {
+  try {
+    // בדיקת הרשאות
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    // ספירת מיילים היום
+    const todayEmails = await prisma.userDripCampaign.count({
+      where: {
+        updatedAt: { gte: today }
+      }
+    });
+
+    // ספירת מיילים השבוע
+    const weeklyEmails = await prisma.userDripCampaign.count({
+      where: {
+        updatedAt: { gte: weekAgo }
+      }
+    });
+
+    // משתמשים פעילים
+    const activeUsers = await prisma.user.count({
+      where: {
+        status: 'ACTIVE',
+        isProfileComplete: false
+      }
+    });
+
+    // התפלגות השלמה
+    const allUsers = await prisma.user.findMany({
+      where: { status: 'ACTIVE' },
+      include: {
+        profile: true,
+        images: true,
+        questionnaireResponses: { take: 1 }
+      }
+    });
+
+    const completionRanges = {
+      '0-25%': 0,
+      '26-50%': 0,
+      '51-75%': 0,
+      '76-90%': 0,
+      '91-100%': 0
+    };
+
+    allUsers.forEach(user => {
+      // חישוב פשטני של אחוז השלמה
+      let score = 0;
+      if (user.images.length >= 3) score += 20;
+      if (user.profile?.profileHeadline) score += 20;
+      if (user.profile?.about && user.profile.about.length >= 100) score += 20;
+      if (user.questionnaireResponses[0]?.completed) score += 40;
+      
+      if (score <= 25) completionRanges['0-25%']++;
+      else if (score <= 50) completionRanges['26-50%']++;
+      else if (score <= 75) completionRanges['51-75%']++;
+      else if (score <= 90) completionRanges['76-90%']++;
+      else completionRanges['91-100%']++;
+    });
+
+    const completionDistribution = [
+      { range: '0-25%', count: completionRanges['0-25%'], color: '#ef4444' },
+      { range: '26-50%', count: completionRanges['26-50%'], color: '#f59e0b' },
+      { range: '51-75%', count: completionRanges['51-75%'], color: '#3b82f6' },
+      { range: '76-90%', count: completionRanges['76-90%'], color: '#8b5cf6' },
+      { range: '91-100%', count: completionRanges['91-100%'], color: '#10b981' }
+    ];
+
+    // פעילות אחרונה
+    const recentActivity = await prisma.userDripCampaign.findMany({
+      take: 10,
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true
+          }
+        }
+      }
+    });
+
+    const formattedActivity = recentActivity.map(activity => ({
+      time: new Date(activity.updatedAt).toLocaleTimeString('he-IL', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }),
+      user: `${activity.user.firstName} ${activity.user.lastName}`,
+      action: activity.lastSentType || 'UNKNOWN',
+      status: 'sent' as const
+    }));
+
+    // התפלגות סוגי מיילים
+    const emailTypes = await prisma.userDripCampaign.groupBy({
+      by: ['lastSentType'],
+      _count: true,
+      where: {
+        updatedAt: { gte: weekAgo }
+      }
+    });
+
+    const typeColors: Record<string, string> = {
+      'ONBOARDING': '#3b82f6',
+      'NUDGE': '#f59e0b',
+      'CELEBRATION': '#10b981',
+      'INSIGHT': '#8b5cf6',
+      'VALUE': '#06b6d4',
+      'EVENING_FEEDBACK': '#ec4899',
+      'AI_SUMMARY': '#14b8a6'
+    };
+
+    const emailTypeBreakdown = emailTypes.map(type => ({
+      name: type.lastSentType || 'Unknown',
+      value: type._count,
+      color: typeColors[type.lastSentType || ''] || '#6b7280'
+    }));
+
+    return NextResponse.json({
+      todayEmails,
+      weeklyEmails,
+      activeUsers,
+      completionDistribution,
+      recentActivity: formattedActivity,
+      emailTypeBreakdown
+    });
+
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch stats' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+--- End of Content for engagement_contents.txt ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\run-now
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\run-now\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/admin/engagement/run-now/route.ts
+// ============================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { SmartEngagementOrchestrator } from '@/lib/engagement/SmartEngagementOrchestrator';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    console.log('🚀 Manual campaign triggered by admin');
+    
+    const results = await SmartEngagementOrchestrator.runDailyCampaign();
+    
+    return NextResponse.json({
+      success: true,
+      processed: results.processed,
+      sent: results.sent
+    });
+
+  } catch (error) {
+    console.error('Error running campaign:', error);
+    return NextResponse.json(
+      { error: 'Campaign failed' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\send-manual
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\send-manual\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/admin/engagement/send-manual/route.ts
+// ============================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { SmartEngagementOrchestrator } from '@/lib/engagement/SmartEngagementOrchestrator';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { userId, emailType } = await request.json();
+
+    if (!userId || !emailType) {
+      return NextResponse.json(
+        { error: 'Missing userId or emailType' },
+        { status: 400 }
+      );
+    }
+
+    // מצא את המשתמש
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        profile: true,
+        images: true,
+        questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } },
+        dripCampaign: true
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // בנה פרופיל engagement
+    const profile = await SmartEngagementOrchestrator['buildUserEngagementProfile'](userId);
+    
+    // צור מייל מתאים
+    let email;
+    switch (emailType) {
+      case 'EVENING_FEEDBACK':
+        const dailyActivity = await SmartEngagementOrchestrator['detectDailyActivity'](userId);
+        email = await SmartEngagementOrchestrator['getEveningFeedbackEmail'](profile, dailyActivity);
+        break;
+      case 'AI_SUMMARY':
+        email = await SmartEngagementOrchestrator['getAiSummaryEmail'](profile);
+        break;
+      case 'NUDGE':
+        email = await SmartEngagementOrchestrator['getQuestionnaireNudgeEmail'](profile);
+        break;
+      // הוסף עוד מקרים לפי הצורך
+      default:
+        return NextResponse.json(
+          { error: 'Unsupported email type' },
+          { status: 400 }
+        );
+    }
+
+    if (!email) {
+      return NextResponse.json(
+        { error: 'Could not generate email for this user state' },
+        { status: 400 }
+      );
+    }
+
+    // שלח
+    await SmartEngagementOrchestrator['sendEmail'](user, email);
+    await SmartEngagementOrchestrator['updateCampaignRecord'](userId, emailType);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Email sent successfully',
+      emailType: email.type
+    });
+
+  } catch (error) {
+    console.error('Error sending manual email:', error);
+    return NextResponse.json(
+      { error: 'Failed to send email' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\stats
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\stats\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/admin/engagement/stats/route.ts
+// ============================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+
+export async function GET(request: NextRequest) {
+  try {
+    // בדיקת הרשאות
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    // ספירת מיילים היום
+    const todayEmails = await prisma.userDripCampaign.count({
+      where: {
+        updatedAt: { gte: today }
+      }
+    });
+
+    // ספירת מיילים השבוע
+    const weeklyEmails = await prisma.userDripCampaign.count({
+      where: {
+        updatedAt: { gte: weekAgo }
+      }
+    });
+
+    // משתמשים פעילים
+    const activeUsers = await prisma.user.count({
+      where: {
+        status: 'ACTIVE',
+        isProfileComplete: false
+      }
+    });
+
+    // התפלגות השלמה
+    const allUsers = await prisma.user.findMany({
+      where: { status: 'ACTIVE' },
+      include: {
+        profile: true,
+        images: true,
+        questionnaireResponses: { take: 1 }
+      }
+    });
+
+    const completionRanges = {
+      '0-25%': 0,
+      '26-50%': 0,
+      '51-75%': 0,
+      '76-90%': 0,
+      '91-100%': 0
+    };
+
+    allUsers.forEach(user => {
+      // חישוב פשטני של אחוז השלמה
+      let score = 0;
+      if (user.images.length >= 3) score += 20;
+      if (user.profile?.profileHeadline) score += 20;
+      if (user.profile?.about && user.profile.about.length >= 100) score += 20;
+      if (user.questionnaireResponses[0]?.completed) score += 40;
+      
+      if (score <= 25) completionRanges['0-25%']++;
+      else if (score <= 50) completionRanges['26-50%']++;
+      else if (score <= 75) completionRanges['51-75%']++;
+      else if (score <= 90) completionRanges['76-90%']++;
+      else completionRanges['91-100%']++;
+    });
+
+    const completionDistribution = [
+      { range: '0-25%', count: completionRanges['0-25%'], color: '#ef4444' },
+      { range: '26-50%', count: completionRanges['26-50%'], color: '#f59e0b' },
+      { range: '51-75%', count: completionRanges['51-75%'], color: '#3b82f6' },
+      { range: '76-90%', count: completionRanges['76-90%'], color: '#8b5cf6' },
+      { range: '91-100%', count: completionRanges['91-100%'], color: '#10b981' }
+    ];
+
+    // פעילות אחרונה
+    const recentActivity = await prisma.userDripCampaign.findMany({
+      take: 10,
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true
+          }
+        }
+      }
+    });
+
+    const formattedActivity = recentActivity.map(activity => ({
+      time: new Date(activity.updatedAt).toLocaleTimeString('he-IL', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }),
+      user: `${activity.user.firstName} ${activity.user.lastName}`,
+      action: activity.lastSentType || 'UNKNOWN',
+      status: 'sent' as const
+    }));
+
+    // התפלגות סוגי מיילים
+    const emailTypes = await prisma.userDripCampaign.groupBy({
+      by: ['lastSentType'],
+      _count: true,
+      where: {
+        updatedAt: { gte: weekAgo }
+      }
+    });
+
+    const typeColors: Record<string, string> = {
+      'ONBOARDING': '#3b82f6',
+      'NUDGE': '#f59e0b',
+      'CELEBRATION': '#10b981',
+      'INSIGHT': '#8b5cf6',
+      'VALUE': '#06b6d4',
+      'EVENING_FEEDBACK': '#ec4899',
+      'AI_SUMMARY': '#14b8a6'
+    };
+
+    const emailTypeBreakdown = emailTypes.map(type => ({
+      name: type.lastSentType || 'Unknown',
+      value: type._count,
+      color: typeColors[type.lastSentType || ''] || '#6b7280'
+    }));
+
+    return NextResponse.json({
+      todayEmails,
+      weeklyEmails,
+      activeUsers,
+      completionDistribution,
+      recentActivity: formattedActivity,
+      emailTypeBreakdown
+    });
+
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch stats' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\ai_contents.txt
+--------------------------------------------------------------------------------
+Content:
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai
+# Generated on: 2025-10-05 16:19:59
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\ai_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-my-profile
@@ -29,8 +687,7 @@ Content:
 // src/app/api/ai/analyze-my-profile/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import profileAiService from '@/lib/services/profileAiService';
@@ -43,8 +700,7 @@ import prisma from '@/lib/prisma';
  * שולחת אותו לניתוח AI, ומחזירה את התוצאה המובנית.
  */
 export async function POST(req: NextRequest) {
-    const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
 
@@ -107,8 +763,7 @@ Content:
 // src/app/api/ai/analyze-suggestion/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import profileAiService from '@/lib/services/profileAiService';
@@ -122,8 +777,7 @@ import prisma from '@/lib/prisma';
  * ומחזירה את התוצאה המובנית.
  */
 export async function POST(req: NextRequest) {
-    const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
 
@@ -203,16 +857,14 @@ Content:
 // src/app/api/ai/find-matches/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, Prisma } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
-    const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
 
@@ -319,8 +971,7 @@ Content:
 // File: src/app/api/ai/generate-rationale/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
@@ -328,8 +979,7 @@ import { generateNarrativeProfile } from "@/lib/services/profileAiService";
 import { analyzePairCompatibility } from "@/lib/services/aiService";
 
 export async function POST(req: NextRequest) {
-    const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
 
@@ -395,8 +1045,7 @@ Content:
 // src/app/api/ai/generate-suggestion-rationale/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
@@ -404,8 +1053,7 @@ import { generateNarrativeProfile } from "@/lib/services/profileAiService";
 import aiService from "@/lib/services/aiService";
 
 export async function POST(req: NextRequest) {
-    const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
 
@@ -798,6 +1446,930 @@ Content:
 // src/app/api/ai/matchmaker/analyze-profile/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+import prisma from '@/lib/prisma';
+import { UserRole } from "@prisma/client";
+
+/**
+ * מטפל בבקשות POST לניתוח פרופיל של משתמש ספציפי על ידי שדכן.
+ */
+export async function POST(req: NextRequest) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // שלב 1: אימות והרשאות (שדכן או אדמין בלבד)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      console.warn('[API matchmaker/analyze-profile] ניסיון גישה לא מורשה.');
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // שלב 2: קבלת ID המועמד לניתוח מגוף הבקשה
+    const body = await req.json();
+    const { userId } = body;
+
+    if (!userId || typeof userId !== 'string') {
+        console.error('[API matchmaker/analyze-profile] userId חסר או לא תקין בבקשה.');
+        return NextResponse.json({ success: false, message: 'Bad Request: userId is required.' }, { status: 400 });
+    }
+
+    // שלב 3: יצירת פרופיל נרטיבי עבור המשתמש המבוקש
+    const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
+
+    if (!narrativeProfile) {
+      console.error(`[API matchmaker/analyze-profile] נכשל ביצירת פרופיל נרטיבי עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narrative.' }, { status: 500 });
+    }
+
+    // שלב 4: שליחת הנרטיב לניתוח AI
+    const analysisResult = await aiService.getProfileAnalysis(narrativeProfile);
+
+    if (!analysisResult) {
+      console.error(`[API matchmaker/analyze-profile] שירות ה-AI לא החזיר תוצאה עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'AI service failed to produce an analysis.' }, { status: 500 });
+    }
+
+    // שלב 5: החזרת התוצאה המוצלחת
+    return NextResponse.json({ success: true, data: analysisResult });
+
+  } catch (error) {
+    console.error('[API matchmaker/analyze-profile] שגיאה פטאלית ב-endpoint:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\generate-summary
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\generate-summary\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/generate-summary/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. אימות והרשאות (שדכן או אדמין בלבד)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. קבלת ID המועמד מגוף הבקשה
+    const body = await req.json();
+const { userId, locale } = body;
+
+    if (!userId || typeof userId !== 'string') {
+      return NextResponse.json({ success: false, message: 'Bad Request: userId is required.' }, { status: 400 });
+    }
+
+    // 3. יצירת פרופיל נרטיבי מקיף
+    const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
+    if (!narrativeProfile) {
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narrative.' }, { status: 500 });
+    }
+
+    // 4. שליחת הנרטיב ל-AI ליצירת הסיכום
+const summaryResult = await aiService.generateNeshamaTechSummary(narrativeProfile, locale);
+    if (!summaryResult || !summaryResult.summaryText) {
+      return NextResponse.json({ success: false, message: 'AI service failed to produce a summary.' }, { status: 500 });
+    }
+
+    // 5. החזרת התוצאה המוצלחת
+    return NextResponse.json({ success: true, summary: summaryResult.summaryText });
+
+  } catch (error) {
+    console.error('[API generate-summary] Fatal error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\prepare-feedback-email
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\prepare-feedback-email\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/prepare-feedback-email/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import { getDictionary, getQuestionnaireQuestionsDictionary } from "@/lib/dictionaries";
+import { profileFeedbackService } from "@/lib/services/profileFeedbackService";
+import type { ProfileFeedbackTemplateContext } from "@/lib/email/templates/emailTemplates";
+
+import fs from 'fs';
+import path from 'path';
+import Handlebars from 'handlebars';
+
+// רישום helpers של Handlebars
+Handlebars.registerHelper('eq', function (a, b) {
+  return a === b;
+});
+
+Handlebars.registerHelper('replace', function (str, searchValue, replaceValue) {
+  if (typeof str !== 'string') return str;
+  return str.replace(new RegExp(searchValue, 'g'), replaceValue);
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { userId, locale, isAutomated } = await req.json();
+    if (!userId || !locale) {
+      return NextResponse.json({ success: false, error: "Missing userId or locale" }, { status: 400 });
+    }
+    
+    // טעינת המילונים
+    const [dictionary, questionnaireQuestionsDict] = await Promise.all([
+      getDictionary(locale),
+      getQuestionnaireQuestionsDictionary(locale)
+    ]);
+    
+    const emailDict = dictionary.email;
+
+    // בדיקה שמילון המייל קיים
+    if (!emailDict?.profileFeedback || !emailDict?.shared) {
+        console.error("Dictionary is missing 'email.profileFeedback' or 'email.shared' section.");
+        return NextResponse.json({ success: false, error: "Server configuration error: Email dictionary is incomplete." }, { status: 500 });
+    }
+
+    // יצירת הדוח עם הטיפוס המתוקן
+    const report = await profileFeedbackService.compileFeedbackReport(
+      userId, 
+      locale, 
+      questionnaireQuestionsDict // זה כבר הטיפוס הנכון
+    );
+
+    // הכנת הקונטקסט לתבנית
+    const context: ProfileFeedbackTemplateContext = {
+      locale: locale as any,
+      dict: emailDict.profileFeedback,
+      sharedDict: {
+        ...emailDict.shared,
+        rightsReserved: (emailDict.shared.rightsReserved || "© {{year}} NeshamaTech").replace('{{year}}', new Date().getFullYear().toString())
+      },
+      name: report.name,
+      report,
+      isAutomated: isAutomated || false,
+      matchmakerName: session.user.name || "השדכן/ית שלך",
+      supportEmail: process.env.SUPPORT_EMAIL || 'support@neshamatech.com',
+      companyName: process.env.COMPANY_NAME || 'NeshamaTech',
+      currentYear: new Date().getFullYear().toString(),
+      baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+    };
+
+    // טעינת תבנית ה-Handlebars
+    const templatePath = path.resolve(process.cwd(), 'src/lib/email/templates/profile-feedback.hbs');
+    
+    if (!fs.existsSync(templatePath)) {
+      console.error(`Template file not found: ${templatePath}`);
+      return NextResponse.json({ success: false, error: "Email template not found" }, { status: 500 });
+    }
+
+    const templateSource = fs.readFileSync(templatePath, 'utf8');
+    const compiledTemplate = Handlebars.compile(templateSource);
+    
+    // הוספת greeting לקונטקסט
+    const contextWithGreeting = {
+      ...context,
+      greeting: (emailDict.profileFeedback.greeting || "שלום {{name}}").replace('{{name}}', report.name)
+    };
+    
+    const htmlContent = compiledTemplate(contextWithGreeting);
+
+    // החזרת התוכן עם headers נכונים
+    return NextResponse.json(
+      { 
+        success: true, 
+        htmlContent,
+        locale,
+        direction: locale === 'he' ? 'rtl' : 'ltr'
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        }
+      }
+    );
+
+  } catch (error) {
+    console.error("Error in prepare-feedback-email endpoint:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Internal Server Error", 
+        details: errorMessage 
+      }, 
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        }
+      }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\send-feedback-email
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\send-feedback-email\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/send-feedback-email/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { emailService } from "@/lib/email/emailService";
+import { UserRole } from "@prisma/client";
+export async function POST(req: NextRequest) {
+try {
+const session = await getServerSession(authOptions);
+if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+}
+
+const { userEmail, subject, htmlContent } = await req.json();
+if (!userEmail || !subject || !htmlContent) {
+  return NextResponse.json({ success: false, error: "Missing parameters" }, { status: 400 });
+}
+
+// קריאה לשירות המייל עם התוכן הערוך
+await emailService.sendRawEmail({
+  to: userEmail,
+  subject: subject,
+  html: htmlContent,
+});
+
+return NextResponse.json({ success: true, message: "Email sent successfully" });
+} catch (error) {
+console.error("Error sending feedback email:", error);
+return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+}
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\test-connection
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\test-connection\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/test-connection/route.ts
+
+import { NextResponse } from 'next/server';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+export async function GET() {
+  console.log('--- [API TEST] Received request at /api/ai/test-connection ---');
+
+  const apiKey = process.env.GOOGLE_API_KEY;
+
+  if (!apiKey) {
+    console.error('--- [API TEST] FATAL ERROR: GOOGLE_API_KEY is not set in .env or .env.local!');
+    return NextResponse.json(
+      { success: false, error: 'Server configuration error: GOOGLE_API_KEY is missing.' },
+      { status: 500 }
+    );
+  }
+
+  // --- קטע האימות שהוספנו ---
+  const keyIdentifier = `Starts with: ${apiKey.substring(0, 5)}... | Ends with: ...${apiKey.substring(apiKey.length - 4)} | Length: ${apiKey.length}`; // <-- הוסף
+  console.log(`--- [API TEST] Verifying the loaded API Key: ${keyIdentifier} ---`); // <-- הוסף
+  // -----------------------------
+
+  console.log('--- [API TEST] GOOGLE_API_KEY found. Proceeding with API call.');
+
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }); 
+    const prompt = 'Say "Connection Successful" in one sentence.';
+
+    console.log('--- [API TEST] Sending a simple prompt to Google AI...');
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+
+    console.log('--- [API TEST] SUCCESS! Google AI responded:', text);
+    return NextResponse.json({ success: true, message: 'Connection to Google AI is working!', response: text });
+
+  } catch (error) {
+    console.error('--- [API TEST] FAILED! The API call to Google threw an error.', error);
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to connect to Google AI. This is likely an API key, permissions, or billing issue.',
+        details: JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
+      }, 
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\update-all-profiles
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\update-all-profiles\route.ts
+--------------------------------------------------------------------------------
+Content:
+// File: src/app/api/ai/update-all-profiles/route.ts
+
+import { NextResponse } from 'next/server';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
+
+/**
+ * פונקציית עזר שמריצה את תהליך העדכון ברקע
+ * ומדפיסה לוג מפורט בסיומו.
+ * @param userIds - מערך מזהי המשתמשים לעדכון
+ * @param adminId - מזהה האדמין שהפעיל את התהליך
+ */
+async function runBulkUpdateAndLog(userIds: string[], adminId: string) {
+  const totalUsers = userIds.length;
+  // הודעת התחלה ברורה לתהליך הרקע
+ 
+  try {
+    // נשתמש ב-Promise.allSettled כדי להמתין לסיום כל העדכונים, גם אם חלקם נכשלים
+    const results = await Promise.allSettled(
+      userIds.map(userId => updateUserAiProfile(userId))
+    );
+
+    const successCount = results.filter(r => r.status === 'fulfilled').length;
+    const failedCount = totalUsers - successCount;
+    
+    // איסוף מזהי המשתמשים שנכשלו (אם יש כאלה)
+    const failedUserIds = results
+      .map((result, index) => ({ result, userId: userIds[index] }))
+      .filter(({ result }) => result.status === 'rejected')
+      .map(({ userId }) => userId);
+
+    // הדפסת סיכום מפורט
+      if (failedCount > 0) {
+      console.log(`  Failed User IDs: ${failedUserIds.join(', ')}`);
+    }
+    console.log(`======================================================================\n\n`);
+
+  } catch (error) {
+    // במקרה של שגיאה קריטית בתהליך הרקע עצמו
+    console.error('[AI Bulk Update - BG] A critical error occurred in the background process:', error);
+  }
+}
+
+export async function POST() {
+  try {
+    // 1. Authentication and Authorization (ADMIN ONLY)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ success: false, error: "Unauthorized: Admin access required." }, { status: 403 });
+    }
+    const adminId = session.user.id;
+
+    // כאן הלוג המקורי נשאר, כדי שתראה שה-API הופעל
+    console.log(`[AI Bulk Update] API endpoint hit by admin: ${adminId}`);
+
+    // 2. Fetch all active user IDs that have a profile
+    const usersToUpdate = await prisma.user.findMany({
+      where: {
+        status: 'ACTIVE',
+        profile: {
+          isNot: null,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const userIds = usersToUpdate.map(user => user.id);
+    const totalUsers = userIds.length;
+
+    if (totalUsers === 0) {
+      return NextResponse.json({ success: true, message: "No active users with profiles found to update." });
+    }
+
+    // 3. Trigger background updates without waiting for them to complete
+    //    The process will run and log its final summary independently.
+    runBulkUpdateAndLog(userIds, adminId).catch(err => {
+        console.error(`[AI Bulk Update] Failed to kick off background logging process:`, err);
+    });
+
+    const message = `AI profile update process has been initiated for ${totalUsers} users. The process will run in the background. Check server logs for completion status.`;
+    console.log(`[AI Bulk Update] Immediate API response sent. ${message}`);
+
+    // 4. Return an immediate success response
+    return NextResponse.json({ success: true, message });
+
+  } catch (error) {
+    console.error('[AI Bulk Update] A critical error occurred in the API endpoint:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json({ success: false, error: "Internal server error.", details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+--- End of Content for ai_contents.txt ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-my-profile
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-my-profile\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/analyze-my-profile/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+import prisma from '@/lib/prisma';
+
+/**
+ * מטפל בבקשות POST לניתוח פרופיל המשתמש באמצעות AI.
+ * הפונקציה מאמתת את המשתמש, יוצרת פרופיל נרטיבי מקיף,
+ * שולחת אותו לניתוח AI, ומחזירה את התוצאה המובנית.
+ */
+export async function POST(req: NextRequest) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // שלב 1: אימות משתמש
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      console.warn('[API analyze-my-profile] ניסיון גישה לא מורשה.');
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = session.user.id;
+
+    // שלב 2: ודא שהמשתמש והפרופיל קיימים לפני יצירת הנרטיב
+    const userProfileExists = await prisma.profile.findUnique({
+      where: { userId },
+      select: { id: true }
+    });
+
+    if (!userProfileExists) {
+        console.error(`[API analyze-my-profile] לא נמצא פרופיל עבור משתמש: ${userId}`);
+        return NextResponse.json({ success: false, message: 'Profile not found.' }, { status: 404 });
+    }
+
+    // שלב 3: יצירת פרופיל נרטיבי מקיף
+    // שימוש חוזר בלוגיקה הקיימת והמצוינת מ-profileAiService
+    const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
+
+    if (!narrativeProfile) {
+      console.error(`[API analyze-my-profile] נכשל ביצירת פרופיל נרטיבי עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narrative.' }, { status: 500 });
+    }
+
+    // שלב 4: שליחת הנרטיב לניתוח AI
+    const analysisResult = await aiService.getProfileAnalysis(narrativeProfile);
+
+    if (!analysisResult) {
+      console.error(`[API analyze-my-profile] שירות ה-AI לא החזיר תוצאה עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'AI service failed to produce an analysis.' }, { status: 500 });
+    }
+
+    // שלב 5: החזרת התוצאה ללקוח
+    return NextResponse.json({ success: true, data: analysisResult });
+
+  } catch (error) {
+    console.error('[API analyze-my-profile] שגיאה פטאלית ב-endpoint:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-suggestion
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-suggestion\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/analyze-suggestion/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+import prisma from '@/lib/prisma';
+
+/**
+ * מטפל בבקשות POST לניתוח הצעת שידוך עבור המשתמש המחובר.
+ * הפונקציה מאמתת את המשתמש, מאחזרת את הפרופיל שלו ואת הפרופיל של המשתמש המוצע,
+ * יוצרת פרופילים נרטיביים עבור שניהם, שולחת אותם לניתוח AI מותאם למשתמש,
+ * ומחזירה את התוצאה המובנית.
+ */
+export async function POST(req: NextRequest) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // 1. אימות וקבלת המשתמש הנוכחי
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      console.warn('[API analyze-suggestion] ניסיון גישה לא מורשה.');
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+    const currentUserId = session.user.id;
+
+    // 2. קבלת ID של המשתמש המוצע מגוף הבקשה
+    const body = await req.json();
+    const { suggestedUserId } = body;
+
+    if (!suggestedUserId || typeof suggestedUserId !== 'string') {
+      console.error('[API analyze-suggestion] Invalid or missing suggestedUserId in request body.');
+      return NextResponse.json({ success: false, message: 'Bad Request: suggestedUserId is required.' }, { status: 400 });
+    }
+
+
+    // 3. ודא ששני הפרופילים קיימים
+    const profilesExist = await prisma.profile.findMany({
+      where: {
+        userId: { in: [currentUserId, suggestedUserId] }
+      },
+      select: { userId: true }
+    });
+
+    if (profilesExist.length !== 2) {
+      console.error(`[API analyze-suggestion] אחד הפרופילים או שניהם לא נמצאו. נמצאו: ${profilesExist.map(p => p.userId).join(', ')}`);
+      return NextResponse.json({ success: false, message: 'One or both user profiles could not be found.' }, { status: 404 });
+    }
+
+    // 4. יצירת פרופילים נרטיביים עבור שני המשתמשים במקביל
+    const [currentUserNarrative, suggestedUserNarrative] = await Promise.all([
+      profileAiService.generateNarrativeProfile(currentUserId),
+      profileAiService.generateNarrativeProfile(suggestedUserId)
+    ]);
+
+    if (!currentUserNarrative || !suggestedUserNarrative) {
+      console.error(`[API analyze-suggestion] נכשל ביצירת פרופיל נרטיבי עבור אחד המשתמשים.`);
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narratives.' }, { status: 500 });
+    }
+
+    // 5. שליחת הנרטיבים לניתוח AI מותאם למשתמש
+    const analysisResult = await aiService.analyzeSuggestionForUser(
+      currentUserNarrative,
+      suggestedUserNarrative
+    );
+
+    if (!analysisResult) {
+      console.error(`[API analyze-suggestion] שירות ה-AI לא החזיר תוצאת ניתוח הצעה.`);
+      return NextResponse.json({ success: false, message: 'AI service failed to produce a suggestion analysis.' }, { status: 500 });
+    }
+
+    // 6. החזרת התוצאה ללקוח
+    return NextResponse.json({ success: true, data: analysisResult });
+
+  } catch (error) {
+    console.error('[API analyze-suggestion] שגיאה פטאלית ב-endpoint:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\find-matches
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\find-matches\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/find-matches/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole, Prisma } from "@prisma/client";
+
+export async function POST(req: NextRequest) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // 1. Authentication and Authorization
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 2. Body Validation
+    const body = await req.json();
+    const { targetUserId, candidatePoolIds } = body;
+
+    if (!targetUserId || !Array.isArray(candidatePoolIds) || candidatePoolIds.length === 0) {
+      return NextResponse.json({ success: false, error: "Invalid request body. 'targetUserId' (string) and 'candidatePoolIds' (array) are required." }, { status: 400 });
+    }
+
+    // 3. Fetch the profile for the target user to get their profileId
+    const targetProfile = await prisma.profile.findUnique({
+        where: { userId: targetUserId },
+        select: { id: true }
+    });
+
+    if (!targetProfile) {
+        return NextResponse.json({ success: false, error: "Target user profile not found." }, { status: 404 });
+    }
+    
+    // --- START OF FIX 1: Cast the vector to text ---
+    // We explicitly cast the vector to ::text, which Prisma understands as a string.
+    const vectorResult: { vector_text: string }[] = await prisma.$queryRaw`
+      SELECT vector::text as vector_text FROM "profile_vectors" WHERE "profileId" = ${targetProfile.id} LIMIT 1;
+    `;
+
+    if (!vectorResult || vectorResult.length === 0 || !vectorResult[0]?.vector_text) {
+        return NextResponse.json({ success: false, error: "Vector for target user not found. AI profile may still be processing." }, { status: 404 });
+    }
+
+    // Now, we parse the string back into a number array.
+    // The string looks like '[0.1,0.2,...]', so we remove brackets and split.
+    const targetVector: number[] = JSON.parse(vectorResult[0].vector_text);
+    // --- END OF FIX 1 ---
+
+    // 4. Perform Vector Similarity Search
+    // We still use the original format for the similarity search operation itself.
+    const targetVectorString = `[${targetVector.join(',')}]`;
+
+    // --- START OF FIX 2: No change needed here, the previous query was the issue ---
+    // The error was in retrieving the target vector, not in the search itself.
+    // This query is fine because the `vector` column is only used for calculation
+    // and is not returned in the final SELECT statement.
+    const results: { profileId: string; similarity: number }[] = await prisma.$queryRaw`
+      SELECT
+        pv."profileId",
+        1 - (pv.vector <=> ${targetVectorString}::vector) as similarity
+      FROM
+        "profile_vectors" AS pv
+      INNER JOIN 
+        "Profile" AS p ON pv."profileId" = p.id
+      WHERE
+        p."userId" IN (${Prisma.join(candidatePoolIds)}) AND p."userId" != ${targetUserId}
+      ORDER BY
+        similarity DESC
+      LIMIT 20;
+    `;
+    // --- END OF FIX 2 ---
+    
+    // 5. Map results from profileId back to userId for the frontend
+    const profileIdToUserIdMap = new Map<string, string>();
+    const allProfileIds = results.map(r => r.profileId);
+
+    if (allProfileIds.length > 0) {
+        const profiles = await prisma.profile.findMany({
+            where: { id: { in: allProfileIds } },
+            select: { id: true, userId: true }
+        });
+        profiles.forEach(p => profileIdToUserIdMap.set(p.id, p.userId));
+    }
+
+    const finalMatches = results.map(r => ({
+        userId: profileIdToUserIdMap.get(r.profileId) || '',
+        score: Math.round(r.similarity * 100)
+    })).filter(m => m.userId);
+
+    // 6. Return the sorted list of matches
+    return NextResponse.json({ success: true, matches: finalMatches });
+
+  } catch (error) {
+    console.error('Error in /api/ai/find-matches:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json({ success: false, error: "Internal server error.", details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\generate-rationale
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\generate-rationale\route.ts
+--------------------------------------------------------------------------------
+Content:
+// File: src/app/api/ai/generate-rationale/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import { generateNarrativeProfile } from "@/lib/services/profileAiService";
+import { analyzePairCompatibility } from "@/lib/services/aiService";
+
+export async function POST(req: NextRequest) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // 1. Authentication and Authorization
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 2. Body Validation
+    const body = await req.json();
+    const { userId1, userId2, language } = body;
+
+    if (!userId1 || !userId2) {
+      return NextResponse.json({ success: false, error: "Invalid request body. 'userId1' and 'userId2' are required." }, { status: 400 });
+    }
+    
+    // Validate language or set default
+    const validLanguages = ['he', 'en'];
+    const analysisLanguage = validLanguages.includes(language) ? language : 'he';
+
+    // 3. Generate Narrative Profiles for both users
+    // We run them in parallel for efficiency.
+    const [profile1Text, profile2Text] = await Promise.all([
+        generateNarrativeProfile(userId1),
+        generateNarrativeProfile(userId2)
+    ]);
+
+    if (!profile1Text) {
+        return NextResponse.json({ success: false, error: `Could not generate narrative profile for user ${userId1}.` }, { status: 404 });
+    }
+    if (!profile2Text) {
+        return NextResponse.json({ success: false, error: `Could not generate narrative profile for user ${userId2}.` }, { status: 404 });
+    }
+
+    // 4. Call the AI service to get the compatibility analysis
+    const analysisResult = await analyzePairCompatibility(profile1Text, profile2Text, analysisLanguage);
+
+    if (!analysisResult) {
+        return NextResponse.json({ success: false, error: "Failed to get compatibility analysis from AI service." }, { status: 500 });
+    }
+
+    // 5. Return the successful analysis
+    return NextResponse.json({ success: true, analysis: analysisResult });
+
+  } catch (error) {
+    console.error('Error in /api/ai/generate-rationale:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json({ success: false, error: "Internal server error.", details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\generate-suggestion-rationale
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\generate-suggestion-rationale\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/generate-suggestion-rationale/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import { generateNarrativeProfile } from "@/lib/services/profileAiService";
+import aiService from "@/lib/services/aiService";
+
+export async function POST(req: NextRequest) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // 1. Authentication and Authorization
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 2. Body Validation
+    const body = await req.json();
+    const { userId1, userId2 } = body;
+
+    if (!userId1 || !userId2) {
+      return NextResponse.json({ success: false, error: "Invalid request body. 'userId1' and 'userId2' are required." }, { status: 400 });
+    }
+    
+    // 3. Generate Narrative Profiles for both users in parallel
+    const [profile1Text, profile2Text] = await Promise.all([
+        generateNarrativeProfile(userId1),
+        generateNarrativeProfile(userId2)
+    ]);
+
+    if (!profile1Text) {
+        return NextResponse.json({ success: false, error: `Could not generate narrative profile for user ${userId1}.` }, { status: 404 });
+    }
+    if (!profile2Text) {
+        return NextResponse.json({ success: false, error: `Could not generate narrative profile for user ${userId2}.` }, { status: 404 });
+    }
+
+    // --- START OF CHANGE ---
+    // 4. Call the new AI service to get the full rationale package
+    const rationaleObject = await aiService.generateFullSuggestionRationale(profile1Text, profile2Text);
+
+    if (!rationaleObject) {
+        return NextResponse.json({ success: false, error: "Failed to get suggestion rationale package from AI service." }, { status: 500 });
+    }
+
+    // 5. Return the successful rationale object
+    return NextResponse.json({ success: true, rationales: rationaleObject });
+    // --- END OF CHANGE ---
+
+  } catch (error) {
+    console.error('Error in /api/ai/generate-suggestion-rationale:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json({ success: false, error: "Internal server error.", details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\matchmaker_contents.txt
+--------------------------------------------------------------------------------
+Content:
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker
+# Generated on: 2025-09-28 20:43:55
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\matchmaker_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\analyze-profile
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\analyze-profile\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/analyze-profile/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimit } from '@/lib/rate-limiter';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
@@ -812,6 +2384,312 @@ import { UserRole } from "@prisma/client";
 export async function POST(req: NextRequest) {
   const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
   if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // שלב 1: אימות והרשאות (שדכן או אדמין בלבד)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      console.warn('[API matchmaker/analyze-profile] ניסיון גישה לא מורשה.');
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // שלב 2: קבלת ID המועמד לניתוח מגוף הבקשה
+    const body = await req.json();
+    const { userId } = body;
+
+    if (!userId || typeof userId !== 'string') {
+        console.error('[API matchmaker/analyze-profile] userId חסר או לא תקין בבקשה.');
+        return NextResponse.json({ success: false, message: 'Bad Request: userId is required.' }, { status: 400 });
+    }
+
+    // שלב 3: יצירת פרופיל נרטיבי עבור המשתמש המבוקש
+    const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
+
+    if (!narrativeProfile) {
+      console.error(`[API matchmaker/analyze-profile] נכשל ביצירת פרופיל נרטיבי עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narrative.' }, { status: 500 });
+    }
+
+    // שלב 4: שליחת הנרטיב לניתוח AI
+    const analysisResult = await aiService.getProfileAnalysis(narrativeProfile);
+
+    if (!analysisResult) {
+      console.error(`[API matchmaker/analyze-profile] שירות ה-AI לא החזיר תוצאה עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'AI service failed to produce an analysis.' }, { status: 500 });
+    }
+
+    // שלב 5: החזרת התוצאה המוצלחת
+    return NextResponse.json({ success: true, data: analysisResult });
+
+  } catch (error) {
+    console.error('[API matchmaker/analyze-profile] שגיאה פטאלית ב-endpoint:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\generate-summary
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\generate-summary\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/generate-summary/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. אימות והרשאות (שדכן או אדמין בלבד)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. קבלת ID המועמד מגוף הבקשה
+    const body = await req.json();
+    const { userId } = body;
+
+    if (!userId || typeof userId !== 'string') {
+      return NextResponse.json({ success: false, message: 'Bad Request: userId is required.' }, { status: 400 });
+    }
+
+    // 3. יצירת פרופיל נרטיבי מקיף
+    const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
+    if (!narrativeProfile) {
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narrative.' }, { status: 500 });
+    }
+
+    // 4. שליחת הנרטיב ל-AI ליצירת הסיכום
+    const summaryResult = await aiService.generateNeshamaTechSummary(narrativeProfile);
+    if (!summaryResult || !summaryResult.summaryText) {
+      return NextResponse.json({ success: false, message: 'AI service failed to produce a summary.' }, { status: 500 });
+    }
+
+    // 5. החזרת התוצאה המוצלחת
+    return NextResponse.json({ success: true, summary: summaryResult.summaryText });
+
+  } catch (error) {
+    console.error('[API generate-summary] Fatal error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\prepare-feedback-email
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\prepare-feedback-email\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/prepare-feedback-email/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import { getDictionary, getQuestionnaireQuestionsDictionary } from "@/lib/dictionaries";
+import { profileFeedbackService } from "@/lib/services/profileFeedbackService";
+import type { ProfileFeedbackTemplateContext } from "@/lib/email/templates/emailTemplates";
+
+import fs from 'fs';
+import path from 'path';
+import Handlebars from 'handlebars';
+
+// רישום helpers של Handlebars
+Handlebars.registerHelper('eq', function (a, b) {
+  return a === b;
+});
+
+Handlebars.registerHelper('replace', function (str, searchValue, replaceValue) {
+  if (typeof str !== 'string') return str;
+  return str.replace(new RegExp(searchValue, 'g'), replaceValue);
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { userId, locale, isAutomated } = await req.json();
+    if (!userId || !locale) {
+      return NextResponse.json({ success: false, error: "Missing userId or locale" }, { status: 400 });
+    }
+    
+    // טעינת המילונים
+    const [dictionary, questionnaireQuestionsDict] = await Promise.all([
+      getDictionary(locale),
+      getQuestionnaireQuestionsDictionary(locale)
+    ]);
+    
+    const emailDict = dictionary.email;
+
+    // בדיקה שמילון המייל קיים
+    if (!emailDict?.profileFeedback || !emailDict?.shared) {
+        console.error("Dictionary is missing 'email.profileFeedback' or 'email.shared' section.");
+        return NextResponse.json({ success: false, error: "Server configuration error: Email dictionary is incomplete." }, { status: 500 });
+    }
+
+    // יצירת הדוח עם הטיפוס המתוקן
+    const report = await profileFeedbackService.compileFeedbackReport(
+      userId, 
+      locale, 
+      questionnaireQuestionsDict // זה כבר הטיפוס הנכון
+    );
+
+    // הכנת הקונטקסט לתבנית
+    const context: ProfileFeedbackTemplateContext = {
+      locale: locale as any,
+      dict: emailDict.profileFeedback,
+      sharedDict: {
+        ...emailDict.shared,
+        rightsReserved: (emailDict.shared.rightsReserved || "© {{year}} NeshamaTech").replace('{{year}}', new Date().getFullYear().toString())
+      },
+      name: report.name,
+      report,
+      isAutomated: isAutomated || false,
+      matchmakerName: session.user.name || "השדכן/ית שלך",
+      supportEmail: process.env.SUPPORT_EMAIL || 'support@neshamatech.com',
+      companyName: process.env.COMPANY_NAME || 'NeshamaTech',
+      currentYear: new Date().getFullYear().toString(),
+      baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+    };
+
+    // טעינת תבנית ה-Handlebars
+    const templatePath = path.resolve(process.cwd(), 'src/lib/email/templates/profile-feedback.hbs');
+    
+    if (!fs.existsSync(templatePath)) {
+      console.error(`Template file not found: ${templatePath}`);
+      return NextResponse.json({ success: false, error: "Email template not found" }, { status: 500 });
+    }
+
+    const templateSource = fs.readFileSync(templatePath, 'utf8');
+    const compiledTemplate = Handlebars.compile(templateSource);
+    
+    // הוספת greeting לקונטקסט
+    const contextWithGreeting = {
+      ...context,
+      greeting: (emailDict.profileFeedback.greeting || "שלום {{name}}").replace('{{name}}', report.name)
+    };
+    
+    const htmlContent = compiledTemplate(contextWithGreeting);
+
+    // החזרת התוכן עם headers נכונים
+    return NextResponse.json(
+      { 
+        success: true, 
+        htmlContent,
+        locale,
+        direction: locale === 'he' ? 'rtl' : 'ltr'
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        }
+      }
+    );
+
+  } catch (error) {
+    console.error("Error in prepare-feedback-email endpoint:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Internal Server Error", 
+        details: errorMessage 
+      }, 
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        }
+      }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\send-feedback-email
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\send-feedback-email\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/send-feedback-email/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { emailService } from "@/lib/email/emailService";
+import { UserRole } from "@prisma/client";
+export async function POST(req: NextRequest) {
+try {
+const session = await getServerSession(authOptions);
+if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+}
+
+const { userEmail, subject, htmlContent } = await req.json();
+if (!userEmail || !subject || !htmlContent) {
+  return NextResponse.json({ success: false, error: "Missing parameters" }, { status: 400 });
+}
+
+// קריאה לשירות המייל עם התוכן הערוך
+await emailService.sendRawEmail({
+  to: userEmail,
+  subject: subject,
+  html: htmlContent,
+});
+
+return NextResponse.json({ success: true, message: "Email sent successfully" });
+} catch (error) {
+console.error("Error sending feedback email:", error);
+return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+}
+}
+--- End of Content for route.ts ---
+
+--- End of Content for matchmaker_contents.txt ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\analyze-profile
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\analyze-profile\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/analyze-profile/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+import prisma from '@/lib/prisma';
+import { UserRole } from "@prisma/client";
+
+/**
+ * מטפל בבקשות POST לניתוח פרופיל של משתמש ספציפי על ידי שדכן.
+ */
+export async function POST(req: NextRequest) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
 
@@ -1270,7 +3148,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\auth_c
 Content:
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth
-# Generated on: 2025-09-09 19:48:05
+# Generated on: 2025-10-05 16:46:15
 ################################################################################
 
 ================================================================================
@@ -1421,7 +3299,10 @@ const completeProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required").max(100, "First name too long"),
   lastName: z.string().min(1, "Last name is required").max(100, "Last name too long"),
   // --- סוף הוספה ---
-  phone: z.string().regex(/^0\d{9}$/, "Invalid phone number format (e.g., 0501234567)"),
+  phone: z.string().refine(
+    (phone) => /^\+[1-9]\d{1,14}$/.test(phone), 
+    { message: "Invalid international phone number format (E.164 required)." }
+  ),
   gender: z.nativeEnum(Gender),
   birthDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
      message: "Invalid birth date format",
@@ -1983,6 +3864,7 @@ import { hash } from 'bcryptjs';
 import { emailService } from '@/lib/email/emailService';
 import { VerificationService } from '@/lib/services/verificationService'; 
 import { applyRateLimit } from '@/lib/rate-limiter';
+import { UserEngagementService } from '@/lib/engagement/userEngagementService';
 
 const prisma = new PrismaClient();
 
@@ -2198,7 +4080,20 @@ export async function POST(req: NextRequest) {
     });
 
     logger.info('Database transaction completed successfully', { userId: result.user.id });
-    
+    // --- ✨ הוספה חדשה: הפעלת קמפיין המיילים ✨ ---
+// קריאה זו אינה שולחת מייל מיידית, אלא רק מתזמנת את המייל הראשון בעוד מספר ימים.
+try {
+  await UserEngagementService.startCampaignForNewUser(result.user.id);
+  logger.info('User engagement campaign successfully scheduled', { userId: result.user.id });
+} catch (campaignError) {
+  // אם יש בעיה בתזמון הקמפיין, אנחנו רק מתעדים אותה ולא עוצרים את תהליך ההרשמה.
+  logger.error('Failed to start user engagement campaign', { 
+    userId: result.user.id,
+    errorObject: campaignError 
+  });
+}
+// --- סוף ההוספה ---
+
     let emailSentSuccess = false;
         const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour"; 
 
@@ -3249,8 +5144,12 @@ import { VerificationType, Prisma } from '@prisma/client';
 import { z } from 'zod';
 
 const updatePhoneSchema = z.object({
-  newPhone: z.string().regex(/^0\d{9}$/, "Invalid phone number format (e.g., 0501234567)"),
+  newPhone: z.string().refine(
+    (phone) => /^\+[1-9]\d{1,14}$/.test(phone), 
+    { message: "Invalid international phone number format (E.164 required)." }
+  ),
 });
+
 
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
@@ -4424,6 +6323,7 @@ import { hash } from 'bcryptjs';
 import { emailService } from '@/lib/email/emailService';
 import { VerificationService } from '@/lib/services/verificationService'; 
 import { applyRateLimit } from '@/lib/rate-limiter';
+import { UserEngagementService } from '@/lib/engagement/userEngagementService';
 
 const prisma = new PrismaClient();
 
@@ -4639,7 +6539,20 @@ export async function POST(req: NextRequest) {
     });
 
     logger.info('Database transaction completed successfully', { userId: result.user.id });
-    
+    // --- ✨ הוספה חדשה: הפעלת קמפיין המיילים ✨ ---
+// קריאה זו אינה שולחת מייל מיידית, אלא רק מתזמנת את המייל הראשון בעוד מספר ימים.
+try {
+  await UserEngagementService.startCampaignForNewUser(result.user.id);
+  logger.info('User engagement campaign successfully scheduled', { userId: result.user.id });
+} catch (campaignError) {
+  // אם יש בעיה בתזמון הקמפיין, אנחנו רק מתעדים אותה ולא עוצרים את תהליך ההרשמה.
+  logger.error('Failed to start user engagement campaign', { 
+    userId: result.user.id,
+    errorObject: campaignError 
+  });
+}
+// --- סוף ההוספה ---
+
     let emailSentSuccess = false;
         const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour"; 
 
@@ -6183,13 +8096,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { AvailabilityService } from "@/lib/services/availabilityService";
-import { applyRateLimit } from "@/lib/rate-limiter";
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 export async function POST(req: NextRequest) {
   try {
     // 1. Aplicar un límite de peticiones para prevenir el abuso.
-    const rateLimitResponse = await applyRateLimit(req, { requests: 30, window: '1 h' });
-    if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });    if (rateLimitResponse) {
       return rateLimitResponse;
     }
     
@@ -6549,8 +8460,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\contact\rou
 Content:
 // src/app/api/contact/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import nodemailer from 'nodemailer';
 import { z } from 'zod';
 
@@ -6563,8 +8473,7 @@ const contactSchema = z.object({
 
 export async function POST(req: NextRequest) {
   // Apply rate limiting: 5 contact form submissions per IP per hour (prevents spam)
-  const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
   try {
@@ -13520,16 +15429,14 @@ import prisma from "@/lib/prisma";
 import { UserRole, VerificationType, Prisma, VerificationStatus } from "@prisma/client";
 import { VerificationService } from "@/lib/services/verificationService";
 import { emailService } from "@/lib/email/emailService";
-import { applyRateLimit } from "@/lib/rate-limiter";
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 /**
  * Handles a matchmaker's request to send an account setup invitation to a candidate.
  * This allows a manually-created user to set their own password and take control of their profile.
  */
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   // 1. Apply Rate Limiting
-  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
   
@@ -13639,8 +15546,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\
 Content:
 // src/app/api/matchmaker/candidates/manual/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -13685,8 +15591,7 @@ async function uploadImageToCloudinary(file: File, userId: string): Promise<{ ur
 
 export async function POST(req: NextRequest) {
   // Apply rate limiting: 15 manual creations per matchmaker per hour (resource intensive)
-  const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
   try {
@@ -13950,8 +15855,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { AvailabilityService } from "@/lib/services/availabilityService";
-import { applyRateLimit } from "@/lib/rate-limiter";
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -13962,11 +15866,10 @@ type RouteSegment<T> = (
 ) => Promise<NextResponse> | NextResponse;
 
 // El manejador de la solicitud.
-const handler: RouteSegment<{ id: string }> = async (request, { params }) => {
+const handler: RouteSegment<{ id: string }> = async (req, { params }) => {
   try {
     // 1. Aplicar un límite de peticiones para prevenir el abuso.
-    const rateLimitResponse = await applyRateLimit(request, { requests: 20, window: '1 h' });
-    if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });    if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
@@ -13978,11 +15881,11 @@ const handler: RouteSegment<{ id: string }> = async (request, { params }) => {
 
     // 3. Extraer el 'locale' de los parámetros de la URL.
     //    Esta es la corrección principal para que coincida con la firma del servicio.
-    const url = new URL(request.url);
+    const url = new URL(req.url);
     const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he'; // Por defecto, se establece en hebreo.
 
     // 4. Extraer los datos del cuerpo de la solicitud.
-    const { isAvailable, note } = await request.json();
+    const { isAvailable, note } = await req.json();
 
     // Validar que 'isAvailable' sea un booleano.
     if (typeof isAvailable !== 'boolean') {
@@ -15664,7 +17567,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\pro
 Content:
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile
-# Generated on: 2025-09-21 22:14:09
+# Generated on: 2025-10-05 16:04:14
 ################################################################################
 
 ================================================================================
@@ -15794,7 +17697,6 @@ export async function GET(req: Request) {
       about: dbProfile.about || "",
       isAboutVisible: dbProfile.isAboutVisible ?? true,
       profileHeadline: dbProfile.profileHeadline || undefined,
-      humorStory: dbProfile.humorStory || undefined,
       inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
       influentialRabbi: dbProfile.influentialRabbi || undefined,
       
@@ -15820,7 +17722,6 @@ export async function GET(req: Request) {
       preferredHeadCoverings: dbProfile.preferredHeadCoverings || [],
       preferredKippahTypes: dbProfile.preferredKippahTypes || [],
       preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined,
-      preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined,
       preferredCharacterTraits: dbProfile.preferredCharacterTraits || [],
       preferredHobbies: dbProfile.preferredHobbies || [],
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
@@ -15845,8 +17746,9 @@ export async function GET(req: Request) {
       
       // מידע רפואי (חסוי)
       hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
-      medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
-      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
+   medicalInfoDetails: dbProfile.isMedicalInfoVisible 
+        ? dbProfile.medicalInfoDetails ?? undefined 
+        : undefined,      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
       
       // מידע בסיסי על המשתמש
@@ -15948,8 +17850,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\ima
 Content:
 // src/app/api/profile/images/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
@@ -16031,8 +17932,7 @@ export async function GET() {
 // POST - Upload new images (can be adapted for multiple files)
 export async function POST(req: NextRequest) {
   // Apply rate limiting: 20 image uploads per user per hour (prevents resource abuse)
-  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
   const startTime = Date.now();
@@ -17305,7 +19205,6 @@ export async function PUT(req: NextRequest) {
       about,
       // --- START: הוספת שדות חדשים ---
       profileHeadline,
-      humorStory,
       inspiringCoupleStory,
       influentialRabbi,
       // --- END: הוספת שדות חדשים ---
@@ -17345,7 +19244,6 @@ export async function PUT(req: NextRequest) {
       preferredHeadCoverings,
       preferredKippahTypes,
       preferredShomerNegiah,
-      preferredHasChildrenFromPrevious,
       preferredCharacterTraits,
       preferredHobbies,
       preferredAliyaStatus,
@@ -17426,7 +19324,6 @@ export async function PUT(req: NextRequest) {
     // --- About & Additional Info ---
     if (about !== undefined) dataToUpdate.about = emptyStringToNull(about);
       if (profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(profileHeadline);
-    if (humorStory !== undefined) dataToUpdate.humorStory = emptyStringToNull(humorStory);
     if (inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(inspiringCoupleStory);
     if (influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(influentialRabbi);
     if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
@@ -17448,9 +19345,7 @@ export async function PUT(req: NextRequest) {
     if (preferredKippahTypes !== undefined) dataToUpdate.preferredKippahTypes = preferredKippahTypes || [];
     if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah); // Assuming it's a string like "yes", "no" that needs to be nullable
     
-    if (preferredHasChildrenFromPrevious !== undefined) {
-      dataToUpdate.preferredHasChildrenFromPrevious = preferredHasChildrenFromPrevious;
-    }
+
 
     if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || []; // Preference for partner
     if (preferredHobbies !== undefined) dataToUpdate.preferredHobbies = preferredHobbies || []; // Preference for partner's hobbies
@@ -17539,7 +19434,6 @@ export async function PUT(req: NextRequest) {
       preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
       about: dbProfile.about || "",
         profileHeadline: dbProfile.profileHeadline || undefined,
-      humorStory: dbProfile.humorStory || undefined,
       inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
       influentialRabbi: dbProfile.influentialRabbi || undefined,
       parentStatus: dbProfile.parentStatus || undefined,
@@ -17587,7 +19481,6 @@ export async function PUT(req: NextRequest) {
       preferredHeadCoverings: (dbProfile.preferredHeadCoverings as HeadCoveringType[]) || [],
       preferredKippahTypes: (dbProfile.preferredKippahTypes as KippahType[]) || [],
       preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined, 
-      preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined, 
       preferredCharacterTraits: dbProfile.preferredCharacterTraits || [], 
       preferredHobbies: dbProfile.preferredHobbies || [],                 
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
@@ -17964,8 +19857,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\ima
 Content:
 // src/app/api/profile/images/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
@@ -18047,8 +19939,7 @@ export async function GET() {
 // POST - Upload new images (can be adapted for multiple files)
 export async function POST(req: NextRequest) {
   // Apply rate limiting: 20 image uploads per user per hour (prevents resource abuse)
-  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
   const startTime = Date.now();
@@ -19227,7 +21118,7 @@ import {
   Profile, // Import Prisma's Profile type
 } from "@prisma/client";
 import type { UserProfile } from "@/types/next-auth";
-import { updateUserAiProfile } from '@/lib/services/profileAiService'; // <--- 1. ייבוא
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
 
 // Helper to convert to number or null
 const toNumberOrNull = (value: string | number | null | undefined): number | null => {
@@ -19317,13 +21208,13 @@ export async function PUT(req: NextRequest) {
       origin,
       religiousLevel,
       religiousJourney,
-      preferredReligiousJourneys, 
       about,
-      // --- START: הוספת שדות חדשים ---
       profileHeadline,
       inspiringCoupleStory,
       influentialRabbi,
-      // --- END: הוספת שדות חדשים ---
+      isAboutVisible,
+      isFriendsSectionVisible,
+      isNeshamaTechSummaryVisible,
       parentStatus,
       fatherOccupation,
       motherOccupation,
@@ -19345,6 +21236,7 @@ export async function PUT(req: NextRequest) {
       profileHobbies,
       aliyaCountry,
       aliyaYear,
+      // --- START: PREFERENCE FIELDS ---
       preferredAgeMin,
       preferredAgeMax,
       preferredHeightMin,
@@ -19360,9 +21252,12 @@ export async function PUT(req: NextRequest) {
       preferredHeadCoverings,
       preferredKippahTypes,
       preferredShomerNegiah,
+      preferredPartnerHasChildren,
       preferredCharacterTraits,
       preferredHobbies,
       preferredAliyaStatus,
+      preferredReligiousJourneys,
+      // --- END: PREFERENCE FIELDS ---
       hasViewedProfilePreview,
       hasMedicalInfo,
       medicalInfoDetails,
@@ -19392,9 +21287,9 @@ export async function PUT(req: NextRequest) {
 
     // --- Marital Status & Background (User's own) ---
     if (maritalStatus !== undefined) dataToUpdate.maritalStatus = emptyStringToNull(maritalStatus);
-    if (hasChildrenFromPrevious !== undefined) dataToUpdate.hasChildrenFromPrevious = hasChildrenFromPrevious; // User's own
+    if (hasChildrenFromPrevious !== undefined) dataToUpdate.hasChildrenFromPrevious = hasChildrenFromPrevious;
     if (parentStatus !== undefined) dataToUpdate.parentStatus = emptyStringToNull(parentStatus);
-     if (fatherOccupation !== undefined) dataToUpdate.fatherOccupation = emptyStringToNull(fatherOccupation);
+    if (fatherOccupation !== undefined) dataToUpdate.fatherOccupation = emptyStringToNull(fatherOccupation);
     if (motherOccupation !== undefined) dataToUpdate.motherOccupation = emptyStringToNull(motherOccupation);
     if (siblings !== undefined) dataToUpdate.siblings = toNumberOrNull(siblings);
     if (position !== undefined) dataToUpdate.position = toNumberOrNull(position);
@@ -19408,8 +21303,7 @@ export async function PUT(req: NextRequest) {
 
     // --- Religion & Lifestyle (User's own) ---
     if (religiousLevel !== undefined) dataToUpdate.religiousLevel = emptyStringToNull(religiousLevel);
-        if (religiousJourney !== undefined) dataToUpdate.religiousJourney = emptyStringToNull(religiousJourney) as ReligiousJourney | null;
-
+    if (religiousJourney !== undefined) dataToUpdate.religiousJourney = emptyStringToNull(religiousJourney) as ReligiousJourney | null;
     if (shomerNegiah !== undefined) dataToUpdate.shomerNegiah = shomerNegiah;
 
     const existingProfileMinimal = await prisma.profile.findUnique({ where: { userId }, select: { gender: true }});
@@ -19435,50 +21329,51 @@ export async function PUT(req: NextRequest) {
 
     // --- Traits & Hobbies (User's own) ---
     if (profileCharacterTraits !== undefined) dataToUpdate.profileCharacterTraits = profileCharacterTraits || [];
-    if (profileHobbies !== undefined) dataToUpdate.profileHobbies = profileHobbies || []; // User's own hobbies
+    if (profileHobbies !== undefined) dataToUpdate.profileHobbies = profileHobbies || [];
 
     // --- About & Additional Info ---
     if (about !== undefined) dataToUpdate.about = emptyStringToNull(about);
-      if (profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(profileHeadline);
+    if (profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(profileHeadline);
     if (inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(inspiringCoupleStory);
     if (influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(influentialRabbi);
-    if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
     
     // --- Preferences (related to matching partner) ---
+    if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
+    if (contactPreference !== undefined) dataToUpdate.contactPreference = emptyStringToNull(contactPreference);
     if (preferredAgeMin !== undefined) dataToUpdate.preferredAgeMin = toNumberOrNull(preferredAgeMin);
     if (preferredAgeMax !== undefined) dataToUpdate.preferredAgeMax = toNumberOrNull(preferredAgeMax);
     if (preferredHeightMin !== undefined) dataToUpdate.preferredHeightMin = toNumberOrNull(preferredHeightMin);
     if (preferredHeightMax !== undefined) dataToUpdate.preferredHeightMax = toNumberOrNull(preferredHeightMax);
-    if (preferredReligiousLevels !== undefined) dataToUpdate.preferredReligiousLevels = preferredReligiousLevels || [];
     if (preferredLocations !== undefined) dataToUpdate.preferredLocations = preferredLocations || [];
-    if (preferredEducation !== undefined) dataToUpdate.preferredEducation = preferredEducation || [];
-    if (preferredOccupations !== undefined) dataToUpdate.preferredOccupations = preferredOccupations || [];
-    if (contactPreference !== undefined) dataToUpdate.contactPreference = emptyStringToNull(contactPreference);
-    if (preferredMaritalStatuses !== undefined) dataToUpdate.preferredMaritalStatuses = preferredMaritalStatuses || [];
-    if (preferredOrigins !== undefined) dataToUpdate.preferredOrigins = preferredOrigins || [];
-    if (preferredServiceTypes !== undefined) dataToUpdate.preferredServiceTypes = preferredServiceTypes || [];
+    if (preferredReligiousLevels !== undefined) dataToUpdate.preferredReligiousLevels = preferredReligiousLevels || [];
+    if (preferredReligiousJourneys !== undefined) dataToUpdate.preferredReligiousJourneys = preferredReligiousJourneys || [];
+    if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah);
     if (preferredHeadCoverings !== undefined) dataToUpdate.preferredHeadCoverings = preferredHeadCoverings || [];
     if (preferredKippahTypes !== undefined) dataToUpdate.preferredKippahTypes = preferredKippahTypes || [];
-    if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah); // Assuming it's a string like "yes", "no" that needs to be nullable
-    
-
-
-    if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || []; // Preference for partner
-    if (preferredHobbies !== undefined) dataToUpdate.preferredHobbies = preferredHobbies || []; // Preference for partner's hobbies
+    if (preferredEducation !== undefined) dataToUpdate.preferredEducation = preferredEducation || [];
+    if (preferredOccupations !== undefined) dataToUpdate.preferredOccupations = preferredOccupations || [];
+    if (preferredServiceTypes !== undefined) dataToUpdate.preferredServiceTypes = preferredServiceTypes || [];
+    if (preferredMaritalStatuses !== undefined) dataToUpdate.preferredMaritalStatuses = preferredMaritalStatuses || [];
+    if (preferredPartnerHasChildren !== undefined) dataToUpdate.preferredPartnerHasChildren = emptyStringToNull(preferredPartnerHasChildren);
+    if (preferredOrigins !== undefined) dataToUpdate.preferredOrigins = preferredOrigins || [];
     if (preferredAliyaStatus !== undefined) dataToUpdate.preferredAliyaStatus = emptyStringToNull(preferredAliyaStatus);
-    if (preferredReligiousJourneys !== undefined) dataToUpdate.preferredReligiousJourneys = preferredReligiousJourneys || [];
-
-    // --- Profile Management ---
+    if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || [];
+    if (preferredHobbies !== undefined) dataToUpdate.preferredHobbies = preferredHobbies || [];
+    
+    // --- Profile Management & Visibility ---
     if (isProfileVisible !== undefined) dataToUpdate.isProfileVisible = isProfileVisible;
     if (hasViewedProfilePreview !== undefined) dataToUpdate.hasViewedProfilePreview = hasViewedProfilePreview;
+    if (isAboutVisible !== undefined) dataToUpdate.isAboutVisible = isAboutVisible;
+    if (isFriendsSectionVisible !== undefined) dataToUpdate.isFriendsSectionVisible = isFriendsSectionVisible;
+    if (isNeshamaTechSummaryVisible !== undefined) dataToUpdate.isNeshamaTechSummaryVisible = isNeshamaTechSummaryVisible;
    
-    // --- START: הוספת לוגיקת עדכון לשדות רפואיים ---
+    // --- Medical Info ---
     if (hasMedicalInfo !== undefined) dataToUpdate.hasMedicalInfo = hasMedicalInfo;
     if (medicalInfoDetails !== undefined) dataToUpdate.medicalInfoDetails = emptyStringToNull(medicalInfoDetails);
     if (medicalInfoDisclosureTiming !== undefined) dataToUpdate.medicalInfoDisclosureTiming = emptyStringToNull(medicalInfoDisclosureTiming);
     if (isMedicalInfoVisible !== undefined) dataToUpdate.isMedicalInfoVisible = isMedicalInfoVisible;
-    // --- END: הוספת לוגיקת עדכון לשדות רפואיים ---
 
+    // --- Availability ---
     if (availabilityStatus !== undefined) {
       const statusValue = emptyStringToNull(availabilityStatus);
       dataToUpdate.availabilityStatus = (statusValue === null ? "AVAILABLE" : statusValue) as AvailabilityStatus;
@@ -19547,11 +21442,13 @@ export async function PUT(req: NextRequest) {
       origin: dbProfile.origin || "",
       religiousLevel: dbProfile.religiousLevel || undefined,
       religiousJourney: dbProfile.religiousJourney || undefined,
-      preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
       about: dbProfile.about || "",
-        profileHeadline: dbProfile.profileHeadline || undefined,
+      profileHeadline: dbProfile.profileHeadline || undefined,
       inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
       influentialRabbi: dbProfile.influentialRabbi || undefined,
+      isAboutVisible: dbProfile.isAboutVisible ?? true,
+      isFriendsSectionVisible: dbProfile.isFriendsSectionVisible ?? true,
+      isNeshamaTechSummaryVisible: dbProfile.isNeshamaTechSummaryVisible ?? true,
       parentStatus: dbProfile.parentStatus || undefined,
       fatherOccupation: dbProfile.fatherOccupation || "",
       motherOccupation: dbProfile.motherOccupation || "",
@@ -19559,14 +21456,11 @@ export async function PUT(req: NextRequest) {
       position: dbProfile.position ?? null,
       isProfileVisible: dbProfile.isProfileVisible,
       isProfileComplete: refreshedUserWithProfile.isProfileComplete,
-      // --- START: הוספת שדות רפואיים לתגובה ---
       hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
       medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
       medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
-            needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
-
-      // --- END: הוספת שדות רפואיים לתגובה ---
+      needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
       preferredMatchmakerGender: dbProfile.preferredMatchmakerGender || undefined,
       availabilityStatus: dbProfile.availabilityStatus,
       availabilityNote: dbProfile.availabilityNote || "",
@@ -19586,8 +21480,9 @@ export async function PUT(req: NextRequest) {
       preferredAgeMax: dbProfile.preferredAgeMax ?? null,
       preferredHeightMin: dbProfile.preferredHeightMin ?? null,
       preferredHeightMax: dbProfile.preferredHeightMax ?? null,
-      preferredReligiousLevels: dbProfile.preferredReligiousLevels || [],
       preferredLocations: dbProfile.preferredLocations || [],
+      preferredReligiousLevels: dbProfile.preferredReligiousLevels || [],
+      preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
       preferredEducation: dbProfile.preferredEducation || [],
       preferredOccupations: dbProfile.preferredOccupations || [],
       contactPreference: dbProfile.contactPreference || undefined,
@@ -19596,12 +21491,12 @@ export async function PUT(req: NextRequest) {
       preferredServiceTypes: (dbProfile.preferredServiceTypes as ServiceType[]) || [], 
       preferredHeadCoverings: (dbProfile.preferredHeadCoverings as HeadCoveringType[]) || [],
       preferredKippahTypes: (dbProfile.preferredKippahTypes as KippahType[]) || [],
-      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined, 
+      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined,
+      preferredPartnerHasChildren: dbProfile.preferredPartnerHasChildren || undefined,
       preferredCharacterTraits: dbProfile.preferredCharacterTraits || [], 
       preferredHobbies: dbProfile.preferredHobbies || [],                 
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
       hasViewedProfilePreview: dbProfile.hasViewedProfilePreview, 
-
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,

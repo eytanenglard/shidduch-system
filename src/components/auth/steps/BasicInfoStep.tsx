@@ -298,6 +298,23 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         </div>
       </motion.div>
 
+{/* הוסף את הקטע הבא */}
+<motion.div variants={itemVariants} className="space-y-1">
+  <label htmlFor="language" className="block text-sm font-medium text-gray-700">
+    {dict.languageLabel}
+  </label>
+  <select
+    id="language"
+    value={data.language}
+    onChange={(e) => updateField('language', e.target.value as 'he' | 'en')}
+    disabled={isLoading}
+    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none bg-white"
+  >
+    <option value="he">עברית</option>
+    <option value="en">English</option>
+  </select>
+</motion.div>
+
       <motion.div variants={itemVariants} className="mt-6">
         <ConsentCheckbox
           checked={consentChecked}

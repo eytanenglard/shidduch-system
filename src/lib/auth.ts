@@ -14,7 +14,7 @@ import type {
 } from "@/types/next-auth";
 import { JWT as ExtendedUserJWT } from "next-auth/jwt";
 import { Session as ExtendedSession } from "next-auth";
-import { UserRole, UserStatus, UserSource } from "@prisma/client";
+import { UserRole, UserStatus, UserSource, Language  } from "@prisma/client";
 
 console.log("Auth options file loaded");
 
@@ -70,6 +70,7 @@ export const authOptions: NextAuthOptions = {
           profile: null, 
           images: [], 
           questionnaireResponses: [],
+           language: 'he',
           questionnaireCompleted: false,
 
           redirectUrl: undefined,
@@ -185,6 +186,7 @@ export const authOptions: NextAuthOptions = {
           profile: null,
           images: [],
           questionnaireResponses: [],
+           language: 'he',
           questionnaireCompleted: false,
           source: userFromDb.source,
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
@@ -312,6 +314,7 @@ export const authOptions: NextAuthOptions = {
       typedUser.addedByMatchmakerId = dbUser.addedByMatchmakerId;
       typedUser.termsAndPrivacyAcceptedAt = dbUser.termsAndPrivacyAcceptedAt;
       typedUser.marketingConsent = dbUser.marketingConsent;
+       typedUser.language = dbUser.language;  
       typedUser.createdAt = dbUser.createdAt; // מעבירים את התאריך
       typedUser.updatedAt = dbUser.updatedAt; // מעבירים את התאריך
       typedUser.lastLogin = dbUser.lastLogin; // מעבירים את התאריך
@@ -373,6 +376,7 @@ export const authOptions: NextAuthOptions = {
         typedToken.requiresCompletion = typedUserFromCallback.requiresCompletion;
         typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
         typedToken.marketingConsent = typedUserFromCallback.marketingConsent;
+        typedUserFromCallback.language; 
         // Store dates as Date objects; they will be serialized automatically
         typedToken.createdAt = typedUserFromCallback.createdAt;
         typedToken.updatedAt = typedUserFromCallback.updatedAt;
@@ -402,6 +406,8 @@ export const authOptions: NextAuthOptions = {
             typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
             typedToken.marketingConsent = dbUserForJwt.marketingConsent;
             // Refresh dates from the DB
+                        typedToken.language = dbUserForJwt.language; // <-- 5. רענן את השדה מה-DB
+
             typedToken.createdAt = dbUserForJwt.createdAt;
             typedToken.updatedAt = dbUserForJwt.updatedAt;
             typedToken.lastLogin = dbUserForJwt.lastLogin;
@@ -443,7 +449,7 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.source = typedToken.source;
         typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId;
         typedSession.user.marketingConsent = typedToken.marketingConsent;
-        
+        typedToken.language;
         // =================== התיקון הסופי והנכון ===================
         // המרת כל מחרוזות התאריך מהטוקן בחזרה לאובייקטי Date
         // שימוש ב- 'as unknown as string' הוא דרך בטוחה ומפורשת

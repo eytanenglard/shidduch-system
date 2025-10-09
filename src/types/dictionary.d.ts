@@ -2770,7 +2770,13 @@ export type AccountSettingsDict = {
       description: string;
       deleteButton: string;
     };
+     language: { // <-- הוסף את כל האובייקט הזה
+      title: string;
+      label: string;
+      description: string;
+    };
   };
+
   cardFooter: {
     notice: string;
   };
@@ -2803,6 +2809,8 @@ export type AccountSettingsDict = {
     deleteErrorDesc: string;
     marketingUpdateSuccess: string;
     marketingUpdateError: string;
+    languageUpdateSuccess: string; // <-- הוסף שורה זו
+    languageUpdateError: string; // <-- הוסף שורה זו
   };
   passwordDialog: {
     title: string;

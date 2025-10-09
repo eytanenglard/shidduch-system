@@ -29,7 +29,7 @@ model User {
   matchmakerWhoAdded        User?      @relation("ManuallyAddedBy", fields: [addedByMatchmakerId], references: [id]) // New relation
   termsAndPrivacyAcceptedAt DateTime? // מתי המשתמש אישר את התנאים ומדיניות הפרטיות
   marketingConsent          Boolean    @default(false) // הסכמה לקבלת דיוור שיווקי
-
+  language                  Language   @default(he) 
   firstPartyInquiries             AvailabilityInquiry[]   @relation("FirstPartyInquiries")
   matchmakerAvailabilityInquiries AvailabilityInquiry[]   @relation("MatchmakerInquiries")
   secondPartyInquiries            AvailabilityInquiry[]   @relation("SecondPartyInquiries")
@@ -698,10 +698,17 @@ model UserDripCampaign {
   nextSendDate  DateTime
   status        CampaignStatus @default(ACTIVE)
   lastSentType  String?        // To track which type of message was last sent
+    lastEveningEmailSent   DateTime?  // מתי שלחנו מייל ערב אחרון
+  eveningEmailsCount     Int        @default(0)  // כמה מיילי ערב שלחנו
+  lastAiSummarySent      DateTime?  // מתי שלחנו AI Summary אחרון
+  aiSummaryCount         Int        @default(0)  // כמה פעמים שלחנו AI Summary
+  
+
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
   @@index([nextSendDate, status])
+   @@index([lastEveningEmailSent])
 }
 
 enum CampaignStatus {
@@ -709,4 +716,9 @@ enum CampaignStatus {
   PAUSED
   UNSUBSCRIBED
   COMPLETED
+}
+
+enum Language {
+  en
+  he
 }

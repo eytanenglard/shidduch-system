@@ -110,8 +110,7 @@ export async function POST(req: NextRequest) {
         password: hashedPassword,
         updatedAt: new Date(),
       },
-      select: { email: true, firstName: true } // Select data needed for confirmation email
-    });
+select: { email: true, firstName: true, language: true }     });
     logger.info('User password updated in database', { action, userId });
 
     // Mark the verification record as COMPLETED
@@ -123,7 +122,7 @@ export async function POST(req: NextRequest) {
       try {
         // *** CRITICAL FIX: Pass the locale to the email service ***
         await emailService.sendPasswordChangedConfirmationEmail({
-          locale, // Pass the determined locale
+         locale: user.language || locale,  // Pass the determined locale
           email: user.email,
           firstName: user.firstName,
         });

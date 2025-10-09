@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>עדכון התקדמות</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); direction: rtl;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; width: 100%; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.5); overflow: hidden;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #06b6d4 0%, #ec4899 100%); padding: 50px 30px; text-align: center; position: relative;">
+                            <div style="position: absolute; top: 20px; right: 20px; width: 80px; height: 80px; background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%); border-radius: 50%; filter: blur(20px);"></div>
+                            <h1 style="color: white; margin: 0; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                                {{firstName}}, איך מתקדמים?
+                            </h1>
+                            <p style="color: rgba(255,255,255,0.95); margin: 12px 0 0 0; font-size: 17px; font-weight: 500;">
+                                עדכון מהיר על ההתקדמות שלך
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Main Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="font-size: 18px; color: #2d3748; margin: 0 0 20px 0; line-height: 1.6;">
+                                היי {{firstName}},
+                            </p>
+                            
+                            <!-- Progress Circle -->
+                            <div style="text-align: center; margin: 30px 0;">
+                                <div style="background: linear-gradient(135deg, #e0e7ff 0%, #fce7f3 100%); border-radius: 20px; padding: 30px; display: inline-block;">
+                                    <div style="font-size: 56px; font-weight: 900; background: linear-gradient(135deg, #06b6d4, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1;">
+                                        {{progressPercentage}}%
+                                    </div>
+                                    <div style="color: #4a5568; font-size: 16px; margin-top: 8px; font-weight: 500;">הושלם</div>
+                                </div>
+                            </div>
+
+                            <p style="font-size: 16px; color: #4a5568; margin: 20px 0; line-height: 1.7; text-align: center;">
+                                <strong>כל הכבוד!</strong> הפרופיל שלך כבר ב-{{progressPercentage}}%.
+                            </p>
+
+                            <!-- Why It Matters -->
+                            <div style="background: linear-gradient(135deg, #e0e7ff 0%, #fce7f3 100%); border-radius: 12px; padding: 25px; margin: 25px 0;">
+                                <h3 style="color: #5a67d8; margin: 0 0 15px 0; font-size: 20px; font-weight: 600;">
+                                    למה זה כל כך חשוב?
+                                </h3>
+                                <p style="color: #4a5568; margin: 0; font-size: 15px; line-height: 1.7;">
+                                    כל פרט שאתה מוסיף עוזר למערכת ה-AI שלנו להבין אותך יותר לעומק. למשל, {{aiLearning}}
+                                </p>
+                            </div>
+
+                            <!-- Detailed Progress -->
+                            <div style="background: #f8fafc; border-radius: 12px; padding: 24px; margin: 25px 0;">
+                                <h3 style="color: #2d3748; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">
+                                    מה הושלם עד כה?
+                                </h3>
+                                
+                                <!-- Photos -->
+                                <div style="margin-bottom: 20px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span style="color: #4a5568; font-size: 15px; font-weight: 500;">תמונות</span>
+                                        <span style="color: {{#if photosComplete}}#10b981{{else}}#f59e0b{{/if}}; font-weight: 600; font-size: 14px;">
+                                            {{photosCount}}/3
+                                        </span>
+                                    </div>
+                                    <div style="background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                        <div style="background: {{#if photosComplete}}linear-gradient(90deg, #10b981, #059669){{else}}linear-gradient(90deg, #f59e0b, #d97706){{/if}}; height: 100%; width: {{photosPercent}}%; transition: width 0.5s;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Personal Details -->
+                                <div style="margin-bottom: 20px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span style="color: #4a5568; font-size: 15px; font-weight: 500;">פרטים אישיים</span>
+                                        <span style="color: {{#if personalComplete}}#10b981{{else}}#f59e0b{{/if}}; font-weight: 600; font-size: 14px;">
+                                            {{#if personalComplete}}✓ הושלם{{else}}{{personalMissingCount}} חסרים{{/if}}
+                                        </span>
+                                    </div>
+                                    <div style="background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                        <div style="background: {{#if personalComplete}}linear-gradient(90deg, #10b981, #059669){{else}}linear-gradient(90deg, #f59e0b, #d97706){{/if}}; height: 100%; width: {{personalPercent}}%; transition: width 0.5s;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Questionnaire -->
+                                <div style="margin-bottom: 20px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span style="color: #4a5568; font-size: 15px; font-weight: 500;">שאלון</span>
+                                        <span style="color: {{#if questionnaireComplete}}#10b981{{else}}#f59e0b{{/if}}; font-weight: 600; font-size: 14px;">
+                                            {{questionnairePercent}}%
+                                        </span>
+                                    </div>
+                                    <div style="background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                        <div style="background: {{#if questionnaireComplete}}linear-gradient(90deg, #10b981, #059669){{else}}linear-gradient(90deg, #f59e0b, #d97706){{/if}}; height: 100%; width: {{questionnairePercent}}%; transition: width 0.5s;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Preferences -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span style="color: #4a5568; font-size: 15px; font-weight: 500;">העדפות בן/בת זוג</span>
+                                        <span style="color: {{#if preferencesComplete}}#10b981{{else}}#f59e0b{{/if}}; font-weight: 600; font-size: 14px;">
+                                            {{#if preferencesComplete}}✓ הושלם{{else}}{{preferencesMissingCount}} חסרים{{/if}}
+                                        </span>
+                                    </div>
+                                    <div style="background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                        <div style="background: {{#if preferencesComplete}}linear-gradient(90deg, #10b981, #059669){{else}}linear-gradient(90deg, #f59e0b, #d97706){{/if}}; height: 100%; width: {{preferencesPercent}}%; transition: width 0.5s;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Next Action -->
+                            <div style="background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border-right: 4px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                                <h3 style="color: #92400e; margin: 0 0 10px 0; font-size: 18px; font-weight: 600;">
+                                    הצעד הבא שלך
+                                </h3>
+                                <p style="color: #78350f; margin: 0 0 10px 0; font-size: 16px; line-height: 1.6;">
+                                    {{nextAction}}
+                                </p>
+                                <p style="color: #92400e; margin: 0; font-size: 14px;">
+                                    זה ייקח רק <strong>{{estimatedTime}}</strong> ויקפיץ אותך ל-<strong>{{nextMilestone}}%</strong>!
+                                </p>
+                            </div>
+
+                            {{#if aiPersonalInsight}}
+                            <!-- AI Insight -->
+                            <div style="background: #f0fdfa; border-right: 4px solid #06b6d4; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                                <p style="color: #0f766e; margin: 0; font-size: 14px; line-height: 1.6;">
+                                    <strong>💡 תובנה אישית:</strong> {{aiPersonalInsight}}
+                                </p>
+                            </div>
+                            {{/if}}
+
+                            <!-- Social Proof -->
+                            <div style="background: #f0fdfa; border-right: 3px solid #14b8a6; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                                <p style="color: #0f766e; margin: 0; font-size: 14px; line-height: 1.6;">
+                                    <strong>טיפ:</strong> משתמשים שמגיעים ל-70% בשבוע הראשון מקבלים הצעות איכותיות פי 4 יותר מהר!
+                                </p>
+                            </div>
+
+                            <!-- CTA -->
+                            <table role="presentation" style="margin: 30px 0;">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <a href="{{ctaLink}}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 16px 40px; border-radius: 50px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                                            {{ctaText}}
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 15px; color: #718096; margin: 25px 0 0 0; line-height: 1.6; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                                יש שאלה? פשוט תשיב למייל - אנחנו כאן בשבילך!
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background: #f7fafc; padding: 25px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
+                            <p style="margin: 0 0 5px 0; color: #718096; font-size: 14px;">
+                                ממשיכים לעבוד!
+                            </p>
+                            <p style="margin: 0; color: #a0aec0; font-size: 13px;">
+                                צוות NeshamaTech
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; width: 100%; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.12); overflow: hidden;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%); padding: 45px 30px; text-align: center;">
+                            <div style="font-size: 56px; margin-bottom: 15px;">📊</div>
+                            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                                {{firstName}}, אתה עושה עבודה מעולה!
+                            </h1>
+                            <p style="color: rgba(255,255,255,0.95); margin: 12px 0 0 0; font-size: 16px; font-weight: 500;">
+                                הנה עדכון מהיר על ההתקדמות שלך
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Main Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="font-size: 17px; color: #2d3748; margin: 0 0 20px 0; line-height: 1.6;">
+                                היי {{firstName}},
+                            </p>
+                            
+                            <!-- Big Progress Number -->
+                            <div style="text-align: center; margin: 30px 0;">
+                                <div style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%); border-radius: 50%; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);">
+                                    <div style="color: white;">
+                                        <div style="font-size: 48px; font-weight: 800; line-height: 1;">{{progressPercentage}}%</div>
+                                        <div style="font-size: 14px; margin-top: 5px;">הושלם</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p style="font-size: 16px; color: #4a5568; margin: 20px 0; line-height: 1.7; text-align: center;">
+                                <strong>כל הכבוד!</strong> הפרופיל שלך כבר ב-{{progressPercentage}}%.
+                            </p>
+
+                            <!-- What Makes This Special -->
+                            <div style="background: linear-gradient(135deg, #ede9fe 0%, #dbeafe 100%); border-radius: 16px; padding: 24px; margin: 25px 0;">
+                                <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
+                                    🧠 למה זה כל כך חשוב?
+                                </h3>
+                                <p style="color: #1e40af; margin: 0; font-size: 15px; line-height: 1.7;">
+                                    כל פרט שאתה מוסיף עוזר למערכת ה-AI שלנו להבין אותך יותר לעומק. 
+                                    למשל, {{aiLearning}}
+                                </p>
+                            </div>
+
+                            <!-- Detailed Breakdown -->
+                            <div style="background: #f8fafc; border-radius: 16px; padding: 24px; margin: 25px 0;">
+                                <h3 style="color: #334155; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">
+                                    מה הושלם עד כה?
+                                </h3>
+                                
+                                <!-- Task 1: Photos -->
+                                <div style="margin-bottom: 20px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span style="color: #64748b; font-size: 15px; font-weight: 500;">
+                                            📸 תמונות
+                                        </span>
+                                        <span style="color: {{#if photosComplete}}#10b981{{else}}#f59e0b{{/if}}; font-weight: 600; font-size: 14px;">
+                                            {{photosCount}}/3
+                                        </span>
+                                    </div>
+                                    <div style="background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                        <div style="background: {{#if photosComplete}}#10b981{{else}}#f59e0b{{/if}}; height: 100%; width: {{photosPercent}}%; transition: width 0.5s;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Task 2: Personal Details -->
+                                <div style="margin-bottom: 20px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span style="color: #64748b; font-size: 15px; font-weight: 500;">
+                                            👤 פרטים אישיים
+                                        </span>
+                                        <span style="color: {{#if personalComplete}}#10b981{{else}}#f59e0b{{/if}}; font-weight: 600; font-size: 14px;">
+                                            {{#if personalComplete}}✓ הושלם{{else}}{{personalMissingCount}} חסרים{{/if}}
+                                        </span>
+                                    </div>
+                                    <div style="background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                        <div style="background: {{#if personalComplete}}#10b981{{else}}#f59e0b{{/if}}; height: 100%; width: {{personalPercent}}%; transition: width 0.5s;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Task 3: Questionnaire -->
+                                <div style="margin-bottom: 20px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span style="color: #64748b; font-size: 15px; font-weight: 500;">
+                                            📝 שאלון
+                                        </span>
+                                        <span style="color: {{#if questionnaireComplete}}#10b981{{else}}#f59e0b{{/if}}; font-weight: 600; font-size: 14px;">
+                                            {{questionnairePercent}}%
+                                        </span>
+                                    </div>
+                                    <div style="background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                        <div style="background: {{#if questionnaireComplete}}#10b981{{else}}#f59e0b{{/if}}; height: 100%; width: {{questionnairePercent}}%; transition: width 0.5s;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Task 4: Partner Preferences -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span style="color: #64748b; font-size: 15px; font-weight: 500;">
+                                            🎯 העדפות בן/בת זוג
+                                        </span>
+                                        <span style="color: {{#if preferencesComplete}}#10b981{{else}}#f59e0b{{/if}}; font-weight: 600; font-size: 14px;">
+                                            {{#if preferencesComplete}}✓ הושלם{{else}}{{preferencesMissingCount}} חסרים{{/if}}
+                                        </span>
+                                    </div>
+                                    <div style="background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                        <div style="background: {{#if preferencesComplete}}#10b981{{else}}#f59e0b{{/if}}; height: 100%; width: {{preferencesPercent}}%; transition: width 0.5s;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Next Action -->
+                            <div style="background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border-right: 4px solid #f59e0b; border-radius: 12px; padding: 24px; margin: 25px 0;">
+                                <h3 style="color: #92400e; margin: 0 0 12px 0; font-size: 18px; font-weight: 600;">
+                                    🚀 הצעד הבא שלך
+                                </h3>
+                                <p style="color: #78350f; margin: 0 0 15px 0; font-size: 16px; line-height: 1.6;">
+                                    {{nextAction}}
+                                </p>
+                                <p style="color: #92400e; margin: 0; font-size: 14px;">
+                                    זה ייקח רק <strong>{{estimatedTime}} דקות</strong> ויקפיץ אותך ל-<strong>{{nextMilestone}}%</strong>!
+                                </p>
+                            </div>
+
+                            {{#if aiPersonalInsight}}
+                            <!-- AI Personal Insight -->
+                            <div style="background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%); border-radius: 16px; padding: 24px; margin: 25px 0; border: 2px solid rgba(139, 92, 246, 0.2);">
+                                <div style="margin-bottom: 12px;">
+                                    <span style="font-size: 28px; margin-left: 10px;">💡</span>
+                                    <span style="color: transparent; background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; background-clip: text; font-size: 18px; font-weight: 700;">
+                                        תובנה מותאמת אישית עבורך
+                                    </span>
+                                </div>
+                                <p style="color: #4c1d95; margin: 0; font-size: 15px; line-height: 1.7; font-style: italic;">
+                                    "{{aiPersonalInsight}}"
+                                </p>
+                            </div>
+                            {{/if}}
+
+                            <!-- Social Proof -->
+                            <div style="background: #f0fdfa; border-radius: 12px; padding: 20px; margin: 25px 0; border-right: 3px solid #14b8a6;">
+                                <p style="color: #0f766e; margin: 0; font-size: 14px; line-height: 1.6;">
+                                    <strong>💬 טיפ מהשדכנים:</strong> משתמשים שמגיעים ל-70% בשבוע הראשון מקבלים הצעות איכותיות פי 4 יותר מהר!
+                                </p>
+                            </div>
+
+                            <!-- CTA -->
+                            <table role="presentation" style="margin: 35px 0;">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <a href="{{ctaLink}}" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%); color: white; text-decoration: none; padding: 18px 48px; border-radius: 50px; font-weight: 700; font-size: 17px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);">
+                                            {{ctaText}} 💪
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 14px; color: #718096; margin: 25px 0 0 0; line-height: 1.6; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                                יש שאלה? פשוט תשיב למייל - אנחנו כאן בשבילך!
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background: #f7fafc; padding: 25px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
+                            <p style="margin: 0 0 5px 0; color: #718096; font-size: 14px;">
+                                ממשיכים לעבוד! 🔥
+                            </p>
+                            <p style="margin: 0; color: #a0aec0; font-size: 13px;">
+                                צוות NeshamaTech
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

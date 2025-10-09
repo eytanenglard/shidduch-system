@@ -1280,7 +1280,13 @@
         "title": "Delete Account",
         "description": "Deleting your account is a permanent action and will remove all of your data.",
         "deleteButton": "Delete Account"
-      }
+      },
+          "language": {
+      "title": "Language & Notifications",
+      "label": "Preferred Communication Language",
+      "description": "The language for emails and system updates we send you."
+    }
+
     },
     "cardFooter": {
       "notice": "Your account details are protected in accordance with our Privacy Policy."
@@ -1313,7 +1319,10 @@
       "deleteError": "Error deleting account.",
       "deleteErrorDesc": "Please try again later or contact support.",
       "marketingUpdateSuccess": "Communication preferences updated.",
-      "marketingUpdateError": "Error updating communication preferences."
+      "marketingUpdateError": "Error updating communication preferences.",
+        "languageUpdateSuccess": "Language updated successfully!",
+    "languageUpdateError": "Error updating language."
+
     },
     "passwordDialog": {
       "title": "Change Password",
