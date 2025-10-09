@@ -115,3 +115,8 @@ export const getQuestionnaireQuestionsDictionary = async (locale: Locale) => {
   const questionsContent = await questionnaireQuestionsDictionaries[targetLocale]();
   return questionsContent;
 };
+export const getEmailDictionary = async (locale: Locale): Promise<EmailDictionary> => {
+  const targetLocale = emailDictionaries[locale] ? locale : 'he';
+  const emailContent = await emailDictionaries[targetLocale]();
+  return emailContent as EmailDictionary;
+};

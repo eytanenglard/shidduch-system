@@ -163,5 +163,77 @@
       "htmlBody": "<div dir='ltr'><h2>Time to connect!</h2><p>You both approved the suggestion, which is always an exciting moment. Your full and detailed contact information has been sent to you in a separate email.</p><p><strong>A little tip from us:</strong> Take a breath, remember the goal is simply to get acquainted, and most importantly - be yourself. We recommend making initial contact within the next 24-48 hours.</p><p>Wishing you a pleasant conversation and a wonderful meeting!</p></div>"
     }
   }
+  },
+  "engagement": {
+    "onboardingDay1": {
+      "subject": "{{firstName}}, Welcome! Your first step 🎉",
+      "hook": "We're excited you've joined! Let's start with the most important first step.",
+      "mainMessage": "So we can start finding matches for you, the first step is building a basic profile. It will take about 5 minutes and make a huge difference.",
+      "encouragement": "We're here for you every step of the way! 💙"
+    },
+    "onboardingDay3": {
+      "subject": "How's it going? A quick update 📊",
+      "hook": "Your profile is already {{completion}}% complete! Well done!",
+      "mainMessage": "Every detail you add helps our AI system understand you better. For example, the information you've filled out so far helps us see that: {{aiInsight}}",
+      "encouragement": "You're on the right track! 🚀"
+    },
+    "onboardingDay7_Insight": {
+      "subject": "One week in - here's what we've learned about you 🔍",
+      "hook": "{{firstName}}, it's been a week since you joined. Here's a special insight:",
+      "mainMessage": "Our system is already beginning to learn about you and what's important to you.",
+      "encouragement": "Complete profiles get 3 times more high-quality matches!"
+    },
+    "photoNudge": {
+      "subject": "A picture is worth a thousand words (literally!) 📸",
+      "hook": "Your profile is interesting and rich in content, but it's missing something critical...",
+      "mainMessage": "You're missing {{missingCount}} photos to complete your profile. This isn't about looks - it's about a genuine connection. Profiles with photos get suggestions much faster.",
+      "specificAction": "Upload 3 photos - it takes 2 minutes",
+      "encouragement": "One photo = a jump of 30%+ for your profile!"
+    },
+    "questionnaireNudge": {
+      "subject": "The questionnaire - not just another boring form 🧠",
+      "hook": "{{firstName}}, we noticed you started the questionnaire - that's great!",
+      "mainMessage": "Our questionnaire is the key to precise matches. Every answer allows our AI to learn something deep about you. It would be great to now focus on the '{{worldName}}' section.",
+      "encouragement": "Users with a complete questionnaire get 3 times more accurate matches!"
+    },
+    "almostDone": {
+      "subject": "{{firstName}}, you're almost there! 🎊",
+      "hook": "Wow! {{completion}}% - that's amazing!",
+      "mainMessage": "Your profile is almost perfect. Just one small detail left and you'll be at 100%.",
+      "encouragement": "One small step and your profile will be ready for suggestions!"
+    },
+    "reEngagement": {
+      "subject": "Remember us? We have news for you 💌",
+      "hook": "{{firstName}}, it's been a while since we talked...",
+      "mainMessage": "Your profile is at {{completion}}% - which is great! Our system has improved since then, and now is the perfect time to come back and complete it.",
+      "encouragement": "It's not too late to return. We're here for you."
+    },
+    "aiSummary": {
+      "subject": "{{firstName}}, we discovered something interesting about you 🧠",
+      "hook": "Our system analyzed your profile...",
+      "mainMessage": "Here's a special insight our AI has learned about you and what you're looking for:",
+      "encouragement": "The more complete your profile, the more accurate the insights will be!"
+    },
+    "eveningFeedback": {
+      "subject": "{{firstName}}, great job on your progress today! ✨",
+      "hook": "Well done on your efforts today!",
+      "mainMessage": "We saw your progress today and wanted to share what we've learned. Every small step brings you closer to your goal.",
+      "systemSummary": "A note from the system: {{summary}}...",
+      "encouragement": "Keep up the great work! We'll continue tomorrow 💪"
+    },
+    "value": [
+      {
+        "subject": "Why are photos so important? The answer might surprise you",
+        "hook": "New research shows that photos help identify emotional compatibility...",
+        "mainMessage": "Beyond physical appearance, photos tell a story about your personality, interests, and the vibe you bring. Read the full article >>",
+        "encouragement": "We're here to help you, every step of the way."
+      },
+      {
+        "subject": "3 common mistakes when building a dating profile",
+        "hook": "Matchmakers with 20 years of experience reveal what really works...",
+        "mainMessage": "The most common mistake is being too generic. A good profile is specific and authentic. Want to know the other two mistakes? Click here >>",
+        "encouragement": "Your profile is your calling card."
+      }
+    ]
   }
 }

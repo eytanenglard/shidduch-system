@@ -52,6 +52,8 @@ export type EmailDictionary = {
   /**
    * טקסטים משותפים לכל המיילים.
    */
+    engagement: EngagementEmailDict; // <-- הוסף את השורה הזו
+
   shared: {
     greeting: string;
     closing: string;
@@ -113,3 +115,42 @@ type ProfileFeedbackEmailDict = EmailTemplateContent & {
     button: string;
   };
 };
+
+type EngagementTemplate = {
+  subject: string;
+  hook: string;
+  mainMessage: string;
+  specificAction?: string; // אופציונלי, לא כל מייל מכיל זאת
+  encouragement: string;
+};
+
+type ValueEmailTemplate = Array<{
+  subject: string;
+  hook: string;
+  mainMessage: string;
+  encouragement: string;
+}>;
+
+/**
+* מגדיר את המבנה של מייל הפידבק בערב.
+*/
+type EveningFeedbackTemplate = EngagementTemplate & {
+  systemSummary: string; // "דבר המערכת: {{summary}}"
+};
+
+/**
+ * מרכז את כל תבניות המייל של מערכת ה-Engagement.
+ */
+type EngagementEmailDict = {
+  onboardingDay1: EngagementTemplate;
+  onboardingDay3: EngagementTemplate;
+  onboardingDay7_Insight: EngagementTemplate;
+  photoNudge: EngagementTemplate;
+  questionnaireNudge: EngagementTemplate;
+  almostDone: EngagementTemplate;
+  reEngagement: EngagementTemplate;
+  aiSummary: EngagementTemplate;
+  eveningFeedback: EveningFeedbackTemplate;
+  value: ValueEmailTemplate;
+};
+
