@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\engagement
-# Generated on: 2025-10-07 23:49:52
+# Generated on: 2025-10-09 12:31:59
 ################################################################################
 
 ================================================================================
@@ -151,6 +151,37 @@ export class SmartEngagementOrchestrator {
     return { hasActivity, completedToday, progressDelta };
   }
 
+  static async testBuildUserEngagementProfile(userId: string) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Test methods not available in production');
+  }
+  return this.buildUserEngagementProfile(userId);
+}
+
+static async testDecideNextEmail(profile: UserEngagementProfile) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Test methods not available in production');
+  }
+  return this.decideNextEmail(profile);
+}
+
+static async testDetectDailyActivity(userId: string) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Test methods not available in production');
+  }
+  return this.detectDailyActivity(userId);
+}
+
+static async testGetEveningFeedbackEmail(
+  profile: UserEngagementProfile,
+  dailyActivity: Awaited<ReturnType<typeof SmartEngagementOrchestrator.detectDailyActivity>>
+) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Test methods not available in production');
+  }
+  return this.getEveningFeedbackEmail(profile, dailyActivity);
+}
+
   // ========== פונקציה חדשה: יצירת מייל פידבק ערב ==========
   private static async getEveningFeedbackEmail(
     profile: UserEngagementProfile,
@@ -187,32 +218,32 @@ export class SmartEngagementOrchestrator {
   }
 
   // ========== פונקציה חדשה: מייל סיכום AI ==========
-  private static async getAiSummaryEmail(
-    profile: UserEngagementProfile
-  ): Promise<EmailToSend | null> {
+ private static async getAiSummaryEmail(
+  profile: UserEngagementProfile
+): Promise<EmailToSend | null> {
 
-    const { aiInsights, completionStatus } = profile;
+  const { aiInsights, completionStatus } = profile;
 
-    // נשלח רק אם יש מספיק מידע ל-AI
-    if (!aiInsights || completionStatus.overall < 40) {
-      return null;
-    }
-
-    return {
-      type: 'AI_SUMMARY',
-      priority: 'NORMAL',
-      subject: `${profile.userId}, גילינו משהו מעניין עליך 🧠`,
-      content: {
-        hook: 'המערכת שלנו ניתחה את הפרופיל שלך...',
-        mainMessage: 'הנה תובנה מיוחדת:',
-        systemSummary: `דבר המערכת (סיכום השדכן):\n"${aiInsights.personalitySummary}"`,
-        aiInsight: aiInsights.lookingForSummary,
-        specificAction: 'כדי שנוכל להבין אותך עוד יותר טוב, נשאר רק: ' + this.getNextBestAction(profile),
-        encouragement: 'פרופילים מלאים מקבלים פי 3 יותר התאמות איכותיות!'
-      },
-      sendInDays: 0
-    };
+  if (!aiInsights || completionStatus.overall < 40) {
+    return null;
   }
+
+  return {
+    type: 'AI_SUMMARY',
+    priority: 'NORMAL',
+    subject: `${profile.userId}, גילינו משהו מעניין עליך 🧠`,
+    content: {
+      hook: 'המערכת שלנו ניתחה את הפרופיל שלך...',
+      mainMessage: 'הנה תובנה מיוחדת:',
+      systemSummary: `הבר המערכת (סיכום השידכן):\n"${aiInsights.personalitySummary}"`,
+      aiInsight: aiInsights.lookingForSummary,
+      specificAction: 'כדי שנוכל להבין אותך עוד יותר טוב, נשאר רק: ' + this.getNextBestAction(profile),
+      encouragement: 'פרופילים מלאים מקבלים פי 3 יותר התאמות איכותיות!'
+    },
+    sendInDays: 0
+  };
+}
+
 
   /**
    * 🎬 הפונקציה הראשית - רצה על כל המשתמשים ותחליט מה לשלוח
@@ -685,8 +716,13 @@ export class SmartEngagementOrchestrator {
     return '█'.repeat(filled) + '░'.repeat(empty) + ` ${percentage}%`;
   }
 
+// קובץ: src/lib/engagement/SmartEngagementOrchestrator.ts
+
   private static async sendEmail(user: any, email: EmailToSend) {
-    const { emailService } = await import('./emailService');
+    // השתמשנו בנתיב הנכון לקובץ כפי שציינת
+const { emailService } = await import('./emailService'); // <-- זו השורה הנכונה (הפניה יחסית)
+    
+    const locale = user.language || 'he';
 
     try {
       let success = false;
@@ -696,6 +732,7 @@ export class SmartEngagementOrchestrator {
         case 'ONBOARDING':
           if (email.content.specificAction) {
             success = await emailService.sendOnboardingDay1({
+              locale,
               email: user.email,
               firstName: user.firstName,
               completionData: {
@@ -712,6 +749,7 @@ export class SmartEngagementOrchestrator {
         case 'NUDGE':
           if (email.subject.includes('איך מתקדמים')) {
             success = await emailService.sendProgressUpdate({
+              locale, 
               email: user.email,
               firstName: user.firstName,
               progressData: {
@@ -741,6 +779,7 @@ export class SmartEngagementOrchestrator {
 
         case 'CELEBRATION':
           success = await emailService.sendAlmostDone({
+            locale,
             email: user.email,
             firstName: user.firstName,
             celebrationData: {
@@ -753,10 +792,9 @@ export class SmartEngagementOrchestrator {
           });
           break;
 
-        // ========== מיילים חדשים ==========
-
         case 'EVENING_FEEDBACK':
           success = await emailService.sendTemplateEmail({
+            locale,
             to: user.email,
             subject: email.subject,
             templateName: 'evening_feedback',
@@ -776,6 +814,7 @@ export class SmartEngagementOrchestrator {
 
         case 'AI_SUMMARY':
           success = await emailService.sendTemplateEmail({
+            locale, 
             to: user.email,
             subject: email.subject,
             templateName: 'aiInsight',
@@ -792,16 +831,17 @@ export class SmartEngagementOrchestrator {
             user.email,
             email.subject,
             'generic',
-            {
+            { // <-- פרמטר רביעי: context
               firstName: user.firstName,
               mainMessage: email.content.mainMessage,
               encouragement: email.content.encouragement
-            }
+            },
+            locale // <-- פרמטר חמישי: locale (עם פסיק לפניו)
           );
       }
 
       if (success) {
-        console.log(`📧 Successfully sent ${email.type} email to ${user.email}`);
+        console.log(`📧 Successfully sent ${email.type} email to ${user.email} in ${locale}`);
       } else {
         console.error(`❌ Failed to send ${email.type} email to ${user.email}`);
       }
@@ -809,7 +849,7 @@ export class SmartEngagementOrchestrator {
     } catch (error) {
       console.error(`❌ Error in sendEmail for user ${user.id}:`, error);
     }
-  }
+  } 
 
   private static async updateCampaignRecord(userId: string, emailType: string) {
     const updateData: any = {
@@ -875,6 +915,7 @@ interface EmailData {
   subject: string;
   templateName: string;
   context: Record<string, any>;
+  locale?: 'he' | 'en'; // הוספת פרמטר שפה אופציונלי
 }
 
 class EmailService {
@@ -890,7 +931,6 @@ class EmailService {
       },
     });
 
-    // בדיקת חיבור
     this.transporter.verify((error) => {
       if (error) {
         console.error('❌ Email service initialization failed:', error);
@@ -900,11 +940,7 @@ class EmailService {
     });
   }
 
-  /**
-   * טעינת תבנית מהקובץ ו-cache שלה
-   */
   private loadTemplate(templateName: string): HandlebarsTemplateDelegate {
-    // בדיקה אם התבנית כבר ב-cache
     if (this.templatesCache.has(templateName)) {
       return this.templatesCache.get(templateName)!;
     }
@@ -913,7 +949,7 @@ class EmailService {
       process.cwd(),
       'src',
       'lib',
-      'engagement',
+      'engagement', // <-- הנתיב הנכון לתבניות
       'templates',
       'email',
       `${templateName}.hbs`
@@ -925,32 +961,22 @@ class EmailService {
 
     const source = fs.readFileSync(templatePath, 'utf-8');
     const template = Handlebars.compile(source);
-
-    // שמירה ב-cache
     this.templatesCache.set(templateName, template);
-
     return template;
   }
 
-  /**
-   * שליחת מייל עם תבנית
-   */
   async sendTemplateEmail(data: EmailData): Promise<boolean> {
     try {
-      // הוספת baseUrl לקונטקסט אוטומטית
       const enhancedContext = {
         ...data.context,
         baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
         currentYear: new Date().getFullYear(),
+        locale: data.locale || 'he', // הוספת השפה לקונטקסט של התבנית
       };
 
-      // טעינת התבנית
       const template = this.loadTemplate(data.templateName);
-      
-      // רנדור ה-HTML
       const htmlContent = template(enhancedContext);
 
-      // שליחת המייל
       const info = await this.transporter.sendMail({
         from: `NeshamaTech <${process.env.GMAIL_USER}>`,
         to: data.to,
@@ -958,7 +984,7 @@ class EmailService {
         html: htmlContent,
       });
 
-      console.log(`✅ Email sent to ${data.to} | Template: ${data.templateName} | ID: ${info.messageId}`);
+      console.log(`✅ Email sent to ${data.to} | Template: ${data.templateName} | Lang: ${enhancedContext.locale} | ID: ${info.messageId}`);
       return true;
 
     } catch (error) {
@@ -967,10 +993,8 @@ class EmailService {
     }
   }
 
-  /**
-   * שליחת מייל onboarding יום 1
-   */
   async sendOnboardingDay1(user: {
+    locale: 'he' | 'en'; // פרמטר חובה
     email: string;
     firstName: string;
     completionData: {
@@ -983,19 +1007,20 @@ class EmailService {
   }): Promise<boolean> {
     return this.sendTemplateEmail({
       to: user.email,
-      subject: `${user.firstName}, ברוך הבא ל-NeshamaTech! 🎉`,
+      subject: user.locale === 'he' 
+        ? `${user.firstName}, ברוך הבא ל-NeshamaTech! 🎉` 
+        : `Welcome to NeshamaTech, ${user.firstName}! 🎉`,
       templateName: 'onboardingDay1',
       context: {
         firstName: user.firstName,
         ...user.completionData,
       },
+      locale: user.locale,
     });
   }
 
-  /**
-   * שליחת מייל עדכון התקדמות
-   */
   async sendProgressUpdate(user: {
+    locale: 'he' | 'en';
     email: string;
     firstName: string;
     progressData: {
@@ -1022,19 +1047,20 @@ class EmailService {
   }): Promise<boolean> {
     return this.sendTemplateEmail({
       to: user.email,
-      subject: `${user.firstName}, איך מתקדמים? 📊`,
+      subject: user.locale === 'he' 
+        ? `${user.firstName}, איך מתקדמים? 📊` 
+        : `How's it going, ${user.firstName}? 📊`,
       templateName: 'progressUpdate',
       context: {
         firstName: user.firstName,
         ...user.progressData,
       },
+      locale: user.locale,
     });
   }
 
-  /**
-   * שליחת מייל "כמעט סיימת"
-   */
   async sendAlmostDone(user: {
+    locale: 'he' | 'en';
     email: string;
     firstName: string;
     celebrationData: {
@@ -1047,42 +1073,40 @@ class EmailService {
   }): Promise<boolean> {
     return this.sendTemplateEmail({
       to: user.email,
-      subject: `${user.firstName}, את/ה כמעט שם! 🎊`,
+      subject: user.locale === 'he' 
+        ? `${user.firstName}, את/ה כמעט שם! 🎊` 
+        : `You're almost there, ${user.firstName}! 🎊`,
       templateName: 'almostDone',
       context: {
         firstName: user.firstName,
         ...user.celebrationData,
       },
+      locale: user.locale,
     });
   }
 
-  /**
-   * שליחת מייל generic (עם תבנית מותאמת)
-   */
   async sendCustomEmail(
     to: string,
     subject: string,
     templateName: string,
-    context: Record<string, any>
+    context: Record<string, any>,
+    locale: 'he' | 'en' = 'he' // פרמטר locale בסוף עם ערך ברירת מחדל
   ): Promise<boolean> {
     return this.sendTemplateEmail({
       to,
       subject,
       templateName,
       context,
+      locale,
     });
   }
 
-  /**
-   * ניקוי cache של תבניות (שימושי ב-development)
-   */
   clearTemplateCache(): void {
     this.templatesCache.clear();
     console.log('📦 Template cache cleared');
   }
 }
 
-// יצוא instance יחיד
 export const emailService = new EmailService();
 export default emailService;
 --- End of Content for emailService.ts ---
