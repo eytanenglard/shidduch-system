@@ -3,6 +3,17 @@
 import { EmailDictionary } from '@/types/dictionary';
 import { Locale } from '../../../../i18n-config'; // ודא שהנתיב נכון
 import { ProfileFeedbackReport } from '@/lib/services/profileFeedbackService'; // ייבוא חדש
+import * as fs from 'fs';
+import * as path from 'path';
+import Handlebars from 'handlebars';
+
+// טען את תבנית ה-Footer פעם אחת
+const footerTemplate = Handlebars.compile(
+  fs.readFileSync(
+    path.join(process.cwd(), 'src/lib/email/templates/shared/footer.hbs'),
+    'utf-8'
+  )
+);
 
 // --- הגדרות טיפוסים לקונטקסט של כל תבנית ---
 interface BaseTemplateContext {
@@ -156,6 +167,9 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
     const isRtl = context.locale === 'he';
     const direction = isRtl ? 'rtl' : 'ltr';
     const textAlign = isRtl ? 'right' : 'left';
+    
+    // יצירת ה-footer עם הקונטקסט
+    const footerHtml = footerTemplate(context);
 
     return `
 <!DOCTYPE html>
@@ -165,37 +179,102 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
     <style>
-        body { font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; direction: ${direction}; text-align: ${textAlign}; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; }
-        .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden; }
-        .email-header { background-color: #06b6d4; color: #ffffff; padding: 25px; text-align: center; border-bottom: 5px solid #0891b2; }
-        .email-header h1 { margin: 0; font-size: 26px; font-weight: 600; }
-        .email-body { padding: 25px 30px; font-size: 16px; }
-        .email-body p { margin-bottom: 1em; }
-        .otp-code { font-size: 28px; font-weight: bold; color: #ec4899; text-align: center; margin: 25px 0; padding: 15px; background-color: #fdf2f8; border: 1px dashed #fbcfe8; border-radius: 5px; letter-spacing: 3px; }
-        .button { display: inline-block; padding: 12px 25px; background-color: #06b6d4; color: white !important; text-decoration: none; border-radius: 5px; margin: 15px 0; font-weight: 500; text-align: center; }
-        .button:hover { background-color: #0891b2; }
-        .footer { background-color: #f1f3f5; padding: 20px; text-align: center; font-size: 0.9em; color: #6c757d; border-top: 1px solid #e9ecef; }
-        .footer a { color: #06b6d4; text-decoration: none; }
-        .highlight-box { background-color: #fef9e7; border-${isRtl ? 'right' : 'left'}: 4px solid #f7c75c; padding: 15px; margin: 20px 0; border-radius: 5px; }
-        .attributes-list { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        body { 
+            font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; 
+            direction: ${direction}; 
+            text-align: ${textAlign}; 
+            line-height: 1.6; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f8f9fa; 
+            color: #343a40; 
+        }
+        .email-container { 
+            max-width: 600px; 
+            margin: 20px auto; 
+            background-color: #ffffff; 
+            border: 1px solid #dee2e6; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+            overflow: hidden; 
+        }
+        .email-header { 
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: #ffffff; 
+            padding: 25px; 
+            text-align: center; 
+            border-bottom: 5px solid #0891b2; 
+        }
+        .email-header h1 { 
+            margin: 0; 
+            font-size: 26px; 
+            font-weight: 600; 
+        }
+        .email-body { 
+            padding: 25px 30px; 
+            font-size: 16px; 
+        }
+        .email-body p { 
+            margin-bottom: 1em; 
+        }
+        .otp-code { 
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #ec4899; 
+            text-align: center; 
+            margin: 25px 0; 
+            padding: 15px; 
+            background-color: #fdf2f8; 
+            border: 1px dashed #fbcfe8; 
+            border-radius: 5px; 
+            letter-spacing: 3px; 
+        }
+        .button { 
+            display: inline-block; 
+            padding: 12px 25px; 
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white !important; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            margin: 15px 0; 
+            font-weight: 500; 
+            text-align: center; 
+            transition: transform 0.2s;
+        }
+        .button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+        }
+        .highlight-box { 
+            background-color: #fef9e7; 
+            border-${isRtl ? 'right' : 'left'}: 4px solid #f7c75c; 
+            padding: 15px; 
+            margin: 20px 0; 
+            border-radius: 5px; 
+        }
+        .attributes-list { 
+            background-color: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin-bottom: 15px; 
+        }
     </style>
 </head>
 <body>
     <div class="email-container">
-        <div class="email-header"><h1>${title}</h1></div>
+        <div class="email-header">
+            <h1>${title}</h1>
+        </div>
         <div class="email-body">
             ${content}
-            <p style="margin-top: 30px;">${context.sharedDict.closing}<br>${context.sharedDict.team}</p>
         </div>
-        <div class="footer">
-            <p>${context.sharedDict.supportPrompt} <a href="mailto:${context.supportEmail}">${context.supportEmail}</a></p>
-            <p>${context.sharedDict.rightsReserved.replace('{{year}}', context.currentYear)}</p>
-        </div>
+        ${footerHtml}
     </div>
 </body>
 </html>
 `;
 };
+
 
 // --- מיפוי התבניות עם הטיפוס המדויק ---
 export const emailTemplates: {

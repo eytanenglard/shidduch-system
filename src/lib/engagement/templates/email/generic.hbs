@@ -4,94 +4,244 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{headerTitle}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            direction: {{getDir locale}};
+        }
+        
+        .email-wrapper {
+            width: 100%;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 40px 20px;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+            padding: 45px 30px;
+            text-align: center;
+        }
+        
+        .header-icon {
+            font-size: 56px;
+            margin-bottom: 15px;
+        }
+        
+        .email-header h1 {
+            color: white;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .email-body {
+            padding: 40px 30px;
+        }
+        
+        .email-body p {
+            font-size: 16px;
+            color: #4a5568;
+            line-height: 1.7;
+            margin: 0 0 20px 0;
+            white-space: pre-wrap;
+        }
+        
+        .greeting {
+            font-size: 17px;
+            color: #2d3748;
+            margin: 0 0 20px 0;
+            line-height: 1.6;
+        }
+        
+        .next-action-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+            border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #f59e0b;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 25px 0;
+        }
+        
+        .next-action-box h3 {
+            color: #92400e;
+            margin: 0 0 12px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .next-action-box p {
+            color: #78350f;
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .time-estimate {
+            color: #92400e;
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        .time-estimate strong {
+            color: #78350f;
+        }
+        
+        .cta-section {
+            margin: 35px 0;
+            text-align: center;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+            color: white;
+            text-decoration: none;
+            padding: 18px 48px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 17px;
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+        }
+        
+        .encouragement-box {
+            background: #f0fdf4;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        
+        .encouragement-box p {
+            color: #166534;
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.7;
+            text-align: center;
+        }
+        
+        .email-footer {
+            background: #f7fafc;
+            padding: 0;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .footer-content {
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            margin-bottom: 20px;
+        }
+        
+        .footer-logo img {
+            height: 50px;
+            width: auto;
+            display: inline-block;
+        }
+        
+        .footer-company-name {
+            margin-bottom: 15px;
+        }
+        
+        .footer-company-name span {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(to right, #0891b2, #f97316, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .footer-tagline {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 10px 0 20px 0;
+            font-style: italic;
+        }
+        
+        .footer-contact {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        
+        .footer-contact p {
+            margin: 5px 0;
+            color: #4b5563;
+            font-size: 13px;
+        }
+        
+        .footer-contact a {
+            color: #06b6d4;
+            text-decoration: none;
+        }
+        
+        .footer-social {
+            margin: 20px 0;
+        }
+        
+        .footer-social a {
+            display: inline-block;
+            margin: 0 10px;
+            font-size: 24px;
+            text-decoration: none;
+        }
+        
+        .footer-copyright {
+            color: #9ca3af;
+            font-size: 12px;
+            margin: 15px 0 5px 0;
+        }
+        
+        .footer-legal {
+            color: #9ca3af;
+            font-size: 11px;
+            margin: 5px 0;
+        }
+        
+        .footer-legal a {
+            color: #6b7280;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            .email-wrapper {
+                padding: 20px 10px;
+            }
+            
+            .email-header {
+                padding: 30px 20px;
+            }
+            
+            .email-header h1 {
+                font-size: 22px;
+            }
+            
+            .email-body {
+                padding: 30px 20px;
+            }
+            
+            .cta-button {
+                padding: 15px 35px;
+                font-size: 16px;
+            }
+        }
+    </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); direction: {{getDir locale}};">
-    <table role="presentation" style="width: 100%; border-collapse: collapse;">
-        <tr>
-            <td align="center" style="padding: 40px 20px;">
-                <table role="presentation" style="max-width: 600px; width: 100%; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.12); overflow: hidden;">
-                    
-                    <!-- Dynamic Header -->
-                    <tr>
-                        <td style="background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%); padding: 45px 30px; text-align: center;">
-                            {{#if headerIcon}}
-                            <div style="font-size: 56px; margin-bottom: 15px;">{{{headerIcon}}}</div>
-                            {{else}}
-                             <div style="font-size: 56px; margin-bottom: 15px;">💡</div>
-                            {{/if}}
-                            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-                                {{headerTitle}}
-                            </h1>
-                        </td>
-                    </tr>
-                    
-                    <!-- Main Content -->
-                    <tr>
-                        <td style="padding: 40px 30px;">
-                            <p style="font-size: 17px; color: #2d3748; margin: 0 0 20px 0; line-height: 1.6;">
-                                {{#if (eq locale 'he')}}היי{{else}}Hi{{/if}} {{firstName}},
-                            </p>
-                            
-                            <p style="font-size: 16px; color: #4a5568; margin: 0 0 20px 0; line-height: 1.7; white-space: pre-wrap;">
-                                {{{mainMessage}}}
-                            </p>
-
-                            {{#if specificAction}}
-                            <!-- Next Action Box -->
-                            <div style="background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #f59e0b; border-radius: 12px; padding: 24px; margin: 25px 0;">
-                                <h3 style="color: #92400e; margin: 0 0 12px 0; font-size: 18px; font-weight: 600;">
-                                    🎯 {{#if (eq locale 'he')}}הצעד הבא שלך{{else}}Your Next Step{{/if}}
-                                </h3>
-                                <p style="color: #78350f; margin: 0 0 15px 0; font-size: 16px; line-height: 1.6;">
-                                    {{specificAction}}
-                                </p>
-                                {{#if estimatedTime}}
-                                <p style="color: #92400e; margin: 0; font-size: 14px;">
-                                    {{#if (eq locale 'he')}}זמן מוערך:{{else}}Estimated time:{{/if}} <strong>{{estimatedTime}}</strong>
-                                </p>
-                                {{/if}}
-                            </div>
-                            {{/if}}
-
-                            {{#if ctaLink}}
-                            <!-- CTA Button -->
-                            <table role="presentation" style="margin: 35px 0; width: 100%;">
-                                <tr>
-                                    <td style="text-align: center;">
-                                        <a href="{{ctaLink}}" style="display: inline-block; background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%); color: white; text-decoration: none; padding: 18px 48px; border-radius: 50px; font-weight: 700; font-size: 17px; box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);">
-                                            {{ctaText}}
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                            {{/if}}
-
-                            {{#if encouragement}}
-                            <!-- Encouragement -->
-                            <div style="background: #f0fdf4; border-radius: 12px; padding: 20px; margin: 25px 0;">
-                                <p style="color: #166534; margin: 0; font-size: 15px; line-height: 1.7; text-align: center;">
-                                    {{{encouragement}}}
-                                </p>
-                            </div>
-                            {{/if}}
-                        </td>
-                    </tr>
-
-                    <!-- Footer -->
-                    <tr>
-                        <td style="background: #f7fafc; padding: 25px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
-                            <p style="margin: 0; color: #a0aec0; font-size: 13px;">
-                                {{#if (eq locale 'he')}}
-                                    בברכה,<br>צוות NeshamaTech
-                                {{else}}
-                                    Best regards,<br>The NeshamaTech Team
-                                {{/if}}
-                            </p>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>
+<body>
+    <table role="presentation" style="width: 100%; border-collapse

@@ -23,7 +23,6 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
@@ -38,7 +37,6 @@ import {
   EyeOff,
   CheckCircle,
   XCircle,
-  ArrowRight,
   Calendar,
   Bell,
   Settings,
@@ -48,8 +46,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession, signOut } from 'next-auth/react';
-import { UserRole, UserStatus, Language } from '@prisma/client';import type { AccountSettingsDict } from '@/types/dictionary';
-import type { Locale } from '../../../i18n-config'; // ייבוא טיפוס השפה
+import { UserRole, UserStatus, Language } from '@prisma/client';
+import type { AccountSettingsDict } from '@/types/dictionary';
+import type { Locale } from '../../../i18n-config';
 
 interface AccountSettingsProps {
   user: {
@@ -63,7 +62,7 @@ interface AccountSettingsProps {
     lastLogin: Date | null;
     createdAt: Date;
     marketingConsent?: boolean;
-    language?: Language; // <-- הוסף את השורה הזו
+    language?: Language;
   };
   dict: AccountSettingsDict;
   locale: Locale;
@@ -74,7 +73,7 @@ const PASSWORD_MIN_LENGTH = 8;
 const AccountSettings: React.FC<AccountSettingsProps> = ({
   user: propUser,
   dict,
-  locale, // ✨ קבלת locale
+  locale,
 }) => {
   const {
     data: session,
@@ -82,7 +81,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
     update: updateSession,
   } = useSession();
 
-    const [preferredLanguage, setPreferredLanguage] = useState(propUser.language || 'he');
+  const [preferredLanguage, setPreferredLanguage] = useState<Language>(
+    propUser.language || Language.he
+  );
   const [isLanguageLoading, setIsLanguageLoading] = useState(false);
 
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -112,13 +113,29 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
   );
   const [isMarketingLoading, setIsMarketingLoading] = useState(false);
 
+  // ✅ סנכרון עם session.user.language
+  useEffect(() => {
+    if (session?.user?.language && session.user.language !== preferredLanguage) {
+      console.log('[AccountSettings] Syncing language from session:', session.user.language);
+      setPreferredLanguage(session.user.language);
+    }
+  }, [session?.user?.language]);
+
+  // ✅ סנכרון עם propUser.language (כאשר הקומפוננטה מתרנדרת מחדש)
+  useEffect(() => {
+    if (propUser.language && propUser.language !== preferredLanguage) {
+      console.log('[AccountSettings] Syncing language from propUser:', propUser.language);
+      setPreferredLanguage(propUser.language);
+    }
+  }, [propUser.language]);
+
   useEffect(() => {
     if (session?.user && typeof session.user.marketingConsent === 'boolean') {
       if (session.user.marketingConsent !== marketingConsent) {
         setMarketingConsent(session.user.marketingConsent);
       }
     }
-  }, [session?.user, marketingConsent]);
+  }, [session?.user?.marketingConsent]);
 
   const canChangePassword = useMemo(() => {
     if (sessionStatus === 'authenticated' && session?.user?.accounts) {
@@ -359,7 +376,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
 
   const handleMarketingConsentChange = async (checked: boolean) => {
     setIsMarketingLoading(true);
+    const previousValue = marketingConsent;
     setMarketingConsent(checked);
+    
     try {
       const response = await fetch('/api/user/marketing-consent', {
         method: 'PUT',
@@ -367,18 +386,21 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         body: JSON.stringify({ marketingConsent: checked }),
       });
       const result = await response.json();
+      
       if (!response.ok || !result.success) {
-        setMarketingConsent(!checked);
+        setMarketingConsent(previousValue);
         throw new Error(
           result.error || 'Failed to update marketing preferences.'
         );
       }
+      
       toast.success(dict.toasts.marketingUpdateSuccess, {
         icon: <CheckCircle className="h-5 w-5 text-green-500" />,
       });
+      
       await updateSession();
     } catch (error) {
-      setMarketingConsent(!checked);
+      setMarketingConsent(previousValue);
       toast.error(
         error instanceof Error
           ? error.message
@@ -391,31 +413,53 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
       setIsMarketingLoading(false);
     }
   };
- const handleLanguageChange = async (newLanguage: 'he' | 'en') => {
+
+  const handleLanguageChange = async (newLanguage: Language) => {
+    const previousLanguage = preferredLanguage;
+    setPreferredLanguage(newLanguage);
     setIsLanguageLoading(true);
+    
+    console.log('[AccountSettings] Changing language from', previousLanguage, 'to', newLanguage);
+    
     try {
       const response = await fetch('/api/user/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ language: newLanguage }),
       });
+      
       const result = await response.json();
+      
       if (!response.ok || !result.success) {
         throw new Error(result.error || 'Failed to update language.');
       }
+
+      console.log('[AccountSettings] Language update successful, refreshing session');
+      
+      // ✅ רענן את הסשן
+      await updateSession();
+      
       toast.success(dict.toasts.languageUpdateSuccess, {
         icon: <CheckCircle className="h-5 w-5 text-green-500" />,
       });
-      await updateSession(); // מרענן את הסשן בצד הלקוח עם המידע המעודכן
+
+      // ✅ אופציונלי: רענן את הדף כדי לטעון את התרגומים החדשים
+      // setTimeout(() => {
+      //   window.location.reload();
+      // }, 500);
+      
     } catch (error) {
+      console.error('[AccountSettings] Language update error:', error);
+      
+      // ✅ החזר לערך הקודם במקרה של שגיאה
+      setPreferredLanguage(previousLanguage);
+      
       toast.error(
         error instanceof Error ? error.message : dict.toasts.languageUpdateError,
         {
           icon: <AlertCircle className="h-5 w-5 text-red-500" />,
         }
       );
-      // החזר את הערך הקודם במקרה של שגיאה
-      setPreferredLanguage(propUser.language || 'he'); 
     } finally {
       setIsLanguageLoading(false);
     }
@@ -459,7 +503,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
   );
 
   return (
-    // ✨ הוספת dir דינמי
     <div
       className="max-w-2xl mx-auto space-y-6"
       dir={locale === 'he' ? 'rtl' : 'ltr'}
@@ -514,7 +557,11 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                       onClick={sendVerificationEmail}
                       disabled={isSendingVerification}
                     >
-                      <Mail className="w-4 h-4 me-2" />
+                      {isSendingVerification ? (
+                        <Loader2 className="w-4 h-4 me-2 animate-spin" />
+                      ) : (
+                        <Mail className="w-4 h-4 me-2" />
+                      )}
                       {dict.sections.personal.sendVerificationButton}
                     </Button>
                   )}
@@ -522,6 +569,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
               </div>
             </div>
           </div>
+
           <div className="py-4">
             <h3 className="text-base font-semibold mb-4 flex items-center">
               <Languages className="w-4 h-4 text-blue-600 me-2" />
@@ -541,17 +589,18 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   id="language-select"
                   value={preferredLanguage}
                   onChange={(e) => {
-                    const newLang = e.target.value as 'he' | 'en';
-                    setPreferredLanguage(newLang);
+                    const newLang = e.target.value as Language;
                     handleLanguageChange(newLang);
                   }}
                   disabled={isLanguageLoading}
-                  className="w-32 appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                  className="w-32 appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pe-8 text-sm shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="he">עברית</option>
                   <option value="en">English</option>
                 </select>
-                {isLanguageLoading && <Loader2 className="absolute top-1/2 -translate-y-1/2 left-2 h-4 w-4 animate-spin text-gray-500" />}
+                {isLanguageLoading && (
+                  <Loader2 className="absolute top-1/2 end-10 -translate-y-1/2 h-4 w-4 animate-spin text-gray-500 pointer-events-none" />
+                )}
               </div>
             </div>
           </div>
@@ -603,6 +652,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
               </div>
             </div>
           </div>
+
           <div className="py-4">
             <h3 className="text-base font-semibold mb-4 flex items-center">
               <Bell className="w-4 h-4 text-blue-600 me-2" />
@@ -628,6 +678,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
               />
             </div>
           </div>
+
           <div className="py-4">
             <div className="flex items-center justify-between mb-4">
               <div className="text-start">
@@ -691,6 +742,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
               )}
             </div>
           </div>
+
           <div className="py-4 border-t border-dashed border-red-200">
             <div className="flex items-center justify-between">
               <div className="text-start">
@@ -829,7 +881,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                         setShowConfirmPassword(!showConfirmPassword)
                       }
                     >
-                      <span className="sr-only">
+<span className="sr-only">
                         {showConfirmPassword
                           ? dict.passwordDialog.hidePassword
                           : dict.passwordDialog.showPassword}
@@ -962,7 +1014,10 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setIsDeletingAccount(false)}
+              onClick={() => {
+                setIsDeletingAccount(false);
+                setDeleteConfirmText('');
+              }}
             >
               {dict.deleteDialog.cancelButton}
             </Button>
@@ -974,9 +1029,14 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                 deleteConfirmText !== dict.deleteDialog.confirmationPhrase
               }
             >
-              {isLoading
-                ? dict.deleteDialog.deletingButton
-                : dict.deleteDialog.deleteButton}
+              {isLoading ? (
+                <>
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                  {dict.deleteDialog.deletingButton}
+                </>
+              ) : (
+                dict.deleteDialog.deleteButton
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

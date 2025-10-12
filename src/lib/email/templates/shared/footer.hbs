@@ -1,0 +1,77 @@
+{{!-- src/lib/email/templates/shared/footer.hbs --}}
+<table role="presentation" style="width: 100%; margin-top: 40px; border-top: 2px solid #e5e7eb;">
+  <tr>
+    <td style="padding: 30px 20px; text-align: center;">
+      <!-- Logo -->
+      <div style="margin-bottom: 20px;">
+        <img 
+          src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+          alt="NeshamaTech Logo" 
+          style="height: 50px; width: auto; display: inline-block;"
+        />
+      </div>
+      
+      <!-- Company Name with Gradient Effect -->
+      <div style="margin-bottom: 15px;">
+        <span style="font-size: 24px; font-weight: bold; background: linear-gradient(to right, #0891b2, #f97316, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+          NeshamaTech
+        </span>
+      </div>
+      
+      <!-- Tagline -->
+      <p style="color: #6b7280; font-size: 14px; margin: 10px 0 20px 0; font-style: italic;">
+        {{#if (eq locale 'he')}}
+          מחברים לבבות, בונים עתיד משותף
+        {{else}}
+          Connecting Hearts, Building Shared Futures
+        {{/if}}
+      </p>
+      
+      <!-- Contact Info -->
+      <div style="margin: 20px 0; padding: 15px; background-color: #f9fafb; border-radius: 8px; display: inline-block;">
+        <p style="margin: 5px 0; color: #4b5563; font-size: 13px;">
+          <strong>{{#if (eq locale 'he')}}צור קשר:{{else}}Contact:{{/if}}</strong>
+        </p>
+        <p style="margin: 5px 0; color: #6b7280; font-size: 13px;">
+          📧 <a href="mailto:{{supportEmail}}" style="color: #06b6d4; text-decoration: none;">{{supportEmail}}</a>
+        </p>
+        <p style="margin: 5px 0; color: #6b7280; font-size: 13px;">
+          🌐 <a href="{{baseUrl}}" style="color: #06b6d4; text-decoration: none;">{{baseUrl}}</a>
+        </p>
+      </div>
+      
+      <!-- Social Links (אופציונלי - הוסף אם יש לך) -->
+      <div style="margin: 20px 0;">
+        <a href="#" style="display: inline-block; margin: 0 10px; color: #06b6d4; text-decoration: none;">
+          <span style="font-size: 24px;">📘</span>
+        </a>
+        <a href="#" style="display: inline-block; margin: 0 10px; color: #06b6d4; text-decoration: none;">
+          <span style="font-size: 24px;">📷</span>
+        </a>
+        <a href="#" style="display: inline-block; margin: 0 10px; color: #06b6d4; text-decoration: none;">
+          <span style="font-size: 24px;">🐦</span>
+        </a>
+      </div>
+      
+      <!-- Copyright -->
+      <p style="color: #9ca3af; font-size: 12px; margin: 15px 0 5px 0;">
+        © {{currentYear}} NeshamaTech. 
+        {{#if (eq locale 'he')}}
+          כל הזכויות שמורות
+        {{else}}
+          All rights reserved
+        {{/if}}
+      </p>
+      
+      <!-- Legal Links -->
+      <p style="color: #9ca3af; font-size: 11px; margin: 5px 0;">
+        <a href="{{baseUrl}}/privacy" style="color: #6b7280; text-decoration: none; margin: 0 5px;">
+          {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy Policy{{/if}}
+        </a> | 
+        <a href="{{baseUrl}}/terms" style="color: #6b7280; text-decoration: none; margin: 0 5px;">
+          {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of Service{{/if}}
+        </a>
+      </p>
+    </td>
+  </tr>
+</table>

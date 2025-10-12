@@ -4,37 +4,363 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{#if (eq locale 'he')}}ברוך הבא ל-NeshamaTech!{{else}}Welcome to NeshamaTech!{{/if}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            direction: {{getDir locale}};
+        }
+        
+        .email-wrapper {
+            width: 100%;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 40px 20px;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.5);
+            overflow: hidden;
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, #06b6d4 0%, #ec4899 100%);
+            padding: 50px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .email-header h1 {
+            color: white;
+            margin: 0;
+            font-size: 32px;
+            font-weight: 800;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .email-header p {
+            color: rgba(255,255,255,0.95);
+            margin: 12px 0 0 0;
+            font-size: 17px;
+            font-weight: 500;
+        }
+        
+        .email-body {
+            padding: 40px 30px;
+        }
+        
+        .email-body p {
+            font-size: 16px;
+            color: #4a5568;
+            line-height: 1.7;
+            margin: 0 0 20px 0;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            color: #2d3748;
+            margin: 0 0 20px 0;
+            line-height: 1.6;
+        }
+        
+        .progress-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 25px 0;
+        }
+        
+        .progress-section h3 {
+            color: #1e40af;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .progress-bar-container {
+            background: #e2e8f0;
+            border-radius: 12px;
+            height: 24px;
+            margin: 15px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #06b6d4, #8b5cf6);
+            height: 100%;
+            transition: width 0.5s;
+            border-radius: 12px;
+        }
+        
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        .next-step-box {
+            background: #fef3c7;
+            border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #f59e0b;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        
+        .next-step-box h3 {
+            color: #92400e;
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .next-step-box p {
+            color: #78350f;
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .ai-insight-box {
+            background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 25px 0;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+        }
+        
+        .ai-insight-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .ai-insight-icon {
+            font-size: 28px;
+            margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 10px;
+        }
+        
+        .ai-insight-box h3 {
+            color: transparent;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .ai-insight-box p {
+            color: #4c1d95;
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+        
+        .cta-section {
+            margin: 35px 0;
+            text-align: center;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+            color: white;
+            text-decoration: none;
+            padding: 18px 48px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 17px;
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+            transition: transform 0.2s;
+        }
+        
+        .cta-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .help-text {
+            font-size: 14px;
+            color: #718096;
+            margin: 25px 0 0 0;
+            line-height: 1.6;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
+        }
+        
+        .email-footer {
+            background: #f7fafc;
+            padding: 0;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .footer-content {
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            margin-bottom: 20px;
+        }
+        
+        .footer-logo img {
+            height: 50px;
+            width: auto;
+            display: inline-block;
+        }
+        
+        .footer-company-name {
+            margin-bottom: 15px;
+        }
+        
+        .footer-company-name span {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(to right, #0891b2, #f97316, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .footer-tagline {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 10px 0 20px 0;
+            font-style: italic;
+        }
+        
+        .footer-contact {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        
+        .footer-contact p {
+            margin: 5px 0;
+            color: #4b5563;
+            font-size: 13px;
+        }
+        
+        .footer-contact strong {
+            color: #1f2937;
+        }
+        
+        .footer-contact a {
+            color: #06b6d4;
+            text-decoration: none;
+        }
+        
+        .footer-contact a:hover {
+            text-decoration: underline;
+        }
+        
+        .footer-social {
+            margin: 20px 0;
+        }
+        
+        .footer-social a {
+            display: inline-block;
+            margin: 0 10px;
+            font-size: 24px;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+        
+        .footer-social a:hover {
+            transform: scale(1.2);
+        }
+        
+        .footer-copyright {
+            color: #9ca3af;
+            font-size: 12px;
+            margin: 15px 0 5px 0;
+        }
+        
+        .footer-legal {
+            color: #9ca3af;
+            font-size: 11px;
+            margin: 5px 0;
+        }
+        
+        .footer-legal a {
+            color: #6b7280;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        
+        .footer-legal a:hover {
+            text-decoration: underline;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            .email-wrapper {
+                padding: 20px 10px;
+            }
+            
+            .email-header {
+                padding: 30px 20px;
+            }
+            
+            .email-header h1 {
+                font-size: 24px;
+            }
+            
+            .email-body {
+                padding: 30px 20px;
+            }
+            
+            .cta-button {
+                padding: 15px 35px;
+                font-size: 16px;
+            }
+        }
+    </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); direction: {{getDir locale}};">
+<body>
     <table role="presentation" style="width: 100%; border-collapse: collapse;">
         <tr>
-            <td align="center" style="padding: 40px 20px;">
-                <table role="presentation" style="max-width: 600px; width: 100%; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.5); overflow: hidden;">
+            <td class="email-wrapper">
+                <table role="presentation" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto; background: white; border-radius: 24px; overflow: hidden;">
                     
                     <!-- Header -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #06b6d4 0%, #ec4899 100%); padding: 50px 30px; text-align: center; position: relative;">
-                            <h1 style="color: white; margin: 0; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <td class="email-header">
+                            <h1>
                                 {{#if (eq locale 'he')}}
                                     ברוך הבא ל-NeshamaTech, {{firstName}}!
                                 {{else}}
                                     Welcome to NeshamaTech, {{firstName}}!
                                 {{/if}}
                             </h1>
-                            <p style="color: rgba(255,255,255,0.95); margin: 12px 0 0 0; font-size: 17px; font-weight: 500;">
-                                {{#if (eq locale 'he')}}המסע שלך מתחיל כאן{{else}}Your journey starts here{{/if}}
+                            <p>
+                                {{#if (eq locale 'he')}}
+                                    המסע שלך מתחיל כאן
+                                {{else}}
+                                    Your journey starts here
+                                {{/if}}
                             </p>
                         </td>
                     </tr>
                     
-                    <!-- Main Content -->
+                    <!-- Body -->
                     <tr>
-                        <td style="padding: 40px 30px;">
-                            <p style="font-size: 18px; color: #2d3748; margin: 0 0 20px 0; line-height: 1.6;">
+                        <td class="email-body">
+                            <p class="greeting">
                                 {{#if (eq locale 'he')}}שלום{{else}}Hello{{/if}} {{firstName}},
                             </p>
                             
-                            <p style="font-size: 16px; color: #4a5568; margin: 0 0 20px 0; line-height: 1.7;">
+                            <p>
                                 {{#if (eq locale 'he')}}
                                     כמה מרגש! הצטרפת למשפחת NeshamaTech. המערכת שלנו כבר מתחילה ללמוד עליך, וכל פרט שתוסיף יעזור לנו למצוא לך את ההתאמה המושלמת.
                                 {{else}}
@@ -43,72 +369,133 @@
                             </p>
 
                             <!-- Progress Section -->
-                            <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%); border-radius: 16px; padding: 24px; margin: 25px 0;">
-                                <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
+                            <div class="progress-section">
+                                <h3>
                                     📊 {{#if (eq locale 'he')}}איפה אנחנו עכשיו?{{else}}Where are we now?{{/if}}
                                 </h3>
                                 
-                                <div style="background: #e2e8f0; border-radius: 12px; height: 24px; margin: 15px 0; overflow: hidden; position: relative;">
-                                    <div style="background: linear-gradient(90deg, #06b6d4, #8b5cf6); height: 100%; width: {{progressPercentage}}%; transition: width 0.5s; border-radius: 12px;"></div>
-                                    <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #1e293b; font-weight: 600; font-size: 13px;">
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: {{progressPercentage}}%;"></div>
+                                    <span class="progress-text">
                                         {{progressPercentage}}% {{#if (eq locale 'he')}}הושלם{{else}}Complete{{/if}}
                                     </span>
                                 </div>
                             </div>
 
                             <!-- Next Step -->
-                            <div style="background: #fef3c7; border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #f59e0b; border-radius: 12px; padding: 20px; margin: 25px 0;">
-                                <h3 style="color: #92400e; margin: 0 0 10px 0; font-size: 18px; font-weight: 600;">
+                            <div class="next-step-box">
+                                <h3>
                                     🎯 {{#if (eq locale 'he')}}הצעד הראשון שלך{{else}}Your First Step{{/if}}
                                 </h3>
-                                <p style="color: #78350f; margin: 0; font-size: 16px; line-height: 1.6;">
-                                    {{nextAction}}
-                                </p>
+                                <p>{{nextAction}}</p>
                             </div>
 
                             {{#if aiInsight}}
                             <!-- AI Insight -->
-                            <div style="background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%); border-radius: 16px; padding: 24px; margin: 25px 0; border: 2px solid rgba(139, 92, 246, 0.2);">
-                                <div style="display: flex; align-items: center; margin-bottom: 12px;">
-                                    <span style="font-size: 28px; margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 10px;">🧠</span>
-                                    <h3 style="color: transparent; background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; background-clip: text; margin: 0; font-size: 18px; font-weight: 700;">
+                            <div class="ai-insight-box">
+                                <div class="ai-insight-header">
+                                    <span class="ai-insight-icon">🧠</span>
+                                    <h3>
                                         {{#if (eq locale 'he')}}תובנת AI אישית{{else}}Personal AI Insight{{/if}}
                                     </h3>
                                 </div>
-                                <p style="color: #4c1d95; margin: 0; font-size: 15px; line-height: 1.7;">
-                                    {{aiInsight}}
-                                </p>
+                                <p>{{aiInsight}}</p>
                             </div>
                             {{/if}}
 
                             <!-- CTA Button -->
-                            <table role="presentation" style="margin: 35px 0; width: 100%;">
-                                <tr>
-                                    <td style="text-align: center;">
-                                        <a href="{{baseUrl}}/profile" style="display: inline-block; background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%); color: white; text-decoration: none; padding: 18px 48px; border-radius: 50px; font-weight: 700; font-size: 17px; box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3); transition: transform 0.2s;">
-                                            {{#if (eq locale 'he')}}בואו נתחיל! 🚀{{else}}Let's Start! 🚀{{/if}}
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
+                            <div class="cta-section">
+                                <a href="{{baseUrl}}/profile" class="cta-button">
+                                    {{#if (eq locale 'he')}}בואו נתחיל! 🚀{{else}}Let's Start! 🚀{{/if}}
+                                </a>
+                            </div>
 
-                            <p style="font-size: 14px; color: #718096; margin: 25px 0 0 0; line-height: 1.6; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-                                {{#if (eq locale 'he')}}שאלות? אנחנו כאן בשבילך 24/7. פשוט תשיב למייל הזה!{{else}}Questions? We're here for you 24/7. Just reply to this email!{{/if}}
+                            <p class="help-text">
+                                {{#if (eq locale 'he')}}
+                                    שאלות? אנחנו כאן בשבילך 24/7. פשוט תשיב למייל הזה!
+                                {{else}}
+                                    Questions? We're here for you 24/7. Just reply to this email!
+                                {{/if}}
                             </p>
                         </td>
                     </tr>
 
                     <!-- Footer -->
                     <tr>
-                        <td style="background: #f7fafc; padding: 25px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
-                            <p style="margin: 0 0 10px 0; color: #718096; font-size: 14px;">
-                                {{#if (eq locale 'he')}}בהצלחה במסע! 💙{{else}}Good luck on your journey! 💙{{/if}}
-                            </p>
-                            <p style="margin: 0; color: #a0aec0; font-size: 13px;">
-                                {{#if (eq locale 'he')}}צוות NeshamaTech{{else}}The NeshamaTech Team{{/if}}
-                            </p>
+                        <td class="email-footer">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td class="footer-content">
+                                        <!-- Logo -->
+                                        <div class="footer-logo">
+                                            <img 
+                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+                                                alt="NeshamaTech Logo"
+                                            />
+                                        </div>
+                                        
+                                        <!-- Company Name with Gradient -->
+                                        <div class="footer-company-name">
+                                            <span>NeshamaTech</span>
+                                        </div>
+                                        
+                                        <!-- Tagline -->
+                                        <p class="footer-tagline">
+                                            {{#if (eq locale 'he')}}
+                                                מחברים לבבות, בונים עתיד משותף
+                                            {{else}}
+                                                Connecting Hearts, Building Shared Futures
+                                            {{/if}}
+                                        </p>
+                                        
+                                        <!-- Contact Info -->
+                                        <div class="footer-contact">
+                                            <p>
+                                                <strong>
+                                                    {{#if (eq locale 'he')}}צור קשר:{{else}}Contact:{{/if}}
+                                                </strong>
+                                            </p>
+                                            <p>
+                                                📧 <a href="mailto:{{supportEmail}}">{{supportEmail}}</a>
+                                            </p>
+                                            <p>
+                                                🌐 <a href="{{baseUrl}}">{{baseUrl}}</a>
+                                            </p>
+                                        </div>
+                                        
+                                        <!-- Social Links -->
+                                        <div class="footer-social">
+                                            <a href="#" title="Facebook">📘</a>
+                                            <a href="#" title="Instagram">📷</a>
+                                            <a href="#" title="Twitter">🐦</a>
+                                        </div>
+                                        
+                                        <!-- Copyright -->
+                                        <p class="footer-copyright">
+                                            © {{currentYear}} NeshamaTech. 
+                                            {{#if (eq locale 'he')}}
+                                                כל הזכויות שמורות
+                                            {{else}}
+                                                All rights reserved
+                                            {{/if}}
+                                        </p>
+                                        
+                                        <!-- Legal Links -->
+                                        <p class="footer-legal">
+                                            <a href="{{baseUrl}}/privacy">
+                                                {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy Policy{{/if}}
+                                            </a>
+                                            |
+                                            <a href="{{baseUrl}}/terms">
+                                                {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of Service{{/if}}
+                                            </a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
+                    
                 </table>
             </td>
         </tr>

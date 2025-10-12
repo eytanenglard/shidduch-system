@@ -66,13 +66,12 @@ export const authOptions: NextAuthOptions = {
           updatedAt: now,
           source: UserSource.REGISTRATION, 
           addedByMatchmakerId: null,  
-           termsAndPrivacyAcceptedAt: null,
+          termsAndPrivacyAcceptedAt: null,
           profile: null, 
           images: [], 
           questionnaireResponses: [],
-           language: 'he',
+          language: Language.he,
           questionnaireCompleted: false,
-
           redirectUrl: undefined,
           newlyCreated: true, 
           requiresCompletion: true, 
@@ -124,13 +123,13 @@ export const authOptions: NextAuthOptions = {
           ...restOfUser,
           name: `${userFromDb.firstName} ${userFromDb.lastName}`,
           image: images?.[0]?.url || null, 
-          profile: null, // We do not load heavy data here
+          profile: null,
           images: [],
           questionnaireResponses: [],
-          questionnaireCompleted: false, // Will be determined in JWT callback
+          questionnaireCompleted: false,
           source: userFromDb.source,
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
-           termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
+          termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
         } as ExtendedUser;
       }
     }),
@@ -186,20 +185,16 @@ export const authOptions: NextAuthOptions = {
           profile: null,
           images: [],
           questionnaireResponses: [],
-           language: 'he',
+          language: userFromDb.language || Language.he,
           questionnaireCompleted: false,
           source: userFromDb.source,
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
-           termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
+          termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
         } as ExtendedUser;
       },
     }),
   ],
 
- // הדבק את הקוד הזה במקום כל בלוק ה-callbacks הקיים
-// lib/auth.ts
-
-  // הדבק את הקוד הזה במקום כל בלוק ה-callbacks הקיים
   callbacks: {
     async signIn({ user, account, profile }) {
       const typedUser = user as ExtendedUser; 
@@ -243,6 +238,7 @@ export const authOptions: NextAuthOptions = {
                         isProfileComplete: typedUser.isProfileComplete || false,
                         isPhoneVerified: typedUser.isPhoneVerified || false,
                         source: UserSource.REGISTRATION,
+                        language: Language.he,
                     },
                 });
                 dbUser = createdDbUser; 
@@ -299,7 +295,6 @@ export const authOptions: NextAuthOptions = {
         return false;
       }
     
-      // כאן אנו מעבירים את המידע מה-DB לאובייקט ה-user שישמש בהמשך
       typedUser.id = dbUser.id; 
       typedUser.email = dbUser.email;
       typedUser.firstName = dbUser.firstName;
@@ -314,10 +309,10 @@ export const authOptions: NextAuthOptions = {
       typedUser.addedByMatchmakerId = dbUser.addedByMatchmakerId;
       typedUser.termsAndPrivacyAcceptedAt = dbUser.termsAndPrivacyAcceptedAt;
       typedUser.marketingConsent = dbUser.marketingConsent;
-       typedUser.language = dbUser.language;  
-      typedUser.createdAt = dbUser.createdAt; // מעבירים את התאריך
-      typedUser.updatedAt = dbUser.updatedAt; // מעבירים את התאריך
-      typedUser.lastLogin = dbUser.lastLogin; // מעבירים את התאריך
+      typedUser.language = dbUser.language;  
+      typedUser.createdAt = dbUser.createdAt; 
+      typedUser.updatedAt = dbUser.updatedAt; 
+      typedUser.lastLogin = dbUser.lastLogin; 
 
       if (account?.provider === "google") {
         if (dbUser.isVerified === false && oauthProfile?.email_verified === true) {
@@ -352,12 +347,19 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user, trigger, session }) {
       const typedToken = token as ExtendedUserJWT;
       const typedUserFromCallback = user as ExtendedUser | undefined;
 
+      console.log(`[JWT Callback] Triggered with trigger: ${trigger}`, {
+        hasUser: !!typedUserFromCallback,
+        tokenId: typedToken.id,
+        sessionData: session ? 'present' : 'absent'
+      });
+
       // Upon initial sign-in, populate the token with user data
       if (typedUserFromCallback) {
+        console.log('[JWT Callback] Populating token from user object (initial sign-in)');
         typedToken.id = typedUserFromCallback.id;
         typedToken.email = typedUserFromCallback.email.toLowerCase();
         typedToken.firstName = typedUserFromCallback.firstName;
@@ -376,59 +378,107 @@ export const authOptions: NextAuthOptions = {
         typedToken.requiresCompletion = typedUserFromCallback.requiresCompletion;
         typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
         typedToken.marketingConsent = typedUserFromCallback.marketingConsent;
-        typedUserFromCallback.language; 
-        // Store dates as Date objects; they will be serialized automatically
+        typedToken.language = typedUserFromCallback.language; 
         typedToken.createdAt = typedUserFromCallback.createdAt;
         typedToken.updatedAt = typedUserFromCallback.updatedAt;
         typedToken.lastLogin = typedUserFromCallback.lastLogin;
+        
+        console.log('[JWT Callback] Token populated with language:', typedToken.language);
       }
       
-      // On subsequent JWT creations (e.g., session access) or manual updates
-      if (typedToken.id && (trigger === "update" || trigger === "signIn")) {
-          const dbUserForJwt = await prisma.user.findUnique({
-            where: { id: typedToken.id },
-            include: {
-              images: { where: { isMain: true }, take: 1 },
-            }
-          });
-
-          if (dbUserForJwt) {
-            typedToken.firstName = dbUserForJwt.firstName;
-            typedToken.lastName = dbUserForJwt.lastName;
-            typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture; 
-            typedToken.role = dbUserForJwt.role;
-            typedToken.status = dbUserForJwt.status;
-            typedToken.isVerified = dbUserForJwt.isVerified;
-            typedToken.isProfileComplete = dbUserForJwt.isProfileComplete;
-            typedToken.isPhoneVerified = dbUserForJwt.isPhoneVerified;
-            typedToken.source = dbUserForJwt.source;
-            typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId;
-            typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
-            typedToken.marketingConsent = dbUserForJwt.marketingConsent;
-            // Refresh dates from the DB
-                        typedToken.language = dbUserForJwt.language; // <-- 5. רענן את השדה מה-DB
-
-            typedToken.createdAt = dbUserForJwt.createdAt;
-            typedToken.updatedAt = dbUserForJwt.updatedAt;
-            typedToken.lastLogin = dbUserForJwt.lastLogin;
-
-            const questionnaireStatus = await prisma.questionnaireResponse.findFirst({
-              where: { userId: typedToken.id },
-              select: { completed: true },
-              orderBy: { createdAt: 'desc' },
-            });
-            typedToken.questionnaireCompleted = questionnaireStatus?.completed ?? false;
-
-            const requiresCompletionFromDb = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified || !dbUserForJwt.termsAndPrivacyAcceptedAt);
-            typedToken.requiresCompletion = requiresCompletionFromDb;
-            typedToken.redirectUrl = requiresCompletionFromDb ? '/auth/register' : '/profile';
+      // ✅ תיקון: טיפול ב-trigger === 'update' - זה קורה כאשר updateSession() נקרא
+      if (typedToken.id && trigger === "update") {
+        console.log('[JWT Callback] Update trigger detected - refreshing user data from DB');
+        
+        const dbUserForJwt = await prisma.user.findUnique({
+          where: { id: typedToken.id },
+          include: {
+            images: { where: { isMain: true }, take: 1 },
           }
+        });
+
+        if (dbUserForJwt) {
+          console.log('[JWT Callback] Found user in DB, updating token');
+          typedToken.firstName = dbUserForJwt.firstName;
+          typedToken.lastName = dbUserForJwt.lastName;
+          typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture; 
+          typedToken.role = dbUserForJwt.role;
+          typedToken.status = dbUserForJwt.status;
+          typedToken.isVerified = dbUserForJwt.isVerified;
+          typedToken.isProfileComplete = dbUserForJwt.isProfileComplete;
+          typedToken.isPhoneVerified = dbUserForJwt.isPhoneVerified;
+          typedToken.source = dbUserForJwt.source;
+          typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId;
+          typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
+          typedToken.marketingConsent = dbUserForJwt.marketingConsent;
+          typedToken.language = dbUserForJwt.language; // ✅ עדכון השפה מה-DB
+          typedToken.createdAt = dbUserForJwt.createdAt;
+          typedToken.updatedAt = dbUserForJwt.updatedAt;
+          typedToken.lastLogin = dbUserForJwt.lastLogin;
+
+          console.log('[JWT Callback] Language updated in token:', typedToken.language);
+
+          const questionnaireStatus = await prisma.questionnaireResponse.findFirst({
+            where: { userId: typedToken.id },
+            select: { completed: true },
+            orderBy: { createdAt: 'desc' },
+          });
+          typedToken.questionnaireCompleted = questionnaireStatus?.completed ?? false;
+
+          const requiresCompletionFromDb = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified || !dbUserForJwt.termsAndPrivacyAcceptedAt);
+          typedToken.requiresCompletion = requiresCompletionFromDb;
+          typedToken.redirectUrl = requiresCompletionFromDb ? '/auth/register' : '/profile';
+        } else {
+          console.log('[JWT Callback] User not found in DB');
+        }
+      }
+      
+      // ✅ רענון נתונים גם ב-signIn (אם צריך)
+      if (typedToken.id && trigger === "signIn" && !typedUserFromCallback) {
+        console.log('[JWT Callback] SignIn trigger without user object - refreshing from DB');
+        
+        const dbUserForJwt = await prisma.user.findUnique({
+          where: { id: typedToken.id },
+          include: {
+            images: { where: { isMain: true }, take: 1 },
+          }
+        });
+
+        if (dbUserForJwt) {
+          typedToken.firstName = dbUserForJwt.firstName;
+          typedToken.lastName = dbUserForJwt.lastName;
+          typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture; 
+          typedToken.role = dbUserForJwt.role;
+          typedToken.status = dbUserForJwt.status;
+          typedToken.isVerified = dbUserForJwt.isVerified;
+          typedToken.isProfileComplete = dbUserForJwt.isProfileComplete;
+          typedToken.isPhoneVerified = dbUserForJwt.isPhoneVerified;
+          typedToken.source = dbUserForJwt.source;
+          typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId;
+          typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
+          typedToken.marketingConsent = dbUserForJwt.marketingConsent;
+          typedToken.language = dbUserForJwt.language;
+          typedToken.createdAt = dbUserForJwt.createdAt;
+          typedToken.updatedAt = dbUserForJwt.updatedAt;
+          typedToken.lastLogin = dbUserForJwt.lastLogin;
+
+          const questionnaireStatus = await prisma.questionnaireResponse.findFirst({
+            where: { userId: typedToken.id },
+            select: { completed: true },
+            orderBy: { createdAt: 'desc' },
+          });
+          typedToken.questionnaireCompleted = questionnaireStatus?.completed ?? false;
+
+          const requiresCompletionFromDb = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified || !dbUserForJwt.termsAndPrivacyAcceptedAt);
+          typedToken.requiresCompletion = requiresCompletionFromDb;
+          typedToken.redirectUrl = requiresCompletionFromDb ? '/auth/register' : '/profile';
+        }
       }
       
       return typedToken;
     },
 
-     async session({ session, token }) {
+    async session({ session, token }) {
       const typedToken = token as ExtendedUserJWT;
       const typedSession = session as ExtendedSession;
 
@@ -449,11 +499,8 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.source = typedToken.source;
         typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId;
         typedSession.user.marketingConsent = typedToken.marketingConsent;
-        typedToken.language;
-        // =================== התיקון הסופי והנכון ===================
-        // המרת כל מחרוזות התאריך מהטוקן בחזרה לאובייקטי Date
-        // שימוש ב- 'as unknown as string' הוא דרך בטוחה ומפורשת
-        // להגיד ל-TypeScript שאנחנו יודעים שהערך הוא מחרוזת בשלב זה.
+        typedSession.user.language = typedToken.language; // ✅ העברה ל-session
+
         if (typedToken.createdAt) {
           typedSession.user.createdAt = new Date(typedToken.createdAt as unknown as string);
         }
@@ -466,7 +513,6 @@ export const authOptions: NextAuthOptions = {
         if (typedToken.termsAndPrivacyAcceptedAt) {
           typedSession.user.termsAndPrivacyAcceptedAt = new Date(typedToken.termsAndPrivacyAcceptedAt as unknown as string);
         }
-        // ================================================================
         
         typedSession.requiresCompletion = typedToken.requiresCompletion;
         typedSession.redirectUrl = typedToken.redirectUrl;
@@ -492,6 +538,7 @@ export const authOptions: NextAuthOptions = {
         return baseUrl;
     }
   },
+
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error',

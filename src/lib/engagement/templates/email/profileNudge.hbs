@@ -4,17 +4,290 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{#if (eq locale 'he')}}טיפ קטן שיעשה הבדל גדול{{else}}A small tip that makes a big difference{{/if}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ecfeff 0%, #fce7f3 100%);
+            direction: {{getDir locale}};
+        }
+        
+        .email-wrapper {
+            width: 100%;
+            background: linear-gradient(135deg, #ecfeff 0%, #fce7f3 100%);
+            padding: 40px 20px;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, #ec4899 0%, #f97316 100%);
+            padding: 45px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header-icon {
+            font-size: 56px;
+            margin-bottom: 15px;
+        }
+        
+        .email-header h1 {
+            color: white;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .email-body {
+            padding: 40px 30px;
+        }
+        
+        .email-body p {
+            font-size: 16px;
+            color: #4a5568;
+            line-height: 1.7;
+            margin: 0 0 25px 0;
+        }
+        
+        .greeting {
+            font-size: 17px;
+            color: #2d3748;
+            margin: 0 0 20px 0;
+            line-height: 1.6;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
+            border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #ec4899;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 28px 0;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.1);
+        }
+        
+        .stat-box p {
+            color: #be123c;
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.8;
+            font-weight: 600;
+        }
+        
+        .stat-box strong {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .stat-highlight {
+            font-size: 20px;
+            background: linear-gradient(135deg, #ec4899, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .missing-section h2 {
+            color: #2d3748;
+            margin: 30px 0 20px 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .missing-items {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .missing-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .missing-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .missing-icon {
+            color: #f56565;
+            font-size: 20px;
+            margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 10px;
+            flex-shrink: 0;
+        }
+        
+        .missing-text {
+            color: #4a5568;
+            margin: 0;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+        
+        .promise-text {
+            font-size: 16px;
+            color: #4a5568;
+            margin: 25px 0;
+            line-height: 1.7;
+        }
+        
+        .promise-text strong {
+            color: #1e293b;
+        }
+        
+        .cta-section {
+            margin: 35px 0;
+            text-align: center;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #ec4899 0%, #f97316 100%);
+            color: white;
+            text-decoration: none;
+            padding: 18px 48px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 17px;
+            box-shadow: 0 10px 30px rgba(236, 72, 153, 0.35);
+        }
+        
+        .email-footer {
+            background: #f7fafc;
+            padding: 0;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .footer-content {
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            margin-bottom: 20px;
+        }
+        
+        .footer-logo img {
+            height: 50px;
+            width: auto;
+            display: inline-block;
+        }
+        
+        .footer-company-name {
+            margin-bottom: 15px;
+        }
+        
+        .footer-company-name span {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(to right, #0891b2, #f97316, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .footer-tagline {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 10px 0 20px 0;
+            font-style: italic;
+        }
+        
+        .footer-contact {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        
+        .footer-contact p {
+            margin: 5px 0;
+            color: #4b5563;
+            font-size: 13px;
+        }
+        
+        .footer-contact a {
+            color: #06b6d4;
+            text-decoration: none;
+        }
+        
+        .footer-social {
+            margin: 20px 0;
+        }
+        
+        .footer-social a {
+            display: inline-block;
+            margin: 0 10px;
+            font-size: 24px;
+            text-decoration: none;
+        }
+        
+        .footer-copyright {
+            color: #9ca3af;
+            font-size: 12px;
+            margin: 15px 0 5px 0;
+        }
+        
+        .footer-legal {
+            color: #9ca3af;
+            font-size: 11px;
+            margin: 5px 0;
+        }
+        
+        .footer-legal a {
+            color: #6b7280;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            .email-wrapper {
+                padding: 20px 10px;
+            }
+            
+            .email-header {
+                padding: 30px 20px;
+            }
+            
+            .email-header h1 {
+                font-size: 22px;
+            }
+            
+            .email-body {
+                padding: 30px 20px;
+            }
+            
+            .cta-button {
+                padding: 15px 35px;
+                font-size: 16px;
+            }
+        }
+    </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #ecfeff 0%, #fce7f3 100%); direction: {{getDir locale}};">
+<body>
     <table role="presentation" style="width: 100%; border-collapse: collapse;">
         <tr>
-            <td align="center" style="padding: 40px 20px;">
-                <table role="presentation" style="max-width: 600px; width: 100%; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.12); overflow: hidden; border: 1px solid rgba(255,255,255,0.7);">
+            <td class="email-wrapper">
+                <table role="presentation" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto;">
                     
+                    <!-- Header -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); padding: 45px 30px; text-align: center; position: relative;">
-                            <div style="font-size: 56px; margin-bottom: 15px;">💡</div>
-                            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                        <td class="email-header">
+                            <div class="header-icon">💡</div>
+                            <h1>
                                 {{#if (eq locale 'he')}}
                                     {{firstName}}, יש כאן כמה דברים שחסרים...
                                 {{else}}
@@ -24,13 +297,14 @@
                         </td>
                     </tr>
                     
+                    <!-- Body -->
                     <tr>
-                        <td style="padding: 40px 30px;">
-                            <p style="font-size: 17px; color: #2d3748; margin: 0 0 20px 0; line-height: 1.6;">
+                        <td class="email-body">
+                            <p class="greeting">
                                 {{#if (eq locale 'he')}}שלום{{else}}Hello{{/if}} {{firstName}},
                             </p>
                             
-                            <p style="font-size: 16px; color: #4a5568; margin: 0 0 25px 0; line-height: 1.7;">
+                            <p>
                                 {{#if (eq locale 'he')}}
                                     שמנו לב שהפרופיל שלך עדיין לא מושלם לגמרי. אנחנו יודעים שזה לוקח זמן, אבל יש לנו נתון מעניין לשתף אתך:
                                 {{else}}
@@ -38,31 +312,35 @@
                                 {{/if}}
                             </p>
 
-                            <div style="background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%); border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #ec4899; border-radius: 16px; padding: 24px; margin: 28px 0; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.1);">
-                                <p style="color: #be123c; margin: 0; font-size: 16px; line-height: 1.8; font-weight: 600;">
-                                    <strong style="font-size: 20px; display: block; margin-bottom: 8px;">📊 {{#if (eq locale 'he')}}נתון שווה לדעת:{{else}}A stat worth knowing:{{/if}}</strong>
+                            <!-- Stat Box -->
+                            <div class="stat-box">
+                                <p>
+                                    <strong>📊 {{#if (eq locale 'he')}}נתון שווה לדעת:{{else}}A stat worth knowing:{{/if}}</strong>
                                     {{#if (eq locale 'he')}}
-                                        פרופילים מלאים עם תמונות איכותיות מקבלים <strong style="font-size: 20px; background: linear-gradient(135deg, #ec4899, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">פי 3 יותר</strong> הצעות התאמה מפרופילים חלקיים!
+                                        פרופילים מלאים עם תמונות איכותיות מקבלים <span class="stat-highlight">פי 3 יותר</span> הצעות התאמה מפרופילים חלקיים!
                                     {{else}}
-                                        Complete profiles with high-quality photos receive <strong style="font-size: 20px; background: linear-gradient(135deg, #ec4899, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">3 times more</strong> match suggestions than partial profiles!
+                                        Complete profiles with high-quality photos receive <span class="stat-highlight">3 times more</span> match suggestions than partial profiles!
                                     {{/if}}
                                 </p>
                             </div>
 
-                            <h2 style="color: #2d3748; margin: 30px 0 20px 0; font-size: 20px; font-weight: 600;">
-                                {{#if (eq locale 'he')}}הנה מה שחסר בפרופיל שלך:{{else}}Here is what's missing from your profile:{{/if}}
-                            </h2>
+                            <!-- Missing Items Section -->
+                            <div class="missing-section">
+                                <h2>
+                                    {{#if (eq locale 'he')}}הנה מה שחסר בפרופיל שלך:{{else}}Here is what's missing from your profile:{{/if}}
+                                </h2>
 
-                            <div style="background: #f7fafc; border-radius: 12px; padding: 25px; margin: 20px 0;">
-                                {{#each missingItems}}
-                                <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
-                                    <span style="color: #f56565; font-size: 20px; margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 10px; flex-shrink: 0;">✗</span>
-                                    <p style="color: #4a5568; margin: 0; line-height: 1.6; font-size: 15px;">{{this}}</p>
+                                <div class="missing-items">
+                                    {{#each missingItems}}
+                                    <div class="missing-item">
+                                        <span class="missing-icon">✗</span>
+                                        <p class="missing-text">{{this}}</p>
+                                    </div>
+                                    {{/each}}
                                 </div>
-                                {{/each}}
                             </div>
 
-                            <p style="font-size: 16px; color: #4a5568; margin: 25px 0; line-height: 1.7;">
+                            <p class="promise-text">
                                 {{#if (eq locale 'he')}}
                                     אנחנו מבטיחים שזה לא ייקח יותר מ-<strong>10 דקות</strong>! וזה יכול לעשות את כל ההבדל.
                                 {{else}}
@@ -70,29 +348,71 @@
                                 {{/if}}
                             </p>
 
-                            <table role="presentation" style="margin: 35px 0; width: 100%;">
+                            <!-- CTA -->
+                            <div class="cta-section">
+                                <a href="{{baseUrl}}/profile" class="cta-button">
+                                    {{#if (eq locale 'he')}}להשלמת הפרופיל 🚀{{else}}Complete Your Profile 🚀{{/if}}
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td class="email-footer">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
                                 <tr>
-                                    <td style="text-align: center;">
-                                        <a href="{{baseUrl}}/profile" style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); color: white; text-decoration: none; padding: 18px 48px; border-radius: 50px; font-weight: 700; font-size: 17px; box-shadow: 0 10px 30px rgba(236, 72, 153, 0.35);">
-                                            {{#if (eq locale 'he')}}להשלמת הפרופיל 🚀{{else}}Complete Your Profile 🚀{{/if}}
-                                        </a>
+                                    <td class="footer-content">
+                                        <div class="footer-logo">
+                                            <img 
+                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+                                                alt="NeshamaTech Logo"
+                                            />
+                                        </div>
+                                        
+                                        <div class="footer-company-name">
+                                            <span>NeshamaTech</span>
+                                        </div>
+                                        
+                                        <p class="footer-tagline">
+                                            {{#if (eq locale 'he')}}
+                                                מחברים לבבות, בונים עתיד משותף
+                                            {{else}}
+                                                Connecting Hearts, Building Shared Futures
+                                            {{/if}}
+                                        </p>
+                                        
+                                        <div class="footer-contact">
+                                            <p><strong>{{#if (eq locale 'he')}}צור קשר:{{else}}Contact:{{/if}}</strong></p>
+                                            <p>📧 <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+                                            <p>🌐 <a href="{{baseUrl}}">{{baseUrl}}</a></p>
+                                        </div>
+                                        
+                                        <div class="footer-social">
+                                            <a href="#" title="Facebook">📘</a>
+                                            <a href="#" title="Instagram">📷</a>
+                                            <a href="#" title="Twitter">🐦</a>
+                                        </div>
+                                        
+                                        <p class="footer-copyright">
+                                            © {{currentYear}} NeshamaTech. 
+                                            {{#if (eq locale 'he')}}כל הזכויות שמורות{{else}}All rights reserved{{/if}}
+                                        </p>
+                                        
+                                        <p class="footer-legal">
+                                            <a href="{{baseUrl}}/privacy">
+                                                {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy Policy{{/if}}
+                                            </a> | 
+                                            <a href="{{baseUrl}}/terms">
+                                                {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of Service{{/if}}
+                                            </a>
+                                        </p>
                                     </td>
                                 </tr>
                             </table>
                         </td>
                     </tr>
-
-                    <tr>
-                        <td style="background: #f7fafc; padding: 25px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
-                            <p style="margin: 0; color: #a0aec0; font-size: 13px;">
-                                {{#if (eq locale 'he')}}
-                                    בברכה,<br>צוות NeshamaTech
-                                {{else}}
-                                    Best regards,<br>The NeshamaTech Team
-                                {{/if}}
-                            </p>
-                        </td>
-                    </tr>
+                    
                 </table>
             </td>
         </tr>

@@ -333,7 +333,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   return (
     <div className="relative" dir={direction}>
       <div className="sticky top-4 z-10 bg-gradient-to-b from-white via-white/95 to-white/0 pt-4 pb-3 backdrop-blur-sm">
-        {' '}
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="flex items-center justify-between">
             <div>
@@ -360,7 +359,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   </Button>
                 ) : (
                   <>
-                    {/* ======================= START: DESKTOP BUTTONS ======================= */}
+                    {/* ======================= START: DESKTOP BUTTONS (INSIDE STICKY HEADER) ======================= */}
                     <div className="hidden sm:flex gap-2">
                       <Button
                         variant="outline"
@@ -1565,7 +1564,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
               className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2"
             >
               <Save className="w-4 h-4" />
-              {t.buttons.save}{' '}
+              {t.buttons.save}
             </Button>
           </div>
         </div>

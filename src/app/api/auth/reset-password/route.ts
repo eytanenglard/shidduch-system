@@ -9,7 +9,6 @@ import { emailService } from '@/lib/email/emailService';
 import { hash } from 'bcryptjs';
 import { z } from 'zod';
 
-// Zod schema for validating the request body with detailed messages
 const resetPasswordSchema = z.object({
   email: z.string().email({ message: "כתובת מייל לא תקינה" }),
   otp: z.string()
@@ -22,7 +21,6 @@ const resetPasswordSchema = z.object({
     .regex(/[0-9]/, { message: "הסיסמה חייבת להכיל לפחות ספרה אחת" }),
 });
 
-// Helper for consistent logging
 type LogMetadata = {
   email?: string;
   userId?: string;
@@ -44,17 +42,14 @@ export async function POST(req: NextRequest) {
   let requestBody: { email?: string } | undefined;
 
   try {
-    // 1. Apply Rate Limiting (prevents brute-force attacks on OTP)
     const rateLimitResponse = await applyRateLimit(req, { requests: 10, window: '15 m' });
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
-    // 2. Get Locale from URL for translation
     const url = new URL(req.url);
-    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he'; // Default to Hebrew
+    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
 
-    // 3. Parse and Validate Request Body
     requestBody = await req.json();
     logger.info('Reset password with OTP process initiated', { action, locale });
 
@@ -73,17 +68,14 @@ export async function POST(req: NextRequest) {
     const { email, otp, newPassword } = validation.data;
     const normalizedEmail = email.toLowerCase();
 
-    // 4. Verify the OTP using the centralized VerificationService
     logger.info('Attempting to verify OTP for password reset', { action, email: normalizedEmail });
     
-    // This service will throw an error if the OTP is invalid, expired, or has too many attempts.
     const verificationResult = await VerificationService.verifyCode(
       otp,
       VerificationType.PASSWORD_RESET,
       normalizedEmail
     );
 
-    // Ensure the result from the service contains the necessary data
     if (!verificationResult.success || !verificationResult.userId || !verificationResult.id) {
       logger.error('OTP verification failed unexpectedly or did not return required data', {
         action,
@@ -96,39 +88,31 @@ export async function POST(req: NextRequest) {
     const { userId, id: verificationId } = verificationResult;
     logger.info('OTP verified successfully', { action, userId, verificationId });
 
-    // 5. Hash the new password
     const hashedPassword = await hash(newPassword, 12);
     logger.info('New password hashed', { action, userId });
 
-    // 6. Update user's password and mark OTP as used
-    // These are done sequentially. If marking as completed fails, it's not critical as the token will expire.
-    
-    // Update the user's password
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
         password: hashedPassword,
         updatedAt: new Date(),
       },
-select: { email: true, firstName: true, language: true }     });
+      select: { email: true, firstName: true, language: true }
+    });
     logger.info('User password updated in database', { action, userId });
 
-    // Mark the verification record as COMPLETED
     await VerificationService.completeVerification(verificationId);
     logger.info('Verification record marked as completed', { action, verificationId });
 
-    // 7. Send password change confirmation email (non-critical step)
     if (user) {
       try {
-        // *** CRITICAL FIX: Pass the locale to the email service ***
         await emailService.sendPasswordChangedConfirmationEmail({
-         locale: user.language || locale,  // Pass the determined locale
+         locale: user.language || locale,
           email: user.email,
           firstName: user.firstName,
         });
-        logger.info('Password change confirmation email sent', { action, userId, locale });
+        logger.info('Password change confirmation email sent', { action, userId, locale: user.language || locale });
       } catch (emailError) {
-        // Log the error but do not fail the request, as the password has been successfully changed.
         logger.error('Failed to send password change confirmation email', {
           action,
           userId,
@@ -137,15 +121,13 @@ select: { email: true, firstName: true, language: true }     });
       }
     }
 
-    // 8. Return success response
-    const successMessage = locale === 'he'
+    const successMessage = (user.language || locale) === 'he'
       ? 'הסיסמה אופסה בהצלחה. כעת תוכל להתחבר עם הסיסמה החדשה.'
       : 'Password has been reset successfully. You can now log in with your new password.';
       
     return NextResponse.json({ success: true, message: successMessage }, { status: 200 });
 
   } catch (error: unknown) {
-    // 9. Handle all errors gracefully
     const emailForLog = requestBody?.email;
     logger.error('Critical error in reset password with OTP process', {
       action,
@@ -156,7 +138,6 @@ select: { email: true, firstName: true, language: true }     });
     let errorMessage = 'אירעה שגיאה באיפוס הסיסמה.';
     let errorStatus = 500;
 
-    // Map specific known errors from VerificationService to user-friendly messages and statuses
     if (error instanceof Error) {
       const knownClientErrors = [
         'הקוד כבר נוצל.',
@@ -167,9 +148,9 @@ select: { email: true, firstName: true, language: true }     });
       ];
       if (knownClientErrors.includes(error.message)) {
         errorMessage = error.message;
-        errorStatus = 400; // Bad Request
-        if (error.message.includes("פג תוקפו")) errorStatus = 410; // Gone
-        if (error.message.includes("חרגת ממספר ניסיונות")) errorStatus = 429; // Too Many Requests
+        errorStatus = 400;
+        if (error.message.includes("פג תוקפו")) errorStatus = 410;
+        if (error.message.includes("חרגת ממספר ניסיונות")) errorStatus = 429;
       }
     }
 

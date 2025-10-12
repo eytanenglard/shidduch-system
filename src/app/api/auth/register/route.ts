@@ -1,12 +1,11 @@
 // app/api/auth/register/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType, UserSource, Language } from '@prisma/client'; // <-- 1. הוספנו את Language
+import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType, UserSource, Language } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { emailService } from '@/lib/email/emailService';
 import { VerificationService } from '@/lib/services/verificationService'; 
 import { applyRateLimit } from '@/lib/rate-limiter';
-// <-- 2. הסרנו את UserEngagementService שאינו קיים
 
 const prisma = new PrismaClient();
 
@@ -62,7 +61,7 @@ interface InitialRegistrationData {
   firstName: string;
   lastName: string;
   marketingConsent?: boolean;
-  language?: Language; // <-- 3. עדכנו את הטיפוס
+  language?: Language;
 }
 
 function handleError(error: unknown): { message: string; status: number } {
@@ -191,7 +190,7 @@ export async function POST(req: NextRequest) {
             password: hashedPassword,
             firstName: body.firstName,
             lastName: body.lastName,
-            language: body.language || 'he', // <-- 4. הוספת השדה כאן
+            language: body.language || 'he',
             role: UserRole.CANDIDATE,
             status: UserStatus.PENDING_EMAIL_VERIFICATION,
             isVerified: false, 
@@ -219,8 +218,6 @@ export async function POST(req: NextRequest) {
 
     logger.info('Database transaction completed successfully', { userId: result.user.id });
     
-    // <-- 5. הסרנו את כל הבלוק של UserEngagementService מכאן
-
     let emailSentSuccess = false;
     const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour"; 
 

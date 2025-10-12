@@ -4,25 +4,332 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{#if (eq locale 'he')}}התקדמות מצוינת, {{firstName}}!{{else}}Excellent progress, {{firstName}}!{{/if}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            direction: {{getDir locale}};
+        }
+        
+        .email-wrapper {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 50px 30px;
+            text-align: center;
+        }
+        
+        .header-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .email-header h1 {
+            color: white;
+            margin: 0;
+            font-size: 32px;
+            font-weight: 800;
+            text-shadow: 0 2px 15px rgba(0,0,0,0.2);
+        }
+        
+        .email-header p {
+            color: rgba(255,255,255,0.95);
+            margin: 15px 0 0 0;
+            font-size: 17px;
+            font-weight: 500;
+        }
+        
+        .email-body {
+            padding: 40px 30px;
+        }
+        
+        .email-body p {
+            font-size: 16px;
+            color: #4a5568;
+            line-height: 1.7;
+            margin: 0 0 25px 0;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            color: #2d3748;
+            margin: 0 0 20px 0;
+            line-height: 1.6;
+        }
+        
+        .today-actions {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 25px 0;
+        }
+        
+        .today-actions h3 {
+            color: #1e40af;
+            margin: 0 0 15px 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .today-actions ul {
+            color: #1e40af;
+            margin: 0;
+            padding-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 20px;
+            line-height: 1.8;
+        }
+        
+        .today-actions li {
+            margin-bottom: 8px;
+        }
+        
+        .ai-insight-box {
+            background: #f0fdfa;
+            border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #06b6d4;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        
+        .ai-insight-box h3 {
+            color: #0f766e;
+            margin: 0 0 12px 0;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .ai-insight-box p {
+            color: #115e59;
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+        
+        .ai-disclaimer {
+            font-size: 13px;
+            color: #134e4a;
+            margin-top: 12px;
+            font-style: italic;
+        }
+        
+        .progress-section {
+            margin: 30px 0;
+        }
+        
+        .progress-label {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .progress-label strong {
+            color: #1e293b;
+        }
+        
+        .progress-bar-container {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+        }
+        
+        .next-step-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+            border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #f59e0b;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 25px 0;
+        }
+        
+        .next-step-box h3 {
+            color: #92400e;
+            margin: 0 0 12px 0;
+            font-size: 19px;
+            font-weight: 700;
+        }
+        
+        .next-step-box p {
+            color: #78350f;
+            margin: 0;
+            font-size: 17px;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+        
+        .time-estimate {
+            color: #92400e;
+            margin: 15px 0 0 0;
+            font-size: 14px;
+        }
+        
+        .cta-section {
+            margin: 35px 0;
+            text-align: center;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 20px 50px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 18px;
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+        
+        .email-footer {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            padding: 0;
+            border-top: 1px solid #d1d5db;
+        }
+        
+        .footer-content {
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            margin-bottom: 20px;
+        }
+        
+        .footer-logo img {
+            height: 50px;
+            width: auto;
+            display: inline-block;
+        }
+        
+        .footer-company-name {
+            margin-bottom: 15px;
+        }
+        
+        .footer-company-name span {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(to right, #0891b2, #f97316, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .footer-tagline {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 10px 0 20px 0;
+            font-style: italic;
+        }
+        
+        .footer-contact {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        
+        .footer-contact p {
+            margin: 5px 0;
+            color: #4b5563;
+            font-size: 13px;
+        }
+        
+        .footer-contact a {
+            color: #06b6d4;
+            text-decoration: none;
+        }
+        
+        .footer-social {
+            margin: 20px 0;
+        }
+        
+        .footer-social a {
+            display: inline-block;
+            margin: 0 10px;
+            font-size: 24px;
+            text-decoration: none;
+        }
+        
+        .footer-copyright {
+            color: #9ca3af;
+            font-size: 12px;
+            margin: 15px 0 5px 0;
+        }
+        
+        .footer-legal {
+            color: #9ca3af;
+            font-size: 11px;
+            margin: 5px 0;
+        }
+        
+        .footer-legal a {
+            color: #6b7280;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            .email-wrapper {
+                padding: 20px 10px;
+            }
+            
+            .email-header {
+                padding: 30px 20px;
+            }
+            
+            .email-header h1 {
+                font-size: 24px;
+            }
+            
+            .email-body {
+                padding: 30px 20px;
+            }
+            
+            .cta-button {
+                padding: 16px 40px;
+                font-size: 16px;
+            }
+        }
+    </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); direction: {{getDir locale}};">
+<body>
     <table role="presentation" style="width: 100%; border-collapse: collapse;">
         <tr>
-            <td align="center" style="padding: 40px 20px;">
-                <table role="presentation" style="max-width: 600px; width: 100%; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); overflow: hidden;">
+            <td class="email-wrapper">
+                <table role="presentation" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto;">
                     
                     <!-- Header -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 50px 30px; text-align: center;">
-                            <div style="font-size: 64px; margin-bottom: 20px;">✨</div>
-                            <h1 style="color: white; margin: 0; font-size: 32px; font-weight: 800; text-shadow: 0 2px 15px rgba(0,0,0,0.2);">
+                        <td class="email-header">
+                            <div class="header-icon">✨</div>
+                            <h1>
                                 {{#if (eq locale 'he')}}
                                     כל הכבוד על ההשקעה, {{firstName}}!
                                 {{else}}
                                     Great work today, {{firstName}}!
                                 {{/if}}
                             </h1>
-                            <p style="color: rgba(255,255,255,0.95); margin: 15px 0 0 0; font-size: 17px; font-weight: 500;">
+                            <p>
                                 {{#if (eq locale 'he')}}
                                     שמנו לב להתקדמות שלך היום
                                 {{else}}
@@ -32,14 +339,14 @@
                         </td>
                     </tr>
                     
-                    <!-- Main Content -->
+                    <!-- Body -->
                     <tr>
-                        <td style="padding: 40px 30px;">
-                            <p style="font-size: 18px; color: #2d3748; margin: 0 0 20px 0; line-height: 1.6;">
+                        <td class="email-body">
+                            <p class="greeting">
                                 {{#if (eq locale 'he')}}היי{{else}}Hi{{/if}} {{firstName}},
                             </p>
                             
-                            <p style="font-size: 16px; color: #4a5568; margin: 0 0 25px 0; line-height: 1.7;">
+                            <p>
                                 {{#if (eq locale 'he')}}
                                     רצינו לעצור לרגע ולומר תודה על הזמן והמחשבה שהשקעת היום בפרופיל שלך. כל פרט שאתה מוסיף לא רק מקדם אותך, אלא גם עוזר למערכת שלנו ללמוד אותך לעומק ולחפש עבורך בצורה מדויקת יותר.
                                 {{else}}
@@ -48,27 +355,25 @@
                             </p>
 
                             <!-- What was done today -->
-                            <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%); border-radius: 16px; padding: 24px; margin: 25px 0;">
-                                <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 20px; font-weight: 700;">
-                                    {{#if (eq locale 'he')}}✅ הפעולות שלך היום{{else}}✅ Your Actions Today{{/if}}
+                            <div class="today-actions">
+                                <h3>
+                                    ✅ {{#if (eq locale 'he')}}הפעולות שלך היום{{else}}Your Actions Today{{/if}}
                                 </h3>
-                                <ul style="color: #1e40af; margin: 0; padding-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 20px; line-height: 1.8;">
+                                <ul>
                                     {{#each todayCompletedItems}}
-                                    <li style="margin-bottom: 8px;">{{this}}</li>
+                                    <li>{{this}}</li>
                                     {{/each}}
                                 </ul>
                             </div>
 
                             {{#if aiInsight}}
                             <!-- AI Insight -->
-                            <div style="background: #f0fdfa; border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #06b6d4; border-radius: 12px; padding: 20px; margin: 25px 0;">
-                                <h3 style="color: #0f766e; margin: 0 0 12px 0; font-size: 18px; font-weight: 700;">
-                                    {{#if (eq locale 'he')}}💡 תובנה ראשונית מהמערכת{{else}}💡 An Initial Insight From Our System{{/if}}
+                            <div class="ai-insight-box">
+                                <h3>
+                                    💡 {{#if (eq locale 'he')}}תובנה ראשונית מהמערכת{{else}}An Initial Insight From Our System{{/if}}
                                 </h3>
-                                <p style="color: #115e59; margin: 0; font-size: 15px; line-height: 1.7;">
-                                    "{{aiInsight}}"
-                                </p>
-                                <p style="font-size: 13px; color: #134e4a; margin-top: 12px; font-style: italic;">
+                                <p>"{{aiInsight}}"</p>
+                                <p class="ai-disclaimer">
                                     {{#if (eq locale 'he')}}
                                         זוהי רק טעימה מהתמונה שהמערכת מרכיבה. ככל שהפרופיל יהיה מלא יותר, כך התובנות יהיו עמוקות ומדויקות יותר.
                                     {{else}}
@@ -79,29 +384,26 @@
                             {{/if}}
                             
                             <!-- Overall Progress Bar -->
-                            <div style="margin: 30px 0;">
-                                 <p style="text-align: center; color: #4a5568; margin-bottom: 10px; font-size: 16px;">
+                            <div class="progress-section">
+                                 <p class="progress-label">
                                     {{#if (eq locale 'he')}}
                                         ההתקדמות הכוללת שלך: <strong>{{progressPercentage}}%</strong>
                                     {{else}}
                                         Your overall progress: <strong>{{progressPercentage}}%</strong>
                                     {{/if}}
                                 </p>
-                                <div style="background: #e2e8f0; border-radius: 10px; height: 12px; overflow: hidden;">
-                                    <div style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: {{progressPercentage}}%;"></div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: {{progressPercentage}}%;"></div>
                                 </div>
                             </div>
 
-
                             <!-- Next Step -->
-                            <div style="background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #f59e0b; border-radius: 12px; padding: 24px; margin: 25px 0;">
-                                <h3 style="color: #92400e; margin: 0 0 12px 0; font-size: 19px; font-weight: 700;">
+                            <div class="next-step-box">
+                                <h3>
                                     {{#if (eq locale 'he')}}🎯 הצעד הבא במסע{{else}}🎯 The Next Step on Your Journey{{/if}}
                                 </h3>
-                                <p style="color: #78350f; margin: 0; font-size: 17px; line-height: 1.6; font-weight: 500;">
-                                    {{nextAction}}
-                                </p>
-                                <p style="color: #92400e; margin: 15px 0 0 0; font-size: 14px;">
+                                <p>{{nextAction}}</p>
+                                <p class="time-estimate">
                                     {{#if (eq locale 'he')}}
                                         זמן מוערך: {{estimatedTime}}
                                     {{else}}
@@ -111,26 +413,70 @@
                             </div>
 
                             <!-- CTA -->
-                            <table role="presentation" style="margin: 35px 0;">
-                                <tr>
-                                    <td style="text-align: center;">
-                                        <a href="{{ctaLink}}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 20px 50px; border-radius: 50px; font-weight: 800; font-size: 18px; box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);">
-                                            {{ctaText}} 💪
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
+                            <div class="cta-section">
+                                <a href="{{ctaLink}}" class="cta-button">
+                                    {{ctaText}} 💪
+                                </a>
+                            </div>
                         </td>
                     </tr>
 
                     <!-- Footer -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); padding: 25px 30px; text-align: center; border-top: 1px solid #d1d5db;">
-                            <p style="margin: 0; color: #4b5563; font-size: 14px; font-weight: 600;">
-                                {{#if (eq locale 'he')}}אנחנו ממשיכים לעבוד בשבילך!{{else}}We're continuing to work for you!{{/if}}
-                            </p>
+                        <td class="email-footer">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td class="footer-content">
+                                        <div class="footer-logo">
+                                            <img 
+                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+                                                alt="NeshamaTech Logo"
+                                            />
+                                        </div>
+                                        
+                                        <div class="footer-company-name">
+                                            <span>NeshamaTech</span>
+                                        </div>
+                                        
+                                        <p class="footer-tagline">
+                                            {{#if (eq locale 'he')}}
+                                                מחברים לבבות, בונים עתיד משותף
+                                            {{else}}
+                                                Connecting Hearts, Building Shared Futures
+                                            {{/if}}
+                                        </p>
+                                        
+                                        <div class="footer-contact">
+                                            <p><strong>{{#if (eq locale 'he')}}צור קשר:{{else}}Contact:{{/if}}</strong></p>
+                                            <p>📧 <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+                                            <p>🌐 <a href="{{baseUrl}}">{{baseUrl}}</a></p>
+                                        </div>
+                                        
+                                        <div class="footer-social">
+                                            <a href="#" title="Facebook">📘</a>
+                                            <a href="#" title="Instagram">📷</a>
+                                            <a href="#" title="Twitter">🐦</a>
+                                        </div>
+                                        
+                                        <p class="footer-copyright">
+                                            © {{currentYear}} NeshamaTech. 
+                                            {{#if (eq locale 'he')}}אנחנו ממשיכים לעבוד בשבילך!{{else}}We're continuing to work for you!{{/if}}
+                                        </p>
+                                        
+                                        <p class="footer-legal">
+                                            <a href="{{baseUrl}}/privacy">
+                                                {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy Policy{{/if}}
+                                            </a> | 
+                                            <a href="{{baseUrl}}/terms">
+                                                {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of Service{{/if}}
+                                            </a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
+                    
                 </table>
             </td>
         </tr>

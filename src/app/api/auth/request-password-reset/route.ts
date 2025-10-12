@@ -8,13 +8,10 @@ import { VerificationService } from '@/lib/services/verificationService';
 import { emailService } from '@/lib/email/emailService';
 import { z } from 'zod';
 
-
-// Zod schema for validating the request body
 const requestPasswordResetSchema = z.object({
   email: z.string().email({ message: "כתובת מייל לא תקינה" }),
 });
 
-// Helper for logging (consistent with your existing logs)
 type LogMetadata = {
   email?: string;
   userId?: string;
@@ -23,7 +20,7 @@ type LogMetadata = {
   timestamp?: string;
   action?: string;
   status?: UserStatus | VerificationStatus;
-  locale?: 'he' | 'en'; // <<<<<<<<<<<< התיקון: הוספת המאפיין החסר
+  locale?: 'he' | 'en';
 };
 
 const logger = {
@@ -33,21 +30,18 @@ const logger = {
 };
 
 export async function POST(req: NextRequest) {
-  // 1. Apply Rate Limiting (prevents email spam)
   const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
   if (rateLimitResponse) {
     return rateLimitResponse;
   }
 
-  // 2. Get Locale from URL for translation
   const url = new URL(req.url);
-  const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he'; // Default to Hebrew
+  const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
   
   const action = "request-password-reset";
   let requestBody: { email?: string } | undefined;
 
   try {
-    // 3. Parse and Validate Request Body
     requestBody = await req.json();
     logger.info('Request password reset initiated', { action });
 
@@ -62,25 +56,22 @@ export async function POST(req: NextRequest) {
 
     const { email } = validation.data;
     const normalizedEmail = email.toLowerCase();
-    // הקריאה הזו תקינה עכשיו
     logger.info('Processing password reset request', { action, email: normalizedEmail, locale });
 
-    // 4. Find the user in the database
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
-    // SECURITY: Always return a generic success message to prevent user enumeration attacks.
     const genericSuccessMessage = locale === 'he'
       ? 'אם קיימת כתובת מייל זו במערכת וניתן לאפס עבורה סיסמה, קוד אימות נשלח כעת.'
       : 'If an account with this email exists and is eligible for password reset, a code has been sent.';
 
-    // 5. Handle cases where no email should be sent, but still return success to the client
     if (!user) {
       logger.info('User not found for password reset request', { action, email: normalizedEmail });
       return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
     }
-const finalLocale = user.language || locale;
+
+    const finalLocale = user.language || locale;
 
     if (!user.password) {
       logger.info('Password reset attempted for account without a password (e.g., OAuth user)', { action, email: normalizedEmail, userId: user.id });
@@ -92,7 +83,6 @@ const finalLocale = user.language || locale;
         return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
     }
 
-    // 6. Invalidate previous pending password reset OTPs for this user
     await prisma.verification.updateMany({
         where: {
             userId: user.id,
@@ -105,19 +95,17 @@ const finalLocale = user.language || locale;
     });
     logger.info('Invalidated previous pending password reset OTPs', { action, userId: user.id });
 
-    // 7. Create a new OTP using the Verification Service
     const expiresInMinutes = 15;
     const { otp: generatedOtp, verification: passwordResetVerification } = await VerificationService.createVerification(
       user.id,
       VerificationType.PASSWORD_RESET,
       user.email,
-      expiresInMinutes / 60 // Service expects hours
+      expiresInMinutes / 60 
     );
     logger.info('New password reset OTP created', { action, userId: user.id, verificationId: passwordResetVerification.id });
 
-    // 8. Send the password reset email using the updated Email Service
     try {
-      const expiresInText = locale === 'he' ? `${expiresInMinutes} דקות` : `${expiresInMinutes} minutes`;
+      const expiresInText = finalLocale === 'he' ? `${expiresInMinutes} דקות` : `${expiresInMinutes} minutes`;
 
       await emailService.sendPasswordResetOtpEmail({
          locale: finalLocale,
@@ -136,11 +124,9 @@ const finalLocale = user.language || locale;
       });
     }
 
-    // 9. Return the generic success response
     return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
 
   } catch (error: unknown) {
-    // 10. Handle unexpected errors
     const emailForLog = requestBody?.email;
     logger.error('Critical error in request password reset process', {
       action,

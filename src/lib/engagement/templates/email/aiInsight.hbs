@@ -4,25 +4,307 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{#if (eq locale 'he')}}גילינו משהו מעניין עליך{{else}}We've discovered something interesting about you{{/if}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            direction: {{getDir locale}};
+        }
+        
+        .email-wrapper {
+            width: 100%;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 40px 20px;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.5);
+            overflow: hidden;
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+            padding: 50px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .email-header h1 {
+            color: white;
+            margin: 0;
+            font-size: 30px;
+            font-weight: 800;
+            line-height: 1.4;
+            text-shadow: 0 2px 15px rgba(0,0,0,0.15);
+        }
+        
+        .email-header p {
+            color: rgba(255,255,255,0.95);
+            margin: 12px 0 0 0;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .email-body {
+            padding: 40px 30px;
+        }
+        
+        .email-body p {
+            font-size: 16px;
+            color: #4a5568;
+            line-height: 1.7;
+            margin: 0 0 25px 0;
+        }
+        
+        .greeting {
+            font-size: 17px;
+            color: #2d3748;
+            margin: 0 0 20px 0;
+            line-height: 1.6;
+        }
+        
+        .ai-analysis-box {
+            background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
+            border-radius: 20px;
+            padding: 32px;
+            margin: 28px 0;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.1);
+        }
+        
+        .ai-analysis-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        
+        .ai-analysis-icon {
+            font-size: 36px;
+            margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 15px;
+        }
+        
+        .ai-analysis-box h2 {
+            color: transparent;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            margin: 0;
+            font-size: 22px;
+            font-weight: 800;
+        }
+        
+        .ai-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+        
+        .ai-content p {
+            color: #1e293b;
+            margin: 0;
+            font-size: 17px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            font-weight: 500;
+        }
+        
+        .why-important {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        
+        .why-important h3 {
+            color: #2d3748;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .why-important p {
+            color: #4a5568;
+            margin: 0 0 12px 0;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+        
+        .why-important p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .why-important strong {
+            color: #1e293b;
+        }
+        
+        .cta-section {
+            margin: 35px 0;
+            text-align: center;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+            color: white;
+            text-decoration: none;
+            padding: 18px 48px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 17px;
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+        }
+        
+        .help-text {
+            font-size: 14px;
+            color: #718096;
+            margin: 25px 0 0 0;
+            line-height: 1.6;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
+        }
+        
+        .help-text strong {
+            color: #2d3748;
+        }
+        
+        .email-footer {
+            background: #f7fafc;
+            padding: 0;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .footer-content {
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            margin-bottom: 20px;
+        }
+        
+        .footer-logo img {
+            height: 50px;
+            width: auto;
+            display: inline-block;
+        }
+        
+        .footer-company-name {
+            margin-bottom: 15px;
+        }
+        
+        .footer-company-name span {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(to right, #0891b2, #f97316, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .footer-tagline {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 10px 0 20px 0;
+            font-style: italic;
+        }
+        
+        .footer-contact {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        
+        .footer-contact p {
+            margin: 5px 0;
+            color: #4b5563;
+            font-size: 13px;
+        }
+        
+        .footer-contact a {
+            color: #06b6d4;
+            text-decoration: none;
+        }
+        
+        .footer-social {
+            margin: 20px 0;
+        }
+        
+        .footer-social a {
+            display: inline-block;
+            margin: 0 10px;
+            font-size: 24px;
+            text-decoration: none;
+        }
+        
+        .footer-copyright {
+            color: #9ca3af;
+            font-size: 12px;
+            margin: 15px 0 5px 0;
+        }
+        
+        .footer-legal {
+            color: #9ca3af;
+            font-size: 11px;
+            margin: 5px 0;
+        }
+        
+        .footer-legal a {
+            color: #6b7280;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            .email-wrapper {
+                padding: 20px 10px;
+            }
+            
+            .email-header {
+                padding: 30px 20px;
+            }
+            
+            .email-header h1 {
+                font-size: 24px;
+            }
+            
+            .email-body {
+                padding: 30px 20px;
+            }
+        }
+    </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); direction: {{getDir locale}};">
+<body>
     <table role="presentation" style="width: 100%; border-collapse: collapse;">
         <tr>
-            <td align="center" style="padding: 40px 20px;">
-                <table role="presentation" style="max-width: 600px; width: 100%; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.5); overflow: hidden;">
+            <td class="email-wrapper">
+                <table role="presentation" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto;">
                     
                     <!-- Header -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%); padding: 50px 30px; text-align: center; position: relative;">
-                            <div style="font-size: 64px; margin-bottom: 20px;">🧠✨</div>
-                            <h1 style="color: white; margin: 0; font-size: 30px; font-weight: 800; line-height: 1.4; text-shadow: 0 2px 15px rgba(0,0,0,0.15);">
+                        <td class="email-header">
+                            <div class="header-icon">🧠✨</div>
+                            <h1>
                                 {{#if (eq locale 'he')}}
                                     {{firstName}}, יש לנו תובנות מרתקות עליך!
                                 {{else}}
                                     {{firstName}}, We Have Fascinating Insights About You!
                                 {{/if}}
                             </h1>
-                            <p style="color: rgba(255,255,255,0.95); margin: 12px 0 0 0; font-size: 16px; font-weight: 500;">
+                            <p>
                                 {{#if (eq locale 'he')}}
                                     מערכת ה-AI שלנו ניתחה את השאלון שלך
                                 {{else}}
@@ -32,14 +314,14 @@
                         </td>
                     </tr>
                     
-                    <!-- Main Content -->
+                    <!-- Body -->
                     <tr>
-                        <td style="padding: 40px 30px;">
-                            <p style="font-size: 17px; color: #2d3748; margin: 0 0 20px 0; line-height: 1.6;">
+                        <td class="email-body">
+                            <p class="greeting">
                                 {{#if (eq locale 'he')}}היי{{else}}Hi{{/if}} {{firstName}},
                             </p>
                             
-                            <p style="font-size: 16px; color: #4a5568; margin: 0 0 25px 0; line-height: 1.7;">
+                            <p>
                                 {{#if (eq locale 'he')}}
                                     תודה שהשקעת זמן למלא את השאלון שלנו! התשובות שלך עזרו למערכת ה-AI המתקדמת שלנו להבין אותך טוב יותר. הנה מה שגילינו:
                                 {{else}}
@@ -48,61 +330,122 @@
                             </p>
 
                             <!-- AI Analysis Box -->
-                            <div style="background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%); border-radius: 20px; padding: 32px; margin: 28px 0; border: 2px solid rgba(139, 92, 246, 0.2); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.1);">
-                                <div style="display: flex; align-items: center; margin-bottom: 18px;">
-                                    <span style="font-size: 36px; margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 15px;">🎯</span>
-                                    <h2 style="color: transparent; background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; background-clip: text; margin: 0; font-size: 22px; font-weight: 800;">
+                            <div class="ai-analysis-box">
+                                <div class="ai-analysis-header">
+                                    <span class="ai-analysis-icon">🎯</span>
+                                    <h2>
                                         {{#if (eq locale 'he')}}התובנות שלנו עליך:{{else}}Our Insights About You:{{/if}}
                                     </h2>
                                 </div>
-                                <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
-                                    <p style="color: #1e293b; margin: 0; font-size: 17px; line-height: 1.8; white-space: pre-wrap; font-weight: 500;">{{personalitySummary}}</p>
+                                <div class="ai-content">
+                                    <p>{{personalitySummary}}</p>
                                 </div>
                             </div>
 
-                            <div style="background: #f7fafc; border-radius: 12px; padding: 25px; margin: 25px 0;">
-                                <h3 style="color: #2d3748; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
-                                    {{#if (eq locale 'he')}}🌟 למה זה חשוב?{{else}}🌟 Why is this important?{{/if}}
+                            <div class="why-important">
+                                <h3>
+                                    🌟 {{#if (eq locale 'he')}}למה זה חשוב?{{else}}Why is this important?{{/if}}
                                 </h3>
-                                <p style="color: #4a5568; margin: 0 0 12px 0; font-size: 15px; line-height: 1.7;">
-                                    <strong>✓ {{#if (eq locale 'he')}}התאמה מדויקת יותר:{{else}}More Accurate Matches:{{/if}}</strong> {{#if (eq locale 'he')}}השדכנים שלנו משתמשים בתובנות האלה כדי למצוא לך התאמות שמתאימות באמת למי שאת/ה.{{else}}Our matchmakers use these insights to find matches that truly fit who you are.{{/if}}
+                                <p>
+                                    <strong>✓ {{#if (eq locale 'he')}}התאמה מדויקת יותר:{{else}}More Accurate Matches:{{/if}}</strong> 
+                                    {{#if (eq locale 'he')}}
+                                        השדכנים שלנו משתמשים בתובנות האלה כדי למצוא לך התאמות שמתאימות באמת למי שאת/ה.
+                                    {{else}}
+                                        Our matchmakers use these insights to find matches that truly fit who you are.
+                                    {{/if}}
                                 </p>
-                                <p style="color: #4a5568; margin: 0 0 12px 0; font-size: 15px; line-height: 1.7;">
-                                    <strong>✓ {{#if (eq locale 'he')}}הבנה מעמיקה:{{else}}Deeper Understanding:{{/if}}</strong> {{#if (eq locale 'he')}}אנחנו לא רק מסתכלים על "גובה" ועיסוק - אנחנו מבינים את הערכים, האישיות והחלומות שלך.{{else}}We don't just look at "height" and "occupation" - we understand your values, personality, and dreams.{{/if}}
+                                <p>
+                                    <strong>✓ {{#if (eq locale 'he')}}הבנה מעמיקה:{{else}}Deeper Understanding:{{/if}}</strong> 
+                                    {{#if (eq locale 'he')}}
+                                        אנחנו לא רק מסתכלים על "גובה" ועיסוק - אנחנו מבינים את הערכים, האישיות והחלומות שלך.
+                                    {{else}}
+                                        We don't just look at "height" and "occupation" - we understand your values, personality, and dreams.
+                                    {{/if}}
                                 </p>
-                                <p style="color: #4a5568; margin: 0; font-size: 15px; line-height: 1.7;">
-                                    <strong>✓ {{#if (eq locale 'he')}}שיחות טובות יותר:{{else}}Better Conversations:{{/if}}</strong> {{#if (eq locale 'he')}}ההתאמות שלך יכירו אותך טוב יותר כבר מההתחלה.{{else}}Your matches will get to know you better right from the start.{{/if}}
+                                <p>
+                                    <strong>✓ {{#if (eq locale 'he')}}שיחות טובות יותר:{{else}}Better Conversations:{{/if}}</strong> 
+                                    {{#if (eq locale 'he')}}
+                                        ההתאמות שלך יכירו אותך טוב יותר כבר מההתחלה.
+                                    {{else}}
+                                        Your matches will get to know you better right from the start.
+                                    {{/if}}
                                 </p>
                             </div>
 
-                            <table role="presentation" style="margin: 35px 0; width: 100%;">
-                                <tr>
-                                    <td style="text-align: center;">
-                                        <a href="{{baseUrl}}/profile" style="display: inline-block; background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%); color: white; text-decoration: none; padding: 18px 48px; border-radius: 50px; font-weight: 700; font-size: 17px; box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);">
-                                            {{#if (eq locale 'he')}}לצפייה בפרופיל המלא שלי 🎯{{else}}View My Full Profile 🎯{{/if}}
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
+                            <!-- CTA -->
+                            <div class="cta-section">
+                                <a href="{{baseUrl}}/profile" class="cta-button">
+                                    {{#if (eq locale 'he')}}לצפייה בפרופיל המלא שלי 🎯{{else}}View My Full Profile 🎯{{/if}}
+                                </a>
+                            </div>
 
-                            <p style="font-size: 14px; color: #718096; margin: 25px 0 0 0; line-height: 1.6; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                            <p class="help-text">
                                 <strong>{{#if (eq locale 'he')}}שאלות או רוצה לדבר עם שדכן?{{else}}Questions or want to talk to a matchmaker?{{/if}}</strong><br>
-                                {{#if (eq locale 'he')}}פשוט תשיב למייל הזה ונחזור אליך בהקדם!{{else}}Just reply to this email and we'll get back to you soon!{{/if}}
-                            </p>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td style="background: #f7fafc; padding: 25px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
-                             <p style="margin: 0; color: #a0aec0; font-size: 13px;">
                                 {{#if (eq locale 'he')}}
-                                    בברכה,<br>צוות NeshamaTech
+                                    פשוט תשיב למייל הזה ונחזור אליך בהקדם!
                                 {{else}}
-                                    Best regards,<br>The NeshamaTech Team
+                                    Just reply to this email and we'll get back to you soon!
                                 {{/if}}
                             </p>
                         </td>
                     </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td class="email-footer">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td class="footer-content">
+                                        <div class="footer-logo">
+                                            <img 
+                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+                                                alt="NeshamaTech Logo"
+                                            />
+                                        </div>
+                                        
+                                        <div class="footer-company-name">
+                                            <span>NeshamaTech</span>
+                                        </div>
+                                        
+                                        <p class="footer-tagline">
+                                            {{#if (eq locale 'he')}}
+                                                מחברים לבבות, בונים עתיד משותף
+                                            {{else}}
+                                                Connecting Hearts, Building Shared Futures
+                                            {{/if}}
+                                        </p>
+                                        
+                                        <div class="footer-contact">
+                                            <p><strong>{{#if (eq locale 'he')}}צור קשר:{{else}}Contact:{{/if}}</strong></p>
+                                            <p>📧 <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+                                            <p>🌐 <a href="{{baseUrl}}">{{baseUrl}}</a></p>
+                                        </div>
+                                        
+                                        <div class="footer-social">
+                                            <a href="#" title="Facebook">📘</a>
+                                            <a href="#" title="Instagram">📷</a>
+                                            <a href="#" title="Twitter">🐦</a>
+                                        </div>
+                                        
+                                        <p class="footer-copyright">
+                                            © {{currentYear}} NeshamaTech. 
+                                            {{#if (eq locale 'he')}}כל הזכויות שמורות{{else}}All rights reserved{{/if}}
+                                        </p>
+                                        
+                                        <p class="footer-legal">
+                                            <a href="{{baseUrl}}/privacy">
+                                                {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy Policy{{/if}}
+                                            </a> | 
+                                            <a href="{{baseUrl}}/terms">
+                                                {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of Service{{/if}}
+                                            </a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
                 </table>
             </td>
         </tr>
