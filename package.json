@@ -14,13 +14,11 @@
     "postinstall": "npx prisma generate",
     "engagement:daily": "tsx src/scripts/runSmartEngagement.ts",
     "engagement:evening": "tsx src/scripts/runEveningEngagement.ts",
-  "test:user": "tsx src/scripts/testSingleUser.ts",
+    "test:user": "tsx src/scripts/testSingleUser.ts",
     "test:check-logs": "tsx src/scripts/checkEmailLogs.ts",
-  "test:debug": "tsx src/scripts/debugCampaignRun.ts",
-    "test:user-lang": "tsx src/scripts/testUserLanguageSupport.ts"
-,
+    "test:debug": "tsx src/scripts/debugCampaignRun.ts",
+    "test:user-lang": "tsx src/scripts/testUserLanguageSupport.ts",
     "test:dry-run": "tsx src/scripts/testDryRun.ts"
-
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.817.0",

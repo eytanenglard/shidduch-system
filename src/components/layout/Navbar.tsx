@@ -27,6 +27,7 @@ import {
   Info,
   Award,
   HelpCircle,
+  Mail,
 } from 'lucide-react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import UserDropdown from './UserDropdown';
@@ -333,6 +334,10 @@ const Navbar = ({ dict }: NavbarProps) => {
                           href="/matchmaker/clients"
                           text={dict.navbar.matchmakerClients}
                         />{' '}
+                         <NavItem
+      href="/admin/engagement"
+      text={dict.navbar.engagementDashboard || "ניהול Engagement"}
+    />
                       </>
                     ) : (
                       <NavItem
@@ -542,6 +547,13 @@ const Navbar = ({ dict }: NavbarProps) => {
                         onClick={toggleMobileMenu}
                         isRtl={isRtl}
                       />
+                      <MobileNavItem
+  href="/admin/engagement"
+  text={dict.navbar.engagementDashboard || "ניהול Engagement"}
+  icon={<Mail className="h-5 w-5" />}
+  onClick={toggleMobileMenu}
+  isRtl={isRtl}
+/>
                     </>
                   ) : (
                     <MobileNavItem

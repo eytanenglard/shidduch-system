@@ -1,0 +1,3415 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\matchmaker
+# Generated on: 2025-10-12 14:19:19
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\matchmaker
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\matchmaker\en.json
+--------------------------------------------------------------------------------
+Content:
+{
+  "candidatesManager": {
+    "header": {
+      "title": "Candidates Management",
+      "totalLabel": "Total",
+      "verifiedLabel": "Verified",
+      "profilesCompleteLabel": "% Complete",
+      "addButton": "Add",
+      "refreshButton": "Refresh",
+      "expandTooltip": "Expand Header",
+      "collapseTooltip": "Collapse Header",
+      "advancedTitle": "Advanced Candidate Management",
+      "advancedSubtitle": "AI-Powered Management System",
+      "addCandidateButton": "Add Candidate",
+      "bulkUpdateDialog": {
+        "title": "Confirm Global AI Update",
+        "description": "This action will update all profiles. The process will run in the background. Do you want to continue?",
+        "cancel": "Cancel",
+        "confirm": "Yes, start update"
+      },
+      "stats": {
+        "total": "Total",
+        "male": "Men",
+        "female": "Women",
+        "verified": "Verified",
+        "active": "Active",
+        "complete": "Complete"
+      }
+    },
+"controls": {
+      "sort": "Sort",
+      "sortBy": "Sort by",
+      "filters": "Filters",
+      "hideFilters": "Hide",
+      "disableQuickView": "Disable Quick View",
+      "enableQuickView": "Enable Quick View",
+      "disableQuickViewTooltip": "Turn off the hover-to-view feature",
+      "enableQuickViewTooltip": "Turn on the hover-to-view feature",
+      "compareButton": "Compare ({{count}})", 
+      "mobile": {
+        "split": "Split",
+        "singleCol": "Single Col",
+        "doubleCol": "Double Col"
+      }
+    },
+
+    "sortOptions": {
+      "lastActive": "Last Active",
+      "age": "Age",
+      "name": "Name",
+      "city": "City",
+      "religiousLevel": "Religious Level",
+      "height": "Height",
+      "registrationDate": "Registration Date"
+    },
+    "viewOptions": {
+      "grid": "Grid View",
+      "list": "List View"
+    },
+    "searchBar": {
+      "generalPlaceholder": "General search...",
+      "malePlaceholder": "Search male candidates...",
+      "femalePlaceholder": "Search female candidates...",
+      "clearTooltip": "Clear search",
+      "smartSearch": "Smart Search",
+      "resultsCount": "{{count}} results",
+      "filterResultsPlaceholder": "Filter results...",
+      "noResultsTitle": "No Results Found",
+      "noResultsDescription": "Try changing your search terms",
+      "recentSearches": "Recent Searches",
+      "clearHistory": "Clear History",
+      "matchingResults": "Matching results ({{count}})",
+      "tip": "Tip:",
+      "tipContent": "Use keywords like name, city, or occupation for more precise results.",
+      "categories": {
+        "name": "Name",
+        "city": "City",
+        "occupation": "Occupation",
+        "all": "All"
+      },
+      "tooltips": {
+        "maleTarget": "Male Candidates",
+        "femaleTarget": "Female Candidates"
+      }
+    }
+,
+ "activeFilters": {
+      "title": "Active Filters",
+      "filterActive": "1 filter active",
+      "filtersActive": "{{count}} filters active",
+      "suggestButton": "Suggest Filters",
+      "suggestTooltip": "Suggest additional filters based on current results",
+      "clearAllButton": "Clear All",
+      "clearAllTooltip": "Clear all active filters",
+      "labels": {
+        "search": "Search: \"{{query}}\"",
+        "maleSearch": "Male Search: \"{{query}}\"",
+        "femaleSearch": "Female Search: \"{{query}}\"",
+        "separateFiltering": "Separate Filtering Active",
+        "gender": "Gender: {{gender}}",
+        "genders": {
+          "MALE": "Men",
+          "FEMALE": "Women"
+        },
+        "age": "Age: {{min}}-{{max}}",
+        "ageAbove": "Age: Over {{min}}",
+        "ageBelow": "Age: Up to {{max}}",
+        "height": "Height: {{min}}-{{max}} cm",
+        "heightAbove": "Height: Over {{min}} cm",
+        "heightBelow": "Height: Up to {{max}} cm",
+        "religiousLevel": "Religious Level: {{level}}",
+        "educationLevel": "Education: {{level}}",
+        "city": "City: {{city}}",
+        "occupation": "Occupation: {{occupation}}",
+        "availability": {
+          "AVAILABLE": "Available",
+          "DATING": "Dating",
+          "UNAVAILABLE": "Unavailable"
+        },
+        "status": "Status: {{status}}",
+        "maritalStatus": "Marital Status: {{status}}",
+        "verifiedOnly": "Verified Only",
+        "withRecommendations": "With Recommendations",
+        "fullProfile": "Full Profile",
+        "activeToday": "Active Today",
+        "activeLast3Days": "Active in last 3 days",
+        "activeLast7Days": "Active this week",
+        "activeLast30Days": "Active this month",
+        "activeInDays": "Active in last {{days}} days"
+      },
+      "summary": {
+        "title": "Advanced filtering active - {{count}} criteria",
+        "highPriority": "{{count}} important",
+        "mediumPriority": "{{count}} medium"
+      }
+    },
+    "editProfile": {
+      "deleteConfirmationPhrase": "I confirm deletion",
+      "toasts": {
+        "loadError": "Error loading candidate data",
+        "updateSuccess": "Candidate profile updated successfully",
+        "updateError": "Error updating candidate profile",
+        "uploadSuccessSingle": "Image uploaded successfully",
+        "uploadSuccessMultiple": "{{count}} images uploaded successfully",
+        "uploadError": "One or more images failed to upload",
+        "setMainSuccess": "Main image updated successfully",
+        "setMainError": "Error setting main image",
+        "deleteImageSuccessSingle": "Image deleted successfully",
+        "deleteImageSuccessMultiple": "{{count}} images deleted successfully",
+        "deleteImageError": "Error deleting images",
+        "deleteCandidateErrorConfirmation": "Invalid confirmation",
+        "deleteCandidateErrorDescription": "Please type '{{phrase}}' exactly to confirm deletion.",
+        "deleteCandidateSuccess": "Candidate deleted successfully",
+        "deleteCandidateError": "Error deleting candidate",
+        "sendInviteErrorEmail": "Please enter a valid email address.",
+        "sendInviteErrorGeneral": "Error sending invitation.",
+        "sendInviteSuccess": "Account setup invitation sent successfully!",
+                  "aiSummarySuccess": "AI draft generated successfully!",
+          "aiSummaryError": "Error generating AI draft"
+      },
+      "header": {
+        "title": "Edit Profile - {{firstName}} {{lastName}}",
+        "description": "Edit the candidate's details and preferences in the system",
+        "saving": "Saving changes..."
+      },
+      "tabs": {
+        "profile": "Personal Details",
+        "photos": "Photos",
+        "preferences": "Preferences"
+      },
+      "footer": {
+        "tabInfo": {
+          "profile": "Editing personal details",
+          "photos": "Managing photos",
+          "preferences": "Editing preferences"
+        },
+        "buttons": {
+          "sendInvite": "Send Account Management Invite",
+          "deleteCandidate": "Delete Candidate",
+          "close": "Close"
+        }
+      },
+      "inviteDialog": {
+        "title": "Invite Candidate to Manage Account",
+        "description": "Send an invitation to {{fullName}} to set a password and take control of the profile.",
+        "emailLabel": "Email Address",
+        "emailPlaceholder": "user@example.com",
+        "buttons": {
+          "cancel": "Cancel",
+          "send": "Send Invite",
+          "sending": "Sending..."
+        }
+      },
+      "deleteDialog": {
+        "title": "Confirm Candidate Deletion",
+        "description": "Are you sure you want to delete the candidate {{fullName}}?",
+        "irreversible": "This action is irreversible and will remove all candidate data from the system.",
+        "confirmationLabel": "To confirm deletion, please type: \"{{phrase}}\"",
+        "inputPlaceholder": "I confirm deletion",
+        "mismatchError": "The entered text does not match.",
+        "buttons": {
+          "cancel": "Cancel",
+          "delete": "Permanently Delete Candidate",
+          "deleting": "Deleting..."
+        }
+      },
+  "neshamaTechSummary": {
+  "title": "Introduction Summary (Matchmaker's Perspective)",
+  "description": "This summary, written by you (with AI assistance), will be displayed on the candidate's profile, providing the professional and personal touch of NeshamaTech.",
+  "aiButton": "Generate Draft with AI",
+  "aiButtonLoading": "Generating draft...",
+  "placeholder": "Write your professional summary of the candidate here...",
+  "saveButton": "Save Summary",
+  "saveButtonLoading": "Saving..."
+}
+    }
+,
+
+    "actionDialogs": {
+      "invite": {
+        "title": "Send Invitation to Candidate",
+        "description": "Send a personal invitation to join the system",
+        "emailLabel": "Email Address",
+        "emailPlaceholder": "Enter email address",
+        "successMessage": "Invitation sent successfully!",
+        "successDescription": "The candidate will receive an email notification",
+        "invalidEmailError": "Invalid email address",
+        "submissionError": "Error sending invitation",
+        "whatsNextTitle": "What happens after sending?",
+        "whatsNextItems": [
+          "The candidate will receive a personal email invitation",
+          "They can register and complete their details",
+          "You will be notified when the candidate joins"
+        ],
+        "buttons": {
+          "cancel": "Cancel",
+          "send": "Send Invite",
+          "sending": "Sending..."
+        }
+      },
+      "availability": {
+        "title": "Check Availability",
+        "description": "Check the candidate's availability for a meeting",
+        "successMessage": "Availability request sent!",
+        "successDescription": "The candidate will be notified and can update their availability",
+        "submissionError": "Error checking availability",
+        "whatsNextTitle": "What does the check include?",
+        "whatsNextItems": [
+          "Sending a notification to the candidate",
+          "A request to update their schedule",
+          "Option to coordinate a meeting",
+          "Update of availability status"
+        ],
+        "messageToSendTitle": "Message to be sent:",
+        "messageContent": "\"Hello {{firstName}}, the matchmaker wishes to check your availability for a meeting. Please update your schedule in the system.\"",
+        "buttons": {
+          "cancel": "Cancel",
+          "check": "Check Availability",
+          "checking": "Checking..."
+        }
+      },
+      "suggest": {
+        "title": "New Match Suggestion",
+        "description": "Create a custom match suggestion",
+        "whatsNextTitle": "Next Step",
+        "whatsNextDescription": "Click 'Continue' to open the full suggestion creation form with all the necessary options and details.",
+        "buttons": {
+          "cancel": "Cancel",
+          "continue": "Continue to Create Suggestion"
+        }
+      }
+    }
+,
+    "addManualCandidateDialog": {
+      "title": "Add Candidate Manually",
+      "description": "Enter the details of the candidate you want to add manually to the system.",
+      "close": "Close",
+      "fields": {
+        "firstName": {
+          "label": "First Name",
+          "placeholder": "e.g., Israel"
+        },
+        "lastName": {
+          "label": "Last Name",
+          "placeholder": "e.g., Israeli"
+        },
+        "email": {
+          "label": "Email Address (Optional)",
+          "placeholder": "e.g., user@example.com",
+          "description": "If no email is provided, an internal system address will be created."
+        },
+        "sendInvite": {
+          "label": "Send an invitation to the candidate to set up an account after adding",
+          "disabledTooltip": "An email address is required to send an invitation"
+        },
+        "gender": {
+          "label": "Gender",
+          "placeholder": "Select gender",
+          "male": "Male",
+          "female": "Female"
+        },
+        "birthDate": {
+          "modeLabel": "Age/Birth Date Entry Mode",
+          "dateMode": "By Birth Date",
+          "ageMode": "By Age",
+          "dateLabel": "Birth Date",
+          "datePlaceholder": "Select birth date",
+          "ageLabel": "Age (Approximate)",
+          "agePlaceholder": "e.g., 25",
+          "ageDescription": "An approximate birth date (Jan 1st of the birth year) will be entered based on the age provided."
+        },
+        "notes": {
+          "label": "Free Text about the Candidate",
+          "placeholder": "Describe the candidate, background, traits, what they are looking for, etc..."
+        },
+        "photos": {
+          "label": "Photos (up to {{max}})",
+          "cta": "Drag & drop photos here, or click to select",
+          "description": "PNG, JPG, WEBP (up to {{maxSize}}MB per image)",
+          "maxFilesWarning": "Can upload up to {{max}} images.",
+          "fileTooLargeError": "File {{fileName}} is too large (max {{maxSize}}MB).",
+          "previewAlt": "Preview {{index}}",
+          "removeLabel": "Remove image"
+        }
+      },
+      "buttons": {
+        "add": "Add Candidate",
+        "adding": "Adding...",
+        "cancel": "Cancel"
+      },
+      "toasts": {
+        "error": {
+          "missingFields": "Please fill all required fields: first name, last name, gender, and free text.",
+          "invalidBirthDate": "Please select a birth date.",
+          "invalidAge": "Please enter a valid age (between 1 and 120).",
+          "general": "Error adding candidate"
+        },
+        "success": {
+          "candidateAdded": "Manual candidate added successfully!",
+          "inviteSent": "Candidate added and invitation sent successfully!",
+          "inviteError": "Candidate added, but sending the invitation failed: {{error}}",
+          "inviteLoading": "Adding candidate and sending invitation..."
+        }
+      }
+    }
+,
+      "savedFilters": {
+        "header": {
+          "title": "Saved Filters",
+          "subtitle": "{{count}} {{label}}",
+          "singleFilter": "saved filter",
+          "multipleFilters": "saved filters"
+        },
+        "filterCard": {
+          "defaultBadge": "Default",
+          "complexity": {
+            "basic": "Basic",
+            "advanced": "Advanced",
+            "complex": "Complex",
+            "expert": "Expert"
+          },
+          "criteria": "{{count}} criteria",
+          "actions": {
+            "edit": "Edit",
+            "setDefault": "Set as Default",
+            "isDefault": "Default",
+            "delete": "Delete"
+          },
+          "summary": {
+            "search": "Search: \"{{query}}\"",
+            "gender": "Gender: {{gender}}",
+            "age": "Age",
+            "ageValue": "{{min}}-{{max}}",
+            "height": "Height",
+            "heightValue": "{{min}}-{{max}}cm",
+            "city": "City: {{city}}",
+            "cities": "{{count}} cities",
+            "religiousLevel": "Religious Level: {{level}}",
+            "educationLevel": "Education: {{level}}",
+            "maritalStatus": "Marital Status: {{status}}",
+            "occupation": "Field: {{occupation}}",
+            "occupations": "{{count}} occupations",
+            "status": "Status: {{status}}",
+            "statuses": {
+              "AVAILABLE": "Available",
+              "DATING": "Dating",
+              "UNAVAILABLE": "Unavailable",
+                        "PAUSED": "Paused",
+          "ENGAGED": "Engaged",
+          "MARRIED": "Married"
+
+            },
+            "verifiedOnly": "Verified Only",
+            "withRecommendations": "With Recommendations",
+            "fullProfile": "Full Profile",
+            "activeToday": "Active Today",
+            "activeLastWeek": "Active this week",
+            "activeLastMonth": "Active this month",
+            "activeInDays": "Active in last {{days}} days",
+            "separateFiltering": "Separate filtering by gender",
+            "andMore": "and {{count}} more criteria",
+            "noCriteria": "Basic filter with no criteria"
+          }
+        },
+        "emptyState": {
+          "title": "No Saved Filters",
+          "description": "Save your current filters to easily access them in the future",
+          "fastSearches": "Fast Searches",
+          "advancedFiltering": "Advanced Filtering",
+          "quickAccess": "Quick Access",
+            "saveCurrentButton": "Save Current Filter"
+
+        },
+        "stats": {
+          "default": "Default",
+          "advanced": "Advanced",
+          "avgCriteria": "Avg. Criteria"
+        }
+      }
+
+,
+    "filterPanel": {
+      "header": {
+        "title": "Advanced Candidate Filtering",
+        "subtitle": "AI-Powered Smart Filtering System",
+        "resetTooltip": "Reset all filters",
+        "saveTooltip": "Save current filter"
+      },
+      "popularFilters": {
+        "activeRecently": "Recently Active",
+        "verifiedOnly": "Verified Only",
+        "withRecommendations": "With Recommendations",
+        "availableOnly": "Available Only",
+        "completeProfiles": "Complete Profiles"
+      },
+      "savePreset": {
+        "title": "Save Filter Preset Name",
+        "placeholder": "Custom filter",
+        "button": "Save"
+      },
+      "separateFiltering": {
+        "title": "Separate Filtering by Gender",
+        "description": "Filter male and female candidates with different criteria"
+      },
+      "genderFilterPanel": {
+        "maleTitle": "Filter Male Candidates",
+        "femaleTitle": "Filter Female Candidates",
+        "copyToMale": "Copy to Males",
+        "copyToFemale": "Copy to Females",
+        "copyTooltip": "Copy settings to {{gender}}",
+        "ageLabel": "Age",
+        "heightLabel": "Height (cm)",
+        "minLabel": "Minimum",
+        "maxLabel": "Maximum",
+        "religiousLevelLabel": "Religious Level",
+        "cityLabel": "City",
+        "verifiedOnlyLabel": "Verified Only",
+        "withRecommendationsLabel": "With Recommendations",
+        "fullProfileLabel": "Full Profile",
+        "placeholders": {
+          "selectReligious": "Select religious level",
+          "selectCity": "Select city"
+        },
+        "options": {
+          "all": "All"
+        }
+      },
+      "tabs": {
+        "basic": "Basic",
+        "advanced": "Advanced",
+        "status": "Status",
+        "saved": "Saved"
+      },
+      "sections": {
+        "gender": "Gender",
+        "age": "Age",
+        "height": "Height (cm)"
+      },
+      "buttons": {
+        "male": "Men",
+        "female": "Women",
+        "removeSelection": "Remove selection",
+        "reset": "Reset",
+        "save": "Save Filter"
+      },
+      "savedFilters": {
+        "emptyTitle": "No Saved Filters",
+        "emptyDescription": "Save the current filter by clicking the save button",
+        "saveCurrentButton": "Save Current Filter"
+      }
+    },
+    "list": {
+      "quickViewTooltip": "Quick View",
+      "editProfileTooltip": "Edit Profile",
+      "emptyState": {
+        "title": "No Candidates Found",
+        "description": "Try expanding your search or removing some filters."
+      },
+      "profileDialog": {
+        "title": "Candidate Profile",
+        "description": "View candidate details",
+        "editButton": "Edit Profile",
+        "viewAsLabel": "Select View",
+        "candidateView": "Candidate View",
+        "matchmakerView": "Matchmaker View"
+      },
+      "cardActions": {
+        "availableNow": "Available Now",
+        "viewProfile": "View Profile",
+        "suggestMatch": "Suggest Match",
+        "sendInvite": "Send Invite",
+        "checkAvailability": "Check Availability",
+        "viewProfileTooltip": "Open the full profile",
+        "suggestMatchTooltip": "Create a new match suggestion",
+        "sendInviteTooltip": "Send an invitation to the candidate",
+        "checkAvailabilityTooltip": "Check availability for a meeting",
+        "addToFavorites": "Add to Favorites",
+        "rating": "Rating",
+        "matchScore": "Match",
+        "response": "Response",
+        "quickResponse": "Quick"
+      },
+      "minimalCard": {
+        "availability": {
+          "AVAILABLE": "Available",
+          "DATING": "Dating",
+          "UNAVAILABLE": "Unavailable",
+          "UNKNOWN": "Unknown"
+        },
+        "aiMatch": "{{score}}% Match",
+        "manualEntry": "Manual Candidate",
+        "noImage": "No Image",
+        "yearsSuffix": "years",
+        "lastActivePrefix": "Active",
+        "qualityScore": "Quality: {{score}}%",
+        "compare": "Compare",
+        "tooltips": {
+          "editProfile": "Edit Profile",
+          "setAsAiTarget": "Set as AI Search Target",
+          "clearAiTarget": "Clear AI Target",
+              "aiAnalysis": "Show AI Profile Analysis"
+
+        },
+         "hasTestimonials": "{{count}} Testimonials",
+          "testimonialsTooltip": "This candidate has approved testimonials"
+      },
+      "quickView": {
+        "availability": {
+          "AVAILABLE": "Available",
+          "DATING": "Dating",
+          "UNAVAILABLE": "Unavailable",
+          "UNKNOWN": "Unknown"
+        },
+        "availabilityDescription": {
+          "AVAILABLE": "Available for new meetings",
+          "DATING": "Currently in a dating process",
+          "UNAVAILABLE": "Currently unavailable",
+          "UNKNOWN": "Status unknown"
+        },
+        "manualEntry": "Manual Entry",
+        "tooltips": {
+          "setAsAiTarget": "Set as AI Search Target",
+          "clearAiTarget": "Clear AI Target"
+        },
+        "details": {
+          "years": "Years",
+          "heightUnit": "cm",
+          "maritalStatus": "Marital Status",
+          "religiousLevel": "Religious Level",
+          "manualDescription": "Matchmaker's Manual Description",
+          "moreInfo": "More Information",
+          "education": "Education",
+          "occupation": "Occupation",
+          "location": "Location",
+          "about": "About"
+        },
+        "qualityScore": "Profile Quality: {{score}}%",
+        "actions": {
+          "view": "Full View",
+          "suggest": "Suggest Match",
+          "invite": "Send Invite",
+          "contact": "Check Availability",
+          "edit": "Edit"
+        },
+        "actionsDescription": {
+          "view": "Open full profile",
+          "suggest": "Create a new suggestion",
+          "invite": "Invite to the system",
+          "contact": "Coordinate a meeting",
+          "edit": "Edit profile"
+        },
+        "stats": {
+          "rating": "Rating",
+          "match": "Match",
+          "response": "Response",
+          "quick": "Quick"
+        }
+      }
+    },
+    "splitView": {
+      "panelHeaders": {
+        "male": {
+          "title": "Male Candidates",
+          "subtitle": "{{count}} active candidates"
+        },
+        "female": {
+          "title": "Female Candidates",
+          "subtitle": "{{count}} active candidates"
+        },
+        "targetLabel": "Target: {{name}}",
+        "findMatchesButton": "Find AI Matches",
+        "searchingButton": "Searching..."
+      },
+      "mobile": {
+        "tabs": {
+          "male": "Males",
+          "female": "Females"
+        },
+        "splitLabels": {
+          "male": "Males",
+          "female": "Females"
+        }
+      }
+    },
+      "profileFeedbackDialog": {
+    "title": "Profile Feedback Report for {{name}}",
+    "preparingEmail": "Preparing email draft...",
+    "emailSubject": "Your Personal Report from NeshamaTech, {{name}}",
+    "editPrompt": "This is an automated draft. You can edit the content before sending.",
+    "buttons": {
+      "cancel": "Cancel",
+      "send": "Send Email",
+      "sending": "Sending..."
+    },
+    "toasts": {
+      "loadError": "Error preparing the email draft.",
+      "sendSuccess": "Feedback email sent successfully!",
+      "sendError": "Error sending the email."
+    }
+  },
+
+      "aiAnalysis": {
+      "header": {
+        "title": "AI-Powered Match Analysis",
+        "description": "Detailed comparison between candidates",
+        "languageSelectPlaceholder": "Analysis Language",
+        "languages": {
+          "he": "עברית",
+          "en": "English"
+        }
+      },
+      "sidebar": {
+        "title": "Candidates to Compare ({{count}})"
+      },
+      "main": {
+        "selectCandidate": {
+          "title": "Select a Candidate to Compare",
+          "description": "Choose a candidate from the side list (or the dropdown on mobile) to begin the match analysis."
+        },
+        "error": {
+          "title": "Error Analyzing Match",
+          "description": "We were unable to generate an analysis for this pair. Please try again later."
+        }
+      },
+      "miniProfile": {
+        "matchBadge": "{{score}}% Match",
+        "targetBadge": "Target Candidate",
+        "years": "years",
+        "notSpecified": "Not specified"
+      },
+      "tabs": {
+        "summary": "Summary & Strengths",
+        "challenges": "Challenges & Gaps",
+        "comparison": "Data Comparison",
+        "conversation": "Conversation Starters"
+      },
+      "analysis": {
+        "summaryTitle": "Match Summary",
+        "strengthsTitle": "Strengths and Connection Points",
+        "challengesTitle": "Potential Challenges and Gaps",
+        "conversationStartersTitle": "Recommended Conversation Starters"
+      },
+      "comparisonTable": {
+        "criterion": "Criterion",
+        "fields": {
+          "age": "Age",
+          "ageApprox": "(approx.)",
+          "city": "City",
+          "maritalStatus": "Marital Status",
+          "religiousLevel": "Religious Level",
+          "occupation": "Occupation",
+          "education": "Education"
+        }
+      }
+    }
+,
+  "aiProfileAdvisor": {
+    "dialogTitle": "AI Profile Analysis for",
+    "dialogDescription": "Automated insights based on the candidate's complete data.",
+    "loadingTitle": "The AI is analyzing the profile...",
+    "loadingDescription": "This may take a few moments. Thank you for your patience.",
+    "errorAlertTitle": "Analysis Error",
+    "errorAlertDescription": "An error occurred while generating the profile analysis.",
+    "retryButton": "Retry",
+    "initialState": "Awaiting initiation...",
+    "closeButton": "Close",
+    "toast": {
+      "errorTitle": "AI Analysis Error",
+      "errorDescription": "An error occurred: {{error}}"
+    },
+    "analysisResult": {
+      "tabs": {
+        "summary": "Summary",
+        "completeness": "Profile Completeness",
+        "tips": "Improvement Tips"
+      },
+      "summary": {
+        "personalityTitle": "Personality Summary",
+        "lookingForTitle": "What They're Looking For"
+      },
+      "completeness": {
+        "title": "Profile Completeness Report",
+        "status": {
+          "COMPLETE": "Complete",
+          "PARTIAL": "Partial",
+          "MISSING": "Missing"
+        }
+      },
+      "tips": {
+        "title": "Actionable Tips & Areas for Improvement"
+      }
+    }
+  },
+
+        "stats": {
+      "hero": {
+        "title": "Candidate Statistics",
+        "subtitle": "An overview of candidate data, activity, and advanced business insights"
+      },
+      "mainStats": {
+        "total": {
+          "title": "Total Candidates",
+          "description": "Total active candidates in the system"
+        },
+        "ratio": {
+          "title": "Candidate Ratio",
+          "description": "Men/Women"
+        },
+        "activity": {
+          "title": "Activity Last Week"
+        },
+        "completion": {
+          "title": "Completed Profiles",
+          "description": "{{completed}} out of {{total}}"
+        },
+        "trend": {
+          "increase": "Increase",
+          "decrease": "Decrease",
+          "period": "from last month"
+        }
+      },
+      "tabs": {
+        "demographics": "Demographics",
+        "activity": "Activity",
+        "completion": "Profile Completion"
+      },
+      "charts": {
+        "ageDistribution": {
+          "title": "Age Distribution",
+          "description": "Breakdown of candidates by age group"
+        },
+        "religiousDistribution": {
+          "title": "Religious Level Distribution",
+          "description": "Breakdown of candidates by religious level"
+        },
+        "topCities": {
+          "title": "Top Cities",
+          "description": "The five cities with the most candidates"
+        },
+        "userActivity": {
+          "title": "User Activity",
+          "description": "Current activity data",
+          "weeklyActive": "Active in last week",
+          "monthlyActive": "Active in last month",
+          "avgLogin": "Avg. days between logins",
+          "days": "days"
+        },
+        "activityTrend": {
+          "title": "Weekly Activity Trend",
+          "description": "Activity over the week",
+          "comingSoon": "Data available soon",
+          "subtitle": "Advanced activity trend"
+        },
+        "profileCompletion": {
+          "title": "Profile Completion",
+          "description": "Completion percentages of profile components",
+          "hasPhotos": "Profile Pictures",
+          "isVerified": "Verified Profile",
+          "hasReferences": "References"
+        },
+        "performance": {
+          "title": "Performance Insights",
+          "description": "Advanced business metrics",
+          "qualityRating": "Quality Rating",
+          "satisfaction": "Satisfaction",
+          "monthlyProgress": "This Month's Progress",
+          "newCandidates": "New Candidates",
+          "activity": "Activity",
+          "profileCompletion": "Profile Completions"
+        }
+      }
+    }
+
+  },
+    "statusBadges": {
+    "suggestion": {
+      "DRAFT": "Draft",
+      "PENDING_FIRST_PARTY": "Pending First Party",
+      "FIRST_PARTY_APPROVED": "First Party Approved",
+      "FIRST_PARTY_DECLINED": "First Party Declined",
+      "PENDING_SECOND_PARTY": "Pending Second Party",
+      "SECOND_PARTY_APPROVED": "Second Party Approved",
+      "SECOND_PARTY_DECLINED": "Second Party Declined",
+      "AWAITING_MATCHMAKER_APPROVAL": "Awaiting Matchmaker Approval",
+      "CONTACT_DETAILS_SHARED": "Contact Details Shared",
+      "AWAITING_FIRST_DATE_FEEDBACK": "Awaiting First Date Feedback",
+      "THINKING_AFTER_DATE": "Considering After Date",
+      "PROCEEDING_TO_SECOND_DATE": "Proceeding to Second Date",
+      "ENDED_AFTER_FIRST_DATE": "Ended After First Date",
+      "MEETING_PENDING": "Meeting Pending",
+      "MEETING_SCHEDULED": "Meeting Scheduled",
+      "MATCH_APPROVED": "Match Approved",
+      "MATCH_DECLINED": "Match Declined",
+      "DATING": "Dating",
+      "ENGAGED": "Engaged",
+      "MARRIED": "Married",
+      "EXPIRED": "Expired",
+      "CLOSED": "Closed",
+      "CANCELLED": "Cancelled"
+    },
+    "verification": {
+      "PENDING": "Pending",
+      "COMPLETED": "Completed",
+      "EXPIRED": "Expired",
+      "FAILED": "Failed"
+    },
+    "profile": {
+      "INCOMPLETE": "Incomplete",
+      "PENDING_VERIFICATION": "Pending Verification",
+      "VERIFIED": "Verified",
+      "BLOCKED": "Blocked"
+    },
+    "unknown": "Unknown"
+  },
+    "pagination": {
+    "show": "Show",
+    "rows": "rows",
+    "results": "Showing {{start}}-{{end}} of {{total}} results"
+  },
+    "loadingStates": {
+    "errorTitle": "Error",
+    "retryButton": "Try Again"
+  },
+    "suggestionsDashboard": {
+            "suggestionsList": {
+        "stats": {
+          "total": "Total",
+          "pending": "Pending",
+          "approved": "Approved",
+          "declined": "Declined",
+          "urgent": "Urgent"
+        },
+        "filters": {
+          "searchPlaceholder": "Search by name or city...",
+          "sortPlaceholder": "Sort by...",
+          "sortOptions": {
+            "latest": "Latest",
+            "oldest": "Oldest",
+            "deadline": "By Deadline",
+            "priority": "By Priority"
+          },
+          "filterButton": "Filter",
+          "advancedFilterTitle": "Filter by Status",
+          "statusOptions": {
+            "PENDING_FIRST_PARTY": "Pending Party A",
+            "PENDING_SECOND_PARTY": "Pending Party B",
+            "FIRST_PARTY_APPROVED": "Party A Approved",
+            "SECOND_PARTY_APPROVED": "Party B Approved",
+            "CONTACT_DETAILS_SHARED": "Contacts Shared",
+            "DATING": "Dating"
+          },
+          "clearFiltersButton": "Clear Filters",
+          "viewModes": {
+            "grid": "Grid view",
+            "list": "List view"
+          }
+        },
+        "results": {
+          "summary": "Showing {{count}} {{label}} of {{total}}",
+          "itemLabel_one": "suggestion",
+          "itemLabel_other": "suggestions",
+          "qualityMatches": "Quality Matches"
+        },
+        "emptyState": {
+          "filtered": {
+            "title": "No Results Found",
+            "description": "Try changing your search or filter criteria to find what you're looking for."
+          },
+          "default": {
+            "title": "No Suggestions Yet",
+            "description": "When suggestions are available, they will appear here."
+          },
+          "clearButton": "Clear Filters"
+        },
+        "activeFilters": {
+          "title": "Active Filter:",
+          "searchLabel": "Search: {{query}}",
+          "clearAllButton": "Clear All"
+        },
+        "performance": {
+          "title": "Performance Insights",
+          "description": "{{rate}}% approval rate • {{urgentCount}} urgent • {{pendingCount}} pending",
+          "successLabel": "Success"
+        }
+      }
+,
+      "managerSuggestionsList": {
+        "emptyState": {
+          "title": "No Suggestions Found",
+          "description": "No suggestions were found that match the current filter."
+        },
+        "deleteDialog": {
+          "title": "Are you sure?",
+          "description": "This action will permanently delete the suggestion and it cannot be recovered.",
+          "cancelButton": "Cancel",
+          "confirmButton": "Delete"
+        },
+        "toasts": {
+          "deleteSuccess": "Suggestion deleted successfully",
+          "deleteError": "Error deleting suggestion"
+        }
+      }
+,
+      "messageForm": {
+        "header": {
+          "title": "Send Message",
+          "description": "Message related to the match suggestion between {{party1}} and {{party2}}"
+        },
+        "infoAlert": {
+          "suggestionPrefix": "Suggestion #",
+          "body": "This message will be sent in the context of the active match suggestion.",
+          "statusLabel": "Current Status:",
+          "priorityLabel": "Priority:"
+        },
+        "form": {
+          "recipientLabel": "Send to",
+          "recipientPlaceholder": "Select recipient",
+          "recipientSelectedPrefix": "Message will be sent to",
+          "messageTypeLabel": "Message Type",
+          "messageTypePlaceholder": "Select message type",
+          "messageContentLabel": "Message Content",
+          "signatureNotice": "The system will automatically add a professional signature",
+          "charsCount": "{{count}}/1000 characters"
+        },
+        "partyTypes": {
+          "first": "{{firstName}} {{lastName}} (Party A)",
+          "second": "{{firstName}} {{lastName}} (Party B)",
+          "both": "Both Parties"
+        },
+        "messageTypes": {
+          "message": {
+            "label": "Regular Message",
+            "description": "General personal message",
+            "placeholder": "Personal message to the candidate..."
+          },
+          "reminder": {
+            "label": "Reminder",
+            "description": "A message to remind about the suggestion or a required action",
+            "placeholder": "Reminder message to the candidate regarding the suggestion..."
+          },
+          "update": {
+            "label": "Status Update",
+            "description": "An update on a change in the suggestion's status or new information",
+            "placeholder": "Update regarding the suggestion's status or new information..."
+          }
+        },
+        "preview": {
+          "title": "Preview",
+          "recipientLabel": "To:",
+          "typeLabel": "Type:",
+          "signature": {
+            "greeting": "Best regards,",
+            "team": "The Matchmaking System Team"
+          }
+        },
+        "footer": {
+          "notificationNotice": "Recipients will be notified via email and WhatsApp",
+          "cancelButton": "Cancel",
+          "sendButton": "Send Message",
+          "sendingButton": "Sending..."
+        },
+        "toasts": {
+          "success": "Message sent to {{recipient}}",
+          "successRecipients": {
+            "first": "{{name}}",
+            "second": "{{name}}",
+            "both": "both parties"
+          },
+          "error": "Error sending message"
+        }
+      }
+,
+          "monthlyTrendModal": {
+      "emptyState": {
+        "title": "Not Enough Data",
+        "description": "There is not enough data to display a monthly trend."
+      },
+      "header": {
+        "title": "Detailed Monthly Trend",
+        "subtitle": "In-depth analysis of suggestion performance over time"
+      },
+      "trendCards": {
+        "total": { "title": "Total Suggestions", "description": "{{trend}}" },
+        "active": { "title": "Active Suggestions", "description": "Suggestions in active process" },
+        "pending": { "title": "Pending Approval", "description": "Average response time" },
+        "success": { "title": "Successful Suggestions", "description": "Reached full success" },
+        "trendLabel": {
+          "increase": "Increase from last month",
+          "decrease": "Decrease from last month"
+        }
+      },
+      "charts": {
+        "areaChart": {
+          "title": "Suggestion Trend Over Time",
+          "badge": "{{count}} months"
+        },
+        "pieChart": {
+          "title": "Current Month Distribution",
+          "badge": "{{month}} {{year}}"
+        },
+        "legend": {
+          "active": "Active",
+          "pending": "Pending",
+          "success": "Successes",
+          "declined": "Declined",
+          "total": "Total"
+        },
+        "tooltip": {
+          "monthLabel": "Month: {{label}}"
+        }
+      },
+      "table": {
+        "title": "Full Monthly Breakdown",
+        "exportButton": "Export",
+        "viewAllButton": "View All",
+        "headers": {
+          "month": "Month",
+          "total": "Total",
+          "active": "Active",
+          "pending": "Pending",
+          "success": "Successes",
+          "declined": "Declined"
+        },
+        "currentMonthBadge": "Current"
+      },
+      "insights": {
+        "title": "Key Insights",
+        "subtitle": "Analysis of trends and performance",
+        "growth": {
+          "title": "Growth Trend",
+          "increase": "An increase of {{trend}}% in current suggestions from the previous month",
+          "decrease": "A decrease of {{trend}}% in current suggestions from the previous month"
+        },
+        "successRate": {
+          "title": "Success Rate",
+          "rate": "{{rate}}% of suggestions were successful this month",
+          "noData": "Not enough data to calculate success rate"
+        },
+        "currentActivity": {
+          "title": "Current Activity",
+          "body": "{{count}} suggestions require active handling or are awaiting a response"
+        }
+      }
+    },
+    "heroSection": {
+      "title": "Welcome to the Matchmaker System",
+      "subtitle": "Manage all matchmaking suggestions, track couples' progress, and create perfect matches.",
+      "totalSuggestions": "Total Suggestions",
+      "pendingResponse": "Pending Response",
+      "successfulMatches": "Successful Matches",
+      "successRate": "Success Rate",
+      "newSuggestionButton": "Create New Suggestion",
+      "sparkle": "",
+      "refreshButton": "Refresh Data",
+      "refreshingButton": "Refreshing..."
+    },
+    "enhancedStats": {
+      "totalSuggestions": {
+        "title": "Total Suggestions",
+        "description": "This month"
+      },
+      "pendingResponse": {
+        "title": "Pending Response",
+        "description": "Requires action"
+      },
+      "activeNow": {
+        "title": "Active Now",
+        "description": "In progress"
+      },
+      "successRate": {
+        "title": "Success Rate",
+        "description": "Couples",
+        "couples": "couples"
+      }
+    },
+    "kanban": {
+      "requiresAction": "Requires Action",
+      "pendingResponse": "Pending Response",
+      "inProgress": "In Progress",
+      "history": "History",
+      "noSuggestions": "No Suggestions"
+    },
+    "mobile": {
+      "list": "List",
+      "kanban": "Kanban",
+      "filter": "Filter",
+      "searchPlaceholder": "Search...",
+      "noMatches": {
+        "title": "No Matching Suggestions",
+        "description": "Try changing your search criteria or add a new suggestion."
+      },
+      "newSuggestionButton": "New Suggestion"
+    },
+    "mainContent": {
+      "monthlyTrendButton": "Monthly Trend",
+      "tabs": {
+        "pending": "Pending Approval",
+        "active": "Active",
+        "history": "History"
+      },
+      "loadingText": "Loading suggestions...",
+      "emptyStates": {
+        "pending": {
+          "title": "No suggestions pending approval",
+          "description": "All suggestions have been approved or declined."
+        },
+        "active": {
+          "title": "No active suggestions",
+          "description": "Create a new suggestion to get started."
+        },
+        "history": {
+          "title": "No suggestions in history",
+          "description": "History will be populated as suggestions are completed."
+        }
+      }
+    },
+    "dialogs": {
+      "monthlyTrend": {
+        "title": "Monthly Trend"
+      },
+      "deleteConfirm": {
+        "title": "Are you sure?",
+        "description": "This action will permanently delete the suggestion and it cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      }
+    },
+    "toasts": {
+      "refreshSuccess": "Suggestion data has been updated.",
+      "loadError": "Error loading suggestions.",
+      "createSuccess": "Suggestion created successfully.",
+      "createError": "Error creating suggestion.",
+      "deleteSuccess": "Suggestion deleted successfully.",
+      "deleteError": "An error occurred while performing the action.",
+      "statusUpdateSuccess": "Suggestion status updated successfully.",
+      "statusUpdateError": "Error updating suggestion status.",
+      "updateSuccess": "Suggestion details updated successfully.",
+      "updateError": "Error updating suggestion details.",
+      "messageSentSuccess": "Message sent successfully.",
+      "messageSentError": "Error sending message."
+    },
+ 
+  "actionBar": {
+      "searchPlaceholder": "Search suggestions by name, city, or other info...",
+      "buttons": {
+        "dateRange": "Date Range",
+        "advancedFilters": "Advanced Filters",
+        "clearDate": "Clear",
+        "hideAdvanced": "Hide",
+        "clearAll": "Clear All"
+      },
+      "priorityFilter": {
+        "placeholder": "Priority",
+        "all": "All Priorities",
+        "options": {
+          "URGENT": "Urgent",
+          "HIGH": "High",
+          "MEDIUM": "Medium",
+          "LOW": "Low"
+        }
+      },
+      "advancedFilters": {
+        "title": "Advanced Filters",
+        "statusTitle": "Status",
+        "participantsTitle": "Participants",
+        "sortByTitle": "Sort By",
+        "statusOptions": {
+          "PENDING_FIRST_PARTY": "Pending Party A",
+          "PENDING_SECOND_PARTY": "Pending Party B",
+          "FIRST_PARTY_APPROVED": "Party A Approved",
+          "SECOND_PARTY_APPROVED": "Party B Approved",
+          "DATING": "Dating"
+        },
+        "participantOptions": {
+          "all": "All Participants"
+        },
+        "sortOptions": {
+          "lastActivity": "Last Activity",
+          "createdAt": "Creation Date",
+          "priority": "Priority",
+          "decisionDeadline": "Decision Deadline"
+        }
+      },
+      "activeFilters": {
+        "title": "Active Filters:",
+        "priorityLabel": "Priority",
+        "dateLabel": "Date",
+        "statusLabel": "Status",
+        "statusValues": {
+          "single": "1 status",
+          "multiple": "{{count}} statuses"
+        },
+        "userLabel": "Participant",
+        "userValue": "Specific participant"
+      }
+    },
+    "suggestionCard": {
+      "statuses": {
+        "PENDING_FIRST_PARTY": { "label": "Pending Party A", "shortLabel": "Pending A", "description": "Suggestion sent to the first party, awaiting response." },
+        "PENDING_SECOND_PARTY": { "label": "Pending Party B", "shortLabel": "Pending B", "description": "Party A approved, suggestion sent to the second party." },
+        "FIRST_PARTY_APPROVED": { "label": "Party A Approved", "shortLabel": "A Approved", "description": "The first party has approved the suggestion." },
+        "SECOND_PARTY_APPROVED": { "label": "Party B Approved", "shortLabel": "B Approved", "description": "Both parties have approved the suggestion." },
+        "FIRST_PARTY_DECLINED": { "label": "Party A Declined", "shortLabel": "A Declined", "description": "The first party has declined the suggestion." },
+        "SECOND_PARTY_DECLINED": { "label": "Party B Declined", "shortLabel": "B Declined", "description": "The second party has declined the suggestion." },
+        "CONTACT_DETAILS_SHARED": { "label": "Contact Details Shared", "shortLabel": "Details Shared", "description": "Contact details have been shared between both parties." },
+        "DATING": { "label": "Dating", "shortLabel": "Dating", "description": "The couple is actively dating." },
+        "ENGAGED": { "label": "Engaged", "shortLabel": "Engaged", "description": "The couple is engaged - a great success!" },
+        "MARRIED": { "label": "Married", "shortLabel": "Married", "description": "The couple got married - a perfect match!" },
+        "AWAITING_FIRST_DATE_FEEDBACK": { "label": "Awaiting Date Feedback", "shortLabel": "Feedback", "description": "The first date occurred, awaiting feedback." },
+        "EXPIRED": { "label": "Expired", "shortLabel": "Expired", "description": "Response time has passed without an answer." },
+        "DEFAULT": { "label": "In Progress", "shortLabel": "In Progress", "description": "The suggestion is being handled by the matchmaker." }
+      },
+      "priorities": {
+        "URGENT": { "label": "Urgent" },
+        "HIGH": { "label": "High" },
+        "MEDIUM": { "label": "Medium" },
+        "LOW": { "label": "Low" }
+      },
+      "deadline": {
+        "daysLeft": "{{count}} days left",
+        "lastDay": "Last day!",
+        "noDeadline": "No deadline",
+        "decisionInDays": "{{count}} days to decide",
+        "today": "Today!"
+      },
+      "matchmakerInfo": {
+        "noInfo": "No matchmaker information",
+        "label": "Matchmaker"
+      },
+      "mobile": {
+        "title": "A New Suggestion For You",
+        "urgentTitle": "Urgent - Requires immediate attention!",
+        "connectionPoints": "Key Connection Points",
+        "matchReasonTitle": "Why this is a good match for you:",
+        "viewDetailsButton": "For full details and the complete story",
+        "sentTime": "Sent {{timeAgo}}"
+      },
+      "desktop": {
+        "connectionPoints": "Key Connection Points",
+        "matchReasonTitle": "Reason for match:",
+        "timeline": {
+          "created": "Created",
+          "deadline": "Deadline",
+          "progress": "Progress",
+          "progressCompleted": "{{percent}}% completed"
+        },
+        "partyStatus": {
+          "approved": "Approved the suggestion",
+          "declined": "Declined the suggestion"
+        }
+      },
+      "actions": {
+        "edit": "Edit Suggestion",
+        "sendMessage": "Message",
+        "delete": "Delete Suggestion",
+        "resend": "Resend",
+        "viewDetails": "Details"
+      },
+      "highlights": {
+        "familyValues": "Similar family values",
+        "religiousView": "Compatible religious outlook",
+        "location": "Geographical proximity"
+      }
+    },
+    "editSuggestionForm": {
+      "header": {
+        "title": "Edit Match Suggestion #{{id}}",
+        "description": "Editing details for the suggestion between {{party1}} and {{party2}}",
+        "priorityLabel": "Priority: {{priority}}",
+        "currentStatusLabel": "Current Status: {{status}}"
+      },
+      "infoAlert": {
+        "title": "Current Information:",
+        "createdFor": "The suggestion was created for {{party1}} and {{party2}}.",
+        "status": "Status: {{status}}",
+        "priority": "Priority: {{priority}}"
+      },
+      "sections": {
+        "priority": {
+          "title": "Suggestion Priority",
+          "placeholder": "Select priority"
+        },
+        "statusChange": {
+          "title": "Change Status",
+          "changeButton": "Change Status",
+          "cancelChangeButton": "Cancel Change",
+          "placeholder": "Select new status",
+          "noChangeOption": "No Change",
+          "notesLabel": "Notes for Status Change",
+          "notesPlaceholder": "Optional notes for the status change..."
+        },
+        "decisionDeadline": {
+          "title": "Final Decision Deadline"
+        },
+        "matchingReason": {
+          "title": "Reason for Match",
+          "placeholder": "Detail why there is a match between the candidates..."
+        },
+        "firstPartyNotes": {
+          "title": "Notes for Party A ({{name}})",
+          "placeholder": "Notes to be shown only to Party A..."
+        },
+        "secondPartyNotes": {
+          "title": "Notes for Party B ({{name}})",
+          "placeholder": "Notes to be shown only to Party B..."
+        },
+        "internalNotes": {
+          "title": "Internal Notes",
+          "placeholder": "Internal notes for matchmaker use only..."
+        }
+      },
+      "footer": {
+        "info": "All changes will be saved after clicking \"Save Changes\"",
+        "cancelButton": "Cancel",
+        "saveButton": "Save Changes",
+        "savingButton": "Saving..."
+      },
+      "toasts": {
+        "noSuggestionData": "Suggestion data not found",
+        "updateSuccess": "Suggestion details updated successfully",
+        "updateError": "Error updating suggestion details"
+      },
+      "statusLabels": {
+        "DRAFT": "Draft",
+        "PENDING_FIRST_PARTY": "Pending Party A",
+        "FIRST_PARTY_APPROVED": "Party A Approved",
+        "FIRST_PARTY_DECLINED": "Party A Declined",
+        "PENDING_SECOND_PARTY": "Pending Party B",
+        "SECOND_PARTY_APPROVED": "Party B Approved",
+        "SECOND_PARTY_DECLINED": "Party B Declined",
+        "AWAITING_MATCHMAKER_APPROVAL": "Awaiting Matchmaker Approval",
+        "CONTACT_DETAILS_SHARED": "Contact Details Shared",
+        "AWAITING_FIRST_DATE_FEEDBACK": "Awaiting First Date Feedback",
+        "THINKING_AFTER_DATE": "Thinking After Date",
+        "PROCEEDING_TO_SECOND_DATE": "Proceeding to Second Date",
+        "ENDED_AFTER_FIRST_DATE": "Ended After First Date",
+        "MEETING_PENDING": "Meeting Pending",
+        "MEETING_SCHEDULED": "Meeting Scheduled",
+        "MATCH_APPROVED": "Match Approved",
+        "MATCH_DECLINED": "Match Declined",
+        "DATING": "Dating",
+        "ENGAGED": "Engaged",
+        "MARRIED": "Married",
+        "EXPIRED": "Expired",
+        "CLOSED": "Closed",
+        "CANCELLED": "Cancelled"
+      },
+      "priorityLabels": {
+        "URGENT": "Urgent",
+        "HIGH": "High",
+        "MEDIUM": "Medium",
+        "LOW": "Low"
+      }
+    },
+ "newSuggestionForm": {
+  "header": {
+    "title": "Create New Match Suggestion",
+    "description": "Choose two candidates, analyze the match, and set the suggestion details"
+  },
+  "steps": {
+    "select": { "label": "Select Candidates", "description": "Choose the two parties for the suggestion" },
+    "analyze": { "label": "Analyze Match", "description": "Check the compatibility level" },
+    "details": { "label": "Suggestion Details", "description": "Add rationale and details" }
+  },
+     "party1Label": "Party A in the suggestion",
+      "party2Label": "Party B in the suggestion",
+  "emptyState": {
+    "title": "Please select both candidates first"
+  },
+  "buttons": {
+    "fullAnalysis": "Full Match Analysis (AI)",
+    "back": "Back",
+    "continue": "Continue",
+    "create": "Create Suggestion",
+    "creating": "Creating..."
+  },
+  "footer": {
+    "step": "Step {{current}} of {{total}}",
+    "info": "After creating the suggestion, it will appear in Draft status."
+  },
+  "toasts": {
+    "selectParties": "Please select both parties for the suggestion.",
+    "createSuccess": "Suggestion created successfully!",
+    "createError": "Error creating suggestion"
+  },
+"candidateSelector": {
+  "searchPlaceholder": "Search for a candidate...",
+  "commandInputPlaceholder": "Search candidates...",
+  "noResults": {
+    "title": "No Results Found",
+    "description": "Try changing your search terms"
+  },
+  "status": {
+    "blocked": "Blocked",
+    "blockedDescription": "In an active suggestion with {{name}}",
+    "pending": "Pending",
+    "pendingDescription": "Pending suggestion with {{name}}",
+    "available": "Available",
+    "availableDescription": "Available for a new suggestion"
+  },
+  "card": {
+    "cannotSelect": "Cannot be selected",
+    "years": "years"
+  },
+  "selectedDisplay": {
+    "title": "Selected Candidate",
+    "removeButton": "Remove Selection",
+    "viewProfileButton": "View Full Profile"
+  },
+  "toasts": {
+    "cannotSelectError": {
+      "title": "This candidate cannot be selected",
+      "description": "{{name}} is already in an active suggestion with {{withName}}."
+    }
+  }
+}
+,
+  "matchPreview": {
+    "errorState": {
+      "title": "Cannot Calculate Match",
+      "description": "Essential data for calculating the match is missing.",
+      "suggestion": "Please ensure both candidates have a full profile with birth date, city of residence, and religious level."
+    },
+    "qualityLevels": {
+      "perfect": { "text": "Perfect Match", "description": "An ideal pair with exceptional compatibility!" },
+      "excellent": { "text": "Excellent Match", "description": "A pair with high potential for success." },
+      "good": { "text": "Good Match", "description": "A quality match with good chances." },
+      "medium": { "text": "Medium Match", "description": "There is potential, worth exploring." },
+      "low": { "text": "Low Match", "description": "Limited compatibility, should be considered carefully." }
+    },
+    "generalScoreLabel": "Overall Match Score",
+    "criteriaSection": {
+      "title": "Criteria Breakdown",
+      "description": "Detailed analysis of different compatibility levels."
+    },
+    "criteria": {
+      "age": "Age",
+      "location": "Location",
+      "religious": "Religious Level",
+      "reasons": {
+          "age": {
+            "ideal": "Ideal age difference",
+            "good": "Good age difference",
+            "fair": "Reasonable age difference",
+            "large": "Large age difference",
+            "preferenceMismatch": "Does not match age preferences"
+          },
+          "location": {
+            "noData": "Location information missing",
+            "sameCity": "Live in the same city",
+            "mutualPreference": "Mutually preferred location",
+            "oneWayPreference": "One-way preferred location",
+            "differentCities": "Different cities"
+          },
+          "religious": {
+            "noData": "Religious level information missing",
+            "sameLevel": "Identical religious level",
+            "mutualPreference": "Mutually preferred religious level",
+            "oneWayPreference": "One-way preferred religious level",
+            "differentLevels": "Different religious levels"
+          }
+      }
+    },
+    "scoreCategories": {
+      "perfect": "Perfect",
+      "excellent": "Excellent",
+      "good": "Good",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "scoreLabel": "Match",
+    "reasonsSection": {
+      "title": "Reasons for Match"
+    },
+    "summary": {
+      "title": "Match Summary",
+      "description": "Recommendation based on analysis",
+      "recommendations": {
+        "high": "Highly recommended!",
+        "medium": "Worth a try",
+        "low": "Requires consideration"
+      },
+      "basedOn": "Based on {{count}} criteria"
+    }
+  },
+  "suggestionDetails": {
+    "priority": {
+      "title": "Suggestion Priority",
+      "description": "Set the level of importance and urgency for the suggestion.",
+      "label": "Select priority level",
+      "placeholder": "Select priority",
+      "options": {
+        "URGENT": { "title": "Urgent", "description": "Requires immediate attention" },
+        "HIGH": { "title": "High", "description": "Increased priority" },
+        "MEDIUM": { "title": "Regular", "description": "Standard priority" },
+        "LOW": { "title": "Low", "description": "No urgency" }
+      }
+    },
+    "rationale": {
+      "title": "General Reason for Match",
+      "description": "A detailed rationale explaining why there is a match between the parties.",
+      "label": "Content will be shown to the parties",
+      "aiButton": "Generate Rationale (AI)",
+      "aiButtonLoading": "Drafting...",
+      "placeholder": "General rationale explaining why there's a match...",
+      "aiTip": "💡 <strong>Smart Tip:</strong> Clicking the AI button will automatically fill this field and the personal notes for each party with professional, tailored content."
+    },
+    "notes": {
+      "party1Title": "Personal Notes for {{name}}",
+      "party2Title": "Personal Notes for {{name}}",
+      "description": "Personal text highlighting the benefits of the other party for them.",
+      "party1Label": "Party A in the suggestion",
+      "party2Label": "Party B in the suggestion",
+      "party1Placeholder": "Personal text highlighting the benefits of {{otherName}} for {{name}}...",
+      "party2Placeholder": "Personal text highlighting the benefits of {{otherName}} for {{name}}..."
+    },
+    "internalNotes": {
+      "title": "Internal Notes",
+      "description": "Notes and instructions for matchmaker team use only.",
+      "secretInfo": "Confidential Information",
+      "visibleTo": "Visible only to the matchmaker team",
+      "placeholder": "Notes and instructions for internal use only..."
+    },
+    "deadline": {
+      "title": "Decision Deadline",
+      "description": "Set the final date for the parties to respond.",
+      "label": "Select a response period",
+      "options": {
+        "3": { "title": "3 Days", "description": "Quick and fast" },
+        "7": { "title": "7 Days", "description": "Short period" },
+        "14": { "title": "14 Days", "description": "Standard period (recommended)" },
+        "30": { "title": "30 Days", "description": "Extended period" }
+      },
+      "infoBox": {
+        "title": "Important Information",
+        "body": "After the selected time period, if no response is received from one of the parties, the suggestion will automatically be moved to 'Expired' status."
+      }
+    },
+    "summary": {
+      "title": "Suggestion Summary",
+      "description": "All details are ready to create the suggestion.",
+      "ready": "Ready to create!",
+      "info": "After creating the suggestion, it will be automatically sent to the first party."
+    },
+    "toasts": {
+      "aiLoading": {
+        "title": "The AI is drafting the rationale package...",
+        "description": "This may take a few seconds."
+      },
+      "aiSuccess": {
+        "title": "Rationale generated successfully!",
+        "description": "All fields have been automatically filled with personalized content."
+      },
+      "aiError": {
+        "title": "Error generating rationale",
+        "description": "Please try again or fill the fields manually."
+      }
+    }
+   }
+      }
+ },
+
+   
+    "suggestionDetailsDialog": {
+  "header": {
+    "title": "Suggestion #{{id}}",
+    "subtitle": "{{party1}} & {{party2}}",
+    "fullscreenTooltip": "Fullscreen",
+    "minimizeTooltip": "Minimize"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "party1": "Party A",
+    "party2": "Party B",
+    "timeline": "Timeline",
+    "communication": "Communication",
+    "actions": "Actions"
+  },
+  "overview": {
+    "statusSummaryTitle": "Status Summary",
+    "progressCompleted": "{{percent}}% Completed",
+    "matchmakerLabel": "Matchmaker:",
+    "detailsTitle": "Suggestion Details",
+    "details": {
+      "createdAt": "Creation Date:",
+      "lastActivity": "Last Update:",
+      "priority": "Priority:",
+      "responseDeadline": "Response Deadline:",
+      "decisionDeadline": "Decision Deadline:",
+      "notSet": "Not Set"
+    },
+    "editButton": "Edit Suggestion Details",
+    "partyALabel": "Party A",
+    "partyBLabel": "Party B",
+    "contactButton": "Contact",
+    "reminderButton": "Send Reminder",
+    "reasons": {
+      "matchTitle": "Reason for Match",
+      "internalTitle": "Internal Notes"
+    },
+    "deadlineAlert": {
+      "today": "Today!",
+      "daysLeft": "{{count}} days"
+    }
+  },
+  "timeline": {
+    "title": "Suggestion Progress",
+    "noNotes": "No notes"
+  },
+  "communication": {
+    "title": "Communication"
+  },
+  "actions": {
+    "title": "Additional Actions",
+    "statusChange": { "title": "Change Status", "description": "Update suggestion status based on progress.", "button": "Change Status" },
+    "edit": { "title": "Edit Suggestion", "description": "Edit details, match reason, and notes.", "button": "Edit Suggestion Details" },
+    "delete": { "title": "Delete Suggestion", "description": "Permanently delete the suggestion from the system.", "button": "Delete Suggestion" }
+  },
+  "statusChangeModal": {
+    "title": "Change Suggestion Status",
+    "currentStatusLabel": "Current Status",
+    "newStatusLabel": "New Status",
+    "newStatusPlaceholder": "Select new status",
+    "notesLabel": "Notes for Change (Optional)",
+    "notesPlaceholder": "Add a note...",
+    "cancelButton": "Cancel",
+    "saveButton": "Save Change",
+    "savingButton": "Updating..."
+  },
+  "toasts": {
+    "statusUpdateError": "Error updating status"
+  },
+  "statusLabels": {
+      "DRAFT": "Draft", "PENDING_FIRST_PARTY": "Pending Party A", "FIRST_PARTY_APPROVED": "Party A Approved",
+      "FIRST_PARTY_DECLINED": "Party A Declined", "PENDING_SECOND_PARTY": "Pending Party B", "SECOND_PARTY_APPROVED": "Party B Approved",
+      "SECOND_PARTY_DECLINED": "Party B Declined", "AWAITING_MATCHMAKER_APPROVAL": "Awaiting Matchmaker Approval", "CONTACT_DETAILS_SHARED": "Contact Details Shared",
+      "AWAITING_FIRST_DATE_FEEDBACK": "Awaiting Date Feedback", "DATING": "Dating", "ENGAGED": "Engaged", "MARRIED": "Married",
+      "EXPIRED": "Expired", "CLOSED": "Closed", "CANCELLED": "Cancelled", "THINKING_AFTER_DATE": "Thinking After Date", "PROCEEDING_TO_SECOND_DATE": "Proceeding to 2nd Date",
+      "ENDED_AFTER_FIRST_DATE": "Ended After 1st Date", "MEETING_PENDING": "Meeting Pending", "MEETING_SCHEDULED": "Meeting Scheduled",
+      "MATCH_APPROVED": "Match Approved", "MATCH_DECLINED": "Match Declined"
+  },
+  "priorityLabels": {
+      "URGENT": "Urgent", "HIGH": "High", "MEDIUM": "Medium", "LOW": "Low"
+  }
+}
+
+
+
+
+
+
+
+
+}
+--- End of Content for en.json ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\matchmaker\he.json
+--------------------------------------------------------------------------------
+Content:
+{
+  "candidatesManager": {
+    "header": {
+      "title": "ניהול מועמדים",
+      "totalLabel": "סה\"כ",
+      "verifiedLabel": "מאומתים",
+      "profilesCompleteLabel": "% מלאים",
+      "addButton": "הוסף",
+      "refreshButton": "רענן",
+      "expandTooltip": "הרחב כותרת",
+      "collapseTooltip": "צמצם כותרת",
+      "advancedTitle": "ניהול מועמדים מתקדם",
+      "advancedSubtitle": "מערכת ניהול עם AI",
+      "addCandidateButton": "הוסף מועמד",
+      "bulkUpdateDialog": {
+        "title": "אישור עדכון AI כללי",
+        "description": "פעולה זו תעדכן את כל הפרופילים. התהליך ירוץ ברקע. האם להמשיך?",
+        "cancel": "ביטול",
+        "confirm": "כן, הפעל עדכון"
+      },
+      "stats": {
+        "total": "סך הכל",
+        "male": "גברים",
+        "female": "נשים",
+        "verified": "מאומתים",
+        "active": "פעילים",
+        "complete": "מלאים"
+      }
+    },
+        "editProfile": {
+      "deleteConfirmationPhrase": "אני מאשר מחיקה",
+      "toasts": {
+        "loadError": "שגיאה בטעינת נתוני המועמד",
+        "updateSuccess": "פרופיל המועמד עודכן בהצלחה",
+        "updateError": "שגיאה בעדכון פרופיל המועמד",
+        "uploadSuccessSingle": "התמונה הועלתה בהצלחה",
+        "uploadSuccessMultiple": "{{count}} תמונות הועלו בהצלחה",
+        "uploadError": "אחת או יותר מהתמונות לא הועלו",
+        "setMainSuccess": "התמונה הראשית עודכנה בהצלחה",
+        "setMainError": "שגיאה בעדכון התמונה הראשית",
+        "deleteImageSuccessSingle": "התמונה נמחקה בהצלחה",
+        "deleteImageSuccessMultiple": "{{count}} תמונות נמחקו בהצלחה",
+        "deleteImageError": "שגיאה במחיקת התמונות",
+        "deleteCandidateErrorConfirmation": "אישור לא תקין",
+        "deleteCandidateErrorDescription": "נא להקליד \"{{phrase}}\" בדיוק כדי לאשר מחיקה.",
+        "deleteCandidateSuccess": "המועמד נמחק בהצלחה",
+        "deleteCandidateError": "שגיאה במחיקת המועמד",
+        "sendInviteErrorEmail": "נא להזין כתובת אימייל תקינה.",
+        "sendInviteErrorGeneral": "שגיאה בשליחת ההזמנה.",
+        "sendInviteSuccess": "הזמנה להגדרת חשבון נשלחה בהצלחה!",
+      "aiSummarySuccess": "טיוטת AI נוצרה בהצלחה!",
+          "aiSummaryError": "שגיאה ביצירת טיוטת AI"
+      },
+      "header": {
+        "title": "עריכת פרופיל - {{firstName}} {{lastName}}",
+        "description": "עריכת פרטי המועמד והעדפותיו במערכת",
+        "saving": "שומר שינויים..."
+      },
+      "tabs": {
+        "profile": "פרטים אישיים",
+        "photos": "תמונות",
+        "preferences": "העדפות"
+      },
+      "footer": {
+        "tabInfo": {
+          "profile": "עריכת פרטים אישיים",
+          "photos": "ניהול תמונות",
+          "preferences": "עריכת העדפות"
+        },
+        "buttons": {
+          "sendInvite": "שלח הזמנה לניהול החשבון",
+          "deleteCandidate": "מחק מועמד",
+          "close": "סגור"
+        }
+      },
+      "inviteDialog": {
+        "title": "הזמנת מועמד לניהול החשבון",
+        "description": "שלח הזמנה ל-{{fullName}} להגדיר סיסמה ולקחת שליטה על הפרופיל.",
+        "emailLabel": "כתובת אימייל",
+        "emailPlaceholder": "user@example.com",
+        "buttons": {
+          "cancel": "ביטול",
+          "send": "שלח הזמנה",
+          "sending": "שולח..."
+        }
+      },
+      "deleteDialog": {
+        "title": "אישור מחיקת מועמד",
+        "description": "האם אתה בטוח שברצונך למחוק את המועמד {{fullName}}?",
+        "irreversible": "פעולה זו הינה בלתי הפיכה ותסיר את כל נתוני המועמד מהמערכת.",
+        "confirmationLabel": "לאישור המחיקה, אנא הקלד: \"{{phrase}}\"",
+        "inputPlaceholder": "אני מאשר מחיקה",
+        "mismatchError": "הטקסט שהוקלד אינו תואם.",
+        "buttons": {
+          "cancel": "ביטול",
+          "delete": "מחק מועמד לצמיתות",
+          "deleting": "מוחק..."
+        }
+      },
+    "neshamaTechSummary": {
+  "title": "תקציר היכרות (מנקודת מבט השדכן/ית)",
+  "description": "סיכום זה, שנכתב על ידך (בסיוע AI), יוצג בפרופיל המועמד/ת וייתן את הטאץ' המקצועי והאישי של NeshamaTech.",
+  "aiButton": "צור טיוטה עם AI",
+  "aiButtonLoading": "יוצר טיוטה...",
+  "placeholder": "כתוב/י כאן את הסיכום המקצועי על המועמד/ת...",
+  "saveButton": "שמור תקציר",
+  "saveButtonLoading": "שומר..."
+}
+    },
+     
+
+    "actionDialogs": {
+      "invite": {
+        "title": "שליחת הזמנה למועמד",
+        "description": "שלח הזמנה אישית להצטרפות למערכת",
+        "emailLabel": "כתובת אימייל",
+        "emailPlaceholder": "הזן כתובת אימייל",
+        "successMessage": "ההזמנה נשלחה בהצלחה!",
+        "successDescription": "המועמד יקבל הודעה בדוא\"ל",
+        "invalidEmailError": "כתובת אימייל לא תקינה",
+        "submissionError": "שגיאה בשליחת ההזמנה",
+        "whatsNextTitle": "מה יקרה לאחר השליחה?",
+        "whatsNextItems": [
+          "המועמד יקבל הזמנה אישית בדוא\"ל",
+          "יוכל להירשם ולהשלים את פרטיו",
+          "תקבל הודעה כשהמועמד יצטרף"
+        ],
+        "buttons": {
+          "cancel": "ביטול",
+          "send": "שלח הזמנה",
+          "sending": "שולח..."
+        }
+      },
+      "availability": {
+        "title": "בדיקת זמינות",
+        "description": "בדוק זמינות המועמד לפגישה",
+        "successMessage": "בקשת זמינות נשלחה!",
+        "successDescription": "המועמד יקבל הודעה ויוכל לעדכן זמינות",
+        "submissionError": "שגיאה בבדיקת הזמינות",
+        "whatsNextTitle": "מה תכלול בדיקת הזמינות?",
+        "whatsNextItems": [
+          "שליחת הודעה למועמד",
+          "בקשה לעדכון לוח זמנים",
+          "אפשרות לתיאום פגישה",
+          "עדכון סטטוס זמינות"
+        ],
+        "messageToSendTitle": "הודעה שתישלח:",
+        "messageContent": "\"שלום {{firstName}}, השדכן מעוניין לבדוק את הזמינות שלך לפגישה. אנא עדכן את לוח הזמנים שלך במערכת.\"",
+        "buttons": {
+          "cancel": "ביטול",
+          "check": "בדוק זמינות",
+          "checking": "בודק..."
+        }
+      },
+      "suggest": {
+        "title": "הצעת שידוך חדשה",
+        "description": "צור הצעת שידוך מותאמת אישית",
+        "whatsNextTitle": "השלב הבא",
+        "whatsNextDescription": "הקליקו על \"המשך\" כדי לפתוח את טופס יצירת ההצעה המלא עם כל האפשרויות והפרטים הנדרשים.",
+        "buttons": {
+          "cancel": "ביטול",
+          "continue": "המשך ליצירת הצעה"
+        }
+      }
+    },
+        "addManualCandidateDialog": {
+      "title": "הוספת מועמד ידנית",
+      "description": "הזן את פרטי המועמד שברצונך להוסיף למערכת באופן ידני.",
+      "close": "סגור",
+      "fields": {
+        "firstName": {
+          "label": "שם פרטי",
+          "placeholder": "לדוגמה: ישראל"
+        },
+        "lastName": {
+          "label": "שם משפחה",
+          "placeholder": "לדוגמה: ישראלי"
+        },
+        "email": {
+          "label": "כתובת אימייל (אופציונלי)",
+          "placeholder": "לדוגמה: user@example.com",
+          "description": "אם לא תסופק כתובת אימייל, תיווצר כתובת פנימית עבור המערכת."
+        },
+        "sendInvite": {
+          "label": "שלח הזמנה למועמד/ת להגדרת חשבון לאחר ההוספה",
+          "disabledTooltip": "יש להזין כתובת אימייל כדי לשלוח הזמנה"
+        },
+        "gender": {
+          "label": "מין",
+          "placeholder": "בחר/י מין",
+          "male": "זכר",
+          "female": "נקבה"
+        },
+        "birthDate": {
+          "modeLabel": "אופן הזנת גיל/תאריך לידה",
+          "dateMode": "לפי תאריך לידה",
+          "ageMode": "לפי גיל",
+          "dateLabel": "תאריך לידה",
+          "datePlaceholder": "בחר תאריך לידה",
+          "ageLabel": "גיל (משוער)",
+          "agePlaceholder": "לדוגמה: 25",
+          "ageDescription": "יוזן תאריך לידה משוער (1 בינואר של שנת הלידה) בהתאם לגיל שהוזן."
+        },
+        "notes": {
+          "label": "טקסט חופשי על המועמד",
+          "placeholder": "ספר על המועמד, רקע, תכונות, מה מחפש/ת וכו'..."
+        },
+        "photos": {
+          "label": "תמונות (עד {{max}})",
+          "cta": "גרור ושחרר תמונות לכאן, או לחץ לבחירה",
+          "description": "PNG, JPG, WEBP (עד {{maxSize}}MB לתמונה)",
+          "maxFilesWarning": "ניתן להעלות עד {{max}} תמונות.",
+          "fileTooLargeError": "הקובץ {{fileName}} גדול מדי (מקסימום {{maxSize}}MB).",
+          "previewAlt": "תצוגה מקדימה {{index}}",
+          "removeLabel": "הסר תמונה"
+        }
+      },
+      "buttons": {
+        "add": "הוסף מועמד",
+        "adding": "מוסיף...",
+        "cancel": "ביטול"
+      },
+      "toasts": {
+        "error": {
+          "missingFields": "נא למלא את כל שדות החובה: שם פרטי, שם משפחה, מין וטקסט חופשי.",
+          "invalidBirthDate": "נא לבחור תאריך לידה.",
+          "invalidAge": "נא להזין גיל תקין (בין 1 ל-120).",
+          "general": "שגיאה בהוספת המועמד"
+        },
+        "success": {
+          "candidateAdded": "המועמד הידני נוסף בהצלחה!",
+          "inviteSent": "המועמד נוסף וההזמנה נשלחה בהצלחה!",
+          "inviteError": "המועמד נוסף, אך שליחת ההזמנה נכשלה: {{error}}",
+          "inviteLoading": "מוסיף מועמד ושולח הזמנה..."
+        }
+      }
+    }
+,
+  "controls": {
+      "sort": "מיון",
+      "sortBy": "מיון לפי",
+      "filters": "פילטרים",
+      "hideFilters": "הסתר",
+      "disableQuickView": "כבה תצוגה מהירה",
+      "enableQuickView": "הפעל תצוגה מהירה",
+      "disableQuickViewTooltip": "כבה את התצוגה המהירה בריחוף",
+      "enableQuickViewTooltip": "הפעל את התצוגה המהירה בריחוף",
+"compareButton": "בצע השוואה ({{count}})",
+      "mobile": {
+        "split": "מפוצל",
+        "singleCol": "טור אחד",
+        "doubleCol": "שני טורים"
+      }
+    },
+    "sortOptions": {
+      "lastActive": "פעילות אחרונה",
+      "age": "גיל",
+      "name": "שם",
+      "city": "עיר",
+      "religiousLevel": "רמת דתיות",
+      "height": "גובה",
+      "registrationDate": "תאריך הרשמה"
+    },
+    "viewOptions": {
+      "grid": "תצוגת גריד",
+      "list": "תצוגת רשימה"
+    },
+      "searchBar": {
+      "generalPlaceholder": "חיפוש כללי...",
+      "malePlaceholder": "חיפוש מועמדים...",
+      "femalePlaceholder": "חיפוש מועמדות...",
+      "clearTooltip": "נקה חיפוש",
+      "smartSearch": "חיפוש חכם",
+      "resultsCount": "{{count}} תוצאות",
+      "filterResultsPlaceholder": "סנן תוצאות...",
+      "noResultsTitle": "לא נמצאו תוצאות",
+      "noResultsDescription": "נסה לשנות את מונחי החיפוש",
+      "recentSearches": "חיפושים אחרונים",
+      "clearHistory": "נקה היסטוריה",
+      "matchingResults": "תוצאות מתאימות ({{count}})",
+      "tip": "טיפ:",
+      "tipContent": "השתמש במילות מפתח כמו שם, עיר, או תחום עיסוק לחיפוש מדויק יותר.",
+      "categories": {
+        "name": "שם",
+        "city": "עיר",
+        "occupation": "תחום עיסוק",
+        "all": "הכל"
+      },
+      "tooltips": {
+        "maleTarget": "מועמדים",
+        "femaleTarget": "מועמדות"
+      }
+    }
+,
+    "activeFilters": {
+      "title": "סינון פעיל",
+      "filterActive": "פילטר 1 פעיל",
+      "filtersActive": "{{count}} פילטרים פעילים",
+      "suggestButton": "הצע פילטרים נוספים",
+      "suggestTooltip": "הצעת פילטרים נוספים המתאימים לתוצאות הנוכחיות",
+      "clearAllButton": "נקה הכל",
+      "clearAllTooltip": "נקה את כל הפילטרים הפעילים",
+      "labels": {
+        "search": "חיפוש: {{query}}",
+        "maleSearch": "חיפוש מועמדים: {{query}}",
+        "femaleSearch": "חיפוש מועמדות: {{query}}",
+        "separateFiltering": "סינון וחיפוש נפרד",
+        "gender": "מגדר: {{gender}}",
+        "genders": {
+          "MALE": "גברים",
+          "FEMALE": "נשים"
+        },
+        "age": "גיל: {{min}}-{{max}}",
+        "ageAbove": "גיל: מעל {{min}}",
+        "ageBelow": "גיל: עד {{max}}",
+        "height": "גובה: {{min}}-{{max}} ס\"מ",
+        "heightAbove": "גובה: מעל {{min}} ס\"מ",
+        "heightBelow": "גובה: עד {{max}} ס\"מ",
+        "religiousLevel": "רמת דתיות: {{level}}",
+        "educationLevel": "השכלה: {{level}}",
+        "city": "עיר: {{city}}",
+        "occupation": "תחום עיסוק: {{occupation}}",
+        "availability": {
+          "AVAILABLE": "פנוי/ה",
+          "DATING": "בתהליך הכרות",
+          "UNAVAILABLE": "לא פנוי/ה",
+                    "PAUSED": "בהפסקה",
+          "ENGAGED": "מאורס/ת",
+          "MARRIED": "נשוי/אה"
+
+        },
+        "status": "סטטוס: {{status}}",
+        "maritalStatus": "מצב משפחתי: {{status}}",
+        "verifiedOnly": "מאומתים בלבד",
+        "withRecommendations": "עם המלצות",
+        "fullProfile": "פרופיל מלא",
+        "activeToday": "פעילים היום",
+        "activeLast3Days": "פעילים ב-3 ימים אחרונים",
+        "activeLast7Days": "פעילים בשבוע האחרון",
+        "activeLast30Days": "פעילים בחודש האחרון",
+        "activeInDays": "פעילים ב-{{days}} ימים אחרונים"
+      },
+      "summary": {
+        "title": "סינון מתקדם פעיל - {{count}} קריטריונים",
+        "highPriority": "{{count}} חשובים",
+        "mediumPriority": "{{count}} בינוניים"
+      }
+    }
+,
+    "filterPanel": {
+      "header": {
+        "title": "סינון מועמדים מתקדם",
+        "subtitle": "מערכת סינון חכמה עם AI",
+        "resetTooltip": "איפוס כל הפילטרים",
+        "saveTooltip": "שמירת הפילטר הנוכחי"
+      },
+      "popularFilters": {
+        "activeRecently": "פעילים לאחרונה",
+        "verifiedOnly": "מאומתים בלבד",
+        "withRecommendations": "עם המלצות",
+        "availableOnly": "פנויים בלבד",
+        "completeProfiles": "פרופילים מלאים"
+      },
+      "savePreset": {
+        "title": "שם לשמירת הפילטר",
+        "placeholder": "פילטר מותאם אישית",
+        "button": "שמור"
+      },
+      "separateFiltering": {
+        "title": "סינון וחיפוש נפרד לפי מגדר",
+        "description": "סנן מועמדים ומועמדות עם קריטריונים שונים"
+      },
+      "genderFilterPanel": {
+        "maleTitle": "סינון מועמדים",
+        "femaleTitle": "סינון מועמדות",
+        "copyToMale": "העתק למועמדים",
+        "copyToFemale": "העתק למועמדות",
+        "copyTooltip": "העתק הגדרות ל{{gender}}",
+        "ageLabel": "גיל",
+        "heightLabel": "גובה (ס\"מ)",
+        "minLabel": "מינימום",
+        "maxLabel": "מקסימום",
+        "religiousLevelLabel": "רמת דתיות",
+        "cityLabel": "עיר מגורים",
+        "verifiedOnlyLabel": "מאומתים בלבד",
+        "withRecommendationsLabel": "עם המלצות",
+        "fullProfileLabel": "פרופיל מלא",
+        "placeholders": {
+          "selectReligious": "בחר רמת דתיות",
+          "selectCity": "בחר עיר"
+        },
+        "options": {
+          "all": "הכל"
+        }
+      },
+      "tabs": {
+        "basic": "בסיסי",
+        "advanced": "מתקדם",
+        "status": "סטטוס",
+        "saved": "שמורים"
+      },
+      "sections": {
+        "gender": "מגדר",
+        "age": "גיל",
+        "height": "גובה (ס\"מ)"
+      },
+      "buttons": {
+        "male": "גברים",
+        "female": "נשים",
+        "removeSelection": "הסר בחירה",
+        "reset": "איפוס",
+        "save": "שמירת פילטר"
+      },
+     "savedFilters": {
+        "header": {
+          "title": "פילטרים שמורים",
+          "subtitle": "{{count}} {{label}}",
+          "singleFilter": "פילטר שמור",
+          "multipleFilters": "פילטרים שמורים"
+        },
+        "filterCard": {
+          "defaultBadge": "ברירת מחדל",
+          "complexity": {
+            "basic": "בסיסי",
+            "advanced": "מתקדם",
+            "complex": "מורכב",
+            "expert": "מקצועי"
+          },
+          "criteria": "{{count}} קריטריונים",
+          "actions": {
+            "edit": "עריכה",
+            "setDefault": "הגדר כברירת מחדל",
+            "isDefault": "ברירת מחדל",
+            "delete": "מחיקה"
+          },
+          "summary": {
+            "search": "חיפוש: \"{{query}}\"",
+            "gender": "מגדר: {{gender}}",
+            "age": "גיל",
+            "ageValue": "{{min}}-{{max}}",
+            "height": "גובה",
+            "heightValue": "{{min}}-{{max}}ס״מ",
+            "city": "עיר: {{city}}",
+            "cities": "{{count}} ערים",
+            "religiousLevel": "רמה דתית: {{level}}",
+            "educationLevel": "השכלה: {{level}}",
+            "maritalStatus": "מצב משפחתי: {{status}}",
+            "occupation": "תחום: {{occupation}}",
+            "occupations": "{{count}} תחומי עיסוק",
+            "status": "סטטוס: {{status}}",
+         "statuses": {
+  "AVAILABLE": "פנוי/ה",
+  "DATING": "בהכרות",
+  "UNAVAILABLE": "לא פנוי/ה",
+  "PAUSED": "בהפסקה",
+  "ENGAGED": "מאורס/ת",
+  "MARRIED": "נשוי/אה"
+},
+            "verifiedOnly": "מאומתים בלבד",
+            "withRecommendations": "עם המלצות",
+            "fullProfile": "פרופיל מלא",
+            "activeToday": "פעילים היום",
+            "activeLastWeek": "פעילים השבוע",
+            "activeLastMonth": "פעילים החודש",
+            "activeInDays": "פעילים ב-{{days}} ימים",
+            "separateFiltering": "סינון נפרד לפי מגדר",
+            "andMore": "ועוד {{count}} קריטריונים",
+            "noCriteria": "פילטר בסיסי ללא קריטריונים"
+          }
+        },
+        "emptyState": {
+          "title": "אין פילטרים שמורים",
+          "description": "שמור את הפילטרים הנוכחיים כדי לגשת אליהם בקלות בעתיד",
+          "fastSearches": "חיפושים מהירים",
+          "advancedFiltering": "סינון מתקדם",
+          "quickAccess": "גישה מהירה",
+            "saveCurrentButton": "שמור פילטר נוכחי"
+
+        },
+        "stats": {
+          "default": "ברירת מחדל",
+          "advanced": "מתקדמים",
+          "avgCriteria": "ממוצע קריטריונים"
+        }
+      }
+
+    },
+    "list": {
+      "quickViewTooltip": "תצוגה מהירה",
+      "editProfileTooltip": "ערוך פרופיל",
+      "emptyState": {
+        "title": "לא נמצאו מועמדים",
+        "description": "נסו להרחיב את החיפוש או להסיר חלק מהמסננים."
+      },
+      "profileDialog": {
+        "title": "פרופיל מועמד",
+        "description": "צפייה בפרטי המועמד",
+        "editButton": "עריכת פרופיל",
+        "viewAsLabel": "בחר תצוגה",
+        "candidateView": "תצוגת מועמד",
+        "matchmakerView": "תצוגת שדכן"
+      },
+      "cardActions": {
+        "availableNow": "זמין/ה עכשיו",
+        "viewProfile": "צפייה בפרופיל",
+        "suggestMatch": "הצעת שידוך",
+        "sendInvite": "שליחת הזמנה",
+        "checkAvailability": "בדיקת זמינות",
+        "viewProfileTooltip": "פתח את הפרופיל המלא",
+        "suggestMatchTooltip": "צור הצעת שידוך חדשה",
+        "sendInviteTooltip": "שלח הזמנה למועמד",
+        "checkAvailabilityTooltip": "בדוק זמינות למפגש",
+        "addToFavorites": "הוסף למועדפים",
+        "rating": "דירוג",
+        "matchScore": "התאמה",
+        "response": "תגובה",
+        "quickResponse": "מהירה"
+      },
+      "minimalCard": {
+        "availability": {
+          "AVAILABLE": "פנוי/ה",
+          "DATING": "בתהליך היכרות",
+          "UNAVAILABLE": "לא פנוי/ה",
+          "UNKNOWN": "לא ידוע"
+        },
+        "aiMatch": "{{score}}% התאמה",
+        "manualEntry": "מועמד ידני",
+        "noImage": "אין תמונה",
+        "yearsSuffix": "שנים",
+        "lastActivePrefix": "פעיל/ה",
+        "qualityScore": "איכות: {{score}}%",
+        "compare": "השוואה",
+        "tooltips": {
+          "editProfile": "עריכת פרופיל",
+          "setAsAiTarget": "בחר כמטרה לחיפוש AI",
+          "clearAiTarget": "בטל בחירת מטרה",
+              "aiAnalysis": "הצג ניתוח פרופיל AI"
+
+        },
+          "hasTestimonials": "{{count}} המלצות",
+          "testimonialsTooltip": "למועמד/ת זה/זו יש המלצות מאושרות"
+      },
+      "quickView": {
+        "availability": {
+          "AVAILABLE": "פנוי/ה",
+          "DATING": "בתהליך היכרות",
+          "UNAVAILABLE": "לא פנוי/ה",
+          "UNKNOWN": "לא ידוע"
+        },
+        "availabilityDescription": {
+          "AVAILABLE": "זמין/ה למפגשים חדשים",
+          "DATING": "כרגע בתהליך היכרות",
+          "UNAVAILABLE": "לא זמין/ה כרגע",
+          "UNKNOWN": "סטטוס לא ידוע"
+        },
+        "manualEntry": "מועמד ידני",
+        "tooltips": {
+          "setAsAiTarget": "בחר כמטרה לחיפוש AI",
+          "clearAiTarget": "בטל בחירת מטרה"
+        },
+        "details": {
+          "years": "שנים",
+          "heightUnit": "ס״ם",
+          "maritalStatus": "מצב משפחתי",
+          "religiousLevel": "רמת דתיות",
+          "manualDescription": "תיאור ידני מהשדכן",
+          "moreInfo": "מידע נוסף",
+          "education": "השכלה",
+          "occupation": "עיסוק",
+          "location": "מיקום",
+          "about": "אודות"
+        },
+        "qualityScore": "איכות פרופיל: {{score}}%",
+        "actions": {
+          "view": "צפייה מלאה",
+          "suggest": "הצעת שידוך",
+          "invite": "שלח הזמנה",
+          "contact": "בדוק זמינות",
+          "edit": "עריכה"
+        },
+        "actionsDescription": {
+          "view": "פתח פרופיל מלא",
+          "suggest": "צור הצעה חדשה",
+          "invite": "הזמן למערכת",
+          "contact": "תיאום פגישה",
+          "edit": "ערוך פרופיל"
+        },
+
+        "stats": {
+          "rating": "דירוג",
+          "match": "התאמה",
+          "response": "תגובה",
+          "quick": "מהירה"
+        }
+      }
+    },
+    "splitView": {
+      "panelHeaders": {
+        "male": {
+          "title": "מועמדים",
+          "subtitle": "{{count}} מועמדים פעילים"
+        },
+        "female": {
+          "title": "מועמדות",
+          "subtitle": "{{count}} מועמדות פעילות"
+        },
+        "targetLabel": "מטרה: {{name}}",
+        "findMatchesButton": "מצא התאמות AI",
+        "searchingButton": "מחפש..."
+      },
+      "mobile": {
+        "tabs": {
+          "male": "מועמדים",
+          "female": "מועמדות"
+        },
+        "splitLabels": {
+          "male": "מועמדים",
+          "female": "מועמדות"
+        }
+      }
+    },
+  "profileFeedbackDialog": {
+    "title": "דוח פרופיל אישי עבור {{name}}",
+    "preparingEmail": "מכין טיוטת אימייל...",
+    "emailSubject": "הדוח האישי שלך מ-NeshamaTech, {{name}}",
+    "editPrompt": "זוהי טיוטה אוטומטית. באפשרותך לערוך את התוכן לפני השליחה.",
+    "buttons": {
+      "cancel": "ביטול",
+      "send": "שלח מייל",
+      "sending": "שולח..."
+    },
+    "toasts": {
+      "loadError": "שגיאה בהכנת טיוטת המייל.",
+      "sendSuccess": "מייל המשוב נשלח בהצלחה!",
+      "sendError": "שגיאה בשליחת המייל."
+    }
+  },
+
+     "aiAnalysis": {
+      "header": {
+        "title": "ניתוח התאמה מבוסס AI",
+        "description": "השוואה מפורטת בין מועמדים",
+        "languageSelectPlaceholder": "שפת ניתוח",
+        "languages": {
+          "he": "עברית",
+          "en": "English"
+        }
+      },
+      "sidebar": {
+        "title": "מועמדים להשוואה ({{count}})"
+      },
+      "main": {
+        "selectCandidate": {
+          "title": "בחר מועמד/ת להשוואה",
+          "description": "בחר מועמד מהרשימה בצד (או מהתפריט הנפתח במובייל) כדי להתחיל בניתוח ההתאמה."
+        },
+        "error": {
+          "title": "שגיאה בניתוח ההתאמה",
+          "description": "לא הצלחנו להפיק ניתוח עבור זוג זה. אנא נסה שוב מאוחר יותר."
+        }
+      },
+      "miniProfile": {
+        "matchBadge": "{{score}}% התאמה",
+        "targetBadge": "מועמד מטרה",
+        "years": "שנים",
+        "notSpecified": "לא צוין"
+      },
+      "tabs": {
+        "summary": "סיכום וחוזקות",
+        "challenges": "אתגרים ופערים",
+        "comparison": "השוואת נתונים",
+        "conversation": "נושאים לשיחה"
+      },
+      "analysis": {
+        "summaryTitle": "סיכום ההתאמה",
+        "strengthsTitle": "נקודות חוזק וחיבור",
+        "challengesTitle": "אתגרים ופערים פוטנציאליים",
+        "conversationStartersTitle": "נושאים מומלצים לשיחה"
+      },
+      "comparisonTable": {
+        "criterion": "קריטריון",
+        "fields": {
+          "age": "גיל",
+          "ageApprox": "(משוער)",
+          "city": "עיר",
+          "maritalStatus": "מצב משפחתי",
+          "religiousLevel": "רמה דתית",
+          "occupation": "עיסוק",
+          "education": "השכלה"
+        }
+      }
+    }
+,
+  "aiProfileAdvisor": {
+    "dialogTitle": "ניתוח פרופיל AI עבור",
+    "dialogDescription": "תובנות אוטומטיות המבוססות על כלל נתוני המועמד/ת.",
+    "loadingTitle": "ה-AI מנתח את הפרופיל...",
+    "loadingDescription": "זה עשוי לקחת מספר רגעים. תודה על סבלנותך.",
+    "errorAlertTitle": "שגיאה בניתוח",
+    "errorAlertDescription": "אירעה שגיאה בעת הפקת ניתוח הפרופIL.",
+    "retryButton": "נסה שוב",
+    "initialState": "ממתין להפעלה...",
+    "closeButton": "סגור",
+    "toast": {
+      "errorTitle": "שגיאת ניתוח AI",
+      "errorDescription": "אירעה שגיאה: {{error}}"
+    },
+    "analysisResult": {
+       "tabs": {
+        "summary": "סיכום",
+        "completeness": "שלמות הפרופיל",
+        "tips": "טיפים לשיפור"
+      },
+      "summary": {
+        "personalityTitle": "סיכום אישיות",
+        "lookingForTitle": "מה הוא/היא מחפש/ת"
+      },
+      "completeness": {
+        "title": "דוח שלמות פרופיל",
+        "status": {
+          "COMPLETE": "מלא",
+          "PARTIAL": "חלקי",
+          "MISSING": "חסר"
+        }
+      },
+      "tips": {
+        "title": "טיפים ונקודות לשיפור"
+      }
+    }
+  },
+
+        "stats": {
+      "hero": {
+        "title": "סטטיסטיקות מועמדים",
+        "subtitle": "מבט כולל על נתוני המועמדים, פעילות ותובנות עסקיות מתקדמות"
+      },
+      "mainStats": {
+        "total": {
+          "title": "סה״כ מועמדים",
+          "description": "סה״כ מועמדים פעילים במערכת"
+        },
+        "ratio": {
+          "title": "יחס מועמדים/ות",
+          "description": "גברים/נשים"
+        },
+        "activity": {
+          "title": "פעילות בשבוע האחרון"
+        },
+        "completion": {
+          "title": "פרופילים מלאים",
+          "description": "{{completed}} מתוך {{total}}"
+        },
+        "trend": {
+          "increase": "עלייה",
+          "decrease": "ירידה",
+          "period": "מהחודש שעבר"
+        }
+      },
+      "tabs": {
+        "demographics": "דמוגרפיה",
+        "activity": "פעילות",
+        "completion": "שלמות פרופילים"
+      },
+      "charts": {
+        "ageDistribution": {
+          "title": "התפלגות גילאים",
+          "description": "פילוח המועמדים לפי קבוצות גיל"
+        },
+        "religiousDistribution": {
+          "title": "התפלגות רמת דתיות",
+          "description": "פילוח המועמדים לפי רמת דתיות"
+        },
+        "topCities": {
+          "title": "ערים מובילות",
+          "description": "החמש ערים עם הכי הרבה מועמדים"
+        },
+        "userActivity": {
+          "title": "פעילות משתמשים",
+          "description": "נתוני פעילות עדכניים",
+          "weeklyActive": "פעילים בשבוע האחרון",
+          "monthlyActive": "פעילים בחודש האחרון",
+          "avgLogin": "ממוצע ימים בין התחברויות",
+          "days": "ימים"
+        },
+        "activityTrend": {
+          "title": "טרנד פעילות שבועי",
+          "description": "פעילות לאורך השבוע",
+          "comingSoon": "נתונים זמינים בקרוב",
+          "subtitle": "טרנד פעילות מתקדם"
+        },
+        "profileCompletion": {
+          "title": "שלמות פרופילים",
+          "description": "אחוזי השלמה של רכיבי הפרופיל",
+          "hasPhotos": "תמונות פרופיל",
+          "isVerified": "פרופיל מאומת",
+          "hasReferences": "המלצות"
+        },
+        "performance": {
+          "title": "תובנות ביצועים",
+          "description": "מדדים עסקיים מתקדמים",
+          "qualityRating": "דירוג איכות",
+          "satisfaction": "שביעות רצון",
+          "monthlyProgress": "התפתחות החודש",
+          "newCandidates": "מועמדים חדשים",
+          "activity": "פעילות",
+          "profileCompletion": "השלמות פרופיל"
+        }
+      }
+    }
+
+  },
+    "statusBadges": {
+    "suggestion": {
+      "DRAFT": "טיוטה",
+      "PENDING_FIRST_PARTY": "ממתין לצד ראשון",
+      "FIRST_PARTY_APPROVED": "אושר ע\"י צד ראשון",
+      "FIRST_PARTY_DECLINED": "נדחה ע\"י צד ראשון",
+      "PENDING_SECOND_PARTY": "ממתין לצד שני",
+      "SECOND_PARTY_APPROVED": "אושר ע\"י צד שני",
+      "SECOND_PARTY_DECLINED": "נדחה ע\"י צד שני",
+      "AWAITING_MATCHMAKER_APPROVAL": "ממתין לאישור שדכן",
+      "CONTACT_DETAILS_SHARED": "פרטי קשר שותפו",
+      "AWAITING_FIRST_DATE_FEEDBACK": "ממתין למשוב פגישה ראשונה",
+      "THINKING_AFTER_DATE": "בשיקול לאחר פגישה",
+      "PROCEEDING_TO_SECOND_DATE": "ממשיכים לפגישה שנייה",
+      "ENDED_AFTER_FIRST_DATE": "הסתיים לאחר פגישה ראשונה",
+      "MEETING_PENDING": "פגישה בתכנון",
+      "MEETING_SCHEDULED": "פגישה נקבעה",
+      "MATCH_APPROVED": "השידוך אושר",
+      "MATCH_DECLINED": "השידוך נדחה",
+      "DATING": "בתהליך היכרות",
+      "ENGAGED": "מאורסים",
+      "MARRIED": "נישאו",
+      "EXPIRED": "פג תוקף",
+      "CLOSED": "סגור",
+      "CANCELLED": "בוטל"
+    },
+    "verification": {
+      "PENDING": "ממתין לאימות",
+      "COMPLETED": "מאומת",
+      "EXPIRED": "פג תוקף",
+      "FAILED": "נכשל"
+    },
+    "profile": {
+      "INCOMPLETE": "לא הושלם",
+      "PENDING_VERIFICATION": "ממתין לאימות",
+      "VERIFIED": "מאומת",
+      "BLOCKED": "חסום"
+    },
+    "unknown": "לא ידוע"
+  },
+    "pagination": {
+    "show": "הצג",
+    "rows": "שורות",
+    "results": "מציג {{start}}-{{end}} מתוך {{total}} תוצאות"
+  },
+    "loadingStates": {
+    "errorTitle": "שגיאה",
+    "retryButton": "נסה שוב"
+  },
+    "suggestionsDashboard": {
+            "suggestionsList": {
+        "stats": {
+          "total": "סך הכל",
+          "pending": "ממתינות",
+          "approved": "מאושרות",
+          "declined": "נדחו",
+          "urgent": "דחופות"
+        },
+        "filters": {
+          "searchPlaceholder": "חיפוש לפי שם או עיר...",
+          "sortPlaceholder": "מיון לפי...",
+          "sortOptions": {
+            "latest": "החדשים ביותר",
+            "oldest": "הישנים ביותר",
+            "deadline": "לפי תאריך יעד",
+            "priority": "לפי דחיפות"
+          },
+          "filterButton": "סינון",
+          "advancedFilterTitle": "סינון לפי סטטוס",
+          "statusOptions": {
+            "PENDING_FIRST_PARTY": "ממתין לצד א׳",
+            "PENDING_SECOND_PARTY": "ממתין לצד ב׳",
+            "FIRST_PARTY_APPROVED": "צד א׳ אישר",
+            "SECOND_PARTY_APPROVED": "צד ב׳ אישר",
+            "CONTACT_DETAILS_SHARED": "פרטי קשר שותפו",
+            "DATING": "בתהליך היכרות"
+          },
+          "clearFiltersButton": "נקה סינונים",
+          "viewModes": {
+            "grid": "תצוגת גריד",
+            "list": "תצוגת רשימה"
+          }
+        },
+        "results": {
+          "summary": "מציג {{count}} {{label}} מתוך {{total}}",
+          "itemLabel_one": "הצעה",
+          "itemLabel_other": "הצעות",
+          "qualityMatches": "התאמות איכותיות"
+        },
+        "emptyState": {
+          "filtered": {
+            "title": "לא נמצאו תוצאות",
+            "description": "נסה לשנות את קריטריוני החיפוש או הסינון כדי למצוא את מה שאתה מחפש"
+          },
+          "default": {
+            "title": "אין הצעות כרגע",
+            "description": "כשיהיו הצעות זמינות, הן יופיעו כאן"
+          },
+          "clearButton": "נקה סינון"
+        },
+        "activeFilters": {
+          "title": "סינון פעיל:",
+          "searchLabel": "חיפוש: {{query}}",
+          "clearAllButton": "נקה הכל"
+        },
+        "performance": {
+          "title": "תובנות ביצועים",
+          "description": "{{rate}}% אחוז אישור • {{urgentCount}} דחופות • {{pendingCount}} ממתינות לטיפול",
+          "successLabel": "הצלחה"
+        }
+      }
+   
+,
+      "managerSuggestionsList": {
+        "emptyState": {
+          "title": "לא נמצאו הצעות",
+          "description": "לא נמצאו הצעות התואמות את הסינון הנוכחי."
+        },
+        "deleteDialog": {
+          "title": "האם את/ה בטוח/ה?",
+          "description": "פעולה זו תמחק את ההצעה לצמיתות ולא ניתן יהיה לשחזר אותה.",
+          "cancelButton": "ביטול",
+          "confirmButton": "מחיקה"
+        },
+        "toasts": {
+          "deleteSuccess": "ההצעה נמחקה בהצלחה",
+          "deleteError": "שגיאה במחיקת ההצעה"
+        }
+      }
+,
+      "messageForm": {
+        "header": {
+          "title": "שליחת הודעה",
+          "description": "הודעה הקשורה להצעת השידוך בין {{party1}} ל{{party2}}"
+        },
+        "infoAlert": {
+          "suggestionPrefix": "הצעה #",
+          "body": "הודעה זו תישלח במסגרת הצעת השידוך הפעילה.",
+          "statusLabel": "סטטוס נוכחי:",
+          "priorityLabel": "עדיפות:"
+        },
+        "form": {
+          "recipientLabel": "שלח אל",
+          "recipientPlaceholder": "בחר נמען",
+          "recipientSelectedPrefix": "ההודעה תישלח ל",
+          "messageTypeLabel": "סוג ההודעה",
+          "messageTypePlaceholder": "בחר סוג הודעה",
+          "messageContentLabel": "תוכן ההודעה",
+          "signatureNotice": "המערכת תוסיף אוטומטית חתימה מקצועית",
+          "charsCount": "{{count}}/1000 תווים"
+        },
+        "partyTypes": {
+          "first": "{{firstName}} {{lastName}} (צד א')",
+          "second": "{{firstName}} {{lastName}} (צד ב')",
+          "both": "שני הצדדים"
+        },
+        "messageTypes": {
+          "message": {
+            "label": "הודעה רגילה",
+            "description": "הודעה אישית כללית",
+            "placeholder": "הודעה אישית למועמד/ת..."
+          },
+          "reminder": {
+            "label": "תזכורת",
+            "description": "הודעה להזכרה על ההצעה או פעולה נדרשת",
+            "placeholder": "הודעת תזכורת למועמד/ת לגבי ההצעה..."
+          },
+          "update": {
+            "label": "עדכון סטטוס",
+            "description": "עדכון על שינוי במצב ההצעה או מידע חדש",
+            "placeholder": "עדכון לגבי סטטוס ההצעה או מידע חדש..."
+          }
+        },
+        "preview": {
+          "title": "תצוגה מקדימה",
+          "recipientLabel": "אל:",
+          "typeLabel": "סוג:",
+          "signature": {
+            "greeting": "בברכה,",
+            "team": "צוות מערכת השידוכים"
+          }
+        },
+        "footer": {
+          "notificationNotice": "הנמענים יקבלו התראה באימייל ובוואטסאפ",
+          "cancelButton": "ביטול",
+          "sendButton": "שלח הודעה",
+          "sendingButton": "שולח..."
+        },
+        "toasts": {
+          "success": "ההודעה נשלחה {{recipient}}",
+          "successRecipients": {
+            "first": "ל{{name}}",
+            "second": "ל{{name}}",
+            "both": "לשני הצדדים"
+          },
+          "error": "שגיאה בשליחת ההודעה"
+        }
+      }
+,
+      "monthlyTrendModal": {
+      "emptyState": {
+        "title": "אין מספיק נתונים",
+        "description": "אין מספיק נתונים להצגת מגמה חודשית"
+      },
+      "header": {
+        "title": "מגמה חודשית מפורטת",
+        "subtitle": "ניתוח מעמיק של ביצועי ההצעות לאורך זמן"
+      },
+      "trendCards": {
+        "total": { "title": "סה״כ הצעות", "description": "{{trend}}" },
+        "active": { "title": "הצעות פעילות", "description": "הצעות בטיפול פעיל" },
+        "pending": { "title": "ממתינות לאישור", "description": "זמן תגובה ממוצע" },
+        "success": { "title": "הצעות מוצלחות", "description": "הגיעו להצלחה מלאה" },
+        "trendLabel": {
+          "increase": "גידול מהחודש הקודם",
+          "decrease": "ירידה מהחודש הקודם"
+        }
+      },
+      "charts": {
+        "areaChart": {
+          "title": "מגמת הצעות לאורך זמן",
+          "badge": "{{count}} חודשים"
+        },
+        "pieChart": {
+          "title": "התפלגות החודש הנוכחי",
+          "badge": "{{month}} {{year}}"
+        },
+        "legend": {
+          "active": "פעילות",
+          "pending": "ממתינות",
+          "success": "הצלחות",
+          "declined": "נדחו",
+          "total": "סה״כ"
+        },
+        "tooltip": {
+          "monthLabel": "חודש: {{label}}"
+        }
+      },
+      "table": {
+        "title": "פירוט חודשי מלא",
+        "exportButton": "ייצוא",
+        "viewAllButton": "הצג הכל",
+        "headers": {
+          "month": "חודש",
+          "total": "סה״כ",
+          "active": "פעילות",
+          "pending": "ממתינות",
+          "success": "הצלחות",
+          "declined": "נדחו"
+        },
+        "currentMonthBadge": "נוכחי"
+      },
+      "insights": {
+        "title": "תובנות מרכזיות",
+        "subtitle": "ניתוח המגמות והביצועים",
+        "growth": {
+          "title": "מגמת צמיחה",
+          "increase": "גידול של {{trend}}% בכמות ההצעות השוטפות מהחודש הקודם",
+          "decrease": "ירידה של {{trend}}% בכמות ההצעות השוטפות מהחודש הקודם"
+        },
+        "successRate": {
+          "title": "אחוז הצלחה",
+          "rate": "{{rate}}% מההצעות הגיעו להצלחה בחודש הנוכחי",
+          "noData": "אין מספיק נתונים לחישוב אחוז הצלחה"
+        },
+        "currentActivity": {
+          "title": "פעילות שוטפת",
+          "body": "{{count}} הצעות זקוקות לטיפול פעיל או המתנה לתגובה"
+        }
+      }
+    },
+    "heroSection": {
+      "title": "ברוכים הבאים למערכת השדכן",
+      "subtitle": "נהל את כל הצעות השידוך, עקוב אחר התקדמות הזוגות ויצור התאמות מושלמות",
+      "totalSuggestions": "סך הכל הצעות",
+      "pendingResponse": "ממתינות לתשובה",
+      "successfulMatches": "התאמות מוצלחות",
+      "successRate": "אחוז הצלחה",
+      "newSuggestionButton": "צור הצעת שידוך חדשה",
+      "sparkle": "",
+      "refreshButton": "רענן נתונים",
+      "refreshingButton": "מעדכן..."
+    },
+    "enhancedStats": {
+      "totalSuggestions": {
+        "title": "סך הכל הצעות",
+        "description": "החודש"
+      },
+      "pendingResponse": {
+        "title": "ממתינות לתשובה",
+        "description": "דורש טיפול"
+      },
+      "activeNow": {
+        "title": "פעילות כעת",
+        "description": "בתהליך"
+      },
+      "successRate": {
+        "title": "אחוז הצלחה",
+        "description": "זוגות",
+        "couples": "זוגות"
+      }
+    },
+    "kanban": {
+      "requiresAction": "דורש טיפול",
+      "pendingResponse": "ממתין לתגובה",
+      "inProgress": "פעילות",
+      "history": "היסטוריה",
+      "noSuggestions": "אין הצעות"
+    },
+    "mobile": {
+      "list": "רשימה",
+      "kanban": "קנבן",
+      "filter": "סינון",
+      "searchPlaceholder": "חיפוש...",
+      "noMatches": {
+        "title": "אין הצעות תואמות",
+        "description": "נסה לשנות את קריטריוני החיפוש או הוסף הצעה חדשה"
+      },
+      "newSuggestionButton": "הצעה חדשה"
+    },
+    "mainContent": {
+      "monthlyTrendButton": "מגמה חודשית",
+      "tabs": {
+        "pending": "ממתין לאישור",
+        "active": "פעילות",
+        "history": "היסטוריה"
+      },
+      "loadingText": "טוען הצעות...",
+      "emptyStates": {
+        "pending": {
+          "title": "אין הצעות ממתינות לאישור",
+          "description": "כל ההצעות אושרו או נדחו"
+        },
+        "active": {
+          "title": "אין הצעות פעילות",
+          "description": "צור הצעה חדשה כדי להתחיל"
+        },
+        "history": {
+          "title": "אין הצעות בהיסטוריה",
+          "description": "ההיסטוריה תתמלא כשהצעות יושלמו"
+        }
+      }
+    },
+    "dialogs": {
+      "monthlyTrend": {
+        "title": "מגמה חודשית"
+      },
+      "deleteConfirm": {
+        "title": "האם את/ה בטוח/ה?",
+        "description": "פעולה זו תמחק את ההצעה לצמיתות ולא ניתן יהיה לשחזר אותה.",
+        "cancel": "ביטול",
+        "confirm": "אישור"
+      }
+    },
+    "toasts": {
+      "refreshSuccess": "נתוני ההצעות עודכנו",
+      "loadError": "שגיאה בטעינת ההצעות",
+      "createSuccess": "ההצעה נוצרה בהצלחה",
+      "createError": "שגיאה ביצירת ההצעה",
+      "deleteSuccess": "ההצעה נמחקה בהצלחה",
+      "deleteError": "אירעה שגיאה בביצוע הפעולה",
+      "statusUpdateSuccess": "סטטוס ההצעה עודכן בהצלחה",
+      "statusUpdateError": "שגיאה בעדכון סטטוס ההצעה",
+      "updateSuccess": "פרטי ההצעה עודכנו בהצלחה",
+      "updateError": "שגיאה בעדכון פרטי ההצעה",
+      "messageSentSuccess": "ההודעה נשלחה בהצלחה",
+      "messageSentError": "שגיאה בשליחת ההודעה"
+    },
+    "actionBar": {
+      "searchPlaceholder": "חיפוש הצעות לפי שם, עיר או כל מידע אחר...",
+      "buttons": {
+        "dateRange": "טווח זמן",
+        "advancedFilters": "מסננים מתקדמים",
+        "clearDate": "נקה",
+        "hideAdvanced": "הסתר",
+        "clearAll": "נקה הכל"
+      },
+      "priorityFilter": {
+        "placeholder": "עדיפות",
+        "all": "כל העדיפויות",
+        "options": {
+          "URGENT": "דחוף",
+          "HIGH": "גבוהה",
+          "MEDIUM": "רגילה",
+          "LOW": "נמוכה"
+        }
+      },
+      "advancedFilters": {
+        "title": "מסננים מתקדמים",
+        "statusTitle": "סטטוס",
+        "participantsTitle": "משתתפים",
+        "sortByTitle": "מיון לפי",
+        "statusOptions": {
+          "PENDING_FIRST_PARTY": "ממתין לתשובת צד א'",
+          "PENDING_SECOND_PARTY": "ממתין לתשובת צד ב'",
+          "FIRST_PARTY_APPROVED": "צד א' אישר",
+          "SECOND_PARTY_APPROVED": "צד ב' אישר",
+          "DATING": "בתהליך היכרות"
+        },
+        "participantOptions": {
+          "all": "כל המשתתפים"
+        },
+        "sortOptions": {
+          "lastActivity": "פעילות אחרונה",
+          "createdAt": "תאריך יצירה",
+          "priority": "עדיפות",
+          "decisionDeadline": "תאריך יעד"
+        }
+      },
+      "activeFilters": {
+        "title": "סינון פעיל:",
+        "priorityLabel": "עדיפות",
+        "dateLabel": "תאריך",
+        "statusLabel": "סטטוס",
+        "statusValues": {
+          "single": "סטטוס אחד",
+          "multiple": "{{count}} סטטוסים"
+        },
+        "userLabel": "משתתף",
+        "userValue": "משתתף מסוים"
+      }
+    },
+     "suggestionCard": {
+      "statuses": {
+        "PENDING_FIRST_PARTY": { "label": "ממתין לצד א׳", "shortLabel": "ממתין א׳", "description": "ההצעה נשלחה לצד הראשון וממתינה לתשובה" },
+        "PENDING_SECOND_PARTY": { "label": "ממתין לצד ב׳", "shortLabel": "ממתין ב׳", "description": "הצד הראשון אישר וההצעה נשלחה לצד השני" },
+        "FIRST_PARTY_APPROVED": { "label": "צד א׳ אישר", "shortLabel": "א׳ אישר", "description": "הצד הראשון אישר את ההצעה" },
+        "SECOND_PARTY_APPROVED": { "label": "צד ב׳ אישר", "shortLabel": "ב׳ אישר", "description": "שני הצדדים אישרו את ההצעה" },
+        "FIRST_PARTY_DECLINED": { "label": "צד א׳ דחה", "shortLabel": "א׳ דחה", "description": "הצד הראשון דחה את ההצעה" },
+        "SECOND_PARTY_DECLINED": { "label": "צד ב׳ דחה", "shortLabel": "ב׳ דחה", "description": "הצד השני דחה את ההצעה" },
+        "CONTACT_DETAILS_SHARED": { "label": "פרטי קשר שותפו", "shortLabel": "פרטים שותפו", "description": "פרטי הקשר של שני הצדדים שותפו" },
+        "DATING": { "label": "בתהליך היכרות", "shortLabel": "מכירים", "description": "הזוג בתהליך היכרות פעיל" },
+        "ENGAGED": { "label": "מאורסים", "shortLabel": "מאורסים", "description": "הזוג התארס - הצלחה גדולה!" },
+        "MARRIED": { "label": "נישאו", "shortLabel": "נישאו", "description": "הזוג התחתן - התאמה מושלמת!" },
+        "AWAITING_FIRST_DATE_FEEDBACK": { "label": "ממתין למשוב פגישה", "shortLabel": "משוב פגישה", "description": "הפגישה התקיימה וממתינים למשוב" },
+        "EXPIRED": { "label": "פג תוקף", "shortLabel": "פג תוקף", "description": "זמן התגובה עבר ולא נענתה תשובה" },
+        "DEFAULT": { "label": "בטיפול", "shortLabel": "בטיפול", "description": "ההצעה בטיפול השדכן" }
+      },
+      "priorities": {
+        "URGENT": { "label": "דחוף" },
+        "HIGH": { "label": "גבוה" },
+        "MEDIUM": { "label": "רגיל" },
+        "LOW": { "label": "נמוך" }
+      },
+      "deadline": {
+        "daysLeft": "{{count}} ימים נותרו",
+        "lastDay": "היום אחרון!",
+        "noDeadline": "אין מועד אחרון",
+        "decisionInDays": "{{count}} ימים להחלטה",
+        "today": "היום!"
+      },
+      "matchmakerInfo": {
+        "noInfo": "אין מידע על השדכן",
+        "label": "השדכן/ית"
+      },
+      "mobile": {
+        "title": "הצעה חדשה עבורך",
+        "urgentTitle": "דחוף - דורש טיפול מיידי!",
+        "connectionPoints": "נקודות חיבור מרכזיות",
+        "matchReasonTitle": "למה זה מתאים דווקא לכם:",
+        "viewDetailsButton": "לפרטים המלאים ולסיפור המלא",
+        "sentTime": "נשלח {{timeAgo}}"
+      },
+      "desktop": {
+        "connectionPoints": "נקודות חיבור מרכזיות",
+        "matchReasonTitle": "סיבת ההתאמה:",
+        "timeline": {
+          "created": "נוצר",
+          "deadline": "מועד יעד",
+          "progress": "התקדמות",
+          "progressCompleted": "{{percent}}% הושלמו"
+        },
+        "partyStatus": {
+          "approved": "אישר את ההצעה",
+          "declined": "דחה את ההצעה"
+        }
+      },
+      "actions": {
+        "edit": "ערוך הצעה",
+        "sendMessage": "הודעה",
+        "delete": "מחק הצעה",
+        "resend": "שלח מחדש",
+        "viewDetails": "פרטים"
+      },
+      "highlights": {
+        "familyValues": "ערכים משפחתיים דומים",
+        "religiousView": "השקפה דתית תואמת",
+        "location": "קרבה גיאוגרפית"
+      }
+    },
+    "editSuggestionForm": {
+      "header": {
+        "title": "עריכת הצעת שידוך #{{id}}",
+        "description": "עריכת הפרטים עבור ההצעה בין {{party1}} ל-{{party2}}",
+        "priorityLabel": "עדיפות: {{priority}}",
+        "currentStatusLabel": "סטטוס נוכחי: {{status}}"
+      },
+      "infoAlert": {
+        "title": "מידע נוכחי:",
+        "createdFor": "ההצעה נוצרה עבור {{party1}} ו-{{party2}}.",
+        "status": "סטטוס: {{status}}",
+        "priority": "עדיפות: {{priority}}"
+      },
+      "sections": {
+        "priority": {
+          "title": "עדיפות ההצעה",
+          "placeholder": "בחר/י עדיפות"
+        },
+        "statusChange": {
+          "title": "שינוי סטטוס",
+          "changeButton": "שנה סטטוס",
+          "cancelChangeButton": "ביטול שינוי",
+          "placeholder": "בחר/י סטטוס חדש",
+          "noChangeOption": "ללא שינוי",
+          "notesLabel": "הערות לשינוי הסטטוס",
+          "notesPlaceholder": "הערות אופציונליות לשינוי הסטטוס..."
+        },
+        "decisionDeadline": {
+          "title": "מועד החלטה אחרון"
+        },
+        "matchingReason": {
+          "title": "סיבת ההתאמה",
+          "placeholder": "פרט/י מדוע יש התאמה בין המועמדים..."
+        },
+        "firstPartyNotes": {
+          "title": "הערות לצד א' ({{name}})",
+          "placeholder": "הערות שיוצגו רק לצד א'..."
+        },
+        "secondPartyNotes": {
+          "title": "הערות לצד ב' ({{name}})",
+          "placeholder": "הערות שיוצגו רק לצד ב'..."
+        },
+        "internalNotes": {
+          "title": "הערות פנימיות",
+          "placeholder": "הערות פנימיות לשימוש השדכנים בלבד..."
+        }
+      },
+      "footer": {
+        "info": "כל השינויים יישמרו לאחר לחיצה על \"שמור שינויים\"",
+        "cancelButton": "ביטול",
+        "saveButton": "שמור שינויים",
+        "savingButton": "שומר..."
+      },
+      "toasts": {
+        "noSuggestionData": "לא נמצאו נתוני הצעה",
+        "updateSuccess": "פרטי ההצעה עודכנו בהצלחה",
+        "updateError": "שגיאה בעדכון פרטי ההצעה"
+      },
+      "statusLabels": {
+        "DRAFT": "טיוטה",
+        "PENDING_FIRST_PARTY": "ממתין לתשובת צד א'",
+        "FIRST_PARTY_APPROVED": "צד א' אישר",
+        "FIRST_PARTY_DECLINED": "צד א' דחה",
+        "PENDING_SECOND_PARTY": "ממתין לתשובת צד ב'",
+        "SECOND_PARTY_APPROVED": "צד ב' אישר",
+        "SECOND_PARTY_DECLINED": "צד ב' דחה",
+        "AWAITING_MATCHMAKER_APPROVAL": "ממתין לאישור שדכן",
+        "CONTACT_DETAILS_SHARED": "פרטי קשר שותפו",
+        "AWAITING_FIRST_DATE_FEEDBACK": "ממתין למשוב פגישה ראשונה",
+        "THINKING_AFTER_DATE": "בשלב מחשבה אחרי פגישה",
+        "PROCEEDING_TO_SECOND_DATE": "ממשיכים לפגישה שנייה",
+        "ENDED_AFTER_FIRST_DATE": "הסתיים אחרי פגישה ראשונה",
+        "MEETING_PENDING": "ממתין לקביעת פגישה",
+        "MEETING_SCHEDULED": "פגישה נקבעה",
+        "MATCH_APPROVED": "ההצעה אושרה",
+        "MATCH_DECLINED": "ההצעה נדחתה",
+        "DATING": "בתהליך היכרות",
+        "ENGAGED": "מאורסים",
+        "MARRIED": "נישאו",
+        "EXPIRED": "פג תוקף",
+        "CLOSED": "ההצעה נסגרה",
+        "CANCELLED": "ההצעה בוטלה"
+      },
+      "priorityLabels": {
+        "URGENT": "דחוף",
+        "HIGH": "גבוהה",
+        "MEDIUM": "רגילה",
+        "LOW": "נמוכה"
+      }
+    },
+    "newSuggestionForm": {
+  "header": {
+    "title": "יצירת הצעת שידוך חדשה",
+    "description": "בחר שני מועמדים, נתח את ההתאמה והגדר את פרטי ההצעה"
+  },
+  "steps": {
+    "select": { "label": "בחירת מועמדים", "description": "בחר את שני הצדדים להצעה" },
+    "analyze": { "label": "ניתוח התאמה", "description": "בדוק את רמת ההתאמה" },
+    "details": { "label": "פרטי ההצעה", "description": "הוסף נימוקים ופרטים" }
+  },
+    "party1Label": "צד א' בהצעה",
+        "party2Label": "צד ב' בהצעה",
+  "emptyState": {
+    "title": "יש לבחור תחילה את שני המועמדים"
+  },
+  "buttons": {
+    "fullAnalysis": "ניתוח התאמה מלא (AI)",
+    "back": "חזור",
+    "continue": "המשך",
+    "create": "צור הצעה",
+    "creating": "יוצר הצעה..."
+  },
+  "footer": {
+    "step": "שלב {{current}} מתוך {{total}}",
+    "info": "לאחר יצירת ההצעה, היא תופיע בסטטוס טיוטה."
+  },
+  "toasts": {
+    "selectParties": "יש לבחור את שני הצדדים להצעה.",
+    "createSuccess": "ההצעה נוצרה בהצלחה!",
+    "createError": "שגיאה ביצירת ההצעה"
+  },
+ "candidateSelector": {
+  "searchPlaceholder": "חפש/י מועמד/ת...",
+  "commandInputPlaceholder": "חיפוש מועמדים...",
+  "noResults": {
+    "title": "לא נמצאו תוצאות",
+    "description": "נסה לשנות את מונחי החיפוש"
+  },
+  "status": {
+    "blocked": "חסום",
+    "blockedDescription": "בהצעה פעילה עם {{name}}",
+    "pending": "ממתין",
+    "pendingDescription": "הצעה ממתינה עם {{name}}",
+    "available": "זמין",
+    "availableDescription": "זמין להצעה חדשה"
+  },
+  "card": {
+    "cannotSelect": "לא ניתן לבחור",
+    "years": "שנים"
+  },
+  "selectedDisplay": {
+    "title": "מועמד/ת נבחר/ת",
+    "removeButton": "הסר בחירה",
+    "viewProfileButton": "צפה בפרופיל מלא"
+  },
+  "toasts": {
+    "cannotSelectError": {
+      "title": "לא ניתן לבחור מועמד זה",
+      "description": "{{name}} כבר נמצא/ת בהצעה פעילה עם {{withName}}."
+    }
+  }
+}
+,
+      "matchPreview": {
+      "errorState": {
+        "title": "לא ניתן לחשב התאמה",
+        "description": "חסרים נתונים חיוניים לחישוב ההתאמה",
+        "suggestion": "אנא ודא שלשני המועמדים יש פרופיל מלא עם תאריך לידה, עיר מגורים ורמה דתית"
+      },
+      "qualityLevels": {
+        "perfect": { "text": "התאמה מושלמת", "description": "זוג אידיאלי עם התאמה יוצאת דופן!" },
+        "excellent": { "text": "התאמה מעולה", "description": "זוג עם פוטנציאל גבוה להצלחה" },
+        "good": { "text": "התאמה טובה", "description": "התאמה איכותית עם סיכויים טובים" },
+        "medium": { "text": "התאמה בינונית", "description": "יש פוטנציאל, שווה לבדוק" },
+        "low": { "text": "התאמה נמוכה", "description": "התאמה מוגבלת, יש לשקול בזהירות" }
+      },
+      "generalScoreLabel": "ציון התאמה כללי",
+      "criteriaSection": {
+        "title": "פירוט קריטריונים",
+        "description": "ניתוח מפורט של רמות ההתאמה השונות"
+      },
+      "criteria": {
+        "age": "גיל",
+        "location": "מיקום",
+        "religious": "רמה דתית",
+         "reasons": {
+            "age": {
+              "ideal": "הפרש גילאים אידיאלי",
+              "good": "הפרש גילאים טוב",
+              "fair": "הפרש גילאים סביר",
+              "large": "הפרש גילאים גדול",
+              "preferenceMismatch": "לא תואם להעדפות הגיל"
+            },
+            "location": {
+              "noData": "חסר מידע על מיקום",
+              "sameCity": "גרים באותה עיר",
+              "mutualPreference": "מיקום מועדף הדדי",
+              "oneWayPreference": "מיקום מועדף חד צדדי",
+              "differentCities": "ערים שונות"
+            },
+            "religious": {
+              "noData": "חסר מידע על רמת דתיות",
+              "sameLevel": "רמת דתיות זהה",
+              "mutualPreference": "רמת דתיות מועדפת הדדית",
+              "oneWayPreference": "רמת דתיות מועדפת חד צדדית",
+              "differentLevels": "רמות דתיות שונות"
+            }
+          }
+        
+      },
+      "scoreCategories": {
+        "perfect": "מושלם",
+        "excellent": "מצוין",
+        "good": "טוב",
+        "medium": "בינוני",
+        "low": "נמוך"
+      },
+      "scoreLabel": "התאמה",
+      "reasonsSection": {
+        "title": "סיבות להתאמה"
+      },
+      "summary": {
+        "title": "סיכום התאמה",
+        "description": "המלצה מבוססת ניתוח",
+        "recommendations": {
+          "high": "מומלץ בחום!",
+          "medium": "שווה לנסות",
+          "low": "צריך שיקול"
+        },
+        "basedOn": "מבוסס על {{count}} קריטריונים"
+      }
+    },
+    "suggestionDetails": {
+      "priority": {
+        "title": "עדיפות ההצעה",
+        "description": "קבע את רמת החשיבות והדחיפות של ההצעה",
+        "label": "בחר רמת עדיפות",
+        "placeholder": "בחר/י עדיפות",
+        "options": {
+          "URGENT": { "title": "דחופה", "description": "דורש טיפול מיידי" },
+          "HIGH": { "title": "גבוהה", "description": "עדיפות מוגברת" },
+          "MEDIUM": { "title": "רגילה", "description": "עדיפות סטנדרטית" },
+          "LOW": { "title": "נמוכה", "description": "ללא דחיפות" }
+        }
+      },
+      "rationale": {
+        "title": "סיבת ההתאמה הכללית",
+        "description": "נימוק מפורט המסביר מדוע יש התאמה בין הצדדים",
+        "label": "תוכן יוצג לצדדים",
+        "aiButton": "צור נימוקים (AI)",
+        "aiButtonLoading": "מנסח...",
+        "placeholder": "נימוק כללי המסביר מדוע יש התאמה בין הצדדים...",
+        "aiTip": "💡 <strong>טיפ חכם:</strong> לחיצה על כפתור ה-AI תמלא אוטומטית את שדה זה וגם את שדות ההערות האישיות לכל צד עם תוכן מותאם ומקצועי."
+      },
+      "notes": {
+        "party1Title": "הערות אישיות ל{{name}}",
+        "party2Title": "הערות אישיות ל{{name}}",
+        "description": "טקסט אישי המדגיש את היתרונות של הצד השני עבורו/ה",
+        "party1Label": "צד א' בהצעה",
+        "party2Label": "צד ב' בהצעה",
+        "party1Placeholder": "טקסט אישי המדגיש את היתרונות של {{otherName}} עבור {{name}}...",
+        "party2Placeholder": "טקסט אישי המדגיש את היתרונות של {{otherName}} עבור {{name}}..."
+      },
+      "internalNotes": {
+        "title": "הערות פנימיות",
+        "description": "הערות והנחיות לשימוש צוות השדכנים בלבד",
+        "secretInfo": "מידע סודי",
+        "visibleTo": "נראה רק לצוות השדכנים",
+        "placeholder": "הערות והנחיות לשימוש פנימי בלבד..."
+      },
+      "deadline": {
+        "title": "תאריך יעד להחלטה",
+        "description": "קבע את המועד האחרון למתן תגובה מהצדדים",
+        "label": "בחר תקופת זמן למענה",
+        "options": {
+          "3": { "title": "3 ימים", "description": "מהיר וזריז" },
+          "7": { "title": "7 ימים", "description": "תקופה קצרה" },
+          "14": { "title": "14 ימים", "description": "תקופה סטנדרטית (מומלץ)" },
+          "30": { "title": "30 ימים", "description": "תקופה מורחבת" }
+        },
+        "infoBox": {
+          "title": "מידע חשוב",
+          "body": "לאחר תקופת הזמן שנבחרה, אם לא התקבלה תגובה מאחד הצדדים, ההצעה תועבר אוטומטית לסטטוס \"פג תוקף\"."
+        }
+      },
+      "summary": {
+        "title": "סיכום ההצעה",
+        "description": "כל הפרטים מוכנים ליצירת ההצעה",
+        "ready": "מוכן ליצירה!",
+        "info": "לאחר יצירת ההצעה, היא תישלח אוטומטי לצד הראשון"
+      },
+      "toasts": {
+        "aiLoading": {
+          "title": "ה-AI מנסח את חבילת הנימוקים...",
+          "description": "זה יכול לקחת כמה שניות"
+        },
+        "aiSuccess": {
+          "title": "הנימוקים נוצרו בהצלחה!",
+          "description": "כל השדות מולאו באופן אוטומטי עם תוכן מותאם אישית"
+        },
+        "aiError": {
+          "title": "שגיאה ביצור הנימוקים",
+          "description": "נסה שוב או מלא את השדות ידנית"
+        }
+      }
+    }
+
+
+ }
+  },
+ 
+
+ "suggestionDetailsDialog": {
+  "header": {
+    "title": "הצעה #{{id}}",
+    "subtitle": "{{party1}} ו{{party2}}",
+    "fullscreenTooltip": "הגדל למסך מלא",
+    "minimizeTooltip": "צמצם חלון"
+  },
+  "tabs": {
+    "overview": "סקירה כללית",
+    "party1": "צד ראשון",
+    "party2": "צד שני",
+    "timeline": "ציר זמן",
+    "communication": "תקשורת",
+    "actions": "פעולות"
+  },
+  "overview": {
+    "statusSummaryTitle": "סיכום סטטוס",
+    "progressCompleted": "{{percent}}% הושלמו",
+    "matchmakerLabel": "השדכן/ית:",
+    "detailsTitle": "פרטי ההצעה",
+    "details": {
+      "createdAt": "תאריך יצירה:",
+      "lastActivity": "עדכון אחרון:",
+      "priority": "דחיפות:",
+      "responseDeadline": "מועד תגובה:",
+      "decisionDeadline": "מועד להחלטה:",
+      "notSet": "לא נקבע"
+    },
+    "editButton": "ערוך פרטי הצעה",
+    "partyALabel": "צד א׳",
+    "partyBLabel": "צד ב׳",
+    "contactButton": "צור קשר",
+    "reminderButton": "שלח תזכורת",
+    "reasons": {
+      "matchTitle": "סיבת ההתאמה",
+      "internalTitle": "הערות פנימיות"
+    },
+    "deadlineAlert": {
+      "today": "היום!",
+      "daysLeft": "{{count}} ימים"
+    }
+  },
+  "timeline": {
+    "title": "התקדמות ההצעה",
+    "noNotes": "אין הערות"
+  },
+  "communication": {
+    "title": "תקשורת"
+  },
+  "actions": {
+    "title": "פעולות נוספות",
+    "statusChange": { "title": "שינוי סטטוס", "description": "עדכון סטטוס ההצעה בהתאם להתקדמות.", "button": "שנה סטטוס" },
+    "edit": { "title": "עריכת הצעה", "description": "עריכת פרטי ההצעה, סיבת ההתאמה והערות.", "button": "ערוך פרטי הצעה" },
+    "delete": { "title": "מחיקת הצעה", "description": "מחיקת ההצעה לצמיתות מהמערכת.", "button": "מחק הצעה" }
+  },
+  "statusChangeModal": {
+    "title": "שינוי סטטוס הצעה",
+    "currentStatusLabel": "סטטוס נוכחי",
+    "newStatusLabel": "סטטוס חדש",
+    "newStatusPlaceholder": "בחר/י סטטוס חדש",
+    "notesLabel": "הערות לשינוי סטטוס (אופציונלי)",
+    "notesPlaceholder": "הוסף הערה...",
+    "cancelButton": "ביטול",
+    "saveButton": "שמור שינוי",
+    "savingButton": "מעדכן..."
+  },
+  "toasts": {
+    "statusUpdateError": "שגיאה בעדכון הסטטוס"
+  },
+  "statusLabels": {
+      "DRAFT": "טיוטה", "PENDING_FIRST_PARTY": "ממתין לתשובת צד א׳", "FIRST_PARTY_APPROVED": "צד א׳ אישר",
+      "FIRST_PARTY_DECLINED": "צד א׳ דחה", "PENDING_SECOND_PARTY": "ממתין לתשובת צד ב׳", "SECOND_PARTY_APPROVED": "צד ב׳ אישר",
+      "SECOND_PARTY_DECLINED": "צד ב׳ דחה", "AWAITING_MATCHMAKER_APPROVAL": "ממתין לאישור שדכן", "CONTACT_DETAILS_SHARED": "פרטי קשר שותפו",
+      "AWAITING_FIRST_DATE_FEEDBACK": "ממתין למשוב פגישה", "DATING": "בתהליך היכרות", "ENGAGED": "מאורסים", "MARRIED": "נישאו",
+      "EXPIRED": "פג תוקף", "CLOSED": "סגור", "CANCELLED": "בוטל", "THINKING_AFTER_DATE": "בשלב מחשבה", "PROCEEDING_TO_SECOND_DATE": "לפגישה שניה",
+      "ENDED_AFTER_FIRST_DATE": "הסתיים אחרי פגישה", "MEETING_PENDING": "ממתין לקביעת פגישה", "MEETING_SCHEDULED": "פגישה נקבעה",
+      "MATCH_APPROVED": "הצעה אושרה", "MATCH_DECLINED": "הצעה נדחתה"
+  },
+  "priorityLabels": {
+      "URGENT": "דחוף", "HIGH": "גבוה", "MEDIUM": "רגיל", "LOW": "נמוך"
+  }
+}
+
+
+
+
+
+
+
+
+
+}
+--- End of Content for he.json ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\matchmaker\matchmaker_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+

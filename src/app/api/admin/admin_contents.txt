@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin
-# Generated on: 2025-10-09 13:28:36
+# Generated on: 2025-10-12 14:01:26
 ################################################################################
 
 ================================================================================
@@ -439,8 +439,8 @@ export async function POST(request: NextRequest) {
     }
 
     // טען את מילון המיילים המתאים לשפת המשתמש
-    const dict = await getEmailDictionary(user.language as Language);
-
+// ✅ קוד מתוקן
+const dict = await getEmailDictionary(user.language as Language);
     // בנה פרופיל engagement
     const profile = await SmartEngagementOrchestrator['buildUserEngagementProfile'](userId);
     

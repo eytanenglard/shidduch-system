@@ -1,4 +1,4 @@
-// src/middleware.ts - VERSION WITH FULL LOGGING
+// src/middleware.ts - VERSION WITH ADMIN SUPPORT
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -22,9 +22,16 @@ const PUBLIC_PATHS = [
   '/feedback',
 ];
 
+// 🎯 נתיבים ייעודיים לאדמין/שדכן
+const ADMIN_PATHS = [
+  '/admin/engagement',
+  '/matchmaker/suggestions',
+  '/matchmaker/clients',
+];
+
 // נתיבים שחיוניים להשלמת פרופיל, גם אם המשתמש כבר מחובר
 const SETUP_PATHS = [
-  '/auth/register', // המשתמש מופנה לכאן להשלמת פרופיל
+  '/auth/register',
   '/auth/setup-account',
   '/auth/verify-phone',
   '/auth/update-phone',
@@ -98,6 +105,11 @@ export async function middleware(req: NextRequest) {
   const isUserLoggedIn = !!token;
   
   const isProfileConsideredComplete = !!token?.isProfileComplete && !!token?.isPhoneVerified;
+  
+  // 🎯 הוספה: בדיקת תפקיד המשתמש
+  const userRole = token?.role as string | undefined;
+  const isAdmin = userRole === 'ADMIN';
+  const isMatchmaker = userRole === 'MATCHMAKER' || isAdmin;
 
   // ====================== LOGGING START: Context Analysis ======================
   console.log(`   Detected Locale from URL: ${currentLocale}`);
@@ -105,6 +117,8 @@ export async function middleware(req: NextRequest) {
   console.log(`   Is User Logged In?: ${isUserLoggedIn}`);
   if (token) {
     console.log(`   User ID from token: ${token.id}`);
+    console.log(`   User Role: ${userRole}`); // 🎯 לוג חדש
+    console.log(`   Is Admin?: ${isAdmin}`); // 🎯 לוג חדש
   }
   console.log(`   Is Profile Considered Complete?: ${isProfileConsideredComplete}`);
   // ======================= LOGGING END =======================
@@ -112,15 +126,35 @@ export async function middleware(req: NextRequest) {
   // 4. לוגיקת הרשאות מאוחדת
   const isPublicPath = PUBLIC_PATHS.includes(pathWithoutLocale);
   const isSetupPath = SETUP_PATHS.includes(pathWithoutLocale);
+  const isAdminPath = ADMIN_PATHS.some(path => pathWithoutLocale.startsWith(path));
 
   // ====================== LOGGING START: Path Classification ======================
   console.log(`   Is Public Path?: ${isPublicPath}`);
   console.log(`   Is Setup Path?: ${isSetupPath}`);
+  console.log(`   Is Admin Path?: ${isAdminPath}`); // 🎯 לוג חדש
   // ======================= LOGGING END =======================
 
   // --- תרחיש 1: המשתמש מחובר ---
   if (isUserLoggedIn) {
     console.log(`[Middleware] Evaluating rules for LOGGED-IN user...`);
+    
+    // 🎯 חדש: בדיקה מיוחדת לנתיבי אדמין
+    if (isAdminPath) {
+      if (!isAdmin) {
+        // משתמש רגיל מנסה לגשת לאזור אדמין
+        const unauthorizedUrl = new URL(`/${currentLocale}/`, req.url);
+        console.warn(`[Middleware] Non-admin user trying to access admin area. Redirecting to home.`);
+        console.warn(`   User role: ${userRole}, Required: ADMIN`);
+        console.warn(`   Redirecting to: ${unauthorizedUrl.toString()}`);
+        console.log(`=========================================================\n`);
+        return NextResponse.redirect(unauthorizedUrl);
+      }
+      // אדמין - תן לו גישה
+      console.log(`[Middleware] Admin user access granted to admin area "${pathname}".`);
+      console.log(`=========================================================\n`);
+      return NextResponse.next();
+    }
+    
     // אם הפרופיל שלו שלם והוא מנסה לגשת לדף התחברות/הרשמה
     if (isProfileConsideredComplete && (pathWithoutLocale.startsWith('/auth/signin') || pathWithoutLocale.startsWith('/auth/register'))) {
       const redirectUrl = new URL(`/${currentLocale}/profile`, req.url);
@@ -131,7 +165,8 @@ export async function middleware(req: NextRequest) {
     }
 
     // אם הפרופיל שלו *לא* שלם והוא מנסה לגשת לדף שאינו ציבורי ואינו חלק מתהליך ההרשמה
-    if (!isProfileConsideredComplete && !isPublicPath && !isSetupPath) {
+    // 🎯 עדכון: אדמין/שדכן לא צריך פרופיל שלם
+    if (!isProfileConsideredComplete && !isPublicPath && !isSetupPath && !isMatchmaker) {
       const setupUrl = new URL(`/${currentLocale}/auth/register`, req.url);
       setupUrl.searchParams.set('reason', 'complete_profile');
       console.warn(`[Middleware] Logged-in user with INCOMPLETE profile is on a protected page. Redirecting to complete profile.`);
@@ -143,7 +178,7 @@ export async function middleware(req: NextRequest) {
     console.log(`[Middleware] Logged-in user access granted to "${pathname}".`);
   }
   // --- תרחיש 2: המשתמש *לא* מחובר ---
-  else { // isUserLoggedIn is false
+  else {
     console.log(`[Middleware] Evaluating rules for GUEST user...`);
     // אם הוא מנסה לגשת לדף שאינו ציבורי
     if (!isPublicPath) {
@@ -164,7 +199,6 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// הגדרת ה-matcher נשארת זהה
 export const config = {
   matcher: [
     '/((?!api|_next/static|_next/image|assets|images|favicon.ico|sw.js|site.webmanifest).*)',

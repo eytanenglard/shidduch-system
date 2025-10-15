@@ -6,6 +6,7 @@ import type { WorldId } from '@/components/questionnaire/types/types';
 import type { EmailDictionary } from './dictionaries/email';
 import { MatchSuggestionStatus } from '@prisma/client'; 
 import { NotificationDictionary } from './dictionaries/email'; // הוסף ייבוא
+import type { AdminDictionary } from './dictionaries/admin';
 
 // --- Navbar ---
 export type NavbarDict = {
@@ -13,6 +14,7 @@ export type NavbarDict = {
   matchmakingQuestionnaire: string;
   messages: string;
   login: string;
+  engagementDashboard: string;
   register: string;
   toQuestionnaire: string;
     matchmakerSuggestions: string;
@@ -603,7 +605,7 @@ metadata: MetadataDict
 contactPage: ContactPageDict;
   feedbackWidget: FeedbackWidgetDict; // <--- הוסף את השורה הזו
   messagesPage: MessagesPageDict; // <-- הוספנו את המפתח החדש
-
+admin: AdminDictionary; 
 };
 export type {
   SuggestionsDictionary,

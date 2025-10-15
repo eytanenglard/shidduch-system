@@ -12,6 +12,10 @@ import type {
 // --- הגדרת טוענים (Loaders) עבור כל מודול של המילון ---
 // כל טוען הוא אובייקט המכיל פונקציות ייבוא דינמיות עבור כל שפה נתמכת.
 // גישה זו מבטיחה שנטען רק את קבצי השפה הנדרשים (Code Splitting).
+const adminDictionaries = {
+  en: () => import('../../dictionaries/admin/en.json').then((module) => module.default),
+  he: () => import('../../dictionaries/admin/he.json').then((module) => module.default),
+};
 
 const mainDictionaries = {
   en: () => import('../../dictionaries/en.json').then((module) => module.default),
@@ -71,7 +75,8 @@ export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
     questionnaireBase, 
     profilePage, 
     matchmakerPage,
-    email
+    email,
+    admin
   ] = await Promise.all([
     mainDictionaries[targetLocale](),
     authDictionaries[targetLocale](),
@@ -80,6 +85,7 @@ export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
     profileDictionaries[targetLocale](),
     matchmakerDictionaries[targetLocale](),
     emailDictionaries[targetLocale](),
+    adminDictionaries[targetLocale](),
   ]);
 
   // טיפול מיוחד במילון השאלון:
@@ -101,6 +107,7 @@ export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
     profilePage,
     matchmakerPage,
     email: email as EmailDictionary,
+    admin,
   } as Dictionary;
 };
 

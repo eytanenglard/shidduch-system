@@ -2,6 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import type { Dictionary } from '@/types/dictionary';
+
+interface EngagementDashboardProps {
+  dict: Dictionary; // 🎯 הוסף את זה
+}
 
 interface CompletionData {
   range: string;
@@ -31,7 +36,7 @@ interface DashboardStats {
   emailTypeBreakdown: EmailTypeData[];
 }
 
-const EngagementDashboard = () => {
+const EngagementDashboard = ({ dict }: EngagementDashboardProps) => {
   const [stats, setStats] = useState<DashboardStats>({
     todayEmails: 0,
     weeklyEmails: 0,
@@ -147,11 +152,12 @@ const EngagementDashboard = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            🎯 מרכז ניהול Engagement
+                 <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            🎯 {dict.admin?.engagement?.title || 'מרכז ניהול Engagement'}
           </h1>
-          <p className="text-gray-600">
-            ניהול וניטור מערכת התקשורת עם המשתמשים
+
+         <p className="text-gray-600">
+            {dict.admin?.engagement?.subtitle || 'ניהול ונטור מערכת התקשורת עם המשתמשים'}
           </p>
         </div>
 
