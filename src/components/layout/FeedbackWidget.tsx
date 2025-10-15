@@ -13,7 +13,6 @@ import {
   Loader2,
   Paperclip,
   X,
-  Image as ImageIcon,
   Send,
   Sparkles,
 } from 'lucide-react';
@@ -43,7 +42,6 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [isTabHidden, setIsTabHidden] = useState(false);
   const [isPermanentlyHidden, setIsPermanentlyHidden] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);

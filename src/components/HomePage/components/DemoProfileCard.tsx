@@ -7,7 +7,6 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Heart,
   Sparkles,
   BookOpen,
   Target,

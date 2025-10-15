@@ -163,7 +163,7 @@ select: { role: true, firstName: true, lastName: true } // נשלוף את הש�
     // מעבר על כל השדות שהתקבלו בבקשה
     for (const key in incomingData) {
       if (Object.prototype.hasOwnProperty.call(incomingData, key)) {
-        let value = incomingData[key];
+        const value = incomingData[key];
 
         if (numericFields.includes(key)) {
             if (value === "" || value === undefined || value === null) {

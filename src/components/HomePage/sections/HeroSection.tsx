@@ -185,7 +185,6 @@ interface MobilePrinciplesTabsProps {
   };
 }
 const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
-  isVisible,
   dict,
 }) => {
   const [activeTab, setActiveTab] = useState(0);
@@ -335,7 +334,6 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
 
 // --- הרכיב הראשי - מעודכן במלואו ---
 const HeroSection: React.FC<HeroSectionProps> = ({
-  session,
   isVisible,
   dict,
   locale,

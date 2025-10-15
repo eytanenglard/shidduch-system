@@ -4,7 +4,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useParams } from 'next/navigation'; // ✨ 1. הוסף ייבוא של useParams
 
 // Import all sections
 import HeroSection from './sections/HeroSection';
@@ -19,7 +18,6 @@ import CTASection from './sections/CTASection';
 import FooterSection from './sections/FooterSection';
 
 // Import external components
-import Navbar from '../layout/Navbar';
 import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
 import CookieBanner from '../ui/CookieBanner';

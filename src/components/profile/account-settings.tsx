@@ -24,7 +24,6 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -37,7 +36,6 @@ import {
   EyeOff,
   CheckCircle,
   XCircle,
-  Calendar,
   Bell,
   Settings,
   AlertCircle,
@@ -99,7 +97,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordChangeStep, setPasswordChangeStep] = useState(1);
-  const [showVerificationInput, setShowVerificationInput] = useState(false);
+  const [, setShowVerificationInput] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [passwordRequirements, setPasswordRequirements] = useState({
     length: false,

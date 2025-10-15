@@ -2,22 +2,16 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Prisma Types
-import { UserSource, UserStatus } from '@prisma/client';
-
 // Lucide React Icons
 import {
   Activity,
   Award,
   Bookmark,
-  Briefcase,
   Calendar,
-  Check,
   ChevronDown,
   Copy,
   Crown,
   Filter as FilterIcon,
-  GraduationCap,
   Heart,
   MapPin,
   RefreshCw,
@@ -28,7 +22,6 @@ import {
   Sparkles,
   Star,
   Target,
-  TrendingUp,
   User,
   Zap,
 } from 'lucide-react';
@@ -47,7 +40,6 @@ import {
 } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -69,17 +61,14 @@ import {
 import SavedFilters from './SavedFilters';
 import {
   AGE_RANGE,
-  AVAILABILITY_STATUS_OPTIONS,
-  EDUCATION_LEVELS,
   HEIGHT_RANGE,
-  MARITAL_STATUS,
-  OCCUPATION_CATEGORIES,
   POPULAR_CITIES,
   RELIGIOUS_LEVELS,
 } from '../constants/filterOptions';
 import type { CandidatesFilter } from '../types/candidates';
 import type { FilterState } from '../types/filters';
 import type { FilterPanelDict } from '@/types/dictionaries/matchmaker';
+import { DEFAULT_FILTER_STATE } from '../types/filters';
 
 // Interfaces
 interface PopularFilterOption {
@@ -642,7 +631,42 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
   const countActiveFilters = (category: string): number => {
     let count = 0;
-    // ... logic remains the same ...
+    const defaultFilters = DEFAULT_FILTER_STATE;
+  
+    switch (category) {
+      case 'basic':
+        if (filters.gender) count++;
+        if (
+          filters.ageRange &&
+          (filters.ageRange.min !== defaultFilters.ageRange?.min ||
+            filters.ageRange.max !== defaultFilters.ageRange?.max)
+        )
+          count++;
+        if (filters.cities && filters.cities.length > 0) count++;
+        if (filters.religiousLevel) count++;
+        break;
+  
+      case 'advanced':
+        if (
+          filters.heightRange &&
+          (filters.heightRange.min !== defaultFilters.heightRange?.min ||
+            filters.heightRange.max !== defaultFilters.heightRange?.max)
+        )
+          count++;
+        if (filters.occupations && filters.occupations.length > 0) count++;
+        if (filters.educationLevel) count++;
+        if (filters.maritalStatus) count++;
+        break;
+  
+      case 'status':
+        if (filters.availabilityStatus) count++;
+        if (filters.isVerified) count++;
+        if (filters.hasReferences) count++;
+        if (filters.lastActiveDays) count++;
+        if (filters.isProfileComplete) count++;
+        if (filters.userStatus) count++;
+        break;
+    }
     return count;
   };
 

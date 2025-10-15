@@ -6,7 +6,6 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
-import { updateUserAiProfile } from '@/lib/services/profileAiService';
 
 const WorldId = z.enum([
   'VALUES',
@@ -43,7 +42,6 @@ const worldAnswersSchema = z.object({
   answers: z.array(answerSchema),
 });
 
-type AnswerPayload = z.infer<typeof answerSchema>;
 
 export async function PUT(req: Request) {
   try {

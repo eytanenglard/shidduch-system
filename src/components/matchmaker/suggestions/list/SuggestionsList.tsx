@@ -23,21 +23,18 @@ import {
   CheckCircle,
   XCircle,
   Heart,
-  Star,
+ 
   TrendingUp,
   Activity,
   BarChart3,
-  Eye,
+
   Sparkles,
-  Target,
+
   Flame,
-  Shield,
-  Award,
-  Crown,
-  Zap,
+
   RefreshCw,
   Calendar,
-  MapPin,
+
 } from 'lucide-react';
 import type { MatchSuggestion } from '@prisma/client';
 import type { UserProfile, UserImage } from '@/types/next-auth';

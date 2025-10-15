@@ -18,11 +18,8 @@ import {
   Sparkles,
   Star,
   Heart,
-  Eye,
   Clock,
-  Shield,
   Users,
-  Crown,
   Zap,
   Award,
   MoreHorizontal,
@@ -36,8 +33,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { Candidate } from '../types/candidates';
 import { UserSource } from '@prisma/client';
-import { formatDistanceToNow } from 'date-fns';
-import { he } from 'date-fns/locale';
 import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';

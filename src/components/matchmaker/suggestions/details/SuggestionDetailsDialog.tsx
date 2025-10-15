@@ -19,7 +19,6 @@ import {
 import { ProfileCard } from '@/components/profile';
 import { Timeline } from '@/components/ui/timeline';
 import {
-  AlertCircle,
   CheckCircle,
   XCircle,
   MessageCircle,
@@ -28,22 +27,15 @@ import {
   Edit,
   Calendar,
   Clock,
-  Download,
+
   AlarmClock,
   Trash2,
-  MapPin,
-  Mail,
-  Phone,
   User,
-  ExternalLink,
   Crown,
   Heart,
   Gem,
   Eye,
   Settings,
-  Briefcase,
-  GraduationCap,
-  Quote,
   Archive,
   Maximize,
   Minimize,
@@ -53,17 +45,13 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
-import { MatchSuggestionStatus, UserImage } from '@prisma/client';
+import { MatchSuggestionStatus } from '@prisma/client';
 import type {
   ExtendedMatchSuggestion,
   ActionAdditionalData,
-  SuggestionParty,
 } from '@/types/suggestions';
 import type { QuestionnaireResponse } from '@/types/next-auth';
-import Image from 'next/image';
-import { getRelativeCloudinaryPath, cn, getInitials } from '@/lib/utils';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
@@ -304,34 +292,6 @@ const getEnhancedStatusInfo = (status: MatchSuggestionStatus): StatusInfo => {
   );
 };
 
-const formatDateSafely = (
-  dateInput: Date | string | null | undefined,
-  placeholder: string
-): string => {
-  if (!dateInput) return placeholder;
-  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-  if (!(date instanceof Date) || isNaN(date.getTime())) return 'Invalid Date';
-  return new Intl.DateTimeFormat('he-IL', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
-};
-
-const getDaysRemaining = (
-  deadline: Date | string | null | undefined
-): number | null => {
-  if (!deadline) return null;
-  const deadlineDate =
-    typeof deadline === 'string' ? new Date(deadline) : deadline;
-  if (!(deadlineDate instanceof Date) || isNaN(deadlineDate.getTime()))
-    return null;
-  const today = new Date();
-  const diffTime = deadlineDate.getTime() - today.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-};
 
 // ... Internal Components updated to receive and use dict ...
 
@@ -350,7 +310,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   const [activeTab, setActiveTab] = useState('overview');
   const [firstPartyQuestionnaire, setFirstPartyQuestionnaire] =
     useState<QuestionnaireResponse | null>(null);
-  const [secondPartyQuestionnaire, setSecondPartyQuestionnaire] =
+  const [secondPartyQuestionnaire, ] =
     useState<QuestionnaireResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -414,10 +374,6 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
 
   const statusInfo = getEnhancedStatusInfo(suggestion.status);
   const statusLabel = dict.statusLabels[suggestion.status] || suggestion.status;
-  const statusDescription = dict.statusLabels[suggestion.status] || '';
-  const priorityLabel =
-    dict.priorityLabels[suggestion.priority] || suggestion.priority;
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent

@@ -105,7 +105,7 @@ const SuccessStoriesSection: React.FC<SuccessStoriesProps> = ({
           className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto"
           variants={containerVariants}
         >
-          {dict.stories.map((testimonial, index) => (
+          {dict.stories.map((testimonial) => (
             <motion.div
               key={testimonial.author}
               variants={cardVariants}

@@ -13,7 +13,7 @@ import { updateUserAiProfile } from '@/lib/services/profileAiService';
  * @param userIds - מערך מזהי המשתמשים לעדכון
  * @param adminId - מזהה האדמין שהפעיל את התהליך
  */
-async function runBulkUpdateAndLog(userIds: string[], adminId: string) {
+async function runBulkUpdateAndLog(userIds: string[]) {
   const totalUsers = userIds.length;
   // הודעת התחלה ברורה לתהליך הרקע
  
@@ -78,7 +78,7 @@ export async function POST() {
 
     // 3. Trigger background updates without waiting for them to complete
     //    The process will run and log its final summary independently.
-    runBulkUpdateAndLog(userIds, adminId).catch(err => {
+    runBulkUpdateAndLog(userIds).catch(err => {
         console.error(`[AI Bulk Update] Failed to kick off background logging process:`, err);
     });
 

@@ -22,7 +22,6 @@ const VerifyPhoneClient = ({ dict, locale }: VerifyPhoneClientProps) => {
   const router = useRouter();
   const {
     data: session,
-    status: sessionStatus,
     update: updateSession, // אנחנו צריכים את פונקציית העדכון
   } = useSession();
 

@@ -16,21 +16,15 @@ import {
   List,
   ArrowUpDown,
   RotateCw,
-  BarChart2,
+
   Bot,
   Loader2,
   Columns,
   View,
   Users,
-  Split,
   Sparkles,
-  Crown,
-  Target,
-  Zap,
   TrendingUp,
   TrendingDown,
-  Star,
-  Activity,
   Eye, // הוספת אייקון
   EyeOff, // הוספת אייקון
   GitCompare, // <--- הוסף את זה
@@ -381,7 +375,6 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const [showManualAddDialog, setShowManualAddDialog] = useState(false);
   const [isHeaderCompact, setIsHeaderCompact] = useState(true);
   const [isQuickViewEnabled, setIsQuickViewEnabled] = useState(false); // <-- הוספת state חדש
-  const params = useParams();
 
   // --- AI State ---
   const [aiTargetCandidate, setAiTargetCandidate] = useState<Candidate | null>(

@@ -26,7 +26,6 @@ import {
   Clock,
   Shield,
   Users,
-  Home,
   UserPlus,
   HelpCircle,
   Lightbulb,
@@ -70,7 +69,6 @@ export default function ContactClient({ dict }: ContactClientProps) {
   ];
   // --- END: FIX 1 ---
 
-  const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [category, setCategory] = useState('');

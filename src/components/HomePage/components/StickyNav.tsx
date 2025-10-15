@@ -10,7 +10,7 @@ import { UserPlus, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
-import { useSession, signOut } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
 import UserDropdown from '@/components/layout/UserDropdown';
@@ -78,7 +78,6 @@ const StickyNav: React.FC<StickyNavProps> = ({
     'open'
   );
   const [isMobile, setIsMobile] = useState(false);
-  const lastScrollY = useRef(0);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

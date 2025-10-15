@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: `קוד אימות שגוי. נותרו לך ${attemptsLeft} ניסיונות.` }, { status: 400 });
     }
 
-    const [updatedVerification, updatedUser] = await prisma.$transaction([
+    const [, updatedUser] = await prisma.$transaction([
         prisma.verification.update({
             where: { id: verification.id },
             data: {

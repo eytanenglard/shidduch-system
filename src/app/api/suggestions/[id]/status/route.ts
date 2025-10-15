@@ -157,24 +157,6 @@ function determineSecondaryAction(
   return automaticTransitions[newStatus] || null;
 }
 
-/**
- * יוצר רשומת פגישה במידת הצורך.
- */
-async function createMeetingIfNecessary(
-  suggestionId: string,
-  data: z.infer<typeof statusUpdateSchema>
-) {
-  if (data.meetingDate) {
-    await prisma.meeting.create({
-      data: {
-        suggestionId,
-        scheduledDate: new Date(data.meetingDate),
-        status: "SCHEDULED",
-        notes: data.notes || "Automatically created when contact details were shared",
-      }
-    });
-  }
-}
 
 /**
  * מעדכן את סטטוס הזמינות בפרופילים של המועמדים במקרה הצורך.

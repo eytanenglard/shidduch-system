@@ -1,12 +1,12 @@
 // src/app/api/admin/engagement/stats/route.ts
 // ============================================
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // בדיקת הרשאות
     const session = await getServerSession(authOptions);

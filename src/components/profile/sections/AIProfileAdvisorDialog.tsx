@@ -15,7 +15,6 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, Sparkles, AlertTriangle, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils'; // Import cn utility
 
 import AnalysisResultDisplay from './AnalysisResultDisplay';
 import type { AiProfileAnalysisResult } from '@/lib/services/aiService';
@@ -32,7 +31,6 @@ interface AIProfileAdvisorDialogProps {
 }
 
 export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
-  userId,
   dict,
   analysisDict,
   locale,

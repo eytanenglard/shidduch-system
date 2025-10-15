@@ -25,22 +25,11 @@ import {
   TrendingUp,
   Users,
   Clock,
-  CheckCircle,
-  XCircle,
   Heart,
   Sparkles,
-  Calendar,
   Target,
   Crown,
-  Zap,
-  Eye,
   MessageCircle,
-  Settings,
-  Award,
-  Activity,
-  Star,
-  ArrowUp,
-  ArrowDown,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -77,7 +66,6 @@ import type {
   ActionAdditionalData,
 } from '@/types/suggestions';
 import type { NewSuggestionFormData } from '../../suggestions/NewSuggestionForm/schema';
-import type { Candidate } from '../../new/types/candidates';
 
 // Hooks
 import { useCandidates } from '../../new/hooks/useCandidates';
@@ -244,14 +232,17 @@ const MatchmakerHeroSection: React.FC<{
 
 // Payload types
 interface SuggestionUpdatePayload {
-  priority?: Priority;
-  status?: MatchSuggestionStatus;
-  statusNotes?: string;
-  matchingReason?: string;
-  firstPartyNotes?: string;
-  secondPartyNotes?: string;
-  internalNotes?: string;
-  decisionDeadline?: Date;
+  suggestionId: string;
+  updates: {
+    priority?: Priority;
+    status?: MatchSuggestionStatus;
+    statusNotes?: string;
+    matchingReason?: string;
+    firstPartyNotes?: string;
+    secondPartyNotes?: string;
+    internalNotes?: string;
+    decisionDeadline?: Date;
+  };
 }
 
 interface SendMessagePayload {
@@ -307,10 +298,10 @@ export default function MatchmakerDashboard({
   matchmakerDict,
   profileDict,
 }: MatchmakerDashboardProps) {
-  const params = useParams(); // <--- הוסף את השורה הזו
+  const params = useParams();
   const locale = (
     Array.isArray(params.lang) ? params.lang[0] : params.lang || 'en'
-  ) as 'he' | 'en'; // ✨ 2. חלץ את השפה
+  ) as 'he' | 'en';
 
   const dashboardDict = matchmakerDict.suggestionsDashboard;
   const toastsDict = dashboardDict.toasts;
@@ -418,6 +409,7 @@ export default function MatchmakerDashboard({
   };
 
   const handleNewSuggestion = async (data: NewSuggestionFormData) => {
+    setIsSubmitting(true);
     try {
       const response = await fetch(
         `/api/matchmaker/suggestions?locale=${locale}`,
@@ -440,8 +432,11 @@ export default function MatchmakerDashboard({
       toast.error(
         `${toastsDict.createError}: ${error instanceof Error ? error.message : ''}`
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
   const handleSuggestionDeleted = useCallback(
     (deletedId: string) => {
       setSuggestions((prev) => prev.filter((s) => s.id !== deletedId));
@@ -463,6 +458,7 @@ export default function MatchmakerDashboard({
         toast.success(toastsDict.deleteSuccess);
       }
     } catch (error: unknown) {
+      console.error('Error: ', error);
       toast.error(toastsDict.deleteError);
     } finally {
       setShowConfirmDialog(false);
@@ -475,6 +471,7 @@ export default function MatchmakerDashboard({
     newStatus: MatchSuggestionStatus,
     notes?: string
   ) => {
+    setIsSubmitting(true);
     try {
       const response = await fetch(
         `/api/matchmaker/suggestions/${suggestionId}/status`,
@@ -483,7 +480,7 @@ export default function MatchmakerDashboard({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             status: newStatus,
-            notes: notes || `סטטוס שונה ממממשק ניהול`,
+            notes: notes || `סטטוס שונה מממשק ניהול`,
           }),
         }
       );
@@ -498,23 +495,40 @@ export default function MatchmakerDashboard({
       toast.error(
         `${toastsDict.statusUpdateError}: ${error instanceof Error ? error.message : ''}`
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleUpdateSuggestion = async (data: {
-    suggestionId: string;
-    updates: SuggestionUpdatePayload;
-  }) => {
+  const handleUpdateSuggestion = async ({
+    suggestionId,
+    updates,
+  }: SuggestionUpdatePayload) => {
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      // ... (API logic remains)
+      const response = await fetch(
+        `/api/matchmaker/suggestions/${suggestionId}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update suggestion');
+      }
+
       toast.success(toastsDict.updateSuccess);
       setShowEditForm(false);
       await fetchSuggestions();
     } catch (error) {
       console.error('Error updating suggestion:', error);
       toast.error(
-        `${toastsDict.updateError}: ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}`
+        `${toastsDict.updateError}: ${
+          error instanceof Error ? error.message : 'שגיאה לא ידועה'
+        }`
       );
     } finally {
       setIsSubmitting(false);
@@ -522,14 +536,37 @@ export default function MatchmakerDashboard({
   };
 
   const handleSendMessage = async (data: SendMessagePayload) => {
+    setIsSubmitting(true);
     try {
-      // ... (API logic remains)
+      const response = await fetch(
+        `/api/matchmaker/suggestions/${data.suggestionId}/message?locale=${locale}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            partyType: data.partyType,
+            customMessage: data.messageContent,
+            channels: ['email', 'whatsapp'],
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send message');
+      }
+
       toast.success(toastsDict.messageSentSuccess);
       setShowMessageForm(false);
     } catch (error: unknown) {
+      console.error('Error sending message:', error);
       toast.error(
-        `${toastsDict.messageSentError}: ${error instanceof Error ? error.message : ''}`
+        `${toastsDict.messageSentError}: ${
+          error instanceof Error ? error.message : 'שגיאה לא ידועה'
+        }`
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -615,13 +652,7 @@ export default function MatchmakerDashboard({
         )
       ) {
         columns.requiresAction.suggestions.push(suggestion);
-      } else if (
-        [
-          'APPROVED_BY_FIRST_PARTY',
-          'APPROVED_BY_SECOND_PARTY',
-          'AWAITING_REVIEW',
-        ].includes(suggestion.status)
-      ) {
+      } else if (suggestion.status.includes('APPROVED')) {
         columns.pendingResponse.suggestions.push(suggestion);
       } else if (suggestion.category === 'ACTIVE') {
         columns.inProgress.suggestions.push(suggestion);
@@ -630,8 +661,8 @@ export default function MatchmakerDashboard({
 
     return Object.values(columns);
   }, [filteredSuggestions, dashboardDict.kanban]);
+
   const heroStats = useMemo(() => {
-    // ... (logic remains the same)
     const total = suggestions.length;
     const pending = suggestions.filter(
       (s) =>
@@ -639,7 +670,10 @@ export default function MatchmakerDashboard({
         s.status === 'PENDING_SECOND_PARTY'
     ).length;
     const active = suggestions.filter(
-      (s) => !['CLOSED', 'CANCELLED', 'EXPIRED'].includes(s.status)
+      (s) =>
+        !['CLOSED', 'CANCELLED', 'EXPIRED', 'MARRIED', 'ENGAGED'].includes(
+          s.status
+        )
     ).length;
     const success = suggestions.filter((s) =>
       ['MARRIED', 'ENGAGED', 'DATING'].includes(s.status)
@@ -690,7 +724,7 @@ export default function MatchmakerDashboard({
   );
 
   const renderMobileView = () => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20 flex flex-col">
       <div className="p-4">
         <MatchmakerHeroSection
           dict={dashboardDict.heroSection}
@@ -1027,26 +1061,27 @@ export default function MatchmakerDashboard({
   );
 
   return (
-    <div className={cn('min-h-screen', !isMobile && 'p-0', isMobile && 'p-0')}>
+    <div className={cn('min-h-screen', isMobile ? 'p-0' : 'p-0')}>
       {isMobile ? renderMobileView() : renderDesktopView()}
+
       <NewSuggestionForm
         isOpen={showNewSuggestion}
         onClose={() => setShowNewSuggestion(false)}
         candidates={allCandidates}
         onSubmit={handleNewSuggestion}
-        locale={locale} // <--- הוסף את השורה הזו
+        locale={locale}
         dict={matchmakerDict}
       />
+
       <SuggestionDetailsDialog
         suggestion={selectedSuggestion}
         isOpen={!!selectedSuggestion}
         onClose={() => setSelectedSuggestion(null)}
         onAction={handleDialogAction}
         userId={session?.user?.id || ''}
-        matchmakerDict={matchmakerDict} // ✅ העברת המילון המלא של השדכן
+        matchmakerDict={matchmakerDict}
         suggestionsDict={suggestionsDict}
-        profileDict={profileDict} // ✅ הוספת השורה הזו
-        // ✅ העברת המילון של ההצעות
+        profileDict={profileDict}
         locale={locale}
       />
 
@@ -1066,6 +1101,7 @@ export default function MatchmakerDashboard({
           />
         </DialogContent>
       </Dialog>
+
       <EditSuggestionForm
         isOpen={showEditForm}
         onClose={() => setShowEditForm(false)}
@@ -1073,6 +1109,7 @@ export default function MatchmakerDashboard({
         onSave={handleUpdateSuggestion}
         dict={dashboardDict.editSuggestionForm}
       />
+
       <MessageForm
         isOpen={showMessageForm}
         onClose={() => setShowMessageForm(false)}
@@ -1080,6 +1117,7 @@ export default function MatchmakerDashboard({
         onSend={handleSendMessage}
         dict={dashboardDict.messageForm}
       />
+
       {confirmAction && (
         <AlertDialog
           open={showConfirmDialog}

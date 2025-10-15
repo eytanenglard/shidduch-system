@@ -269,7 +269,7 @@ export async function POST(req: NextRequest) {
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    let text = response.text();
+    const text = response.text();
 
     const isFallback = text.includes(FALLBACK_PHRASES[lang]);
 

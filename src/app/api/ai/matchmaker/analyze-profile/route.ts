@@ -5,7 +5,6 @@ import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';import { getSer
 import { authOptions } from '@/lib/auth';
 import profileAiService from '@/lib/services/profileAiService';
 import aiService from '@/lib/services/aiService';
-import prisma from '@/lib/prisma';
 import { UserRole } from "@prisma/client";
 
 /**

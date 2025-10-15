@@ -27,7 +27,6 @@ import {
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
   PopoverAnchor,
 } from '@/components/ui/popover';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';

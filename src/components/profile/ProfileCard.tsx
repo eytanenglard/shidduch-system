@@ -20,10 +20,10 @@ import {
 } from '@/components/ui/resizable';
 
 // UI Components
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -41,14 +41,12 @@ import {
 } from '@/components/ui/tooltip';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 
 // Icons
 import {
   User,
   Heart,
   FileText,
-  Image as ImageIcon,
   Info as InfoIcon,
   Eye,
   Phone,
@@ -60,14 +58,14 @@ import {
   BookOpen,
   School,
   Lock,
-  Languages,
+
   Calendar,
   Star,
   MapPin,
   CheckCircle,
   Clock,
   Cake,
-  Gem,
+
   Sparkles,
   Users2,
   Award,
@@ -75,13 +73,11 @@ import {
   Smile,
   X,
   BookMarked,
-  Search,
+
   Target,
-  UserCheck,
-  Link as LinkIcon,
-  Handshake,
+
   Edit3,
-  ExternalLink,
+
   Bot,
   Coffee,
   Camera,
@@ -91,35 +87,32 @@ import {
   Telescope,
   Crown,
   Zap,
-  Gift,
+ 
   ArrowRight,
   Quote,
   ChevronDown,
   Moon,
   Sun,
-  Baby,
+ 
   Home,
-  Flame,
-  MessageCircle,
+
   Play,
-  Plus,
+
   Lightbulb,
-  Mountain,
-  Share2,
-  Download,
+
+
+
   Printer,
-  Bookmark,
-  Search as SearchIcon,
+
+
   Filter,
-  SortDesc,
+ 
   MessageSquare,
   Phone as PhoneIcon,
-  Mail,
-  Send,
+ 
   Stars,
   Sparkle,
   Sunrise,
-  Sunset,
   TreePine,
   Flower,
   Rainbow,
@@ -139,13 +132,10 @@ import type {
   ServiceType,
   HeadCoveringType,
   KippahType,
-  FriendTestimonial,
   WorldId,
 } from '@/types/next-auth';
-import { languageOptions } from '@/lib/languageOptions';
 import type { Candidate } from '@/components/matchmaker/new/types/candidates';
 
-import NewSuggestionForm from '@/components/matchmaker/suggestions/NewSuggestionForm';
 import { ProfileCardDict, ProfileCardDisplayDict } from '@/types/dictionary';
 // הוסף CSS משתנים דינמיים
 
@@ -181,35 +171,6 @@ const NeshamaTechSummary: React.FC<{
   );
 };
 
-// רכיב 2: הסיפור של המשתמש (קצת עליי)
-const AboutMeSection: React.FC<{
-  profile: UserProfile;
-  dict: ProfileCardDisplayDict;
-  THEME: ThemeType;
-}> = ({ profile, dict, THEME }) => {
-  if (!profile.isAboutVisible || !profile.about) {
-    return null;
-  }
-  return (
-    <SectionCard
-      title={dict.content.aboutMe.titleCard.replace(
-        '{{name}}',
-        profile.user?.firstName || ''
-      )}
-      icon={User}
-      variant="romantic"
-      gradient={THEME.colors.primary.romantic}
-    >
-      <div className="relative p-4 bg-rose-50/30 rounded-lg border border-rose-200/50">
-        <Quote className="absolute top-2 right-2 w-6 h-6 text-rose-200" />
-        <p className="whitespace-pre-wrap text-gray-800 leading-relaxed italic px-4">
-          {profile.about}
-        </p>
-        <Quote className="absolute bottom-2 left-2 w-6 h-6 text-rose-200 transform rotate-180" />
-      </div>
-    </SectionCard>
-  );
-};
 
 // רכיב 3: המלצות חברים (תצוגה מלאה)
 const FriendTestimonialsSection: React.FC<{
@@ -1127,25 +1088,6 @@ const COLOR_PALETTES = {
 
 type ColorPaletteName = keyof typeof COLOR_PALETTES;
 
-const SPACING = {
-  xs: 'gap-1 sm:gap-1.5',
-  sm: 'gap-2 sm:gap-3',
-  md: 'gap-3 sm:gap-4',
-  lg: 'gap-4 sm:gap-5',
-} as const;
-
-const getGradientClasses = (gradient: string, isMobile: boolean = false) => {
-  const baseGradient = `bg-gradient-to-r ${gradient}`;
-  const hoverGradient = gradient
-    .replace('from-', 'hover:from-')
-    .replace('to-', 'hover:to-');
-
-  return cn(
-    baseGradient,
-    !isMobile && hoverGradient,
-    'transition-all duration-300'
-  );
-};
 
 type ThemeType = {
   colors: {
@@ -1427,74 +1369,7 @@ const formatBooleanPreference = (
   };
 };
 
-const formatStringBooleanPreference = (
-  value: string | null | undefined,
-  dict: ProfileCardDisplayDict['stringBooleanPrefs'] & { willDiscover: string },
-  useMobile: boolean = false
-): {
-  label: string;
-  shortLabel?: string;
-  icon: React.ElementType;
-  color: string;
-  mobileClasses?: string;
-} => {
-  const options: {
-    [key: string]: {
-      label: string;
-      shortLabel?: string;
-      icon: React.ElementType;
-      color: string;
-    };
-  } = {
-    yes: {
-      label: dict.yes,
-      shortLabel: dict.yes,
-      icon: CheckCircle,
-      color: 'text-green-600',
-    },
-    no: { label: dict.no, shortLabel: dict.no, icon: X, color: 'text-red-500' },
-    flexible: {
-      label: dict.flexible,
-      shortLabel: dict.flexible,
-      icon: Rainbow,
-      color: 'text-indigo-600',
-    },
-  };
 
-  const notSpecifiedLabel = {
-    label: dict.willDiscover,
-    shortLabel: 'נגלה',
-    icon: Telescope,
-    color: 'text-gray-500',
-  };
-
-  const baseResponse = {
-    mobileClasses: 'text-xs sm:text-sm',
-  };
-
-  if (value && options[value.toLowerCase()]) {
-    const result = options[value.toLowerCase()];
-    return {
-      ...result,
-      shortLabel:
-        result.shortLabel ||
-        (useMobile && result.label.length > 8
-          ? result.label.substring(0, 8) + '...'
-          : result.label),
-      ...baseResponse,
-    };
-  }
-
-  return {
-    ...notSpecifiedLabel,
-    shortLabel:
-      notSpecifiedLabel.shortLabel ||
-      (useMobile && notSpecifiedLabel.label.length > 8
-        ? notSpecifiedLabel.label.substring(0, 8) + '...'
-        : notSpecifiedLabel.label),
-    ...baseResponse,
-  };
-};
 
 // --- Enhanced Helper Components with Full Responsive Support ---
 
@@ -2081,7 +1956,7 @@ const ColorPaletteSelector: React.FC<{
 }> = ({
   selectedPalette,
   onPaletteChange,
-  THEME,
+
   dict,
   compact = false,
   direction,
@@ -2133,7 +2008,7 @@ const ColorPaletteSelector: React.FC<{
             )}
             dir={direction}
           >
-            {Object.entries(COLOR_PALETTES).map(([key, palette]) => (
+            {Object.entries(COLOR_PALETTES).map(([key]) => (
               <button
                 key={key}
                 role="menuitem"
@@ -2237,7 +2112,6 @@ const ProfileHeader: React.FC<{
   characterTraitMap,
   hobbiesMap,
   religiousLevelMap,
-  educationLevelMap,
   locale,
 }) => {
   const direction = locale === 'he' ? 'rtl' : 'ltr';
@@ -3202,24 +3076,17 @@ const TabNavigationButtons: React.FC<{
 const ProfileCard: React.FC<ProfileCardProps> = ({
   profile: profileData,
   isProfileComplete,
-  candidate,
   images = [],
   questionnaire,
   viewMode = 'candidate',
   className,
-  allCandidates = [],
   onCreateSuggestion,
   onClose,
   dict,
   locale,
 }) => {
   const direction = locale === 'he' ? 'rtl' : 'ltr';
-  const useFormattedValue = (value: string, map: any, placeholder: string) => {
-    return useMemo(
-      () => formatEnumValue(value, map, placeholder),
-      [value, map, placeholder]
-    );
-  };
+
   const contentScrollAreaRef = useRef<HTMLDivElement>(null);
 
   const profile = useMemo(
@@ -3237,7 +3104,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const [selectedImageForDialog, setSelectedImageForDialog] =
     useState<UserImageType | null>(null);
   const [activeTab, setActiveTab] = useState('essence');
-  const [isSuggestDialogOpen, setIsSuggestDialogOpen] = useState(false);
+  const [, setIsSuggestDialogOpen] = useState(false);
   const [mobileViewLayout, setMobileViewLayout] = useState<
     'focus' | 'detailed'
   >('focus');
@@ -3592,12 +3459,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     setSelectedImageForDialog(orderedImages[newIndex]);
   };
 
-  const handleCreateSuggestion = async (data: CreateSuggestionData) => {
-    if (onCreateSuggestion) {
-      await onCreateSuggestion(data);
-    }
-    setIsSuggestDialogOpen(false);
-  };
 
   const handleClose = () => {
     if (onClose) {

@@ -23,7 +23,6 @@ import {
   HeartHandshake,
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
-import { usePathname } from 'next/navigation';
 import type {
   HowItWorksDict,
   SuggestionsDictionary,

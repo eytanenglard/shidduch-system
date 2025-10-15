@@ -171,10 +171,12 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         }
         await updateSessionHook();
       } catch (error) {
+        console.error('Failed to accept terms:', error); // <-- יש להוסיף את השורה הזו
         setGeneralApiError(dict.errors.consentApiError);
         setIsSubmittingConsent(false);
         return;
       }
+
       setIsSubmittingConsent(false);
     }
 

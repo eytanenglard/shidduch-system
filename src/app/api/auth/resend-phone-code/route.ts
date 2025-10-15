@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { generateOtp, sendOtpViaWhatsApp } from '@/lib/phoneVerificationService';
-import { VerificationType, VerificationStatus } from '@prisma/client';
+import { VerificationType } from '@prisma/client';
 
 // --- הגדרות ---
 const RESEND_RATE_LIMIT_SECONDS = 60; // זמן המתנה בשניות בין בקשות חוזרות

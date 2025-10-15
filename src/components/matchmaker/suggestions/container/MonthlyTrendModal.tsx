@@ -3,46 +3,36 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  BarChart,
-  Bar,
+
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
-  LineChart,
-  Line,
+
   Area,
   AreaChart,
   PieChart,
   Pie,
   Cell,
-  RadialBarChart,
-  RadialBar,
+
 } from 'recharts';
 import {
   TrendingUp,
-  TrendingDown,
+
   Calendar,
   BarChart3,
-  LineChart as LineChartIcon,
   PieChart as PieChartIcon,
   Activity,
   Users,
-  CheckCircle,
   Clock,
-  Heart,
   Award,
   Target,
   ArrowUp,
   ArrowDown,
   Sparkles,
-  Star,
   Crown,
-  Zap,
   Download,
-  RefreshCw,
   Eye,
   XCircle,
 } from 'lucide-react';

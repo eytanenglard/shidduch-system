@@ -15,7 +15,7 @@ interface PrivacyAssuranceProps {
 
 }
 
-const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({ dict, locale }) => {
+const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({ dict }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 

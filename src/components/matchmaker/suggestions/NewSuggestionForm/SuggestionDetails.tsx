@@ -24,7 +24,6 @@ import {
   Flame,
   Target,
   Shield,
-  Heart,
   MessageCircle,
   User,
   Calendar,

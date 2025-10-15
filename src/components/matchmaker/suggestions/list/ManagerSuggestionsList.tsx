@@ -1,7 +1,6 @@
 // src/components/matchmaker/suggestions/list/ManagerSuggestionsList.tsx
 
-import React, { useMemo, useState } from 'react';
-import { Card } from '@/components/ui/card';
+import React, { useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Users } from 'lucide-react';
 import type {
@@ -9,7 +8,6 @@ import type {
   SuggestionFilters,
   ActionAdditionalData,
 } from '@/types/suggestions';
-import { toast } from 'sonner';
 import SuggestionCard from '../cards/SuggestionCard';
 import type { MatchmakerPageDictionary } from '@/types/dictionary';
 

@@ -17,7 +17,6 @@ import {
   Profile, // Import Prisma's Profile type
 } from "@prisma/client";
 import type { UserProfile } from "@/types/next-auth";
-import { updateUserAiProfile } from '@/lib/services/profileAiService';
 
 // Helper to convert to number or null
 const toNumberOrNull = (value: string | number | null | undefined): number | null => {

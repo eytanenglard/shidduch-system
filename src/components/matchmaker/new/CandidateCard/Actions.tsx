@@ -7,13 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Heart,
-  Mail,
-  FileText,
   Eye,
-  Clock,
   Sparkles,
   Send,
-  UserPlus,
   MessageCircle,
   Calendar,
   Star,

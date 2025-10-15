@@ -12,22 +12,17 @@ import { Badge } from '@/components/ui/badge';
 import {
   Sparkles,
   XCircle,
-  Users,
-  User,
   Target,
   Crown,
   Zap,
   Search,
   Loader2,
   Star,
-  TrendingUp,
-  AlertCircle,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card } from '@/components/ui/card';
 import type {
   Candidate,
   CandidateAction,

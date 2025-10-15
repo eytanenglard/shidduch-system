@@ -8,7 +8,7 @@ import { Prisma, UserRole } from '@prisma/client';
 import { Locale } from '../../../../../i18n-config';
 
 import { formatAnswers, KEY_MAPPING } from '@/lib/questionnaireFormatter';
-import type { DbWorldKey, FormattedAnswersType } from '@/lib/questionnaireFormatter';
+import type { FormattedAnswersType } from '@/lib/questionnaireFormatter';
 import type { WorldId, UpdateValue } from '@/types/next-auth';
 import { formatQuestionnaireForDisplay } from '@/lib/services/questionnaireService';
 

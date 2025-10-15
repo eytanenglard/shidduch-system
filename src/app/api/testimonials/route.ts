@@ -1,13 +1,6 @@
 // src/app/api/profile/testimonials/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-
-// The GET function remains unchanged...
-export async function GET(req: NextRequest) {
-  // ... existing GET implementation ...
-}
 
 
 /**

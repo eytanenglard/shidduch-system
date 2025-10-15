@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { Gender, HeadCoveringType, KippahType, ServiceType, ReligiousJourney, AvailabilityStatus } from "@prisma/client";
 import type { UserProfile } from "@/types/next-auth";
 
 // הגדרה זו מבטיחה שה-Route Handler ירוץ תמיד מחדש ולא ישמר ב-Cache.

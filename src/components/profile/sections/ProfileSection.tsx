@@ -33,7 +33,7 @@ import {
   Pencil,
   Save,
   X,
-  MessageSquare,
+
   Award,
   Send,
   Copy,
@@ -53,7 +53,7 @@ import {
   HeartPulse,
   Lock,
   Eye,
-  EyeOff,
+
 } from 'lucide-react';
 import { UserProfile, FriendTestimonial } from '@/types/next-auth';
 import { cn } from '@/lib/utils';

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker
-# Generated on: 2025-09-25 18:12:13
+# Generated on: 2025-10-15 10:45:30
 ################################################################################
 
 ================================================================================
@@ -1618,6 +1618,8 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Prisma, UserRole } from "@prisma/client";
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
+import { Locale } from "../../../../../../i18n-config";
+import { emailService } from "@/lib/email/emailService";
 
 export const dynamic = 'force-dynamic';
 
@@ -1717,10 +1719,14 @@ export async function PATCH(
         { status: 401 }
       );
     }
+    
+    // קבלת שפה (locale) מפרמטר ב-URL לצורך שליחת מייל מתורגם
+    const url = new URL(req.url);
+    const locale = (url.searchParams.get('locale') as Locale) || 'he';
 
     const performingUser = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true }
+select: { role: true, firstName: true, lastName: true } // נשלוף את השם הפרטי ושם המשפחה
     });
 
     if (!performingUser || (performingUser.role !== UserRole.MATCHMAKER && performingUser.role !== UserRole.ADMIN)) {
@@ -1732,19 +1738,19 @@ export async function PATCH(
     
     const { id: candidateIdToUpdate } = params;
 
-    const candidateExists = await prisma.user.findUnique({
+    const candidateToUpdate = await prisma.user.findUnique({
       where: { id: candidateIdToUpdate },
-      select: { id: true, role: true }
+      select: { id: true, role: true, email: true, firstName: true } // נשלוף פרטים הנדרשים למייל
     });
 
-    if (!candidateExists) {
+    if (!candidateToUpdate) {
       return NextResponse.json(
         { success: false, error: "Candidate not found" },
         { status: 404 }
       );
     }
 
-    if (candidateExists.role === UserRole.ADMIN && performingUser.role !== UserRole.ADMIN) {
+    if (candidateToUpdate.role === UserRole.ADMIN && performingUser.role !== UserRole.ADMIN) {
         return NextResponse.json(
             { success: false, error: "Unauthorized - Admins can only be edited by other Admins." },
             { status: 403 }
@@ -1752,19 +1758,26 @@ export async function PATCH(
     }
 
     const incomingData = await req.json();
+
+    // שלב מקדים: נשלוף את הפרופיל המקורי כדי שנוכל להשוות את 'דבר המערכת'
+    const originalProfile = await prisma.profile.findUnique({
+        where: { userId: candidateIdToUpdate },
+        select: { manualEntryText: true }
+    });
+    
     const dataForUpdate: Prisma.ProfileUpdateInput = {};
 
     // הגדרת סוגי השדות לצורך טיפול נכון בערכים
     const numericFields = ['height', 'siblings', 'position', 'preferredAgeMin', 'preferredAgeMax', 'preferredHeightMin', 'preferredHeightMax', 'aliyaYear'];
     const stringAndEnumFields = ['gender', 'preferredMatchmakerGender', 'maritalStatus', 'serviceType', 'headCovering', 'kippahType', 'contactPreference', 'preferredShomerNegiah', 'preferredPartnerHasChildren', 'preferredAliyaStatus', 'availabilityStatus' , 'religiousJourney', 'medicalInfoDetails', 'medicalInfoDisclosureTiming', 'fatherOccupation', 'motherOccupation', 'manualEntryText', 'about', 'profileHeadline'];
-    const booleanFields = ['shomerNegiah', 'hasChildrenFromPrevious', 'preferredHasChildrenFromPrevious', 'isProfileVisible', 'hasMedicalInfo', 'isMedicalInfoVisible', 'birthDateIsApproximate'];
+    const booleanFields = ['shomerNegiah', 'hasChildrenFromPrevious',  'isProfileVisible', 'hasMedicalInfo', 'isMedicalInfoVisible', 'birthDateIsApproximate'];
     const arrayFields = ['additionalLanguages', 'profileCharacterTraits', 'profileHobbies', 'preferredReligiousLevels', 'preferredLocations', 'preferredEducation', 'preferredOccupations', 'preferredMaritalStatuses', 'preferredOrigins', 'preferredServiceTypes', 'preferredHeadCoverings', 'preferredKippahTypes', 'preferredCharacterTraits', 'preferredHobbies', 'preferredReligiousJourneys'];
     const dateFields = ['birthDate'];
 
-    // מעבר על השדות שהתקבלו בבקשה בלבד
+    // מעבר על כל השדות שהתקבלו בבקשה
     for (const key in incomingData) {
       if (Object.prototype.hasOwnProperty.call(incomingData, key)) {
-        let value = incomingData[key];
+        const value = incomingData[key];
 
         if (numericFields.includes(key)) {
             if (value === "" || value === undefined || value === null) {
@@ -1799,13 +1812,6 @@ export async function PATCH(
                 dataForUpdate[key] = null;
             }
         }
-        else {
-          // עבור כל שדה אחר שלא ברשימות, פשוט נעביר אותו הלאה
-          // זה מכסה שדות כמו הערות וכו' שלא צריכים טיפול מיוחד
-          if (incomingData[key] !== undefined) {
-             dataForUpdate[key] = incomingData[key];
-          }
-        }
       }
     }
     
@@ -1817,10 +1823,34 @@ export async function PATCH(
             ...dataForUpdate,
             updatedAt: new Date(),
             lastActive: new Date(),
-            needsAiProfileUpdate: true,
+            needsAiProfileUpdate: true, // נסמן תמיד לעדכון AI לאחר שינוי ידני
           }
         });
 
+        // --- לוגיקת שליחת המייל ---
+        const newSummaryText = incomingData.manualEntryText;
+        const oldSummaryText = originalProfile?.manualEntryText;
+
+        // שלח מייל רק אם השדה 'manualEntryText' נשלח בבקשת העדכון,
+        // הוא לא ריק, והתוכן שלו השתנה מהערך הקודם.
+        if (newSummaryText !== undefined && newSummaryText.trim() !== '' && newSummaryText !== oldSummaryText) {
+            try {
+                await emailService.sendProfileSummaryUpdateEmail({
+                    locale,
+                    email: candidateToUpdate.email,
+                    firstName: candidateToUpdate.firstName,
+                    matchmakerName: session.user.name || "השדכן/ית שלך"
+                });
+                console.log(`[Email Notification] Profile summary update email sent successfully to ${candidateToUpdate.email}.`);
+            } catch (emailError) {
+                // חשוב: לא נכשיל את כל הבקשה אם שליחת המייל נכשלה.
+                // נתעד את השגיאה ונמשיך בזרימה התקינה של עדכון הפרופיל.
+                console.error(`[Email Notification] Failed to send profile summary update email to ${candidateToUpdate.email}:`, emailError);
+            }
+        }
+        // --- סוף לוגיקת שליחת המייל ---
+
+        // הפעלת עדכון פרופיל AI ברקע
         updateUserAiProfile(candidateIdToUpdate).catch(err => {
             console.error(`[AI Profile Trigger - Matchmaker Update] Failed to update AI profile in the background for candidate ${candidateIdToUpdate}:`, err);
         });
@@ -1831,7 +1861,7 @@ export async function PATCH(
         });
     }
 
-    // אם לא נשלחו נתונים, החזר את הפרופיל הקיים ללא שינוי
+    // אם לא נשלחו נתונים רלוונטיים לעדכון, החזר את הפרופיל הקיים ללא שינוי
     const currentProfile = await prisma.profile.findUnique({ where: { userId: candidateIdToUpdate } });
     return NextResponse.json({ success: true, profile: currentProfile, message: "No data provided for update." });
 
@@ -1866,6 +1896,7 @@ export async function PATCH(
     );
   }
 }
+
 
 /**
  * DELETE: מחיקת מועמד.
@@ -1993,12 +2024,6 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
 import { v2 as cloudinary } from "cloudinary";
-
-// טייפ פשוט לתוצאה
-type UploadResult = {
-  secure_url: string;
-  public_id: string;
-};
 
 // Check for required environment variables
 const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
@@ -2411,16 +2436,14 @@ import prisma from "@/lib/prisma";
 import { UserRole, VerificationType, Prisma, VerificationStatus } from "@prisma/client";
 import { VerificationService } from "@/lib/services/verificationService";
 import { emailService } from "@/lib/email/emailService";
-import { applyRateLimit } from "@/lib/rate-limiter";
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 /**
  * Handles a matchmaker's request to send an account setup invitation to a candidate.
  * This allows a manually-created user to set their own password and take control of their profile.
  */
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   // 1. Apply Rate Limiting
-  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
   
@@ -2530,8 +2553,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\
 Content:
 // src/app/api/matchmaker/candidates/manual/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -2576,8 +2598,7 @@ async function uploadImageToCloudinary(file: File, userId: string): Promise<{ ur
 
 export async function POST(req: NextRequest) {
   // Apply rate limiting: 15 manual creations per matchmaker per hour (resource intensive)
-  const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
   try {
@@ -2841,8 +2862,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { AvailabilityService } from "@/lib/services/availabilityService";
-import { applyRateLimit } from "@/lib/rate-limiter";
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -2853,11 +2873,10 @@ type RouteSegment<T> = (
 ) => Promise<NextResponse> | NextResponse;
 
 // El manejador de la solicitud.
-const handler: RouteSegment<{ id: string }> = async (request, { params }) => {
+const handler: RouteSegment<{ id: string }> = async (req, { params }) => {
   try {
     // 1. Aplicar un límite de peticiones para prevenir el abuso.
-    const rateLimitResponse = await applyRateLimit(request, { requests: 20, window: '1 h' });
-    if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });    if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
@@ -2869,11 +2888,11 @@ const handler: RouteSegment<{ id: string }> = async (request, { params }) => {
 
     // 3. Extraer el 'locale' de los parámetros de la URL.
     //    Esta es la corrección principal para que coincida con la firma del servicio.
-    const url = new URL(request.url);
+    const url = new URL(req.url);
     const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he'; // Por defecto, se establece en hebreo.
 
     // 4. Extraer los datos del cuerpo de la solicitud.
-    const { isAvailable, note } = await request.json();
+    const { isAvailable, note } = await req.json();
 
     // Validar que 'isAvailable' sea un booleano.
     if (typeof isAvailable !== 'boolean') {

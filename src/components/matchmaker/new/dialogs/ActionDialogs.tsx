@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogFooter,
   DialogDescription,
@@ -19,14 +18,12 @@ import {
   Mail,
   Loader2,
   Send,
-  User,
   Sparkles,
   CheckCircle,
   Heart,
   MessageCircle,
   Calendar,
   AlertCircle,
-  X,
 } from 'lucide-react';
 import type { Candidate } from '../types/candidates';
 import { cn } from '@/lib/utils';

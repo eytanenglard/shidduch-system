@@ -13,7 +13,6 @@ import {
 import Image from 'next/image';
 import {
   Clock,
-  User,
   MessageCircle,
   Eye,
   AlertCircle,
@@ -27,23 +26,17 @@ import {
   CalendarClock,
   Heart,
   MapPin,
-  Calendar,
+
   Star,
   Sparkles,
-  ChevronDown,
-  ChevronUp,
   Crown,
-  Zap,
-  Award,
   Target,
-  Users,
+
   Quote,
   Briefcase,
   GraduationCap,
   ArrowRight,
-  Phone,
-  Mail,
-  Gift,
+
   Flame,
   TrendingUp,
   Shield,
@@ -65,10 +58,7 @@ import { Progress } from '@/components/ui/progress';
 import { cn, getRelativeCloudinaryPath, getInitials } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { MatchmakerPageDictionary } from '@/types/dictionary';
 

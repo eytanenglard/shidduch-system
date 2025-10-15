@@ -5,12 +5,6 @@ import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
 import { v2 as cloudinary } from "cloudinary";
 
-// טייפ פשוט לתוצאה
-type UploadResult = {
-  secure_url: string;
-  public_id: string;
-};
-
 // Check for required environment variables
 const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
 const apiKey = process.env.CLOUDINARY_API_KEY;

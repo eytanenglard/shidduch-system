@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Heart,
-  Mail,
+
   Clock,
   Eye,
   Scroll,
@@ -22,13 +22,9 @@ import {
   Sparkles,
   Send,
   Calendar,
-  Shield,
-  Crown,
   Zap,
   Award,
-  Activity,
   MessageCircle,
-  Phone,
   X,
 } from 'lucide-react';
 

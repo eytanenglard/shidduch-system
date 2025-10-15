@@ -50,7 +50,7 @@ const getTranslatedReason = (dict: any, key: string): string => {
     }
     return typeof result === 'string' ? result : key;
   } catch (error) {
-    console.warn(`Translation key not found: ${key}`);
+    console.warn(`Translation key not found: ${key}`, error);
     return key; // Fallback to the key itself if an error occurs
   }
 };

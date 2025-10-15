@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { UserRole, Priority, Prisma } from "@prisma/client";
+import { UserRole, Priority } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
 // הגדרת טיפוס לנתונים הנכנסים

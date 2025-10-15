@@ -5,9 +5,6 @@ import Image from 'next/image';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -276,7 +273,6 @@ const AnalysisSkeleton: React.FC = () => (
 const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
   isOpen,
   locale,
-  onClose,
   targetCandidate,
   comparisonCandidates,
   dict,
@@ -350,12 +346,7 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
       fetchAnalysis();
     }
   }, [isOpen, targetCandidate, activeComparisonId, language, analyses]);
-  const handleLanguageChange = (newLang: 'he' | 'en') => {
-    if (newLang !== language) {
-      setLanguage(newLang);
-      setAnalyses({});
-    }
-  };
+
   if (!targetCandidate) return null;
   return (
     <DialogContent

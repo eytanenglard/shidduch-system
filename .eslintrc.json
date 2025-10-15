@@ -1,16 +1,11 @@
 {
-  "parser": "@typescript-eslint/parser",
+  "extends": "next/core-web-vitals",
   "plugins": [
-    "@typescript-eslint"
-  ],
-  "extends": [
-    "next/core-web-vitals",
-    "plugin:@typescript-eslint/recommended" // הוספת שורה זו
+    "@typescript-eslint"  // <--- תוסיף את השורה הזו
   ],
   "rules": {
-    // החוקים הקיימים שלך נשארים כאן
+    // החוקים המותאמים אישית שלך נשארים כאן
     "react/prop-types": "off",
-    // החוק הזה מגיע מ-plugin:@typescript-eslint/recommended, ניתן לדרוס אותו אם רוצים
     "@typescript-eslint/no-explicit-any": "warn"
   }
 }

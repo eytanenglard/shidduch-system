@@ -25,13 +25,13 @@ import {
   ChevronDown,
   AlertCircle,
   CheckCircle,
-  XCircle,
+
   RefreshCw,
   SlidersHorizontal,
   Sparkles,
   Target,
   Zap,
-  Settings,
+
   TrendingUp,
   Star,
   Flame,
