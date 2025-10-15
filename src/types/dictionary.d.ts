@@ -5,7 +5,6 @@ import type { AuthDictionary } from './dictionaries/auth';
 import type { WorldId } from '@/components/questionnaire/types/types';
 import type { EmailDictionary } from './dictionaries/email';
 import { MatchSuggestionStatus } from '@prisma/client'; 
-import { NotificationDictionary } from './dictionaries/email'; // הוסף ייבוא
 import type { AdminDictionary } from './dictionaries/admin';
 
 // --- Navbar ---

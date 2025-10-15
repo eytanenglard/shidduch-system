@@ -1,6 +1,5 @@
 // src/types/dictionaries/matchmaker.d.ts
 
-import { Gender } from "@prisma/client";
 
 // Types for individual components
 
