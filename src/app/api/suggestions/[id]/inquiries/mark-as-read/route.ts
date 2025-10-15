@@ -1,6 +1,6 @@
 // FILENAME: src/app/api/suggestions/[id]/inquiries/mark-as-read/route.ts
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -9,6 +9,7 @@ import prisma from "@/lib/prisma";
 // when the recipient (matchmaker) opens the chat.
 
 export async function POST(
+  req: NextRequest, // Add the request parameter here
   { params }: { params: { id: string } }
 ) {
   try {

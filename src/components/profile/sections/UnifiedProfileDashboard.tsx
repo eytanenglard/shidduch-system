@@ -7,7 +7,6 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 import type { User as SessionUserType } from '@/types/next-auth';
 
 // Child Components

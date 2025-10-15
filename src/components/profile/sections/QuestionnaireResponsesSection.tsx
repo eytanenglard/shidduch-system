@@ -14,13 +14,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 // Textarea is no longer needed for editing here, but might be used elsewhere.
 // Keeping it for now, but it can be removed if not used in other contexts.
-import { Textarea } from '@/components/ui/textarea';
 import {
   Book,
   CheckCircle,
   Clock,
   Pencil,
-  X,
+
   Save,
   Eye,
   EyeOff,
@@ -37,7 +36,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import BudgetDisplay from './BudgetDisplay';
 
 import type {
   QuestionnaireResponse,
@@ -217,7 +215,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     ) {
       // השרת כבר הכין לנו את הטקסט המתורגם ב-displayText.
       // נשתמש בו ונוסיף את העיצוב הגרפי.
-      const budgetData = answer.rawValue as Record<string, number>;
 
       // פיצול ה-displayText כדי לקבל את התוויות המתורגמות
       const displayItems = answer.displayText.split(' | ').map((item) => {
