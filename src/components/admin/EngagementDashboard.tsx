@@ -422,7 +422,7 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
         <div className="max-w-7xl mx-auto mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-gray-600 text-sm font-medium">Today's Emails</h3>
+              <h3 className="text-gray-600 text-sm font-medium">Today&apos;s Emails</h3>
               <Mail className="w-5 h-5 text-blue-500" />
             </div>
             <p className="text-3xl font-bold text-gray-900">{stats.todayEmails}</p>
