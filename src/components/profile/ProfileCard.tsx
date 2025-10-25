@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/resizable';
 
 // UI Components
-import { Card} from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
@@ -58,14 +58,12 @@ import {
   BookOpen,
   School,
   Lock,
-
   Calendar,
   Star,
   MapPin,
   CheckCircle,
   Clock,
   Cake,
-
   Sparkles,
   Users2,
   Award,
@@ -73,11 +71,8 @@ import {
   Smile,
   X,
   BookMarked,
-
   Target,
-
   Edit3,
-
   Bot,
   Coffee,
   Camera,
@@ -87,29 +82,18 @@ import {
   Telescope,
   Crown,
   Zap,
- 
   ArrowRight,
   Quote,
   ChevronDown,
   Moon,
   Sun,
- 
   Home,
-
   Play,
-
   Lightbulb,
-
-
-
   Printer,
-
-
   Filter,
- 
   MessageSquare,
   Phone as PhoneIcon,
- 
   Stars,
   Sparkle,
   Sunrise,
@@ -171,7 +155,6 @@ const NeshamaTechSummary: React.FC<{
   );
 };
 
-
 // רכיב 3: המלצות חברים (תצוגה מלאה)
 const FriendTestimonialsSection: React.FC<{
   profile: UserProfile;
@@ -196,7 +179,7 @@ const FriendTestimonialsSection: React.FC<{
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" dir={direction}>
       {approvedTestimonials.map((testimonial) => (
         <div
           key={testimonial.id}
@@ -204,12 +187,24 @@ const FriendTestimonialsSection: React.FC<{
         >
           <blockquote
             className={cn(
-              'italic pr-4',
+              'italic',
+              direction === 'rtl' ? 'pr-4 border-r-4' : 'pl-4 border-l-4',
               THEME.colors.primary.main.includes('cyan')
-                ? 'text-cyan-800 border-r-4 border-cyan-500'
+                ? direction === 'rtl'
+                  ? 'border-cyan-500'
+                  : 'border-cyan-500'
                 : THEME.colors.primary.main.includes('blue')
-                  ? 'text-blue-800 border-r-4 border-blue-500'
-                  : 'text-gray-800 border-r-4 border-gray-500'
+                  ? direction === 'rtl'
+                    ? 'border-blue-500'
+                    : 'border-blue-500'
+                  : direction === 'rtl'
+                    ? 'border-gray-500'
+                    : 'border-gray-500',
+              THEME.colors.primary.main.includes('cyan')
+                ? 'text-cyan-800'
+                : THEME.colors.primary.main.includes('blue')
+                  ? 'text-blue-800'
+                  : 'text-gray-800'
             )}
           >
             &quot;{testimonial.content}&quot;
@@ -1088,7 +1083,6 @@ const COLOR_PALETTES = {
 
 type ColorPaletteName = keyof typeof COLOR_PALETTES;
 
-
 type ThemeType = {
   colors: {
     primary: {
@@ -1368,8 +1362,6 @@ const formatBooleanPreference = (
     ...baseResponse,
   };
 };
-
-
 
 // --- Enhanced Helper Components with Full Responsive Support ---
 
@@ -3161,7 +3153,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     [dict.options.hobbies]
   );
 
- const activeTabRef = useRef(activeTab);
+  const activeTabRef = useRef(activeTab);
 
   useEffect(() => {
     activeTabRef.current = activeTab;
@@ -3180,7 +3172,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       }
 
       // מובייל - גלילה גם בחלון הראשי
-      const mainContainer = document.querySelector('#profile-card-tabs-content [data-radix-scroll-area-viewport]');
+      const mainContainer = document.querySelector(
+        '#profile-card-tabs-content [data-radix-scroll-area-viewport]'
+      );
       if (mainContainer) {
         mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -3458,7 +3452,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       orderedImages.length;
     setSelectedImageForDialog(orderedImages[newIndex]);
   };
-
 
   const handleClose = () => {
     if (onClose) {
@@ -5416,7 +5409,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         </div>
         <div className="p-4 sm:p-6 flex-grow">
-          <div className="space-y-4">
+    <div className="space-y-4" dir={direction}>
             <Skeleton className="h-6 sm:h-8 w-full rounded-xl" />
             <Skeleton className="h-24 sm:h-32 w-full rounded-xl" />
             <Skeleton className="h-16 sm:h-24 w-full rounded-xl" />

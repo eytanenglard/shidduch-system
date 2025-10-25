@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement
-# Generated on: 2025-10-09 13:20:48
+# Generated on: 2025-10-15 13:12:41
 ################################################################################
 
 ================================================================================
@@ -11,6 +11,103 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\engagement_contents.txt
 --------------------------------------------------------------------------------
 [This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\eligible-users
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\eligible-users\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/admin/engagement/eligible-users/route.ts
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { UserRole } from '@prisma/client';
+
+/**
+ * GET: אחזור כל המשתמשים הפעילים שטרם השלימו את הפרופיל שלהם.
+ * נתיב זה מיועד לשימוש פנימי של ה-EngagementDashboard בצד האדמין.
+ * הגישה מוגבלת למשתמשים עם תפקיד 'ADMIN' בלבד.
+ */
+export async function GET(request: NextRequest) {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] GET /api/admin/engagement/eligible-users - Request received.`);
+
+  try {
+    // שלב 1: אימות והרשאות
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id || session.user.role !== UserRole.ADMIN) {
+      const reason = !session?.user?.id ? 'No active session' : `Invalid role: ${session.user.role}`;
+      console.warn(`[${timestamp}] Unauthorized access attempt: ${reason}.`);
+      return NextResponse.json(
+        { success: false, error: 'Forbidden: Administrator access required.' },
+        { status: 403 }
+      );
+    }
+
+    console.log(`[${timestamp}] Access granted for ADMIN user: ${session.user.id}`);
+
+    // שלב 2: שליפת הנתונים מה-Database
+    // -----------------------------------------------------------------
+    const users = await prisma.user.findMany({
+      where: {
+        status: 'ACTIVE',
+        isProfileComplete: false,
+        // --- התנאי המיותר הוסר ---
+        // מכיוון ששדה האימייל הוא שדה חובה בסכמה,
+        // אין צורך לבדוק אם הוא null.
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        profile: {
+          select: {
+            city: true,
+          },
+        },
+        dripCampaign: {
+          select: {
+            lastSentType: true,
+            updatedAt: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    // -----------------------------------------------------------------
+
+    console.log(`[${timestamp}] Found ${users.length} eligible users for engagement campaign.`);
+
+    // שלב 3: החזרת תגובה מוצלחת
+    return NextResponse.json({ success: true, users: users });
+
+  } catch (error: unknown) {
+    // שלב 4: טיפול בשגיאות
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    console.error(`[${timestamp}] Error in /api/admin/engagement/eligible-users:`, error);
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to fetch eligible users due to an internal server error.',
+        details: errorMessage 
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export const dynamic = 'force-dynamic';
+--- End of Content for route.ts ---
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\run-now
@@ -28,7 +125,7 @@ import { SmartEngagementOrchestrator } from '@/lib/engagement/SmartEngagementOrc
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== 'ADMIN') {
@@ -56,6 +153,104 @@ export async function POST(request: NextRequest) {
 --- End of Content for route.ts ---
 
 ================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\search-users
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\search-users\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const searchParams = request.nextUrl.searchParams;
+    const query = searchParams.get('q') || '';
+
+    if (query.length < 2) {
+      return NextResponse.json({ users: [] });
+    }
+
+    // חיפוש משתמשים לפי שם, אימייל או ID
+    const users = await prisma.user.findMany({
+      where: {
+        AND: [
+          {
+            status: 'ACTIVE',
+            isProfileComplete: false, // רק משתמשים שלא השלימו פרופיל
+          },
+          {
+            OR: [
+              {
+                firstName: {
+                  contains: query,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                lastName: {
+                  contains: query,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                email: {
+                  contains: query,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                id: {
+                  contains: query,
+                },
+              },
+            ],
+          },
+        ],
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        profile: {
+          select: {
+            city: true,
+          },
+        },
+        dripCampaign: {
+          select: {
+            lastSentType: true,
+            updatedAt: true,
+          },
+        },
+      },
+      take: 10,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return NextResponse.json({ users });
+  } catch (error) {
+    console.error('Error searching users:', error);
+    return NextResponse.json(
+      { error: 'Failed to search users' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\send-manual
 ================================================================================
 
@@ -63,14 +258,13 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\send-manual\route.ts
 --------------------------------------------------------------------------------
 Content:
-// src/app/api/admin/engagement/send-manual/route.ts
-// ============================================
-
 import { NextRequest, NextResponse } from 'next/server';
 import { SmartEngagementOrchestrator } from '@/lib/engagement/SmartEngagementOrchestrator';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { getEmailDictionary } from '@/lib/dictionaries';
+import { Language } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -80,6 +274,11 @@ export async function POST(request: NextRequest) {
     }
 
     const { userId, emailType } = await request.json();
+
+    console.log('📧 [Manual Email] Starting send process...', {
+      userId,
+      emailType,
+    });
 
     if (!userId || !emailType) {
       return NextResponse.json(
@@ -95,34 +294,102 @@ export async function POST(request: NextRequest) {
         profile: true,
         images: true,
         questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } },
-        dripCampaign: true
-      }
+        dripCampaign: true,
+      },
     });
 
     if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    if (!user.email) {
       return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+        { error: 'User has no email address' },
+        { status: 400 }
       );
     }
 
+    console.log('👤 [Manual Email] User found:', {
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      language: user.language,
+    });
+
+    // טען את מילון המיילים המתאים לשפת המשתמש
+    const dict = await getEmailDictionary(user.language as Language);
+
     // בנה פרופיל engagement
-    const profile = await SmartEngagementOrchestrator['buildUserEngagementProfile'](userId);
-    
+    const profile =
+      await SmartEngagementOrchestrator.testBuildUserEngagementProfile(userId);
+
+    console.log('📊 [Manual Email] Profile built:', {
+      completionPercentage: profile.completionStatus.overall,
+      daysInSystem: profile.daysInSystem,
+    });
+
     // צור מייל מתאים
     let email;
     switch (emailType) {
-      case 'EVENING_FEEDBACK':
-        const dailyActivity = await SmartEngagementOrchestrator['detectDailyActivity'](userId);
-        email = await SmartEngagementOrchestrator['getEveningFeedbackEmail'](profile, dailyActivity);
+      case 'EVENING_FEEDBACK': {
+        const dailyActivity =
+          await SmartEngagementOrchestrator.testDetectDailyActivity(userId);
+        email = await SmartEngagementOrchestrator.testGetEveningFeedbackEmail(
+          profile,
+          dailyActivity,
+          dict
+        );
         break;
-      case 'AI_SUMMARY':
-        email = await SmartEngagementOrchestrator['getAiSummaryEmail'](profile);
+      }
+      case 'AI_SUMMARY': {
+        // טען AI insights אם צריך
+        if (!profile.aiInsights) {
+          console.log('🧠 [Manual Email] Loading AI insights...');
+          await SmartEngagementOrchestrator['loadAiInsights'](
+            profile,
+            user.language as Language
+          );
+        }
+        email = await SmartEngagementOrchestrator['getAiSummaryEmail'](
+          profile,
+          dict
+        );
         break;
-      case 'NUDGE':
-        email = await SmartEngagementOrchestrator['getQuestionnaireNudgeEmail'](profile);
+      }
+      case 'NUDGE': {
+        if (!profile.completionStatus.photos.isDone) {
+          email = await SmartEngagementOrchestrator['getPhotoNudgeEmail'](
+            profile,
+            dict
+          );
+        } else {
+          email = await SmartEngagementOrchestrator['getQuestionnaireNudgeEmail'](
+            profile,
+            dict
+          );
+        }
         break;
-      // הוסף עוד מקרים לפי הצורך
+      }
+      case 'CELEBRATION': {
+        email = await SmartEngagementOrchestrator['getAlmostDoneEmail'](
+          profile,
+          dict
+        );
+        break;
+      }
+      case 'VALUE': {
+        email = await SmartEngagementOrchestrator['getValueEmail'](
+          profile,
+          dict
+        );
+        break;
+      }
+      case 'ONBOARDING': {
+        email = await SmartEngagementOrchestrator['getOnboardingEmail'](
+          profile,
+          dict
+        );
+        break;
+      }
       default:
         return NextResponse.json(
           { error: 'Unsupported email type' },
@@ -131,26 +398,37 @@ export async function POST(request: NextRequest) {
     }
 
     if (!email) {
+      console.error('❌ [Manual Email] Could not generate email');
       return NextResponse.json(
         { error: 'Could not generate email for this user state' },
         { status: 400 }
       );
     }
 
+    console.log('✅ [Manual Email] Email generated:', { type: email.type });
+
     // שלח
     await SmartEngagementOrchestrator['sendEmail'](user, email);
-    await SmartEngagementOrchestrator['updateCampaignRecord'](userId, emailType);
+    await SmartEngagementOrchestrator['updateCampaignRecord'](
+      userId,
+      emailType
+    );
+
+    console.log('🎉 [Manual Email] Email sent successfully!');
 
     return NextResponse.json({
       success: true,
       message: 'Email sent successfully',
-      emailType: email.type
+      emailType: email.type,
+      recipient: user.email,
     });
-
   } catch (error) {
-    console.error('Error sending manual email:', error);
+    console.error('❌ [Manual Email] Error:', error);
     return NextResponse.json(
-      { error: 'Failed to send email' },
+      {
+        error: 'Failed to send email',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }
@@ -168,12 +446,12 @@ Content:
 // src/app/api/admin/engagement/stats/route.ts
 // ============================================
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // בדיקת הרשאות
     const session = await getServerSession(authOptions);

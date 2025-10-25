@@ -7,7 +7,6 @@ import { generateNarrativeProfile } from "./profileAiService";
 // Import types
 import type { UserProfile, QuestionnaireResponse, UserImage } from '@/types/next-auth';
 import type { User, Language } from '@prisma/client';
-import { Gender } from '@prisma/client';
 
 // ✅ הוסף את הטיפוס הזה
 import type { AiProfileAnalysisResult } from './aiService';

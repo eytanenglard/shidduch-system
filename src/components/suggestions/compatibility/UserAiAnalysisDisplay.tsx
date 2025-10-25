@@ -7,7 +7,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -16,10 +15,8 @@ import {
   Lightbulb,
   MessageSquareQuote,
   Sparkles,
-  TrendingUp,
   Target,
   Brain,
-  Users,
   CheckCircle,
   AlertCircle,
   Star,

@@ -13,7 +13,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
-  CheckCircle,
+
   XCircle,
   MessageCircle,
   X,
@@ -22,28 +22,24 @@ import {
   User,
   Info,
   Heart,
-  Brain,
+
   Quote,
-  MapPin,
-  Briefcase,
-  GraduationCap,
+
+
   ArrowLeft,
   ChevronUp,
-  Scroll as ScrollIcon,
+ 
   GitCompareArrows,
-  Eye,
+ 
   Calendar,
   ArrowRight,
-  Users,
-  Target,
+
   Lightbulb,
   Puzzle,
   Telescope,
   ChevronDown,
   Rocket,
-  Sunrise,
-  Mountain,
-  Timer,
+
   Maximize,
   Minimize,
   AlertTriangle,

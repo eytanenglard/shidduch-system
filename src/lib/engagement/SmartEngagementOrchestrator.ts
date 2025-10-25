@@ -439,15 +439,18 @@ export class SmartEngagementOrchestrator {
     };
   }
 
-  private static async getAiSummaryEmail(
-    profile: UserEngagementProfile, 
-    dict: EmailDictionary
-  ): Promise<EmailToSend | null> {
-    const { aiInsights, completionStatus } = profile;
-    
-    if (!aiInsights || completionStatus.overall < 40) return null;
-    
-    const emailDict = dict.engagement.aiSummary;
+ private static async getAiSummaryEmail(
+  profile: UserEngagementProfile, 
+  dict: EmailDictionary
+): Promise<EmailToSend | null> {
+  const { aiInsights } = profile;
+  const emailDict = dict.engagement.aiSummary;
+  
+  // 🎯 הסרנו את התנאי של completionStatus.overall >= 40
+  // עכשיו זה יעבוד עם כל פרופיל
+  
+  if (!aiInsights) {
+    console.warn('⚠️ [AI Summary Email] No AI insights, using generic message');
     return {
       type: 'AI_SUMMARY',
       priority: 'NORMAL',
@@ -455,14 +458,29 @@ export class SmartEngagementOrchestrator {
       content: {
         hook: emailDict.hook,
         mainMessage: emailDict.mainMessage,
-        systemSummary: aiInsights.personalitySummary,
-        aiInsight: aiInsights.lookingForSummary,
+        systemSummary: 'התחלנו לנתח את הפרופיל שלך. ככל שתוסיף יותר מידע, נוכל לספק תובנות מדויקות יותר על מי שמתאים לך.',
         specificAction: this.getNextBestAction(profile),
         encouragement: emailDict.encouragement
       },
       sendInDays: 0
     };
   }
+  
+  return {
+    type: 'AI_SUMMARY',
+    priority: 'NORMAL',
+    subject: populateTemplate(emailDict.subject, { firstName: profile.firstName }),
+    content: {
+      hook: emailDict.hook,
+      mainMessage: emailDict.mainMessage,
+      systemSummary: aiInsights.personalitySummary,
+      aiInsight: aiInsights.lookingForSummary,
+      specificAction: this.getNextBestAction(profile),
+      encouragement: emailDict.encouragement
+    },
+    sendInDays: 0
+  };
+}
 
   private static getValueEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
     // ✅ שיפרנו את הלוגיקה כדי לתמוך במגוון נושאים

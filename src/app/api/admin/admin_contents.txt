@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin
-# Generated on: 2025-10-12 14:01:26
+# Generated on: 2025-10-15 12:36:28
 ################################################################################
 
 ================================================================================
@@ -358,7 +358,7 @@ import { SmartEngagementOrchestrator } from '@/lib/engagement/SmartEngagementOrc
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== 'ADMIN') {
@@ -503,12 +503,12 @@ Content:
 // src/app/api/admin/engagement/stats/route.ts
 // ============================================
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // בדיקת הרשאות
     const session = await getServerSession(authOptions);

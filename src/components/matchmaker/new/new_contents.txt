@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new
-# Generated on: 2025-10-15 10:32:06
+# Generated on: 2025-10-15 12:49:17
 ################################################################################
 
 ================================================================================
@@ -5811,6 +5811,7 @@ import {
 import type { CandidatesFilter } from '../types/candidates';
 import type { FilterState } from '../types/filters';
 import type { FilterPanelDict } from '@/types/dictionaries/matchmaker';
+import { DEFAULT_FILTER_STATE } from '../types/filters';
 
 // Interfaces
 interface PopularFilterOption {
@@ -6373,7 +6374,42 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
   const countActiveFilters = (category: string): number => {
     let count = 0;
-    // ... logic remains the same ...
+    const defaultFilters = DEFAULT_FILTER_STATE;
+  
+    switch (category) {
+      case 'basic':
+        if (filters.gender) count++;
+        if (
+          filters.ageRange &&
+          (filters.ageRange.min !== defaultFilters.ageRange?.min ||
+            filters.ageRange.max !== defaultFilters.ageRange?.max)
+        )
+          count++;
+        if (filters.cities && filters.cities.length > 0) count++;
+        if (filters.religiousLevel) count++;
+        break;
+  
+      case 'advanced':
+        if (
+          filters.heightRange &&
+          (filters.heightRange.min !== defaultFilters.heightRange?.min ||
+            filters.heightRange.max !== defaultFilters.heightRange?.max)
+        )
+          count++;
+        if (filters.occupations && filters.occupations.length > 0) count++;
+        if (filters.educationLevel) count++;
+        if (filters.maritalStatus) count++;
+        break;
+  
+      case 'status':
+        if (filters.availabilityStatus) count++;
+        if (filters.isVerified) count++;
+        if (filters.hasReferences) count++;
+        if (filters.lastActiveDays) count++;
+        if (filters.isProfileComplete) count++;
+        if (filters.userStatus) count++;
+        break;
+    }
     return count;
   };
 
@@ -7531,7 +7567,6 @@ import {
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
   PopoverAnchor,
 } from '@/components/ui/popover';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
@@ -8272,7 +8307,6 @@ import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogFooter,
   DialogDescription,
@@ -8284,14 +8318,12 @@ import {
   Mail,
   Loader2,
   Send,
-  User,
   Sparkles,
   CheckCircle,
   Heart,
   MessageCircle,
   Calendar,
   AlertCircle,
-  X,
 } from 'lucide-react';
 import type { Candidate } from '../types/candidates';
 import { cn } from '@/lib/utils';
@@ -9227,9 +9259,6 @@ import Image from 'next/image';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9498,7 +9527,6 @@ const AnalysisSkeleton: React.FC = () => (
 const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
   isOpen,
   locale,
-  onClose,
   targetCandidate,
   comparisonCandidates,
   dict,
@@ -9572,12 +9600,7 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
       fetchAnalysis();
     }
   }, [isOpen, targetCandidate, activeComparisonId, language, analyses]);
-  const handleLanguageChange = (newLang: 'he' | 'en') => {
-    if (newLang !== language) {
-      setLanguage(newLang);
-      setAnalyses({});
-    }
-  };
+
   if (!targetCandidate) return null;
   return (
     <DialogContent

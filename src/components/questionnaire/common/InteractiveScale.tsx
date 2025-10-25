@@ -67,7 +67,6 @@ export default function InteractiveScale({
   required = false,
   name,
   error,
-  ariaLabelledby,
   dict, // שימוש במשתנה dict
 }: InteractiveScaleProps) {
   const [internalValue, setInternalValue] = useState<number | null>(
