@@ -4,7 +4,22 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { getEmailDictionary } from '@/lib/dictionaries';
-import { Language } from '@prisma/client';
+import { Language, Prisma } from '@prisma/client';
+import { EmailDictionary } from '@/types/dictionaries/email';
+
+// ✅ הגדרת מבנה השאילתה לשימוש חוזר וליצירת טיפוס דינמי
+const userWithEngagementDataInclude = {
+  include: {
+    profile: true,
+    images: true,
+    questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } as const },
+    dripCampaign: true,
+  },
+};
+
+// ✅ יצירת טיפוס מדויק עבור אובייקט המשתמש על בסיס השאילתה, כדי למנוע שימוש ב-any
+type UserWithEngagementData = Prisma.UserGetPayload<typeof userWithEngagementDataInclude>;
+
 
 // 🎯 הגדר timeout של 55 שניות
 export const maxDuration = 55;
@@ -45,12 +60,7 @@ export async function POST(request: NextRequest) {
     // מצא את המשתמש
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        profile: true,
-        images: true,
-        questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } },
-        dripCampaign: true,
-      },
+      ...userWithEngagementDataInclude, // ✅ שימוש בקבוע שהגדרנו
     });
 
     if (!user) {
@@ -72,6 +82,9 @@ export async function POST(request: NextRequest) {
 
     // טען את מילון המיילים
     const dict = await getEmailDictionary(user.language as Language);
+
+    // 🔥 הוספת לוג לבדיקת תוכן המילון שנטען בפועל
+    console.log('DEBUG: Loaded Dictionary Object:', JSON.stringify(dict, null, 2));
 
     // 🎯 עטוף את כל התהליך ב-timeout wrapper
     const emailGenerationPromise = generateEmailWithTimeout(
@@ -132,8 +145,8 @@ function timeoutPromise(ms: number): Promise<TimeoutResult> {
 async function generateEmailWithTimeout(
   userId: string,
   emailType: string,
-  user: any,
-  dict: any
+  user: UserWithEngagementData, // ✅ שינוי: שימוש בטיפוס המדויק במקום any
+  dict: EmailDictionary        // ✅ שינוי: שימוש בטיפוס המדויק במקום any
 ): Promise<EmailGenerationResult> {
   try {
     // בנה פרופיל engagement
