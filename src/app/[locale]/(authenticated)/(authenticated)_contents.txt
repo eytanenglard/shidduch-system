@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)
-# Generated on: 2025-10-26 15:31:54
+# Generated on: 2025-10-26 15:57:47
 ################################################################################
 
 ================================================================================
@@ -33,29 +33,33 @@ import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../../i18n-config';
 import { authOptions } from '@/lib/auth';
 
-export default async function EngagementPage({ 
-  params 
-}: { 
-  params: { locale: Locale } 
-}) {
+// Define a type for the page props
+type EngagementPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function EngagementPage({ params }: EngagementPageProps) {
   console.log('🎯 [Engagement Page] Page component loading...');
-  
+
+  // Await the params to get the locale
+  const { locale } = await params;
+
   // 🎯 העבר את authOptions ל-getServerSession
   const session = await getServerSession(authOptions);
-  
-  console.log('🎯 [Engagement Page] Session:', { 
-    hasSession: !!session, 
-    role: session?.user?.role 
+
+  console.log('🎯 [Engagement Page] Session:', {
+    hasSession: !!session,
+    role: session?.user?.role
   });
-  
+
   if (session?.user?.role !== 'ADMIN') {
     console.log('❌ [Engagement Page] Not admin, redirecting...');
     redirect('/');
   }
-  
+
   // טען את המילון
-  const dict = await getDictionary(params.locale);
-  
+  const dict = await getDictionary(locale);
+
   console.log('✅ [Engagement Page] Rendering dashboard with dict...');
   return <EngagementDashboard dict={dict} />;
 }
@@ -141,11 +145,13 @@ import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import MatchesClientPage from './MatchesClientPage';
 
+// ▼▼▼ CHANGE WAS MADE HERE ▼▼▼
 export default async function MatchesPage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
+  const { locale } = params; // Destructure locale inside the function
   const dictionary = await getDictionary(locale);
 
   // ✅ חילוץ החלקים הרלוונטיים מהמילון המלא
@@ -206,18 +212,20 @@ export default function CandidatesManagerClient({
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\clients\page.tsx
 --------------------------------------------------------------------------------
 Content:
-// File: src/app/some-path/page.tsx
+// File: src/app/[locale]/(authenticated)/matchmaker/clients/page.tsx
 
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../../i18n-config';
 import CandidatesManagerClient from './CandidatesManagerClient';
 
 // This is a Server Component
+// ▼▼▼ CHANGE WAS MADE HERE ▼▼▼
 export default async function ClientsPage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
+  const { locale } = params; // Destructure locale inside the function
   // Load the full dictionary on the server
   const dictionary = await getDictionary(locale);
 
@@ -295,7 +303,7 @@ export default function MatchmakerDashboardPageClient({
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\suggestions\page.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/[locale]/matchmaker/dashboard/page.tsx
+// src/app/[locale]/matchmaker/suggestions/page.tsx
 
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../../i18n-config';
@@ -307,11 +315,13 @@ import type {
 } from '@/types/dictionary';
 
 // זהו רכיב שרת (Server Component).
+// ▼▼▼ CHANGE WAS MADE HERE ▼▼▼
 export default async function SuggestionsPage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
+  const { locale } = params; // Destructure locale inside the function
   // 1. טוענים את המילון המלא כאן, בצד השרת.
   const dictionary = await getDictionary(locale);
 
@@ -548,11 +558,13 @@ import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import MessagesClientPage from './MessagesClientPage';
 
+// ▼▼▼ CHANGE WAS MADE HERE ▼▼▼
 export default async function MessagesPage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
+  const { locale } = params; // Destructure locale inside the function
   const dictionary = await getDictionary(locale);
 
   // חילוץ החלק הרלוונטי מהמילון המלא והעברתו כ-prop
@@ -637,15 +649,17 @@ Content:
 import React, { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
-import { Locale } from '@/../i18n-config'; // שיניתי את הנתיב כדי שיתאים לפרויקט סטנדרטי, שנה חזרה אם צריך
+import { Locale } from '@/../i18n-config';
 import ProfilePageClient from './ProfilePageClient';
 
 // רכיב השרת
+// ▼▼▼ CHANGE WAS MADE HERE ▼▼▼
 export default async function ProfilePage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
+  const { locale } = params; // Destructure locale inside the function
   console.log(
     `---[ SERVER LOG | page.tsx ]--- עמוד הפרופיל נטען עבור שפה: "${locale}". הוא יטען את ProfilePageClient שאחראי על קריאת הטאב מה-URL.`
   );
@@ -665,11 +679,6 @@ export default async function ProfilePage({
         </div>
       }
     >
-      {/* 
-        ▼▼▼ התיקון נמצא כאן ▼▼▼
-        הוספנו את ה-prop 'locale' והעברנו לו את המשתנה locale
-        שקיבלנו בפרמטרים של העמוד.
-      */}
       <ProfilePageClient dict={dictionary.profilePage} locale={locale} />
     </Suspense>
   );
@@ -758,11 +767,13 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
+// ▼▼▼ CHANGE WAS MADE HERE ▼▼▼
 export default async function SettingsPage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
+  const { locale } = params; // Destructure locale inside the function
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     redirect(`/${locale}/auth/signin?callbackUrl=/${locale}/settings`);
