@@ -4,11 +4,13 @@ import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import MatchesClientPage from './MatchesClientPage';
 
+// ▼▼▼ CHANGE WAS MADE HERE ▼▼▼
 export default async function MatchesPage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
+  const { locale } = params; // Destructure locale inside the function
   const dictionary = await getDictionary(locale);
 
   // ✅ חילוץ החלקים הרלוונטיים מהמילון המלא

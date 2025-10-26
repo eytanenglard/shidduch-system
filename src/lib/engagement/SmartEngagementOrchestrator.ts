@@ -544,6 +544,7 @@ export class SmartEngagementOrchestrator {
     });
   }
 
+
   private static async getTodaysActiveUsers() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -552,7 +553,7 @@ export class SmartEngagementOrchestrator {
       where: {
         status: 'ACTIVE',
         marketingConsent: true,
-        isProfileComplete: false,
+        // isProfileComplete: false,  <--- מחקנו את השורה הזאת
         OR: [
           { lastLogin: { gte: today } },
           { updatedAt: { gte: today } },

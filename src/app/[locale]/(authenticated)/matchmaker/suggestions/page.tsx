@@ -1,4 +1,4 @@
-// src/app/[locale]/matchmaker/dashboard/page.tsx
+// src/app/[locale]/matchmaker/suggestions/page.tsx
 
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../../i18n-config';
@@ -10,11 +10,13 @@ import type {
 } from '@/types/dictionary';
 
 // זהו רכיב שרת (Server Component).
+// ▼▼▼ CHANGE WAS MADE HERE ▼▼▼
 export default async function SuggestionsPage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
+  const { locale } = params; // Destructure locale inside the function
   // 1. טוענים את המילון המלא כאן, בצד השרת.
   const dictionary = await getDictionary(locale);
 

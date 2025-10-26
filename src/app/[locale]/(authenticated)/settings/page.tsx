@@ -7,11 +7,13 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
+// ▼▼▼ CHANGE WAS MADE HERE ▼▼▼
 export default async function SettingsPage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
+  const { locale } = params; // Destructure locale inside the function
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     redirect(`/${locale}/auth/signin?callbackUrl=/${locale}/settings`);

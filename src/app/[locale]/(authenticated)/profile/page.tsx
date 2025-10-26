@@ -1,15 +1,17 @@
 import React, { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
-import { Locale } from '@/../i18n-config'; // שיניתי את הנתיב כדי שיתאים לפרויקט סטנדרטי, שנה חזרה אם צריך
+import { Locale } from '@/../i18n-config';
 import ProfilePageClient from './ProfilePageClient';
 
 // רכיב השרת
+// ▼▼▼ CHANGE WAS MADE HERE ▼▼▼
 export default async function ProfilePage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
+  const { locale } = params; // Destructure locale inside the function
   console.log(
     `---[ SERVER LOG | page.tsx ]--- עמוד הפרופיל נטען עבור שפה: "${locale}". הוא יטען את ProfilePageClient שאחראי על קריאת הטאב מה-URL.`
   );
@@ -29,11 +31,6 @@ export default async function ProfilePage({
         </div>
       }
     >
-      {/* 
-        ▼▼▼ התיקון נמצא כאן ▼▼▼
-        הוספנו את ה-prop 'locale' והעברנו לו את המשתנה locale
-        שקיבלנו בפרמטרים של העמוד.
-      */}
       <ProfilePageClient dict={dictionary.profilePage} locale={locale} />
     </Suspense>
   );
