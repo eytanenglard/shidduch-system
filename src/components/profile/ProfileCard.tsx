@@ -2278,7 +2278,7 @@ const ProfileHeader: React.FC<{
                   isMobile
                     ? availability.bgColorSm || availability.bgColor
                     : availability.bgColor,
-                  'animate-pulse',
+                  false && 'animate-pulse',
                   THEME.shadows.warm
                 )}
               >

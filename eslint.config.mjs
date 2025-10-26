@@ -3,21 +3,25 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 import pluginReact from "eslint-plugin-react";
 import pluginReactHooks from "eslint-plugin-react-hooks";
+import nextPlugin from "eslint-config-next"; // הוסף את השורה הזו
 
 export default [
   {
     ignores: [
       "**/node_modules/**",
       "**/.next/**",
-      "**/out/**",
-      "**/build/**",
-      "**/.vercel/**",
-      "**/public/**",
-      "**/dist/**",
+      // ...שאר התיקיות להתעלמות
     ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  
+  // הוסף את הבלוק הזה עבור תצורת Next.js
+  {
+    files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
+    ...nextPlugin, 
+  },
+  
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
     plugins: {
@@ -25,16 +29,7 @@ export default [
       "react-hooks": pluginReactHooks,
     },
     languageOptions: {
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-        ...globals.es2021,
-      },
+      // ... languageOptions
     },
     settings: {
       react: {
@@ -42,27 +37,15 @@ export default [
       },
     },
     rules: {
+      // העבר את הכללים המותאמים אישית שלך לכאן
+      ...nextPlugin.rules, // שלב את כללי Next.js
       ...pluginReact.configs.recommended.rules,
       ...pluginReactHooks.configs.recommended.rules,
       
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
       
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        { 
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          ignoreRestSiblings: true 
-        },
-      ],
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/ban-ts-comment": "warn",
-      "@typescript-eslint/no-require-imports": "warn",
-      
-      "no-case-declarations": "warn",
-      "react-hooks/exhaustive-deps": "warn",
-      "react-hooks/rules-of-hooks": "error",
+      // ... שאר הכללים שלך
     },
   },
 ];
