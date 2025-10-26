@@ -13,11 +13,16 @@ function Loading() {
   );
 }
 
-export default async function ErrorPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
+// ▼▼▼ כאן השינוי ▼▼▼
+
+// 1. הגדרת טיפוס (type) נכון עבור ה-props
+type ErrorPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+// 2. עדכון חתימת הפונקציה והוספת await
+export default async function ErrorPage({ params }: ErrorPageProps) {
+  const { locale } = await params; // <-- הוספת await
   const dictionary = await getDictionary(locale);
 
   return (
