@@ -1,7 +1,7 @@
 // eslint.config.mjs
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
-import nextPlugin from "eslint-config-next";
+import nextPlugin from "@next/eslint-plugin-next"; // ◀️ שינוי 1: המקור של הייבוא
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 import globals from "globals";
@@ -23,8 +23,8 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
 
-  // תצורת הליבה של Next.js (החלק החשוב)
-  nextPlugin,
+  // ◀️ שינוי 2: שימוש בהגדרות המומלצות מהפלאגין
+  nextPlugin.configs['core-web-vitals'],
 
   // כללים מותאמים אישית שלך
   {

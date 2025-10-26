@@ -8,10 +8,9 @@ import { UserRole } from "@prisma/client";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    // וידוא שמשתמש מחובר
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json(
@@ -20,7 +19,6 @@ export async function DELETE(
       );
     }
 
-    // וידוא הרשאות שדכן או אדמין
     if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { success: false, error: "Insufficient permissions" },
@@ -28,9 +26,8 @@ export async function DELETE(
       );
     }
 
-    const suggestionId = params.id;
+    const suggestionId = context.params.id;
 
-    // וידוא קיום ההצעה
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
@@ -47,7 +44,6 @@ export async function DELETE(
       );
     }
 
-    // בדיקת הרשאות ספציפיות - רק השדכן שיצר את ההצעה או אדמין יכולים למחוק
     if (suggestion.matchmaker.id !== session.user.id && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { success: false, error: "You don't have permission to delete this suggestion" },
@@ -55,28 +51,22 @@ export async function DELETE(
       );
     }
 
-    // מחיקת רכיבים קשורים בנפרד במקום בטרנזקציה
-    // 1. מחיקת רשומות היסטוריה
     await prisma.suggestionStatusHistory.deleteMany({
       where: { suggestionId }
     });
 
-    // 2. מחיקת משוב פגישות אם קיים
     await prisma.dateFeedback.deleteMany({
       where: { suggestionId }
     });
 
-    // 3. מחיקת פגישות קשורות (אם יש)
     await prisma.meeting.deleteMany({
       where: { suggestionId }
     });
 
-    // 4. מחיקת שאלות/פניות אם קיימות
     await prisma.suggestionInquiry.deleteMany({
       where: { suggestionId }
     });
 
-    // 5. הסרת קשרים בטבלאות קשר רבים-לרבים (אם יש)
     await prisma.matchSuggestion.update({
       where: { id: suggestionId },
       data: {
@@ -89,7 +79,6 @@ export async function DELETE(
       }
     });
 
-    // 6. מחיקת ההצעה עצמה
     await prisma.matchSuggestion.delete({
       where: { id: suggestionId }
     });
@@ -102,7 +91,6 @@ export async function DELETE(
   } catch (error) {
     console.error("Error deleting suggestion:", error);
     
-    // החזרת פרטי שגיאה אם קיימים
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     
     return NextResponse.json(

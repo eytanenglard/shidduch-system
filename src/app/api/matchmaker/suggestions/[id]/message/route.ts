@@ -10,16 +10,15 @@ import { initNotificationService } from '@/components/matchmaker/suggestions/ser
 import { EmailDictionary } from '@/types/dictionary';
 import { getDictionary } from '@/lib/dictionaries';
 
-// הפעלה של שירות ההתראות
 initNotificationService();
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    const suggestionId = params.id;
+    const suggestionId = context.params.id;
 
     if (!session?.user?.id || !session.user.role) {
       return NextResponse.json({ error: 'Unauthorized - Invalid session' }, { status: 401 });
@@ -30,20 +29,17 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized - Matchmaker or Admin access required' }, { status: 403 });
     }
 
-    // ========================= שלב 1: טעינת המילון =========================
-    // קוראים את השפה מה-URL, בדיוק כמו שעשינו ב-API של יצירת הצעה.
     const url = new URL(req.url);
     const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
     
     console.log(`[API /message] Received request with locale: '${locale}'`);
 
     const dictionary = await getDictionary(locale);
-    const emailDict: EmailDictionary = dictionary.email; // חילוץ החלק של המיילים
+    const emailDict: EmailDictionary = dictionary.email;
 
     if (!emailDict) {
         throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
     }
-    // =====================================================================
 
     const body = await req.json();
     const { partyType, customMessage, channels } = body;
@@ -65,21 +61,15 @@ export async function POST(
       return NextResponse.json({ error: 'Suggestion not found' }, { status: 404 });
     }
 
-    // ========================= שלב 2: קריאה נכונה לשירות =========================
-    // כעת אנו מעבירים את כל שלושת הארגומנטים הנדרשים בסדר הנכון:
-    // 1. suggestion (אובייקט ההצעה)
-    // 2. emailDict (אובייקט המילון)
-    // 3. options (אובייקט ההגדרות)
     await notificationService.handleSuggestionStatusChange(
       suggestion, 
-      emailDict, // הארגומנט השני הוא המילון
-      {         // הארגומנט השלישי הוא אובייקט ההגדרות
+      emailDict,
+      {
         channels: channels,
         notifyParties: [partyType],
         customMessage: customMessage
       }
     );
-    // ==========================================================================
 
     return NextResponse.json({ success: true, message: 'Message sent successfully.' }, { status: 200 });
 

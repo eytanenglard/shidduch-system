@@ -109,6 +109,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@next/eslint-plugin-next": "^16.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/handlebars": "^4.0.40",
     "@types/js-cookie": "^3.0.6",
@@ -126,7 +127,6 @@
     "autoprefixer": "^10.4.17",
     "cross-env": "^7.0.3",
     "eslint": "^9.38.0",
-    "eslint-config-next": "^15.0.3",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",

@@ -9,12 +9,11 @@ import { initNotificationService } from "@/components/matchmaker/suggestions/ser
 import { EmailDictionary } from "@/types/dictionary";
 import { getDictionary } from "@/lib/dictionaries";
 
-// הפעלת שירות ההתראות
 const notificationService = initNotificationService();
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -27,7 +26,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 });
     }
 
-    const suggestionId = params.id;
+    const suggestionId = context.params.id;
     const { partyType } = await req.json();
 
     const url = new URL(req.url);
@@ -71,14 +70,9 @@ export async function POST(
       return NextResponse.json({ success: false, error: "No applicable recipients for reminder in current status" }, { status: 400 });
     }
 
-    // ============================ התיקון המרכזי כאן ============================
-    // 1. קבל את תבנית הטקסט ישירות מ-reminderText.
     const reminderTemplateText = emailDict.notifications.customMessage.reminderText;
-    
-    // 2. בצע את ההחלפה הנדרשת של שם השדכן.
     const reminderContent = reminderTemplateText
         .replace('{{matchmakerName}}', `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`);
-    // =========================================================================
 
     await prisma.matchSuggestion.update({
       where: { id: suggestionId },

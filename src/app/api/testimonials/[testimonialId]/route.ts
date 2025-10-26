@@ -1,12 +1,12 @@
-// src/app/api/profile/testimonials/[testimonialId]/route.ts
+// src/app/api/testimonials/[testimonialId]/route.ts
+
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { TestimonialStatus } from '@prisma/client';
 
-// PUT - Update a testimonial's status
-export async function PUT(req: Request, { params }: { params: { testimonialId: string } }) {
+export async function PUT(req: Request, context: { params: { testimonialId: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -29,8 +29,8 @@ export async function PUT(req: Request, { params }: { params: { testimonialId: s
 
     const updatedTestimonial = await prisma.friendTestimonial.updateMany({
       where: {
-        id: params.testimonialId,
-        profileId: userProfile.id, // Ensure ownership
+        id: context.params.testimonialId,
+        profileId: userProfile.id,
       },
       data: { status },
     });
@@ -41,13 +41,12 @@ export async function PUT(req: Request, { params }: { params: { testimonialId: s
 
     return NextResponse.json({ success: true, message: 'Testimonial status updated.' });
   } catch (error) {
-    console.error("Error in PUT /api/profile/testimonials/[id]:", error);
+    console.error("Error in PUT /api/testimonials/[id]:", error);
     return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
   }
 }
 
-// DELETE a testimonial
-export async function DELETE(req: Request, { params }: { params: { testimonialId: string } }) {
+export async function DELETE(req: Request, context: { params: { testimonialId: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -65,8 +64,8 @@ export async function DELETE(req: Request, { params }: { params: { testimonialId
 
     const deletedTestimonial = await prisma.friendTestimonial.deleteMany({
         where: {
-            id: params.testimonialId,
-            profileId: userProfile.id, // Ensure ownership
+            id: context.params.testimonialId,
+            profileId: userProfile.id,
         },
     });
 
@@ -76,7 +75,7 @@ export async function DELETE(req: Request, { params }: { params: { testimonialId
 
     return NextResponse.json({ success: true, message: 'Testimonial deleted.' });
   } catch (error) {
-    console.error("Error in DELETE /api/profile/testimonials/[id]:", error);
+    console.error("Error in DELETE /api/testimonials/[id]:", error);
     return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
   }
 }

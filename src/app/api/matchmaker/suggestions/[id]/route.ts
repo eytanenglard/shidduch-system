@@ -1,3 +1,5 @@
+// src/app/api/matchmaker/suggestions/[id]/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -6,12 +8,11 @@ import { SuggestionService } from "@/components/matchmaker/suggestions/services/
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
     
-    // וידוא משתמש מחובר
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -19,7 +20,6 @@ export async function PATCH(
       );
     }
     
-    // וידוא הרשאות שדכן
     if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { success: false, error: "Insufficient permissions" },
@@ -27,13 +27,12 @@ export async function PATCH(
       );
     }
     
-    const suggestionId = params.id;
+    const suggestionId = context.params.id;
     const data = await req.json();
     
     const suggestionService = SuggestionService.getInstance();
     
     try {
-      // שימוש בשירות עדכון הצעה
       const updatedSuggestion = await suggestionService.updateSuggestion(
         suggestionId,
         session.user.id,
@@ -67,7 +66,6 @@ export async function PATCH(
           );
         }
         
-        // במקרה של שגיאה שאינה מסוג Error
         return NextResponse.json(
           { success: false, error: "Failed to update suggestion" },
           { status: 400 }

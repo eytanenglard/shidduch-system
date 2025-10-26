@@ -295,7 +295,7 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
         </motion.div>
       </div>
 
-      <style jsx>{`
+      <style >{`
         @keyframes float-slow {
           0%,
           100% {

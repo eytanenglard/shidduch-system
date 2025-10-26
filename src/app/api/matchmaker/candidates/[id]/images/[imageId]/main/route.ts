@@ -1,3 +1,5 @@
+// src/app/api/matchmaker/candidates/[id]/images/[imageId]/main/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -6,7 +8,9 @@ import { UserRole } from "@prisma/client";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; imageId: string } }
+  // --- START OF FIX ---
+  context: { params: { id: string; imageId: string } }
+  // --- END OF FIX ---
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,13 +22,11 @@ export async function PATCH(
       );
     }
 
-    // Verify that the user is a matchmaker OR an admin
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true }
     });
 
-    // ---- START OF CHANGE ----
     const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
     if (!user || !allowedRoles.includes(user.role)) {
       return NextResponse.json(
@@ -32,12 +34,11 @@ export async function PATCH(
         { status: 403 }
       );
     }
-    // ---- END OF CHANGE ----
+    
+    // --- START OF FIX ---
+    const { id, imageId } = context.params;
+    // --- END OF FIX ---
 
-    // Get params
-    const { id, imageId } = params;
-
-    // Verify candidate exists
     const candidate = await prisma.user.findUnique({
       where: { id },
       select: { id: true }
@@ -50,40 +51,35 @@ export async function PATCH(
       );
     }
 
-    // Verify image exists and belongs to candidate
-    const imageToSetMain = await prisma.userImage.findFirst({ // Renamed variable for clarity
+    const imageToSetMain = await prisma.userImage.findFirst({
       where: {
         id: imageId,
         userId: id
       }
     });
 
-    if (!imageToSetMain) { // Used the new variable name
+    if (!imageToSetMain) {
       return NextResponse.json(
         { success: false, error: "Image not found" },
         { status: 404 }
       );
     }
 
-    // Start a transaction to update main image
     await prisma.$transaction([
-      // First, unset all other images as main for this user
       prisma.userImage.updateMany({
         where: { 
             userId: id,
-            id: { not: imageId } // Don't unset the one we are about to set
+            id: { not: imageId }
         },
         data: { isMain: false }
       }),
       
-      // Then, set the specified image as main
       prisma.userImage.update({
         where: { id: imageId },
         data: { isMain: true }
       })
     ]);
 
-    // Update lastActive timestamp
     await prisma.profile.update({
       where: { userId: id },
       data: { lastActive: new Date() }

@@ -6,14 +6,12 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
 import { statusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
-// ========================= שלב 1: ייבוא טיפוסים ומודולים נדרשים =========================
 import { EmailDictionary } from "@/types/dictionary";
 import { getDictionary } from "@/lib/dictionaries";
-// =====================================================================================
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -26,10 +24,9 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 });
     }
 
-    const suggestionId = params.id;
+    const suggestionId = context.params.id;
     const { partyType } = await req.json();
 
-    // ========================= שלב 2: טעינת המילון מה-URL =========================
     const url = new URL(req.url);
     const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
     
@@ -41,7 +38,6 @@ export async function POST(
     if (!emailDict) {
         throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
     }
-    // ============================================================================
 
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
@@ -64,18 +60,16 @@ export async function POST(
     const transitionNotes = `הצעה נשלחה מחדש ע"י ${session.user.firstName} ${session.user.lastName}`;
     
     if (partyType === "both" || partyType === "first") {
-      // ========================= שלב 3: קריאה נכונה לשירות =========================
       updatedSuggestion = await statusTransitionService.transitionStatus(
         updatedSuggestion, 
         MatchSuggestionStatus.PENDING_FIRST_PARTY,
-        emailDict, // <-- ארגומנט 3: המילון
-        `${transitionNotes} - לצד ראשון`, // <-- ארגומנט 4: הערות
-        { // <-- ארגומנט 5: הגדרות
+        emailDict,
+        `${transitionNotes} - לצד ראשון`,
+        {
           sendNotifications: true,
           notifyParties: ['first']
         }
       );
-      // ===========================================================================
       
       if (partyType === "first") {
         await prisma.matchSuggestion.update({
@@ -89,18 +83,16 @@ export async function POST(
     }
     
     if (partyType === "both" || partyType === "second") {
-      // ========================= שלב 3: קריאה נכונה לשירות (שוב) =========================
       updatedSuggestion = await statusTransitionService.transitionStatus(
         updatedSuggestion, 
         MatchSuggestionStatus.PENDING_SECOND_PARTY,
-        emailDict, // <-- ארגומנט 3: המילון
-        `${transitionNotes} - לצד שני`, // <-- ארגומנט 4: הערות
-        { // <-- ארגומנט 5: הגדרות
+        emailDict,
+        `${transitionNotes} - לצד שני`,
+        {
           sendNotifications: true,
           notifyParties: ['second']
         }
       );
-      // ===========================================================================
       
       await prisma.matchSuggestion.update({
         where: { id: suggestionId },

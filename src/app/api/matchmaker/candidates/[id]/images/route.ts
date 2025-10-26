@@ -1,3 +1,5 @@
+// src/app/api/matchmaker/candidates/[id]/images/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -5,12 +7,10 @@ import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
 import { v2 as cloudinary } from "cloudinary";
 
-// Check for required environment variables
 const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
 const apiKey = process.env.CLOUDINARY_API_KEY;
 const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-// Validate environment variables
 if (!cloudName || !apiKey || !apiSecret) {
   console.error("Missing Cloudinary environment variables");
 } else {
@@ -23,7 +23,7 @@ if (!cloudName || !apiKey || !apiSecret) {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -48,7 +48,7 @@ export async function POST(
       );
     }
 
-    const { id } = params;
+    const { id } = context.params;
 
     const candidate = await prisma.user.findUnique({
       where: { id },
@@ -79,19 +79,14 @@ export async function POST(
       );
     }
 
-    // Convert to buffer
     const arrayBuffer = await image.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload using cloudinary.uploader.upload with string transformation
-    // זה עוקף את בעיות הטייפים לגמרי
-  // אם עדיין יש בעיות, השתמש בזה:
     const uploadResult = await cloudinary.uploader.upload(
       `data:${image.type};base64,${buffer.toString('base64')}`,
       {
         folder: `shidduch-system/users/${id}`,
         resource_type: 'image',
-        // עוקף את בעיות הטייפים עם type assertion
         transformation: [
           { width: 1000, height: 1000, crop: 'limit' },
           { quality: 'auto:good' }

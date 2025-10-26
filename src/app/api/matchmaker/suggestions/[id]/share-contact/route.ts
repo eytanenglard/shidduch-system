@@ -6,14 +6,12 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
 import { statusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
-// ========================= שלב 1: ייבוא טיפוסים ומודולים נדרשים =========================
 import { EmailDictionary } from "@/types/dictionary";
 import { getDictionary } from "@/lib/dictionaries";
-// =====================================================================================
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -26,9 +24,8 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 });
     }
 
-    const suggestionId = params.id;
+    const suggestionId = context.params.id;
 
-    // ========================= שלב 2: טעינת המילון מה-URL =========================
     const url = new URL(req.url);
     const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
     
@@ -40,7 +37,6 @@ export async function POST(
     if (!emailDict) {
         throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
     }
-    // ============================================================================
 
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
@@ -59,7 +55,6 @@ export async function POST(
       return NextResponse.json({ success: false, error: "You are not authorized to share contact details for this suggestion" }, { status: 403 });
     }
     
-    // בודקים שהסטטוס מאפשר שיתוף פרטים. הקוד כאן תקין.
     if (suggestion.status !== MatchSuggestionStatus.SECOND_PARTY_APPROVED) {
       return NextResponse.json({
         success: false,
@@ -67,19 +62,16 @@ export async function POST(
       }, { status: 400 });
     }
     
-    // ========================= שלב 3: קריאה נכונה לשירות =========================
-    // מעבירים את המילון כארגומנט שלישי, ואת ההערות כארגומנט רביעי.
     const updatedSuggestion = await statusTransitionService.transitionStatus(
       suggestion,
       MatchSuggestionStatus.CONTACT_DETAILS_SHARED,
-      emailDict, // <-- ארגומנט 3: המילון
-      `פרטי קשר שותפו בין ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} ל${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} ע"י ${session.user.firstName} ${session.user.lastName}`, // <-- ארגומנט 4: הערות
-      { // <-- ארגומנט 5: הגדרות
+      emailDict,
+      `פרטי קשר שותפו בין ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} ל${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} ע"י ${session.user.firstName} ${session.user.lastName}`,
+      {
         sendNotifications: true,
         notifyParties: ['first', 'second', 'matchmaker']
       }
     );
-    // ==========================================================================
 
     return NextResponse.json({
       success: true,

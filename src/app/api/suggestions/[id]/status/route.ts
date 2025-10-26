@@ -1,30 +1,15 @@
-// src/app/api/suggestions/[id]/status/route.ts
+// src/app/api/matchmaker/suggestions/[id]/status/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { MatchSuggestionStatus, UserRole } from "@prisma/client";
 import { z } from "zod";
-import { MatchSuggestionStatus, MatchSuggestion, UserRole } from "@prisma/client";
-// שירות מרכזי שמטפל בלוגיקה, כולל קריאה לשירות המעבר
-import { suggestionService } from "@/components/matchmaker/suggestions/services/suggestions/SuggestionService";
-import { getDictionary } from "@/lib/dictionaries";
-import { EmailDictionary } from "@/types/dictionary";
 
-// סכמת ולידציה לגוף הבקשה
-const statusUpdateSchema = z.object({
-  status: z.enum([
-    "DRAFT", "PENDING_FIRST_PARTY", "FIRST_PARTY_APPROVED", "FIRST_PARTY_DECLINED", 
-    "PENDING_SECOND_PARTY", "SECOND_PARTY_APPROVED", "SECOND_PARTY_DECLINED", 
-    "AWAITING_MATCHMAKER_APPROVAL", "CONTACT_DETAILS_SHARED", "AWAITING_FIRST_DATE_FEEDBACK", 
-    "THINKING_AFTER_DATE", "PROCEEDING_TO_SECOND_DATE", "ENDED_AFTER_FIRST_DATE", 
-    "MEETING_PENDING", "MEETING_SCHEDULED", "MATCH_APPROVED", "MATCH_DECLINED", 
-    "DATING", "ENGAGED", "MARRIED", "EXPIRED", "CLOSED", "CANCELLED"
-  ] as const),
+const updateStatusSchema = z.object({
+  status: z.nativeEnum(MatchSuggestionStatus),
   notes: z.string().optional(),
-  feedback: z.string().optional(),
-  meetingDate: z.string().optional(),
-  customMessage: z.string().optional(),
 });
 
 export async function PATCH(
@@ -32,163 +17,303 @@ export async function PATCH(
   context: { params: { id: string } }
 ) {
   try {
-    // 1. חילוץ פרמטרים ואימות סשן
-    const suggestionId = context.params.id;
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const userId = session.user.id;
-
-    // 2. טעינת המילון בהתבסס על שפת המשתמש
-    const url = new URL(req.url);
-    const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
-    
-    console.log(`[API /status PATCH] Suggestion ID: ${suggestionId}, Locale: '${locale}'`);
-
-    const dictionary = await getDictionary(locale);
-    const emailDict: EmailDictionary = dictionary.email;
-
-    if (!emailDict) {
-        throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    // 3. קריאה ואימות של גוף הבקשה
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
-    const validatedData = statusUpdateSchema.parse(body);
-      
-    // 4. שליפת ההצעה הנוכחית מה-DB
+    console.log("Received status update request:", body);
+    
+    const validationResult = updateStatusSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error("Validation error:", validationResult.error);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "Invalid request data", 
+          details: validationResult.error.errors 
+        },
+        { status: 400 }
+      );
+    }
+    
+    const { status, notes } = validationResult.data;
+    const suggestionId = context.params.id;
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
-        firstParty: { include: { profile: true } },
-        secondParty: { include: { profile: true } },
-        matchmaker: true,
-      },
+        matchmaker: {
+          select: { id: true }
+        }
+      }
     });
 
     if (!suggestion) {
-      return NextResponse.json({ error: "Suggestion not found" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: "Suggestion not found" },
+        { status: 404 }
+      );
     }
 
-    // 5. בדיקות הרשאה ולוגיקה עסקית
-    // (לדוגמה: בדיקת הצעות פעילות אחרות של המועמד)
-    const isCandidateApproval =
-      session.user.role === UserRole.CANDIDATE &&
-      (validatedData.status === MatchSuggestionStatus.FIRST_PARTY_APPROVED ||
-       validatedData.status === MatchSuggestionStatus.SECOND_PARTY_APPROVED);
-
-    if (isCandidateApproval) {
-      // כאן תוכל להוסיף את הלוגיקה לבדיקת הצעות פעילות אחרות...
-    }
-    
-    // וידוא שהמשתמש הנוכחי קשור להצעה
-    if (
-      suggestion.firstPartyId !== userId &&
-      suggestion.secondPartyId !== userId &&
-      suggestion.matchmakerId !== userId
-    ) {
-      return NextResponse.json({ error: "Unauthorized to update this suggestion" }, { status: 403 });
+    if (suggestion.matchmaker.id !== session.user.id && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "You don't have permission to update this suggestion" },
+        { status: 403 }
+      );
     }
 
-    // 6. קריאה מתוקנת לשירות המרכזי עם כל הפרמטרים הנדרשים
-    let updatedSuggestion = await suggestionService.updateSuggestionStatus(
-      suggestionId,
-      validatedData.status,
-      userId,
-      emailDict, // <-- העברת המילון
-      validatedData.notes
-    );
-    
-    // 7. טיפול בפעולות משניות (כמו מעבר סטטוס אוטומטי)
-    const secondaryAction = determineSecondaryAction(suggestion.status, validatedData.status);
-    if (secondaryAction) {
-      try {
-        console.log(`[API /status PATCH] Triggering secondary action: ${secondaryAction}`);
-        // גם כאן, קריאה מתוקנת לשירות עם כל הפרמטרים
-        updatedSuggestion = await suggestionService.updateSuggestionStatus(
-          updatedSuggestion.id,
-          secondaryAction,
-          userId, // או משתמש מערכת, תלוי בלוגיקה
-          emailDict, // <-- העברת המילון
-          `Automatic transition after ${validatedData.status}`
-        );
-      } catch (secondaryActionError) {
-        console.warn("Warning: Secondary status transition failed:", secondaryActionError);
+    const getCategory = (status: MatchSuggestionStatus) => {
+      switch (status) {
+        case "DRAFT":
+        case "AWAITING_MATCHMAKER_APPROVAL":
+        case "PENDING_FIRST_PARTY":
+        case "PENDING_SECOND_PARTY":
+          return "PENDING";
+        
+        case "FIRST_PARTY_DECLINED":
+        case "SECOND_PARTY_DECLINED":
+        case "MATCH_DECLINED":
+        case "ENDED_AFTER_FIRST_DATE":
+        case "ENGAGED":
+        case "MARRIED":
+        case "EXPIRED":
+        case "CLOSED":
+        case "CANCELLED":
+          return "HISTORY";
+        
+        default:
+          return "ACTIVE";
       }
-    }
+    };
 
-    // 8. עדכון פרופילים במקרה הצורך (למשל, אירוסין/נישואין)
-    await updateProfilesIfNeeded(validatedData.status, suggestion);
+    const result = await prisma.$transaction(async (tx) => {
+      const previousStatus = suggestion.status;
+      const updatedSuggestion = await tx.matchSuggestion.update({
+        where: { id: suggestionId },
+        data: {
+          status: status,
+          previousStatus: previousStatus,
+          lastStatusChange: new Date(),
+          lastActivity: new Date(),
+          category: getCategory(status),
+          ...(status === MatchSuggestionStatus.CLOSED ? { closedAt: new Date() } : {}),
+          ...(status === MatchSuggestionStatus.PENDING_FIRST_PARTY ? { firstPartySent: new Date() } : {}),
+          ...(status === MatchSuggestionStatus.PENDING_SECOND_PARTY ? { secondPartySent: new Date() } : {}),
+        },
+      });
 
-    // 9. החזרת תשובת הצלחה
+      await tx.suggestionStatusHistory.create({
+        data: {
+          suggestionId,
+          status,
+          notes: notes || `סטטוס שונה ל-${status} על ידי ${session.user.firstName} ${session.user.lastName}`,
+        },
+      });
+
+      return updatedSuggestion;
+    });
+
     return NextResponse.json({
       success: true,
-      suggestion: updatedSuggestion,
+      message: "Status updated successfully",
+      suggestion: {
+        id: result.id,
+        status: result.status,
+        previousStatus: result.previousStatus,
+        lastStatusChange: result.lastStatusChange,
+        category: result.category,
+      },
     });
 
   } catch (error) {
-    console.error("Error processing request in status/route.ts:", error);
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation error", details: error.errors }, { status: 400 });
-    }
+    console.error("Error updating suggestion status:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
+      { 
+        success: false, 
+        error: "Failed to update status", 
+        details: errorMessage 
+      },
       { status: 500 }
     );
   }
 }
 
-// ======================= פונקציות עזר (נשארות ללא שינוי) =======================
+export async function GET(
+  req: NextRequest,
+  context: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-/**
- * קובעת אם נדרשת פעולת המשך אוטומטית לאחר שינוי סטטוס.
- */
-function determineSecondaryAction(
-  currentStatus: MatchSuggestionStatus,
-  newStatus: MatchSuggestionStatus
-): MatchSuggestionStatus | null {
-  const automaticTransitions: Partial<Record<MatchSuggestionStatus, MatchSuggestionStatus>> = {
-    FIRST_PARTY_APPROVED: MatchSuggestionStatus.PENDING_SECOND_PARTY,
-    SECOND_PARTY_APPROVED: MatchSuggestionStatus.CONTACT_DETAILS_SHARED,
-    FIRST_PARTY_DECLINED: MatchSuggestionStatus.CLOSED,
-    SECOND_PARTY_DECLINED: MatchSuggestionStatus.CLOSED,
-  };
-  return automaticTransitions[newStatus] || null;
+    const searchParams = new URL(req.url).searchParams;
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 50;
+
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: context.params.id },
+      select: {
+        id: true,
+        status: true,
+        lastStatusChange: true,
+        matchmakerId: true,
+        firstPartyId: true,
+        secondPartyId: true,
+      }
+    });
+    
+    if (!suggestion) {
+      return NextResponse.json({ error: "Suggestion not found" }, { status: 404 });
+    }
+    
+    const canView = 
+      session.user.role === UserRole.ADMIN ||
+      suggestion.matchmakerId === session.user.id ||
+      suggestion.firstPartyId === session.user.id ||
+      suggestion.secondPartyId === session.user.id;
+      
+    if (!canView) {
+      return NextResponse.json({ error: "Not authorized to view this suggestion" }, { status: 403 });
+    }
+    
+    const historyQuery = {
+      where: {
+        suggestionId: context.params.id,
+        ...(startDate && {
+          createdAt: {
+            gte: new Date(startDate),
+            ...(endDate && {
+              lte: new Date(endDate),
+            }),
+          },
+        }),
+      },
+      include: {
+        suggestion: {
+          select: {
+            firstParty: {
+              select: { id: true, firstName: true, lastName: true },
+            },
+            secondParty: {
+              select: { id: true, firstName: true, lastName: true },
+            },
+            matchmaker: {
+              select: { id: true, firstName: true, lastName: true },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" as const },
+      take: limit,
+    };
+
+    const history = await prisma.suggestionStatusHistory.findMany(historyQuery);
+
+    const formattedHistory = history.map(entry => ({
+      id: entry.id,
+      status: entry.status,
+      notes: entry.notes,
+      createdAt: entry.createdAt,
+      actors: {
+        firstParty: {
+          id: entry.suggestion.firstParty.id,
+          name: `${entry.suggestion.firstParty.firstName} ${entry.suggestion.firstParty.lastName}`,
+        },
+        secondParty: {
+          id: entry.suggestion.secondParty.id,
+          name: `${entry.suggestion.secondParty.firstName} ${entry.suggestion.secondParty.lastName}`,
+        },
+        matchmaker: {
+          id: entry.suggestion.matchmaker.id,
+          name: `${entry.suggestion.matchmaker.firstName} ${entry.suggestion.matchmaker.lastName}`,
+        },
+      },
+    }));
+
+    return NextResponse.json({
+      history: formattedHistory,
+      suggestion: {
+        id: suggestion.id,
+        currentStatus: suggestion.status,
+        lastStatusChange: suggestion.lastStatusChange?.toISOString() ?? null,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error fetching suggestion history:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json(
+      { error: "Failed to fetch history", details: errorMessage },
+      { status: 500 }
+    );
+  }
 }
 
-
-/**
- * מעדכן את סטטוס הזמינות בפרופילים של המועמדים במקרה הצורך.
- */
-async function updateProfilesIfNeeded(
-  newStatus: MatchSuggestionStatus,
-  suggestion: MatchSuggestion,
+export async function HEAD(
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
-  if (newStatus === "ENGAGED" || newStatus === "MARRIED") {
-    const availabilityStatus = newStatus === "ENGAGED" ? "ENGAGED" : "MARRIED";
-    await Promise.all([
-      prisma.profile.update({
-        where: { userId: suggestion.firstPartyId },
-        data: { availabilityStatus, availabilityNote: `Status changed to ${newStatus} on ${new Date().toISOString().split('T')[0]}`, availabilityUpdatedAt: new Date() }
-      }),
-      prisma.profile.update({
-        where: { userId: suggestion.secondPartyId },
-        data: { availabilityStatus, availabilityNote: `Status changed to ${newStatus} on ${new Date().toISOString().split('T')[0]}`, availabilityUpdatedAt: new Date() }
-      })
-    ]);
-  }
-  
-  if (newStatus === "DATING") {
-    await Promise.all([
-      prisma.profile.update({
-        where: { userId: suggestion.firstPartyId },
-        data: { availabilityStatus: "DATING", availabilityNote: "Currently in a dating process", availabilityUpdatedAt: new Date() }
-      }),
-      prisma.profile.update({
-        where: { userId: suggestion.secondPartyId },
-        data: { availabilityStatus: "DATING", availabilityNote: "Currently in a dating process", availabilityUpdatedAt: new Date() }
-      })
-    ]);
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return new Response(null, { status: 401 });
+    }
+
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: context.params.id },
+      select: {
+        id: true,
+        status: true,
+        lastStatusChange: true,
+        firstPartyId: true,
+        secondPartyId: true,
+        matchmakerId: true,
+      }
+    });
+
+    if (!suggestion) {
+      return new Response(null, { status: 404 });
+    }
+
+    const canView = 
+      session.user.role === UserRole.ADMIN ||
+      suggestion.matchmakerId === session.user.id ||
+      suggestion.firstPartyId === session.user.id ||
+      suggestion.secondPartyId === session.user.id;
+      
+    if (!canView) {
+      return new Response(null, { status: 403 });
+    }
+
+    const headers: Record<string, string> = {
+      'X-Suggestion-Status': suggestion.status,
+      'X-First-Party': suggestion.firstPartyId,
+      'X-Second-Party': suggestion.secondPartyId,
+    };
+
+    if (suggestion.lastStatusChange) {
+      headers['X-Last-Status-Change'] = suggestion.lastStatusChange.toISOString();
+    }
+
+    return new Response(null, { headers });
+
+  } catch (error) {
+    console.error("Error fetching suggestion status:", error);
+    return new Response(null, { status: 500 });
   }
 }

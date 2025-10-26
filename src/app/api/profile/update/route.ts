@@ -1,4 +1,4 @@
-// File: app/api/profile/update/route.ts
+// src/app/api/profile/update/route.ts (מתוקן)
 
 import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimit } from '@/lib/rate-limiter';
@@ -18,6 +18,7 @@ import {
 } from "@prisma/client";
 import type { UserProfile } from "@/types/next-auth";
 
+// ... (שאר הפונקציות נשארות זהות) ...
 // Helper to convert to number or null
 const toNumberOrNull = (value: string | number | null | undefined): number | null => {
   if (value === null || value === undefined || String(value).trim() === "") {
@@ -63,6 +64,7 @@ const emptyStringToNull = (value: string | null | undefined): string | null => {
   }
   return value;
 };
+
 
 export async function PUT(req: NextRequest) {
   // Apply rate limiting: 50 profile updates per user per 10 minutes (prevents DB heavy load)
@@ -209,12 +211,14 @@ export async function PUT(req: NextRequest) {
 
     if (currentGenderForLogic === Gender.FEMALE) {
         if (headCovering !== undefined) dataToUpdate.headCovering = emptyStringToNull(headCovering) as HeadCoveringType | null;
+        // ◀️ FIX: Changed body.hasOwnProperty('kippahType') to the safe version
         if (gender !== undefined && gender === Gender.FEMALE) dataToUpdate.kippahType = null;
-        else if (body.hasOwnProperty('kippahType') && kippahType === null) dataToUpdate.kippahType = null;
+        else if (Object.prototype.hasOwnProperty.call(body, 'kippahType') && kippahType === null) dataToUpdate.kippahType = null;
     } else if (currentGenderForLogic === Gender.MALE) {
         if (kippahType !== undefined) dataToUpdate.kippahType = emptyStringToNull(kippahType) as KippahType | null;
+        // ◀️ FIX: Changed body.hasOwnProperty('headCovering') to the safe version
         if (gender !== undefined && gender === Gender.MALE) dataToUpdate.headCovering = null;
-        else if (body.hasOwnProperty('headCovering') && headCovering === null) dataToUpdate.headCovering = null;
+        else if (Object.prototype.hasOwnProperty.call(body, 'headCovering') && headCovering === null) dataToUpdate.headCovering = null;
     } else {
         if (gender !== undefined && gender === null) {
            dataToUpdate.headCovering = null; dataToUpdate.kippahType = null;
@@ -275,16 +279,19 @@ export async function PUT(req: NextRequest) {
     if (availabilityStatus !== undefined) {
       const statusValue = emptyStringToNull(availabilityStatus);
       dataToUpdate.availabilityStatus = (statusValue === null ? "AVAILABLE" : statusValue) as AvailabilityStatus;
-      if (!body.hasOwnProperty('availabilityUpdatedAt') || availabilityUpdatedAt === undefined) {
+      // ◀️ FIX: Changed body.hasOwnProperty to the safe version
+      if (!Object.prototype.hasOwnProperty.call(body, 'availabilityUpdatedAt') || availabilityUpdatedAt === undefined) {
         dataToUpdate.availabilityUpdatedAt = new Date();
       }
     }
     if (availabilityNote !== undefined) dataToUpdate.availabilityNote = emptyStringToNull(availabilityNote);
-    if (body.hasOwnProperty('availabilityUpdatedAt') && availabilityUpdatedAt !== undefined) {
+    // ◀️ FIX: Changed body.hasOwnProperty to the safe version
+    if (Object.prototype.hasOwnProperty.call(body, 'availabilityUpdatedAt') && availabilityUpdatedAt !== undefined) {
         dataToUpdate.availabilityUpdatedAt = toDateOrNull(availabilityUpdatedAt);
     }
     dataToUpdate.lastActive = new Date();
 
+    // ... (שאר הקובץ נשאר זהה) ...
     // --- Perform the database update ---
     let updatedProfileRecord: Profile | null = null;
     if (Object.keys(dataToUpdate).length > 0) {

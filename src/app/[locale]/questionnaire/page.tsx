@@ -17,16 +17,22 @@ function Loading() {
 // ▼▼▼ כאן השינוי ▼▼▼
 type PageProps = {
   params: Promise<{ locale: Locale }>;
-  searchParams: { [key: string]: string | string[] | undefined };
+  // גם searchParams הוא עכשיו Promise
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 export default async function Page({ params, searchParams }: PageProps) {
-  const { locale } = await params; // הוספת await
+  // ממתינים לשני ה-Promises במקביל לביצועים טובים יותר
+  const [{ locale }, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
+  
   const dictionary = await getDictionary(locale);
 
   console.log(
     `\n✅ [LOG | /questionnaire/page.tsx SERVER SIDE] Received searchParams:`,
-    searchParams,
+    resolvedSearchParams, // משתמשים במשתנה החדש שחיכה ל-Promise
     `\n`
   );
 

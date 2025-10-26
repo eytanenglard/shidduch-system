@@ -8,6 +8,7 @@ import {
   RegistrationProvider,
   useRegistration,
 } from '@/components/auth/RegistrationContext';
+import Link from 'next/link'; 
 import WelcomeStep from '@/components/auth/steps/WelcomeStep';
 import BasicInfoStep from '@/components/auth/steps/BasicInfoStep';
 import EmailVerificationCodeStep from '@/components/auth/steps/EmailVerificationCodeStep';
@@ -279,9 +280,9 @@ const RegisterStepsContent: React.FC<{
 
       <div className="mt-8 text-center text-sm text-gray-500">
         {dict.contactSupport}{' '}
-        <a href="/contact" className="text-cyan-600 hover:underline">
+        <Link href="/contact" className="text-cyan-600 hover:underline">
           {dict.contactSupportLink}
-        </a>
+        </Link>
       </div>
     </div>
   );

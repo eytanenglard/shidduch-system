@@ -1,10 +1,11 @@
+// src/app/api/profile/images/[imageId]/route.ts
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { v2 as cloudinary } from "cloudinary";
 
-// Configure Cloudinary
 if (!process.env.CLOUDINARY_CLOUD_NAME || 
     !process.env.CLOUDINARY_API_KEY || 
     !process.env.CLOUDINARY_API_SECRET) {
@@ -19,10 +20,9 @@ cloudinary.config({
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { imageId: string } }
+  context: { params: { imageId: string } }
 ) {
   try {
-    // Verify authentication
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -31,15 +31,13 @@ export async function DELETE(
       );
     }
 
-    const { imageId } = params;
+    const { imageId } = context.params;
     
-    // Find the image and include user data for ownership verification
     const image = await prisma.userImage.findUnique({
       where: { id: imageId },
       include: { user: true },
     });
 
-    // Check if image exists
     if (!image) {
       return NextResponse.json(
         { success: false, error: "Image not found" }, 
@@ -47,7 +45,6 @@ export async function DELETE(
       );
     }
 
-    // Verify image ownership
     if (image.user.email !== session.user.email) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" }, 
@@ -55,22 +52,18 @@ export async function DELETE(
       );
     }
 
-    // Delete from Cloudinary if cloudinaryPublicId exists
     if (image.cloudinaryPublicId) {
       try {
         await cloudinary.uploader.destroy(image.cloudinaryPublicId);
       } catch (error) {
         console.error("[Delete Image] Cloudinary deletion error:", error);
-        // Continue with database deletion even if Cloudinary deletion fails
       }
     }
 
-    // Delete from database
     await prisma.userImage.delete({
       where: { id: imageId },
     });
 
-    // If this was the main image, set another image as main if available
     if (image.isMain) {
       const remainingImage = await prisma.userImage.findFirst({
         where: { userId: image.userId },
@@ -101,10 +94,9 @@ export async function DELETE(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { imageId: string } }
+  context: { params: { imageId: string } }
 ) {
   try {
-    // Verify authentication
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -113,15 +105,13 @@ export async function PUT(
       );
     }
 
-    const { imageId } = params;
+    const { imageId } = context.params;
 
-    // Find the image and include user data for ownership verification
     const image = await prisma.userImage.findUnique({
       where: { id: imageId },
       include: { user: true },
     });
 
-    // Check if image exists
     if (!image) {
       return NextResponse.json(
         { success: false, error: "Image not found" }, 
@@ -129,7 +119,6 @@ export async function PUT(
       );
     }
 
-    // Verify image ownership
     if (image.user.email !== session.user.email) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" }, 
@@ -137,19 +126,16 @@ export async function PUT(
       );
     }
 
-    // Reset all user's images to non-main
     await prisma.userImage.updateMany({
       where: { userId: image.userId },
       data: { isMain: false },
     });
 
-    // Set the selected image as main
     await prisma.userImage.update({
       where: { id: imageId },
       data: { isMain: true },
     });
 
-    // Get updated images list
     const updatedImages = await prisma.userImage.findMany({
       where: { userId: image.userId },
       orderBy: { createdAt: 'desc' },

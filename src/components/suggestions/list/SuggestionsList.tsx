@@ -8,8 +8,7 @@ import {
   SortAsc,
   SortDesc,
   Calendar,
-  Grid3X3,
-  List as ListIcon,
+
   Check,
   XCircle,
   Sparkles,
@@ -282,7 +281,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           );
         });
         break;
-      case 'priority':
+    case 'priority': { // ◀️ FIX: Wrapped case block in curly braces
         const priorityOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
         result.sort(
           (a, b) =>
@@ -291,6 +290,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         );
         break;
     }
+     }
     setFilteredSuggestions(result);
   }, [initialSuggestions, searchQuery, sortOption, filterOption, userId]);
 

@@ -7,13 +7,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 import Handlebars from 'handlebars';
 
-// טען את תבנית ה-Footer פעם אחת
-const footerTemplate = Handlebars.compile(
-  fs.readFileSync(
-    path.join(process.cwd(), 'src/lib/email/templates/shared/footer.hbs'),
-    'utf-8'
-  )
-);
+// טען את תבניות ה-Handlebars פעם אחת בעת טעינת המודול
+const loadTemplate = (filePath: string) => {
+  const fullPath = path.join(process.cwd(), filePath);
+  return Handlebars.compile(fs.readFileSync(fullPath, 'utf-8'));
+};
+
+const footerTemplate = loadTemplate('src/lib/email/templates/shared/footer.hbs');
+const profileFeedbackTemplate = loadTemplate('src/lib/email/templates/profile-feedback.hbs');
+
 
 // --- הגדרות טיפוסים לקונטקסט של כל תבנית ---
 interface BaseTemplateContext {
@@ -373,16 +375,11 @@ export const emailTemplates: {
       context
     );
   },
-'profileFeedback': (context) => {
-    // כאן, במקום לבנות HTML ידנית, אנו משתמשים במנוע התבניות
-    // שנטען על ידי השרת שלך (למשל, hbs). הלוגיקה עצמה נמצאת בקובץ ה-hbs.
-    // הקוד כאן רק צריך להעביר את האובייקט 'context' למנוע העיבוד.
-    // לצורך הדוגמה, אני מדמה את זה. ודא שהתשתית שלך תומכת בזה.
-    const Handlebars = require('handlebars'); // ייבוא סימבולי
-    const templateSource = require('./profile-feedback.hbs'); // טעינה סימבולית של הקובץ
-    const compiledTemplate = Handlebars.compile(templateSource);
-    return compiledTemplate(context);
-},
+  'profileFeedback': (context) => {
+    // התבנית נטענת ומתקמפלת פעם אחת ברמת המודול ליעילות.
+    // פונקציה זו פשוט מעבירה את הקונטקסט לתבנית המוכנה.
+    return profileFeedbackTemplate(context);
+  },
   shareContactDetails: (context) => {
     const contactInfoHtml = [
       context.otherPartyContact.phone && `<p><strong>טלפון:</strong> ${context.otherPartyContact.phone}</p>`,
