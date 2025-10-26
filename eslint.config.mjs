@@ -13,18 +13,20 @@ export default tseslint.config(
       "**/.next/**",
       "**/out/**",
       "**/build/**",
+      "**/.vercel/**",
+      "**/public/**",
+      "**/dist/**",
     ],
   },
 
-  // Base configurations
+  // תצורות בסיס
   js.configs.recommended,
   ...tseslint.configs.recommended,
 
-  // Next.js core configuration
-  // This single entry point includes most necessary plugins and rules for Next.js
+  // תצורת הליבה של Next.js (החלק החשוב)
   nextPlugin,
 
-  // Your custom rules and overrides
+  // כללים מותאמים אישית שלך
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
     plugins: {
@@ -43,11 +45,11 @@ export default tseslint.config(
       },
     },
     rules: {
-      // Rules from plugins (some may be included in nextPlugin already)
+      // כללים מומלצים מהפלאגינים
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
-
-      // Your custom rules
+      
+      // הכללים המותאמים אישית שלך
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
       "@typescript-eslint/no-unused-vars": [
@@ -55,6 +57,8 @@ export default tseslint.config(
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
       "@typescript-eslint/no-explicit-any": "warn",
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
     },
   }
 );

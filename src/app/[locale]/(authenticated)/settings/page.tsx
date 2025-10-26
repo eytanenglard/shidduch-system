@@ -1,5 +1,4 @@
-// src/app/[locale]/settings/page.tsx
-
+// src/app/[locale]/(authenticated)/settings/page.tsx
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import SettingsClientPage from './SettingsClientPage';
@@ -7,13 +6,14 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-// ▼▼▼ CHANGE WAS MADE HERE ▼▼▼
-export default async function SettingsPage({
-  params,
-}: {
-  params: { locale: Locale };
-}) {
-  const { locale } = params; // Destructure locale inside the function
+// הגדרת ה-props הנכונה
+type SettingsPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function SettingsPage({ params }: SettingsPageProps) {
+  // שימוש ב-await כדי לחלץ את המידע מה-Promise
+  const { locale } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     redirect(`/${locale}/auth/signin?callbackUrl=/${locale}/settings`);
@@ -23,7 +23,6 @@ export default async function SettingsPage({
 
   return (
     <div className="container mx-auto p-4 sm:p-6">
-      {/* ✨ שינוי: העברת ה-locale שהתקבל מה-URL כ-prop לקומפוננטת הלקוח */}
       <SettingsClientPage
         dict={dictionary.profilePage.accountSettings}
         locale={locale}

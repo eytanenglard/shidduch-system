@@ -1,23 +1,22 @@
-// src/app/[locale]/matches/page.tsx
-
+// src/app/[locale]/(authenticated)/matches/page.tsx
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import MatchesClientPage from './MatchesClientPage';
 
-// ▼▼▼ CHANGE WAS MADE HERE ▼▼▼
-export default async function MatchesPage({
-  params,
-}: {
-  params: { locale: Locale };
-}) {
-  const { locale } = params; // Destructure locale inside the function
+// הגדרת ה-props הנכונה
+type MatchesPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function MatchesPage({ params }: MatchesPageProps) {
+  // שימוש ב-await כדי לחלץ את המידע מה-Promise
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
-  // ✅ חילוץ החלקים הרלוונטיים מהמילון המלא
   return (
     <MatchesClientPage
       suggestionsDict={dictionary.suggestions}
-      profileCardDict={dictionary.profilePage.profileCard} // <--- prop נפרד, בדיוק כמו ב-HomePage
+      profileCardDict={dictionary.profilePage.profileCard}
     />
   );
 }

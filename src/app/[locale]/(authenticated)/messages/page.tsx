@@ -1,17 +1,17 @@
-// src/app/[locale]/messages/page.tsx
+// src/app/[locale]/(authenticated)/messages/page.tsx
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import MessagesClientPage from './MessagesClientPage';
 
-// ▼▼▼ CHANGE WAS MADE HERE ▼▼▼
-export default async function MessagesPage({
-  params,
-}: {
-  params: { locale: Locale };
-}) {
-  const { locale } = params; // Destructure locale inside the function
+// הגדרת ה-props הנכונה
+type MessagesPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function MessagesPage({ params }: MessagesPageProps) {
+  // שימוש ב-await כדי לחלץ את המידע מה-Promise
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
-  // חילוץ החלק הרלוונטי מהמילון המלא והעברתו כ-prop
   return <MessagesClientPage dict={dictionary.messagesPage} locale={locale} />;
 }
