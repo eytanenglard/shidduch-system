@@ -4,12 +4,13 @@ import { getDictionary } from '@/lib/dictionaries';
 import { Locale } from '@/../i18n-config';
 import TermsOfServiceClient from './TermsOfServiceClient';
 
-// Server Component
-export default async function TermsOfServicePage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
+// ▼▼▼ כאן השינוי ▼▼▼
+type TermsOfServicePageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function TermsOfServicePage({ params }: TermsOfServicePageProps) {
+  const { locale } = await params; // הוספת await
   const dictionary = await getDictionary(locale);
 
   return (

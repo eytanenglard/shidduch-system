@@ -4,12 +4,13 @@ import { getDictionary } from '@/lib/dictionaries';
 import { Locale } from '@/../i18n-config';
 import PrivacyPolicyClient from './PrivacyPolicyClient';
 
-// Server Component
-export default async function PrivacyPolicyPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
+// ▼▼▼ כאן השינוי ▼▼▼
+type PrivacyPolicyPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function PrivacyPolicyPage({ params }: PrivacyPolicyPageProps) {
+  const { locale } = await params; // הוספת await
   const dictionary = await getDictionary(locale);
 
   return (

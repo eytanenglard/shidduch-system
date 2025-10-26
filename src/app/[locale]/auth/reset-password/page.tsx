@@ -1,5 +1,4 @@
 // src/app/[locale]/auth/reset-password/page.tsx
-
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -7,9 +6,6 @@ import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import ResetPasswordClient from './ResetPasswordClient';
 
-/**
- * רכיב טעינה שיוצג בזמן שהמילון ורכיב הלקוח נטענים.
- */
 function Loading() {
   return (
     <div className="flex flex-col items-center justify-center p-8 bg-white rounded-xl shadow-xl">
@@ -19,16 +15,13 @@ function Loading() {
   );
 }
 
-/**
- * דף "איפוס סיסמה". זהו רכיב צד-שרת האחראי על טעינת התרגומים
- * והעברתם לרכיב הלקוח שיטפל בלוגיקה של הטופס.
- */
-export default async function ResetPasswordPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  // טעינת המילון המתאים לשפה מה-URL.
+// ▼▼▼ כאן השינוי ▼▼▼
+type ResetPasswordPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function ResetPasswordPage({ params }: ResetPasswordPageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (
@@ -42,15 +35,10 @@ export default async function ResetPasswordPage({
         />{' '}
         חזרה לדף הבית
       </Link>
-
-      {/* 
-        השימוש ב-Suspense מבטיח שהמשתמש יראה אנימציית טעינה
-        אם יש עיכוב כלשהו בטעינת רכיב הלקוח.
-      */}
       <Suspense fallback={<Loading />}>
         <ResetPasswordClient
           dict={dictionary.auth.resetPassword}
-          locale={locale} // <<<<<<<<<<<< העברת השפה לרכיב הלקוח
+          locale={locale}
         />
       </Suspense>
     </div>

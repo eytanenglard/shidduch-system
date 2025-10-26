@@ -5,17 +5,19 @@ import type { Locale } from '../../../i18n-config';
 import HomePage from '@/components/HomePage/HomePage';
 import { generateDemoData } from '@/components/HomePage/components/demo-data';
 
-export default async function Home({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  // Promise.all טוען את המילון ואת נתוני הדמו במקביל לביצועים מיטביים.
+// ▼▼▼ כאן השינוי ▼▼▼
+type HomePageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function Home({ params }: HomePageProps) {
+  const { locale } = await params; // <-- הוספת await
+
+  // שאר הקוד נשאר זהה
   const [dictionary, demoData] = await Promise.all([
     getDictionary(locale),
     generateDemoData(locale),
   ]);
 
-  // מעבירים את שני האובייקטים כ-props לרכיב הלקוח.
-  return <HomePage dict={dictionary} demoData={demoData} locale={locale} />; // <-- כאן המידע מועבר
+  return <HomePage dict={dictionary} demoData={demoData} locale={locale} />;
 }

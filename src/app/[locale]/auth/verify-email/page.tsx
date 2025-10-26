@@ -13,11 +13,13 @@ function Loading() {
   );
 }
 
-export default async function VerifyEmailPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
+// ▼▼▼ כאן השינוי ▼▼▼
+type VerifyEmailPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function VerifyEmailPage({ params }: VerifyEmailPageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (

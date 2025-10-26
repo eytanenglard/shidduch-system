@@ -3,13 +3,13 @@ import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import UpdatePhoneClient from './UpdatePhoneClient';
 
-// רכיב זה נשאר פשוט כי הלוגיקה המורכבת נמצאת ברכיב הלקוח.
-// אין צורך ב-Suspense כאן כי רכיב הלקוח עצמו מטפל במצב הטעינה של הסשן.
-export default async function UpdatePhonePage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
+// ▼▼▼ כאן השינוי ▼▼▼
+type UpdatePhonePageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function UpdatePhonePage({ params }: UpdatePhonePageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (

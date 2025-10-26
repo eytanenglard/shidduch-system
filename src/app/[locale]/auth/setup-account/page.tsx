@@ -13,11 +13,13 @@ function Loading() {
   );
 }
 
-export default async function SetupAccountPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
+// ▼▼▼ כאן השינוי ▼▼▼
+type SetupAccountPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function SetupAccountPage({ params }: SetupAccountPageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (

@@ -1,0 +1,132 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire
+# Generated on: 2025-10-26 16:22:10
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\page.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/questionnaire/page.tsx
+import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
+import { getDictionary } from '@/lib/dictionaries';
+import { Locale } from '../../../../i18n-config';
+import QuestionnairePageClient from '@/components/questionnaire/QuestionnairePageClient';
+
+function Loading() {
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+      <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+      <p className="ml-4 rtl:mr-4 text-lg text-gray-700">טוען שאלון...</p>
+    </div>
+  );
+}
+
+export default async function Page({
+  params: { locale },
+  searchParams,
+}: {
+  params: { locale: Locale };
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const dictionary = await getDictionary(locale);
+
+  // זה הלוג שאנחנו מחפשים בטרמינל
+  console.log(
+    `\n✅ [LOG | /questionnaire/page.tsx SERVER SIDE] Received searchParams:`,
+    searchParams,
+    `\n`
+  );
+
+  return (
+    <Suspense fallback={<Loading />}>
+      <QuestionnairePageClient
+        dict={dictionary.questionnaire}
+        locale={locale}
+      />
+    </Suspense>
+  );
+}
+--- End of Content for page.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\questionnaire_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\complete
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\complete\page.tsx
+--------------------------------------------------------------------------------
+Content:
+import QuestionnaireComplete from '@/components/questionnaire/QuestionnaireComplete';
+import { getDictionary } from '@/lib/dictionaries';
+import { Locale } from '../../../../../i18n-config';
+
+// This is now an async Server Component
+export default async function Page({ params }: { params: { locale: Locale } }) {
+  // 1. We load the dictionary here
+  const dictionary = await getDictionary(params.locale);
+
+  // 2. We pass the relevant part of the dictionary as a prop
+  return (
+    <QuestionnaireComplete
+      dict={dictionary.questionnaire.questionnaireCompletePage}
+    />
+  );
+}
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\restore
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\restore\page.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/questionnaire/restore/page.tsx
+
+import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
+import { getDictionary } from '@/lib/dictionaries';
+import { Locale } from '../../../../../i18n-config';
+import QuestionnaireRestore from '@/components/questionnaire/QuestionnaireRestore';
+
+// רכיב טעינה פשוט
+function Loading() {
+  return (
+    <div className="flex h-screen w-full items-center justify-center">
+      <Loader2 className="h-10 w-10 animate-spin text-cyan-600" />
+    </div>
+  );
+}
+
+// רכיב הדף (Page) הוא רכיב צד-שרת
+export default async function RestorePage({
+  params: { locale },
+}: {
+  params: { locale: Locale };
+}) {
+  // 1. טעינת המילון המלא בצד השרת
+  const dictionary = await getDictionary(locale);
+
+  // 2. רינדור רכיב הלקוח והעברת החלק הספציפי מהמילון כ-prop
+  return (
+    <Suspense fallback={<Loading />}>
+      <QuestionnaireRestore
+        dict={dictionary.questionnaire.questionnaireRestore}
+      />
+    </Suspense>
+  );
+}
+--- End of Content for page.tsx ---
+

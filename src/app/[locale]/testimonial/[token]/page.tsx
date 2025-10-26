@@ -1,27 +1,26 @@
-// src/app/testimonial/[token]/page.tsx
+// src/app/[locale]/testimonial/[token]/page.tsx
 import { TestimonialSubmissionForm } from './TestimonialSubmissionForm';
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
+import { Locale } from '../../../../../i18n-config'; // ייבוא חסר
 
+// ▼▼▼ כאן השינוי ▼▼▼
 interface PageProps {
-  params: { token: string };
+  params: Promise<{ token: string; locale: Locale }>; // הוספת locale והפיכה ל-Promise
 }
 
-// --- פונקציית אימות הטוקן (Token Validation) - גרסה חדשה ---
 async function validateToken(
   token: string
 ): Promise<{ profileId: string; userName: string } | null> {
   try {
-    // Search for a request that matches the token, is still PENDING, and has NOT expired.
     const request = await prisma.testimonialRequest.findUnique({
       where: {
         token: token,
-        status: 'PENDING', // Must be unused
+        status: 'PENDING',
         expiresAt: {
-          gt: new Date(), // Must not be expired
+          gt: new Date(),
         },
       },
-      // Include related user data to get the name
       include: {
         profile: {
           select: {
@@ -33,7 +32,6 @@ async function validateToken(
       },
     });
 
-    // If no such request exists, the link is invalid
     if (!request || !request.profile.user) {
       return null;
     }
@@ -49,15 +47,15 @@ async function validateToken(
   }
 }
 
-// --- רכיב העמוד (Page Component) - נשאר כמעט זהה ---
 export default async function TestimonialPage({ params }: PageProps) {
-  const validationResult = await validateToken(params.token);
+  const { token } = await params; // הוספת await
+  const validationResult = await validateToken(token);
 
   if (!validationResult) {
     return notFound();
   }
 
-  const { userName } = validationResult; // We don't need profileId here
+  const { userName } = validationResult;
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
@@ -70,8 +68,7 @@ export default async function TestimonialPage({ params }: PageProps) {
             תודה רבה שהקדשת מזמנך! המילים החמות שלך יכולות לעשות את כל ההבדל.
           </p>
         </div>
-        {/* Pass the token to the form for submission */}
-        <TestimonialSubmissionForm token={params.token} userName={userName} />
+        <TestimonialSubmissionForm token={token} userName={userName} />
       </div>
     </main>
   );

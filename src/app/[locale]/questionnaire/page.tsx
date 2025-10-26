@@ -14,16 +14,16 @@ function Loading() {
   );
 }
 
-export default async function Page({
-  params: { locale },
-  searchParams,
-}: {
-  params: { locale: Locale };
+// ▼▼▼ כאן השינוי ▼▼▼
+type PageProps = {
+  params: Promise<{ locale: Locale }>;
   searchParams: { [key: string]: string | string[] | undefined };
-}) {
+};
+
+export default async function Page({ params, searchParams }: PageProps) {
+  const { locale } = await params; // הוספת await
   const dictionary = await getDictionary(locale);
 
-  // זה הלוג שאנחנו מחפשים בטרמינל
   console.log(
     `\n✅ [LOG | /questionnaire/page.tsx SERVER SIDE] Received searchParams:`,
     searchParams,
