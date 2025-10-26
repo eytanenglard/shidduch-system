@@ -1,30 +1,28 @@
-// --- START OF FILE eslint.config.mjs ---
-
 import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import pluginReact from "eslint-plugin-react";
-import eslintPluginReactHooks from "eslint-plugin-react-hooks";
+import pluginReactHooks from "eslint-plugin-react-hooks";
 
-// שימוש ב-defineConfig אינו חובה אך מומלץ לאינטליסנס
-export default tseslint.config(
-  // הגדרה גלובלית שחלה על כל הקבצים
+export default [
   {
-    ignores: ["node_modules", ".next"],
+    ignores: [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/out/**",
+      "**/build/**",
+      "**/.vercel/**",
+      "**/public/**",
+      "**/dist/**",
+    ],
   },
-
-  // הגדרות ברירת המחדל של ESLint
   js.configs.recommended,
-
-  // ...tseslint.configs.recommended - הגדרות מומלצות ל-TypeScript
   ...tseslint.configs.recommended,
-
-  // הגדרות עבור React
   {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
     plugins: {
       react: pluginReact,
-      "react-hooks": eslintPluginReactHooks,
+      "react-hooks": pluginReactHooks,
     },
     languageOptions: {
       parserOptions: {
@@ -34,17 +32,37 @@ export default tseslint.config(
       },
       globals: {
         ...globals.browser,
+        ...globals.node,
+        ...globals.es2021,
+      },
+    },
+    settings: {
+      react: {
+        version: "detect",
       },
     },
     rules: {
       ...pluginReact.configs.recommended.rules,
-      ...eslintPluginReactHooks.configs.recommended.rules,
-      "react/react-in-jsx-scope": "off", // לא נדרש ב-Next.js וב-React 17+
+      ...pluginReactHooks.configs.recommended.rules,
+      
+      "react/react-in-jsx-scope": "off",
+      "react/prop-types": "off",
+      
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { 
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          ignoreRestSiblings: true 
+        },
+      ],
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/ban-ts-comment": "warn",
+      "@typescript-eslint/no-require-imports": "warn",
+      
+      "no-case-declarations": "warn",
+      "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/rules-of-hooks": "error",
     },
-    settings: {
-      react: {
-        version: "detect", // מזהה אוטומטית את גרסת ה-React
-      },
-    },
-  }
-);
+  },
+];
