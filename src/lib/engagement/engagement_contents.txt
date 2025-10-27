@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\engagement
-# Generated on: 2025-10-26 13:06:09
+# Generated on: 2025-10-27 14:46:30
 ################################################################################
 
 ================================================================================
@@ -557,6 +557,7 @@ export class SmartEngagementOrchestrator {
     });
   }
 
+
   private static async getTodaysActiveUsers() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -565,7 +566,7 @@ export class SmartEngagementOrchestrator {
       where: {
         status: 'ACTIVE',
         marketingConsent: true,
-        isProfileComplete: false,
+        // isProfileComplete: false,  <--- מחקנו את השורה הזאת
         OR: [
           { lastLogin: { gte: today } },
           { updatedAt: { gte: today } },

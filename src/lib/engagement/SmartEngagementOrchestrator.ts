@@ -139,39 +139,81 @@ export class SmartEngagementOrchestrator {
     return { processed: usersToProcess.length, sent: emailsSent };
   }
 
+// ========== Evening Campaign (Enhanced with Detailed Logging) ==========
+  
   static async runEveningCampaign() {
-    console.log('🌙 [Smart Engagement] Starting evening feedback campaign run...');
+    console.log('\n========================================');
+    console.log('🌙 [Evening Campaign] Starting...');
+    console.log('========================================\n');
+    
     const usersToProcess = await this.getTodaysActiveUsers();
-    console.log(`📊 [Smart Engagement] Found ${usersToProcess.length} active users today`);
+    console.log(`📊 [Evening Campaign] Found ${usersToProcess.length} potentially active users today\n`);
     
     let emailsSent = 0;
+    let skippedNoActivity = 0;
+    let errors = 0;
     
-    for (const user of usersToProcess) {
+    for (let i = 0; i < usersToProcess.length; i++) {
+      const user = usersToProcess[i];
+      
+      console.log(`\n--- Processing User ${i + 1}/${usersToProcess.length} ---`);
+      console.log(`👤 User: ${user.firstName} ${user.lastName} (${user.id})`);
+      console.log(`📧 Email: ${user.email}`);
+      
       try {
+        // בניית פרופיל
+        console.log(`🔨 Building engagement profile...`);
         const profile = await this.buildUserEngagementProfile(user.id, false);
+        
+        // טעינת dictionary
         const dict = await getEmailDictionary(user.language as Language);
+        
+        // בדיקת פעילות יומית
+        console.log(`🔍 Detecting daily activity...`);
         const dailyActivity = await this.detectDailyActivity(profile.userId);
         
         if (!dailyActivity.hasActivity) {
-          console.log(`⏭️ [Smart Engagement] No activity detected for user ${user.id}, skipping.`);
+          console.log(`⏭️  SKIPPING: No activity detected for user ${user.id}`);
+          console.log(`   Reason: User didn't update profile, upload images, or answer questionnaire today`);
+          skippedNoActivity++;
           continue;
         }
         
+        console.log(`✅ Activity detected! Preparing evening feedback email...`);
+        
+        // יצירת המייל
         const emailToSend = await this.getEveningFeedbackEmail(profile, dailyActivity, dict);
         
         if (emailToSend) {
+          console.log(`📧 Sending EVENING_FEEDBACK email...`);
           await this.sendEmail(user, emailToSend);
           await this.updateCampaignRecord(user.id, emailToSend.type);
           emailsSent++;
-          console.log(`✅ [Smart Engagement] Sent EVENING_FEEDBACK to user ${user.id}`);
+          console.log(`✅ Successfully sent EVENING_FEEDBACK to ${user.email}`);
+        } else {
+          console.log(`⚠️  Email generation returned null - skipping`);
         }
         
       } catch (error) {
-        console.error(`❌ [Smart Engagement] Error processing user ${user.id}:`, error);
+        errors++;
+        console.error(`❌ Error processing user ${user.id}:`, error);
+        if (error instanceof Error) {
+          console.error(`   Error message: ${error.message}`);
+          console.error(`   Stack trace:`, error.stack);
+        }
       }
     }
     
-    console.log(`🎉 [Smart Engagement] Evening campaign complete. Sent ${emailsSent} emails.`);
+    console.log('\n========================================');
+    console.log('🎉 Evening Campaign Complete!');
+    console.log('========================================');
+    console.log(`📊 Summary:`);
+    console.log(`   Total Users Checked: ${usersToProcess.length}`);
+    console.log(`   ✅ Emails Sent: ${emailsSent}`);
+    console.log(`   ⏭️  Skipped (No Activity): ${skippedNoActivity}`);
+    console.log(`   ❌ Errors: ${errors}`);
+    console.log('========================================\n');
+    
     return { processed: usersToProcess.length, sent: emailsSent };
   }
 
@@ -569,53 +611,161 @@ export class SmartEngagementOrchestrator {
     });
   }
 
-  private static async detectDailyActivity(userId: string): Promise<{
-    hasActivity: boolean;
-    completedToday: string[];
-    progressDelta: number;
-  }> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const recentUpdates = await prisma.profile.findUnique({
-      where: { userId },
-      select: {
-        updatedAt: true,
-        user: {
-          select: {
-            questionnaireResponses: {
-              where: { lastSaved: { gte: today } },
-              orderBy: { lastSaved: 'desc' },
-              take: 1
-            },
-            images: {
-              where: { createdAt: { gte: today } }
-            }
+private static async detectDailyActivity(userId: string): Promise<{
+  hasActivity: boolean;
+  completedToday: string[];
+  progressDelta: number;
+}> {
+  console.log('\n==============================================');
+  console.log('🔥🔥🔥 DETECT DAILY ACTIVITY - START 🔥🔥🔥');
+  console.log('==============================================');
+  console.log(`🔍 User ID: ${userId}`);
+  console.log(`📅 Current Date/Time: ${new Date().toISOString()}`);
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  console.log(`📅 Today (midnight UTC): ${today.toISOString()}`);
+  console.log('----------------------------------------------\n');
+  
+  console.log('🔍 Querying database for recent updates...');
+  
+  const recentUpdates = await prisma.profile.findUnique({
+    where: { userId },
+    select: {
+      updatedAt: true,
+      user: {
+        select: {
+          questionnaireResponses: {
+            where: { lastSaved: { gte: today } },
+            orderBy: { lastSaved: 'desc' },
+            take: 1
+          },
+          images: {
+            where: { createdAt: { gte: today } }
           }
         }
       }
-    });
-    
-    const hasActivity = (
-      (recentUpdates?.updatedAt && recentUpdates.updatedAt >= today) ||
-      (recentUpdates?.user.questionnaireResponses.length ?? 0) > 0 ||
-      (recentUpdates?.user.images.length ?? 0) > 0
-    );
-    
-    const completedToday: string[] = [];
-    
-    if (recentUpdates?.user.images.length) {
-      completedToday.push(`${recentUpdates.user.images.length} תמונות חדשות`);
     }
-    if (recentUpdates?.user.questionnaireResponses.length) {
-      completedToday.push('התקדמות בשאלון');
-    }
-    if (recentUpdates?.updatedAt && recentUpdates.updatedAt >= today) {
-      completedToday.push('עדכון פרופיל');
-    }
-    
-    return { hasActivity, completedToday, progressDelta: 0 };
+  });
+  
+  console.log('✅ Database query completed\n');
+  
+  if (!recentUpdates) {
+    console.log('❌ ERROR: No profile found for this user!');
+    console.log('==============================================\n');
+    return { hasActivity: false, completedToday: [], progressDelta: 0 };
   }
+  
+  console.log('📊 RAW DATA FROM DATABASE:');
+  console.log('----------------------------------------------');
+  console.log(`Profile updatedAt: ${recentUpdates.updatedAt ? recentUpdates.updatedAt.toISOString() : 'NULL'}`);
+  console.log(`Questionnaire responses count: ${recentUpdates.user.questionnaireResponses.length}`);
+  console.log(`Images count: ${recentUpdates.user.images.length}`);
+  console.log('----------------------------------------------\n');
+  
+  console.log('🔍 CHECKING EACH ACTIVITY TYPE:');
+  console.log('----------------------------------------------');
+  
+  // בדיקה 1: האם הפרופיל עודכן היום
+  let profileUpdated = false;
+  if (recentUpdates.updatedAt) {
+    profileUpdated = recentUpdates.updatedAt >= today;
+    console.log(`1️⃣ Profile Updated Today?`);
+    console.log(`   Profile updatedAt: ${recentUpdates.updatedAt.toISOString()}`);
+    console.log(`   Today (midnight):  ${today.toISOString()}`);
+    console.log(`   Comparison: ${recentUpdates.updatedAt.getTime()} >= ${today.getTime()}`);
+    console.log(`   Result: ${profileUpdated ? '✅ YES' : '❌ NO'}`);
+  } else {
+    console.log(`1️⃣ Profile Updated Today?`);
+    console.log(`   Profile updatedAt: NULL`);
+    console.log(`   Result: ❌ NO`);
+  }
+  console.log('');
+  
+  // בדיקה 2: האם נענו שאלונים היום
+  const questionnaireCount = recentUpdates.user.questionnaireResponses.length;
+  const questionnaireUpdated = questionnaireCount > 0;
+  console.log(`2️⃣ Questionnaire Answered Today?`);
+  console.log(`   Responses found: ${questionnaireCount}`);
+  console.log(`   Result: ${questionnaireUpdated ? '✅ YES' : '❌ NO'}`);
+  if (questionnaireUpdated && recentUpdates.user.questionnaireResponses[0]) {
+    console.log(`   Last saved: ${recentUpdates.user.questionnaireResponses[0].lastSaved.toISOString()}`);
+  }
+  console.log('');
+  
+  // בדיקה 3: האם הועלו תמונות היום
+  const imagesCount = recentUpdates.user.images.length;
+  const imagesUploaded = imagesCount > 0;
+  console.log(`3️⃣ Images Uploaded Today?`);
+  console.log(`   Images found: ${imagesCount}`);
+  console.log(`   Result: ${imagesUploaded ? '✅ YES' : '❌ NO'}`);
+  if (imagesUploaded) {
+    recentUpdates.user.images.forEach((img, index) => {
+      console.log(`   Image ${index + 1} created: ${img.createdAt.toISOString()}`);
+    });
+  }
+  console.log('');
+  
+  console.log('----------------------------------------------');
+  console.log('📊 ACTIVITY SUMMARY:');
+  console.log('----------------------------------------------');
+  console.log(`Profile Updated:      ${profileUpdated ? '✅' : '❌'}`);
+  console.log(`Questionnaire:        ${questionnaireUpdated ? '✅' : '❌'}`);
+  console.log(`Images Uploaded:      ${imagesUploaded ? '✅' : '❌'}`);
+  console.log('----------------------------------------------\n');
+  
+  // חישוב האם יש פעילות (OR - מספיק אחד מהם)
+  const hasActivity = profileUpdated || questionnaireUpdated || imagesUploaded;
+  
+  console.log('🎯 FINAL RESULT:');
+  console.log('----------------------------------------------');
+  console.log(`hasActivity = ${hasActivity ? '✅ TRUE' : '❌ FALSE'}`);
+  console.log(`Logic: profileUpdated (${profileUpdated}) OR questionnaireUpdated (${questionnaireUpdated}) OR imagesUploaded (${imagesUploaded})`);
+  console.log('----------------------------------------------\n');
+  
+  // בניית רשימת הפעולות שבוצעו היום
+  const completedToday: string[] = [];
+  
+  if (imagesUploaded) {
+    const message = `${imagesCount} תמונות חדשות`;
+    completedToday.push(message);
+    console.log(`✅ Added to completedToday: "${message}"`);
+  }
+  
+  if (questionnaireUpdated) {
+    const message = 'התקדמות בשאלון';
+    completedToday.push(message);
+    console.log(`✅ Added to completedToday: "${message}"`);
+  }
+  
+  if (profileUpdated) {
+    const message = 'עדכון פרופיל';
+    completedToday.push(message);
+    console.log(`✅ Added to completedToday: "${message}"`);
+  }
+  
+  console.log('');
+  console.log('📝 COMPLETED TODAY LIST:');
+  console.log('----------------------------------------------');
+  if (completedToday.length > 0) {
+    completedToday.forEach((item, index) => {
+      console.log(`${index + 1}. ${item}`);
+    });
+  } else {
+    console.log('(empty - no activity detected)');
+  }
+  console.log('----------------------------------------------');
+  
+  console.log('\n==============================================');
+  console.log('🔥🔥🔥 DETECT DAILY ACTIVITY - END 🔥🔥🔥');
+  console.log('==============================================\n');
+  
+  return { 
+    hasActivity, 
+    completedToday, 
+    progressDelta: 0 
+  };
+}
 
   private static async getEveningFeedbackEmail(
     profile: UserEngagementProfile,

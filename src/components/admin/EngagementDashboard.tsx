@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Mail, Users, TrendingUp, Clock, Send, RefreshCw } from 'lucide-react';
+import { Search, Mail, Users, TrendingUp, Clock, Send, RefreshCw, Moon } from 'lucide-react';
 
 // ===============================
 // Types & Interfaces
@@ -65,6 +65,7 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [isRunningCampaign, setIsRunningCampaign] = useState(false);
+  const [isRunningEveningCampaign, setIsRunningEveningCampaign] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -284,18 +285,17 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
         })
       );
 
-      const results = await Promise.allSettled(promises);
-      
-      const successful = results.filter(r => r.status === 'fulfilled').length;
-      const failed = results.filter(r => r.status === 'rejected').length;
+      const results = await Promise.all(promises);
+      const successCount = results.filter(r => r.ok).length;
 
-      console.log(`✅ Bulk send complete: ${successful} success, ${failed} failed`);
+      console.log(`✅ Sent ${successCount}/${selectedUsers.size} emails`);
+      setSuccessMessage(`Sent ${successCount}/${selectedUsers.size} emails successfully`);
       
-      setSuccessMessage(`Sent ${successful} emails successfully${failed > 0 ? `, ${failed} failed` : ''}`);
-      
-      // נקה בחירה ורענן נתונים
-      setSelectedUsers(new Set());
+      // רענן את הנתונים
       await Promise.all([fetchAllUsers(), fetchStats()]);
+      
+      // נקה את הבחירה
+      setSelectedUsers(new Set());
 
     } catch (err) {
       console.error('❌ Error sending bulk emails:', err);
@@ -305,14 +305,14 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
     }
   };
 
-  // הרצת קמפיין מלא
+  // הרצת קמפיין יומי מלא (בוקר)
   const runFullCampaign = async () => {
     setIsRunningCampaign(true);
     setError(null);
     setSuccessMessage(null);
 
     try {
-      console.log('🚀 Running full campaign...');
+      console.log('🚀 Running full daily campaign...');
       
       const response = await fetch('/api/admin/engagement/run-now', {
         method: 'POST',
@@ -324,8 +324,8 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
         throw new Error(data.error || 'Failed to run campaign');
       }
 
-      console.log('✅ Campaign complete:', data);
-      setSuccessMessage(`Campaign complete! Processed: ${data.processed}, Sent: ${data.sent}`);
+      console.log('✅ Daily campaign complete:', data);
+      setSuccessMessage(`Daily Campaign complete! Processed: ${data.processed}, Sent: ${data.sent}`);
       
       // רענן את הנתונים
       await Promise.all([fetchAllUsers(), fetchStats()]);
@@ -335,6 +335,39 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
       setError(err instanceof Error ? err.message : 'Failed to run campaign');
     } finally {
       setIsRunningCampaign(false);
+    }
+  };
+
+  // 🌙 הרצת קמפיין ערב
+  const runEveningCampaign = async () => {
+    setIsRunningEveningCampaign(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      console.log('🌙 Running evening feedback campaign...');
+      
+      const response = await fetch('/api/admin/engagement/run-evening', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to run evening campaign');
+      }
+
+      console.log('✅ Evening campaign complete:', data);
+      setSuccessMessage(`Evening Campaign complete! Processed: ${data.processed}, Sent: ${data.sent}`);
+      
+      // רענן את הנתונים
+      await Promise.all([fetchAllUsers(), fetchStats()]);
+
+    } catch (err) {
+      console.error('❌ Error running evening campaign:', err);
+      setError(err instanceof Error ? err.message : 'Failed to run evening campaign');
+    } finally {
+      setIsRunningEveningCampaign(false);
     }
   };
 
@@ -368,51 +401,55 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
   };
 
   // ===============================
-  // Loading & Error States
+  // Render
   // ===============================
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <RefreshCw className="w-12 h-12 animate-spin text-primary-600 mx-auto mb-4" />
+          <RefreshCw className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
-  // ===============================
-  // Main Render
-  // ===============================
-
   return (
-    <div className="min-h-screen bg-gray-50 p-6" dir="rtl">
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Engagement Dashboard
-        </h1>
-        <p className="text-gray-600">
-          Manage and monitor user engagement campaigns
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Engagement Dashboard
+            </h1>
+            <p className="text-gray-600">
+              Manage and monitor user engagement campaigns
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-gray-400" />
+            <span className="text-sm text-gray-600">
+              Last updated: {new Date().toLocaleTimeString('he-IL')}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Alerts */}
+      {/* Error/Success Messages */}
       {error && (
         <div className="max-w-7xl mx-auto mb-6">
-          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-            <p className="font-medium">Error</p>
-            <p className="text-sm">{error}</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-800 text-sm">{error}</p>
           </div>
         </div>
       )}
 
       {successMessage && (
         <div className="max-w-7xl mx-auto mb-6">
-          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
-            <p className="font-medium">Success</p>
-            <p className="text-sm">{successMessage}</p>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="text-green-800 text-sm">{successMessage}</p>
           </div>
         </div>
       )}
@@ -469,7 +506,7 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
                 </p>
               </div>
 
-              {/* Email Type Selector */}
+              {/* Email Type Selector and Campaign Buttons */}
               <div className="flex gap-2">
                 <select
                   value={selectedEmailType}
@@ -484,20 +521,42 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
                   <option value="ONBOARDING">👋 Onboarding</option>
                 </select>
 
+                {/* 🌙 Evening Campaign Button */}
+                <button
+                  onClick={runEveningCampaign}
+                  disabled={isRunningEveningCampaign}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  title="Run Evening Feedback Campaign"
+                >
+                  {isRunningEveningCampaign ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Running Evening...
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="w-4 h-4" />
+                      Evening Campaign
+                    </>
+                  )}
+                </button>
+
+                {/* 🚀 Daily Campaign Button */}
                 <button
                   onClick={runFullCampaign}
                   disabled={isRunningCampaign}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  title="Run Daily Campaign"
                 >
                   {isRunningCampaign ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      Running...
+                      Running Daily...
                     </>
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
-                      Run Campaign
+                      Daily Campaign
                     </>
                   )}
                 </button>
