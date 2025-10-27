@@ -93,7 +93,7 @@
     "react-hook-form": "^7.54.1",
     "react-input-mask": "^2.0.4",
     "react-phone-number-input": "^3.4.12",
-    "react-quill": "^2.0.0",
+    "react-quill-new": "^3.6.0",
     "react-resizable-panels": "^2.1.7",
     "react-tooltip": "^5.28.1",
     "react-transition-group": "^4.4.5",
@@ -142,7 +142,7 @@
     "typescript": "^5",
     "typescript-eslint": "^8.39.1"
   },
-   "overrides": {                
+  "overrides": {
     "@types/react": "npm:types-react@19.0.0-rc.1",
     "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1"
   },

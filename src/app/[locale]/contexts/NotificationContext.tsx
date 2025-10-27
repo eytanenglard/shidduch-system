@@ -45,7 +45,8 @@ export function NotificationProvider({
   });
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(true);
 
-  const pollingInterval = useRef<NodeJS.Timeout | undefined>();
+  // --- FIX: Provide 'undefined' as the initial value for useRef ---
+  const pollingInterval = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const fetchNotifications = useCallback(async () => {
     if (status !== "authenticated" || !session?.user?.id) {
