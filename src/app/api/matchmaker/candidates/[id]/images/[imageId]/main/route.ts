@@ -8,7 +8,7 @@ import { UserRole } from "@prisma/client";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; imageId: string } }
+  props: { params: Promise<{ id: string; imageId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -33,7 +33,9 @@ export async function PATCH(
       );
     }
     
-    const { id, imageId } = params; // שימוש ישיר ב-params
+    // Await params before destructuring
+    const params = await props.params;
+    const { id, imageId } = params;
 
     const candidate = await prisma.user.findUnique({
       where: { id },
