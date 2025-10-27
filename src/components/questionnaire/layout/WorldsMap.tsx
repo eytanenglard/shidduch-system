@@ -560,7 +560,7 @@ export default function WorldsMap({
           </motion.div>
         )}
       </div>
-      <style jsx global>{`
+      <style>{`
         @keyframes pulse-slow {
           50% {
             opacity: 0.9;

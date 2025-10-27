@@ -450,7 +450,7 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
       >
         {isOpen && <DialogBody {...props} onOpenChange={handleOpenChange} />}
       </DialogContent>
-      <style jsx global>{`
+      <style>{`
         @keyframes shimmer {
           100% {
             transform: translateX(100%);

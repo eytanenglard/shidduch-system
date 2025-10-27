@@ -2,6 +2,24 @@
 
 import type { MatchSuggestionStatus } from "@prisma/client";
 import type { SuggestionsCardDict } from "@/types/dictionary";
+import {
+  FileText,
+  Clock,
+  CheckCircle,
+  XCircle,
+  UserPlus,
+  Heart,
+  Handshake,
+  Phone,
+  Calendar,
+  Brain,
+  ArrowRight,
+  Star,
+  Gift,
+  AlertTriangle,
+  FileX,
+  Ban
+} from "lucide-react";
 
 export interface StatusWithPartyInfo {
   label: string;
@@ -25,7 +43,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "טיוטה",
       description: dict.statusDescriptions.draft,
       currentParty: "matchmaker",
-      icon: require("lucide-react").FileText,
+      icon: FileText,
       className: "bg-gradient-to-r from-gray-100 to-slate-100 text-gray-700 border-gray-200",
       pulse: false,
       category: "pending"
@@ -38,7 +56,7 @@ export function getEnhancedStatusInfo(
         ? dict.statusDescriptions.pendingFirstPartyUser
         : dict.statusDescriptions.pendingFirstPartyOther,
       currentParty: "first",
-      icon: require("lucide-react").Clock,
+      icon: Clock,
       className: "bg-gradient-to-r from-purple-50 to-violet-50 text-purple-700 border-purple-200",
       pulse: true,
       category: "pending"
@@ -51,7 +69,7 @@ export function getEnhancedStatusInfo(
         ? dict.statusDescriptions.firstPartyApprovedUser
         : dict.statusDescriptions.firstPartyApprovedOther,
       currentParty: "matchmaker",
-      icon: require("lucide-react").CheckCircle,
+      icon: CheckCircle,
       className: "bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-700 border-emerald-200",
       pulse: false,
       category: "approved"
@@ -64,7 +82,7 @@ export function getEnhancedStatusInfo(
         ? dict.statusDescriptions.firstPartyDeclinedUser
         : dict.statusDescriptions.firstPartyDeclinedOther,
       currentParty: "none",
-      icon: require("lucide-react").XCircle,
+      icon: XCircle,
       className: "bg-gradient-to-r from-red-50 to-rose-50 text-red-700 border-red-200",
       pulse: false,
       category: "declined"
@@ -77,7 +95,7 @@ export function getEnhancedStatusInfo(
         ? dict.statusDescriptions.pendingSecondPartyUser
         : dict.statusDescriptions.pendingSecondPartyOther,
       currentParty: "second",
-      icon: require("lucide-react").UserPlus,
+      icon: UserPlus,
       className: "bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-700 border-blue-200",
       pulse: true,
       category: "pending"
@@ -90,7 +108,7 @@ export function getEnhancedStatusInfo(
         ? dict.statusDescriptions.secondPartyApprovedUser
         : dict.statusDescriptions.secondPartyApprovedOther,
       currentParty: "matchmaker",
-      icon: require("lucide-react").Heart,
+      icon: Heart,
       className: "bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-700 border-emerald-200",
       pulse: true,
       category: "approved"
@@ -103,7 +121,7 @@ export function getEnhancedStatusInfo(
         ? dict.statusDescriptions.secondPartyDeclinedUser
         : dict.statusDescriptions.secondPartyDeclinedOther,
       currentParty: "none",
-      icon: require("lucide-react").XCircle,
+      icon: XCircle,
       className: "bg-gradient-to-r from-red-50 to-rose-50 text-red-700 border-red-200",
       pulse: false,
       category: "declined"
@@ -114,7 +132,7 @@ export function getEnhancedStatusInfo(
       shortLabel: `אישור ${dict.statusIndicator.matchmaker}`,
       description: dict.statusDescriptions.awaitingMatchmakerApproval,
       currentParty: "matchmaker",
-      icon: require("lucide-react").Handshake,
+      icon: Handshake,
       className: "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200",
       pulse: true,
       category: "pending"
@@ -125,7 +143,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "פרטים שותפו",
       description: dict.statusDescriptions.contactDetailsShared,
       currentParty: "both",
-      icon: require("lucide-react").Phone,
+      icon: Phone,
       className: "bg-gradient-to-r from-cyan-50 to-emerald-50 text-cyan-700 border-cyan-200",
       pulse: false,
       category: "progress"
@@ -136,7 +154,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "משוב פגישה",
       description: dict.statusDescriptions.awaitingFirstDateFeedback,
       currentParty: "both",
-      icon: require("lucide-react").Calendar,
+      icon: Calendar,
       className: "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200",
       pulse: true,
       category: "pending"
@@ -147,7 +165,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "בחשיבה",
       description: dict.statusDescriptions.thinkingAfterDate,
       currentParty: "both",
-      icon: require("lucide-react").Brain,
+      icon: Brain,
       className: "bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-700 border-blue-200",
       pulse: false,
       category: "pending"
@@ -158,7 +176,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "פגישה שנייה",
       description: dict.statusDescriptions.proceedingToSecondDate,
       currentParty: "both",
-      icon: require("lucide-react").ArrowRight,
+      icon: ArrowRight,
       className: "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border-green-200",
       pulse: false,
       category: "progress"
@@ -169,7 +187,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "הסתיים",
       description: dict.statusDescriptions.endedAfterFirstDate,
       currentParty: "none",
-      icon: require("lucide-react").XCircle,
+      icon: XCircle,
       className: "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-700 border-gray-200",
       pulse: false,
       category: "completed"
@@ -180,7 +198,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "פגישה ממתינה",
       description: dict.statusDescriptions.meetingPending,
       currentParty: "matchmaker",
-      icon: require("lucide-react").Clock,
+      icon: Clock,
       className: "bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-700 border-blue-200",
       pulse: true,
       category: "pending"
@@ -191,7 +209,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "פגישה קבועה",
       description: dict.statusDescriptions.meetingScheduled,
       currentParty: "both",
-      icon: require("lucide-react").Calendar,
+      icon: Calendar,
       className: "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border-green-200",
       pulse: false,
       category: "progress"
@@ -202,7 +220,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "אושר",
       description: dict.statusDescriptions.matchApproved,
       currentParty: "both",
-      icon: require("lucide-react").CheckCircle,
+      icon: CheckCircle,
       className: "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border-green-200",
       pulse: false,
       category: "approved"
@@ -213,7 +231,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "נדחה",
       description: dict.statusDescriptions.matchDeclined,
       currentParty: "none",
-      icon: require("lucide-react").XCircle,
+      icon: XCircle,
       className: "bg-gradient-to-r from-red-50 to-rose-50 text-red-700 border-red-200",
       pulse: false,
       category: "declined"
@@ -224,7 +242,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "בהיכרות",
       description: dict.statusDescriptions.dating,
       currentParty: "both",
-      icon: require("lucide-react").Heart,
+      icon: Heart,
       className: "bg-gradient-to-r from-pink-50 to-rose-50 text-pink-700 border-pink-200",
       pulse: false,
       category: "progress"
@@ -235,7 +253,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "מאורסים",
       description: dict.statusDescriptions.engaged,
       currentParty: "both",
-      icon: require("lucide-react").Star,
+      icon: Star,
       className: "bg-gradient-to-r from-yellow-50 to-amber-50 text-yellow-700 border-yellow-200",
       pulse: true,
       category: "completed"
@@ -246,7 +264,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "נשואים",
       description: dict.statusDescriptions.married,
       currentParty: "both",
-      icon: require("lucide-react").Gift,
+      icon: Gift,
       className: "bg-gradient-to-r from-rose-50 to-pink-50 text-rose-700 border-rose-200",
       pulse: true,
       category: "completed"
@@ -257,7 +275,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "פג תוקף",
       description: dict.statusDescriptions.expired,
       currentParty: "none",
-      icon: require("lucide-react").AlertTriangle,
+      icon: AlertTriangle,
       className: "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-700 border-gray-200",
       pulse: false,
       category: "completed"
@@ -268,7 +286,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "נסגרה",
       description: dict.statusDescriptions.closed,
       currentParty: "none",
-      icon: require("lucide-react").FileX,
+      icon: FileX,
       className: "bg-gradient-to-r from-slate-50 to-gray-50 text-slate-700 border-slate-200",
       pulse: false,
       category: "completed"
@@ -279,7 +297,7 @@ export function getEnhancedStatusInfo(
       shortLabel: "בוטלה",
       description: dict.statusDescriptions.cancelled,
       currentParty: "none",
-      icon: require("lucide-react").Ban,
+      icon: Ban,
       className: "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-700 border-gray-200",
       pulse: false,
       category: "completed"
