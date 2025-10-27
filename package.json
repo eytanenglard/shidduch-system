@@ -86,9 +86,9 @@
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.16",
     "papaparse": "^5.5.1",
-    "react": "^18.3.1",
+    "react": "^19.0.0",
     "react-day-picker": "^9.6.4",
-    "react-dom": "^18.3.1",
+    "react-dom": "^19.0.0",
     "react-google-autocomplete": "^2.7.5",
     "react-hook-form": "^7.54.1",
     "react-input-mask": "^2.0.4",
@@ -117,9 +117,9 @@
     "@types/node": "^20.17.5",
     "@types/nodemailer": "^6.4.16",
     "@types/papaparse": "^5.3.15",
-    "@types/react": "^18.3.25",
+    "@types/react": "npm:types-react@19.0.0-rc.1",
     "@types/react-day-picker": "^5.2.1",
-    "@types/react-dom": "^18.3.7",
+    "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1",
     "@types/react-phone-number-input": "^3.0.17",
     "@types/react-transition-group": "^4.4.11",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
@@ -141,6 +141,10 @@
     "tsx": "^4.20.6",
     "typescript": "^5",
     "typescript-eslint": "^8.39.1"
+  },
+   "overrides": {                
+    "@types/react": "npm:types-react@19.0.0-rc.1",
+    "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1"
   },
   "prisma": {
     "schema": "prisma/schema.prisma",

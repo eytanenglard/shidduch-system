@@ -263,10 +263,10 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${activeTab === index ? `bg-gradient-to-br ${principle.gradient} shadow-lg` : 'bg-white/60 shadow-sm'}`}
                   >
-                    {React.cloneElement(principle.icon as React.ReactElement, {
-                      className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
-                      strokeWidth: 2.5,
-                    })}
+                 {React.cloneElement(principle.icon as React.ReactElement<{ className?: string; strokeWidth?: number }>, {
+  className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
+  strokeWidth: 2.5,
+})}
                   </div>
                 </div>
                 <div
