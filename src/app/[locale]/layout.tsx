@@ -3,7 +3,6 @@
 import { Inter } from 'next/font/google';
 import '../globals.css';
 import Providers from '@/components/Providers';
-// 'LanguageProvider' הוסר מכיוון שהוא גרם לחוסר תאימות ברינדור
 import AppContent from './AppContent';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import AccessibilityFeatures from '@/components/questionnaire/components/AccessibilityFeatures';
@@ -13,19 +12,23 @@ import { Locale } from '../../../i18n-config';
 import FeedbackWidget from '@/components/layout/FeedbackWidget';
 import { QuestionnaireStateProvider } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
-// הגדרת הפונט נשארת ללא שינוי
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
 });
 
-// פונקציית יצירת המטא-דאטה נשארת ללא שינוי
-export async function generateMetadata({
-  params: { locale },
-}: {
-  params: { locale: Locale };
+// ✅ Next.js 15: params is a Promise with string type (not union)
+type LayoutParams = Promise<{
+  locale: string;
+}>;
+
+export async function generateMetadata(props: {
+  params: LayoutParams;
 }): Promise<Metadata> {
+  const params = await props.params;
+  const locale = params.locale as Locale;
+  
   const dictionary = await getDictionary(locale);
   return {
     title: dictionary.metadata.title,
@@ -36,28 +39,25 @@ export async function generateMetadata({
   };
 }
 
-// רכיב ה-Layout הראשי של האפליקציה
-export default async function RootLayout({
-  children,
-  params,
-}: {
+// ✅ Next.js 15: params is a Promise with string type (not union)
+export default async function RootLayout(props: {
   children: React.ReactNode;
-  params: { locale: Locale };
+  params: LayoutParams;
 }) {
-  // טעינת המילון המתאים לשפה מה-URL. פעולה זו מתבצעת בשרת.
-  const dictionary = await getDictionary(params.locale);
+  const params = await props.params;
+  const locale = params.locale as Locale;
+  
+  // טעינת המילון המתאים לשפה מה-URL
+  const dictionary = await getDictionary(locale);
 
   // הגדרת כיווניות (direction) על סמך השפה
-  const direction = params.locale === 'he' ? 'rtl' : 'ltr';
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   return (
-    // תגית ה-html מקבלת את השפה והכיווניות ישירות מה-URL.
-    // זה מבטיח שה-HTML הראשוני שהשרת שולח תמיד יהיה נכון.
     <html
-      lang={params.locale}
+      lang={locale}
       dir={direction}
       className={direction === 'rtl' ? 'dir-rtl' : 'dir-ltr'}
-      // מומלץ להשאיר אזהרה זו למקרה שיש תוספים שגורמים לבעיות הידרציה
       suppressHydrationWarning
     >
       <head />
@@ -67,25 +67,15 @@ export default async function RootLayout({
       >
         <GoogleAnalytics />
         <Providers>
-          {/* 
-            הסרנו את LanguageProvider. 
-            כעת, אין יותר מצב גלובלי נפרד לשפה בצד הלקוח שמתנגש עם השרת.
-            השפה נקבעת אך ורק על ידי ה-URL.
-          */}
           <QuestionnaireStateProvider dict={dictionary}>
-            <FeedbackWidget
-              dict={dictionary.feedbackWidget}
-              locale={params.locale}
-            />
-
-            {/* 
-              אנו מעבירים את המילון וחשוב מכך, את השפה (locale),
-              ישירות כ-props לרכיב AppContent. 
-              רכיב זה יוכל להעביר אותם הלאה לרכיבים שתחתיו במידת הצורך.
-            */}
-            <AppContent dict={dictionary}>{children}</AppContent>
+            <AppContent dict={dictionary}>
+              <FeedbackWidget
+                dict={dictionary.feedbackWidget}
+                locale={locale}
+              />
+              {props.children}
+            </AppContent>
           </QuestionnaireStateProvider>
-
           <AccessibilityFeatures
             dict={dictionary.questionnaire.accessibilityFeatures}
           />

@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
 
 type RouteSegment<T> = (
   request: NextRequest,
-  props: { params: Promise<T> }
+  props: { params: Promise<T> } // ✅ שינוי: התאמה ל-Next.js 15
 ) => Promise<NextResponse> | NextResponse;
 
 const handler: RouteSegment<{ id: string }> = async (req, { params: paramsPromise }) => {
@@ -25,8 +25,7 @@ const handler: RouteSegment<{ id: string }> = async (req, { params: paramsPromis
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
-    
-    const params = await paramsPromise;
+
     const url = new URL(req.url);
     const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
 
@@ -35,6 +34,8 @@ const handler: RouteSegment<{ id: string }> = async (req, { params: paramsPromis
     if (typeof isAvailable !== 'boolean') {
         return NextResponse.json({ success: false, error: "Bad Request: 'isAvailable' must be a boolean." }, { status: 400 });
     }
+
+    const params = await paramsPromise; // ✅ שינוי: הוספת await
 
     const updatedInquiry = await AvailabilityService.updateInquiryResponse({
       inquiryId: params.id,

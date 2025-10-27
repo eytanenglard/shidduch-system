@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
     // --- הוספת לוגיקת Rate Limiting ---
     if (process.env.NODE_ENV === 'production' && process.env.UPSTASH_REDIS_REST_URL) {
       const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-      const ip = req.ip ?? '127.0.0.1';
+const ip = req.headers.get('x-forwarded-for') ?? '127.0.0.1';
       const identifier = token?.sub ?? ip;
       const { success } = await ratelimit.limit(identifier);
 

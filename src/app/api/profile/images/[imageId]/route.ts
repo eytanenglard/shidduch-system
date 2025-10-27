@@ -20,7 +20,7 @@ cloudinary.config({
 
 export async function DELETE(
   request: Request,
-  props: { params: Promise<{ imageId: string }> }
+  props: { params: Promise<{ imageId: string }> } // ✅ שינוי: התאמה ל-Next.js 15
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -31,7 +31,7 @@ export async function DELETE(
       );
     }
 
-    const params = await props.params;
+    const params = await props.params; // ✅ שינוי: הוספת await
     const { imageId } = params;
     
     const image = await prisma.userImage.findUnique({
@@ -95,7 +95,7 @@ export async function DELETE(
 
 export async function PUT(
   request: Request,
-  props: { params: Promise<{ imageId: string }> }
+  props: { params: Promise<{ imageId: string }> } // ✅ שינוי: התאמה ל-Next.js 15
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -106,7 +106,7 @@ export async function PUT(
       );
     }
 
-    const params = await props.params;
+    const params = await props.params; // ✅ שינוי: הוספת await
     const { imageId } = params;
 
     const image = await prisma.userImage.findUnique({

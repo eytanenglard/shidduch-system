@@ -7,19 +7,28 @@ import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
 import { v2 as cloudinary } from 'cloudinary';
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// Configure Cloudinary
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
+if (!cloudName || !apiKey || !apiSecret) {
+  console.error("Missing required Cloudinary environment variables");
+} else {
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+  });
+}
+
+// DELETE request handler for deleting an image
 export async function DELETE(
   req: NextRequest,
-  props: { params: Promise<{ id: string; imageId: string }> }
+  props: { params: Promise<{ id: string; imageId: string }> } // ✅ שינוי: התאמה ל-Next.js 15
 ) {
   try {
     const session = await getServerSession(authOptions);
-
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -40,8 +49,7 @@ export async function DELETE(
       );
     }
 
-    // Await params before destructuring
-    const params = await props.params;
+    const params = await props.params; // ✅ שינוי: הוספת await
     const { id, imageId } = params;
 
     console.log(`Handling DELETE request for candidate ${id}, image ${imageId}`);

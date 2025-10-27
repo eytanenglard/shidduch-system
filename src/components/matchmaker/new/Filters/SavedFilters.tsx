@@ -1,4 +1,4 @@
-// SavedFilters.tsx - גרסה מודרנית ומשודרגת
+// SavedFilters.tsx - This file is correct. The issue lies in the UI component definitions.
 'use client';
 import React from 'react';
 import {

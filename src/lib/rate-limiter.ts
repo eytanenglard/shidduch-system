@@ -35,7 +35,10 @@ export async function applyRateLimit(req: NextRequest, config: RateLimitConfig):
   }
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const identifier = token?.sub ?? req.ip ?? '127.0.0.1';
+  
+  // FIX: Use 'x-forwarded-for' header to get the IP address
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '127.0.0.1';
+  const identifier = token?.sub ?? ip;
 
   const ratelimit = new Ratelimit({
     redis: redis,

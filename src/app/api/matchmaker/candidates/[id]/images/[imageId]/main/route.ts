@@ -8,11 +8,10 @@ import { UserRole } from "@prisma/client";
 
 export async function PATCH(
   req: NextRequest,
-  props: { params: Promise<{ id: string; imageId: string }> }
+  props: { params: Promise<{ id: string; imageId: string }> } // ✅ שינוי: התאמה ל-Next.js 15
 ) {
   try {
     const session = await getServerSession(authOptions);
-
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -32,9 +31,8 @@ export async function PATCH(
         { status: 403 }
       );
     }
-    
-    // Await params before destructuring
-    const params = await props.params;
+
+    const params = await props.params; // ✅ שינוי: הוספת await
     const { id, imageId } = params;
 
     const candidate = await prisma.user.findUnique({

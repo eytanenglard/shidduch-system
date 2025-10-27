@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api
-# Generated on: 2025-10-27 08:22:50
+# Generated on: 2025-10-27 08:42:35
 ################################################################################
 
 ================================================================================
@@ -15171,9 +15171,13 @@ import { emailService } from "@/lib/email/emailService";
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * GET: אחזור פרופיל של מועמד ספציפי.
+ * נגיש לשדכנים ומנהלים.
+ */
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15197,7 +15201,8 @@ export async function GET(
       );
     }
 
-    const { id } = context.params;
+    const params = await props.params;
+    const { id } = params;
 
     const candidateData = await prisma.user.findUnique({
       where: { id },
@@ -15246,9 +15251,13 @@ export async function GET(
   }
 }
 
+/**
+ * PATCH: עדכון פרטי פרופיל של מועמד.
+ * נגיש לשדכנים ומנהלים. מעבד רק את השדות שנשלחו בבקשה.
+ */
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15275,7 +15284,8 @@ export async function PATCH(
       );
     }
     
-    const { id: candidateIdToUpdate } = context.params;
+    const params = await props.params;
+    const { id: candidateIdToUpdate } = params;
 
     const candidateToUpdate = await prisma.user.findUnique({
       where: { id: candidateIdToUpdate },
@@ -15424,12 +15434,18 @@ export async function PATCH(
   }
 }
 
+/**
+ * DELETE: מחיקת מועמד.
+ * נגיש למנהלים בלבד.
+ */
 export async function DELETE(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
-  const candidateIdToDelete = context.params.id;
   const timestamp = new Date().toISOString();
+  
+  const params = await props.params;
+  const candidateIdToDelete = params.id;
   
   console.log(`[${timestamp}] DELETE request for candidate ID: ${candidateIdToDelete}`);
 
@@ -15929,7 +15945,7 @@ import { VerificationService } from "@/lib/services/verificationService";
 import { emailService } from "@/lib/email/emailService";
 import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 
-export async function POST(req: NextRequest, context: { params: { id: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });
   if (rateLimitResponse) {
     return rateLimitResponse;
@@ -15944,7 +15960,8 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
     const url = new URL(req.url);
     const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
 
-    const candidateId = context.params.id;
+    const params = await props.params;
+    const candidateId = params.id;
     const body = await req.json();
     const { email } = body;
 
@@ -16274,7 +16291,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: Request,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16295,7 +16312,8 @@ export async function GET(
         );
     }
 
-    const inquiry = await AvailabilityService.getInquiryById(context.params.id);
+    const params = await props.params;
+    const inquiry = await AvailabilityService.getInquiryById(params.id);
     
     if (!inquiry) {
         return NextResponse.json({ error: "Inquiry not found or access denied" }, { status: 404 });
@@ -16337,10 +16355,10 @@ export const runtime = 'nodejs';
 
 type RouteSegment<T> = (
   request: NextRequest,
-  context: { params: T }
+  props: { params: Promise<T> }
 ) => Promise<NextResponse> | NextResponse;
 
-const handler: RouteSegment<{ id: string }> = async (req, context) => {
+const handler: RouteSegment<{ id: string }> = async (req, { params: paramsPromise }) => {
   try {
     const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });
     if (rateLimitResponse) {
@@ -16351,7 +16369,8 @@ const handler: RouteSegment<{ id: string }> = async (req, context) => {
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
-
+    
+    const params = await paramsPromise;
     const url = new URL(req.url);
     const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
 
@@ -16362,7 +16381,7 @@ const handler: RouteSegment<{ id: string }> = async (req, context) => {
     }
 
     const updatedInquiry = await AvailabilityService.updateInquiryResponse({
-      inquiryId: context.params.id,
+      inquiryId: params.id,
       userId: session.user.id,
       isAvailable,
       note,
@@ -16714,7 +16733,7 @@ import { SuggestionService } from "@/components/matchmaker/suggestions/services/
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16733,7 +16752,8 @@ export async function PATCH(
       );
     }
     
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
     const data = await req.json();
     
     const suggestionService = SuggestionService.getInstance();
@@ -16805,7 +16825,7 @@ import { UserRole } from "@prisma/client";
 
 export async function DELETE(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16823,7 +16843,8 @@ export async function DELETE(
       );
     }
 
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
 
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
@@ -16867,12 +16888,8 @@ export async function DELETE(
     await prisma.matchSuggestion.update({
       where: { id: suggestionId },
       data: {
-        approvedBy: {
-          set: []
-        },
-        reviewedBy: {
-          set: []
-        }
+        approvedBy: { set: [] },
+        reviewedBy: { set: [] }
       }
     });
 
@@ -16926,11 +16943,12 @@ initNotificationService();
 
 export async function POST(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
 
     if (!session?.user?.id || !session.user.role) {
       return NextResponse.json({ error: 'Unauthorized - Invalid session' }, { status: 401 });
@@ -17016,7 +17034,7 @@ const notificationService = initNotificationService();
 
 export async function POST(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17029,7 +17047,8 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 });
     }
 
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
     const { partyType } = await req.json();
 
     const url = new URL(req.url);
@@ -17136,7 +17155,7 @@ import { getDictionary } from "@/lib/dictionaries";
 
 export async function POST(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17149,7 +17168,8 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 });
     }
 
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
     const { partyType } = await req.json();
 
     const url = new URL(req.url);
@@ -17264,7 +17284,7 @@ import { getDictionary } from "@/lib/dictionaries";
 
 export async function POST(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17277,7 +17297,8 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 });
     }
 
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
 
     const url = new URL(req.url);
     const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
@@ -17365,7 +17386,7 @@ const updateStatusSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17400,7 +17421,8 @@ export async function PATCH(
     }
     
     const { status, notes } = validationResult.data;
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
@@ -17489,7 +17511,9 @@ export async function PATCH(
 
   } catch (error) {
     console.error("Error updating suggestion status:", error);
+    
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
     return NextResponse.json(
       { 
         success: false, 
@@ -17503,7 +17527,7 @@ export async function PATCH(
 
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17511,13 +17535,14 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const params = await props.params;
     const searchParams = new URL(req.url).searchParams;
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
     const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 50;
 
     const suggestion = await prisma.matchSuggestion.findUnique({
-      where: { id: context.params.id },
+      where: { id: params.id },
       select: {
         id: true,
         status: true,
@@ -17544,7 +17569,7 @@ export async function GET(
     
     const historyQuery = {
       where: {
-        suggestionId: context.params.id,
+        suggestionId: params.id,
         ...(startDate && {
           createdAt: {
             gte: new Date(startDate),
@@ -17607,7 +17632,9 @@ export async function GET(
 
   } catch (error) {
     console.error("Error fetching suggestion history:", error);
+    
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
     return NextResponse.json(
       { error: "Failed to fetch history", details: errorMessage },
       { status: 500 }
@@ -17617,7 +17644,7 @@ export async function GET(
 
 export async function HEAD(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17625,8 +17652,9 @@ export async function HEAD(
       return new Response(null, { status: 401 });
     }
 
+    const params = await props.params;
     const suggestion = await prisma.matchSuggestion.findUnique({
-      where: { id: context.params.id },
+      where: { id: params.id },
       select: {
         id: true,
         status: true,
@@ -20547,7 +20575,7 @@ cloudinary.config({
 
 export async function DELETE(
   request: Request,
-  context: { params: { imageId: string } }
+  props: { params: Promise<{ imageId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -20558,7 +20586,8 @@ export async function DELETE(
       );
     }
 
-    const { imageId } = context.params;
+    const params = await props.params;
+    const { imageId } = params;
     
     const image = await prisma.userImage.findUnique({
       where: { id: imageId },
@@ -20621,7 +20650,7 @@ export async function DELETE(
 
 export async function PUT(
   request: Request,
-  context: { params: { imageId: string } }
+  props: { params: Promise<{ imageId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -20632,7 +20661,8 @@ export async function PUT(
       );
     }
 
-    const { imageId } = context.params;
+    const params = await props.params;
+    const { imageId } = params;
 
     const image = await prisma.userImage.findUnique({
       where: { id: imageId },
@@ -21325,18 +21355,24 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\tes
 --------------------------------------------------------------------------------
 Content:
 // src/app/api/profile/testimonials/[testimonialId]/route.ts
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { TestimonialStatus } from '@prisma/client';
 
 // PUT - Update a testimonial's status
-export async function PUT(req: Request, { params }: { params: { testimonialId: string } }) {
+export async function PUT(
+  req: NextRequest, 
+  props: { params: Promise<{ testimonialId: string }> } // 1. עדכון חתימת הפונקציה
+) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.profile?.id) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
   }
+
+  // 2. הוספת await לקבלת הפרמטרים
+  const params = await props.params;
 
   const { status } = await req.json() as { status: TestimonialStatus };
   if (!Object.values(TestimonialStatus).includes(status)) {
@@ -21345,7 +21381,7 @@ export async function PUT(req: Request, { params }: { params: { testimonialId: s
 
   const updatedTestimonial = await prisma.friendTestimonial.updateMany({
     where: {
-      id: params.testimonialId,
+      id: params.testimonialId, // 3. שימוש בפרמטר המתוקן
       profileId: session.user.profile.id, // Ensure ownership
     },
     data: { status },
@@ -21359,15 +21395,21 @@ export async function PUT(req: Request, { params }: { params: { testimonialId: s
 }
 
 // DELETE a testimonial
-export async function DELETE(req: Request, { params }: { params: { testimonialId: string } }) {
+export async function DELETE(
+  req: NextRequest, 
+  props: { params: Promise<{ testimonialId: string }> } // 1. עדכון חתימת הפונקציה
+) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.profile?.id) {
         return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
+    // 2. הוספת await לקבלת הפרמטרים
+    const params = await props.params;
+
     const deletedTestimonial = await prisma.friendTestimonial.deleteMany({
         where: {
-            id: params.testimonialId,
+            id: params.testimonialId, // 3. שימוש בפרמטר המתוקן
             profileId: session.user.profile.id, // Ensure ownership
         },
     });
@@ -23899,6 +23941,8 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\sugges
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\delete\route.ts
 --------------------------------------------------------------------------------
 Content:
+// src/app/api/suggestions/[id]/delete/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -23906,8 +23950,8 @@ import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
 
 export async function DELETE(
-  req: NextRequest, // req is not used, can be removed if not needed
-  context: { params: { id: string } }
+  req: NextRequest,
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -23915,9 +23959,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized - Invalid session" }, { status: 401 });
     }
 
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
 
-    // בדיקה שההצעה קיימת
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
     });
@@ -23926,55 +23970,33 @@ export async function DELETE(
       return NextResponse.json({ error: "Suggestion not found" }, { status: 404 });
     }
 
-    // ---- START OF CHANGE ----
-    // הרשאות:
-    // 1. אדמין יכול למחוק כל הצעה.
-    // 2. שדכן יכול למחוק רק הצעה שהוא יצר.
     const userRole = session.user.role as UserRole;
     const isOwner = suggestion.matchmakerId === session.user.id;
 
-    if (userRole === UserRole.ADMIN) {
-      // Admin can delete any suggestion
-    } else if (userRole === UserRole.MATCHMAKER && isOwner) {
-      // Matchmaker can delete their own suggestion
-    } else {
-      // Any other case is forbidden
+    if (userRole !== UserRole.ADMIN && !(userRole === UserRole.MATCHMAKER && isOwner)) {
       return NextResponse.json({ error: "Forbidden - Insufficient permissions to delete this suggestion" }, { status: 403 });
     }
-    // ---- END OF CHANGE ----
 
-    // מחיקת ההצעה וכל הנתונים הקשורים אליה (ודא ש-onDelete: Cascade מוגדר בסכמה אם רלוונטי)
-    // אם אין Cascade, יש למחוק רשומות קשורות ידנית קודם.
-    // הסדר הנוכחי שלך נראה טוב אם אין Cascade על הכל.
-    await prisma.$transaction(async (tx) => { // Changed to async for await inside
-      // מחיקת היסטוריית סטטוסים
+    await prisma.$transaction(async (tx) => {
       await tx.suggestionStatusHistory.deleteMany({
         where: { suggestionId },
       });
-      // מחיקת שאלות
       await tx.suggestionInquiry.deleteMany({
         where: { suggestionId },
       });
-      // מחיקת פגישות (אם קיימות וקשורות ישירות)
       await tx.meeting.deleteMany({
         where: { suggestionId },
       });
-      // Consider other related data like DateFeedback
       await tx.dateFeedback.deleteMany({
         where: { suggestionId },
       });
-
-      // הסרת קשרים בטבלאות קשר רבים-לרבים (אם יש)
-      // לדוגמה, אם יש קשר approvedBy, reviewedBy ב-MatchSuggestion
       await tx.matchSuggestion.update({
         where: { id: suggestionId },
         data: {
-          approvedBy: { set: [] }, // Assuming relation exists
-          reviewedBy: { set: [] }, // Assuming relation exists
+          approvedBy: { set: [] },
+          reviewedBy: { set: [] },
         }
       });
-      
-      // מחיקת ההצעה עצמה
       await tx.matchSuggestion.delete({
         where: { id: suggestionId },
       });
@@ -23987,7 +24009,6 @@ export async function DELETE(
 
   } catch (error) {
     console.error("Error deleting suggestion:", error);
-    // Consider more specific error handling (e.g., Prisma errors)
     return NextResponse.json(
       { error: "Internal server error during suggestion deletion" },
       { status: 500 }
@@ -24212,7 +24233,7 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\sugges
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\inquiries\mark-as-read\route.ts
 --------------------------------------------------------------------------------
 Content:
-// FILENAME: src/app/api/suggestions/[id]/inquiries/mark-as-read/route.ts
+// src/app/api/suggestions/[id]/inquiries/mark-as-read/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
@@ -24221,7 +24242,7 @@ import prisma from "@/lib/prisma";
 
 export async function POST(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -24229,7 +24250,8 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
     const userId = session.user.id;
 
     const updateResult = await prisma.suggestionInquiry.updateMany({
@@ -24260,7 +24282,7 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\sugges
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\status\route.ts
 --------------------------------------------------------------------------------
 Content:
-// src/app/api/matchmaker/suggestions/[id]/status/route.ts
+// src/app/api/suggestions/[id]/status/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -24274,11 +24296,15 @@ const updateStatusSchema = z.object({
   notes: z.string().optional(),
 });
 
+/**
+ * PATCH endpoint for updating suggestion status
+ */
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 1. User authentication
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json(
@@ -24287,6 +24313,7 @@ export async function PATCH(
       );
     }
 
+    // 2. Verify permissions
     if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { success: false, error: "Insufficient permissions" },
@@ -24294,6 +24321,7 @@ export async function PATCH(
       );
     }
 
+    // 3. Validate request data
     const body = await req.json();
     console.log("Received status update request:", body);
     
@@ -24311,7 +24339,10 @@ export async function PATCH(
     }
     
     const { status, notes } = validationResult.data;
-    const suggestionId = context.params.id;
+
+    // 4. Verify suggestion exists
+    const params = await props.params;
+    const suggestionId = params.id;
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
@@ -24328,6 +24359,7 @@ export async function PATCH(
       );
     }
 
+    // 5. Verify permission on specific suggestion
     if (suggestion.matchmaker.id !== session.user.id && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { success: false, error: "You don't have permission to update this suggestion" },
@@ -24335,6 +24367,7 @@ export async function PATCH(
       );
     }
 
+    // 6. Calculate category based on new status
     const getCategory = (status: MatchSuggestionStatus) => {
       switch (status) {
         case "DRAFT":
@@ -24359,8 +24392,12 @@ export async function PATCH(
       }
     };
 
+    // 7. Update status in a transaction
     const result = await prisma.$transaction(async (tx) => {
+      // Save previous status
       const previousStatus = suggestion.status;
+
+      // Update the suggestion
       const updatedSuggestion = await tx.matchSuggestion.update({
         where: { id: suggestionId },
         data: {
@@ -24369,12 +24406,15 @@ export async function PATCH(
           lastStatusChange: new Date(),
           lastActivity: new Date(),
           category: getCategory(status),
+          
+          // Update additional fields based on new status
           ...(status === MatchSuggestionStatus.CLOSED ? { closedAt: new Date() } : {}),
           ...(status === MatchSuggestionStatus.PENDING_FIRST_PARTY ? { firstPartySent: new Date() } : {}),
           ...(status === MatchSuggestionStatus.PENDING_SECOND_PARTY ? { secondPartySent: new Date() } : {}),
         },
       });
 
+      // Add status history record
       await tx.suggestionStatusHistory.create({
         data: {
           suggestionId,
@@ -24386,6 +24426,7 @@ export async function PATCH(
       return updatedSuggestion;
     });
 
+    // 8. Return success response
     return NextResponse.json({
       success: true,
       message: "Status updated successfully",
@@ -24400,7 +24441,10 @@ export async function PATCH(
 
   } catch (error) {
     console.error("Error updating suggestion status:", error);
+    
+    // Return detailed error message if available
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
     return NextResponse.json(
       { 
         success: false, 
@@ -24412,23 +24456,30 @@ export async function PATCH(
   }
 }
 
+/**
+ * GET endpoint for fetching suggestion history
+ */
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 1. User authentication
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // 2. Parse URL parameters
+    const params = await props.params;
     const searchParams = new URL(req.url).searchParams;
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
     const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 50;
 
+    // 3. Check viewing permissions
     const suggestion = await prisma.matchSuggestion.findUnique({
-      where: { id: context.params.id },
+      where: { id: params.id },
       select: {
         id: true,
         status: true,
@@ -24453,9 +24504,10 @@ export async function GET(
       return NextResponse.json({ error: "Not authorized to view this suggestion" }, { status: 403 });
     }
     
+    // 4. Build history query
     const historyQuery = {
       where: {
-        suggestionId: context.params.id,
+        suggestionId: params.id,
         ...(startDate && {
           createdAt: {
             gte: new Date(startDate),
@@ -24469,23 +24521,39 @@ export async function GET(
         suggestion: {
           select: {
             firstParty: {
-              select: { id: true, firstName: true, lastName: true },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
             },
             secondParty: {
-              select: { id: true, firstName: true, lastName: true },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
             },
             matchmaker: {
-              select: { id: true, firstName: true, lastName: true },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
             },
           },
         },
       },
-      orderBy: { createdAt: "desc" as const },
+      orderBy: {
+        createdAt: "desc" as const,
+      },
       take: limit,
     };
 
+    // 5. Fetch status change history
     const history = await prisma.suggestionStatusHistory.findMany(historyQuery);
 
+    // 6. Format results
     const formattedHistory = history.map(entry => ({
       id: entry.id,
       status: entry.status,
@@ -24518,7 +24586,9 @@ export async function GET(
 
   } catch (error) {
     console.error("Error fetching suggestion history:", error);
+    
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
     return NextResponse.json(
       { error: "Failed to fetch history", details: errorMessage },
       { status: 500 }
@@ -24526,18 +24596,24 @@ export async function GET(
   }
 }
 
+/**
+ * HEAD endpoint for getting status summary
+ */
 export async function HEAD(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 1. User authentication
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return new Response(null, { status: 401 });
     }
 
+    // 2. Fetch suggestion details
+    const params = await props.params;
     const suggestion = await prisma.matchSuggestion.findUnique({
-      where: { id: context.params.id },
+      where: { id: params.id },
       select: {
         id: true,
         status: true,
@@ -24552,6 +24628,7 @@ export async function HEAD(
       return new Response(null, { status: 404 });
     }
 
+    // 3. Check viewing permissions
     const canView = 
       session.user.role === UserRole.ADMIN ||
       suggestion.matchmakerId === session.user.id ||
@@ -24562,12 +24639,14 @@ export async function HEAD(
       return new Response(null, { status: 403 });
     }
 
+    // 4. Prepare headers
     const headers: Record<string, string> = {
       'X-Suggestion-Status': suggestion.status,
       'X-First-Party': suggestion.firstPartyId,
       'X-Second-Party': suggestion.secondPartyId,
     };
 
+    // Add lastStatusChange header only if it exists
     if (suggestion.lastStatusChange) {
       headers['X-Last-Status-Change'] = suggestion.lastStatusChange.toISOString();
     }
@@ -25103,7 +25182,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { TestimonialStatus } from '@prisma/client';
 
-export async function PUT(req: Request, context: { params: { testimonialId: string } }) {
+export async function PUT(req: Request, props: { params: Promise<{ testimonialId: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -25124,9 +25203,10 @@ export async function PUT(req: Request, context: { params: { testimonialId: stri
       return NextResponse.json({ success: false, message: 'Invalid status provided' }, { status: 400 });
     }
 
+    const params = await props.params;
     const updatedTestimonial = await prisma.friendTestimonial.updateMany({
       where: {
-        id: context.params.testimonialId,
+        id: params.testimonialId,
         profileId: userProfile.id,
       },
       data: { status },
@@ -25143,7 +25223,7 @@ export async function PUT(req: Request, context: { params: { testimonialId: stri
   }
 }
 
-export async function DELETE(req: Request, context: { params: { testimonialId: string } }) {
+export async function DELETE(req: Request, props: { params: Promise<{ testimonialId: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -25159,9 +25239,10 @@ export async function DELETE(req: Request, context: { params: { testimonialId: s
         return NextResponse.json({ success: false, message: 'Profile not found for current user' }, { status: 404 });
     }
 
+    const params = await props.params;
     const deletedTestimonial = await prisma.friendTestimonial.deleteMany({
         where: {
-            id: context.params.testimonialId,
+            id: params.testimonialId,
             profileId: userProfile.id,
         },
     });

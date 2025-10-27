@@ -10,7 +10,7 @@ import prisma from '@/lib/prisma';
 import { FeedbackType } from '@prisma/client';
 import { emailService } from '@/lib/email/emailService';
 
-// הגדרות Redis ו-Rate Limiter נשארות ברמה הגלובלית. זה תקין.
+// The Redis and Rate Limiter configurations remain at the global level. This is correct.
 if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
   console.warn('Upstash Redis credentials are not configured. Rate limiting will not be active.');
 }
@@ -26,22 +26,23 @@ const ratelimit = new Ratelimit({
 });
 
 export async function POST(req: NextRequest) {
-  // --- התחלת התיקון הקריטי ---
-  // הגדרת תצורת Cloudinary בתוך פונקציית ה-POST.
-  // זה מבטיח שבכל פעם שה-API נקרא (בסביבת Serverless),
-  // משתני הסביבה ייטענו ויהיו זמינים לקוד לפני השימוש בהם.
+  // --- Start of the critical fix ---
+  // The Cloudinary configuration is set within the POST function.
+  // This ensures that every time the API is called (in a Serverless environment),
+  // the environment variables will be loaded and available to the code before they are used.
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
-  // --- סוף התיקון הקריטי ---
+  // --- End of the critical fix ---
 
-  // לוגיקת Rate Limiting
+  // Rate Limiting Logic
   if (process.env.NODE_ENV === 'production' && process.env.UPSTASH_REDIS_REST_URL) {
     try {
       const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-      const ip = req.ip ?? '127.0.0.1';
+      // --- FIX: Accessing the 'x-forwarded-for' header to get the IP address ---
+      const ip = (req.headers.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0];
       const identifier = token?.sub ?? ip;
       const { success } = await ratelimit.limit(identifier);
 
@@ -69,11 +70,11 @@ export async function POST(req: NextRequest) {
     let screenshotUrl: string | undefined = undefined;
 
     if (screenshot) {
-      // בדיקה מפורשת של משתני הסביבה לפני ניסיון העלאה
+      // Explicit check of environment variables before attempting upload
       if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
           const errorMsg = "Server configuration error: Cloudinary environment variables are missing at the time of upload.";
           console.error(`CRITICAL: ${errorMsg}`);
-          return NextResponse.json({ success: false, error: "שגיאת תצורה בשרת המונעת העלאת תמונות." }, { status: 500 });
+          return NextResponse.json({ success: false, error: "Server configuration error preventing image upload." }, { status: 500 });
       }
         
       const bytes = await screenshot.arrayBuffer();
@@ -112,9 +113,10 @@ export async function POST(req: NextRequest) {
 
     try {
       const adminEmail = "jewish.matchpoint@gmail.com";
+      const userIp = (req.headers.get('x-forwarded-for') ?? 'N/A').split(',')[0];
       const userIdentifier = newFeedback.user 
         ? `${newFeedback.user.firstName} ${newFeedback.user.lastName} (${newFeedback.user.email})`
-        : `Anonymous User (IP: ${req.ip ?? 'N/A'})`;
+        : `Anonymous User (IP: ${userIp})`;
 
       await emailService.sendEmail({
         to: adminEmail,

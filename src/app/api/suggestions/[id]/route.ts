@@ -1,4 +1,4 @@
-// תיקון קובץ src/app/api/matchmaker/suggestions/[id]/route.ts - בלי any
+// src/app/api/suggestions/[id]/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -6,7 +6,6 @@ import { authOptions } from "@/lib/auth";
 import { UserRole, Priority } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
-// הגדרת טיפוס לנתונים הנכנסים
 interface SuggestionUpdateData {
   priority?: Priority;
   matchingReason?: string;
@@ -16,7 +15,6 @@ interface SuggestionUpdateData {
   decisionDeadline?: string | null;
 }
 
-// הגדרת טיפוס לנתוני העדכון של Prisma
 interface PrismaUpdateData {
   lastActivity: Date;
   priority?: Priority;
@@ -29,12 +27,11 @@ interface PrismaUpdateData {
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> } // ✅ שינוי: התאמה ל-Next.js 15
 ) {
   try {
     const session = await getServerSession(authOptions);
     
-    // וידוא משתמש מחובר
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -42,7 +39,6 @@ export async function PATCH(
       );
     }
     
-    // וידוא הרשאות שדכן או אדמין
     if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { success: false, error: "Insufficient permissions" },
@@ -50,12 +46,12 @@ export async function PATCH(
       );
     }
     
+    const params = await props.params; // ✅ שינוי: הוספת await
     const suggestionId = params.id;
     const data: SuggestionUpdateData = await req.json();
     
     console.log("PATCH request for suggestion:", suggestionId, "with data:", data);
 
-    // בדיקת קיום ההצעה והרשאות
     const existingSuggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       select: {
@@ -72,7 +68,6 @@ export async function PATCH(
       );
     }
 
-    // בדיקת הרשאות ספציפיות
     if (existingSuggestion.matchmakerId !== session.user.id && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { success: false, error: "You don't have permission to edit this suggestion" },
@@ -80,39 +75,31 @@ export async function PATCH(
       );
     }
 
-    // הכנת הנתונים לעדכון עם טיפוס מדויק
     const updateData: PrismaUpdateData = {
       lastActivity: new Date(),
     };
 
-    // עדכון שדות אם קיימים
     if (data.priority !== undefined) {
       updateData.priority = data.priority;
     }
-
     if (data.matchingReason !== undefined) {
       updateData.matchingReason = data.matchingReason;
     }
-
     if (data.firstPartyNotes !== undefined) {
       updateData.firstPartyNotes = data.firstPartyNotes;
     }
-
     if (data.secondPartyNotes !== undefined) {
       updateData.secondPartyNotes = data.secondPartyNotes;
     }
-
     if (data.internalNotes !== undefined) {
       updateData.internalNotes = data.internalNotes;
     }
-
     if (data.decisionDeadline !== undefined) {
       updateData.decisionDeadline = data.decisionDeadline ? new Date(data.decisionDeadline) : null;
     }
 
     console.log("Updating suggestion with data:", updateData);
 
-    // ביצוע העדכון
     const updatedSuggestion = await prisma.matchSuggestion.update({
       where: { id: suggestionId },
       data: updateData,
@@ -151,13 +138,14 @@ export async function PATCH(
     });
 
     console.log("Suggestion updated successfully:", updatedSuggestion.id);
+
     if (updatedSuggestion.firstParty.profile && !updatedSuggestion.firstParty.profile.isMedicalInfoVisible) {
-      updatedSuggestion.firstParty.profile.medicalInfoDetails = null; // או undefined
+      updatedSuggestion.firstParty.profile.medicalInfoDetails = null;
     }
     if (updatedSuggestion.secondParty.profile && !updatedSuggestion.secondParty.profile.isMedicalInfoVisible) {
-      updatedSuggestion.secondParty.profile.medicalInfoDetails = null; // או undefined
+      updatedSuggestion.secondParty.profile.medicalInfoDetails = null;
     }
-    // פורמט התאריכים ל-ISO strings
+
     const formattedSuggestion = {
       ...updatedSuggestion,
       firstParty: {

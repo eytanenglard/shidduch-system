@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: Request,
-  props: { params: Promise<{ id: string }> }
+  props: { params: Promise<{ id: string }> } // ✅ שינוי: התאמה ל-Next.js 15
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -31,8 +31,8 @@ export async function GET(
             { status: 403 }
         );
     }
-
-    const params = await props.params;
+    
+    const params = await props.params; // ✅ שינוי: הוספת await
     const inquiry = await AvailabilityService.getInquiryById(params.id);
     
     if (!inquiry) {

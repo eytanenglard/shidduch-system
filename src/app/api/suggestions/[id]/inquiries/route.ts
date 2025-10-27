@@ -42,10 +42,11 @@ async function checkPermissions(suggestionId: string, session: AuthSession) {
  * Users can only see inquiries for suggestions they are a part of.
  */
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest, // שינוי: שימוש ב-NextRequest במקום Request
+  props: { params: Promise<{ id: string }> } // ✅ שינוי: התאמה ל-Next.js 15
 ) {
   try {
+    const params = await props.params; // ✅ שינוי: הוספת await
     const session = await getServerSession(authOptions);
     await checkPermissions(params.id, session);
 
@@ -74,13 +75,16 @@ export async function GET(
  * POST: Create a new inquiry (question) for a suggestion.
  * A user (candidate) sends a question to the matchmaker.
  */
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  // Apply rate limiting: 20 inquiries per user per hour (prevents matchmaker spam)
+export async function POST(
+  req: NextRequest, 
+  props: { params: Promise<{ id: string }> } // ✅ שינוי: התאמה ל-Next.js 15
+) {
   const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
   if (rateLimitResponse) {
     return rateLimitResponse;
   }
   try {
+    const params = await props.params; // ✅ שינוי: הוספת await
     const session = await getServerSession(authOptions);
     const { suggestion, userId } = await checkPermissions(params.id, session);
 
@@ -89,21 +93,17 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return NextResponse.json({ error: "Question content is required" }, { status: 400 });
     }
 
-    // --- START OF MODIFICATION ---
-    // Perform both operations in a single transaction
     const inquiry = await prisma.$transaction(async (tx) => {
-      // 1. Create the new inquiry
       const newInquiry = await tx.suggestionInquiry.create({
         data: {
           suggestionId: params.id,
           fromUserId: userId,
-          toUserId: suggestion.matchmakerId, // Questions always go to the matchmaker
+          toUserId: suggestion.matchmakerId,
           question,
           status: InquiryStatus.PENDING,
         },
       });
 
-      // 2. Update the parent suggestion's lastActivity timestamp
       await tx.matchSuggestion.update({
         where: { id: params.id },
         data: { lastActivity: new Date() },
@@ -111,7 +111,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
       return newInquiry;
     });
-    // --- END OF MODIFICATION ---
     
     // TODO: Add notification to matchmaker about the new question
 
@@ -132,12 +131,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
  * Only the matchmaker (or an admin) can answer an inquiry.
  */
 export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest, // שינוי: שימוש ב-NextRequest במקום Request
+  props: { params: Promise<{ id: string }> } // ✅ שינוי: התאמה ל-Next.js 15
 ) {
   try {
+    const params = await props.params; // ✅ שינוי: הוספת await
     const session = await getServerSession(authOptions);
-    const { userRole, userId } = await checkPermissions(params.id, session); // params.id is suggestionId
+    const { userRole, userId } = await checkPermissions(params.id, session);
 
     if (userRole !== UserRole.MATCHMAKER && userRole !== UserRole.ADMIN) {
         return NextResponse.json({ error: "Forbidden: Only matchmakers or admins can answer inquiries." }, { status: 403 });
@@ -160,10 +160,7 @@ export async function PATCH(
         return NextResponse.json({ error: "Forbidden: You are not the recipient of this inquiry." }, { status: 403 });
     }
 
-    // --- START OF MODIFICATION ---
-    // Perform both operations in a single transaction
     const updatedInquiry = await prisma.$transaction(async (tx) => {
-      // 1. Update the inquiry with the answer
       const inquiry = await tx.suggestionInquiry.update({
         where: { id: inquiryId },
         data: {
@@ -173,15 +170,13 @@ export async function PATCH(
         },
       });
 
-      // 2. Update the parent suggestion's lastActivity timestamp
       await tx.matchSuggestion.update({
-        where: { id: params.id }, // params.id is the suggestionId
+        where: { id: params.id },
         data: { lastActivity: new Date() },
       });
 
       return inquiry;
     });
-    // --- END OF MODIFICATION ---
     
     // TODO: Add notification to the user who asked the question
 
