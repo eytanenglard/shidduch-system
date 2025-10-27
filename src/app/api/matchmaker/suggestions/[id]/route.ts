@@ -8,7 +8,7 @@ import { SuggestionService } from "@/components/matchmaker/suggestions/services/
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -27,7 +27,8 @@ export async function PATCH(
       );
     }
     
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
     const data = await req.json();
     
     const suggestionService = SuggestionService.getInstance();

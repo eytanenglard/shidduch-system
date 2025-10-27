@@ -14,11 +14,12 @@ initNotificationService();
 
 export async function POST(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
 
     if (!session?.user?.id || !session.user.role) {
       return NextResponse.json({ error: 'Unauthorized - Invalid session' }, { status: 401 });

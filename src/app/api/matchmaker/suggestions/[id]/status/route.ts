@@ -14,7 +14,7 @@ const updateStatusSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -49,7 +49,8 @@ export async function PATCH(
     }
     
     const { status, notes } = validationResult.data;
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
@@ -138,7 +139,9 @@ export async function PATCH(
 
   } catch (error) {
     console.error("Error updating suggestion status:", error);
+    
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
     return NextResponse.json(
       { 
         success: false, 
@@ -152,7 +155,7 @@ export async function PATCH(
 
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -160,13 +163,14 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const params = await props.params;
     const searchParams = new URL(req.url).searchParams;
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
     const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 50;
 
     const suggestion = await prisma.matchSuggestion.findUnique({
-      where: { id: context.params.id },
+      where: { id: params.id },
       select: {
         id: true,
         status: true,
@@ -193,7 +197,7 @@ export async function GET(
     
     const historyQuery = {
       where: {
-        suggestionId: context.params.id,
+        suggestionId: params.id,
         ...(startDate && {
           createdAt: {
             gte: new Date(startDate),
@@ -256,7 +260,9 @@ export async function GET(
 
   } catch (error) {
     console.error("Error fetching suggestion history:", error);
+    
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
     return NextResponse.json(
       { error: "Failed to fetch history", details: errorMessage },
       { status: 500 }
@@ -266,7 +272,7 @@ export async function GET(
 
 export async function HEAD(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -274,8 +280,9 @@ export async function HEAD(
       return new Response(null, { status: 401 });
     }
 
+    const params = await props.params;
     const suggestion = await prisma.matchSuggestion.findUnique({
-      where: { id: context.params.id },
+      where: { id: params.id },
       select: {
         id: true,
         status: true,

@@ -11,10 +11,10 @@ export const runtime = 'nodejs';
 
 type RouteSegment<T> = (
   request: NextRequest,
-  context: { params: T }
+  props: { params: Promise<T> }
 ) => Promise<NextResponse> | NextResponse;
 
-const handler: RouteSegment<{ id: string }> = async (req, context) => {
+const handler: RouteSegment<{ id: string }> = async (req, { params: paramsPromise }) => {
   try {
     const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });
     if (rateLimitResponse) {
@@ -25,7 +25,8 @@ const handler: RouteSegment<{ id: string }> = async (req, context) => {
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
-
+    
+    const params = await paramsPromise;
     const url = new URL(req.url);
     const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
 
@@ -36,7 +37,7 @@ const handler: RouteSegment<{ id: string }> = async (req, context) => {
     }
 
     const updatedInquiry = await AvailabilityService.updateInquiryResponse({
-      inquiryId: context.params.id,
+      inquiryId: params.id,
       userId: session.user.id,
       isAvailable,
       note,

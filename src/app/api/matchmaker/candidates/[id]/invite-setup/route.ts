@@ -9,7 +9,7 @@ import { VerificationService } from "@/lib/services/verificationService";
 import { emailService } from "@/lib/email/emailService";
 import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 
-export async function POST(req: NextRequest, context: { params: { id: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });
   if (rateLimitResponse) {
     return rateLimitResponse;
@@ -24,7 +24,8 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
     const url = new URL(req.url);
     const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
 
-    const candidateId = context.params.id;
+    const params = await props.params;
+    const candidateId = params.id;
     const body = await req.json();
     const { email } = body;
 

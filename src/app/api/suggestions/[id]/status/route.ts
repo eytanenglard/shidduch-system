@@ -1,4 +1,4 @@
-// src/app/api/matchmaker/suggestions/[id]/status/route.ts
+// src/app/api/suggestions/[id]/status/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -12,11 +12,15 @@ const updateStatusSchema = z.object({
   notes: z.string().optional(),
 });
 
+/**
+ * PATCH endpoint for updating suggestion status
+ */
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 1. User authentication
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json(
@@ -25,6 +29,7 @@ export async function PATCH(
       );
     }
 
+    // 2. Verify permissions
     if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { success: false, error: "Insufficient permissions" },
@@ -32,6 +37,7 @@ export async function PATCH(
       );
     }
 
+    // 3. Validate request data
     const body = await req.json();
     console.log("Received status update request:", body);
     
@@ -49,7 +55,10 @@ export async function PATCH(
     }
     
     const { status, notes } = validationResult.data;
-    const suggestionId = context.params.id;
+
+    // 4. Verify suggestion exists
+    const params = await props.params;
+    const suggestionId = params.id;
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
@@ -66,6 +75,7 @@ export async function PATCH(
       );
     }
 
+    // 5. Verify permission on specific suggestion
     if (suggestion.matchmaker.id !== session.user.id && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { success: false, error: "You don't have permission to update this suggestion" },
@@ -73,6 +83,7 @@ export async function PATCH(
       );
     }
 
+    // 6. Calculate category based on new status
     const getCategory = (status: MatchSuggestionStatus) => {
       switch (status) {
         case "DRAFT":
@@ -97,8 +108,12 @@ export async function PATCH(
       }
     };
 
+    // 7. Update status in a transaction
     const result = await prisma.$transaction(async (tx) => {
+      // Save previous status
       const previousStatus = suggestion.status;
+
+      // Update the suggestion
       const updatedSuggestion = await tx.matchSuggestion.update({
         where: { id: suggestionId },
         data: {
@@ -107,12 +122,15 @@ export async function PATCH(
           lastStatusChange: new Date(),
           lastActivity: new Date(),
           category: getCategory(status),
+          
+          // Update additional fields based on new status
           ...(status === MatchSuggestionStatus.CLOSED ? { closedAt: new Date() } : {}),
           ...(status === MatchSuggestionStatus.PENDING_FIRST_PARTY ? { firstPartySent: new Date() } : {}),
           ...(status === MatchSuggestionStatus.PENDING_SECOND_PARTY ? { secondPartySent: new Date() } : {}),
         },
       });
 
+      // Add status history record
       await tx.suggestionStatusHistory.create({
         data: {
           suggestionId,
@@ -124,6 +142,7 @@ export async function PATCH(
       return updatedSuggestion;
     });
 
+    // 8. Return success response
     return NextResponse.json({
       success: true,
       message: "Status updated successfully",
@@ -138,7 +157,10 @@ export async function PATCH(
 
   } catch (error) {
     console.error("Error updating suggestion status:", error);
+    
+    // Return detailed error message if available
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
     return NextResponse.json(
       { 
         success: false, 
@@ -150,23 +172,30 @@ export async function PATCH(
   }
 }
 
+/**
+ * GET endpoint for fetching suggestion history
+ */
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 1. User authentication
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // 2. Parse URL parameters
+    const params = await props.params;
     const searchParams = new URL(req.url).searchParams;
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
     const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 50;
 
+    // 3. Check viewing permissions
     const suggestion = await prisma.matchSuggestion.findUnique({
-      where: { id: context.params.id },
+      where: { id: params.id },
       select: {
         id: true,
         status: true,
@@ -191,9 +220,10 @@ export async function GET(
       return NextResponse.json({ error: "Not authorized to view this suggestion" }, { status: 403 });
     }
     
+    // 4. Build history query
     const historyQuery = {
       where: {
-        suggestionId: context.params.id,
+        suggestionId: params.id,
         ...(startDate && {
           createdAt: {
             gte: new Date(startDate),
@@ -207,23 +237,39 @@ export async function GET(
         suggestion: {
           select: {
             firstParty: {
-              select: { id: true, firstName: true, lastName: true },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
             },
             secondParty: {
-              select: { id: true, firstName: true, lastName: true },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
             },
             matchmaker: {
-              select: { id: true, firstName: true, lastName: true },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
             },
           },
         },
       },
-      orderBy: { createdAt: "desc" as const },
+      orderBy: {
+        createdAt: "desc" as const,
+      },
       take: limit,
     };
 
+    // 5. Fetch status change history
     const history = await prisma.suggestionStatusHistory.findMany(historyQuery);
 
+    // 6. Format results
     const formattedHistory = history.map(entry => ({
       id: entry.id,
       status: entry.status,
@@ -256,7 +302,9 @@ export async function GET(
 
   } catch (error) {
     console.error("Error fetching suggestion history:", error);
+    
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
     return NextResponse.json(
       { error: "Failed to fetch history", details: errorMessage },
       { status: 500 }
@@ -264,18 +312,24 @@ export async function GET(
   }
 }
 
+/**
+ * HEAD endpoint for getting status summary
+ */
 export async function HEAD(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 1. User authentication
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return new Response(null, { status: 401 });
     }
 
+    // 2. Fetch suggestion details
+    const params = await props.params;
     const suggestion = await prisma.matchSuggestion.findUnique({
-      where: { id: context.params.id },
+      where: { id: params.id },
       select: {
         id: true,
         status: true,
@@ -290,6 +344,7 @@ export async function HEAD(
       return new Response(null, { status: 404 });
     }
 
+    // 3. Check viewing permissions
     const canView = 
       session.user.role === UserRole.ADMIN ||
       suggestion.matchmakerId === session.user.id ||
@@ -300,12 +355,14 @@ export async function HEAD(
       return new Response(null, { status: 403 });
     }
 
+    // 4. Prepare headers
     const headers: Record<string, string> = {
       'X-Suggestion-Status': suggestion.status,
       'X-First-Party': suggestion.firstPartyId,
       'X-Second-Party': suggestion.secondPartyId,
     };
 
+    // Add lastStatusChange header only if it exists
     if (suggestion.lastStatusChange) {
       headers['X-Last-Status-Change'] = suggestion.lastStatusChange.toISOString();
     }

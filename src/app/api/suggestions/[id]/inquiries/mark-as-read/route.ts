@@ -1,4 +1,4 @@
-// FILENAME: src/app/api/suggestions/[id]/inquiries/mark-as-read/route.ts
+// src/app/api/suggestions/[id]/inquiries/mark-as-read/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma";
 
 export async function POST(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,7 +15,8 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
     const userId = session.user.id;
 
     const updateResult = await prisma.suggestionInquiry.updateMany({

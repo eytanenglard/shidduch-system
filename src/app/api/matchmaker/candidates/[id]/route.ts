@@ -11,9 +11,13 @@ import { emailService } from "@/lib/email/emailService";
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * GET: אחזור פרופיל של מועמד ספציפי.
+ * נגיש לשדכנים ומנהלים.
+ */
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -37,7 +41,8 @@ export async function GET(
       );
     }
 
-    const { id } = context.params;
+    const params = await props.params;
+    const { id } = params;
 
     const candidateData = await prisma.user.findUnique({
       where: { id },
@@ -86,9 +91,13 @@ export async function GET(
   }
 }
 
+/**
+ * PATCH: עדכון פרטי פרופיל של מועמד.
+ * נגיש לשדכנים ומנהלים. מעבד רק את השדות שנשלחו בבקשה.
+ */
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -115,7 +124,8 @@ export async function PATCH(
       );
     }
     
-    const { id: candidateIdToUpdate } = context.params;
+    const params = await props.params;
+    const { id: candidateIdToUpdate } = params;
 
     const candidateToUpdate = await prisma.user.findUnique({
       where: { id: candidateIdToUpdate },
@@ -264,12 +274,18 @@ export async function PATCH(
   }
 }
 
+/**
+ * DELETE: מחיקת מועמד.
+ * נגיש למנהלים בלבד.
+ */
 export async function DELETE(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
-  const candidateIdToDelete = context.params.id;
   const timestamp = new Date().toISOString();
+  
+  const params = await props.params;
+  const candidateIdToDelete = params.id;
   
   console.log(`[${timestamp}] DELETE request for candidate ID: ${candidateIdToDelete}`);
 

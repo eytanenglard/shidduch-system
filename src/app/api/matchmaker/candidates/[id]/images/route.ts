@@ -23,7 +23,7 @@ if (!cloudName || !apiKey || !apiSecret) {
 
 export async function POST(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -48,7 +48,9 @@ export async function POST(
       );
     }
 
-    const { id } = context.params;
+    // Await params before destructuring
+    const params = await props.params;
+    const { id } = params;
 
     const candidate = await prisma.user.findUnique({
       where: { id },

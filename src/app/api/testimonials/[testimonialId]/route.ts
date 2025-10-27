@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { TestimonialStatus } from '@prisma/client';
 
-export async function PUT(req: Request, context: { params: { testimonialId: string } }) {
+export async function PUT(req: Request, props: { params: Promise<{ testimonialId: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -27,9 +27,10 @@ export async function PUT(req: Request, context: { params: { testimonialId: stri
       return NextResponse.json({ success: false, message: 'Invalid status provided' }, { status: 400 });
     }
 
+    const params = await props.params;
     const updatedTestimonial = await prisma.friendTestimonial.updateMany({
       where: {
-        id: context.params.testimonialId,
+        id: params.testimonialId,
         profileId: userProfile.id,
       },
       data: { status },
@@ -46,7 +47,7 @@ export async function PUT(req: Request, context: { params: { testimonialId: stri
   }
 }
 
-export async function DELETE(req: Request, context: { params: { testimonialId: string } }) {
+export async function DELETE(req: Request, props: { params: Promise<{ testimonialId: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -62,9 +63,10 @@ export async function DELETE(req: Request, context: { params: { testimonialId: s
         return NextResponse.json({ success: false, message: 'Profile not found for current user' }, { status: 404 });
     }
 
+    const params = await props.params;
     const deletedTestimonial = await prisma.friendTestimonial.deleteMany({
         where: {
-            id: context.params.testimonialId,
+            id: params.testimonialId,
             profileId: userProfile.id,
         },
     });

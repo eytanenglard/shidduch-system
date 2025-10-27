@@ -8,7 +8,7 @@ import { UserRole } from "@prisma/client";
 
 export async function DELETE(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -26,7 +26,8 @@ export async function DELETE(
       );
     }
 
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
 
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
@@ -70,12 +71,8 @@ export async function DELETE(
     await prisma.matchSuggestion.update({
       where: { id: suggestionId },
       data: {
-        approvedBy: {
-          set: []
-        },
-        reviewedBy: {
-          set: []
-        }
+        approvedBy: { set: [] },
+        reviewedBy: { set: [] }
       }
     });
 

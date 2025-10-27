@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: Request,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -32,7 +32,8 @@ export async function GET(
         );
     }
 
-    const inquiry = await AvailabilityService.getInquiryById(context.params.id);
+    const params = await props.params;
+    const inquiry = await AvailabilityService.getInquiryById(params.id);
     
     if (!inquiry) {
         return NextResponse.json({ error: "Inquiry not found or access denied" }, { status: 404 });

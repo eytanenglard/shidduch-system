@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api
-# Generated on: 2025-10-26 16:50:27
+# Generated on: 2025-10-27 08:22:50
 ################################################################################
 
 ================================================================================
@@ -15171,10 +15171,6 @@ import { emailService } from "@/lib/email/emailService";
 
 export const dynamic = 'force-dynamic';
 
-/**
- * GET: אחזור פרופיל של מועמד ספציפי.
- * נגיש לשדכנים ומנהלים.
- */
 export async function GET(
   req: NextRequest,
   context: { params: { id: string } }
@@ -15250,10 +15246,6 @@ export async function GET(
   }
 }
 
-/**
- * PATCH: עדכון פרטי פרופיל של מועמד.
- * נגיש לשדכנים ומנהלים. מעבד רק את השדות שנשלחו בבקשה.
- */
 export async function PATCH(
   req: NextRequest,
   context: { params: { id: string } }
@@ -15432,10 +15424,6 @@ export async function PATCH(
   }
 }
 
-/**
- * DELETE: מחיקת מועמד.
- * נגיש למנהלים בלבד.
- */
 export async function DELETE(
   req: NextRequest,
   context: { params: { id: string } }
@@ -15576,7 +15564,7 @@ if (!cloudName || !apiKey || !apiSecret) {
 
 export async function POST(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15601,7 +15589,9 @@ export async function POST(
       );
     }
 
-    const { id } = context.params;
+    // Await params before destructuring
+    const params = await props.params;
+    const { id } = params;
 
     const candidate = await prisma.user.findUnique({
       where: { id },
@@ -15687,19 +15677,14 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchm
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\route.ts
 --------------------------------------------------------------------------------
 Content:
-// src/app/api/profile/images/[imageId]/route.ts
+// src/app/api/matchmaker/candidates/[id]/images/[imageId]/route.ts
 
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { v2 as cloudinary } from "cloudinary";
-
-if (!process.env.CLOUDINARY_CLOUD_NAME || 
-    !process.env.CLOUDINARY_API_KEY || 
-    !process.env.CLOUDINARY_API_SECRET) {
-  throw new Error("Missing required Cloudinary environment variables");
-}
+import { UserRole } from "@prisma/client";
+import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -15708,140 +15693,110 @@ cloudinary.config({
 });
 
 export async function DELETE(
-  request: Request,
-  context: { params: { imageId: string } }
+  req: NextRequest,
+  props: { params: Promise<{ id: string; imageId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+
+    if (!session?.user) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized" }, 
+        { success: false, error: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    const { imageId } = context.params;
-    
-    const image = await prisma.userImage.findUnique({
-      where: { id: imageId },
-      include: { user: true },
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
     });
 
-    if (!image) {
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    if (!user || !allowedRoles.includes(user.role)) {
       return NextResponse.json(
-        { success: false, error: "Image not found" }, 
-        { status: 404 }
-      );
-    }
-
-    if (image.user.email !== session.user.email) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" }, 
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
         { status: 403 }
       );
     }
 
-    if (image.cloudinaryPublicId) {
-      try {
-        await cloudinary.uploader.destroy(image.cloudinaryPublicId);
-      } catch (error) {
-        console.error("[Delete Image] Cloudinary deletion error:", error);
-      }
-    }
+    // Await params before destructuring
+    const params = await props.params;
+    const { id, imageId } = params;
 
-    await prisma.userImage.delete({
-      where: { id: imageId },
+    console.log(`Handling DELETE request for candidate ${id}, image ${imageId}`);
+
+    const candidate = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true }
     });
 
+    if (!candidate) {
+      return NextResponse.json(
+        { success: false, error: "Candidate not found" },
+        { status: 404 }
+      );
+    }
+
+    const image = await prisma.userImage.findFirst({
+      where: {
+        id: imageId,
+        userId: id
+      }
+    });
+
+    if (!image) {
+      return NextResponse.json(
+        { success: false, error: "Image not found" },
+        { status: 404 }
+      );
+    }
+
+    console.log(`Found image to delete: ${image.id}, isMain: ${image.isMain}`);
+
     if (image.isMain) {
-      const remainingImage = await prisma.userImage.findFirst({
-        where: { userId: image.userId },
-        orderBy: { createdAt: 'desc' },
+      const otherImage = await prisma.userImage.findFirst({
+        where: {
+          userId: id,
+          id: { not: imageId }
+        },
+        orderBy: { createdAt: 'desc' }
       });
 
-      if (remainingImage) {
+      if (otherImage) {
+        console.log(`Setting image ${otherImage.id} as new main image`);
         await prisma.userImage.update({
-          where: { id: remainingImage.id },
-          data: { isMain: true },
+          where: { id: otherImage.id },
+          data: { isMain: true }
         });
       }
     }
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("[Delete Image] Error:", error);
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: "Failed to delete image",
-        details: error instanceof Error ? error.message : "Unknown error"
-      }, 
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(
-  request: Request,
-  context: { params: { imageId: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" }, 
-        { status: 401 }
-      );
+    if (image.cloudinaryPublicId) {
+      try {
+        console.log(`Deleting from Cloudinary: ${image.cloudinaryPublicId}`);
+        await cloudinary.uploader.destroy(image.cloudinaryPublicId);
+      } catch (cloudinaryError) {
+        console.error("Cloudinary deletion error:", cloudinaryError);
+      }
     }
 
-    const { imageId } = context.params;
-
-    const image = await prisma.userImage.findUnique({
-      where: { id: imageId },
-      include: { user: true },
+    await prisma.userImage.delete({
+      where: { id: imageId }
     });
 
-    if (!image) {
-      return NextResponse.json(
-        { success: false, error: "Image not found" }, 
-        { status: 404 }
-      );
-    }
-
-    if (image.user.email !== session.user.email) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" }, 
-        { status: 403 }
-      );
-    }
-
-    await prisma.userImage.updateMany({
-      where: { userId: image.userId },
-      data: { isMain: false },
+    await prisma.profile.update({
+      where: { userId: id },
+      data: { lastActive: new Date() }
     });
 
-    await prisma.userImage.update({
-      where: { id: imageId },
-      data: { isMain: true },
-    });
-
-    const updatedImages = await prisma.userImage.findMany({
-      where: { userId: image.userId },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return NextResponse.json({ 
-      success: true, 
-      images: updatedImages 
+    return NextResponse.json({
+      success: true,
+      message: "Image deleted successfully"
     });
   } catch (error) {
-    console.error("[Set Main Image] Error:", error);
+    console.error("Error deleting image:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: "Failed to set main image",
-        details: error instanceof Error ? error.message : "Unknown error"
-      }, 
+      { success: false, error: "Failed to delete image" },
       { status: 500 }
     );
   }
@@ -15866,10 +15821,7 @@ import { UserRole } from "@prisma/client";
 
 export async function PATCH(
   req: NextRequest,
-  // --- START OF FIX ---
-  // The second argument is now named 'context' to avoid incorrect type inference.
-  context: { params: { id: string; imageId: string } }
-  // --- END OF FIX ---
+  props: { params: Promise<{ id: string; imageId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15881,7 +15833,6 @@ export async function PATCH(
       );
     }
 
-    // Verify that the user is a matchmaker OR an admin
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true }
@@ -15895,12 +15846,10 @@ export async function PATCH(
       );
     }
     
-    // --- START OF FIX ---
-    // Destructure 'id' and 'imageId' from context.params
-    const { id, imageId } = context.params;
-    // --- END OF FIX ---
+    // Await params before destructuring
+    const params = await props.params;
+    const { id, imageId } = params;
 
-    // Verify candidate exists
     const candidate = await prisma.user.findUnique({
       where: { id },
       select: { id: true }
@@ -15913,7 +15862,6 @@ export async function PATCH(
       );
     }
 
-    // Verify image exists and belongs to candidate
     const imageToSetMain = await prisma.userImage.findFirst({
       where: {
         id: imageId,
@@ -15928,9 +15876,7 @@ export async function PATCH(
       );
     }
 
-    // Start a transaction to update main image
     await prisma.$transaction([
-      // First, unset all other images as main for this user
       prisma.userImage.updateMany({
         where: { 
             userId: id,
@@ -15939,14 +15885,12 @@ export async function PATCH(
         data: { isMain: false }
       }),
       
-      // Then, set the specified image as main
       prisma.userImage.update({
         where: { id: imageId },
         data: { isMain: true }
       })
     ]);
 
-    // Update lastActive timestamp
     await prisma.profile.update({
       where: { userId: id },
       data: { lastActive: new Date() }
@@ -17456,7 +17400,6 @@ export async function PATCH(
     }
     
     const { status, notes } = validationResult.data;
-
     const suggestionId = context.params.id;
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
@@ -17507,7 +17450,6 @@ export async function PATCH(
 
     const result = await prisma.$transaction(async (tx) => {
       const previousStatus = suggestion.status;
-
       const updatedSuggestion = await tx.matchSuggestion.update({
         where: { id: suggestionId },
         data: {
@@ -17547,9 +17489,7 @@ export async function PATCH(
 
   } catch (error) {
     console.error("Error updating suggestion status:", error);
-    
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    
     return NextResponse.json(
       { 
         success: false, 
@@ -17618,32 +17558,18 @@ export async function GET(
         suggestion: {
           select: {
             firstParty: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-              },
+              select: { id: true, firstName: true, lastName: true },
             },
             secondParty: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-              },
+              select: { id: true, firstName: true, lastName: true },
             },
             matchmaker: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-              },
+              select: { id: true, firstName: true, lastName: true },
             },
           },
         },
       },
-      orderBy: {
-        createdAt: "desc" as const,
-      },
+      orderBy: { createdAt: "desc" as const },
       take: limit,
     };
 
@@ -17681,9 +17607,7 @@ export async function GET(
 
   } catch (error) {
     console.error("Error fetching suggestion history:", error);
-    
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    
     return NextResponse.json(
       { error: "Failed to fetch history", details: errorMessage },
       { status: 500 }
@@ -21523,7 +21447,7 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profil
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\update\route.ts
 --------------------------------------------------------------------------------
 Content:
-// File: app/api/profile/update/route.ts
+// src/app/api/profile/update/route.ts (מתוקן)
 
 import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimit } from '@/lib/rate-limiter';
@@ -21543,6 +21467,7 @@ import {
 } from "@prisma/client";
 import type { UserProfile } from "@/types/next-auth";
 
+// ... (שאר הפונקציות נשארות זהות) ...
 // Helper to convert to number or null
 const toNumberOrNull = (value: string | number | null | undefined): number | null => {
   if (value === null || value === undefined || String(value).trim() === "") {
@@ -21588,6 +21513,7 @@ const emptyStringToNull = (value: string | null | undefined): string | null => {
   }
   return value;
 };
+
 
 export async function PUT(req: NextRequest) {
   // Apply rate limiting: 50 profile updates per user per 10 minutes (prevents DB heavy load)
@@ -21734,12 +21660,14 @@ export async function PUT(req: NextRequest) {
 
     if (currentGenderForLogic === Gender.FEMALE) {
         if (headCovering !== undefined) dataToUpdate.headCovering = emptyStringToNull(headCovering) as HeadCoveringType | null;
+        // ◀️ FIX: Changed body.hasOwnProperty('kippahType') to the safe version
         if (gender !== undefined && gender === Gender.FEMALE) dataToUpdate.kippahType = null;
-        else if (body.hasOwnProperty('kippahType') && kippahType === null) dataToUpdate.kippahType = null;
+        else if (Object.prototype.hasOwnProperty.call(body, 'kippahType') && kippahType === null) dataToUpdate.kippahType = null;
     } else if (currentGenderForLogic === Gender.MALE) {
         if (kippahType !== undefined) dataToUpdate.kippahType = emptyStringToNull(kippahType) as KippahType | null;
+        // ◀️ FIX: Changed body.hasOwnProperty('headCovering') to the safe version
         if (gender !== undefined && gender === Gender.MALE) dataToUpdate.headCovering = null;
-        else if (body.hasOwnProperty('headCovering') && headCovering === null) dataToUpdate.headCovering = null;
+        else if (Object.prototype.hasOwnProperty.call(body, 'headCovering') && headCovering === null) dataToUpdate.headCovering = null;
     } else {
         if (gender !== undefined && gender === null) {
            dataToUpdate.headCovering = null; dataToUpdate.kippahType = null;
@@ -21800,16 +21728,19 @@ export async function PUT(req: NextRequest) {
     if (availabilityStatus !== undefined) {
       const statusValue = emptyStringToNull(availabilityStatus);
       dataToUpdate.availabilityStatus = (statusValue === null ? "AVAILABLE" : statusValue) as AvailabilityStatus;
-      if (!body.hasOwnProperty('availabilityUpdatedAt') || availabilityUpdatedAt === undefined) {
+      // ◀️ FIX: Changed body.hasOwnProperty to the safe version
+      if (!Object.prototype.hasOwnProperty.call(body, 'availabilityUpdatedAt') || availabilityUpdatedAt === undefined) {
         dataToUpdate.availabilityUpdatedAt = new Date();
       }
     }
     if (availabilityNote !== undefined) dataToUpdate.availabilityNote = emptyStringToNull(availabilityNote);
-    if (body.hasOwnProperty('availabilityUpdatedAt') && availabilityUpdatedAt !== undefined) {
+    // ◀️ FIX: Changed body.hasOwnProperty to the safe version
+    if (Object.prototype.hasOwnProperty.call(body, 'availabilityUpdatedAt') && availabilityUpdatedAt !== undefined) {
         dataToUpdate.availabilityUpdatedAt = toDateOrNull(availabilityUpdatedAt);
     }
     dataToUpdate.lastActive = new Date();
 
+    // ... (שאר הקובץ נשאר זהה) ...
     // --- Perform the database update ---
     let updatedProfileRecord: Profile | null = null;
     if (Object.keys(dataToUpdate).length > 0) {
@@ -24288,12 +24219,9 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
-// This endpoint will mark all PENDING inquiries for a specific suggestion as ANSWERED (or a new status like VIEWED)
-// when the recipient (matchmaker) opens the chat.
-
 export async function POST(
-  req: NextRequest, // Add the request parameter here
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -24301,27 +24229,16 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const suggestionId = params.id;
+    const suggestionId = context.params.id;
     const userId = session.user.id;
 
-    // We only mark messages as read if the current user is the recipient.
-    // We change the status from PENDING to ANSWERED, assuming that viewing it
-    // implies the matchmaker will now answer. A more robust solution might
-    // add a 'VIEWED' status, but for now, this simplifies the flow.
     const updateResult = await prisma.suggestionInquiry.updateMany({
       where: {
         suggestionId: suggestionId,
-        toUserId: userId, // Only update messages sent TO me
+        toUserId: userId,
         status: 'PENDING',
       },
       data: {
-        // Here we can choose to just mark it as ANSWERED or add a new logic.
-        // For simplicity, let's assume viewing means it's being handled.
-        // A better approach might be to just have a `readAt` field.
-        // Let's stick to the current schema and move it to ANSWERED.
-        // NOTE: This is a simplification. The best way is to have a dedicated `isRead` flag.
-        // But to avoid schema changes, we will consider it "answered" when viewed by matchmaker.
-        // A better flow would be to change status to 'VIEWED' and have a separate 'ANSWERED'
         status: 'ANSWERED', // A simplification: assumes viewing = handling.
       },
     });
@@ -25178,15 +25095,15 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testim
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials\[testimonialId]\route.ts
 --------------------------------------------------------------------------------
 Content:
-// src/app/api/profile/testimonials/[testimonialId]/route.ts
+// src/app/api/testimonials/[testimonialId]/route.ts
+
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { TestimonialStatus } from '@prisma/client';
 
-// PUT - Update a testimonial's status
-export async function PUT(req: Request, { params }: { params: { testimonialId: string } }) {
+export async function PUT(req: Request, context: { params: { testimonialId: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -25209,8 +25126,8 @@ export async function PUT(req: Request, { params }: { params: { testimonialId: s
 
     const updatedTestimonial = await prisma.friendTestimonial.updateMany({
       where: {
-        id: params.testimonialId,
-        profileId: userProfile.id, // Ensure ownership
+        id: context.params.testimonialId,
+        profileId: userProfile.id,
       },
       data: { status },
     });
@@ -25221,13 +25138,12 @@ export async function PUT(req: Request, { params }: { params: { testimonialId: s
 
     return NextResponse.json({ success: true, message: 'Testimonial status updated.' });
   } catch (error) {
-    console.error("Error in PUT /api/profile/testimonials/[id]:", error);
+    console.error("Error in PUT /api/testimonials/[id]:", error);
     return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
   }
 }
 
-// DELETE a testimonial
-export async function DELETE(req: Request, { params }: { params: { testimonialId: string } }) {
+export async function DELETE(req: Request, context: { params: { testimonialId: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -25245,8 +25161,8 @@ export async function DELETE(req: Request, { params }: { params: { testimonialId
 
     const deletedTestimonial = await prisma.friendTestimonial.deleteMany({
         where: {
-            id: params.testimonialId,
-            profileId: userProfile.id, // Ensure ownership
+            id: context.params.testimonialId,
+            profileId: userProfile.id,
         },
     });
 
@@ -25256,7 +25172,7 @@ export async function DELETE(req: Request, { params }: { params: { testimonialId
 
     return NextResponse.json({ success: true, message: 'Testimonial deleted.' });
   } catch (error) {
-    console.error("Error in DELETE /api/profile/testimonials/[id]:", error);
+    console.error("Error in DELETE /api/testimonials/[id]:", error);
     return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
   }
 }

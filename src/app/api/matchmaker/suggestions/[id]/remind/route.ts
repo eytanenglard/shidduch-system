@@ -13,7 +13,7 @@ const notificationService = initNotificationService();
 
 export async function POST(
   req: NextRequest,
-  context: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -26,7 +26,8 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 });
     }
 
-    const suggestionId = context.params.id;
+    const params = await props.params;
+    const suggestionId = params.id;
     const { partyType } = await req.json();
 
     const url = new URL(req.url);
