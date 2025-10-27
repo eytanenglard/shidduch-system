@@ -85,6 +85,11 @@ export async function PUT(req: Request) {
         where: { userId },
         data: { needsAiProfileUpdate: true }
       });
+      await tx.user.update({
+  where: { id: userId },
+  data: { updatedAt: new Date() }
+});
+
       const newAnswersJson = newAnswers.map((ans) => ({
         ...ans,
         answeredAt: ans.answeredAt.toISOString(),

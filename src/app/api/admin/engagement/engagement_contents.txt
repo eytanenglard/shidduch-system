@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement
-# Generated on: 2025-10-15 13:12:41
+# Generated on: 2025-10-27 15:28:42
 ################################################################################
 
 ================================================================================
@@ -28,11 +28,6 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { UserRole } from '@prisma/client';
 
-/**
- * GET: אחזור כל המשתמשים הפעילים שטרם השלימו את הפרופיל שלהם.
- * נתיב זה מיועד לשימוש פנימי של ה-EngagementDashboard בצד האדמין.
- * הגישה מוגבלת למשתמשים עם תפקיד 'ADMIN' בלבד.
- */
 export async function GET(request: NextRequest) {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] GET /api/admin/engagement/eligible-users - Request received.`);
@@ -53,20 +48,19 @@ export async function GET(request: NextRequest) {
     console.log(`[${timestamp}] Access granted for ADMIN user: ${session.user.id}`);
 
     // שלב 2: שליפת הנתונים מה-Database
-    // -----------------------------------------------------------------
+    // 🎯 עדכון: מחזירים את כל המשתמשים הפעילים (לא רק אלה עם פרופיל לא שלם)
     const users = await prisma.user.findMany({
       where: {
         status: 'ACTIVE',
-        isProfileComplete: false,
-        // --- התנאי המיותר הוסר ---
-        // מכיוון ששדה האימייל הוא שדה חובה בסכמה,
-        // אין צורך לבדוק אם הוא null.
+        role: 'CANDIDATE', // רק מועמדים, לא אדמינים/שדכנים
+        // 🎯 הסרנו את התנאי isProfileComplete: false
       },
       select: {
         id: true,
         firstName: true,
         lastName: true,
         email: true,
+        isProfileComplete: true, // 🎯 נוסיף את זה כדי לראות את הסטטוס
         profile: {
           select: {
             city: true,
@@ -83,7 +77,6 @@ export async function GET(request: NextRequest) {
         createdAt: 'desc',
       },
     });
-    // -----------------------------------------------------------------
 
     console.log(`[${timestamp}] Found ${users.length} eligible users for engagement campaign.`);
 
@@ -91,7 +84,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, users: users });
 
   } catch (error: unknown) {
-    // שלב 4: טיפול בשגיאות
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     console.error(`[${timestamp}] Error in /api/admin/engagement/eligible-users:`, error);
     
@@ -107,6 +99,87 @@ export async function GET(request: NextRequest) {
 }
 
 export const dynamic = 'force-dynamic';
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\run-evening
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\run-evening\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/admin/engagement/run-evening/route.ts
+
+import { NextResponse } from 'next/server';
+import { SmartEngagementOrchestrator } from '@/lib/engagement/SmartEngagementOrchestrator';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+
+/**
+ * 🌙 Evening Feedback Campaign Runner
+ * 
+ * מריץ קמפיין ערב - שולח פידבק למשתמשים שהיו פעילים היום
+ * רק משתמש ADMIN יכול להריץ את הקמפיין הזה
+ */
+export async function POST() {
+  const timestamp = new Date().toISOString();
+  
+  try {
+    // אימות והרשאות
+    const session = await getServerSession(authOptions);
+    
+    if (!session || session.user.role !== 'ADMIN') {
+      console.warn(`[${timestamp}] Unauthorized evening campaign attempt`);
+      return NextResponse.json(
+        { error: 'Unauthorized - Admin access required' },
+        { status: 401 }
+      );
+    }
+
+    console.log(`[${timestamp}] 🌙 Manual evening campaign triggered by admin: ${session.user.id}`);
+    console.log('========================================');
+    console.log('🌙 EVENING FEEDBACK CAMPAIGN - MANUAL RUN');
+    console.log('========================================');
+    
+    // הרצת הקמפיין
+    const results = await SmartEngagementOrchestrator.runEveningCampaign();
+    
+    console.log('========================================');
+    console.log(`✅ Evening campaign completed successfully`);
+    console.log(`📊 Results: Processed ${results.processed} users, Sent ${results.sent} emails`);
+    console.log('========================================');
+    
+    return NextResponse.json({
+      success: true,
+      processed: results.processed,
+      sent: results.sent,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('========================================');
+    console.error('❌ Evening campaign failed!');
+    console.error('========================================');
+    
+    if (error instanceof Error) {
+      console.error(`Error: ${error.message}`);
+      console.error(error.stack);
+    } else {
+      console.error('Unknown error:', error);
+    }
+    
+    console.error('========================================');
+    
+    return NextResponse.json(
+      { 
+        error: 'Evening campaign failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
+}
 --- End of Content for route.ts ---
 
 ================================================================================
@@ -264,7 +337,37 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { getEmailDictionary } from '@/lib/dictionaries';
-import { Language } from '@prisma/client';
+import { Language, Prisma } from '@prisma/client';
+import { EmailDictionary } from '@/types/dictionaries/email';
+
+// ✅ הגדרת מבנה השאילתה לשימוש חוזר וליצירת טיפוס דינמי
+const userWithEngagementDataInclude = {
+  include: {
+    profile: true,
+    images: true,
+    questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } as const },
+    dripCampaign: true,
+  },
+};
+
+// ✅ יצירת טיפוס מדויק עבור אובייקט המשתמש על בסיס השאילתה, כדי למנוע שימוש ב-any
+type UserWithEngagementData = Prisma.UserGetPayload<typeof userWithEngagementDataInclude>;
+
+
+// 🎯 הגדר timeout של 55 שניות
+export const maxDuration = 55;
+
+// 🎯 הגדר את סוגי התשובה
+interface EmailGenerationResult {
+  timeout: false;
+  emailType: string;
+}
+
+interface TimeoutResult {
+  timeout: true;
+}
+
+type GenerationResult = EmailGenerationResult | TimeoutResult;
 
 export async function POST(request: NextRequest) {
   try {
@@ -290,12 +393,7 @@ export async function POST(request: NextRequest) {
     // מצא את המשתמש
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        profile: true,
-        images: true,
-        questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } },
-        dripCampaign: true,
-      },
+      ...userWithEngagementDataInclude, // ✅ שימוש בקבוע שהגדרנו
     });
 
     if (!user) {
@@ -315,12 +413,77 @@ export async function POST(request: NextRequest) {
       language: user.language,
     });
 
-    // טען את מילון המיילים המתאים לשפת המשתמש
+    // טען את מילון המיילים
     const dict = await getEmailDictionary(user.language as Language);
 
+    // 🔥 הוספת לוג לבדיקת תוכן המילון שנטען בפועל
+    console.log('DEBUG: Loaded Dictionary Object:', JSON.stringify(dict, null, 2));
+
+    // 🎯 עטוף את כל התהליך ב-timeout wrapper
+    const emailGenerationPromise = generateEmailWithTimeout(
+      userId,
+      emailType,
+      user,
+      dict
+    );
+
+    const result: GenerationResult = await Promise.race([
+      emailGenerationPromise,
+      timeoutPromise(50000), // 50 שניות
+    ]);
+
+    // 🎯 בדיקה עם Type Guard
+    if (result.timeout) {
+      console.error('❌ [Manual Email] Request timed out after 50 seconds');
+      return NextResponse.json(
+        {
+          error: 'Request timed out',
+          details: 'AI processing took too long. Please try again or choose a different email type.',
+        },
+        { status: 504 }
+      );
+    }
+
+    console.log('🎉 [Manual Email] Email sent successfully!');
+
+    return NextResponse.json({
+      success: true,
+      message: 'Email sent successfully',
+      emailType: result.emailType,
+      recipient: user.email,
+    });
+
+  } catch (error) {
+    console.error('❌ [Manual Email] Error:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to send email',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// 🎯 פונקציה עוזרת ליצירת timeout promise
+function timeoutPromise(ms: number): Promise<TimeoutResult> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ timeout: true });
+    }, ms);
+  });
+}
+
+// 🎯 פונקציה עוזרת שעוטפת את כל תהליך יצירת המייל
+async function generateEmailWithTimeout(
+  userId: string,
+  emailType: string,
+  user: UserWithEngagementData, // ✅ שינוי: שימוש בטיפוס המדויק במקום any
+  dict: EmailDictionary        // ✅ שינוי: שימוש בטיפוס המדויק במקום any
+): Promise<EmailGenerationResult> {
+  try {
     // בנה פרופיל engagement
-    const profile =
-      await SmartEngagementOrchestrator.testBuildUserEngagementProfile(userId);
+    const profile = await SmartEngagementOrchestrator.testBuildUserEngagementProfile(userId);
 
     console.log('📊 [Manual Email] Profile built:', {
       completionPercentage: profile.completionStatus.overall,
@@ -331,8 +494,7 @@ export async function POST(request: NextRequest) {
     let email;
     switch (emailType) {
       case 'EVENING_FEEDBACK': {
-        const dailyActivity =
-          await SmartEngagementOrchestrator.testDetectDailyActivity(userId);
+        const dailyActivity = await SmartEngagementOrchestrator.testDetectDailyActivity(userId);
         email = await SmartEngagementOrchestrator.testGetEveningFeedbackEmail(
           profile,
           dailyActivity,
@@ -341,96 +503,71 @@ export async function POST(request: NextRequest) {
         break;
       }
       case 'AI_SUMMARY': {
-        // טען AI insights אם צריך
-        if (!profile.aiInsights) {
-          console.log('🧠 [Manual Email] Loading AI insights...');
-          await SmartEngagementOrchestrator['loadAiInsights'](
-            profile,
-            user.language as Language
-          );
+        // 🎯 זה החלק שתקוע!
+        console.log('🧠 [Manual Email] Loading AI insights...');
+        
+        // טען AI insights עם timeout נוסף
+        try {
+          // ✅ הוסף timeout ספציפי ל-AI
+          await Promise.race([
+            SmartEngagementOrchestrator['loadAiInsights'](profile, user.language as Language),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('AI insights timeout')), 40000)
+            ),
+          ]);
+          
+          console.log('✅ [Manual Email] AI insights loaded successfully');
+        } catch (aiError) {
+          console.error('❌ [Manual Email] AI insights failed:', aiError);
+          // אם AI נכשל, נמשיך בלי AI insights
+          console.warn('⚠️ [Manual Email] Continuing without AI insights');
         }
-        email = await SmartEngagementOrchestrator['getAiSummaryEmail'](
-          profile,
-          dict
-        );
+
+        email = await SmartEngagementOrchestrator['getAiSummaryEmail'](profile, dict);
         break;
       }
       case 'NUDGE': {
         if (!profile.completionStatus.photos.isDone) {
-          email = await SmartEngagementOrchestrator['getPhotoNudgeEmail'](
-            profile,
-            dict
-          );
+          email = await SmartEngagementOrchestrator['getPhotoNudgeEmail'](profile, dict);
         } else {
-          email = await SmartEngagementOrchestrator['getQuestionnaireNudgeEmail'](
-            profile,
-            dict
-          );
+          email = await SmartEngagementOrchestrator['getQuestionnaireNudgeEmail'](profile, dict);
         }
         break;
       }
       case 'CELEBRATION': {
-        email = await SmartEngagementOrchestrator['getAlmostDoneEmail'](
-          profile,
-          dict
-        );
+        email = await SmartEngagementOrchestrator['getAlmostDoneEmail'](profile, dict);
         break;
       }
       case 'VALUE': {
-        email = await SmartEngagementOrchestrator['getValueEmail'](
-          profile,
-          dict
-        );
+        email = await SmartEngagementOrchestrator['getValueEmail'](profile, dict);
         break;
       }
       case 'ONBOARDING': {
-        email = await SmartEngagementOrchestrator['getOnboardingEmail'](
-          profile,
-          dict
-        );
+        email = await SmartEngagementOrchestrator['getOnboardingEmail'](profile, dict);
         break;
       }
       default:
-        return NextResponse.json(
-          { error: 'Unsupported email type' },
-          { status: 400 }
-        );
+        throw new Error('Unsupported email type');
     }
 
     if (!email) {
-      console.error('❌ [Manual Email] Could not generate email');
-      return NextResponse.json(
-        { error: 'Could not generate email for this user state' },
-        { status: 400 }
-      );
+      throw new Error('Could not generate email for this user state');
     }
 
     console.log('✅ [Manual Email] Email generated:', { type: email.type });
 
     // שלח
     await SmartEngagementOrchestrator['sendEmail'](user, email);
-    await SmartEngagementOrchestrator['updateCampaignRecord'](
-      userId,
-      emailType
-    );
+    await SmartEngagementOrchestrator['updateCampaignRecord'](userId, emailType);
 
-    console.log('🎉 [Manual Email] Email sent successfully!');
-
-    return NextResponse.json({
-      success: true,
-      message: 'Email sent successfully',
+    return {
       emailType: email.type,
-      recipient: user.email,
-    });
+      timeout: false,
+    };
+
   } catch (error) {
-    console.error('❌ [Manual Email] Error:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to send email',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    console.error('❌ [Manual Email] Error in generateEmailWithTimeout:', error);
+    throw error;
   }
 }
 --- End of Content for route.ts ---

@@ -155,7 +155,10 @@ export async function PATCH(req: Request) {
        where: { userId },
        data: { needsAiProfileUpdate: true }
      });
-
+await prisma.user.update({
+  where: { id: userId },
+  data: { updatedAt: new Date() }
+});
     const formattedAnswers: Partial<FormattedAnswersType> = {};
     (Object.keys(KEY_MAPPING) as WorldId[]).forEach(key => {
        const currentDbKey = KEY_MAPPING[key];

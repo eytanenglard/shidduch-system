@@ -587,29 +587,30 @@ export class SmartEngagementOrchestrator {
   }
 
 
-  private static async getTodaysActiveUsers() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    return await prisma.user.findMany({
-      where: {
-        status: 'ACTIVE',
-        marketingConsent: true,
-        // isProfileComplete: false,  <--- מחקנו את השורה הזאת
-        OR: [
-          { lastLogin: { gte: today } },
-          { updatedAt: { gte: today } },
-          { questionnaireResponses: { some: { lastSaved: { gte: today } } } }
-        ]
-      },
-      include: {
-        profile: true,
-        images: true,
-        questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } },
-        dripCampaign: true
-      }
-    });
-  }
+private static async getTodaysActiveUsers() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  return await prisma.user.findMany({
+    where: {
+      status: 'ACTIVE',
+      marketingConsent: true,
+      // ❌ הסר את השורה: isProfileComplete: false,
+      OR: [
+        // ❌ הסר את השורה: { lastLogin: { gte: today } },
+        { updatedAt: { gte: today } },
+        { questionnaireResponses: { some: { lastSaved: { gte: today } } } }
+      ]
+    },
+    include: {
+      profile: true,
+      images: true,
+      questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } },
+      dripCampaign: true
+    }
+  });
+}
+
 
 private static async detectDailyActivity(userId: string): Promise<{
   hasActivity: boolean;
@@ -629,12 +630,14 @@ private static async detectDailyActivity(userId: string): Promise<{
   
   console.log('🔍 Querying database for recent updates...');
   
+  // 🆕 עדכן את ה-query להוסיף user.updatedAt:
   const recentUpdates = await prisma.profile.findUnique({
     where: { userId },
     select: {
       updatedAt: true,
       user: {
         select: {
+          updatedAt: true, // 🆕 הוסף את זה!
           questionnaireResponses: {
             where: { lastSaved: { gte: today } },
             orderBy: { lastSaved: 'desc' },
@@ -658,6 +661,7 @@ private static async detectDailyActivity(userId: string): Promise<{
   
   console.log('📊 RAW DATA FROM DATABASE:');
   console.log('----------------------------------------------');
+  console.log(`User updatedAt: ${recentUpdates.user.updatedAt ? recentUpdates.user.updatedAt.toISOString() : 'NULL'}`); // 🆕
   console.log(`Profile updatedAt: ${recentUpdates.updatedAt ? recentUpdates.updatedAt.toISOString() : 'NULL'}`);
   console.log(`Questionnaire responses count: ${recentUpdates.user.questionnaireResponses.length}`);
   console.log(`Images count: ${recentUpdates.user.images.length}`);
@@ -666,20 +670,24 @@ private static async detectDailyActivity(userId: string): Promise<{
   console.log('🔍 CHECKING EACH ACTIVITY TYPE:');
   console.log('----------------------------------------------');
   
-  // בדיקה 1: האם הפרופיל עודכן היום
+  // 🆕 בדיקה משופרת - בודקת גם User.updatedAt וגם Profile.updatedAt
   let profileUpdated = false;
-  if (recentUpdates.updatedAt) {
-    profileUpdated = recentUpdates.updatedAt >= today;
-    console.log(`1️⃣ Profile Updated Today?`);
-    console.log(`   Profile updatedAt: ${recentUpdates.updatedAt.toISOString()}`);
-    console.log(`   Today (midnight):  ${today.toISOString()}`);
-    console.log(`   Comparison: ${recentUpdates.updatedAt.getTime()} >= ${today.getTime()}`);
-    console.log(`   Result: ${profileUpdated ? '✅ YES' : '❌ NO'}`);
-  } else {
-    console.log(`1️⃣ Profile Updated Today?`);
-    console.log(`   Profile updatedAt: NULL`);
-    console.log(`   Result: ❌ NO`);
+  const userUpdated = recentUpdates.user.updatedAt && recentUpdates.user.updatedAt >= today;
+  const profileTableUpdated = recentUpdates.updatedAt && recentUpdates.updatedAt >= today;
+  
+  profileUpdated = userUpdated || profileTableUpdated;
+  
+  console.log(`1️⃣ Profile/User Updated Today?`);
+  if (recentUpdates.user.updatedAt) {
+    console.log(`   User updatedAt:    ${recentUpdates.user.updatedAt.toISOString()}`);
+    console.log(`   User updated?:     ${userUpdated ? '✅ YES' : '❌ NO'}`);
   }
+  if (recentUpdates.updatedAt) {
+    console.log(`   Profile updatedAt: ${recentUpdates.updatedAt.toISOString()}`);
+    console.log(`   Profile updated?:  ${profileTableUpdated ? '✅ YES' : '❌ NO'}`);
+  }
+  console.log(`   Today (midnight):  ${today.toISOString()}`);
+  console.log(`   Combined Result:   ${profileUpdated ? '✅ YES' : '❌ NO'}`);
   console.log('');
   
   // בדיקה 2: האם נענו שאלונים היום
@@ -709,7 +717,7 @@ private static async detectDailyActivity(userId: string): Promise<{
   console.log('----------------------------------------------');
   console.log('📊 ACTIVITY SUMMARY:');
   console.log('----------------------------------------------');
-  console.log(`Profile Updated:      ${profileUpdated ? '✅' : '❌'}`);
+  console.log(`Profile/User Updated: ${profileUpdated ? '✅' : '❌'}`);
   console.log(`Questionnaire:        ${questionnaireUpdated ? '✅' : '❌'}`);
   console.log(`Images Uploaded:      ${imagesUploaded ? '✅' : '❌'}`);
   console.log('----------------------------------------------\n');
@@ -739,7 +747,7 @@ private static async detectDailyActivity(userId: string): Promise<{
   }
   
   if (profileUpdated) {
-    const message = 'עדכון פרופיל';
+    const message = 'עדכון פרופיל או נתוני משתמש'; // 🔄 טקסט מעודכן
     completedToday.push(message);
     console.log(`✅ Added to completedToday: "${message}"`);
   }
@@ -766,6 +774,7 @@ private static async detectDailyActivity(userId: string): Promise<{
     progressDelta: 0 
   };
 }
+
 
   private static async getEveningFeedbackEmail(
     profile: UserEngagementProfile,

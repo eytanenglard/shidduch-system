@@ -307,6 +307,10 @@ export async function PUT(req: Request) {
           lastSaved: new Date(),
         },
       });
+await prisma.user.update({
+  where: { id: session.user.id },
+  data: { updatedAt: new Date() }
+});
 
       if (validatedData.completed) {
         await prisma.user.update({

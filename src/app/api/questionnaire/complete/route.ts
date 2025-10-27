@@ -59,10 +59,14 @@ export async function PUT(req: Request) {
           lastSaved: new Date()
         }
       }),
-      prisma.user.update({
-        where: { id: session.user.id },
-        data: { status: "ACTIVE" }
-      })
+     prisma.user.update({
+  where: { id: session.user.id },
+  data: { 
+    status: "ACTIVE",
+    updatedAt: new Date() // 🆕 הוסף
+  }
+})
+
     ]);
 
     return NextResponse.json({

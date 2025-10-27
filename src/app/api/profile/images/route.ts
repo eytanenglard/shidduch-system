@@ -171,6 +171,10 @@ const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15,
         isMain: isFirstImage,
       },
     });
+await prisma.user.update({
+  where: { id: session.user.id },
+  data: { updatedAt: new Date() }
+});
 
     console.log(
       `[Upload] Database save completed in ${Date.now() - startTime}ms`

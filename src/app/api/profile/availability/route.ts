@@ -36,6 +36,10 @@ export async function PUT(req: Request) {
         }
       }
     });
+await prisma.user.update({
+  where: { id: session.user.id },
+  data: { updatedAt: new Date() }
+});
 
     return NextResponse.json({
       success: true,

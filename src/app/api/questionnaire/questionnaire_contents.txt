@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\questionnaire
-# Generated on: 2025-10-03 13:47:59
+# Generated on: 2025-10-27 15:37:55
 ################################################################################
 
 ================================================================================
@@ -76,6 +76,7 @@ const QuestionnaireSubmission = z.object({
   completed: z.boolean(),
   startedAt: z.string().datetime(),
   completedAt: z.string().datetime().optional(),
+  currentQuestionIndices: z.record(WorldId, z.number()).optional(), // <--- הוסף את השורה הזו
 });
 
 type QuestionnaireSubmission = z.infer<typeof QuestionnaireSubmission>;
@@ -302,7 +303,9 @@ export async function PUT(req: Request) {
             validatedData.worldsCompleted.includes('RELATIONSHIP'),
           partnerCompleted: validatedData.worldsCompleted.includes('PARTNER'),
           religionCompleted: validatedData.worldsCompleted.includes('RELIGION'),
+           currentQuestionIndices: validatedData.currentQuestionIndices,
           lastSaved: new Date(),
+
         },
         update: {
           ...mergedAnswers,
@@ -318,6 +321,7 @@ export async function PUT(req: Request) {
             validatedData.worldsCompleted.includes('RELATIONSHIP'),
           partnerCompleted: validatedData.worldsCompleted.includes('PARTNER'),
           religionCompleted: validatedData.worldsCompleted.includes('RELIGION'),
+          currentQuestionIndices: validatedData.currentQuestionIndices,
           lastSaved: new Date(),
         },
       });
@@ -510,7 +514,6 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
-import { updateUserAiProfile } from '@/lib/services/profileAiService';
 
 const WorldId = z.enum([
   'VALUES',
@@ -547,7 +550,6 @@ const worldAnswersSchema = z.object({
   answers: z.array(answerSchema),
 });
 
-type AnswerPayload = z.infer<typeof answerSchema>;
 
 export async function PUT(req: Request) {
   try {
