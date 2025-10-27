@@ -15,7 +15,7 @@ cloudinary.config({
 
 export async function DELETE(
   req: NextRequest,
-  context: { params: { id: string; imageId: string } }
+  props: { params: Promise<{ id: string; imageId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -40,7 +40,9 @@ export async function DELETE(
       );
     }
 
-    const { id, imageId } = context.params;
+    // Await params before destructuring
+    const params = await props.params;
+    const { id, imageId } = params;
 
     console.log(`Handling DELETE request for candidate ${id}, image ${imageId}`);
 
