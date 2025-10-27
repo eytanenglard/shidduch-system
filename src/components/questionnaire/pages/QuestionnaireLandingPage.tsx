@@ -370,7 +370,7 @@ export default function QuestionnaireLandingPage({
         )}
       </footer>
 
-      <style jsx global>{`
+      <style>{`
         @keyframes float-slow {
           0%,
           100% {

@@ -31,7 +31,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
   // ... (useEffect hooks נשארים ללא שינוי) ...
   useEffect(() => {
     if (status === 'authenticated') {
-      // @ts-ignore
+  
       const redirectUrl = session?.redirectUrl || '/profile';
       router.push(redirectUrl);
     }
