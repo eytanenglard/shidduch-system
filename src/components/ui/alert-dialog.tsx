@@ -38,12 +38,12 @@ const AlertDialog = ({
   children,
   open: controlledOpen,
   onOpenChange
-}: AlertDialogProps): JSX.Element => {
+}: AlertDialogProps) => { // הסר את ': JSX.Element'
   const [internalOpen, setInternalOpen] = useState(false);
-  
+
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
-  
+
   const setOpen = useCallback((newOpen: boolean) => {
     if (!isControlled) {
       setInternalOpen(newOpen);
@@ -63,6 +63,7 @@ const AlertDialog = ({
   );
 };
 
+
 // --- AlertDialogTrigger Component (Corrected) ---
 interface AlertDialogTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
@@ -73,27 +74,29 @@ const AlertDialogTrigger = React.forwardRef<HTMLButtonElement, AlertDialogTrigge
   ({ children, asChild = false, ...props }, ref) => {
     const { setOpen } = useAlertDialog();
 
-    if (asChild && isValidElement(children)) {
-      // The child element is cloned, and our new props are merged into it.
-      // This is the standard pattern for the `asChild` prop.
-      return cloneElement(
-        children,
-        {
-          ...props,
-          ...children.props, // Merge props from the child and the trigger.
-          ref,
-          // Create a new onClick handler that calls both the child's original
-          // onClick and our trigger's logic.
-          onClick: (event: React.MouseEvent<HTMLElement>) => {
-            // Call the child's own onClick handler if it exists.
-            children.props.onClick?.(event);
-            // If the event wasn't prevented by the child's handler, run our logic.
-            if (!event.defaultPrevented) {
-              setOpen(true);
-            }
-          },
-        }
-      );
+    if (asChild) {
+      if (isValidElement(children)) {
+        // By casting 'children' here, we inform TypeScript that it's a valid React element
+        // with a 'props' object, which resolves the chain of type errors.
+        const child = children as React.ReactElement<any>;
+        
+        return cloneElement(
+          child,
+          {
+            ...props,
+            ...child.props,
+            ref,
+            onClick: (event: React.MouseEvent<HTMLElement>) => {
+              // Call the child's own onClick handler if it exists.
+              child.props.onClick?.(event);
+              // If the event wasn't prevented by the child's handler, run our logic.
+              if (!event.defaultPrevented) {
+                setOpen(true);
+              }
+            },
+          }
+        );
+      }
     }
 
     return (
@@ -110,9 +113,7 @@ const AlertDialogTrigger = React.forwardRef<HTMLButtonElement, AlertDialogTrigge
 AlertDialogTrigger.displayName = "AlertDialogTrigger";
 
 
-// --- (The rest of your file remains the same) ---
-
-// 4. --- AlertDialogContent Component (The Dialog itself) ---
+// --- AlertDialogContent Component (The Dialog itself) ---
 const AlertDialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => {
     const { open } = useAlertDialog();
@@ -141,7 +142,7 @@ const AlertDialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes
 );
 AlertDialogContent.displayName = "AlertDialogContent";
 
-// 5. --- Other structural components ---
+// --- Other structural components ---
 const AlertDialogHeader = ({
   className,
   ...props
@@ -188,7 +189,7 @@ const AlertDialogDescription = React.forwardRef<
 ));
 AlertDialogDescription.displayName = "AlertDialogDescription";
 
-// 6. --- Action and Cancel Buttons ---
+// --- Action and Cancel Buttons ---
 const AlertDialogAction = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement>
@@ -229,7 +230,7 @@ const AlertDialogCancel = React.forwardRef<
 });
 AlertDialogCancel.displayName = "AlertDialogCancel";
 
-// 7. --- Final Exports ---
+// --- Final Exports ---
 export {
   AlertDialog,
   AlertDialogTrigger,

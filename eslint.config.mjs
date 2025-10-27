@@ -1,7 +1,7 @@
 // eslint.config.mjs
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
-import nextPlugin from "@next/eslint-plugin-next"; // ◀️ שינוי 1: המקור של הייבוא
+import nextPlugin from "@next/eslint-plugin-next";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 import globals from "globals";
@@ -22,9 +22,22 @@ export default tseslint.config(
   // תצורות בסיס
   js.configs.recommended,
   ...tseslint.configs.recommended,
-
-  // ◀️ שינוי 2: שימוש בהגדרות המומלצות מהפלאגין
   nextPlugin.configs['core-web-vitals'],
+
+  // ================================================================
+  // ▼▼▼ הוסף את הבלוק החדש כאן ▼▼▼
+  // ================================================================
+  {
+    files: ["**/*.d.ts"], // החל כללים אלו רק על קבצי הגדרות טיפוסים
+    rules: {
+      // כבה את הבדיקה הזו, כי בקבצים אלו היא נדרשת
+      "@typescript-eslint/triple-slash-reference": "off",
+    },
+  },
+  // ================================================================
+  // ▲▲▲ סוף הבלוק החדש ▲▲▲
+  // ================================================================
+
 
   // כללים מותאמים אישית שלך
   {

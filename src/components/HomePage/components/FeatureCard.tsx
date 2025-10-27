@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 
 // Type definitions
 export interface FeatureCardProps {
-  icon: React.ReactNode;
+  // --- The type was changed here to be more specific and solve the error ---
+  icon: React.ReactElement<{ className?: string }>;
   title: string;
   description: string;
   color: "cyan" | "green" | "orange" | "pink";
@@ -58,7 +59,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
           <div
             className={`p-4 rounded-2xl bg-gradient-to-br ${colorClasses[color].bg} shadow-md group-hover:shadow-lg transition-all duration-500 ${colorClasses[color].shadow}`}
           >
-            {React.cloneElement(icon as React.ReactElement, {
+            {React.cloneElement(icon, {
               className: `w-8 h-8 ${colorClasses[color].text} transition-colors duration-500`,
             })}
           </div>

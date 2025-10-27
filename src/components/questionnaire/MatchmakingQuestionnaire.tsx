@@ -132,7 +132,7 @@ export default function MatchmakingQuestionnaire({
   });
 
   const [showIdleModal, setShowIdleModal] = useState(false);
-  const logoutTimer = useRef<NodeJS.Timeout>();
+  const logoutTimer = useRef<NodeJS.Timeout | null>(null);
 
   const handleIdle = useCallback(() => {
     if (userId) {

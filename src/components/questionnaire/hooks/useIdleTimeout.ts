@@ -8,9 +8,15 @@ interface UseIdleTimeoutProps {
 
 export function useIdleTimeout({ onIdle, idleTimeSeconds = 7200 }: UseIdleTimeoutProps) { // ברירת מחדל: שעתיים
   const [isIdle, setIsIdle] = useState(false);
-  const timeoutId = useRef<NodeJS.Timeout>();
+  // --- This is the corrected line ---
+  const timeoutId = useRef<NodeJS.Timeout | null>(null);
 
   const startTimer = useCallback(() => {
+    // Clear any existing timer before starting a new one
+    if (timeoutId.current) {
+      clearTimeout(timeoutId.current);
+    }
+    
     timeoutId.current = setTimeout(() => {
       setIsIdle(true);
       onIdle();
@@ -18,6 +24,7 @@ export function useIdleTimeout({ onIdle, idleTimeSeconds = 7200 }: UseIdleTimeou
   }, [idleTimeSeconds, onIdle]);
 
   const resetTimer = useCallback(() => {
+    // The previous implementation was already correct, it just needed the right type
     if (timeoutId.current) {
       clearTimeout(timeoutId.current);
     }

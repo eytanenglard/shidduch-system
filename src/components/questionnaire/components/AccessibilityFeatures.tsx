@@ -88,7 +88,8 @@ export default function AccessibilityFeatures({
   }>({ message: '', type: 'info', visible: false });
 
   const panelRef = useRef<HTMLDivElement>(null);
-  const toastTimeoutRef = useRef<NodeJS.Timeout>();
+  // --- This line was fixed ---
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const showAccessibilityPanel =
     isPanelOpen !== undefined ? isPanelOpen : internalShowPanel;

@@ -229,9 +229,10 @@ export default function QuestionnaireLandingPage({
                         colorClasses[world.color as keyof typeof colorClasses]
                       )}
                     >
-                      {React.cloneElement(world.icon as React.ReactElement, {
-                        className: 'h-7 w-7',
-                      })}
+                    {React.cloneElement(world.icon, {
+  ...world.icon.props,
+  className: 'h-7 w-7',
+})}
                     </div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">
                       {worldContent.title}
