@@ -16,6 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Info, Loader2 } from 'lucide-react';
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+import Link from 'next/link';
 
 /**
  * הגדרת ה-Props עבור הקומפוננטה הראשית.
@@ -274,9 +275,9 @@ const RegisterStepsContent: React.FC<{
 
       <div className="mt-8 text-center text-sm text-gray-500">
         {dict.contactSupport}{' '}
-        <a href="/contact" className="text-cyan-600 hover:underline">
+        <Link  href="/contact" className="text-cyan-600 hover:underline">
           {dict.contactSupportLink}
-        </a>
+        </Link >
       </div>
     </div>
   );

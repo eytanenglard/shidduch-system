@@ -439,7 +439,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           );
         });
         break;
-      case 'priority':
+      case 'priority':{ 
         const priorityOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
         result.sort(
           (a, b) =>
@@ -447,6 +447,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
             (priorityOrder[b.priority as keyof typeof priorityOrder] || 4)
         );
         break;
+      }
     }
 
     return result;

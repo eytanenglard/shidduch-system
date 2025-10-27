@@ -637,7 +637,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes gradient-slow {
           0%,
           100% {

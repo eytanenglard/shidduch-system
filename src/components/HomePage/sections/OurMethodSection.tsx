@@ -934,7 +934,7 @@ const OurMethodSection: React.FC<OurMethodProps> = ({ dict }) => {
         <MatchingConstellation dict={dict.constellation} locale={locale} />
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes gentle-pulse {
           0%,
           100% {

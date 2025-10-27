@@ -23,7 +23,6 @@ export default function SignInForm() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      // @ts-ignore - אנחנו יודעים שהוספנו את המאפיינים האלה לסשן
       const redirectUrl = session?.redirectUrl || '/profile';
       router.push(redirectUrl);
     }

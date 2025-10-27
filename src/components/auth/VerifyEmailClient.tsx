@@ -190,9 +190,7 @@ export default function VerifyEmailPage() {
             if (isEffectMounted) {
               // Check mount status again before navigating
               router.push("/auth/signin");
-            } else {
-            
-            }
+            } 
           }, 1500);
         }
       } catch (error: unknown) {

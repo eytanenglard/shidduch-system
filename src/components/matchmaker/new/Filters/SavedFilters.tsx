@@ -166,7 +166,7 @@ const SavedFilters: React.FC<SavedFiltersProps> = ({
   const getFilterComplexity = (
     filter: CandidatesFilter
   ): { score: number; label: string; color: string } => {
-    let score = Object.keys(filter).filter(
+    const score = Object.keys(filter).filter(
       (key) => filter[key as keyof CandidatesFilter] !== undefined
     ).length;
 

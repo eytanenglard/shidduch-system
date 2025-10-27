@@ -278,7 +278,7 @@ export default function AnswerInput({
         );
 
       case 'multiChoice':
-      case 'multiSelect':
+      case 'multiSelect': {
         const selectedValues = Array.isArray(internalValue)
           ? (internalValue as string[])
           : [];
@@ -421,8 +421,9 @@ export default function AnswerInput({
             )}
           </div>
         );
+      }
 
-      case 'multiSelectWithOther':
+      case 'multiSelectWithOther': {
         const selectedWithOtherValues = Array.isArray(internalValue)
           ? (internalValue as string[])
           : [];
@@ -671,6 +672,7 @@ export default function AnswerInput({
             )}
           </div>
         );
+      }
 
       case 'scenario':
         return (
@@ -865,21 +867,17 @@ export default function AnswerInput({
           </div>
         );
 
-      case 'openText':
+      case 'openText': {
         let textValue = '';
-        // קודם כל, נטפל במקרה הפשוט שבו הערך הוא מחרוזת
         if (typeof internalValue === 'string') {
           textValue = internalValue;
-        }
-        // לאחר מכן, נטפל במקרה המורכב יותר של אובייקט
-        else if (
+        } else if (
           typeof internalValue === 'object' &&
           internalValue !== null &&
           !Array.isArray(internalValue) &&
           'text' in internalValue
         ) {
-          // TypeScript מבין כעת שב-internalValue בהכרח קיים המאפיין 'text'
-          textValue = String(internalValue.text || ''); // המרה בטוחה למחרוזת
+          textValue = String(internalValue.text || '');
         }
         const hasMinLength =
           question.minLength !== undefined && question.minLength > 0;
@@ -1119,8 +1117,9 @@ export default function AnswerInput({
             )}
           </div>
         );
+      }
 
-      case 'budgetAllocation':
+      case 'budgetAllocation': {
         const budgetValues = (internalValue as Record<string, number>) || {};
         const totalAllocatedPoints = Object.values(budgetValues).reduce(
           (sum, val) => sum + (Number(val) || 0),
@@ -1277,6 +1276,7 @@ export default function AnswerInput({
             </div>
           </fieldset>
         );
+      }
 
       default:
         console.warn('Unsupported question type:', question.type);
