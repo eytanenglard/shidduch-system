@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-10-10 13:19:01
+# Generated on: 2025-10-27 16:10:37
 ################################################################################
 
 ================================================================================
@@ -1268,6 +1268,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Info, Loader2 } from 'lucide-react';
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+import Link from 'next/link';
 
 /**
  * הגדרת ה-Props עבור הקומפוננטה הראשית.
@@ -1526,9 +1527,9 @@ const RegisterStepsContent: React.FC<{
 
       <div className="mt-8 text-center text-sm text-gray-500">
         {dict.contactSupport}{' '}
-        <a href="/contact" className="text-cyan-600 hover:underline">
+        <Link  href="/contact" className="text-cyan-600 hover:underline">
           {dict.contactSupportLink}
-        </a>
+        </Link >
       </div>
     </div>
   );
@@ -2234,7 +2235,6 @@ export default function SignInForm() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      // @ts-ignore - אנחנו יודעים שהוספנו את המאפיינים האלה לסשן
       const redirectUrl = session?.redirectUrl || '/profile';
       router.push(redirectUrl);
     }
@@ -2716,9 +2716,7 @@ export default function VerifyEmailPage() {
             if (isEffectMounted) {
               // Check mount status again before navigating
               router.push("/auth/signin");
-            } else {
-            
-            }
+            } 
           }, 1500);
         }
       } catch (error: unknown) {
@@ -3296,7 +3294,6 @@ Content:
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
-  ArrowLeft,
   CheckCircle,
   Mail,
   User,
@@ -4203,10 +4200,12 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         }
         await updateSessionHook();
       } catch (error) {
+        console.error('Failed to accept terms:', error); // <-- יש להוסיף את השורה הזו
         setGeneralApiError(dict.errors.consentApiError);
         setIsSubmittingConsent(false);
         return;
       }
+
       setIsSubmittingConsent(false);
     }
 
