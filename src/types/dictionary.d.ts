@@ -2752,11 +2752,18 @@ export type AccountSettingsDict = {
       createdAt: string;
       lastLogin: string;
     };
-    marketing: {
+    communication: { // שינינו את שם המפתח לכללי יותר
       title: string;
-      label: string;
-      description: string;
+      engagement: { // הוספנו אובייקט ייעודי
+        label: string;
+        description: string;
+      };
+      promotional: { // הוספנו אובייקט ייעודי
+        label: string;
+        description: string;
+      };
     };
+
     security: {
       title: string;
       description: string;
@@ -2808,8 +2815,8 @@ export type AccountSettingsDict = {
     deleteSuccessDesc: string;
     deleteError: string;
     deleteErrorDesc: string;
-    marketingUpdateSuccess: string;
-    marketingUpdateError: string;
+    consentUpdateSuccess: string;
+      consentUpdateError: string;
     languageUpdateSuccess: string; // <-- הוסף שורה זו
     languageUpdateError: string; // <-- הוסף שורה זו
   };

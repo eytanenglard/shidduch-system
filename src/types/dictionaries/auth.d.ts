@@ -247,7 +247,8 @@ export type RegisterStepsDict = {
         consentRequired: string;
         default: string;
       };
-      marketingConsent: string;
+      engagementConsentLabel: string; // <-- שדה חדש
+      promotionalConsentLabel: string; // <-- שדה חדש
     };
     emailVerification: {
       title: string;

@@ -236,7 +236,9 @@
           "consentRequired": "You must accept the terms of use and privacy policy.",
           "default": "An unexpected error occurred during registration"
         },
-        "marketingConsent": "I agree to receive marketing information and updates from the company"
+       "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
+  "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech."
+
       },
       "emailVerification": {
         "title": "Email Address Verification",

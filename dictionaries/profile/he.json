@@ -1311,11 +1311,17 @@
         "createdAt": "נוצר ב:",
         "lastLogin": "התחברות אחרונה:"
       },
-      "marketing": {
-        "title": "העדפות דיוור",
-        "label": "מידע שיווקי ועדכונים",
-        "description": "קבלת עדכונים על אירועים, מבצעים וחדשות מהחברה."
-      },
+   "communication": {
+  "title": "העדפות תקשורת ודיוור",
+  "engagement": {
+    "label": "טיפים, משובים ותובנות AI",
+    "description": "קבלת מיילים שיעזרו לך לשפר את הפרופיל ולמצוא התאמה מהר יותר."
+  },
+  "promotional": {
+    "label": "חדשות, מבצעים ועדכונים",
+    "description": "קבלת עדכונים על אירועים, פיצ'רים חדשים ומבצעים מ-NeshamaTech."
+  }
+},
       "security": {
         "title": "אבטחה",
         "description": "הגדרות אבטחה וסיסמה",
@@ -1366,8 +1372,8 @@
       "deleteSuccessDesc": "מקווים לראותך שוב. אתה מועבר לדף הבית.",
       "deleteError": "שגיאה במחיקת החשבון",
       "deleteErrorDesc": "נסה שוב מאוחר יותר או פנה לתמיכה",
-      "marketingUpdateSuccess": "העדפות דיוור עודכנו בהצלחה",
-      "marketingUpdateError": "שגיאה בעדכון העדפות הדיוור",
+       "consentUpdateSuccess": "העדפות התקשורת עודכנו בהצלחה",
+  "consentUpdateError": "שגיאה בעדכון העדפות התקשורת",
        "languageUpdateSuccess": "השפה עודכנה בהצלחה!",
         "languageUpdateError": "שגיאה בעדכון השפה"
     },

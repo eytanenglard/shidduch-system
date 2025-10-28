@@ -1262,10 +1262,12 @@
         "createdAt": "Member Since:",
         "lastLogin": "Last Login:"
       },
-      "marketing": {
-        "title": "Communication Preferences",
-        "label": "Receive marketing information and updates",
-        "description": "Get updates about events, new features, and news from NeshamaTech."
+    "communication": { 
+      "title": "Communication Preferences",
+     "engagement": { "label": "Tips, Feedback & AI Insights",
+      "description": "Receive emails that help you improve your profile and find matches faster." }, 
+      "promotional": { "label": "News, Events & Promotions",
+       "description": "Get updates on new features, special events, and offers from NeshamaTech." } 
       },
       "security": {
         "title": "Security & Password",
@@ -1318,8 +1320,8 @@
       "deleteSuccessDesc": "We're sorry to see you go. You are being redirected.",
       "deleteError": "Error deleting account.",
       "deleteErrorDesc": "Please try again later or contact support.",
-      "marketingUpdateSuccess": "Communication preferences updated.",
-      "marketingUpdateError": "Error updating communication preferences.",
+    "consentUpdateSuccess": "Communication preferences updated successfully.",
+     "consentUpdateError": "Error updating communication preferences." ,
         "languageUpdateSuccess": "Language updated successfully!",
     "languageUpdateError": "Error updating language."
 

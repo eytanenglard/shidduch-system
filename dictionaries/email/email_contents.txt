@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\email
-# Generated on: 2025-10-26 12:31:51
+# Generated on: 2025-10-28 08:52:41
 ################################################################################
 
 ================================================================================
@@ -25,29 +25,29 @@ Content:
 "rightsReserved": "© {{year}} NeshamaTech. All rights reserved."
 },
 "welcome": {
-"subject": "Welcome to NeshamaTech | Your Journey Begins Here",
-"title": "Your Journey Begins Here",
-"intro": "We are thrilled and excited that you've joined the NeshamaTech family. We are here to guide you, step by step, on the journey to finding a true and meaningful connection. This isn't just another app; it's a home.",
-"matchmakerAssigned": "We're happy to let you know that a personal matchmaker, {{matchmakerName}}, has been assigned to you. They will be in touch soon to get to know you on a deeper level.",
-"getStarted": "Your account is ready. The first step is to complete your personal profile so we can start finding precise matches that truly resonate with your soul.",
-"dashboardButton": "Go to My Dashboard"
+  "subject": "Welcome to the Family, {{firstName}}! Your Profile is Active & Ready",
+  "title": "Your Journey Starts Now",
+  "intro": "Congratulations! You've successfully completed all verification steps and your account is now active. We officially welcome you to the NeshamaTech family—a community of individuals seeking genuine connections.",
+  "matchmakerAssigned": "We're happy to let you know that a personal matchmaker, {{matchmakerName}}, has been assigned to you. They will be in touch soon.",
+  "getStarted": "The next and most exciting step is our 'Five Worlds' questionnaire. This isn't a test; it's our key to understanding you deeply, saving you valuable time on irrelevant suggestions, and presenting you only with opportunities that have the highest potential for a true connection.",
+  "dashboardButton": "Begin the Questionnaire"
 },
 "accountSetup": {
-"subject": "An Invitation to Activate Your NeshamaTech Account",
-"title": "Your Profile is Waiting",
-"intro": "Your matchmaker, {{matchmakerName}}, believes in your potential and has created a profile for you in our system. To take ownership, update your details, and start seeing suggestions, all you need to do is set a personal password.",
-"actionPrompt": "Click the button to set your password and activate your account:",
-"actionButton": "Set Password & Activate Account",
-"notice": "Please note: This link is personal, single-use, and valid for {{expiresIn}}.",
-"nextStep": "After setting your password, you can log in with your email address and begin your journey."
+  "subject": "A Personal Invitation from {{matchmakerName}} to Join NeshamaTech",
+  "title": "Your Profile is Waiting for You",
+  "intro": "Your matchmaker, {{matchmakerName}}, believes in your potential and has created an initial profile for you in our system. This is a personal invitation to take ownership of your profile and become a full partner in the journey to finding a match.",
+  "actionPrompt": "To activate your account and set a personal password, please click the link below:",
+  "actionButton": "Set Password & Activate Account",
+  "notice": "Please note: This link is personal, single-use, and valid for {{expiresIn}}.",
+  "nextStep": "After setting your password, you'll be able to log in, complete your profile, and see how we start working for you."
 },
 "emailOtpVerification": {
-"subject": "Your NeshamaTech Verification Code",
-"title": "Almost There...",
-"intro": "To complete the verification and ensure your account is secure, please use the following code:",
-"codeInstruction": "Your verification code is:",
-"expiryNotice": "This code is valid for {{expiresIn}}.",
-"securityNote": "This code is just for you. For your safety, never share it with anyone."
+  "subject": "One Last Step to Begin Your NeshamaTech Journey",
+  "title": "You're Almost There...",
+  "intro": "We're thrilled you've started your journey with us! To ensure your account is secure and our communication remains private, there's just one small step left to verify your email address.",
+  "codeInstruction": "Your one-time verification code is:",
+  "expiryNotice": "This code is valid for {{expiresIn}}.",
+  "securityNote": "For your security, never share this code with anyone. Didn't sign up? You can safely disregard this email."
 },
 "invitation": {
 "subject": "{{matchmakerName}} is inviting you to join NeshamaTech",
@@ -182,62 +182,46 @@ Content:
     }
   }
   },
-  "engagement": {
+"engagement": {
     "onboardingDay1": {
-      "subject": "{{firstName}}, Welcome! Your first step 🎉",
-      "hook": "We're excited you've joined! Let's start with the most important first step.",
-      "mainMessage": "So we can start finding matches for you, the first step is building a basic profile. It will take about 5 minutes and make a huge difference.",
-      "encouragement": "We're here for you every step of the way! 💙"
-    },
-    "onboardingDay3": {
-      "subject": "How's it going? A quick update 📊",
-      "hook": "Your profile is already {{completion}}% complete! Well done!",
-      "mainMessage": "Every detail you add helps our AI system understand you better. For example, the information you've filled out so far helps us see that: {{aiInsight}}",
-      "encouragement": "You're on the right track! 🚀"
-    },
-    "onboardingDay7_Insight": {
-      "subject": "One week in - here's what we've learned about you 🔍",
-      "hook": "{{firstName}}, it's been a week since you joined. Here's a special insight:",
-      "mainMessage": "Our system is already beginning to learn about you and what's important to you.",
-      "encouragement": "Complete profiles get 3 times more high-quality matches!"
+      "subject": "{{firstName}}, Welcome! Your First Step to a Meaningful Connection 🎉",
+      "hook": "We're so glad you're here! Let's begin with the most important first step.",
+      "mainMessage": "To start finding truly compatible matches for you, the first step is building your foundational profile. This thoughtful investment of about 5 minutes will make a world of difference.",
+      "encouragement": "We're here to guide you on this journey. 💙"
     },
     "photoNudge": {
-      "subject": "A picture is worth a thousand words (literally!) 📸",
-      "hook": "Your profile is interesting and rich in content, but it's missing something critical...",
-      "mainMessage": "You're missing {{missingCount}} photos to complete your profile. This isn't about looks - it's about a genuine connection. Profiles with photos get suggestions much faster.",
-      "specificAction": "Upload 3 photos - it takes 2 minutes",
-      "encouragement": "One photo = a jump of 30%+ for your profile!"
+      "subject": "{{firstName}}, A picture is worth a thousand matches 📸",
+      "hook": "Your profile tells a wonderful story, but it's missing one of the most important elements for creating a human connection.",
+      "mainMessage": "You're just {{missingCount}} photos away from a complete profile. This isn't just about appearance—it's about trust, openness, and allowing someone to get a glimpse of your personality. Profiles with at least 3 photos are taken more seriously and receive suggestions much faster.",
+      "specificAction": "Upload Your Photos – It Takes Less Than 2 Minutes",
+      "encouragement": "Every photo you add builds trust and brings you one step closer to a meaningful connection."
     },
     "questionnaireNudge": {
-      "subject": "The questionnaire - not just another boring form 🧠",
-      "hook": "{{firstName}}, we noticed you started the questionnaire - that's great!",
-      "mainMessage": "Our questionnaire is the key to precise matches. Every answer allows our AI to learn something deep about you. It would be great to now focus on the '{{worldName}}' section.",
-      "encouragement": "Users with a complete questionnaire get 3 times more accurate matches!"
+      "subject": "The secret to better matches? It's in your questionnaire.",
+      "hook": "{{firstName}}, it's great to see your progress on the questionnaire!",
+      "mainMessage": "Our questionnaire isn't a test; it's our compass for finding you a compatible partner. Every answer sharpens that compass, helping us navigate away from irrelevant suggestions and directly toward those with real potential. It looks like the next great place to focus is the '{{worldName}}' world.",
+      "specificAction": "Continue with the Questionnaire (it only takes a few more minutes).",
+      "encouragement": "Remember, this small investment now saves you valuable time and emotional energy down the road."
     },
     "almostDone": {
       "subject": "{{firstName}}, you're almost there! 🎊",
-      "hook": "Wow! {{completion}}% - that's amazing!",
-      "mainMessage": "Your profile is almost perfect. Just one small detail left and you'll be at 100%.",
-      "encouragement": "One small step and your profile will be ready for suggestions!"
-    },
-    "reEngagement": {
-      "subject": "Remember us? We have news for you 💌",
-      "hook": "{{firstName}}, it's been a while since we talked...",
-      "mainMessage": "Your profile is at {{completion}}% - which is great! Our system has improved since then, and now is the perfect time to come back and complete it.",
-      "encouragement": "It's not too late to return. We're here for you."
+      "hook": "Wow, {{completion}}%! Your dedication to this process is impressive.",
+      "mainMessage": "Your profile is just one step away from being ready for our active matching pool. Complete this final detail, and our team can begin their dedicated search for you.",
+      "specificAction": "Complete the Final Step and Let's Get Started!",
+      "encouragement": "You're just a click away from completing the most important stage. Let's finish this together."
     },
     "aiSummary": {
-      "subject": "{{firstName}}, we discovered something interesting about you 🧠",
-      "hook": "Our system analyzed your profile...",
-      "mainMessage": "Here's a special insight our AI has learned about you and what you're looking for:",
-      "encouragement": "The more complete your profile, the more accurate the insights will be!"
+      "subject": "{{firstName}}, our AI found something interesting in your profile...",
+      "hook": "Our technology does more than just find matches—it finds insights.",
+      "mainMessage": "Our AI system has analyzed your answers to build a deeper personality profile. Here’s a small glimpse of what it’s beginning to understand about you and what you're looking for:",
+      "encouragement": "The more you complete your profile, the sharper these insights become, allowing us to find connections on a much deeper level."
     },
     "eveningFeedback": {
-      "subject": "{{firstName}}, great job on your progress today! ✨",
-      "hook": "Well done on your efforts today!",
-      "mainMessage": "We saw your progress today and wanted to share what we've learned. Every small step brings you closer to your goal.",
-      "systemSummary": "A note from the system: {{summary}}...",
-      "encouragement": "Keep up the great work! We'll continue tomorrow 💪"
+      "subject": "{{firstName}}, great progress on your profile today! ✨",
+      "hook": "We noticed the effort you put into your profile today and wanted to share some immediate feedback.",
+      "mainMessage": "Every detail you added helps us get a clearer picture of who you are. Here's a quick summary of your actions and our system's initial thoughts:",
+      "systemSummary": "A note from the system following your update: {{summary}}...",
+      "encouragement": "Thank you for your partnership on this journey. Every step brings us closer to the goal. We'll pick this up again tomorrow! 💪"
     },
     "value": [
       {
@@ -253,7 +237,7 @@ Content:
         "encouragement": "Your profile is your calling card."
       }
     ]
-  }
+}
 }
 --- End of Content for en.json ---
 
@@ -269,31 +253,31 @@ Content:
     "supportPrompt": "לכל שאלה או עזרה, אנחנו כאן בשבילך במייל:",
     "rightsReserved": "© {{year}} כל הזכויות שמורות ל-NeshamaTech."
   },
-  "welcome": {
-    "subject": "ברוכים הבאים ל-NeshamaTech | המסע שלך מתחיל כאן",
-    "title": "המסע שלך מתחיל כאן",
-    "intro": "שמחים ומתרגשים שהצטרפת למשפחת NeshamaTech. אנחנו כאן כדי ללוות אותך, צעד אחר צעד, במסע למציאת קשר אמיתי ומשמעותי. זו לא עוד אפליקציה, זה בית.",
-    "matchmakerAssigned": "שמחים לעדכן שהוקצה לך שדכן/ית אישי/ת, {{matchmakerName}}, שי/תיצור איתך קשר בקרוב כדי להכיר אותך לעומק.",
-    "getStarted": "חשבונך מוכן. הצעד הראשון הוא להשלים את הפרופיל האישי שלך, כדי שנוכל להתחיל למצוא עבורך הצעות מדויקות שבאמת נוגעות בנשמה.",
-    "dashboardButton": "לכניסה לאזור האישי"
-  },
-  "accountSetup": {
-    "subject": "הזמנה להפעלת חשבונך ב-NeshamaTech",
-    "title": "הפרופיל שלך ממתין לך",
-    "intro": "השדכן/ית {{matchmakerName}} מאמין/ה בפוטנציאל שלך ומצאנו לנכון ליצור עבורך פרופיל במערכת שלנו. כדי לקחת בעלות, לעדכן פרטים ולהתחיל לראות הצעות, כל מה שצריך זה לקבוע סיסמה אישית.",
-    "actionPrompt": "לחץ/י על הכפתור כדי להגדיר סיסמה ולהפעיל את חשבונך:",
-    "actionButton": "הגדרת סיסמה והפעלת החשבון",
-    "notice": "שימ/י לב: הקישור הוא אישי, חד-פעמי ותקף למשך {{expiresIn}}.",
-    "nextStep": "לאחר קביעת הסיסמה, תוכל/י להתחבר עם כתובת המייל שלך ולהתחיל את המסע."
-  },
-  "emailOtpVerification": {
-    "subject": "קוד האימות שלך ל-NeshamaTech",
-    "title": "כמעט שם...",
-    "intro": "כדי להשלים את האימות ולוודא שחשבונך מאובטח, אנא השתמש/י בקוד הבא:",
-    "codeInstruction": "קוד האימות שלך הוא:",
-    "expiryNotice": "הקוד תקף למשך {{expiresIn}}.",
-    "securityNote": "הקוד הזה הוא רק שלך. למען בטיחותך, לעולם אל תשתף/י אותו עם איש."
-  },
+"welcome": {
+  "subject": "ברוך הבא למשפחה, {{firstName}}! הפרופיל שלך פעיל ומוכן למסע",
+  "title": "המסע שלך מתחיל עכשיו",
+  "intro": "כל הכבוד! עברת בהצלחה את כל שלבי האימות והחשבון שלך פעיל. אנחנו שמחים רשמית על הצטרפותך למשפחת NeshamaTech, קהילה של אנשים שמחפשים קשר אמיתי.",
+  "matchmakerAssigned": "שמחים לעדכן שהוקצה לך שדכן/ית אישי/ת, {{matchmakerName}}, שי/תיצור איתך קשר בקרוב.",
+  "getStarted": "השלב הבא והמרגש ביותר הוא מילוי שאלון 'חמשת העולמות' שלנו. זה לא מבחן, זה המפתח שלנו להכיר אותך לעומק, לחסוך לך זמן יקר על הצעות לא רלוונטיות, ולהציג לך רק את ההזדמנויות עם הפוטנציאל הגבוה ביותר לחיבור אמיתי.",
+  "dashboardButton": "התחל/י את השאלון"
+},
+"accountSetup": {
+  "subject": "הזמנה אישית מ{{matchmakerName}} להצטרף ל-NeshamaTech",
+  "title": "הפרופיל שלך ממתין לך",
+  "intro": "השדכן/ית שלך, {{matchmakerName}}, מאמין/ה בפוטנציאל שלך ויצר/ה עבורך פרופיל התחלתי במערכת שלנו. זוהי הזמנה אישית לקחת בעלות על הפרופיל שלך ולהיות שותף/ה מלא/ה במסע למציאת התאמה.",
+  "actionPrompt": "כדי להפעיל את החשבון ולקבוע סיסמה אישית, יש ללחוץ על הקישור הבא:",
+  "actionButton": "הגדר סיסמה והפעל את החשבון",
+  "notice": "שימ/י לב: הקישור הוא אישי, חד-פעמי ותקף למשך {{expiresIn}}.",
+  "nextStep": "לאחר קביעת הסיסמה, תוכל/י להתחבר, להשלים את הפרופיל, ולראות איך אנחנו מתחילים לעבוד עבורך."
+},
+ "emailOtpVerification": {
+  "subject": "צעד אחד לפני שמתחילים את המסע ב-NeshamaTech",
+  "title": "כמעט שם...",
+  "intro": "איזה כיף שהצטרפת למסע שלנו! כדי לוודא שהחשבון שלך מאובטח והתקשורת בינינו תהיה דיסקרטית, נשאר רק צעד אחד קטן לאימות כתובת המייל שלך.",
+  "codeInstruction": "קוד האימות החד-פעמי שלך הוא:",
+  "expiryNotice": "הקוד תקף למשך {{expiresIn}}.",
+  "securityNote": "מטעמי אבטחה, לעולם אל תשתף/י קוד זה עם איש. לא ביקשת להירשם? אפשר להתעלם ממייל זה בבטחה."
+},
   "invitation": {
     "subject": "{{matchmakerName}} מזמין/ה אותך להצטרף ל-NeshamaTech",
     "title": "קיבלת הזמנה אישית",
@@ -442,44 +426,47 @@ Content:
       "mainMessage": "המערכת שלנו כבר מתחילה ללמוד עליך ועל מה שחשוב לך.",
       "encouragement": "פרופילים מלאים מקבלים פי 3 יותר התאמות איכותיות!"
     },
-    "photoNudge": {
-      "subject": "תמונה אחת = אלף מילים (ממש!) 📸",
-      "hook": "הפרופיל שלך מעניין ועשיר בתוכן, אבל חסר בו משהו קריטי...",
-      "mainMessage": "חסרות {{missingCount}} תמונות כדי להשלים את הפרופיל. זו לא שאלה של יופי - זו שאלה של התאמה אמיתית. פרופילים עם תמונות מקבלים הצעות מהר יותר.",
-      "specificAction": "העלה 3 תמונות - ייקח 2 דקות",
-      "encouragement": "תמונה אחת = קפיצה של 30%+ בפרופיל שלך!"
-    },
+  "photoNudge": {
+  "subject": "{{firstName}}, תמונה אחת יכולה לשנות את כל המסע שלך",
+  "hook": "הפרופיל שלך מספר סיפור מרתק, אבל חסר בו הפרק הראשון והכי חשוב.",
+  "mainMessage": "בעולם השידוכים, תמונה היא הרבה יותר ממראה חיצוני – היא חלון לנשמה, הזמנה ליצור קשר ראשוני. פרופילים עם לפחות 3 תמונות איכותיות זוכים להתייחסות רצינית יותר מהשדכנים ומהצד השני, פשוט כי הם משדרים פתיחות ורצינות. כרגע חסרות לך {{missingCount}} תמונות כדי שהפרופיל שלך יהיה מוכן.",
+  "specificAction": "זה ייקח לך בדיוק 2 דקות. לחץ/י כאן להעלאת תמונות.",
+  "encouragement": "כל תמונה שאת/ה מוסיף/ה היא עוד צעד בונה אמון בדרך לקשר משמעותי. אנחנו כאן לצידך."
+}
+,
     "questionnaireNudge": {
-      "subject": "השאלון - לא עוד שאלון משעמם 🧠",
-      "hook": "{{firstName}}, שמנו לב שהתחלת למלא את השאלון - מעולה!",
-      "mainMessage": "השאלון שלנו הוא המפתח להתאמות מדויקות. כל תשובה מאפשרת ל-AI שלנו ללמוד עליך משהו עמוק. כדאי להתמקד עכשיו בעולם '{{worldName}}'.",
-      "encouragement": "משתמשים עם שאלון מלא מקבלים פי 3 יותר התאמות מדויקות!"
-    },
-    "almostDone": {
-      "subject": "{{firstName}}, את/ה כמעט שם! 🎊",
-      "hook": "וואו! {{completion}}% - זה מדהים!",
-      "mainMessage": "הפרופיל שלך כמעט מושלם. נשאר רק פרט אחד קטן ואת/ה ב-100%.",
-      "encouragement": "צעד אחד קטן והפרופיל שלך מוכן לקבל הצעות!"
-    },
+  "subject": "{{firstName}}, בוא/י נמשיך את המסע המשותף שלנו",
+  "hook": "התקדמות מצוינת בשאלון! כל תשובה שלך היא כמו עוד חלק בפאזל שאנחנו מרכיבים יחד.",
+  "mainMessage": "השאלון שלנו הוא לא מבחן, הוא המצפן שלנו. ככל שתעמיק/י בתשובות, כך המצפן שלנו יהיה מדויק יותר ונוכל לנווט אותך הרחק מהצעות לא רלוונטיות וישר אל אלו שיש להן פוטנציאל אמיתי. נראה שהשלב הבא הוא להתמקד ב'{{worldName}}'.",
+  "specificAction": "להמשך מילוי השאלון (זה לוקח רק כמה דקות).",
+  "encouragement": "זכור/י, ההשקעה הקטנה הזו עכשיו חוסכת לך זמן יקר ועוגמת נפש בהמשך הדרך."
+},
+"almostDone": {
+  "subject": "{{firstName}}, נשאר רק עוד צעד אחד קטן! 🎊",
+  "hook": "וואו, {{completion}}%! כל הכבוד על ההשקעה והרצינות.",
+  "mainMessage": "הפרופיל שלך כמעט מוכן להיכנס למאגר הפעיל שלנו. נשאר לך רק עוד פרט קטן אחד, והצוות שלנו יוכל להתחיל לעבוד במלוא המרץ כדי למצוא לך את ההתאמה הנכונה.",
+  "specificAction": "השלם/י את הפרט האחרון וצא/י לדרך!",
+  "encouragement": "את/ה במרחק נגיעה מהשלמת השלב החשוב ביותר. בוא/י נסיים את זה יחד."
+},
     "reEngagement": {
       "subject": "זוכר/ת אותנו? יש לנו חדשות בשבילך 💌",
       "hook": "{{firstName}}, עבר זמן מאז שדיברנו...",
       "mainMessage": "הפרופיל שלך עומד על {{completion}}% - וזה נהדר! המערכת שלנו השתפרה מאז, ועכשיו זה הזמן המושלם לחזור ולהשלים.",
       "encouragement": "לא מאוחר לחזור. אנחנו כאן בשבילך."
     },
-    "aiSummary": {
-      "subject": "{{firstName}}, גילינו משהו מעניין עליך 🧠",
-      "hook": "המערכת שלנו ניתחה את הפרופיל שלך...",
-      "mainMessage": "הנה תובנה מיוחדת שה-AI שלנו למד עליך ועל מה שאת/ה מחפש/ת:",
-      "encouragement": "ככל שהפרופיל שלך יהיה מלא יותר, כך התובנות יהיו מדויקות יותר!"
-    },
-    "eveningFeedback": {
-      "subject": "{{firstName}}, סיכום יום מעולה! ✨",
-      "hook": "כל הכבוד על ההשקעה שלך היום!",
-      "mainMessage": "ראינו את ההתקדמות שלך היום ורצינו לשתף אותך במה שלמדנו. כל צעד קטן מקרב אותך למטרה.",
-      "systemSummary": "דבר המערכת: {{summary}}...",
-      "encouragement": "ממשיכים לעבוד! מחר נמשיך 💪"
-    },
+"aiSummary": {
+  "subject": "{{firstName}}, גילינו משהו מעניין על סמך התשובות שלך...",
+  "hook": "הטכנולוגיה שלנו היא לא רק למציאת התאמות, היא גם למציאת תובנות.",
+  "mainMessage": "מערכת ה-AI שלנו למדה את התשובות שלך והחלה לבנות פרופיל אישיותי עמוק. הנה טעימה קטנה ממה שהיא מבינה עליך ועל מה שאת/ה מחפש/ת:",
+  "encouragement": "ככל שהפרופיל והשאלון יהיו מלאים יותר, כך התובנות יהיו מדויקות יותר ויאפשרו לנו למצוא לך חיבורים ברמה עמוקה יותר."
+},
+  "eveningFeedback": {
+  "subject": "{{firstName}}, כל הכבוד על ההתקדמות היום!",
+  "hook": "שמנו לב שהשקעת היום בפרופיל שלך, ורצינו לתת לך משוב חם.",
+  "mainMessage": "כל פרט שהוספת היום עוזר לנו להכיר אותך טוב יותר. הנה סיכום קצר של הפעולות שלך והתובנות הראשוניות שלנו:",
+  "systemSummary": "תובנה מהמערכת בעקבות העדכון שלך: {{summary}}...",
+  "encouragement": "תודה על השותפות במסע. כל צעד כזה מקרב אותנו יחד למטרה. נמשיך מחר! 💪"
+},
     "value": [
       {
         "subject": "למה תמונות הן כל כך חשובות? התשובה מפתיעה",

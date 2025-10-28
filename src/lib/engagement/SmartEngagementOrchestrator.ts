@@ -574,7 +574,7 @@ export class SmartEngagementOrchestrator {
     return await prisma.user.findMany({
       where: {
         status: 'ACTIVE',
-        marketingConsent: true,
+        engagementEmailsConsent: true, 
         isProfileComplete: false
       },
       include: {
@@ -594,7 +594,7 @@ private static async getTodaysActiveUsers() {
   return await prisma.user.findMany({
     where: {
       status: 'ACTIVE',
-      marketingConsent: true,
+      engagementEmailsConsent: true, 
       // ❌ הסר את השורה: isProfileComplete: false,
       OR: [
         // ❌ הסר את השורה: { lastLogin: { gte: today } },

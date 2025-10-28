@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries
-# Generated on: 2025-10-15 10:04:11
+# Generated on: 2025-10-27 16:30:13
 ################################################################################
 
 ================================================================================
@@ -2725,6 +2725,512 @@ Content:
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\email
 ================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\email\email_contents.txt
+--------------------------------------------------------------------------------
+Content:
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\email
+# Generated on: 2025-10-26 12:31:51
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\email
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\email\email_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\email\en.json
+--------------------------------------------------------------------------------
+Content:
+{
+"shared": {
+"greeting": "Hello {{name}},",
+"closing": "Wishing you the best,",
+"team": "The NeshamaTech Team",
+"supportPrompt": "For any questions or assistance, we're here for you at:",
+"rightsReserved": "© {{year}} NeshamaTech. All rights reserved."
+},
+"welcome": {
+"subject": "Welcome to NeshamaTech | Your Journey Begins Here",
+"title": "Your Journey Begins Here",
+"intro": "We are thrilled and excited that you've joined the NeshamaTech family. We are here to guide you, step by step, on the journey to finding a true and meaningful connection. This isn't just another app; it's a home.",
+"matchmakerAssigned": "We're happy to let you know that a personal matchmaker, {{matchmakerName}}, has been assigned to you. They will be in touch soon to get to know you on a deeper level.",
+"getStarted": "Your account is ready. The first step is to complete your personal profile so we can start finding precise matches that truly resonate with your soul.",
+"dashboardButton": "Go to My Dashboard"
+},
+"accountSetup": {
+"subject": "An Invitation to Activate Your NeshamaTech Account",
+"title": "Your Profile is Waiting",
+"intro": "Your matchmaker, {{matchmakerName}}, believes in your potential and has created a profile for you in our system. To take ownership, update your details, and start seeing suggestions, all you need to do is set a personal password.",
+"actionPrompt": "Click the button to set your password and activate your account:",
+"actionButton": "Set Password & Activate Account",
+"notice": "Please note: This link is personal, single-use, and valid for {{expiresIn}}.",
+"nextStep": "After setting your password, you can log in with your email address and begin your journey."
+},
+"emailOtpVerification": {
+"subject": "Your NeshamaTech Verification Code",
+"title": "Almost There...",
+"intro": "To complete the verification and ensure your account is secure, please use the following code:",
+"codeInstruction": "Your verification code is:",
+"expiryNotice": "This code is valid for {{expiresIn}}.",
+"securityNote": "This code is just for you. For your safety, never share it with anyone."
+},
+"invitation": {
+"subject": "{{matchmakerName}} is inviting you to join NeshamaTech",
+"title": "You've Received a Personal Invitation",
+"intro": "Your matchmaker, {{matchmakerName}}, thinks you would be a great fit for NeshamaTech, a community of high-quality individuals seeking serious relationships. We would be delighted for you to join us on this journey.",
+"actionPrompt": "To join and create your profile, please click the link below:",
+"actionButton": "Join the Community",
+"expiryNotice": "Your personal invitation is valid for {{expiresIn}}."
+},
+"suggestion": {
+  "subject": "We Have a Good Feeling About This Suggestion for You",
+  "title": "A New Suggestion is on its Way",
+  "intro": "Your matchmaker, {{matchmakerName}}, was thinking of you and has prepared a new suggestion that looks especially promising. We've put thought into it and believe there's real potential here.",
+  "previewTitle": "A small glimpse into the suggestion:",
+  "actionPrompt": "To view the full profile and make a decision, we invite you to visit your personal dashboard:",
+  "actionButton": "View Full Suggestion",
+  "closing": "We look forward to hearing from you,",
+  "details": {
+    "age": "Age",
+    "city": "City",
+    "occupation": "Occupation",
+    "additionalInfo": "Additional Info"
+  }
+},
+
+"shareContactDetails": {
+"subject": "Best of luck! Contact details have been shared",
+"title": "Embarking on a Shared Path",
+"intro": "How wonderful! Both sides have approved the suggestion, which is always an exciting moment for us. It's time to take the next step and get to know each other. The contact details have also been sent to the other party.",
+"detailsOf": "Contact details for {{otherPartyName}}:",
+"tipTitle": "A little tip from us:",
+"tipContent": "A first phone call can be a bit nerve-wracking, and that's natural. Take a breath, remember the goal is simply to get acquainted, and most importantly - be yourself. We recommend making initial contact within the next 24-48 hours.",
+"goodLuck": "We wish you a pleasant conversation and a successful meeting!"
+},
+"availabilityCheck": {
+"subject": "An availability check from your matchmaker",
+"title": "Checking if This is a Good Time",
+"intro": "Your matchmaker, {{matchmakerName}}, is considering a suggestion for you and wants to ensure you are available and open to a new connection before proceeding.",
+"actionPrompt": "We would appreciate it if you could update us on your availability through your personal dashboard:",
+"actionButton": "Update Availability Status",
+"noticeTitle": "Good to know:",
+"noticeContent": "Your response will help your matchmaker focus on the most relevant suggestions for you right now."
+},
+"passwordResetOtp": {
+"subject": "Password Reset Code for NeshamaTech",
+"title": "Resetting Your Password",
+"intro": "We received a request to reset your password. To proceed, please use the following one-time code:",
+"codeInstruction": "Your reset code is:",
+"expiryNotice": "The code is valid for {{expiresIn}}.",
+"securityNote": "Didn't request a password reset? You can safely ignore this message. Your account is secure."
+},
+"passwordChangedConfirmation": {
+"subject": "Your NeshamaTech Password Has Been Successfully Updated",
+"title": "Security Update: Your Password Was Changed",
+"intro": "This is a confirmation that the password for your NeshamaTech account has been successfully changed. Your account is now secured with the new password.",
+"securityNote": "If you did not make this change, please contact us immediately so we can investigate.",
+"actionButton": "Log in to Your Account"
+},
+"profileSummaryUpdate": {
+  "subject": "A personal update to your NeshamaTech profile",
+  "title": "Your Profile Just Got an Upgrade",
+  "intro": "Your personal matchmaker, {{matchmakerName}}, has carefully reviewed your profile and added a professional summary to highlight the most important aspects of your personality. This summary helps other matchmakers and potential matches get a richer, more accurate picture of who you are.",
+  "highlight": "This new summary will help us find more precise and high-quality matches for you.",
+  "encouragement": "We encourage you to review your updated profile to ensure the summary reflects you authentically. Your feedback is valuable to us!",
+  "actionButton": "View Updated Profile"
+},
+
+    "profileFeedback": {
+            "subject": "Your Profile Progress Report from NeshamaTech",
+
+      "title": "Your NeshamaTech Profile Progress Report",
+      "greeting": "Hello {{name}},",
+      "systemIntro": "As part of our effort to help you find the best possible match, our intelligent system has prepared a personalized report on the status of your profile.",
+      "matchmakerIntro": "I wanted to personally update you on your profile's progress and give you a few tips that will help us find more accurate suggestions for you.",
+      "progressHeader": "Your Progress Status",
+      "aiSummaryHeader": "AI Insights About Your Profile",
+      "aiSummary": {
+        "personalityTitle": "How our AI understands your personality:",
+        "lookingForTitle": "How our AI understands what you're looking for:"
+      },
+      "missingItemsHeader": "Your Next Steps to Complete Your Profile",
+      "missingProfileItemsTitle": "Missing details in your main profile:",
+      "missingQuestionnaireItemsTitle": "In-depth questions awaiting your answers:",
+      "cta": {
+        "title": "Ready to move forward?",
+        "button": "Complete My Profile"
+      }
+    },
+
+  "notifications": {
+
+    "customMessage": {
+      "subject": "A personal message from your matchmaker",
+      "reminderText": "This is a friendly reminder that a match suggestion from {{matchmakerName}} is awaiting your response. To view the details and reply, please log in to the system."
+    },
+
+  "suggestionStatusChange": {
+    "PENDING_FIRST_PARTY": {
+      "subject": "We have a good feeling about this new suggestion for you",
+      "body": "Hello {{partyName}}, {{matchmakerName}} has sent you a new and promising suggestion. For more details and to make your decision, please log in to your personal dashboard: {{reviewUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>Your matchmaker, {{matchmakerName}}, was thinking of you and has prepared a new suggestion that looks especially promising.</p><p>To review the full profile and make a decision, we invite you <a href='{{reviewUrl}}'>to visit your personal dashboard</a>.</p><p>We look forward to hearing from you,</p><p>The NeshamaTech Team</p></div>"
+    },
+    "FIRST_PARTY_APPROVED": {
+      "subject": "Update: The first party has approved the suggestion",
+      "body": "Hello {{matchmakerName}}, great news: {{partyName}} has approved the suggestion. The system will now forward it to the second party. To view details: {{dashboardUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>Great news: <strong>{{partyName}}</strong> has approved the suggestion.</p><p>It will now be automatically sent to the second party. You can track its progress on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+    },
+    "FIRST_PARTY_DECLINED": {
+      "subject": "Update: Suggestion declined by the first party",
+      "body": "Hello {{matchmakerName}}, for your information, {{partyName}} has reviewed the suggestion and decided to decline. More details and the reason for declining (if provided) are available on your dashboard: {{dashboardUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>For your information, <strong>{{partyName}}</strong> has reviewed the suggestion and decided it's not the right fit at this time.</p><p>More details and the reason for declining (if provided) are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+    },
+    "PENDING_SECOND_PARTY": {
+      "subject": "A new suggestion for you, with high potential",
+      "body": "Hello {{partyName}}, {{matchmakerName}} has sent you a new suggestion, and the first party has already expressed interest. We'd love for you to take a look. For details: {{reviewUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>We have exciting news! Your matchmaker, {{matchmakerName}}, has sent you a new suggestion, and <strong>the first party has already approved it</strong>.</p><p>There seems to be high potential here, and we invite you to <a href='{{reviewUrl}}'>review the details and make a decision</a>.</p></div>"
+    },
+    "SECOND_PARTY_APPROVED": {
+      "subject": "It's a match! Both parties have approved",
+      "body": "Hello {{matchmakerName}}, great news! {{partyName}} has approved the suggestion. Both parties have now approved, and you can proceed to share contact details. For more info: {{dashboardUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p><strong>It's a match!</strong> 🎉</p><p>We are happy to report that <strong>{{partyName}}</strong> has also approved the suggestion. With mutual consent from both parties, you can now <a href='{{dashboardUrl}}'>proceed to share contact details</a>.</p></div>"
+    },
+    "SECOND_PARTY_DECLINED": {
+      "subject": "Update: Suggestion declined by the second party",
+      "body": "Hello {{matchmakerName}}, for your information, {{partyName}} has reviewed the suggestion and decided to decline. More details are available on your dashboard: {{dashboardUrl}}",
+      "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>For your information, <strong>{{partyName}}</strong> has reviewed the suggestion and decided it's not the right fit at this time.</p><p>More details are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+    },
+    "CONTACT_DETAILS_SHARED": {
+      "subject": "Best of luck! Your contact details have been exchanged",
+      "body": "Congratulations! You both approved the suggestion. Your full contact details have been sent to you in a separate email. We recommend making contact within the next 24-48 hours. Best of luck!",
+      "htmlBody": "<div dir='ltr'><h2>Time to connect!</h2><p>You both approved the suggestion, which is always an exciting moment. Your full and detailed contact information has been sent to you in a separate email.</p><p><strong>A little tip from us:</strong> Take a breath, remember the goal is simply to get acquainted, and most importantly - be yourself. We recommend making initial contact within the next 24-48 hours.</p><p>Wishing you a pleasant conversation and a wonderful meeting!</p></div>"
+    }
+  }
+  },
+  "engagement": {
+    "onboardingDay1": {
+      "subject": "{{firstName}}, Welcome! Your first step 🎉",
+      "hook": "We're excited you've joined! Let's start with the most important first step.",
+      "mainMessage": "So we can start finding matches for you, the first step is building a basic profile. It will take about 5 minutes and make a huge difference.",
+      "encouragement": "We're here for you every step of the way! 💙"
+    },
+    "onboardingDay3": {
+      "subject": "How's it going? A quick update 📊",
+      "hook": "Your profile is already {{completion}}% complete! Well done!",
+      "mainMessage": "Every detail you add helps our AI system understand you better. For example, the information you've filled out so far helps us see that: {{aiInsight}}",
+      "encouragement": "You're on the right track! 🚀"
+    },
+    "onboardingDay7_Insight": {
+      "subject": "One week in - here's what we've learned about you 🔍",
+      "hook": "{{firstName}}, it's been a week since you joined. Here's a special insight:",
+      "mainMessage": "Our system is already beginning to learn about you and what's important to you.",
+      "encouragement": "Complete profiles get 3 times more high-quality matches!"
+    },
+    "photoNudge": {
+      "subject": "A picture is worth a thousand words (literally!) 📸",
+      "hook": "Your profile is interesting and rich in content, but it's missing something critical...",
+      "mainMessage": "You're missing {{missingCount}} photos to complete your profile. This isn't about looks - it's about a genuine connection. Profiles with photos get suggestions much faster.",
+      "specificAction": "Upload 3 photos - it takes 2 minutes",
+      "encouragement": "One photo = a jump of 30%+ for your profile!"
+    },
+    "questionnaireNudge": {
+      "subject": "The questionnaire - not just another boring form 🧠",
+      "hook": "{{firstName}}, we noticed you started the questionnaire - that's great!",
+      "mainMessage": "Our questionnaire is the key to precise matches. Every answer allows our AI to learn something deep about you. It would be great to now focus on the '{{worldName}}' section.",
+      "encouragement": "Users with a complete questionnaire get 3 times more accurate matches!"
+    },
+    "almostDone": {
+      "subject": "{{firstName}}, you're almost there! 🎊",
+      "hook": "Wow! {{completion}}% - that's amazing!",
+      "mainMessage": "Your profile is almost perfect. Just one small detail left and you'll be at 100%.",
+      "encouragement": "One small step and your profile will be ready for suggestions!"
+    },
+    "reEngagement": {
+      "subject": "Remember us? We have news for you 💌",
+      "hook": "{{firstName}}, it's been a while since we talked...",
+      "mainMessage": "Your profile is at {{completion}}% - which is great! Our system has improved since then, and now is the perfect time to come back and complete it.",
+      "encouragement": "It's not too late to return. We're here for you."
+    },
+    "aiSummary": {
+      "subject": "{{firstName}}, we discovered something interesting about you 🧠",
+      "hook": "Our system analyzed your profile...",
+      "mainMessage": "Here's a special insight our AI has learned about you and what you're looking for:",
+      "encouragement": "The more complete your profile, the more accurate the insights will be!"
+    },
+    "eveningFeedback": {
+      "subject": "{{firstName}}, great job on your progress today! ✨",
+      "hook": "Well done on your efforts today!",
+      "mainMessage": "We saw your progress today and wanted to share what we've learned. Every small step brings you closer to your goal.",
+      "systemSummary": "A note from the system: {{summary}}...",
+      "encouragement": "Keep up the great work! We'll continue tomorrow 💪"
+    },
+    "value": [
+      {
+        "subject": "Why are photos so important? The answer might surprise you",
+        "hook": "New research shows that photos help identify emotional compatibility...",
+        "mainMessage": "Beyond physical appearance, photos tell a story about your personality, interests, and the vibe you bring. Read the full article >>",
+        "encouragement": "We're here to help you, every step of the way."
+      },
+      {
+        "subject": "3 common mistakes when building a dating profile",
+        "hook": "Matchmakers with 20 years of experience reveal what really works...",
+        "mainMessage": "The most common mistake is being too generic. A good profile is specific and authentic. Want to know the other two mistakes? Click here >>",
+        "encouragement": "Your profile is your calling card."
+      }
+    ]
+  }
+}
+--- End of Content for en.json ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\email\he.json
+--------------------------------------------------------------------------------
+Content:
+{
+  "shared": {
+    "greeting": "שלום {{name}},",
+    "closing": "בהצלחה רבה,",
+    "team": "צוות NeshamaTech",
+    "supportPrompt": "לכל שאלה או עזרה, אנחנו כאן בשבילך במייל:",
+    "rightsReserved": "© {{year}} כל הזכויות שמורות ל-NeshamaTech."
+  },
+  "welcome": {
+    "subject": "ברוכים הבאים ל-NeshamaTech | המסע שלך מתחיל כאן",
+    "title": "המסע שלך מתחיל כאן",
+    "intro": "שמחים ומתרגשים שהצטרפת למשפחת NeshamaTech. אנחנו כאן כדי ללוות אותך, צעד אחר צעד, במסע למציאת קשר אמיתי ומשמעותי. זו לא עוד אפליקציה, זה בית.",
+    "matchmakerAssigned": "שמחים לעדכן שהוקצה לך שדכן/ית אישי/ת, {{matchmakerName}}, שי/תיצור איתך קשר בקרוב כדי להכיר אותך לעומק.",
+    "getStarted": "חשבונך מוכן. הצעד הראשון הוא להשלים את הפרופיל האישי שלך, כדי שנוכל להתחיל למצוא עבורך הצעות מדויקות שבאמת נוגעות בנשמה.",
+    "dashboardButton": "לכניסה לאזור האישי"
+  },
+  "accountSetup": {
+    "subject": "הזמנה להפעלת חשבונך ב-NeshamaTech",
+    "title": "הפרופיל שלך ממתין לך",
+    "intro": "השדכן/ית {{matchmakerName}} מאמין/ה בפוטנציאל שלך ומצאנו לנכון ליצור עבורך פרופיל במערכת שלנו. כדי לקחת בעלות, לעדכן פרטים ולהתחיל לראות הצעות, כל מה שצריך זה לקבוע סיסמה אישית.",
+    "actionPrompt": "לחץ/י על הכפתור כדי להגדיר סיסמה ולהפעיל את חשבונך:",
+    "actionButton": "הגדרת סיסמה והפעלת החשבון",
+    "notice": "שימ/י לב: הקישור הוא אישי, חד-פעמי ותקף למשך {{expiresIn}}.",
+    "nextStep": "לאחר קביעת הסיסמה, תוכל/י להתחבר עם כתובת המייל שלך ולהתחיל את המסע."
+  },
+  "emailOtpVerification": {
+    "subject": "קוד האימות שלך ל-NeshamaTech",
+    "title": "כמעט שם...",
+    "intro": "כדי להשלים את האימות ולוודא שחשבונך מאובטח, אנא השתמש/י בקוד הבא:",
+    "codeInstruction": "קוד האימות שלך הוא:",
+    "expiryNotice": "הקוד תקף למשך {{expiresIn}}.",
+    "securityNote": "הקוד הזה הוא רק שלך. למען בטיחותך, לעולם אל תשתף/י אותו עם איש."
+  },
+  "invitation": {
+    "subject": "{{matchmakerName}} מזמין/ה אותך להצטרף ל-NeshamaTech",
+    "title": "קיבלת הזמנה אישית",
+    "intro": "השדכן/ית {{matchmakerName}} חושב/ת שיש לך מקום אצלנו ב-NeshamaTech, קהילה של אנשים איכותיים שמחפשים קשר רציני. נשמח שתצטרף/י אלינו למסע.",
+    "actionPrompt": "כדי להצטרף וליצור פרופיל, יש ללחוץ על הקישור:",
+    "actionButton": "הצטרפות למערכת",
+    "expiryNotice": "ההזמנה האישית שלך בתוקף למשך {{expiresIn}}."
+  },
+"suggestion": {
+  "subject": "יש לנו הרגשה טובה לגבי ההצעה הזו עבורך",
+  "title": "הצעה חדשה בדרך אליך",
+  "intro": "השדכן/ית שלך, {{matchmakerName}}, חשב/ה עליך והרכיב/ה עבורך הצעה חדשה, שנראית מבטיחה במיוחד. השקענו בה מחשבה ואנחנו מאמינים שיש כאן פוטנציאל אמיתי.",
+  "previewTitle": "הצצה קטנה לפרטי ההצעה:",
+  "actionPrompt": "כדי לעיין בפרופיל המלא ולקבל החלטה, אנו מזמינים אותך להיכנס לאזור האישי:",
+  "actionButton": "צפייה בהצעה המלאה",
+  "closing": "מחכים לשמוע ממך,",
+  "details": {
+    "age": "גיל",
+    "city": "עיר",
+    "occupation": "עיסוק",
+    "additionalInfo": "מידע נוסף"
+  }
+},
+
+  "shareContactDetails": {
+    "subject": "בהצלחה! פרטי הקשר הועברו",
+    "title": "יוצאים לדרך משותפת",
+    "intro": "איזה יופי! שני הצדדים אישרו את ההצעה, וזו תמיד התרגשות גדולה עבורנו. הגיע הזמן לעשות את הצעד הבא ולהכיר. פרטי הקשר נשלחו במקביל גם לצד השני.",
+    "detailsOf": "פרטי הקשר של {{otherPartyName}}:",
+    "tipTitle": "טיפ קטן מאיתנו:",
+    "tipContent": "שיחת טלפון ראשונה יכולה להיות קצת מלחיצה, וזה טבעי. קחו נשימה, זכרו שהמטרה היא פשוט להכיר, והכי חשוב - תהיו אתם. מומלץ ליצור קשר ראשוני ב-24-48 השעות הקרובות.",
+    "goodLuck": "אנו מאחלים לכם שיחה נעימה ופגישה מוצלחת!"
+  },
+  "availabilityCheck": {
+    "subject": "בדיקת זמינות מהשדכן/ית שלך",
+    "title": "בודקים אם זה זמן טוב",
+    "intro": "השדכן/ית {{matchmakerName}} חושב/ת על הצעה עבורך ורוצה לוודא שאת/ה פנוי/ה וזמין/ה לקשר חדש לפני שממשיכים.",
+    "actionPrompt": "נשמח אם תוכל/י לעדכן אותנו על זמינותך דרך האזור האישי:",
+    "actionButton": "עדכון סטטוס זמינות",
+    "noticeTitle": "חשוב לדעת:",
+    "noticeContent": "תשובתך תסייע לשדכן/ית להתמקד בהצעות הרלוונטיות ביותר עבורך כרגע."
+  },
+  "passwordResetOtp": {
+    "subject": "קוד לאיפוס סיסמה ב-NeshamaTech",
+    "title": "מאפסים סיסמה",
+    "intro": "קיבלנו בקשה לאיפוס סיסמתך. כדי להמשיך, אנא השתמש/י בקוד החד-פעמי הבא:",
+    "codeInstruction": "קוד האיפוס שלך הוא:",
+    "expiryNotice": "הקוד תקף למשך {{expiresIn}}.",
+    "securityNote": "לא ביקשת לאפס סיסמה? אפשר להתעלם מהודעה זו בבטחה. חשבונך מוגן."
+  },
+  "passwordChangedConfirmation": {
+    "subject": "הסיסמה שלך ב-NeshamaTech עודכנה בהצלחה",
+    "title": "עדכון אבטחה: סיסמתך שונתה",
+    "intro": "זהו אישור לכך שהסיסמה לחשבונך ב-NeshamaTech שונתה בהצלחה. חשבונך מאובטח כעת עם הסיסמה החדשה.",
+    "securityNote": "אם לא ביצעת את השינוי, אנא פנה/י אלינו באופן מיידי כדי שנבדוק את הנושא.",
+    "actionButton": "התחברות לחשבון"
+  },
+  "profileSummaryUpdate": {
+  "subject": "עדכון אישי מהשדכן/ית שלך ב-NeshamaTech",
+  "title": "הפרופיל שלך קיבל שדרוג",
+  "intro": "השדכן/ית שלך, {{matchmakerName}}, עבר/ה על הפרופיל שלך והוסיפ/ה סיכום אישי ומקצועי כדי להבליט את הנקודות החשובות ביותר באישיותך. זהו 'דבר המערכת' שנועד לתת לשדכנים אחרים ולצד השני תמונה מדויקת ועשירה יותר עליך.",
+  "highlight": "הסיכום החדש יעזור לנו למצוא עבורך התאמות מדויקות ואיכותיות יותר.",
+  "encouragement": "אנו ממליצים לך לעבור על הפרופיל המעודכן ולוודא שהסיכום משקף אותך נאמנה. המשוב שלך חשוב לנו!",
+  "actionButton": "לצפייה בפרופיל המעודכן"
+},
+    "profileFeedback": {
+       "subject": "דוח התקדמות הפרופיל שלך מ-NeshamaTech",
+      "title": "דוח התקדמות הפרופיל שלך ב-NeshamaTech",
+      "greeting": "שלום {{name}}",
+      "systemIntro": "כחלק מהמאמצים שלנו לעזור לך למצוא את ההתאמה הטובה ביותר, המערכת החכמה שלנו הכינה עבורך דוח מותאם אישית על מצב הפרופיל שלך.",
+      "matchmakerIntro": "רציתי לעדכן אותך באופן אישי לגבי התקדמות הפרופיל שלך ולתת לך כמה טיפים שיעזרו לנו למצוא עבורך הצעות מדויקות יותר.",
+      "progressHeader": "סטטוס ההתקדמות שלך",
+      "aiSummaryHeader": "תובנות ה-AI על הפרופיל שלך",
+      "aiSummary": {
+        "personalityTitle": "איך ה-AI מבין את האישיות שלך:",
+        "lookingForTitle": "איך ה-AI מבין את מה שאת/ה מחפש/ת:"
+      },
+      "missingItemsHeader": "הצעדים הבאים להשלמת הפרופיל",
+      "missingProfileItemsTitle": "פרטים חסרים בפרופיל הראשי:",
+      "missingQuestionnaireItemsTitle": "שאלות להשלמה בשאלון המעמיק:",
+      "cta": {
+        "title": "מוכנ/ה להתקדם?",
+        "button": "להשלמת הפרופיל שלי"
+      }
+    },
+    "notifications": {
+    "customMessage": {
+      "subject": "הודעה אישית מהשדכן/ית שלך",
+      "reminderText": "זוהי תזכורת ידידותית שהצעת שידוך מאת {{matchmakerName}} ממתינה לתשובתך. לצפייה בפרטי ההצעה ומענה, אנא היכנס/י למערכת."
+    },
+
+  "suggestionStatusChange": {
+    "PENDING_FIRST_PARTY": {
+      "subject": "יש לנו הרגשה טובה לגבי ההצעה הזו עבורך",
+      "body": "שלום {{partyName}}, {{matchmakerName}} שלח/ה לך הצעת שידוך חדשה ומבטיחה. לפרטים נוספים ולהחלטתך, אנא היכנס/י לאזור האישי שלך: {{reviewUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>השדכן/ית שלך, {{matchmakerName}}, חשב/ה עליך והרכיב/ה עבורך הצעה חדשה, שנראית מבטיחה במיוחד.</p><p>כדי לעיין בפרופיל המלא ולקבל החלטה, אנו מזמינים אותך <a href='{{reviewUrl}}'>להיכנס לאזור האישי</a>.</p><p>מחכים לשמוע ממך,</p><p>צוות NeshamaTech</p></div>"
+    },
+    "FIRST_PARTY_APPROVED": {
+      "subject": "עדכון: הצד הראשון אישר את ההצעה",
+      "body": "שלום {{matchmakerName}}, עדכון נהדר: {{partyName}} אישר/ה את הצעת השידוך. המערכת תעביר אותה כעת לצד השני. לעיון בפרטים: {{dashboardUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>עדכון נהדר: <strong>{{partyName}}</strong> אישר/ה את הצעת השידוך.</p><p>ההצעה תועבר כעת באופן אוטומטי לצד השני. ניתן לעקוב אחר ההתקדמות <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+    },
+    "FIRST_PARTY_DECLINED": {
+      "subject": "עדכון: הצעה נדחתה על ידי הצד הראשון",
+      "body": "שלום {{matchmakerName}}, לידיעתך, {{partyName}} בחנ/ה את ההצעה והחליט/ה לדחות אותה. פרטים נוספים וסיבת הדחייה (אם נמסרה) זמינים בלוח הבקרה: {{dashboardUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>לידיעתך, <strong>{{partyName}}</strong> בחנ/ה את ההצעה והחליט/ה שאינה מתאימה בשלב זה.</p><p>פרטים נוספים וסיבת הדחייה (אם נמסרה) זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+    },
+    "PENDING_SECOND_PARTY": {
+      "subject": "הצעה חדשה עבורך, עם התאמה גבוהה",
+      "body": "שלום {{partyName}}, {{matchmakerName}} שלח/ה לך הצעה חדשה, והצד הראשון כבר הביע עניין. נשמח שתעיף/י מבט. לפרטים נוספים: {{reviewUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>יש לנו חדשות מרגשות! השדכן/ית {{matchmakerName}} שלח/ה לך הצעה חדשה, <strong>והצד הראשון כבר אישר אותה</strong>.</p><p>נראה שיש כאן פוטנציאל גבוה ואנו מזמינים אותך <a href='{{reviewUrl}}'>לעיין בפרטים ולקבל החלטה</a>.</p></div>"
+    },
+    "SECOND_PARTY_APPROVED": {
+      "subject": "זה מאצ'! שני הצדדים אישרו את ההצעה",
+      "body": "שלום {{matchmakerName}}, בשורות טובות! {{partyName}} אישר/ה את ההצעה. שני הצדדים אישרו וכעת ניתן להתקדם לשלב החלפת פרטי הקשר. לפרטים נוספים: {{dashboardUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p><strong>זה מאצ'!</strong> 🎉</p><p>אנו שמחים לעדכן שגם <strong>{{partyName}}</strong> אישר/ה את ההצעה. כעת, שני הצדדים הביעו הסכמה וניתן <a href='{{dashboardUrl}}'>להתקדם לשלב החלפת פרטי הקשר</a>.</p></div>"
+    },
+    "SECOND_PARTY_DECLINED": {
+      "subject": "עדכון: הצעה נדחתה על ידי הצד השני",
+      "body": "שלום {{matchmakerName}}, לידיעתך, {{partyName}} בחנ/ה את ההצעה והחליט/ה לדחות אותה. פרטים נוספים זמינים בלוח הבקרה: {{dashboardUrl}}",
+      "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>לידיעתך, <strong>{{partyName}}</strong> בחנ/ה את ההצעה והחליט/ה שאינה מתאימה בשלב זה.</p><p>פרטים נוספים זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+    },
+    "CONTACT_DETAILS_SHARED": {
+      "subject": "בהצלחה! פרטי הקשר שלכם הוחלפו",
+      "body": "ברכות! שניכם אישרתם את ההצעה. פרטי הקשר המלאים נשלחו אליכם במייל נפרד. אנו ממליצים ליצור קשר ב-24-48 השעות הקרובות. שיהיה בהצלחה!",
+      "htmlBody": "<div dir='rtl'><h2>יוצאים לדרך!</h2><p>שניכם אישרתם את ההצעה, וזו תמיד התרגשות גדולה. פרטי הקשר המלאים נשלחו אליכם במייל נפרד ומפורט.</p><p><strong>טיפ קטן מאיתנו:</strong> קחו נשימה, זכרו שהמטרה היא פשוט להכיר, והכי חשוב - תהיו אתם. מומלץ ליצור קשר ראשוני ב-24-48 השעות הקרובות.</p><p>מאחלים לכם שיחה נעימה ופגישה מוצלחת!</p></div>"
+    }
+  }
+    },
+    "engagement": {
+    "onboardingDay1": {
+      "subject": "{{firstName}}, ברוך הבא! הצעד הראשון שלך 🎉",
+      "hook": "מרגש שהצטרפת! בואו נתחיל בצעד הראשון והכי חשוב.",
+      "mainMessage": "כדי שנוכל להתחיל למצוא לך התאמות, הצעד הראשון הוא בניית פרופיל בסיסי. זה ייקח בערך 5 דקות ויעשה הבדל ענק.",
+      "encouragement": "אנחנו כאן בשבילך בכל שלב! 💙"
+    },
+    "onboardingDay3": {
+      "subject": "איך מתקדמים? עדכון מהיר 📊",
+      "hook": "הפרופיל שלך כבר ב-{{completion}}%! כל הכבוד!",
+      "mainMessage": "כל פרט שאת/ה מוסיף/ה עוזר למערכת ה-AI שלנו להבין אותך יותר לעומק. למשל, המידע שמילאת עד כה עוזר לנו להבין ש: {{aiInsight}}",
+      "encouragement": "את/ה בדרך הנכונה! 🚀"
+    },
+    "onboardingDay7_Insight": {
+      "subject": "שבוע עבר - הנה מה שגילינו עלייך 🔍",
+      "hook": "{{firstName}}, עבר שבוע מאז שהצטרפת. הנה תובנה מיוחדת:",
+      "mainMessage": "המערכת שלנו כבר מתחילה ללמוד עליך ועל מה שחשוב לך.",
+      "encouragement": "פרופילים מלאים מקבלים פי 3 יותר התאמות איכותיות!"
+    },
+    "photoNudge": {
+      "subject": "תמונה אחת = אלף מילים (ממש!) 📸",
+      "hook": "הפרופיל שלך מעניין ועשיר בתוכן, אבל חסר בו משהו קריטי...",
+      "mainMessage": "חסרות {{missingCount}} תמונות כדי להשלים את הפרופיל. זו לא שאלה של יופי - זו שאלה של התאמה אמיתית. פרופילים עם תמונות מקבלים הצעות מהר יותר.",
+      "specificAction": "העלה 3 תמונות - ייקח 2 דקות",
+      "encouragement": "תמונה אחת = קפיצה של 30%+ בפרופיל שלך!"
+    },
+    "questionnaireNudge": {
+      "subject": "השאלון - לא עוד שאלון משעמם 🧠",
+      "hook": "{{firstName}}, שמנו לב שהתחלת למלא את השאלון - מעולה!",
+      "mainMessage": "השאלון שלנו הוא המפתח להתאמות מדויקות. כל תשובה מאפשרת ל-AI שלנו ללמוד עליך משהו עמוק. כדאי להתמקד עכשיו בעולם '{{worldName}}'.",
+      "encouragement": "משתמשים עם שאלון מלא מקבלים פי 3 יותר התאמות מדויקות!"
+    },
+    "almostDone": {
+      "subject": "{{firstName}}, את/ה כמעט שם! 🎊",
+      "hook": "וואו! {{completion}}% - זה מדהים!",
+      "mainMessage": "הפרופיל שלך כמעט מושלם. נשאר רק פרט אחד קטן ואת/ה ב-100%.",
+      "encouragement": "צעד אחד קטן והפרופיל שלך מוכן לקבל הצעות!"
+    },
+    "reEngagement": {
+      "subject": "זוכר/ת אותנו? יש לנו חדשות בשבילך 💌",
+      "hook": "{{firstName}}, עבר זמן מאז שדיברנו...",
+      "mainMessage": "הפרופיל שלך עומד על {{completion}}% - וזה נהדר! המערכת שלנו השתפרה מאז, ועכשיו זה הזמן המושלם לחזור ולהשלים.",
+      "encouragement": "לא מאוחר לחזור. אנחנו כאן בשבילך."
+    },
+    "aiSummary": {
+      "subject": "{{firstName}}, גילינו משהו מעניין עליך 🧠",
+      "hook": "המערכת שלנו ניתחה את הפרופיל שלך...",
+      "mainMessage": "הנה תובנה מיוחדת שה-AI שלנו למד עליך ועל מה שאת/ה מחפש/ת:",
+      "encouragement": "ככל שהפרופיל שלך יהיה מלא יותר, כך התובנות יהיו מדויקות יותר!"
+    },
+    "eveningFeedback": {
+      "subject": "{{firstName}}, סיכום יום מעולה! ✨",
+      "hook": "כל הכבוד על ההשקעה שלך היום!",
+      "mainMessage": "ראינו את ההתקדמות שלך היום ורצינו לשתף אותך במה שלמדנו. כל צעד קטן מקרב אותך למטרה.",
+      "systemSummary": "דבר המערכת: {{summary}}...",
+      "encouragement": "ממשיכים לעבוד! מחר נמשיך 💪"
+    },
+    "value": [
+      {
+        "subject": "למה תמונות הן כל כך חשובות? התשובה מפתיעה",
+        "hook": "מחקר חדש מראה שתמונות עוזרות לזהות תאימות רגשית...",
+        "mainMessage": "מעבר למראה החיצוני, תמונות מספרות סיפור על האישיות, תחומי העניין והאווירה שאת/ה מביא/ה איתך. קרא/י את המאמר המלא >>",
+        "encouragement": "אנחנו כאן כדי לעזור לך, בכל שלב."
+      },
+      {
+        "subject": "3 טעויות נפוצות בבניית פרופיל שידוכים",
+        "hook": "שדכנים עם 20 שנות ניסיון חושפים מה באמת עובד...",
+        "mainMessage": "הטעות הנפוצה ביותר היא להיות כללי מדי. פרופיל טוב הוא ספציפי ואותנטי. רוצה לדעת מהן שתי הטעויות האחרות? לחצ/י כאן >>",
+        "encouragement": "הפרופיל שלך הוא כרטיס הביקור שלך."
+      }
+    ]
+  }
+}
+--- End of Content for he.json ---
+
+--- End of Content for email_contents.txt ---
 
 --------------------------------------------------------------------------------
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\email\en.json

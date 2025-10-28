@@ -198,7 +198,8 @@ export async function POST(req: NextRequest) {
             isPhoneVerified: false, 
             source: UserSource.REGISTRATION,
             termsAndPrivacyAcceptedAt: new Date(),
-            marketingConsent: body.marketingConsent || false,
+    engagementEmailsConsent: body.engagementEmailsConsent || false,
+    promotionalEmailsConsent: body.promotionalEmailsConsent || false,
           },
       });
       logger.info('User created successfully within transaction', { userId: user.id });

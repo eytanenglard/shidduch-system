@@ -237,7 +237,9 @@ export interface User extends DefaultUser {
     source: UserSource; // Add new field
   addedByMatchmakerId?: string | null; // Add new field
    termsAndPrivacyAcceptedAt?: Date | null;
-     marketingConsent?: boolean;
+       engagementEmailsConsent?: boolean;
+  promotionalEmailsConsent?: boolean;
+
   language: Language; // <-- 2. הוסף את השדה לממשק הראשי
 
 }
@@ -279,7 +281,8 @@ declare module 'next-auth' {
         source: UserSource; // Add new field
       addedByMatchmakerId?: string | null; // Add new field
        termsAndPrivacyAcceptedAt?: Date | null;
-             marketingConsent?: boolean;
+              engagementEmailsConsent?: boolean;
+      promotionalEmailsConsent?: boolean;
   language: Language; // <-- 2. הוסף את השדה לממשק הראשי
 
     }; // Omit to avoid type conflicts if DefaultSession changes
@@ -348,7 +351,8 @@ declare module 'next-auth/jwt' {
      source: UserSource; // Add new field
     addedByMatchmakerId?: string | null; // Add new field
         termsAndPrivacyAcceptedAt?: Date | null; // <--- הוספה
-    marketingConsent?: boolean;
+      engagementEmailsConsent?: boolean;
+    promotionalEmailsConsent?: boolean;
   language: Language; // <-- 2. הוסף את השדה לממשק הראשי
 
 
