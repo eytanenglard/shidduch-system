@@ -51,8 +51,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
   // States for consents
   const [consentChecked, setConsentChecked] = useState(false);
   const [consentError, setConsentError] = useState<string | null>(null);
-  const [engagementConsent, setEngagementConsent] = useState(true); // Default to true
-  const [promotionalConsent, setPromotionalConsent] = useState(true); // Optional, default to true
+  const [engagementConsent, setEngagementConsent] = useState(false); // Default to true
+  const [promotionalConsent, setPromotionalConsent] = useState(false); // Optional, default to true
   const [engagementConsentError, setEngagementConsentError] = useState<string | null>(null); // New error state
 
   useEffect(() => {
