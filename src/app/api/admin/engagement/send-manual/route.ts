@@ -170,47 +170,54 @@ async function generateEmailWithTimeout(
         break;
       }
       case 'AI_SUMMARY': {
-        console.log('🧠 [Manual Email] Loading AI insights...');
-        
-        try {
-          await Promise.race([
-            SmartEngagementOrchestrator['loadAiInsights'](profile, user.language as Language),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('AI insights timeout')), 40000)
-            ),
-          ]);
-          
-          console.log('✅ [Manual Email] AI insights loaded successfully');
-        } catch (aiError) {
-          console.error('❌ [Manual Email] AI insights failed:', aiError);
-          console.warn('⚠️ [Manual Email] Continuing without AI insights');
-        }
-
-        email = await SmartEngagementOrchestrator['getAiSummaryEmail'](profile, dict);
+        console.log('🧠 [Manual Email] Generating AI Summary email...');
+        email = await SmartEngagementOrchestrator.testGetAiSummaryEmail(profile, dict, user.language as Language);
         break;
       }
       case 'NUDGE': {
         if (!profile.completionStatus.photos.isDone) {
-          email = await SmartEngagementOrchestrator['getPhotoNudgeEmail'](profile, dict);
+          email = await SmartEngagementOrchestrator.testGetPhotoNudgeEmail(profile, dict);
         } else {
-          email = await SmartEngagementOrchestrator['getQuestionnaireNudgeEmail'](profile, dict);
+          email = await SmartEngagementOrchestrator.testGetQuestionnaireNudgeEmail(profile, dict);
         }
         break;
       }
       case 'CELEBRATION': {
-        email = await SmartEngagementOrchestrator['getAlmostDoneEmail'](profile, dict);
+        email = await SmartEngagementOrchestrator.testGetAlmostDoneEmail(profile, dict);
         break;
       }
       case 'VALUE': {
-        email = await SmartEngagementOrchestrator['getValueEmail'](profile, dict);
+        email = await SmartEngagementOrchestrator.testGetValueEmail(profile, dict);
         break;
       }
-      case 'ONBOARDING': {
-        email = await SmartEngagementOrchestrator['getOnboardingEmail'](profile, dict);
+      case 'ONBOARDING_DAY_1': {
+        email = await SmartEngagementOrchestrator.testGetOnboardingDay1Email(profile, dict);
+        break;
+      }
+      case 'ONBOARDING_PHOTOS': {
+        email = await SmartEngagementOrchestrator.testGetOnboardingPhotosEmail(profile, dict);
+        break;
+      }
+      case 'ONBOARDING_AI_TEASER': {
+        console.log('🧠 [Manual Email] Generating Onboarding AI Teaser email...');
+        email = await SmartEngagementOrchestrator.testGetOnboardingAiTeaserEmail(profile, dict, user.language as Language);
+        break;
+      }
+      case 'ONBOARDING_QUESTIONNAIRE_WHY': {
+        email = await SmartEngagementOrchestrator.testGetOnboardingQuestionnaireWhyEmail(profile, dict);
+        break;
+      }
+      case 'ONBOARDING_VALUE_ADD': {
+        console.log('💎 [Manual Email] Generating Onboarding Value Add email...');
+        email = await SmartEngagementOrchestrator.testGetOnboardingValueAddEmail(profile, dict, user.language as Language);
+        break;
+      }
+      case 'ONBOARDING': { // Fallback for old value
+        email = await SmartEngagementOrchestrator.testGetOnboardingDay1Email(profile, dict);
         break;
       }
       default:
-        throw new Error('Unsupported email type');
+        throw new Error(`Unsupported email type: ${emailType}`);
     }
 
     if (!email) {

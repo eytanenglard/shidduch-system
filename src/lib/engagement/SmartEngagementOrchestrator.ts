@@ -1,7 +1,8 @@
 // src/lib/engagement/SmartEngagementOrchestrator.ts
 
 import prisma from '@/lib/prisma';
-import { CampaignStatus, Language, User, Prisma } from '@prisma/client';import aiService from '@/lib/services/aiService';
+import { CampaignStatus, Language, User, Prisma } from '@prisma/client';
+import aiService from '@/lib/services/aiService';
 import profileAiService from '@/lib/services/profileAiService';
 import { profileFeedbackService } from '@/lib/services/profileFeedbackService';
 import { getEmailDictionary } from '@/lib/dictionaries';
@@ -93,12 +94,57 @@ export class SmartEngagementOrchestrator {
   ) {
     return this.getEveningFeedbackEmail(profile, dailyActivity, dict);
   }
-  
-  // Public method for manual sending to access onboarding email generation
-  static async getOnboardingEmail(profile: UserEngagementProfile, dict: EmailDictionary){
+
+  // [+] Exposing morning campaign emails for manual sending from dashboard
+  static async testGetOnboardingDay1Email(profile: UserEngagementProfile, dict: EmailDictionary) {
       return this.getOnboardingDay1Email(profile, dict);
   }
+  
+  static async testGetOnboardingPhotosEmail(profile: UserEngagementProfile, dict: EmailDictionary) {
+      return this.getOnboardingPhotosEmail(profile, dict);
+  }
+  
+  static async testGetOnboardingAiTeaserEmail(profile: UserEngagementProfile, dict: EmailDictionary, language: Language) {
+      if (!profile.aiInsights) {
+          await this.loadAiInsights(profile, language);
+      }
+      return this.getOnboardingAiTeaserEmail(profile, dict);
+  }
+  
+  static async testGetOnboardingQuestionnaireWhyEmail(profile: UserEngagementProfile, dict: EmailDictionary) {
+      return this.getOnboardingQuestionnaireWhyEmail(profile, dict);
+  }
+  
+  static async testGetOnboardingValueAddEmail(profile: UserEngagementProfile, dict: EmailDictionary, language: Language) {
+      if (!profile.aiInsights) {
+          await this.loadAiInsights(profile, language);
+      }
+      return this.getOnboardingValueAddEmail(profile, dict);
+  }
 
+  static async testGetPhotoNudgeEmail(profile: UserEngagementProfile, dict: EmailDictionary) {
+    return this.getPhotoNudgeEmail(profile, dict);
+  }
+  
+  static async testGetQuestionnaireNudgeEmail(profile: UserEngagementProfile, dict: EmailDictionary) {
+    return this.getQuestionnaireNudgeEmail(profile, dict);
+  }
+
+  static async testGetAlmostDoneEmail(profile: UserEngagementProfile, dict: EmailDictionary) {
+    return this.getAlmostDoneEmail(profile, dict);
+  }
+
+  static async testGetAiSummaryEmail(profile: UserEngagementProfile, dict: EmailDictionary, language: Language) {
+    if (!profile.aiInsights) {
+        console.log(`🧠 [Manual AI Summary] AI insights not pre-loaded. Fetching now...`);
+        await this.loadAiInsights(profile, language);
+    }
+    return this.getAiSummaryEmail(profile, dict);
+  }
+
+  static async testGetValueEmail(profile: UserEngagementProfile, dict: EmailDictionary) {
+    return this.getValueEmail(profile, dict);
+  }
 
   // ========== Main Campaign Methods ==========
   
@@ -366,7 +412,7 @@ export class SmartEngagementOrchestrator {
       }
     }
 
-const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []);
+const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []); // <--- זו השורה המתוקנת
     // Smart Onboarding Campaign (First 7 Days)
     if (daysInSystem <= 7) {
         if (daysInSystem <= 1 && !sentEmailTypes.has('ONBOARDING_DAY_1')) {

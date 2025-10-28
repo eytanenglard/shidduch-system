@@ -399,7 +399,12 @@ export default function EngagementDashboard({
       NUDGE: '👉 Nudge',
       CELEBRATION: '🎉 Celebration',
       VALUE: '💎 Value',
-      ONBOARDING: '👋 Onboarding',
+      ONBOARDING: '👋 Onboarding (Generic)',
+      ONBOARDING_DAY_1: '👋 Onboarding - Day 1',
+      ONBOARDING_PHOTOS: '📸 Onboarding - Photos',
+      ONBOARDING_AI_TEASER: '🤖 Onboarding - AI Teaser',
+      ONBOARDING_QUESTIONNAIRE_WHY: '❓ Onboarding - Why',
+      ONBOARDING_VALUE_ADD: '💎 Onboarding - Value',
     };
     return labels[type] || type;
   };
@@ -542,12 +547,36 @@ export default function EngagementDashboard({
                   onChange={(e) => setSelectedEmailType(e.target.value)}
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 >
-                  <option value="EVENING_FEEDBACK">🌙 Evening Feedback</option>
-                  <option value="AI_SUMMARY">🤖 AI Summary</option>
-                  <option value="NUDGE">👉 Nudge</option>
-                  <option value="CELEBRATION">🎉 Celebration</option>
-                  <option value="VALUE">💎 Value</option>
-                  <option value="ONBOARDING">👋 Onboarding</option>
+                  <optgroup label="Evening Campaign">
+                    <option value="EVENING_FEEDBACK">
+                      🌙 Evening Feedback
+                    </option>
+                  </optgroup>
+                  <optgroup label="Morning Campaign - Onboarding">
+                    <option value="ONBOARDING_DAY_1">
+                      👋 Onboarding - Day 1
+                    </option>
+                    <option value="ONBOARDING_PHOTOS">
+                      📸 Onboarding - Photos
+                    </option>
+                    <option value="ONBOARDING_AI_TEASER">
+                      🤖 Onboarding - AI Teaser
+                    </option>
+                    <option value="ONBOARDING_QUESTIONNAIRE_WHY">
+                      ❓ Onboarding - Questionnaire Why
+                    </option>
+                    <option value="ONBOARDING_VALUE_ADD">
+                      💎 Onboarding - Value Add
+                    </option>
+                  </optgroup>
+                  <optgroup label="Morning Campaign - Engagement">
+                    <option value="NUDGE">👉 Nudge (Contextual)</option>
+                    <option value="CELEBRATION">
+                      🎉 Celebration (Almost Done)
+                    </option>
+                    <option value="AI_SUMMARY">🤖 AI Summary</option>
+                    <option value="VALUE">💎 Value (Periodic)</option>
+                  </optgroup>
                 </select>
 
                 {/* 🌙 Evening Campaign Button */}
