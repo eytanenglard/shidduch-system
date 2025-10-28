@@ -817,6 +817,8 @@ const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []); // <
     };
   }
 
+ // src/lib/engagement/SmartEngagementOrchestrator.ts
+
   private static async getEveningFeedbackEmail(
     profile: UserEngagementProfile,
     dailyActivity: Awaited<ReturnType<typeof SmartEngagementOrchestrator.detectDailyActivity>>,
@@ -825,6 +827,18 @@ const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []); // <
     if (!dailyActivity.hasActivity) return null;
     
     const emailDict = dict.engagement.eveningFeedback;
+
+    // --- START FIX ---
+    // The template 'evening_feedback.hbs' expects a single 'aiInsight' string.
+    // We will prioritize the personality summary, as it's more comprehensive and always available if AI runs.
+    // We fall back to the top strength if the summary is somehow missing.
+    let bestAiInsight: string | undefined = undefined;
+    if (profile.aiInsights?.personalitySummary) {
+        bestAiInsight = profile.aiInsights.personalitySummary;
+    } else if (profile.aiInsights?.topStrengths && profile.aiInsights.topStrengths.length > 0) {
+        bestAiInsight = profile.aiInsights.topStrengths[0];
+    }
+    // --- END FIX ---
     
     return {
       type: 'EVENING_FEEDBACK',
@@ -837,12 +851,12 @@ const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []); // <
           itemsCompleted: dailyActivity.completedToday,
           newCompletion: dailyActivity.progressDelta
         },
-        systemSummary: profile.aiInsights?.personalitySummary 
-          ? populateTemplate(emailDict.systemSummary || '', { 
-              summary: profile.aiInsights.personalitySummary.slice(0, 200) 
-            })
-          : undefined,
-        aiInsight: profile.aiInsights?.topStrengths[0],
+        // The original systemSummary is no longer needed since we are combining logic into aiInsight
+        // systemSummary: profile.aiInsights?.personalitySummary ...
+        
+        // Use the new 'bestAiInsight' variable for the template
+        aiInsight: bestAiInsight,
+        
         specificAction: this.getNextBestAction(profile),
         progressVisualization: this.generateProgressBar(profile.completionStatus.overall),
         encouragement: emailDict.encouragement
