@@ -1,13 +1,13 @@
 // src/lib/engagement/SmartEngagementOrchestrator.ts
 
 import prisma from '@/lib/prisma';
-import { CampaignStatus, Language, User } from '@prisma/client';
-import aiService from '@/lib/services/aiService';
+import { CampaignStatus, Language, User, Prisma } from '@prisma/client';import aiService from '@/lib/services/aiService';
 import profileAiService from '@/lib/services/profileAiService';
 import { profileFeedbackService } from '@/lib/services/profileFeedbackService';
 import { getEmailDictionary } from '@/lib/dictionaries';
 import type { EmailDictionary } from '@/types/dictionaries/email';
-import { SignJWT } from 'jose'; 
+import { SignJWT } from 'jose';
+
 interface UserEngagementProfile {
   userId: string;
   firstName: string;
@@ -33,14 +33,19 @@ interface UserEngagementProfile {
   lastEmailType?: string;
   emailsSentCount: number;
   lastActiveDate?: Date;
+    dripCampaign?: {
+    sentEmailTypes: string[];
+  } | null;
+
   triggers: {
     stagnant?: boolean;
     almostDone?: boolean;
+    askedForTestimonial?: boolean;
   };
 }
 
 interface EmailToSend {
-  type: 'ONBOARDING' | 'NUDGE' | 'CELEBRATION' | 'INSIGHT' | 'VALUE' | 'EVENING_FEEDBACK' | 'AI_SUMMARY';
+  type: 'ONBOARDING_DAY_1' | 'ONBOARDING_PHOTOS' | 'ONBOARDING_AI_TEASER' | 'ONBOARDING_QUESTIONNAIRE_WHY' | 'ONBOARDING_VALUE_ADD' | 'NUDGE' | 'CELEBRATION' | 'INSIGHT' | 'VALUE' | 'EVENING_FEEDBACK' | 'AI_SUMMARY';
   priority: 'HIGH' | 'NORMAL' | 'LOW';
   subject: string;
   content: {
@@ -100,26 +105,26 @@ export class SmartEngagementOrchestrator {
     
     for (const user of usersToProcess) {
       try {
-        // ✅ STEP 1: Build profile WITHOUT expensive AI
-        const profile = await this.buildUserEngagementProfile(user.id, false); // false = no AI yet
+        // STEP 1: Build profile WITHOUT expensive AI
+        const profile = await this.buildUserEngagementProfile(user.id, false);
         const dict = await getEmailDictionary(user.language as Language);
         
-        // ✅ STEP 2: Decide if email is needed (cheap check)
-        const emailType = await this.determineEmailType(profile, dict);
+        // STEP 2: Decide if email is needed (smart check)
+        const emailType = await this.determineEmailType(profile);
         
         if (!emailType) {
           console.log(`⏭️ [Smart Engagement] No email needed for user ${user.id} at this time`);
-          continue; // 🎯 Skip expensive AI if no email needed!
+          continue;
         }
         
-        // ✅ STEP 3: Only NOW get AI insights if needed
-        const needsAI = emailType === 'AI_SUMMARY' || emailType === 'INSIGHT';
+        // STEP 3: Only NOW get AI insights if needed
+        const needsAI = emailType === 'AI_SUMMARY' || emailType === 'INSIGHT' || emailType === 'ONBOARDING_AI_TEASER' || emailType === 'ONBOARDING_VALUE_ADD';
         if (needsAI && !profile.aiInsights) {
           console.log(`🧠 [Smart Engagement] Fetching AI insights for ${emailType} email...`);
           await this.loadAiInsights(profile, user.language as Language);
         }
         
-        // ✅ STEP 4: Generate the actual email
+        // STEP 4: Generate the actual email
         const emailToSend = await this.generateEmail(emailType, profile, dict);
         
         if (emailToSend) {
@@ -220,12 +225,16 @@ export class SmartEngagementOrchestrator {
   
   private static async buildUserEngagementProfile(
     userId: string, 
-    includeAI: boolean = false // 🎯 New parameter
+    includeAI: boolean = false
   ): Promise<UserEngagementProfile> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        profile: true,
+        profile: {
+          include: {
+            testimonials: { where: { status: 'APPROVED' } }
+          }
+        },
         images: true,
         questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } },
         dripCampaign: true
@@ -235,15 +244,13 @@ export class SmartEngagementOrchestrator {
     if (!user) throw new Error(`User ${userId} not found`);
 
     const daysInSystem = Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24));
-   const feedbackReport = await profileFeedbackService.compileFeedbackReport(
-    userId, 
-    user.language as Language,
-    undefined,  // questionsDict
-    !includeAI  // 🔍 skipAI = true כש-includeAI = false
-  );
+    const feedbackReport = await profileFeedbackService.compileFeedbackReport(
+      userId, 
+      user.language as Language,
+      undefined,
+      !includeAI
+    );
 
-
-    // 🎯 AI is optional now
     let aiInsights: UserEngagementProfile['aiInsights'] = null;
     if (includeAI) {
       aiInsights = await this.getAiInsights(userId, user.language as Language);
@@ -252,6 +259,7 @@ export class SmartEngagementOrchestrator {
     const campaign = user.dripCampaign;
     const lastActiveDate = user.lastLogin || user.updatedAt;
     const daysSinceActive = Math.floor((Date.now() - lastActiveDate.getTime()) / (1000 * 60 * 60 * 24));
+    const hasAskedForTestimonial = !!(user.profile?.testimonials && user.profile.testimonials.length > 0);
 
     return {
       userId,
@@ -281,7 +289,7 @@ export class SmartEngagementOrchestrator {
           worldsStatus: feedbackReport.missingQuestionnaireItems.map(item => ({
             world: item.world,
             completed: 0,
-            total: 19,
+            total: 19, // This is an approximation
             isDone: false
           }))
         },
@@ -292,14 +300,16 @@ export class SmartEngagementOrchestrator {
       lastEmailType: campaign?.lastSentType || undefined,
       emailsSentCount: campaign?.currentStep || 0,
       lastActiveDate,
+        dripCampaign: user.dripCampaign ? { sentEmailTypes: user.dripCampaign.sentEmailTypes } : null,
+
       triggers: {
-        stagnant: daysSinceActive >= 5,
-        almostDone: feedbackReport.completionPercentage >= 90
+        stagnant: daysSinceActive >= 5 && daysInSystem > 7,
+        almostDone: feedbackReport.completionPercentage >= 90,
+        askedForTestimonial: hasAskedForTestimonial,
       }
     };
   }
 
-  // 🆕 Separate method to load AI only when needed
   private static async loadAiInsights(
     profile: UserEngagementProfile, 
     language: Language
@@ -312,63 +322,92 @@ export class SmartEngagementOrchestrator {
     userId: string, 
     language: Language
   ): Promise<UserEngagementProfile['aiInsights']> {
-    const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
-    if (!narrativeProfile) return null;
+    try {
+        const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
+        if (!narrativeProfile) return null;
 
-    const analysis = await aiService.getProfileAnalysis(narrativeProfile, language);
-    if (!analysis) return null;
+        const analysis = await aiService.getProfileAnalysis(narrativeProfile, language);
+        if (!analysis) return null;
 
-    return {
-      personalitySummary: analysis.personalitySummary,
-      lookingForSummary: analysis.lookingForSummary,
-      topStrengths: analysis.completenessReport
-        .filter(r => r.status === 'COMPLETE')
-        .slice(0, 3)
-        .map(r => r.feedback),
-      topGaps: analysis.actionableTips
-        .slice(0, 3)
-        .map(t => t.tip)
-    };
+        return {
+        personalitySummary: analysis.personalitySummary,
+        lookingForSummary: analysis.lookingForSummary,
+        topStrengths: analysis.completenessReport
+            .filter(r => r.status === 'COMPLETE')
+            .slice(0, 3)
+            .map(r => r.feedback),
+        topGaps: analysis.actionableTips
+            .slice(0, 3)
+            .map(t => t.tip)
+        };
+    } catch (error) {
+        console.error(`[AI Service] Failed to get AI insights for user ${userId}:`, error);
+        return null;
+    }
   }
 
-  // 🆕 Determine email type BEFORE expensive AI calls
   private static async determineEmailType(
-    profile: UserEngagementProfile,
-    dict: EmailDictionary
-  ): Promise<string | null> {
-    const { daysInSystem, completionStatus, triggers, lastEmailSent } = profile;
+    profile: UserEngagementProfile
+  ): Promise<EmailToSend['type'] | null> {
+    const { daysInSystem, completionStatus, triggers, lastEmailSent, lastEmailType } = profile;
 
-    // Check if it's too soon to send
     if (lastEmailSent) {
       const daysSinceLastEmail = Math.floor(
         (Date.now() - lastEmailSent.getTime()) / (1000 * 60 * 60 * 24)
       );
-      if (daysSinceLastEmail < 3) {
-        return null; // 🎯 Exit early - save money!
+      if (daysSinceLastEmail < 1) {
+        return null;
       }
     }
 
-    // Determine email type (no AI needed yet)
-    if (daysInSystem <= 7) return 'ONBOARDING';
-    if (triggers.almostDone) return 'CELEBRATION';
-    if (triggers.stagnant) return 'NUDGE';
+const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []); // <--- זו השורה המתוקנת
+    // Smart Onboarding Campaign (First 7 Days)
+    if (daysInSystem <= 7) {
+        if (daysInSystem <= 1 && !sentEmailTypes.has('ONBOARDING_DAY_1')) {
+            return 'ONBOARDING_DAY_1';
+        }
+        if (daysInSystem >= 2 && !completionStatus.photos.isDone && !sentEmailTypes.has('ONBOARDING_PHOTOS')) {
+            return 'ONBOARDING_PHOTOS';
+        }
+        if (daysInSystem >= 3 && completionStatus.photos.isDone && completionStatus.questionnaire.completionPercent < 20 && !sentEmailTypes.has('ONBOARDING_AI_TEASER')) {
+            return 'ONBOARDING_AI_TEASER';
+        }
+        if (daysInSystem >= 5 && completionStatus.questionnaire.completionPercent >= 20 && completionStatus.questionnaire.completionPercent < 80 && !sentEmailTypes.has('ONBOARDING_QUESTIONNAIRE_WHY')) {
+            return 'ONBOARDING_QUESTIONNAIRE_WHY';
+        }
+        if (daysInSystem >= 7 && completionStatus.questionnaire.completionPercent >= 80 && !triggers.askedForTestimonial && !sentEmailTypes.has('ONBOARDING_VALUE_ADD')) {
+            return 'ONBOARDING_VALUE_ADD';
+        }
+    }
+
+    // Post-Onboarding Logic (After Day 7)
+    if (triggers.almostDone && lastEmailType !== 'CELEBRATION') return 'CELEBRATION';
+    if (triggers.stagnant && lastEmailType !== 'NUDGE') return 'NUDGE';
     if (!completionStatus.photos.isDone) return 'NUDGE';
     if (completionStatus.questionnaire.completionPercent < 50) return 'NUDGE';
-    if (completionStatus.overall >= 40 && completionStatus.overall < 90) return 'AI_SUMMARY';
-    if (daysInSystem % 14 === 0) return 'VALUE';
+    if (completionStatus.overall >= 40 && completionStatus.overall < 90 && lastEmailType !== 'AI_SUMMARY') return 'AI_SUMMARY';
+    
+    if (daysInSystem > 7 && daysInSystem % 14 === 0) return 'VALUE';
     
     return null;
   }
 
-  // 🆕 Generate email based on type
   private static async generateEmail(
-    emailType: string,
+    emailType: EmailToSend['type'],
     profile: UserEngagementProfile,
     dict: EmailDictionary
   ): Promise<EmailToSend | null> {
     switch (emailType) {
-      case 'ONBOARDING':
-        return this.getOnboardingEmail(profile, dict);
+      case 'ONBOARDING_DAY_1':
+        return this.getOnboardingDay1Email(profile, dict);
+      case 'ONBOARDING_PHOTOS':
+        return this.getOnboardingPhotosEmail(profile, dict);
+      case 'ONBOARDING_AI_TEASER':
+        return this.getOnboardingAiTeaserEmail(profile, dict);
+      case 'ONBOARDING_QUESTIONNAIRE_WHY':
+          return this.getOnboardingQuestionnaireWhyEmail(profile, dict);
+      case 'ONBOARDING_VALUE_ADD':
+          return this.getOnboardingValueAddEmail(profile, dict);
       case 'NUDGE':
         if (!profile.completionStatus.photos.isDone) {
           return this.getPhotoNudgeEmail(profile, dict);
@@ -386,34 +425,112 @@ export class SmartEngagementOrchestrator {
     }
   }
 
-  // ========== Email Generators (existing methods) ==========
+  // ========== Email Generators (New & Existing) ==========
   
-  private static getOnboardingEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
-    const { daysInSystem, completionStatus } = profile;
-    const { engagement } = dict;
-    
-    if (daysInSystem === 1) {
-      const emailDict = engagement.onboardingDay1;
-      return {
-        type: 'ONBOARDING',
-        priority: 'HIGH',
-        subject: populateTemplate(emailDict.subject, { firstName: profile.firstName }),
-        content: {
-          hook: emailDict.hook,
-          mainMessage: emailDict.mainMessage,
-          specificAction: this.getNextBestAction(profile),
-          encouragement: emailDict.encouragement
-        },
-        sendInDays: 0
-      };
+  private static getOnboardingDay1Email(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
+    const emailDict = dict.engagement.onboardingDay1;
+    let mainMessage = emailDict.mainMessage;
+    if (profile.completionStatus.overall > 50 && emailDict.fastUserMainMessage) {
+        
+        mainMessage = emailDict.fastUserMainMessage;
     }
     
-    // Add other onboarding days...
-    return this.getOnboardingEmail(profile, dict); // Placeholder
+    return {
+      type: 'ONBOARDING_DAY_1',
+      priority: 'HIGH',
+      subject: populateTemplate(emailDict.subject, { firstName: profile.firstName }),
+      content: {
+        hook: emailDict.hook,
+        mainMessage: mainMessage,
+        specificAction: this.getNextBestAction(profile),
+        encouragement: emailDict.encouragement
+      },
+      sendInDays: 0
+    };
+  }
+  
+  private static getOnboardingPhotosEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
+    
+    const emailDict = dict.engagement.onboardingPhotos;
+    const missingCount = 3 - profile.completionStatus.photos.current;
+    return {
+      type: 'ONBOARDING_PHOTOS',
+      priority: 'HIGH',
+      subject: populateTemplate(emailDict.subject, { firstName: profile.firstName }),
+      content: {
+        hook: emailDict.hook,
+        mainMessage: populateTemplate(emailDict.mainMessage, { missingCount }),
+        specificAction: emailDict.specificAction,
+        encouragement: emailDict.encouragement
+      },
+      sendInDays: 0
+    };
   }
 
-   private static getPhotoNudgeEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
-    // ✅ שיפרנו את התוכן להיות ממוקד ב"למה"
+  private static getOnboardingAiTeaserEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
+    
+    const emailDict = dict.engagement.onboardingAiTeaser;
+    const aiInsightText = profile.aiInsights?.topStrengths[0] 
+        
+        ? populateTemplate(emailDict.aiInsight, { insight: profile.aiInsights.topStrengths[0] })
+        
+        : emailDict.genericInsight;
+
+    return {
+      type: 'ONBOARDING_AI_TEASER',
+      priority: 'NORMAL',
+      subject: populateTemplate(emailDict.subject, { firstName: profile.firstName }),
+      content: {
+        hook: emailDict.hook,
+        mainMessage: `${emailDict.mainMessage} ${aiInsightText}`,
+        specificAction: emailDict.specificAction,
+        encouragement: emailDict.encouragement
+      },
+      sendInDays: 0
+    };
+  }
+
+  private static getOnboardingQuestionnaireWhyEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
+    
+    const emailDict = dict.engagement.onboardingQuestionnaireWhy;
+    return {
+        type: 'ONBOARDING_QUESTIONNAIRE_WHY',
+        priority: 'NORMAL',
+        subject: populateTemplate(emailDict.subject, { firstName: profile.firstName }),
+        content: {
+            hook: emailDict.hook,
+            mainMessage: emailDict.mainMessage,
+            specificAction: emailDict.specificAction,
+            encouragement: emailDict.encouragement
+        },
+        sendInDays: 0
+    };
+  }
+
+  private static getOnboardingValueAddEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
+    
+    const emailDict = dict.engagement.onboardingValueAdd;
+    const tipFromAI = profile.aiInsights?.topGaps[0] 
+      
+      ? populateTemplate(emailDict.aiTip, { tip: profile.aiInsights.topGaps[0] })
+      
+      : emailDict.genericTip;
+    
+    return {
+        type: 'ONBOARDING_VALUE_ADD',
+        priority: 'LOW',
+        subject: populateTemplate(emailDict.subject, { firstName: profile.firstName }),
+        content: {
+            hook: emailDict.hook,
+            mainMessage: `${emailDict.mainMessage} ${tipFromAI}`,
+            specificAction: emailDict.specificAction,
+            encouragement: emailDict.encouragement
+        },
+        sendInDays: 0
+    };
+  }
+  
+  private static getPhotoNudgeEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
     const emailDict = dict.engagement.photoNudge;
     const missingCount = 3 - profile.completionStatus.photos.current;
     
@@ -422,27 +539,19 @@ export class SmartEngagementOrchestrator {
       priority: 'HIGH',
       subject: populateTemplate(emailDict.subject, { firstName: profile.firstName }),
       content: {
-        // ✅ הוק (Hook) חם ומסביר יותר
         hook: populateTemplate(emailDict.hook, { firstName: profile.firstName }),
-        // ✅ מסר מרכזי שמדבר על חיבור אנושי, לא על דרישה טכנית
         mainMessage: populateTemplate(emailDict.mainMessage, { missingCount }),
-        // ✅ קריאה לפעולה ספציפית
         specificAction: emailDict.specificAction,
-        // ✅ עידוד שמחבר את הפעולה למטרה הגדולה
         encouragement: emailDict.encouragement
       },
       sendInDays: 0
     };
   }
 
-
-
   private static getQuestionnaireNudgeEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
-    // ✅ שיפרנו את התוכן כדי להדגיש את הערך למשתמש
     const emailDict = dict.engagement.questionnaireNudge;
     const { worldsStatus } = profile.completionStatus.questionnaire;
     
-    // знаходи את העולם הכי פחות מלא כדי לתת הנחיה ממוקדת
     const mostEmptyWorld = worldsStatus
         .filter(w => !w.isDone)
         .sort((a, b) => a.completed - b.completed)[0] || { world: 'כללי' };
@@ -453,7 +562,6 @@ export class SmartEngagementOrchestrator {
       subject: populateTemplate(emailDict.subject, { firstName: profile.firstName }),
       content: {
         hook: populateTemplate(emailDict.hook, { firstName: profile.firstName }),
-        // ✅ מסר מרכזי שמסביר שהשאלון הוא "מצפן" ולא "מטלה"
         mainMessage: populateTemplate(emailDict.mainMessage, { worldName: mostEmptyWorld.world }),
         specificAction: this.getNextBestAction(profile),
         encouragement: emailDict.encouragement
@@ -461,7 +569,6 @@ export class SmartEngagementOrchestrator {
       sendInDays: 0
     };
   }
-
 
   private static getAlmostDoneEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
     const emailDict = dict.engagement.almostDone;
@@ -480,18 +587,30 @@ export class SmartEngagementOrchestrator {
     };
   }
 
- private static async getAiSummaryEmail(
-  profile: UserEngagementProfile, 
-  dict: EmailDictionary
-): Promise<EmailToSend | null> {
-  const { aiInsights } = profile;
-  const emailDict = dict.engagement.aiSummary;
-  
-  // 🎯 הסרנו את התנאי של completionStatus.overall >= 40
-  // עכשיו זה יעבוד עם כל פרופיל
-  
-  if (!aiInsights) {
-    console.warn('⚠️ [AI Summary Email] No AI insights, using generic message');
+  private static async getAiSummaryEmail(
+    profile: UserEngagementProfile, 
+    dict: EmailDictionary
+  ): Promise<EmailToSend | null> {
+    const { aiInsights } = profile;
+    const emailDict = dict.engagement.aiSummary;
+    
+    if (!aiInsights) {
+      console.warn('⚠️ [AI Summary Email] No AI insights, using generic message');
+      return {
+        type: 'AI_SUMMARY',
+        priority: 'NORMAL',
+        subject: populateTemplate(emailDict.subject, { firstName: profile.firstName }),
+        content: {
+          hook: emailDict.hook,
+          mainMessage: emailDict.mainMessage,
+          systemSummary: 'התחלנו לנתח את הפרופיל שלך. ככל שתוסיף יותר מידע, נוכל לספק תובנות מדויקות יותר על מי שמתאים לך.',
+          specificAction: this.getNextBestAction(profile),
+          encouragement: emailDict.encouragement
+        },
+        sendInDays: 0
+      };
+    }
+    
     return {
       type: 'AI_SUMMARY',
       priority: 'NORMAL',
@@ -499,35 +618,17 @@ export class SmartEngagementOrchestrator {
       content: {
         hook: emailDict.hook,
         mainMessage: emailDict.mainMessage,
-        systemSummary: 'התחלנו לנתח את הפרופיל שלך. ככל שתוסיף יותר מידע, נוכל לספק תובנות מדויקות יותר על מי שמתאים לך.',
+        systemSummary: aiInsights.personalitySummary,
+        aiInsight: aiInsights.lookingForSummary,
         specificAction: this.getNextBestAction(profile),
         encouragement: emailDict.encouragement
       },
       sendInDays: 0
     };
   }
-  
-  return {
-    type: 'AI_SUMMARY',
-    priority: 'NORMAL',
-    subject: populateTemplate(emailDict.subject, { firstName: profile.firstName }),
-    content: {
-      hook: emailDict.hook,
-      mainMessage: emailDict.mainMessage,
-      systemSummary: aiInsights.personalitySummary,
-      aiInsight: aiInsights.lookingForSummary,
-      specificAction: this.getNextBestAction(profile),
-      encouragement: emailDict.encouragement
-    },
-    sendInDays: 0
-  };
-}
 
   private static getValueEmail(profile: UserEngagementProfile, dict: EmailDictionary): EmailToSend {
-    // ✅ שיפרנו את הלוגיקה כדי לתמוך במגוון נושאים
-    const topics = dict.engagement.value; // 'value' הוא עכשיו מערך של אובייקטים
-    
-    // בחר נושא אקראי מתוך המערך
+    const topics = dict.engagement.value;
     const topic = topics[Math.floor(Math.random() * topics.length)];
     
     return {
@@ -536,14 +637,12 @@ export class SmartEngagementOrchestrator {
       subject: populateTemplate(topic.subject, { firstName: profile.firstName }),
       content: {
         hook: populateTemplate(topic.hook, { firstName: profile.firstName }),
-        // ✅ התוכן מגיע ישירות מהמילון, מה שמאפשר גמישות רבה
         mainMessage: topic.mainMessage,
         encouragement: topic.encouragement
       },
       sendInDays: 0
     };
   }
-
 
   // ========== Helper Methods ==========
   
@@ -552,15 +651,15 @@ export class SmartEngagementOrchestrator {
       return `העלה ${3 - profile.completionStatus.photos.current} תמונות נוספות`;
     }
     if (profile.completionStatus.personalDetails.missing.length > 0) {
-      return profile.completionStatus.personalDetails.missing[0];
+      return `השלם את הפרט: ${profile.completionStatus.personalDetails.missing[0]}`;
     }
-    if (profile.completionStatus.questionnaire.completionPercent < 80) {
-      return 'השלם את השאלון';
+    if (profile.completionStatus.questionnaire.completionPercent < 100) {
+      return 'המשך למלא את שאלון העומק';
     }
     if (!profile.completionStatus.hasSeenPreview) {
-      return 'עיין בתצוגה המקדימה של הפרופיל';
+      return 'צפה בתצוגה המקדימה של הפרופיל שלך';
     }
-    return 'הפרופיל כמעט מושלם!';
+    return 'הפרופיל שלך במצב מצוין! אנו מתחילים לחפש עבורך.';
   }
 
   private static generateProgressBar(percentage: number): string {
@@ -585,195 +684,86 @@ export class SmartEngagementOrchestrator {
     });
   }
 
+  private static async getTodaysActiveUsers() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return await prisma.user.findMany({
+      where: {
+        status: 'ACTIVE',
+        engagementEmailsConsent: true,
+        OR: [
+          { updatedAt: { gte: today } },
+          { questionnaireResponses: { some: { lastSaved: { gte: today } } } }
+        ]
+      },
+      include: {
+        profile: true,
+        images: true,
+        questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } },
+        dripCampaign: true
+      }
+    });
+  }
 
-private static async getTodaysActiveUsers() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  return await prisma.user.findMany({
-    where: {
-      status: 'ACTIVE',
-      engagementEmailsConsent: true, 
-      // ❌ הסר את השורה: isProfileComplete: false,
-      OR: [
-        // ❌ הסר את השורה: { lastLogin: { gte: today } },
-        { updatedAt: { gte: today } },
-        { questionnaireResponses: { some: { lastSaved: { gte: today } } } }
-      ]
-    },
-    include: {
-      profile: true,
-      images: true,
-      questionnaireResponses: { take: 1, orderBy: { lastSaved: 'desc' } },
-      dripCampaign: true
-    }
-  });
-}
-
-
-private static async detectDailyActivity(userId: string): Promise<{
-  hasActivity: boolean;
-  completedToday: string[];
-  progressDelta: number;
-}> {
-  console.log('\n==============================================');
-  console.log('🔥🔥🔥 DETECT DAILY ACTIVITY - START 🔥🔥🔥');
-  console.log('==============================================');
-  console.log(`🔍 User ID: ${userId}`);
-  console.log(`📅 Current Date/Time: ${new Date().toISOString()}`);
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  console.log(`📅 Today (midnight UTC): ${today.toISOString()}`);
-  console.log('----------------------------------------------\n');
-  
-  console.log('🔍 Querying database for recent updates...');
-  
-  // 🆕 עדכן את ה-query להוסיף user.updatedAt:
-  const recentUpdates = await prisma.profile.findUnique({
-    where: { userId },
-    select: {
-      updatedAt: true,
-      user: {
-        select: {
-          updatedAt: true, // 🆕 הוסף את זה!
-          questionnaireResponses: {
-            where: { lastSaved: { gte: today } },
-            orderBy: { lastSaved: 'desc' },
-            take: 1
-          },
-          images: {
-            where: { createdAt: { gte: today } }
+  private static async detectDailyActivity(userId: string): Promise<{
+    hasActivity: boolean;
+    completedToday: string[];
+    progressDelta: number;
+  }> {
+    console.log('\n==============================================');
+    console.log('🔥🔥🔥 DETECT DAILY ACTIVITY - START 🔥🔥🔥');
+    console.log(`🔍 User ID: ${userId}`);
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const recentUpdates = await prisma.profile.findUnique({
+      where: { userId },
+      select: {
+        updatedAt: true,
+        user: {
+          select: {
+            updatedAt: true,
+            questionnaireResponses: {
+              where: { lastSaved: { gte: today } },
+              orderBy: { lastSaved: 'desc' },
+              take: 1
+            },
+            images: {
+              where: { createdAt: { gte: today } }
+            }
           }
         }
       }
+    });
+    
+    if (!recentUpdates) {
+      console.log('❌ ERROR: No profile found for this user!');
+      return { hasActivity: false, completedToday: [], progressDelta: 0 };
     }
-  });
-  
-  console.log('✅ Database query completed\n');
-  
-  if (!recentUpdates) {
-    console.log('❌ ERROR: No profile found for this user!');
-    console.log('==============================================\n');
-    return { hasActivity: false, completedToday: [], progressDelta: 0 };
+    
+    const userUpdated = recentUpdates.user.updatedAt && recentUpdates.user.updatedAt >= today;
+    const profileTableUpdated = recentUpdates.updatedAt && recentUpdates.updatedAt >= today;
+    const profileUpdated = userUpdated || profileTableUpdated;
+    
+    const questionnaireUpdated = recentUpdates.user.questionnaireResponses.length > 0;
+    const imagesUploaded = recentUpdates.user.images.length > 0;
+    
+    const hasActivity = profileUpdated || questionnaireUpdated || imagesUploaded;
+    
+    const completedToday: string[] = [];
+    if (imagesUploaded) completedToday.push(`${recentUpdates.user.images.length} תמונות חדשות`);
+    if (questionnaireUpdated) completedToday.push('התקדמות בשאלון');
+    if (profileUpdated) completedToday.push('עדכון פרופיל או נתוני משתמש');
+    
+    console.log('🔥🔥🔥 DETECT DAILY ACTIVITY - END 🔥🔥🔥\n');
+    
+    return { 
+      hasActivity, 
+      completedToday, 
+      progressDelta: 0 
+    };
   }
-  
-  console.log('📊 RAW DATA FROM DATABASE:');
-  console.log('----------------------------------------------');
-  console.log(`User updatedAt: ${recentUpdates.user.updatedAt ? recentUpdates.user.updatedAt.toISOString() : 'NULL'}`); // 🆕
-  console.log(`Profile updatedAt: ${recentUpdates.updatedAt ? recentUpdates.updatedAt.toISOString() : 'NULL'}`);
-  console.log(`Questionnaire responses count: ${recentUpdates.user.questionnaireResponses.length}`);
-  console.log(`Images count: ${recentUpdates.user.images.length}`);
-  console.log('----------------------------------------------\n');
-  
-  console.log('🔍 CHECKING EACH ACTIVITY TYPE:');
-  console.log('----------------------------------------------');
-  
-  // 🆕 בדיקה משופרת - בודקת גם User.updatedAt וגם Profile.updatedAt
-  let profileUpdated = false;
-  const userUpdated = recentUpdates.user.updatedAt && recentUpdates.user.updatedAt >= today;
-  const profileTableUpdated = recentUpdates.updatedAt && recentUpdates.updatedAt >= today;
-  
-  profileUpdated = userUpdated || profileTableUpdated;
-  
-  console.log(`1️⃣ Profile/User Updated Today?`);
-  if (recentUpdates.user.updatedAt) {
-    console.log(`   User updatedAt:    ${recentUpdates.user.updatedAt.toISOString()}`);
-    console.log(`   User updated?:     ${userUpdated ? '✅ YES' : '❌ NO'}`);
-  }
-  if (recentUpdates.updatedAt) {
-    console.log(`   Profile updatedAt: ${recentUpdates.updatedAt.toISOString()}`);
-    console.log(`   Profile updated?:  ${profileTableUpdated ? '✅ YES' : '❌ NO'}`);
-  }
-  console.log(`   Today (midnight):  ${today.toISOString()}`);
-  console.log(`   Combined Result:   ${profileUpdated ? '✅ YES' : '❌ NO'}`);
-  console.log('');
-  
-  // בדיקה 2: האם נענו שאלונים היום
-  const questionnaireCount = recentUpdates.user.questionnaireResponses.length;
-  const questionnaireUpdated = questionnaireCount > 0;
-  console.log(`2️⃣ Questionnaire Answered Today?`);
-  console.log(`   Responses found: ${questionnaireCount}`);
-  console.log(`   Result: ${questionnaireUpdated ? '✅ YES' : '❌ NO'}`);
-  if (questionnaireUpdated && recentUpdates.user.questionnaireResponses[0]) {
-    console.log(`   Last saved: ${recentUpdates.user.questionnaireResponses[0].lastSaved.toISOString()}`);
-  }
-  console.log('');
-  
-  // בדיקה 3: האם הועלו תמונות היום
-  const imagesCount = recentUpdates.user.images.length;
-  const imagesUploaded = imagesCount > 0;
-  console.log(`3️⃣ Images Uploaded Today?`);
-  console.log(`   Images found: ${imagesCount}`);
-  console.log(`   Result: ${imagesUploaded ? '✅ YES' : '❌ NO'}`);
-  if (imagesUploaded) {
-    recentUpdates.user.images.forEach((img, index) => {
-      console.log(`   Image ${index + 1} created: ${img.createdAt.toISOString()}`);
-    });
-  }
-  console.log('');
-  
-  console.log('----------------------------------------------');
-  console.log('📊 ACTIVITY SUMMARY:');
-  console.log('----------------------------------------------');
-  console.log(`Profile/User Updated: ${profileUpdated ? '✅' : '❌'}`);
-  console.log(`Questionnaire:        ${questionnaireUpdated ? '✅' : '❌'}`);
-  console.log(`Images Uploaded:      ${imagesUploaded ? '✅' : '❌'}`);
-  console.log('----------------------------------------------\n');
-  
-  // חישוב האם יש פעילות (OR - מספיק אחד מהם)
-  const hasActivity = profileUpdated || questionnaireUpdated || imagesUploaded;
-  
-  console.log('🎯 FINAL RESULT:');
-  console.log('----------------------------------------------');
-  console.log(`hasActivity = ${hasActivity ? '✅ TRUE' : '❌ FALSE'}`);
-  console.log(`Logic: profileUpdated (${profileUpdated}) OR questionnaireUpdated (${questionnaireUpdated}) OR imagesUploaded (${imagesUploaded})`);
-  console.log('----------------------------------------------\n');
-  
-  // בניית רשימת הפעולות שבוצעו היום
-  const completedToday: string[] = [];
-  
-  if (imagesUploaded) {
-    const message = `${imagesCount} תמונות חדשות`;
-    completedToday.push(message);
-    console.log(`✅ Added to completedToday: "${message}"`);
-  }
-  
-  if (questionnaireUpdated) {
-    const message = 'התקדמות בשאלון';
-    completedToday.push(message);
-    console.log(`✅ Added to completedToday: "${message}"`);
-  }
-  
-  if (profileUpdated) {
-    const message = 'עדכון פרופיל או נתוני משתמש'; // 🔄 טקסט מעודכן
-    completedToday.push(message);
-    console.log(`✅ Added to completedToday: "${message}"`);
-  }
-  
-  console.log('');
-  console.log('📝 COMPLETED TODAY LIST:');
-  console.log('----------------------------------------------');
-  if (completedToday.length > 0) {
-    completedToday.forEach((item, index) => {
-      console.log(`${index + 1}. ${item}`);
-    });
-  } else {
-    console.log('(empty - no activity detected)');
-  }
-  console.log('----------------------------------------------');
-  
-  console.log('\n==============================================');
-  console.log('🔥🔥🔥 DETECT DAILY ACTIVITY - END 🔥🔥🔥');
-  console.log('==============================================\n');
-  
-  return { 
-    hasActivity, 
-    completedToday, 
-    progressDelta: 0 
-  };
-}
-
 
   private static async getEveningFeedbackEmail(
     profile: UserEngagementProfile,
@@ -808,173 +798,156 @@ private static async detectDailyActivity(userId: string): Promise<{
       sendInDays: 0
     };
   }
-private static getEstimatedTime(profile: UserEngagementProfile, locale: Language = 'he'): string {
-  const { completionStatus } = profile;
-  
-  // אם חסרות תמונות - זה הכי מהיר
-  if (!completionStatus.photos.isDone) {
-    const missingPhotos = 3 - completionStatus.photos.current;
-    return locale === 'he' 
-      ? `${missingPhotos * 2}-${missingPhotos * 3} דקות` 
-      : `${missingPhotos * 2}-${missingPhotos * 3} minutes`;
-  }
-  
-  // אם חסרים פרטים אישיים
-  if (completionStatus.personalDetails.missing.length > 0) {
-    const missingCount = completionStatus.personalDetails.missing.length;
-    if (missingCount <= 3) {
-      return locale === 'he' ? '3-5 דקות' : '3-5 minutes';
-    } else {
-      return locale === 'he' ? '5-10 דקות' : '5-10 minutes';
+
+  private static getEstimatedTime(profile: UserEngagementProfile, locale: Language = 'he'): string {
+    const { completionStatus } = profile;
+    
+    if (!completionStatus.photos.isDone) {
+      const missingPhotos = 3 - completionStatus.photos.current;
+      return locale === 'he' 
+        ? `${missingPhotos * 2}-${missingPhotos * 3} דקות` 
+        : `${missingPhotos * 2}-${missingPhotos * 3} minutes`;
     }
-  }
-  
-  // אם השאלון לא מלא
-  if (completionStatus.questionnaire.completionPercent < 100) {
-    const remaining = 100 - completionStatus.questionnaire.completionPercent;
-    if (remaining < 30) {
-      return locale === 'he' ? '5-8 דקות' : '5-8 minutes';
-    } else if (remaining < 60) {
-      return locale === 'he' ? '10-15 דקות' : '10-15 minutes';
-    } else {
+    
+    if (completionStatus.personalDetails.missing.length > 0) {
+      return locale === 'he' ? '3-5 דקות' : '3-5 minutes';
+    }
+    
+    if (completionStatus.questionnaire.completionPercent < 100) {
+      const remaining = 100 - completionStatus.questionnaire.completionPercent;
+      if (remaining < 30) return locale === 'he' ? '5-8 דקות' : '5-8 minutes';
+      if (remaining < 60) return locale === 'he' ? '10-15 דקות' : '10-15 minutes';
       return locale === 'he' ? '15-20 דקות' : '15-20 minutes';
     }
-  }
-  
-  // אם חסרות העדפות בן/בת זוג
-  if (completionStatus.partnerPreferences.missing.length > 0) {
-    return locale === 'he' ? '5-7 דקות' : '5-7 minutes';
-  }
-  
-  // ברירת מחדל
-  return locale === 'he' ? '5 דקות' : '5 minutes';
-}
-
-// =================================================================
-// START OF UPDATED SECTION
-// =================================================================
-private static async sendEmail(user: User, email: EmailToSend) {
-  const { emailService } = await import('./emailService');
-  const locale = user.language || 'he';
-  
-  try {
-    let success = false;
     
-    // Unsubscribe Link Generation Logic (remains the same)
-    let unsubscribeUrl = '';
-    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
-    if (secret) {
-        const token = await new SignJWT({ userId: user.id, email: user.email })
-            .setProtectedHeader({ alg: 'HS256' })
-            .setIssuedAt()
-            .setExpirationTime('90d')
-            .sign(secret);
-        
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        unsubscribeUrl = `${baseUrl}/${locale}/unsubscribe?token=${token}`;
+    if (completionStatus.partnerPreferences.missing.length > 0) {
+      return locale === 'he' ? '5-7 דקות' : '5-7 minutes';
     }
+    
+    return locale === 'he' ? 'כמה דקות' : 'a few minutes';
+  }
 
-    const profile = await this.buildUserEngagementProfile(user.id, false);
-    const estimatedTime = this.getEstimatedTime(profile, locale as Language);
-    const ctaLink = `${process.env.NEXT_PUBLIC_BASE_URL}/profile`;
-    const ctaText = locale === 'he' ? 'להמשך בניית הפרופיל' : 'Continue building profile';
+  private static async sendEmail(user: User, email: EmailToSend) {
+    const { emailService } = await import('./emailService');
+    const locale = user.language || 'he';
+    
+    try {
+      let success = false;
+      
+      let unsubscribeUrl = '';
+      const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
+      if (secret) {
+          const token = await new SignJWT({ userId: user.id, email: user.email })
+              .setProtectedHeader({ alg: 'HS256' })
+              .setIssuedAt()
+              .setExpirationTime('90d')
+              .sign(secret);
+          
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+          unsubscribeUrl = `${baseUrl}/${locale}/unsubscribe?token=${token}`;
+      }
 
-    // ✨ NEW: Switched to a switch statement for clarity and to use specific templates
-    switch(email.type) {
-      case 'AI_SUMMARY':
-        success = await emailService.sendTemplateEmail({
-          locale: locale as Language,
-          to: user.email!,
-          subject: email.subject,
-          templateName: 'aiInsight',
-          context: {
-            firstName: user.firstName,
-            personalitySummary: email.content.systemSummary,
-            unsubscribeUrl,
-          }
-        });
-        break;
-        
-      case 'EVENING_FEEDBACK':
-        success = await emailService.sendTemplateEmail({
-          locale: locale as Language,
-          to: user.email!,
-          subject: email.subject,
-          templateName: 'evening_feedback',
-          context: {
-            firstName: user.firstName,
-            progressPercentage: email.content.progressVisualization?.match(/\d+/)?.[0] || '0',
-            todayCompletedItems: email.content.todayProgress?.itemsCompleted || [],
-            systemSummary: email.content.systemSummary,
-            aiInsight: email.content.aiInsight,
-            nextAction: email.content.specificAction,
-            estimatedTime: estimatedTime,
-            ctaLink: ctaLink,
-            ctaText: ctaText,
-            unsubscribeUrl,
-          }
-        });
-        break;
+      const profile = await this.buildUserEngagementProfile(user.id, false);
+      const estimatedTime = this.getEstimatedTime(profile, locale as Language);
+      const ctaLink = `${process.env.NEXT_PUBLIC_BASE_URL}/profile`;
+      const ctaText = locale === 'he' ? 'להמשך בניית הפרופיל' : 'Continue building profile';
 
-      case 'CELEBRATION': // Almost Done email
-        success = await emailService.sendTemplateEmail({
+      switch(email.type) {
+        case 'AI_SUMMARY':
+          success = await emailService.sendTemplateEmail({
             locale: locale as Language,
             to: user.email!,
             subject: email.subject,
-            templateName: 'almostDone',
+            templateName: 'aiInsight',
             context: {
-                firstName: user.firstName,
-                progressPercentage: profile.completionStatus.overall,
-                remainingItem: email.content.specificAction,
-                estimatedTime: estimatedTime,
-                aiSummary: profile.aiInsights?.personalitySummary?.slice(0, 150) + '...',
-                ctaLink: ctaLink,
-                unsubscribeUrl,
+              firstName: user.firstName,
+              personalitySummary: email.content.systemSummary,
+              unsubscribeUrl,
             }
-        });
-        break;
+          });
+          break;
+          
+        case 'EVENING_FEEDBACK':
+          success = await emailService.sendTemplateEmail({
+            locale: locale as Language,
+            to: user.email!,
+            subject: email.subject,
+            templateName: 'evening_feedback',
+            context: {
+              firstName: user.firstName,
+              progressPercentage: email.content.progressVisualization?.match(/\d+/)?.[0] || '0',
+              todayCompletedItems: email.content.todayProgress?.itemsCompleted || [],
+              systemSummary: email.content.systemSummary,
+              aiInsight: email.content.aiInsight,
+              nextAction: email.content.specificAction,
+              estimatedTime: estimatedTime,
+              ctaLink: ctaLink,
+              ctaText: ctaText,
+              unsubscribeUrl,
+            }
+          });
+          break;
 
-      case 'NUDGE':
-      case 'ONBOARDING':
-      case 'VALUE':
-      default: // Fallback to generic for other types
-        success = await emailService.sendCustomEmail(
-          user.email!,
-          email.subject,
-          'generic',
-          {
-            firstName: user.firstName,
-            headerTitle: email.content.hook,
-            mainContent: email.content.mainMessage,
-            encouragement: email.content.encouragement,
-            specificAction: email.content.specificAction,
-            estimatedTime: estimatedTime,
-            ctaLink: ctaLink,
-            ctaText: ctaText,
-            unsubscribeUrl,
-          },
-          locale as Language
-        );
-        break;
+        case 'CELEBRATION':
+          success = await emailService.sendTemplateEmail({
+              locale: locale as Language,
+              to: user.email!,
+              subject: email.subject,
+              templateName: 'almostDone',
+              context: {
+                  firstName: user.firstName,
+                  progressPercentage: profile.completionStatus.overall,
+                  remainingItem: email.content.specificAction,
+                  estimatedTime: estimatedTime,
+                  aiSummary: profile.aiInsights?.personalitySummary?.slice(0, 150) + '...',
+                  ctaLink: ctaLink,
+                  unsubscribeUrl,
+              }
+          });
+          break;
+
+        case 'NUDGE':
+        case 'ONBOARDING_DAY_1':
+        case 'ONBOARDING_PHOTOS':
+        case 'ONBOARDING_AI_TEASER':
+        case 'ONBOARDING_QUESTIONNAIRE_WHY':
+        case 'ONBOARDING_VALUE_ADD':
+        case 'VALUE':
+        default:
+          success = await emailService.sendCustomEmail(
+            user.email!,
+            email.subject,
+            'generic',
+            {
+              firstName: user.firstName,
+              headerTitle: email.content.hook,
+              mainContent: email.content.mainMessage,
+              encouragement: email.content.encouragement,
+              specificAction: email.content.specificAction,
+              estimatedTime: estimatedTime,
+              ctaLink: ctaLink,
+              ctaText: ctaText,
+              unsubscribeUrl,
+            },
+            locale as Language
+          );
+          break;
+      }
+      
+      if (success) {
+        console.log(`📧 Successfully sent ${email.type} email to ${user.email} in ${locale}`);
+      }
+    } catch (error) {
+      console.error(`❌ Error in sendEmail for user ${user.id}:`, error);
     }
-    
-    if (success) {
-      console.log(`📧 Successfully sent ${email.type} email to ${user.email} in ${locale}`);
-    }
-  } catch (error) {
-    console.error(`❌ Error in sendEmail for user ${user.id}:`, error);
   }
-}
-// =================================================================
-// END OF UPDATED SECTION
-// =================================================================
-
 
   private static async updateCampaignRecord(userId: string, emailType: string) {
-    const updateData: any = {
+    const updateData: Prisma.UserDripCampaignUpdateInput = {
       currentStep: { increment: 1 },
       lastSentType: emailType,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      sentEmailTypes: { push: emailType }
     };
     
     if (emailType === 'EVENING_FEEDBACK') {
@@ -994,8 +967,9 @@ private static async sendEmail(user: User, email: EmailToSend) {
         userId,
         currentStep: 1,
         lastSentType: emailType,
-        nextSendDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        nextSendDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
         status: 'ACTIVE',
+        sentEmailTypes: [emailType],
         ...(emailType === 'EVENING_FEEDBACK' && {
           lastEveningEmailSent: new Date(),
           eveningEmailsCount: 1

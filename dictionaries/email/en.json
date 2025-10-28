@@ -166,10 +166,44 @@
   },
 "engagement": {
     "onboardingDay1": {
-      "subject": "{{firstName}}, Welcome! Your First Step to a Meaningful Connection 🎉",
-      "hook": "We're so glad you're here! Let's begin with the most important first step.",
-      "mainMessage": "To start finding truly compatible matches for you, the first step is building your foundational profile. This thoughtful investment of about 5 minutes will make a world of difference.",
-      "encouragement": "We're here to guide you on this journey. 💙"
+      "subject": "{{firstName}}, Welcome to the Journey! 🎉",
+      "hook": "We're thrilled you've joined! Let's start with the first and most important step.",
+      "mainMessage": "So we can start finding precise matches for you, the first step is building your profile's foundation. It's an investment of a few minutes that will make a huge difference later on.",
+      "fastUserMainMessage": "Wow, what a quick start! Congratulations on the impressive progress on your very first day. Our journey is off to a great start.",
+      "specificAction": "Start building your personal profile",
+      "encouragement": "We're here to guide you every step of the way. Good luck!"
+    },
+    "onboardingPhotos": {
+      "subject": "On your journey, {{firstName}}, a picture is a window to the soul",
+      "hook": "In a world of words, a picture creates an instant human connection.",
+      "mainMessage": "We noticed your profile is still waiting for photos to bring it to life. This isn't about looks; it's about openness, seriousness, and trust. Profiles with at least 3 photos are taken more seriously by matchmakers and the other party, simply because they tell a more complete story. You are currently missing {{missingCount}} photos.",
+      "specificAction": "Upload Photos (it takes less than 2 minutes)",
+      "encouragement": "Every photo you add is another step in building trust on the path to a meaningful relationship."
+    },
+    "onboardingAiTeaser": {
+      "subject": "{{firstName}}, we've discovered an initial insight about you...",
+      "hook": "Great job completing the first stage! Our technology is not just for finding matches; it's for finding insights.",
+      "mainMessage": "Our AI is like another matchmaker on the team, working 24/7 to understand the nuances of your personality.",
+      "aiInsight": "For example, based on the details you've filled out, the system identifies in you a rare ability for \"{{insight}}\".",
+      "genericInsight": "Our system is already starting to understand you on a deeper level.",
+      "specificAction": "Start the 'Personality World' in the questionnaire and discover more insights",
+      "encouragement": "Investing a few minutes now will save you hours of irrelevant dates in the future."
+    },
+    "onboardingQuestionnaireWhy": {
+      "subject": "The secret to precise matches, {{firstName}}",
+      "hook": "We saw you started the questionnaire - excellent! We wanted to share the 'why' behind our methodology.",
+      "mainMessage": "Our questionnaire is built from 'Five Worlds' (Personality, Values, Relationship, Partner, and Religion) for a reason. This approach allows us (and the AI) to build a holistic picture of you, beyond dry data. It's the difference between a match based on 'what' and a match based on 'who'. Each answer you give is another thread woven into your personal narrative, allowing us to find someone whose story intertwines with yours.",
+      "specificAction": "Continue filling out the questionnaire and watch your profile come to life",
+      "encouragement": "You're not just filling out a form; you're building the map to finding your one."
+    },
+    "onboardingValueAdd": {
+      "subject": "A tip from our matchmakers (and the AI) just for you, {{firstName}}",
+      "hook": "Your profile is almost ready, and here are two powerful ways to take it to the next level.",
+      "mainMessage": "**1. The Power of a Testimonial:** Did you know? Profiles with at least one friend testimonial receive 40% more positive consideration. It signals credibility and builds trust instantly. Maybe it's time to request a short recommendation?\n\n**2. A Personal Tip from the System:** Your 'About Me' section is your chance to tell a story.",
+      "aiTip": "For example, our AI suggests enhancing your description by adding a concrete example of the value of \"{{tip}}\".",
+      "genericTip": "For instance, try incorporating a short personal story that illustrates one of your prominent traits.",
+      "specificAction": "Request a testimonial or upgrade your profile with your new tip",
+      "encouragement": "These small details are what make the biggest difference."
     },
     "photoNudge": {
       "subject": "{{firstName}}, A picture is worth a thousand matches 📸",
@@ -192,6 +226,12 @@
       "specificAction": "Complete the Final Step and Let's Get Started!",
       "encouragement": "You're just a click away from completing the most important stage. Let's finish this together."
     },
+    "reEngagement": {
+      "subject": "Remember us? We've been thinking of you 💌",
+      "hook": "{{firstName}}, it's been a little while... and we wanted to let you know our system has improved.",
+      "mainMessage": "Your profile is saved with us at {{completion}}% completion - a great foundation! Since you were last here, our candidate pool has grown and our algorithm has become even smarter. It's the perfect time to come back and complete your journey.",
+      "encouragement": "The right connection could be just a few small details away. We're still here for you."
+    },
     "aiSummary": {
       "subject": "{{firstName}}, our AI found something interesting in your profile...",
       "hook": "Our technology does more than just find matches—it finds insights.",
@@ -204,24 +244,6 @@
       "mainMessage": "Every detail you added helps us get a clearer picture of who you are. Here's a quick summary of your actions and our system's initial thoughts:",
       "systemSummary": "A note from the system following your update: {{summary}}...",
       "encouragement": "Thank you for your partnership on this journey. Every step brings us closer to the goal. We'll pick this up again tomorrow! 💪"
-    },
-    "onboardingDay3": {
-      "subject": "How's it going, {{firstName}}? A quick update 📊",
-      "hook": "Excellent progress! Your profile is already {{completion}}% complete!",
-      "mainMessage": "Every detail you add helps our AI system understand you better. For instance, the information you've provided so far helps us see that: {{aiInsight}}",
-      "encouragement": "You're on the right track! Every small step is a giant leap toward finding the right match. 🚀"
-    },
-    "onboardingDay7_Insight": {
-      "subject": "One week in - here's a personal insight from your system 🔍",
-      "hook": "{{firstName}}, it's been a week since you joined. We wanted to share something we've learned.",
-      "mainMessage": "Our smart system is already learning your lifestyle and values, which is our key to finding you precise matches that save you valuable time.",
-      "encouragement": "Remember, complete profiles get 3 times more high-quality suggestions from our matchmakers!"
-    },
-    "reEngagement": {
-      "subject": "Remember us? We've been thinking of you 💌",
-      "hook": "{{firstName}}, it's been a little while... and we wanted to let you know our system has improved.",
-      "mainMessage": "Your profile is saved with us at {{completion}}% completion - a great foundation! Since you were last here, our candidate pool has grown and our algorithm has become even smarter. It's the perfect time to come back and complete your journey.",
-      "encouragement": "The right connection could be just a few small details away. We're still here for you."
     },
     "value": [
       {
@@ -237,5 +259,5 @@
         "encouragement": "Your profile is your calling card."
       }
     ]
-}
+  }
 }

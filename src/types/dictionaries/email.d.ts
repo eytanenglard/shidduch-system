@@ -3,100 +3,33 @@
 import { MatchSuggestionStatus } from '@prisma/client';
 
 // ======================================================================== //
-// ✨ טיפוסים עבור מודול ההתראות (Notifications) ✨
-// מוגדרים כאן כדי להיות חלק ממודול ההודעות המאוחד
+// ✨ טיפוסים עבור מודול ההתראות (Notifications) - ללא שינוי ✨
 // ======================================================================== //
 
-/**
- * מגדיר את המבנה של הודעת סטטוס בודדת (למשל, הצעה אושרה).
- */
 type SuggestionStatusNotificationDict = {
   subject: string;
-  body: string;      // טקסט פשוט עבור SMS/WhatsApp
-  htmlBody: string;  // HTML מעוצב עבור מיילים
+  body: string;
+  htmlBody: string;
 };
 
-/**
- * מגדיר את המבנה של כל מילון ההתראות.
- */
 type NotificationDictionary = {
   customMessage: {
     subject: string;
-    // ============================ התיקון כאן ============================
-    reminderText: string; // הוספת שדה זה כדי להתאים לקבצי ה-JSON
-    // =====================================================================
+    reminderText: string;
   };
   suggestionStatusChange: Partial<Record<MatchSuggestionStatus, SuggestionStatusNotificationDict>>;
 };
 
 // ======================================================================== //
-// ✨ טיפוסים עבור תבניות המיילים (Email Templates) ✨
+// ✨ טיפוסים עבור תבניות המיילים (Email Templates) - ללא שינוי ✨
 // ======================================================================== //
 
-/**
- * טיפוס בסיסי המגדיר את המאפיינים המשותפים לכל תבניות המייל.
- */
 type EmailTemplateContent = {
   subject: string;
   title: string;
-  // מאפשר הוספת שדות נוספים וגמישים לכל תבנית
   [key: string]: string | Record<string, string>; 
 };
 
-// ======================================================================== //
-// ✨ הטיפוס הראשי והמאוחד: EmailDictionary ✨
-// מרכז את כל הטקסטים למיילים ולהתראות תחת אובייקט אחד.
-// ======================================================================== //
-
-export type EmailDictionary = {
-  /**
-   * טקסטים משותפים לכל המיילים.
-   */
-    engagement: EngagementEmailDict; // <-- הוסף את השורה הזו
-
-  shared: {
-    greeting: string;
-    closing: string;
-    team: string;
-    supportPrompt: string;
-    rightsReserved: string;
-  };
-
-  /**
-   * תבניות מייל ספציפיות.
-   * כל תבנית יורשת את המאפיינים הבסיסיים ומוסיפה את שלה.
-   */
-  welcome: EmailTemplateContent & { matchmakerAssigned: string; getStarted: string; dashboardButton: string; };
-  accountSetup: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; notice: string; nextStep: string; };
-  emailOtpVerification: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
-  invitation: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; expiryNotice: string; };
-suggestion: EmailTemplateContent & { 
-  intro: string; 
-  previewTitle: string; 
-  actionPrompt: string; 
-  actionButton: string; 
-  closing: string; 
-  details: {
-    age: string;
-    city: string;
-    occupation: string;
-    additionalInfo: string;
-  };
-};  shareContactDetails: EmailTemplateContent & { intro: string; detailsOf: string; tipTitle: string; tipContent: string; goodLuck: string; };
-  availabilityCheck: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; noticeTitle: string; noticeContent: string; };
-  passwordResetOtp: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
-  passwordChangedConfirmation: EmailTemplateContent & { intro: string; securityNote: string; actionButton: string; };
-    profileFeedback: ProfileFeedbackEmailDict;
-  profileSummaryUpdate: EmailTemplateContent & { intro: string; highlight: string; encouragement: string; actionButton: string; };
-
-  /**
-   * מילון ההתראות, מקונן כאן כחלק מהמודול המאוחד.
-   */
-  notifications: NotificationDictionary;
-};
-/**
- * מגדיר את המבנה של מילון התרגומים עבור מייל "דוח פרופיל אישי".
- */
 type ProfileFeedbackEmailDict = EmailTemplateContent & {
   greeting: string;
   matchmakerIntro: string;
@@ -116,14 +49,48 @@ type ProfileFeedbackEmailDict = EmailTemplateContent & {
   };
 };
 
+
+// ======================================================================== //
+// ✨ טיפוסים עבור מערכת ה-Engagement - *** כאן נמצאים העדכונים *** ✨
+// ======================================================================== //
+
+/**
+ * תבנית בסיסית למייל מעורבות (Engagement).
+ */
 type EngagementTemplate = {
   subject: string;
   hook: string;
   mainMessage: string;
-  specificAction?: string; // אופציונלי, לא כל מייל מכיל זאת
+  specificAction?: string;
   encouragement: string;
 };
 
+/**
+ * תבנית ייעודית למייל הפתיחה (יום 1), הכוללת מסר מיוחד למשתמשים מהירים.
+ */
+type OnboardingDay1Template = EngagementTemplate & {
+  fastUserMainMessage?: string;
+};
+
+/**
+ * תבנית ייעודית למייל הטיזר של ה-AI, הכוללת טקסטים לתובנה ספציפית או גנרית.
+ */
+type AiTeaserTemplate = EngagementTemplate & {
+  aiInsight: string;      // "לדוגמה, המערכת מזהה בך..."
+  genericInsight: string; // "המערכת שלנו כבר לומדת אותך..."
+};
+
+/**
+ * תבנית ייעודית למייל הערך המוסף, הכוללת טיפים מה-AI.
+ */
+type ValueAddTemplate = EngagementTemplate & {
+  aiTip: string;      // "למשל, ה-AI מציע..."
+  genericTip: string; // "למשל, נסה לשלב..."
+};
+
+/**
+ * תבנית למיילים הנותנים ערך כללי (מערך של נושאים).
+ */
 type ValueEmailTemplate = Array<{
   subject: string;
   hook: string;
@@ -132,19 +99,25 @@ type ValueEmailTemplate = Array<{
 }>;
 
 /**
-* מגדיר את המבנה של מייל הפידבק בערב.
-*/
+ * תבנית למייל הפידבק היומי בערב.
+ */
 type EveningFeedbackTemplate = EngagementTemplate & {
-  systemSummary: string; // "דבר המערכת: {{summary}}"
+  systemSummary: string;
 };
 
 /**
  * מרכז את כל תבניות המייל של מערכת ה-Engagement.
+ * זהו האובייקט המעודכן והמורחב.
  */
 type EngagementEmailDict = {
-  onboardingDay1: EngagementTemplate;
-  onboardingDay3: EngagementTemplate;
-  onboardingDay7_Insight: EngagementTemplate;
+  // --- מיילים חדשים בקמפיין ---
+  onboardingDay1: OnboardingDay1Template;
+  onboardingPhotos: EngagementTemplate;
+  onboardingAiTeaser: AiTeaserTemplate;
+  onboardingQuestionnaireWhy: EngagementTemplate;
+  onboardingValueAdd: ValueAddTemplate;
+
+  // --- מיילים ותיקים שנשארים ---
   photoNudge: EngagementTemplate;
   questionnaireNudge: EngagementTemplate;
   almostDone: EngagementTemplate;
@@ -152,5 +125,46 @@ type EngagementEmailDict = {
   aiSummary: EngagementTemplate;
   eveningFeedback: EveningFeedbackTemplate;
   value: ValueEmailTemplate;
+
+  // --- מיילים שהוצאו משימוש (הוחלפו בלוגיקה החדשה) ---
+  // onboardingDay3: EngagementTemplate; // הוחלף ב-onboardingAiTeaser ו-onboardingQuestionnaireWhy
+  // onboardingDay7_Insight: EngagementTemplate; // הוחלף ב-onboardingValueAdd
 };
 
+
+// ======================================================================== //
+// ✨ הטיפוס הראשי והמאוחד: EmailDictionary ✨
+// ======================================================================== //
+
+export type EmailDictionary = {
+  engagement: EngagementEmailDict;
+
+  shared: {
+    greeting: string;
+    closing: string;
+    team: string;
+    supportPrompt: string;
+    rightsReserved: string;
+  };
+
+  welcome: EmailTemplateContent & { matchmakerAssigned: string; getStarted: string; dashboardButton: string; };
+  accountSetup: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; notice: string; nextStep: string; };
+  emailOtpVerification: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
+  invitation: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; expiryNotice: string; };
+  suggestion: EmailTemplateContent & { 
+    intro: string; 
+    previewTitle: string; 
+    actionPrompt: string; 
+    actionButton: string; 
+    closing: string; 
+    details: { age: string; city: string; occupation: string; additionalInfo: string; };
+  };
+  shareContactDetails: EmailTemplateContent & { intro: string; detailsOf: string; tipTitle: string; tipContent: string; goodLuck: string; };
+  availabilityCheck: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; noticeTitle: string; noticeContent: string; };
+  passwordResetOtp: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
+  passwordChangedConfirmation: EmailTemplateContent & { intro: string; securityNote: string; actionButton: string; };
+  profileFeedback: ProfileFeedbackEmailDict;
+  profileSummaryUpdate: EmailTemplateContent & { intro: string; highlight: string; encouragement: string; actionButton: string; };
+
+  notifications: NotificationDictionary;
+};

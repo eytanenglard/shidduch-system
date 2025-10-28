@@ -699,6 +699,7 @@ model UserDripCampaign {
   nextSendDate  DateTime
   status        CampaignStatus @default(ACTIVE)
   lastSentType  String?        // To track which type of message was last sent
+  sentEmailTypes String[] @default([])
     lastEveningEmailSent   DateTime?  // מתי שלחנו מייל ערב אחרון
   eveningEmailsCount     Int        @default(0)  // כמה מיילי ערב שלחנו
   lastAiSummarySent      DateTime?  // מתי שלחנו AI Summary אחרון
