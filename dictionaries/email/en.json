@@ -238,12 +238,12 @@
       "mainMessage": "Our AI system has analyzed your answers to build a deeper personality profile. Here’s a small glimpse of what it’s beginning to understand about you and what you're looking for:",
       "encouragement": "The more you complete your profile, the sharper these insights become, allowing us to find connections on a much deeper level."
     },
-    "eveningFeedback": {
-      "subject": "{{firstName}}, great progress on your profile today! ✨",
-      "hook": "We noticed the effort you put into your profile today and wanted to share some immediate feedback.",
-      "mainMessage": "Every detail you added helps us get a clearer picture of who you are. Here's a quick summary of your actions and our system's initial thoughts:",
-      "systemSummary": "A note from the system following your update: {{summary}}...",
-      "encouragement": "Thank you for your partnership on this journey. Every step brings us closer to the goal. We'll pick this up again tomorrow! 💪"
+ "eveningFeedback": {
+      "subject": "You made progress today, {{firstName}} — and our AI already has an insight for you",
+      "hook": "Great work on your profile today! We noticed your activity, and our system is already putting it to good use.",
+      "mainMessage": "Think of every update as another piece of a puzzle. The more pieces you give us, the clearer the picture becomes for our AI, allowing it to understand the nuances of your personality and refine its search for a truly compatible match.",
+      "systemSummary": "An insight from the system following your update: {{summary}}...",
+      "encouragement": "Your investment today is a big step on your journey to a real connection. We're here with you, and we're excited for what tomorrow brings! 💪"
     },
     "value": [
       {

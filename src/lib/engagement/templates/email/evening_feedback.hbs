@@ -383,22 +383,23 @@
                             </div>
                             {{/if}}
 
+             {{#if aiInsight}}
                             <!-- AI Insight -->
-                            {{#if aiInsight}}
-                            <div class="ai-insight">
-                                <h3>💡 {{#if (eq locale 'he')}}תובנת AI{{else}}AI Insight{{/if}}</h3>
-                                <p>{{aiInsight}}</p>
+                            <div class="ai-insight-box">
+                                <h3>
+                                    💡 {{#if (eq locale 'he')}}תובנה ראשונית מהמערכת{{else}}An Initial Insight From Our System{{/if}}
+                                </h3>
+                                <p style="font-style: italic; font-size: 16px; color: #115e59; border-right: 3px solid #06b6d4; padding-right: 15px; margin: 10px 0;">
+                                    "{{aiInsight}}"
+                                </p>
+                                <p class="ai-disclaimer">
+                                    {{#if (eq locale 'he')}}
+                                        זוהי רק טעימה מהתמונה שהמערכת מרכיבה. ככל שהפרופיל יהיה מלא יותר, כך התובנות יהיו עמוקות ומדויקות יותר.
+                                    {{else}}
+                                        This is just a glimpse of the picture our system is building. The more complete your profile becomes, the deeper and more accurate the insights will be.
+                                    {{/if}}
+                                </p>
                             </div>
-                            {{/if}}
-
-                            <p>
-                                {{mainMessage}}
-                            </p>
-
-                            {{#if specificAction}}
-                            <p>
-                                <strong>{{#if (eq locale 'he')}}הצעד הבא:{{else}}Next Step:{{/if}}</strong> {{specificAction}}
-                            </p>
                             {{/if}}
 
                             <!-- CTA Button -->

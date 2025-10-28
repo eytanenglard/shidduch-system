@@ -919,6 +919,8 @@ const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []); // <
           });
           break;
           
+        // src/lib/engagement/SmartEngagementOrchestrator.ts -> sendEmail()
+
         case 'EVENING_FEEDBACK':
           success = await emailService.sendTemplateEmail({
             locale: locale as Language,
@@ -926,12 +928,14 @@ const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []); // <
             subject: email.subject,
             templateName: 'evening_feedback',
             context: {
+              // --- התחלה: הוספת השדות החסרים ---
+              ...email.content, // מעביר את כל השדות כמו hook, mainMessage, encouragement
+              // --- סוף: הוספת השדות החסרים ---
+              
               firstName: user.firstName,
               progressPercentage: email.content.progressVisualization?.match(/\d+/)?.[0] || '0',
               todayCompletedItems: email.content.todayProgress?.itemsCompleted || [],
-              systemSummary: email.content.systemSummary,
-              aiInsight: email.content.aiInsight,
-              nextAction: email.content.specificAction,
+              nextAction: email.content.specificAction, // דורס את specificAction אם יש צורך בשם אחר
               estimatedTime: estimatedTime,
               ctaLink: ctaLink,
               ctaText: ctaText,

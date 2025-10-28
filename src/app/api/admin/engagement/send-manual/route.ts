@@ -160,7 +160,14 @@ async function generateEmailWithTimeout(
     // צור מייל מתאים
     let email;
     switch (emailType) {
-      case 'EVENING_FEEDBACK': {
+case 'EVENING_FEEDBACK': {
+        // --- תחילת התיקון ---
+        console.log('🌙 [Manual Email] Evening Feedback requires AI. Loading insights...');
+        // טעינת תובנות ה-AI באופן יזום לתוך אובייקט הפרופיל
+        await SmartEngagementOrchestrator['loadAiInsights'](profile, user.language as Language);
+        console.log(`✅ [Manual Email] AI insights ${profile.aiInsights ? 'loaded' : 'not available'}.`);
+        // --- סוף התיקון ---
+
         const dailyActivity = await SmartEngagementOrchestrator.testDetectDailyActivity(userId);
         email = await SmartEngagementOrchestrator.testGetEveningFeedbackEmail(
           profile,
@@ -169,7 +176,7 @@ async function generateEmailWithTimeout(
         );
         break;
       }
-      case 'AI_SUMMARY': {
+            case 'AI_SUMMARY': {
         console.log('🧠 [Manual Email] Generating AI Summary email...');
         email = await SmartEngagementOrchestrator.testGetAiSummaryEmail(profile, dict, user.language as Language);
         break;
