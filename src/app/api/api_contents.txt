@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api
-# Generated on: 2025-10-27 16:10:16
+# Generated on: 2025-10-28 10:13:10
 ################################################################################
 
 ================================================================================
@@ -7410,7 +7410,8 @@ type LogMetadata = {
   hasFirstName?: boolean;
   hasLastName?: boolean;
   verificationId?: string;
-  marketingConsent?: boolean;
+  engagementEmailsConsent?: boolean;
+  promotionalEmailsConsent?: boolean;
    language?: 'he' | 'en';
 };
 
@@ -7442,7 +7443,8 @@ interface InitialRegistrationData {
   password: string;
   firstName: string;
   lastName: string;
-  marketingConsent?: boolean;
+  engagementEmailsConsent?: boolean;
+  promotionalEmailsConsent?: boolean;
   language?: Language;
 }
 
@@ -7523,7 +7525,8 @@ export async function POST(req: NextRequest) {
       firstName: body.firstName,
       lastName: body.lastName,
       hasPassword: !!body.password,
-      marketingConsent: body.marketingConsent,
+      engagementEmailsConsent: body.engagementEmailsConsent,
+      promotionalEmailsConsent: body.promotionalEmailsConsent,
       language: body.language,
     });
 
@@ -7580,7 +7583,8 @@ export async function POST(req: NextRequest) {
             isPhoneVerified: false, 
             source: UserSource.REGISTRATION,
             termsAndPrivacyAcceptedAt: new Date(),
-            marketingConsent: body.marketingConsent || false,
+    engagementEmailsConsent: body.engagementEmailsConsent || false,
+    promotionalEmailsConsent: body.promotionalEmailsConsent || false,
           },
       });
       logger.info('User created successfully within transaction', { userId: user.id });
@@ -25843,14 +25847,14 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\c
 (This directory is empty.)
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\marketing-consent
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\consent-settings
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\marketing-consent\route.ts
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\consent-settings\route.ts
 --------------------------------------------------------------------------------
 Content:
-// src/app/api/user/marketing-consent/route.ts
+// src/app/api/user/consent-settings/route.ts
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
@@ -25858,24 +25862,26 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
 
-// Zod schema for strict validation of the incoming request body
+// סכמת ולידציה קפדנית לבקשה
 const updateConsentSchema = z.object({
-  marketingConsent: z.boolean({
-    required_error: "Marketing consent status is required.",
-    invalid_type_error: "Marketing consent must be a boolean.",
+  consentType: z.enum(['engagement', 'promotional'], {
+    required_error: "Consent type is required ('engagement' or 'promotional').",
+  }),
+  consentValue: z.boolean({
+    required_error: 'Consent value (true/false) is required.',
   }),
 });
 
 export async function PUT(req: Request) {
   try {
-    // 1. Authenticate the user session on the server
+    // 1. אימות המשתמש
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
     const userId = session.user.id;
 
-    // 2. Parse and validate the request body against the schema
+    // 2. קריאה וולידציה של גוף הבקשה
     const body = await req.json();
     const validationResult = updateConsentSchema.safeParse(body);
 
@@ -25886,22 +25892,27 @@ export async function PUT(req: Request) {
       );
     }
     
-    const { marketingConsent } = validationResult.data;
+    const { consentType, consentValue } = validationResult.data;
 
-    // 3. Update the user record in the database
+    // 3. הכנת הנתונים לעדכון
+    let dataToUpdate = {};
+    if (consentType === 'engagement') {
+      dataToUpdate = { engagementEmailsConsent: consentValue };
+    } else { // consentType === 'promotional'
+      dataToUpdate = { promotionalEmailsConsent: consentValue };
+    }
+
+    // 4. עדכון מסד הנתונים
     await prisma.user.update({
       where: { id: userId },
-      data: {
-        marketingConsent: marketingConsent,
-      },
+      data: dataToUpdate,
     });
 
-    // 4. Return a success response. 
-    // The client is responsible for refreshing its session state.
-    return NextResponse.json({ success: true, message: 'Marketing consent updated successfully.' });
+    // 5. החזרת תשובת הצלחה
+    return NextResponse.json({ success: true, message: 'Consent preferences updated successfully.' });
 
   } catch (error) {
-    console.error('Error updating marketing consent:', error);
+    console.error('Error updating consent settings:', error);
     const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
     return NextResponse.json(
       { success: false, error: "Internal server error.", details: errorMessage },
@@ -25910,6 +25921,12 @@ export async function PUT(req: Request) {
   }
 }
 --- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\marketing-consent
+================================================================================
+
+(This directory is empty.)
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\settings

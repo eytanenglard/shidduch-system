@@ -51,21 +51,37 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
   // States for consents
   const [consentChecked, setConsentChecked] = useState(false);
   const [consentError, setConsentError] = useState<string | null>(null);
-  const [engagementConsent, setEngagementConsent] = useState(false);
-  const [promotionalConsent, setPromotionalConsent] = useState(false);
+  const [engagementConsent, setEngagementConsent] = useState(true); // Default to true
+  const [promotionalConsent, setPromotionalConsent] = useState(true); // Optional, default to true
+  const [engagementConsentError, setEngagementConsentError] = useState<string | null>(null); // New error state
 
   useEffect(() => {
     const isEmailValid = isValidEmail(data.email);
     const isPasswordValid = isValidPassword(data.password);
     const isNameValid = data.firstName.trim().length > 0 && data.lastName.trim().length > 0;
 
-    setIsFormValid(isEmailValid && isPasswordValid && isNameValid && consentChecked && !isLoading);
-  }, [data.email, data.password, data.firstName, data.lastName, consentChecked, isLoading]);
+    setIsFormValid(
+      isEmailValid &&
+      isPasswordValid &&
+      isNameValid &&
+      consentChecked &&
+      engagementConsent && // Now a required part of the validation
+      !isLoading
+    );
+  }, [data.email, data.password, data.firstName, data.lastName, consentChecked, engagementConsent, isLoading]);
 
   const handleRegisterSubmit = async () => {
     setConsentError(null);
+    setEngagementConsentError(null); // Reset engagement consent error on submit attempt
+
     if (!consentChecked) {
       setConsentError(dict.errors.consentRequired);
+      return;
+    }
+
+    // New validation check for engagement consent
+    if (!engagementConsent) {
+      setEngagementConsentError(dict.errors.engagementConsentRequired);
       return;
     }
 
@@ -234,17 +250,25 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
       </motion.div>
 
       <motion.div variants={itemVariants} className="space-y-4 pt-4">
-        <div className="flex items-start space-x-2 rtl:space-x-reverse">
-          <input
-            type="checkbox"
-            id="engagementConsent"
-            checked={engagementConsent}
-            onChange={(e) => setEngagementConsent(e.target.checked)}
-            className="mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
-          />
-          <label htmlFor="engagementConsent" className="text-sm text-gray-700">
-            {dict.engagementConsentLabel}
-          </label>
+        <div className="space-y-1">
+          <div className="flex items-start space-x-2 rtl:space-x-reverse">
+            <input
+              type="checkbox"
+              id="engagementConsent"
+              checked={engagementConsent}
+              onChange={(e) => {
+                const isChecked = e.target.checked;
+                setEngagementConsent(isChecked);
+                if (isChecked) setEngagementConsentError(null);
+              }}
+              className="mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
+            />
+            <label htmlFor="engagementConsent" className="text-sm text-gray-700">
+              {dict.engagementConsentLabel}
+              <span className="text-red-500">*</span>
+            </label>
+          </div>
+          {engagementConsentError && <p className="text-xs text-red-500 pt-1">{engagementConsentError}</p>}
         </div>
         <div className="flex items-start space-x-2 rtl:space-x-reverse">
           <input

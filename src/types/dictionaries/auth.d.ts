@@ -246,6 +246,7 @@ export type RegisterStepsDict = {
         fixErrors: string;
         consentRequired: string;
         default: string;
+        engagementConsentRequired: string; 
       };
       engagementConsentLabel: string; // <-- שדה חדש
       promotionalConsentLabel: string; // <-- שדה חדש

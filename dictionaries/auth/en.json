@@ -234,7 +234,9 @@
           "fillFields": "Please fill in all required fields correctly.",
           "fixErrors": "Please fix the highlighted errors.",
           "consentRequired": "You must accept the terms of use and privacy policy.",
-          "default": "An unexpected error occurred during registration"
+          "default": "An unexpected error occurred during registration",
+                    "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system."
+
         },
        "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
   "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech."
