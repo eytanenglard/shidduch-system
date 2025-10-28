@@ -51,7 +51,8 @@ export default function SettingsClientPage({ dict, locale }: SettingsClientPageP
     isVerified: session.user.isVerified,
     lastLogin: session.user.lastLogin ?? null,
     createdAt: session.user.createdAt,
-    marketingConsent: session.user.marketingConsent,
+    engagementEmailsConsent: session.user.engagementEmailsConsent,
+     promotionalEmailsConsent    : session.user.promotionalEmailsConsent    ,
   };
 
   // ✨ שינוי 3: העברת המילון וה-locale שהתקבלו ב-props לרכיב AccountSettings

@@ -28,7 +28,8 @@ type LogMetadata = {
   hasFirstName?: boolean;
   hasLastName?: boolean;
   verificationId?: string;
-  marketingConsent?: boolean;
+  engagementEmailsConsent?: boolean;
+  promotionalEmailsConsent?: boolean;
    language?: 'he' | 'en';
 };
 
@@ -60,7 +61,8 @@ interface InitialRegistrationData {
   password: string;
   firstName: string;
   lastName: string;
-  marketingConsent?: boolean;
+  engagementEmailsConsent?: boolean;
+  promotionalEmailsConsent?: boolean;
   language?: Language;
 }
 
@@ -141,7 +143,8 @@ export async function POST(req: NextRequest) {
       firstName: body.firstName,
       lastName: body.lastName,
       hasPassword: !!body.password,
-      marketingConsent: body.marketingConsent,
+      engagementEmailsConsent: body.engagementEmailsConsent,
+      promotionalEmailsConsent: body.promotionalEmailsConsent,
       language: body.language,
     });
 
