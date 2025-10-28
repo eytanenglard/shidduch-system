@@ -219,7 +219,7 @@ export class SmartEngagementOrchestrator {
       try {
         // בניית פרופיל
         console.log(`🔨 Building engagement profile...`);
-        const profile = await this.buildUserEngagementProfile(user.id, false);
+        const profile = await this.buildUserEngagementProfile(user.id, true);
         
         // טעינת dictionary
         const dict = await getEmailDictionary(user.language as Language);
