@@ -346,7 +346,18 @@
       "termsLink": "תנאי השימוש",
       "privacyLink": "מדיניות הפרטיות"
     }
+     
   },
+
+     "unsubscribePage": {
+      "verifying": "מאמת את בקשתך...",
+      "successTitle": "הצלחה!",
+      "successMessage": "הוסרת בהצלחה מרשימות הדיוור שלנו.",
+      "errorTitle": "שגיאה",
+      "errorMessageDefault": "אירעה שגיאה לא צפויה בעת עיבוד בקשתך.",
+      "errorInvalidLink": "קישור ההסרה אינו תקין או שפג תוקפו. אנא השתמש בקישור מהמייל האחרון שקיבלת.",
+      "backToHomeButton": "חזרה לדף הבית"
+    },
     "legal": {
   "accessibilityStatement": {
   "pageTitle": "הצהרת נגישות | {brandName}",

@@ -1,5 +1,4 @@
 // src/lib/engagement/SmartEngagementOrchestrator.ts
-// 🎯 OPTIMIZED VERSION - AI only when needed
 
 import prisma from '@/lib/prisma';
 import { CampaignStatus, Language, User } from '@prisma/client';
@@ -8,7 +7,7 @@ import profileAiService from '@/lib/services/profileAiService';
 import { profileFeedbackService } from '@/lib/services/profileFeedbackService';
 import { getEmailDictionary } from '@/lib/dictionaries';
 import type { EmailDictionary } from '@/types/dictionaries/email';
-
+import { SignJWT } from 'jose'; 
 interface UserEngagementProfile {
   userId: string;
   firstName: string;
@@ -851,67 +850,112 @@ private static getEstimatedTime(profile: UserEngagementProfile, locale: Language
   return locale === 'he' ? '5 דקות' : '5 minutes';
 }
 
- private static async sendEmail(user: User, email: EmailToSend) {
+// =================================================================
+// START OF UPDATED SECTION
+// =================================================================
+private static async sendEmail(user: User, email: EmailToSend) {
   const { emailService } = await import('./emailService');
   const locale = user.language || 'he';
   
   try {
     let success = false;
     
-    if (email.type === 'AI_SUMMARY') {
-      success = await emailService.sendTemplateEmail({
-        locale: locale as Language,
-        to: user.email!,
-        subject: email.subject,
-        templateName: 'aiInsight',
-        context: {
-          firstName: user.firstName,
-          personalitySummary: email.content.systemSummary
-        }
-      });
-    } else if (email.type === 'EVENING_FEEDBACK') {
-      // 🔥 כאן התיקון - חישוב דינמי של הזמן
-      const profile = await this.buildUserEngagementProfile(user.id, false);
-      const estimatedTime = this.getEstimatedTime(profile, locale as Language);
-      
-      success = await emailService.sendTemplateEmail({
-        locale: locale as Language,
-        to: user.email!,
-        subject: email.subject,
-        templateName: 'evening_feedback',
-        context: {
-          firstName: user.firstName,
-          progressPercentage: email.content.progressVisualization?.match(/\d+/)?.[0] || '0',
-          todayCompletedItems: email.content.todayProgress?.itemsCompleted || [],
-          systemSummary: email.content.systemSummary,
-          aiInsight: email.content.aiInsight,
-          nextAction: email.content.specificAction,
-          estimatedTime: estimatedTime, // 🎯 עכשיו דינמי!
-          ctaLink: `${process.env.NEXT_PUBLIC_BASE_URL}/profile`,
-          ctaText: locale === 'he' ? 'להמשך בניית הפרופיל' : 'Continue building profile'
-        }
-      });
-    } else {
-      // עבור מיילים אחרים
-      const profile = await this.buildUserEngagementProfile(user.id, false);
-      const estimatedTime = this.getEstimatedTime(profile, locale as Language);
-      
-      success = await emailService.sendCustomEmail(
-        user.email!,
-        email.subject,
-        'generic',
-        {
-          firstName: user.firstName,
-          headerTitle: email.content.hook,
-          mainMessage: email.content.mainMessage,
-          encouragement: email.content.encouragement,
-          specificAction: email.content.specificAction,
-          estimatedTime: estimatedTime, // גם כאן דינמי
-          ctaLink: `${process.env.NEXT_PUBLIC_BASE_URL}/profile`,
-          ctaText: locale === 'he' ? 'להמשך בניית הפרופיל' : 'Continue building profile'
-        },
-        locale as Language
-      );
+    // Unsubscribe Link Generation Logic (remains the same)
+    let unsubscribeUrl = '';
+    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
+    if (secret) {
+        const token = await new SignJWT({ userId: user.id, email: user.email })
+            .setProtectedHeader({ alg: 'HS256' })
+            .setIssuedAt()
+            .setExpirationTime('90d')
+            .sign(secret);
+        
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        unsubscribeUrl = `${baseUrl}/${locale}/unsubscribe?token=${token}`;
+    }
+
+    const profile = await this.buildUserEngagementProfile(user.id, false);
+    const estimatedTime = this.getEstimatedTime(profile, locale as Language);
+    const ctaLink = `${process.env.NEXT_PUBLIC_BASE_URL}/profile`;
+    const ctaText = locale === 'he' ? 'להמשך בניית הפרופיל' : 'Continue building profile';
+
+    // ✨ NEW: Switched to a switch statement for clarity and to use specific templates
+    switch(email.type) {
+      case 'AI_SUMMARY':
+        success = await emailService.sendTemplateEmail({
+          locale: locale as Language,
+          to: user.email!,
+          subject: email.subject,
+          templateName: 'aiInsight',
+          context: {
+            firstName: user.firstName,
+            personalitySummary: email.content.systemSummary,
+            unsubscribeUrl,
+          }
+        });
+        break;
+        
+      case 'EVENING_FEEDBACK':
+        success = await emailService.sendTemplateEmail({
+          locale: locale as Language,
+          to: user.email!,
+          subject: email.subject,
+          templateName: 'evening_feedback',
+          context: {
+            firstName: user.firstName,
+            progressPercentage: email.content.progressVisualization?.match(/\d+/)?.[0] || '0',
+            todayCompletedItems: email.content.todayProgress?.itemsCompleted || [],
+            systemSummary: email.content.systemSummary,
+            aiInsight: email.content.aiInsight,
+            nextAction: email.content.specificAction,
+            estimatedTime: estimatedTime,
+            ctaLink: ctaLink,
+            ctaText: ctaText,
+            unsubscribeUrl,
+          }
+        });
+        break;
+
+      case 'CELEBRATION': // Almost Done email
+        success = await emailService.sendTemplateEmail({
+            locale: locale as Language,
+            to: user.email!,
+            subject: email.subject,
+            templateName: 'almostDone',
+            context: {
+                firstName: user.firstName,
+                progressPercentage: profile.completionStatus.overall,
+                remainingItem: email.content.specificAction,
+                estimatedTime: estimatedTime,
+                aiSummary: profile.aiInsights?.personalitySummary?.slice(0, 150) + '...',
+                ctaLink: ctaLink,
+                unsubscribeUrl,
+            }
+        });
+        break;
+
+      case 'NUDGE':
+      case 'ONBOARDING':
+      case 'VALUE':
+      default: // Fallback to generic for other types
+        success = await emailService.sendCustomEmail(
+          user.email!,
+          email.subject,
+          'generic',
+          {
+            firstName: user.firstName,
+            headerTitle: email.content.hook,
+            mainContent: email.content.mainMessage,
+            encouragement: email.content.encouragement,
+            specificAction: email.content.specificAction,
+            estimatedTime: estimatedTime,
+            ctaLink: ctaLink,
+            ctaText: ctaText,
+            unsubscribeUrl,
+          },
+          locale as Language
+        );
+        break;
     }
     
     if (success) {
@@ -921,6 +965,10 @@ private static getEstimatedTime(profile: UserEngagementProfile, locale: Language
     console.error(`❌ Error in sendEmail for user ${user.id}:`, error);
   }
 }
+// =================================================================
+// END OF UPDATED SECTION
+// =================================================================
+
 
   private static async updateCampaignRecord(userId: string, emailType: string) {
     const updateData: any = {

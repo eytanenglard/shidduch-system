@@ -174,12 +174,31 @@
             border-top: 1px solid #e2e8f0;
             padding-top: 20px;
         }
-        
-        .help-text strong {
-            color: #2d3748;
+
+        .email-footer {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .footer-copyright {
+            color: #9ca3af;
+            font-size: 12px;
+            margin: 15px 0 5px 0;
         }
         
-        /* שאר ה-CSS... */
+        .footer-legal {
+            color: #9ca3af;
+            font-size: 11px;
+            margin: 5px 0;
+        }
+        
+        .footer-legal a {
+            color: #6b7280;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+
     </style>
 </head>
 <body dir="{{getDir locale}}">
@@ -288,7 +307,21 @@
                     <!-- Footer -->
                     <tr>
                         <td class="email-footer">
-                            <!-- תוכן הפוטר... -->
+                             <p class="footer-copyright">
+                                © {{currentYear}} NeshamaTech. 
+                                {{#if (eq locale 'he')}}כל הזכויות שמורות{{else}}All rights reserved{{/if}}
+                            </p>
+                            <p class="footer-legal">
+                                <a href="{{baseUrl}}/privacy">
+                                    {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy Policy{{/if}}
+                                </a> | 
+                                <a href="{{baseUrl}}/terms">
+                                    {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of Service{{/if}}
+                                </a> |
+                                <a href="{{unsubscribeUrl}}">
+                                    {{#if (eq locale 'he')}}הסרה מהרשימה{{else}}Unsubscribe{{/if}}
+                                </a>
+                            </p>
                         </td>
                     </tr>
                     

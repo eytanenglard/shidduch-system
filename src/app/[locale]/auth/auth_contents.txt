@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth
-# Generated on: 2025-10-26 16:17:06
+# Generated on: 2025-10-28 12:18:16
 ################################################################################
 
 ================================================================================
@@ -258,28 +258,23 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\f
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/auth/forgot-password/page.tsx
-
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import ForgotPasswordClient from './ForgotPasswordClient';
 
-/**
- * דף "שכחתי סיסמה". זהו רכיב צד-שרת האחראי על טעינת התרגומים
- * והעברתם לרכיב הלקוח שיטפל בלוגיקה של הטופס.
- */
-export default async function ForgotPasswordPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  // טעינת המילון (קובץ התרגומים) בהתאם לשפה מה-URL.
+// ▼▼▼ כאן השינוי ▼▼▼
+type ForgotPasswordPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function ForgotPasswordPage({ params }: ForgotPasswordPageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
-      {/* קישור לחזרה לדף הבית */}
       <Link
         href="/"
         className="absolute top-4 left-4 rtl:right-4 rtl:left-auto text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm z-20"
@@ -287,16 +282,8 @@ export default async function ForgotPasswordPage({
         <ArrowLeft
           className={`h-4 w-4 ${locale === 'he' ? 'transform rotate-180' : ''}`}
         />{' '}
-        {/* טקסט זה יכול להגיע גם הוא מהמילון, אך לצורך הפשטות נשאיר אותו כאן */}
         חזרה לדף הבית
       </Link>
-
-      {/* 
-        רינדור רכיב הלקוח. 
-        אנו מעבירים לו שני props חיוניים:
-        1. dict: אובייקט התרגומים הספציפי לטופס זה.
-        2. locale: משתנה השפה ('he' או 'en'), כדי שהלקוח ידע איזו שפה לשלוח ל-API.
-      */}
       <ForgotPasswordClient
         dict={dictionary.auth.forgotPassword}
         locale={locale}
@@ -324,6 +311,7 @@ import {
   RegistrationProvider,
   useRegistration,
 } from '@/components/auth/RegistrationContext';
+import Link from 'next/link'; 
 import WelcomeStep from '@/components/auth/steps/WelcomeStep';
 import BasicInfoStep from '@/components/auth/steps/BasicInfoStep';
 import EmailVerificationCodeStep from '@/components/auth/steps/EmailVerificationCodeStep';
@@ -595,9 +583,9 @@ const RegisterStepsContent: React.FC<{
 
       <div className="mt-8 text-center text-sm text-gray-500">
         {dict.contactSupport}{' '}
-        <a href="/contact" className="text-cyan-600 hover:underline">
+        <Link href="/contact" className="text-cyan-600 hover:underline">
           {dict.contactSupportLink}
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -622,17 +610,12 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\r
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/auth/register/page.tsx
-
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
-import RegisterClient from './RegisterClient'; // רכיב הלקוח החדש
+import RegisterClient from './RegisterClient';
 
-/**
- * רכיב טעינה שיוצג בזמן שהמילון והקומפוננטה נטענים.
- * זהו חלק ממנגנון ה-Suspense של React.
- */
 function Loading() {
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -641,33 +624,20 @@ function Loading() {
   );
 }
 
-/**
- * זהו רכיב צד-שרת (Server Component) שאחראי על:
- * 1. קבלת פרמטר השפה (locale) מה-URL.
- * 2. טעינת קובץ התרגומים (המילון) המתאים לשפה זו באופן אסינכרוני.
- * 3. העברת התרגומים והשפה לרכיב צד-לקוח (RegisterClient) שיטפל בלוגיקה ובאינטראקציה עם המשתמש.
- */
-export default async function RegisterPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  // שלב 1: טעינת המילון המתאים לשפה הנוכחית.
-  // הפעולה הזו מתבצעת על השרת לפני שהדף נשלח לדפדפן.
+// ▼▼▼ כאן השינוי ▼▼▼
+type RegisterPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function RegisterPage({ params }: RegisterPageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
-  // שלב 2: רינדור רכיב הלקוח בתוך Suspense.
-  // ה-Suspense יציג את רכיב ה-Loading עד שהכל יהיה מוכן.
   return (
     <Suspense fallback={<Loading />}>
       <RegisterClient
-        // מעביר את החלק הספציפי של המילון שרלוונטי לדף ההרשמה.
         dict={dictionary.auth.register}
-        // ============================ התיקון המרכזי ============================
-        // מעביר את משתנה השפה (לדוגמה, 'he' או 'en') לרכיב הלקוח.
-        // זה יאפשר לרכיב הלקוח לדעת באיזו שפה לשלוח את בקשות ה-API.
         locale={locale}
-        // =====================================================================
       />
     </Suspense>
   );
@@ -1002,7 +972,6 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\r
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/auth/reset-password/page.tsx
-
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -1010,9 +979,6 @@ import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import ResetPasswordClient from './ResetPasswordClient';
 
-/**
- * רכיב טעינה שיוצג בזמן שהמילון ורכיב הלקוח נטענים.
- */
 function Loading() {
   return (
     <div className="flex flex-col items-center justify-center p-8 bg-white rounded-xl shadow-xl">
@@ -1022,16 +988,13 @@ function Loading() {
   );
 }
 
-/**
- * דף "איפוס סיסמה". זהו רכיב צד-שרת האחראי על טעינת התרגומים
- * והעברתם לרכיב הלקוח שיטפל בלוגיקה של הטופס.
- */
-export default async function ResetPasswordPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  // טעינת המילון המתאים לשפה מה-URL.
+// ▼▼▼ כאן השינוי ▼▼▼
+type ResetPasswordPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function ResetPasswordPage({ params }: ResetPasswordPageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (
@@ -1045,15 +1008,10 @@ export default async function ResetPasswordPage({
         />{' '}
         חזרה לדף הבית
       </Link>
-
-      {/* 
-        השימוש ב-Suspense מבטיח שהמשתמש יראה אנימציית טעינה
-        אם יש עיכוב כלשהו בטעינת רכיב הלקוח.
-      */}
       <Suspense fallback={<Loading />}>
         <ResetPasswordClient
           dict={dictionary.auth.resetPassword}
-          locale={locale} // <<<<<<<<<<<< העברת השפה לרכיב הלקוח
+          locale={locale}
         />
       </Suspense>
     </div>
@@ -1209,11 +1167,13 @@ function Loading() {
   );
 }
 
-export default async function SetupAccountPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
+// ▼▼▼ כאן השינוי ▼▼▼
+type SetupAccountPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function SetupAccountPage({ params }: SetupAccountPageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (
@@ -1267,7 +1227,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
   // ... (useEffect hooks נשארים ללא שינוי) ...
   useEffect(() => {
     if (status === 'authenticated') {
-      // @ts-ignore
+  
       const redirectUrl = session?.redirectUrl || '/profile';
       router.push(redirectUrl);
     }
@@ -1515,7 +1475,6 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\s
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/auth/signin/page.tsx
-
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
@@ -1530,17 +1489,18 @@ function Loading() {
   );
 }
 
-export default async function SignInPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
+// ▼▼▼ כאן השינוי ▼▼▼
+type SignInPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function SignInPage({ params }: SignInPageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
       <Suspense fallback={<Loading />}>
-        {/* הוספנו את locale={locale} כ-prop */}
         <SignInClient dict={dictionary.auth.signIn} locale={locale} />
       </Suspense>
     </div>
@@ -1710,13 +1670,13 @@ import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import UpdatePhoneClient from './UpdatePhoneClient';
 
-// רכיב זה נשאר פשוט כי הלוגיקה המורכבת נמצאת ברכיב הלקוח.
-// אין צורך ב-Suspense כאן כי רכיב הלקוח עצמו מטפל במצב הטעינה של הסשן.
-export default async function UpdatePhonePage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
+// ▼▼▼ כאן השינוי ▼▼▼
+type UpdatePhonePageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function UpdatePhonePage({ params }: UpdatePhonePageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (
@@ -1905,11 +1865,13 @@ function Loading() {
   );
 }
 
-export default async function VerifyEmailPage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
+// ▼▼▼ כאן השינוי ▼▼▼
+type VerifyEmailPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function VerifyEmailPage({ params }: VerifyEmailPageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (
@@ -2239,17 +2201,19 @@ import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import VerifyPhoneClient from './VerifyPhoneClient';
 
-export default async function VerifyPhonePage({
-  params: { locale }, // Next.js מספק את 'locale' מה-URL כאן
-}: {
-  params: { locale: Locale };
-}) {
+// ▼▼▼ כאן השינוי ▼▼▼
+type VerifyPhonePageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function VerifyPhonePage({ params }: VerifyPhonePageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (
     <VerifyPhoneClient
       dict={dictionary.auth.verifyPhone}
-      locale={locale} // <<< כאן אנחנו מעבירים את השפה כ-prop לרכיב הלקוח
+      locale={locale}
     />
   );
 }

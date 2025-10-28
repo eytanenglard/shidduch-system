@@ -347,7 +347,18 @@
       "termsLink": "Terms of Use",
       "privacyLink": "Privacy Policy"
     }
+   
+
   }, 
+       "unsubscribePage": {
+      "verifying": "Verifying your request...",
+      "successTitle": "Success!",
+      "successMessage": "You have been successfully unsubscribed from our mailing lists.",
+      "errorTitle": "Error",
+      "errorMessageDefault": "An unexpected error occurred while processing your request.",
+      "errorInvalidLink": "The unsubscribe link is invalid or has expired. Please use the link from a more recent email.",
+      "backToHomeButton": "Back to Homepage"
+    },
     "legal": {
  "accessibilityStatement": {
   "pageTitle": "Accessibility Statement | {brandName}",

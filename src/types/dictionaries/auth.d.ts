@@ -371,6 +371,7 @@ export type AuthDictionary = {
   verifyPhone: VerifyPhoneDict;
   errorPage: AuthErrorDict;
   register: RegisterStepsDict;
+  unsubscribePage: UnsubscribePageDict;
     legal: LegalDictionary;
 
 };
@@ -639,3 +640,12 @@ export type LegalDictionary = {
   termsOfService: TermsOfServiceDict;
 };
 
+export type UnsubscribePageDict = {
+  verifying: string;
+  successTitle: string;
+  successMessage: string;
+  errorTitle: string;
+  errorMessageDefault: string;
+  errorInvalidLink: string;
+  backToHomeButton: string;
+};
