@@ -341,7 +341,7 @@
       }
     },
     "consentCheckbox": {
-      "text": "I have read and agree to the {termsLink} and the {privacyLink} of Matchpoint, and I consent to the collection, processing, and storage of my personal information, including sensitive information, as detailed therein, and to the transfer of my information to servers that may be located outside of Israel.",
+      "text": "I have read and agree to the {termsLink} and the {privacyLink} of NeshamaTech, and I consent to the collection, processing, and storage of my personal information, including sensitive information, as detailed therein, and to the transfer of my information to servers that may be located outside of Israel.",
       "termsLink": "Terms of Use",
       "privacyLink": "Privacy Policy"
     }
@@ -446,7 +446,7 @@
       },
       "item3": "Photos and videos: Photos you have uploaded to your profile and videos you have uploaded to the system.",
       "item4": "Questionnaire answers (highly sensitive information): Detailed answers to the system's questionnaires on values, personality, relationships, preferences, religion, and faith.",
-      "item5": "Interaction and feedback information: Responses to match suggestions and feedback on meetings.",
+      "item5": "<strong>Proactive Communications (subject to your separate consent):</strong> We offer two types of proactive communications you can opt-in to receive: <strong>a) Engagement and Value Emails:</strong> Sending tips to improve your profile, personalized insights, and feedback on your progress to assist you in the matching process. <strong>b) Promotional Emails:</strong> Sending updates on events, special offers, new services, and company news. You can manage your preferences for each communication type separately in your account settings.",
       "item6": "Payment details (if and when relevant): When purchasing paid services, you may be asked to provide payment details. We clarify that these payment details are processed through an external PCI-compliant payment provider and are not stored in the Company's databases."
     },
     "subTitle2": "2.2. Information entered into the system by an authorized Company matchmaker:",
