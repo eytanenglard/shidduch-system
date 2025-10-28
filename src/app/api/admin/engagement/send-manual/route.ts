@@ -170,12 +170,9 @@ async function generateEmailWithTimeout(
         break;
       }
       case 'AI_SUMMARY': {
-        // 🎯 זה החלק שתקוע!
         console.log('🧠 [Manual Email] Loading AI insights...');
         
-        // טען AI insights עם timeout נוסף
         try {
-          // ✅ הוסף timeout ספציפי ל-AI
           await Promise.race([
             SmartEngagementOrchestrator['loadAiInsights'](profile, user.language as Language),
             new Promise((_, reject) => 
@@ -186,7 +183,6 @@ async function generateEmailWithTimeout(
           console.log('✅ [Manual Email] AI insights loaded successfully');
         } catch (aiError) {
           console.error('❌ [Manual Email] AI insights failed:', aiError);
-          // אם AI נכשל, נמשיך בלי AI insights
           console.warn('⚠️ [Manual Email] Continuing without AI insights');
         }
 

@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Mail, Users, TrendingUp, Clock, Send, RefreshCw, Moon } from 'lucide-react';
+import {
+  Search,
+  Mail,
+  Users,
+  TrendingUp,
+  Clock,
+  Send,
+  RefreshCw,
+  Moon,
+} from 'lucide-react';
 
 // ===============================
 // Types & Interfaces
@@ -51,21 +60,25 @@ interface EngagementDashboardProps {
 // Main Component
 // ===============================
 
-export default function EngagementDashboard({ dict }: EngagementDashboardProps) {
+export default function EngagementDashboard({
+  dict,
+}: EngagementDashboardProps) {
   // ===============================
   // State Management
   // ===============================
-  
+
   const [users, setUsers] = useState<User[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]); // 🎯 שמירת כל היוזרים
   const [stats, setStats] = useState<Stats | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
-  const [selectedEmailType, setSelectedEmailType] = useState('EVENING_FEEDBACK');
+  const [selectedEmailType, setSelectedEmailType] =
+    useState('EVENING_FEEDBACK');
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [isRunningCampaign, setIsRunningCampaign] = useState(false);
-  const [isRunningEveningCampaign, setIsRunningEveningCampaign] = useState(false);
+  const [isRunningEveningCampaign, setIsRunningEveningCampaign] =
+    useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -78,14 +91,14 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
     try {
       console.log('🔄 Fetching all eligible users...');
       const response = await fetch('/api/admin/engagement/eligible-users');
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Received eligible users:', data);
-      
+
       if (data.success && data.users) {
         setAllUsers(data.users);
         setUsers(data.users); // 🎯 הצג את כולם בהתחלה
@@ -104,11 +117,11 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
     try {
       console.log('🔄 Fetching stats...');
       const response = await fetch('/api/admin/engagement/stats');
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Received stats:', data);
       setStats(data);
@@ -128,10 +141,11 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
 
     // 🎯 אם החיפוש קצר מדי, סנן מקומית
     if (query.length < 2) {
-      const filtered = allUsers.filter(user => 
-        user.firstName.toLowerCase().includes(query.toLowerCase()) ||
-        user.lastName.toLowerCase().includes(query.toLowerCase()) ||
-        user.email.toLowerCase().includes(query.toLowerCase())
+      const filtered = allUsers.filter(
+        (user) =>
+          user.firstName.toLowerCase().includes(query.toLowerCase()) ||
+          user.lastName.toLowerCase().includes(query.toLowerCase()) ||
+          user.email.toLowerCase().includes(query.toLowerCase())
       );
       setUsers(filtered);
       return;
@@ -139,15 +153,17 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
 
     try {
       console.log('🔍 Searching users with query:', query);
-      const response = await fetch(`/api/admin/engagement/search-users?q=${encodeURIComponent(query)}`);
-      
+      const response = await fetch(
+        `/api/admin/engagement/search-users?q=${encodeURIComponent(query)}`
+      );
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Search results:', data);
-      
+
       if (data.users) {
         setUsers(data.users);
       }
@@ -164,12 +180,9 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
     const loadInitialData = async () => {
       setIsLoading(true);
       setError(null);
-      
+
       try {
-        await Promise.all([
-          fetchAllUsers(),
-          fetchStats()
-        ]);
+        await Promise.all([fetchAllUsers(), fetchStats()]);
       } catch (err) {
         console.error('❌ Error loading initial data:', err);
         setError('Failed to load dashboard data');
@@ -210,7 +223,7 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
 
   // בחירת כולם
   const selectAll = () => {
-    setSelectedUsers(new Set(users.map(u => u.id)));
+    setSelectedUsers(new Set(users.map((u) => u.id)));
   };
 
   // ביטול בחירת כולם
@@ -226,7 +239,7 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
 
     try {
       console.log(`📧 Sending ${selectedEmailType} to user ${userId}...`);
-      
+
       const response = await fetch('/api/admin/engagement/send-manual', {
         method: 'POST',
         headers: {
@@ -241,15 +254,14 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send email');
+        throw new Error(data.details || data.error || 'Failed to send email');
       }
 
       console.log('✅ Email sent successfully:', data);
       setSuccessMessage(`Email sent to ${data.recipient}`);
-      
+
       // רענן את הנתונים
       await Promise.all([fetchAllUsers(), fetchStats()]);
-
     } catch (err) {
       console.error('❌ Error sending email:', err);
       setError(err instanceof Error ? err.message : 'Failed to send email');
@@ -271,8 +283,8 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
 
     try {
       console.log(`📧 Sending bulk emails to ${selectedUsers.size} users...`);
-      
-      const promises = Array.from(selectedUsers).map(userId =>
+
+      const promises = Array.from(selectedUsers).map((userId) =>
         fetch('/api/admin/engagement/send-manual', {
           method: 'POST',
           headers: {
@@ -286,17 +298,18 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
       );
 
       const results = await Promise.all(promises);
-      const successCount = results.filter(r => r.ok).length;
+      const successCount = results.filter((r) => r.ok).length;
 
       console.log(`✅ Sent ${successCount}/${selectedUsers.size} emails`);
-      setSuccessMessage(`Sent ${successCount}/${selectedUsers.size} emails successfully`);
-      
+      setSuccessMessage(
+        `Sent ${successCount}/${selectedUsers.size} emails successfully`
+      );
+
       // רענן את הנתונים
       await Promise.all([fetchAllUsers(), fetchStats()]);
-      
+
       // נקה את הבחירה
       setSelectedUsers(new Set());
-
     } catch (err) {
       console.error('❌ Error sending bulk emails:', err);
       setError(err instanceof Error ? err.message : 'Failed to send emails');
@@ -313,7 +326,7 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
 
     try {
       console.log('🚀 Running full daily campaign...');
-      
+
       const response = await fetch('/api/admin/engagement/run-now', {
         method: 'POST',
       });
@@ -325,11 +338,12 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
       }
 
       console.log('✅ Daily campaign complete:', data);
-      setSuccessMessage(`Daily Campaign complete! Processed: ${data.processed}, Sent: ${data.sent}`);
-      
+      setSuccessMessage(
+        `Daily Campaign complete! Processed: ${data.processed}, Sent: ${data.sent}`
+      );
+
       // רענן את הנתונים
       await Promise.all([fetchAllUsers(), fetchStats()]);
-
     } catch (err) {
       console.error('❌ Error running campaign:', err);
       setError(err instanceof Error ? err.message : 'Failed to run campaign');
@@ -346,7 +360,7 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
 
     try {
       console.log('🌙 Running evening feedback campaign...');
-      
+
       const response = await fetch('/api/admin/engagement/run-evening', {
         method: 'POST',
       });
@@ -358,14 +372,17 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
       }
 
       console.log('✅ Evening campaign complete:', data);
-      setSuccessMessage(`Evening Campaign complete! Processed: ${data.processed}, Sent: ${data.sent}`);
-      
+      setSuccessMessage(
+        `Evening Campaign complete! Processed: ${data.processed}, Sent: ${data.sent}`
+      );
+
       // רענן את הנתונים
       await Promise.all([fetchAllUsers(), fetchStats()]);
-
     } catch (err) {
       console.error('❌ Error running evening campaign:', err);
-      setError(err instanceof Error ? err.message : 'Failed to run evening campaign');
+      setError(
+        err instanceof Error ? err.message : 'Failed to run evening campaign'
+      );
     } finally {
       setIsRunningEveningCampaign(false);
     }
@@ -377,12 +394,12 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
 
   const getEmailTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      'EVENING_FEEDBACK': '🌙 Evening Feedback',
-      'AI_SUMMARY': '🤖 AI Summary',
-      'NUDGE': '👉 Nudge',
-      'CELEBRATION': '🎉 Celebration',
-      'VALUE': '💎 Value',
-      'ONBOARDING': '👋 Onboarding',
+      EVENING_FEEDBACK: '🌙 Evening Feedback',
+      AI_SUMMARY: '🤖 AI Summary',
+      NUDGE: '👉 Nudge',
+      CELEBRATION: '🎉 Celebration',
+      VALUE: '💎 Value',
+      ONBOARDING: '👋 Onboarding',
     };
     return labels[type] || type;
   };
@@ -459,26 +476,38 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
         <div className="max-w-7xl mx-auto mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-gray-600 text-sm font-medium">Today&apos;s Emails</h3>
+              <h3 className="text-gray-600 text-sm font-medium">
+                Today&apos;s Emails
+              </h3>
               <Mail className="w-5 h-5 text-blue-500" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.todayEmails}</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {stats.todayEmails}
+            </p>
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-gray-600 text-sm font-medium">Weekly Emails</h3>
+              <h3 className="text-gray-600 text-sm font-medium">
+                Weekly Emails
+              </h3>
               <TrendingUp className="w-5 h-5 text-green-500" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.weeklyEmails}</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {stats.weeklyEmails}
+            </p>
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-gray-600 text-sm font-medium">Active Users</h3>
+              <h3 className="text-gray-600 text-sm font-medium">
+                Active Users
+              </h3>
               <Users className="w-5 h-5 text-purple-500" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.activeUsers}</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {stats.activeUsers}
+            </p>
           </div>
         </div>
       )}
@@ -531,7 +560,7 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
                   {isRunningEveningCampaign ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      Running Evening...
+                      Running...
                     </>
                   ) : (
                     <>
@@ -551,7 +580,7 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
                   {isRunningCampaign ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      Running Daily...
+                      Running...
                     </>
                   ) : (
                     <>
@@ -604,8 +633,12 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                     <input
                       type="checkbox"
-                      checked={selectedUsers.size === users.length && users.length > 0}
-                      onChange={(e) => e.target.checked ? selectAll() : deselectAll()}
+                      checked={
+                        selectedUsers.size === users.length && users.length > 0
+                      }
+                      onChange={(e) =>
+                        e.target.checked ? selectAll() : deselectAll()
+                      }
                       className="rounded border-gray-300"
                     />
                   </th>
@@ -629,7 +662,10 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
               <tbody className="divide-y divide-gray-200">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td
+                      colSpan={6}
+                      className="px-6 py-8 text-center text-gray-500"
+                    >
                       {searchQuery ? 'לא נמצאו תוצאות' : 'אין משתמשים זכאים'}
                     </td>
                   </tr>
@@ -660,7 +696,9 @@ export default function EngagementDashboard({ dict }: EngagementDashboardProps) 
                         {user.dripCampaign ? (
                           <div>
                             <div className="text-xs text-gray-600">
-                              {getEmailTypeLabel(user.dripCampaign.lastSentType || '')}
+                              {getEmailTypeLabel(
+                                user.dripCampaign.lastSentType || ''
+                              )}
                             </div>
                             <div className="text-xs text-gray-400">
                               {formatDate(user.dripCampaign.updatedAt)}

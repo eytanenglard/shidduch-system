@@ -93,6 +93,12 @@ export class SmartEngagementOrchestrator {
   ) {
     return this.getEveningFeedbackEmail(profile, dailyActivity, dict);
   }
+  
+  // Public method for manual sending to access onboarding email generation
+  static async getOnboardingEmail(profile: UserEngagementProfile, dict: EmailDictionary){
+      return this.getOnboardingDay1Email(profile, dict);
+  }
+
 
   // ========== Main Campaign Methods ==========
   
@@ -360,7 +366,7 @@ export class SmartEngagementOrchestrator {
       }
     }
 
-const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []); // <--- זו השורה המתוקנת
+const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []);
     // Smart Onboarding Campaign (First 7 Days)
     if (daysInSystem <= 7) {
         if (daysInSystem <= 1 && !sentEmailTypes.has('ONBOARDING_DAY_1')) {
