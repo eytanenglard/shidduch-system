@@ -3,7 +3,10 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
+    
     "module": "CommonJS",
+    "moduleResolution": "Node", // <-- הוספנו את השורה הזו כדי לדרוס את ההגדרה "bundler"
+
     "isolatedModules": false,
     "noEmit": false,
     "sourceMap": false,
