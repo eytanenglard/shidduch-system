@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": ".", // <-- השינוי כאן
+    "rootDir": "./src",
     "module": "CommonJS",
     "moduleResolution": "Node",
     "isolatedModules": false,
