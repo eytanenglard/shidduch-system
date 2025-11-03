@@ -817,8 +817,6 @@ const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []); // <
     };
   }
 
- // src/lib/engagement/SmartEngagementOrchestrator.ts
-
   private static async getEveningFeedbackEmail(
     profile: UserEngagementProfile,
     dailyActivity: Awaited<ReturnType<typeof SmartEngagementOrchestrator.detectDailyActivity>>,
@@ -828,17 +826,17 @@ const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []); // <
     
     const emailDict = dict.engagement.eveningFeedback;
 
-    // --- START FIX ---
-    // The template 'evening_feedback.hbs' expects a single 'aiInsight' string.
-    // We will prioritize the personality summary, as it's more comprehensive and always available if AI runs.
-    // We fall back to the top strength if the summary is somehow missing.
+    // --- תחילת התיקון ---
+    // תבנית המייל 'evening_feedback.hbs' מצפה למשתנה יחיד בשם 'aiInsight'.
+    // ניתן עדיפות לסיכום האישיות המלא, מכיוון שהוא מקיף יותר וכמעט תמיד זמין אם ה-AI רץ.
+    // נשתמש ב"נקודת החוזק" רק כגיבוי אם הסיכום הכללי חסר מסיבה כלשהי.
     let bestAiInsight: string | undefined = undefined;
     if (profile.aiInsights?.personalitySummary) {
         bestAiInsight = profile.aiInsights.personalitySummary;
     } else if (profile.aiInsights?.topStrengths && profile.aiInsights.topStrengths.length > 0) {
         bestAiInsight = profile.aiInsights.topStrengths[0];
     }
-    // --- END FIX ---
+    // --- סוף התיקון ---
     
     return {
       type: 'EVENING_FEEDBACK',
@@ -851,10 +849,8 @@ const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []); // <
           itemsCompleted: dailyActivity.completedToday,
           newCompletion: dailyActivity.progressDelta
         },
-        // The original systemSummary is no longer needed since we are combining logic into aiInsight
-        // systemSummary: profile.aiInsights?.personalitySummary ...
         
-        // Use the new 'bestAiInsight' variable for the template
+        // נשתמש במשתנה החדש והמשופר 'bestAiInsight' עבור התבנית
         aiInsight: bestAiInsight,
         
         specificAction: this.getNextBestAction(profile),

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\engagement
-# Generated on: 2025-10-28 16:36:00
+# Generated on: 2025-10-29 15:17:49
 ################################################################################
 
 ================================================================================
@@ -838,6 +838,18 @@ const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []); // <
     if (!dailyActivity.hasActivity) return null;
     
     const emailDict = dict.engagement.eveningFeedback;
+
+    // --- תחילת התיקון ---
+    // תבנית המייל 'evening_feedback.hbs' מצפה למשתנה יחיד בשם 'aiInsight'.
+    // ניתן עדיפות לסיכום האישיות המלא, מכיוון שהוא מקיף יותר וכמעט תמיד זמין אם ה-AI רץ.
+    // נשתמש ב"נקודת החוזק" רק כגיבוי אם הסיכום הכללי חסר מסיבה כלשהי.
+    let bestAiInsight: string | undefined = undefined;
+    if (profile.aiInsights?.personalitySummary) {
+        bestAiInsight = profile.aiInsights.personalitySummary;
+    } else if (profile.aiInsights?.topStrengths && profile.aiInsights.topStrengths.length > 0) {
+        bestAiInsight = profile.aiInsights.topStrengths[0];
+    }
+    // --- סוף התיקון ---
     
     return {
       type: 'EVENING_FEEDBACK',
@@ -850,12 +862,10 @@ const sentEmailTypes = new Set(profile.dripCampaign?.sentEmailTypes || []); // <
           itemsCompleted: dailyActivity.completedToday,
           newCompletion: dailyActivity.progressDelta
         },
-        systemSummary: profile.aiInsights?.personalitySummary 
-          ? populateTemplate(emailDict.systemSummary || '', { 
-              summary: profile.aiInsights.personalitySummary.slice(0, 200) 
-            })
-          : undefined,
-        aiInsight: profile.aiInsights?.topStrengths[0],
+        
+        // נשתמש במשתנה החדש והמשופר 'bestAiInsight' עבור התבנית
+        aiInsight: bestAiInsight,
+        
         specificAction: this.getNextBestAction(profile),
         progressVisualization: this.generateProgressBar(profile.completionStatus.overall),
         encouragement: emailDict.encouragement
