@@ -15,8 +15,10 @@
  "heroku-postbuild": "prisma generate && npm run build:scripts",
  "heroku:run-evening": "heroku run \"npm run engagement:evening\" -a matchpoint",
 
-"engagement:daily": "node dist/src/scripts/runSmartEngagement.js",
-"engagement:evening": "node dist/src/scripts/runEveningEngagement.js",    "test:user": "tsx src/scripts/testSingleUser.ts",
+    "engagement:daily": "node -r tsconfig-paths/register dist/src/scripts/runSmartEngagement.js",
+    "engagement:evening": "node -r tsconfig-paths/register dist/src/scripts/runEveningEngagement.js"
+,
+   "test:user": "tsx src/scripts/testSingleUser.ts",
     "test:check-logs": "tsx src/scripts/checkEmailLogs.ts",
     "test:debug": "tsx src/scripts/debugCampaignRun.ts",
     "test:user-lang": "tsx src/scripts/testUserLanguageSupport.ts",
