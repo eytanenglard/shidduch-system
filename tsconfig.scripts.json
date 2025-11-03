@@ -2,24 +2,27 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": ".", // <-- השינוי כאן
+    
+    // -- שורות שהוספנו/שינינו --
+    "rootDir": ".",
+    "composite": true, 
+    "noEmit": false, // ודא שזה עדיין כאן
+
+    // -- שורות מהקובץ המקורי שלך שהיו חסרות --
     "module": "CommonJS",
     "moduleResolution": "Node",
+    
+    // -- שאר ההגדרות נשארות כפי שהן או נורשות --
     "isolatedModules": false,
-    "noEmit": false,
     "sourceMap": false,
     "declaration": false
   },
   "include": [
-    "i18n-config.ts", // <-- הוספנו את הקובץ הזה
-    "src/scripts/**/*.ts",
-    "src/lib/**/*.ts"
+    "./src/lib",
+    "./src/scripts",
+    "./i18n-config.ts"
   ],
   "exclude": [
-    "node_modules",
-    "src/app",
-    "src/components",
-    "src/types",
-    "src/middleware.ts"
+    "node_modules"
   ]
 }
