@@ -2,17 +2,16 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
-    
+    "rootDir": ".", // <-- השינוי כאן
     "module": "CommonJS",
-    "moduleResolution": "Node", // <-- הוספנו את השורה הזו כדי לדרוס את ההגדרה "bundler"
-
+    "moduleResolution": "Node",
     "isolatedModules": false,
     "noEmit": false,
     "sourceMap": false,
     "declaration": false
   },
   "include": [
+    "i18n-config.ts", // <-- הוספנו את הקובץ הזה
     "src/scripts/**/*.ts",
     "src/lib/**/*.ts"
   ],
