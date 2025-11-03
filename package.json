@@ -108,6 +108,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@esbuild/linux-x64": "^0.25.12",
     "@eslint/js": "^9.33.0",
     "@next/eslint-plugin-next": "^16.0.0",
     "@types/bcryptjs": "^2.4.6",
@@ -140,7 +141,6 @@
     "typescript": "^5",
     "typescript-eslint": "^8.39.1"
   },
-
   "prisma": {
     "schema": "prisma/schema.prisma",
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
