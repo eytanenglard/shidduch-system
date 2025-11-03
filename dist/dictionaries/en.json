@@ -1,0 +1,662 @@
+{
+    "metadata": {
+        "title": "NeshamaTech | Where Soul Meets Technology",
+        "description": "Relationships that start from the soul. At NeshamaTech, we use advanced technology and personal guidance to uncover true compatibility beyond the profile. Join a discreet and respectful journey to find a serious and meaningful connection.",
+        "keywords": [
+            "Matchmaking",
+            "Soul and Technology",
+            "Relationships from the soul",
+            "NeshamaTech",
+            "Serious relationship",
+            "Deep dating",
+            "Modern matchmaking",
+            "Personality matching",
+            "Jewish Matchmaking"
+        ],
+        "openGraph": {
+            "title": "NeshamaTech | Where Soul Meets Technology",
+            "description": "Relationships that start from the soul. A platform combining technology and personal guidance to create genuine connections.",
+            "url": "https://www.neshamatech.com",
+            "siteName": "NeshamaTech",
+            "images": [
+                {
+                    "url": "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png",
+                    "width": 1200,
+                    "height": 630,
+                    "alt": "NeshamaTech Logo - Technology and Soul"
+                }
+            ],
+            "locale": "en_US",
+            "type": "website"
+        },
+        "twitter": {
+            "card": "summary_large_image",
+            "title": "NeshamaTech | Where Soul Meets Technology",
+            "description": "Relationships that start from the soul. Genuine connections based on technology and personal guidance.",
+            "images": ["https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png"]
+        }
+    },
+    "navbar": {
+        "myMatches": "My Matches",
+        "matchmakingQuestionnaire": "Questionnaire",
+        "engagementDashboard": "Engagement Managment",
+        "messages": "Messages",
+        "login": "Sign In",
+        "register": "Sign Up",
+        "toQuestionnaire": "To the Smart Questionnaire",
+        "matchmakerSuggestions": "Match Suggestions",
+        "matchmakerClients": "Candidates"
+    },
+    "unsavedChangesModal": {
+        "title": "Unsaved Changes",
+        "description": "It looks like you have changes that haven't been saved. If you leave now, you will lose them. What would you like to do?",
+        "cancelButton": "Cancel",
+        "continueWithoutSavingButton": "Continue Without Saving",
+        "saveAndContinueButton": "Save and Continue",
+        "savingButton": "Saving..."
+    },
+    "userDropdown": {
+        "openMenuAriaLabel": "Open user menu",
+        "profileImageAlt": "Profile picture",
+        "myProfile": "My Profile",
+        "questionnaire": "Matching Questionnaire",
+        "accountSettings": "Account Settings",
+        "signOut": "Sign Out"
+    },
+    "stickyNav": {
+        "homepageAriaLabel": "NeshamaTech Homepage",
+        "signUpButton": "Sign Up",
+        "closeNavAriaLabel": "Close navigation",
+        "openNavAriaLabel": "Open navigation",
+        "mobileTitle": "On this page",
+        "navLinks": {
+            "howItWorks": "The Journey",
+            "suggestionDemo": "Suggestion Demo",
+            "successStories": "Success Stories",
+            "ourTeam": "Our Team",
+            "faq": "FAQ"
+        }
+    },
+    "heroSection": {
+        "titleLine1": "A relationship that starts",
+        "highlightedWord": "from the soul",
+        "typewriterText": "In a world of endless swipes and superficial profiles, we believe in a different path. Our journey begins with a unique questionnaire designed to understand you deeply. This allows us to present matches that are more than just a picture and a bio—they are a complete story, empowering you to make a decision from a place of true connection.",
+        "ctaButton": "Begin My Journey",
+        "ctaButtonShort": "Start Journey",
+        "secondaryButton": "To the Questionnaire",
+        "secondaryButtonShort": "Questionnaire",
+        "synergy": {
+            "techTools": "Tech",
+            "personalGuidance": "Touch"
+        },
+        "principlesHeader": {
+            "title": "Our Approach",
+            "subtitle": "Three core principles that ensure a deep and genuine experience"
+        },
+        "principles": [
+            {
+                "title": "More Than a Picture, a Full Story",
+                "shortTitle": "Full Story",
+                "description": "Our in-depth questionnaire translates who you are into a rich narrative, allowing for a genuine connection from the very first moment."
+            },
+            { "title": "A Discreet & Managed Process", "shortTitle": "Discretion", "description": "Your profile is visible only to our team of matchmakers, who act on your behalf. They present you in a controlled manner only to potential matches, after a high probability of success has been identified." },
+            {
+                "title": "Smart Technology, Human Heart",
+                "shortTitle": "Human Heart",
+                "description": "The power of our system is in the hands of an experienced matchmaker. They use the tools to see the person and personally guide you to success."
+            }
+        ]
+    },
+    "valueProposition": {
+        "title_part1": "What Makes",
+        "title_brand": "NeshamaTech",
+        "title_part2": "Different?",
+        "subtitle": "Our approach combines the power of smart technology with the warmth, experience, and personal guidance of professional matchmaking.",
+        "challengeCard": {
+            "title": "The Relationship Journey Challenges We All Know",
+            "items": [
+                "The feeling of being just another 'product on a shelf' in dating apps.",
+                "Generic platforms that miss the crucial nuances of the Jewish world.",
+                "Wasting time and energy on superficial conversations and irrelevant suggestions.",
+                "Introductions limited to one's immediate circle of friends.",
+                "Traditional matchmaking that can be limited by its database and slow processes."
+            ]
+        },
+        "solutionCard": {
+            "title": "The NeshamaTech Approach: Technology in Service of the Heart",
+            "items": [
+                {
+                    "bold": "A Wider Net, A Focused Search:",
+                    "text": "Our system scans a broad, high-quality pool of candidates, allowing matchmakers to present you with precise opportunities you might not otherwise encounter."
+                },
+                {
+                    "bold": "Warm, Personal Guidance:",
+                    "text": "You are not alone. A personal matchmaker accompanies you, gets to know you deeply, and advises you at every stage of the journey."
+                },
+                {
+                    "bold": "Discover Deep Compatibility:",
+                    "textWithLink": {
+                        "part1": "Our smart algorithm, guided by your answers in our insightful ",
+                        "linkText": "questionnaire",
+                        "part2": ", analyzes dozens of dimensions to uncover connections rooted in shared values and personality."
+                    }
+                },
+                {
+                    "bold": "Absolute Discretion:",
+                    "text": "Your profile is completely confidential and accessible only to our matchmaking team, who act as your ambassadors. As part of the service, they present it in a focused and respectful manner to relevant potential matches to create high-quality opportunities for you."
+                },
+                {
+                    "bold": "Respect for Tradition, Tools of Tomorrow:",
+                    "text": "A platform that understands and respects your world of values, using technology to make the search more efficient and respectful."
+                }
+            ]
+        }
+    },
+    "ourMethod": {
+        "constellation": {
+            "header": "Our Human Approach",
+            "title_part1": "We see the person",
+            "title_part2": "behind the profile",
+            "subtitle": "To find a true match, we need to truly know you. That's why we developed a unique method that explores five key worlds that make up who you are. This is how we find a complete connection, not a partial one.",
+            "cta_header": "Your Moment Has Arrived",
+            "cta_title_part1": "Ready to begin your",
+            "cta_title_part2": "journey",
+            "cta_subtitle": "Our unique questionnaire is the first step. It's not technical; it's personal. This is your opportunity to tell us your story, so we can find its next chapter.",
+            "cta_button": "Begin Your Journey",
+            "cta_features": "A Personal Journey • Deep Insights • Absolute Discretion",
+            "worlds": [
+                {
+                    "title": "The World of Personality",
+                    "shortDesc": "The person behind the details",
+                    "fullDescription": "Here we understand who you really are: what motivates you, how you handle challenges, and your communication style. This is the foundation for creating an authentic and complete picture for us and for the other side.",
+                    "personalExample": "How would you divide 100 'personality points' between traits like empathy, ambition, and a sense of humor?",
+                    "insight": "A deep understanding of personality allows us to find someone with whom the dynamic will feel natural and right from the first moment."
+                },
+                {
+                    "title": "The World of Values",
+                    "shortDesc": "The foundation of a shared home",
+                    "fullDescription": "What are the pillars of your life? Here we define the values and beliefs that guide you and serve as a compass for building a stable and shared home.",
+                    "personalExample": "What are your priorities today, and how would you like them to look within a relationship?",
+                    "insight": "Value alignment is the key to a stable, long-term relationship. This is the most crucial part for accurate filtering and preventing future heartache."
+                },
+                {
+                    "title": "The World of Partnership",
+                    "shortDesc": "Your vision for 'togetherness'",
+                    "fullDescription": "What is a relationship to you, and what are your expectations from it? Here we'll understand your vision for partnership, from daily communication to shared dreams.",
+                    "personalExample": "What is your preferred approach to managing joint finances in a relationship?",
+                    "insight": "When visions for a relationship align, it's easier to start walking the same path together from the beginning."
+                },
+                {
+                    "title": "The World of the Partner",
+                    "shortDesc": "Defining your desired match",
+                    "fullDescription": "Who is the person you are looking for? In this world, we will focus the search and understand what traits, background, and values are essential for you in a partner.",
+                    "personalExample": "What are your absolute 'Deal Breakers' in a partner?",
+                    "insight": "A precise definition of what you're looking for allows us to conduct an efficient and smart search, saving you from irrelevant suggestions."
+                },
+                {
+                    "title": "Religion & Tradition",
+                    "shortDesc": "Your spiritual connection",
+                    "fullDescription": "What is your connection to Judaism and how is it expressed in your life? Here we'll detail your identity, your views, and your vision for a Jewish home.",
+                    "personalExample": "What kind of religious/Torah education would you want to provide for your children?",
+                    "insight": "Spiritual and religious compatibility is critical in our community. Precise answers here are the key to building a faithful home in Israel on a shared and stable foundation."
+                }
+            ],
+            "example_header": "For example, we ask:",
+            "insight_header": "Our insight:",
+            "dimension_prefix": "World",
+            "dimension_suffix": "of"
+        }
+    },
+    "howItWorks": {
+        "promise": {
+            "header": "Smart Method, Human Result",
+            "title_line1": "From a brave decision,",
+            "title_line2_part1": "to a",
+            "title_line2_part2": "connection that feels right",
+            "subtitle_line1": "We understand your journey. That's why we built a process that combines smart technology with warm, human guidance.",
+            "subtitle_line2": "Our shared goal: to lead you to the exciting moment when you receive a suggestion and immediately understand why it's right for you."
+        },
+        "process": {
+            "steps": [
+                {
+                    "title": "Step 1: Your Journey of Self-Discovery",
+                    "description": "This is the heart of our method. Not just a form, but an invitation to a personal journey that reveals what truly matters to you. Your in-depth answers are our compass for finding meaningful matches.",
+                    "linkText": "Start your journey here."
+                },
+                {
+                    "title": "Step 2: Building Your Best Profile",
+                    "description": "Your personal matchmaker studies your profile, and our smart system offers insights for improvement. Together, we ensure your story is told in the best and most accurate way."
+                },
+                {
+                    "title": "Step 3: Where Technology Meets Intuition",
+                    "description": "Our algorithm filters thousands of possibilities to find potential. Then, your matchmaker steps in with experience and human intuition to approve only the most promising suggestions."
+                },
+                {
+                    "title": "Step 4: From Reasoned Match to Great Date",
+                    "description": "You'll receive suggestions with a clear reason – 'Why we believe this could work'. From there, we guide you through the initial communication, provide support, and listen to your feedback."
+                }
+            ]
+        },
+        "proof": {
+            "header": "The Result: This is What it Looks Like",
+            "title_part1": "This is what a match",
+            "title_part2": "tailored for you looks like",
+            "subtitle": "After completing the process, every suggestion comes with clear reasoning and a rich background, so you can make a decision from a place of true understanding, not just a gut feeling.",
+            "demo_female": "Example: A match for a woman",
+            "demo_male": "Example: A match for a man"
+        },
+        "keyBenefits": {
+            "title_part1": "Our Approach,",
+            "title_part2": "Your Advantage",
+            "benefits": [
+                {
+                    "title": "Efficiency and Focus",
+                    "description": "Save time and energy. Our system filters only the most relevant suggestions for you, so you can focus on what truly matters."
+                },
+                {
+                    "title": "Uncompromising Quality",
+                    "description": "Every suggestion undergoes a dual check: a rigorous algorithmic screening and a final approval by an experienced matchmaker. No 'by the way' suggestions."
+                },
+                {
+                    "title": "A System That Learns You",
+                    "description": "Our smart system learns from your feedback and improves with every interaction, making future suggestions even more accurate."
+                },
+                {
+                    "title": "You're Not Alone",
+                    "description": "A personal matchmaker accompanies you, is available for questions, provides tools, and offers support from the very first moment until you find your match."
+                }
+            ]
+        },
+        "testimonial": {
+            "header": "The Journey Behind NeshamaTech",
+            "quote": "“My personal journey, and the stories I heard from friends, made it clear how lonely and frustrating the path to finding a partner can be. I founded NeshamaTech out of a deep personal desire to create a different kind of place—one that understands the sensitivity, respects the process, and puts the person at the center. That's why your success is my personal mission.”",
+            "author_name": "Eytan Englerd",
+            "author_role": "Founder of NeshamaTech"
+        },
+        "finalCta": {
+            "title_line1": "The next step in your journey",
+            "title_line2": "begins with an introduction",
+            "subtitle_line1": "You've seen our approach. Now we'd love to get to know your story.",
+            "subtitle_line2": "The initial registration allows us to start understanding you deeply, with no commitment.",
+            "button": "I want to begin",
+            "features": "Free Initial Sign-Up • No Commitment"
+        },
+        "suggestionDemo": {
+            "hoverTitle": "Click for Full View",
+            "hoverSubtitle": "Discover the matchmaker's rationale, answers, and more"
+        }
+    },
+    "matchmakerTeam": {
+        "title_part1": "Meet Our",
+        "title_highlight": "Founders",
+        "title_part2": "",
+        "subtitle": "Our founders bring a wealth of experience and a unique approach to the world of matchmaking, combining advanced technology with personal insight.",
+        "contact_button_text": "Contact",
+        "team": [
+            {
+                "name": "Dina Englerd",
+                "role": "Head Matchmaker",
+                "description": "With 8 years of matchmaking experience, Dina brings exceptional interpersonal skills and a deep understanding of candidates' needs. Her personal and empathetic approach has created dozens of happy couples as she guides each candidate on a personalized path.",
+                "tags": [
+                    "Matching Expert",
+                    "Personal Guidance",
+                    "8+ Years Experience"
+                ],
+                "imageSrc": "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg",
+                "color": "cyan"
+            },
+            {
+                "name": "Eytan Englerd",
+                "role": "Founder & CEO",
+                "description": "A tech entrepreneur specializing in matchmaking. Eytan developed our unique software platform, combining technological knowledge with a deep understanding of social psychology. His innovative approach created the unique method that defines our agency.",
+                "tags": [
+                    "Tech Innovation",
+                    "Matching Algorithm",
+                    "Entrepreneurship"
+                ],
+                "imageSrc": "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg",
+                "color": "green"
+            }
+        ]
+    },
+    "successStories": {
+        "title_part1": "Stories That Begin",
+        "title_highlight": "from the Soul",
+        "subtitle": "When we talk about a 'real connection,' this is exactly what we mean. Each of these stories began with a deep listening to the needs and values of two people. We are grateful for the privilege of accompanying them on their journey.",
+        "more_stories_button": "For More Success Stories",
+        "coming_soon_message": "We will be uploading more success stories soon, stay tuned!",
+        "stories": [
+            {
+                "text": "I always dreamed of a life partner with similar ethical aspirations – to build a home of kindness, Zionism, and Torah. NeshamaTech connected me with someone who dreams the exact same dream. It's a connection of soul and purpose.",
+                "author": "Sarah, Jerusalem",
+                "result": "Married + 1",
+                "color": "green"
+            },
+            {
+                "text": "The magic of NeshamaTech is the ability to see beyond the dry details. Eytan and the system identified the deep connection in our family values and general vibe. It's a match that feels like home from the very first moment.",
+                "author": "Miriam, Yeruham",
+                "result": "Married",
+                "color": "orange"
+            }
+        ]
+    },
+    "faq": {
+        "header": "Important Information For You",
+        "title_part1": "Everything You",
+        "title_highlight": "Need to Know",
+        "subtitle": "Transparency is the foundation of trust. We've gathered answers to the most common questions here, so you can start your journey with peace of mind and all the information.",
+        "contact_block": {
+            "title_part1": "Still have a",
+            "title_highlight": "question?",
+            "subtitle": "We're here to help. Our team of matchmakers will be happy to answer any question personally and get to know you better.",
+            "button": "Let's Get Acquainted",
+            "availability": "Available for you • Quick response"
+        },
+        "questions": [
+            {
+                "question": "What is the cost of the service?",
+                "answer": "As part of our launch period and our desire to build a quality community, the service is currently offered at a symbolic model of $3/month (or free, depending on the period). It's important to emphasize: at this stage, we have no \"success fees\" at all, even if you get engaged through us. Our goal is to allow you to get to know our unique approach without barriers. In the future, we may switch to a model that includes success fees, but any such change will be subject to updating the terms of use and obtaining your renewed consent."
+            },
+            {
+                "question": "Is the service suitable for all denominations?",
+                "answer": "Our approach is based on understanding the subtle nuances of the world of values and faith. Currently, our main expertise focuses on the Religious-Zionist community, with an emphasis on academic audiences and quality individuals seeking a serious relationship. We are constantly working to expand our circles of acquaintance and adapt the system for additional audiences in the future."
+            },
+            {
+                "question": "How is my privacy maintained?",
+                "answer": "Privacy is a core value and our absolute commitment. Your profile is visible only to your matchmaking team. As part of the professional process, your matchmaker presents your profile to potential matches identified as having a high likelihood of success. This process is handled discreetly and with focus. Your information will never be exposed in a public database or shared with external parties."
+            },
+            {
+                "question": "Your questionnaire seems in-depth. Is it really necessary?",
+                "answer": "Absolutely, and it's your biggest advantage. The questionnaire is not a \"form,\" but a guided \"discovery journey\" that examines five key worlds in your life. This brief initial investment is what allows us and our technology to truly get to know you, saving you valuable time on irrelevant suggestions, and presenting you with matches based on depth and shared values, not just superficial details."
+            },
+            {
+                "question": "How long does it take to find a match?",
+                "answer": "This is the most important question, and the honest answer is that there's no timeline for love. But what we can promise is an efficient and focused process. Instead of endless irrelevant dates, you'll receive a small number of high-quality, well-reasoned, and personalized suggestions. Our goal is for your journey to be meaningful, not longer than necessary."
+            }
+        ]
+    },
+    "privacyAssurance": {
+        "title": "Your Safe Space",
+        "subtitle": "In the world of matchmaking, trust and discretion are the foundation of everything. We built our system around this principle, so you can feel safe and comfortable throughout the entire journey.",
+        "card_title": "Our Commitment to Privacy",
+        "card_text": "We are committed to respecting you and your personal information, and to creating a safe and respectful environment for finding the right match.",
+        "card_button": "Read our Privacy Policy",
+        "features": [
+            "Your profile is visible only to your personal matchmaking team, ensuring complete discretion.",
+            "Every conversation and detail you share with us is kept confidential, using advanced security technologies.",
+            "Your information is sacred. It will never be sold or shared with any party outside the system. That's a promise.",
+            "Your matchmakers act on your behalf. As part of the matchmaking process, they present your profile in a controlled manner to the other party, only when they identify a high potential for a match."
+        ]
+    },
+    "cta": {
+        "title_part1": "Your Journey to a Relationship",
+        "title_highlight": "Starts Here",
+        "subtitle": "If our personal, respectful, and in-depth approach speaks to you, you may have found your home. The first step is simple, discreet, and without obligation.",
+        "button": "Start Your Journey"
+    },
+    "footer": {
+        "description": "Combining advanced technology and personal guidance to create meaningful, long-lasting relationships.",
+        "motto": "A relationship that starts from the soul",
+        "copyright": "© 2025 NeshamaTech. All rights reserved.",
+        "columns": {
+            "navigation": {
+                "title": "Quick Navigation",
+                "links": [
+                    { "text": "Home", "href": "/" },
+                    { "text": "Our Method", "href": "#our-method" },
+                    { "text": "How It Works", "href": "#how-it-works" },
+                    { "text": "Success Stories", "href": "#success-stories" },
+                    { "text": "FAQ", "href": "#faq" }
+                ]
+            },
+            "information": {
+                "title": "Useful Information",
+                "links": [
+                    { "text": "Privacy Policy", "href": "/legal/privacy-policy" },
+                    { "text": "Terms of Service", "href": "/legal/terms-of-service" },
+                    { "text": "Accessibility Statement", "href": "/legal/accessibility-statement" },
+                    { "text": "Pricing (in FAQ)", "href": "#faq" },
+                    { "text": "Contact & Support", "href": "/contact" }
+                ]
+            },
+            "contact": {
+                "title": "Contact Us",
+                "items": [
+                    { "icon": "📱", "text": "+972-54-321-0040" },
+                    { "icon": "✉️", "text": "jewish.matchpoint@gmail.com" },
+                    { "icon": "📍", "text": "Raanana, Israel" },
+                    { "icon": "🕒", "text": "Sun-Thu 9:00-18:00" }
+                ]
+            }
+        }
+    },
+    "chatWidget": {
+        "aria_open": "Open Chat",
+        "aria_close": "Close Chat",
+        "header_title": "NeshamaTech",
+        "header_subtitle": "Your Personal Assistant",
+        "header_status": "Online",
+        "prompt_header": "You might want to ask about:",
+        "prompt_questions": [
+            "What is the cost of the service?",
+            "How are you different from apps?",
+            "How is my privacy protected?",
+            "How does the matching process work?"
+        ],
+        "email_action_button": "Send an email to the team",
+        "email_link_button": "Need a more personal answer? Email our team",
+        "texts": {
+            "welcome": "Hello, we're NeshamaTech. We know the path to a meaningful relationship can be challenging. That's why we've created a process that combines advanced technology with warm, personal guidance to give you a discreet, respectful, and efficient experience. How can we help?",
+            "limitReached": "You've reached the 10-question limit for this conversation. So we can provide you with a personal and in-depth response, we'd be happy to continue the conversation via email. Leave a message, and our team will get back to you.",
+            "switchToEmailPrompt": "Happy to help. So our team can get back to you with a personal answer, please enter your email address. Your details will be kept completely confidential.",
+            "composeEmailPrompt": "Excellent. Now, please write your message, and one of our team members will get back to you personally.",
+            "emailError": "It seems the email address is not valid. Please check and try again.",
+            "genericError": "We apologize, a small technical error occurred. Please try refreshing or come back in a few moments. You can always contact us directly by email as well.",
+            "sendEmailError": "We apologize, there was an error sending the email. Please try again, or contact us directly at jewish.matchpoint@gmail.com.",
+            "placeholderDefault": "Ask us about our approach...",
+            "placeholderGatheringEmail": "Enter your email address...",
+            "placeholderComposingEmail": "Write your message here...",
+            "placeholderLimitReached": "Question limit reached. Continue via email."
+        }
+    },
+    "cookieBanner": {
+        "aria_close": "Close cookie banner",
+        "title": "Privacy and Transparency",
+        "text_part1": "We use cookies, including those from Google Analytics, to improve your browsing experience and analyze site traffic. The information is collected anonymously. For more information, please review our",
+        "privacy_policy_link": "Privacy Policy",
+        "text_part2": ".",
+        "accept_button": "Accept",
+        "decline_button": "Decline"
+    },
+    "demoProfileCard": {
+        "tabs": {
+            "essence": "Essence",
+            "story": "Answers",
+            "vision": "Vision"
+        },
+        "vision": {
+            "q1": "How do I see my partner?",
+            "a1": "A person with an open heart, a sense of humor, and a true desire to grow together. Someone who is both a best friend and a partner for the journey.",
+            "q2": "What is my vision for a family?",
+            "a2": "A warm and vibrant home, open to guests, where children grow up with values of giving, love of Torah, and the Land of Israel."
+        },
+        "ctaButton": "Want to receive suggestions like this?",
+        "imageNav": {
+            "prev": "Previous image",
+            "next": "Next image",
+            "showImage": "Show image number {{number}}"
+        },
+        "tablistLabel": "Demo profile navigation"
+    },
+    "contactPage": {
+        "backToHome": "Homepage",
+        "hero": {
+            "header": "Your Journey Starts with a Conversation",
+            "title": "Every Great Relationship Begins with a Question.",
+            "highlightedTitle": "We're Here to Guide You.",
+            "subtitle": "The path to a meaningful relationship can feel complex. That's why we're here—to offer clarity, professional guidance, and a confidential space to explore your next steps.",
+            "guarantee": "Your inquiry is personal. Our guidance is professional. Your privacy is paramount."
+        },
+        "form": {
+            "title": "Connect With a Personal Matchmaker",
+            "description": "Whether you have a question about our process or are ready to begin, our team provides thoughtful, personal, and professional responses.",
+            "nameLabel": "Full Name *",
+            "namePlaceholder": "Your first and last name",
+            "emailLabel": "Email Address *",
+            "emailPlaceholder": "your.email@example.com",
+            "categoryLabel": "How can we help you today? *",
+            "messageLabel": "Your Message *",
+            "messagePlaceholder": "Share what's on your mind... every detail helps us provide the best possible guidance.",
+            "submitButton": "Start the Conversation",
+            "submitButtonLoading": "Sending...",
+            "privacyCommitment": "Your privacy is our highest priority. All communication is completely confidential.",
+            "errors": {
+                "nameMin": "Name must be at least 2 characters.",
+                "emailInvalid": "Please enter a valid email address.",
+                "categoryRequired": "Please select a topic.",
+                "messageMin": "Message must be at least 10 characters.",
+                "sendError": "An error occurred while sending your message.",
+                "unexpectedError": "An unexpected error occurred. Please try again."
+            },
+            "categories": [
+                { "value": "process", "label": "Understanding the NeshamaTech Process" },
+                { "value": "consultation", "label": "Requesting a Personal Consultation" },
+                { "value": "general", "label": "General Questions" },
+                { "value": "technical", "label": "Technical Support" }
+            ]
+        },
+        "successMessage": {
+            "title": "Thank You for Reaching Out",
+            "description": "You've taken an important first step. We value the trust you've placed in us. A member of our matchmaking team will personally review your message and respond within one business day.",
+            "signUpButton": "Begin Your Confidential Profile",
+            "questionnaireButton": "Explore Our Unique Questionnaire"
+        },
+        "sidebar": {
+            "team": {
+                "title": "The People Guiding Your Journey",
+                "members": [
+                    { "name": "Dina Englard", "role": "Head Matchmaker", "description": "Expert in personal and warm guidance, believes listening is the key to a true connection." },
+                    { "name": "Eitan Englard", "role": "Founder & CEO", "description": "Entrepreneur and founder, combining smart technology with a human heart to build the secure path to a relationship." }
+                ]
+            },
+            "faq": {
+                "title": "Clarity for Your Journey",
+                "items": [
+                    { "question": "How quickly will I get a response?", "answer": "We respect your time and are committed to responding to every inquiry personally and professionally within one business day." },
+                    { "question": "Is the initial consultation free?", "answer": "Absolutely. Our first conversation is designed to build trust and mutual understanding. It is provided at no cost and with no obligation." },
+                    { "question": "What's the best way to start?", "answer": "The ideal starting point is our in-depth questionnaire. Once completed, a personal matchmaker will contact you to begin the conversation." }
+                ]
+            },
+            "otherWays": {
+                "title": "Direct Contact Information",
+                "phone": "054-321-0040",
+                "email": "jewish.matchpoint@gmail.com",
+                "hours": "Sun-Thu 9:00 AM - 6:00 PM",
+                "commitment": {
+                    "title": "Our Promise to You:",
+                    "body": "We understand the importance of your inquiry and guarantee a personal, professional, and timely response."
+                }
+            },
+            "cta": {
+                "title": "Your Path to a Meaningful Connection",
+                "description": "Our in-depth questionnaire is the best way for us to understand you, and for you to begin this process with confidence.",
+                "signUpButton": "Start Your Free Profile",
+                "questionnaireButton": "To Our Introductory Questionnaire"
+            }
+        },
+        "footer": {
+            "tagline": "Relationships that Start from the Soul",
+            "copyright": "© {year} NeshamaTech. All rights reserved."
+        }
+    },
+    "feedbackWidget": {
+        "tabLabel": "Your Feedback",
+        "openAriaLabel": "Open feedback widget",
+        "closeAriaLabel": "Close feedback widget",
+        "title": "Building the Future, Together",
+        "subtitle": "Your insights help us refine the journey to a deep and meaningful connection.",
+        "step_type_title": "How can we improve, together?",
+        "types": {
+            "suggestion": {
+                "label": "I have an idea to improve",
+                "description": "A new idea? A missing feature? We'd love to hear it."
+            },
+            "bug": {
+                "label": "I found an issue",
+                "description": "Something isn't working as expected? Help us fix it."
+            },
+            "positive": {
+                "label": "I wanted to say thanks",
+                "description": "A good experience? A success story? Share it with us."
+            }
+        },
+        "placeholder": "This is the place to share what's on your mind. Every thought or idea helps us grow...",
+        "attachScreenshot": "Attach an Image",
+        "screenshotTooltip": "Screenshot Preview",
+        "fileInstructions": "PNG, JPG, or WebP files (up to 2MB)",
+        "cancelButton": "Cancel",
+        "submitButton": "Send Insight",
+        "submittingButton": "Sending...",
+        "toasts": {
+            "imageTooLarge": "This file is a bit too large. Please upload a file under 2MB.",
+            "contentRequired": "So we can listen, we'd appreciate you writing something for us.",
+            "submitSuccess": "We've received it! Thank you for the partnership. Your feedback is on its way to our team.",
+            "submitError": "Oops, there seems to be a slight issue. Please try again, we truly want to hear from you."
+        }
+    },
+    "messagesPage": {
+        "header": {
+            "title": "My Activity Center",
+            "subtitle": "All your updates, messages, and actions in one place."
+        },
+        "actionBanner": {
+            "titleSingle": "One action is waiting for you!",
+            "titleMultiple": "{{count}} actions are waiting for you!",
+            "description": "There are suggestions awaiting your response. It's time to move forward on your journey!"
+        },
+        "filters": {
+            "all": "All",
+            "actionRequired": "Action Required",
+            "updates": "Updates",
+            "refresh": "Refresh"
+        },
+        "error": "Error: {{error}}",
+        "emptyState": {
+            "title": "All Quiet Here",
+            "descriptionAll": "No new updates right now. As soon as there's a development, it will appear here.",
+            "descriptionFiltered": "No items match the filter."
+        },
+        "notificationCard": {
+            "matchmakerPrefix": "Suggestion from matchmaker",
+            "suggestionWith": "with {{name}}",
+            "viewDetails": "View Details"
+        },
+        "badges": {
+            "match": "It's a Match!"
+        },
+        "messageList": {
+            "header": "Activity Center",
+            "subtitle": "{{count}} suggestions and updates"
+        },
+        "messageListItem": {
+            "matchBadge": "It's a Match!"
+        },
+        "availabilityRequestCard": {
+            "title": "Availability Request",
+            "fromMatchmaker": "From {{name}}",
+            "firstPartyLabel": "First Party",
+            "secondPartyLabel": "Second Party",
+            "progressLabel": "Progress",
+            "noteLabel": "Note:",
+            "buttons": {
+                "available": "I'm Available",
+                "unavailable": "Not Available Right Now"
+            },
+            "responses": {
+                "PENDING": "Pending",
+                "AVAILABLE": "Available",
+                "UNAVAILABLE": "Unavailable"
+            }
+        }
+    }
+}

@@ -1,0 +1,66 @@
+{
+    "engagement": {
+        "title": "Engagement Management Center",
+        "subtitle": "Manage and monitor user communication system",
+        "loading": "Loading data...",
+        "stats": {
+            "todayEmails": "Today's Emails",
+            "weeklyEmails": "This Week",
+            "activeUsers": "Active Users",
+            "inProgress": "In Progress"
+        },
+        "campaign": {
+            "nextRun": "Next Campaign",
+            "tomorrow": "Tomorrow 09:00",
+            "runNow": "Run Now"
+        },
+        "charts": {
+            "emailTypesTitle": "Email Type Distribution",
+            "recentActivityTitle": "Recent Activity"
+        },
+        "emailTypes": {
+            "onboarding": "Onboarding",
+            "nudge": "Nudge",
+            "celebration": "Celebration",
+            "insight": "Insight",
+            "value": "Value",
+            "eveningFeedback": "Evening Feedback",
+            "aiSummary": "AI Summary"
+        },
+        "activity": {
+            "sent": "Sent",
+            "failed": "Failed"
+        },
+        "manualEmail": {
+            "title": "Send Manual Email",
+            "selectUser": "Select User",
+            "userPlaceholder": "User ID or email",
+            "emailType": "Email Type",
+            "emailTypePlaceholder": "Select email type",
+            "send": "Send Email",
+            "sending": "Sending...",
+            "tip": "The system will automatically choose the most suitable content based on the user's profile status",
+            "alerts": {
+                "selectUser": "Please select a user",
+                "success": "Email sent successfully!",
+                "error": "Error sending email"
+            }
+        },
+        "cronJobs": {
+            "title": "Cron Jobs Status",
+            "morning": {
+                "title": "Morning Campaign",
+                "schedule": "Runs daily at 09:00",
+                "lastRun": "Last run: Today 09:00"
+            },
+            "evening": {
+                "title": "Evening Feedback",
+                "schedule": "Runs daily at 19:00",
+                "nextRun": "Next run: Today 19:00"
+            },
+            "status": {
+                "active": "Active"
+            }
+        }
+    }
+}

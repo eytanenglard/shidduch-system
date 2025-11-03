@@ -1,0 +1,257 @@
+{
+    "shared": {
+        "greeting": "Hello {{name}},",
+        "closing": "Wishing you the best,",
+        "team": "The NeshamaTech Team",
+        "supportPrompt": "For any questions or assistance, we're here for you at:",
+        "rightsReserved": "© {{year}} NeshamaTech. All rights reserved."
+    },
+    "welcome": {
+        "subject": "Welcome to the Family, {{firstName}}! Your Profile is Active & Ready",
+        "title": "Your Journey Starts Now",
+        "intro": "Congratulations! You've successfully completed all verification steps and your account is now active. We officially welcome you to the NeshamaTech family—a community of individuals seeking genuine connections.",
+        "matchmakerAssigned": "We're happy to let you know that a personal matchmaker, {{matchmakerName}}, has been assigned to you. They will be in touch soon.",
+        "getStarted": "The next and most exciting step is our 'Five Worlds' questionnaire. This isn't a test; it's our key to understanding you deeply, saving you valuable time on irrelevant suggestions, and presenting you only with opportunities that have the highest potential for a true connection.",
+        "dashboardButton": "Begin the Questionnaire"
+    },
+    "accountSetup": {
+        "subject": "A Personal Invitation from {{matchmakerName}} to Join NeshamaTech",
+        "title": "Your Profile is Waiting for You",
+        "intro": "Your matchmaker, {{matchmakerName}}, believes in your potential and has created an initial profile for you in our system. This is a personal invitation to take ownership of your profile and become a full partner in the journey to finding a match.",
+        "actionPrompt": "To activate your account and set a personal password, please click the link below:",
+        "actionButton": "Set Password & Activate Account",
+        "notice": "Please note: This link is personal, single-use, and valid for {{expiresIn}}.",
+        "nextStep": "After setting your password, you'll be able to log in, complete your profile, and see how we start working for you."
+    },
+    "emailOtpVerification": {
+        "subject": "One Last Step to Begin Your NeshamaTech Journey",
+        "title": "You're Almost There...",
+        "intro": "We're thrilled you've started your journey with us! To ensure your account is secure and our communication remains private, there's just one small step left to verify your email address.",
+        "codeInstruction": "Your one-time verification code is:",
+        "expiryNotice": "This code is valid for {{expiresIn}}.",
+        "securityNote": "For your security, never share this code with anyone. Didn't sign up? You can safely disregard this email."
+    },
+    "invitation": {
+        "subject": "{{matchmakerName}} is inviting you to join NeshamaTech",
+        "title": "You've Received a Personal Invitation",
+        "intro": "Your matchmaker, {{matchmakerName}}, thinks you would be a great fit for NeshamaTech, a community of high-quality individuals seeking serious relationships. We would be delighted for you to join us on this journey.",
+        "actionPrompt": "To join and create your profile, please click the link below:",
+        "actionButton": "Join the Community",
+        "expiryNotice": "Your personal invitation is valid for {{expiresIn}}."
+    },
+    "suggestion": {
+        "subject": "We Have a Good Feeling About This Suggestion for You",
+        "title": "A New Suggestion is on its Way",
+        "intro": "Your matchmaker, {{matchmakerName}}, was thinking of you and has prepared a new suggestion that looks especially promising. We've put thought into it and believe there's real potential here.",
+        "previewTitle": "A small glimpse into the suggestion:",
+        "actionPrompt": "To view the full profile and make a decision, we invite you to visit your personal dashboard:",
+        "actionButton": "View Full Suggestion",
+        "closing": "We look forward to hearing from you,",
+        "details": {
+            "age": "Age",
+            "city": "City",
+            "occupation": "Occupation",
+            "additionalInfo": "Additional Info"
+        }
+    },
+    "shareContactDetails": {
+        "subject": "Best of luck! Contact details have been shared",
+        "title": "Embarking on a Shared Path",
+        "intro": "How wonderful! Both sides have approved the suggestion, which is always an exciting moment for us. It's time to take the next step and get to know each other. The contact details have also been sent to the other party.",
+        "detailsOf": "Contact details for {{otherPartyName}}:",
+        "tipTitle": "A little tip from us:",
+        "tipContent": "A first phone call can be a bit nerve-wracking, and that's natural. Take a breath, remember the goal is simply to get acquainted, and most importantly - be yourself. We recommend making initial contact within the next 24-48 hours.",
+        "goodLuck": "We wish you a pleasant conversation and a successful meeting!"
+    },
+    "availabilityCheck": {
+        "subject": "An availability check from your matchmaker",
+        "title": "Checking if This is a Good Time",
+        "intro": "Your matchmaker, {{matchmakerName}}, is considering a suggestion for you and wants to ensure you are available and open to a new connection before proceeding.",
+        "actionPrompt": "We would appreciate it if you could update us on your availability through your personal dashboard:",
+        "actionButton": "Update Availability Status",
+        "noticeTitle": "Good to know:",
+        "noticeContent": "Your response will help your matchmaker focus on the most relevant suggestions for you right now."
+    },
+    "passwordResetOtp": {
+        "subject": "Password Reset Code for NeshamaTech",
+        "title": "Resetting Your Password",
+        "intro": "We received a request to reset your password. To proceed, please use the following one-time code:",
+        "codeInstruction": "Your reset code is:",
+        "expiryNotice": "The code is valid for {{expiresIn}}.",
+        "securityNote": "Didn't request a password reset? You can safely ignore this message. Your account is secure."
+    },
+    "passwordChangedConfirmation": {
+        "subject": "Your NeshamaTech Password Has Been Successfully Updated",
+        "title": "Security Update: Your Password Was Changed",
+        "intro": "This is a confirmation that the password for your NeshamaTech account has been successfully changed. Your account is now secured with the new password.",
+        "securityNote": "If you did not make this change, please contact us immediately so we can investigate.",
+        "actionButton": "Log in to Your Account"
+    },
+    "profileSummaryUpdate": {
+        "subject": "A personal update to your NeshamaTech profile",
+        "title": "Your Profile Just Got an Upgrade",
+        "intro": "Your personal matchmaker, {{matchmakerName}}, has carefully reviewed your profile and added a professional summary to highlight the most important aspects of your personality. This summary helps other matchmakers and potential matches get a richer, more accurate picture of who you are.",
+        "highlight": "This new summary will help us find more precise and high-quality matches for you.",
+        "encouragement": "We encourage you to review your updated profile to ensure the summary reflects you authentically. Your feedback is valuable to us!",
+        "actionButton": "View Updated Profile"
+    },
+    "profileFeedback": {
+        "subject": "Your Profile Progress Report from NeshamaTech",
+        "title": "Your NeshamaTech Profile Progress Report",
+        "greeting": "Hello {{name}},",
+        "systemIntro": "As part of our effort to help you find the best possible match, our intelligent system has prepared a personalized report on the status of your profile.",
+        "matchmakerIntro": "I wanted to personally update you on your profile's progress and give you a few tips that will help us find more accurate suggestions for you.",
+        "progressHeader": "Your Progress Status",
+        "aiSummaryHeader": "AI Insights About Your Profile",
+        "aiSummary": {
+            "personalityTitle": "How our AI understands your personality:",
+            "lookingForTitle": "How our AI understands what you're looking for:"
+        },
+        "missingItemsHeader": "Your Next Steps to Complete Your Profile",
+        "missingProfileItemsTitle": "Missing details in your main profile:",
+        "missingQuestionnaireItemsTitle": "In-depth questions awaiting your answers:",
+        "cta": {
+            "title": "Ready to move forward?",
+            "button": "Complete My Profile"
+        }
+    },
+    "notifications": {
+        "customMessage": {
+            "subject": "A personal message from your matchmaker",
+            "reminderText": "This is a friendly reminder that a match suggestion from {{matchmakerName}} is awaiting your response. To view the details and reply, please log in to the system."
+        },
+        "suggestionStatusChange": {
+            "PENDING_FIRST_PARTY": {
+                "subject": "We have a good feeling about this new suggestion for you",
+                "body": "Hello {{partyName}}, {{matchmakerName}} has sent you a new and promising suggestion. For more details and to make your decision, please log in to your personal dashboard: {{reviewUrl}}",
+                "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>Your matchmaker, {{matchmakerName}}, was thinking of you and has prepared a new suggestion that looks especially promising.</p><p>To review the full profile and make a decision, we invite you <a href='{{reviewUrl}}'>to visit your personal dashboard</a>.</p><p>We look forward to hearing from you,</p><p>The NeshamaTech Team</p></div>"
+            },
+            "FIRST_PARTY_APPROVED": {
+                "subject": "Update: The first party has approved the suggestion",
+                "body": "Hello {{matchmakerName}}, great news: {{partyName}} has approved the suggestion. The system will now forward it to the second party. To view details: {{dashboardUrl}}",
+                "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>Great news: <strong>{{partyName}}</strong> has approved the suggestion.</p><p>It will now be automatically sent to the second party. You can track its progress on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+            },
+            "FIRST_PARTY_DECLINED": {
+                "subject": "Update: Suggestion declined by the first party",
+                "body": "Hello {{matchmakerName}}, for your information, {{partyName}} has reviewed the suggestion and decided to decline. More details and the reason for declining (if provided) are available on your dashboard: {{dashboardUrl}}",
+                "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>For your information, <strong>{{partyName}}</strong> has reviewed the suggestion and decided it's not the right fit at this time.</p><p>More details and the reason for declining (if provided) are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+            },
+            "PENDING_SECOND_PARTY": {
+                "subject": "A new suggestion for you, with high potential",
+                "body": "Hello {{partyName}}, {{matchmakerName}} has sent you a new suggestion, and the first party has already expressed interest. We'd love for you to take a look. For details: {{reviewUrl}}",
+                "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>We have exciting news! Your matchmaker, {{matchmakerName}}, has sent you a new suggestion, and <strong>the first party has already approved it</strong>.</p><p>There seems to be high potential here, and we invite you to <a href='{{reviewUrl}}'>review the details and make a decision</a>.</p></div>"
+            },
+            "SECOND_PARTY_APPROVED": {
+                "subject": "It's a match! Both parties have approved",
+                "body": "Hello {{matchmakerName}}, great news! {{partyName}} has approved the suggestion. Both parties have now approved, and you can proceed to share contact details. For more info: {{dashboardUrl}}",
+                "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p><strong>It's a match!</strong> 🎉</p><p>We are happy to report that <strong>{{partyName}}</strong> has also approved the suggestion. With mutual consent from both parties, you can now <a href='{{dashboardUrl}}'>proceed to share contact details</a>.</p></div>"
+            },
+            "SECOND_PARTY_DECLINED": {
+                "subject": "Update: Suggestion declined by the second party",
+                "body": "Hello {{matchmakerName}}, for your information, {{partyName}} has reviewed the suggestion and decided to decline. More details are available on your dashboard: {{dashboardUrl}}",
+                "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>For your information, <strong>{{partyName}}</strong> has reviewed the suggestion and decided it's not the right fit at this time.</p><p>More details are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+            },
+            "CONTACT_DETAILS_SHARED": {
+                "subject": "Best of luck! Your contact details have been exchanged",
+                "body": "Congratulations! You both approved the suggestion. Your full contact details have been sent to you in a separate email. We recommend making contact within the next 24-48 hours. Best of luck!",
+                "htmlBody": "<div dir='ltr'><h2>Time to connect!</h2><p>You both approved the suggestion, which is always an exciting moment. Your full and detailed contact information has been sent to you in a separate email.</p><p><strong>A little tip from us:</strong> Take a breath, remember the goal is simply to get acquainted, and most importantly - be yourself. We recommend making initial contact within the next 24-48 hours.</p><p>Wishing you a pleasant conversation and a wonderful meeting!</p></div>"
+            }
+        }
+    },
+    "engagement": {
+        "onboardingDay1": {
+            "subject": "{{firstName}}, Welcome to the Journey! 🎉",
+            "hook": "We're thrilled you've joined! Let's start with the first and most important step.",
+            "mainMessage": "So we can start finding precise matches for you, the first step is building your profile's foundation. It's an investment of a few minutes that will make a huge difference later on.",
+            "fastUserMainMessage": "Wow, what a quick start! Congratulations on the impressive progress on your very first day. Our journey is off to a great start.",
+            "specificAction": "Start building your personal profile",
+            "encouragement": "We're here to guide you every step of the way. Good luck!"
+        },
+        "onboardingPhotos": {
+            "subject": "On your journey, {{firstName}}, a picture is a window to the soul",
+            "hook": "In a world of words, a picture creates an instant human connection.",
+            "mainMessage": "We noticed your profile is still waiting for photos to bring it to life. This isn't about looks; it's about openness, seriousness, and trust. Profiles with at least 3 photos are taken more seriously by matchmakers and the other party, simply because they tell a more complete story. You are currently missing {{missingCount}} photos.",
+            "specificAction": "Upload Photos (it takes less than 2 minutes)",
+            "encouragement": "Every photo you add is another step in building trust on the path to a meaningful relationship."
+        },
+        "onboardingAiTeaser": {
+            "subject": "{{firstName}}, we've discovered an initial insight about you...",
+            "hook": "Great job completing the first stage! Our technology is not just for finding matches; it's for finding insights.",
+            "mainMessage": "Our AI is like another matchmaker on the team, working 24/7 to understand the nuances of your personality.",
+            "aiInsight": "For example, based on the details you've filled out, the system identifies in you a rare ability for \"{{insight}}\".",
+            "genericInsight": "Our system is already starting to understand you on a deeper level.",
+            "specificAction": "Start the 'Personality World' in the questionnaire and discover more insights",
+            "encouragement": "Investing a few minutes now will save you hours of irrelevant dates in the future."
+        },
+        "onboardingQuestionnaireWhy": {
+            "subject": "The secret to precise matches, {{firstName}}",
+            "hook": "We saw you started the questionnaire - excellent! We wanted to share the 'why' behind our methodology.",
+            "mainMessage": "Our questionnaire is built from 'Five Worlds' (Personality, Values, Relationship, Partner, and Religion) for a reason. This approach allows us (and the AI) to build a holistic picture of you, beyond dry data. It's the difference between a match based on 'what' and a match based on 'who'. Each answer you give is another thread woven into your personal narrative, allowing us to find someone whose story intertwines with yours.",
+            "specificAction": "Continue filling out the questionnaire and watch your profile come to life",
+            "encouragement": "You're not just filling out a form; you're building the map to finding your one."
+        },
+        "onboardingValueAdd": {
+            "subject": "A tip from our matchmakers (and the AI) just for you, {{firstName}}",
+            "hook": "Your profile is almost ready, and here are two powerful ways to take it to the next level.",
+            "mainMessage": "**1. The Power of a Testimonial:** Did you know? Profiles with at least one friend testimonial receive 40% more positive consideration. It signals credibility and builds trust instantly. Maybe it's time to request a short recommendation?\n\n**2. A Personal Tip from the System:** Your 'About Me' section is your chance to tell a story.",
+            "aiTip": "For example, our AI suggests enhancing your description by adding a concrete example of the value of \"{{tip}}\".",
+            "genericTip": "For instance, try incorporating a short personal story that illustrates one of your prominent traits.",
+            "specificAction": "Request a testimonial or upgrade your profile with your new tip",
+            "encouragement": "These small details are what make the biggest difference."
+        },
+        "photoNudge": {
+            "subject": "{{firstName}}, A picture is worth a thousand matches 📸",
+            "hook": "Your profile tells a wonderful story, but it's missing one of the most important elements for creating a human connection.",
+            "mainMessage": "You're just {{missingCount}} photos away from a complete profile. This isn't just about appearance—it's about trust, openness, and allowing someone to get a glimpse of your personality. Profiles with at least 3 photos are taken more seriously and receive suggestions much faster.",
+            "specificAction": "Upload Your Photos – It Takes Less Than 2 Minutes",
+            "encouragement": "Every photo you add builds trust and brings you one step closer to a meaningful connection."
+        },
+        "questionnaireNudge": {
+            "subject": "The secret to better matches? It's in your questionnaire.",
+            "hook": "{{firstName}}, it's great to see your progress on the questionnaire!",
+            "mainMessage": "Our questionnaire isn't a test; it's our compass for finding you a compatible partner. Every answer sharpens that compass, helping us navigate away from irrelevant suggestions and directly toward those with real potential. It looks like the next great place to focus is the '{{worldName}}' world.",
+            "specificAction": "Continue with the Questionnaire (it only takes a few more minutes).",
+            "encouragement": "Remember, this small investment now saves you valuable time and emotional energy down the road."
+        },
+        "almostDone": {
+            "subject": "{{firstName}}, you're almost there! 🎊",
+            "hook": "Wow, {{completion}}%! Your dedication to this process is impressive.",
+            "mainMessage": "Your profile is just one step away from being ready for our active matching pool. Complete this final detail, and our team can begin their dedicated search for you.",
+            "specificAction": "Complete the Final Step and Let's Get Started!",
+            "encouragement": "You're just a click away from completing the most important stage. Let's finish this together."
+        },
+        "reEngagement": {
+            "subject": "Remember us? We've been thinking of you 💌",
+            "hook": "{{firstName}}, it's been a little while... and we wanted to let you know our system has improved.",
+            "mainMessage": "Your profile is saved with us at {{completion}}% completion - a great foundation! Since you were last here, our candidate pool has grown and our algorithm has become even smarter. It's the perfect time to come back and complete your journey.",
+            "encouragement": "The right connection could be just a few small details away. We're still here for you."
+        },
+        "aiSummary": {
+            "subject": "{{firstName}}, our AI found something interesting in your profile...",
+            "hook": "Our technology does more than just find matches—it finds insights.",
+            "mainMessage": "Our AI system has analyzed your answers to build a deeper personality profile. Here’s a small glimpse of what it’s beginning to understand about you and what you're looking for:",
+            "encouragement": "The more you complete your profile, the sharper these insights become, allowing us to find connections on a much deeper level."
+        },
+        "eveningFeedback": {
+            "subject": "You made progress today, {{firstName}} — and our AI already has an insight for you",
+            "hook": "Great work on your profile today! We noticed your activity, and our system is already putting it to good use.",
+            "mainMessage": "Think of every update as another piece of a puzzle. The more pieces you give us, the clearer the picture becomes for our AI, allowing it to understand the nuances of your personality and refine its search for a truly compatible match.",
+            "systemSummary": "An insight from the system following your update: {{summary}}...",
+            "encouragement": "Your investment today is a big step on your journey to a real connection. We're here with you, and we're excited for what tomorrow brings! 💪"
+        },
+        "value": [
+            {
+                "subject": "Why are photos so important? The answer might surprise you",
+                "hook": "New research shows that photos help identify emotional compatibility...",
+                "mainMessage": "Beyond physical appearance, photos tell a story about your personality, interests, and the vibe you bring. Read the full article >>",
+                "encouragement": "We're here to help you, every step of the way."
+            },
+            {
+                "subject": "3 common mistakes when building a dating profile",
+                "hook": "Matchmakers with 20 years of experience reveal what really works...",
+                "mainMessage": "The most common mistake is being too generic. A good profile is specific and authentic. Want to know the other two mistakes? Click here >>",
+                "encouragement": "Your profile is your calling card."
+            }
+        ]
+    }
+}

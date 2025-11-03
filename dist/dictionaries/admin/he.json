@@ -1,0 +1,66 @@
+{
+    "engagement": {
+        "title": "מרכז ניהול Engagement",
+        "subtitle": "ניהול ונטור מערכת התקשורת עם המשתמשים",
+        "loading": "טוען נתונים...",
+        "stats": {
+            "todayEmails": "מיילים היום",
+            "weeklyEmails": "השבוע",
+            "activeUsers": "משתמשים פעילים",
+            "inProgress": "בתהליך השלמה"
+        },
+        "campaign": {
+            "nextRun": "קמפיין הבא",
+            "tomorrow": "מחר 09:00",
+            "runNow": "הרץ עכשיו"
+        },
+        "charts": {
+            "emailTypesTitle": "התפלגות סוגי מיילים",
+            "recentActivityTitle": "פעילות אחרונה"
+        },
+        "emailTypes": {
+            "onboarding": "Onboarding",
+            "nudge": "דחיפה",
+            "celebration": "חגיגה",
+            "insight": "תובנה",
+            "value": "ערך",
+            "eveningFeedback": "פידבק ערב",
+            "aiSummary": "סיכום AI"
+        },
+        "activity": {
+            "sent": "נשלח",
+            "failed": "נכשל"
+        },
+        "manualEmail": {
+            "title": "שליחת מייל ידנית",
+            "selectUser": "בחר משתמש",
+            "userPlaceholder": "ID משתמש או אימייל",
+            "emailType": "סוג מייל",
+            "emailTypePlaceholder": "בחר סוג מייל",
+            "send": "שלח מייל",
+            "sending": "שולח...",
+            "tip": "המערכת תבחר אוטומטית את התוכן המתאים ביותר על בסיס מצב הפרופיל של המשתמש",
+            "alerts": {
+                "selectUser": "יש לבחור משתמש",
+                "success": "המייל נשלח בהצלחה!",
+                "error": "שגיאה בשליחת המייל"
+            }
+        },
+        "cronJobs": {
+            "title": "סטטוס Cron Jobs",
+            "morning": {
+                "title": "קמפיין בוקר",
+                "schedule": "רץ כל יום בשעה 09:00",
+                "lastRun": "הרצה אחרונה: היום 09:00"
+            },
+            "evening": {
+                "title": "פידבק ערב",
+                "schedule": "רץ כל יום בשעה 19:00",
+                "nextRun": "הרצה הבאה: היום 19:00"
+            },
+            "status": {
+                "active": "פעיל"
+            }
+        }
+    }
+}
