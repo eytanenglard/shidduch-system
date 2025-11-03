@@ -1,0 +1,504 @@
+{
+    "container": {
+        "loading": {
+            "title": "Loading Your Introductions...",
+            "subtitle": "We're preparing thoughtful matches just for you."
+        },
+        "stats": {
+            "title": "Your Introductions",
+            "subtitle": "Every introduction is an opportunity, thoughtfully chosen for you by our dedicated matchmakers.",
+            "new": "New Introductions",
+            "newDesc": "Fresh opportunities awaiting your review.",
+            "yourTurn": "Your Turn",
+            "yourTurnDesc": "These introductions are ready for your decision.",
+            "approved": "Approved",
+            "approvedDesc": "Introductions you've expressed interest in."
+        },
+        "main": {
+            "title": "Manage Your Introductions",
+            "refreshAriaLabel": "Refresh introductions",
+            "newSuggestions": "New!",
+            "tabs": {
+                "active": "Active",
+                "urgent": "Your Turn",
+                "history": "History"
+            },
+            "errorLoading": "An error occurred while loading your introductions: {error}",
+            "unknownError": "An unknown error occurred."
+        },
+        "dialogs": {
+            "approveTitle": "Confirm Your Interest",
+            "declineTitle": "Decline Introduction",
+            "approveDescription": "Expressing interest is an exciting step forward. This lets your matchmaker know you're open to learning more. Are you ready to proceed?",
+            "declineDescription": "Every decision helps us refine your search. Are you sure you'd like to pass on this introduction? Your feedback is a valuable part of the journey.",
+            "cancel": "Cancel",
+            "confirmApproval": "Yes, I'm Interested",
+            "confirmDecline": "Yes, Decline"
+        },
+        "toasts": {
+            "errorTitle": "Error Loading Introductions",
+            "errorDescription": "Please try refreshing the page or contact support.",
+            "newSuggestionsTitle": "You have new introductions!",
+            "newSuggestionsDescription": "Check out the new opportunities waiting for you.",
+            "statusUpdateSuccess": "Status updated successfully.",
+            "statusUpdateError": "Error updating status: {error}",
+            "approvedSuccess": "You've approved the introduction!",
+            "approvedFirstPartyDesc": "Wonderful! We've discreetly shared this suggestion with the other person. Once they approve, we'll guide you both on the next steps.",
+            "approvedSecondPartyDesc": "Great news! Now that you've both approved, we will facilitate the exchange of contact details.",
+            "declinedSuccess": "Introduction Declined",
+            "declinedDesc": "Thank you for your feedback. This helps us find even better matches for you.",
+            "matchmakerNotified": "Your matchmaker has been notified and will guide the process forward.",
+            "refreshSuccessTitle": "Data Refreshed",
+            "refreshSuccessDescription": "Your introductions are now up to date."
+        }
+    },
+    "card": {
+        "suggestedBy": "Introduction from",
+        "yourTurn": "Your Turn!",
+        "urgent": "Urgent",
+        "viewDetailsAria": "View full details for {{name}}",
+        "whySpecial": "What makes this a special introduction?",
+        "reasonTeaserDefault": "Your matchmaker saw a unique potential worth exploring.",
+        "clickForDetails": "Click for full details and insights",
+        "buttons": {
+            "decline": "Not the right fit",
+            "approve": "I'd like to learn more",
+            "approveDisabledTooltip": "You cannot approve a new introduction while another is in an active process.",
+            "askMatchmaker": "Ask Your Matchmaker",
+            "viewDetails": "View Details"
+        },
+        "statusIndicator": {
+            "yourTurn": "Your Turn!",
+            "waitingForYou": "Waiting for You",
+            "matchmaker": "Matchmaker",
+            "firstParty": "First Party",
+            "secondParty": "Second Party",
+            "bothParties": "Both Parties"
+        },
+        "statusDescriptions": {
+            "draft": "The matchmaker is preparing the suggestion.",
+            "pendingFirstPartyUser": "The suggestion awaits your decision - please approve or decline.",
+            "pendingFirstPartyOther": "The matchmaker has sent the suggestion to the first party and is awaiting a response.",
+            "firstPartyApprovedUser": "You approved the suggestion - it will now be sent to the other party.",
+            "firstPartyApprovedOther": "The first party enthusiastically approved the suggestion.",
+            "firstPartyDeclinedUser": "You declined the suggestion - thank you for the honest feedback.",
+            "firstPartyDeclinedOther": "The first party decided the suggestion was not a good fit.",
+            "pendingSecondPartyUser": "The other party is reviewing the suggestion - we'll update you when we have feedback.",
+            "pendingSecondPartyOther": "The suggestion awaits your decision - please approve or decline.",
+            "secondPartyApprovedUser": "The other party is also interested! You will receive contact details soon.",
+            "secondPartyApprovedOther": "You approved the suggestion! You will both receive contact details soon.",
+            "secondPartyDeclinedUser": "The other party decided the suggestion was not a good fit.",
+            "secondPartyDeclinedOther": "You declined the suggestion - thank you for the honest feedback.",
+            "awaitingMatchmakerApproval": "Both parties have approved - the matchmaker will confirm the sharing of details.",
+            "contactDetailsShared": "Your contact details have been shared - it's time to get in touch!",
+            "awaitingFirstDateFeedback": "Great that you met! We'd love to hear how it went.",
+            "thinkingAfterDate": "Time to process the meeting and decide on the next steps.",
+            "proceedingToSecondDate": "Excellent! You both want to continue getting to know each other.",
+            "endedAfterFirstDate": "You've decided not to proceed - that's perfectly fine.",
+            "meetingPending": "The matchmaker is coordinating a first meeting.",
+            "meetingScheduled": "The first meeting has been scheduled - good luck!",
+            "matchApproved": "The match has been officially approved - congratulations!",
+            "matchDeclined": "The match was not approved to proceed.",
+            "dating": "You are both in an active dating process.",
+            "engaged": "Engaged! 💍 Mazel Tov on your engagement! What a joy!",
+            "married": "Married! 🎉 Mazel Tov on your wedding! What a success!",
+            "expired": "The suggestion has expired due to no response.",
+            "closed": "The process has ended and the file has been closed.",
+            "cancelled": "The suggestion was cancelled by the matchmaker."
+        }
+    },
+    "modal": {
+        "header": {
+            "title": "An Introduction, With You in Mind",
+            "subtitleLine1": "When we came across this profile, we immediately thought of you.",
+            "subtitleLine2": "Here’s why we believe this could be the start of something meaningful.",
+            "suggestedBy": "Introduction from",
+            "discoverMore": "Discover More →",
+            "ageInYears": "{{age}} years old",
+            "matchStoryTitle": "The Story Behind This Introduction",
+            "matchStorySubtitle1": "We listen to what's important to you, even between the lines.",
+            "matchStorySubtitle2": "Here are some of the connections we identified.",
+            "viewFullProfile": "View Full Profile",
+            "iHaveQuestions": "I Have a Question",
+            "matchmakerInsight": "💭 A Note From Your Matchmaker",
+            "whyYou": "Why we thought of you:",
+            "ourConnection": "The connection we see:",
+            "whatsNextTitle": "What's Next? The Decision is Yours",
+            "whatsNextSubtitle1": "Every decision you make is the right step on your journey.",
+            "whatsNextSubtitle2": "Take your time and choose what feels right to you.",
+            "bestTimeIsNow": "The best time is now",
+            "toFullProfile": "To the Full Profile"
+        },
+        "tabs": {
+            "presentation": "Presentation",
+            "presentationShort": "Intro",
+            "profile": "Full Profile",
+            "profileShort": "Profile",
+            "compatibility": "Compatibility",
+            "compatibilityShort": "Analysis",
+            "details": "Details & Comms",
+            "detailsShort": "Details",
+            "fullscreen": "Enter Fullscreen",
+            "exitFullscreen": "Exit Fullscreen"
+        },
+        "actions": {
+            "titleExpanded": "✨ This is a key moment. What's your decision?",
+            "titleCollapsed": "🎯 Quick Actions",
+            "subtitle": "Every decision is a new opportunity.",
+            "approve": "💝 Yes, I'm open to this",
+            "sending": "Sending...",
+            "updating": "Updating...",
+            "ask": "🤔 Ask the Matchmaker",
+            "decline": "😔 Not for me right now",
+            "reminder": "Remember: Your decision helps us move one step closer to finding your perfect match."
+        },
+        "profile": {
+            "loading": "Loading detailed profile...",
+            "loadingDescription": "Just a moment, we're putting everything together for you.",
+            "errorTitle": "Error Loading Profile",
+            "errorDescription": "We couldn't load the profile at this time. Please contact your matchmaker for assistance.",
+            "contactMatchmaker": "Contact Your Matchmaker"
+        },
+        "aiAnalysisCta": {
+            "title": "🔮 Ready for a Deeper Look?",
+            "description": "Our AI can analyze deep compatibility points to provide you with insights on connection potential, strengths, and even conversation starters.",
+            "feature1": "In-depth Analysis",
+            "feature2": "Connection Points",
+            "feature3": "Personalized Guidance",
+            "button": "Run AI Compatibility Analysis"
+        }
+    },
+    "aiAnalysis": {
+        "dialogTitle": "AI-Powered Compatibility Insights",
+        "loadingTitle": "Analyzing Deep Compatibility...",
+        "loadingDescription": "Our AI is analyzing dozens of data points—from core values to personality traits—to reveal the deeper potential of this match.",
+        "loadingSteps": {
+            "step1": "Processing Profiles",
+            "step2": "Analyzing Core Values",
+            "step3": "Measuring Compatibility",
+            "step4": "Generating Insights",
+            "step5": "Finalizing Report"
+        },
+        "errorTitle": "Something Went Wrong...",
+        "errorAlertTitle": "Analysis Could Not Be Completed",
+        "errorAlertDescription": "We apologize for the inconvenience. Please try again or contact support.",
+        "retryButton": "Try Again",
+        "tabs": {
+            "summary": "Summary & Strengths",
+            "consider": "Points to Consider",
+            "conversation": "Conversation Starters"
+        },
+        "summaryTab": {
+            "strengthTitle": "Key Strengths & Connection Points"
+        },
+        "considerTab": {
+            "title": "Points for Thought and Open Conversation"
+        },
+        "conversationTab": {
+            "title": "Suggested Conversation Starters"
+        },
+        "importantNote": "An Important Note",
+        "noteText": "Remember, this analysis is a powerful tool, but it's meant to guide, not decide. True chemistry and connection are discovered through genuine human interaction.",
+        "backButton": "Back to Introduction",
+        "triggerButton": "Run AI Compatibility Analysis"
+    },
+    "list": {
+        "emptyState": {
+            "noResultsTitle": "No Results Found",
+            "noHistoryTitle": "No History Yet",
+            "noActiveTitle": "Your Next Introduction is on its Way",
+            "noResultsDescription": "Try adjusting your search or filter criteria to find what you're looking for.",
+            "noHistoryDescription": "Completed introductions will appear here.",
+            "noActiveDescription": "Our matchmakers are hard at work finding the perfect introductions for you.",
+            "clearFilters": "Clear Filters"
+        },
+        "stats": {
+            "showing": "Showing",
+            "total": "Total",
+            "pending": "Pending",
+            "progress": "Progress"
+        },
+        "controls": {
+            "searchPlaceholder": "Search by name, city, profession...",
+            "filterLabel": "Filter by Status",
+            "filterAll": "All",
+            "filterPending": "Pending",
+            "filterAccepted": "Accepted",
+            "filterDeclined": "Declined",
+            "filterContactShared": "Contact Shared",
+            "sortPlaceholder": "Sort by",
+            "sortNewest": "Newest",
+            "sortOldest": "Oldest",
+            "sortDeadline": "Deadline",
+            "sortPriority": "Priority"
+        },
+        "activeFilters": {
+            "title": "Active filters:",
+            "search": "Search:",
+            "clearAll": "Clear All"
+        },
+        "resultsCount": {
+            "showingSingle": "Showing {{count}} of {{total}} introduction",
+            "showingMultiple": "Showing {{count}} of {{total}} introductions",
+            "qualityMatches": "Thoughtful introductions for you"
+        }
+    },
+    "presentation": {
+        "hero": {
+            "title": "A Special Introduction...",
+            "matchmakerThoughts": "A note from your matchmaker, {{name}}:"
+        },
+        "peek": {
+            "opportunity": "An opportunity to meet",
+            "age": ", {{age}}",
+            "notSpecified": "Not specified",
+            "viewProfileButton": "View Full Profile"
+        },
+        "ingredients": {
+            "title": "Key Ingredients for a Great Match",
+            "values": "Shared Values & Outlook",
+            "personality": "Personality Synergy",
+            "background": "Lifestyle & Background",
+            "spark": "A Special Spark",
+            "matchmakerNotes": "A note from the matchmaker:"
+        },
+        "aiCta": {
+            "title": "Want a second opinion?",
+            "description": "Get an in-depth AI analysis of connection points, growth potential, and even ideas to start the conversation."
+        },
+        "rationale": {
+            "title": "A Special Suggestion For You",
+            "description": "Thoughts from your matchmaker, {{name}}",
+            "personalNoteTitle": "Why I thought this is a great fit for you",
+            "generalReasonTitle": "The general connection we see",
+            "noReasonText": "The matchmaker trusts the data to speak for itself."
+        }
+    },
+    "quickView": {
+        "unitCm": "cm",
+        "aboutTitle": "About:",
+        "reasonTitle": "Reason for Suggestion:",
+        "deadlineText": "Response needed by {{date}}",
+        "buttons": {
+            "viewProfile": "View Profile",
+            "approve": "Approve",
+            "decline": "Decline",
+            "ask": "Ask"
+        }
+    },
+    "compatibility": {
+        "mainTitle": "Detailed Compatibility Analysis",
+        "mainSubtitle": "An in-depth look at connection points and potential growth areas.",
+        "errorTitle": "Cannot Calculate Compatibility",
+        "errorDescription": "One or both profiles are incomplete, so a detailed compatibility analysis cannot be performed.",
+        "noDataTitle": "Not Enough Data",
+        "noDataDescription": "There isn't enough shared information to perform a detailed compatibility analysis.",
+        "overallScore": {
+            "cardTitle": "Compatibility Summary",
+            "score": "Compatibility Score",
+            "descriptionExcellent": "Excellent Potential",
+            "descriptionGood": "Strong Potential",
+            "descriptionModerate": "Good Potential",
+            "descriptionChallenging": "Areas for Growth",
+            "progressText": "{{compatibleCount}} of {{totalCount}} criteria align",
+            "overallScoreLabel": "Overall Score: {{score}}%"
+        },
+        "categoryTitles": {
+            "basic": "Core Details",
+            "lifestyle": "Lifestyle",
+            "values": "Values & Outlook",
+            "preferences": "Personal Preferences"
+        },
+        "categorySubtitle": "{{compatibleCount}} of {{totalCount}} compatible",
+        "compatibilityLabel": "Compatibility",
+        "importance": {
+            "high": "High",
+            "medium": "Medium",
+            "low": "Low"
+        },
+        "card": {
+            "notSpecified": "Not specified"
+        },
+        "criteria": {
+            "age": "Age",
+            "height": "Height",
+            "location": "Location",
+            "religiousLevel": "Religious Observance",
+            "education": "Education",
+            "occupation": "Occupation",
+            "origin": "Origin",
+            "language": "Language"
+        },
+        "reasons": {
+            "mutualMatch": "Mutual alignment on {{criterion}}",
+            "mismatch": "Different expectations for {{criterion}}",
+            "sameOrigin": "Shared background",
+            "differentOrigin": "Diverse backgrounds can enrich a connection",
+            "sharedLanguage": "A shared language exists",
+            "noSharedLanguage": "No known shared language"
+        },
+        "matchmakerRationaleTitle": "Matchmaker's Rationale",
+        "unitCm": "cm"
+    },
+    "askMatchmaker": {
+        "title": "A Question for {{name}}",
+        "titleDefault": "A Question for Your Matchmaker",
+        "description": "Your matchmaker is here to answer any questions you have about this introduction.",
+        "statusBadge": "Available Now",
+        "errorSubmitting": "An error occurred while sending your question. Please try again.",
+        "topicSelect": {
+            "title": "What would you like to know more about?",
+            "subtitle": "Select a category to see some sample questions"
+        },
+        "sampleQuestions": {
+            "title": "Sample Questions - {{topic}}"
+        },
+        "input": {
+            "label": "Your Question",
+            "placeholder": "Write your question here... Your matchmaker will be happy to help.",
+            "charCount": "{{count}}/500",
+            "info": "Your question will be sent directly and privately to your matchmaker."
+        },
+        "buttons": {
+            "cancel": "Cancel",
+            "submit": "Send Question",
+            "submitting": "Sending..."
+        },
+        "topics": {
+            "values": {
+                "label": "Values & Beliefs",
+                "description": "Questions about worldview and core values",
+                "questions": [
+                    "Could you tell me more about their general outlook on life?",
+                    "How central is religious practice in their daily life?",
+                    "Are there any core values that are particularly important to them?",
+                    "How do they view the role of tradition in a modern family?"
+                ]
+            },
+            "family": {
+                "label": "Family & Background",
+                "description": "Questions about family and upbringing",
+                "questions": [
+                    "How would you describe their family dynamic?",
+                    "What is their relationship with their family like?",
+                    "What are their thoughts on building a family of their own?",
+                    "Is there anything notable about their personal background?"
+                ]
+            },
+            "career": {
+                "label": "Career & Ambitions",
+                "description": "Questions about work and education",
+                "questions": [
+                    "What are their long-term professional aspirations?",
+                    "How do they view the balance between career and family life?",
+                    "What are they passionate about in their work or studies?",
+                    "Are they settled in their career or exploring new paths?"
+                ]
+            },
+            "personality": {
+                "label": "Character & Temperament",
+                "description": "Questions about personality and traits",
+                "questions": [
+                    "How would friends describe their personality?",
+                    "What are some of their strongest character traits?",
+                    "Are they more introverted or extroverted?",
+                    "How do they typically handle stress or challenges?"
+                ]
+            },
+            "future": {
+                "label": "Future Plans",
+                "description": "Questions about vision and future goals",
+                "questions": [
+                    "What are some of their dreams for the future?",
+                    "Are they planning to stay in their current location long-term?",
+                    "What is their general vision for their future family life?",
+                    "How do they envision their life in the next 5-10 years?"
+                ]
+            },
+            "other": {
+                "label": "Something Else",
+                "description": "A specific or different question",
+                "questions": [
+                    "I have a specific question about..."
+                ]
+            }
+        }
+    },
+    "inquiryThread": {
+        "title": "Conversation with Your Matchmaker",
+        "subtitle": "Ask questions and get professional answers, privately.",
+        "status": {
+            "pending": "Awaiting Answer",
+            "answered": "Answered",
+            "closed": "Closed"
+        },
+        "answerBadge": "Answer",
+        "loadingError": "An error occurred while loading the conversation.",
+        "retryButton": "Try Again",
+        "emptyState": {
+            "title": "Start a Conversation",
+            "description": "Have questions about this introduction? Your matchmaker is here to provide clarity and guidance."
+        },
+        "composer": {
+            "label": "New Question for Your Matchmaker",
+            "placeholder": "Write your question here...",
+            "charCount": "{{count}}/500",
+            "sendButton": "Send Question",
+            "sendingButton": "Sending..."
+        },
+        "replyForm": {
+            "title": "Reply to Question:",
+            "placeholder": "Write your answer here...",
+            "sendButton": "Send Answer",
+            "sendingButton": "Sending..."
+        },
+        "toasts": {
+            "sendSuccessTitle": "Question Sent Successfully",
+            "sendSuccessDescription": "Your matchmaker has been notified and will get back to you soon.",
+            "sendError": "Error sending question.",
+            "replySuccess": "Answer sent successfully!",
+            "replyError": "Error sending answer."
+        },
+        "invalidDate": "Invalid date"
+    },
+    "timeline": {
+        "title": "Introduction Timeline",
+        "subtitle": "Track the progress of this introduction step-by-step.",
+        "emptyState": {
+            "title": "No History Yet",
+            "description": "The timeline will update as actions are taken on this introduction."
+        },
+        "latestBadge": "Latest",
+        "summary": {
+            "totalSteps": "Total Steps",
+            "activeDays": "Active Days",
+            "approvals": "Approvals",
+            "currentStatus": "Current Status"
+        },
+        "statuses": {
+            "DRAFT": { "label": "Draft", "description": "The matchmaker is preparing this introduction." },
+            "PENDING_FIRST_PARTY": { "label": "Pending Your Review", "description": "This introduction is awaiting your review and decision." },
+            "FIRST_PARTY_APPROVED": { "label": "You Approved", "description": "You approved the introduction. Now awaiting the other party's review." },
+            "FIRST_PARTY_DECLINED": { "label": "You Declined", "description": "You declined this introduction." },
+            "PENDING_SECOND_PARTY": { "label": "Pending Other Party", "description": "The introduction is awaiting review from the other party." },
+            "SECOND_PARTY_APPROVED": { "label": "They Approved", "description": "The other party has approved the introduction. Awaiting the next step." },
+            "SECOND_PARTY_DECLINED": { "label": "They Declined", "description": "The other party declined this introduction." },
+            "AWAITING_MATCHMAKER_APPROVAL": { "label": "Awaiting Matchmaker", "description": "Both parties have approved! Awaiting the matchmaker's final confirmation." },
+            "CONTACT_DETAILS_SHARED": { "label": "Contact Details Shared", "description": "Contact details have been exchanged. We wish you the best!" },
+            "AWAITING_FIRST_DATE_FEEDBACK": { "label": "Awaiting Feedback", "description": "The first meeting took place, and we're awaiting feedback." },
+            "THINKING_AFTER_DATE": { "label": "Considering", "description": "One or both parties are thinking about the next step." },
+            "PROCEEDING_TO_SECOND_DATE": { "label": "Moving to a 2nd Date", "description": "Both parties are interested in a second date." },
+            "ENDED_AFTER_FIRST_DATE": { "label": "Ended After 1st Date", "description": "The connection will not continue after the first meeting." },
+            "MEETING_PENDING": { "label": "Scheduling Meeting", "description": "The parties are coordinating a time to meet." },
+            "MEETING_SCHEDULED": { "label": "Meeting Scheduled", "description": "A first meeting has been scheduled." },
+            "MATCH_APPROVED": { "label": "Match Confirmed", "description": "The match was confirmed by the matchmaker. The process is moving forward." },
+            "MATCH_DECLINED": { "label": "Match Declined", "description": "The match was declined by the matchmaker." },
+            "DATING": { "label": "Dating", "description": "The couple is officially dating." },
+            "ENGAGED": { "label": "Engaged", "description": "Congratulations! The couple is engaged." },
+            "MARRIED": { "label": "Married", "description": "Mazel Tov! The couple is married." },
+            "EXPIRED": { "label": "Expired", "description": "The time to decide on this introduction has passed." },
+            "CLOSED": { "label": "Closed", "description": "The introduction process has been closed." },
+            "CANCELLED": { "label": "Cancelled", "description": "This introduction was cancelled by the matchmaker." }
+        }
+    }
+}
