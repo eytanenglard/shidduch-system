@@ -2,7 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": ".", // <-- השינוי כאן
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "module": "CommonJS",
     "moduleResolution": "Node",
     "isolatedModules": false,
@@ -11,7 +15,7 @@
     "declaration": false
   },
   "include": [
-    "i18n-config.ts", // <-- הוספנו את הקובץ הזה
+    "i18n-config.ts",
     "src/scripts/**/*.ts",
     "src/lib/**/*.ts"
   ],
@@ -21,5 +25,8 @@
     "src/components",
     "src/types",
     "src/middleware.ts"
-  ]
+  ],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  }
 }
