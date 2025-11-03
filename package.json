@@ -11,9 +11,10 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "npx prisma generate",
-    "engagement:daily": "tsx src/scripts/runSmartEngagement.ts",
-    "engagement:evening": "tsx src/scripts/runEveningEngagement.ts",
+     "build:scripts": "tsc --project tsconfig.scripts.json",
+ "postinstall": "prisma generate && npm run build:scripts",
+    "engagement:daily": "node dist/scripts/runSmartEngagement.js",
+    "engagement:evening": "node dist/scripts/runEveningEngagement.js",
     "test:user": "tsx src/scripts/testSingleUser.ts",
     "test:check-logs": "tsx src/scripts/checkEmailLogs.ts",
     "test:debug": "tsx src/scripts/debugCampaignRun.ts",
@@ -108,7 +109,6 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@esbuild/linux-x64": "^0.25.12",
     "@eslint/js": "^9.33.0",
     "@next/eslint-plugin-next": "^16.0.0",
     "@types/bcryptjs": "^2.4.6",

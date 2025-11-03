@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "module": "CommonJS",
+    "isolatedModules": false,
+    "noEmit": false,
+    "sourceMap": false,
+    "declaration": false
+  },
+  "include": [
+    "src/scripts/**/*.ts",
+    "src/lib/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/app",
+    "src/components",
+    "src/types",
+    "src/middleware.ts"
+  ]
+}
