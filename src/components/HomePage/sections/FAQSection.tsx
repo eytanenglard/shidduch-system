@@ -263,7 +263,8 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/contact">
+              {/* ▼▼▼ כאן השינוי ▼▼▼ */}
+              <Link href={`/${locale}/contact`}>
                 <motion.div
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
@@ -283,6 +284,7 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
                   </Button>
                 </motion.div>
               </Link>
+              {/* ▲▲▲ כאן השינוי ▲▲▲ */}
 
               <div className="flex items-center gap-3 text-gray-600">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>

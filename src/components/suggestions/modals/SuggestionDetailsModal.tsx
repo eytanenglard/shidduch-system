@@ -13,7 +13,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
-
   XCircle,
   MessageCircle,
   X,
@@ -22,24 +21,17 @@ import {
   User,
   Info,
   Heart,
-
   Quote,
-
-
   ArrowLeft,
   ChevronUp,
- 
   GitCompareArrows,
- 
   Calendar,
   ArrowRight,
-
   Lightbulb,
   Puzzle,
   Telescope,
   ChevronDown,
   Rocket,
-
   Maximize,
   Minimize,
   AlertTriangle,
@@ -302,7 +294,6 @@ const EnhancedHeroSection: React.FC<{
             {(personalNote || matchingReason) && (
               <Card className="border-0 shadow-xl bg-gradient-to-br from-cyan-50 to-blue-50 overflow-hidden">
                 <CardContent className="p-6 relative">
-                  {/* 🎨 FIX: Dynamic direction for this whole insight card */}
                   <div
                     className={cn(
                       'flex items-start gap-4',
@@ -350,7 +341,7 @@ const EnhancedHeroSection: React.FC<{
                               <p
                                 className={cn(
                                   'text-cyan-900 leading-relaxed italic font-medium',
-                                  locale === 'he' ? 'text-right' : 'text-left' // 🎨 FIX: Apply text alignment here
+                                  locale === 'he' ? 'text-right' : 'text-left'
                                 )}
                               >
                                 “{personalNote}”
@@ -388,7 +379,7 @@ const EnhancedHeroSection: React.FC<{
                               <p
                                 className={cn(
                                   'text-blue-900 leading-relaxed font-medium',
-                                  locale === 'he' ? 'text-right' : 'text-left' // 🎨 FIX: Apply text alignment here
+                                  locale === 'he' ? 'text-right' : 'text-left'
                                 )}
                               >
                                 “{matchingReason}”
@@ -887,6 +878,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       </div>
                     </div>
                   </div>
+                  {/* ======================= THE FIX IS HERE ======================= */}
                   <UserAiAnalysisDialog
                     suggestedUserId={targetParty.id}
                     dict={dict.suggestions.aiAnalysis}
@@ -898,7 +890,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                         : suggestion.secondParty.firstName
                     }
                     suggestedUserName={targetParty.firstName}
+                    locale={locale} // ✨ הוספנו את ה-prop החסר כאן
                   />
+                  {/* ============================================================= */}
                 </div>
               </TabsContent>
               <TabsContent

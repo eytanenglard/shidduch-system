@@ -147,9 +147,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   const kippahTypeOptions = useGenerateOptions(t.options.kippahType);
   const characterTraitsOptions = useGenerateOptions(t.options.traits, true);
   const hobbiesOptions = useGenerateOptions(t.options.hobbies, true);
-  const contactPreferenceOptions = Object.entries(
-    t.options.contactPreference
-  ).map(([value, label]) => ({ value, label }));
+
 
   useEffect(() => {
     if (profile) {
@@ -163,7 +161,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         preferredHeightMin: nullToUndefined(profile.preferredHeightMin),
         preferredHeightMax: nullToUndefined(profile.preferredHeightMax),
         matchingNotes: profile.matchingNotes ?? '',
-        contactPreference: nullToUndefined(profile.contactPreference),
         preferredShomerNegiah: nullToUndefined(profile.preferredShomerNegiah),
         preferredPartnerHasChildren: nullToUndefined(
           profile.preferredPartnerHasChildren
@@ -449,49 +446,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     </p>
                   )}
                 </div>
-                <div>
-                  <Label
-                    htmlFor="contactPreference"
-                    className="block mb-1.5 text-xs font-medium text-gray-600"
-                  >
-                    {t.cards.general.contactPreferenceLabel}
-                  </Label>
-                  {isEditing ? (
-                    <Select
-                      name="contactPreference"
-                      value={formData.contactPreference || ''}
-                      onValueChange={(value: string) =>
-                        handleSelectChange('contactPreference', value)
-                      }
-                    >
-                      <SelectTrigger
-                        id="contactPreference"
-                        className="h-9 text-sm focus:ring-cyan-500"
-                      >
-                        <SelectValue
-                          placeholder={
-                            t.cards.general.contactPreferencePlaceholder
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {contactPreferenceOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm text-gray-800 font-medium mt-1">
-                      {getSelectDisplayValue(
-                        formData.contactPreference,
-                        contactPreferenceOptions,
-                        t.cards.general.contactPreferenceEmpty
-                      )}
-                    </p>
-                  )}
-                </div>
+           
               </CardContent>
             </Card>
 

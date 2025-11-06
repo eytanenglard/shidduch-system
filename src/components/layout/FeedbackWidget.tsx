@@ -1,3 +1,5 @@
+// --- START OF FILE FeedbackWidget.tsx ---
+
 'use client';
 
 import React, { useState, useRef, useEffect, Fragment } from 'react';
@@ -115,6 +117,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
       if (!isProcessingClick) {
         setIsProcessingClick(true);
         setTimeout(() => {
+          setStep('type'); // FIX: Ensure the widget starts at step 1
           setIsOpen(true);
           setIsProcessingClick(false);
         }, 50);
@@ -132,6 +135,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
       if (!isProcessingClick) {
         setIsProcessingClick(true);
         setTimeout(() => {
+          setStep('type'); // FIX: Ensure the widget starts at step 1
           setIsOpen(true);
           setIsProcessingClick(false);
         }, 50);
@@ -209,6 +213,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
 
     setIsProcessingClick(true);
     setTimeout(() => {
+      setStep('type'); // FIX: Ensure the widget starts at step 1
       setIsOpen(true);
       setIsProcessingClick(false);
     }, 50);
@@ -257,6 +262,8 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
     }
   };
 
+  // ... (שאר הקוד נשאר ללא שינוי)
+  // The rest of the component's JSX remains unchanged.
   return (
     <Fragment>
       {/* Floating Tab Button - Responsive - תמיד בצד ימין */}

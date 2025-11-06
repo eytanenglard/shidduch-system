@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2025-10-09 22:44:12
+# Generated on: 2025-11-04 15:00:13
 ################################################################################
 
 ================================================================================
@@ -17,7 +17,6 @@ Content:
 
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useParams } from 'next/navigation'; // ✨ 1. הוסף ייבוא של useParams
 
 // Import all sections
 import HeroSection from './sections/HeroSection';
@@ -32,7 +31,6 @@ import CTASection from './sections/CTASection';
 import FooterSection from './sections/FooterSection';
 
 // Import external components
-import Navbar from '../layout/Navbar';
 import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
 import CookieBanner from '../ui/CookieBanner';
@@ -209,7 +207,6 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Heart,
   Sparkles,
   BookOpen,
   Target,
@@ -607,7 +604,8 @@ import { Card, CardContent } from "@/components/ui/card";
 
 // Type definitions
 export interface FeatureCardProps {
-  icon: React.ReactNode;
+  // --- The type was changed here to be more specific and solve the error ---
+  icon: React.ReactElement<{ className?: string }>;
   title: string;
   description: string;
   color: "cyan" | "green" | "orange" | "pink";
@@ -662,7 +660,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
           <div
             className={`p-4 rounded-2xl bg-gradient-to-br ${colorClasses[color].bg} shadow-md group-hover:shadow-lg transition-all duration-500 ${colorClasses[color].shadow}`}
           >
-            {React.cloneElement(icon as React.ReactElement, {
+            {React.cloneElement(icon, {
               className: `w-8 h-8 ${colorClasses[color].text} transition-colors duration-500`,
             })}
           </div>
@@ -1018,7 +1016,7 @@ import { UserPlus, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
-import { useSession, signOut } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
 import UserDropdown from '@/components/layout/UserDropdown';
@@ -1086,7 +1084,6 @@ const StickyNav: React.FC<StickyNavProps> = ({
     'open'
   );
   const [isMobile, setIsMobile] = useState(false);
-  const lastScrollY = useRef(0);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -2861,7 +2858,7 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
         </motion.div>
       </div>
 
-      <style jsx>{`
+      <style >{`
         @keyframes float-slow {
           0%,
           100% {
@@ -3293,7 +3290,6 @@ interface MobilePrinciplesTabsProps {
   };
 }
 const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
-  isVisible,
   dict,
 }) => {
   const [activeTab, setActiveTab] = useState(0);
@@ -3372,10 +3368,10 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${activeTab === index ? `bg-gradient-to-br ${principle.gradient} shadow-lg` : 'bg-white/60 shadow-sm'}`}
                   >
-                    {React.cloneElement(principle.icon as React.ReactElement, {
-                      className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
-                      strokeWidth: 2.5,
-                    })}
+                 {React.cloneElement(principle.icon as React.ReactElement<{ className?: string; strokeWidth?: number }>, {
+  className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
+  strokeWidth: 2.5,
+})}
                   </div>
                 </div>
                 <div
@@ -3443,7 +3439,6 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
 
 // --- הרכיב הראשי - מעודכן במלואו ---
 const HeroSection: React.FC<HeroSectionProps> = ({
-  session,
   isVisible,
   dict,
   locale,
@@ -3747,7 +3742,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes gradient-slow {
           0%,
           100% {
@@ -3874,7 +3869,6 @@ import {
   HeartHandshake,
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
-import { usePathname } from 'next/navigation';
 import type {
   HowItWorksDict,
   SuggestionsDictionary,
@@ -5485,7 +5479,7 @@ const OurMethodSection: React.FC<OurMethodProps> = ({ dict }) => {
         <MatchingConstellation dict={dict.constellation} locale={locale} />
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes gentle-pulse {
           0%,
           100% {
@@ -5544,7 +5538,7 @@ interface PrivacyAssuranceProps {
 
 }
 
-const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({ dict, locale }) => {
+const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({ dict }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
@@ -5830,7 +5824,7 @@ const SuccessStoriesSection: React.FC<SuccessStoriesProps> = ({
           className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto"
           variants={containerVariants}
         >
-          {dict.stories.map((testimonial, index) => (
+          {dict.stories.map((testimonial) => (
             <motion.div
               key={testimonial.author}
               variants={cardVariants}

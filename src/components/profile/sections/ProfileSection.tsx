@@ -279,7 +279,7 @@ const StoryAndMoreCard: React.FC<{
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <TooltipProvider>
+           {/*    <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="flex items-center gap-2">
@@ -300,7 +300,7 @@ const StoryAndMoreCard: React.FC<{
                     <p>{tAboutMe.visibilityTooltip}</p>
                   </TooltipContent>
                 </Tooltip>
-              </TooltipProvider>
+              </TooltipProvider> */}
             </div>
             {isEditing ? (
               <div>

@@ -103,7 +103,6 @@ const NavItem = ({
   );
 };
 
-// ✨ עדכון: הוספת isRtl להתאמת כיוון האייקונים והטקסט
 const MobileNavItem = ({
   href,
   text,
@@ -133,7 +132,7 @@ const MobileNavItem = ({
       aria-current={isActive ? 'page' : undefined}
       onClick={onClick}
       className={cn(
-        'flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group gap-4', // ✨ הוספת gap-4
+        'flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group gap-4',
         isActive
           ? 'bg-cyan-100 text-cyan-800 shadow-inner'
           : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
@@ -156,7 +155,7 @@ const MobileNavItem = ({
         <span
           className={cn(
             'bg-pink-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-semibold',
-            isRtl ? 'mr-auto' : 'ml-auto' // ✨ התאמת כיוון
+            isRtl ? 'mr-auto' : 'ml-auto'
           )}
         >
           {badge}
@@ -166,7 +165,6 @@ const MobileNavItem = ({
   );
 };
 
-// ✨ עדכון: הוספת isRtl להתאמת כיוון
 const MobileHomePageLink = ({
   href,
   text,
@@ -193,7 +191,7 @@ const MobileHomePageLink = ({
     <a
       href={href}
       onClick={handleScroll}
-      className="flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group text-gray-700 hover:bg-gray-100 hover:text-gray-900 gap-4" // ✨ הוספת gap-4
+      className="flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group text-gray-700 hover:bg-gray-100 hover:text-gray-900 gap-4"
     >
       <span className="text-gray-500 group-hover:text-gray-700">{icon}</span>
       <span className="flex-grow">{text}</span>
@@ -218,7 +216,6 @@ const Navbar = ({ dict }: NavbarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // ✨ קביעת ה-locale והכיווניות פעם אחת לשימוש חוזר
   const locale = (pathname.split('/')[1] || 'he') as 'he' | 'en';
   const isRtl = locale === 'he';
 
@@ -333,11 +330,14 @@ const Navbar = ({ dict }: NavbarProps) => {
                         <NavItem
                           href="/matchmaker/clients"
                           text={dict.navbar.matchmakerClients}
-                        />{' '}
-                         <NavItem
-      href="/admin/engagement"
-      text={dict.navbar.engagementDashboard || "ניהול Engagement"}
-    />
+                        />
+                        <NavItem
+                          href="/admin/engagement"
+                          text={
+                            dict.navbar.engagementDashboard ||
+                            'ניהול Engagement'
+                          }
+                        />
                       </>
                     ) : (
                       <NavItem
@@ -422,10 +422,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                     <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
                       <span className="relative z-10 flex items-center">
                         <UserPlus
-                          className={cn(
-                            'h-4 w-4',
-                            isRtl ? 'ml-1.5' : 'mr-1.5' // ✨ התאמת כיוון
-                          )}
+                          className={cn('h-4 w-4', isRtl ? 'ml-1.5' : 'mr-1.5')}
                         />
                         {dict.navbar.register}
                       </span>
@@ -455,7 +452,6 @@ const Navbar = ({ dict }: NavbarProps) => {
           aria-hidden="true"
         />
       )}
-      {/* ✨ עדכון: הוספת לוגיקה דינמית למיקום ואנימציה של תפריט המובייל */}
       <div
         className={cn(
           'fixed top-0 z-50 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden',
@@ -488,46 +484,85 @@ const Navbar = ({ dict }: NavbarProps) => {
           {/* Container for scrollable content */}
           <div className="overflow-y-auto flex-grow">
             {session?.user && (
-              <div className="p-4">
-                <div className="p-4 border rounded-xl bg-gray-50/80">
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden`}
-                    >
-                      {mainProfileImage?.url ? (
-                        <Image
-                          src={getRelativeCloudinaryPath(mainProfileImage.url)}
-                          alt={session.user.name || 'תמונת פרופיל'}
-                          fill
-                          className="object-cover rounded-full"
-                          sizes="40px"
-                        />
-                      ) : (
-                        <span className="font-semibold text-xl text-cyan-700 bg-cyan-100 w-full h-full flex items-center justify-center rounded-full">
-                          {getInitials()}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-grow min-w-0">
-                      <div className="font-semibold text-gray-800 truncate">
-                        {session.user.name}
+              <div className="p-4 space-y-3">
+                {/* כרטיס פרופיל עם קישור */}
+                <Link
+                  href={`/${locale}/profile`}
+                  onClick={toggleMobileMenu}
+                  className="block"
+                >
+                  <div className="p-4 border rounded-xl bg-gradient-to-br from-cyan-50/50 to-pink-50/50 hover:from-cyan-100/50 hover:to-pink-100/50 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer group">
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden ring-2 ring-white group-hover:ring-cyan-200 transition-all`}
+                      >
+                        {mainProfileImage?.url ? (
+                          <Image
+                            src={getRelativeCloudinaryPath(
+                              mainProfileImage.url
+                            )}
+                            alt={session.user.name || 'תמונת פרופיל'}
+                            fill
+                            className="object-cover rounded-full"
+                            sizes="40px"
+                          />
+                        ) : (
+                          <span className="font-semibold text-xl text-cyan-700 bg-cyan-100 w-full h-full flex items-center justify-center rounded-full">
+                            {getInitials()}
+                          </span>
+                        )}
                       </div>
-                      <div className="text-sm text-gray-500 truncate">
-                        {session.user.email}
+                      <div className="flex-grow min-w-0">
+                        <div className="font-semibold text-gray-800 truncate group-hover:text-cyan-700 transition-colors">
+                          {session.user.name}
+                        </div>
+                        <div className="text-sm text-gray-500 truncate">
+                          {session.user.email}
+                        </div>
+                        <div className="text-xs text-cyan-600 font-medium mt-1 group-hover:text-cyan-700">
+                          {dict.userDropdown.myProfile} ←
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div
-                    id="onboarding-target-availability-status"
-                    className="mt-4 pt-4 border-t border-gray-200"
-                  >
-                    <AvailabilityStatus
-                      dict={dict.profilePage.availabilityStatus}
-                    />
-                  </div>
+                </Link>
+
+                {/* סטטוס זמינות */}
+                <div
+                  id="onboarding-target-availability-status"
+                  className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm"
+                >
+                  <AvailabilityStatus
+                    dict={dict.profilePage.availabilityStatus}
+                  />
                 </div>
+
+                {/* כפתור שינוי שפה */}
+                <Button
+                  variant="outline"
+                  onClick={handleLanguageChange}
+                  className="w-full border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-pink-50 hover:border-cyan-300 flex items-center justify-between py-3 text-base transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex-shrink-0">
+                      <Globe className="h-5 w-5 text-cyan-600" />
+                      <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gradient-to-r from-cyan-500 to-pink-500 rounded-full flex items-center justify-center border border-white">
+                        <span className="text-[8px] font-bold text-white leading-none">
+                          {locale === 'he' ? 'ע' : 'E'}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="font-semibold text-gray-700">
+                      {locale === 'he' ? 'English' : 'עברית'}
+                    </span>
+                  </div>
+                  <span className="font-bold text-sm bg-gradient-to-r from-cyan-600 to-pink-600 bg-clip-text text-transparent">
+                    {locale === 'he' ? 'EN' : 'HE'}
+                  </span>
+                </Button>
               </div>
             )}
+
             <nav className="space-y-1.5 p-2">
               {session ? (
                 <>
@@ -548,12 +583,14 @@ const Navbar = ({ dict }: NavbarProps) => {
                         isRtl={isRtl}
                       />
                       <MobileNavItem
-  href="/admin/engagement"
-  text={dict.navbar.engagementDashboard || "ניהול Engagement"}
-  icon={<Mail className="h-5 w-5" />}
-  onClick={toggleMobileMenu}
-  isRtl={isRtl}
-/>
+                        href="/admin/engagement"
+                        text={
+                          dict.navbar.engagementDashboard || 'ניהול Engagement'
+                        }
+                        icon={<Mail className="h-5 w-5" />}
+                        onClick={toggleMobileMenu}
+                        isRtl={isRtl}
+                      />
                     </>
                   ) : (
                     <MobileNavItem
@@ -583,6 +620,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                     onClick={toggleMobileMenu}
                     isRtl={isRtl}
                   />
+
                   {isHomePage && homePageLinks.length > 0 && (
                     <>
                       <hr className="my-3" />
@@ -600,14 +638,9 @@ const Navbar = ({ dict }: NavbarProps) => {
                       ))}
                     </>
                   )}
+
                   <hr className="my-3" />
-                  <MobileNavItem
-                    href="/profile"
-                    text={dict.userDropdown.myProfile}
-                    icon={<User className="h-5 w-5" />}
-                    onClick={toggleMobileMenu}
-                    isRtl={isRtl}
-                  />
+
                   <MobileNavItem
                     href="/settings"
                     text={dict.userDropdown.accountSettings}
@@ -617,7 +650,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                   />
                   <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors gap-4" // ✨ הוספת gap-4
+                    className="w-full flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors gap-4"
                   >
                     <LogOut className="h-5 w-5" />
                     <span className="flex-grow text-start">
@@ -627,6 +660,32 @@ const Navbar = ({ dict }: NavbarProps) => {
                 </>
               ) : (
                 <>
+                  {/* כפתור שינוי שפה למשתמשים לא מחוברים */}
+                  <div className="p-4">
+                    <Button
+                      variant="outline"
+                      onClick={handleLanguageChange}
+                      className="w-full border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-pink-50 hover:border-cyan-300 flex items-center justify-between py-3 text-base transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="relative flex-shrink-0">
+                          <Globe className="h-5 w-5 text-cyan-600" />
+                          <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gradient-to-r from-cyan-500 to-pink-500 rounded-full flex items-center justify-center border border-white">
+                            <span className="text-[8px] font-bold text-white leading-none">
+                              {locale === 'he' ? 'ע' : 'E'}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="font-semibold text-gray-700">
+                          {locale === 'he' ? 'English' : 'עברית'}
+                        </span>
+                      </div>
+                      <span className="font-bold text-sm bg-gradient-to-r from-cyan-600 to-pink-600 bg-clip-text text-transparent">
+                        {locale === 'he' ? 'EN' : 'HE'}
+                      </span>
+                    </Button>
+                  </div>
+
                   {isHomePage && homePageLinks.length > 0 && (
                     <>
                       <div className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -644,6 +703,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                       <hr className="my-3" />
                     </>
                   )}
+
                   <MobileNavItem
                     href="/questionnaire"
                     text={dict.navbar.matchmakingQuestionnaire}
@@ -668,40 +728,6 @@ const Navbar = ({ dict }: NavbarProps) => {
                 </>
               )}
             </nav>
-          </div>
-
-          {/* ✨ עדכון: כפתור השפה הועבר לכאן, ומוצמד לתחתית */}
-      {/* ✨ עדכון: כפתור השפה הועבר לכאן, ומוצמד לתחתית */}
-    {/* ✨ עדכון: כפתור השפה הועבר לכאן, ומוצמד לתחתית */}
-          <div className="p-4 border-t border-gray-100 shrink-0">
-            <Button
-              variant="outline"
-              onClick={handleLanguageChange}
-              className="w-full font-medium border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-pink-50 hover:border-cyan-300 flex items-center justify-center py-3 text-base gap-3 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
-            >
-              <div className="relative flex-shrink-0">
-                <Globe className="h-5 w-5 text-cyan-600 transition-transform duration-300 hover:scale-110" />
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-cyan-500 to-pink-500 rounded-full flex items-center justify-center shadow-md border border-white">
-                  <span className="text-[9px] font-bold text-white leading-none">
-                    {locale === 'he' ? 'ע' : 'E'}
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col items-start flex-grow">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-base bg-gradient-to-r from-cyan-600 to-pink-600 bg-clip-text text-transparent">
-                    {locale === 'he' ? 'EN' : 'HE'}
-                  </span>
-                  <span className="text-sm text-gray-400">•</span>
-                  <span className="text-sm font-medium text-gray-600">
-                    {locale === 'he' ? 'English' : 'עברית'}
-                  </span>
-                </div>
-                <span className="text-xs text-gray-400 mt-0.5">
-                  {locale === 'he' ? 'Switch to English' : 'החלף לעברית'}
-                </span>
-              </div>
-            </Button>
           </div>
         </div>
       </div>

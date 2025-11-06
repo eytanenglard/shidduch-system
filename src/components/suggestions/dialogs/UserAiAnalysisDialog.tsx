@@ -32,10 +32,11 @@ import {
   MessageSquare,
   X,
   XCircle,
+  ArrowRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
-import type { AiAnalysisDict } from '@/types/dictionary'; // ✨ Import dictionary type
+import type { AiAnalysisDict } from '@/types/dictionary';
 
 // --- Interfaces ---
 interface UserAiAnalysisDialogProps {
@@ -44,59 +45,60 @@ interface UserAiAnalysisDialogProps {
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
   currentUserName?: string;
   suggestedUserName?: string;
-  dict: AiAnalysisDict; // ✨ Add dict prop
+  dict: AiAnalysisDict;
+  locale: 'he' | 'en';
 }
 
 // --- Demo Data ---
 const mockAnalysisResult: AiSuggestionAnalysisResult = {
   overallScore: 91,
-  matchTitle: 'שילוב של שאפתנות ועומק רגשי',
+  matchTitle: 'A Partnership of Stability and Creativity',
   matchSummary:
-    'החיבור בין דניאל לנועה מציג פוטנציאל גבוה ליצירת זוגיות יציבה וצומחת. השילוב בין האופי המעשי והשאפתני של דניאל לבין העומק הרגשי והיצירתיות של נועה יוצר בסיס מעניין לשותפות ארוכת טווח, המבוססת על ערכים משותפים וכבוד הדדי.',
+    "The connection between Daniel and Noa shows particularly high potential, based on a fascinating balance between shared core values and complementary personalities. The combination of Daniel's practical, ambitious nature and Noa's emotional depth and creativity creates a solid foundation for a long-term partnership.",
   compatibilityPoints: [
     {
-      area: 'ערכים משותפים וראיית עולם',
+      area: 'Shared Values and Worldview',
       explanation:
-        'שניכם רואים בזוגיות שותפות אמת ובמשפחה ערך עליון. הרצון של נועה ב"טוב לב" והרצון של דניאל ב"שותפות" מתחברים באופן מושלם לבסיס של קשר בריא.',
+        'You both see a relationship as a "true partnership" and family as a core value. Noa\'s desire for "kindness" and Daniel\'s emphasis on "integrity and responsibility" connect perfectly to form the basis of a healthy, mature relationship.',
     },
     {
-      area: 'התאמה אינטלקטואלית ורגשית',
+      area: 'Intellectual and Emotional Compatibility',
       explanation:
-        'הרצון של נועה ב"שיחות עומק" והחיפוש אחר אינטליגנציה וסקרנות תואמים את אופיו האנליטי והלמדני של דניאל. יש פוטנציאל לחיבור אינטלקטואלי מרתק.',
+        'Noa\'s desire for "deep conversations" and her search for intelligence and curiosity align with Daniel\'s analytical and scholarly nature. There is potential for a fascinating intellectual connection and conversations late into the night.',
     },
     {
-      area: 'יציבות ואמינות',
+      area: 'Stability and Reliability',
       explanation:
-        'הדגש של דניאל על יושרה ואחריות, והיותו "אדם של עשייה", עונים על הצורך בביטחון ויציבות שחשובים בבניית קשר רציני.',
+        'Daniel\'s emphasis on integrity and responsibility, being a "man of action," meets the need for security and stability that are important in building a serious relationship.',
     },
     {
-      area: 'סגנון חיים מאוזן',
+      area: 'Balanced Lifestyle',
       explanation:
-        'שניכם מעריכים איזון בין פעילות למנוחה, ובין בילויים בחוץ לזמן איכות שקט. האהבה המשותפת לטיולים בטבע יכולה להוות מקור לחוויות משותפות רבות.',
+        'You both appreciate a balance between activity and rest, and between going out and quiet quality time. The shared love for nature hikes can be a source of many common experiences.',
     },
   ],
   pointsToConsider: [
     {
-      area: 'שמירת נגיעה',
+      area: 'Observing Touch (Shomer Negiah)',
       explanation:
-        'נועה, חשוב לדעת שדניאל שומר נגיעה. זוהי נקודה מהותית שכדאי לדבר עליה בפתיחות ובכבוד כדי להבין את המשמעויות עבור שניכם.',
+        "Noa, it's important to know that Daniel observes 'shomer negiah'. This is a significant point to discuss openly and respectfully to understand the implications for both of you.",
     },
     {
-      area: 'מיקום גיאוגרפי',
+      area: 'Geographical Location',
       explanation:
-        'דניאל מתגורר בירושלים ואת בתל אביב. זהו פער שיש לתת עליו את הדעת ולדון בגמישות של שניכם לגבי מקום מגורים עתידי.',
+        'Daniel lives in Jerusalem and you are in Tel Aviv. This is a gap that needs to be considered and discussed regarding your flexibility for a future place of residence.',
     },
     {
-      area: 'שאיפות קריירה שונות',
+      area: 'Different Career Ambitions',
       explanation:
-        'המסלול של דניאל בהייטק מאוד תובעני, בעוד את מחפשת איזון עם עולם היצירה. זו הזדמנות לדבר על איך תומכים אחד בשנייה בשאיפות שונות.',
+        "Daniel's path in high-tech is very demanding, while you are looking for a balance with the world of creativity. This is an opportunity to talk about how to support each other's different aspirations.",
     },
   ],
   suggestedConversationStarters: [
-    'מהי "שותפות" אמיתית בעיניך, ואיך היא באה לידי ביטוי ביום-יום?',
-    'איך אתם מאזנים בין השאיפות המקצועיות שלכם לבין הרצון לחיים אישיים, רוחניים ויצירתיים מלאים?',
-    'ספרו על פרויקט או אתגר שלקחתם על עצמכם ומה למדתם מהתהליך.',
-    'מה הדבר הכי חשוב לכם שבן/בת הזוג יבינו עליכם כבר בהתחלה?',
+    'What is a "true partnership" in your eyes, and how does it manifest in daily life?',
+    'How do you balance your professional ambitions with the desire for a full personal, spiritual, and creative life?',
+    'Tell me about a project or challenge you took on and what you learned from the process.',
+    'What is the most important thing for you that your partner understands about you right from the start?',
   ],
 };
 
@@ -127,12 +129,9 @@ const AnalysisItem: React.FC<{
 const LoadingScreen: React.FC<{
   progress: number;
   step: number;
-  dict: AiAnalysisDict; // ✨ Add dict prop
-}> = ({
-  progress,
-  step,
-  dict,
-}) => {
+  dict: AiAnalysisDict;
+  locale: 'he' | 'en';
+}> = ({ progress, step, dict, locale }) => {
   const loadingSteps = [
     { icon: Brain, label: dict.loadingSteps.step1 },
     { icon: Heart, label: dict.loadingSteps.step2 },
@@ -159,7 +158,9 @@ const LoadingScreen: React.FC<{
       </div>
       <div className="w-full max-w-md space-y-4">
         <Progress value={progress} className="h-3 bg-gray-200" />
-        <p className="text-sm text-gray-500 font-medium">{progress}% הושלם</p>
+        <p className="text-sm text-gray-500 font-medium">
+          {progress}% {locale === 'he' ? 'הושלם' : 'Completed'}
+        </p>
       </div>
       {step < loadingSteps.length && (
         <motion.div
@@ -186,12 +187,9 @@ const LoadingScreen: React.FC<{
 const ErrorScreen: React.FC<{
   error: string;
   onRetry: () => void;
-  dict: AiAnalysisDict; // ✨ Add dict prop
-}> = ({
-  error,
-  onRetry,
-  dict,
-}) => (
+  dict: AiAnalysisDict;
+  locale: 'he' | 'en';
+}> = ({ error, onRetry, dict, locale }) => (
   <div className="flex flex-col items-center justify-center h-full text-center space-y-6 p-8">
     <XCircle className="w-16 h-16 text-red-400" />
     <div className="space-y-4 max-w-md">
@@ -207,7 +205,7 @@ const ErrorScreen: React.FC<{
       </Alert>
     </div>
     <Button onClick={onRetry}>
-      <Brain className="w-4 h-4 ml-2" />
+      <Brain className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')} />
       {dict.retryButton}
     </Button>
   </div>
@@ -223,7 +221,8 @@ export const DialogBody: React.FC<
   currentUserName,
   suggestedUserName,
   onOpenChange,
-  dict, // ✨ Destructure dict
+  dict,
+  locale,
 }) => {
   const [analysis, setAnalysis] = useState<AiSuggestionAnalysisResult | null>(
     null
@@ -281,36 +280,62 @@ export const DialogBody: React.FC<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [suggestedUserId, isDemo]);
 
+  // Correctly set back button icon based on locale
+  const BackButtonIcon = locale === 'he' ? ArrowRight : ArrowLeft;
+  const directionArrow = locale === 'he' ? '⟵' : '⟶';
+
   return (
     <>
-      <DialogHeader className="p-6 border-b flex-row justify-between items-center flex-shrink-0">
-        <div className="flex items-center gap-4">
+      {/* ======================= START: HEADER REDESIGN ======================= */}
+      <DialogHeader className="relative p-6 border-b text-center bg-gradient-to-b from-slate-50 to-white flex-shrink-0">
+        <div className="flex flex-col items-center gap-2">
           <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white shadow-lg">
             <Bot className="w-7 h-7" />
           </div>
-          <div>
-            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              {dict.dialogTitle}
-            </DialogTitle>
-            <DialogDescription className="text-sm">
-              {currentUserName} ⟵ {suggestedUserName}
-            </DialogDescription>
-          </div>
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            {dict.dialogTitle}
+          </DialogTitle>
+          <DialogDescription className="text-base text-gray-500">
+            {currentUserName} {directionArrow} {suggestedUserName}
+          </DialogDescription>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
-          <X className="h-5 w-5" />
-        </Button>
+        <div
+          className={cn(
+            'absolute top-4',
+            locale === 'he' ? 'left-4' : 'right-4'
+          )}
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onOpenChange(false)}
+            className="rounded-full"
+          >
+            <X className="h-5 w-5 text-gray-500" />
+          </Button>
+        </div>
       </DialogHeader>
+      {/* ======================= END: HEADER REDESIGN ======================= */}
 
       <main className="flex-1 flex flex-col min-h-0 bg-white">
         <AnimatePresence mode="wait">
           {isLoading ? (
             <motion.div key="loading" exit={{ opacity: 0 }} className="flex-1">
-              <LoadingScreen progress={loadingProgress} step={currentStep} dict={dict} />
+              <LoadingScreen
+                progress={loadingProgress}
+                step={currentStep}
+                dict={dict}
+                locale={locale}
+              />
             </motion.div>
           ) : error ? (
             <motion.div key="error" exit={{ opacity: 0 }} className="flex-1">
-              <ErrorScreen error={error} onRetry={fetchAnalysis} dict={dict} />
+              <ErrorScreen
+                error={error}
+                onRetry={fetchAnalysis}
+                dict={dict}
+                locale={locale}
+              />
             </motion.div>
           ) : analysis ? (
             <motion.div
@@ -325,12 +350,19 @@ export const DialogBody: React.FC<
               >
                 <TabsList className="mx-4 mt-4 bg-slate-100 p-1 rounded-lg flex-shrink-0">
                   <TabsTrigger value="summary">{dict.tabs.summary}</TabsTrigger>
-                  <TabsTrigger value="consider">{dict.tabs.consider}</TabsTrigger>
-                  <TabsTrigger value="conversation">{dict.tabs.conversation}</TabsTrigger>
+                  <TabsTrigger value="consider">
+                    {dict.tabs.consider}
+                  </TabsTrigger>
+                  <TabsTrigger value="conversation">
+                    {dict.tabs.conversation}
+                  </TabsTrigger>
                 </TabsList>
 
                 <ScrollArea className="flex-1">
-                  <div className="p-6">
+                  {/* ======================= START: LTR ALIGNMENT FIX ======================= */}
+                  {/* This ensures that when the locale is English, the text aligns to the left */}
+                  <div className={cn('p-6', locale === 'en' && 'text-left')}>
+                    {/* ======================= END: LTR ALIGNMENT FIX ======================= */}
                     <TabsContent value="summary" className="space-y-6 mt-0">
                       <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                         <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2 text-blue-600">
@@ -406,7 +438,9 @@ export const DialogBody: React.FC<
       </main>
       <div className="p-4 bg-gray-50/80 border-t flex justify-end flex-shrink-0">
         <Button variant="ghost" onClick={() => onOpenChange(false)}>
-          <ArrowLeft className="w-4 h-4 ml-2" />
+          <BackButtonIcon
+            className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+          />
           {dict.backButton}
         </Button>
       </div>
@@ -419,7 +453,7 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
   props
 ) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { dict } = props;
+  const { dict, locale } = props;
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
@@ -445,7 +479,7 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
       </DialogTrigger>
       <DialogContent
         className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-2xl bg-gray-50 z-[9999]"
-        dir="rtl"
+        dir={locale === 'he' ? 'rtl' : 'ltr'}
         style={{ zIndex: 9999 }}
       >
         {isOpen && <DialogBody {...props} onOpenChange={handleOpenChange} />}
