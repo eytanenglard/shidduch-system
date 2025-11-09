@@ -82,9 +82,9 @@ interface ProfileSectionProps {
   onSave: (data: Partial<UserProfile>) => void;
   dict: ProfileSectionDict;
   locale: string;
-  onCvUpload: (file: File) => Promise<void>; // ✨ Add this
-  onCvDelete: () => Promise<void>; // ✨ Add this
-  isCvUploading: boolean; // ✨ Add this
+  onCvUpload?: (file: File) => Promise<void>; // ✨ Add this
+  onCvDelete?: () => Promise<void>; // ✨ Add this
+  isCvUploading?: boolean; // ✨ Add this
 }
 
 const ensureDateObject = (
@@ -2713,14 +2713,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   {/* --- ✨ START: CV SECTION INTEGRATION ✨ --- */}
   {/* This section is added after CardContent to appear at the bottom of the card */}
-  <CvUploadSection
+<CvUploadSection
     cvUrl={formData.cvUrl}
-    isUploading={isCvUploading}
-    onUpload={onCvUpload}
-    onDelete={onCvDelete}
+    isUploading={isCvUploading ?? false}
+    onUpload={onCvUpload || (async () => {})}
+    onDelete={onCvDelete || (async () => {})}
     disabled={viewOnly || !isEditing}
     dict={dict.cards.education.cvSection}
-  />
+/>
   {/* --- ✨ END: CV SECTION INTEGRATION ✨ --- */}
 
 </Card>
