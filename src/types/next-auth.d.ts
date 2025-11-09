@@ -139,6 +139,8 @@ preferredReligiousJourneys: ReligiousJourney[];
   createdAt: Date; // from PrismaProfile
   updatedAt: Date; // from PrismaProfile
   lastActive?: Date | null;
+  neshamaInsightLastGeneratedAt?: string | null;
+
 
   // Associated user (optional and with optional fields for flexibility)
   user?: {

@@ -5,17 +5,16 @@ import UnifiedProfileDashboard from '@/components/profile/sections/UnifiedProfil
 import { useSearchParams } from 'next/navigation';
 import { ProfilePageDictionary } from '@/types/dictionary';
 
-// ממשק ה-props של ProfilePageContent מעודכן לכלול את locale
+// ממשק ה-props של ProfilePageContent נשאר כפי שהוא
 interface ProfilePageContentProps {
   dict: ProfilePageDictionary;
-  locale: string; // <-- הוספה
+  locale: 'he' | 'en';
 }
 
-// A small wrapper to handle Suspense for useSearchParams
-// הקומפוננטה מקבלת עכשיו locale
+// קומפוננטת התוכן
 const ProfilePageContent = ({ dict, locale }: ProfilePageContentProps) => {
   const searchParams = useSearchParams();
-   const tabFromUrl = searchParams.get('tab');
+  const tabFromUrl = searchParams.get('tab');
   console.log(
     '---[ CLIENT LOG 1 | ProfilePageClient.tsx ]--- קורא את פרמטר ה-URL. הערך של "tab" הוא:',
     tabFromUrl
@@ -23,10 +22,10 @@ const ProfilePageContent = ({ dict, locale }: ProfilePageContentProps) => {
   const viewOnly = searchParams.get('viewOnly') === 'true';
   const userId = searchParams.get('userId') || undefined;
   const initialTab = searchParams.get('tab') || 'overview';
- console.log(
+  console.log(
     `---[ CLIENT LOG 2 | ProfilePageClient.tsx ]--- מגדיר את initialTab לערך "${initialTab}". הערך הזה מועבר ל-UnifiedProfileDashboard.`
   );
-  // הערה: אין צורך ב-dir="rtl" כאן, כי הקומפוננטה הפנימית תטפל בזה
+  
   return (
     <div className="min-h-screen bg-background">
       <UnifiedProfileDashboard
@@ -40,13 +39,13 @@ const ProfilePageContent = ({ dict, locale }: ProfilePageContentProps) => {
   );
 };
 
-// ממשק ה-props של ProfilePageClient מעודכן לכלול את locale
+// ממשק ה-props של ProfilePageClient עודכן
 interface ProfilePageClientProps {
   dict: ProfilePageDictionary;
-  locale: string; // <-- הוספה
+  locale: 'he' | 'en'; // <--- ✨ התיקון כאן
 }
 
-// רכיב הלקוח הראשי מקבל עכשיו גם את המילון וגם את ה-locale
+// רכיב הלקוח הראשי
 const ProfilePageClient = ({ dict, locale }: ProfilePageClientProps) => {
   return (
     <Suspense>

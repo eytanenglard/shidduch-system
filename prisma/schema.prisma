@@ -58,7 +58,7 @@ model User {
   dripCampaign              UserDripCampaign?
 lastOnboardingEmailSent DateTime? // מתי שלחנו מייל onboarding אחרון
   onboardingCompleted     Boolean   @default(false) // סיים את ה-onboarding?
-
+neshamaInsightLastGeneratedAt   DateTime?     
 
   @@index([email])
   @@index([role])
