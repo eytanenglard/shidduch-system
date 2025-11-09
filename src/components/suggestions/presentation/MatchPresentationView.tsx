@@ -204,6 +204,7 @@ interface MatchPresentationViewProps {
   onSwitchTab: (tab: 'profile' | 'details' | 'compatibility') => void;
   dict: SuggestionsPresentationDict;
   aiAnalysisDict: AiAnalysisDict;
+  locale: 'he' | 'en'; // ✨ הוספת המאפיין החסר
 }
 
 const MatchPresentationView: React.FC<MatchPresentationViewProps> = ({
@@ -212,11 +213,17 @@ const MatchPresentationView: React.FC<MatchPresentationViewProps> = ({
   onSwitchTab,
   dict,
   aiAnalysisDict,
+  locale, // ✨ קליטת המאפיין
 }) => {
   const isFirstParty = suggestion.firstPartyId === userId;
   const targetParty = isFirstParty
     ? suggestion.secondParty
     : suggestion.firstParty;
+  
+  // ✨ הוספת משתנים עבור שמות המשתמשים
+  const currentUserParty = isFirstParty
+    ? suggestion.firstParty
+    : suggestion.secondParty;
 
   const handleViewProfile = () => {
     onSwitchTab('profile');
@@ -252,9 +259,13 @@ const MatchPresentationView: React.FC<MatchPresentationViewProps> = ({
         <p className="text-gray-600 max-w-xl mx-auto mb-4">
           {dict.aiCta.description}
         </p>
+        {/* ✨ עדכון הקריאה עם כל המאפיינים הנדרשים */}
         <UserAiAnalysisDialog
           suggestedUserId={targetParty.id}
           dict={aiAnalysisDict}
+          locale={locale}
+          currentUserName={currentUserParty.firstName}
+          suggestedUserName={targetParty.firstName}
         />
       </div>
     </div>
