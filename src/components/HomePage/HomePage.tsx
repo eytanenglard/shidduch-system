@@ -23,6 +23,7 @@ import StickyNav, { NavLink } from './components/StickyNav';
 import CookieBanner from '../ui/CookieBanner';
 import type { Dictionary } from '@/types/dictionary';
 import { generateDemoData } from './components/demo-data';
+import NeshmaInsightSectionB from './sections/NeshmaInsightSectionB';  // ← חדש!
 
 // ✅ 1. הגדרת הטיפוס עבור נתוני הדמו
 type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
@@ -82,7 +83,8 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         locale={locale}
       />
       <ValuePropositionSection dict={dict.valueProposition} />
-
+{/* ✨ תובנת נשמה - גרסה B (Personal Conversation) */}
+<NeshmaInsightSectionB dict={dict.neshmaInsight} locale={locale} />
       <OurMethodSection dict={dict.ourMethod} />
 
       {/* ✅ 4. העברת demoData לרכיב HowItWorksSection פותרת את שגיאת 'Cannot find name' */}
@@ -93,6 +95,8 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         demoData={demoData}
         locale={locale}
       />
+
+
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
       <SuccessStoriesSection dict={dict.successStories} locale={locale} />
       <FAQSection dict={dict.faq} locale={locale} />

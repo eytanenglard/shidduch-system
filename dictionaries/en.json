@@ -160,12 +160,6 @@
       "title_part1": "We see the person",
       "title_part2": "behind the profile",
       "subtitle": "To find a true match, we need to truly know you. That's why we developed a unique method that explores five key worlds that make up who you are. This is how we find a complete connection, not a partial one.",
-      "cta_header": "Your Moment Has Arrived",
-      "cta_title_part1": "Ready to begin your",
-      "cta_title_part2": "journey",
-      "cta_subtitle": "Our unique questionnaire is the first step. It's not technical; it's personal. This is your opportunity to tell us your story, so we can find its next chapter.",
-      "cta_button": "Begin Your Journey",
-      "cta_features": "A Personal Journey • Deep Insights • Absolute Discretion",
       "worlds": [
         {
           "title": "The World of Personality",
@@ -659,7 +653,49 @@
         "UNAVAILABLE": "Unavailable"
       }
     }
+  },
+  "neshmaInsight": {
+  "badge": "Neshama Insight",
+  "title_part1": "Before we begin,",
+  "title_highlight": "let's get clarity",
+  "subtitle": "The search for a meaningful relationship starts in one place - with true self-awareness.",
+  "opening_question": "When was the last time you truly asked yourself: Who am I? What matters to me? And what does the partnership I want to build look like?",
+  "journey": {
+    "title": "Our questionnaire guides you on a structured journey",
+    "steps": [
+      "Deep self-discovery - who you truly are, your values and strengths",
+      "Clear definition of the right partner - not \"someone nice,\" but exactly who",
+      "Real preparation for the journey - how to prepare for meetings and what comes next"
+    ]
+  },
+  "benefits": {
+    "title": "What will you receive at the end?",
+    "items": [
+      {
+        "icon": "heart",
+        "title": "Personal Neshama Insight",
+        "description": "A detailed, structured report summarizing who you are, what you're looking for, and how to move forward with confidence."
+      },
+      {
+        "icon": "compass",
+        "title": "Clear Direction",
+        "description": "Instead of feeling lost, you'll receive a clear roadmap to finding genuine compatibility."
+      },
+      {
+        "icon": "target",
+        "title": "Immediate Value",
+        "description": "The insights you gain will serve you in every conversation with matchmakers, friends, or potential partners."
+      }
+    ]
+  },
+  "value_proposition": "It's like sitting with an experienced matchmaker who knows you deeply. Except this process is immediately available, accessible, and personalized.",
+  "time_investment": "20-30 minutes that could change everything",
+  "cta": {
+    "button": "Begin Your Journey",
+    "subtitle": "No cost, no commitment - just the right first step"
   }
+}
+
 
 
 

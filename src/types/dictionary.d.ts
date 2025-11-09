@@ -98,12 +98,6 @@ export type OurMethodDict = {
     title_part1: string;
     title_part2: string;
     subtitle: string;
-    cta_header: string;
-    cta_title_part1: string;
-    cta_title_part2: string;
-    cta_subtitle: string;
-    cta_button: string;
-    cta_features: string;
     worlds: WorldDict[];
     example_header: string;
     insight_header: string;
@@ -605,6 +599,7 @@ contactPage: ContactPageDict;
   feedbackWidget: FeedbackWidgetDict; // <--- הוסף את השורה הזו
   messagesPage: MessagesPageDict; // <-- הוספנו את המפתח החדש
 admin: AdminDictionary; 
+neshmaInsight: NeshmaInsightDict;  
 };
 export type {
   SuggestionsDictionary,
@@ -1812,6 +1807,31 @@ export type AccessibilityFeaturesDict = {
   };
 };
 // END: Additions for AccessibilityFeatures.tsx
+export interface NeshmaInsightDict {
+  badge: string;
+  title_part1: string;
+  title_highlight: string;
+  subtitle: string;
+  opening_question: string;
+  journey: {
+    title: string;
+    steps: string[];
+  };
+  benefits: {
+    title: string;
+    items: {
+      icon: string;
+      title: string;
+      description: string;
+    }[];
+  };
+  value_proposition: string;
+  time_investment: string;
+  cta: {
+    button: string;
+    subtitle: string;
+  };
+}
 
 export type ProfileSectionDict = {
     // --- הוספות חדשות ---
