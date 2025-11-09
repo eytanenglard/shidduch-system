@@ -417,8 +417,9 @@ export const authOptions: NextAuthOptions = {
           typedToken.language = dbUserForJwt.language; // ✅ עדכון השפה מה-DB
           typedToken.createdAt = dbUserForJwt.createdAt;
           typedToken.updatedAt = dbUserForJwt.updatedAt;
-          typedToken.lastLogin = dbUserForJwt.lastLogin;
-
+typedToken.lastLogin = dbUserForJwt.lastLogin;
+typedToken.neshamaInsightLastGeneratedAt = dbUserForJwt.neshamaInsightLastGeneratedAt;
+typedToken.neshamaInsightGeneratedCount = dbUserForJwt.neshamaInsightGeneratedCount;
           console.log('[JWT Callback] Language updated in token:', typedToken.language);
 
           const questionnaireStatus = await prisma.questionnaireResponse.findFirst({

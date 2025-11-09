@@ -50,15 +50,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check if insight was already generated today
+    if (user.neshamaInsightLastGeneratedAt) {
+      const lastGenerated = new Date(user.neshamaInsightLastGeneratedAt);
+      const now = new Date();
+      const diffTime = now.getTime() - lastGenerated.getTime();
+      const diffHours = diffTime / (1000 * 60 * 60);
+
+      if (diffHours < 24) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              locale === 'he'
+                ? 'ניתן ליצור תובנת נשמה פעם אחת ב-24 שעות. נסה שוב מחר!'
+                : 'You can generate Neshama Insight once every 24 hours. Try again tomorrow!',
+          },
+          { status: 429 } // Too Many Requests
+        );
+      }
+    }
+
     // Verify profile is 100% complete
     const isComplete = await verifyProfileCompletion(user);
-    if (isComplete) {
+    if (!isComplete) {
       return NextResponse.json(
         {
           success: false,
-          message: locale === 'he' 
-            ? 'יש להשלים את הפרופיל ל-100% לפני יצירת התובנה' 
-            : 'Profile must be 100% complete before generating insight',
+          message:
+            locale === 'he'
+              ? 'יש להשלים את הפרופיל ל-100% לפני יצירת התובנה'
+              : 'Profile must be 100% complete before generating insight',
         },
         { status: 400 }
       );
@@ -81,6 +103,10 @@ export async function POST(req: NextRequest) {
     await prisma.user.update({
       where: { id: userId },
       data: {
+        neshamaInsightLastGeneratedAt: new Date(),
+        neshamaInsightGeneratedCount: {
+          increment: 1,
+        },
         updatedAt: new Date(),
       },
     });
@@ -238,7 +264,7 @@ ${isHebrew ? 'שוב, חשוב: כתוב הכל בעברית!' : 'Again, importa
   try {
     // Use Google Generative AI directly
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
-    
+
     const model = genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',
       generationConfig: {

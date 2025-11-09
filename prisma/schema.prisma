@@ -59,6 +59,7 @@ model User {
 lastOnboardingEmailSent DateTime? // מתי שלחנו מייל onboarding אחרון
   onboardingCompleted     Boolean   @default(false) // סיים את ה-onboarding?
 neshamaInsightLastGeneratedAt   DateTime?     
+  neshamaInsightGeneratedCount    Int       @default(0)  // 👈 הוסף שדה זה
 
   @@index([email])
   @@index([role])

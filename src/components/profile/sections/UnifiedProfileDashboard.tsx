@@ -648,23 +648,33 @@ const handleCvDelete = async () => {
                 />
               </div>
               
-              {/* Neshama Insight Button - Only shows when profile is 100% complete */}
-              {completionPercentage >= 1 && (
-                <NeshmaInsightButton
-                  userId={user.id}
-                  locale={locale}
-                  dict={{
-                    buttonText: locale === 'he' ? '✨ תובנת נשמה - הדו"ח האישי שלך מוכן!' : '✨ Your Neshama Insight is Ready!',
-                    buttonSubtitle: locale === 'he' 
-                      ? 'סיימת את הפרופיל! קבלו ניתוח מעמיק ואישי שיעזור לכם להבין את עצמכם טוב יותר ולהתכונן למסע השידוכים.'
-                      : 'You completed your profile! Receive a deep, personalized analysis that will help you understand yourself better and prepare for your dating journey.',
-                    dialogTitle: locale === 'he' ? 'תובנת נשמה - הדו"ח האישי שלך' : 'Your Neshama Insight',
-                    generating: locale === 'he' ? 'יוצרים את התובנה שלך...' : 'Generating your insight...',
-                    downloadPdf: locale === 'he' ? 'הורדה כ-PDF' : 'Download as PDF',
-                    close: locale === 'he' ? 'סגור' : 'Close',
-                  }}
-                />
-              )}
+              
+              {/* Neshama Insight Button - Shows in different states based on profile completion */}
+              <NeshmaInsightButton
+                userId={user.id}
+                locale={locale}
+                completionPercentage={completionPercentage}
+                lastGeneratedAt={user.neshamaInsightLastGeneratedAt}
+                generatedCount={user.neshamaInsightGeneratedCount || 0}
+                dict={{
+                  buttonText: locale === 'he' ? '✨ תובנת נשמה - הדו"ח האישי שלך מוכן!' : '✨ Your Neshama Insight is Ready!',
+                  buttonSubtitle: locale === 'he' 
+                    ? 'סיימת את הפרופיל! קבלו ניתוח מעמיק ואישי שיעזור לכם להבין את עצמכם טוב יותר ולהתכונן למסע השידוכים.'
+                    : 'You completed your profile! Receive a deep, personalized analysis that will help you understand yourself better and prepare for your dating journey.',
+                  dialogTitle: locale === 'he' ? 'תובנת נשמה - הדו"ח האישי שלך' : 'Your Neshama Insight',
+                  generating: locale === 'he' ? 'יוצרים את התובנה שלך...' : 'Generating your insight...',
+                  downloadPdf: locale === 'he' ? 'הורדה כ-PDF' : 'Download as PDF',
+                  close: locale === 'he' ? 'סגור' : 'Close',
+                  lockedTitle: locale === 'he' ? 'תובנת נשמה - נעולה' : 'Neshama Insight - Locked',
+                  lockedDescription: locale === 'he' 
+                    ? `השלם את הפרופיל ל-100% כדי לפתוח (כרגע: ${completionPercentage}%)`
+                    : `Complete your profile to 100% to unlock (Currently: ${completionPercentage}%)`,
+                  alreadyGeneratedToday: locale === 'he' 
+                    ? 'כבר יצרת תובנה היום - זמינה מחר'
+                    : 'Already generated today - Available tomorrow',
+                  minimizedButtonText: locale === 'he' ? 'תובנת נשמה' : 'Neshama Insight',
+                }}
+              />
             </>
           )}
 

@@ -139,7 +139,6 @@ preferredReligiousJourneys: ReligiousJourney[];
   createdAt: Date; // from PrismaProfile
   updatedAt: Date; // from PrismaProfile
   lastActive?: Date | null;
-  neshamaInsightLastGeneratedAt?: string | null;
 
 
   // Associated user (optional and with optional fields for flexibility)
@@ -244,7 +243,8 @@ export interface User extends DefaultUser {
   promotionalEmailsConsent?: boolean;
 
   language: Language; // <-- 2. הוסף את השדה לממשק הראשי
-
+     neshamaInsightLastGeneratedAt?: string | null;
+    neshamaInsightGeneratedCount?: number;
 }
 
 export interface Verification {
@@ -322,6 +322,9 @@ declare module 'next-auth' {
      termsAndPrivacyAcceptedAt?: Date | null;
      questionnaireCompleted?: boolean;
     hasCompletedOnboarding?: boolean; // <-- הוספה כאן
+        neshamaInsightLastGeneratedAt?: Date | string | null;
+    neshamaInsightGeneratedCount?: number;
+
   }
 }
 

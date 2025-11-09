@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,14 +10,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Sparkles, Loader2, Download } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Sparkles, Loader2, Download, Lock, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface NeshmaInsightButtonProps {
   userId: string;
   locale: 'he' | 'en';
+  completionPercentage: number; // מקבלים את אחוז ההשלמה
+  lastGeneratedAt?: string | null; // תאריך יצירה אחרון
+  generatedCount?: number; // כמה פעמים נוצר
   dict: {
     buttonText: string;
     buttonSubtitle: string;
@@ -25,20 +28,68 @@ interface NeshmaInsightButtonProps {
     generating: string;
     downloadPdf: string;
     close: string;
+    lockedTitle?: string;
+    lockedDescription?: string;
+    alreadyGeneratedToday?: string;
+    minimizedButtonText?: string;
   };
 }
 
 export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
   userId,
   locale,
+  completionPercentage,
+  lastGeneratedAt,
+  generatedCount = 0,
   dict,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [insightData, setInsightData] = useState<any>(null);
+  const [isMinimized, setIsMinimized] = useState(false);
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
+  // בדיקה אם הפרופיל מלא מספיק
+  const isProfileComplete = completionPercentage >= 100;
+  
+  // בדיקה אם כבר נוצרה תובנה היום
+  const canGenerateToday = () => {
+    if (!lastGeneratedAt) return true;
+    const lastGenDate = new Date(lastGeneratedAt);
+    const today = new Date();
+    const diffTime = today.getTime() - lastGenDate.getTime();
+    const diffHours = diffTime / (1000 * 60 * 60);
+    return diffHours >= 24;
+  };
+
+  const hasGeneratedBefore = generatedCount > 0;
+  const canGenerate = isProfileComplete && canGenerateToday();
+
+  // אם כבר נוצרה תובנה פעם, הצג באופן ממוזער אוטומטית
+  useEffect(() => {
+    if (hasGeneratedBefore && isProfileComplete) {
+      setIsMinimized(true);
+    }
+  }, [hasGeneratedBefore, isProfileComplete]);
+
   const handleGenerateInsight = async () => {
+    if (!canGenerate) {
+      if (!isProfileComplete) {
+        toast.error(
+          locale === 'he'
+            ? 'יש להשלים את הפרופיל ל-100% כדי לקבל תובנת נשמה'
+            : 'Complete your profile to 100% to get Neshama Insight'
+        );
+      } else if (!canGenerateToday()) {
+        toast.error(
+          locale === 'he'
+            ? 'ניתן ליצור תובנת נשמה פעם אחת ב-24 שעות'
+            : 'You can generate Neshama Insight once every 24 hours'
+        );
+      }
+      return;
+    }
+
     setIsOpen(true);
     setIsGenerating(true);
 
@@ -52,7 +103,8 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate insight');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate insight');
       }
 
       const data = await response.json();
@@ -62,12 +114,18 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
           ? 'התובנה נוצרה בהצלחה!'
           : 'Insight generated successfully!'
       );
-    } catch (error) {
+      
+      // רענן את הדף כדי לעדכן את הסטטוס
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error: any) {
       console.error('Error generating insight:', error);
       toast.error(
-        locale === 'he'
-          ? 'אירעה שגיאה ביצירת התובנה'
-          : 'Error generating insight'
+        error.message ||
+          (locale === 'he'
+            ? 'אירעה שגיאה ביצירת התובנה'
+            : 'Error generating insight')
       );
       setIsOpen(false);
     } finally {
@@ -75,14 +133,151 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
     }
   };
 
+  // אם הפרופיל לא מלא - הצג גרסה מוקטנת ונעולה
+  if (!isProfileComplete) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="my-6"
+      >
+        <div className="relative group opacity-60">
+          <div className="relative bg-gradient-to-br from-purple-50/50 via-pink-50/50 to-cyan-50/50 rounded-2xl p-4 shadow-md border border-gray-200">
+            <div className="flex items-center gap-3">
+              {/* Icon with lock */}
+              <div className="relative">
+                <div className="bg-gradient-to-br from-purple-400 via-pink-400 to-cyan-400 p-3 rounded-xl">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <div className="absolute -top-1 -end-1 bg-white rounded-full p-1 shadow-md">
+                  <Lock className="w-3 h-3 text-gray-600" />
+                </div>
+              </div>
+
+              {/* Text */}
+              <div className="flex-1">
+                <h4 className="text-sm font-bold text-gray-700">
+                  {dict.lockedTitle || 
+                    (locale === 'he' ? 'תובנת נשמה - נעולה' : 'Neshama Insight - Locked')}
+                </h4>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {dict.lockedDescription ||
+                    (locale === 'he'
+                      ? `השלם את הפרופיל ל-100% כדי לפתוח (כרגע: ${completionPercentage}%)`
+                      : `Complete your profile to 100% to unlock (Currently: ${completionPercentage}%)`)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // אם כבר נוצרה תובנה - הצג גרסה ממוזערת
+  if (isMinimized && hasGeneratedBefore) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="my-6"
+      >
+        <div className="relative bg-white/70 rounded-2xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 p-2 rounded-lg">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800">
+                  {dict.minimizedButtonText || 
+                    (locale === 'he' ? 'תובנת נשמה' : 'Neshama Insight')}
+                </h4>
+                <p className="text-xs text-gray-500">
+                  {canGenerateToday()
+                    ? locale === 'he'
+                      ? 'לחץ ליצירת תובנה מעודכנת'
+                      : 'Click to generate updated insight'
+                    : dict.alreadyGeneratedToday ||
+                      (locale === 'he'
+                        ? 'נוצרה היום - זמינה מחר'
+                        : 'Generated today - Available tomorrow')}
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={handleGenerateInsight}
+              disabled={!canGenerate}
+              size="sm"
+              className={cn(
+                'gap-1.5 rounded-full text-xs',
+                canGenerate
+                  ? 'bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white'
+                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              )}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              {locale === 'he' ? 'צור מחדש' : 'Regenerate'}
+            </Button>
+          </div>
+        </div>
+
+        {/* Dialog */}
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogContent
+            className="max-w-4xl max-h-[90vh] overflow-y-auto"
+            dir={direction}
+          >
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-purple-600" />
+                {dict.dialogTitle}
+              </DialogTitle>
+            </DialogHeader>
+
+            {isGenerating ? (
+              <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                <Loader2 className="w-16 h-16 text-purple-600 animate-spin" />
+                <p className="text-gray-600 text-lg">{dict.generating}</p>
+                <p className="text-gray-500 text-sm">
+                  {locale === 'he'
+                    ? 'אנחנו מנתחים את הפרופיל שלך ויוצרים תובנה מותאמת אישית...'
+                    : 'Analyzing your profile and creating personalized insights...'}
+                </p>
+              </div>
+            ) : insightData ? (
+              <NeshmaInsightDisplay
+                data={insightData}
+                locale={locale}
+                dict={dict}
+              />
+            ) : null}
+          </DialogContent>
+        </Dialog>
+      </motion.div>
+    );
+  }
+
+  // גרסה מלאה - כאשר הפרופיל מלא ועדיין לא נוצרה תובנה
   return (
     <>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="my-8"
+        className="my-8 relative"
       >
+        {/* כפתור X להקטנה */}
+        <button
+          onClick={() => setIsMinimized(true)}
+          className="absolute top-4 end-4 z-10 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-all"
+          aria-label={locale === 'he' ? 'הקטן' : 'Minimize'}
+        >
+          <X className="w-4 h-4 text-gray-600" />
+        </button>
+
         <div className="relative group">
           {/* Magical glow effect */}
           <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-500 rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition duration-500 animate-pulse"></div>
@@ -120,12 +315,27 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
               {/* CTA Button */}
               <Button
                 onClick={handleGenerateInsight}
+                disabled={!canGenerate}
                 size="lg"
-                className="mt-4 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 hover:from-purple-700 hover:via-pink-700 hover:to-cyan-700 text-white font-semibold px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
+                className={cn(
+                  'mt-4 font-semibold px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-lg',
+                  canGenerate
+                    ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 hover:from-purple-700 hover:via-pink-700 hover:to-cyan-700 text-white'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                )}
               >
                 <Sparkles className="w-5 h-5 me-2" />
                 {locale === 'he' ? 'קבלו את התובנה שלכם' : 'Get Your Insight'}
               </Button>
+
+              {!canGenerateToday() && (
+                <p className="text-xs text-orange-600 mt-2">
+                  {dict.alreadyGeneratedToday ||
+                    (locale === 'he'
+                      ? 'כבר יצרת תובנה היום. נסה שוב מחר!'
+                      : 'You already generated an insight today. Try again tomorrow!')}
+                </p>
+              )}
             </div>
           </div>
         </div>
