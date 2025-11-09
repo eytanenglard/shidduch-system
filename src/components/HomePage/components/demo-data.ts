@@ -98,6 +98,8 @@ export const generateDemoData = async (locale: Locale) => {
       isAboutVisible: true,
       isFriendsSectionVisible: true,
       isNeshamaTechSummaryVisible: true,
+       cvUrl: null,
+      cvSummary: null,
       testimonials: [
         {
           id: 'testimonial-noa-1',
@@ -163,6 +165,8 @@ export const generateDemoData = async (locale: Locale) => {
       isAboutVisible: true,
       isFriendsSectionVisible: true,
       isNeshamaTechSummaryVisible: true,
+       cvUrl: null,
+      cvSummary: null,
       testimonials: [
         {
           id: 'testimonial-daniel-1',
