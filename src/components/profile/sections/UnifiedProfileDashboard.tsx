@@ -12,6 +12,7 @@ import type { User as SessionUserType } from '@/types/next-auth';
 // Child Components
 import { ProfileChecklist } from './ProfileChecklist';
 import { AIProfileAdvisorDialog } from './AIProfileAdvisorDialog';
+import { NeshmaInsightButton } from './NeshmaInsightButton';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -47,7 +48,7 @@ interface UnifiedProfileDashboardProps {
   userId?: string;
   initialTab?: string;
   dict: ProfilePageDictionary;
-  locale: string; // Added locale prop
+  locale: 'he' | 'en';
 }
 
 const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
@@ -86,6 +87,7 @@ const [isCvUploading, setIsCvUploading] = useState(false);
   const [hasSeenPreview, setHasSeenPreview] = useState(
     session?.user?.profile?.hasViewedProfilePreview || false
   );
+  const [completionPercentage, setCompletionPercentage] = useState(0);
   const direction = locale === 'he' ? 'rtl' : 'ltr'; // Define direction based on locale
 
   useEffect(() => {
@@ -635,6 +637,7 @@ const handleCvDelete = async () => {
                 dict={dict.dashboard.checklist}
                 locale={locale} // Added
                 onNavigateToTab={handleTabChange} // <-- הוסף שורה זו
+                onCompletionChange={setCompletionPercentage} // Track completion
               />
               <div className="my-6 md:my-8 flex justify-center">
                 <AIProfileAdvisorDialog
@@ -644,6 +647,24 @@ const handleCvDelete = async () => {
                   locale={locale}
                 />
               </div>
+              
+              {/* Neshama Insight Button - Only shows when profile is 100% complete */}
+              {completionPercentage >= 1 && (
+                <NeshmaInsightButton
+                  userId={user.id}
+                  locale={locale}
+                  dict={{
+                    buttonText: locale === 'he' ? '✨ תובנת נשמה - הדו"ח האישי שלך מוכן!' : '✨ Your Neshama Insight is Ready!',
+                    buttonSubtitle: locale === 'he' 
+                      ? 'סיימת את הפרופיל! קבלו ניתוח מעמיק ואישי שיעזור לכם להבין את עצמכם טוב יותר ולהתכונן למסע השידוכים.'
+                      : 'You completed your profile! Receive a deep, personalized analysis that will help you understand yourself better and prepare for your dating journey.',
+                    dialogTitle: locale === 'he' ? 'תובנת נשמה - הדו"ח האישי שלך' : 'Your Neshama Insight',
+                    generating: locale === 'he' ? 'יוצרים את התובנה שלך...' : 'Generating your insight...',
+                    downloadPdf: locale === 'he' ? 'הורדה כ-PDF' : 'Download as PDF',
+                    close: locale === 'he' ? 'סגור' : 'Close',
+                  }}
+                />
+              )}
             </>
           )}
 

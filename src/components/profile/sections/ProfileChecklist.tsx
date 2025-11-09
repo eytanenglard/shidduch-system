@@ -260,6 +260,7 @@ interface ProfileChecklistProps {
   dict: ProfileChecklistDict;
   locale: string; // Added: locale prop for directionality
   onNavigateToTab: (tab: string) => void; // <-- הוסף שורה זו
+  onCompletionChange?: (percentage: number) => void; // Track completion percentage
 }
 
 export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
@@ -270,6 +271,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   dict,
   locale, // Added: destructure locale
   onNavigateToTab, // <-- הוסף את זה
+  onCompletionChange, // Track completion
 }) => {
   const [isMinimized, setIsMinimized] = useState(true);
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
@@ -646,6 +648,13 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   }, [user, questionnaireProgress, hasSeenPreview]);
 
   const isAllComplete = completionPercentage >= 100;
+
+  // Notify parent component of completion percentage changes
+  React.useEffect(() => {
+    if (onCompletionChange) {
+      onCompletionChange(completionPercentage);
+    }
+  }, [completionPercentage, onCompletionChange]);
 
   return (
     <AnimatePresence>
