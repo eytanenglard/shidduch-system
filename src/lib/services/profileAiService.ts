@@ -227,6 +227,9 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
   if (user.source === 'MANUAL_ENTRY' && profile.manualEntryText) {
     narrativeParts.push(`\n**הערת שדכן (למועמד ידני):** ${profile.manualEntryText}`);
   }
+  if (profile.cvSummary) {
+    narrativeParts.push(`## ניתוח קורות חיים (מבוסס AI)\n${profile.cvSummary}`);
+  }
 
   if (profile.about) {
     narrativeParts.push(`## קצת עליי (מהפרופיל)\n"${profile.about}"`);

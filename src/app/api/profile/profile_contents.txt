@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile
-# Generated on: 2025-10-27 15:37:29
+# Generated on: 2025-11-09 10:30:56
 ################################################################################
 
 ================================================================================
@@ -182,7 +182,8 @@ export async function GET(req: Request) {
         ? dbProfile.medicalInfoDetails ?? undefined 
         : undefined,      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
-      
+       cvUrl: dbProfile.cvUrl,
+      cvSummary: dbProfile.cvSummary,
       // מידע בסיסי על המשתמש
       user: {
         id: userWithProfile.id,
@@ -256,6 +257,10 @@ export async function PUT(req: Request) {
         }
       }
     });
+await prisma.user.update({
+  where: { id: session.user.id },
+  data: { updatedAt: new Date() }
+});
 
     return NextResponse.json({
       success: true,
@@ -269,6 +274,128 @@ export async function PUT(req: Request) {
       { status: 500 }
     );
   }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\cv
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\cv\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/profile/cv/route.ts
+
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth'; // Adjust path if needed
+import prisma from '@/lib/prisma'; // Adjust path if needed
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary with your credentials
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// --- POST Handler for uploading a CV ---
+export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+  }
+  const userId = session.user.id;
+
+  try {
+    const formData = await req.formData();
+    const file = formData.get('cv') as File | null;
+
+    if (!file) {
+      return NextResponse.json({ success: false, message: 'No file provided' }, { status: 400 });
+    }
+
+    // Convert file to buffer
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    // Upload to Cloudinary
+    const uploadResult = await new Promise<any>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                resource_type: 'raw', // Use 'raw' for non-image files like PDF/DOCX
+                folder: `users/${userId}/cvs`, // Organize files in a structured way
+                public_id: `${file.name}-${Date.now()}`, // Create a unique file name
+            },
+            (error, result) => {
+                if (error) reject(error);
+                resolve(result);
+            }
+        );
+        uploadStream.end(buffer);
+    });
+    
+    if (!uploadResult?.secure_url) {
+        throw new Error('Cloudinary upload failed');
+    }
+
+    // Update user's profile in the database
+    const updatedProfile = await prisma.profile.update({
+      where: { userId },
+      data: {
+        cvUrl: uploadResult.secure_url,
+      },
+    });
+
+    // TODO: In the future, trigger the AI summary generation here (async)
+    // For example: await generateCvSummary(userId, uploadResult.secure_url);
+
+    return NextResponse.json({ success: true, profile: updatedProfile });
+  } catch (error) {
+    console.error('CV Upload API Error:', error);
+    return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+
+// --- DELETE Handler for deleting a CV ---
+export async function DELETE(req: Request) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = session.user.id;
+  
+    try {
+        const profile = await prisma.profile.findUnique({
+            where: { userId },
+            select: { cvUrl: true },
+        });
+
+        if (profile?.cvUrl) {
+            // Extract public_id from URL to delete from Cloudinary
+            const publicIdMatch = profile.cvUrl.match(/\/users\/.*\/cvs\/(.*)/);
+            if (publicIdMatch && publicIdMatch[1]) {
+                const publicId = `users/${userId}/cvs/${decodeURIComponent(publicIdMatch[1])}`;
+                await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+            }
+        }
+
+        // Remove the URL from the user's profile
+        const updatedProfile = await prisma.profile.update({
+            where: { userId },
+            data: {
+                cvUrl: null,
+                cvSummary: null, // Also clear the summary when CV is deleted
+            },
+        });
+
+        return NextResponse.json({ success: true, profile: updatedProfile });
+    } catch (error) {
+        console.error('CV Delete API Error:', error);
+        return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
+    }
 }
 --- End of Content for route.ts ---
 
@@ -453,6 +580,10 @@ const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15,
         isMain: isFirstImage,
       },
     });
+await prisma.user.update({
+  where: { id: session.user.id },
+  data: { updatedAt: new Date() }
+});
 
     console.log(
       `[Upload] Database save completed in ${Date.now() - startTime}ms`
@@ -916,7 +1047,10 @@ export async function PATCH(req: Request) {
        where: { userId },
        data: { needsAiProfileUpdate: true }
      });
-
+await prisma.user.update({
+  where: { id: userId },
+  data: { updatedAt: new Date() }
+});
     const formattedAnswers: Partial<FormattedAnswersType> = {};
     (Object.keys(KEY_MAPPING) as WorldId[]).forEach(key => {
        const currentDbKey = KEY_MAPPING[key];
@@ -1686,6 +1820,8 @@ export async function PUT(req: NextRequest) {
       medicalInfoDetails,
       medicalInfoDisclosureTiming,
       isMedicalInfoVisible,
+        cvUrl,
+      cvSummary,
     } = body as Partial<UserProfile>;
 
     const dataToUpdate: Prisma.ProfileUpdateInput = {};
@@ -1797,7 +1933,8 @@ export async function PUT(req: NextRequest) {
     if (medicalInfoDetails !== undefined) dataToUpdate.medicalInfoDetails = emptyStringToNull(medicalInfoDetails);
     if (medicalInfoDisclosureTiming !== undefined) dataToUpdate.medicalInfoDisclosureTiming = emptyStringToNull(medicalInfoDisclosureTiming);
     if (isMedicalInfoVisible !== undefined) dataToUpdate.isMedicalInfoVisible = isMedicalInfoVisible;
-
+  if (cvUrl !== undefined) dataToUpdate.cvUrl = emptyStringToNull(cvUrl);
+    if (cvSummary !== undefined) dataToUpdate.cvSummary = emptyStringToNull(cvSummary);
     // --- Availability ---
     if (availabilityStatus !== undefined) {
       const statusValue = emptyStringToNull(availabilityStatus);
@@ -1925,6 +2062,8 @@ export async function PUT(req: NextRequest) {
       preferredHobbies: dbProfile.preferredHobbies || [],                 
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
       hasViewedProfilePreview: dbProfile.hasViewedProfilePreview, 
+      cvUrl: dbProfile.cvUrl,
+      cvSummary: dbProfile.cvSummary,
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,

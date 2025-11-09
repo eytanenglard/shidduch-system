@@ -164,7 +164,8 @@ export async function GET(req: Request) {
         ? dbProfile.medicalInfoDetails ?? undefined 
         : undefined,      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
-      
+       cvUrl: dbProfile.cvUrl,
+      cvSummary: dbProfile.cvSummary,
       // מידע בסיסי על המשתמש
       user: {
         id: userWithProfile.id,

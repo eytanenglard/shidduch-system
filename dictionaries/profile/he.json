@@ -653,19 +653,38 @@
           "hiddenBadge": "דיסקרטי (לצוות בלבד)"
         }
       },
-      "education": {
-        "title": "השכלה, עיסוק ושירות",
-        "levelLabel": "רמת השכלה",
-        "levelPlaceholder": "בחר/י רמה",
-        "detailsLabel": "פירוט השכלה (מוסד, תחום)",
-        "detailsPlaceholder": "לדוגמה: אוני' בר אילן, משפטים",
-        "occupationLabel": "עיסוק נוכחי",
-        "occupationPlaceholder": "לדוגמה: מורה, מהנדס תוכנה",
-        "serviceTypeLabel": "שירות (צבאי/לאומי/אחר)",
-        "serviceTypePlaceholder": "בחר/י סוג שירות",
-        "serviceDetailsLabel": "פירוט על השירות",
-        "serviceDetailsPlaceholder": "חיל, יחידה, תפקיד, שם ישיבה/מכינה"
-      },
+
+"education": {
+  "title": "השכלה, עיסוק ושירות",
+  "levelLabel": "רמת השכלה",
+  "levelPlaceholder": "בחר/י רמה",
+  "detailsLabel": "פירוט השכלה (מוסד, תחום)",
+  "detailsPlaceholder": "לדוגמה: אוני' בר אילן, משפטים",
+  "occupationLabel": "עיסוק נוכחי",
+  "occupationPlaceholder": "לדוגמה: מורה, מהנדס תוכנה",
+  "serviceTypeLabel": "שירות (צבאי/לאומי/אחר)",
+  "serviceTypePlaceholder": "בחר/י סוג שירות",
+  "serviceDetailsLabel": "פירוט על השירות",
+  "serviceDetailsPlaceholder": "חיל, יחידה, תפקיד, שם ישיבה/מכינה",
+  "cvSection": {
+    "title": "העלאת קורות חיים (אופציונלי)",
+    "subtitle": "עזרו לנו להכיר אתכם טוב יותר. הקובץ דיסקרטי ומשמש את צוות השדכנים בלבד.",
+    "uploadButton": "בחירת קובץ",
+    "replaceButton": "החלף קובץ",
+    "deleteButton": "מחק",
+    "uploading": "מעלה קובץ...",
+    "successBadge": "הועלה בהצלחה",
+    "fileTypes": "PDF, DOC, DOCX (עד 5MB)",
+    "toasts": {
+      "invalidFileType": "סוג קובץ לא נתמך. יש להעלות PDF, DOC או DOCX.",
+      "fileTooLarge": "הקובץ גדול מדי. הגודל המקסימלי הוא 5MB.",
+      "uploadSuccess": "קורות החיים הועלו בהצלחה!",
+      "uploadError": "אירעה שגיאה בהעלאת הקובץ.",
+      "deleteSuccess": "קורות החיים נמחקו בהצלחה!",
+      "deleteError": "אירעה שגיאה במחיקת הקובץ."
+    }
+  }
+},
       "character": {
         "title": "תכונות אופי ותחביבים",
         "traitsLabel": "תכונות אופי בולטות (עד 3)",
@@ -686,10 +705,14 @@
       "influentialRabbi": "ספר/י על דמות (רב, רבנית, הוגה דעות) שהשפיעה על תפיסת עולמך. זה עוזר לנו להבין את הגוון הרוחני שלך.",
       "privateNotes": "מידע שחשוב לנו לדעת כדי למצוא התאמה טובה, אך לא תרצה/י שיופיע בפרופיל הגלוי. למשל: נושאים רגישים, העדפות ספציפיות מאוד, או רקע נוסף."
     },
-    "toasts": {
-      "validationErrorTitle": "שגיאת ולידציה",
-      "aboutMinLength": "השדה 'קצת עליי' חייב להכיל לפחות {{count}} תווים."
-    },
+"toasts": {
+  "validationErrorTitle": "שגיאת ולידציה",
+  "aboutMinLength": "השדה 'קצת עליי' חייב להכיל לפחות {{count}} תווים.",
+  "uploadSuccess": "קורות החיים הועלו בהצלחה!",
+  "uploadError": "אירעה שגיאה בהעלאת הקובץ.",
+  "deleteSuccess": "קורות החיים נמחקו בהצלחה!",
+  "deleteError": "אירעה שגיאה במחיקת הקובץ."
+},
     "options": {
       "gender": {
         "MALE": "זכר",

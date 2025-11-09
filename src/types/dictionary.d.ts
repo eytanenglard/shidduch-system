@@ -1964,6 +1964,7 @@ export type ProfileSectionDict = {
       serviceTypePlaceholder: string;
       serviceDetailsLabel: string;
       serviceDetailsPlaceholder: string;
+      cvSection: CvSectionDict;
     };
     character: {
       title: string;
@@ -1988,6 +1989,10 @@ export type ProfileSectionDict = {
   toasts: {
     validationErrorTitle: string;
     aboutMinLength: string; // Placeholder: {{count}}
+     uploadSuccess: string;
+    uploadError: string;
+    deleteSuccess: string;
+    deleteError: string;
   };
   options: {
     gender: {
@@ -3066,5 +3071,26 @@ export type AvailabilityRequestCardDict = {
   };
   responses: {
     [key: string]: string; // PENDING, AVAILABLE, UNAVAILABLE
+  };
+};
+
+// בקובץ: src/types/dictionary.d.ts
+
+export type CvSectionDict = {
+  title: string;
+  subtitle: string;
+  uploadButton: string;
+  replaceButton: string;
+  deleteButton: string;
+  uploading: string;
+  successBadge: string;
+  fileTypes: string;
+  toasts: {
+    invalidFileType: string;
+    fileTooLarge: string;
+    uploadSuccess: string;
+    uploadError: string;
+    deleteSuccess: string;
+    deleteError: string;
   };
 };

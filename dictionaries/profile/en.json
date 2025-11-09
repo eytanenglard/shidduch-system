@@ -398,19 +398,38 @@
           "hiddenBadge": "Discreet (team only)"
         }
       },
-      "education": {
-        "title": "Education, Career & Service",
-        "levelLabel": "Highest Level of Education",
-        "levelPlaceholder": "Select level",
-        "detailsLabel": "Education Details (Institution, Field)",
-        "detailsPlaceholder": "e.g., Bar-Ilan University, Law",
-        "occupationLabel": "Current Occupation",
-        "occupationPlaceholder": "e.g., Teacher, Software Engineer",
-        "serviceTypeLabel": "Service (Military/National/Other)",
-        "serviceTypePlaceholder": "Select service type",
-        "serviceDetailsLabel": "Service Details",
-        "serviceDetailsPlaceholder": "Unit, role, yeshiva/mechina name, etc."
-      },
+
+"education": {
+  "title": "Education, Career & Service",
+  "levelLabel": "Highest Level of Education",
+  "levelPlaceholder": "Select level",
+  "detailsLabel": "Education Details (Institution, Field)",
+  "detailsPlaceholder": "e.g., Bar-Ilan University, Law",
+  "occupationLabel": "Current Occupation",
+  "occupationPlaceholder": "e.g., Teacher, Software Engineer",
+  "serviceTypeLabel": "Service (Military/National/Other)",
+  "serviceTypePlaceholder": "Select service type",
+  "serviceDetailsLabel": "Service Details",
+  "serviceDetailsPlaceholder": "Unit, role, yeshiva/mechina name, etc.",
+  "cvSection": {
+    "title": "Upload CV (Optional)",
+    "subtitle": "Help us get to know you better. The file is confidential and used by our matchmaking team only.",
+    "uploadButton": "Choose File",
+    "replaceButton": "Replace File",
+    "deleteButton": "Delete",
+    "uploading": "Uploading file...",
+    "successBadge": "Successfully Uploaded",
+    "fileTypes": "PDF, DOC, DOCX (up to 5MB)",
+    "toasts": {
+      "invalidFileType": "Unsupported file type. Please upload a PDF, DOC, or DOCX.",
+      "fileTooLarge": "The file is too large. The maximum size is 5MB.",
+      "uploadSuccess": "CV uploaded successfully!",
+      "uploadError": "An error occurred while uploading the file.",
+      "deleteSuccess": "CV deleted successfully!",
+      "deleteError": "An error occurred while deleting the file."
+    }
+  }
+},
       "character": {
         "title": "Character Traits & Hobbies",
         "traitsLabel": "My Top 3 Character Traits",
@@ -431,10 +450,14 @@
       "influentialRabbi": "Tell us about a figure (rabbi, thinker, teacher) who has shaped your worldview. This helps us understand your spiritual and intellectual side.",
       "privateNotes": "Share anything important for us to know that you don't want on your public profile. e.g., sensitive topics, very specific preferences, or additional background."
     },
-    "toasts": {
-      "validationErrorTitle": "Validation Error",
-      "aboutMinLength": "The 'About Me' field must contain at least {{count}} characters."
-    },
+"toasts": {
+  "validationErrorTitle": "Validation Error",
+  "aboutMinLength": "The 'About Me' field must contain at least {{count}} characters.",
+  "uploadSuccess": "CV uploaded successfully!",
+  "uploadError": "An error occurred while uploading the file.",
+  "deleteSuccess": "CV deleted successfully!",
+  "deleteError": "An error occurred while deleting the file."
+},
     "options": {
       "gender": {
         "MALE": "Male",

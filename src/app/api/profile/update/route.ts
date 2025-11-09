@@ -163,6 +163,8 @@ export async function PUT(req: NextRequest) {
       medicalInfoDetails,
       medicalInfoDisclosureTiming,
       isMedicalInfoVisible,
+        cvUrl,
+      cvSummary,
     } = body as Partial<UserProfile>;
 
     const dataToUpdate: Prisma.ProfileUpdateInput = {};
@@ -274,7 +276,8 @@ export async function PUT(req: NextRequest) {
     if (medicalInfoDetails !== undefined) dataToUpdate.medicalInfoDetails = emptyStringToNull(medicalInfoDetails);
     if (medicalInfoDisclosureTiming !== undefined) dataToUpdate.medicalInfoDisclosureTiming = emptyStringToNull(medicalInfoDisclosureTiming);
     if (isMedicalInfoVisible !== undefined) dataToUpdate.isMedicalInfoVisible = isMedicalInfoVisible;
-
+  if (cvUrl !== undefined) dataToUpdate.cvUrl = emptyStringToNull(cvUrl);
+    if (cvSummary !== undefined) dataToUpdate.cvSummary = emptyStringToNull(cvSummary);
     // --- Availability ---
     if (availabilityStatus !== undefined) {
       const statusValue = emptyStringToNull(availabilityStatus);
@@ -402,6 +405,8 @@ export async function PUT(req: NextRequest) {
       preferredHobbies: dbProfile.preferredHobbies || [],                 
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
       hasViewedProfilePreview: dbProfile.hasViewedProfilePreview, 
+      cvUrl: dbProfile.cvUrl,
+      cvSummary: dbProfile.cvSummary,
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,

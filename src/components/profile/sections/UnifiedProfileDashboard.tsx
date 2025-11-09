@@ -77,7 +77,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   console.log(
     `---[ CLIENT LOG 4 | UnifiedProfileDashboard.tsx ]--- מאתחל את ה-state של "activeTab". הערך כעת הוא: "${activeTab}". ערך זה שולט על רכיב ה-Tabs.`
   );
-
+// Inside UnifiedProfileDashboard component
+const [isCvUploading, setIsCvUploading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -238,6 +239,79 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       setIsLoading(false);
     }
   }, [userId, dict]);
+// Add these two functions inside the UnifiedProfileDashboard component
+
+// src/app/[locale]/(authenticated)/profile/components/dashboard/UnifiedProfileDashboard.tsx
+
+// בקובץ: src/app/[locale]/(authenticated)/profile/components/dashboard/UnifiedProfileDashboard.tsx
+
+const handleCvUpload = async (file: File) => {
+  setIsCvUploading(true);
+  // ✨ הגדרת משתנה עזר לנתיב הנכון של ה-toasts
+  const cvToasts = dict.profileSection.cards.education.cvSection.toasts;
+
+  try {
+    const formData = new FormData();
+    formData.append('cv', file);
+
+    const response = await fetch('/api/profile/cv', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Failed to upload CV');
+    }
+
+    // ✨ עדכון ישיר של ה-state עם הפרופיל המעודכן שהתקבל מה-API
+    if (data.profile) {
+      setProfileData(data.profile);
+      // ✨ שימוש בנתיב הנכון והמדויק להודעת ההצלחה
+      toast.success(cvToasts.uploadSuccess);
+    }
+    
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : cvToasts.uploadError;
+    // ✨ שימוש בנתיב הנכון להודעת השגיאה
+    toast.error(errorMessage);
+  } finally {
+    setIsCvUploading(false);
+  }
+};
+
+const handleCvDelete = async () => {
+  setIsCvUploading(true);
+  // ✨ הגדרת משתנה עזר לנתיב הנכון של ה-toasts
+  const cvToasts = dict.profileSection.cards.education.cvSection.toasts;
+
+  try {
+    const response = await fetch('/api/profile/cv', {
+      method: 'DELETE',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Failed to delete CV');
+    }
+
+    // ✨ עדכון ישיר של ה-state עם הפרופיל המעודכן
+    if (data.profile) {
+      setProfileData(data.profile);
+      // ✨ שימוש בנתיב הנכון להודעת ההצלחה
+      toast.success(cvToasts.deleteSuccess);
+    }
+
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : cvToasts.deleteError;
+    // ✨ שימוש בנתיב הנכון להודעת השגיאה
+    toast.error(errorMessage);
+  } finally {
+    setIsCvUploading(false);
+  }
+};
 
   useEffect(() => {
     if (sessionStatus === 'authenticated') {
@@ -662,15 +736,20 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 className="scroll-mt-24" // ✨ שינוי: הגדלת המרווח
               >
                 {profileData ? (
-                  <ProfileSection
-                    profile={profileData}
-                    isEditing={isEditing}
-                    setIsEditing={setIsEditing}
-                    onSave={handleSave}
-                    viewOnly={viewOnly || !isOwnProfile}
-                    dict={dict.profileSection}
-                    locale={locale}
-                  />
+                // Inside UnifiedProfileDashboard.tsx, find the <ProfileSection /> component
+
+<ProfileSection
+  profile={profileData}
+  isEditing={isEditing}
+  setIsEditing={setIsEditing}
+  onSave={handleSave}
+  viewOnly={viewOnly || !isOwnProfile}
+  onCvUpload={handleCvUpload}         // ✨ Pass the function
+  onCvDelete={handleCvDelete}         // ✨ Pass the function
+  isCvUploading={isCvUploading}       // ✨ Pass the state
+  dict={dict.profileSection}
+  locale={locale}
+/>
                 ) : (
                   <p className="text-center text-gray-500 py-10">
                     {dict.dashboard.tabContent.loadingOverview}

@@ -55,6 +55,109 @@ export interface AiAnalysisResult {
   suggestedConversationStarters: string[];
 }
 
+// בקובץ: src/lib/services/aiService.ts
+
+/**
+ * מגדיר את מבנה ה-JSON של ניתוח CV עמוק, בהשראת עולמות השאלון.
+ */
+export interface AiCvAnalysisResult {
+  executiveSummary: string; // סיכום מנהלים קצר: מי האדם מאחורי ה-CV ב-2-3 משפטים.
+  personalityInsights: string[]; // תובנות על אישיות (שאפתנות, יציבות, יצירתיות וכו').
+  valuesInsights: string[]; // תובנות על ערכים (נתינה, צמיחה, ביטחון וכו').
+  careerTrajectory: {
+    narrative: string; // סיפור המסע המקצועי: איך התפתח/ה ולאן הוא/היא שואפ/ת.
+    milestones: Array<{
+      title: string;
+      period: string;
+      keyLearnings: string; // מה ניתן ללמוד על האדם משלב זה.
+    }>;
+  };
+  redFlags: string[]; // דגלים אדומים פוטנציאליים (חוסר יציבות, פערים לא מוסברים וכו').
+}
+
+// בקובץ: src/lib/services/aiService.ts
+
+/**
+ * מנתח קורות חיים לעומק ומפיק תובנות שדכניות בהשראת "עולמות" השאלון של NeshamaTech.
+ * @param cvText הטקסט המלא של קורות החיים.
+ * @param locale שפת הפלט הרצויה.
+ * @returns Promise שמחזיר אובייקט ניתוח מובנה, או null במקרה של כישלון.
+ */
+export async function analyzeCvInDepth(
+  cvText: string,
+  locale: 'he' | 'en' = 'he'
+): Promise<AiCvAnalysisResult | null> {
+  console.log(`--- [AI CV Deep Analysis] Starting CV analysis for matchmaker in locale: ${locale} ---`);
+
+  if (!cvText || cvText.trim().length < 50) {
+    console.error('[AI CV Deep Analysis] CV text is too short to analyze.');
+    return null;
+  }
+
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-1.5-flash',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.3,
+    },
+  });
+
+  const targetLanguage = locale === 'he' ? 'Hebrew' : 'English';
+
+  const prompt = `
+    You are an elite Matchmaker-Analyst at NeshamaTech. You are analyzing a CV not just for facts, but for deep insights into the candidate's character, values, and life story. Your analysis is guided by NeshamaTech's "Five Worlds" philosophy (Personality, Values, Partnership, Partner, Religion).
+
+    Your task is to translate the professional journey in the CV into a rich, multi-faceted profile for the matchmaking team.
+    The entire output MUST be a valid JSON object in ${targetLanguage}. Do NOT use markdown.
+
+    The JSON structure MUST be:
+    {
+      "executiveSummary": "A 2-3 sentence 'bottom line' summary. Who is this person professionally and what does their career path reveal about their core being?",
+      "personalityInsights": [
+        "Based on their roles, transitions, and achievements, list 3-4 inferred personality traits. E.g., 'Shows high ambition and goal-orientation through rapid promotions', 'Demonstrates stability and loyalty with long tenure at one company', 'Indicates creativity by shifting from a technical role to a product role'."
+      ],
+      "valuesInsights": [
+        "Based on their choices (e.g., working in non-profit vs. finance, volunteering), list 2-3 inferred core values. E.g., 'Choice of teaching career suggests a value of contribution and giving back', 'Focus on startups indicates a high value on innovation and risk-taking', 'Volunteering section highlights a value of community involvement'."
+      ],
+      "careerTrajectory": {
+        "narrative": "Tell the story of their career. Is it a linear path of specialization? A journey of exploration? What is the underlying theme of their professional development?",
+        "milestones": [
+          {
+            "title": "Role/Degree and Company/University",
+            "period": "Timeframe (e.g., '2018-2022')",
+            "keyLearnings": "What does this specific milestone teach us about the person? E.g., 'This demanding role at a top firm shows resilience and high standards', 'Studying philosophy alongside engineering points to intellectual curiosity'."
+          }
+        ]
+      },
+      "redFlags": [
+        "List any potential points for the matchmaker to gently clarify. E.g., 'Unexplained gap between 2019-2020', 'Frequent job changes might suggest restlessness, worth exploring', 'Lack of clear progression could indicate a lack of ambition, or satisfaction with their current level'."
+      ]
+    }
+
+    --- CANDIDATE'S CV TEXT ---
+    ${cvText}
+    --- END CV TEXT ---
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const jsonString = result.response.text();
+
+    if (!jsonString) {
+      console.error(`[AI CV Deep Analysis] Gemini API returned an empty response for locale: ${locale}.`);
+      return null;
+    }
+
+    const cleanJsonString = jsonString.replace(/^```json\s*|```\s*$/g, '').trim();
+    const parsedJson = JSON.parse(cleanJsonString) as AiCvAnalysisResult;
+    console.log(`--- [AI CV Deep Analysis] Successfully parsed deep CV analysis for locale: ${locale}. ---`);
+    return parsedJson;
+
+  } catch (error) {
+    console.error(`[AI CV Deep Analysis] Error during deep CV analysis for locale: ${locale}:`, error);
+    return null;
+  }
+}
 /**
  * מנתח את ההתאמה בין שני פרופילים נרטיביים עבור שדכן.
  * @param profileAText הפרופיל הנרטיבי של המשתמש הראשון.
@@ -62,6 +165,8 @@ export interface AiAnalysisResult {
  * @param language שפת הפלט הרצויה.
  * @returns Promise שמחזיר אובייקט ניתוח מובנה, או null במקרה של כישלון.
  */
+
+
 export async function analyzePairCompatibility(
   profileAText: string,
   profileBText: string,
@@ -485,7 +590,7 @@ export async function generateNeshamaTechSummary(
     - **חיבור אישיות-ערכים:** איך תכונות האופי של המועמד/ת (עולם האישיות) באות לידי ביטוי בסדרי העדיפויות שהגדיר/ה (עולם הערכים)?
     - **חיבור סיפור-חזון:** כיצד מסלול החיים (השכלה, קריירה, מסע דתי) עיצב את מה שהם מחפשים בזוגיות ובפרטנר (עולמות הזוגיות והפרטנר)?
     - **איתור "המתח היצירתי":** חפש/י שילובים ייחודיים ומעניינים. למשל: "איש הייטק עם נשמה של אמן", "אשת אקדמיה שמוצאת את הרוחניות שלה בטבע", "קצין קרבי שמנגן ניגונים חסידיים". אלו היהלומים שיוצרים סיפור בלתי נשכח.
-
+- **שילוב ניתוח CV:** אם קיים בפרופיל חלק של "ניתוח קורות חיים", השתמש/י בו כעוגן מרכזי לבניית הפסקה על "מסלול החיים". סיכום ה-CV מספק את השלד המקצועי והעובדתי של הסיפור.
     **מבנה התקציר (נוסחת NeshamaTech):**
 
     1.  **הפתיחה (הפורטרט):** פתח/י במשפט אחד, חזק ומדויק, הלוכד קונפליקט פנימי מעניין או שילוב תכונות ייחודי של המועמד/ת. זו הכותרת הבלתי נראית של הפרופיל. (ראה דוגמת "דניאל": קוד לוגי מול סוגיה תלמודית).
@@ -508,7 +613,7 @@ export async function generateNeshamaTechSummary(
     - **Personality-Values Connection:** How do the candidate's character traits (Personality World) manifest in their stated priorities (Values World)?
     - **Story-Vision Connection:** How has their life path (education, career, spiritual journey) shaped what they seek in a relationship and a partner (Relationship & Partner Worlds)?
     - **Find the "Creative Tension":** Look for unique and interesting combinations. For example: "A high-tech professional with an artist's soul," "An academic who finds her spirituality in nature," "A combat officer who plays soulful Hasidic melodies." These are the gems that create an unforgettable story.
-
+- **Integrating CV Analysis:** If the profile includes a "CV Analysis" section, use it as a central anchor for constructing the "Life Path" paragraph. The CV summary provides the professional and factual backbone of their story.
     **The Summary Structure (The NeshamaTech Formula):**
 
     1.  **The Overture (The Portrait):** Open with a single, powerful, and precise sentence that captures an interesting internal conflict or a unique combination of traits. This is the profile's invisible headline. (Reference the "Daniel" example: logical code vs. Talmudic discourse).
@@ -597,6 +702,7 @@ const aiService = {
   generateSuggestionRationale,
   generateFullSuggestionRationale,
   generateNeshamaTechSummary, 
+  analyzeCvInDepth,
 };
 
 export default aiService;
