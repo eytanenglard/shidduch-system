@@ -84,7 +84,8 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
       />
       <ValuePropositionSection dict={dict.valueProposition} />
 {/* ✨ תובנת נשמה - גרסה B (Personal Conversation) */}
-<NeshmaInsightSectionB dict={dict.neshmaInsight} locale={locale} />
+<NeshmaInsightSectionB  locale={locale} />
+    
       <OurMethodSection dict={dict.ourMethod} />
 
       {/* ✅ 4. העברת demoData לרכיב HowItWorksSection פותרת את שגיאת 'Cannot find name' */}
