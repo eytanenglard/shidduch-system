@@ -655,45 +655,50 @@
     }
   },
   "neshmaInsight": {
-  "badge": "Neshama Insight",
-  "title_part1": "Before we begin,",
-  "title_highlight": "let's get clarity",
-  "subtitle": "The search for a meaningful relationship starts in one place - with true self-awareness.",
-  "opening_question": "When was the last time you truly asked yourself: Who am I? What matters to me? And what does the partnership I want to build look like?",
-  "journey": {
-    "title": "Our questionnaire guides you on a structured journey",
-    "steps": [
-      "Deep self-discovery - who you truly are, your values and strengths",
-      "Clear definition of the right partner - not \"someone nice,\" but exactly who",
-      "Real preparation for the journey - how to prepare for meetings and what comes next"
-    ]
-  },
-  "benefits": {
-    "title": "What will you receive at the end?",
-    "items": [
-      {
-        "icon": "heart",
-        "title": "Personal Neshama Insight",
-        "description": "A detailed, structured report summarizing who you are, what you're looking for, and how to move forward with confidence."
-      },
-      {
-        "icon": "compass",
-        "title": "Clear Direction",
-        "description": "Instead of feeling lost, you'll receive a clear roadmap to finding genuine compatibility."
-      },
-      {
-        "icon": "target",
-        "title": "Immediate Value",
-        "description": "The insights you gain will serve you in every conversation with matchmakers, friends, or potential partners."
-      }
-    ]
-  },
-  "value_proposition": "It's like sitting with an experienced matchmaker who knows you deeply. Except this process is immediately available, accessible, and personalized.",
-  "time_investment": "20-30 minutes that could change everything",
-  "cta": {
-    "button": "Begin Your Journey",
-    "subtitle": "No cost, no commitment - just the right first step"
-  }
+ "badge": "Real Talk. Real Results.",
+    "title": {
+      "part1": "\"So what are you",
+      "highlight": "really looking for",
+      "part2": "?\""
+    },
+    "subtitle": "The common problem that wastes precious time - and the solution that will shorten your path.",
+    "chatHeader": {
+      "name": "Daniel, your colleague",
+      "status": "Online"
+    },
+    "conversation": [
+      { "sender": "user", "text": "I had another date... went nowhere again 😞" },
+      { "sender": "friend", "text": "Ugh. What happened?" },
+      { "sender": "user", "text": "I don't know... she was nice and all, but something just wasn't 'it'." },
+      { "sender": "friend", "text": "So what is this 'it' you're looking for? 🎯" },
+      { "sender": "user", "text": "Good question... someone with good values? Fun to be with? I can't really define it 😅" },
+      { "sender": "friend", "text": "Exactly! That's the problem. How will you know you've found it if you don't know what you're looking for?" },
+      { "sender": "user", "text": "Wow. True. So what's the solution?" },
+      { "sender": "friend", "text": "Listen, NeshamaTech built an in-depth questionnaire that creates a personal 'Soul Report' for you. It's a PDF document you get, like a roadmap for yourself and the relationship you want." },
+      { "sender": "user", "text": "Sounds serious. Must take hours." },
+      { "sender": "friend", "text": "Not at all, 20-30 minutes. A friend of mine said it saved him months of irrelevant dates." },
+      { "sender": "user", "text": "Okay, you've convinced me. Where do I start? 💪" }
+    ],
+    "insights": {
+      "title": "How can 20 minutes of focus change the whole picture?",
+      "items": [
+        { "title": "Self-Discovery", "description": "Receive a personal 'Soul Report' that distills your true values and needs." },
+        { "title": "Focused Search", "description": "Stop wasting energy on dates that end with 'it's not it'." },
+        { "title": "Confidence & Clarity", "description": "Arrive at your next date knowing exactly what you bring to a relationship." }
+      ]
+    },
+    "transitionText": "Wait... this is exactly what's happening to you right now, isn't it? 🤔",
+    "transitionCTA": "So what do you do with these insights? 👇",
+    "cta": {
+      "button": "I want my Soul Report",
+      "subtitle": "Start now and discover the path to the relationship you've always wanted."
+    },
+    "placeholder": "Message...",
+    "progressLabels": ["Start", "The Question", "The Insight", "The Solution", "The End"],
+    "postConversationTransition": {
+      "line1": "So how do you start answering the question \"What am I really looking for?\"",
+      "line2": "We've built a journey of self-discovery just for you."
+    }
 }
 
 

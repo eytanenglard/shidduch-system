@@ -637,46 +637,51 @@
 
   },
   "neshmaInsight": {
-  "badge": "תובנת נשמה",
-  "title_part1": "לפני שמתחילים,",
-  "title_highlight": "בואו נעשה סדר",
-  "subtitle": "החיפוש אחר מערכת יחסים משמעותית מתחיל במקום אחד - בהכרה עצמית אמיתית.",
-  "opening_question": "מתי בפעם האחרונה באמת שאלתם את עצמכם: מי אני? מה חשוב לי? ואיך נראית הזוגיות שאני רוצה לבנות?",
-  "journey": {
-    "title": "השאלון שלנו מוביל אתכם במסע מודרך",
-    "steps": [
-      "היכרות עמוקה עם עצמכם - מי אתם באמת, מה הערכים והכוחות שלכם",
-      "הגדרה ברורה של השותף/ה שיתאים לכם - לא \"מישהו טוב\", אלא בדיוק מי",
-      "הכנה אמיתית למסע - איך להתכונן למפגשים ומה הצעדים הבאים"
-    ]
-  },
-  "benefits": {
-    "title": "מה תקבלו בסוף התהליך?",
-    "items": [
-      {
-        "icon": "heart",
-        "title": "תובנת נשמה אישית",
-        "description": "דו״ח מפורט ומובנה שמסכם את מי שאתם, מה אתם מחפשים, ואיך להתקדם בביטחון."
-      },
-      {
-        "icon": "compass",
-        "title": "כיוון ברור",
-        "description": "במקום תחושת אובדן, תקבלו מפת דרכים ברורה למציאת התאמה אמיתית."
-      },
-      {
-        "icon": "target",
-        "title": "ערך מיידי",
-        "description": "התובנות שתקבלו ישמשו אתכם בכל שיחה עם שדכן, חבר, או בן/בת זוג פוטנציאלי/ת."
-      }
-    ]
-  },
-  "value_proposition": "זה כמו לשבת עם שדכנית מנוסה שמכירה אתכם לעומק. רק שהתהליך הזה זמין לכם מיד, נגיש, ומותאם אישית.",
-  "time_investment": "20-30 דקות שיכולות לשנות הכל",
-  "cta": {
-    "button": "בואו נתחיל במסע",
-    "subtitle": "ללא עלות, ללא התחייבות - רק צעד ראשון נכון"
+  "badge": "שיחה אמיתית. תוצאות אמיתיות.",
+    "title": {
+      "part1": "\"אז מה אתה",
+      "highlight": "באמת מחפש",
+      "part2": "?\""
+    },
+    "subtitle": "הבעיה המוכרת שגורמת לבזבוז זמן יקר - והפתרון שיקצר לכם את הדרך.",
+    "chatHeader": {
+      "name": "דניאל, החבר שלך מהעבודה",
+      "status": "פעיל עכשיו"
+    },
+    "conversation": [
+      { "sender": "user", "text": "היה לי עוד דייט... שוב לא הוביל לשום מקום 😞" },
+      { "sender": "friend", "text": "אוף. מה קרה?" },
+      { "sender": "user", "text": "לא יודע... היא נחמדה והכל, אבל משהו פשוט לא \"זה\"." },
+      { "sender": "friend", "text": "אז מה זה \"זה\" הזה שאתה מחפש? 🎯" },
+      { "sender": "user", "text": "שאלה טובה... מישהי עם ערכים טובים? שיהיה כיף איתה? אני לא באמת יודע להגדיר 😅" },
+      { "sender": "friend", "text": "בדיוק! זו הבעיה. איך תדע שמצאת אם אתה לא יודע מה אתה מחפש?" },
+      { "sender": "user", "text": "וואו. נכון. אז מה הפתרון?" },
+      { "sender": "friend", "text": "שמע, NeshamaTech בנו שאלון עומק שמייצר לך בסוף \"דוח נשמה\" אישי. זה מסמך PDF שאתה מקבל, כמו מפת דרכים לעצמך ולזוגיות שאתה רוצה." },
+      { "sender": "user", "text": "נשמע רציני. זה בטח לוקח שעות." },
+      { "sender": "friend", "text": "ממש לא, 20-30 דקות. חבר שלי אמר שזה חסך לו חודשים של דייטים לא רלוונטיים." },
+      { "sender": "user", "text": "אוקיי, שכנעת אותי. איפה מתחילים? 💪" }
+    ],
+    "insights": {
+      "title": "איך 20 דקות של מיקוד יכולות לשנות את כל התמונה?",
+      "items": [
+        { "title": "גילוי עצמי", "description": "קבלו 'דוח נשמה' אישי שמזקק את הערכים והצרכים האמיתיים שלכם." },
+        { "title": "חיפוש ממוקד", "description": "תפסיקו לבזבז אנרגיה על דייטים שנגמרים ב'זה לא זה'." },
+        { "title": "ביטחון ובהירות", "description": "תגיעו לדייט הבא כשאתם יודעים בדיוק מה אתם מביאים לקשר." }
+      ]
+    },
+    "transitionText": "רגע... זה בדיוק מה שקורה אצלך עכשיו, נכון? 🤔",
+    "transitionCTA": "אז מה עושים עם התובנות האלה? 👇",
+    "cta": {
+      "button": "אני רוצה לקבל את דוח הנשמה שלי",
+      "subtitle": "התחילו עכשיו וגלו את הדרך לזוגיות שתמיד רציתם."
+    },
+    "placeholder": "הודעה...",
+    "progressLabels": ["התחלה", "השאלה", "ההארה", "הפתרון", "הסיום"],
+    "postConversationTransition": {
+      "line1": "אז איך מתחילים לענות על השאלה \"מה אני באמת מחפש/ת\"?",
+      "line2": "בנינו עבורך מסע לגילוי עצמי."
+    }
   }
-}
 
 
 

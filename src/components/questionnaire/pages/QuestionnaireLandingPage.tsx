@@ -1,7 +1,7 @@
 // src/components/questionnaire/pages/QuestionnaireLandingPage.tsx
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+'use client';
 
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -19,12 +19,21 @@ import {
   Loader2,
   Sparkles,
   UserCheck,
+  Target,
+  Lightbulb,
+  TrendingUp,
+  FileText,
+  Zap,
+  AlertCircle,
+  MessageCircle,
+  Calendar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import { useIsMobile } from '../hooks/useMediaQuery';
-import { motion } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 import type { QuestionnaireLandingPageDict } from '@/types/dictionary';
+import { useRef } from 'react';
 
 // --- Props Interface ---
 interface QuestionnaireLandingPageProps {
@@ -53,34 +62,147 @@ const fadeInUp = {
   },
 };
 
-// --- START: התיקון ---
-// הוספת ההגדרה החסרה של האנימציה
 const staggeredCardVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.15, delayChildren: 0.1 },
   },
 };
-// --- END: התיקון ---
 
-// --- Background Component ---
+// --- Enhanced Background Component ---
 const DynamicBackground: React.FC = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    <div className="absolute inset-0 opacity-40">
-      <div className="absolute top-10 left-10 w-40 h-40 bg-gradient-to-br from-teal-200/40 to-orange-300/30 rounded-full blur-3xl animate-float-slow" />
+    <div className="absolute inset-0 opacity-30">
+      <div className="absolute top-10 left-10 w-72 h-72 bg-gradient-to-br from-teal-300/30 to-cyan-400/20 rounded-full blur-3xl animate-float-slow" />
       <div
-        className="absolute top-1/2 right-20 w-32 h-32 bg-gradient-to-br from-amber-200/40 to-orange-300/30 rounded-full blur-2xl animate-float-slow"
+        className="absolute top-1/3 right-20 w-64 h-64 bg-gradient-to-br from-orange-300/30 to-amber-400/20 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '2s' }}
       />
       <div
-        className="absolute bottom-10 left-1/4 w-48 h-48 bg-gradient-to-br from-teal-200/30 to-amber-300/25 rounded-full blur-3xl animate-float-slow"
+        className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-br from-pink-300/25 to-rose-400/20 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '4s' }}
       />
+      <div
+        className="absolute bottom-1/4 right-1/4 w-56 h-56 bg-gradient-to-br from-purple-300/25 to-indigo-400/20 rounded-full blur-3xl animate-float-slow"
+        style={{ animationDelay: '6s' }}
+      />
     </div>
-    <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#f97316_0.5px,transparent_0.5px)] [background-size:24px_24px]" />
+    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:30px_30px]" />
+    <svg
+      className="absolute inset-0 w-full h-full opacity-5"
+      viewBox="0 0 1000 1000"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.2" />
+          <stop offset="50%" stopColor="#f97316" stopOpacity="0.15" />
+          <stop offset="100%" stopColor="#ec4899" stopOpacity="0.1" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M0,300 Q250,200 500,300 T1000,300 L1000,0 L0,0 Z"
+        fill="url(#grad1)"
+        className="animate-pulse-slow"
+      />
+      <path
+        d="M0,700 Q250,800 500,700 T1000,700 L1000,1000 L0,1000 Z"
+        fill="url(#grad1)"
+        className="animate-pulse-slow"
+        style={{ animationDelay: '3s' }}
+      />
+    </svg>
   </div>
 );
+
+// --- Problem Card Component ---
+interface ProblemCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  delay?: number;
+}
+
+const ProblemCard: React.FC<ProblemCardProps> = ({
+  icon,
+  title,
+  description,
+  delay = 0,
+}) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.3 });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, x: -30 }}
+      animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
+      transition={{ duration: 0.6, delay }}
+      className="flex items-start gap-4 p-6 bg-rose-50/80 backdrop-blur-sm rounded-2xl border-2 border-rose-200/60 shadow-sm hover:shadow-lg transition-all duration-300 group"
+    >
+      <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-rose-400 to-red-500 text-white shadow-md group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+        {icon}
+      </div>
+      <div className="flex-1">
+        <h4 className="font-bold text-lg text-gray-800 mb-2">{title}</h4>
+        <p className="text-gray-600 leading-relaxed">{description}</p>
+      </div>
+    </motion.div>
+  );
+};
+
+// --- Solution Card Component ---
+interface SolutionCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  gradient: string;
+  delay?: number;
+}
+
+const SolutionCard: React.FC<SolutionCardProps> = ({
+  icon,
+  title,
+  description,
+  gradient,
+  delay = 0,
+}) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.3 });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 30 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={{ duration: 0.6, delay }}
+      whileHover={{ y: -8, scale: 1.02 }}
+      className="group relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-sm p-8 shadow-lg hover:shadow-2xl border border-white/60 transition-all duration-500 h-full"
+    >
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/40 to-transparent rounded-bl-full blur-2xl" />
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-white/30 to-transparent rounded-tr-full blur-xl" />
+      
+      <div className="relative z-10 flex flex-col h-full">
+        <div className="flex items-center justify-center mb-6">
+          <div
+            className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white shadow-xl transform group-hover:rotate-12 transition-transform duration-500`}
+          >
+            {icon}
+            <div className="absolute inset-0 rounded-2xl bg-white/20 backdrop-blur-sm" />
+          </div>
+        </div>
+        <h4 className="font-bold text-gray-800 text-xl mb-4 text-center leading-tight">
+          {title}
+        </h4>
+        <p className="text-gray-600 text-base leading-relaxed text-center flex-1">
+          {description}
+        </p>
+        <div className="mt-6 w-12 h-1 bg-gradient-to-r from-transparent via-gray-300/60 to-transparent rounded-full mx-auto" />
+      </div>
+    </motion.div>
+  );
+};
 
 // --- Main Component ---
 export default function QuestionnaireLandingPage({
@@ -92,29 +214,29 @@ export default function QuestionnaireLandingPage({
 }: QuestionnaireLandingPageProps) {
   const { status, data: session } = useSession();
   const isMobile = useIsMobile();
-  const isRTL = locale === 'he'; // 3. הגדר משתנה עזר
+  const isRTL = locale === 'he';
 
   const worldVisuals = [
-    { id: 'PERSONALITY', icon: <User />, color: 'sky' },
-    { id: 'VALUES', icon: <Heart />, color: 'rose' },
-    { id: 'RELATIONSHIP', icon: <Users />, color: 'purple' },
-    { id: 'PARTNER', icon: <UserCheck />, color: 'teal' },
-    { id: 'RELIGION', icon: <Scroll />, color: 'amber' },
+    { id: 'PERSONALITY', icon: <User className="h-7 w-7" />, color: 'sky' },
+    { id: 'VALUES', icon: <Heart className="h-7 w-7" />, color: 'rose' },
+    { id: 'RELATIONSHIP', icon: <Users className="h-7 w-7" />, color: 'purple' },
+    { id: 'PARTNER', icon: <UserCheck className="h-7 w-7" />, color: 'teal' },
+    { id: 'RELIGION', icon: <Scroll className="h-7 w-7" />, color: 'amber' },
   ];
 
   const getCtaText = () => {
-    if (hasSavedProgress) return dict.cta.continue;
+    if (hasSavedProgress) return 'המשך במסע';
     if (session?.user?.firstName)
-      return dict.cta.startAsUser.replace('{{name}}', session.user.firstName);
-    return dict.cta.start;
+      return `${session.user.firstName}, בוא/י נתחיל`;
+    return 'התחל עכשיו';
   };
   const CtaIcon = hasSavedProgress ? CheckCircle : Heart;
 
   return (
     <div
       className={cn(
-        'relative min-h-screen overflow-hidden bg-slate-50',
-        isRTL ? 'dir-rtl text-right' : 'dir-ltr text-left', // 4. החלף את המחלקות הקבועות בדינמיות
+        'relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-teal-50/30 to-slate-50',
+        isRTL ? 'dir-rtl text-right' : 'dir-ltr text-left',
         isMobile && 'pb-28'
       )}
     >
@@ -122,64 +244,87 @@ export default function QuestionnaireLandingPage({
 
       {/* SECTION 1: HERO - The Invitation */}
       <motion.section
-        className="relative py-20 px-4 sm:py-24 text-center"
+        className="relative py-16 sm:py-20 px-4 text-center"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <motion.div
-            className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-8"
+            className="inline-flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-8"
             variants={fadeInUp}
           >
-            <Sparkles className="w-6 h-6 text-rose-500" />
-            <span className="text-rose-700 font-semibold">
-              {dict.hero.badge}
+            <Sparkles className="w-5 h-5 text-teal-500" />
+            <span className="text-teal-700 font-bold text-sm">
+              מסע אישי לגילוי עצמי
             </span>
           </motion.div>
+
           <motion.h1
-            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight"
+            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 tracking-tight leading-tight"
             variants={fadeInUp}
           >
-            <span className="text-gray-800">{dict.hero.title}</span>
+            <span className="text-gray-800">לפני שמחפשים את ה"נכון",</span>
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-rose-600 animate-gradient">
+              צריך לדעת מה באמת רוצים
+            </span>
           </motion.h1>
+
           <motion.p
-            className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed"
+            className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto leading-relaxed mb-4"
             variants={fadeInUp}
           >
-            {dict.hero.subtitle}
+            שאלון עומק שעוזר לך להבין את עצמך, מה שחשוב לך באמת,
+            <br className="hidden sm:inline" />
+            ומייצר עבורך{' '}
+            <span className="font-bold text-teal-700">דוח נשמה מפורט</span> -
+            מפת דרכים לזוגיות שאתה באמת מחפש
           </motion.p>
+
           <motion.div
-            className="mt-12 space-y-4 flex flex-col items-center"
+            className="inline-flex items-center gap-2 bg-amber-100/80 rounded-full px-5 py-2 border border-amber-300/60 mb-10"
+            variants={fadeInUp}
+          >
+            <Clock className="w-4 h-4 text-amber-700" />
+            <span className="text-amber-800 font-semibold text-sm">
+              20-30 דקות שיחסכו לך חודשים של חיפושים
+            </span>
+          </motion.div>
+
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             variants={fadeInUp}
           >
             <Button
               size="lg"
-              className="w-full max-w-sm text-lg font-semibold px-8 py-7 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
+              className="w-full sm:w-auto text-lg font-bold px-10 py-7 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
               onClick={onStartQuestionnaire}
               disabled={isLoading}
             >
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
-              <div className="relative z-10 flex items-center justify-center">
+              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+              <div className="relative z-10 flex items-center justify-center gap-2">
                 {isLoading ? (
                   <Loader2 className="h-6 w-6 animate-spin" />
                 ) : (
                   <>
-                    <CtaIcon className="h-6 w-6 ms-2 fill-white" />
+                    <CtaIcon className="h-6 w-6 fill-white" />
                     <span>{getCtaText()}</span>
+                    <ArrowLeft className="h-5 w-5" />
                   </>
                 )}
               </div>
             </Button>
+
             {status !== 'authenticated' && (
-              <Link href="/auth/signin" className="w-full max-w-sm">
+              <Link href="/auth/signin">
                 <Button
                   variant="outline"
                   size="lg"
-                  className="w-full text-md font-medium px-8 py-6 border-2 border-teal-200 text-teal-600 hover:bg-teal-50 hover:border-teal-300 rounded-full transition-all duration-300 bg-white/70 backdrop-blur-sm"
+                  className="w-full sm:w-auto text-base font-medium px-8 py-6 border-2 border-teal-300 text-teal-700 hover:bg-teal-50 hover:border-teal-400 rounded-full transition-all duration-300 bg-white/80 backdrop-blur-sm"
                 >
                   <Lock className="h-5 w-5 ms-2" />
-                  {dict.cta.loginButton}
+                  יש לך משתמש? התחבר
                 </Button>
               </Link>
             )}
@@ -187,32 +332,174 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* SECTION 2: WORLDS - The Journey's Map */}
+      {/* SECTION 2: THE PROBLEM - The Pain Point */}
       <motion.section
-        className="py-16 px-4 relative"
+        className="py-20 px-4 relative"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
         variants={containerVariants}
       >
-        <div className="absolute inset-0 -m-8 bg-white/95 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-white/60" />
-        <div className="max-w-6xl mx-auto relative">
-          <motion.div className="text-center mb-12" variants={fadeInUp}>
-            <h2 className="text-3xl font-bold mb-3 text-gray-800">
-              {dict.worldsSection.title}
+        <div className="max-w-6xl mx-auto">
+          <motion.div className="text-center mb-16" variants={fadeInUp}>
+            <div className="inline-flex items-center gap-3 bg-rose-100/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-md border border-rose-200/60 mb-6">
+              <AlertCircle className="w-5 h-5 text-rose-600" />
+              <span className="text-rose-700 font-bold">
+                הבעיה שכולנו מכירים
+              </span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-gray-800 leading-tight">
+              "אז מה אתה באמת מחפש?"
+              <br />
+              <span className="text-2xl sm:text-3xl text-gray-600 font-normal">
+                ...והתשובה הסטנדרטית שלא עוזרת
+              </span>
             </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-auto rounded-full mb-6" />
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              {dict.worldsSection.subtitle}
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-12">
+            <ProblemCard
+              icon={<MessageCircle className="w-6 h-6" />}
+              title="תשובות כלליות"
+              description='"מישהו טוב", "עם ערכים דומים", "שיהיה כיף איתה" - אבל מה זה באמת אומר? איך תדע שמצאת?'
+              delay={0}
+            />
+            <ProblemCard
+              icon={<Calendar className="w-6 h-6" />}
+              title="בזבוז זמן ואנרגיה"
+              description='דייטים שנגמרים ב"זה לא זה" כי לא ממש הבנת מה אתה מחפש מלכתחילה. כל דייט מרגיש כמו נסיון וטעייה.'
+              delay={0.15}
+            />
+            <ProblemCard
+              icon={<Target className="w-6 h-6" />}
+              title="חוסר מיקוד"
+              description="קשה להסביר לשדכנים מה באמת חשוב לך, קשה לדעת אם הצעה מתאימה לך, קשה לקבל החלטות."
+              delay={0.3}
+            />
+            <ProblemCard
+              icon={<AlertCircle className="w-6 h-6" />}
+              title="תסכול וחוסר בטחון"
+              description="התחושה שאולי אתה פשוט לא יודע מה אתה רוצה, או שאולי אתה מחפש משהו שלא קיים."
+              delay={0.45}
+            />
+          </div>
+
+          <motion.div
+            className="text-center"
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            <div className="inline-block bg-gradient-to-r from-amber-100 via-orange-100 to-rose-100 rounded-3xl px-8 py-5 shadow-xl border-2 border-amber-300/60">
+              <p className="text-xl md:text-2xl font-bold text-gray-800">
+                💡 איך אפשר למצוא את הנכון, אם לא יודעים מה באמת רוצים?
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* SECTION 3: THE SOLUTION - The Questionnaire */}
+      <motion.section
+        className="py-20 px-4 relative bg-white/60 backdrop-blur-sm"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={containerVariants}
+      >
+        <div className="max-w-6xl mx-auto">
+          <motion.div className="text-center mb-16" variants={fadeInUp}>
+            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-teal-100 to-cyan-100 backdrop-blur-sm rounded-full px-6 py-3 shadow-md border border-teal-300/60 mb-6">
+              <Lightbulb className="w-5 h-5 text-teal-600" />
+              <span className="text-teal-700 font-bold">הפתרון שחיכית לו</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-gray-800 leading-tight">
+              שאלון שעושה{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
+                סדר בראש
+              </span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              20 דקות של שאלות ממוקדות שיעזרו לך להבין מה באמת חשוב לך,
+              <br className="hidden sm:inline" />
+              ובסוף תקבל דוח אישי מפורט - מפת דרכים לזוגיות שאתה מחפש
             </p>
           </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <SolutionCard
+              icon={<Heart className="w-8 h-8" />}
+              title="גילוי עצמי אמיתי"
+              description="השאלון מוביל אותך דרך תהליך מובנה שעוזר לך להבין מה באמת חשוב לך בחיים ובזוגיות - מעבר למשפטים כלליים."
+              gradient="from-rose-400 to-pink-500"
+              delay={0}
+            />
+            <SolutionCard
+              icon={<FileText className="w-8 h-8" />}
+              title='קבל את "דוח הנשמה" שלך'
+              description="בסיום השאלון תקבל דוח PDF מפורט ואישי שמזקק את כל התובנות - מסמך שתוכל לחזור אליו שוב ושוב."
+              gradient="from-teal-400 to-cyan-500"
+              delay={0.15}
+            />
+            <SolutionCard
+              icon={<Target className="w-8 h-8" />}
+              title="חיפוש ממוקד ויעיל"
+              description="עם דוח הנשמה, תדע בדיוק מה אתה מחפש. זה יעזור לך להסביר לשדכנים, לקבל החלטות טובות יותר, ולחסוך זמן."
+              gradient="from-amber-400 to-orange-500"
+              delay={0.3}
+            />
+          </div>
+
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6"
+            className="mt-16 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
+            <div className="inline-block bg-gradient-to-r from-purple-50 via-pink-50 to-rose-50 rounded-2xl p-8 shadow-lg border border-purple-200/60">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <Zap className="w-6 h-6 text-orange-500" />
+                <h3 className="text-2xl font-bold text-gray-800">
+                  התוצאה: בהירות ובטחון
+                </h3>
+                <Zap className="w-6 h-6 text-orange-500" />
+              </div>
+              <p className="text-lg text-gray-600 leading-relaxed max-w-2xl">
+                במקום להגיד "מישהו טוב", תוכל להסביר בדיוק איזה סגנון תקשורת
+                חשוב לך, איזה ערכים לא מוותרים עליהם, ואיזו דינמיקה אתה מחפש
+                בקשר. זה משנה הכל.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* SECTION 4: THE WORLDS - The Journey */}
+      <motion.section
+        className="py-20 px-4 relative"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={containerVariants}
+      >
+        <div className="max-w-6xl mx-auto">
+          <motion.div className="text-center mb-16" variants={fadeInUp}>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-800">
+              המסע שלך יעבור דרך 5 עולמות
+            </h2>
+            <div className="w-24 h-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-auto rounded-full mb-6" />
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              כל עולם חושף שכבה נוספת של מי שאתה באמת ומה שחשוב לך בזוגיות
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6"
             variants={staggeredCardVariants}
           >
-            {worldVisuals.map((world) => {
-              const worldContent =
-                dict.worlds[world.id as keyof typeof dict.worlds];
+            {worldVisuals.map((world, index) => {
               const colorClasses = {
                 sky: 'from-sky-400 to-blue-500',
                 rose: 'from-rose-400 to-red-500',
@@ -220,25 +507,50 @@ export default function QuestionnaireLandingPage({
                 teal: 'from-teal-400 to-emerald-500',
                 amber: 'from-amber-400 to-orange-500',
               };
+
+              const worldTitles = {
+                PERSONALITY: 'עולם האישיות',
+                VALUES: 'עולם הערכים',
+                RELATIONSHIP: 'עולם הזוגיות',
+                PARTNER: 'עולם הפרטנר',
+                RELIGION: 'עולם הדת והמסורת',
+              };
+
+              const worldDescriptions = {
+                PERSONALITY: 'מי אני באמת? מה מניע אותי?',
+                VALUES: 'מה הכי חשוב לי בחיים?',
+                RELATIONSHIP: 'איך אני רואה קשר זוגי?',
+                PARTNER: 'את מי אני מחפש לצידי?',
+                RELIGION: 'מה מקומה של היהדות בחיי?',
+              };
+
               return (
                 <motion.div key={world.id} variants={fadeInUp}>
-                  <div className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/90 backdrop-blur-sm border border-white/60 flex flex-col h-full group p-6 text-center items-center">
+                  <div className="relative overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/95 backdrop-blur-sm border-2 border-white/60 flex flex-col h-full group p-8 text-center items-center">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-white/50 to-transparent rounded-bl-full blur-xl" />
                     <div
                       className={cn(
-                        'p-4 rounded-full bg-gradient-to-br text-white shadow-lg mb-4 group-hover:scale-110 transition-all duration-300',
+                        'relative p-5 rounded-2xl bg-gradient-to-br text-white shadow-xl mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300',
                         colorClasses[world.color as keyof typeof colorClasses]
                       )}
                     >
-                    {React.cloneElement(world.icon, {
-  ...world.icon.props,
-  className: 'h-7 w-7',
-})}
+                      <div className="absolute inset-0 rounded-2xl bg-white/20 backdrop-blur-sm" />
+                      <div className="relative z-10">{world.icon}</div>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">
-                      {worldContent.title}
+                    <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-gray-100 mb-4">
+                      <span className="text-xs font-bold text-gray-600">
+                        עולם {index + 1}
+                      </span>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-3 leading-tight">
+                      {worldTitles[world.id as keyof typeof worldTitles]}
                     </h3>
-                    <p className="text-base text-gray-600 leading-relaxed flex-grow">
-                      {worldContent.description}
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      {
+                        worldDescriptions[
+                          world.id as keyof typeof worldDescriptions
+                        ]
+                      }
                     </p>
                   </div>
                 </motion.div>
@@ -248,114 +560,167 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* SECTION 3: FEATURES - The Promise */}
+      {/* SECTION 5: ADDITIONAL FEATURES */}
       <motion.section
-        className="py-16 px-4 bg-white"
+        className="py-20 px-4 bg-gradient-to-b from-white/80 to-teal-50/40"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
         variants={containerVariants}
       >
         <div className="max-w-5xl mx-auto">
-          <motion.div className="text-center mb-12" variants={fadeInUp}>
-            <h2 className="text-3xl font-bold mb-3 text-gray-800">
-              {dict.featuresSection.title}
+          <motion.div className="text-center mb-16" variants={fadeInUp}>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-800">
+              למה זה באמת עובד?
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-auto rounded-full mb-6" />
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              {dict.featuresSection.subtitle}
-            </p>
           </motion.div>
+
           <motion.div
             className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
             variants={staggeredCardVariants}
           >
-            {dict.featuresSection.features.map((feature, index) => (
-              <motion.div
-                key={index}
-                className="flex flex-col items-center p-6 group"
-                variants={fadeInUp}
-              >
-                <div className="p-4 rounded-full mb-5 transition-all duration-300 bg-slate-100 group-hover:bg-slate-200">
-                  {index === 0 && <Clock className="h-8 w-8 text-sky-600" />}
-                  {index === 1 && <Shield className="h-8 w-8 text-rose-600" />}
-                  {index === 2 && <Star className="h-8 w-8 text-amber-600" />}
-                </div>
-                <h3 className="font-bold text-xl mb-2 text-gray-800">
-                  {feature.title}
-                </h3>
-                <p className="text-base text-gray-600 leading-relaxed">
-                  {feature.description}
-                </p>
-              </motion.div>
-            ))}
+            <motion.div
+              className="flex flex-col items-center p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-white/60 group"
+              variants={fadeInUp}
+            >
+              <div className="p-5 rounded-2xl mb-6 bg-gradient-to-br from-sky-400 to-cyan-500 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                <Clock className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="font-bold text-xl mb-3 text-gray-800">
+                מהיר ונוח
+              </h3>
+              <p className="text-base text-gray-600 leading-relaxed">
+                20-30 דקות בלבד. אפשר להתחיל, לעצור, ולחזור בכל זמן. השאלון
+                נשמר אוטומטית.
+              </p>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col items-center p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-white/60 group"
+              variants={fadeInUp}
+            >
+              <div className="p-5 rounded-2xl mb-6 bg-gradient-to-br from-rose-400 to-pink-500 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                <Shield className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="font-bold text-xl mb-3 text-gray-800">
+                פרטי ומאובטח
+              </h3>
+              <p className="text-base text-gray-600 leading-relaxed">
+                התשובות שלך נשארות אצלך בלבד. רק אתה ושדכנים מורשים יכולים
+                לגשת אליהן.
+              </p>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col items-center p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-white/60 group"
+              variants={fadeInUp}
+            >
+              <div className="p-5 rounded-2xl mb-6 bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                <Star className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="font-bold text-xl mb-3 text-gray-800">
+                תוצאה מיידית
+              </h3>
+              <p className="text-base text-gray-600 leading-relaxed">
+                בסיום השאלון תקבל את דוח הנשמה שלך - מסמך PDF מפורט ואישי
+                שמזקק את כל התובנות.
+              </p>
+            </motion.div>
           </motion.div>
         </div>
       </motion.section>
 
-      {/* SECTION 4: FINAL CTA */}
+      {/* SECTION 6: FINAL CTA */}
       <motion.section
-        className="py-20 px-4 text-center relative bg-slate-50"
+        className="py-24 px-4 text-center relative"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.15 }}
         variants={containerVariants}
       >
-        <div className="max-w-3xl mx-auto">
-          <motion.h2
-            className="text-3xl font-bold mb-4 text-gray-800"
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            className="relative bg-gradient-to-br from-white/95 via-teal-50/80 to-orange-50/80 backdrop-blur-xl rounded-3xl p-12 md:p-16 shadow-2xl border-2 border-white/60"
             variants={fadeInUp}
           >
-            {dict.finalCta.title}
-          </motion.h2>
-          <motion.p
-            className="text-lg text-gray-600 mb-8 max-w-xl mx-auto leading-relaxed"
-            variants={fadeInUp}
-          >
-            {dict.finalCta.subtitle}
-          </motion.p>
-          <motion.div variants={fadeInUp}>
-            <Button
-              size="lg"
-              onClick={onStartQuestionnaire}
-              disabled={isLoading}
-              className="w-full max-w-xs text-lg font-semibold px-8 py-7 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
-            >
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
-              <div className="relative z-10 flex items-center justify-center">
-                {isLoading ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                ) : (
-                  <>
-                    {isRTL ? (
-                      <ArrowLeft className="h-6 w-6 ms-2" />
-                    ) : (
-                      <ArrowRight className="h-6 w-6 me-2" />
-                    )}{' '}
-                    <span>{dict.finalCta.buttonText}</span>
-                  </>
-                )}
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+              <div className="bg-gradient-to-r from-teal-500 via-orange-500 to-rose-500 rounded-full p-4 shadow-xl">
+                <Sparkles className="w-8 h-8 text-white" />
               </div>
-            </Button>
+            </div>
+
+            <div className="absolute top-4 right-8 w-24 h-24 bg-gradient-to-br from-teal-200/30 to-transparent rounded-full blur-2xl" />
+            <div className="absolute bottom-4 left-8 w-32 h-32 bg-gradient-to-tr from-orange-200/30 to-transparent rounded-full blur-2xl" />
+
+            <div className="relative z-10">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-gray-800 leading-tight">
+                מוכנים להתחיל?
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600">
+                  דוח הנשמה שלכם מחכה
+                </span>
+              </h2>
+              <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto">
+                20 דקות של מיקוד שיחסכו לכם חודשים של חיפושים.
+                <br />
+                התחילו עכשיו וגלו מה באמת חשוב לכם בזוגיות.
+              </p>
+
+              <motion.div variants={fadeInUp}>
+                <Button
+                  size="lg"
+                  onClick={onStartQuestionnaire}
+                  disabled={isLoading}
+                  className="text-xl font-bold px-12 py-8 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1 hover:scale-105"
+                >
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/40 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+                  <div className="relative z-10 flex items-center justify-center gap-3">
+                    {isLoading ? (
+                      <Loader2 className="h-7 w-7 animate-spin" />
+                    ) : (
+                      <>
+                        <FileText className="h-7 w-7 group-hover:rotate-12 transition-transform" />
+                        <span>קבל את דוח הנשמה שלך עכשיו</span>
+                        <ArrowLeft className="h-6 w-6 group-hover:-translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </div>
+                </Button>
+              </motion.div>
+
+              <motion.div
+                className="mt-8 flex items-center justify-center gap-3 text-gray-600"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <CheckCircle className="w-5 h-5 text-teal-500" />
+                <span className="font-medium">
+                  ללא תשלום • ללא התחייבות • פרטי לחלוטין
+                </span>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </motion.section>
 
+      {/* MOBILE STICKY CTA */}
       {isMobile && (
-        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/90 backdrop-blur-sm border-t border-teal-200/80 shadow-top z-50">
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-xl border-t-2 border-teal-200/80 shadow-2xl z-50">
           <Button
             size="lg"
-            className="w-full text-base font-semibold py-3 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white rounded-lg shadow-md hover:shadow-lg transition-shadow group relative overflow-hidden"
+            className="w-full text-base font-bold py-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white rounded-xl shadow-xl hover:shadow-2xl transition-all group relative overflow-hidden"
             onClick={onStartQuestionnaire}
             disabled={isLoading}
           >
-            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
-            <div className="relative z-10 flex items-center justify-center">
+            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+            <div className="relative z-10 flex items-center justify-center gap-2">
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 <>
-                  <CtaIcon className="h-5 w-5 ms-2 fill-white" />
+                  <CtaIcon className="h-5 w-5 fill-white" />
                   <span>{getCtaText()}</span>
                 </>
               )}
@@ -364,50 +729,47 @@ export default function QuestionnaireLandingPage({
         </div>
       )}
 
-      <footer className="text-center py-6 text-gray-500 text-sm bg-slate-50">
-        {dict.footer.copyright.replace(
-          '{{year}}',
-          new Date().getFullYear().toString()
-        )}
+      <footer className="text-center py-8 text-gray-500 text-sm bg-slate-50/80">
+        © {new Date().getFullYear()} NeshamaTech. כל הזכויות שמורות.
       </footer>
 
       <style>{`
         @keyframes float-slow {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-20px);
-          }
+          0%, 100% { transform: translateY(0) translateX(0); }
+          25% { transform: translateY(-25px) translateX(15px); }
+          50% { transform: translateY(-10px) translateX(25px); }
+          75% { transform: translateY(-20px) translateX(10px); }
         }
         .animate-float-slow {
-          animation: float-slow 8s ease-in-out infinite;
+          animation: float-slow 20s ease-in-out infinite;
         }
+        
         @keyframes pulse-slow {
-          0%,
-          100% {
-            opacity: 0.8;
-          }
-          50% {
-            opacity: 1;
-          }
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
         }
         .animate-pulse-slow {
-          animation: pulse-slow 4s ease-in-out infinite;
+          animation: pulse-slow 6s ease-in-out infinite;
         }
+        
         @keyframes shimmer {
-          100% {
-            transform: translateX(100%);
-          }
+          100% { transform: translateX(100%); }
         }
         .animate-shimmer {
-          animation: shimmer 2s infinite;
+          animation: shimmer 2.5s infinite;
         }
-        .shadow-top {
-          box-shadow:
-            0 -4px 6px -1px rgb(0 0 0 / 0.1),
-            0 -2px 4px -2px rgb(0 0 0 / 0.1);
+        
+        @keyframes gradient {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 4s ease-in-out infinite;
+        }
+
+        .shadow-3xl {
+          box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
         }
       `}</style>
     </div>

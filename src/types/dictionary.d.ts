@@ -92,6 +92,7 @@ export type WorldDict = {
   insight: string;
 };
 
+
 export type OurMethodDict = {
   constellation: {
     header: string;
@@ -1808,30 +1809,41 @@ export type AccessibilityFeaturesDict = {
 };
 // END: Additions for AccessibilityFeatures.tsx
 export interface NeshmaInsightDict {
-  badge: string;
-  title_part1: string;
-  title_highlight: string;
-  subtitle: string;
-  opening_question: string;
-  journey: {
-    title: string;
-    steps: string[];
+   badge: string;
+  title: {
+    part1: string;
+    highlight: string;
+    part2: string;
   };
-  benefits: {
+  subtitle: string;
+  chatHeader: {
+    name: string;
+    status: string;
+  };
+  conversation: {
+    sender: 'user' | 'friend';
+    text: string;
+  }[];
+  insights: {
     title: string;
     items: {
-      icon: string;
       title: string;
       description: string;
     }[];
   };
-  value_proposition: string;
-  time_investment: string;
+  transitionText: string;
+  transitionCTA: string;
   cta: {
     button: string;
     subtitle: string;
   };
-}
+  placeholder: string;
+  progressLabels: string[];
+  postConversationTransition: {
+    line1: string;
+    line2: string;
+  };
+};
 
 export type ProfileSectionDict = {
     // --- הוספות חדשות ---

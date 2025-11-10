@@ -84,7 +84,7 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
       />
       <ValuePropositionSection dict={dict.valueProposition} />
 {/* ✨ תובנת נשמה - גרסה B (Personal Conversation) */}
-<NeshmaInsightSectionB  locale={locale} />
+      <NeshmaInsightSectionB locale={locale} dict={dict.neshmaInsight} />
     
       <OurMethodSection dict={dict.ourMethod} />
 
