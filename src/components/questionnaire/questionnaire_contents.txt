@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-10-05 13:18:46
+# Generated on: 2025-11-10 18:31:14
 ################################################################################
 
 ================================================================================
@@ -145,7 +145,7 @@ export default function MatchmakingQuestionnaire({
   });
 
   const [showIdleModal, setShowIdleModal] = useState(false);
-  const logoutTimer = useRef<NodeJS.Timeout>();
+  const logoutTimer = useRef<NodeJS.Timeout | null>(null);
 
   const handleIdle = useCallback(() => {
     if (userId) {
@@ -1580,7 +1580,7 @@ export default function AnswerInput({
         );
 
       case 'multiChoice':
-      case 'multiSelect':
+      case 'multiSelect': {
         const selectedValues = Array.isArray(internalValue)
           ? (internalValue as string[])
           : [];
@@ -1723,8 +1723,9 @@ export default function AnswerInput({
             )}
           </div>
         );
+      }
 
-      case 'multiSelectWithOther':
+      case 'multiSelectWithOther': {
         const selectedWithOtherValues = Array.isArray(internalValue)
           ? (internalValue as string[])
           : [];
@@ -1973,6 +1974,7 @@ export default function AnswerInput({
             )}
           </div>
         );
+      }
 
       case 'scenario':
         return (
@@ -2167,21 +2169,17 @@ export default function AnswerInput({
           </div>
         );
 
-      case 'openText':
+      case 'openText': {
         let textValue = '';
-        // קודם כל, נטפל במקרה הפשוט שבו הערך הוא מחרוזת
         if (typeof internalValue === 'string') {
           textValue = internalValue;
-        }
-        // לאחר מכן, נטפל במקרה המורכב יותר של אובייקט
-        else if (
+        } else if (
           typeof internalValue === 'object' &&
           internalValue !== null &&
           !Array.isArray(internalValue) &&
           'text' in internalValue
         ) {
-          // TypeScript מבין כעת שב-internalValue בהכרח קיים המאפיין 'text'
-          textValue = String(internalValue.text || ''); // המרה בטוחה למחרוזת
+          textValue = String(internalValue.text || '');
         }
         const hasMinLength =
           question.minLength !== undefined && question.minLength > 0;
@@ -2421,8 +2419,9 @@ export default function AnswerInput({
             )}
           </div>
         );
+      }
 
-      case 'budgetAllocation':
+      case 'budgetAllocation': {
         const budgetValues = (internalValue as Record<string, number>) || {};
         const totalAllocatedPoints = Object.values(budgetValues).reduce(
           (sum, val) => sum + (Number(val) || 0),
@@ -2579,6 +2578,7 @@ export default function AnswerInput({
             </div>
           </fieldset>
         );
+      }
 
       default:
         console.warn('Unsupported question type:', question.type);
@@ -2674,7 +2674,6 @@ export default function InteractiveScale({
   required = false,
   name,
   error,
-  ariaLabelledby,
   dict, // שימוש במשתנה dict
 }: InteractiveScaleProps) {
   const [internalValue, setInternalValue] = useState<number | null>(
@@ -3640,7 +3639,8 @@ export default function AccessibilityFeatures({
   }>({ message: '', type: 'info', visible: false });
 
   const panelRef = useRef<HTMLDivElement>(null);
-  const toastTimeoutRef = useRef<NodeJS.Timeout>();
+  // --- This line was fixed ---
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const showAccessibilityPanel =
     isPanelOpen !== undefined ? isPanelOpen : internalShowPanel;
@@ -5906,9 +5906,15 @@ interface UseIdleTimeoutProps {
 
 export function useIdleTimeout({ onIdle, idleTimeSeconds = 7200 }: UseIdleTimeoutProps) { // ברירת מחדל: שעתיים
   const [isIdle, setIsIdle] = useState(false);
-  const timeoutId = useRef<NodeJS.Timeout>();
+  // --- This is the corrected line ---
+  const timeoutId = useRef<NodeJS.Timeout | null>(null);
 
   const startTimer = useCallback(() => {
+    // Clear any existing timer before starting a new one
+    if (timeoutId.current) {
+      clearTimeout(timeoutId.current);
+    }
+    
     timeoutId.current = setTimeout(() => {
       setIsIdle(true);
       onIdle();
@@ -5916,6 +5922,7 @@ export function useIdleTimeout({ onIdle, idleTimeSeconds = 7200 }: UseIdleTimeou
   }, [idleTimeSeconds, onIdle]);
 
   const resetTimer = useCallback(() => {
+    // The previous implementation was already correct, it just needed the right type
     if (timeoutId.current) {
       clearTimeout(timeoutId.current);
     }
@@ -7142,7 +7149,7 @@ export default function WorldsMap({
           </motion.div>
         )}
       </div>
-      <style jsx global>{`
+      <style>{`
         @keyframes pulse-slow {
           50% {
             opacity: 0.9;
@@ -7418,9 +7425,10 @@ export default function QuestionnaireLandingPage({
                         colorClasses[world.color as keyof typeof colorClasses]
                       )}
                     >
-                      {React.cloneElement(world.icon as React.ReactElement, {
-                        className: 'h-7 w-7',
-                      })}
+                    {React.cloneElement(world.icon, {
+  ...world.icon.props,
+  className: 'h-7 w-7',
+})}
                     </div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">
                       {worldContent.title}
@@ -7559,7 +7567,7 @@ export default function QuestionnaireLandingPage({
         )}
       </footer>
 
-      <style jsx global>{`
+      <style>{`
         @keyframes float-slow {
           0%,
           100% {
