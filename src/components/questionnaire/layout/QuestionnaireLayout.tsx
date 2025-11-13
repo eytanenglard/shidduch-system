@@ -52,6 +52,9 @@ export interface QuestionnaireLayoutProps {
     faq: QuestionnaireFaqDict;
     accessibilityFeatures: AccessibilityFeaturesDict;
   };
+  // Props חדשים שיועברו מ-WorldComponent
+  mobileHeaderContent?: React.ReactNode;
+  onMenuOpen?: () => void;
 }
 
 const worldConfig = {
@@ -87,6 +90,8 @@ export default function QuestionnaireLayout({
   locale = 'he',
   onSaveProgress,
   dict,
+  mobileHeaderContent,
+  onMenuOpen,
 }: QuestionnaireLayoutProps) {
   const { status } = useSession();
   const router = useRouter();
@@ -118,61 +123,12 @@ export default function QuestionnaireLayout({
     }
   }, [onSaveProgress]);
 
-  const MobileHeader = () => (
-    <header
-      className={cn(
-        'lg:hidden sticky top-0 z-40 backdrop-blur-xl bg-white/95 shadow-sm border-b',
-        currentColors.border
-      )}
-    >
-      <div className="flex items-center justify-between p-2">
-        <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="inline-flex items-center gap-2 hover:bg-gray-100 rounded-lg px-3"
-            >
-              <Menu className="h-5 w-5" />
-              {!isSmallScreen && (
-                <span className="font-semibold text-gray-700">
-                  {dict.layout.mobileNav.menuTitle}
-                </span>
-              )}
-            </Button>
-          </SheetTrigger>
-          <SheetContent
-            side={isRTL ? 'right' : 'left'}
-            className="w-[320px] p-0 flex flex-col"
-          >
-            <QuestionnaireSidebar
-              currentWorld={currentWorld}
-              completedWorlds={completedWorlds}
-              onWorldChange={(worldId) => {
-                onWorldChange(worldId);
-                setIsMobileSidebarOpen(false); // Close sidebar on selection
-              }}
-              onExit={() => {
-                if (onExit) onExit();
-                setIsMobileSidebarOpen(false); // Close sidebar on exit
-              }}
-              locale={locale}
-              isLoggedIn={isLoggedIn}
-              onSaveProgress={handleSave}
-              isSaving={isSaving}
-              saveSuccess={saveSuccess}
-              lastSaved={lastSaved}
-              dict={dict}
-            />
-          </SheetContent>
-        </Sheet>
-        <div className="flex-grow flex justify-center items-center gap-2">
-          {/* This area is intentionally left for the WorldComponent header */}
-        </div>
-        <div className="w-24" /> {/* Spacer to balance the layout */}
-      </div>
-    </header>
-  );
+  const handleMenuOpen = () => {
+    setIsMobileSidebarOpen(true);
+    if (onMenuOpen) {
+      onMenuOpen();
+    }
+  };
 
   return (
     <div
@@ -207,7 +163,37 @@ export default function QuestionnaireLayout({
         </div>
       ) : (
         <div className="flex flex-col">
-          <MobileHeader />
+          {/* Mobile Sidebar Sheet - Hidden by default */}
+          <Sheet
+            open={isMobileSidebarOpen}
+            onOpenChange={setIsMobileSidebarOpen}
+          >
+            <SheetContent
+              side={isRTL ? 'right' : 'left'}
+              className="w-[320px] p-0 flex flex-col"
+            >
+              <QuestionnaireSidebar
+                currentWorld={currentWorld}
+                completedWorlds={completedWorlds}
+                onWorldChange={(worldId) => {
+                  onWorldChange(worldId);
+                  setIsMobileSidebarOpen(false);
+                }}
+                onExit={() => {
+                  if (onExit) onExit();
+                  setIsMobileSidebarOpen(false);
+                }}
+                locale={locale}
+                isLoggedIn={isLoggedIn}
+                onSaveProgress={handleSave}
+                isSaving={isSaving}
+                saveSuccess={saveSuccess}
+                lastSaved={lastSaved}
+                dict={dict}
+              />
+            </SheetContent>
+          </Sheet>
+
           <main className="flex-1">
             {!isLoggedIn && (
               <div className="p-4">
@@ -240,7 +226,17 @@ export default function QuestionnaireLayout({
                 </div>
               </div>
             )}
-            <div className="p-2 sm:p-4">{children}</div>
+            <div className="p-2 sm:p-4">
+              {/* העברת הפונקציה לפתיחת התפריט ל-children דרך Context או props */}
+              {React.Children.map(children, (child) => {
+                if (React.isValidElement(child)) {
+                  return React.cloneElement(child as React.ReactElement<any>, {
+                    onMobileMenuOpen: handleMenuOpen,
+                  });
+                }
+                return child;
+              })}
+            </div>
           </main>
         </div>
       )}

@@ -350,19 +350,40 @@
    "layout": {
     "navHeader": "Your Journey",
     "navSubtitle": "Navigate the five worlds.",
+    "sidebarHeader": {
+      "title": "Your Journey",
+      "subtitle": "Guided Self-Discovery"
+    },
+    "sidebarProgress": {
+      "title": "Your Progress",
+      "worldsLabel": "{{completedCount}}/{{totalCount}} worlds",
+      "completionMessage": "Well done! You've completed all worlds 🎉"
+    },
+    "navButtonStatus": {
+      "active": "Now",
+      "completed": "Completed",
+      "available": "World {{order}}"
+    },
+    "saveButton": {
+      "default": "Save Progress",
+      "saving": "Saving...",
+      "saved": "Saved!"
+    },
+    "lastSavedSuccess": "Saved successfully at {{time}}",
+    "actionButtons": {
+      "review": "Review Answers",
+      "exitToMap": "Back to Map",
+      "faq": "Frequently Asked Questions"
+    },
+    "faqSheet": {
+      "title": "Frequently Asked Questions"
+    },
     "unauthenticatedPrompt": {
       "title": "Don't Lose Your Progress",
       "subtitle": "Sign in or create an account to save your answers.",
       "loginButton": "Sign In",
       "registerButton": "Register"
     },
-    "buttons": {
-      "save": "Save Progress",
-      "saving": "Saving...",
-      "review": "Review Answers",
-      "map": "Back to Map"
-    },
-    "lastSaved": "Saved: {{time}}",
     "exitPrompt": {
       "title": "Exit This World?",
       "description": "You have unsaved changes. How would you like to proceed?",
@@ -375,7 +396,7 @@
       "backToMap": "Worlds Map",
       "exit": "Exit Questionnaire",
       "reviewAnswers": "Review My Answers",
-       "menuTitle": "Menu"
+      "menuTitle": "Menu"
     },
     "tooltips": {
       "faq": "Frequently Asked Questions",
@@ -389,6 +410,7 @@
       "link": "You can manage all your answers in your profile."
     }
   }
+
 ,
   "world": {
     "header": {

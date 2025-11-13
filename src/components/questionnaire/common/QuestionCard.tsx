@@ -203,7 +203,6 @@ export default function QuestionCard({
       variants={cardVariants}
       className="relative"
     >
-  
       {/* Main Card */}
       <div
         role="region"
@@ -516,39 +515,49 @@ export default function QuestionCard({
             {children}
           </motion.div>
         </div>
-{/* ✨ --- START: ADD THIS NEW BLOCK --- ✨ */}
+        {/* ✨ --- START: ADD THIS NEW BLOCK --- ✨ */}
 
-{/* Benefit Message integrated into the footer */}
-<AnimatePresence>
-  {showBenefit &&
-    currentQuestionNumber &&
-    currentQuestionNumber % 5 === 0 && (
-      <motion.div
-        initial={{ opacity: 0, y: 10, height: 0 }}
-        animate={{ opacity: 1, y: 0, height: 'auto' }}
-        exit={{ opacity: 0, y: 10, height: 0 }}
-        transition={{ duration: 0.4, ease: 'easeInOut' }}
-        className="mt-4 pt-4 border-t border-gray-200"
-      >
-        <div
-          className={cn(
-            'flex items-center gap-3 p-3 rounded-xl',
-            'bg-gradient-to-br',
-            theme.lightGradient,
-            theme.borderAccent,
-            'border'
-          )}
-        >
-          <div className={cn('p-1.5 rounded-lg bg-white shadow-sm', theme.iconColor)}>
-            <TrendingUp className="w-4 h-4" />
-          </div>
-          <span className={cn('text-sm font-semibold', theme.iconColor.replace('text-', 'text-'))}>
-            {currentBenefit}
-          </span>
-        </div>
-      </motion.div>
-    )}
-</AnimatePresence>
+        {/* Benefit Message integrated into the footer */}
+        <AnimatePresence>
+          {showBenefit &&
+            currentQuestionNumber &&
+            currentQuestionNumber % 5 === 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                exit={{ opacity: 0, y: 10, height: 0 }}
+                transition={{ duration: 0.4, ease: 'easeInOut' }}
+                className="mt-4 pt-4 border-t border-gray-200"
+              >
+                <div
+                  className={cn(
+                    'flex items-center gap-3 p-3 rounded-xl',
+                    'bg-gradient-to-br',
+                    theme.lightGradient,
+                    theme.borderAccent,
+                    'border'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'p-1.5 rounded-lg bg-white shadow-sm',
+                      theme.iconColor
+                    )}
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                  </div>
+                  <span
+                    className={cn(
+                      'text-sm font-semibold',
+                      theme.iconColor.replace('text-', 'text-')
+                    )}
+                  >
+                    {currentBenefit}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+        </AnimatePresence>
 
         {/* Footer Section */}
         <div className="relative px-6 sm:px-8 py-5 border-t-2 border-gray-100 bg-gradient-to-br from-gray-50/50 via-white to-gray-50/30">
@@ -588,17 +597,19 @@ export default function QuestionCard({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Link href="/profile?tab=questionnaire" legacyBehavior>
-                      <a target="_blank" rel="noopener noreferrer">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all"
-                          aria-label={dict.tooltips.viewProfile}
-                        >
-                          <BookUser className="w-4 h-4" />
-                        </Button>
-                      </a>
+                    <Link
+                      href="/profile?tab=questionnaire"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all"
+                        aria-label={dict.tooltips.viewProfile}
+                      >
+                        <BookUser className="w-4 h-4" />
+                      </Button>
                     </Link>
                   </TooltipTrigger>
                   <TooltipContent className="bg-white/95 backdrop-blur-sm">

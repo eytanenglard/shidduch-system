@@ -180,7 +180,7 @@ const SolutionCard: React.FC<SolutionCardProps> = ({
     >
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/40 to-transparent rounded-bl-full blur-2xl" />
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-white/30 to-transparent rounded-tr-full blur-xl" />
-      
+
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex items-center justify-center mb-6">
           <div
@@ -214,10 +214,40 @@ export default function QuestionnaireLandingPage({
   const isMobile = useIsMobile();
   const isRTL = locale === 'he';
 
+  // Track visibility of top CTA button
+  const [showBottomCta, setShowBottomCta] = useState(false);
+  const topCtaRef = useRef<HTMLDivElement>(null);
+
+  // Intersection Observer to track when top CTA is visible
+  useEffect(() => {
+    if (!isMobile || !topCtaRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Show bottom CTA when top CTA is NOT visible
+        setShowBottomCta(!entry.isIntersecting);
+      },
+      {
+        threshold: 0,
+        rootMargin: '0px',
+      }
+    );
+
+    observer.observe(topCtaRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isMobile]);
+
   const worldVisuals = [
     { id: 'PERSONALITY', icon: <User className="h-7 w-7" />, color: 'sky' },
     { id: 'VALUES', icon: <Heart className="h-7 w-7" />, color: 'rose' },
-    { id: 'RELATIONSHIP', icon: <Users className="h-7 w-7" />, color: 'purple' },
+    {
+      id: 'RELATIONSHIP',
+      icon: <Users className="h-7 w-7" />,
+      color: 'purple',
+    },
     { id: 'PARTNER', icon: <UserCheck className="h-7 w-7" />, color: 'teal' },
     { id: 'RELIGION', icon: <Scroll className="h-7 w-7" />, color: 'amber' },
   ] as const;
@@ -296,6 +326,7 @@ export default function QuestionnaireLandingPage({
           </motion.div>
 
           <motion.div
+            ref={topCtaRef}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             variants={fadeInUp}
           >
@@ -510,7 +541,7 @@ export default function QuestionnaireLandingPage({
                 teal: 'from-teal-400 to-emerald-500',
                 amber: 'from-amber-400 to-orange-500',
               };
-              
+
               const worldInfo = dict.worldsSection.worlds[world.id];
 
               return (
@@ -528,7 +559,10 @@ export default function QuestionnaireLandingPage({
                     </div>
                     <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-gray-100 mb-4">
                       <span className="text-xs font-bold text-gray-600">
-                        {dict.worldsSection.worldLabel.replace('{{number}}', (index + 1).toString())}
+                        {dict.worldsSection.worldLabel.replace(
+                          '{{number}}',
+                          (index + 1).toString()
+                        )}
                       </span>
                     </div>
                     <h3 className="text-xl font-bold text-gray-800 mb-3 leading-tight">
@@ -683,9 +717,15 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* MOBILE STICKY CTA */}
-      {isMobile && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-xl border-t-2 border-teal-200/80 shadow-2xl z-50">
+      {/* MOBILE STICKY CTA - Only shows when top CTA is out of view */}
+      {isMobile && showBottomCta && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-xl border-t-2 border-teal-200/80 shadow-2xl z-50"
+        >
           <Button
             size="lg"
             className="w-full text-base font-bold py-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white rounded-xl shadow-xl hover:shadow-2xl transition-all group relative overflow-hidden"
@@ -704,11 +744,14 @@ export default function QuestionnaireLandingPage({
               )}
             </div>
           </Button>
-        </div>
+        </motion.div>
       )}
 
       <footer className="text-center py-8 text-gray-500 text-sm bg-slate-50/80">
-        {dict.footer.copyright.replace('{{year}}', new Date().getFullYear().toString())}
+        {dict.footer.copyright.replace(
+          '{{year}}',
+          new Date().getFullYear().toString()
+        )}
       </footer>
 
       <style>{`

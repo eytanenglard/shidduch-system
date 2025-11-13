@@ -1668,19 +1668,44 @@ export type WorldsMapDict = {
 export type QuestionnaireLayoutDict = {
   navHeader: string;
   navSubtitle: string;
+  
+  // START: Updated Section
+  sidebarHeader: {
+    title: string;
+    subtitle: string;
+  };
+  sidebarProgress: {
+    title: string;
+    worldsLabel: string; // e.g., "{{completedCount}}/{{totalCount}} worlds"
+    completionMessage: string;
+  };
+  navButtonStatus: {
+    active: string;
+    completed: string;
+    available: string; // e.g., "World {{order}}"
+  };
+  saveButton: {
+    default: string;
+    saving: string;
+    saved: string;
+  };
+  lastSavedSuccess: string; // e.g., "Saved successfully at {{time}}"
+  actionButtons: {
+    review: string;
+    exitToMap: string;
+    faq: string;
+  };
+  faqSheet: {
+    title: string;
+  };
+  // END: Updated Section
+
   unauthenticatedPrompt: {
     title: string;
     subtitle: string;
     loginButton: string;
     registerButton: string;
   };
-  buttons: {
-    save: string;
-    saving: string;
-    review: string;
-    map: string;
-  };
-  lastSaved: string; // e.g., "נשמר: {{time}}"
   exitPrompt: {
     title: string;
     description: string;
@@ -1703,11 +1728,11 @@ export type QuestionnaireLayoutDict = {
     title: string;
     textPart1: string;
     textPart2: string;
-    // נשתמש במפתח קיים במקום להוסיף textPart3, או נוודא שיש מפתח לכפתור/לינק
-    link: string; // הלינק לפרופיל
-    visibilityToggleLabel: string; // <-- הוספנו מפתח זה עבור שם המתג
+    link: string;
+    visibilityToggleLabel: string;
   };
 };
+
 
 
 export type WorldComponentDict = {

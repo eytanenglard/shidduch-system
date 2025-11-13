@@ -176,7 +176,7 @@ const NavButton = React.memo(
     const isCompleted = completedWorlds.includes(worldId);
     const colors = colorMap[themeColor];
     const currentColors = colorMap[currentThemeColor];
-    const isRTL = true;
+    const isRTL = dict.layout.navButtonStatus.active === 'עכשיו'; // Simple check for RTL
 
     let status: 'active' | 'completed' | 'available' = 'available';
     if (isActive) status = 'active';
@@ -285,9 +285,14 @@ const NavButton = React.memo(
                     status === 'active' ? 'text-white/80' : 'text-gray-500'
                   )}
                 >
-                  {status === 'active' && 'עכשיו'}
-                  {status === 'completed' && 'הושלם'}
-                  {status === 'available' && `עולם ${order}`}
+                  {status === 'active' && dict.layout.navButtonStatus.active}
+                  {status === 'completed' &&
+                    dict.layout.navButtonStatus.completed}
+                  {status === 'available' &&
+                    dict.layout.navButtonStatus.available.replace(
+                      '{{order}}',
+                      String(order)
+                    )}
                 </span>
               )}
             </div>
@@ -300,9 +305,7 @@ const NavButton = React.memo(
 );
 NavButton.displayName = 'NavButton';
 
-// --- START: MODIFIED CODE ---
-// Renamed from _QuestionnaireSidebar to QuestionnaireSidebar and removed the outer <aside>
-export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
+const _QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
   currentWorld,
   completedWorlds,
   onWorldChange,
@@ -324,7 +327,6 @@ export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
     (completedWorlds.length / WORLD_ORDER.length) * 100
   );
 
-  // The content is now wrapped in a React Fragment to avoid an extra div
   return (
     <>
       <div className="relative p-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white">
@@ -335,8 +337,12 @@ export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
               <Compass className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="font-extrabold text-2xl">המסע שלך</h3>
-              <p className="text-sm text-white/90">גילוי עצמי מודרך</p>
+              <h3 className="font-extrabold text-2xl">
+                {dict.layout.sidebarHeader.title}
+              </h3>
+              <p className="text-sm text-white/90">
+                {dict.layout.sidebarHeader.subtitle}
+              </p>
             </div>
           </div>
         </div>
@@ -352,12 +358,14 @@ export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
               <Target className={cn('h-4 w-4', currentColors.text)} />
             </div>
             <span className="text-sm font-bold text-gray-800">
-              ההתקדמות שלך
+              {dict.layout.sidebarProgress.title}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-gray-600">
-              {completedWorlds.length}/{WORLD_ORDER.length} עולמות
+              {dict.layout.sidebarProgress.worldsLabel
+                .replace('{{completedCount}}', String(completedWorlds.length))
+                .replace('{{totalCount}}', String(WORLD_ORDER.length))}
             </span>
             <span className={cn('text-base font-bold', currentColors.text)}>
               {completionPercent}%
@@ -383,7 +391,7 @@ export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
           >
             <Award className="h-4 w-4 text-amber-500" />
             <p className="text-xs font-bold text-amber-600">
-              כל הכבוד! השלמת את כל העולמות 🎉
+              {dict.layout.sidebarProgress.completionMessage}
             </p>
           </motion.div>
         )}
@@ -455,7 +463,12 @@ export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
           >
             <CheckCircle className="h-4 w-4 text-green-600" />
             <span className="text-xs font-semibold text-green-700">
-              נשמר בהצלחה ב-{lastSaved.toLocaleTimeString('he-IL')}
+              {dict.layout.lastSavedSuccess.replace(
+                '{{time}}',
+                lastSaved.toLocaleTimeString(
+                  locale === 'he' ? 'he-IL' : 'en-US'
+                )
+              )}
             </span>
           </motion.div>
         )}
@@ -473,17 +486,17 @@ export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
           {isSaving ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              שומר...
+              {dict.layout.saveButton.saving}
             </>
           ) : saveSuccess ? (
             <>
               <CheckCircle className="w-4 h-4 mr-2" />
-              נשמר!
+              {dict.layout.saveButton.saved}
             </>
           ) : (
             <>
               <Save className="w-4 h-4 mr-2" />
-              שמור התקדמות
+              {dict.layout.saveButton.default}
             </>
           )}
         </Button>
@@ -493,7 +506,7 @@ export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
             className="w-full font-semibold border-2 border-teal-300 text-teal-700 hover:bg-teal-50 hover:border-teal-400"
           >
             <BookUser className="w-4 h-4 mr-2" />
-            סקור את התשובות
+            {dict.layout.actionButtons.review}
           </Button>
         </Link>
         <Button
@@ -502,7 +515,7 @@ export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
           onClick={onExit}
         >
           <Home className="w-4 h-4 mr-2" />
-          חזור למפה
+          {dict.layout.actionButtons.exitToMap}
         </Button>
         <Sheet>
           <SheetTrigger asChild>
@@ -514,7 +527,7 @@ export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
               <div className="p-1 bg-purple-100 rounded">
                 <Info className="h-3.5 w-3.5 text-purple-600" />
               </div>
-              שאלות נפוצות
+              {dict.layout.actionButtons.faq}
             </Button>
           </SheetTrigger>
           <SheetContent
@@ -523,7 +536,7 @@ export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
           >
             <SheetHeader>
               <SheetTitle className="text-xl font-bold">
-                שאלות נפוצות
+                {dict.layout.faqSheet.title}
               </SheetTitle>
             </SheetHeader>
             <div className="mt-6">
@@ -535,4 +548,13 @@ export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
     </>
   );
 };
-// --- END: MODIFIED CODE ---
+
+export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = (
+  props
+) => {
+  return (
+    <aside className="w-full lg:w-96 bg-gradient-to-b from-white to-gray-100/60 border-e-2 border-gray-200/80 flex flex-col h-screen sticky top-0">
+      <_QuestionnaireSidebar {...props} />
+    </aside>
+  );
+};

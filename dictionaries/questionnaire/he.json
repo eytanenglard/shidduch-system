@@ -350,22 +350,43 @@
 
 
 ,
-  "layout": {
+   "layout": {
     "navHeader": "עולמות השאלון",
     "navSubtitle": "נווט בין חלקי השאלון השונים",
+    "sidebarHeader": {
+      "title": "המסע שלך",
+      "subtitle": "גילוי עצמי מודרך"
+    },
+    "sidebarProgress": {
+      "title": "ההתקדמות שלך",
+      "worldsLabel": "{{completedCount}}/{{totalCount}} עולמות",
+      "completionMessage": "כל הכבוד! השלמת את כל העולמות 🎉"
+    },
+    "navButtonStatus": {
+      "active": "עכשיו",
+      "completed": "הושלם",
+      "available": "עולם {{order}}"
+    },
+    "saveButton": {
+      "default": "שמור התקדמות",
+      "saving": "שומר...",
+      "saved": "נשמר!"
+    },
+    "lastSavedSuccess": "נשמר בהצלחה ב-{{time}}",
+    "actionButtons": {
+      "review": "סקור את התשובות",
+      "exitToMap": "חזור למפה",
+      "faq": "שאלות נפוצות"
+    },
+    "faqSheet": {
+      "title": "שאלות נפוצות"
+    },
     "unauthenticatedPrompt": {
       "title": "התקדמותך נשמרת זמנית בדפדפן.",
       "subtitle": "התחבר/י או הרשמ/י כדי לשמור את התשובות לחשבונך.",
       "loginButton": "התחברות",
       "registerButton": "הרשמה"
     },
-    "buttons": {
-      "save": "שמור התקדמות",
-      "saving": "שומר...",
-      "review": "סקירת תשובות",
-      "map": "מפת העולמות"
-    },
-    "lastSaved": "נשמר: {{time}}",
     "exitPrompt": {
       "title": "האם אתה בטוח שברצונך לצאת?",
       "description": "כל התשובות שלא נשמרו יאבדו. האם ברצונך לשמור לפני היציאה?",
@@ -378,7 +399,7 @@
       "backToMap": "חזרה למפת העולמות",
       "exit": "יציאה",
       "reviewAnswers": "צפייה בכל התשובות",
-      "menuTitle": "תפריט" 
+      "menuTitle": "תפריט"
     },
     "tooltips": {
       "faq": "שאלות נפוצות",
@@ -392,6 +413,7 @@
       "link": "ניתן לנהל את כל התשובות שלך דרך הפרופיל האישי."
     }
   }
+
 ,
   "world": {
     "header": {
