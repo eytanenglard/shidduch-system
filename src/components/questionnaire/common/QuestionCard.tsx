@@ -1,12 +1,8 @@
 // src/components/questionnaire/common/QuestionCard.tsx
-import React, { useState } from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { VisibilityToggleButton } from '@/components/ui/VisibilityToggleButton';
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -21,6 +17,10 @@ import {
   Save,
   Loader2,
   BookUser,
+  Sparkles,
+  Clock,
+  TrendingUp,
+  CheckCircle2,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -31,8 +31,9 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Question, QuestionDepth } from '../types/types';
 import { cn } from '@/lib/utils';
-import type { QuestionCardDict } from '@/types/dictionary'; // ייבוא טיפוס המילון
+import type { QuestionCardDict } from '@/types/dictionary';
 
+// --- Props Interface ---
 interface QuestionCardProps {
   question: Question;
   depth: QuestionDepth;
@@ -44,62 +45,91 @@ interface QuestionCardProps {
   validationError?: string;
   isDisabled?: boolean;
   children?: React.ReactNode;
-  locale?: 'he' | 'en';
+  locale?: 'he' | 'en'; // Prop לקביעת השפה והכיווניות
   isFirstInList?: boolean;
   themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
   isVisible: boolean;
   onVisibilityChange: (isVisible: boolean) => void;
   onSave?: () => void;
   isSaving?: boolean;
-  dict: QuestionCardDict; // קבלת המילון כ-prop
+  dict: QuestionCardDict;
+  currentQuestionNumber?: number;
+  totalQuestions?: number;
+  estimatedTimeMinutes?: number;
 }
 
-const getThemeClasses = (themeColor: string) => {
+// --- Helper Functions ---
+const getThemeConfig = (themeColor: string) => {
   const themes = {
     sky: {
-      border: 'border-sky-500',
-      text: 'text-sky-700',
-      bg: 'bg-sky-100',
-      bgSoft: 'bg-sky-50',
-      ring: 'ring-sky-300',
-      icon: 'text-sky-500',
+      gradient: 'from-cyan-400 via-sky-500 to-blue-500',
+      lightGradient: 'from-cyan-50 via-sky-50 to-blue-50',
+      glowColor: 'shadow-cyan-400/40',
+      iconColor: 'text-cyan-600',
+      bgAccent: 'bg-cyan-50',
+      borderAccent: 'border-cyan-200',
     },
     rose: {
-      border: 'border-rose-500',
-      text: 'text-rose-700',
-      bg: 'bg-rose-100',
-      bgSoft: 'bg-rose-50',
-      ring: 'ring-rose-300',
-      icon: 'text-rose-500',
+      gradient: 'from-rose-400 via-pink-500 to-red-500',
+      lightGradient: 'from-rose-50 via-pink-50 to-red-50',
+      glowColor: 'shadow-rose-400/40',
+      iconColor: 'text-rose-600',
+      bgAccent: 'bg-rose-50',
+      borderAccent: 'border-rose-200',
     },
     purple: {
-      border: 'border-purple-500',
-      text: 'text-purple-700',
-      bg: 'bg-purple-100',
-      bgSoft: 'bg-purple-50',
-      ring: 'ring-purple-300',
-      icon: 'text-purple-500',
+      gradient: 'from-purple-400 via-violet-500 to-indigo-500',
+      lightGradient: 'from-purple-50 via-violet-50 to-indigo-50',
+      glowColor: 'shadow-purple-400/40',
+      iconColor: 'text-purple-600',
+      bgAccent: 'bg-purple-50',
+      borderAccent: 'border-purple-200',
     },
     teal: {
-      border: 'border-teal-500',
-      text: 'text-teal-700',
-      bg: 'bg-teal-100',
-      bgSoft: 'bg-teal-50',
-      ring: 'ring-teal-300',
-      icon: 'text-teal-500',
+      gradient: 'from-teal-400 via-emerald-500 to-green-500',
+      lightGradient: 'from-teal-50 via-emerald-50 to-green-50',
+      glowColor: 'shadow-teal-400/40',
+      iconColor: 'text-teal-600',
+      bgAccent: 'bg-teal-50',
+      borderAccent: 'border-teal-200',
     },
     amber: {
-      border: 'border-amber-500',
-      text: 'text-amber-700',
-      bg: 'bg-amber-100',
-      bgSoft: 'bg-amber-50',
-      ring: 'ring-amber-300',
-      icon: 'text-amber-500',
+      gradient: 'from-amber-400 via-orange-500 to-yellow-500',
+      lightGradient: 'from-amber-50 via-orange-50 to-yellow-50',
+      glowColor: 'shadow-amber-400/40',
+      iconColor: 'text-amber-600',
+      bgAccent: 'bg-amber-50',
+      borderAccent: 'border-amber-200',
     },
   };
   return themes[themeColor as keyof typeof themes] || themes.sky;
 };
 
+const getDepthIcon = (depth: QuestionDepth) => {
+  switch (depth) {
+    case 'BASIC':
+      return <Star className="w-4 h-4" fill="currentColor" />;
+    case 'ADVANCED':
+      return (
+        <>
+          <Star className="w-4 h-4" fill="currentColor" />
+          <Star className="w-4 h-4" fill="currentColor" />
+        </>
+      );
+    case 'EXPERT':
+      return (
+        <>
+          <Star className="w-4 h-4" fill="currentColor" />
+          <Star className="w-4 h-4" fill="currentColor" />
+          <Star className="w-4 h-4" fill="currentColor" />
+        </>
+      );
+    default:
+      return <Star className="w-4 h-4" fill="currentColor" />;
+  }
+};
+
+// --- Main Component ---
 export default function QuestionCard({
   question,
   depth,
@@ -111,34 +141,58 @@ export default function QuestionCard({
   validationError,
   isDisabled = false,
   children,
+  locale = 'he',
   themeColor = 'sky',
   isVisible,
   onVisibilityChange,
   onSave,
   isSaving,
-  locale,
-  dict, // שימוש במשתנה dict
+  dict,
+  currentQuestionNumber,
+  totalQuestions,
+  estimatedTimeMinutes = 5,
 }: QuestionCardProps) {
+  // --- State and Variables ---
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showBenefit, setShowBenefit] = useState(true);
+
   const isRTL = locale === 'he';
+  const theme = getThemeConfig(themeColor);
+
+  // --- Effects ---
+  useEffect(() => {
+    if (currentQuestionNumber && currentQuestionNumber % 5 === 0) {
+      setShowBenefit(true);
+      const timer = setTimeout(() => setShowBenefit(false), 8000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowBenefit(false);
+    }
+  }, [currentQuestionNumber]);
+
+  // --- Animation Variants ---
   const cardVariants = {
     initial: { opacity: 0, y: 30, scale: 0.98 },
     animate: {
       opacity: 1,
       y: 0,
       scale: 1,
-      transition: { duration: 0.4, ease: 'easeOut' },
+      transition: { duration: 0.5, ease: [0.25, 1, 0.5, 1] },
     },
-    exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
+    exit: { opacity: 0, y: -20, transition: { duration: 0.3 } },
   };
 
-  const contentVariants = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1, transition: { delay: 0.1, duration: 0.3 } },
-  };
-
-  const themeClasses = getThemeClasses(themeColor);
+  const currentBenefit =
+    dict.benefitMessages[
+      Math.floor(
+        ((currentQuestionNumber || 0) / 5) % dict.benefitMessages.length
+      )
+    ];
+  const progressPercentage =
+    currentQuestionNumber && totalQuestions
+      ? Math.round((currentQuestionNumber / totalQuestions) * 100)
+      : 0;
 
   return (
     <motion.div
@@ -147,45 +201,157 @@ export default function QuestionCard({
       animate="animate"
       exit="exit"
       variants={cardVariants}
+      className="relative"
     >
-      <Card
+      {/* Floating Benefit Reminder */}
+      <AnimatePresence>
+        {showBenefit &&
+          currentQuestionNumber &&
+          currentQuestionNumber % 5 === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.9 }}
+              transition={{ duration: 0.4 }}
+              className="absolute -top-20 left-1/2 transform -translate-x-1/2 z-20 w-full max-w-md"
+            >
+              <div
+                className={cn(
+                  'relative bg-gradient-to-r text-white px-6 py-3 rounded-2xl shadow-2xl border-2 border-white/30',
+                  theme.gradient,
+                  theme.glowColor
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <Sparkles className="w-5 h-5 flex-shrink-0 animate-pulse" />
+                  <p className="text-sm font-medium text-center">
+                    {currentBenefit}
+                  </p>
+                </div>
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-white/80" />
+              </div>
+            </motion.div>
+          )}
+      </AnimatePresence>
+
+      {/* Main Card */}
+      <div
         role="region"
         aria-labelledby={question.id}
         className={cn(
-          'transition-all duration-300 shadow-lg rounded-xl overflow-hidden border',
-          isDisabled ? 'opacity-75 cursor-not-allowed' : 'hover:shadow-xl',
-          `border-t-4 ${themeClasses.border}`,
+          'relative overflow-hidden rounded-3xl bg-gradient-to-br from-white via-white to-gray-50/50 shadow-2xl hover:shadow-3xl transition-all duration-500 border-2 border-white',
+          isDisabled && 'opacity-75 cursor-not-allowed',
           className
         )}
       >
-        <CardHeader className="relative flex flex-col space-y-2 pb-3">
+        {/* Decorative Elements */}
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+        <div
+          className={cn(
+            'absolute top-4 w-32 h-32 rounded-full bg-gradient-to-br opacity-40 blur-3xl',
+            theme.lightGradient,
+            isRTL ? 'left-4' : 'right-4'
+          )}
+        />
+        <div
+          className={cn(
+            'absolute bottom-4 w-24 h-24 rounded-full bg-gradient-to-br opacity-30 blur-2xl',
+            theme.lightGradient,
+            isRTL ? 'right-4' : 'left-4'
+          )}
+        />
+
+        <div className={cn('h-1.5 bg-gradient-to-r', theme.gradient)} />
+
+        {/* Header Section */}
+        <div className="relative px-6 sm:px-8 pt-6 pb-4 space-y-4">
+          {currentQuestionNumber && totalQuestions && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-3 mb-4"
+            >
+              <div className="flex-1">
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progressPercentage}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    className={cn('h-full bg-gradient-to-r', theme.gradient)}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-gray-700">
+                  {currentQuestionNumber}/{totalQuestions}
+                </span>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'text-xs font-semibold border-2',
+                    theme.borderAccent,
+                    theme.bgAccent,
+                    theme.iconColor
+                  )}
+                >
+                  {progressPercentage}%
+                </Badge>
+              </div>
+            </motion.div>
+          )}
+
           <div className="flex items-center justify-between">
-            <div className="flex flex-wrap items-center gap-2">
+            <div
+              className={cn(
+                'flex flex-wrap items-center gap-2',
+                isRTL && 'flex-row-reverse'
+              )}
+            >
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger>
                     <Badge
-                      variant="outline"
                       className={cn(
-                        'text-xs font-medium border-2',
-                        themeClasses.border,
-                        themeClasses.bgSoft,
-                        themeClasses.text
+                        'flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r text-white border-0 shadow-md',
+                        theme.gradient,
+                        theme.glowColor
                       )}
                     >
-                      <Star className="h-3.5 w-3.5 ms-1.5" />{' '}
-                      {dict.depthLabels[depth]}
+                      {getDepthIcon(depth)}
+                      <span className="text-xs font-bold">
+                        {dict.depthLabels[depth]}
+                      </span>
                     </Badge>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <p className="text-sm">{dict.depthDescriptions[depth]}</p>
+                  <TooltipContent
+                    side="bottom"
+                    className="max-w-xs bg-white/95 backdrop-blur-sm"
+                  >
+                    <p className="text-sm font-medium">
+                      {dict.depthDescriptions[depth]}
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
               {isRequired && (
-                <Badge variant="destructive" className="text-xs animate-pulse">
+                <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-xs font-semibold px-3 py-1.5 animate-pulse border-0">
                   {dict.requiredBadge}
+                </Badge>
+              )}
+
+              {estimatedTimeMinutes && (
+                <Badge
+                  variant="outline"
+                  className="flex items-center gap-1.5 text-xs border-gray-200 bg-white/80 text-gray-600"
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>
+                    {dict.estimatedTime.replace(
+                      '{{minutes}}',
+                      String(estimatedTimeMinutes)
+                    )}
+                  </span>
                 </Badge>
               )}
             </div>
@@ -200,10 +366,15 @@ export default function QuestionCard({
                         size="icon"
                         onClick={() => setIsBookmarked(!isBookmarked)}
                         className={cn(
-                          'h-8 w-8 rounded-full',
+                          'h-9 w-9 rounded-xl transition-all duration-300',
                           isBookmarked
-                            ? 'text-amber-500 bg-amber-100'
-                            : 'text-slate-400 hover:bg-slate-100'
+                            ? cn(
+                                'bg-gradient-to-br shadow-md',
+                                theme.lightGradient,
+                                theme.iconColor,
+                                theme.glowColor
+                              )
+                            : 'text-gray-400 hover:bg-gray-100'
                         )}
                         aria-label={
                           isBookmarked
@@ -211,11 +382,14 @@ export default function QuestionCard({
                             : dict.tooltips.addBookmark
                         }
                       >
-                        <Bookmark className="w-4 h-4" />
+                        <Bookmark
+                          className="w-4 h-4"
+                          fill={isBookmarked ? 'currentColor' : 'none'}
+                        />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>
-                      <p>
+                    <TooltipContent className="bg-white/95 backdrop-blur-sm">
+                      <p className="text-sm">
                         {isBookmarked
                           ? dict.tooltips.removeBookmark
                           : dict.tooltips.addBookmark}
@@ -224,6 +398,7 @@ export default function QuestionCard({
                   </Tooltip>
                 </TooltipProvider>
               )}
+
               {question.metadata?.helpText && (
                 <TooltipProvider>
                   <Tooltip>
@@ -233,10 +408,14 @@ export default function QuestionCard({
                         size="icon"
                         onClick={() => setShowHelp(!showHelp)}
                         className={cn(
-                          'h-8 w-8 rounded-full',
+                          'h-9 w-9 rounded-xl transition-all duration-300',
                           showHelp
-                            ? `${themeClasses.bg} ${themeClasses.text}`
-                            : 'text-slate-400 hover:bg-slate-100'
+                            ? cn(
+                                'bg-gradient-to-br shadow-md',
+                                theme.lightGradient,
+                                theme.iconColor
+                              )
+                            : 'text-gray-400 hover:bg-gray-100'
                         )}
                         aria-label={
                           showHelp
@@ -247,8 +426,8 @@ export default function QuestionCard({
                         <HelpCircle className="w-4 h-4" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>
-                      <p>
+                    <TooltipContent className="bg-white/95 backdrop-blur-sm">
+                      <p className="text-sm">
                         {showHelp
                           ? dict.tooltips.hideHelp
                           : dict.tooltips.whyQuestion}
@@ -260,41 +439,72 @@ export default function QuestionCard({
             </div>
           </div>
 
-          <motion.div variants={contentVariants}>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
+          >
             <h2
               id={question.id}
-              className="text-xl sm:text-2xl font-semibold mt-3 text-slate-800 leading-snug"
+              className={cn(
+                'text-2xl sm:text-3xl font-bold text-gray-800 leading-tight mt-4',
+                isRTL ? 'text-right' : 'text-left'
+              )}
             >
               {question.question}
             </h2>
           </motion.div>
-        </CardHeader>
 
-        <CardContent className="relative pt-2 space-y-4">
+          <div className="relative mt-4">
+            <div
+              className={cn(
+                'absolute h-1 w-20 bg-gradient-to-r rounded-full',
+                theme.gradient,
+                theme.glowColor,
+                isRTL ? 'right-0' : 'left-0'
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="relative px-6 sm:px-8 pb-6 space-y-4">
           <AnimatePresence>
             {showHelp && question.metadata?.helpText && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
               >
-                <Alert
+                <div
                   className={cn(
-                    themeClasses.bgSoft,
-                    'border-2',
-                    themeClasses.border
-                      .replace('border-', 'border-')
-                      .replace('-500', '-200')
+                    'rounded-2xl p-4 border-2 bg-gradient-to-br shadow-md',
+                    theme.lightGradient,
+                    theme.borderAccent
                   )}
                 >
-                  <Lightbulb className={cn('h-4 w-4', themeClasses.icon)} />
-                  <AlertDescription
-                    className={cn(themeClasses.text, 'font-medium')}
+                  <div
+                    className={cn(
+                      'flex items-start gap-3',
+                      isRTL && 'flex-row-reverse'
+                    )}
                   >
-                    {question.metadata.helpText}
-                  </AlertDescription>
-                </Alert>
+                    <div
+                      className={cn(
+                        'flex-shrink-0 p-2 rounded-xl bg-white shadow-sm',
+                        theme.iconColor
+                      )}
+                    >
+                      <Lightbulb className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-700 leading-relaxed">
+                        {question.metadata.helpText}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -302,129 +512,195 @@ export default function QuestionCard({
           <AnimatePresence>
             {validationError && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
               >
-                <Alert role="alert" variant="destructive" className="py-2">
-                  <AlertCircle className="h-4 w-4 mr-2" />
-                  <AlertDescription className="text-sm">
-                    {validationError}
-                  </AlertDescription>
+                <Alert
+                  role="alert"
+                  className="bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl"
+                >
+                  <div
+                    className={cn(
+                      'flex items-center gap-3',
+                      isRTL && 'flex-row-reverse'
+                    )}
+                  >
+                    <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                    <AlertDescription className="text-sm font-medium text-red-700">
+                      {validationError}
+                    </AlertDescription>
+                  </div>
                 </Alert>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <div className="mt-4">
-            <motion.div variants={contentVariants} className="relative">
-              {children}
-            </motion.div>
-          </div>
-        </CardContent>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            className="relative mt-6"
+          >
+            {children}
+          </motion.div>
+        </div>
 
-        <CardFooter className="relative flex justify-between items-center pt-4 border-t border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-3">
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <VisibilityToggleButton
-                    isVisible={isVisible}
-                    onToggle={() => onVisibilityChange(!isVisible)}
-                    disabled={isDisabled}
-                    visibleText={dict.visibilityButton.visible}
-                    hiddenText={dict.visibilityButton.hidden}
-                  />
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-xs">
-                  <div className="text-center">
-                    <p className="font-medium mb-1">
-                      {isVisible
-                        ? dict.tooltips.visibility.visibleTitle
-                        : dict.tooltips.visibility.hiddenTitle}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {isVisible
-                        ? dict.tooltips.visibility.visibleDesc
-                        : dict.tooltips.visibility.hiddenDesc}
-                    </p>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-
-          <div className="flex items-center gap-1">
-            {onSave && (
-              <TooltipProvider>
+        {/* Footer Section */}
+        <div className="relative px-6 sm:px-8 py-5 border-t-2 border-gray-100 bg-gradient-to-br from-gray-50/50 via-white to-gray-50/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100"
-                      onClick={onSave}
-                      disabled={isSaving || isDisabled}
-                      aria-label={dict.tooltips.saveProgress}
-                    >
-                      {isSaving ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                      ) : (
-                        <Save className="w-4 h-4" />
-                      )}
-                    </Button>
+                    <VisibilityToggleButton
+                      isVisible={isVisible}
+                      onToggle={() => onVisibilityChange(!isVisible)}
+                      disabled={isDisabled}
+                      visibleText={dict.visibilityButton.visible}
+                      hiddenText={dict.visibilityButton.hidden}
+                    />
                   </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      {isSaving
-                        ? dict.tooltips.saveProgressSaving
-                        : dict.tooltips.saveProgress}
-                    </p>
+                  <TooltipContent
+                    side="top"
+                    className="max-w-xs bg-white/95 backdrop-blur-sm"
+                  >
+                    <div className="text-center space-y-1">
+                      <p className="font-semibold text-sm">
+                        {isVisible
+                          ? dict.tooltips.visibility.visibleTitle
+                          : dict.tooltips.visibility.hiddenTitle}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {isVisible
+                          ? dict.tooltips.visibility.visibleDesc
+                          : dict.tooltips.visibility.hiddenDesc}
+                      </p>
+                    </div>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            )}
 
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link href="/profile?tab=questionnaire" legacyBehavior>
-                    <a target="_blank" rel="noopener noreferrer">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link href="/profile?tab=questionnaire" legacyBehavior>
+                      <a target="_blank" rel="noopener noreferrer">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all"
+                          aria-label={dict.tooltips.viewProfile}
+                        >
+                          <BookUser className="w-4 h-4" />
+                        </Button>
+                      </a>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-white/95 backdrop-blur-sm">
+                    <p className="text-sm">{dict.tooltips.viewProfile}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {onSave && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100"
-                        aria-label={dict.tooltips.viewProfile}
+                        className={cn(
+                          'h-9 w-9 rounded-xl transition-all duration-300',
+                          isSaving
+                            ? cn('bg-gradient-to-br', theme.lightGradient)
+                            : 'text-gray-500 hover:bg-gray-100'
+                        )}
+                        onClick={onSave}
+                        disabled={isSaving || isDisabled}
+                        aria-label={dict.tooltips.saveProgress}
                       >
-                        <BookUser className="w-4 h-4" />
+                        {isSaving ? (
+                          <Loader2
+                            className={cn(
+                              'w-4 h-4 animate-spin',
+                              theme.iconColor
+                            )}
+                          />
+                        ) : (
+                          <Save className="w-4 h-4" />
+                        )}
                       </Button>
-                    </a>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{dict.tooltips.viewProfile}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white/95 backdrop-blur-sm">
+                      <p className="text-sm">
+                        {isSaving
+                          ? dict.tooltips.saveProgressSaving
+                          : dict.tooltips.saveProgress}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
 
-            {onSkip && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onSkip}
-                disabled={isRequired || isDisabled}
+              {onSkip && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onSkip}
+                  disabled={isRequired || isDisabled}
+                  className={cn(
+                    'rounded-xl px-4 py-2 flex items-center gap-2 transition-all',
+                    isRequired || isDisabled
+                      ? 'opacity-50 cursor-not-allowed text-gray-400'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                  )}
+                >
+                  {isRequired ? (
+                    <span className="text-sm font-medium">
+                      {dict.skipButton.required}
+                    </span>
+                  ) : (
+                    <>
+                      <span className="text-sm font-medium">
+                        {dict.skipButton.skip}
+                      </span>
+                      <SkipForward className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {currentQuestionNumber && currentQuestionNumber % 3 === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.4 }}
+              className="mt-4 pt-4 border-t border-gray-200"
+            >
+              <div
                 className={cn(
-                  'text-slate-500 hover:text-slate-800',
-                  (isRequired || isDisabled) && 'opacity-50 cursor-not-allowed'
+                  'flex items-center gap-2 text-sm text-gray-600',
+                  isRTL && 'flex-row-reverse'
                 )}
               >
-                {isRequired ? dict.skipButton.required : dict.skipButton.skip}
-                {!isRequired && <SkipForward className="w-4 h-4 me-2" />}
-              </Button>
-            )}
-          </div>
-        </CardFooter>
-      </Card>
+                <TrendingUp
+                  className={cn(
+                    'w-4 h-4 text-green-500',
+                    isRTL ? 'ml-2' : 'mr-2'
+                  )}
+                />
+                <span className="font-medium">{dict.encouragementMessage}</span>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </div>
     </motion.div>
   );
 }

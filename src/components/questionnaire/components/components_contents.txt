@@ -1,0 +1,2357 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components
+# Generated on: 2025-11-12 15:24:21
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\AccessibilityFeatures.tsx
+--------------------------------------------------------------------------------
+Content:
+'use client';
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Accessibility,
+  Plus,
+  Minus,
+  MoonStar,
+  SunMedium,
+  Type,
+  MousePointer,
+  Hand,
+  Contrast,
+  Speech,
+  X,
+  Settings,
+  Volume2,
+  VolumeX,
+  Palette,
+  Eye,
+  RefreshCw,
+  Check,
+  Sparkles,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import type { AccessibilityFeaturesDict } from '@/types/dictionary'; // Import dictionary type
+
+declare global {
+  interface Window {
+    webkitAudioContext: typeof AudioContext;
+  }
+}
+
+interface AccessibilityFeaturesProps {
+  className?: string;
+  isPanelOpen?: boolean;
+  onPanelOpenChange?: (isOpen: boolean) => void;
+  dict: AccessibilityFeaturesDict; // Use the specific dictionary type
+}
+
+interface AccessibilitySettings {
+  fontScale: number;
+  contrastMode: 'normal' | 'high' | 'dark';
+  reducedMotion: boolean;
+  readableMode: boolean;
+  bigCursor: boolean;
+  textReader: boolean;
+  soundEnabled: boolean;
+}
+
+const defaultSettings: AccessibilitySettings = {
+  fontScale: 1,
+  contrastMode: 'normal',
+  reducedMotion: false,
+  readableMode: false,
+  bigCursor: false,
+  textReader: false,
+  soundEnabled: true,
+};
+
+const getSettingName = (
+  key: keyof AccessibilitySettings,
+  dict: AccessibilityFeaturesDict
+): string => {
+  return dict.settingNames[key] || key;
+};
+
+export default function AccessibilityFeatures({
+  className,
+  isPanelOpen,
+  onPanelOpenChange,
+  dict,
+}: AccessibilityFeaturesProps) {
+  const [settings, setSettings] =
+    useState<AccessibilitySettings>(defaultSettings);
+  const [internalShowPanel, setInternalShowPanel] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [showToast, setShowToast] = useState<{
+    message: string;
+    type: 'success' | 'info';
+    visible: boolean;
+  }>({ message: '', type: 'info', visible: false });
+
+  const panelRef = useRef<HTMLDivElement>(null);
+  // --- This line was fixed ---
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showAccessibilityPanel =
+    isPanelOpen !== undefined ? isPanelOpen : internalShowPanel;
+  const setShowAccessibilityPanel = onPanelOpenChange || setInternalShowPanel;
+
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('accessibilitySettings');
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setSettings({ ...defaultSettings, ...parsed });
+      } catch (error) {
+        console.error('Error loading accessibility settings:', error);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const htmlElement = document.documentElement;
+    htmlElement.style.fontSize = `${settings.fontScale * 100}%`;
+    htmlElement.classList.toggle(
+      'high-contrast',
+      settings.contrastMode === 'high'
+    );
+    htmlElement.classList.toggle('dark-mode', settings.contrastMode === 'dark');
+    htmlElement.classList.toggle('reduce-motion', settings.reducedMotion);
+    htmlElement.classList.toggle('readable-font', settings.readableMode);
+    htmlElement.classList.toggle('big-cursor', settings.bigCursor);
+    updateAccessibilityStyles();
+    localStorage.setItem('accessibilitySettings', JSON.stringify(settings));
+  }, [settings]);
+
+  const updateAccessibilityStyles = () => {
+    const styleElement =
+      document.getElementById('accessibility-styles') ||
+      document.createElement('style');
+    styleElement.id = 'accessibility-styles';
+    styleElement.textContent = `
+      .high-contrast { filter: contrast(1.5) brightness(1.1); }
+      .dark-mode { filter: invert(1) hue-rotate(180deg); background: #1a1a1a !important; }
+      .reduce-motion * { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }
+      .readable-font * { font-family: 'Arial', 'Helvetica', sans-serif !important; letter-spacing: 0.05em !important; word-spacing: 0.1em !important; line-height: 1.6 !important; }
+      .big-cursor, .big-cursor * { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16"><circle fill="%23000" stroke="%23fff" stroke-width="2" cx="8" cy="8" r="6"/></svg>') 16 16, auto !important; }
+      .accessibility-panel-enter { opacity: 0; transform: scale(0.95) translateY(10px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+      .accessibility-panel-enter-active { opacity: 1; transform: scale(1) translateY(0); }
+      .accessibility-panel-exit { opacity: 1; transform: scale(1) translateY(0); transition: all 0.2s ease-in; }
+      .accessibility-panel-exit-active { opacity: 0; transform: scale(0.95) translateY(10px); }
+      .accessibility-button { transition: all 0.3s ease; }
+      .accessibility-button:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); }
+      .accessibility-button:active { transform: scale(0.95); }
+      .toast-enter { opacity: 0; transform: translateY(20px) scale(0.9); transition: all 0.3s ease; }
+      .toast-enter-active { opacity: 1; transform: translateY(0) scale(1); }
+      .toast-exit { opacity: 1; transform: translateY(0) scale(1); transition: all 0.2s ease; }
+      .toast-exit-active { opacity: 0; transform: translateY(20px) scale(0.9); }
+      .pulse-animation { animation: pulse 2s infinite; }
+      @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.1); } }
+      .setting-card { transition: all 0.2s ease; border-radius: 8px; }
+      .setting-card:hover { background-color: rgba(59, 130, 246, 0.05); transform: translateX(-2px); }
+    `;
+    if (!document.getElementById('accessibility-styles')) {
+      document.head.appendChild(styleElement);
+    }
+  };
+
+  const showSuccessToast = useCallback((message: string) => {
+    setShowToast({ message, type: 'success', visible: true });
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    toastTimeoutRef.current = setTimeout(() => {
+      setShowToast((prev) => ({ ...prev, visible: false }));
+    }, 2500);
+  }, []);
+
+  const playClickSound = useCallback(() => {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const audioContext = new AudioContext();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.1
+      );
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.1);
+    } catch (error) {
+      console.log('Could not play sound:', error);
+    }
+  }, []);
+
+  const updateSetting = useCallback(
+    <K extends keyof AccessibilitySettings>(
+      key: K,
+      value: AccessibilitySettings[K]
+    ) => {
+      setSettings((prev) => ({ ...prev, [key]: value }));
+      setHasChanges(true);
+      if (settings.soundEnabled) playClickSound();
+      const settingName = getSettingName(key, dict);
+      showSuccessToast(
+        dict.toasts.settingUpdated.replace('{{settingName}}', settingName)
+      );
+    },
+    [settings.soundEnabled, playClickSound, dict, showSuccessToast]
+  );
+
+  const readSelectedText = useCallback((e: MouseEvent) => {
+    const element = e.target as HTMLElement;
+    if (element && element.textContent && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const text = element.textContent.trim();
+      if (text && text.length > 0) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        const voices = window.speechSynthesis.getVoices();
+        const hebrewVoice = voices.find((voice) => voice.lang === 'he-IL');
+        if (hebrewVoice) {
+          utterance.voice = hebrewVoice;
+          utterance.lang = 'he-IL';
+        }
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  }, []);
+
+  const toggleTextReader = useCallback(() => {
+    const willBeActive = !settings.textReader;
+    updateSetting('textReader', willBeActive);
+    if (willBeActive) {
+      document.addEventListener('click', readSelectedText);
+      showSuccessToast(dict.toasts.readerEnabled);
+    } else {
+      document.removeEventListener('click', readSelectedText);
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+  }, [
+    settings.textReader,
+    updateSetting,
+    readSelectedText,
+    showSuccessToast,
+    dict.toasts.readerEnabled,
+  ]);
+
+  const resetSettings = () => {
+    setSettings(defaultSettings);
+    setHasChanges(false);
+    showSuccessToast(dict.toasts.settingsReset);
+    if (settings.soundEnabled) playClickSound();
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        panelRef.current &&
+        !panelRef.current.contains(event.target as Node)
+      ) {
+        const target = event.target as HTMLElement;
+        if (!target.closest('[data-accessibility-trigger]')) {
+          setShowAccessibilityPanel(false);
+        }
+      }
+    };
+    if (showAccessibilityPanel) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showAccessibilityPanel, setShowAccessibilityPanel]);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+      document.removeEventListener('click', readSelectedText);
+    };
+  }, [readSelectedText]);
+
+  const contrastOptions = [
+    { key: 'normal' as const, icon: SunMedium },
+    { key: 'high' as const, icon: Contrast },
+    { key: 'dark' as const, icon: MoonStar },
+  ];
+
+  const advancedOptions = [
+    {
+      key: 'sound' as const,
+      setting: 'soundEnabled' as const,
+      icon: settings.soundEnabled ? Volume2 : VolumeX,
+    },
+    { key: 'reader' as const, setting: 'textReader' as const, icon: Speech },
+    {
+      key: 'cursor' as const,
+      setting: 'bigCursor' as const,
+      icon: MousePointer,
+    },
+    { key: 'font' as const, setting: 'readableMode' as const, icon: Eye },
+    { key: 'motion' as const, setting: 'reducedMotion' as const, icon: Hand },
+  ];
+
+  return (
+    <>
+      <div className="fixed z-50 bottom-4 right-4">
+        <Button
+          data-accessibility-trigger
+          variant={showAccessibilityPanel ? 'default' : 'outline'}
+          size="icon"
+          className={cn(
+            'accessibility-button rounded-full shadow-lg transition-all duration-300',
+            'hover:shadow-xl bg-white border-2',
+            showAccessibilityPanel
+              ? 'bg-blue-600 border-blue-600 text-white shadow-blue-200'
+              : 'border-blue-200 hover:border-blue-400 hover:bg-blue-50',
+            hasChanges && 'ring-2 ring-blue-400 ring-opacity-50 ring-offset-2',
+            className
+          )}
+          onClick={() => setShowAccessibilityPanel(!showAccessibilityPanel)}
+          title={
+            showAccessibilityPanel
+              ? dict.triggerButton.close
+              : dict.triggerButton.open
+          }
+        >
+          <div className="relative">
+            {showAccessibilityPanel ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Accessibility className="h-5 w-5" />
+            )}
+            {hasChanges && !showAccessibilityPanel && (
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full pulse-animation" />
+            )}
+          </div>
+        </Button>
+      </div>
+
+      {showAccessibilityPanel && (
+        <div
+          ref={panelRef}
+          className={cn(
+            'fixed z-40 bottom-20 right-4 max-w-sm w-[340px]',
+            'accessibility-panel-enter accessibility-panel-enter-active'
+          )}
+        >
+          <Card className="shadow-2xl border-2 border-blue-100 bg-white">
+            <CardHeader className="pb-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                  <div className="p-1.5 bg-blue-100 rounded-lg">
+                    <Settings className="h-4 w-4 text-blue-600" />
+                  </div>
+                  {dict.panelTitle}
+                  {hasChanges && (
+                    <Badge
+                      variant="secondary"
+                      className="text-xs bg-blue-100 text-blue-700 border-blue-200"
+                    >
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      {dict.changedBadge}
+                    </Badge>
+                  )}
+                </CardTitle>
+              </div>
+              <p className="text-xs text-slate-600 mt-1">
+                {dict.panelSubtitle}
+              </p>
+            </CardHeader>
+
+            <CardContent className="space-y-6 pt-5 max-h-[65vh] overflow-y-auto">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Type className="h-4 w-4 text-blue-500" />
+                    {dict.textSize.title}
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0 hover:bg-blue-50 border-blue-200"
+                      onClick={() =>
+                        updateSetting(
+                          'fontScale',
+                          Math.max(0.8, settings.fontScale - 0.1)
+                        )
+                      }
+                      disabled={settings.fontScale <= 0.8}
+                    >
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <Badge
+                      variant="outline"
+                      className="min-w-[55px] text-center font-mono bg-blue-50 border-blue-200"
+                    >
+                      {Math.round(settings.fontScale * 100)}%
+                    </Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0 hover:bg-blue-50 border-blue-200"
+                      onClick={() =>
+                        updateSetting(
+                          'fontScale',
+                          Math.min(1.6, settings.fontScale + 0.1)
+                        )
+                      }
+                      disabled={settings.fontScale >= 1.6}
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+                <Slider
+                  value={[settings.fontScale * 100]}
+                  min={80}
+                  max={160}
+                  step={5}
+                  onValueChange={(value) =>
+                    updateSetting('fontScale', value[0] / 100)
+                  }
+                  className="py-2"
+                />
+                <p className="text-xs text-slate-500">
+                  {dict.textSize.description}
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Palette className="h-4 w-4 text-blue-500" />
+                  {dict.displayMode.title}
+                </Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {contrastOptions.map(({ key, icon: Icon }) => {
+                    const optionDict = dict.contrastOptions[key];
+                    return (
+                      <Button
+                        key={key}
+                        variant={
+                          settings.contrastMode === key ? 'default' : 'outline'
+                        }
+                        size="sm"
+                        className={cn(
+                          'h-14 flex flex-col gap-1 text-xs transition-all relative',
+                          settings.contrastMode === key
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                            : 'hover:bg-blue-50 border-blue-200'
+                        )}
+                        onClick={() => updateSetting('contrastMode', key)}
+                        title={optionDict.description}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="font-medium">{optionDict.label}</span>
+                        {settings.contrastMode === key && (
+                          <div className="absolute top-1 right-1">
+                            <Check className="h-3 w-3" />
+                          </div>
+                        )}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-2 border-t border-slate-200">
+                <Label className="text-sm font-medium text-slate-700">
+                  {dict.additionalSettings.title}
+                </Label>
+                {advancedOptions.map(({ key, setting, icon: Icon }) => {
+                  const optionDict = dict.advancedOptions[key];
+                  return (
+                    <div
+                      key={key}
+                      className="setting-card flex items-center justify-between group p-3 rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={cn(
+                            'p-2 rounded-lg transition-colors',
+                            settings[setting]
+                              ? 'bg-blue-100 text-blue-600'
+                              : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-500'
+                          )}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1">
+                          <Label className="text-sm font-medium cursor-pointer">
+                            {optionDict.label}
+                          </Label>
+                          <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                            {optionDict.description}
+                          </p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={settings[setting]}
+                        onCheckedChange={(checked) => {
+                          if (setting === 'textReader') toggleTextReader();
+                          else updateSetting(setting, checked);
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="pt-4 border-t border-slate-200">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    'w-full flex items-center gap-2 transition-all',
+                    hasChanges
+                      ? 'hover:bg-red-50 hover:border-red-200 hover:text-red-700'
+                      : 'opacity-50 cursor-not-allowed'
+                  )}
+                  onClick={resetSettings}
+                  disabled={!hasChanges}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  {dict.resetButton}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {showToast.visible && (
+        <div className="fixed bottom-4 left-4 z-50 toast-enter toast-enter-active">
+          <div className="bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 border border-green-500">
+            <div className="p-1 bg-green-500 rounded-full">
+              <Check className="h-3 w-3" />
+            </div>
+            <span className="text-sm font-medium">{showToast.message}</span>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+--- End of Content for AccessibilityFeatures.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\FAQ.tsx
+--------------------------------------------------------------------------------
+Content:
+import React, { useState, useMemo } from 'react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import {
+  Search,
+  HelpCircle,
+  ArrowRight,
+  Info,
+  Clock,
+  Star,
+  AlertCircle,
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import type { QuestionnaireFaqDict, FaqAnswerPart } from '@/types/dictionary'; // Import dictionary type
+
+interface FAQProps {
+  className?: string;
+  showSearch?: boolean;
+  showCategories?: boolean;
+  initialOpenId?: string;
+  dict: QuestionnaireFaqDict; // Use the specific dictionary type
+}
+
+// Metadata for FAQs (category, popularity) which is not part of translation
+const faqMetadata: {
+  [key: string]: { category: string; isPopular?: boolean };
+} = {
+  'save-progress': { category: 'technical', isPopular: true },
+  'time-to-complete': { category: 'process', isPopular: true },
+  'required-questions': { category: 'process' },
+  'how-matching-works': { category: 'process', isPopular: true },
+  'privacy-info': { category: 'privacy' },
+  'edit-answers': { category: 'technical' },
+  'match-percentage': { category: 'results' },
+  'incomplete-questionnaire': { category: 'process' },
+  'inactive-account': { category: 'general' },
+};
+
+// Helper function to render the answer JSX from dictionary data
+const renderAnswer = (answerParts: FaqAnswerPart[]) => (
+  <div className="space-y-3">
+    {answerParts.map((part, index) => {
+      switch (part.type) {
+        case 'p':
+          return <p key={index}>{part.content}</p>;
+        case 'list':
+          return (
+            <ol key={index} className="list-decimal mr-5 space-y-1">
+              {(part.content as string[]).map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
+            </ol>
+          );
+        case 'tip':
+          return (
+            <div
+              key={index}
+              className="flex items-start gap-2 mt-2 p-3 bg-blue-50 rounded-md"
+            >
+              <Clock className="h-5 w-5 text-blue-500 mt-0.5" />
+              <div className="text-sm text-blue-700">
+                <p className="font-medium mb-1">{part.title}</p>
+                <p>{part.content}</p>
+              </div>
+            </div>
+          );
+        case 'info':
+          return (
+            <div
+              key={index}
+              className="flex items-start gap-2 mt-2 p-3 bg-blue-50 rounded-md"
+            >
+              <Info className="h-5 w-5 text-blue-500 mt-0.5" />
+              <div className="text-sm text-blue-700">
+                <p>{part.content}</p>
+              </div>
+            </div>
+          );
+        case 'star':
+          return (
+            <div
+              key={index}
+              className="flex items-start gap-2 mt-2 p-3 bg-amber-50 rounded-md border border-amber-100"
+            >
+              <Star className="h-5 w-5 text-amber-500 mt-0.5" />
+              <div className="text-sm text-amber-700">
+                <p>{part.content}</p>
+              </div>
+            </div>
+          );
+        case 'alert':
+          return (
+            <div
+              key={index}
+              className="flex items-start gap-2 mt-2 p-3 bg-red-50 rounded-md border border-red-100"
+            >
+              <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+              <div className="text-sm text-red-700">
+                <p>{part.content}</p>
+              </div>
+            </div>
+          );
+        default:
+          return null;
+      }
+    })}
+  </div>
+);
+
+export default function FAQ({
+  className,
+  showSearch = true,
+  showCategories = true,
+  initialOpenId,
+  dict,
+}: FAQProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [expandedItems, setExpandedItems] = useState<string[]>(
+    initialOpenId ? [initialOpenId] : []
+  );
+
+  const faqItems = useMemo(() => {
+    return Object.keys(dict.items).map((id) => {
+      const key = id as keyof typeof dict.items;
+      return {
+        id,
+        question: dict.items[key].question,
+        answer: renderAnswer(dict.items[key].answer),
+        category: faqMetadata[key].category,
+        isPopular: faqMetadata[key].isPopular || false,
+      };
+    });
+  }, [dict]); // <-- Change dict.items to dict
+
+  const categories = useMemo(
+    () => [
+      {
+        id: 'process',
+        label: dict.categories.process,
+        icon: <ArrowRight className="h-4 w-4" />,
+      },
+      {
+        id: 'technical',
+        label: dict.categories.technical,
+        icon: <HelpCircle className="h-4 w-4" />,
+      },
+      {
+        id: 'privacy',
+        label: dict.categories.privacy,
+        icon: <Info className="h-4 w-4" />,
+      },
+      {
+        id: 'results',
+        label: dict.categories.results,
+        icon: <Star className="h-4 w-4" />,
+      },
+      {
+        id: 'general',
+        label: dict.categories.general,
+        icon: <Info className="h-4 w-4" />,
+      },
+    ],
+    [dict.categories]
+  );
+
+  const filteredItems = useMemo(() => {
+    return faqItems.filter((item) => {
+      const matchesSearch =
+        !searchQuery ||
+        item.question.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesCategory =
+        !activeCategory || item.category === activeCategory;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [faqItems, searchQuery, activeCategory]);
+
+  return (
+    <Card className={cn('shadow-sm', className)}>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg md:text-xl">{dict.title}</CardTitle>
+        <p className="text-gray-500 text-sm">{dict.subtitle}</p>
+
+        {showSearch && (
+          <div className="relative mt-2">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder={dict.searchPlaceholder}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-gray-50"
+            />
+          </div>
+        )}
+
+        {showCategories && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            <Badge
+              variant={activeCategory === null ? 'default' : 'outline'}
+              className="cursor-pointer"
+              onClick={() => setActiveCategory(null)}
+            >
+              {dict.categories.all}
+            </Badge>
+
+            {categories.map((category) => (
+              <Badge
+                key={category.id}
+                variant={activeCategory === category.id ? 'default' : 'outline'}
+                className="cursor-pointer flex items-center gap-1"
+                onClick={() =>
+                  setActiveCategory(
+                    activeCategory === category.id ? null : category.id
+                  )
+                }
+              >
+                {category.icon}
+                {category.label}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </CardHeader>
+
+      <CardContent>
+        {filteredItems.length === 0 ? (
+          <div className="text-center py-8">
+            <HelpCircle className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+            <p className="text-gray-500">{dict.emptyState}</p>
+          </div>
+        ) : (
+          <Accordion
+            type="multiple"
+            value={expandedItems}
+            onValueChange={setExpandedItems}
+            className="space-y-2"
+          >
+            {filteredItems.map((item) => (
+              <AccordionItem
+                key={item.id}
+                value={item.id}
+                className={cn(
+                  'border rounded-lg px-4 py-1',
+                  expandedItems.includes(item.id)
+                    ? 'bg-blue-50 border-blue-200'
+                    : 'bg-white border-gray-200 hover:border-blue-200'
+                )}
+              >
+                <AccordionTrigger className="hover:no-underline py-3">
+                  <div className="flex items-center gap-2 text-right">
+                    <span className="font-medium">{item.question}</span>
+                    {item.isPopular && (
+                      <Badge
+                        variant="outline"
+                        className="bg-amber-50 text-amber-700 border-amber-200 text-xs"
+                      >
+                        {dict.popularBadge}
+                      </Badge>
+                    )}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-700 pt-1 pb-4">
+                  {item.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+--- End of Content for FAQ.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\MatchResultCard.tsx
+--------------------------------------------------------------------------------
+Content:
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Heart,
+  X,
+  MessageCircle,
+  User,
+  MapPin,
+  Calendar,
+  GraduationCap,
+  Briefcase,
+  Sparkles,
+  Star,
+  BookOpen,
+  ChevronsDown,
+  ChevronsUp,
+  Music,
+  Coffee,
+  Bookmark,
+  ExternalLink,
+} from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import type { MatchResultCardDict } from '@/types/dictionary'; // Import dictionary type
+
+interface MatchTrait {
+  name: string;
+  score: number; // 0-100
+  description?: string;
+}
+
+interface CommonInterest {
+  name: string;
+  category:
+    | 'hobby'
+    | 'value'
+    | 'lifestyle'
+    | 'religion'
+    | 'education'
+    | 'other';
+  icon?: React.ReactNode;
+}
+
+interface MatchResultCardProps {
+  id: string;
+  name: string;
+  age: number;
+  location: string;
+  distance?: number;
+  profileImage?: string;
+  matchPercentage: number;
+  occupation?: string;
+  education?: string;
+  about?: string;
+  matchTraits?: MatchTrait[];
+  commonInterests?: CommonInterest[];
+  lastActive?: Date;
+  conversationStarted?: boolean;
+  bookmarked?: boolean;
+  className?: string;
+  onAccept?: (id: string) => void;
+  onReject?: (id: string) => void;
+  onMessage?: (id: string) => void;
+  onViewProfile?: (id: string) => void;
+  onBookmark?: (id: string, bookmarked: boolean) => void;
+  isPremium?: boolean;
+  dict: MatchResultCardDict; // Use the specific dictionary type
+}
+
+export default function MatchResultCard({
+  id,
+  name,
+  age,
+  location,
+  distance,
+  profileImage,
+  matchPercentage,
+  occupation,
+  education,
+  about,
+  matchTraits = [],
+  commonInterests = [],
+  lastActive,
+  conversationStarted = false,
+  bookmarked = false,
+  className,
+  onAccept,
+  onReject,
+  onMessage,
+  onViewProfile,
+  onBookmark,
+  isPremium = false,
+  dict,
+}: MatchResultCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(bookmarked);
+  const [showConfirmReject, setShowConfirmReject] = useState(false);
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'hobby':
+        return <Music className="h-3.5 w-3.5" />;
+      case 'value':
+        return <Heart className="h-3.5 w-3.5" />;
+      case 'lifestyle':
+        return <Coffee className="h-3.5 w-3.5" />;
+      case 'religion':
+        return <BookOpen className="h-3.5 w-3.5" />;
+      case 'education':
+        return <GraduationCap className="h-3.5 w-3.5" />;
+      default:
+        return <Star className="h-3.5 w-3.5" />;
+    }
+  };
+
+  const formatLastActive = (date?: Date) => {
+    if (!date) return dict.lastActiveFormat.unknown;
+    const now = new Date();
+    const diffInDays = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    if (diffInDays === 0) return dict.lastActiveFormat.today;
+    if (diffInDays === 1) return dict.lastActiveFormat.yesterday;
+    if (diffInDays < 7)
+      return dict.lastActiveFormat.daysAgo.replace(
+        '{{count}}',
+        diffInDays.toString()
+      );
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    if (diffInDays < 30)
+      return dict.lastActiveFormat.weeksAgo.replace(
+        '{{count}}',
+        diffInWeeks.toString()
+      );
+    const diffInMonths = Math.floor(diffInDays / 30);
+    return dict.lastActiveFormat.monthsAgo.replace(
+      '{{count}}',
+      diffInMonths.toString()
+    );
+  };
+
+  const handleBookmark = () => {
+    setIsBookmarked(!isBookmarked);
+    if (onBookmark) onBookmark(id, !isBookmarked);
+  };
+
+  const getMatchColor = () => {
+    if (matchPercentage >= 90) return 'from-green-400 to-emerald-500';
+    if (matchPercentage >= 80) return 'from-emerald-400 to-green-500';
+    if (matchPercentage >= 70) return 'from-blue-400 to-blue-500';
+    if (matchPercentage >= 60) return 'from-blue-400 to-cyan-500';
+    return 'from-cyan-400 to-blue-500';
+  };
+
+  const expandVariants = {
+    hidden: { height: 0, opacity: 0 },
+    visible: {
+      height: 'auto',
+      opacity: 1,
+      transition: {
+        height: { duration: 0.3 },
+        opacity: { duration: 0.3, delay: 0.1 },
+      },
+    },
+  };
+
+  return (
+    <Card
+      className={cn(
+        'overflow-hidden transition-all border',
+        isExpanded ? 'shadow-md' : 'shadow-sm hover:shadow-md',
+        isPremium ? 'border-amber-200' : 'border-blue-100',
+        className
+      )}
+    >
+      {isPremium && (
+        <div className="absolute top-0 left-0 bg-gradient-to-r from-amber-400 to-amber-600 text-white px-2 py-0.5 text-xs rounded-br-md z-10">
+          <Sparkles className="h-3 w-3 inline-block mr-1" />
+          {dict.premiumBadge}
+        </div>
+      )}
+
+      <div className="p-4 flex md:flex-row flex-col gap-4">
+        <div className="relative">
+          <Avatar className="w-24 h-24 rounded-lg border-2 border-white shadow-sm">
+            <AvatarImage src={profileImage} alt={name} />
+            <AvatarFallback className="bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600 text-3xl">
+              {name.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2">
+            <Badge
+              className={cn(
+                'rounded-full bg-gradient-to-r px-2 text-white border-0 shadow-sm',
+                getMatchColor()
+              )}
+            >
+              <Sparkles className="h-3 w-3 mr-1" />
+              {dict.matchPercentageBadge.replace(
+                '{{percentage}}',
+                matchPercentage.toString()
+              )}
+            </Badge>
+          </div>
+        </div>
+
+        <div className="flex-1 space-y-2">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-lg font-medium">
+                {name}, {age}
+              </h3>
+              <div className="flex items-center text-sm text-gray-600">
+                <MapPin className="h-3.5 w-3.5 mr-1" />
+                {location}
+                {distance && <span className="mr-1">({distance} קמ)</span>}
+              </div>
+            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      'h-8 w-8 rounded-full',
+                      isBookmarked ? 'text-amber-500' : 'text-gray-400'
+                    )}
+                    onClick={handleBookmark}
+                  >
+                    <Bookmark className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {isBookmarked
+                      ? dict.tooltips.removeFromBookmarks
+                      : dict.tooltips.addToBookmarks}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+
+          <div className="space-y-1">
+            {occupation && (
+              <div className="flex items-center text-sm text-gray-600">
+                <Briefcase className="h-3.5 w-3.5 mr-1 text-gray-500" />
+                {occupation}
+              </div>
+            )}
+            {education && (
+              <div className="flex items-center text-sm text-gray-600">
+                <GraduationCap className="h-3.5 w-3.5 mr-1 text-gray-500" />
+                {education}
+              </div>
+            )}
+          </div>
+
+          {commonInterests.length > 0 && (
+            <div className="flex flex-wrap gap-1 pt-1">
+              {commonInterests.slice(0, 3).map((interest, index) => (
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className="bg-blue-50 text-blue-700 border-blue-200 text-xs py-0 h-5"
+                >
+                  {interest.icon || getCategoryIcon(interest.category)}
+                  <span className="mr-1 truncate max-w-[100px]">
+                    {interest.name}
+                  </span>
+                </Badge>
+              ))}
+              {commonInterests.length > 3 && (
+                <Badge
+                  variant="outline"
+                  className="bg-gray-50 text-gray-600 border-gray-200 text-xs"
+                >
+                  +{commonInterests.length - 3}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="px-4 pb-3 flex gap-2 justify-center">
+        {onReject &&
+          (showConfirmReject ? (
+            <>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex-1"
+                onClick={() => onReject(id)}
+              >
+                {dict.buttons.confirmReject}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => setShowConfirmReject(false)}
+              >
+                {dict.buttons.cancel}
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+              onClick={() => setShowConfirmReject(true)}
+            >
+              <X className="h-4 w-4 mr-1" />
+              {dict.buttons.reject}
+            </Button>
+          ))}
+        {onAccept && (
+          <Button
+            variant="default"
+            size="sm"
+            className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+            onClick={() => onAccept(id)}
+          >
+            <Heart className="h-4 w-4 mr-1" />
+            {dict.buttons.accept}
+          </Button>
+        )}
+        {conversationStarted && onMessage && (
+          <Button
+            variant="default"
+            size="sm"
+            className="flex-1"
+            onClick={() => onMessage(id)}
+          >
+            <MessageCircle className="h-4 w-4 mr-1" />
+            {dict.buttons.continueChat}
+          </Button>
+        )}
+      </div>
+
+      <div className="px-4 pb-2 text-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-xs text-gray-500 hover:text-gray-700"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? (
+            <>
+              <ChevronsUp className="h-3.5 w-3.5 mr-1" />
+              {dict.buttons.hideMore}
+            </>
+          ) : (
+            <>
+              <ChevronsDown className="h-3.5 w-3.5 mr-1" />
+              {dict.buttons.showMore}
+            </>
+          )}
+        </Button>
+      </div>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            variants={expandVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            className="border-t border-gray-100"
+          >
+            <CardContent className="p-4 space-y-5">
+              {about && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium flex items-center">
+                    <User className="h-4 w-4 mr-1 text-blue-500" />
+                    {dict.sections.about.replace('{{name}}', name)}
+                  </h4>
+                  <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md border">
+                    {about}
+                  </p>
+                </div>
+              )}
+              {matchTraits.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium flex items-center">
+                    <Sparkles className="h-4 w-4 mr-1 text-blue-500" />
+                    {dict.sections.topMatches}
+                  </h4>
+                  <div className="space-y-2">
+                    {matchTraits.map((trait, index) => (
+                      <TooltipProvider key={index}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span>{trait.name}</span>
+                                <span className="text-sm text-gray-600">
+                                  {trait.score}%
+                                </span>
+                              </div>
+                              <Progress
+                                value={trait.score}
+                                className={cn(
+                                  'h-2',
+                                  trait.score >= 80
+                                    ? '[--progress-foreground:theme(colors.green.500)]'
+                                    : trait.score >= 60
+                                      ? '[--progress-foreground:theme(colors.blue.500)]'
+                                      : '[--progress-foreground:theme(colors.blue.400)]'
+                                )}
+                              />
+                            </div>
+                          </TooltipTrigger>
+                          {trait.description && (
+                            <TooltipContent side="top" className="max-w-xs">
+                              <p>
+                                {dict.tooltips.traitDescription.replace(
+                                  '{{description}}',
+                                  trait.description
+                                )}
+                              </p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {commonInterests.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium flex items-center">
+                    <Heart className="h-4 w-4 mr-1 text-blue-500" />
+                    {dict.sections.commonInterests}
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {commonInterests.map((interest, index) => (
+                      <Badge
+                        key={index}
+                        variant="outline"
+                        className={cn(
+                          'bg-blue-50 text-blue-700 border-blue-200',
+                          interest.category === 'value' &&
+                            'bg-pink-50 text-pink-700 border-pink-200',
+                          interest.category === 'religion' &&
+                            'bg-purple-50 text-purple-700 border-purple-200',
+                          interest.category === 'education' &&
+                            'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        )}
+                      >
+                        {interest.icon || getCategoryIcon(interest.category)}
+                        <span className="mr-1">{interest.name}</span>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {lastActive && (
+                <div className="text-sm text-gray-500 flex items-center">
+                  <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+                  {dict.sections.lastActive.replace(
+                    '{{time}}',
+                    formatLastActive(lastActive)
+                  )}
+                </div>
+              )}
+            </CardContent>
+            <CardFooter className="px-4 py-3 bg-gray-50 flex justify-between">
+              {onViewProfile && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onViewProfile(id)}
+                >
+                  <ExternalLink className="h-4 w-4 mr-1" />
+                  {dict.buttons.viewFullProfile}
+                </Button>
+              )}
+            </CardFooter>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Card>
+  );
+}
+--- End of Content for MatchResultCard.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\QuestionnaireProgress.tsx
+--------------------------------------------------------------------------------
+Content:
+import React, { useState } from 'react';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import {
+  CheckCircle,
+  Clock,
+  Info,
+  Globe,
+  CheckCircle2,
+  ChevronRight,
+  Award,
+  Star,
+  TrendingUp,
+  Timer,
+  PlayCircle,
+  BarChart3,
+  ArrowUpRight,
+  HelpCircle,
+} from 'lucide-react';
+import type { WorldId } from '../types/types';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import type { QuestionnaireProgressDict } from '@/types/dictionary';
+
+interface QuestionnaireProgressProps {
+  completedWorlds: WorldId[];
+  allWorlds?: WorldId[];
+  currentWorld: WorldId;
+  totalQuestions: number;
+  answeredQuestions: number;
+  requiredQuestions: number;
+  answeredRequiredQuestions: number;
+  estimatedTimeLeft?: number; // in minutes
+  lastSaved?: Date | null;
+  onWorldChange?: (worldId: WorldId) => void;
+  className?: string;
+  dict: QuestionnaireProgressDict;
+}
+
+export default function QuestionnaireProgress({
+  completedWorlds,
+  allWorlds = ['PERSONALITY', 'VALUES', 'RELATIONSHIP', 'PARTNER', 'RELIGION'],
+  currentWorld,
+  totalQuestions,
+  answeredQuestions,
+  requiredQuestions,
+  answeredRequiredQuestions,
+  estimatedTimeLeft = 0,
+  lastSaved = null,
+  onWorldChange,
+  className = '',
+  dict,
+}: QuestionnaireProgressProps) {
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const isTablet = useMediaQuery('(max-width: 1024px)');
+  const worldLabels = dict.worldLabels;
+
+  const totalCompletion = Math.round(
+    (answeredQuestions / totalQuestions) * 100
+  );
+  const requiredCompletion = Math.round(
+    (answeredRequiredQuestions / requiredQuestions) * 100
+  );
+  const worldsCompletion = Math.round(
+    (completedWorlds.length / allWorlds.length) * 100
+  );
+
+  let progressStatus: 'low' | 'medium' | 'high' | 'complete' = 'low';
+  if (totalCompletion >= 100) progressStatus = 'complete';
+  else if (totalCompletion >= 75) progressStatus = 'high';
+  else if (totalCompletion >= 40) progressStatus = 'medium';
+
+  const statusColors = {
+    low: 'text-amber-600',
+    medium: 'text-blue-600',
+    high: 'text-blue-700',
+    complete: 'text-green-600',
+  };
+  const statusBgColors = {
+    low: 'bg-amber-100',
+    medium: 'bg-blue-100',
+    high: 'bg-blue-100',
+    complete: 'bg-green-100',
+  };
+
+  const formatTimeLeft = (minutes: number): string => {
+    if (minutes < 1) return dict.timeStrings.lessThanAMinute;
+    if (minutes < 60) return `${minutes} ${dict.timeStrings.minutesSuffix}`;
+
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours} ${dict.timeStrings.hours} ${mins > 0 ? `${dict.timeStrings.and}${mins} ${dict.timeStrings.minutesSuffix}` : ''}`;
+  };
+
+  const getRelativeTime = (date: Date): string => {
+    const now = new Date();
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60)
+    );
+    if (diffInMinutes < 1) return dict.timeStrings.savedNow;
+    if (diffInMinutes < 60)
+      return dict.timeStrings.savedMinutesAgo.replace(
+        '{{minutes}}',
+        diffInMinutes.toString()
+      );
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24)
+      return dict.timeStrings.savedHoursAgo.replace(
+        '{{hours}}',
+        diffInHours.toString()
+      );
+
+    return dict.timeStrings.savedAtTime.replace(
+      '{{time}}',
+      date.toLocaleTimeString()
+    );
+  };
+
+  const getNextRecommendedWorld = (): WorldId | null => {
+    for (const world of allWorlds) {
+      if (!completedWorlds.includes(world) && world !== currentWorld) {
+        return world;
+      }
+    }
+    return null;
+  };
+
+  const AccordionSection = ({
+    title,
+    icon,
+    children,
+    id,
+  }: {
+    title: string;
+    icon: React.ReactNode;
+    children: React.ReactNode;
+    id: string;
+  }) => {
+    const isExpanded = expandedSection === id;
+
+    return (
+      <div className="border rounded-lg overflow-hidden mb-2">
+        <button
+          className={cn(
+            'w-full flex items-center justify-between p-3 text-left transition-colors',
+            isExpanded
+              ? 'bg-blue-50 border-blue-200'
+              : 'bg-white hover:bg-gray-50'
+          )}
+          onClick={() => setExpandedSection(isExpanded ? null : id)}
+        >
+          <div className="flex items-center">
+            <div
+              className={cn(
+                'mr-2',
+                isExpanded ? 'text-blue-600' : 'text-gray-500'
+              )}
+            >
+              {icon}
+            </div>
+            <span
+              className={cn('font-medium', isExpanded ? 'text-blue-700' : '')}
+            >
+              {title}
+            </span>
+          </div>
+          <ChevronRight
+            className={cn(
+              'w-5 h-5 transition-transform',
+              isExpanded ? 'transform rotate-90 text-blue-600' : 'text-gray-400'
+            )}
+          />
+        </button>
+
+        <AnimatePresence initial={false}>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="p-3 bg-blue-50/50 border-t">{children}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
+
+  const RewardsInfo = () => {
+    const achievements = [
+      {
+        key: 'goal' as const,
+        condition: requiredCompletion >= 100,
+        icon: <Award className="h-4 w-4 text-amber-500" />,
+      },
+      {
+        key: 'halfway' as const,
+        condition: totalCompletion >= 50,
+        icon: <Star className="h-4 w-4 text-amber-500" />,
+      },
+      {
+        key: 'advanced' as const,
+        condition: totalCompletion >= 80,
+        icon: <TrendingUp className="h-4 w-4 text-amber-500" />,
+      },
+      {
+        key: 'complete' as const,
+        condition: totalCompletion >= 100,
+        icon: <CheckCircle2 className="h-4 w-4 text-amber-500" />,
+      },
+    ];
+
+    const earnedAchievements = achievements.filter((a) => a.condition);
+
+    return (
+      <div className="space-y-2">
+        {earnedAchievements.length > 0 ? (
+          <>
+            <p className="text-sm text-gray-600 mb-2">
+              {dict.rewards.achievedText}
+            </p>
+            <div className="space-y-2">
+              {earnedAchievements.map((achievement, index) => {
+                const achievementDict =
+                  dict.rewards.achievements[achievement.key];
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center bg-white p-2 rounded-lg border"
+                  >
+                    <div className="mr-2">{achievement.icon}</div>
+                    <div>
+                      <div className="font-medium text-sm">
+                        {achievementDict.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {achievementDict.description}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {earnedAchievements.length < achievements.length && (
+              <p className="text-xs text-gray-500 mt-3">
+                {dict.rewards.moreToGo.replace(
+                  '{{count}}',
+                  (achievements.length - earnedAchievements.length).toString()
+                )}
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="text-sm text-gray-600">{dict.rewards.prompt}</p>
+        )}
+      </div>
+    );
+  };
+
+  const WorldRecommendations = () => {
+    const nextWorld = getNextRecommendedWorld();
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-gray-600">{dict.recommendations.title}</p>
+        <div className="flex flex-col space-y-1">
+          {allWorlds.map((world, index) => {
+            const isCompleted = completedWorlds.includes(world);
+            const isCurrent = currentWorld === world;
+            const isNextRecommended = world === nextWorld;
+            return (
+              <div
+                key={world}
+                className={cn(
+                  'flex items-center justify-between p-2 rounded-lg border',
+                  isCompleted
+                    ? 'bg-green-50 border-green-200'
+                    : isCurrent
+                      ? 'bg-blue-50 border-blue-200'
+                      : isNextRecommended
+                        ? 'bg-amber-50 border-amber-200'
+                        : 'bg-white border-gray-200'
+                )}
+              >
+                <div className="flex items-center">
+                  <div className="w-6 h-6 flex items-center justify-center rounded-full mr-2 text-gray-600 bg-white border">
+                    {index + 1}
+                  </div>
+                  <span
+                    className={cn(
+                      'font-medium',
+                      isCompleted
+                        ? 'text-green-700'
+                        : isCurrent
+                          ? 'text-blue-700'
+                          : isNextRecommended
+                            ? 'text-amber-700'
+                            : ''
+                    )}
+                  >
+                    {worldLabels[world as keyof typeof worldLabels]}
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  {isCompleted ? (
+                    <Badge className="bg-green-100 text-green-800 border-0">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      {dict.recommendations.statuses.completed}
+                    </Badge>
+                  ) : isCurrent ? (
+                    <Badge className="bg-blue-100 text-blue-800 border-0">
+                      <PlayCircle className="w-3 h-3 mr-1" />
+                      {dict.recommendations.statuses.active}
+                    </Badge>
+                  ) : isNextRecommended ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100"
+                      onClick={() => onWorldChange?.(world)}
+                    >
+                      <ArrowUpRight className="w-3 h-3 mr-1" />
+                      {dict.recommendations.ctaButton}
+                    </Button>
+                  ) : (
+                    <Badge variant="outline" className="text-gray-500 text-xs">
+                      {dict.recommendations.statuses.pending}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const TimeBreakdown = () => {
+    return (
+      <div className="space-y-3">
+        <div className="text-sm text-gray-600 flex items-center">
+          <Timer className="h-4 w-4 mr-1 text-blue-500" />
+          <span>
+            {dict.timeBreakdown.title.replace(
+              '{{timeLeft}}',
+              formatTimeLeft(estimatedTimeLeft)
+            )}
+          </span>
+        </div>
+        <div className="flex flex-col space-y-2">
+          <div className="text-xs text-gray-500">
+            {dict.timeBreakdown.subtitle}
+          </div>
+          {allWorlds.map((world) => {
+            const isCompleted = completedWorlds.includes(world);
+            const remainingWorlds = allWorlds.length - completedWorlds.length;
+            const timePerWorld =
+              remainingWorlds > 0
+                ? Math.round(estimatedTimeLeft / remainingWorlds)
+                : 0;
+            return (
+              <div key={world} className="flex items-center justify-between">
+                <span className="text-sm flex items-center">
+                  {isCompleted ? (
+                    <CheckCircle className="h-3.5 w-3.5 mr-1 text-green-500" />
+                  ) : (
+                    <Clock className="h-3.5 w-3.5 mr-1 text-blue-400" />
+                  )}
+                  {worldLabels[world as keyof typeof worldLabels]}
+                </span>
+                <span
+                  className={cn(
+                    'text-sm',
+                    isCompleted ? 'text-green-600' : 'text-gray-600'
+                  )}
+                >
+                  {isCompleted
+                    ? dict.timeBreakdown.statusCompleted
+                    : dict.timeBreakdown.timePerWorld.replace(
+                        '{{time}}',
+                        timePerWorld.toString()
+                      )}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const getProgressBadgeText = () => {
+    if (progressStatus === 'complete') return dict.statusBadge.complete;
+    if (totalCompletion <= 5) return dict.statusBadge.started;
+    return dict.statusBadge.progress.replace(
+      '{{progress}}',
+      totalCompletion.toString()
+    );
+  };
+
+  const renderMobile = () => (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium flex items-center">
+          <BarChart3 className="h-5 w-5 mr-2 text-blue-500" />
+          {dict.mobile.title}
+        </h3>
+        <Badge
+          className={cn(
+            statusBgColors[progressStatus],
+            'text-xs border-0',
+            statusColors[progressStatus]
+          )}
+        >
+          {getProgressBadgeText()}
+        </Badge>
+      </div>
+      <div className="space-y-2 pt-1">
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-600">{dict.mobile.totalLabel}</span>
+            <span className="font-medium">
+              {answeredQuestions} / {totalQuestions}
+            </span>
+          </div>
+          <Progress value={totalCompletion} className="h-2" />
+        </div>
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-600">{dict.mobile.requiredLabel}</span>
+            <span
+              className={cn(
+                'font-medium',
+                requiredCompletion < 100
+                  ? answeredRequiredQuestions === 0
+                    ? 'text-red-600'
+                    : 'text-amber-600'
+                  : 'text-green-600'
+              )}
+            >
+              {answeredRequiredQuestions} / {requiredQuestions}
+            </span>
+          </div>
+          <Progress
+            value={requiredCompletion}
+            className={cn('h-2', requiredCompletion < 100 ? 'bg-gray-100' : '')}
+          />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1 text-xs pt-1">
+        {estimatedTimeLeft > 0 && (
+          <div className="flex items-center">
+            <Clock className="h-3.5 w-3.5 mr-1 text-gray-500" />
+            <span className="text-gray-600">
+              {dict.mobile.timeLeftLabel.replace(
+                '{{timeLeft}}',
+                formatTimeLeft(estimatedTimeLeft)
+              )}
+            </span>
+          </div>
+        )}
+        {lastSaved && (
+          <div className="flex items-center">
+            <CheckCircle className="h-3.5 w-3.5 mr-1 text-green-600" />
+            <span className="text-gray-600">
+              {dict.mobile.savedLabel.replace(
+                '{{time}}',
+                getRelativeTime(lastSaved)
+              )}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderDesktop = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-xl font-medium">{dict.desktop.title}</h3>
+          <p className="text-sm text-gray-500 mt-1">{dict.desktop.subtitle}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  className={cn(
+                    statusBgColors[progressStatus],
+                    'text-xs border-0 py-1 px-2',
+                    statusColors[progressStatus]
+                  )}
+                >
+                  <TrendingUp className="h-3.5 w-3.5 mr-1" />
+                  {getProgressBadgeText()}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {dict.desktop.tooltip.completionDetails
+                    .replace('{{answered}}', answeredQuestions.toString())
+                    .replace('{{total}}', totalQuestions.toString())}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-full"
+                >
+                  <HelpCircle className="h-4 w-4 text-gray-500" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="space-y-1 max-w-xs">
+                  <p className="font-medium">
+                    {dict.desktop.tooltip.progressInfoTitle}
+                  </p>
+                  <p className="text-xs">
+                    {dict.desktop.tooltip.progressInfoDesc}
+                  </p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div>
+      <div className="grid grid-cols-12 gap-4">
+        <Card className="col-span-12 md:col-span-8">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <BarChart3 className="h-5 w-5 mr-2 text-blue-500" />
+              {dict.desktop.progressSummaryTitle}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-4 pt-1">
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 flex items-center">
+                    <Info className="h-3.5 w-3.5 mr-1 text-blue-500" />
+                    {dict.mobile.totalLabel}
+                  </span>
+                  <span className="font-medium">
+                    {answeredQuestions} / {totalQuestions}
+                  </span>
+                </div>
+                <Progress value={totalCompletion} className="h-2" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 flex items-center">
+                    <Star className="h-3.5 w-3.5 mr-1 text-amber-500" />
+                    {dict.mobile.requiredLabel}
+                  </span>
+                  <span
+                    className={cn(
+                      'font-medium',
+                      requiredCompletion < 100
+                        ? answeredRequiredQuestions === 0
+                          ? 'text-red-600'
+                          : 'text-amber-600'
+                        : 'text-green-600'
+                    )}
+                  >
+                    {answeredRequiredQuestions} / {requiredQuestions}
+                  </span>
+                </div>
+                <Progress
+                  value={requiredCompletion}
+                  className={cn(
+                    'h-2',
+                    requiredCompletion < 100 ? 'bg-gray-100' : ''
+                  )}
+                />
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 flex items-center">
+                    <Globe className="h-3.5 w-3.5 mr-1 text-blue-500" />
+                    {dict.desktop.worldsTitle}
+                  </span>
+                  <span className="font-medium">
+                    {completedWorlds.length} / {allWorlds.length}
+                  </span>
+                </div>
+                <Progress value={worldsCompletion} className="h-2" />
+              </div>
+            </div>
+            <div className="flex justify-between items-center pt-4 mt-2 border-t text-sm">
+              {estimatedTimeLeft > 0 && (
+                <div className="flex items-center">
+                  <Clock className="h-4 w-4 mr-1 text-blue-500" />
+                  <span className="text-gray-600">
+                    {dict.mobile.timeLeftLabel.replace(
+                      '{{timeLeft}}',
+                      formatTimeLeft(estimatedTimeLeft)
+                    )}
+                  </span>
+                </div>
+              )}
+              {lastSaved && (
+                <div className="flex items-center">
+                  <CheckCircle className="h-4 w-4 mr-1 text-green-600" />
+                  <span className="text-gray-600">
+                    {dict.mobile.savedLabel.replace(
+                      '{{time}}',
+                      lastSaved.toLocaleTimeString()
+                    )}
+                  </span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="col-span-12 md:col-span-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Award className="h-5 w-5 mr-2 text-amber-500" />
+              {dict.desktop.achievementsTitle}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RewardsInfo />
+          </CardContent>
+        </Card>
+        <Card className="col-span-12">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Globe className="h-5 w-5 mr-2 text-blue-500" />
+              {dict.desktop.worldsTitle}
+            </CardTitle>
+            <CardDescription>{dict.desktop.worldsSubtitle}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <AccordionSection
+                title={dict.desktop.accordion.recommendations}
+                icon={<Star className="h-4 w-4" />}
+                id="worlds-recommendations"
+              >
+                <WorldRecommendations />
+              </AccordionSection>
+              <AccordionSection
+                title={dict.desktop.accordion.timeBreakdown}
+                icon={<Clock className="h-4 w-4" />}
+                id="time-breakdown"
+              >
+                <TimeBreakdown />
+              </AccordionSection>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className={cn('bg-white rounded-lg shadow-sm border p-4', className)}>
+      {isTablet ? renderMobile() : renderDesktop()}
+    </div>
+  );
+}
+--- End of Content for QuestionnaireProgress.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\UserStats.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import {
+  UserCheck,
+  Users,
+  Calendar,
+  Sparkles,
+  Heart,
+  CheckCheck,
+  BarChart4,
+  Zap,
+  Award,
+  Star,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import type { UserStatsDict } from '@/types/dictionary'; // Import dictionary type
+
+interface UserStatsProps {
+  totalQuestionsAnswered: number;
+  totalQuestionsCount: number;
+  activeMatches?: number;
+  pendingMatches?: number;
+  matchScore?: number;
+  profileCompletion?: number;
+  activeWorldsCompleted?: string[];
+  personalityTraits?: Array<{
+    trait: string;
+    score: number;
+  }>;
+  activityLevel?: 'low' | 'medium' | 'high';
+  registrationDate?: Date;
+  lastActive?: Date;
+  className?: string;
+  dict: UserStatsDict; // Use the specific dictionary type
+}
+
+export default function UserStats({
+  totalQuestionsAnswered,
+  totalQuestionsCount,
+  activeMatches = 0,
+  pendingMatches = 0,
+  matchScore = 0,
+  profileCompletion = 0,
+  activeWorldsCompleted = [],
+  personalityTraits = [],
+  activityLevel = 'medium',
+  registrationDate,
+  className,
+  dict,
+}: UserStatsProps) {
+  const formatDate = (date?: Date) => {
+    if (!date) return dict.common.notAvailable;
+    return date.toLocaleDateString('he-IL');
+  };
+
+  const getDaysActive = () => {
+    if (!registrationDate) return 0;
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - registrationDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const getActivityLevelColor = () => {
+    switch (activityLevel) {
+      case 'high':
+        return 'text-green-600 bg-green-100';
+      case 'medium':
+        return 'text-blue-600 bg-blue-100';
+      case 'low':
+        return 'text-amber-600 bg-amber-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const worldConfig = [
+    { id: 'PERSONALITY', color: 'blue' },
+    { id: 'VALUES', color: 'emerald' },
+    { id: 'RELATIONSHIP', color: 'purple' },
+    { id: 'PARTNER', color: 'pink' },
+    { id: 'RELIGION', color: 'indigo' },
+  ];
+
+  return (
+    <div className={cn('space-y-4', className)}>
+      <Card className="shadow-sm hover:shadow-md transition-shadow border-blue-100">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center">
+            <UserCheck className="h-5 w-5 mr-2 text-blue-500" />
+            {dict.matchStatsCard.title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+              <div className="text-xs text-gray-600 mb-1">
+                {dict.matchStatsCard.activeMatches}
+              </div>
+              <div className="flex items-center">
+                <Users className="h-5 w-5 text-blue-600 mr-2" />
+                <span className="text-2xl font-semibold">{activeMatches}</span>
+              </div>
+            </div>
+            <div className="bg-amber-50 p-3 rounded-lg border border-amber-100">
+              <div className="text-xs text-gray-600 mb-1">
+                {dict.matchStatsCard.pendingMatches}
+              </div>
+              <div className="flex items-center">
+                <Calendar className="h-5 w-5 text-amber-600 mr-2" />
+                <span className="text-2xl font-semibold">{pendingMatches}</span>
+              </div>
+            </div>
+            <div className="col-span-2 bg-gray-50 p-3 rounded-lg border">
+              <div className="flex justify-between mb-1">
+                <div className="text-xs text-gray-600">
+                  {dict.matchStatsCard.matchScore}
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  {matchScore}%
+                </Badge>
+              </div>
+              <Progress
+                value={matchScore}
+                className={cn(
+                  'h-2',
+                  matchScore > 70
+                    ? '[--progress-foreground:theme(colors.green.500)]'
+                    : '[--progress-foreground:theme(colors.blue.500)]'
+                )}
+              />
+            </div>
+            <div className="col-span-2 flex justify-between text-sm p-2">
+              <div className="flex items-center text-gray-600">
+                <Sparkles className="h-4 w-4 mr-1 text-blue-400" />
+                {dict.matchStatsCard.daysActive.replace(
+                  '{{days}}',
+                  getDaysActive().toString()
+                )}
+              </div>
+              <div className="text-gray-600">
+                {dict.matchStatsCard.joinDate.replace(
+                  '{{date}}',
+                  formatDate(registrationDate)
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-sm hover:shadow-md transition-shadow border-blue-100">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center">
+            <BarChart4 className="h-5 w-5 mr-2 text-blue-500" />
+            {dict.profileProgressCard.title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <div className="flex items-center">
+                  <CheckCheck className="h-4 w-4 mr-1 text-blue-500" />
+                  {dict.profileProgressCard.profileCompletion}
+                </div>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'text-xs',
+                    profileCompletion >= 80
+                      ? 'border-green-500 text-green-600'
+                      : 'border-amber-500 text-amber-600'
+                  )}
+                >
+                  {profileCompletion}%
+                </Badge>
+              </div>
+              <Progress
+                value={profileCompletion}
+                className={cn(
+                  'h-2',
+                  profileCompletion < 30
+                    ? '[--progress-foreground:theme(colors.red.500)]'
+                    : profileCompletion < 70
+                      ? '[--progress-foreground:theme(colors.amber.500)]'
+                      : '[--progress-foreground:theme(colors.green.500)]'
+                )}
+              />
+            </div>
+            <div className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <div className="flex items-center">
+                  <Zap className="h-4 w-4 mr-1 text-amber-500" />
+                  {dict.profileProgressCard.questionsAnswered}
+                </div>
+                <span className="text-xs text-gray-600">
+                  {totalQuestionsAnswered} {dict.profileProgressCard.outOf}{' '}
+                  {totalQuestionsCount}
+                </span>
+              </div>
+              <Progress
+                value={(totalQuestionsAnswered / totalQuestionsCount) * 100}
+                className="h-2"
+              />
+            </div>
+            <div className="pt-2">
+              <div className="text-sm mb-2 flex items-center">
+                <Heart className="h-4 w-4 mr-1 text-pink-500" />
+                <span>{dict.profileProgressCard.completedWorlds}</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {worldConfig.map((world) => {
+                  const isCompleted = activeWorldsCompleted.includes(world.id);
+                  const worldName =
+                    dict.worlds[world.id as keyof typeof dict.worlds];
+                  return (
+                    <Badge
+                      key={world.id}
+                      variant={isCompleted ? 'default' : 'outline'}
+                      className={
+                        isCompleted
+                          ? `bg-${world.color}-100 hover:bg-${world.color}-200 text-${world.color}-800 border-${world.color}-200`
+                          : `text-gray-500 border-gray-200 bg-gray-50`
+                      }
+                    >
+                      {isCompleted && <CheckCheck className="h-3 w-3 mr-1" />}
+                      {worldName}
+                    </Badge>
+                  );
+                })}
+              </div>
+            </div>
+            {activityLevel && (
+              <div className="flex justify-between items-center pt-2 text-sm text-gray-600">
+                <div>{dict.profileProgressCard.activityLevel}</div>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'font-normal border-0',
+                    getActivityLevelColor()
+                  )}
+                >
+                  {dict.activityLevels[activityLevel]}
+                </Badge>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {personalityTraits && personalityTraits.length > 0 && (
+        <Card className="shadow-sm hover:shadow-md transition-shadow border-blue-100">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Award className="h-5 w-5 mr-2 text-blue-500" />
+              {dict.personalityTraitsCard.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {personalityTraits.map((trait, index) => (
+                <TooltipProvider key={index}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <div className="flex items-center">
+                            <Star className="h-3.5 w-3.5 mr-1 text-amber-500" />
+                            {trait.trait}
+                          </div>
+                          <span className="text-xs">{trait.score}%</span>
+                        </div>
+                        <Progress
+                          value={trait.score}
+                          className={cn(
+                            'h-1.5',
+                            'relative overflow-hidden',
+                            'before:absolute before:inset-0 before:bg-gradient-to-r before:from-blue-400',
+                            trait.score < 40
+                              ? 'before:to-blue-500'
+                              : trait.score < 70
+                                ? 'before:to-purple-500'
+                                : 'before:to-pink-500'
+                          )}
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        {dict.tooltips.traitScore.replace(
+                          '{{score}}',
+                          trait.score.toString()
+                        )}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+--- End of Content for UserStats.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\components_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+

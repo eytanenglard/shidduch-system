@@ -891,13 +891,6 @@ export type WorldIntroDict = {
 
 };
 
-type WorldContent = {
-  title: string;
-  subtitle: string;
-  whyIsItImportant: string;
-  whatYouWillDiscover: string[];
-  guidingThought: string;
-};
 
 
 export type QuestionCardDict = {
@@ -912,6 +905,9 @@ export type QuestionCardDict = {
     EXPERT: string;
   };
   requiredBadge: string;
+  estimatedTime: string; // e.g., "{{minutes}} min left"
+  benefitMessages: string[];
+  encouragementMessage: string;
   tooltips: {
     removeBookmark: string;
     addBookmark: string;
@@ -938,7 +934,7 @@ export type QuestionCardDict = {
   };
 };
 
-// ... (rest of the file remains the same) ...
+
 
 export type QuestionnaireCompletionDict = {
   title: string;
@@ -1517,62 +1513,118 @@ export type QuestionnaireProgressDict = {
 };
 // END: Additions for QuestionnaireProgress.tsx
 
+
+type WorldInfoDict = {
+  title: string;
+  description: string;
+};
+
 export type QuestionnaireLandingPageDict = {
   hero: {
     badge: string;
-    title: string;
-    subtitle: string;
+    title1: string;
+    title2: string;
+    subtitle1: string;
+    subtitle2: string;
+    subtitleHighlight: string;
+    subtitle3: string;
+    timeEstimate: string;
   };
   cta: {
-    start: string;
     continue: string;
-    startAsUser: string; // "{{name}}, התחל/י את המסע"
-    loginButton: string;
+    startAsUser: string; // Placeholder: {{name}}
+    startDefault: string;
+    login: string;
+  };
+  problemSection: {
+    badge: string;
+    title1: string;
+    title2: string;
+    cards: {
+      generalAnswers: { title: string; description: string };
+      wastedTime: { title: string; description: string };
+      lackOfFocus: { title: string; description: string };
+      frustration: { title: string; description: string };
+    };
+    insight: string;
+  };
+  solutionSection: {
+    badge: string;
+    title: string;
+    titleHighlight: string;
+    subtitle1: string;
+    subtitle2: string;
+    cards: {
+      selfDiscovery: { title: string; description: string };
+      soulReport: { title: string; description: string };
+      focusedSearch: { title: string; description: string };
+    };
+    result: {
+      title: string;
+      description: string;
+    };
   };
   worldsSection: {
     title: string;
     subtitle: string;
-  };
-  worlds: {
-    [key in WorldId]: {
-      title: string;
-      description: string;
-      questionsLabel: string; // "e.g., "{{count}} שאלות"
+    worlds: {
+      PERSONALITY: WorldInfoDict;
+      VALUES: WorldInfoDict;
+      RELATIONSHIP: WorldInfoDict;
+      PARTNER: WorldInfoDict;
+      RELIGION: WorldInfoDict;
     };
+    worldLabel: string; // Placeholder: {{number}}
   };
   featuresSection: {
     title: string;
-    subtitle: string;
-    features: {
-      title: string;
-      description: string;
-    }[];
+    cards: {
+      fast: { title: string; description: string };
+      private: { title: string; description: string };
+      instantResult: { title: string; description: string };
+    };
   };
   finalCta: {
-    title: string;
+    title1: string;
+    title2: string;
     subtitle: string;
     buttonText: string;
+    assurance: string;
   };
   footer: {
-    copyright: string; // e.g., "© {{year}} NeshamaTech. כל הזכויות שמורות."
+    copyright: string; // Placeholder: {{year}}
   };
 };
 
-type WorldContent = {
+
+type WorldsMapWorldContent = {
   title: string;
-  subtitle: string;
+  description: string; // החליף את 'subtitle'
   whyIsItImportant: string;
-  whatYouWillDiscover: string[];
+  benefits: string[]; // החליף את 'whatYouWillDiscover'
   guidingThought: string;
 };
 
 export type WorldsMapDict = {
-  worldLabels: Record<WorldId, string>; // labels for buttons, headers etc.
+  worldLabels: Record<WorldId, string>;
   progressHeader: {
-    greeting: string; // e.g., "שלום, {{name}}! ברוך הבא למסע שלך"
+    greeting: string; // לדוגמה: "היי {{name}},"
+    journeyQuestion: string; // לדוגמה: "איפה אנחנו במסע?"
     defaultTitle: string;
-    progressText: string; // e.g., "השלמת {{completedCount}} מתוך {{totalCount}} עולמות."
-    ctaButton: string; // e.g., "המשך לעולם המומלץ: {{worldName}}"
+    progressText: string; // כולל ספירת שאלות, לדוגמה: "השלמת {{completedCount}} מתוך... • {{totalAnswered}} מתוך {{totalQuestions}} שאלות"
+    ctaButton: string; // לדוגמה: "בוא נמשיך!"
+    mapTitle: string; // לדוגמה: "מפת העולמות שלך"
+    milestones: {
+      start: string;
+      onTrack: string;
+      inProgress: string;
+      almostThere: string;
+      completed: string;
+    };
+    nextStepTitle: string;
+    nextStepPrompt: string; // Placeholder: {{worldName}}
+    completionTitle: string;
+    completionSubtitle: string;
   };
   reviewCard: {
     title: string;
@@ -1580,10 +1632,12 @@ export type WorldsMapDict = {
     button: string;
   };
   worldCard: {
-    readMore: string;
-    showLess: string;
-    questionCount: string; // e.g., "{{count}} שאלות"
-    estimatedTime: string; // e.g., "~{{count}} דקות"
+    discoverTitle: string; // לדוגמה: "מה תגלה בעולם הזה?"
+    questionCount: string; // Placeholder: {{count}}
+    estimatedTime: string; // Placeholder: {{count}}
+    worldNumberLabel: string; // Placeholder: {{number}}
+    progressLabel: string; // Placeholder: {{completed}}, {{total}}
+    recommendedRibbon: string; // לדוגמה: "מומלץ"
     statuses: {
       completed: string;
       recommended: string;
@@ -1591,22 +1645,26 @@ export type WorldsMapDict = {
       available: string;
       locked: string;
     };
-
     actions: {
       edit: string;
-      start: string;
+      startRecommended: string;
       continue: string;
+      start: string;
       locked: string;
     };
-     progress: string; 
   };
   completionBanner: {
-    title: string; // e.g., "כל הכבוד, {{name}}!"
+    title: string; // Placeholder: {{name}}
     subtitle: string;
     description: string;
+    statWorlds: string; // לדוגמה: "5 עולמות"
+    statReport: string; // לדוגמה: "דוח נשמה מלא"
   };
-  worldsContent: Record<WorldId, WorldContent>; // All descriptive content for cards
+  worldsContent: Record<WorldId, WorldsMapWorldContent>;
 };
+
+
+
 export type QuestionnaireLayoutDict = {
   navHeader: string;
   navSubtitle: string;
@@ -1635,6 +1693,7 @@ export type QuestionnaireLayoutDict = {
     backToMap: string;
     exit: string;
     reviewAnswers: string;
+    menuTitle: string;
   };
   tooltips: {
     faq: string;
@@ -1644,19 +1703,48 @@ export type QuestionnaireLayoutDict = {
     title: string;
     textPart1: string;
     textPart2: string;
-    textPart3: string;
-    link: string;
+    // נשתמש במפתח קיים במקום להוסיף textPart3, או נוודא שיש מפתח לכפתור/לינק
+    link: string; // הלינק לפרופיל
+    visibilityToggleLabel: string; // <-- הוספנו מפתח זה עבור שם המתג
   };
 };
+
 
 export type WorldComponentDict = {
   header: {
     questionLabel: string; // e.g., "שאלה {{current}} מתוך {{total}}"
+    estimatedTimeLeft: string; // e.g., "{{minutes}} דקות נותרו"
+    statusCard: {
+      progress: string;
+      required: string;
+      status: string;
+      questions: string;
+      complete: string; // e.g., "✓ הושלם"
+      left: string; // e.g., "{{count}} נותרו"
+      keepItUp: string;
+      states: {
+        started: string;
+        going: string;
+        great: string;
+        almost: string;
+        perfect: string;
+      };
+    };
+    overallProgress: string;
   };
   errors: {
     loadingFailedTitle: string;
     loadingFailedDescription: string;
     invalidQuestion: string;
+    validation: {
+      required: string;
+      minLength: string; // e.g., "התשובה חייבת להכיל לפחות {{count}} תווים"
+      maxLength: string; // e.g., "התשובה לא יכולה לחרוג מ-{{count}} תווים"
+      minSelections: string; // e.g., "יש לבחור לפחות {{count}} אפשרויות"
+      maxSelections: string; // e.g., "ניתן לבחור עד {{count}} אפשרויות"
+      budgetAllocation: string; // e.g., "יש להקצות בדיוק {{count}} נקודות"
+      budgetRequired: string;
+    };
   };
   buttons: {
     backToMap: string;
@@ -1678,7 +1766,14 @@ export type WorldComponentDict = {
       notAnswered: string;
     };
   };
+  celebration: {
+    quarter: string;
+    half: string;
+    threeQuarters: string;
+    complete: string;
+  };
 };
+
 
 
 export type AnalysisResultDisplayDict = {
@@ -1809,7 +1904,7 @@ export type AccessibilityFeaturesDict = {
 };
 // END: Additions for AccessibilityFeatures.tsx
 export interface NeshmaInsightDict {
-   badge: string;
+  badge: string;
   title: {
     part1: string;
     highlight: string;
@@ -1843,7 +1938,9 @@ export interface NeshmaInsightDict {
     line1: string;
     line2: string;
   };
-};
+}
+
+
 
 export type ProfileSectionDict = {
     // --- הוספות חדשות ---

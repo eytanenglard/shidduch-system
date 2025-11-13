@@ -13,6 +13,35 @@ import {
 import { Star, Heart, ThumbsUp } from 'lucide-react';
 import type { InteractiveScaleDict } from '@/types/dictionary';
 
+// הגדרות הצבעים הדינמיות עבור כל עולם
+type ThemeColor = 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
+
+const getThemeConfig = (themeColor: ThemeColor) => {
+  const themes = {
+    sky: {
+      gradientStyle:
+        'linear-gradient(to right, rgb(34 211 238), rgb(14 165 233), rgb(59 130 246))',
+    },
+    rose: {
+      gradientStyle:
+        'linear-gradient(to right, rgb(251 113 133), rgb(236 72 153), rgb(239 68 68))',
+    },
+    purple: {
+      gradientStyle:
+        'linear-gradient(to right, rgb(192 132 252), rgb(139 92 246), rgb(99 102 241))',
+    },
+    teal: {
+      gradientStyle:
+        'linear-gradient(to right, rgb(45 212 191), rgb(16 185 129), rgb(34 197 94))',
+    },
+    amber: {
+      gradientStyle:
+        'linear-gradient(to right, rgb(251 191 36), rgb(249 115 22), rgb(234 179 8))',
+    },
+  };
+  return themes[themeColor] || themes.sky;
+};
+
 interface ScaleOption {
   value: number;
   label: string;
@@ -42,7 +71,8 @@ interface InteractiveScaleProps {
   name?: string;
   error?: string;
   ariaLabelledby?: string;
-  dict: InteractiveScaleDict; // קבלת המילון כ-prop
+  dict: InteractiveScaleDict;
+  themeColor?: ThemeColor;
 }
 
 const defaultIcons = { stars: Star, hearts: Heart, thumbs: ThumbsUp };
@@ -67,7 +97,8 @@ export default function InteractiveScale({
   required = false,
   name,
   error,
-  dict, // שימוש במשתנה dict
+  dict,
+  themeColor = 'sky',
 }: InteractiveScaleProps) {
   const [internalValue, setInternalValue] = useState<number | null>(
     defaultValue || null
@@ -75,6 +106,8 @@ export default function InteractiveScale({
   const [hoveredValue, setHoveredValue] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const theme = getThemeConfig(themeColor);
 
   const value = controlledValue !== undefined ? controlledValue : internalValue;
 
@@ -186,25 +219,27 @@ export default function InteractiveScale({
                   <TooltipTrigger asChild>
                     <motion.button
                       type="button"
+                      style={
+                        activeValue !== null && item.value <= activeValue
+                          ? { background: theme.gradientStyle }
+                          : undefined
+                      }
                       className={cn(
                         'relative flex items-center justify-center',
                         'w-8 h-8 rounded-full transition-colors',
                         'focus:outline-none focus:ring-2 focus:ring-offset-2',
                         activeValue !== null &&
                           item.value <= activeValue &&
-                          'bg-blue-500 text-white',
+                          'text-white',
                         activeValue !== null &&
                           item.value > activeValue &&
                           'bg-gray-200',
                         isDisabled && 'cursor-not-allowed'
                       )}
-                      // ================== START: התיקון ==================
-                      // שינינו את onClick ל-onMouseDown והוספנו עצירת התפשטות האירוע
                       onMouseDown={(e) => {
                         e.stopPropagation();
                         handleClick(item.value);
                       }}
-                      // =================== END: התיקון ===================
                       onKeyDown={(e) => handleKeyPress(e, item.value)}
                       onMouseEnter={() =>
                         !isDisabled && setHoveredValue(item.value)

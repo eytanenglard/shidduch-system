@@ -20,7 +20,7 @@ import {
 import { getRelativeCloudinaryPath } from '@/lib/utils';
 import type { NeshmaInsightDict } from '@/types/dictionary';
 
-// הגדרת טיפוסים פנימיים לרכיב
+// --- Type Definitions ---
 interface Message {
   id: number;
   text: string;
@@ -33,8 +33,8 @@ interface NeshmaInsightProps {
   locale: 'he' | 'en';
   dict: NeshmaInsightDict;
 }
+// --- End: Type Definitions ---
 
-// הרכיב המלא עם כל השיפורים והתיקונים
 export default function NeshmaInsightSectionB({
   locale,
   dict,
@@ -45,7 +45,7 @@ export default function NeshmaInsightSectionB({
   const isHebrew = locale === 'he';
   const direction = isHebrew ? 'rtl' : 'ltr';
 
-  // ניהול מצב (State) של הרכיב
+  // --- State Management ---
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
@@ -57,7 +57,7 @@ export default function NeshmaInsightSectionB({
   const [showPostConversationTransition, setShowPostConversationTransition] =
     useState(false);
 
-  // הפרדת הלוגיקה מהטקסט המתורגם
+  // --- Memoized Data from Dictionary ---
   const conversation = useMemo(() => {
     const logic = [
       { typingDelay: 1200 },
@@ -99,70 +99,65 @@ export default function NeshmaInsightSectionB({
     [dict.insights.items]
   );
 
+  // --- Animation Logic ---
   useEffect(() => {
+    const playConversation = (index: number) => {
+      if (index >= conversation.length) {
+        setIsTyping(false);
+        setTimeout(() => setShowTransitionText(true), 1000);
+        setTimeout(() => setShowInsights(true), 2500);
+        setTimeout(() => setShowTransitionCTA(true), 3500);
+        setTimeout(() => setShowCTA(true), 7000);
+        setTimeout(() => setShowPostConversationTransition(true), 8000);
+        setProgressStep(5);
+        return;
+      }
+
+      const currentMessage = conversation[index];
+
+      if (index === 0) setProgressStep(1);
+      if (index === 3) setProgressStep(2);
+      if (index === 5) setProgressStep(3);
+      if (index === 8) setProgressStep(4);
+
+      setIsTyping(true);
+
+      const baseTypingDuration =
+        currentMessage.typingDelay ||
+        Math.max(currentMessage.text.length * 40, 1000);
+      const typingDuration = currentMessage.isEureka
+        ? baseTypingDuration * 1.5
+        : baseTypingDuration;
+
+      setTimeout(() => {
+        setIsTyping(false);
+        const newMessage: Message = {
+          id: Date.now() + index,
+          text: currentMessage.text,
+          sender: currentMessage.sender,
+          isEureka: currentMessage.isEureka,
+          timestamp: new Date().toLocaleTimeString(
+            locale === 'he' ? 'he-IL' : 'en-US',
+            {
+              hour: '2-digit',
+              minute: '2-digit',
+            }
+          ),
+        };
+        setMessages((prev) => [...prev, newMessage]);
+
+        const pauseBeforeNext = currentMessage.isEureka ? 1200 : 600;
+        setTimeout(() => playConversation(index + 1), pauseBeforeNext);
+      }, typingDuration);
+    };
+
     if (isInView && !showPhone) {
       setTimeout(() => setShowPhone(true), 500);
       setTimeout(() => playConversation(0), 1500);
     }
-  }, [isInView, showPhone, conversation]); // Added dependencies
+  }, [isInView, showPhone, conversation, locale]);
 
-  const playConversation = (index: number) => {
-    if (index >= conversation.length) {
-      setIsTyping(false);
-      setTimeout(() => setShowTransitionText(true), 1000);
-      setTimeout(() => setShowInsights(true), 2500);
-      setTimeout(() => setShowTransitionCTA(true), 3500);
-      setTimeout(() => setShowCTA(true), 4500);
-      setTimeout(() => setShowPostConversationTransition(true), 5500);
-      setProgressStep(5);
-      return;
-    }
-
-    const currentMessage = conversation[index];
-
-    if (index === 0) setProgressStep(1);
-    if (index === 3) setProgressStep(2);
-    if (index === 5) setProgressStep(3);
-    if (index === 8) setProgressStep(4);
-
-    setIsTyping(true);
-
-    const baseTypingDuration =
-      currentMessage.typingDelay ||
-      Math.max(currentMessage.text.length * 40, 1000);
-    const typingDuration = currentMessage.isEureka
-      ? baseTypingDuration * 1.5
-      : baseTypingDuration;
-
-    setTimeout(() => {
-      setIsTyping(false);
-      const newMessage: Message = {
-        id: Date.now() + index,
-        text: currentMessage.text,
-        sender: currentMessage.sender,
-        isEureka: currentMessage.isEureka,
-        timestamp: new Date().toLocaleTimeString(
-          locale === 'he' ? 'he-IL' : 'en-US',
-          {
-            hour: '2-digit',
-            minute: '2-digit',
-          }
-        ),
-      };
-      setMessages((prev) => [...prev, newMessage]);
-
-      const pauseBeforeNext = currentMessage.isEureka ? 1200 : 600;
-      setTimeout(() => playConversation(index + 1), pauseBeforeNext);
-    }, typingDuration);
-  };
-
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages, isTyping]);
-
-  // Variants for animations
+  // --- Animation Variants ---
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
@@ -199,6 +194,7 @@ export default function NeshmaInsightSectionB({
     exit: { opacity: 0, scale: 0.8, transition: { duration: 0.1 } },
   };
 
+  // --- Render ---
   return (
     <motion.section
       ref={ref}
@@ -208,6 +204,7 @@ export default function NeshmaInsightSectionB({
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
+      {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-purple-200/20 to-pink-200/10 rounded-full blur-3xl animate-float-slow"></div>
         <div
@@ -221,6 +218,7 @@ export default function NeshmaInsightSectionB({
       </div>
 
       <div className="container mx-auto px-4 max-w-6xl relative">
+        {/* Header */}
         <motion.div className="flex justify-center mb-10" variants={fadeInUp}>
           <div className="inline-flex items-center gap-3 bg-white/90 backdrop-blur-md rounded-full px-8 py-4 shadow-lg border border-purple-100">
             <Sparkles className="w-6 h-6 text-purple-500" />
@@ -230,6 +228,7 @@ export default function NeshmaInsightSectionB({
           </div>
         </motion.div>
 
+        {/* Title */}
         <motion.div variants={fadeInUp} className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-800 leading-tight mb-6">
             {dict.title.part1}{' '}
@@ -243,6 +242,7 @@ export default function NeshmaInsightSectionB({
           </p>
         </motion.div>
 
+        {/* Phone Animation */}
         <AnimatePresence>
           {showPhone && (
             <motion.div
@@ -255,6 +255,7 @@ export default function NeshmaInsightSectionB({
                 <div className="absolute -inset-2 bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-rose-400/20 rounded-[2.9rem] blur-xl"></div>
                 <div className="relative bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-1.5 border border-purple-100 shadow-2xl transition-transform duration-500 group-hover:-rotate-1">
                   <div className="bg-white rounded-[2rem] overflow-hidden">
+                    {/* Phone Header */}
                     <div className="px-4 pt-6 pb-3 relative z-10 flex items-center gap-3 border-b border-purple-100/60">
                       <div className="relative">
                         <div className="relative w-10 h-10 rounded-full shadow-md overflow-hidden">
@@ -280,6 +281,7 @@ export default function NeshmaInsightSectionB({
                       </div>
                     </div>
 
+                    {/* Progress Bar */}
                     <div className="px-4 py-2 bg-purple-50/50 border-b border-purple-100/40">
                       <div className="flex items-center justify-between gap-1">
                         {dict.progressLabels.map((_, step) => (
@@ -291,6 +293,7 @@ export default function NeshmaInsightSectionB({
                       </div>
                     </div>
 
+                    {/* Messages Area */}
                     <div
                       aria-live="polite"
                       className="h-[450px] md:h-[500px] overflow-y-auto p-4 bg-gradient-to-br from-purple-50/20 to-rose-50/20"
@@ -369,6 +372,7 @@ export default function NeshmaInsightSectionB({
                       <div ref={messagesEndRef} />
                     </div>
 
+                    {/* Input Area */}
                     <div className="border-t border-gray-200/80 bg-gray-50/50 p-3">
                       <div className="bg-gray-100 rounded-full px-4 py-2 text-gray-400 text-sm cursor-not-allowed text-center">
                         {dict.placeholder}
@@ -381,6 +385,7 @@ export default function NeshmaInsightSectionB({
           )}
         </AnimatePresence>
 
+        {/* Transition Text */}
         <AnimatePresence>
           {showTransitionText && !showInsights && (
             <motion.div
@@ -398,6 +403,7 @@ export default function NeshmaInsightSectionB({
           )}
         </AnimatePresence>
 
+        {/* Insights Section */}
         <AnimatePresence>
           {showInsights && (
             <motion.div
@@ -448,6 +454,7 @@ export default function NeshmaInsightSectionB({
           )}
         </AnimatePresence>
 
+        {/* Transition CTA */}
         <AnimatePresence>
           {showTransitionCTA && !showCTA && (
             <motion.div
@@ -466,6 +473,7 @@ export default function NeshmaInsightSectionB({
           )}
         </AnimatePresence>
 
+        {/* Final CTA */}
         <AnimatePresence>
           {showCTA && (
             <motion.div
@@ -501,6 +509,7 @@ export default function NeshmaInsightSectionB({
           )}
         </AnimatePresence>
 
+        {/* Post-Conversation Transition */}
         <AnimatePresence>
           {showPostConversationTransition && (
             <motion.div
@@ -521,6 +530,7 @@ export default function NeshmaInsightSectionB({
         </AnimatePresence>
       </div>
 
+      {/* Styles */}
       <style>{`
         @keyframes float-slow { 0%, 100% { transform: translateY(0) translateX(0); } 25% { transform: translateY(-20px) translateX(10px); } 50% { transform: translateY(0) translateX(20px); } 75% { transform: translateY(20px) translateX(10px); } }
         .animate-float-slow { animation: float-slow 20s ease-in-out infinite; }

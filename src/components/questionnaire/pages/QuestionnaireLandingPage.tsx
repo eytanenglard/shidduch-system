@@ -1,16 +1,16 @@
 // src/components/questionnaire/pages/QuestionnaireLandingPage.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
   Heart,
   User,
   Users,
-  ArrowRight,
   Scroll,
   Clock,
+  ArrowRight,
   Star,
   Shield,
   CheckCircle,
@@ -21,7 +21,6 @@ import {
   UserCheck,
   Target,
   Lightbulb,
-  TrendingUp,
   FileText,
   Zap,
   AlertCircle,
@@ -33,7 +32,6 @@ import { useSession } from 'next-auth/react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { motion, useInView } from 'framer-motion';
 import type { QuestionnaireLandingPageDict } from '@/types/dictionary';
-import { useRef } from 'react';
 
 // --- Props Interface ---
 interface QuestionnaireLandingPageProps {
@@ -222,15 +220,18 @@ export default function QuestionnaireLandingPage({
     { id: 'RELATIONSHIP', icon: <Users className="h-7 w-7" />, color: 'purple' },
     { id: 'PARTNER', icon: <UserCheck className="h-7 w-7" />, color: 'teal' },
     { id: 'RELIGION', icon: <Scroll className="h-7 w-7" />, color: 'amber' },
-  ];
+  ] as const;
 
   const getCtaText = () => {
-    if (hasSavedProgress) return 'המשך במסע';
+    if (hasSavedProgress) return dict.cta.continue;
     if (session?.user?.firstName)
-      return `${session.user.firstName}, בוא/י נתחיל`;
-    return 'התחל עכשיו';
+      return dict.cta.startAsUser.replace('{{name}}', session.user.firstName);
+    return dict.cta.startDefault;
   };
+
   const CtaIcon = hasSavedProgress ? CheckCircle : Heart;
+  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
+  const backArrowIcon = isRTL ? ArrowRight : ArrowLeft;
 
   return (
     <div
@@ -256,7 +257,7 @@ export default function QuestionnaireLandingPage({
           >
             <Sparkles className="w-5 h-5 text-teal-500" />
             <span className="text-teal-700 font-bold text-sm">
-              מסע אישי לגילוי עצמי
+              {dict.hero.badge}
             </span>
           </motion.div>
 
@@ -264,10 +265,10 @@ export default function QuestionnaireLandingPage({
             className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 tracking-tight leading-tight"
             variants={fadeInUp}
           >
-            <span className="text-gray-800">לפני שמחפשים את ה"נכון",</span>
+            <span className="text-gray-800">{dict.hero.title1}</span>
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-rose-600 animate-gradient">
-              צריך לדעת מה באמת רוצים
+              {dict.hero.title2}
             </span>
           </motion.h1>
 
@@ -275,11 +276,13 @@ export default function QuestionnaireLandingPage({
             className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto leading-relaxed mb-4"
             variants={fadeInUp}
           >
-            שאלון עומק שעוזר לך להבין את עצמך, מה שחשוב לך באמת,
+            {dict.hero.subtitle1}
             <br className="hidden sm:inline" />
-            ומייצר עבורך{' '}
-            <span className="font-bold text-teal-700">דוח נשמה מפורט</span> -
-            מפת דרכים לזוגיות שאתה באמת מחפש
+            {dict.hero.subtitle2}{' '}
+            <span className="font-bold text-teal-700">
+              {dict.hero.subtitleHighlight}
+            </span>{' '}
+            {dict.hero.subtitle3}
           </motion.p>
 
           <motion.div
@@ -288,7 +291,7 @@ export default function QuestionnaireLandingPage({
           >
             <Clock className="w-4 h-4 text-amber-700" />
             <span className="text-amber-800 font-semibold text-sm">
-              20-30 דקות שיחסכו לך חודשים של חיפושים
+              {dict.hero.timeEstimate}
             </span>
           </motion.div>
 
@@ -310,7 +313,7 @@ export default function QuestionnaireLandingPage({
                   <>
                     <CtaIcon className="h-6 w-6 fill-white" />
                     <span>{getCtaText()}</span>
-                    <ArrowLeft className="h-5 w-5" />
+                    <ArrowIcon className="h-5 w-5" />
                   </>
                 )}
               </div>
@@ -323,8 +326,8 @@ export default function QuestionnaireLandingPage({
                   size="lg"
                   className="w-full sm:w-auto text-base font-medium px-8 py-6 border-2 border-teal-300 text-teal-700 hover:bg-teal-50 hover:border-teal-400 rounded-full transition-all duration-300 bg-white/80 backdrop-blur-sm"
                 >
-                  <Lock className="h-5 w-5 ms-2" />
-                  יש לך משתמש? התחבר
+                  <Lock className={cn('h-5 w-5', isRTL ? 'ms-2' : 'me-2')} />
+                  {dict.cta.login}
                 </Button>
               </Link>
             )}
@@ -345,14 +348,14 @@ export default function QuestionnaireLandingPage({
             <div className="inline-flex items-center gap-3 bg-rose-100/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-md border border-rose-200/60 mb-6">
               <AlertCircle className="w-5 h-5 text-rose-600" />
               <span className="text-rose-700 font-bold">
-                הבעיה שכולנו מכירים
+                {dict.problemSection.badge}
               </span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-gray-800 leading-tight">
-              "אז מה אתה באמת מחפש?"
+              {dict.problemSection.title1}
               <br />
               <span className="text-2xl sm:text-3xl text-gray-600 font-normal">
-                ...והתשובה הסטנדרטית שלא עוזרת
+                {dict.problemSection.title2}
               </span>
             </h2>
           </motion.div>
@@ -360,26 +363,26 @@ export default function QuestionnaireLandingPage({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-12">
             <ProblemCard
               icon={<MessageCircle className="w-6 h-6" />}
-              title="תשובות כלליות"
-              description='"מישהו טוב", "עם ערכים דומים", "שיהיה כיף איתה" - אבל מה זה באמת אומר? איך תדע שמצאת?'
+              title={dict.problemSection.cards.generalAnswers.title}
+              description={dict.problemSection.cards.generalAnswers.description}
               delay={0}
             />
             <ProblemCard
               icon={<Calendar className="w-6 h-6" />}
-              title="בזבוז זמן ואנרגיה"
-              description='דייטים שנגמרים ב"זה לא זה" כי לא ממש הבנת מה אתה מחפש מלכתחילה. כל דייט מרגיש כמו נסיון וטעייה.'
+              title={dict.problemSection.cards.wastedTime.title}
+              description={dict.problemSection.cards.wastedTime.description}
               delay={0.15}
             />
             <ProblemCard
               icon={<Target className="w-6 h-6" />}
-              title="חוסר מיקוד"
-              description="קשה להסביר לשדכנים מה באמת חשוב לך, קשה לדעת אם הצעה מתאימה לך, קשה לקבל החלטות."
+              title={dict.problemSection.cards.lackOfFocus.title}
+              description={dict.problemSection.cards.lackOfFocus.description}
               delay={0.3}
             />
             <ProblemCard
               icon={<AlertCircle className="w-6 h-6" />}
-              title="תסכול וחוסר בטחון"
-              description="התחושה שאולי אתה פשוט לא יודע מה אתה רוצה, או שאולי אתה מחפש משהו שלא קיים."
+              title={dict.problemSection.cards.frustration.title}
+              description={dict.problemSection.cards.frustration.description}
               delay={0.45}
             />
           </div>
@@ -393,7 +396,7 @@ export default function QuestionnaireLandingPage({
           >
             <div className="inline-block bg-gradient-to-r from-amber-100 via-orange-100 to-rose-100 rounded-3xl px-8 py-5 shadow-xl border-2 border-amber-300/60">
               <p className="text-xl md:text-2xl font-bold text-gray-800">
-                💡 איך אפשר למצוא את הנכון, אם לא יודעים מה באמת רוצים?
+                {dict.problemSection.insight}
               </p>
             </div>
           </motion.div>
@@ -412,40 +415,42 @@ export default function QuestionnaireLandingPage({
           <motion.div className="text-center mb-16" variants={fadeInUp}>
             <div className="inline-flex items-center gap-3 bg-gradient-to-r from-teal-100 to-cyan-100 backdrop-blur-sm rounded-full px-6 py-3 shadow-md border border-teal-300/60 mb-6">
               <Lightbulb className="w-5 h-5 text-teal-600" />
-              <span className="text-teal-700 font-bold">הפתרון שחיכית לו</span>
+              <span className="text-teal-700 font-bold">
+                {dict.solutionSection.badge}
+              </span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-gray-800 leading-tight">
-              שאלון שעושה{' '}
+              {dict.solutionSection.title}{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
-                סדר בראש
+                {dict.solutionSection.titleHighlight}
               </span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              20 דקות של שאלות ממוקדות שיעזרו לך להבין מה באמת חשוב לך,
+              {dict.solutionSection.subtitle1}
               <br className="hidden sm:inline" />
-              ובסוף תקבל דוח אישי מפורט - מפת דרכים לזוגיות שאתה מחפש
+              {dict.solutionSection.subtitle2}
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             <SolutionCard
               icon={<Heart className="w-8 h-8" />}
-              title="גילוי עצמי אמיתי"
-              description="השאלון מוביל אותך דרך תהליך מובנה שעוזר לך להבין מה באמת חשוב לך בחיים ובזוגיות - מעבר למשפטים כלליים."
+              title={dict.solutionSection.cards.selfDiscovery.title}
+              description={dict.solutionSection.cards.selfDiscovery.description}
               gradient="from-rose-400 to-pink-500"
               delay={0}
             />
             <SolutionCard
               icon={<FileText className="w-8 h-8" />}
-              title='קבל את "דוח הנשמה" שלך'
-              description="בסיום השאלון תקבל דוח PDF מפורט ואישי שמזקק את כל התובנות - מסמך שתוכל לחזור אליו שוב ושוב."
+              title={dict.solutionSection.cards.soulReport.title}
+              description={dict.solutionSection.cards.soulReport.description}
               gradient="from-teal-400 to-cyan-500"
               delay={0.15}
             />
             <SolutionCard
               icon={<Target className="w-8 h-8" />}
-              title="חיפוש ממוקד ויעיל"
-              description="עם דוח הנשמה, תדע בדיוק מה אתה מחפש. זה יעזור לך להסביר לשדכנים, לקבל החלטות טובות יותר, ולחסוך זמן."
+              title={dict.solutionSection.cards.focusedSearch.title}
+              description={dict.solutionSection.cards.focusedSearch.description}
               gradient="from-amber-400 to-orange-500"
               delay={0.3}
             />
@@ -462,14 +467,12 @@ export default function QuestionnaireLandingPage({
               <div className="flex items-center justify-center gap-3 mb-4">
                 <Zap className="w-6 h-6 text-orange-500" />
                 <h3 className="text-2xl font-bold text-gray-800">
-                  התוצאה: בהירות ובטחון
+                  {dict.solutionSection.result.title}
                 </h3>
                 <Zap className="w-6 h-6 text-orange-500" />
               </div>
               <p className="text-lg text-gray-600 leading-relaxed max-w-2xl">
-                במקום להגיד "מישהו טוב", תוכל להסביר בדיוק איזה סגנון תקשורת
-                חשוב לך, איזה ערכים לא מוותרים עליהם, ואיזו דינמיקה אתה מחפש
-                בקשר. זה משנה הכל.
+                {dict.solutionSection.result.description}
               </p>
             </div>
           </motion.div>
@@ -487,11 +490,11 @@ export default function QuestionnaireLandingPage({
         <div className="max-w-6xl mx-auto">
           <motion.div className="text-center mb-16" variants={fadeInUp}>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-800">
-              המסע שלך יעבור דרך 5 עולמות
+              {dict.worldsSection.title}
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-auto rounded-full mb-6" />
             <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              כל עולם חושף שכבה נוספת של מי שאתה באמת ומה שחשוב לך בזוגיות
+              {dict.worldsSection.subtitle}
             </p>
           </motion.div>
 
@@ -507,22 +510,8 @@ export default function QuestionnaireLandingPage({
                 teal: 'from-teal-400 to-emerald-500',
                 amber: 'from-amber-400 to-orange-500',
               };
-
-              const worldTitles = {
-                PERSONALITY: 'עולם האישיות',
-                VALUES: 'עולם הערכים',
-                RELATIONSHIP: 'עולם הזוגיות',
-                PARTNER: 'עולם הפרטנר',
-                RELIGION: 'עולם הדת והמסורת',
-              };
-
-              const worldDescriptions = {
-                PERSONALITY: 'מי אני באמת? מה מניע אותי?',
-                VALUES: 'מה הכי חשוב לי בחיים?',
-                RELATIONSHIP: 'איך אני רואה קשר זוגי?',
-                PARTNER: 'את מי אני מחפש לצידי?',
-                RELIGION: 'מה מקומה של היהדות בחיי?',
-              };
+              
+              const worldInfo = dict.worldsSection.worlds[world.id];
 
               return (
                 <motion.div key={world.id} variants={fadeInUp}>
@@ -531,7 +520,7 @@ export default function QuestionnaireLandingPage({
                     <div
                       className={cn(
                         'relative p-5 rounded-2xl bg-gradient-to-br text-white shadow-xl mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300',
-                        colorClasses[world.color as keyof typeof colorClasses]
+                        colorClasses[world.color]
                       )}
                     >
                       <div className="absolute inset-0 rounded-2xl bg-white/20 backdrop-blur-sm" />
@@ -539,18 +528,14 @@ export default function QuestionnaireLandingPage({
                     </div>
                     <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-gray-100 mb-4">
                       <span className="text-xs font-bold text-gray-600">
-                        עולם {index + 1}
+                        {dict.worldsSection.worldLabel.replace('{{number}}', (index + 1).toString())}
                       </span>
                     </div>
                     <h3 className="text-xl font-bold text-gray-800 mb-3 leading-tight">
-                      {worldTitles[world.id as keyof typeof worldTitles]}
+                      {worldInfo.title}
                     </h3>
                     <p className="text-sm text-gray-600 leading-relaxed">
-                      {
-                        worldDescriptions[
-                          world.id as keyof typeof worldDescriptions
-                        ]
-                      }
+                      {worldInfo.description}
                     </p>
                   </div>
                 </motion.div>
@@ -571,7 +556,7 @@ export default function QuestionnaireLandingPage({
         <div className="max-w-5xl mx-auto">
           <motion.div className="text-center mb-16" variants={fadeInUp}>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-800">
-              למה זה באמת עובד?
+              {dict.featuresSection.title}
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-auto rounded-full mb-6" />
           </motion.div>
@@ -588,11 +573,10 @@ export default function QuestionnaireLandingPage({
                 <Clock className="h-8 w-8 text-white" />
               </div>
               <h3 className="font-bold text-xl mb-3 text-gray-800">
-                מהיר ונוח
+                {dict.featuresSection.cards.fast.title}
               </h3>
               <p className="text-base text-gray-600 leading-relaxed">
-                20-30 דקות בלבד. אפשר להתחיל, לעצור, ולחזור בכל זמן. השאלון
-                נשמר אוטומטית.
+                {dict.featuresSection.cards.fast.description}
               </p>
             </motion.div>
 
@@ -604,11 +588,10 @@ export default function QuestionnaireLandingPage({
                 <Shield className="h-8 w-8 text-white" />
               </div>
               <h3 className="font-bold text-xl mb-3 text-gray-800">
-                פרטי ומאובטח
+                {dict.featuresSection.cards.private.title}
               </h3>
               <p className="text-base text-gray-600 leading-relaxed">
-                התשובות שלך נשארות אצלך בלבד. רק אתה ושדכנים מורשים יכולים
-                לגשת אליהן.
+                {dict.featuresSection.cards.private.description}
               </p>
             </motion.div>
 
@@ -620,11 +603,10 @@ export default function QuestionnaireLandingPage({
                 <Star className="h-8 w-8 text-white" />
               </div>
               <h3 className="font-bold text-xl mb-3 text-gray-800">
-                תוצאה מיידית
+                {dict.featuresSection.cards.instantResult.title}
               </h3>
               <p className="text-base text-gray-600 leading-relaxed">
-                בסיום השאלון תקבל את דוח הנשמה שלך - מסמך PDF מפורט ואישי
-                שמזקק את כל התובנות.
+                {dict.featuresSection.cards.instantResult.description}
               </p>
             </motion.div>
           </motion.div>
@@ -655,16 +637,14 @@ export default function QuestionnaireLandingPage({
 
             <div className="relative z-10">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-gray-800 leading-tight">
-                מוכנים להתחיל?
+                {dict.finalCta.title1}
                 <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600">
-                  דוח הנשמה שלכם מחכה
+                  {dict.finalCta.title2}
                 </span>
               </h2>
-              <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto">
-                20 דקות של מיקוד שיחסכו לכם חודשים של חיפושים.
-                <br />
-                התחילו עכשיו וגלו מה באמת חשוב לכם בזוגיות.
+              <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto whitespace-pre-line">
+                {dict.finalCta.subtitle}
               </p>
 
               <motion.div variants={fadeInUp}>
@@ -681,8 +661,8 @@ export default function QuestionnaireLandingPage({
                     ) : (
                       <>
                         <FileText className="h-7 w-7 group-hover:rotate-12 transition-transform" />
-                        <span>קבל את דוח הנשמה שלך עכשיו</span>
-                        <ArrowLeft className="h-6 w-6 group-hover:-translate-x-1 transition-transform" />
+                        <span>{dict.finalCta.buttonText}</span>
+                        <ArrowIcon className="h-6 w-6 group-hover:-translate-x-1 transition-transform" />
                       </>
                     )}
                   </div>
@@ -696,9 +676,7 @@ export default function QuestionnaireLandingPage({
                 transition={{ delay: 0.4 }}
               >
                 <CheckCircle className="w-5 h-5 text-teal-500" />
-                <span className="font-medium">
-                  ללא תשלום • ללא התחייבות • פרטי לחלוטין
-                </span>
+                <span className="font-medium">{dict.finalCta.assurance}</span>
               </motion.div>
             </div>
           </motion.div>
@@ -730,7 +708,7 @@ export default function QuestionnaireLandingPage({
       )}
 
       <footer className="text-center py-8 text-gray-500 text-sm bg-slate-50/80">
-        © {new Date().getFullYear()} NeshamaTech. כל הזכויות שמורות.
+        {dict.footer.copyright.replace('{{year}}', new Date().getFullYear().toString())}
       </footer>
 
       <style>{`

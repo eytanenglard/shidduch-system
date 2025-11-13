@@ -22,7 +22,7 @@ enum QuestionnaireStage {
 // הגדרת Props לרכיב
 interface QuestionnairePageClientProps {
   dict: QuestionnaireDictionary;
-  locale: string;
+  locale: 'he' | 'en'; // <-- התיקון נמצא כאן
 }
 
 export default function QuestionnairePageClient({
@@ -156,21 +156,7 @@ export default function QuestionnairePageClient({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {currentStage !== QuestionnaireStage.LANDING && (
-        <div className="container mx-auto p-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mb-4"
-            onClick={() => setCurrentStage(QuestionnaireStage.LANDING)}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {dict.page.backToMain} {/* שימוש במילון */}
-          </Button>
-        </div>
-      )}
-
-      {error && (
+       {error && (
         <div className="container mx-auto p-4">
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />

@@ -1,60 +1,30 @@
 // src/components/questionnaire/layout/QuestionnaireLayout.tsx
-import React, { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
-import { Card, CardContent } from '@/components/ui/card';
+'use client';
+
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Heart,
-  User,
-  Users,
-  Save,
-  LogOut,
-  Settings,
-  HelpCircle,
-  ChevronRight,
-  CheckCircle,
-  Loader2,
-  Menu,
-  UserCheck,
-  X,
-  Home,
-  ArrowRightLeft,
-  LogIn,
-  UserPlus,
-  Scroll,
-  ChevronLeft,
-  Edit,
-  BookUser,
-  Info,
-  Eye,
-} from 'lucide-react';
+import { Loader2, Menu, Save, CheckCircle } from 'lucide-react';
 import type { WorldId } from '../types/types';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import FAQ from '../components/FAQ';
-import AccessibilityFeatures from '../components/AccessibilityFeatures';
+import { QuestionnaireSidebar } from './QuestionnaireSidebar';
 import type {
   QuestionnaireLayoutDict,
   MatchmakingQuestionnaireDict,
   QuestionnaireFaqDict,
   AccessibilityFeaturesDict,
 } from '@/types/dictionary';
+// <-- שינוי 1: ייבואים חדשים לצורך בדיקת אימות וניווט
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
-// Props Interface - Updated to include FAQ and Accessibility dicts
+// Props Interface
 export interface QuestionnaireLayoutProps {
   children: React.ReactNode;
   currentWorld: WorldId;
@@ -63,22 +33,39 @@ export interface QuestionnaireLayoutProps {
   onExit?: () => void;
   locale?: 'he' | 'en';
   onSaveProgress?: () => Promise<void>;
-  isLoggedIn?: boolean;
+  // isLoggedIn?: boolean;  <-- שינוי 2: הסרנו את Prop הזה, כי הקומפוננטה תדע לבדוק זאת בעצמה
   dict: {
     layout: QuestionnaireLayoutDict;
     worldLabels: MatchmakingQuestionnaireDict['worldLabels'];
-    faq: QuestionnaireFaqDict; // Added FAQ dictionary
-    accessibilityFeatures: AccessibilityFeaturesDict; // Added Accessibility dictionary
+    faq: QuestionnaireFaqDict;
+    accessibilityFeatures: AccessibilityFeaturesDict;
   };
 }
 
+// הגדרות עיצוב נשארות כפי שהן
 const worldConfig = {
-  PERSONALITY: { icon: User, themeColor: 'sky' },
-  VALUES: { icon: Heart, themeColor: 'rose' },
-  RELATIONSHIP: { icon: Users, themeColor: 'purple' },
-  PARTNER: { icon: UserCheck, themeColor: 'teal' },
-  RELIGION: { icon: Scroll, themeColor: 'amber' },
-} as const;
+  PERSONALITY: { icon: () => <div />, themeColor: 'sky' },
+  VALUES: { icon: () => <div />, themeColor: 'rose' },
+  RELATIONSHIP: { icon: () => <div />, themeColor: 'purple' },
+  PARTNER: { icon: () => <div />, themeColor: 'teal' },
+  RELIGION: { icon: () => <div />, themeColor: 'amber' },
+};
+
+const colorMap = {
+  sky: { border: 'border-sky-300', bg: 'bg-sky-50', text: 'text-sky-600' },
+  rose: { border: 'border-rose-300', bg: 'bg-rose-50', text: 'text-rose-600' },
+  purple: {
+    border: 'border-purple-300',
+    bg: 'bg-purple-50',
+    text: 'text-purple-600',
+  },
+  teal: { border: 'border-teal-300', bg: 'bg-teal-50', text: 'text-teal-600' },
+  amber: {
+    border: 'border-amber-300',
+    bg: 'bg-amber-50',
+    text: 'text-amber-600',
+  },
+};
 
 export default function QuestionnaireLayout({
   children,
@@ -87,26 +74,32 @@ export default function QuestionnaireLayout({
   onWorldChange,
   onExit,
   locale = 'he',
-  isLoggedIn = false,
   onSaveProgress,
   dict,
 }: QuestionnaireLayoutProps) {
-  const [isSaving, setIsSaving] = useState(false);
-  const [showExitPrompt, setShowExitPrompt] = useState(false);
-  const [showMobileNav, setShowMobileNav] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [isAccessibilityPanelOpen, setAccessibilityPanelOpen] = useState(false);
+  // <-- שינוי 3: שימוש ב-hooks של next-auth ו-next/navigation
+  const { status } = useSession();
+  const router = useRouter();
+  const isLoggedIn = status === 'authenticated';
 
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isSmallScreen = useMediaQuery('(max-width: 640px)');
-  const currentThemeColor = worldConfig[currentWorld]?.themeColor || 'sky';
   const isRTL = locale === 'he';
-  const directionClass = isRTL ? 'rtl' : 'ltr';
+  const currentThemeColor = worldConfig[currentWorld]?.themeColor || 'sky';
+  const currentColors = colorMap[currentThemeColor as keyof typeof colorMap];
+
   const handleSave = useCallback(async () => {
     if (!onSaveProgress) return;
     setIsSaving(true);
     try {
       await onSaveProgress();
       setLastSaved(new Date());
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
     } catch (err) {
       console.error('Save failed in layout:', err);
     } finally {
@@ -114,418 +107,141 @@ export default function QuestionnaireLayout({
     }
   }, [onSaveProgress]);
 
-  const profileLinkWithTab = `/${locale}/profile?tab=questionnaire`;
-  console.log(
-    `---[ LOG | QuestionnaireLayout.tsx ]--- הקישורים לסקירת התשובות ינווטו אל: ${profileLinkWithTab}`
-  );
-
-  const NavButton = ({
-    worldId,
-    isMobile,
-  }: {
-    worldId: string;
-    isMobile: boolean;
-  }) => {
-    const { icon: Icon, themeColor } =
-      worldConfig[worldId as keyof typeof worldConfig];
-    const label = dict.worldLabels[worldId as WorldId];
-    const isActive = currentWorld === worldId;
-    const isCompleted = completedWorlds.includes(worldId as WorldId);
-    let status: 'active' | 'completed' | 'pending' = 'pending';
-    if (isActive) status = 'active';
-    else if (isCompleted) status = 'completed';
-
-    const statusConfig = {
-      active: {
-        classes: `bg-${themeColor}-600 text-white shadow-lg hover:bg-${themeColor}-700 ring-2 ring-offset-2 ring-${themeColor}-400`,
-        actionIcon: isRTL ? (
-          <ChevronLeft className="h-5 w-5 animate-pulse" />
-        ) : (
-          <ChevronRight className="h-5 w-5 animate-pulse" />
-        ),
-      },
-      completed: {
-        classes:
-          'border-green-300 bg-green-50 text-green-800 hover:bg-green-100 opacity-90 hover:opacity-100',
-        actionIcon: <Edit className="h-4 w-4 text-green-600" />,
-      },
-      pending: {
-        classes: 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700',
-        actionIcon: null,
-      },
-    };
-    const currentStatusConfig = statusConfig[status];
-
-    return (
-      <Button
-        variant={'outline'}
-        size={isMobile ? 'sm' : 'default'}
-        className={cn(
-          'flex items-center justify-between w-full mb-2 transition-all duration-200 rounded-lg',
-          currentStatusConfig.classes,
-          isMobile ? 'py-2 text-sm' : 'p-3'
-        )}
-        onClick={() => {
-          onWorldChange(worldId as WorldId);
-          if (isMobile) setShowMobileNav(false);
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <Icon
-            className={cn(
-              'h-5 w-5',
-              isActive ? 'text-white' : `text-${themeColor}-500`
-            )}
-          />
-          <span className="truncate text-right font-medium">{label}</span>
-        </div>
-        <div className="flex-shrink-0">{currentStatusConfig.actionIcon}</div>
-      </Button>
-    );
-  };
-
-  const ProfileNotice = () => (
-    <div className="mx-4 my-2 p-3 bg-slate-100/80 border border-slate-200/90 rounded-lg">
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 pt-0.5">
-          <Info className="h-4 w-4 text-slate-500" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-slate-600 leading-relaxed text-sm">
-            <span className="font-medium text-slate-700">
-              {dict.layout.profileNotice.title}
-            </span>{' '}
-            {dict.layout.profileNotice.textPart1}
-            <span className="inline-flex items-center px-1 py-0.5 bg-white border border-slate-200 rounded text-xs font-mono">
-              <Eye className="inline-block h-3 w-3 mr-1 text-slate-500" />
-            </span>
-            {dict.layout.profileNotice.textPart2}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-
-  const UnauthenticatedPrompt = () => (
-    <div className="p-3 my-3 bg-cyan-50/70 border border-cyan-200 rounded-lg text-center space-y-2">
-      <p className="text-sm text-cyan-800 font-medium">
-        {dict.layout.unauthenticatedPrompt.title}
-      </p>
-      <p className="text-xs text-cyan-700">
-        {dict.layout.unauthenticatedPrompt.subtitle}
-      </p>
-      <div className="flex gap-2 justify-center pt-1">
-        <Link href="/auth/signin">
-          <Button variant="outline" size="sm" className="bg-white/80">
-            <LogIn className="w-3 h-3 ml-1" />
-            {dict.layout.unauthenticatedPrompt.loginButton}
-          </Button>
-        </Link>
-        <Link href="/auth/register">
-          <Button variant="default" size="sm">
-            <UserPlus className="w-3 h-3 ml-1" />
-            {dict.layout.unauthenticatedPrompt.registerButton}
-          </Button>
-        </Link>
-      </div>
-    </div>
-  );
-
-  const renderFAQButton = (isMobile: boolean) => (
-    <Sheet>
-      <SheetTrigger asChild>
+  // Mobile Header (עם עדכוני המילון שהוספנו קודם)
+  const MobileHeader = () => (
+    <header
+      className={cn(
+        'lg:hidden sticky top-0 z-40 backdrop-blur-xl bg-white/95 shadow-md border-b-2',
+        currentColors.border
+      )}
+    >
+      <div className="flex items-center justify-between p-3">
         <Button
           variant="ghost"
-          size={isMobile ? 'sm' : 'icon'}
-          className={cn(
-            'text-slate-500 hover:text-slate-800',
-            isMobile
-              ? 'w-full justify-start gap-3 p-3'
-              : 'w-8 h-8 p-0 rounded-full'
-          )}
-          aria-label={dict.layout.tooltips.faq}
+          size="sm"
+          className="inline-flex items-center gap-2 hover:bg-gray-100 rounded-xl px-3"
         >
-          <HelpCircle className="h-5 w-5" />
-          {isMobile && <span>{dict.layout.tooltips.faq}</span>}
+          <Menu className="h-5 w-5" />
+          {!isSmallScreen && (
+            <span className="font-semibold text-gray-700">
+              {dict.layout.mobileNav.menuTitle}
+            </span>
+          )}
         </Button>
-      </SheetTrigger>
-      <SheetContent
-        side={isRTL ? 'left' : 'right'}
-        className="w-[90vw] max-w-lg overflow-y-auto"
-      >
-        <SheetHeader>
-          <SheetTitle>{dict.layout.tooltips.faq}</SheetTitle>
-        </SheetHeader>
-        <div className="mt-4">
-          <FAQ dict={dict.faq} />
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-
-  const MobileNav = () => (
-    <AnimatePresence>
-      {showMobileNav && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-            onClick={() => setShowMobileNav(false)}
-          />
-          <motion.div
-            initial={{ x: isRTL ? '100%' : '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: isRTL ? '100%' : '-100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`fixed top-0 ${isRTL ? 'right-0' : 'left-0'} h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`}
+        <div className="flex items-center gap-2">
+          <div className={cn('p-1.5 rounded-lg', currentColors.bg)}></div>
+          <span
+            className={cn('text-sm font-bold truncate', currentColors.text)}
           >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-medium flex items-center">
-                <ArrowRightLeft className="w-5 h-5 mr-2 text-blue-500" />
-                {dict.layout.mobileNav.title}
-              </h2>
+            {dict.worldLabels[currentWorld]}
+          </span>
+        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
               <Button
                 variant="ghost"
-                size="sm"
-                onClick={() => setShowMobileNav(false)}
-                className="w-8 h-8 p-0 rounded-full"
+                size="icon"
+                className={cn(
+                  'h-9 w-9 rounded-xl',
+                  saveSuccess
+                    ? 'bg-green-100 text-green-600'
+                    : 'bg-gray-100 hover:bg-gray-200'
+                )}
+                onClick={handleSave}
+                disabled={isSaving}
               >
-                <X className="h-4 w-4" />
+                {isSaving ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : saveSuccess ? (
+                  <CheckCircle className="h-5 w-5" />
+                ) : (
+                  <Save className="h-5 w-5 text-gray-600" />
+                )}
               </Button>
-            </div>
-            <div className="flex-grow">
-              {Object.keys(worldConfig).map((worldId) => (
-                <NavButton key={worldId} worldId={worldId} isMobile={true} />
-              ))}
-            </div>
-            {!isLoggedIn && <UnauthenticatedPrompt />}
-            <div className="pt-4 mt-4 border-t space-y-2">
-              <Link href={profileLinkWithTab}>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start gap-2"
-                >
-                  <BookUser className="h-4 w-4" />
-                  {dict.layout.mobileNav.reviewAnswers}
-                </Button>
-              </Link>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start gap-2"
-                onClick={onExit}
-              >
-                <Home className="h-4 w-4" />
-                {dict.layout.mobileNav.backToMap}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start text-red-500 hover:text-red-700"
-                onClick={() => setShowExitPrompt(true)}
-              >
-                <LogOut className="h-4 w-4" />
-                {dict.layout.mobileNav.exit}
-              </Button>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                {isSaving
+                  ? dict.layout.buttons.saving
+                  : dict.layout.buttons.save}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    </header>
   );
 
   return (
     <div
-      className={`flex flex-col min-h-screen lg:flex-row bg-slate-50 ${directionClass}`}
+      className={cn(
+        'min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50',
+        isRTL ? 'rtl' : 'ltr'
+      )}
     >
-      {/* --- START: CODE TO REPLACE --- */}
-      <header
-        className={cn(
-          'lg:hidden sticky top-0 z-40 bg-white shadow-sm p-3 flex items-center justify-between',
-          `border-b-2 border-${currentThemeColor}-200`
-        )}
-      >
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowMobileNav(true)}
-          className="inline-flex items-center"
-        >
-          <Menu className="h-5 w-5" />
-          {!isSmallScreen && <span className="ml-2">תפריט</span>}
-        </Button>
-        <div className="flex flex-col items-center">
-          <h1
-            className={cn(
-              'text-sm font-semibold',
-              `text-${currentThemeColor}-800`
-            )}
-          >
-            {dict.worldLabels[currentWorld]}
-          </h1>
+      {isDesktop ? (
+        <div className="flex flex-row">
+          <QuestionnaireSidebar
+            currentWorld={currentWorld}
+            completedWorlds={completedWorlds}
+            onWorldChange={onWorldChange}
+            onExit={onExit!}
+            locale={locale}
+            isLoggedIn={isLoggedIn} // <-- שינוי 4: מעבירים את המשתנה שחישבנו
+            onSaveProgress={handleSave}
+            isSaving={isSaving}
+            saveSuccess={saveSuccess}
+            lastSaved={lastSaved}
+            dict={{
+              layout: dict.layout,
+              worldLabels: dict.worldLabels,
+              faq: dict.faq,
+              accessibilityFeatures: dict.accessibilityFeatures,
+            }}
+          />
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10">
+            {children}
+          </main>
         </div>
-        <div className="flex items-center gap-1">
-          {/* הוספנו כפתור שמירה כאן */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              'h-8 w-8 rounded-full',
-              isSaving
-                ? `bg-${currentThemeColor}-100`
-                : 'bg-green-50 text-green-600'
-            )}
-            onClick={() => handleSave()}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-      </header>
-      {/* --- END: CODE TO REPLACE --- */}
-      <MobileNav />
-      <aside
-        className={cn(
-          'w-64 bg-white border-r hidden lg:flex lg:flex-col overflow-y-auto',
-          isRTL ? 'border-l' : 'border-r'
-        )}
-      >
-        <div className="p-4 border-b">
-          <h3 className="font-semibold text-lg text-slate-800">
-            {dict.layout.navHeader}
-          </h3>
-          <p className="text-xs text-slate-500">{dict.layout.navSubtitle}</p>
-        </div>
-        <div className="p-4 flex-grow">
-          {Object.keys(worldConfig).map((worldId) => (
-            <NavButton key={worldId} worldId={worldId} isMobile={false} />
-          ))}
-        </div>
-        <ProfileNotice />
-        {!isLoggedIn && (
-          <div className="px-4">
-            <UnauthenticatedPrompt />
-          </div>
-        )}
-        <div className="p-4 border-t mt-auto space-y-2">
-          {lastSaved && (
-            <div className="flex items-center text-xs text-slate-500 mb-2">
-              <CheckCircle className="h-3.5 w-3.5 mr-1.5 text-green-500" />
-              <span>
-                {dict.layout.lastSaved.replace(
-                  '{{time}}',
-                  lastSaved.toLocaleTimeString()
-                )}
-              </span>
-            </div>
-          )}
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => handleSave()}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {dict.layout.buttons.saving}
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                {dict.layout.buttons.save}
-              </>
-            )}
-          </Button>
-          <Link href={profileLinkWithTab}>
-            <Button variant="outline" className="w-full">
-              <BookUser className="w-4 h-4 mr-2" />
-              {dict.layout.buttons.review}
-            </Button>
-          </Link>
-          <Button variant="outline" className="w-full" onClick={onExit}>
-            <Home className="w-4 h-4 mr-2" />
-            {dict.layout.buttons.map}
-          </Button>
-          <div className="flex gap-2 pt-2">
-            {renderFAQButton(false)}
-            {/* The redundant accessibility button has been removed from here */}
-          </div>
-        </div>
-      </aside>
-      <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto relative scroll-smooth">
-        {children}
-      </main>
-      <AnimatePresence>
-        {showExitPrompt && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-md"
-            >
-              <Card className="bg-white">
-                <CardContent className="pt-6">
-                  <h3 className="text-lg font-medium mb-4">
-                    {dict.layout.exitPrompt.title}
+      ) : (
+        // <-- שינוי 5: הוספת ההודעה למשתמש לא מחובר גם בתצוגת מובייל
+        <div className="flex flex-col">
+          <MobileHeader />
+          <main className="flex-1">
+            {!isLoggedIn && (
+              <div className="p-4">
+                <div className="rounded-xl bg-yellow-50 p-4 border border-yellow-200 text-center">
+                  <h3 className="text-sm font-semibold text-yellow-800">
+                    {dict.layout.unauthenticatedPrompt.title}
                   </h3>
-                  <p className="text-slate-600 mb-6">
-                    {dict.layout.exitPrompt.description}
+                  <p className="text-xs text-yellow-700 mt-1">
+                    {dict.layout.unauthenticatedPrompt.subtitle}
                   </p>
-                  <div className="flex flex-col sm:flex-row justify-end gap-2">
+                  <div className="flex justify-center gap-2 mt-3">
                     <Button
-                      variant="outline"
                       size="sm"
-                      onClick={() => setShowExitPrompt(false)}
+                      className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                      onClick={() => router.push('/auth/signin')}
                     >
-                      {dict.layout.exitPrompt.cancel}
+                      {dict.layout.unauthenticatedPrompt.loginButton}
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={async () => {
-                        await handleSave();
-                        if (onExit) onExit();
-                        setShowExitPrompt(false);
-                      }}
-                      disabled={isSaving}
+                      className="border-yellow-600 text-yellow-700 hover:bg-yellow-100"
+                      onClick={() => router.push('/auth/register')}
                     >
-                      {isSaving && (
-                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                      )}
-                      {dict.layout.exitPrompt.saveAndExit}
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        setShowExitPrompt(false);
-                        if (onExit) onExit();
-                      }}
-                    >
-                      {dict.layout.exitPrompt.exitWithoutSaving}
+                      {dict.layout.unauthenticatedPrompt.registerButton}
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                </div>
+              </div>
+            )}
+            <div className="p-4">{children}</div>
+          </main>
+        </div>
+      )}
     </div>
   );
 }

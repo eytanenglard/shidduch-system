@@ -136,76 +136,105 @@
         "stageLoadError": "Error loading the requested stage.",
         "completionError": "An error occurred while finalizing your questionnaire."
     },
-    "landingPage": {
-        "hero": {
-            "badge": "A Journey to Deeper Connection",
-            "title": "The NeshamaTech Smart Questionnaire",
-            "subtitle": "This isn't just a form—it's an invitation to a guided journey of self-discovery. Your thoughtful answers are the key that unlocks truly compatible matches."
-        },
-        "cta": {
-            "start": "Begin the Journey",
-            "continue": "Continue Your Journey",
-            "startAsUser": "{{name}}, Begin Your Journey",
-            "loginButton": "Sign In & Save Progress"
-        },
-        "worldsSection": {
-            "title": "Explore the Five Worlds of You",
-            "subtitle": "Our questionnaire is structured as a passage through five essential aspects of your life, creating a holistic and authentic profile."
-        },
-        "worlds": {
-            "PERSONALITY": {
-                "title": "Personality",
-                "description": "Discover your core traits, energy sources, and communication style.",
-                "questionsLabel": "{{count}} questions"
-            },
-            "VALUES": {
-                "title": "Values",
-                "description": "Define the principles that guide your life and your vision for the future.",
-                "questionsLabel": "{{count}} questions"
-            },
-            "RELATIONSHIP": {
-                "title": "Partnership",
-                "description": "Explore your expectations for communication, intimacy, and daily life together.",
-                "questionsLabel": "{{count}} questions"
-            },
-            "PARTNER": {
-                "title": "The Partner",
-                "description": "Clarify the essential qualities and characteristics you're seeking in a partner.",
-                "questionsLabel": "{{count}} questions"
-            },
-            "RELIGION": {
-                "title": "Religion",
-                "description": "Detail your spiritual connection, practices, and vision for a Jewish home.",
-                "questionsLabel": "{{count}} questions"
-            }
-        },
-        "featuresSection": {
-            "title": "A Process Built on Trust and Insight",
-            "subtitle": "We designed every step to be respectful of your time and your journey.",
-            "features": [
-                {
-                    "title": "Smart & Efficient",
-                    "description": "An average journey of 45 minutes that saves you countless hours on irrelevant matches."
-                },
-                {
-                    "title": "Completely Confidential",
-                    "description": "Your answers are a private conversation between you and your matchmaking team."
-                },
-                {
-                    "title": "Reveals Deeper Truths",
-                    "description": "Go beyond surface-level details to uncover the essence of what makes a connection last."
-                }
-            ]
-        },
-        "finalCta": {
-            "title": "Ready to Tell Your Story?",
-            "subtitle": "Your next chapter begins with a single, thoughtful step.",
-            "buttonText": "Start My Questionnaire"
-        },
-        "footer": {
-            "copyright": "© {{year}} NeshamaTech. All rights reserved."
-        }
+    
+ "landingPage": {
+  "hero": {
+    "badge": "A Personal Journey of Self-Discovery",
+    "title1": "Before finding 'The One',",
+    "title2": "you need to know what you truly want",
+    "subtitle1": "An in-depth questionnaire that helps you understand yourself, what truly matters to you,",
+    "subtitle2": "and generates your detailed",
+    "subtitleHighlight": "Soul Report",
+    "subtitle3": "— a roadmap to the relationship you're truly searching for.",
+    "timeEstimate": "20-30 minutes that will save you months of searching"
+  },
+  "cta": {
+    "continue": "Continue Your Journey",
+    "startAsUser": "{{name}}, Let's Begin",
+    "startDefault": "Start Now",
+    "login": "Already have an account? Sign In"
+  },
+  "problemSection": {
+    "badge": "The Problem We All Know",
+    "title1": "\"So, what are you really looking for?\"",
+    "title2": "...and the standard answer that doesn't help",
+    "cards": {
+      "generalAnswers": {
+        "title": "Vague Answers",
+        "description": "\"Someone nice,\" \"with similar values,\" \"someone fun\" – but what does that really mean? How will you know when you've found it?"
+      },
+      "wastedTime": {
+        "title": "Wasted Time & Energy",
+        "description": "Dates that end with \"it's just not a fit\" because you didn't truly understand what you were looking for in the first place. Every date feels like trial and error."
+      },
+      "lackOfFocus": {
+        "title": "Lack of Focus",
+        "description": "It's hard to explain to matchmakers what's truly important, hard to know if a suggestion is right for you, and hard to make decisions."
+      },
+      "frustration": {
+        "title": "Frustration & Insecurity",
+        "description": "The feeling that maybe you just don't know what you want, or perhaps you're looking for something that doesn't exist."
+      }
     },
+    "insight": "💡 How can you find the right one, if you don't know what you truly want?"
+  },
+  "solutionSection": {
+    "badge": "The Solution You've Waited For",
+    "title": "A Questionnaire that Brings",
+    "titleHighlight": "Clarity",
+    "subtitle1": "20 minutes of focused questions that will help you understand what's truly important to you,",
+    "subtitle2": "and at the end, you'll receive a detailed personal report - a roadmap to the relationship you seek.",
+    "cards": {
+      "selfDiscovery": {
+        "title": "Genuine Self-Discovery",
+        "description": "The questionnaire leads you through a structured process that helps you understand what truly matters in life and love—beyond generic phrases."
+      },
+      "soulReport": {
+        "title": "Receive Your \"Soul Report\"",
+        "description": "Upon completion, you'll get a detailed, personal PDF report that distills all your insights—a document you can return to again and again."
+      },
+      "focusedSearch": {
+        "title": "Focused & Efficient Search",
+        "description": "With your Soul Report, you'll know exactly what you're looking for. It will help you explain to matchmakers, make better decisions, and save time."
+      }
+    },
+    "result": {
+      "title": "The Result: Clarity & Confidence",
+      "description": "Instead of saying \"someone nice,\" you'll be able to explain exactly what communication style matters, which values are non-negotiable, and what dynamic you're seeking. It changes everything."
+    }
+  },
+  "worldsSection": {
+    "title": "Your Journey Through 5 Worlds",
+    "subtitle": "Each world reveals another layer of who you truly are and what's important to you in a relationship.",
+    "worlds": {
+      "PERSONALITY": { "title": "The World of Personality", "description": "Who am I really? What drives me?" },
+      "VALUES": { "title": "The World of Values", "description": "What's most important to me in life?" },
+      "RELATIONSHIP": { "title": "The World of Partnership", "description": "How do I envision a relationship?" },
+      "PARTNER": { "title": "The World of the Partner", "description": "Who am I looking for by my side?" },
+      "RELIGION": { "title": "The World of Religion & Tradition", "description": "What is the place of Judaism in my life?" }
+    },
+    "worldLabel": "World {{number}}"
+  },
+  "featuresSection": {
+    "title": "Why It Really Works",
+    "cards": {
+      "fast": { "title": "Quick & Convenient", "description": "Just 20-30 minutes. You can start, stop, and return anytime. Your progress is saved automatically." },
+      "private": { "title": "Private & Secure", "description": "Your answers are for your eyes only. Only you and authorized matchmakers can access them." },
+      "instantResult": { "title": "Instant Results", "description": "Upon completion, you'll receive your Soul Report—a detailed and personal PDF document that distills all your insights." }
+    }
+  },
+  "finalCta": {
+    "title1": "Ready to Start?",
+    "title2": "Your Soul Report Awaits",
+    "subtitle": "20 minutes of focus that will save you months of searching. Start now and discover what truly matters to you in a relationship.",
+    "buttonText": "Get Your Soul Report Now",
+    "assurance": "Free • No Commitment • Completely Private"
+  },
+  "footer": {
+    "copyright": "© {{year}} NeshamaTech. All rights reserved."
+  }
+}
+  ,
     "worldsMap": {
         "worldLabels": {
             "PERSONALITY": "Personality",

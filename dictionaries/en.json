@@ -655,7 +655,7 @@
     }
   },
   "neshmaInsight": {
- "badge": "Real Talk. Real Results.",
+    "badge": "Real Talk. Real Results.",
     "title": {
       "part1": "\"So what are you",
       "highlight": "really looking for",
@@ -699,7 +699,8 @@
       "line1": "So how do you start answering the question \"What am I really looking for?\"",
       "line2": "We've built a journey of self-discovery just for you."
     }
-}
+  }
+
 
 
 
