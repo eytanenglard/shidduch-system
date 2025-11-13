@@ -203,37 +203,7 @@ export default function QuestionCard({
       variants={cardVariants}
       className="relative"
     >
-      {/* Floating Benefit Reminder */}
-      <AnimatePresence>
-        {showBenefit &&
-          currentQuestionNumber &&
-          currentQuestionNumber % 5 === 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.9 }}
-              transition={{ duration: 0.4 }}
-              className="absolute -top-20 left-1/2 transform -translate-x-1/2 z-20 w-full max-w-md"
-            >
-              <div
-                className={cn(
-                  'relative bg-gradient-to-r text-white px-6 py-3 rounded-2xl shadow-2xl border-2 border-white/30',
-                  theme.gradient,
-                  theme.glowColor
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <Sparkles className="w-5 h-5 flex-shrink-0 animate-pulse" />
-                  <p className="text-sm font-medium text-center">
-                    {currentBenefit}
-                  </p>
-                </div>
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-white/80" />
-              </div>
-            </motion.div>
-          )}
-      </AnimatePresence>
-
+  
       {/* Main Card */}
       <div
         role="region"
@@ -546,6 +516,39 @@ export default function QuestionCard({
             {children}
           </motion.div>
         </div>
+{/* ✨ --- START: ADD THIS NEW BLOCK --- ✨ */}
+
+{/* Benefit Message integrated into the footer */}
+<AnimatePresence>
+  {showBenefit &&
+    currentQuestionNumber &&
+    currentQuestionNumber % 5 === 0 && (
+      <motion.div
+        initial={{ opacity: 0, y: 10, height: 0 }}
+        animate={{ opacity: 1, y: 0, height: 'auto' }}
+        exit={{ opacity: 0, y: 10, height: 0 }}
+        transition={{ duration: 0.4, ease: 'easeInOut' }}
+        className="mt-4 pt-4 border-t border-gray-200"
+      >
+        <div
+          className={cn(
+            'flex items-center gap-3 p-3 rounded-xl',
+            'bg-gradient-to-br',
+            theme.lightGradient,
+            theme.borderAccent,
+            'border'
+          )}
+        >
+          <div className={cn('p-1.5 rounded-lg bg-white shadow-sm', theme.iconColor)}>
+            <TrendingUp className="w-4 h-4" />
+          </div>
+          <span className={cn('text-sm font-semibold', theme.iconColor.replace('text-', 'text-'))}>
+            {currentBenefit}
+          </span>
+        </div>
+      </motion.div>
+    )}
+</AnimatePresence>
 
         {/* Footer Section */}
         <div className="relative px-6 sm:px-8 py-5 border-t-2 border-gray-100 bg-gradient-to-br from-gray-50/50 via-white to-gray-50/30">

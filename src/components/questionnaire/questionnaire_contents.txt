@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-11-13 19:34:54
+# Generated on: 2025-11-13 20:44:06
 ################################################################################
 
 ================================================================================
@@ -361,11 +361,11 @@ export default function MatchmakingQuestionnaire({
   );
 
   // קוד חדש ומתוקן
-useEffect(() => {
-  setSaveHandler(() => handleQuestionnaireSave(false));
-}, [handleQuestionnaireSave, setSaveHandler]);
+  useEffect(() => {
+    setSaveHandler(() => handleQuestionnaireSave(false));
+  }, [handleQuestionnaireSave, setSaveHandler]);
 
-  // Load saved progress --- START OF CORRECTED CODE BLOCK ---
+  // Load saved progress
   useEffect(() => {
     const loadProgress = async () => {
       console.log(
@@ -432,7 +432,7 @@ useEffect(() => {
           if (apiResponse.success && apiResponse.data) {
             const loadedData = apiResponse.data;
 
-            // 1. Consolidate all answers from different sources (like the old file)
+            // 1. Consolidate all answers from different sources
             const allAnswers = [
               ...(loadedData.answers || []),
               ...(loadedData.valuesAnswers || []),
@@ -464,7 +464,7 @@ useEffect(() => {
               loadedData.completed ||
               loadedCompletedWorlds.length === WORLD_ORDER.length;
 
-            // 2. Restore the full navigation logic (like the old file)
+            // 2. Restore the full navigation logic
             if (initialWorld && initialQuestionId) {
               // Handle direct navigation from URL
               const worldQuestions = worldConfig[initialWorld].questions;
@@ -492,7 +492,7 @@ useEffect(() => {
                   (world) => !loadedCompletedWorlds.includes(world)
                 ) || WORLD_ORDER[0];
               setCurrentWorld(worldToResume);
-              setCurrentStep(OnboardingStep.WORLDS); // <-- This is the important part that re-enters the questionnaire
+              setCurrentStep(OnboardingStep.WORLDS); // <-- This re-enters the questionnaire
               console.log(
                 `%c[Load]  resuming questionnaire at world: ${worldToResume}.`,
                 'color: #28a745; font-weight: bold;'
@@ -528,8 +528,13 @@ useEffect(() => {
     };
 
     loadProgress();
-  }, [userId, initialWorld, initialQuestionId, dict.matchmaking.errors, showToast]);
-  // --- END OF CORRECTED CODE BLOCK ---
+  }, [
+    userId,
+    initialWorld,
+    initialQuestionId,
+    dict.matchmaking.errors,
+    showToast,
+  ]);
 
   // Answer handler
   const handleAnswer = useCallback(
@@ -811,7 +816,7 @@ useEffect(() => {
             onWorldChange={handleWorldChange}
             onExit={handleExit}
             onSaveProgress={() => handleQuestionnaireSave(false)}
-            locale={locale}            
+            locale={locale}
             dict={{
               layout: dict.layout,
               worldLabels: dict.matchmaking.worldLabels,
@@ -3961,37 +3966,7 @@ export default function QuestionCard({
       variants={cardVariants}
       className="relative"
     >
-      {/* Floating Benefit Reminder */}
-      <AnimatePresence>
-        {showBenefit &&
-          currentQuestionNumber &&
-          currentQuestionNumber % 5 === 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.9 }}
-              transition={{ duration: 0.4 }}
-              className="absolute -top-20 left-1/2 transform -translate-x-1/2 z-20 w-full max-w-md"
-            >
-              <div
-                className={cn(
-                  'relative bg-gradient-to-r text-white px-6 py-3 rounded-2xl shadow-2xl border-2 border-white/30',
-                  theme.gradient,
-                  theme.glowColor
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <Sparkles className="w-5 h-5 flex-shrink-0 animate-pulse" />
-                  <p className="text-sm font-medium text-center">
-                    {currentBenefit}
-                  </p>
-                </div>
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-white/80" />
-              </div>
-            </motion.div>
-          )}
-      </AnimatePresence>
-
+  
       {/* Main Card */}
       <div
         role="region"
@@ -4304,6 +4279,39 @@ export default function QuestionCard({
             {children}
           </motion.div>
         </div>
+{/* ✨ --- START: ADD THIS NEW BLOCK --- ✨ */}
+
+{/* Benefit Message integrated into the footer */}
+<AnimatePresence>
+  {showBenefit &&
+    currentQuestionNumber &&
+    currentQuestionNumber % 5 === 0 && (
+      <motion.div
+        initial={{ opacity: 0, y: 10, height: 0 }}
+        animate={{ opacity: 1, y: 0, height: 'auto' }}
+        exit={{ opacity: 0, y: 10, height: 0 }}
+        transition={{ duration: 0.4, ease: 'easeInOut' }}
+        className="mt-4 pt-4 border-t border-gray-200"
+      >
+        <div
+          className={cn(
+            'flex items-center gap-3 p-3 rounded-xl',
+            'bg-gradient-to-br',
+            theme.lightGradient,
+            theme.borderAccent,
+            'border'
+          )}
+        >
+          <div className={cn('p-1.5 rounded-lg bg-white shadow-sm', theme.iconColor)}>
+            <TrendingUp className="w-4 h-4" />
+          </div>
+          <span className={cn('text-sm font-semibold', theme.iconColor.replace('text-', 'text-'))}>
+            {currentBenefit}
+          </span>
+        </div>
+      </motion.div>
+    )}
+</AnimatePresence>
 
         {/* Footer Section */}
         <div className="relative px-6 sm:px-8 py-5 border-t-2 border-gray-100 bg-gradient-to-br from-gray-50/50 via-white to-gray-50/30">
@@ -12284,7 +12292,14 @@ Content:
 
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Menu, Save, CheckCircle, LogIn, UserPlus } from 'lucide-react';
+import {
+  Loader2,
+  Menu,
+  Save,
+  CheckCircle,
+  LogIn,
+  UserPlus,
+} from 'lucide-react';
 import type { WorldId } from '../types/types';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -12301,7 +12316,6 @@ import type {
   QuestionnaireFaqDict,
   AccessibilityFeaturesDict,
 } from '@/types/dictionary';
-// <-- שינוי 1: ייבואים חדשים לצורך בדיקת אימות וניווט
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
@@ -12329,7 +12343,6 @@ export interface QuestionnaireLayoutProps {
   };
 }
 
-// הגדרות עיצוב נשארות כפי שהן
 const worldConfig = {
   PERSONALITY: { icon: () => <div />, themeColor: 'sky' },
   VALUES: { icon: () => <div />, themeColor: 'rose' },
@@ -12364,7 +12377,6 @@ export default function QuestionnaireLayout({
   onSaveProgress,
   dict,
 }: QuestionnaireLayoutProps) {
-  // <-- שינוי 3: שימוש ב-hooks של next-auth ו-next/navigation
   const { status } = useSession();
   const router = useRouter();
   const isLoggedIn = status === 'authenticated';
@@ -12372,9 +12384,7 @@ export default function QuestionnaireLayout({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  // --- START OF NEW CODE ---
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  // --- END OF NEW CODE ---
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isSmallScreen = useMediaQuery('(max-width: 640px)');
@@ -12397,22 +12407,20 @@ export default function QuestionnaireLayout({
     }
   }, [onSaveProgress]);
 
-  // Mobile Header (עם עדכוני המילון שהוספנו קודם)
   const MobileHeader = () => (
     <header
       className={cn(
-        'lg:hidden sticky top-0 z-40 backdrop-blur-xl bg-white/95 shadow-md border-b-2',
+        'lg:hidden sticky top-0 z-40 backdrop-blur-xl bg-white/95 shadow-sm border-b',
         currentColors.border
       )}
     >
-      <div className="flex items-center justify-between p-3">
-        {/* --- START OF UPDATED CODE --- */}
+      <div className="flex items-center justify-between p-2">
         <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
           <SheetTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
-              className="inline-flex items-center gap-2 hover:bg-gray-100 rounded-xl px-3"
+              className="inline-flex items-center gap-2 hover:bg-gray-100 rounded-lg px-3"
             >
               <Menu className="h-5 w-5" />
               {!isSmallScreen && (
@@ -12422,7 +12430,10 @@ export default function QuestionnaireLayout({
               )}
             </Button>
           </SheetTrigger>
-          <SheetContent side={isRTL ? 'right' : 'left'} className="w-[320px] p-0 flex flex-col">
+          <SheetContent
+            side={isRTL ? 'right' : 'left'}
+            className="w-[320px] p-0 flex flex-col"
+          >
             <QuestionnaireSidebar
               currentWorld={currentWorld}
               completedWorlds={completedWorlds}
@@ -12431,7 +12442,7 @@ export default function QuestionnaireLayout({
                 setIsMobileSidebarOpen(false); // Close sidebar on selection
               }}
               onExit={() => {
-                if(onExit) onExit();
+                if (onExit) onExit();
                 setIsMobileSidebarOpen(false); // Close sidebar on exit
               }}
               locale={locale}
@@ -12444,49 +12455,10 @@ export default function QuestionnaireLayout({
             />
           </SheetContent>
         </Sheet>
-        {/* --- END OF UPDATED CODE --- */}
-
-        <div className="flex items-center gap-2">
-          <div className={cn('p-1.5 rounded-lg', currentColors.bg)}></div>
-          <span
-            className={cn('text-sm font-bold truncate', currentColors.text)}
-          >
-            {dict.worldLabels[currentWorld]}
-          </span>
+        <div className="flex-grow flex justify-center items-center gap-2">
+          {/* This area is intentionally left for the WorldComponent header */}
         </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  'h-9 w-9 rounded-xl',
-                  saveSuccess
-                    ? 'bg-green-100 text-green-600'
-                    : 'bg-gray-100 hover:bg-gray-200'
-                )}
-                onClick={handleSave}
-                disabled={isSaving}
-              >
-                {isSaving ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : saveSuccess ? (
-                  <CheckCircle className="h-5 w-5" />
-                ) : (
-                  <Save className="h-5 w-5 text-gray-600" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                {isSaving
-                  ? dict.layout.buttons.saving
-                  : dict.layout.buttons.save}
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="w-24" /> {/* Spacer to balance the layout */}
       </div>
     </header>
   );
@@ -12506,7 +12478,7 @@ export default function QuestionnaireLayout({
             onWorldChange={onWorldChange}
             onExit={onExit!}
             locale={locale}
-            isLoggedIn={isLoggedIn} // <-- שינוי 4: מעבירים את המשתנה שחישבנו
+            isLoggedIn={isLoggedIn}
             onSaveProgress={handleSave}
             isSaving={isSaving}
             saveSuccess={saveSuccess}
@@ -12523,7 +12495,6 @@ export default function QuestionnaireLayout({
           </main>
         </div>
       ) : (
-        // <-- שינוי 5: הוספת ההודעה למשתמש לא מחובר גם בתצוגת מובייל
         <div className="flex flex-col">
           <MobileHeader />
           <main className="flex-1">
@@ -12558,7 +12529,7 @@ export default function QuestionnaireLayout({
                 </div>
               </div>
             )}
-            <div className="p-4">{children}</div>
+            <div className="p-2 sm:p-4">{children}</div>
           </main>
         </div>
       )}
@@ -12637,7 +12608,7 @@ interface QuestionnaireSidebarProps {
     layout: QuestionnaireLayoutDict;
     worldLabels: MatchmakingQuestionnaireDict['worldLabels'];
     faq: QuestionnaireFaqDict;
-    accessibilityFeatures: AccessibilityFeaturesDict; 
+    accessibilityFeatures: AccessibilityFeaturesDict;
   };
 }
 
@@ -12873,7 +12844,9 @@ const NavButton = React.memo(
 );
 NavButton.displayName = 'NavButton';
 
-const _QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
+// --- START: MODIFIED CODE ---
+// Renamed from _QuestionnaireSidebar to QuestionnaireSidebar and removed the outer <aside>
+export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
   currentWorld,
   completedWorlds,
   onWorldChange,
@@ -12895,14 +12868,9 @@ const _QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
     (completedWorlds.length / WORLD_ORDER.length) * 100
   );
 
+  // The content is now wrapped in a React Fragment to avoid an extra div
   return (
-    <aside
-      className={cn(
-        'hidden lg:flex lg:flex-col w-80 bg-white shadow-xl overflow-y-auto',
-        isRTL ? 'border-l-2' : 'border-r-2',
-        'border-gray-200'
-      )}
-    >
+    <>
       <div className="relative p-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white">
         <div className="absolute inset-0 bg-black/5" />
         <div className="relative z-10">
@@ -12964,7 +12932,7 @@ const _QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
           </motion.div>
         )}
       </motion.div>
-      <div className="flex-1 px-4 py-3">
+      <div className="flex-1 px-4 py-3 overflow-y-auto">
         <div className="space-y-1">
           {WORLD_ORDER.map((worldId) => (
             <NavButton
@@ -13108,11 +13076,10 @@ const _QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
           </SheetContent>
         </Sheet>
       </div>
-    </aside>
+    </>
   );
 };
-
-export const QuestionnaireSidebar = React.memo(_QuestionnaireSidebar);
+// --- END: MODIFIED CODE ---
 --- End of Content for QuestionnaireSidebar.tsx ---
 
 --------------------------------------------------------------------------------
@@ -17263,289 +17230,6 @@ export default function WorldComponent({
   const questionsLeft = allQuestions.length - answeredQuestions;
   const estimatedMinutesLeft = Math.ceil(questionsLeft * 2);
 
-  const renderHeader = () => (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="relative mb-8"
-    >
-      <div className="absolute -top-4 -left-4 w-32 h-32 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full blur-3xl opacity-30" />
-      <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-cyan-100 to-blue-100 rounded-full blur-2xl opacity-30" />
-      <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border-2 border-white overflow-hidden">
-        <div className={cn('h-2 bg-gradient-to-r', gradient)} />
-        <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <motion.div
-                whileHover={{ rotate: 12, scale: 1.1 }}
-                className={cn(
-                  'p-3 rounded-2xl bg-gradient-to-br text-white shadow-lg',
-                  gradient
-                )}
-              >
-                {icon}
-              </motion.div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                  {title}
-                  {overallProgress === 100 && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 500 }}
-                    >
-                      <CheckCircle className="w-6 h-6 text-green-500" />
-                    </motion.div>
-                  )}
-                </h2>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-sm font-medium text-gray-600">
-                    {worldDict.header.questionLabel
-                      .replace(
-                        '{{current}}',
-                        (currentQuestionIndex + 1).toString()
-                      )
-                      .replace('{{total}}', allQuestions.length.toString())}
-                  </span>
-                  <span className="text-xs text-gray-500">•</span>
-                  <span className="text-sm text-gray-600 flex items-center gap-1">
-                    <Zap className="w-3.5 h-3.5 text-amber-500" />
-                    {worldDict.header.estimatedTimeLeft.replace(
-                      '{{minutes}}',
-                      estimatedMinutesLeft.toString()
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {isDesktop && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onSave}
-                    disabled={isSaving}
-                    className={cn(
-                      'gap-2 transition-all duration-300 rounded-xl',
-                      isSaving
-                        ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 text-green-700'
-                        : 'bg-white hover:bg-green-50 border-green-200 text-green-700'
-                    )}
-                  >
-                    {isSaving ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4" />
-                    )}
-                    <span className="font-medium">
-                      {isSaving
-                        ? worldDict.buttons.saving
-                        : worldDict.buttons.save}
-                    </span>
-                  </Button>
-
-                  <Button
-                    variant={isListVisible ? 'secondary' : 'outline'}
-                    size="sm"
-                    onClick={() => setIsListVisible(!isListVisible)}
-                    className="gap-2 rounded-xl transition-all duration-300"
-                  >
-                    {isListVisible ? (
-                      isRTL ? (
-                        <PanelRightClose className="h-4 w-4" />
-                      ) : (
-                        <PanelLeftClose className="h-4 w-4" />
-                      )
-                    ) : (
-                      <List className="h-4 w-4" />
-                    )}
-                    <span className="font-medium">
-                      {isListVisible
-                        ? worldDict.buttons.hideList
-                        : worldDict.buttons.showList}
-                    </span>
-                  </Button>
-                </>
-              )}
-              {!isDesktop && (
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2 font-medium transition-all rounded-xl border-2 bg-white"
-                    >
-                      <List className="h-4 w-4" />
-                      <span>{worldDict.buttons.questionList}</span>
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent
-                    side={isRTL ? 'left' : 'right'}
-                    className="w-[300px] sm:w-[400px] flex flex-col"
-                  >
-                    <SheetHeader>
-                      <SheetTitle>
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={cn(
-                              'p-2 rounded-xl bg-gradient-to-br text-white',
-                              gradient
-                            )}
-                          >
-                            <ListChecks className="h-5 w-5" />
-                          </div>
-                          <span>
-                            {worldDict.listSheet.title.replace(
-                              '{{worldTitle}}',
-                              title
-                            )}
-                          </span>
-                        </div>
-                      </SheetTitle>
-                      <SheetDescription>
-                        {worldDict.listSheet.description}
-                        <div className="mt-4 p-3 bg-gray-50 rounded-xl space-y-2">
-                          <div className="flex items-center text-xs text-gray-600">
-                            <CheckCircle className="h-3.5 w-3.5 me-2 text-green-500" />
-                            <span>
-                              {worldDict.listSheet.legend.completed}
-                            </span>
-                          </div>
-                          <div className="flex items-center text-xs text-gray-600">
-                            <AlertCircle className="h-3.5 w-3.5 text-red-500 me-2" />
-                            <span>
-                              {worldDict.listSheet.legend.required}
-                            </span>
-                          </div>
-                          <div className="flex items-center text-xs text-gray-600">
-                            <CircleDot className="h-3.5 w-3.5 text-gray-400 me-2" />
-                            <span>
-                              {worldDict.listSheet.legend.notAnswered}
-                            </span>
-                          </div>
-                        </div>
-                      </SheetDescription>
-                    </SheetHeader>
-                    <div className="mt-4 flex-1 overflow-hidden">
-                      <QuestionsList
-                        allQuestions={allQuestions}
-                        currentQuestionIndex={currentQuestionIndex}
-                        setCurrentQuestionIndex={setCurrentQuestionIndex}
-                        answers={answers}
-                        locale={locale}
-                        themeColor={themeColor}
-                        className="h-full"
-                        dict={dict.questionsList}
-                      />
-                    </div>
-                  </SheetContent>
-                </Sheet>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <motion.div
-              whileHover={{ y: -4, scale: 1.02 }}
-              className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-4 border-2 border-blue-100 shadow-md"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Rocket className="w-4 h-4 text-blue-600" />
-                <span className="text-xs font-semibold text-blue-600 uppercase">
-                  {worldDict.header.statusCard.progress}
-                </span>
-              </div>
-              <div className="text-3xl font-bold text-blue-700">
-                {Math.round(overallProgress)}%
-              </div>
-              <div className="text-xs text-blue-600 mt-1">
-                {answeredQuestions}/{allQuestions.length}{' '}
-                {worldDict.header.statusCard.questions}
-              </div>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -4, scale: 1.02 }}
-              className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl p-4 border-2 border-rose-100 shadow-md"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Target className="w-4 h-4 text-rose-600" />
-                <span className="text-xs font-semibold text-rose-600 uppercase">
-                  {worldDict.header.statusCard.required}
-                </span>
-              </div>
-              <div className="text-3xl font-bold text-rose-700">
-                {requiredAnswered}/{totalRequired}
-              </div>
-              <div className="text-xs text-rose-600 mt-1">
-                {totalRequired - requiredAnswered > 0
-                  ? worldDict.header.statusCard.left.replace(
-                      '{{count}}',
-                      (totalRequired - requiredAnswered).toString()
-                    )
-                  : worldDict.header.statusCard.complete}
-              </div>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -4, scale: 1.02 }}
-              className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-4 border-2 border-amber-100 shadow-md"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="w-4 h-4 text-amber-600" />
-                <span className="text-xs font-semibold text-amber-600 uppercase">
-                  {worldDict.header.statusCard.status}
-                </span>
-              </div>
-              <div className="text-lg font-bold text-amber-700">
-                {overallProgress < 25
-                  ? worldDict.header.statusCard.states.started
-                  : overallProgress < 50
-                  ? worldDict.header.statusCard.states.going
-                  : overallProgress < 75
-                  ? worldDict.header.statusCard.states.great
-                  : overallProgress < 100
-                  ? worldDict.header.statusCard.states.almost
-                  : worldDict.header.statusCard.states.perfect}
-              </div>
-              <div className="text-xs text-amber-600 mt-1">
-                {worldDict.header.statusCard.keepItUp}
-              </div>
-            </motion.div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-gray-700">
-                {worldDict.header.overallProgress}
-              </span>
-              <span className="font-bold text-gray-800">
-                {Math.round(overallProgress)}%
-              </span>
-            </div>
-            <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${overallProgress}%` }}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
-                className={cn('h-full bg-gradient-to-r', gradient, 'shadow-lg')}
-              />
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${overallProgress}%` }}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
-                className="absolute top-0 left-0 h-full bg-white/30 blur-sm"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-
   const renderQuestionCard = () => {
     const cardAnimationVariants = {
       visible: { opacity: 1, x: 0, transition: { duration: 0.4 } },
@@ -17694,10 +17378,95 @@ export default function WorldComponent({
     );
   };
 
+  // --- START: MOBILE HEADER WITH QUESTION LIST ---
+  const MobileWorldHeader = () => (
+    <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl shadow-lg border-2 border-white mb-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className={cn(
+              'p-2 rounded-xl bg-gradient-to-br text-white',
+              gradient
+            )}
+          >
+            {icon}
+          </div>
+          <div>
+            <h2 className="font-bold text-lg text-gray-800">{title}</h2>
+            <span className="text-xs text-gray-500 font-medium">
+              {worldDict.header.questionLabel
+                .replace('{{current}}', (currentQuestionIndex + 1).toString())
+                .replace('{{total}}', allQuestions.length.toString())}
+            </span>
+          </div>
+        </div>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 font-medium rounded-xl"
+            >
+              <List className="h-4 w-4" />
+              <span>{worldDict.buttons.questionList}</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent
+            side={isRTL ? 'left' : 'right'}
+            className="w-[300px] sm:w-[400px] flex flex-col p-0"
+          >
+            <SheetHeader className="p-4 border-b">
+              <SheetTitle>
+                <div className="flex items-center gap-3">
+                  <div
+                    className={cn(
+                      'p-2 rounded-lg bg-gradient-to-br text-white',
+                      gradient
+                    )}
+                  >
+                    <ListChecks className="h-5 w-5" />
+                  </div>
+                  <span className="text-lg">
+                    {worldDict.listSheet.title.replace('{{worldTitle}}', title)}
+                  </span>
+                </div>
+              </SheetTitle>
+            </SheetHeader>
+            <div className="flex-1 overflow-hidden">
+              <QuestionsList
+                allQuestions={allQuestions}
+                currentQuestionIndex={currentQuestionIndex}
+                setCurrentQuestionIndex={setCurrentQuestionIndex}
+                answers={answers}
+                locale={locale}
+                themeColor={themeColor}
+                className="h-full"
+                dict={dict.questionsList}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+      <div className="mt-4 space-y-1">
+        <div className="flex justify-between text-xs font-medium">
+          <span className="text-gray-600">התקדמות בעולם</span>
+          <span className={cn('font-bold', `text-${themeColor}-600`)}>
+            {Math.round(overallProgress)}%
+          </span>
+        </div>
+        <Progress
+          value={overallProgress}
+          className="h-2"
+          indicatorClassName={cn('bg-gradient-to-r', gradient)}
+        />
+      </div>
+    </div>
+  );
+  // --- END: MOBILE HEADER WITH QUESTION LIST ---
+
   if (isDesktop) {
     return (
       <div className="w-full" dir={isRTL ? 'rtl' : 'ltr'}>
-     {/*    {renderHeader()} */}
         <div
           className={cn(
             'transition-all duration-500 ease-in-out',
@@ -17731,16 +17500,7 @@ export default function WorldComponent({
                     <CardHeader
                       className={cn(
                         'pb-4 pt-6 border-b-2 bg-gradient-to-br',
-                        themeColor === 'sky' &&
-                          'from-sky-50/50 to-blue-50/30',
-                        themeColor === 'rose' &&
-                          'from-rose-50/50 to-pink-50/30',
-                        themeColor === 'purple' &&
-                          'from-purple-50/50 to-indigo-50/30',
-                        themeColor === 'teal' &&
-                          'from-teal-50/50 to-emerald-50/30',
-                        themeColor === 'amber' &&
-                          'from-amber-50/50 to-orange-50/30'
+                        `from-${themeColor}-50/50 to-${themeColor}-50/30`
                       )}
                     >
                       <CardTitle className="text-xl font-bold flex items-center gap-3 text-gray-800">
@@ -17759,30 +17519,8 @@ export default function WorldComponent({
                           )}
                         </span>
                       </CardTitle>
-                      <div className="pt-3 grid grid-cols-3 gap-2 text-xs">
-                        <div
-                          className="flex items-center justify-center p-2 rounded-lg"
-                        >
-                          <CheckCircle className="h-3.5 w-3.5 me-1.5 text-green-500" />
-                          <span className="font-medium text-green-700">
-                            {worldDict.listSheet.legend.completed}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-center p-2 bg-red-50 rounded-lg">
-                          <AlertCircle className="h-3.5 w-3.5 text-red-500 me-1.5" />
-                          <span className="text-red-700 font-medium">
-                            {worldDict.listSheet.legend.required}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-center p-2 bg-gray-50 rounded-lg">
-                          <CircleDot className="h-3.5 w-3.5 text-gray-400 me-1.5" />
-                          <span className="text-gray-600 font-medium">
-                            {worldDict.listSheet.legend.notAnswered}
-                          </span>
-                        </div>
-                      </div>
                     </CardHeader>
-                    <CardContent className="p-4 overflow-hidden h-[calc(100%-180px)]">
+                    <CardContent className="p-2 overflow-hidden h-[calc(100%-100px)]">
                       <QuestionsList
                         allQuestions={allQuestions}
                         currentQuestionIndex={currentQuestionIndex}
@@ -17807,11 +17545,10 @@ export default function WorldComponent({
     // Mobile view
     return (
       <div
-        className="max-w-2xl mx-auto p-4 space-y-6 pb-24 min-h-screen"
+        className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6 pb-24 min-h-screen"
         dir={isRTL ? 'rtl' : 'ltr'}
       >
-        <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-purple-50/30 to-pink-50/20 -z-10" />
-     {/*    {renderHeader()} */}
+        <MobileWorldHeader />
         {renderQuestionCard()}
         {renderNavigationButtons()}
         {renderCelebration()}
