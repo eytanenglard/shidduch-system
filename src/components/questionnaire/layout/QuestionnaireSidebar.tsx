@@ -64,7 +64,7 @@ interface QuestionnaireSidebarProps {
     layout: QuestionnaireLayoutDict;
     worldLabels: MatchmakingQuestionnaireDict['worldLabels'];
     faq: QuestionnaireFaqDict;
-    accessibilityFeatures: AccessibilityFeaturesDict; 
+    accessibilityFeatures: AccessibilityFeaturesDict;
   };
 }
 
@@ -300,7 +300,9 @@ const NavButton = React.memo(
 );
 NavButton.displayName = 'NavButton';
 
-const _QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
+// --- START: MODIFIED CODE ---
+// Renamed from _QuestionnaireSidebar to QuestionnaireSidebar and removed the outer <aside>
+export const QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
   currentWorld,
   completedWorlds,
   onWorldChange,
@@ -322,14 +324,9 @@ const _QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
     (completedWorlds.length / WORLD_ORDER.length) * 100
   );
 
+  // The content is now wrapped in a React Fragment to avoid an extra div
   return (
-    <aside
-      className={cn(
-        'hidden lg:flex lg:flex-col w-80 bg-white shadow-xl overflow-y-auto',
-        isRTL ? 'border-l-2' : 'border-r-2',
-        'border-gray-200'
-      )}
-    >
+    <>
       <div className="relative p-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white">
         <div className="absolute inset-0 bg-black/5" />
         <div className="relative z-10">
@@ -391,7 +388,7 @@ const _QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
           </motion.div>
         )}
       </motion.div>
-      <div className="flex-1 px-4 py-3">
+      <div className="flex-1 px-4 py-3 overflow-y-auto">
         <div className="space-y-1">
           {WORLD_ORDER.map((worldId) => (
             <NavButton
@@ -535,8 +532,7 @@ const _QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
           </SheetContent>
         </Sheet>
       </div>
-    </aside>
+    </>
   );
 };
-
-export const QuestionnaireSidebar = React.memo(_QuestionnaireSidebar);
+// --- END: MODIFIED CODE ---

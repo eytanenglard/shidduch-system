@@ -3,7 +3,14 @@
 
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Menu, Save, CheckCircle } from 'lucide-react';
+import {
+  Loader2,
+  Menu,
+  Save,
+  CheckCircle,
+  LogIn,
+  UserPlus,
+} from 'lucide-react';
 import type { WorldId } from '../types/types';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -20,9 +27,15 @@ import type {
   QuestionnaireFaqDict,
   AccessibilityFeaturesDict,
 } from '@/types/dictionary';
-// <-- שינוי 1: ייבואים חדשים לצורך בדיקת אימות וניווט
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 // Props Interface
 export interface QuestionnaireLayoutProps {
@@ -33,7 +46,6 @@ export interface QuestionnaireLayoutProps {
   onExit?: () => void;
   locale?: 'he' | 'en';
   onSaveProgress?: () => Promise<void>;
-  // isLoggedIn?: boolean;  <-- שינוי 2: הסרנו את Prop הזה, כי הקומפוננטה תדע לבדוק זאת בעצמה
   dict: {
     layout: QuestionnaireLayoutDict;
     worldLabels: MatchmakingQuestionnaireDict['worldLabels'];
@@ -42,7 +54,6 @@ export interface QuestionnaireLayoutProps {
   };
 }
 
-// הגדרות עיצוב נשארות כפי שהן
 const worldConfig = {
   PERSONALITY: { icon: () => <div />, themeColor: 'sky' },
   VALUES: { icon: () => <div />, themeColor: 'rose' },
@@ -77,7 +88,6 @@ export default function QuestionnaireLayout({
   onSaveProgress,
   dict,
 }: QuestionnaireLayoutProps) {
-  // <-- שינוי 3: שימוש ב-hooks של next-auth ו-next/navigation
   const { status } = useSession();
   const router = useRouter();
   const isLoggedIn = status === 'authenticated';
@@ -85,6 +95,7 @@ export default function QuestionnaireLayout({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isSmallScreen = useMediaQuery('(max-width: 640px)');
@@ -107,68 +118,58 @@ export default function QuestionnaireLayout({
     }
   }, [onSaveProgress]);
 
-  // Mobile Header (עם עדכוני המילון שהוספנו קודם)
   const MobileHeader = () => (
     <header
       className={cn(
-        'lg:hidden sticky top-0 z-40 backdrop-blur-xl bg-white/95 shadow-md border-b-2',
+        'lg:hidden sticky top-0 z-40 backdrop-blur-xl bg-white/95 shadow-sm border-b',
         currentColors.border
       )}
     >
-      <div className="flex items-center justify-between p-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="inline-flex items-center gap-2 hover:bg-gray-100 rounded-xl px-3"
-        >
-          <Menu className="h-5 w-5" />
-          {!isSmallScreen && (
-            <span className="font-semibold text-gray-700">
-              {dict.layout.mobileNav.menuTitle}
-            </span>
-          )}
-        </Button>
-        <div className="flex items-center gap-2">
-          <div className={cn('p-1.5 rounded-lg', currentColors.bg)}></div>
-          <span
-            className={cn('text-sm font-bold truncate', currentColors.text)}
+      <div className="flex items-center justify-between p-2">
+        <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="inline-flex items-center gap-2 hover:bg-gray-100 rounded-lg px-3"
+            >
+              <Menu className="h-5 w-5" />
+              {!isSmallScreen && (
+                <span className="font-semibold text-gray-700">
+                  {dict.layout.mobileNav.menuTitle}
+                </span>
+              )}
+            </Button>
+          </SheetTrigger>
+          <SheetContent
+            side={isRTL ? 'right' : 'left'}
+            className="w-[320px] p-0 flex flex-col"
           >
-            {dict.worldLabels[currentWorld]}
-          </span>
+            <QuestionnaireSidebar
+              currentWorld={currentWorld}
+              completedWorlds={completedWorlds}
+              onWorldChange={(worldId) => {
+                onWorldChange(worldId);
+                setIsMobileSidebarOpen(false); // Close sidebar on selection
+              }}
+              onExit={() => {
+                if (onExit) onExit();
+                setIsMobileSidebarOpen(false); // Close sidebar on exit
+              }}
+              locale={locale}
+              isLoggedIn={isLoggedIn}
+              onSaveProgress={handleSave}
+              isSaving={isSaving}
+              saveSuccess={saveSuccess}
+              lastSaved={lastSaved}
+              dict={dict}
+            />
+          </SheetContent>
+        </Sheet>
+        <div className="flex-grow flex justify-center items-center gap-2">
+          {/* This area is intentionally left for the WorldComponent header */}
         </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  'h-9 w-9 rounded-xl',
-                  saveSuccess
-                    ? 'bg-green-100 text-green-600'
-                    : 'bg-gray-100 hover:bg-gray-200'
-                )}
-                onClick={handleSave}
-                disabled={isSaving}
-              >
-                {isSaving ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : saveSuccess ? (
-                  <CheckCircle className="h-5 w-5" />
-                ) : (
-                  <Save className="h-5 w-5 text-gray-600" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                {isSaving
-                  ? dict.layout.buttons.saving
-                  : dict.layout.buttons.save}
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="w-24" /> {/* Spacer to balance the layout */}
       </div>
     </header>
   );
@@ -188,7 +189,7 @@ export default function QuestionnaireLayout({
             onWorldChange={onWorldChange}
             onExit={onExit!}
             locale={locale}
-            isLoggedIn={isLoggedIn} // <-- שינוי 4: מעבירים את המשתנה שחישבנו
+            isLoggedIn={isLoggedIn}
             onSaveProgress={handleSave}
             isSaving={isSaving}
             saveSuccess={saveSuccess}
@@ -205,7 +206,6 @@ export default function QuestionnaireLayout({
           </main>
         </div>
       ) : (
-        // <-- שינוי 5: הוספת ההודעה למשתמש לא מחובר גם בתצוגת מובייל
         <div className="flex flex-col">
           <MobileHeader />
           <main className="flex-1">
@@ -224,6 +224,7 @@ export default function QuestionnaireLayout({
                       className="bg-yellow-600 hover:bg-yellow-700 text-white"
                       onClick={() => router.push('/auth/signin')}
                     >
+                      <LogIn className="w-4 h-4 ml-2" />
                       {dict.layout.unauthenticatedPrompt.loginButton}
                     </Button>
                     <Button
@@ -232,13 +233,14 @@ export default function QuestionnaireLayout({
                       className="border-yellow-600 text-yellow-700 hover:bg-yellow-100"
                       onClick={() => router.push('/auth/register')}
                     >
+                      <UserPlus className="w-4 h-4 ml-2" />
                       {dict.layout.unauthenticatedPrompt.registerButton}
                     </Button>
                   </div>
                 </div>
               </div>
             )}
-            <div className="p-4">{children}</div>
+            <div className="p-2 sm:p-4">{children}</div>
           </main>
         </div>
       )}

@@ -348,11 +348,11 @@ export default function MatchmakingQuestionnaire({
   );
 
   // קוד חדש ומתוקן
-useEffect(() => {
-  setSaveHandler(() => handleQuestionnaireSave(false));
-}, [handleQuestionnaireSave, setSaveHandler]);
+  useEffect(() => {
+    setSaveHandler(() => handleQuestionnaireSave(false));
+  }, [handleQuestionnaireSave, setSaveHandler]);
 
-  // Load saved progress --- START OF CORRECTED CODE BLOCK ---
+  // Load saved progress
   useEffect(() => {
     const loadProgress = async () => {
       console.log(
@@ -419,7 +419,7 @@ useEffect(() => {
           if (apiResponse.success && apiResponse.data) {
             const loadedData = apiResponse.data;
 
-            // 1. Consolidate all answers from different sources (like the old file)
+            // 1. Consolidate all answers from different sources
             const allAnswers = [
               ...(loadedData.answers || []),
               ...(loadedData.valuesAnswers || []),
@@ -451,7 +451,7 @@ useEffect(() => {
               loadedData.completed ||
               loadedCompletedWorlds.length === WORLD_ORDER.length;
 
-            // 2. Restore the full navigation logic (like the old file)
+            // 2. Restore the full navigation logic
             if (initialWorld && initialQuestionId) {
               // Handle direct navigation from URL
               const worldQuestions = worldConfig[initialWorld].questions;
@@ -479,7 +479,7 @@ useEffect(() => {
                   (world) => !loadedCompletedWorlds.includes(world)
                 ) || WORLD_ORDER[0];
               setCurrentWorld(worldToResume);
-              setCurrentStep(OnboardingStep.WORLDS); // <-- This is the important part that re-enters the questionnaire
+              setCurrentStep(OnboardingStep.WORLDS); // <-- This re-enters the questionnaire
               console.log(
                 `%c[Load]  resuming questionnaire at world: ${worldToResume}.`,
                 'color: #28a745; font-weight: bold;'
@@ -515,8 +515,13 @@ useEffect(() => {
     };
 
     loadProgress();
-  }, [userId, initialWorld, initialQuestionId, dict.matchmaking.errors, showToast]);
-  // --- END OF CORRECTED CODE BLOCK ---
+  }, [
+    userId,
+    initialWorld,
+    initialQuestionId,
+    dict.matchmaking.errors,
+    showToast,
+  ]);
 
   // Answer handler
   const handleAnswer = useCallback(
@@ -798,7 +803,7 @@ useEffect(() => {
             onWorldChange={handleWorldChange}
             onExit={handleExit}
             onSaveProgress={() => handleQuestionnaireSave(false)}
-            locale={locale}            
+            locale={locale}
             dict={{
               layout: dict.layout,
               worldLabels: dict.matchmaking.worldLabels,

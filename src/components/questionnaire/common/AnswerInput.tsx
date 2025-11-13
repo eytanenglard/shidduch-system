@@ -304,7 +304,10 @@ export default function AnswerInput({
                 theme.hoverBorder
               )
         )}
-        onClick={() => handleValueChange(choiceOption.value)}
+        onMouseDown={(e) => {
+          e.preventDefault(); // מונע התנהגויות לא רצויות כמו סימון טקסט
+          handleValueChange(choiceOption.value);
+        }}
       >
         {!isSelected && (
           <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
@@ -533,7 +536,8 @@ export default function AnswerInput({
                                   theme.hoverBorder
                                 )
                         )}
-                        onClick={() => {
+                        onMouseDown={(e) => {
+                          e.preventDefault();
                           if (isMaxReached) {
                             setError(
                               dict.answerInput.multiSelect.maxSelectionError.replace(
@@ -715,7 +719,8 @@ export default function AnswerInput({
                               theme.hoverBorder
                             )
                       )}
-                      onClick={() => {
+                      onMouseDown={(e) => {
+                        e.preventDefault();
                         if (isMaxLengthReached && !isSelected) {
                           setError(
                             dict.answerInput.multiSelect.maxSelectionError.replace(
@@ -826,7 +831,8 @@ export default function AnswerInput({
                   <Button
                     type="button"
                     size="sm"
-                    onClick={() => {
+                    onMouseDown={(e) => {
+                      e.preventDefault();
                       if (!isCustomValueEmpty) {
                         if (isMaxLengthReached) {
                           setError(
@@ -895,7 +901,8 @@ export default function AnswerInput({
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7 text-purple-400 hover:text-red-500 hover:bg-red-50"
-                            onClick={() => {
+                            onMouseDown={(e) => {
+                              e.preventDefault();
                               const newValues = selectedWithOtherValues.filter(
                                 (v) => v !== customVal
                               );
@@ -961,7 +968,10 @@ export default function AnswerInput({
                             theme.hoverBorder
                           )
                     )}
-                    onClick={() => handleValueChange(optionValue)}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleValueChange(optionValue);
+                    }}
                   >
                     <div
                       className={cn(
@@ -1045,7 +1055,10 @@ export default function AnswerInput({
                         animate="animate"
                         whileHover="hover"
                         whileTap="tap"
-                        onClick={() => handleValueChange(option.value)}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleValueChange(option.value);
+                        }}
                       >
                         <Card
                           className={cn(
@@ -1293,7 +1306,10 @@ export default function AnswerInput({
                                 ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white'
                                 : `bg-white text-gray-600 hover:${theme.bgSoft} hover:${theme.iconColor}`
                             )}
-                            onClick={handleCopyText}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              handleCopyText();
+                            }}
                           >
                             {textCopied ? (
                               <CheckCheck className="h-4 w-4" />
@@ -1320,7 +1336,10 @@ export default function AnswerInput({
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                               className="p-2 rounded-xl bg-white text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all shadow-md"
-                              onClick={handleClear}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleClear();
+                              }}
                             >
                               <Eraser className="h-4 w-4" />
                             </motion.button>
@@ -1790,7 +1809,10 @@ export default function AnswerInput({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={handleClear}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleClear();
+                              }}
                     className="w-full border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl"
                   >
                     <Eraser className="w-4 h-4 mr-2" />

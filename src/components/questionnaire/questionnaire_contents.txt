@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-11-13 17:56:38
+# Generated on: 2025-11-13 19:34:54
 ################################################################################
 
 ================================================================================
@@ -1804,7 +1804,10 @@ export default function AnswerInput({
                 theme.hoverBorder
               )
         )}
-        onClick={() => handleValueChange(choiceOption.value)}
+        onMouseDown={(e) => {
+          e.preventDefault(); // מונע התנהגויות לא רצויות כמו סימון טקסט
+          handleValueChange(choiceOption.value);
+        }}
       >
         {!isSelected && (
           <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
@@ -2033,7 +2036,8 @@ export default function AnswerInput({
                                   theme.hoverBorder
                                 )
                         )}
-                        onClick={() => {
+                        onMouseDown={(e) => {
+                          e.preventDefault();
                           if (isMaxReached) {
                             setError(
                               dict.answerInput.multiSelect.maxSelectionError.replace(
@@ -2215,7 +2219,8 @@ export default function AnswerInput({
                               theme.hoverBorder
                             )
                       )}
-                      onClick={() => {
+                      onMouseDown={(e) => {
+                        e.preventDefault();
                         if (isMaxLengthReached && !isSelected) {
                           setError(
                             dict.answerInput.multiSelect.maxSelectionError.replace(
@@ -2326,7 +2331,8 @@ export default function AnswerInput({
                   <Button
                     type="button"
                     size="sm"
-                    onClick={() => {
+                    onMouseDown={(e) => {
+                      e.preventDefault();
                       if (!isCustomValueEmpty) {
                         if (isMaxLengthReached) {
                           setError(
@@ -2395,7 +2401,8 @@ export default function AnswerInput({
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7 text-purple-400 hover:text-red-500 hover:bg-red-50"
-                            onClick={() => {
+                            onMouseDown={(e) => {
+                              e.preventDefault();
                               const newValues = selectedWithOtherValues.filter(
                                 (v) => v !== customVal
                               );
@@ -2461,7 +2468,10 @@ export default function AnswerInput({
                             theme.hoverBorder
                           )
                     )}
-                    onClick={() => handleValueChange(optionValue)}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleValueChange(optionValue);
+                    }}
                   >
                     <div
                       className={cn(
@@ -2545,7 +2555,10 @@ export default function AnswerInput({
                         animate="animate"
                         whileHover="hover"
                         whileTap="tap"
-                        onClick={() => handleValueChange(option.value)}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleValueChange(option.value);
+                        }}
                       >
                         <Card
                           className={cn(
@@ -2793,7 +2806,10 @@ export default function AnswerInput({
                                 ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white'
                                 : `bg-white text-gray-600 hover:${theme.bgSoft} hover:${theme.iconColor}`
                             )}
-                            onClick={handleCopyText}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              handleCopyText();
+                            }}
                           >
                             {textCopied ? (
                               <CheckCheck className="h-4 w-4" />
@@ -2820,7 +2836,10 @@ export default function AnswerInput({
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                               className="p-2 rounded-xl bg-white text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all shadow-md"
-                              onClick={handleClear}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleClear();
+                              }}
                             >
                               <Eraser className="h-4 w-4" />
                             </motion.button>
@@ -3290,7 +3309,10 @@ export default function AnswerInput({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={handleClear}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleClear();
+                              }}
                     className="w-full border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl"
                   >
                     <Eraser className="w-4 h-4 mr-2" />
@@ -3411,23 +3433,30 @@ import {
 import { Star, Heart, ThumbsUp } from 'lucide-react';
 import type { InteractiveScaleDict } from '@/types/dictionary';
 
-// הגדרות הצבעים הדינאמיות עבור כל עולם
+// הגדרות הצבעים הדינמיות עבור כל עולם
 type ThemeColor = 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
 
 const getThemeConfig = (themeColor: ThemeColor) => {
   const themes = {
-    sky: { gradient: 'bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-500' },
+    sky: {
+      gradientStyle:
+        'linear-gradient(to right, rgb(34 211 238), rgb(14 165 233), rgb(59 130 246))',
+    },
     rose: {
-      gradient: 'bg-gradient-to-r from-rose-400 via-pink-500 to-red-500',
+      gradientStyle:
+        'linear-gradient(to right, rgb(251 113 133), rgb(236 72 153), rgb(239 68 68))',
     },
     purple: {
-      gradient: 'bg-gradient-to-r from-purple-400 via-violet-500 to-indigo-500',
+      gradientStyle:
+        'linear-gradient(to right, rgb(192 132 252), rgb(139 92 246), rgb(99 102 241))',
     },
     teal: {
-      gradient: 'bg-gradient-to-r from-teal-400 via-emerald-500 to-green-500',
+      gradientStyle:
+        'linear-gradient(to right, rgb(45 212 191), rgb(16 185 129), rgb(34 197 94))',
     },
     amber: {
-      gradient: 'bg-gradient-to-r from-amber-400 via-orange-500 to-yellow-500',
+      gradientStyle:
+        'linear-gradient(to right, rgb(251 191 36), rgb(249 115 22), rgb(234 179 8))',
     },
   };
   return themes[themeColor] || themes.sky;
@@ -3463,7 +3492,7 @@ interface InteractiveScaleProps {
   error?: string;
   ariaLabelledby?: string;
   dict: InteractiveScaleDict;
-  themeColor?: ThemeColor; // Prop חדש לקבלת צבע העולם
+  themeColor?: ThemeColor;
 }
 
 const defaultIcons = { stars: Star, hearts: Heart, thumbs: ThumbsUp };
@@ -3489,7 +3518,7 @@ export default function InteractiveScale({
   name,
   error,
   dict,
-  themeColor = 'sky', // קבלת ה-Prop עם ערך ברירת מחדל
+  themeColor = 'sky',
 }: InteractiveScaleProps) {
   const [internalValue, setInternalValue] = useState<number | null>(
     defaultValue || null
@@ -3498,7 +3527,7 @@ export default function InteractiveScale({
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const theme = getThemeConfig(themeColor); // קבלת הגדרות הצבע הנכונות
+  const theme = getThemeConfig(themeColor);
 
   const value = controlledValue !== undefined ? controlledValue : internalValue;
 
@@ -3546,16 +3575,37 @@ export default function InteractiveScale({
     [isDragging, min, max, step, handleValueChange]
   );
 
+  const handleTouchMove = useCallback(
+    (event: TouchEvent) => {
+      if (isDragging && containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const touch = event.touches[0];
+        const x = touch.clientX - rect.left;
+        const width = rect.width;
+        const percentage = Math.max(0, Math.min(1, x / width));
+        const range = max - min;
+        const newValue = Math.round((percentage * range) / step) * step + min;
+        handleValueChange(newValue);
+        setHoveredValue(newValue);
+      }
+    },
+    [isDragging, min, max, step, handleValueChange]
+  );
+
   useEffect(() => {
     if (isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('touchmove', handleTouchMove);
       window.addEventListener('mouseup', () => setIsDragging(false));
+      window.addEventListener('touchend', () => setIsDragging(false));
     }
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('mouseup', () => setIsDragging(false));
+      window.removeEventListener('touchend', () => setIsDragging(false));
     };
-  }, [isDragging, handleMouseMove]);
+  }, [isDragging, handleMouseMove, handleTouchMove]);
 
   const getScaleItems = () => {
     if (options) return options;
@@ -3564,7 +3614,7 @@ export default function InteractiveScale({
       const item: ScaleOption = { value: i, label: i.toString() };
       if (mode !== 'numeric') {
         const Icon = defaultIcons[mode as keyof typeof defaultIcons];
-        item.icon = <Icon className="w-5 h-5" />;
+        item.icon = <Icon className="w-4 h-4 sm:w-5 sm:h-5" />;
       }
       items.push(item);
     }
@@ -3573,16 +3623,18 @@ export default function InteractiveScale({
 
   const scaleItems = getScaleItems();
   const activeValue = hoveredValue !== null ? hoveredValue : value;
+
+  // גודלים רספונסיביים - קטן יותר במובייל
   const sizeClasses = {
-    sm: 'h-8 text-sm',
-    md: 'h-10 text-base',
-    lg: 'h-12 text-lg',
+    sm: 'h-7 sm:h-8 text-xs sm:text-sm',
+    md: 'h-8 sm:h-10 text-sm sm:text-base',
+    lg: 'h-10 sm:h-12 text-base sm:text-lg',
   };
 
   return (
     <div
       className={cn(
-        'relative space-y-2',
+        'relative space-y-2 w-full',
         isDisabled && 'opacity-50 cursor-not-allowed',
         className
       )}
@@ -3590,19 +3642,24 @@ export default function InteractiveScale({
       <div
         ref={containerRef}
         className={cn(
-          'relative flex items-center justify-between gap-1',
+          'relative flex items-center justify-between',
+          // רווחים דינמיים לפי מספר הפריטים
+          scaleItems.length <= 5 ? 'gap-2 sm:gap-3' : 'gap-0.5 sm:gap-1',
           sizeClasses[size]
         )}
         onMouseDown={() => !isDisabled && setIsDragging(true)}
+        onTouchStart={() => !isDisabled && setIsDragging(true)}
       >
         {showLabels && labels && (
-          <div className="absolute -top-6 left-0 right-0 flex justify-between text-sm text-gray-500">
-            <span>{labels.min}</span>
-            {labels.middle && <span>{labels.middle}</span>}
-            <span>{labels.max}</span>
+          <div className="absolute -top-6 left-0 right-0 flex justify-between text-xs sm:text-sm text-gray-500 px-1">
+            <span className="text-right">{labels.min}</span>
+            {labels.middle && (
+              <span className="hidden sm:inline">{labels.middle}</span>
+            )}
+            <span className="text-left">{labels.max}</span>
           </div>
         )}
-        <div className="relative flex-1 flex items-center justify-between">
+        <div className="relative flex-1 flex items-center justify-between w-full">
           <AnimatePresence>
             {scaleItems.map((item) => (
               <TooltipProvider key={item.value}>
@@ -3610,20 +3667,37 @@ export default function InteractiveScale({
                   <TooltipTrigger asChild>
                     <motion.button
                       type="button"
+                      style={
+                        activeValue !== null && item.value <= activeValue
+                          ? { background: theme.gradientStyle }
+                          : undefined
+                      }
                       className={cn(
                         'relative flex items-center justify-center',
-                        'w-8 h-8 rounded-full transition-colors',
-                        'focus:outline-none focus:ring-2 focus:ring-offset-2',
-                        // החלפת הצבע הקבוע במשתנה הדינאמי מה-theme
+                        // גודלים דינמיים לפי מספר פריטים
+                        scaleItems.length <= 5
+                          ? 'w-10 h-10 sm:w-12 sm:h-12'
+                          : scaleItems.length <= 7
+                            ? 'w-8 h-8 sm:w-10 sm:h-10'
+                            : 'w-6 h-6 sm:w-8 sm:h-8',
+                        'rounded-full transition-all duration-200',
+                        'focus:outline-none focus:ring-2 focus:ring-offset-1 sm:focus:ring-offset-2',
+                        'active:scale-95 touch-manipulation',
+                        // טקסט קטן יותר במובייל לסקיילות ארוכות
+                        scaleItems.length > 7 && 'text-xs sm:text-sm',
                         activeValue !== null &&
                           item.value <= activeValue &&
-                          `${theme.gradient} text-white`,
+                          'text-white shadow-md',
                         activeValue !== null &&
                           item.value > activeValue &&
-                          'bg-gray-200',
+                          'bg-gray-200 hover:bg-gray-300',
                         isDisabled && 'cursor-not-allowed'
                       )}
                       onMouseDown={(e) => {
+                        e.stopPropagation();
+                        handleClick(item.value);
+                      }}
+                      onTouchStart={(e) => {
                         e.stopPropagation();
                         handleClick(item.value);
                       }}
@@ -3640,13 +3714,14 @@ export default function InteractiveScale({
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0.8, opacity: 0 }}
+                      transition={{ duration: 0.15 }}
                     >
                       {item.icon || item.label}
                     </motion.button>
                   </TooltipTrigger>
                   {showTooltips && item.description && (
                     <TooltipContent>
-                      <p>{item.description}</p>
+                      <p className="text-xs sm:text-sm">{item.description}</p>
                     </TooltipContent>
                   )}
                 </Tooltip>
@@ -3656,11 +3731,13 @@ export default function InteractiveScale({
         </div>
       </div>
       {showValue && value !== null && (
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-xs sm:text-sm text-gray-500 mt-2">
           {dict.selectedValue.replace('{{value}}', value.toString())}
         </div>
       )}
-      {error && <div className="text-sm text-red-500 mt-1">{error}</div>}
+      {error && (
+        <div className="text-xs sm:text-sm text-red-500 mt-1">{error}</div>
+      )}
       {required && (
         <input
           type="hidden"
@@ -3714,6 +3791,7 @@ import type { Question, QuestionDepth } from '../types/types';
 import { cn } from '@/lib/utils';
 import type { QuestionCardDict } from '@/types/dictionary';
 
+// --- Props Interface ---
 interface QuestionCardProps {
   question: Question;
   depth: QuestionDepth;
@@ -3725,6 +3803,7 @@ interface QuestionCardProps {
   validationError?: string;
   isDisabled?: boolean;
   children?: React.ReactNode;
+  locale?: 'he' | 'en'; // Prop לקביעת השפה והכיווניות
   isFirstInList?: boolean;
   themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
   isVisible: boolean;
@@ -3737,6 +3816,7 @@ interface QuestionCardProps {
   estimatedTimeMinutes?: number;
 }
 
+// --- Helper Functions ---
 const getThemeConfig = (themeColor: string) => {
   const themes = {
     sky: {
@@ -3807,6 +3887,7 @@ const getDepthIcon = (depth: QuestionDepth) => {
   }
 };
 
+// --- Main Component ---
 export default function QuestionCard({
   question,
   depth,
@@ -3818,6 +3899,7 @@ export default function QuestionCard({
   validationError,
   isDisabled = false,
   children,
+  locale = 'he',
   themeColor = 'sky',
   isVisible,
   onVisibilityChange,
@@ -3828,11 +3910,15 @@ export default function QuestionCard({
   totalQuestions,
   estimatedTimeMinutes = 5,
 }: QuestionCardProps) {
+  // --- State and Variables ---
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showBenefit, setShowBenefit] = useState(true);
+
+  const isRTL = locale === 'he';
   const theme = getThemeConfig(themeColor);
 
+  // --- Effects ---
   useEffect(() => {
     if (currentQuestionNumber && currentQuestionNumber % 5 === 0) {
       setShowBenefit(true);
@@ -3843,6 +3929,7 @@ export default function QuestionCard({
     }
   }, [currentQuestionNumber]);
 
+  // --- Animation Variants ---
   const cardVariants = {
     initial: { opacity: 0, y: 30, scale: 0.98 },
     animate: {
@@ -3856,9 +3943,10 @@ export default function QuestionCard({
 
   const currentBenefit =
     dict.benefitMessages[
-      Math.floor(((currentQuestionNumber || 0) / 5) % dict.benefitMessages.length)
+      Math.floor(
+        ((currentQuestionNumber || 0) / 5) % dict.benefitMessages.length
+      )
     ];
-
   const progressPercentage =
     currentQuestionNumber && totalQuestions
       ? Math.round((currentQuestionNumber / totalQuestions) * 100)
@@ -3873,65 +3961,61 @@ export default function QuestionCard({
       variants={cardVariants}
       className="relative"
     >
-      {/* תזכורת תועלת מרחפת */}
+      {/* Floating Benefit Reminder */}
       <AnimatePresence>
-        {showBenefit && currentQuestionNumber && currentQuestionNumber % 5 === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            transition={{ duration: 0.4 }}
-            className="absolute -top-20 left-1/2 transform -translate-x-1/2 z-20 w-full max-w-md"
-          >
-            <div
-              className={cn(
-                'relative bg-gradient-to-r',
-                theme.gradient,
-                'text-white px-6 py-3 rounded-2xl shadow-2xl',
-                theme.glowColor,
-                'border-2 border-white/30'
-              )}
+        {showBenefit &&
+          currentQuestionNumber &&
+          currentQuestionNumber % 5 === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.9 }}
+              transition={{ duration: 0.4 }}
+              className="absolute -top-20 left-1/2 transform -translate-x-1/2 z-20 w-full max-w-md"
             >
-              <div className="flex items-center gap-3">
-                <Sparkles className="w-5 h-5 flex-shrink-0 animate-pulse" />
-                <p className="text-sm font-medium text-center">
-                  {currentBenefit}
-                </p>
+              <div
+                className={cn(
+                  'relative bg-gradient-to-r text-white px-6 py-3 rounded-2xl shadow-2xl border-2 border-white/30',
+                  theme.gradient,
+                  theme.glowColor
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <Sparkles className="w-5 h-5 flex-shrink-0 animate-pulse" />
+                  <p className="text-sm font-medium text-center">
+                    {currentBenefit}
+                  </p>
+                </div>
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-white/80" />
               </div>
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-white/80" />
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
       </AnimatePresence>
 
-      {/* הכרטיס עצמו */}
+      {/* Main Card */}
       <div
         role="region"
         aria-labelledby={question.id}
         className={cn(
-          'relative overflow-hidden rounded-3xl',
-          'bg-gradient-to-br from-white via-white to-gray-50/50',
-          'shadow-2xl hover:shadow-3xl transition-all duration-500',
-          'border-2 border-white',
+          'relative overflow-hidden rounded-3xl bg-gradient-to-br from-white via-white to-gray-50/50 shadow-2xl hover:shadow-3xl transition-all duration-500 border-2 border-white',
           isDisabled && 'opacity-75 cursor-not-allowed',
           className
         )}
       >
+        {/* Decorative Elements */}
         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
         <div
           className={cn(
-            'absolute top-4 right-4 w-32 h-32 rounded-full',
-            'bg-gradient-to-br',
+            'absolute top-4 w-32 h-32 rounded-full bg-gradient-to-br opacity-40 blur-3xl',
             theme.lightGradient,
-            'opacity-40 blur-3xl'
+            isRTL ? 'left-4' : 'right-4'
           )}
         />
         <div
           className={cn(
-            'absolute bottom-4 left-4 w-24 h-24 rounded-full',
-            'bg-gradient-to-br',
+            'absolute bottom-4 w-24 h-24 rounded-full bg-gradient-to-br opacity-30 blur-2xl',
             theme.lightGradient,
-            'opacity-30 blur-2xl'
+            isRTL ? 'right-4' : 'left-4'
           )}
         />
 
@@ -3975,16 +4059,19 @@ export default function QuestionCard({
           )}
 
           <div className="flex items-center justify-between">
-            <div className="flex flex-wrap items-center gap-2">
+            <div
+              className={cn(
+                'flex flex-wrap items-center gap-2',
+                isRTL && 'flex-row-reverse'
+              )}
+            >
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger>
                     <Badge
                       className={cn(
-                        'flex items-center gap-1.5 px-3 py-1.5',
-                        'bg-gradient-to-r',
+                        'flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r text-white border-0 shadow-md',
                         theme.gradient,
-                        'text-white border-0 shadow-md',
                         theme.glowColor
                       )}
                     >
@@ -4040,10 +4127,9 @@ export default function QuestionCard({
                           'h-9 w-9 rounded-xl transition-all duration-300',
                           isBookmarked
                             ? cn(
-                                'bg-gradient-to-br',
+                                'bg-gradient-to-br shadow-md',
                                 theme.lightGradient,
                                 theme.iconColor,
-                                'shadow-md',
                                 theme.glowColor
                               )
                             : 'text-gray-400 hover:bg-gray-100'
@@ -4083,10 +4169,9 @@ export default function QuestionCard({
                           'h-9 w-9 rounded-xl transition-all duration-300',
                           showHelp
                             ? cn(
-                                'bg-gradient-to-br',
+                                'bg-gradient-to-br shadow-md',
                                 theme.lightGradient,
-                                theme.iconColor,
-                                'shadow-md'
+                                theme.iconColor
                               )
                             : 'text-gray-400 hover:bg-gray-100'
                         )}
@@ -4119,7 +4204,10 @@ export default function QuestionCard({
           >
             <h2
               id={question.id}
-              className="text-2xl sm:text-3xl font-bold text-gray-800 leading-tight mt-4"
+              className={cn(
+                'text-2xl sm:text-3xl font-bold text-gray-800 leading-tight mt-4',
+                isRTL ? 'text-right' : 'text-left'
+              )}
             >
               {question.question}
             </h2>
@@ -4128,16 +4216,16 @@ export default function QuestionCard({
           <div className="relative mt-4">
             <div
               className={cn(
-                'h-1 w-20 bg-gradient-to-r',
+                'absolute h-1 w-20 bg-gradient-to-r rounded-full',
                 theme.gradient,
-                'rounded-full',
-                theme.glowColor
+                theme.glowColor,
+                isRTL ? 'right-0' : 'left-0'
               )}
             />
-            <div className="absolute -top-0.5 left-0 w-2 h-2 bg-white rounded-full border-2 border-current" />
           </div>
         </div>
 
+        {/* Content Section */}
         <div className="relative px-6 sm:px-8 pb-6 space-y-4">
           <AnimatePresence>
             {showHelp && question.metadata?.helpText && (
@@ -4149,18 +4237,20 @@ export default function QuestionCard({
               >
                 <div
                   className={cn(
-                    'rounded-2xl p-4 border-2',
-                    'bg-gradient-to-br',
+                    'rounded-2xl p-4 border-2 bg-gradient-to-br shadow-md',
                     theme.lightGradient,
-                    theme.borderAccent,
-                    'shadow-md'
+                    theme.borderAccent
                   )}
                 >
-                  <div className="flex items-start gap-3">
+                  <div
+                    className={cn(
+                      'flex items-start gap-3',
+                      isRTL && 'flex-row-reverse'
+                    )}
+                  >
                     <div
                       className={cn(
-                        'flex-shrink-0 p-2 rounded-xl',
-                        'bg-white shadow-sm',
+                        'flex-shrink-0 p-2 rounded-xl bg-white shadow-sm',
                         theme.iconColor
                       )}
                     >
@@ -4189,7 +4279,12 @@ export default function QuestionCard({
                   role="alert"
                   className="bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl"
                 >
-                  <div className="flex items-center gap-3">
+                  <div
+                    className={cn(
+                      'flex items-center gap-3',
+                      isRTL && 'flex-row-reverse'
+                    )}
+                  >
                     <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
                     <AlertDescription className="text-sm font-medium text-red-700">
                       {validationError}
@@ -4210,6 +4305,7 @@ export default function QuestionCard({
           </motion.div>
         </div>
 
+        {/* Footer Section */}
         <div className="relative px-6 sm:px-8 py-5 border-t-2 border-gray-100 bg-gradient-to-br from-gray-50/50 via-white to-gray-50/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -4345,37 +4441,24 @@ export default function QuestionCard({
               transition={{ delay: 0.5, duration: 0.4 }}
               className="mt-4 pt-4 border-t border-gray-200"
             >
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <TrendingUp className="w-4 h-4 text-green-500" />
-                <span className="font-medium">
-                  {dict.encouragementMessage}
-                </span>
+              <div
+                className={cn(
+                  'flex items-center gap-2 text-sm text-gray-600',
+                  isRTL && 'flex-row-reverse'
+                )}
+              >
+                <TrendingUp
+                  className={cn(
+                    'w-4 h-4 text-green-500',
+                    isRTL ? 'ml-2' : 'mr-2'
+                  )}
+                />
+                <span className="font-medium">{dict.encouragementMessage}</span>
               </div>
             </motion.div>
           )}
         </div>
       </div>
-
-      <style>{`
-        @keyframes shimmer {
-          0% {
-            background-position: -100% 0;
-          }
-          100% {
-            background-position: 200% 0;
-          }
-        }
-        .animate-shimmer {
-          background: linear-gradient(
-            90deg,
-            transparent 0%,
-            rgba(255, 255, 255, 0.6) 50%,
-            transparent 100%
-          );
-          background-size: 200% 100%;
-          animation: shimmer 2s infinite;
-        }
-      `}</style>
     </motion.div>
   );
 }
@@ -12201,7 +12284,7 @@ Content:
 
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Menu, Save, CheckCircle } from 'lucide-react';
+import { Loader2, Menu, Save, CheckCircle, LogIn, UserPlus } from 'lucide-react';
 import type { WorldId } from '../types/types';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -12221,6 +12304,13 @@ import type {
 // <-- שינוי 1: ייבואים חדשים לצורך בדיקת אימות וניווט
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 // Props Interface
 export interface QuestionnaireLayoutProps {
@@ -12231,7 +12321,6 @@ export interface QuestionnaireLayoutProps {
   onExit?: () => void;
   locale?: 'he' | 'en';
   onSaveProgress?: () => Promise<void>;
-  // isLoggedIn?: boolean;  <-- שינוי 2: הסרנו את Prop הזה, כי הקומפוננטה תדע לבדוק זאת בעצמה
   dict: {
     layout: QuestionnaireLayoutDict;
     worldLabels: MatchmakingQuestionnaireDict['worldLabels'];
@@ -12283,6 +12372,9 @@ export default function QuestionnaireLayout({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  // --- START OF NEW CODE ---
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  // --- END OF NEW CODE ---
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isSmallScreen = useMediaQuery('(max-width: 640px)');
@@ -12314,18 +12406,46 @@ export default function QuestionnaireLayout({
       )}
     >
       <div className="flex items-center justify-between p-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="inline-flex items-center gap-2 hover:bg-gray-100 rounded-xl px-3"
-        >
-          <Menu className="h-5 w-5" />
-          {!isSmallScreen && (
-            <span className="font-semibold text-gray-700">
-              {dict.layout.mobileNav.menuTitle}
-            </span>
-          )}
-        </Button>
+        {/* --- START OF UPDATED CODE --- */}
+        <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="inline-flex items-center gap-2 hover:bg-gray-100 rounded-xl px-3"
+            >
+              <Menu className="h-5 w-5" />
+              {!isSmallScreen && (
+                <span className="font-semibold text-gray-700">
+                  {dict.layout.mobileNav.menuTitle}
+                </span>
+              )}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side={isRTL ? 'right' : 'left'} className="w-[320px] p-0 flex flex-col">
+            <QuestionnaireSidebar
+              currentWorld={currentWorld}
+              completedWorlds={completedWorlds}
+              onWorldChange={(worldId) => {
+                onWorldChange(worldId);
+                setIsMobileSidebarOpen(false); // Close sidebar on selection
+              }}
+              onExit={() => {
+                if(onExit) onExit();
+                setIsMobileSidebarOpen(false); // Close sidebar on exit
+              }}
+              locale={locale}
+              isLoggedIn={isLoggedIn}
+              onSaveProgress={handleSave}
+              isSaving={isSaving}
+              saveSuccess={saveSuccess}
+              lastSaved={lastSaved}
+              dict={dict}
+            />
+          </SheetContent>
+        </Sheet>
+        {/* --- END OF UPDATED CODE --- */}
+
         <div className="flex items-center gap-2">
           <div className={cn('p-1.5 rounded-lg', currentColors.bg)}></div>
           <span
@@ -12422,6 +12542,7 @@ export default function QuestionnaireLayout({
                       className="bg-yellow-600 hover:bg-yellow-700 text-white"
                       onClick={() => router.push('/auth/signin')}
                     >
+                      <LogIn className="w-4 h-4 ml-2" />
                       {dict.layout.unauthenticatedPrompt.loginButton}
                     </Button>
                     <Button
@@ -12430,6 +12551,7 @@ export default function QuestionnaireLayout({
                       className="border-yellow-600 text-yellow-700 hover:bg-yellow-100"
                       onClick={() => router.push('/auth/register')}
                     >
+                      <UserPlus className="w-4 h-4 ml-2" />
                       {dict.layout.unauthenticatedPrompt.registerButton}
                     </Button>
                   </div>
@@ -17575,7 +17697,7 @@ export default function WorldComponent({
   if (isDesktop) {
     return (
       <div className="w-full" dir={isRTL ? 'rtl' : 'ltr'}>
-        {renderHeader()}
+     {/*    {renderHeader()} */}
         <div
           className={cn(
             'transition-all duration-500 ease-in-out',
@@ -17689,7 +17811,7 @@ export default function WorldComponent({
         dir={isRTL ? 'rtl' : 'ltr'}
       >
         <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-purple-50/30 to-pink-50/20 -z-10" />
-        {renderHeader()}
+     {/*    {renderHeader()} */}
         {renderQuestionCard()}
         {renderNavigationButtons()}
         {renderCelebration()}

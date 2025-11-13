@@ -155,16 +155,37 @@ export default function InteractiveScale({
     [isDragging, min, max, step, handleValueChange]
   );
 
+  const handleTouchMove = useCallback(
+    (event: TouchEvent) => {
+      if (isDragging && containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const touch = event.touches[0];
+        const x = touch.clientX - rect.left;
+        const width = rect.width;
+        const percentage = Math.max(0, Math.min(1, x / width));
+        const range = max - min;
+        const newValue = Math.round((percentage * range) / step) * step + min;
+        handleValueChange(newValue);
+        setHoveredValue(newValue);
+      }
+    },
+    [isDragging, min, max, step, handleValueChange]
+  );
+
   useEffect(() => {
     if (isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('touchmove', handleTouchMove);
       window.addEventListener('mouseup', () => setIsDragging(false));
+      window.addEventListener('touchend', () => setIsDragging(false));
     }
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('mouseup', () => setIsDragging(false));
+      window.removeEventListener('touchend', () => setIsDragging(false));
     };
-  }, [isDragging, handleMouseMove]);
+  }, [isDragging, handleMouseMove, handleTouchMove]);
 
   const getScaleItems = () => {
     if (options) return options;
@@ -173,7 +194,7 @@ export default function InteractiveScale({
       const item: ScaleOption = { value: i, label: i.toString() };
       if (mode !== 'numeric') {
         const Icon = defaultIcons[mode as keyof typeof defaultIcons];
-        item.icon = <Icon className="w-5 h-5" />;
+        item.icon = <Icon className="w-4 h-4 sm:w-5 sm:h-5" />;
       }
       items.push(item);
     }
@@ -182,16 +203,18 @@ export default function InteractiveScale({
 
   const scaleItems = getScaleItems();
   const activeValue = hoveredValue !== null ? hoveredValue : value;
+
+  // גודלים רספונסיביים - קטן יותר במובייל
   const sizeClasses = {
-    sm: 'h-8 text-sm',
-    md: 'h-10 text-base',
-    lg: 'h-12 text-lg',
+    sm: 'h-7 sm:h-8 text-xs sm:text-sm',
+    md: 'h-8 sm:h-10 text-sm sm:text-base',
+    lg: 'h-10 sm:h-12 text-base sm:text-lg',
   };
 
   return (
     <div
       className={cn(
-        'relative space-y-2',
+        'relative space-y-2 w-full',
         isDisabled && 'opacity-50 cursor-not-allowed',
         className
       )}
@@ -199,19 +222,24 @@ export default function InteractiveScale({
       <div
         ref={containerRef}
         className={cn(
-          'relative flex items-center justify-between gap-1',
+          'relative flex items-center justify-between',
+          // רווחים דינמיים לפי מספר הפריטים
+          scaleItems.length <= 5 ? 'gap-2 sm:gap-3' : 'gap-0.5 sm:gap-1',
           sizeClasses[size]
         )}
         onMouseDown={() => !isDisabled && setIsDragging(true)}
+        onTouchStart={() => !isDisabled && setIsDragging(true)}
       >
         {showLabels && labels && (
-          <div className="absolute -top-6 left-0 right-0 flex justify-between text-sm text-gray-500">
-            <span>{labels.min}</span>
-            {labels.middle && <span>{labels.middle}</span>}
-            <span>{labels.max}</span>
+          <div className="absolute -top-6 left-0 right-0 flex justify-between text-xs sm:text-sm text-gray-500 px-1">
+            <span className="text-right">{labels.min}</span>
+            {labels.middle && (
+              <span className="hidden sm:inline">{labels.middle}</span>
+            )}
+            <span className="text-left">{labels.max}</span>
           </div>
         )}
-        <div className="relative flex-1 flex items-center justify-between">
+        <div className="relative flex-1 flex items-center justify-between w-full">
           <AnimatePresence>
             {scaleItems.map((item) => (
               <TooltipProvider key={item.value}>
@@ -226,17 +254,30 @@ export default function InteractiveScale({
                       }
                       className={cn(
                         'relative flex items-center justify-center',
-                        'w-8 h-8 rounded-full transition-colors',
-                        'focus:outline-none focus:ring-2 focus:ring-offset-2',
+                        // גודלים דינמיים לפי מספר פריטים
+                        scaleItems.length <= 5
+                          ? 'w-10 h-10 sm:w-12 sm:h-12'
+                          : scaleItems.length <= 7
+                            ? 'w-8 h-8 sm:w-10 sm:h-10'
+                            : 'w-6 h-6 sm:w-8 sm:h-8',
+                        'rounded-full transition-all duration-200',
+                        'focus:outline-none focus:ring-2 focus:ring-offset-1 sm:focus:ring-offset-2',
+                        'active:scale-95 touch-manipulation',
+                        // טקסט קטן יותר במובייל לסקיילות ארוכות
+                        scaleItems.length > 7 && 'text-xs sm:text-sm',
                         activeValue !== null &&
                           item.value <= activeValue &&
-                          'text-white',
+                          'text-white shadow-md',
                         activeValue !== null &&
                           item.value > activeValue &&
-                          'bg-gray-200',
+                          'bg-gray-200 hover:bg-gray-300',
                         isDisabled && 'cursor-not-allowed'
                       )}
                       onMouseDown={(e) => {
+                        e.stopPropagation();
+                        handleClick(item.value);
+                      }}
+                      onTouchStart={(e) => {
                         e.stopPropagation();
                         handleClick(item.value);
                       }}
@@ -253,13 +294,14 @@ export default function InteractiveScale({
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0.8, opacity: 0 }}
+                      transition={{ duration: 0.15 }}
                     >
                       {item.icon || item.label}
                     </motion.button>
                   </TooltipTrigger>
                   {showTooltips && item.description && (
                     <TooltipContent>
-                      <p>{item.description}</p>
+                      <p className="text-xs sm:text-sm">{item.description}</p>
                     </TooltipContent>
                   )}
                 </Tooltip>
@@ -269,11 +311,13 @@ export default function InteractiveScale({
         </div>
       </div>
       {showValue && value !== null && (
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-xs sm:text-sm text-gray-500 mt-2">
           {dict.selectedValue.replace('{{value}}', value.toString())}
         </div>
       )}
-      {error && <div className="text-sm text-red-500 mt-1">{error}</div>}
+      {error && (
+        <div className="text-xs sm:text-sm text-red-500 mt-1">{error}</div>
+      )}
       {required && (
         <input
           type="hidden"
