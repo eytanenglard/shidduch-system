@@ -167,10 +167,11 @@
   },
   "problemSection": {
     "badge": "The Problem We All Know",
-    "title1": "\"So, what are you really looking for?\"",
+    "title1": "“So, what are you really looking for?”",
     "title2": "...and the standard answer that doesn't help",
     "cards": {
-      "generalAnswers": { "title": "Vague Answers", "description": "\"Someone nice,\" \"with similar values,\" \"someone fun to be with\" - but what does that really mean? How will you know when you've found it?" },
+      "generalAnswers": { "title": "Vague Answers","description": "“Someone nice,” “with similar values,” “someone fun to be with” - but what does that really mean? How will you know when you've found it?"
+},
       "wastedTime": { "title": "Wasted Time and Energy", "description": "Dates that end with \"it's not a match\" because you didn't really understand what you were looking for in the first place. Every date feels like trial and error." },
       "lackOfFocus": { "title": "Lack of Focus", "description": "It's hard to explain to matchmakers what's truly important to you, hard to know if a suggestion is a good fit, hard to make decisions." },
       "frustration": { "title": "Frustration and Insecurity", "description": "The feeling that maybe you just don't know what you want, or perhaps you're looking for something that doesn't exist." }
@@ -185,7 +186,7 @@
     "subtitle2": "and at the end, you'll receive a detailed personal report - a roadmap to the relationship you're looking for.",
     "cards": {
       "selfDiscovery": { "title": "True Self-Discovery", "description": "The questionnaire guides you through a structured process that helps you understand what's truly important to you in life and relationships - beyond generic phrases." },
-      "soulReport": { "title": "Get Your \"Soul Report\"", "description": "Upon completion, you'll receive a detailed and personal PDF report that distills all your insights - a document you can return to again and again." },
+"soulReport": { "title": "Get Your “Soul Report”", "description": "Upon completion, you'll receive a detailed and personal PDF report that distills all your insights - a document you can return to again and again." },
       "focusedSearch": { "title": "Focused and Efficient Search", "description": "With the Soul Report, you'll know exactly what you're looking for. It will help you explain to matchmakers, make better decisions, and save time." }
     },
     "result": {
