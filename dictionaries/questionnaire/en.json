@@ -124,14 +124,17 @@
       "worldProgressSaved": "Your progress in this world has been saved.",
       "worldProgressSavedBrowser": "Progress saved to this browser. Log in to save to your account.",
       "worldCompletionError": "Error saving world completion. Please try again.",
-      "worldFinished": "Excellent! You've completed the World of {{worldName}}."
+      "worldFinished": "Excellent! You've completed the World of {{worldName}}.",
+      "submitSuccess": "Questionnaire submitted successfully!"
     },
     "errors": {
       "invalidSubmission": "Invalid data. Could not save progress.",
       "saveFailed": "Failed to save progress. Please try again.",
       "loadFailed": "Failed to load questionnaire data. Please refresh.",
       "genericLoadError": "An error occurred while loading your data. Please try again later.",
-      "stageLoadError": "Error loading this stage. Please try again."
+      "stageLoadError": "Error loading this stage. Please try again.",
+      "invalidStep": "An error occurred: Invalid step in the process.",
+      "submitFailed": "Error submitting the questionnaire."
     },
     "idleModal": {
       "title": "Are You Still With Us?",
@@ -140,8 +143,11 @@
       "stayActiveButton": "I'm Still Here"
     },
     "lastSaved": "Last saved: {{time}}",
-    "loading": "Loading your journey..."
-  },
+    "loading": "Loading your journey...",
+    "loadingSubtext": "Loading your questionnaire...",
+    "lastSavedIndicatorLabel": "Saved"
+  }
+,
   "page": {
     "loading": "Loading Questionnaire...",
     "backToMain": "Back to Main Page",

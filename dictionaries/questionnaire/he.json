@@ -114,7 +114,7 @@
       "RELIGION": "דת ומסורת"
     },
     "toasts": {
-      "saveSuccess": "השאלון נשמר בהצלחה",
+      "saveSuccess": "ההתקדמות נשמרה בהצלחה",
       "autoSaveError": "שגיאה בשמירה אוטומטית",
       "unsavedChanges": {
         "message": "יש לך שינויים שלא נשמרו.",
@@ -125,14 +125,17 @@
       "worldProgressSaved": "התקדמות העולם נשמרה",
       "worldProgressSavedBrowser": "התקדמות העולם נשמרה בדפדפן",
       "worldCompletionError": "שגיאה בשמירת התקדמות העולם",
-      "worldFinished": "כל הכבוד! סיימת את עולם ה{{worldName}}"
+      "worldFinished": "כל הכבוד! סיימת את עולם ה{{worldName}}",
+      "submitSuccess": "השאלון נשלח בהצלחה!"
     },
     "errors": {
       "invalidSubmission": "נתוני שליחה לא תקינים",
       "saveFailed": "אירעה שגיאה בשמירת השאלון.",
       "loadFailed": "נכשל בטעינת תשובות קיימות",
       "genericLoadError": "אירעה שגיאה בטעינת התשובות הקיימות",
-      "stageLoadError": "שגיאה בטעינת השלב"
+      "stageLoadError": "שגיאה בטעינת השלב",
+      "invalidStep": "אירעה שגיאה: שלב לא תקין בתהליך.",
+      "submitFailed": "שגיאה בשליחת השאלון."
     },
     "idleModal": {
       "title": "האם אתה עדיין כאן?",
@@ -141,8 +144,11 @@
       "stayActiveButton": "אני עדיין כאן"
     },
     "lastSaved": "נשמר לאחרונה: {{time}}",
-    "loading": "טוען..."
-  },
+    "loading": "טוען את המסע שלך...",
+    "loadingSubtext": "טוען את השאלון שלך...",
+    "lastSavedIndicatorLabel": "נשמר"
+  }
+,
   "page": {
     "loading": "טוען שאלון...",
     "backToMain": "חזרה לעמוד הראשי",

@@ -953,8 +953,7 @@ export type QuestionnaireCompletionDict = {
 };
 
 export type MatchmakingQuestionnaireDict = {
-      worldLabels: Record<WorldId, string>; // ודא שזה משתמש ב-WorldId המיובא
-
+  worldLabels: Record<WorldId, string>;
   toasts: {
     saveSuccess: string;
     autoSaveError: string;
@@ -968,6 +967,7 @@ export type MatchmakingQuestionnaireDict = {
     worldProgressSavedBrowser: string;
     worldCompletionError: string;
     worldFinished: string; // e.g., "כל הכבוד! סיימת את עולם ה{{worldName}}"
+    submitSuccess: string; // <-- הוספה חדשה
   };
   errors: {
     invalidSubmission: string;
@@ -975,6 +975,8 @@ export type MatchmakingQuestionnaireDict = {
     loadFailed: string;
     genericLoadError: string;
     stageLoadError: string;
+    invalidStep: string; // <-- הוספה חדשה
+    submitFailed: string; // <-- הוספה חדשה
   };
   idleModal: {
     title: string;
@@ -984,7 +986,10 @@ export type MatchmakingQuestionnaireDict = {
   };
   lastSaved: string; // e.g., "נשמר לאחרונה: {{time}}"
   loading: string;
+  loadingSubtext: string; // <-- הוספה חדשה
+  lastSavedIndicatorLabel: string; // <-- הוספה חדשה
 };
+
 
 export type QuestionnairePageDict = {
   loading: string;
