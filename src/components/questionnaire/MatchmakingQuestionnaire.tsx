@@ -366,22 +366,28 @@ export default function MatchmakingQuestionnaire({
         if (!userId) {
           // Guest user - load from localStorage
           const saved = localStorage.getItem('tempQuestionnaire');
-          if (saved) {
-            const loadedData = JSON.parse(saved);
-            console.log(
-              '%c[Load] ✅ Loaded from localStorage',
-              'color: #10b981; font-weight: bold;',
-              loadedData
-            );
-            setAnswers(loadedData.answers || []);
-            setCompletedWorlds(loadedData.worldsCompleted || []);
-            setCurrentQuestionIndices(loadedData.currentQuestionIndices || {});
+       if (saved) {
+    const loadedData = JSON.parse(saved);
+    console.log(
+      '%c[Load] ✅ Loaded from localStorage',
+      'color: #10b981; font-weight: bold;',
+      loadedData
+    );
+    setAnswers(loadedData.answers || []);
+    setCompletedWorlds(loadedData.worldsCompleted || []);
 
-            // If there's progress, go to the map to allow continuation
-            if ((loadedData.answers || []).length > 0) {
-              setCurrentStep(OnboardingStep.MAP);
-            }
-          } else {
+    // --- התיקון ---
+    // ודא שכל העולמות קיימים, גם אם לא נשמרו
+    setCurrentQuestionIndices(prevIndices => ({
+        ...prevIndices, // התחל עם האינדקסים הקיימים (ברירת המחדל)
+        ...(loadedData.currentQuestionIndices || {}) // דרוס אותם עם המידע השמור, אם קיים
+    }));
+
+    // If there's progress, go to the map to allow continuation
+    if ((loadedData.answers || []).length > 0) {
+      setCurrentStep(OnboardingStep.MAP);
+    }
+} else {
             console.log(
               '%c[Load] ℹ️ No saved progress found for guest',
               'color: #6b7280; font-weight: bold;'

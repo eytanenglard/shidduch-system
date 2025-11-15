@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire
-# Generated on: 2025-10-26 16:22:10
+# Generated on: 2025-11-15 22:20:32
 ################################################################################
 
 ================================================================================
@@ -27,19 +27,25 @@ function Loading() {
   );
 }
 
-export default async function Page({
-  params: { locale },
-  searchParams,
-}: {
-  params: { locale: Locale };
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
+// ▼▼▼ כאן השינוי ▼▼▼
+type PageProps = {
+  params: Promise<{ locale: Locale }>;
+  // גם searchParams הוא עכשיו Promise
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function Page({ params, searchParams }: PageProps) {
+  // ממתינים לשני ה-Promises במקביל לביצועים טובים יותר
+  const [{ locale }, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
+  
   const dictionary = await getDictionary(locale);
 
-  // זה הלוג שאנחנו מחפשים בטרמינל
   console.log(
     `\n✅ [LOG | /questionnaire/page.tsx SERVER SIDE] Received searchParams:`,
-    searchParams,
+    resolvedSearchParams, // משתמשים במשתנה החדש שחיכה ל-Promise
     `\n`
   );
 
@@ -67,16 +73,20 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\q
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\complete\page.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/app/[locale]/questionnaire/complete/page.tsx
 import QuestionnaireComplete from '@/components/questionnaire/QuestionnaireComplete';
 import { getDictionary } from '@/lib/dictionaries';
 import { Locale } from '../../../../../i18n-config';
 
-// This is now an async Server Component
-export default async function Page({ params }: { params: { locale: Locale } }) {
-  // 1. We load the dictionary here
-  const dictionary = await getDictionary(params.locale);
+// ▼▼▼ כאן השינוי ▼▼▼
+type PageProps = {
+  params: Promise<{ locale: Locale }>;
+};
 
-  // 2. We pass the relevant part of the dictionary as a prop
+export default async function Page({ params }: PageProps) {
+  const { locale } = await params; // הוספת await ושינוי הגישה ל-locale
+  const dictionary = await getDictionary(locale);
+
   return (
     <QuestionnaireComplete
       dict={dictionary.questionnaire.questionnaireCompletePage}
@@ -94,14 +104,12 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questi
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/questionnaire/restore/page.tsx
-
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
 import { Locale } from '../../../../../i18n-config';
 import QuestionnaireRestore from '@/components/questionnaire/QuestionnaireRestore';
 
-// רכיב טעינה פשוט
 function Loading() {
   return (
     <div className="flex h-screen w-full items-center justify-center">
@@ -110,16 +118,15 @@ function Loading() {
   );
 }
 
-// רכיב הדף (Page) הוא רכיב צד-שרת
-export default async function RestorePage({
-  params: { locale },
-}: {
-  params: { locale: Locale };
-}) {
-  // 1. טעינת המילון המלא בצד השרת
+// ▼▼▼ כאן השינוי ▼▼▼
+type RestorePageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function RestorePage({ params }: RestorePageProps) {
+  const { locale } = await params; // הוספת await
   const dictionary = await getDictionary(locale);
 
-  // 2. רינדור רכיב הלקוח והעברת החלק הספציפי מהמילון כ-prop
   return (
     <Suspense fallback={<Loading />}>
       <QuestionnaireRestore
