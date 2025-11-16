@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-11-15 22:13:20
+# Generated on: 2025-11-16 11:10:57
 ################################################################################
 
 ================================================================================
@@ -379,22 +379,28 @@ export default function MatchmakingQuestionnaire({
         if (!userId) {
           // Guest user - load from localStorage
           const saved = localStorage.getItem('tempQuestionnaire');
-          if (saved) {
-            const loadedData = JSON.parse(saved);
-            console.log(
-              '%c[Load] ✅ Loaded from localStorage',
-              'color: #10b981; font-weight: bold;',
-              loadedData
-            );
-            setAnswers(loadedData.answers || []);
-            setCompletedWorlds(loadedData.worldsCompleted || []);
-            setCurrentQuestionIndices(loadedData.currentQuestionIndices || {});
+       if (saved) {
+    const loadedData = JSON.parse(saved);
+    console.log(
+      '%c[Load] ✅ Loaded from localStorage',
+      'color: #10b981; font-weight: bold;',
+      loadedData
+    );
+    setAnswers(loadedData.answers || []);
+    setCompletedWorlds(loadedData.worldsCompleted || []);
 
-            // If there's progress, go to the map to allow continuation
-            if ((loadedData.answers || []).length > 0) {
-              setCurrentStep(OnboardingStep.MAP);
-            }
-          } else {
+    // --- התיקון ---
+    // ודא שכל העולמות קיימים, גם אם לא נשמרו
+    setCurrentQuestionIndices(prevIndices => ({
+        ...prevIndices, // התחל עם האינדקסים הקיימים (ברירת המחדל)
+        ...(loadedData.currentQuestionIndices || {}) // דרוס אותם עם המידע השמור, אם קיים
+    }));
+
+    // If there's progress, go to the map to allow continuation
+    if ((loadedData.answers || []).length > 0) {
+      setCurrentStep(OnboardingStep.MAP);
+    }
+} else {
             console.log(
               '%c[Load] ℹ️ No saved progress found for guest',
               'color: #6b7280; font-weight: bold;'
@@ -2082,14 +2088,16 @@ export default function AnswerInput({
 
                         <div
                           className={cn(
-                            'flex items-center justify-between gap-3 relative z-10',
-                            isRTL && 'flex-row-reverse'
+                            'flex items-center gap-3 relative z-10',
+                            isRTL
+                              ? 'flex-row-reverse justify-between'
+                              : 'justify-between'
                           )}
                         >
                           <div
                             className={cn(
                               'flex items-center gap-3 flex-1',
-                              isRTL && 'flex-row-reverse'
+                              isRTL && 'flex-row-reverse text-right'
                             )}
                           >
                             {option.icon && (
@@ -2857,24 +2865,6 @@ export default function AnswerInput({
                     )}
                   </div>
                 )}
-
-                {(hasMinLength || hasMaxLength) && (
-                  <div className="absolute bottom-3 left-3">
-                    <Badge
-                      className={cn(
-                        'font-mono transition-all',
-                        lengthExceeded
-                          ? 'bg-red-500 text-white animate-pulse'
-                          : isCloseToMax
-                            ? 'bg-amber-500 text-white'
-                            : 'bg-gray-700 text-white'
-                      )}
-                    >
-                      {textValue.length}
-                      {hasMaxLength && ` / ${question.maxLength}`}
-                    </Badge>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -3167,7 +3157,39 @@ export default function AnswerInput({
                 </div>
               </div>
             </motion.div>
-
+{totalAllocatedPoints > 0 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="flex justify-center"
+              >
+                <Button
+                  onClick={handleClear}
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    'group relative overflow-hidden',
+                    'border-2 rounded-xl px-4 py-2',
+                    'transition-all duration-300',
+                    'bg-white hover:bg-red-50',
+                    'border-red-200 hover:border-red-400',
+                    'text-red-600 hover:text-red-700',
+                    'shadow-sm hover:shadow-md',
+                    'font-medium'
+                  )}
+                >
+                  <div className="flex items-center gap-2 relative z-10">
+                    <Eraser className="w-4 h-4 transition-transform group-hover:rotate-12" />
+                    <span>{dict.answerInput.budgetAllocation.resetButton}</span>
+                  </div>
+                  <motion.div
+                    className="absolute inset-0 bg-red-100 opacity-0 group-hover:opacity-100"
+                    transition={{ duration: 0.2 }}
+                  />
+                </Button>
+              </motion.div>
+            )}
             <div className="space-y-4">
               {question.categories?.map((category, index) => {
                 const categoryValue = budgetValues[category.value] || 0;
@@ -3255,15 +3277,9 @@ export default function AnswerInput({
                           max={category.max ?? totalPointsRequired}
                           step={1}
                           onValueChange={(newValues: number[]) => {
-                            const currentOthersTotal =
-                              totalAllocatedPoints - categoryValue;
-                            const newValue = Math.min(
-                              newValues[0],
-                              totalPointsRequired - currentOthersTotal
-                            );
                             handleValueChange({
                               ...budgetValues,
-                              [category.value]: newValue,
+                              [category.value]: newValues[0],
                             });
                           }}
                           className={cn(
@@ -3305,26 +3321,7 @@ export default function AnswerInput({
               })}
             </div>
 
-            {totalAllocatedPoints > 0 &&
-              (!question.isRequired || isAllocationComplete) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                handleClear();
-                              }}
-                    className="w-full border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl"
-                  >
-                    <Eraser className="w-4 h-4 mr-2" />
-                    {dict.answerInput.budgetAllocation.resetButton}
-                  </Button>
-                </motion.div>
-              )}
+     
 
             <AnimatePresence>
               {validationError && (
@@ -5537,6 +5534,70 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
 
 export default QuestionsList;
 --- End of Content for QuestionsList.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\StandardizedLoadingSpinner.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/questionnaire/common/StandardizedLoadingSpinner.tsx
+'use client';
+
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Loader2, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface StandardizedLoadingSpinnerProps {
+  text?: string;
+  subtext?: string;
+  layout?: 'fullscreen' | 'inline';
+  className?: string;
+}
+
+export default function StandardizedLoadingSpinner({
+  text = 'טוען...',
+  subtext,
+  layout = 'fullscreen',
+  className,
+}: StandardizedLoadingSpinnerProps) {
+  const containerClasses = {
+    fullscreen: 'flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 via-teal-50/30 to-slate-50 p-4',
+    inline: 'flex flex-col items-center justify-center w-full my-8 p-4',
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className={cn(containerClasses[layout], className)}
+    >
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-orange-500 rounded-full blur-xl opacity-50 animate-pulse" />
+        <Loader2 className="relative h-16 w-16 animate-spin text-teal-600" />
+      </div>
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mt-6 text-xl font-semibold text-gray-700 text-center"
+      >
+        {text}
+      </motion.p>
+      {subtext && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="mt-4 flex items-center gap-2 text-sm text-gray-500"
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>{subtext}</span>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+}
+--- End of Content for StandardizedLoadingSpinner.tsx ---
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components
@@ -10094,6 +10155,23 @@ export const partnerQuestions: Question[] = [
   },
   {
     worldId: 'PARTNER',
+    id: 'partner_emotional_expression_preference',
+    category: 'partner',
+    subcategory: 'first_impression_basics',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+        { value: 'open_verbal' },
+        { value: 'action_oriented' },
+        { value: 'balanced' },
+        { value: 'not_critical' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
+  {
+    worldId: 'PARTNER',
     id: 'partner_dating_persona',
     category: 'partner',
     subcategory: 'first_impression_basics',
@@ -10220,6 +10298,19 @@ export const partnerQuestions: Question[] = [
   },
   {
     worldId: 'PARTNER',
+    id: 'partner_family_connection_importance',
+    category: 'partner',
+    subcategory: 'family_background',
+    type: 'scale',
+    depth: 'ADVANCED',
+    isRequired: false,
+    min: 1,
+    max: 10,
+    metadata: { estimatedTime: 1 },
+},
+
+  {
+    worldId: 'PARTNER',
     id: 'partner_must_have_quality_final_revised',
     category: 'partner',
     subcategory: 'non_negotiables',
@@ -10262,6 +10353,8 @@ import {
   Lightbulb,
   Sparkles,
   Star,
+   BatteryCharging,
+    Phone,
   Smile,
   ShieldCheck,
   BookOpen,
@@ -10319,6 +10412,22 @@ export const personalityQuestions: Question[] = [
     ],
     metadata: { estimatedTime: 1 },
   },
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_loneliness_coping',
+    category: 'personality',
+    subcategory: 'lifestyle',
+    type: 'iconChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+      { value: 'recharge_renew', icon: <BatteryCharging /> },
+      { value: 'productivity_focus', icon: <Brain /> },
+      { value: 'mild_loneliness', icon: <Phone /> },
+      { value: 'discomfort', icon: <Users /> },
+    ],
+    metadata: { estimatedTime: 1 },
+},
   {
     worldId: 'PERSONALITY',
     id: 'personality_biological_clock',
@@ -10453,6 +10562,23 @@ export const personalityQuestions: Question[] = [
     ],
     metadata: { estimatedTime: 1 },
   },
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_seeking_help',
+    category: 'personality',
+    subcategory: 'social_communication',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+      { value: 'solve_alone' },
+      { value: 'share_selectively' },
+      { value: 'consult_trusted_circle' },
+      { value: 'seek_professional_guidance' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
   {
     worldId: 'PERSONALITY',
     id: 'personality_handling_criticism_revised',
@@ -10765,6 +10891,23 @@ export const relationshipQuestions: Question[] = [
   },
   {
     worldId: 'RELATIONSHIP',
+    id: 'relationship_expressing_needs',
+    category: 'relationship',
+    subcategory: 'communication_intimacy',
+    type: 'singleChoice',
+    depth: 'EXPERT',
+    isRequired: false,
+    options: [
+        { value: 'keep_inside' },
+        { value: 'wait_for_right_moment' },
+        { value: 'direct_conversation' },
+        { value: 'hint_repeatedly' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
+  {
+    worldId: 'RELATIONSHIP',
     id: 'relationship_partner_bad_day',
     category: 'relationship',
     subcategory: 'daily_life_partnership',
@@ -10779,6 +10922,23 @@ export const relationshipQuestions: Question[] = [
     ],
     metadata: { estimatedTime: 1 },
   },
+  {
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_receiving_support',
+    category: 'relationship',
+    subcategory: 'daily_life_partnership',
+    type: 'iconChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+      { value: 'need_to_vent', icon: <MessageCircle /> },
+      { value: 'need_solutions', icon: <Brain /> },
+      { value: 'need_distraction', icon: <Sparkles /> },
+      { value: 'need_space', icon: <Home /> },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
   {
     worldId: 'RELATIONSHIP',
     id: 'relationship_household_philosophy',
@@ -11371,6 +11531,23 @@ export const religionQuestions: Question[] = [
   },
   {
     worldId: 'RELIGION',
+    id: 'religion_community_role',
+    category: 'religion',
+    subcategory: 'community_influence',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+        { value: 'central' },
+        { value: 'important' },
+        { value: 'secondary' },
+        { value: 'not_seeking' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
+  {
+    worldId: 'RELIGION',
     id: 'religion_doubts_and_struggles',
     category: 'religion',
     subcategory: 'identity_belief',
@@ -11433,6 +11610,23 @@ export const religionQuestions: Question[] = [
     maxLength: 500,
     metadata: { estimatedTime: 2 },
   },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_other_denominations_attitude',
+    category: 'religion',
+    subcategory: 'community_influence',
+    type: 'singleChoice',
+    depth: 'EXPERT',
+    isRequired: false,
+    options: [
+        { value: 'decline' },
+        { value: 'conditional_participation' },
+        { value: 'accept_openly' },
+        { value: 'depends_on_context' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
 ];
 --- End of Content for religionQuestions.tsx ---
 
@@ -11605,6 +11799,19 @@ export const valuesQuestions: Question[] = [
   },
   {
     worldId: 'VALUES',
+    id: 'values_risk_attitude',
+    category: 'values',
+    subcategory: 'life_priorities',
+    type: 'scale',
+    depth: 'ADVANCED',
+    isRequired: false,
+    min: 1,
+    max: 10,
+    metadata: { estimatedTime: 1 },
+},
+
+  {
+    worldId: 'VALUES',
     id: 'values_feeling_of_home',
     category: 'values',
     subcategory: 'community_social',
@@ -11667,6 +11874,23 @@ export const valuesQuestions: Question[] = [
     maxLength: 300,
     metadata: { estimatedTime: 2 },
   },
+  {
+    worldId: 'VALUES',
+    id: 'values_moral_dilemma',
+    category: 'values',
+    subcategory: 'core_values',
+    type: 'scenario',
+    depth: 'EXPERT',
+    isRequired: false,
+    options: [
+        { value: 'express_discomfort' },
+        { value: 'listen_without_judgment' },
+        { value: 'challenge_and_advise' },
+        { value: 'do_not_intervene' },
+    ],
+    metadata: { estimatedTime: 2 },
+},
+
   {
     worldId: 'VALUES',
     id: 'values_giving_tzedaka_importance_revised',

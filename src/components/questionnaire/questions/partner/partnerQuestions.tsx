@@ -120,6 +120,23 @@ export const partnerQuestions: Question[] = [
   },
   {
     worldId: 'PARTNER',
+    id: 'partner_emotional_expression_preference',
+    category: 'partner',
+    subcategory: 'first_impression_basics',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+        { value: 'open_verbal' },
+        { value: 'action_oriented' },
+        { value: 'balanced' },
+        { value: 'not_critical' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
+  {
+    worldId: 'PARTNER',
     id: 'partner_dating_persona',
     category: 'partner',
     subcategory: 'first_impression_basics',
@@ -244,6 +261,19 @@ export const partnerQuestions: Question[] = [
     ],
     metadata: { estimatedTime: 1 },
   },
+  {
+    worldId: 'PARTNER',
+    id: 'partner_family_connection_importance',
+    category: 'partner',
+    subcategory: 'family_background',
+    type: 'scale',
+    depth: 'ADVANCED',
+    isRequired: false,
+    min: 1,
+    max: 10,
+    metadata: { estimatedTime: 1 },
+},
+
   {
     worldId: 'PARTNER',
     id: 'partner_must_have_quality_final_revised',

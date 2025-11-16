@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\questionnaire
-# Generated on: 2025-11-12 16:25:01
+# Generated on: 2025-11-16 09:31:45
 ################################################################################
 
 ================================================================================
@@ -63,6 +63,14 @@ Content:
       "ADVANCED": "These questions invite a bit more reflection, helping us see the nuances of your personality and values.",
       "EXPERT": "These are deep-dive questions that reveal your core beliefs and how you navigate complex situations."
     },
+     "estimatedTime": "{{minutes}} min left",
+    "benefitMessages": [
+      "Each answer brings you closer to the perfect match 💫",
+      "The questionnaire helps you understand what truly matters 🎯",
+      "Time invested here saves months of searching ❤️",
+      "You're building a foundation for long-term success 🌟"
+    ],
+    "encouragementMessage": "Each answer helps us know you better and find your perfect match",
     "requiredBadge": "Required",
     "tooltips": {
       "removeBookmark": "Remove Bookmark",
@@ -129,14 +137,17 @@ Content:
       "worldProgressSaved": "Your progress in this world has been saved.",
       "worldProgressSavedBrowser": "Progress saved to this browser. Log in to save to your account.",
       "worldCompletionError": "Error saving world completion. Please try again.",
-      "worldFinished": "Excellent! You've completed the World of {{worldName}}."
+      "worldFinished": "Excellent! You've completed the World of {{worldName}}.",
+      "submitSuccess": "Questionnaire submitted successfully!"
     },
     "errors": {
       "invalidSubmission": "Invalid data. Could not save progress.",
       "saveFailed": "Failed to save progress. Please try again.",
       "loadFailed": "Failed to load questionnaire data. Please refresh.",
       "genericLoadError": "An error occurred while loading your data. Please try again later.",
-      "stageLoadError": "Error loading this stage. Please try again."
+      "stageLoadError": "Error loading this stage. Please try again.",
+      "invalidStep": "An error occurred: Invalid step in the process.",
+      "submitFailed": "Error submitting the questionnaire."
     },
     "idleModal": {
       "title": "Are You Still With Us?",
@@ -145,85 +156,95 @@ Content:
       "stayActiveButton": "I'm Still Here"
     },
     "lastSaved": "Last saved: {{time}}",
-    "loading": "Loading your journey..."
-  },
+    "loading": "Loading your journey...",
+    "loadingSubtext": "Loading your questionnaire...",
+    "lastSavedIndicatorLabel": "Saved"
+  }
+,
   "page": {
     "loading": "Loading Questionnaire...",
     "backToMain": "Back to Main Page",
     "stageLoadError": "Error loading the requested stage.",
     "completionError": "An error occurred while finalizing your questionnaire."
   },
-  "landingPage": {
-    "hero": {
-      "badge": "A Journey to Deeper Connection",
-      "title": "The NeshamaTech Smart Questionnaire",
-      "subtitle": "This isn't just a form—it's an invitation to a guided journey of self-discovery. Your thoughtful answers are the key that unlocks truly compatible matches."
+"landingPage": {
+  "hero": {
+    "badge": "A Personal Journey of Self-Discovery",
+    "title1": "Before you look for 'the one',",
+    "title2": "You need to know what you truly want",
+    "subtitle1": "An in-depth questionnaire that helps you understand yourself, what truly matters to you,",
+    "subtitle2": "and generates a",
+    "subtitleHighlight": "detailed Soul Report",
+    "subtitle3": "for you - a roadmap to the relationship you're really looking for.",
+    "timeEstimate": "20-30 minutes that will save you months of searching"
+  },
+  "cta": {
+    "continue": "Continue Your Journey",
+    "startAsUser": "{{name}}, let's begin",
+    "startDefault": "Start Now",
+    "login": "Have an account? Sign in"
+  },
+  "problemSection": {
+    "badge": "The Problem We All Know",
+    "title1": "“So, what are you really looking for?”",
+    "title2": "...and the standard answer that doesn't help",
+    "cards": {
+      "generalAnswers": { "title": "Vague Answers","description": "“Someone nice,” “with similar values,” “someone fun to be with” - but what does that really mean? How will you know when you've found it?"
+},
+      "wastedTime": { "title": "Wasted Time and Energy", "description": "Dates that end with \"it's not a match\" because you didn't really understand what you were looking for in the first place. Every date feels like trial and error." },
+      "lackOfFocus": { "title": "Lack of Focus", "description": "It's hard to explain to matchmakers what's truly important to you, hard to know if a suggestion is a good fit, hard to make decisions." },
+      "frustration": { "title": "Frustration and Insecurity", "description": "The feeling that maybe you just don't know what you want, or perhaps you're looking for something that doesn't exist." }
     },
-    "cta": {
-      "start": "Begin the Journey",
-      "continue": "Continue Your Journey",
-      "startAsUser": "{{name}}, Begin Your Journey",
-      "loginButton": "Sign In & Save Progress"
+    "insight": "💡 How can you find the right one, if you don't know what you truly want?"
+  },
+  "solutionSection": {
+    "badge": "The Solution You've Waited For",
+    "title": "A Questionnaire That",
+    "titleHighlight": "Clears Your Mind",
+    "subtitle1": "20 minutes of focused questions to help you understand what truly matters to you,",
+    "subtitle2": "and at the end, you'll receive a detailed personal report - a roadmap to the relationship you're looking for.",
+    "cards": {
+      "selfDiscovery": { "title": "True Self-Discovery", "description": "The questionnaire guides you through a structured process that helps you understand what's truly important to you in life and relationships - beyond generic phrases." },
+"soulReport": { "title": "Get Your “Soul Report”", "description": "Upon completion, you'll receive a detailed and personal PDF report that distills all your insights - a document you can return to again and again." },
+      "focusedSearch": { "title": "Focused and Efficient Search", "description": "With the Soul Report, you'll know exactly what you're looking for. It will help you explain to matchmakers, make better decisions, and save time." }
     },
-    "worldsSection": {
-      "title": "Explore the Five Worlds of You",
-      "subtitle": "Our questionnaire is structured as a passage through five essential aspects of your life, creating a holistic and authentic profile."
-    },
-    "worlds": {
-      "PERSONALITY": {
-        "title": "Personality",
-        "description": "Discover your core traits, energy sources, and communication style.",
-        "questionsLabel": "{{count}} questions"
-      },
-      "VALUES": {
-        "title": "Values",
-        "description": "Define the principles that guide your life and your vision for the future.",
-        "questionsLabel": "{{count}} questions"
-      },
-      "RELATIONSHIP": {
-        "title": "Partnership",
-        "description": "Explore your expectations for communication, intimacy, and daily life together.",
-        "questionsLabel": "{{count}} questions"
-      },
-      "PARTNER": {
-        "title": "The Partner",
-        "description": "Clarify the essential qualities and characteristics you're seeking in a partner.",
-        "questionsLabel": "{{count}} questions"
-      },
-      "RELIGION": {
-        "title": "Religion",
-        "description": "Detail your spiritual connection, practices, and vision for a Jewish home.",
-        "questionsLabel": "{{count}} questions"
-      }
-    },
-    "featuresSection": {
-      "title": "A Process Built on Trust and Insight",
-      "subtitle": "We designed every step to be respectful of your time and your journey.",
-      "features": [
-        {
-          "title": "Smart & Efficient",
-          "description": "An average journey of 45 minutes that saves you countless hours on irrelevant matches."
-        },
-        {
-          "title": "Completely Confidential",
-          "description": "Your answers are a private conversation between you and your matchmaking team."
-        },
-        {
-          "title": "Reveals Deeper Truths",
-          "description": "Go beyond surface-level details to uncover the essence of what makes a connection last."
-        }
-      ]
-    },
-    "finalCta": {
-      "title": "Ready to Tell Your Story?",
-      "subtitle": "Your next chapter begins with a single, thoughtful step.",
-      "buttonText": "Start My Questionnaire"
-    },
-    "footer": {
-      "copyright": "© {{year}} NeshamaTech. All rights reserved."
+    "result": {
+      "title": "The Result: Clarity and Confidence",
+      "description": "Instead of saying \"someone nice,\" you'll be able to explain exactly what communication style is important to you, which values are non-negotiable, and what dynamic you're looking for. It changes everything."
     }
   },
-   "worldsMap": {
+  "worldsSection": {
+    "title": "Your Journey Through 5 Worlds",
+    "subtitle": "Each world reveals another layer of who you truly are and what's important to you in a relationship",
+    "worlds": {
+      "PERSONALITY": { "title": "The World of Personality", "description": "Who am I really? What drives me?" },
+      "VALUES": { "title": "The World of Values", "description": "What is most important to me in life?" },
+      "RELATIONSHIP": { "title": "The World of Relationship", "description": "How do I see a romantic partnership?" },
+      "PARTNER": { "title": "The World of the Partner", "description": "Who am I looking for by my side?" },
+      "RELIGION": { "title": "The World of Faith & Tradition", "description": "What is the place of Judaism in my life?" }
+    },
+    "worldLabel": "World {{number}}"
+  },
+  "featuresSection": {
+    "title": "Why Does It Actually Work?",
+    "cards": {
+      "fast": { "title": "Quick and Convenient", "description": "Only 20-30 minutes. You can start, stop, and return at any time. Your progress is saved automatically." },
+      "private": { "title": "Private and Secure", "description": "Your answers are yours alone. Only you and authorized matchmakers can access them." },
+      "instantResult": { "title": "Instant Result", "description": "Upon completion, you'll receive your Soul Report - a detailed, personal PDF document distilling all your insights." }
+    }
+  },
+  "finalCta": {
+    "title1": "Ready to start?",
+    "title2": "Your Soul Report is waiting",
+    "subtitle": "20 minutes of focus that will save you months of searching.\nStart now and discover what truly matters to you in a relationship.",
+    "buttonText": "Get Your Soul Report Now",
+    "assurance": "Free • No Commitment • Completely Private"
+  },
+  "footer": {
+    "copyright": "© {{year}} NeshamaTech. All rights reserved."
+  }
+},
+  "worldsMap": {
     "worldLabels": {
       "PERSONALITY": "Personality",
       "VALUES": "Values & Beliefs",
@@ -232,10 +253,23 @@ Content:
       "RELIGION": "Religion & Tradition"
     },
     "progressHeader": {
-      "greeting": "Welcome to Your Journey, {{name}}!",
-      "defaultTitle": "Your Path to a Meaningful Relationship",
-      "progressText": "You've completed {{completedCount}} of {{totalCount}} worlds.",
-      "ctaButton": "Continue to Recommended: {{worldName}}"
+      "greeting": "Hi {{name}},",
+      "journeyQuestion": "Where are we on the journey?",
+      "defaultTitle": "Your Journey of Self-Discovery",
+      "progressText": "You've completed {{completedCount}} of {{totalCount}} worlds • {{totalAnswered}} of {{totalQuestions}} questions",
+      "ctaButton": "Let's Continue!",
+      "mapTitle": "Your Worlds Map",
+      "milestones": {
+        "start": "Start",
+        "onTrack": "On Track",
+        "inProgress": "In Progress",
+        "almostThere": "Almost There",
+        "completed": "Completed!"
+      },
+      "nextStepTitle": "The Next Step on Your Journey",
+      "nextStepPrompt": "Ready to continue to {{worldName}}?",
+      "completionTitle": "🎉 Congratulations! You've completed all worlds",
+      "completionSubtitle": "You can now review your full profile and see your Soul Report."
     },
     "reviewCard": {
       "title": "Want to review your answers?",
@@ -243,36 +277,40 @@ Content:
       "button": "Review Answers"
     },
     "worldCard": {
-      "readMore": "Read More",
-      "showLess": "Show Less",
+      "discoverTitle": "What will you discover in this world?",
       "questionCount": "{{count}} questions",
       "estimatedTime": "~{{count}} minutes",
+      "worldNumberLabel": "World {{number}}",
+      "progressLabel": "Progress: {{completed}}/{{total}}",
+      "recommendedRibbon": "Recommended",
       "statuses": {
         "completed": "Completed",
-        "recommended": "Recommended Next",
+        "recommended": "Recommended",
         "active": "In Progress",
         "available": "Available",
         "locked": "Locked"
       },
       "actions": {
         "edit": "Edit Answers",
-        "start": "Start This World",
-        "continue": "Continue Here",
-        "locked": "Locked"
-      },
-       "progress": "Progress"
+        "startRecommended": "Start Now",
+        "continue": "Continue",
+        "start": "Start",
+        "locked": "Complete previous worlds"
+      }
     },
     "completionBanner": {
       "title": "Congratulations, {{name}}!",
       "subtitle": "You've completed all the questionnaire worlds. You've taken a huge step on your journey!",
-      "description": "Your full profile is now ready for our matchmakers."
+      "description": "Your full profile is now ready for our matchmakers.",
+      "statWorlds": "5 Worlds",
+      "statReport": "Full Soul Report"
     },
     "worldsContent": {
       "PERSONALITY": {
         "title": "World of Personality",
-        "subtitle": "The foundation of who you are and how you operate in the world.",
+        "description": "The foundation of who you are and how you operate in the world.",
         "whyIsItImportant": "So we can find the complementary half to your puzzle, we need to get to know all the pieces. Here, our goal is not to label you, but to understand your internal dynamics.",
-        "whatYouWillDiscover": [
+        "benefits": [
           "What motivates you in life?",
           "How do you recharge your social energy?",
           "What is your approach to handling challenges?"
@@ -281,9 +319,9 @@ Content:
       },
       "VALUES": {
         "title": "World of Values",
-        "subtitle": "The internal compass that guides your life decisions.",
+        "description": "The internal compass that guides your life decisions.",
         "whyIsItImportant": "A relationship based solely on initial chemistry encounters difficulties when real life begins. This world is the most important for preventing vast gaps in worldview.",
-        "whatYouWillDiscover": [
+        "benefits": [
           "What is your definition of a 'rich life'?",
           "What are the stories that have shaped your value system?",
           "Where do your life priorities lie?"
@@ -292,9 +330,9 @@ Content:
       },
       "RELATIONSHIP": {
         "title": "World of Partnership",
-        "subtitle": "Your vision for partnership, intimacy, and daily life.",
+        "description": "Your vision for partnership, intimacy, and daily life.",
         "whyIsItImportant": "A good relationship is a practical partnership. Here we map your emotional needs and communication style to find someone whose 'formula' for a relationship complements yours.",
-        "whatYouWillDiscover": [
+        "benefits": [
           "What is your 'formula' for sharing household responsibilities?",
           "How do you react to disappointment in a relationship?",
           "What is the right balance for you between 'togetherness' and 'aloneness'?"
@@ -303,9 +341,9 @@ Content:
       },
       "PARTNER": {
         "title": "World of the Partner",
-        "subtitle": "Defining the essential traits and values for you in a partner.",
+        "description": "Defining the essential traits and values for you in a partner.",
         "whyIsItImportant": "A search that is too 'open' leads to wasted time and energy. By defining non-negotiable core traits, you allow us to work for you in a smart and focused manner.",
-        "whatYouWillDiscover": [
+        "benefits": [
           "What is the one character trait that a partner must have?",
           "What are your absolute 'red lines'?",
           "What type of 'intelligence' is most important to you?"
@@ -314,9 +352,9 @@ Content:
       },
       "RELIGION": {
         "title": "Religion & Tradition",
-        "subtitle": "Your connection to tradition, faith, and building a Jewish home.",
+        "description": "Your connection to tradition, faith, and building a Jewish home.",
         "whyIsItImportant": "To avoid future misunderstandings, we need to understand the finest nuances of your connection to Judaism. This is the foundation for harmony in building a faithful home in Israel.",
-        "whatYouWillDiscover": [
+        "benefits": [
           "What is the central experience you seek from Shabbat?",
           "What is your vision for the spiritual atmosphere in your home?",
           "What is your degree of flexibility on halachic gaps?"
@@ -326,23 +364,45 @@ Content:
     }
   }
 
+
 ,
-  "layout": {
+   "layout": {
     "navHeader": "Your Journey",
     "navSubtitle": "Navigate the five worlds.",
+    "sidebarHeader": {
+      "title": "Your Journey",
+      "subtitle": "Guided Self-Discovery"
+    },
+    "sidebarProgress": {
+      "title": "Your Progress",
+      "worldsLabel": "{{completedCount}}/{{totalCount}} worlds",
+      "completionMessage": "Well done! You've completed all worlds 🎉"
+    },
+    "navButtonStatus": {
+      "active": "Now",
+      "completed": "Completed",
+      "available": "World {{order}}"
+    },
+    "saveButton": {
+      "default": "Save Progress",
+      "saving": "Saving...",
+      "saved": "Saved!"
+    },
+    "lastSavedSuccess": "Saved successfully at {{time}}",
+    "actionButtons": {
+      "review": "Review Answers",
+      "exitToMap": "Back to Map",
+      "faq": "Frequently Asked Questions"
+    },
+    "faqSheet": {
+      "title": "Frequently Asked Questions"
+    },
     "unauthenticatedPrompt": {
       "title": "Don't Lose Your Progress",
       "subtitle": "Sign in or create an account to save your answers.",
       "loginButton": "Sign In",
       "registerButton": "Register"
     },
-    "buttons": {
-      "save": "Save Progress",
-      "saving": "Saving...",
-      "review": "Review Answers",
-      "map": "Back to Map"
-    },
-    "lastSaved": "Saved: {{time}}",
     "exitPrompt": {
       "title": "Exit This World?",
       "description": "You have unsaved changes. How would you like to proceed?",
@@ -354,7 +414,8 @@ Content:
       "title": "Navigation",
       "backToMap": "Worlds Map",
       "exit": "Exit Questionnaire",
-      "reviewAnswers": "Review My Answers"
+      "reviewAnswers": "Review My Answers",
+      "menuTitle": "Menu"
     },
     "tooltips": {
       "faq": "Frequently Asked Questions",
@@ -363,31 +424,60 @@ Content:
     "profileNotice": {
       "title": "A Note on Visibility:",
       "textPart1": "By default, your answers are visible to your matchmaker. You can choose to hide specific answers using the",
-      "textPart2": "toggle. Hidden answers will never be shared with potential matches.",
-      "textPart3": "",
+      "visibilityToggleLabel": "Visibility Toggle",
+      "textPart2": "which will hide them from your public profile.",
       "link": "You can manage all your answers in your profile."
     }
-  },
+  }
+
+,
   "world": {
     "header": {
-      "questionLabel": "Question {{current}} of {{total}}"
+      "questionLabel": "Question {{current}} of {{total}}",
+      "estimatedTimeLeft": "{{minutes}} min left",
+      "statusCard": {
+        "progress": "Progress",
+        "required": "Required",
+        "status": "Status",
+        "questions": "questions",
+        "complete": "✓ Complete",
+        "left": "{{count}} left",
+        "keepItUp": "Keep it up!",
+        "states": {
+          "started": "🌱 Started",
+          "going": "🚀 Going!",
+          "great": "⭐ Great",
+          "almost": "🔥 Almost!",
+          "perfect": "🎉 Perfect!"
+        }
+      },
+      "overallProgress": "Overall Progress"
     },
     "errors": {
       "loadingFailedTitle": "Loading Error",
       "loadingFailedDescription": "We couldn't load the questions for this world. Please try returning to the map and re-entering.",
-      "invalidQuestion": "Invalid question. Please try again."
+      "invalidQuestion": "Invalid question. Please try again.",
+      "validation": {
+        "required": "This field is required",
+        "minLength": "Answer must be at least {{count}} characters",
+        "maxLength": "Answer cannot exceed {{count}} characters",
+        "minSelections": "Please select at least {{count}} options",
+        "maxSelections": "You can select up to {{count}} options",
+        "budgetAllocation": "You must allocate exactly {{count}} points",
+        "budgetRequired": "Budget allocation is required"
+      }
     },
- "buttons": {
-  "backToMap": "Back to Map",
-  "hideList": "Hide List",
-  "showList": "Show List",
-  "questionList": "Question List",
-  "previous": "Previous",
-  "next": "Next",
-  "finish": "Finish World",
-  "save": "Save",
-  "saving": "Saving..."
-},
+    "buttons": {
+      "backToMap": "Back to Map",
+      "hideList": "Hide List",
+      "showList": "Show List",
+      "questionList": "Question List",
+      "previous": "Previous",
+      "next": "Next",
+      "finish": "Finish World",
+      "save": "Save",
+      "saving": "Saving..."
+    },
     "listSheet": {
       "title": "All Questions in {{worldTitle}}",
       "description": "Navigate to any question or review your progress.",
@@ -396,8 +486,15 @@ Content:
         "required": "Required",
         "notAnswered": "Not Answered"
       }
+    },
+    "celebration": {
+      "quarter": "🎉 Quarter way!",
+      "half": "🚀 Halfway there!",
+      "threeQuarters": "⭐ Almost done!",
+      "complete": "🎊 Amazing! All done!"
     }
-  },
+  }
+,
   "answerInput": {
     "clearSelection": "Clear selection",
     "tooltips": {
@@ -884,7 +981,16 @@ Content:
       "ADVANCED": "שאלות מומלצות להיכרות מעמיקה יותר",
       "EXPERT": "שאלות העשרה לחיבור מעמיק במיוחד"
     },
+        "estimatedTime": "{{minutes}} דקות נותרו",
+    "benefitMessages": [
+      "כל תשובה מקרבת אותך להתאמה מושלמת יותר 💫",
+      "השאלון עוזר לך להבין מה באמת חשוב לך 🎯",
+      "זמן שמושקע כאן חוסך חודשים של חיפושים ❤️",
+      "אתה בונה תשתית להצלחה ארוכת טווח 🌟"
+    ],
+    "encouragementMessage": "כל תשובה עוזרת לנו להכיר אותך טוב יותר ולמצוא לך את ההתאמה המושלמת",
     "requiredBadge": "שאלת חובה *",
+
     "tooltips": {
       "removeBookmark": "הסר סימניה",
       "addBookmark": "שמור לעיון חוזר",
@@ -939,7 +1045,7 @@ Content:
       "RELIGION": "דת ומסורת"
     },
     "toasts": {
-      "saveSuccess": "השאלון נשמר בהצלחה",
+      "saveSuccess": "ההתקדמות נשמרה בהצלחה",
       "autoSaveError": "שגיאה בשמירה אוטומטית",
       "unsavedChanges": {
         "message": "יש לך שינויים שלא נשמרו.",
@@ -950,14 +1056,17 @@ Content:
       "worldProgressSaved": "התקדמות העולם נשמרה",
       "worldProgressSavedBrowser": "התקדמות העולם נשמרה בדפדפן",
       "worldCompletionError": "שגיאה בשמירת התקדמות העולם",
-      "worldFinished": "כל הכבוד! סיימת את עולם ה{{worldName}}"
+      "worldFinished": "כל הכבוד! סיימת את עולם ה{{worldName}}",
+      "submitSuccess": "השאלון נשלח בהצלחה!"
     },
     "errors": {
       "invalidSubmission": "נתוני שליחה לא תקינים",
       "saveFailed": "אירעה שגיאה בשמירת השאלון.",
       "loadFailed": "נכשל בטעינת תשובות קיימות",
       "genericLoadError": "אירעה שגיאה בטעינת התשובות הקיימות",
-      "stageLoadError": "שגיאה בטעינת השלב"
+      "stageLoadError": "שגיאה בטעינת השלב",
+      "invalidStep": "אירעה שגיאה: שלב לא תקין בתהליך.",
+      "submitFailed": "שגיאה בשליחת השאלון."
     },
     "idleModal": {
       "title": "האם אתה עדיין כאן?",
@@ -966,84 +1075,95 @@ Content:
       "stayActiveButton": "אני עדיין כאן"
     },
     "lastSaved": "נשמר לאחרונה: {{time}}",
-    "loading": "טוען..."
-  },
+    "loading": "טוען את המסע שלך...",
+    "loadingSubtext": "טוען את השאלון שלך...",
+    "lastSavedIndicatorLabel": "נשמר"
+  }
+,
   "page": {
     "loading": "טוען שאלון...",
     "backToMain": "חזרה לעמוד הראשי",
     "stageLoadError": "שגיאה בטעינת השלב",
     "completionError": "אירעה שגיאה בסיום השאלון. אנא נסה שוב."
   },
-   "landingPage": {
-    "hero": {
-      "badge": "המסע שלכם מתחיל כאן",
-      "title": "הנתיב שלך לזוגיות משמעותית",
-      "subtitle": "השקעה של דקות ספורות בשאלון המעמיק שלנו היא הצעד החשוב ביותר לבניית הפרופיל המדויק שלך. פרופיל שיאפשר לנו, צוות השדכנים, למצוא עבורך התאמה אמיתית, מבוססת ועמוקה."
+"landingPage": {
+  "hero": {
+    "badge": "מסע אישי לגילוי עצמי",
+    "title1": "לפני שמחפשים את ה\"נכון\",",
+    "title2": "צריך לדעת מה באמת רוצים",
+    "subtitle1": "שאלון עומק שעוזר לך להבין את עצמך, מה שחשוב לך באמת,",
+    "subtitle2": "ומייצר עבורך",
+    "subtitleHighlight": "דוח נשמה מפורט",
+    "subtitle3": "- מפת דרכים לזוגיות שאתה באמת מחפש",
+    "timeEstimate": "20-30 דקות שיחסכו לך חודשים של חיפושים"
+  },
+  "cta": {
+    "continue": "המשך במסע",
+    "startAsUser": "{{name}}, בוא/י נתחיל",
+    "startDefault": "התחל עכשיו",
+    "login": "יש לך משתמש? התחבר"
+  },
+  "problemSection": {
+    "badge": "הבעיה שכולנו מכירים",
+"title1": "“אז מה אתה באמת מחפש?”",
+    "title2": "...והתשובה הסטנדרטית שלא עוזרת",
+    "cards": {
+"generalAnswers": { "title": "תשובות כלליות", "description": "“מישהו טוב”, “עם ערכים דומים”, “שיהיה כיף איתה” - אבל מה זה באמת אומר? איך תדע שמצאת?" }
+,
+      "wastedTime": { "title": "בזבוז זמן ואנרגיה", "description": "דייטים שנגמרים ב\"זה לא זה\" כי לא ממש הבנת מה אתה מחפש מלכתחילה. כל דייט מרגיש כמו נסיון וטעייה." },
+      "lackOfFocus": { "title": "חוסר מיקוד", "description": "קשה להסביר לשדכנים מה באמת חשוב לך, קשה לדעת אם הצעה מתאימה לך, קשה לקבל החלטות." },
+      "frustration": { "title": "תסכול וחוסר בטחון", "description": "התחושה שאולי אתה פשוט לא יודע מה אתה רוצה, או שאולי אתה מחפש משהו שלא קיים." }
     },
-    "cta": {
-      "start": "בוא/י נתחיל",
-      "continue": "המשך/י מהנקודה האחרונה",
-      "startAsUser": "התחל/י את המסע, {{name}}",
-      "loginButton": "כניסה למשתמשים רשומים"
+    "insight": "💡 איך אפשר למצוא את הנכון, אם לא יודעים מה באמת רוצים?"
+  },
+  "solutionSection": {
+    "badge": "הפתרון שחיכית לו",
+    "title": "שאלון שעושה",
+    "titleHighlight": "סדר בראש",
+    "subtitle1": "20 דקות של שאלות ממוקדות שיעזרו לך להבין מה באמת חשוב לך,",
+    "subtitle2": "ובסוף תקבל דוח אישי מפורט - מפת דרכים לזוגיות שאתה מחפש",
+    "cards": {
+      "selfDiscovery": { "title": "גילוי עצמי אמיתי", "description": "השאלון מוביל אותך דרך תהליך מובנה שעוזר לך להבין מה באמת חשוב לך בחיים ובזוגיות - מעבר למשפטים כלליים." },
+"soulReport": { "title": "קבל את “דוח הנשמה” שלך", "description": "בסיום השאלון תקבל דוח PDF מפורט ואישי שמזקק את כל התובנות - מסמך שתוכל לחזור אליו שוב ושוב." }
+,
+      "focusedSearch": { "title": "חיפוש ממוקד ויעיל", "description": "עם דוח הנשמה, תדע בדיוק מה אתה מחפש. זה יעזור לך להסביר לשדכנים, לקבל החלטות טובות יותר, ולחסוך זמן." }
     },
-    "worldsSection": {
-      "title": "חמישה עולמות, פרופיל אחד מדויק",
-      "subtitle": "השאלון מחולק לחמישה עולמות תוכן. כל עולם מתמקד בהיבט אחר של אישיותך וציפיותיך, ויחד הם יוצרים תמונה מלאה ועשירה שתשרת אותנו בתהליך ההתאמה."
-    },
-    "worlds": {
-      "PERSONALITY": {
-        "title": "עולם האישיות",
-        "description": "כאן תצייר/י תמונה אותנטית של אישיותך, כדי שנוכל להבין לעומק מי את/ה.",
-        "questionsLabel": "{{count}} שאלות"
-      },
-      "VALUES": {
-        "title": "עולם הערכים",
-        "description": "מהם עמודי התווך של חייך? כאן נגדיר את הערכים והאמונות שמנחים אותך.",
-        "questionsLabel": "{{count}} שאלות"
-      },
-      "RELATIONSHIP": {
-        "title": "עולם הזוגיות",
-        "description": "מהי זוגיות עבורך? כאן תפרט/י את ציפיותיך מהקשר ואת החזון לשותפות.",
-        "questionsLabel": "{{count}} שאלות"
-      },
-      "PARTNER": {
-        "title": "עולם הפרטנר",
-        "description": "מי האדם שאת/ה מחפש/ת? כאן נמקד את החיפוש ונבין מה חיוני לך בבן/בת זוג.",
-        "questionsLabel": "{{count}} שאלות"
-      },
-      "RELIGION": {
-        "title": "דת ומסורת",
-        "description": "מה החיבור שלך ליהדות? כאן תפרט/י את זהותך הדתית והביטוי שלה בחייך.",
-        "questionsLabel": "{{count}} שאלות"
-      }
-    },
-    "featuresSection": {
-      "title": "הבסיס להצלחה שלך",
-      "subtitle": "השקענו מחשבה וניסיון רב כדי להפוך את התהליך ליעיל, מכבד ומדויק ככל האפשר.",
-      "features": [
-        {
-          "title": "תהליך מודרך וגמיש",
-          "description": "השאלון מחולק לעולמות נפרדים, כך שניתן למלא אותו בקצב שלך, לעצור ולחזור בכל שלב."
-        },
-        {
-          "title": "פרטיות מוחלטת",
-          "description": "התשובות שלך דיסקרטיות לחלוטין ומשמשות את צוות השדכנים המקצועי שלנו בלבד, לצורך מציאת ההתאמה המדויקת ביותר."
-        },
-        {
-          "title": "מתודולוגיה מוכחת",
-          "description": "השיטה שלנו משלבת תובנות מעולם הפסיכולוגיה עם ניסיון של שדכנים ותיקים ליצירת התאמות עומק, ולא רק התאמה שטחית."
-        }
-      ]
-    },
-    "finalCta": {
-      "title": "מוכנ/ה לבנות את הפרופיל שלך?",
-      "subtitle": "הצעד הראשון הוא לספק לנו את התמונה המלאה והאותנטית שלך. מכאן, המומחיות והטכנולוגיה שלנו נכנסות לפעולה כדי להתחיל את החיפוש המדויק עבורך.",
-      "buttonText": "התחל/י עכשיו"
-    },
-    "footer": {
-      "copyright": "© {{year}} NeshamaTech. כל הזכויות שמורות."
+    "result": {
+      "title": "התוצאה: בהירות ובטחון",
+      "description": "במקום להגיד \"מישהו טוב\", תוכל להסביר בדיוק איזה סגנון תקשורת חשוב לך, איזה ערכים לא מוותרים עליהם, ואיזו דינמיקה אתה מחפש בקשר. זה משנה הכל."
     }
   },
+  "worldsSection": {
+    "title": "המסע שלך יעבור דרך 5 עולמות",
+    "subtitle": "כל עולם חושף שכבה נוספת של מי שאתה באמת ומה שחשוב לך בזוגיות",
+    "worlds": {
+      "PERSONALITY": { "title": "עולם האישיות", "description": "מי אני באמת? מה מניע אותי?" },
+      "VALUES": { "title": "עולם הערכים", "description": "מה הכי חשוב לי בחיים?" },
+      "RELATIONSHIP": { "title": "עולם הזוגיות", "description": "איך אני רואה קשר זוגי?" },
+      "PARTNER": { "title": "עולם הפרטנר", "description": "את מי אני מחפש לצידי?" },
+      "RELIGION": { "title": "עולם הדת והמסורת", "description": "מה מקומה של היהדות בחיי?" }
+    },
+    "worldLabel": "עולם {{number}}"
+  },
+  "featuresSection": {
+    "title": "למה זה באמת עובד?",
+    "cards": {
+      "fast": { "title": "מהיר ונוח", "description": "20-30 דקות בלבד. אפשר להתחיל, לעצור, ולחזור בכל זמן. השאלון נשמר אוטומטית." },
+      "private": { "title": "פרטי ומאובטח", "description": "התשובות שלך נשארות אצלך בלבד. רק אתה ושדכנים מורשים יכולים לגשת אליהן." },
+      "instantResult": { "title": "תוצאה מיידית", "description": "בסיום השאלון תקבל את דוח הנשמה שלך - מסמך PDF מפורט ואישי שמזקק את כל התובנות." }
+    }
+  },
+  "finalCta": {
+    "title1": "מוכנים להתחיל?",
+    "title2": "דוח הנשמה שלכם מחכה",
+    "subtitle": "20 דקות של מיקוד שיחסכו לכם חודשים של חיפושים.\nהתחילו עכשיו וגלו מה באמת חשוב לכם בזוגיות.",
+    "buttonText": "קבל את דוח הנשמה שלך עכשיו",
+    "assurance": "ללא תשלום • ללא התחייבות • פרטי לחלוטין"
+  },
+  "footer": {
+    "copyright": "© {{year}} NeshamaTech. כל הזכויות שמורות."
+  }
+},
   "worldsMap": {
     "worldLabels": {
       "PERSONALITY": "אישיות",
@@ -1053,10 +1173,23 @@ Content:
       "RELIGION": "דת ומסורת"
     },
     "progressHeader": {
-      "greeting": "שלום, {{name}}! ברוך הבא למסע שלך",
-      "defaultTitle": "הנתיב שלך לזוגיות משמעותית",
-      "progressText": "השלמת {{completedCount}} מתוך {{totalCount}} עולמות.",
-      "ctaButton": "המשך לעולם המומלץ: {{worldName}}"
+      "greeting": "היי {{name}},",
+      "journeyQuestion": "איפה אנחנו במסע?",
+      "defaultTitle": "המסע שלך לגילוי עצמי",
+      "progressText": "השלמת {{completedCount}} מתוך {{totalCount}} עולמות • {{totalAnswered}} מתוך {{totalQuestions}} שאלות",
+      "ctaButton": "בוא נמשיך!",
+      "mapTitle": "מפת העולמות שלך",
+      "milestones": {
+        "start": "התחלה",
+        "onTrack": "במסלול",
+        "inProgress": "בעיצומו",
+        "almostThere": "כמעט שם",
+        "completed": "הושלם!"
+      },
+      "nextStepTitle": "הצעד הבא במסע",
+      "nextStepPrompt": "מוכן/ה להמשיך לעולם {{worldName}}?",
+      "completionTitle": "🎉 כל הכבוד! השלמת את כל העולמות",
+      "completionSubtitle": "עכשיו אפשר לעיין בפרופיל המלא שלך ולראות את דוח הנשמה"
     },
     "reviewCard": {
       "title": "רוצה לסקור את התשובות שלך?",
@@ -1064,36 +1197,40 @@ Content:
       "button": "לסקירת התשובות"
     },
     "worldCard": {
-      "readMore": "קרא עוד",
-      "showLess": "הצג פחות",
+      "discoverTitle": "מה תגלה בעולם הזה?",
       "questionCount": "{{count}} שאלות",
       "estimatedTime": "~{{count}} דקות",
+      "worldNumberLabel": "עולם {{number}}",
+      "progressLabel": "התקדמות: {{completed}}/{{total}}",
+      "recommendedRibbon": "מומלץ",
       "statuses": {
         "completed": "הושלם",
-        "recommended": "הצעד הבא",
-        "active": "פעיל כעת",
+        "recommended": "מומלץ",
+        "active": "בתהליך",
         "available": "זמין",
         "locked": "נעול"
       },
       "actions": {
         "edit": "ערוך תשובות",
-        "start": "התחל עולם זה",
-        "continue": "המשך כאן",
-        "locked": "נעול"
-      },
-      "progress": "התקדמות"
+        "startRecommended": "התחל עכשיו",
+        "continue": "המשך",
+        "start": "התחל",
+        "locked": "השלם עולמות קודמים"
+      }
     },
     "completionBanner": {
       "title": "כל הכבוד, {{name}}!",
       "subtitle": "סיימת את כל עולמות השאלון. עשית צעד ענק במסע שלך!",
-      "description": "הפרופיל המלא שלך מוכן כעת עבור השדכנים שלנו."
+      "description": "הפרופיל המלא שלך מוכן כעת עבור השדכנים שלנו.",
+      "statWorlds": "5 עולמות",
+      "statReport": "דוח נשמה מלא"
     },
     "worldsContent": {
       "PERSONALITY": {
         "title": "עולם האישיות",
-        "subtitle": "הבסיס למי שאת/ה ואיך את/ה פועל/ת בעולם.",
+        "description": "הבסיס למי שאת/ה ואיך את/ה פועל/ת בעולם.",
         "whyIsItImportant": "כדי שנוכל למצוא את החצי המשלים לפאזל שלך, אנחנו צריכים להכיר את כל החלקים. כאן, המטרה שלנו היא לא לתייג אותך, אלא להבין את הדינמיקה הפנימית שלך.",
-        "whatYouWillDiscover": [
+        "benefits": [
           "מה מניע אותך בחיים?",
           "כיצד את/ה נטען/ת באנרגיה חברתית?",
           "מהי גישתך להתמודדות עם אתגרים?"
@@ -1102,9 +1239,9 @@ Content:
       },
       "VALUES": {
         "title": "עולם הערכים",
-        "subtitle": "המצפן הפנימי שמנחה את החלטות החיים שלך.",
+        "description": "המצפן הפנימי שמנחה את החלטות החיים שלך.",
         "whyIsItImportant": "זוגיות שמבוססת רק על כימיה ראשונית נתקלת בקשיים כשהחיים האמיתיים מתחילים. עולם זה הוא החשוב ביותר למניעת פערים תהומיים בהשקפת העולם.",
-        "whatYouWillDiscover": [
+        "benefits": [
           "מהי הגדרתך ל'חיים עשירים'?",
           "מהם הסיפורים שעיצבו את עולמך הערכי?",
           "היכן נמצאות עדיפויות החיים שלך?"
@@ -1113,9 +1250,9 @@ Content:
       },
       "RELATIONSHIP": {
         "title": "עולם הזוגיות",
-        "subtitle": "החזון שלך לשותפות, אינטימיות וחיי יום-יום.",
+        "description": "החזון שלך לשותפות, אינטימיות וחיי יום-יום.",
         "whyIsItImportant": "זוגיות טובה היא שותפות מעשית. כאן אנחנו ממפים את הצרכים הרגשיים וסגנון התקשורת שלך כדי למצוא מישהו שה'נוסחה' שלו לזוגיות משלימה את שלך.",
-        "whatYouWillDiscover": [
+        "benefits": [
           "מהי 'הנוסחה' שלך לחלוקת אחריות בבית?",
           "איך את/ה מגיב/ה לאכזבה בקשר?",
           "מה האיזון הנכון עבורך בין 'ביחד' ל'לחוד'?"
@@ -1124,9 +1261,9 @@ Content:
       },
       "PARTNER": {
         "title": "עולם הפרטנר",
-        "subtitle": "הגדרת התכונות והערכים החיוניים לך בבן/בת זוג.",
+        "description": "הגדרת התכונות והערכים החיוניים לך בבן/בת זוג.",
         "whyIsItImportant": "חיפוש 'פתוח' מדי מוביל לבזבוז זמן ואנרגיה. על ידי הגדרת תכונות הליבה שאינן ניתנות לפשרה, את/ה מאפשר/ת לנו לעבוד עבורך בצורה חכמה וממוקדת.",
-        "whatYouWillDiscover": [
+        "benefits": [
           "מהי תכונת האופי האחת שחייבת להיות בפרטנר?",
           "מהם ה'קווים האדומים' המוחלטים שלך?",
           "איזה סוג של 'אינטליגנציה' הכי חשוב לך?"
@@ -1135,9 +1272,9 @@ Content:
       },
       "RELIGION": {
         "title": "דת ומסורת",
-        "subtitle": "החיבור שלך למסורת, לאמונה ולבניית בית יהודי.",
+        "description": "החיבור שלך למסורת, לאמונה ולבניית בית יהודי.",
         "whyIsItImportant": "כדי למנוע אי הבנות עתידיות, אנחנו צריכים להבין את הגוונים הדקים ביותר של החיבור שלך ליהדות. זהו הבסיס להרמוניה בבניית בית נאמן בישראל.",
-        "whatYouWillDiscover": [
+        "benefits": [
           "מהי החוויה המרכזית שאת/ה מחפש/ת בשבת?",
           "מהו החזון שלך לאווירה הרוחנית בבית?",
           "מהי מידת הגמישות שלך בפערים הלכתיים?"
@@ -1148,23 +1285,45 @@ Content:
   }
 
 
+
 ,
-    "layout": {
+   "layout": {
     "navHeader": "עולמות השאלון",
     "navSubtitle": "נווט בין חלקי השאלון השונים",
+    "sidebarHeader": {
+      "title": "המסע שלך",
+      "subtitle": "גילוי עצמי מודרך"
+    },
+    "sidebarProgress": {
+      "title": "ההתקדמות שלך",
+      "worldsLabel": "{{completedCount}}/{{totalCount}} עולמות",
+      "completionMessage": "כל הכבוד! השלמת את כל העולמות 🎉"
+    },
+    "navButtonStatus": {
+      "active": "עכשיו",
+      "completed": "הושלם",
+      "available": "עולם {{order}}"
+    },
+    "saveButton": {
+      "default": "שמור התקדמות",
+      "saving": "שומר...",
+      "saved": "נשמר!"
+    },
+    "lastSavedSuccess": "נשמר בהצלחה ב-{{time}}",
+    "actionButtons": {
+      "review": "סקור את התשובות",
+      "exitToMap": "חזור למפה",
+      "faq": "שאלות נפוצות"
+    },
+    "faqSheet": {
+      "title": "שאלות נפוצות"
+    },
     "unauthenticatedPrompt": {
       "title": "התקדמותך נשמרת זמנית בדפדפן.",
       "subtitle": "התחבר/י או הרשמ/י כדי לשמור את התשובות לחשבונך.",
       "loginButton": "התחברות",
       "registerButton": "הרשמה"
     },
-    "buttons": {
-      "save": "שמור התקדמות",
-      "saving": "שומר...",
-      "review": "סקירת תשובות",
-      "map": "מפת העולמות"
-    },
-    "lastSaved": "נשמר: {{time}}",
     "exitPrompt": {
       "title": "האם אתה בטוח שברצונך לצאת?",
       "description": "כל התשובות שלא נשמרו יאבדו. האם ברצונך לשמור לפני היציאה?",
@@ -1176,30 +1335,58 @@ Content:
       "title": "ניווט בשאלון",
       "backToMap": "חזרה למפת העולמות",
       "exit": "יציאה",
-      "reviewAnswers": "צפייה בכל התשובות"
+      "reviewAnswers": "צפייה בכל התשובות",
+      "menuTitle": "תפריט"
     },
     "tooltips": {
       "faq": "שאלות נפוצות",
       "accessibility": "נגישות ותצוגה"
     },
-
-
     "profileNotice": {
       "title": "שימ/י לב:",
-      "textPart1": "כל תשובה שתענה/י תוצג אוטומטית בכרטיס הפרופיל שלך כדי לשפר את איכות ההתאמות. ניתן להסתיר כל שאלה מהפרופיל באמצעות המתג",
-      "textPart2": "שבחלק התחתון של כל שאלה.",
-      "textPart3": "לצפייה בפרופיל שלך",
-      "link": "לחץ/י כאן"
+      "textPart1": "כברירת מחדל, תשובות גלויות לשדכן. ניתן לבחור להסתיר תשובות ספציפיות באמצעות",
+      "visibilityToggleLabel": "מתג הנראות",
+      "textPart2": "שיוסתר מהפרופיל הציבורי שלך.",
+      "link": "ניתן לנהל את כל התשובות שלך דרך הפרופיל האישי."
     }
-  },
+  }
+
+,
   "world": {
     "header": {
-      "questionLabel": "שאלה {{current}} מתוך {{total}}"
+      "questionLabel": "שאלה {{current}} מתוך {{total}}",
+      "estimatedTimeLeft": "{{minutes}} דקות נותרו",
+      "statusCard": {
+        "progress": "התקדמות",
+        "required": "חובה",
+        "status": "מצב",
+        "questions": "שאלות",
+        "complete": "✓ הושלם",
+        "left": "{{count}} נותרו",
+        "keepItUp": "המשך כך!",
+        "states": {
+          "started": "🌱 מתחיל",
+          "going": "🚀 קדימה!",
+          "great": "⭐ מעולה",
+          "almost": "🔥 כמעט!",
+          "perfect": "🎉 מושלם!"
+        }
+      },
+      "overallProgress": "התקדמות כוללת"
     },
     "errors": {
       "loadingFailedTitle": "שגיאה בטעינת השאלות",
       "loadingFailedDescription": "לא ניתן היה לטעון את השאלות עבור עולם זה.",
-      "invalidQuestion": "שגיאה בטעינת השאלה..."
+      "invalidQuestion": "שגיאה בטעינת השאלה...",
+      "validation": {
+        "required": "נדרשת תשובה לשאלה זו",
+        "minLength": "התשובה חייבת להכיל לפחות {{count}} תווים",
+        "maxLength": "התשובה לא יכולה לחרוג מ-{{count}} תווים",
+        "minSelections": "יש לבחור לפחות {{count}} אפשרויות",
+        "maxSelections": "ניתן לבחור עד {{count}} אפשרויות",
+        "budgetAllocation": "יש להקצות בדיוק {{count}} נקודות",
+        "budgetRequired": "נדרשת הקצאת תקציב"
+      }
     },
     "buttons": {
       "backToMap": "חזרה למפה",
@@ -1208,7 +1395,9 @@ Content:
       "questionList": "רשימת שאלות",
       "previous": "שאלה קודמת",
       "next": "שאלה הבאה",
-      "finish": "סיים עולם זה"
+      "finish": "סיים עולם זה",
+      "save": "שמור",
+      "saving": "שומר..."
     },
     "listSheet": {
       "title": "כל השאלות ב{{worldTitle}}",
@@ -1218,8 +1407,15 @@ Content:
         "required": "חובה (לא נענה)",
         "notAnswered": "לא נענה"
       }
+    },
+    "celebration": {
+      "quarter": "🎉 רבע הדרך!",
+      "half": "🚀 אמצע הדרך!",
+      "threeQuarters": "⭐ כמעט סיימת!",
+      "complete": "🎊 מדהים! השלמת הכל!"
     }
-  },
+  }
+,
    "answerInput": {
     "clearSelection": "נקה בחירה",
     "tooltips": {

@@ -157,6 +157,16 @@ export default function NeshmaInsightSectionB({
     }
   }, [isInView, showPhone, conversation, locale]);
 
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'end',
+      });
+    }
+  }, [messages]);
+
   // --- Animation Variants ---
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -296,7 +306,10 @@ export default function NeshmaInsightSectionB({
                     {/* Messages Area */}
                     <div
                       aria-live="polite"
-                      className="h-[450px] md:h-[500px] overflow-y-auto p-4 bg-gradient-to-br from-purple-50/20 to-rose-50/20"
+                      className="h-[450px] md:h-[500px] overflow-y-auto p-4 bg-gradient-to-br from-purple-50/20 to-rose-50/20 touch-pan-y"
+                      onTouchStart={(e) => e.stopPropagation()}
+                      onTouchMove={(e) => e.stopPropagation()}
+                      onTouchEnd={(e) => e.stopPropagation()}
                     >
                       <AnimatePresence>
                         {messages.map((message) => (

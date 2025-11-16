@@ -165,6 +165,23 @@ export const relationshipQuestions: Question[] = [
   },
   {
     worldId: 'RELATIONSHIP',
+    id: 'relationship_expressing_needs',
+    category: 'relationship',
+    subcategory: 'communication_intimacy',
+    type: 'singleChoice',
+    depth: 'EXPERT',
+    isRequired: false,
+    options: [
+        { value: 'keep_inside' },
+        { value: 'wait_for_right_moment' },
+        { value: 'direct_conversation' },
+        { value: 'hint_repeatedly' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
+  {
+    worldId: 'RELATIONSHIP',
     id: 'relationship_partner_bad_day',
     category: 'relationship',
     subcategory: 'daily_life_partnership',
@@ -179,6 +196,23 @@ export const relationshipQuestions: Question[] = [
     ],
     metadata: { estimatedTime: 1 },
   },
+  {
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_receiving_support',
+    category: 'relationship',
+    subcategory: 'daily_life_partnership',
+    type: 'iconChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+      { value: 'need_to_vent', icon: <MessageCircle /> },
+      { value: 'need_solutions', icon: <Brain /> },
+      { value: 'need_distraction', icon: <Sparkles /> },
+      { value: 'need_space', icon: <Home /> },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
   {
     worldId: 'RELATIONSHIP',
     id: 'relationship_household_philosophy',

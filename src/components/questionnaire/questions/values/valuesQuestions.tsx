@@ -159,6 +159,19 @@ export const valuesQuestions: Question[] = [
   },
   {
     worldId: 'VALUES',
+    id: 'values_risk_attitude',
+    category: 'values',
+    subcategory: 'life_priorities',
+    type: 'scale',
+    depth: 'ADVANCED',
+    isRequired: false,
+    min: 1,
+    max: 10,
+    metadata: { estimatedTime: 1 },
+},
+
+  {
+    worldId: 'VALUES',
     id: 'values_feeling_of_home',
     category: 'values',
     subcategory: 'community_social',
@@ -221,6 +234,23 @@ export const valuesQuestions: Question[] = [
     maxLength: 300,
     metadata: { estimatedTime: 2 },
   },
+  {
+    worldId: 'VALUES',
+    id: 'values_moral_dilemma',
+    category: 'values',
+    subcategory: 'core_values',
+    type: 'scenario',
+    depth: 'EXPERT',
+    isRequired: false,
+    options: [
+        { value: 'express_discomfort' },
+        { value: 'listen_without_judgment' },
+        { value: 'challenge_and_advise' },
+        { value: 'do_not_intervene' },
+    ],
+    metadata: { estimatedTime: 2 },
+},
+
   {
     worldId: 'VALUES',
     id: 'values_giving_tzedaka_importance_revised',

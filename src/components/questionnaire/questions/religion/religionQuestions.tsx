@@ -151,6 +151,23 @@ export const religionQuestions: Question[] = [
   },
   {
     worldId: 'RELIGION',
+    id: 'religion_community_role',
+    category: 'religion',
+    subcategory: 'community_influence',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+        { value: 'central' },
+        { value: 'important' },
+        { value: 'secondary' },
+        { value: 'not_seeking' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
+  {
+    worldId: 'RELIGION',
     id: 'religion_doubts_and_struggles',
     category: 'religion',
     subcategory: 'identity_belief',
@@ -213,4 +230,21 @@ export const religionQuestions: Question[] = [
     maxLength: 500,
     metadata: { estimatedTime: 2 },
   },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_other_denominations_attitude',
+    category: 'religion',
+    subcategory: 'community_influence',
+    type: 'singleChoice',
+    depth: 'EXPERT',
+    isRequired: false,
+    options: [
+        { value: 'decline' },
+        { value: 'conditional_participation' },
+        { value: 'accept_openly' },
+        { value: 'depends_on_context' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
 ];

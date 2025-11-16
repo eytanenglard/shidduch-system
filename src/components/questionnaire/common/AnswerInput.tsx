@@ -335,8 +335,8 @@ export default function AnswerInput({
         >
           <div
             className={cn(
-              'flex items-center gap-3 flex-1',
-              isRTL && 'flex-row-reverse'
+              'flex items-center gap-3 flex-1'
+              // אין צורך בהיפוך נוסף כאן, ההורה כבר עושה זאת
             )}
           >
             {choiceOption.icon && (
@@ -584,7 +584,7 @@ export default function AnswerInput({
                           <div
                             className={cn(
                               'flex items-center gap-3 flex-1',
-                              isRTL && 'flex-row-reverse'
+                              isRTL && 'flex-row-reverse text-right'
                             )}
                           >
                             {option.icon && (
@@ -1352,24 +1352,6 @@ export default function AnswerInput({
                     )}
                   </div>
                 )}
-
-                {(hasMinLength || hasMaxLength) && (
-                  <div className="absolute bottom-3 left-3">
-                    <Badge
-                      className={cn(
-                        'font-mono transition-all',
-                        lengthExceeded
-                          ? 'bg-red-500 text-white animate-pulse'
-                          : isCloseToMax
-                            ? 'bg-amber-500 text-white'
-                            : 'bg-gray-700 text-white'
-                      )}
-                    >
-                      {textValue.length}
-                      {hasMaxLength && ` / ${question.maxLength}`}
-                    </Badge>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -1662,7 +1644,39 @@ export default function AnswerInput({
                 </div>
               </div>
             </motion.div>
-
+            {totalAllocatedPoints > 0 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="flex justify-center"
+              >
+                <Button
+                  onClick={handleClear}
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    'group relative overflow-hidden',
+                    'border-2 rounded-xl px-4 py-2',
+                    'transition-all duration-300',
+                    'bg-white hover:bg-red-50',
+                    'border-red-200 hover:border-red-400',
+                    'text-red-600 hover:text-red-700',
+                    'shadow-sm hover:shadow-md',
+                    'font-medium'
+                  )}
+                >
+                  <div className="flex items-center gap-2 relative z-10">
+                    <Eraser className="w-4 h-4 transition-transform group-hover:rotate-12" />
+                    <span>{dict.answerInput.budgetAllocation.resetButton}</span>
+                  </div>
+                  <motion.div
+                    className="absolute inset-0 bg-red-100 opacity-0 group-hover:opacity-100"
+                    transition={{ duration: 0.2 }}
+                  />
+                </Button>
+              </motion.div>
+            )}
             <div className="space-y-4">
               {question.categories?.map((category, index) => {
                 const categoryValue = budgetValues[category.value] || 0;
@@ -1750,15 +1764,9 @@ export default function AnswerInput({
                           max={category.max ?? totalPointsRequired}
                           step={1}
                           onValueChange={(newValues: number[]) => {
-                            const currentOthersTotal =
-                              totalAllocatedPoints - categoryValue;
-                            const newValue = Math.min(
-                              newValues[0],
-                              totalPointsRequired - currentOthersTotal
-                            );
                             handleValueChange({
                               ...budgetValues,
-                              [category.value]: newValue,
+                              [category.value]: newValues[0],
                             });
                           }}
                           className={cn(
@@ -1799,27 +1807,6 @@ export default function AnswerInput({
                 );
               })}
             </div>
-
-            {totalAllocatedPoints > 0 &&
-              (!question.isRequired || isAllocationComplete) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                handleClear();
-                              }}
-                    className="w-full border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl"
-                  >
-                    <Eraser className="w-4 h-4 mr-2" />
-                    {dict.answerInput.budgetAllocation.resetButton}
-                  </Button>
-                </motion.div>
-              )}
 
             <AnimatePresence>
               {validationError && (

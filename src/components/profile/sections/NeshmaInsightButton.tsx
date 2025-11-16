@@ -11,16 +11,18 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Sparkles, Loader2, Download, Lock, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+// ✨ תיקון: מייבאים את הטיפוס הנכון - TextOptionsLight
+import type { TextOptionsLight } from 'jspdf';
 
 interface NeshmaInsightButtonProps {
   userId: string;
   locale: 'he' | 'en';
-  completionPercentage: number; // מקבלים את אחוז ההשלמה
-  lastGeneratedAt?: string | null; // תאריך יצירה אחרון
-  generatedCount?: number; // כמה פעמים נוצר
+  completionPercentage: number;
+  lastGeneratedAt?: string | null;
+  generatedCount?: number;
   dict: {
     buttonText: string;
     buttonSubtitle: string;
@@ -49,10 +51,8 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
   const [isMinimized, setIsMinimized] = useState(false);
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
-  // בדיקה אם הפרופיל מלא מספיק
   const isProfileComplete = completionPercentage >= 100;
-  
-  // בדיקה אם כבר נוצרה תובנה היום
+
   const canGenerateToday = () => {
     if (!lastGeneratedAt) return true;
     const lastGenDate = new Date(lastGeneratedAt);
@@ -65,7 +65,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
   const hasGeneratedBefore = generatedCount > 0;
   const canGenerate = isProfileComplete && canGenerateToday();
 
-  // אם כבר נוצרה תובנה פעם, הצג באופן ממוזער אוטומטית
   useEffect(() => {
     if (hasGeneratedBefore && isProfileComplete) {
       setIsMinimized(true);
@@ -114,8 +113,7 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
           ? 'התובנה נוצרה בהצלחה!'
           : 'Insight generated successfully!'
       );
-      
-      // רענן את הדף כדי לעדכן את הסטטוס
+
       setTimeout(() => {
         window.location.reload();
       }, 2000);
@@ -133,7 +131,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
     }
   };
 
-  // אם הפרופיל לא מלא - הצג גרסה מוקטנת ונעולה
   if (!isProfileComplete) {
     return (
       <motion.div
@@ -145,7 +142,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
         <div className="relative group opacity-60">
           <div className="relative bg-gradient-to-br from-purple-50/50 via-pink-50/50 to-cyan-50/50 rounded-2xl p-4 shadow-md border border-gray-200">
             <div className="flex items-center gap-3">
-              {/* Icon with lock */}
               <div className="relative">
                 <div className="bg-gradient-to-br from-purple-400 via-pink-400 to-cyan-400 p-3 rounded-xl">
                   <Sparkles className="w-6 h-6 text-white" />
@@ -155,11 +151,12 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
                 </div>
               </div>
 
-              {/* Text */}
               <div className="flex-1">
                 <h4 className="text-sm font-bold text-gray-700">
-                  {dict.lockedTitle || 
-                    (locale === 'he' ? 'תובנת נשמה - נעולה' : 'Neshama Insight - Locked')}
+                  {dict.lockedTitle ||
+                    (locale === 'he'
+                      ? 'תובנת נשמה - נעולה'
+                      : 'Neshama Insight - Locked')}
                 </h4>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {dict.lockedDescription ||
@@ -175,7 +172,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
     );
   }
 
-  // אם כבר נוצרה תובנה - הצג גרסה ממוזערת
   if (isMinimized && hasGeneratedBefore) {
     return (
       <motion.div
@@ -192,7 +188,7 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-gray-800">
-                  {dict.minimizedButtonText || 
+                  {dict.minimizedButtonText ||
                     (locale === 'he' ? 'תובנת נשמה' : 'Neshama Insight')}
                 </h4>
                 <p className="text-xs text-gray-500">
@@ -224,7 +220,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
           </div>
         </div>
 
-        {/* Dialog */}
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogContent
             className="max-w-4xl max-h-[90vh] overflow-y-auto"
@@ -236,7 +231,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
                 {dict.dialogTitle}
               </DialogTitle>
             </DialogHeader>
-
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center py-12 space-y-4">
                 <Loader2 className="w-16 h-16 text-purple-600 animate-spin" />
@@ -260,7 +254,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
     );
   }
 
-  // גרסה מלאה - כאשר הפרופיל מלא ועדיין לא נוצרה תובנה
   return (
     <>
       <motion.div
@@ -269,7 +262,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
         transition={{ duration: 0.6, ease: 'easeOut' }}
         className="my-8 relative"
       >
-        {/* כפתור X להקטנה */}
         <button
           onClick={() => setIsMinimized(true)}
           className="absolute top-4 end-4 z-10 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-all"
@@ -277,19 +269,12 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
         >
           <X className="w-4 h-4 text-gray-600" />
         </button>
-
         <div className="relative group">
-          {/* Magical glow effect */}
           <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-500 rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition duration-500 animate-pulse"></div>
-
           <div className="relative bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 rounded-3xl p-8 shadow-xl border border-white/50 backdrop-blur-sm">
             <div className="text-center space-y-4">
-              {/* Icon */}
               <motion.div
-                animate={{
-                  rotate: [0, 5, -5, 0],
-                  scale: [1, 1.05, 1],
-                }}
+                animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.05, 1] }}
                 transition={{
                   duration: 3,
                   repeat: Infinity,
@@ -301,18 +286,12 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
                   <Sparkles className="w-12 h-12 text-white" />
                 </div>
               </motion.div>
-
-              {/* Title */}
               <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 bg-clip-text text-transparent">
                 {dict.buttonText}
               </h3>
-
-              {/* Subtitle */}
               <p className="text-gray-600 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
                 {dict.buttonSubtitle}
               </p>
-
-              {/* CTA Button */}
               <Button
                 onClick={handleGenerateInsight}
                 disabled={!canGenerate}
@@ -327,7 +306,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
                 <Sparkles className="w-5 h-5 me-2" />
                 {locale === 'he' ? 'קבלו את התובנה שלכם' : 'Get Your Insight'}
               </Button>
-
               {!canGenerateToday() && (
                 <p className="text-xs text-orange-600 mt-2">
                   {dict.alreadyGeneratedToday ||
@@ -341,7 +319,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
         </div>
       </motion.div>
 
-      {/* Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent
           className="max-w-4xl max-h-[90vh] overflow-y-auto"
@@ -353,7 +330,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
               {dict.dialogTitle}
             </DialogTitle>
           </DialogHeader>
-
           {isGenerating ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-4">
               <Loader2 className="w-16 h-16 text-purple-600 animate-spin" />
@@ -377,7 +353,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
   );
 };
 
-// Component to display the insight
 const NeshmaInsightDisplay: React.FC<{
   data: any;
   locale: 'he' | 'en';
@@ -385,14 +360,11 @@ const NeshmaInsightDisplay: React.FC<{
 }> = ({ data, locale, dict }) => {
   return (
     <div className="space-y-8 py-4">
-      {/* Part 1: Who You Really Are */}
       <InsightSection
         title={locale === 'he' ? '🌟 מי את/ה באמת' : '🌟 Who You Really Are'}
         content={data.whoYouAre}
         bgColor="from-purple-50 to-pink-50"
       />
-
-      {/* Part 2: Your Ideal Partner */}
       <InsightSection
         title={
           locale === 'he'
@@ -402,8 +374,6 @@ const NeshmaInsightDisplay: React.FC<{
         content={data.idealPartner}
         bgColor="from-pink-50 to-cyan-50"
       />
-
-      {/* Part 3: Preparing for the First Meeting */}
       <InsightSection
         title={
           locale === 'he'
@@ -413,8 +383,6 @@ const NeshmaInsightDisplay: React.FC<{
         content={data.firstMeetingTips}
         bgColor="from-cyan-50 to-blue-50"
       />
-
-      {/* Part 4: Your Unique Potential */}
       <InsightSection
         title={
           locale === 'he'
@@ -424,15 +392,11 @@ const NeshmaInsightDisplay: React.FC<{
         content={data.uniquePotential}
         bgColor="from-blue-50 to-indigo-50"
       />
-
-      {/* Part 5: Next Steps */}
       <InsightSection
         title={locale === 'he' ? '🚀 הצעדים הבאים שלך' : '🚀 Your Next Steps'}
         content={data.nextSteps}
         bgColor="from-indigo-50 to-purple-50"
       />
-
-      {/* Download Button */}
       <div className="flex justify-center pt-4">
         <Button
           variant="outline"
@@ -449,10 +413,7 @@ const NeshmaInsightDisplay: React.FC<{
 
 const InsightSection: React.FC<{
   title: string;
-  content: {
-    summary: string;
-    details: string[];
-  };
+  content: { summary: string; details: string[] };
   bgColor: string;
 }> = ({ title, content, bgColor }) => {
   return (
@@ -483,79 +444,132 @@ const InsightSection: React.FC<{
   );
 };
 
-// Helper function to download the insight as PDF
 const handleDownloadPDF = async (data: any, locale: 'he' | 'en') => {
   try {
-    // Dynamic import to reduce bundle size
     const { jsPDF } = await import('jspdf');
+    toast.info(
+      locale === 'he' ? 'מכין את קובץ ה-PDF...' : 'Preparing PDF file...'
+    );
 
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
     });
-
     const isHebrew = locale === 'he';
+
+    const fontResponse = await fetch('/fonts/Rubik-Regular.ttf');
+    if (!fontResponse.ok) {
+      throw new Error(
+        "Font file not found. Make sure 'Rubik-Regular.ttf' is in the 'public/fonts' directory."
+      );
+    }
+    const fontBlob = await fontResponse.blob();
+    const reader = new FileReader();
+
+    const fontPromise = new Promise<string>((resolve, reject) => {
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          const base64 = reader.result.split(',')[1];
+          resolve(base64);
+        } else {
+          reject('Failed to read font file');
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(fontBlob);
+    });
+
+    const fontBase64 = await fontPromise;
+    doc.addFileToVFS('Rubik-Regular.ttf', fontBase64);
+    doc.addFont('Rubik-Regular.ttf', 'Rubik', 'normal');
+    doc.setFont('Rubik');
+
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 20;
     const maxWidth = pageWidth - margin * 2;
     let yPosition = margin;
 
-    // Title
-    doc.setFontSize(20);
-    doc.setFont('helvetica', 'bold');
-    const title = isHebrew ? 'תובנת נשמה' : 'Neshama Insight';
-    doc.text(title, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 15;
+    const H1_SIZE = 20,
+      H2_SIZE = 14,
+      BODY_SIZE = 10;
+    const LINE_SPACING_H1 = 15,
+      LINE_SPACING_H2 = 7,
+      LINE_SPACING_BODY = 5;
+    const SECTION_SPACING = 10,
+      LIST_INDENT = 5;
 
-    // Add a line
+    const addPageIfNeeded = () => {
+      if (yPosition > pageHeight - 30) {
+        doc.addPage();
+        yPosition = margin;
+      }
+    };
+
+    const writeText = (
+      text: string | string[],
+      x: number,
+      y: number,
+      options: TextOptionsLight = {}
+    ) => {
+      let finalOptions: TextOptionsLight = { ...options };
+      let finalX = x;
+      if (isHebrew) {
+        finalOptions = { ...finalOptions, align: 'right' };
+        finalX = pageWidth - margin;
+      }
+      doc.text(text, finalX, y, finalOptions);
+    };
+
+    doc.setFontSize(H1_SIZE);
+    doc.setFont('Rubik', 'normal');
+    const title = isHebrew ? 'תובנת נשמה' : 'Neshama Insight';
+    // ✨ תיקון: קוראים לפונקציה הרגילה במקום ישירות ל-doc.text
+    writeText(title, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += LINE_SPACING_H1;
+
     doc.setLineWidth(0.5);
     doc.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 10;
+    yPosition += SECTION_SPACING;
 
-    // Helper function to add section
     const addSection = (
       title: string,
       content: { summary: string; details: string[] }
     ) => {
-      // Check if we need a new page
-      if (yPosition > pageHeight - 40) {
-        doc.addPage();
-        yPosition = margin;
-      }
+      addPageIfNeeded();
+      doc.setFontSize(H2_SIZE);
+      writeText(title, margin, yPosition);
+      yPosition += LINE_SPACING_H2;
 
-      // Section title
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text(title, margin, yPosition);
-      yPosition += 7;
-
-      // Summary
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(BODY_SIZE);
       const summaryLines = doc.splitTextToSize(content.summary, maxWidth);
-      doc.text(summaryLines, margin, yPosition);
-      yPosition += summaryLines.length * 5 + 5;
+      addPageIfNeeded();
+      writeText(summaryLines, margin, yPosition);
+      yPosition += summaryLines.length * LINE_SPACING_BODY + 5;
 
-      // Details
       if (content.details && content.details.length > 0) {
         content.details.forEach((detail: string) => {
-          if (yPosition > pageHeight - 20) {
-            doc.addPage();
-            yPosition = margin;
-          }
-
-          const detailLines = doc.splitTextToSize(`• ${detail}`, maxWidth - 5);
-          doc.text(detailLines, margin + 5, yPosition);
-          yPosition += detailLines.length * 5 + 3;
+          addPageIfNeeded();
+          const detailText = `•  ${detail}`;
+          const detailLines = doc.splitTextToSize(
+            detailText,
+            maxWidth - LIST_INDENT
+          );
+          const detailX = isHebrew
+            ? pageWidth - margin - LIST_INDENT
+            : margin + LIST_INDENT;
+          // ✨ תיקון: מסירים את המאפיין lang שלא נתמך
+          const detailOptions: TextOptionsLight = isHebrew
+            ? { align: 'right' }
+            : {};
+          doc.text(detailLines, detailX, yPosition, detailOptions);
+          yPosition += detailLines.length * LINE_SPACING_BODY + 3;
         });
       }
-
-      yPosition += 5;
+      yPosition += SECTION_SPACING;
     };
 
-    // Add all sections
     const sections = [
       {
         title: isHebrew ? '🌟 מי את/ה באמת' : '🌟 Who You Really Are',
@@ -584,20 +598,21 @@ const handleDownloadPDF = async (data: any, locale: 'he' | 'en') => {
         content: data.nextSteps,
       },
     ];
+    sections.forEach((section) => addSection(section.title, section.content));
 
-    sections.forEach((section) => {
-      addSection(section.title, section.content);
-    });
+    const pageCount = (doc.internal as any).getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      const footerText = isHebrew
+        ? 'נוצר על ידי NeshamaTech - מערכת שידוכים מתקדמת'
+        : 'Created by NeshamaTech - Advanced Matchmaking System';
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      // ✨ תיקון: משתמשים ב-TextOptionsLight
+      const footerOptions: TextOptionsLight = { align: 'center' };
+      doc.text(footerText, pageWidth / 2, pageHeight - 10, footerOptions);
+    }
 
-    // Footer on last page
-    const footerText = isHebrew
-      ? 'נוצר על ידי NeshamaTech - מערכת שידוכים מתקדמת'
-      : 'Created by NeshamaTech - Advanced Matchmaking System';
-    doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text(footerText, pageWidth / 2, pageHeight - 10, { align: 'center' });
-
-    // Save the PDF
     const filename = isHebrew ? 'תובנת-נשמה.pdf' : 'neshama-insight.pdf';
     doc.save(filename);
 
