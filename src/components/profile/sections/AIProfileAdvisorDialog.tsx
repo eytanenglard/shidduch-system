@@ -13,8 +13,9 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Sparkles, AlertTriangle, X } from 'lucide-react';
+import { Loader2, Sparkles, AlertTriangle, X, Brain, Zap } from 'lucide-react';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import AnalysisResultDisplay from './AnalysisResultDisplay';
 import type { AiProfileAnalysisResult } from '@/lib/services/aiService';
@@ -27,7 +28,7 @@ interface AIProfileAdvisorDialogProps {
   userId: string;
   dict: AIAdvisorDialogDict;
   analysisDict: AnalysisResultDisplayDict;
-  locale: string; // Added locale prop
+  locale: string;
 }
 
 export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
@@ -99,90 +100,260 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button
-          onClick={handleTriggerClick}
-          variant="outline"
-          size="lg"
-          className="rounded-full border-2 border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:border-purple-400 transition-all duration-300 shadow-sm hover:shadow-lg group w-full max-w-sm flex items-center gap-2"
+        <motion.div
+          whileHover={{ scale: 1.02, y: -2 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full max-w-sm"
         >
-          <Sparkles className="w-5 h-5 text-purple-500 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110" />
-          <span>{dict.triggerButton}</span>
-        </Button>
+          <Button
+            onClick={handleTriggerClick}
+            variant="outline"
+            size="lg"
+            className="relative group overflow-hidden w-full rounded-2xl border-2 border-purple-200/60 bg-gradient-to-br from-purple-50 via-pink-50 to-white hover:border-purple-300 transition-all duration-500 shadow-lg hover:shadow-2xl hover:shadow-purple-200/50 py-7"
+          >
+            {/* Decorative background elements */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200/30 to-transparent rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-200/30 to-transparent rounded-full blur-xl group-hover:scale-125 transition-transform duration-700" />
+            
+            {/* Content */}
+            <div className="relative z-10 flex items-center justify-center gap-3">
+              <div className="relative">
+                <Sparkles className="w-6 h-6 text-purple-600 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-purple-400 rounded-full blur-md opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
+              </div>
+              <span className="font-semibold text-lg bg-gradient-to-r from-purple-700 via-pink-600 to-purple-700 bg-clip-text text-transparent group-hover:from-purple-800 group-hover:via-pink-700 group-hover:to-purple-800 transition-all duration-300">
+                {dict.triggerButton}
+              </span>
+              <Brain className="w-5 h-5 text-pink-500 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:rotate-6" />
+            </div>
+
+            {/* Animated gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
+          </Button>
+        </motion.div>
       </DialogTrigger>
 
       <DialogContent
-        className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0"
-        dir={direction} // Dynamically set direction
+        className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0 border-2 border-purple-100/50 shadow-2xl overflow-hidden bg-gradient-to-br from-white via-purple-50/30 to-pink-50/30"
+        dir={direction}
       >
-        <DialogHeader className="p-4 border-b">
+        {/* Decorative background elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-200/20 to-transparent rounded-full blur-3xl animate-float-slow" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-pink-200/20 to-transparent rounded-full blur-2xl animate-float-slow" style={{ animationDelay: '2s' }} />
+
+        <DialogHeader className="relative z-10 p-6 border-b border-purple-100/50 bg-white/80 backdrop-blur-sm">
           <div className="flex justify-between items-start gap-4">
-            {/* Step 1: Move the Close Button to be the first element */}
             <DialogClose asChild>
-              <button className="rounded-full p-1.5 text-gray-500 hover:text-gray-800 shrink-0 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+              <motion.button 
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+                className="rounded-full p-2 text-gray-400 hover:text-gray-700 hover:bg-purple-50 shrink-0 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2"
+              >
                 <X className="h-5 w-5" />
                 <span className="sr-only">{dict.closeButton}</span>
-              </button>
+              </motion.button>
             </DialogClose>
 
-            {/* Wrapper for title and description - now the second element */}
             <div className="flex-grow">
-              <DialogTitle className="flex items-center gap-2 text-xl">
-                <Sparkles className="w-6 h-6 text-purple-500" />
-                <span>{dict.dialogTitle}</span>
+              <DialogTitle className="flex items-center gap-3 text-2xl">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl blur-lg opacity-40" />
+                  <div className="relative bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 p-2.5 rounded-xl shadow-lg">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+                <span className="bg-gradient-to-r from-purple-700 via-pink-600 to-purple-700 bg-clip-text text-transparent font-bold">
+                  {dict.dialogTitle}
+                </span>
               </DialogTitle>
-              <DialogDescription className="mt-1">
+              <DialogDescription className="mt-2 text-gray-600 leading-relaxed">
                 {dict.dialogDescription}
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="flex-grow overflow-y-auto p-4 md:p-6 bg-slate-50/50">
-          {isLoading ? (
-            <div
-              role="status"
-              aria-live="polite"
-              className="flex flex-col items-center justify-center h-full text-center"
-            >
-              <Loader2 className="w-12 h-12 text-purple-500 animate-spin mb-4" />
-              <p className="text-lg font-semibold text-gray-700">
-                {dict.loadingTitle}
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                {dict.loadingDescription}
-              </p>
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <Alert variant="destructive" className="max-w-md">
-                <AlertTriangle className="h-5 w-5" />
-                <AlertTitle>{dict.errorAlertTitle}</AlertTitle>
-                <AlertDescription>
-                  <p>{dict.errorAlertDescription}</p>
-                  <p className="text-xs mt-2">{error}</p>
-                </AlertDescription>
-              </Alert>
-              <Button
-                onClick={handleGetAnalysis}
-                variant="outline"
-                className="mt-4"
+        <div className="relative z-10 flex-grow overflow-y-auto p-6 md:p-8">
+          <AnimatePresence mode="wait">
+            {isLoading ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+                role="status"
+                aria-live="polite"
+                className="flex flex-col items-center justify-center h-full text-center"
               >
-                {dict.retryButton}
-              </Button>
-            </div>
-          ) : analysis ? (
-            <AnalysisResultDisplay
-              analysis={analysis}
-              dict={analysisDict}
-              locale={locale} // Pass locale down
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <p>{dict.initialState}</p>
-            </div>
-          )}
+                {/* Loading animation container */}
+                <div className="relative mb-8">
+                  {/* Animated rings */}
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 w-32 h-32 rounded-full border-4 border-t-purple-500 border-r-pink-500 border-b-transparent border-l-transparent"
+                  />
+                  <motion.div
+                    animate={{ rotate: -360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-2 w-28 h-28 rounded-full border-4 border-t-transparent border-r-pink-400 border-b-purple-400 border-l-transparent"
+                  />
+                  
+                  {/* Central icon */}
+                  <div className="relative w-32 h-32 flex items-center justify-center">
+                    <motion.div
+                      animate={{ 
+                        scale: [1, 1.2, 1],
+                        rotate: [0, 180, 360]
+                      }}
+                      transition={{ 
+                        duration: 2, 
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      className="bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 p-4 rounded-2xl shadow-2xl"
+                    >
+                      <Brain className="w-12 h-12 text-white" />
+                    </motion.div>
+                  </div>
+                </div>
+
+                {/* Loading text */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="space-y-3"
+                >
+                  <p className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent">
+                    {dict.loadingTitle}
+                  </p>
+                  <p className="text-gray-600 max-w-md">
+                    {dict.loadingDescription}
+                  </p>
+
+                  {/* Animated dots */}
+                  <div className="flex items-center justify-center gap-2 mt-6">
+                    {[0, 0.2, 0.4].map((delay) => (
+                      <motion.div
+                        key={delay}
+                        animate={{ 
+                          y: [0, -8, 0],
+                          opacity: [0.3, 1, 0.3]
+                        }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          delay,
+                          ease: "easeInOut"
+                        }}
+                        className="w-3 h-3 rounded-full bg-gradient-to-br from-purple-500 to-pink-500"
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              </motion.div>
+            ) : error ? (
+              <motion.div
+                key="error"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="flex flex-col items-center justify-center h-full text-center px-4"
+              >
+                <div className="relative mb-6">
+                  <div className="absolute inset-0 bg-red-400 rounded-full blur-xl opacity-20" />
+                  <div className="relative bg-gradient-to-br from-red-50 to-orange-50 p-6 rounded-full border-2 border-red-200">
+                    <AlertTriangle className="h-16 w-16 text-red-500" />
+                  </div>
+                </div>
+
+                <Alert 
+                  variant="destructive" 
+                  className="max-w-md bg-white/90 backdrop-blur-sm border-2 border-red-200 shadow-xl"
+                >
+                  <AlertTriangle className="h-5 w-5" />
+                  <AlertTitle className="text-lg font-bold">
+                    {dict.errorAlertTitle}
+                  </AlertTitle>
+                  <AlertDescription className="space-y-2">
+                    <p className="text-sm">{dict.errorAlertDescription}</p>
+                    <p className="text-xs text-gray-600 bg-red-50 p-2 rounded-lg mt-2 font-mono">
+                      {error}
+                    </p>
+                  </AlertDescription>
+                </Alert>
+
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    onClick={handleGetAnalysis}
+                    variant="outline"
+                    className="mt-6 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 hover:border-purple-400 text-purple-700 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    {dict.retryButton}
+                  </Button>
+                </motion.div>
+              </motion.div>
+            ) : analysis ? (
+              <motion.div
+                key="analysis"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+              >
+                <AnalysisResultDisplay
+                  analysis={analysis}
+                  dict={analysisDict}
+                  locale={locale}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="initial"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center justify-center h-full"
+              >
+                <div className="text-center space-y-4">
+                  <div className="relative inline-block">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-300 to-pink-300 rounded-full blur-2xl opacity-30" />
+                    <div className="relative bg-gradient-to-br from-purple-100 to-pink-100 p-8 rounded-full border-2 border-purple-200">
+                      <Sparkles className="w-16 h-16 text-purple-600" />
+                    </div>
+                  </div>
+                  <p className="text-lg text-gray-600">{dict.initialState}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </DialogContent>
+
+      {/* Custom animations */}
+      <style>{`
+        @keyframes float-slow {
+          0%, 100% {
+            transform: translateY(0) translateX(0);
+          }
+          25% {
+            transform: translateY(-20px) translateX(10px);
+          }
+          50% {
+            transform: translateY(0) translateX(20px);
+          }
+          75% {
+            transform: translateY(20px) translateX(10px);
+          }
+        }
+        .animate-float-slow {
+          animation: float-slow 20s ease-in-out infinite;
+        }
+      `}</style>
     </Dialog>
   );
 };

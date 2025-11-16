@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-11-16 11:10:57
+# Generated on: 2025-11-16 11:30:20
 ################################################################################
 
 ================================================================================
@@ -1846,8 +1846,8 @@ export default function AnswerInput({
         >
           <div
             className={cn(
-              'flex items-center gap-3 flex-1',
-              isRTL && 'flex-row-reverse'
+              'flex items-center gap-3 flex-1'
+              // אין צורך בהיפוך נוסף כאן, ההורה כבר עושה זאת
             )}
           >
             {choiceOption.icon && (
@@ -2088,10 +2088,8 @@ export default function AnswerInput({
 
                         <div
                           className={cn(
-                            'flex items-center gap-3 relative z-10',
-                            isRTL
-                              ? 'flex-row-reverse justify-between'
-                              : 'justify-between'
+                            'flex items-center justify-between gap-3 relative z-10',
+                            isRTL && 'flex-row-reverse'
                           )}
                         >
                           <div
@@ -3157,7 +3155,7 @@ export default function AnswerInput({
                 </div>
               </div>
             </motion.div>
-{totalAllocatedPoints > 0 && (
+            {totalAllocatedPoints > 0 && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -3320,8 +3318,6 @@ export default function AnswerInput({
                 );
               })}
             </div>
-
-     
 
             <AnimatePresence>
               {validationError && (

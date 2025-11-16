@@ -482,7 +482,10 @@ const Navbar = ({ dict }: NavbarProps) => {
           </div>
 
           {/* Container for scrollable content */}
-          <div className="overflow-y-auto flex-grow">
+          <div
+            className="overflow-y-auto flex-grow overscroll-contain pb-8"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
             {session?.user && (
               <div className="p-4 space-y-3">
                 {/* כרטיס פרופיל עם קישור */}
@@ -563,7 +566,7 @@ const Navbar = ({ dict }: NavbarProps) => {
               </div>
             )}
 
-            <nav className="space-y-1.5 p-2">
+            <nav className="space-y-1.5 p-2 pb-6">
               {session ? (
                 <>
                   {isMatchmaker ? (
