@@ -81,6 +81,36 @@
         "observer": "The Observer: I like to take my time, survey the room, and wait for a natural opening."
       }
     },
+    "personality_pressure_pattern": {
+  "question": "When you are under high pressure or in a crisis, what is your natural pattern?",
+  "helpText": "In a partnership, the way both partners react to crises is critical. This reveals personal coping mechanisms.",
+  "options": {
+    "need_space": "I need time to myself to process and calm down.",
+    "seek_support": "I seek support and conversation with people close to me.",
+    "action_oriented": "I move into immediate action and problem-solving mode.",
+    "avoidance_distraction": "I tend to avoid or distract myself until I'm ready to deal with it."
+  }
+},
+"personality_life_pace": {
+  "question": "Describe your ideal pace of life on a typical day:",
+  "helpText": "Compatibility in life's rhythm prevents many daily frictions. Are you a 'sprinter' or a 'marathon runner' of life?",
+  "options": {
+    "planned_efficient": "Planned in advance, efficient, and dedicated to clear goals.",
+    "organized_spontaneous": "Generally organized, but with room for spontaneity.",
+    "flexible_flow": "Flowing, flexible, and adapted to my mood and circumstances.",
+    "minimalist_calm": "Minimalist, calm, and with plenty of free time."
+  }
+},
+"personality_sleep_flexibility": {
+  "question": "Following the morning/night person question, how flexible are you in adapting to a partner's sleep schedule?",
+  "options": {
+    "very_flexible": "Very flexible, I can adjust.",
+    "somewhat_flexible": "Somewhat, but it will affect my functioning.",
+    "not_flexible": "It's very difficult for me to change my natural rhythm."
+  }
+},
+
+
     "personality_unproductive_day_feeling": {
       "question": "At the end of a day where you were less productive than you'd hoped, what is your internal dialogue like?",
       "helpText": "This question explores your capacity for self-compassion versus self-criticism, which often reflects how we treat a partner.",
@@ -322,6 +352,25 @@
       "placeholder": "Is success defined by financial stability, social impact, raising a wonderful family, inner peace, professional achievement?",
       "helpText": "This is a direct window into your deepest ambitions, helping us find someone with a compatible life vision."
     },
+    "values_extended_family_involvement": {
+  "question": "What level of involvement do you expect the extended family (parents, siblings) to have in your married life?",
+  "helpText": "This is a central issue in many relationships. It's important to understand expectations regarding boundaries and family involvement.",
+  "options": {
+    "high_involvement": "High involvement - the extended family is a central part of our lives.",
+    "healthy_boundaries": "Healthy involvement - a close relationship but with clear boundaries.",
+    "minimal_involvement": "Minimal involvement - we'll maintain contact but build an independent life.",
+    "depends_on_dynamics": "It depends on the dynamics - we'll see how it develops."
+  }
+},
+"values_social_perception_influence": {
+  "question": "To what extent do considerations of 'what will people say' or the opinion of your social circle influence significant decisions in your life?",
+  "helpText": "This question checks the balance between your internal compass and external social influences.",
+  "labels": {
+    "min": "Almost no influence; I act according to my inner truth.",
+    "max": "A strong influence; how I am perceived in society is important to me."
+  }
+},
+
     "values_lost_wallet": {
       "question": "You find a wallet on the street with a large amount of cash and an ID. No one is around. What are your immediate next steps?",
       "placeholder": "Describe your thought process and actions.",
@@ -503,6 +552,33 @@
         "hint_repeatedly": "I'll drop hints repeatedly until the other person gets the message."
       }
     },
+    "relationship_physical_intimacy_importance": {
+  "question": "To what extent are physical closeness and intimacy important to you as an expression of love and connection in a relationship?",
+  "helpText": "This is one of the most important topics for aligning expectations in a relationship. Please answer honestly about your personal needs.",
+  "labels": {
+    "min": "It's important, but the emotional and spiritual connection is more central for me.",
+    "max": "It is central and absolutely vital for my sense of connection and love."
+  }
+},
+"relationship_screen_time_approach": {
+  "question": "What is your approach to using technology (phones, screens) during family time and quality time as a couple?",
+  "options": {
+    "very_limited": "Very limited - it's important for me to maintain 'screen-free' time.",
+    "balanced_usage": "Balanced - conscious use with clear boundaries.",
+    "flexible_usage": "Flexible - each according to their needs, as long as it's not harmful."
+  }
+},
+"relationship_argument_style": {
+  "question": "When you have a disagreement or argument, what is your natural style *during* the conflict?",
+  "helpText": "This question focuses on your reaction 'in the moment', not just how you make up afterward.",
+  "options": {
+    "expressive_emotive": "I express my feelings loudly and then I calm down.",
+    "need_time_to_process": "I need quiet time to process before I'm ready to talk.",
+    "immediate_resolution": "I strive to resolve the issue immediately, no matter the hour.",
+    "conflict_avoidant": "I tend to avoid direct confrontation and hope things blow over."
+  }
+},
+
     "relationship_partner_bad_day": {
       "question": "Your partner comes home after a terrible day, clearly upset. What is your most natural way of offering support?",
       "helpText": "This reveals your 'language of support' in action. There's no single right answer.",
@@ -693,6 +769,21 @@
       "placeholder": "Try to think of the single most fundamental trait for you...",
       "helpText": "This is a powerful focusing question. It helps us understand the absolute core of your search."
     },
+    "partner_romantic_past_comfort": {
+  "question": "What is your comfort level with a partner's romantic past?",
+  "options": {
+    "no_past": "I prefer someone with no significant romantic past.",
+    "short_term_ok": "I'm okay with short-term relationships in the past.",
+    "long_term_ok": "I'm okay with serious/long-term relationships in the past.",
+    "past_is_past": "The past is the past; what matters is the present and future."
+  }
+},
+"partner_what_you_bring": {
+  "question": "Beyond what you are looking for, what are the three main qualities or strengths you feel you would contribute to a relationship?",
+  "placeholder": "For example: listening skills, sense of humor, emotional stability, optimism...",
+  "helpText": "This question helps us understand not just what you want, but also what you give."
+},
+
     "partner_dating_persona": {
       "question": "A date is a unique social situation. If your personality on a date was a pie chart worth 100%, how would you distribute the points among the different 'roles' you tend to play?",
       "helpText": "We're all a bit different on a date than in daily life. Think honestly: do you tend to listen more or talk more? Be humorous or serious? Your answer helps us understand the dynamic you create.",
@@ -811,6 +902,42 @@
         "not_seeking": "I'm not actively seeking a community."
       }
     },
+    "religion_partner_torah_learning_expectation": {
+  "question": "What is your expectation from a partner regarding regular Torah study?",
+  "helpText": "This is an important question for aligning expectations when building a Torah-observant home.",
+  "options": {
+    "dedicated_daily": "It's very important to me that they learn seriously and regularly, on a daily basis.",
+    "regularly_flexible": "It's important to me that they have a connection to learning, even if not daily (e.g., a weekly class).",
+    "when_possible": "I would be happy if they learn when time permits, but it's not a central expectation.",
+    "not_a_focus": "This is not a top priority for me."
+  }
+},
+"religion_army_service_attitude": {
+  "question": "What is your attitude towards significant military / national service?",
+  "helpText": "For many in the Religious Zionist community, this is a core value and issue.",
+  "options": {
+    "essential_for_men": "Meaningful/combat service for men is a supreme value.",
+    "meaningful_service": "Meaningful service (military or national) is important, but not necessarily combat.",
+    "torah_is_protection": "Torah study holds the highest importance, and military service is secondary to it.",
+    "flexible_personal_choice": "It's a personal and flexible decision depending on the person and circumstances."
+  }
+},
+"religion_zionism_importance": {
+  "question": "To what extent are the connection to the Land of Israel and the national-Zionist dimension essential to your Jewish identity?",
+  "labels": {
+    "min": "My connection is primarily religious-halachic.",
+    "max": "Religious Zionism is the core of my identity and worldview."
+  }
+},
+"religion_intergroup_friendships": {
+  "question": "Following the previous question, do you have close friends from other sectors/streams (secular, Haredi, traditional)?",
+  "helpText": "This answer shows in practice, not just in theory, your level of openness and connection to different parts of the nation.",
+  "options": {
+    "large_part": "Yes, they are a large part of my social circle.",
+    "some_friends": "Yes, I have a few such friends.",
+    "mostly_homogeneous": "Not really, my social circle is fairly homogeneous."
+  } 
+   },
     "religion_doubts_and_struggles": {
       "question": "How do you approach moments of spiritual questioning, doubt, or struggle, if and when they arise?",
       "placeholder": "For example: Do you tend to suppress them, discuss them with a mentor or friends, study the topic more deeply, or find strength in the process of wrestling with the question?",

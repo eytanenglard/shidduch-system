@@ -286,4 +286,33 @@ export const partnerQuestions: Question[] = [
     maxLength: 150,
     metadata: { estimatedTime: 1 },
   },
+  {
+    worldId: 'PARTNER',
+    id: 'partner_romantic_past_comfort',
+    category: 'partner',
+    subcategory: 'non_negotiables',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+        { value: 'no_past' },
+        { value: 'short_term_ok' },
+        { value: 'long_term_ok' },
+        { value: 'past_is_past' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+{
+    worldId: 'PARTNER',
+    id: 'partner_what_you_bring',
+    category: 'partner',
+    subcategory: 'self_perception',
+    type: 'openText',
+    depth: 'EXPERT',
+    isRequired: false,
+    minLength: 50,
+    maxLength: 400,
+    metadata: { estimatedTime: 2 },
+},
+
 ];

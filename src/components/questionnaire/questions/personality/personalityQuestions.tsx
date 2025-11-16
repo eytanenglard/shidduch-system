@@ -106,6 +106,21 @@ export const personalityQuestions: Question[] = [
     max: 10,
     metadata: { estimatedTime: 1 },
   },
+{
+        worldId: 'PERSONALITY',
+        id: 'personality_sleep_flexibility',
+        category: 'personality',
+        subcategory: 'lifestyle',
+        type: 'singleChoice',
+        depth: 'ADVANCED',
+        isRequired: false,
+        options: [
+            { value: 'very_flexible' },
+            { value: 'somewhat_flexible' },
+            { value: 'not_flexible' },
+        ],
+        metadata: { estimatedTime: 1 },
+    },
 
   {
     worldId: 'PERSONALITY',
@@ -139,6 +154,39 @@ export const personalityQuestions: Question[] = [
     ],
     metadata: { estimatedTime: 1 },
   },
+  {
+        worldId: 'PERSONALITY',
+        id: 'personality_pressure_pattern',
+        category: 'personality',
+        subcategory: 'emotional_coping',
+        type: 'iconChoice',
+        depth: 'ADVANCED',
+        isRequired: false,
+        options: [
+            { value: 'need_space', icon: <Moon /> },
+            { value: 'seek_support', icon: <Users /> },
+            { value: 'action_oriented', icon: <Target /> },
+            { value: 'avoidance_distraction', icon: <Cloud /> },
+        ],
+        metadata: { estimatedTime: 1 },
+    },
+    {
+        worldId: 'PERSONALITY',
+        id: 'personality_life_pace',
+        category: 'personality',
+        subcategory: 'lifestyle',
+        type: 'singleChoice',
+        depth: 'BASIC',
+        isRequired: false,
+        options: [
+            { value: 'planned_efficient' },
+            { value: 'organized_spontaneous' },
+            { value: 'flexible_flow' },
+            { value: 'minimalist_calm' },
+        ],
+        metadata: { estimatedTime: 1 },
+    },
+
   {
     worldId: 'PERSONALITY',
     id: 'personality_self_portrayal_revised',

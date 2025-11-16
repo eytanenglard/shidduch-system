@@ -180,6 +180,51 @@ export const relationshipQuestions: Question[] = [
     metadata: { estimatedTime: 1 },
 },
 
+{
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_physical_intimacy_importance',
+    category: 'relationship',
+    subcategory: 'communication_intimacy',
+    type: 'scale',
+    depth: 'EXPERT',
+    isRequired: false,
+    min: 1,
+    max: 10,
+    metadata: { estimatedTime: 1 },
+},
+{
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_screen_time_approach',
+    category: 'relationship',
+    subcategory: 'daily_life_partnership',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+        { value: 'very_limited' },
+        { value: 'balanced_usage' },
+        { value: 'flexible_usage' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+{
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_argument_style',
+    category: 'relationship',
+    subcategory: 'communication_intimacy',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+        { value: 'expressive_emotive' },
+        { value: 'need_time_to_process' },
+        { value: 'immediate_resolution' },
+        { value: 'conflict_avoidant' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
+
   {
     worldId: 'RELATIONSHIP',
     id: 'relationship_partner_bad_day',

@@ -224,6 +224,23 @@ export const valuesQuestions: Question[] = [
   },
   {
     worldId: 'VALUES',
+    id: 'values_extended_family_involvement',
+    category: 'values',
+    subcategory: 'community_social',
+    type: 'singleChoice',
+    depth: 'EXPERT',
+    isRequired: false,
+    options: [
+        { value: 'high_involvement' },
+        { value: 'healthy_boundaries' },
+        { value: 'minimal_involvement' },
+        { value: 'depends_on_dynamics' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
+  {
+    worldId: 'VALUES',
     id: 'values_lost_wallet',
     category: 'values',
     subcategory: 'core_values',
