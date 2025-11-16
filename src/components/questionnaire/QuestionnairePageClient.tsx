@@ -3,14 +3,15 @@
 
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams, useParams } from 'next/navigation'; // <-- הוספה של useParams
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import QuestionnaireLandingPage from './pages/QuestionnaireLandingPage';
 import MatchmakingQuestionnaire from './MatchmakingQuestionnaire';
+import StandardizedLoadingSpinner from './common/StandardizedLoadingSpinner'; // <-- שלב 1: הוספת הייבוא
 import type { WorldId } from './types/types';
-import type { QuestionnaireDictionary } from '@/types/dictionary'; // ייבוא טיפוס המילון
+import type { QuestionnaireDictionary } from '@/types/dictionary';
 
 // Enum to track questionnaire flow stages
 enum QuestionnaireStage {
@@ -22,7 +23,7 @@ enum QuestionnaireStage {
 // הגדרת Props לרכיב
 interface QuestionnairePageClientProps {
   dict: QuestionnaireDictionary;
-  locale: 'he' | 'en'; // <-- התיקון נמצא כאן
+  locale: 'he' | 'en';
 }
 
 export default function QuestionnairePageClient({
@@ -32,7 +33,7 @@ export default function QuestionnairePageClient({
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const params = useParams(); // <-- הוספה: קריאת הפרמטרים מה-URL
+  const params = useParams();
 
   // State for tracking current stage in the flow
   const [currentStage, setCurrentStage] = useState<QuestionnaireStage>(
@@ -115,12 +116,15 @@ export default function QuestionnairePageClient({
     }
   };
 
+  // --- שלב 2: החלפת רכיב הטעינה ---
   if (isLoading) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50">
-        <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
-        <p className="mt-4 text-gray-600">{dict.page.loading}</p>
-      </div>
+      <StandardizedLoadingSpinner
+        text={dict.page.loading}
+        subtext={
+          dict.matchmaking.loadingSubtext || 'רק רגע, מכינים לך את המסע...'
+        }
+      />
     );
   }
 
@@ -131,9 +135,8 @@ export default function QuestionnairePageClient({
           <QuestionnaireLandingPage
             onStartQuestionnaire={handleStartQuestionnaire}
             hasSavedProgress={hasSavedProgress}
-            dict={dict.landingPage} // <- הוסף את השורה הזו
+            dict={dict.landingPage}
             locale={locale}
-            // כאן נעביר את המילון הרלוונטי אם וכאשר הרכיב יעודכן
           />
         );
       case QuestionnaireStage.QUESTIONNAIRE:
@@ -143,20 +146,20 @@ export default function QuestionnairePageClient({
             onComplete={handleQuestionnaireComplete}
             initialWorld={initialWorld}
             initialQuestionId={initialQuestionId}
-            dict={dict} // העברת המילון לרכיב הבן
+            dict={dict}
             locale={locale}
           />
         );
       case QuestionnaireStage.COMPLETE:
         return null;
       default:
-        return <div>{dict.page.stageLoadError}</div>; // שימוש במילון
+        return <div>{dict.page.stageLoadError}</div>;
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-       {error && (
+      {error && (
         <div className="container mx-auto p-4">
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />

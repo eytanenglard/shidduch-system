@@ -30,6 +30,7 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import type { AccessibilityFeaturesDict } from '@/types/dictionary'; // Import dictionary type
+import { useIsMobile } from '../hooks/useMediaQuery'; // <-- הוסף את הייבוא הזה
 
 declare global {
   interface Window {
@@ -88,8 +89,8 @@ export default function AccessibilityFeatures({
   }>({ message: '', type: 'info', visible: false });
 
   const panelRef = useRef<HTMLDivElement>(null);
-  // --- This line was fixed ---
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isMobile = useIsMobile(); // <-- הוסף את השורה הזו
 
   const showAccessibilityPanel =
     isPanelOpen !== undefined ? isPanelOpen : internalShowPanel;
@@ -293,7 +294,12 @@ export default function AccessibilityFeatures({
 
   return (
     <>
-      <div className="fixed z-50 bottom-4 right-4">
+      <div
+        className={cn(
+          'fixed z-50 right-4',
+          isMobile ? 'bottom-24' : 'bottom-4' // <-- התיקון נמצא כאן
+        )}
+      >
         <Button
           data-accessibility-trigger
           variant={showAccessibilityPanel ? 'default' : 'outline'}

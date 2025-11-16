@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-11-16 11:30:20
+# Generated on: 2025-11-16 12:36:27
 ################################################################################
 
 ================================================================================
@@ -10317,6 +10317,35 @@ export const partnerQuestions: Question[] = [
     maxLength: 150,
     metadata: { estimatedTime: 1 },
   },
+  {
+    worldId: 'PARTNER',
+    id: 'partner_romantic_past_comfort',
+    category: 'partner',
+    subcategory: 'non_negotiables',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+        { value: 'no_past' },
+        { value: 'short_term_ok' },
+        { value: 'long_term_ok' },
+        { value: 'past_is_past' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+{
+    worldId: 'PARTNER',
+    id: 'partner_what_you_bring',
+    category: 'partner',
+    subcategory: 'self_perception',
+    type: 'openText',
+    depth: 'EXPERT',
+    isRequired: false,
+    minLength: 50,
+    maxLength: 400,
+    metadata: { estimatedTime: 2 },
+},
+
 ];
 --- End of Content for partnerQuestions.tsx ---
 
@@ -10436,6 +10465,21 @@ export const personalityQuestions: Question[] = [
     max: 10,
     metadata: { estimatedTime: 1 },
   },
+{
+        worldId: 'PERSONALITY',
+        id: 'personality_sleep_flexibility',
+        category: 'personality',
+        subcategory: 'lifestyle',
+        type: 'singleChoice',
+        depth: 'ADVANCED',
+        isRequired: false,
+        options: [
+            { value: 'very_flexible' },
+            { value: 'somewhat_flexible' },
+            { value: 'not_flexible' },
+        ],
+        metadata: { estimatedTime: 1 },
+    },
 
   {
     worldId: 'PERSONALITY',
@@ -10469,6 +10513,39 @@ export const personalityQuestions: Question[] = [
     ],
     metadata: { estimatedTime: 1 },
   },
+  {
+        worldId: 'PERSONALITY',
+        id: 'personality_pressure_pattern',
+        category: 'personality',
+        subcategory: 'emotional_coping',
+        type: 'iconChoice',
+        depth: 'ADVANCED',
+        isRequired: false,
+        options: [
+            { value: 'need_space', icon: <Moon /> },
+            { value: 'seek_support', icon: <Users /> },
+            { value: 'action_oriented', icon: <Target /> },
+            { value: 'avoidance_distraction', icon: <Cloud /> },
+        ],
+        metadata: { estimatedTime: 1 },
+    },
+    {
+        worldId: 'PERSONALITY',
+        id: 'personality_life_pace',
+        category: 'personality',
+        subcategory: 'lifestyle',
+        type: 'singleChoice',
+        depth: 'BASIC',
+        isRequired: false,
+        options: [
+            { value: 'planned_efficient' },
+            { value: 'organized_spontaneous' },
+            { value: 'flexible_flow' },
+            { value: 'minimalist_calm' },
+        ],
+        metadata: { estimatedTime: 1 },
+    },
+
   {
     worldId: 'PERSONALITY',
     id: 'personality_self_portrayal_revised',
@@ -10901,6 +10978,51 @@ export const relationshipQuestions: Question[] = [
     ],
     metadata: { estimatedTime: 1 },
 },
+
+{
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_physical_intimacy_importance',
+    category: 'relationship',
+    subcategory: 'communication_intimacy',
+    type: 'scale',
+    depth: 'EXPERT',
+    isRequired: false,
+    min: 1,
+    max: 10,
+    metadata: { estimatedTime: 1 },
+},
+{
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_screen_time_approach',
+    category: 'relationship',
+    subcategory: 'daily_life_partnership',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+        { value: 'very_limited' },
+        { value: 'balanced_usage' },
+        { value: 'flexible_usage' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+{
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_argument_style',
+    category: 'relationship',
+    subcategory: 'communication_intimacy',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+        { value: 'expressive_emotive' },
+        { value: 'need_time_to_process' },
+        { value: 'immediate_resolution' },
+        { value: 'conflict_avoidant' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
 
   {
     worldId: 'RELATIONSHIP',
@@ -11534,13 +11656,72 @@ export const religionQuestions: Question[] = [
     depth: 'ADVANCED',
     isRequired: false,
     options: [
-        { value: 'central' },
-        { value: 'important' },
-        { value: 'secondary' },
-        { value: 'not_seeking' },
+      { value: 'central' },
+      { value: 'important' },
+      { value: 'secondary' },
+      { value: 'not_seeking' },
     ],
     metadata: { estimatedTime: 1 },
-},
+  },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_partner_torah_learning_expectation',
+    category: 'religion',
+    subcategory: 'relationship_family',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+      { value: 'dedicated_daily' },
+      { value: 'regularly_flexible' },
+      { value: 'when_possible' },
+      { value: 'not_a_focus' },
+    ],
+    metadata: { estimatedTime: 1 },
+  },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_army_service_attitude',
+    category: 'religion',
+    subcategory: 'community_influence',
+    type: 'singleChoice',
+    depth: 'BASIC',
+    isRequired: false,
+    options: [
+      { value: 'essential_for_men' },
+      { value: 'meaningful_service' },
+      { value: 'torah_is_protection' },
+      { value: 'flexible_personal_choice' },
+    ],
+    metadata: { estimatedTime: 1 },
+  },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_zionism_importance',
+    category: 'religion',
+    subcategory: 'community_influence',
+    type: 'scale',
+    depth: 'ADVANCED',
+    isRequired: false,
+    min: 1,
+    max: 10,
+    metadata: { estimatedTime: 1 },
+  },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_intergroup_friendships',
+    category: 'religion',
+    subcategory: 'community_influence',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+      { value: 'large_part' },
+      { value: 'some_friends' },
+      { value: 'mostly_homogeneous' },
+    ],
+    metadata: { estimatedTime: 1 },
+  },
 
   {
     worldId: 'RELIGION',
@@ -11615,14 +11796,13 @@ export const religionQuestions: Question[] = [
     depth: 'EXPERT',
     isRequired: false,
     options: [
-        { value: 'decline' },
-        { value: 'conditional_participation' },
-        { value: 'accept_openly' },
-        { value: 'depends_on_context' },
+      { value: 'decline' },
+      { value: 'conditional_participation' },
+      { value: 'accept_openly' },
+      { value: 'depends_on_context' },
     ],
     metadata: { estimatedTime: 1 },
-},
-
+  },
 ];
 --- End of Content for religionQuestions.tsx ---
 
@@ -11858,6 +12038,23 @@ export const valuesQuestions: Question[] = [
     maxLength: 400,
     metadata: { estimatedTime: 2 },
   },
+  {
+    worldId: 'VALUES',
+    id: 'values_extended_family_involvement',
+    category: 'values',
+    subcategory: 'community_social',
+    type: 'singleChoice',
+    depth: 'EXPERT',
+    isRequired: false,
+    options: [
+        { value: 'high_involvement' },
+        { value: 'healthy_boundaries' },
+        { value: 'minimal_involvement' },
+        { value: 'depends_on_dynamics' },
+    ],
+    metadata: { estimatedTime: 1 },
+},
+
   {
     worldId: 'VALUES',
     id: 'values_lost_wallet',
