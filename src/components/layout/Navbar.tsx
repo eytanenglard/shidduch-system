@@ -276,7 +276,33 @@ const Navbar = ({ dict }: NavbarProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
+  // ניקוי גלילה במקרה שהקומפוננטה נפרקת בזמן שהתפריט פתוח
+  useEffect(() => {
+    return () => {
+      if (mobileMenuOpen) {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+      }
+    };
+  }, [mobileMenuOpen]);
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen((prev) => {
+      const newState = !prev;
+      // חסימת/שחרור גלילת ה-body
+      if (newState) {
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+      } else {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+      }
+      return newState;
+    });
+  };
   const handleSignOut = () => {
     setMobileMenuOpen(false);
     signOut({ callbackUrl: `/${locale}` });
@@ -447,14 +473,15 @@ const Navbar = ({ dict }: NavbarProps) => {
       </nav>
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm md:hidden touch-none"
           onClick={toggleMobileMenu}
           aria-hidden="true"
+          style={{ touchAction: 'none' }}
         />
       )}
       <div
         className={cn(
-          'fixed top-0 z-50 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden',
+          'fixed top-0 z-50 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden touch-pan-y overscroll-none',
           isRtl ? 'right-0' : 'left-0',
           mobileMenuOpen
             ? 'translate-x-0'
@@ -466,6 +493,7 @@ const Navbar = ({ dict }: NavbarProps) => {
         role="dialog"
         aria-modal="true"
         aria-label="תפריט ניווט"
+        style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}
       >
         <div className="flex flex-col h-full">
           <div className="flex justify-between items-center p-4 border-b border-gray-100 shrink-0">
@@ -483,8 +511,11 @@ const Navbar = ({ dict }: NavbarProps) => {
 
           {/* Container for scrollable content */}
           <div
-            className="overflow-y-auto flex-grow overscroll-contain pb-8"
-            style={{ WebkitOverflowScrolling: 'touch' }}
+            className="overflow-y-auto flex-grow pb-8 overscroll-y-contain"
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehaviorY: 'contain',
+            }}
           >
             {session?.user && (
               <div className="p-4 space-y-3">

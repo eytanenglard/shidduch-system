@@ -41,6 +41,7 @@ export default function NeshmaInsightSectionB({
 }: NeshmaInsightProps) {
   const ref = useRef(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.15 });
   const isHebrew = locale === 'he';
   const direction = isHebrew ? 'rtl' : 'ltr';
@@ -159,10 +160,13 @@ export default function NeshmaInsightSectionB({
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'end',
+    if (messagesContainerRef.current) {
+      // Use requestAnimationFrame for smoother scrolling without jumps
+      requestAnimationFrame(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop =
+            messagesContainerRef.current.scrollHeight;
+        }
       });
     }
   }, [messages]);
@@ -190,12 +194,12 @@ export default function NeshmaInsightSectionB({
     },
   };
   const messageVariants = {
-    hidden: { opacity: 0, y: 15, scale: 0.98 },
+    hidden: { opacity: 0, y: 8, scale: 0.99 },
     visible: {
       opacity: 1,
       y: 0,
       scale: 1,
-      transition: { duration: 0.4, ease: [0.25, 1, 0.5, 1] },
+      transition: { duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] },
     },
   };
   const typingVariants = {
@@ -305,8 +309,13 @@ export default function NeshmaInsightSectionB({
 
                     {/* Messages Area */}
                     <div
+                      ref={messagesContainerRef}
                       aria-live="polite"
                       className="h-[450px] md:h-[500px] overflow-y-auto p-4 bg-gradient-to-br from-purple-50/20 to-rose-50/20 touch-pan-y"
+                      style={{
+                        scrollBehavior: 'auto',
+                        WebkitOverflowScrolling: 'touch',
+                      }}
                       onTouchStart={(e) => e.stopPropagation()}
                       onTouchMove={(e) => e.stopPropagation()}
                       onTouchEnd={(e) => e.stopPropagation()}
