@@ -4,12 +4,13 @@
 import { CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// === NEW: Added 'allDone' to the status types ===
+// הגדרת טיפוסים למצבים האפשריים של התהליך
 export type SubmissionStatus =
   | 'idle'
+  | 'creatingAccount'
+  | 'sendingCode'
   | 'savingProfile'
   | 'updatingSession'
-  | 'sendingCode'
   | 'error';
 
 interface Step {
@@ -17,36 +18,30 @@ interface Step {
   text: string;
 }
 
+// ▼▼▼ כאן השינוי המרכזי ▼▼▼
 interface SubmissionStatusIndicatorProps {
   currentStatus: SubmissionStatus;
-  dict: {
-    saving: string;
-    updating: string;
-    sendingCode: string;
+  steps: Step[]; // מערך של שלבים להצגה
+  dict: { // אובייקט כללי לכותרות וטקסטים
+    title: string;
+    subtitle: string;
   };
 }
 
 const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
   currentStatus,
-  dict,
+  steps,
+  dict, // שימוש ב-prop המעודכן
 }) => {
-  const steps: Step[] = [
-    { id: 'savingProfile', text: dict.saving },
-    { id: 'updatingSession', text: dict.updating },
-    { id: 'sendingCode', text: dict.sendingCode },
-  ];
-
+  // ... (שאר לוגיקת הרכיב נשארת זהה)
   const getStepStatus = (
     stepId: SubmissionStatus,
-    currentStatus: SubmissionStatus
+    current: SubmissionStatus
   ): 'completed' | 'in-progress' | 'pending' => {
-    // === NEW: If the status is 'allDone', all steps are completed ===
-  
-    
     const stepIndex = steps.findIndex((s) => s.id === stepId);
-    const currentIndex = steps.findIndex((s) => s.id === currentStatus);
+    const currentIndex = steps.findIndex((s) => s.id === current);
 
-    if (currentIndex === -1 || currentStatus === 'idle' || currentStatus === 'error') {
+    if (currentIndex === -1 || current === 'idle' || current === 'error') {
       return 'pending';
     }
     if (stepIndex < currentIndex) {
@@ -69,12 +64,13 @@ const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
   return (
     <AnimatePresence>
       {isVisible && (
-        // === FIX: Stronger, more visible backdrop ===
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
+          aria-modal="true"
+          role="dialog"
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -82,26 +78,26 @@ const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
             className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"
           >
-            {/* === NEW: Themed gradient top bar for better design === */}
             <div className="h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
             
             <div className="p-6 text-center">
               <div className="flex justify-center items-center gap-2 mb-4">
                 <ShieldCheck className="h-7 w-7 text-cyan-500" />
+                {/* ▼▼▼ שימוש בכותרת מה-dict ▼▼▼ */}
                 <h3 className="text-xl font-bold text-gray-800">
-                  מאמתים את הפרטים
+                  {dict.title}
                 </h3>
               </div>
-
+              {/* ▼▼▼ שימוש בכותרת המשנה מה-dict ▼▼▼ */}
               <p className="text-sm text-gray-600 mb-6">
-                זה לוקח רק מספר שניות, נא לא לסגור את החלון.
+                {dict.subtitle}
               </p>
 
               <div className="space-y-4">
                 {steps.map((step) => {
                   const status = getStepStatus(step.id, currentStatus);
                   return (
-                    <div key={step.id} className="flex items-center gap-4 text-right p-2 bg-gray-50 rounded-lg">
+                    <div key={step.id} className="flex items-center gap-4 text-right p-3 bg-gray-50 rounded-lg">
                       <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
                         {statusIcons[status]}
                       </div>
@@ -112,9 +108,6 @@ const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
                   );
                 })}
               </div>
-
-              {/* === NEW: Final success message before redirecting === */}
-            
             </div>
           </motion.div>
         </motion.div>

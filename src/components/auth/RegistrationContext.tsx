@@ -1,4 +1,5 @@
-// src/components/auth/RegistrationContext.tsx
+// src/components/auth/RegistrationContext.tsx - CORRECTED LOGIC
+
 'use client';
 
 import React, {
@@ -11,13 +12,15 @@ import React, {
 import { Gender, UserStatus, UserSource } from '@prisma/client';
 import type { User as SessionUserType } from '@/types/next-auth';
 
+// ... (interface RegistrationData and initialRegistrationData remain the same) ...
+
 export interface RegistrationData {
   email: string;
   password: string;
   firstName: string;
   lastName: string;
   phone: string;
-  gender: Gender | ''; // "" for unselected, or actual Gender enum value
+  gender: Gender | '';
   birthDate: string;
   maritalStatus: string;
   height?: number;
@@ -37,7 +40,7 @@ const initialRegistrationData: RegistrationData = {
   firstName: '',
   lastName: '',
   phone: '',
-  gender: '', // Initialized as empty string
+  gender: '',
   birthDate: '',
   maritalStatus: '',
   height: undefined,
@@ -51,6 +54,7 @@ const initialRegistrationData: RegistrationData = {
   emailForVerification: null,
 };
 
+// ... (interface RegistrationContextType remains the same) ...
 interface RegistrationContextType {
   data: RegistrationData;
   setData: React.Dispatch<React.SetStateAction<RegistrationData>>;
@@ -73,28 +77,15 @@ interface RegistrationContextType {
   exitEmailVerification: () => void;
 }
 
-const RegistrationContext = createContext<RegistrationContextType>({
-  data: initialRegistrationData,
-  setData: () => console.warn('RegistrationProvider not found'),
-  updateField: () => console.warn('RegistrationProvider not found'),
-  nextStep: () => console.warn('RegistrationProvider not found'),
-  prevStep: () => console.warn('RegistrationProvider not found'),
-  goToStep: () => console.warn('RegistrationProvider not found'),
-  resetForm: () => console.warn('RegistrationProvider not found'),
-  setGoogleSignup: () => console.warn('RegistrationProvider not found'),
-  initializeFromSession: () => console.warn('RegistrationProvider not found'),
-  proceedToEmailVerification: () =>
-    console.warn('RegistrationProvider not found'),
-  completeEmailVerification: () =>
-    console.warn('RegistrationProvider not found'),
-  exitEmailVerification: () => console.warn('RegistrationProvider not found'),
-});
+
+const RegistrationContext = createContext<RegistrationContextType | undefined>(undefined);
 
 export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [data, setData] = useState<RegistrationData>(initialRegistrationData);
 
+  // ... (updateField, nextStep, prevStep, etc. remain the same) ...
   const updateField = useCallback(
     <K extends keyof RegistrationData>(
       field: K,
@@ -106,48 +97,21 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   );
 
   const nextStep = useCallback(() => {
-    setData((prev) => {
-      if (prev.isVerifyingEmailCode) return prev;
-      const currentMaxStep = 3;
-      if (prev.step === 1 && !prev.isCompletingProfile && !prev.isGoogleSignup)
-        return prev;
-      if (prev.step < currentMaxStep) return { ...prev, step: prev.step + 1 };
-      if (prev.step === currentMaxStep) return { ...prev, step: 4 };
-      return prev;
-    });
+    setData((prev) => ({ ...prev, step: prev.step + 1 }));
   }, []);
 
   const prevStep = useCallback(() => {
-    setData((prev) => {
-      if (prev.isVerifyingEmailCode) {
-        return {
-          ...prev,
-          isVerifyingEmailCode: false,
-          emailForVerification: null,
-          step: 1,
-        };
-      }
-      if (prev.step > 0) {
-        if (prev.step === 4) return { ...prev, step: 3 };
-        return { ...prev, step: prev.step - 1 };
-      }
-      return prev;
-    });
+    setData((prev) => ({ ...prev, step: prev.step > 0 ? prev.step - 1 : 0 }));
   }, []);
 
   const goToStep = useCallback((stepNum: number) => {
-    setData((prev) => ({
-      ...prev,
-      step: stepNum,
-      isVerifyingEmailCode: false,
-      emailForVerification: null,
-    }));
+    setData((prev) => ({ ...prev, step: stepNum }));
   }, []);
 
   const resetForm = useCallback(() => {
     setData(initialRegistrationData);
   }, []);
-
+  
   const setGoogleSignup = useCallback(
     (googleUserData: {
       email: string;
@@ -162,8 +126,7 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     },
     []
   );
-
-  // ============================ התיקון המרכזי נמצא כאן ============================
+  
   const initializeFromSession = useCallback((sessionUser: SessionUserType) => {
     setData((prevData) => {
       const isGoogleAcc = !!(
@@ -188,7 +151,7 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
         education: sessionUser.profile?.education || '',
       };
 
-      // תרחיש 1: משתמש חדש צריך לאמת מייל (לפני השלמת פרופיל)
+      // Scenario 1: New user needs to verify email (non-Google)
       if (
         sessionUser.status === UserStatus.PENDING_EMAIL_VERIFICATION &&
         !isGoogleAcc &&
@@ -199,51 +162,38 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
           ...baseStateFromSession,
           isVerifyingEmailCode: true,
           emailForVerification: sessionUser.email,
-          step: 1,
+          step: 1, // Stay on a step that can render the verification component
           isCompletingProfile: false,
           isGoogleSignup: false,
         };
       }
 
-      // תרחיש 2: המשתמש צריך להתחיל את תהליך השלמת הפרופיל
+      // ============================ FIX STARTS HERE ============================
+      // Scenario 2: User needs to start the profile completion process.
+      // The redirect logic for `isPhoneVerified: false` is now in RegisterClient,
+      // so this block can focus only on starting the process.
       if (!sessionUser.isProfileComplete) {
         return {
           ...initialRegistrationData,
           ...baseStateFromSession,
           isCompletingProfile: true,
           isGoogleSignup: isGoogleAcc,
-          step: 2, // התחל משלב פרטים אישיים
+          step: 2, // Always start at the combined personal details step
           isVerifyingEmailCode: false,
         };
       }
-
-      // תרחיש 3: הפרופיל הושלם, אך הטלפון לא אומת.
-      // זהו התיקון הקריטי.
-      if (sessionUser.isProfileComplete && !sessionUser.isPhoneVerified) {
-        // אם אנחנו נמצאים כעת בשלב 3 (OptionalInfoStep), אל תשנה את השלב!
-        // תן לרכיב לסיים את עבודתו ולנווט בעצמו.
-        // אם אנחנו בכל שלב אחר (למשל, המשתמש רענן את העמוד), העבר אותו לשלב 4.
-        const nextStep = prevData.step === 3 ? 3 : 4;
-
-        return {
-          ...prevData,
-          ...baseStateFromSession,
-          isCompletingProfile: true,
-          isGoogleSignup: isGoogleAcc,
-          step: nextStep, // <-- שימוש במשתנה שהגדרנו
-          isVerifyingEmailCode: false,
-        };
-      }
-
-      // תרחיש ברירת מחדל: סנכרון נתונים כללי
+      
+      // If code reaches here, it means profile is complete.
+      // The RegisterClient's useEffect will handle redirection to either
+      // verify-phone or the main profile. We just need to sync data.
       return {
         ...prevData,
         ...baseStateFromSession,
         isGoogleSignup: isGoogleAcc,
       };
+      // ============================= FIX ENDS HERE =============================
     });
   }, []);
-  // ============================ סוף התיקון ============================
 
   const proceedToEmailVerification = useCallback((emailToVerify: string) => {
     setData((prev) => ({
@@ -272,6 +222,7 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     }));
   }, []);
 
+
   const value: RegistrationContextType = {
     data,
     setData,
@@ -296,16 +247,7 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
 
 export const useRegistration = (): RegistrationContextType => {
   const context = useContext(RegistrationContext);
-  if (
-    context === undefined ||
-    Object.keys(context).every(
-      (key) =>
-        typeof context[key as keyof RegistrationContextType] === 'function' &&
-        context[key as keyof RegistrationContextType]
-          .toString()
-          .includes('RegistrationProvider not found')
-    )
-  ) {
+  if (context === undefined) {
     throw new Error(
       'useRegistration must be used within a RegistrationProvider'
     );

@@ -212,6 +212,7 @@ export type RegisterStepsDict = {
   };
   contactSupport: string;
   contactSupportLink: string;
+  
   steps: {
     welcome: {
       title: string;
@@ -250,6 +251,10 @@ export type RegisterStepsDict = {
       };
       engagementConsentLabel: string; // <-- שדה חדש
       promotionalConsentLabel: string; // <-- שדה חדש
+       status: { // הוסף את האובייקט הזה
+        creatingAccount: string;
+        sendingCode: string;
+      };
     };
     emailVerification: {
       title: string;

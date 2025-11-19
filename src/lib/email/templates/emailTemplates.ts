@@ -1,17 +1,36 @@
-// src/lib/email/templates/emailTemplates.ts
+// src/lib/email/templates/emailTemplates.ts - CORRECTED VERSION
 
 import { EmailDictionary } from '@/types/dictionary';
-import { Locale } from '../../../../i18n-config'; // ודא שהנתיב נכון
-import { ProfileFeedbackReport } from '@/lib/services/profileFeedbackService'; // ייבוא חדש
+import { Locale } from '../../../../i18n-config';
+import { ProfileFeedbackReport } from '@/lib/services/profileFeedbackService';
 import * as fs from 'fs';
 import * as path from 'path';
 import Handlebars from 'handlebars';
 
+// ============================ FIX STARTS HERE ============================
+// Register the missing 'eq' helper
+Handlebars.registerHelper('eq', function (a, b) {
+  return a === b;
+});
+// ============================= FIX ENDS HERE =============================
+
 // טען את תבניות ה-Handlebars פעם אחת בעת טעינת המודול
 const loadTemplate = (filePath: string) => {
-  const fullPath = path.join(process.cwd(), filePath);
-  return Handlebars.compile(fs.readFileSync(fullPath, 'utf-8'));
+  try {
+    const fullPath = path.join(process.cwd(), filePath);
+    // בדוק אם הקובץ קיים לפני קריאה
+    if (fs.existsSync(fullPath)) {
+      return Handlebars.compile(fs.readFileSync(fullPath, 'utf-8'));
+    }
+    console.error(`Template file not found at: ${fullPath}`);
+    // החזר פונקציה ריקה כדי למנוע קריסה, אך עם אזהרה
+    return () => `<p>Error: Template ${filePath} not found.</p>`;
+  } catch (error) {
+    console.error(`Error loading template ${filePath}:`, error);
+    return () => `<p>Error loading template ${filePath}.</p>`;
+  }
 };
+
 
 const footerTemplate = loadTemplate('src/lib/email/templates/shared/footer.hbs');
 const profileFeedbackTemplate = loadTemplate('src/lib/email/templates/profile-feedback.hbs');
@@ -33,10 +52,9 @@ export interface ProfileFeedbackTemplateContext extends BaseTemplateContext {
   report: ProfileFeedbackReport;
   isAutomated: boolean;
   matchmakerName: string;
-  greeting?: string; // הוספת שדה greeting אופציונלי
+  greeting?: string;
 }
 
-// שאר הטיפוסים נשארים זהים...
 export interface WelcomeTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['welcome'];
   firstName: string;
@@ -126,13 +144,12 @@ export type TemplateContextMap = {
   availabilityCheck: AvailabilityCheckTemplateContext;
   passwordResetOtp: PasswordResetOtpTemplateContext;
   passwordChangedConfirmation: PasswordChangedConfirmationTemplateContext;
-    profileSummaryUpdate: ProfileSummaryUpdateTemplateContext; // ✨ הוספת התבנית החדשה למפה
-
+  profileSummaryUpdate: ProfileSummaryUpdateTemplateContext;
   'internal-feedback-notification': InternalFeedbackNotificationTemplateContext;
-  // שים לב: אנחנו משאירים את הטיפוס כאן, אך לא נגדיר עבורו פונקציה
   'profileFeedback': ProfileFeedbackTemplateContext;
 };
 
+// ... (שאר הקובץ נשאר זהה)
 // --- פונקציית עזר ליצירת HTML בסיסי לאימיילים פנימיים ---
 const createInternalBaseEmailHtml = (title: string, content: string): string => {
     return `
@@ -169,7 +186,7 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
     const isRtl = context.locale === 'he';
     const direction = isRtl ? 'rtl' : 'ltr';
     const textAlign = isRtl ? 'right' : 'left';
-    
+
     // יצירת ה-footer עם הקונטקסט
     const footerHtml = footerTemplate(context);
 
@@ -181,84 +198,84 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
     <style>
-        body { 
-            font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; 
-            direction: ${direction}; 
-            text-align: ${textAlign}; 
-            line-height: 1.6; 
-            margin: 0; 
-            padding: 0; 
-            background-color: #f8f9fa; 
-            color: #343a40; 
+        body {
+            font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif;
+            direction: ${direction};
+            text-align: ${textAlign};
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #343a40;
         }
-        .email-container { 
-            max-width: 600px; 
-            margin: 20px auto; 
-            background-color: #ffffff; 
-            border: 1px solid #dee2e6; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
-            overflow: hidden; 
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
         }
-        .email-header { 
+        .email-header {
             background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-            color: #ffffff; 
-            padding: 25px; 
-            text-align: center; 
-            border-bottom: 5px solid #0891b2; 
+            color: #ffffff;
+            padding: 25px;
+            text-align: center;
+            border-bottom: 5px solid #0891b2;
         }
-        .email-header h1 { 
-            margin: 0; 
-            font-size: 26px; 
-            font-weight: 600; 
+        .email-header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 600;
         }
-        .email-body { 
-            padding: 25px 30px; 
-            font-size: 16px; 
+        .email-body {
+            padding: 25px 30px;
+            font-size: 16px;
         }
-        .email-body p { 
-            margin-bottom: 1em; 
+        .email-body p {
+            margin-bottom: 1em;
         }
-        .otp-code { 
-            font-size: 28px; 
-            font-weight: bold; 
-            color: #ec4899; 
-            text-align: center; 
-            margin: 25px 0; 
-            padding: 15px; 
-            background-color: #fdf2f8; 
-            border: 1px dashed #fbcfe8; 
-            border-radius: 5px; 
-            letter-spacing: 3px; 
+        .otp-code {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ec4899;
+            text-align: center;
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #fdf2f8;
+            border: 1px dashed #fbcfe8;
+            border-radius: 5px;
+            letter-spacing: 3px;
         }
-        .button { 
-            display: inline-block; 
-            padding: 12px 25px; 
+        .button {
+            display: inline-block;
+            padding: 12px 25px;
             background: linear-gradient(135deg, #06b6d4, #0891b2);
-            color: white !important; 
-            text-decoration: none; 
-            border-radius: 5px; 
-            margin: 15px 0; 
-            font-weight: 500; 
-            text-align: center; 
+            color: white !important;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: 500;
+            text-align: center;
             transition: transform 0.2s;
         }
-        .button:hover { 
+        .button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
         }
-        .highlight-box { 
-            background-color: #fef9e7; 
-            border-${isRtl ? 'right' : 'left'}: 4px solid #f7c75c; 
-            padding: 15px; 
-            margin: 20px 0; 
-            border-radius: 5px; 
+        .highlight-box {
+            background-color: #fef9e7;
+            border-${isRtl ? 'right' : 'left'}: 4px solid #f7c75c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
         }
-        .attributes-list { 
-            background-color: #f8f9fa; 
-            padding: 15px; 
-            border-radius: 5px; 
-            margin-bottom: 15px; 
+        .attributes-list {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -308,7 +325,7 @@ export const emailTemplates: {
     </div>
     <p>${context.dict.nextStep}</p>
   `, context),
-  
+
     profileSummaryUpdate: (context) => createBaseEmailHtml(context.dict.title, `
     <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
     <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
@@ -320,7 +337,6 @@ export const emailTemplates: {
       <a href="${context.dashboardUrl}" class="button">${context.dict.actionButton}</a>
     </p>
   `, context),
-  // ✨ END: הוספת לוגיקת תבנית חדשה
 
   emailOtpVerification: (context) => createBaseEmailHtml(context.dict.title, `
     <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>
@@ -340,7 +356,7 @@ export const emailTemplates: {
     </p>
     <p>${context.dict.expiryNotice.replace('{{expiresIn}}', context.expiresIn)}</p>
   `, context),
-  
+
   suggestion: (context) => {
     let detailsHtml = '';
     if (context.suggestionDetails) {
@@ -350,7 +366,7 @@ export const emailTemplates: {
         context.suggestionDetails.occupation && `<li><strong>${context.dict.details.occupation}:</strong> ${context.suggestionDetails.occupation}</li>`,
         context.suggestionDetails.additionalInfo && `<li><strong>${context.dict.details.additionalInfo}:</strong> ${context.suggestionDetails.additionalInfo}</li>`,
       ].filter(Boolean).join('');
-      
+
       if (detailsList) {
         detailsHtml = `
           <div class="attributes-list">
@@ -359,9 +375,9 @@ export const emailTemplates: {
           </div>`;
       }
     }
-    
+
      return createBaseEmailHtml(
-       context.dict.title, 
+       context.dict.title,
        `
         <p>${context.sharedDict.greeting.replace('{{name}}', context.recipientName)}</p>
         <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
@@ -371,13 +387,11 @@ export const emailTemplates: {
             <a href="${context.dashboardUrl}" class="button">${context.dict.actionButton}</a>
         </p>
         <p>${context.dict.closing}</p>
-      `, 
+      `,
       context
     );
   },
   'profileFeedback': (context) => {
-    // התבנית נטענת ומתקמפלת פעם אחת ברמת המודול ליעילות.
-    // פונקציה זו פשוט מעבירה את הקונטקסט לתבנית המוכנה.
     return profileFeedbackTemplate(context);
   },
   shareContactDetails: (context) => {
@@ -432,12 +446,11 @@ export const emailTemplates: {
       <a href="${context.loginUrl}" class="button">${context.dict.actionButton}</a>
     </p>
   `, context),
-  
-  // ============================ הוספת התבנית החדשה כאן ============================
+
   'internal-feedback-notification': (context) => createInternalBaseEmailHtml('New Feedback Received', `
     <h1>New Feedback Received</h1>
     <p>A new piece of feedback has been submitted through the website widget.</p>
-    
+
     <table>
         <tr>
             <th>Feedback ID</th>
@@ -470,5 +483,4 @@ export const emailTemplates: {
     </div>
     ` : ''}
   `),
-  // ==============================================================================
 };

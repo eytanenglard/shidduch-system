@@ -239,7 +239,11 @@
 
         },
        "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
-  "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech."
+  "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech.",
+  "status": {
+          "creatingAccount": "Creating your account...",
+          "sendingCode": "Sending verification code to your email..."
+        }
 
       },
       "emailVerification": {
@@ -342,6 +346,7 @@
         "backToHomeLink": "Back to Homepage"
       }
     },
+    
     "consentCheckbox": {
       "text": "I have read and agree to the {termsLink} and the {privacyLink} of NeshamaTech, and I consent to the collection, processing, and storage of my personal information, including sensitive information, as detailed therein, and to the transfer of my information to servers that may be located outside of Israel.",
       "termsLink": "Terms of Use",
