@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-11-19 18:19:27
+# Generated on: 2025-11-19 19:30:18
 ################################################################################
 
 ================================================================================
@@ -1579,6 +1579,8 @@ export interface RegistrationData {
   isCompletingProfile: boolean;
   isVerifyingEmailCode: boolean;
   emailForVerification: string | null;
+    religiousLevel?: string; // הוסף את השדה כאן
+
 }
 
 const initialRegistrationData: RegistrationData = {
@@ -1593,6 +1595,8 @@ const initialRegistrationData: RegistrationData = {
   height: undefined,
   occupation: '',
   education: '',
+    religiousLevel: '', // ערך התחלתי ריק
+
   step: 0,
   isGoogleSignup: false,
   language: 'he',
@@ -3827,13 +3831,20 @@ Content:
 // src/components/auth/steps/PersonalDetailsStep.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import PhoneNumberInput from '../PhoneNumberInput';
 import { useSession } from 'next-auth/react';
 import { useRegistration } from '../RegistrationContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   ArrowLeft,
   ArrowRight,
@@ -3845,10 +3856,11 @@ import {
   Ruler,
   Briefcase,
   GraduationCap,
+  BookOpen,
 } from 'lucide-react';
 import { Gender } from '@prisma/client';
 import { motion } from 'framer-motion';
-import ConsentCheckbox from '../ConsentCheckbox'; // מיובא כעת לכאן
+import ConsentCheckbox from '../ConsentCheckbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 import SubmissionStatusIndicator, {
@@ -3877,35 +3889,43 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
   locale,
 }) => {
   const { data: registrationState, updateField, prevStep } = useRegistration();
-  const { data: session, update: updateSessionHook } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
 
+  // States for validation errors
   const [firstNameError, setFirstNameError] = useState('');
   const [lastNameError, setLastNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [ageError, setAgeError] = useState('');
+  const [religiousLevelError, setReligiousLevelError] = useState('');
+
   const [isFormValid, setIsFormValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus>('idle');
 
-  // --- לוגיקת הסכמה חדשה (הועברה משלב 1) ---
-  // אם המשתמש כבר אישר בעבר (למשל נרשם כבר ויש DB record), נציג מסומן
-  // אבל משתמשים חדשים תמיד יצטרכו לסמן כאן
+  // Consent Logic
   const userHasAlreadyConsented = !!session?.user?.termsAndPrivacyAcceptedAt;
-  
   const [consentChecked, setConsentChecked] = useState(userHasAlreadyConsented);
   const [consentError, setConsentError] = useState<string | null>(null);
   
-  // דיוור - ברירת מחדל false למשתמש חדש, true אם כבר אישר
   const [engagementConsent, setEngagementConsent] = useState(session?.user?.engagementEmailsConsent || false);
   const [promotionalConsent, setPromotionalConsent] = useState(session?.user?.promotionalEmailsConsent || false);
   const [engagementConsentError, setEngagementConsentError] = useState<string | null>(null);
+
+  // Create options array for Religious Level from dictionary
+  const religiousLevelOptions = useMemo(() => {
+    return Object.entries(personalDetailsDict.religiousLevels).map(([value, label]) => ({
+      value,
+      label,
+    }));
+  }, [personalDetailsDict.religiousLevels]);
 
   useEffect(() => {
     router.prefetch(`/${locale}/auth/verify-phone`);
   }, [router, locale]);
 
+  // Validation Functions
   const validateFirstName = (name: string) => {
     if (!name.trim()) {
       setFirstNameError(personalDetailsDict.errors.firstNameRequired);
@@ -3961,6 +3981,7 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
     return true;
   };
 
+  // Form Validity Effect
   useEffect(() => {
     const isFieldsValid =
       registrationState.firstName.trim() &&
@@ -3969,9 +3990,9 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
       validatePhoneNumber(registrationState.phone) &&
       registrationState.birthDate &&
       registrationState.gender &&
-      registrationState.maritalStatus;
+      registrationState.maritalStatus &&
+      registrationState.religiousLevel;
 
-    // ולידציה מלאה: שדות תקינים + צ'קבוקס תנאי שימוש + צ'קבוקס דיוור חובה
     setIsFormValid(!!isFieldsValid && consentChecked && engagementConsent);
   }, [registrationState, consentChecked, engagementConsent]);
 
@@ -3979,19 +4000,23 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
     setApiError(null);
     setConsentError(null);
     setEngagementConsentError(null);
+    setReligiousLevelError('');
 
     const isFirstNameValid = validateFirstName(registrationState.firstName);
     const isLastNameValid = validateLastName(registrationState.lastName);
     const isPhoneValid = validatePhone(registrationState.phone);
     const isAgeValid = validateAge(registrationState.birthDate);
 
-    // בדיקת צ'קבוקסים ידנית בעת לחיצה
     if (!consentChecked) {
       setConsentError(personalDetailsDict.errors.consentRequired);
       return;
     }
     if (!engagementConsent) {
         setEngagementConsentError(personalDetailsDict.errors.engagementConsentRequired);
+        return;
+    }
+    if (!registrationState.religiousLevel) {
+        setReligiousLevelError(personalDetailsDict.errors.religiousLevelRequired);
         return;
     }
 
@@ -4003,15 +4028,13 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
     setSubmissionStatus('savingProfile');
 
     try {
-      // עדכון הסכמת תנאים (אם טרם אושר) - ה-API של accept-terms מטפל בזה
+      // Update terms acceptance if needed
       if (!userHasAlreadyConsented) {
         const consentResponse = await fetch('/api/user/accept-terms', {
           method: 'POST',
         });
         if (!consentResponse.ok)
           throw new Error(personalDetailsDict.errors.consentApiError);
-        // מעדכן את הסשן כדי שהלקוח ידע שאושר
-      /*   await updateSessionHook();  */
       }
 
       const profileData = {
@@ -4021,10 +4044,10 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         gender: registrationState.gender,
         birthDate: registrationState.birthDate,
         maritalStatus: registrationState.maritalStatus,
+        religiousLevel: registrationState.religiousLevel,
         height: registrationState.height,
         occupation: registrationState.occupation,
         education: registrationState.education,
-        // ▼▼▼ שליחת העדפות הדיוור לפרופיל ▼▼▼
         engagementEmailsConsent: engagementConsent,
         promotionalEmailsConsent: promotionalConsent,
       };
@@ -4095,8 +4118,8 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         currentStatus={submissionStatus}
         steps={submissionSteps}
         dict={{
-          title: 'מאמתים את הפרטים',
-          subtitle: 'זה לוקח רק מספר שניות, נא לא לסגור את החלון.',
+          title: locale === 'he' ? 'מאמתים את הפרטים' : 'Verifying details',
+          subtitle: locale === 'he' ? 'זה לוקח רק מספר שניות, נא לא לסגור את החלון.' : 'This takes just a few seconds, please do not close the window.',
         }}
       />
       <motion.div
@@ -4116,14 +4139,14 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           <motion.div variants={itemVariants}>
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>שגיאה</AlertTitle>
+              <AlertTitle>Error</AlertTitle>
               <AlertDescription>{apiError}</AlertDescription>
             </Alert>
           </motion.div>
         )}
 
         <motion.div variants={itemVariants} className="space-y-5">
-           {/* --- שדות הטופס המקוריים (שם, טלפון, מגדר וכו') --- */}
+           {/* Basic Info Grid */}
            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label
@@ -4353,12 +4376,48 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
                 disabled={isLoading}
               />
             </div>
+
+            {/* --- Religious Level moved to here --- */}
+            <div className="space-y-2 mt-4">
+              <label className="text-sm font-medium text-gray-700">
+                {personalDetailsDict.religiousLevelLabel}{' '}
+                <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10 pointer-events-none">
+                    <BookOpen className="h-5 w-5 text-gray-400" />
+                 </div>
+                <Select
+                  dir={locale === 'he' ? 'rtl' : 'ltr'}
+                  value={registrationState.religiousLevel || ''}
+                  onValueChange={(value) => {
+                      updateField('religiousLevel', value);
+                      if (value) setReligiousLevelError('');
+                  }}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger className={`w-full pr-10 pl-3 py-3 h-auto border rounded-lg focus:ring-2 focus:outline-none bg-white ${religiousLevelError ? 'border-red-400 focus:ring-red-200' : 'focus:ring-blue-200'}`}>
+                    <SelectValue placeholder={personalDetailsDict.religiousLevelPlaceholder} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    {religiousLevelOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+               {religiousLevelError && (
+                  <p className="text-red-500 text-sm">{religiousLevelError}</p>
+                )}
+            </div>
           </div>
         </motion.div>
 
-        {/* ▼▼▼ אזור ההסכמות החדש (הועבר משלב 1) ▼▼▼ */}
+        {/* Consents Section */}
         <motion.div variants={itemVariants} className="pt-6 border-t border-gray-200 space-y-4">
-            {/* 1. תנאי שימוש ופרטיות */}
+            {/* 1. Terms & Privacy */}
             <ConsentCheckbox
               checked={consentChecked}
               onChange={(isChecked) => {
@@ -4369,7 +4428,7 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
               dict={consentDict}
             />
 
-            {/* 2. דיוור שיווקי ותפעולי */}
+            {/* 2. Marketing/Engagement Consents */}
             <div className="space-y-3 pt-2">
                 <div className="space-y-1">
                     <div className="flex items-start space-x-2 rtl:space-x-reverse">

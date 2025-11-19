@@ -1,4 +1,4 @@
-// src/app/[locale]/auth/register/RegisterClient.tsx - VERSION WITH UNIFIED STEPS
+// src/app/[locale]/auth/register/RegisterClient.tsx
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -13,7 +13,6 @@ import WelcomeStep from '@/components/auth/steps/WelcomeStep';
 import BasicInfoStep from '@/components/auth/steps/BasicInfoStep';
 import EmailVerificationCodeStep from '@/components/auth/steps/EmailVerificationCodeStep';
 import PersonalDetailsStep from '@/components/auth/steps/PersonalDetailsStep';
-// import OptionalInfoStep from '@/components/auth/steps/OptionalInfoStep'; //  הוסר
 import CompleteStep from '@/components/auth/steps/CompleteStep';
 import ProgressBar from '@/components/auth/ProgressBar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -125,7 +124,8 @@ const RegisterStepsContent: React.FC<{
       case 0:
         return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
       case 1:
-        return (<BasicInfoStep dict={dict.steps.basicInfo} consentDict={dict.consentCheckbox} locale={locale} />);
+        // ▼▼▼ התיקון כאן: הסרת consentDict ▼▼▼
+        return (<BasicInfoStep dict={dict.steps.basicInfo} locale={locale} />);
       default:
         resetForm();
         return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
