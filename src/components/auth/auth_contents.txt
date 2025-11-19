@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-11-18 16:38:29
+# Generated on: 2025-11-19 18:19:27
 ################################################################################
 
 ================================================================================
@@ -1257,38 +1257,37 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { RegistrationProvider, useRegistration } from './RegistrationContext';
+import Link from 'next/link';
 import WelcomeStep from './steps/WelcomeStep';
 import BasicInfoStep from './steps/BasicInfoStep';
 import EmailVerificationCodeStep from './steps/EmailVerificationCodeStep';
 import PersonalDetailsStep from './steps/PersonalDetailsStep';
-import OptionalInfoStep from './steps/OptionalInfoStep';
+// ▼▼▼ 1. הסרנו את הייבוא של הרכיב שכבר לא בשימוש ▼▼▼
+// import OptionalInfoStep from './steps/OptionalInfoStep';
 import CompleteStep from './steps/CompleteStep';
 import ProgressBar from './ProgressBar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Info, Loader2 } from 'lucide-react';
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
-import Link from 'next/link';
 
 /**
  * הגדרת ה-Props עבור הקומפוננטה הראשית.
- * היא מקבלת את המילון (dict) ואת השפה (locale).
  */
 interface RegisterStepsProps {
   dict: RegisterStepsDict;
-  locale: 'he' | 'en'; // הוספת locale לממשק
+  locale: 'he' | 'en';
 }
 
 /**
- * רכיב התוכן הפנימי שמכיל את הלוגיקה המרכזית של תהליך ההרשמה.
- * הוא מקבל את המילון והשפה מההורה שלו.
+ * רכיב התוכן הפנימי שמכיל את הלוגיКА המרכזית של תהליך ההרשמה.
  */
 const RegisterStepsContent: React.FC<{
   dict: RegisterStepsDict;
   locale: 'he' | 'en';
 }> = ({
   dict,
-  locale, // קבלת locale כ-prop
+  locale,
 }) => {
   const {
     data: registrationContextData,
@@ -1330,9 +1329,9 @@ const RegisterStepsContent: React.FC<{
       ) {
         if (
           typeof window !== 'undefined' &&
-          window.location.pathname !== '/profile'
+          window.location.pathname !== `/${locale}/profile`
         ) {
-          router.push('/profile');
+          router.push(`/${locale}/profile`);
         }
         return;
       }
@@ -1368,11 +1367,11 @@ const RegisterStepsContent: React.FC<{
     goToStep,
     initializationAttempted,
     searchParams,
+    locale,
   ]);
 
   /**
    * פונקציה שמחזירה את רכיב-השלב המתאים למצב הנוכחי.
-   * זה המקום בו אנו מוודאים שה-prop 'locale' מועבר לכל רכיב-בן שצריך אותו.
    */
   const renderStep = (): React.ReactNode => {
     if (sessionStatus === 'loading') {
@@ -1387,31 +1386,27 @@ const RegisterStepsContent: React.FC<{
       registrationContextData.isVerifyingEmailCode &&
       !registrationContextData.isCompletingProfile
     ) {
-      // ============================ התיקון שפותר את השגיאה ============================
-      // מעבירים את ה-locale לרכיב אימות המייל, כפי שנדרש בממשק שלו
       return (
         <EmailVerificationCodeStep
           dict={dict.steps.emailVerification}
           locale={locale}
         />
       );
-      // ==============================================================================
     }
 
+    // ▼▼▼ 2. עדכון לוגיקת הצגת השלבים לאחר איחוד הקומפוננטות ▼▼▼
     if (registrationContextData.isCompletingProfile) {
       switch (registrationContextData.step) {
-        case 2:
+        case 2: // זהו כעת השלב היחיד והמאוחד
           return (
             <PersonalDetailsStep
-              dict={dict.steps.personalDetails}
+              personalDetailsDict={dict.steps.personalDetails}
+              optionalInfoDict={dict.steps.optionalInfo} // העברת המילון של השדות האופציונליים
               consentDict={dict.consentCheckbox}
               locale={locale}
             />
           );
-        case 3:
-          return (
-            <OptionalInfoStep dict={dict.steps.optionalInfo} locale={locale} />
-          );
+        // case 3 הוסר לחלוטין מכיוון ש-OptionalInfoStep אוחד לתוך PersonalDetailsStep
         case 4:
           return <CompleteStep dict={dict.steps.complete} />;
         default:
@@ -1419,6 +1414,7 @@ const RegisterStepsContent: React.FC<{
           return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
       }
     }
+    // ▲▲▲ סוף העדכון ▲▲▲
 
     switch (registrationContextData.step) {
       case 0:
@@ -1428,7 +1424,7 @@ const RegisterStepsContent: React.FC<{
           <BasicInfoStep
             dict={dict.steps.basicInfo}
             consentDict={dict.consentCheckbox}
-            locale={locale} // <<<<<<<<<<<< העברת ה-locale גם לשלב זה
+            locale={locale}
           />
         );
       default:
@@ -1437,11 +1433,11 @@ const RegisterStepsContent: React.FC<{
     }
   };
 
-  // לוגיקה לקביעת הכותרות וסרגל ההתקדמות (משתמשת במילון)
+  // ▼▼▼ 3. עדכון לוגיקת סרגל ההתקדמות והכותרות ▼▼▼
   let pageTitle = dict.headers.registerTitle;
   let stepDescription = dict.headers.welcomeDescription;
   let currentProgressBarStep = 0;
-  let totalProgressBarSteps = 3;
+  let totalProgressBarSteps = 3; // ברירת מחדל להרשמה ראשונית
   let showProgressBar = false;
 
   if (
@@ -1457,24 +1453,21 @@ const RegisterStepsContent: React.FC<{
     currentProgressBarStep = 1;
   } else if (registrationContextData.isCompletingProfile) {
     pageTitle = dict.headers.completeProfileTitle;
-    totalProgressBarSteps = 2;
+    totalProgressBarSteps = 1; // יש עכשיו רק שלב אחד (מאוחד) בתהליך השלמת הפרופיל
     if (registrationContextData.step === 2) {
       stepDescription = session?.user?.termsAndPrivacyAcceptedAt
         ? dict.headers.personalDetailsConsentedDescription
         : dict.headers.personalDetailsDescription;
       currentProgressBarStep = 1;
       showProgressBar = true;
-    } else if (registrationContextData.step === 3) {
-      stepDescription = dict.headers.optionalInfoDescription;
-      currentProgressBarStep = 2;
-      showProgressBar = true;
     } else if (registrationContextData.step === 4) {
       stepDescription = session?.user?.isPhoneVerified
         ? dict.headers.completionReadyDescription
         : dict.headers.completionPhoneVerificationDescription;
-      showProgressBar = false;
+      showProgressBar = false; // אין סרגל התקדמות בעמוד הסיום
     } else {
       stepDescription = dict.headers.loadingProfileDescription;
+      showProgressBar = false;
     }
   } else {
     if (registrationContextData.step === 1) {
@@ -1484,6 +1477,7 @@ const RegisterStepsContent: React.FC<{
       showProgressBar = true;
     }
   }
+  // ▲▲▲ סוף עדכון הלוגיקה ▲▲▲
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
@@ -1516,7 +1510,7 @@ const RegisterStepsContent: React.FC<{
             currentStep={currentProgressBarStep}
             totalSteps={totalProgressBarSteps}
             stepLabel={dict.progressBar.stepLabel}
-            locale={locale} // <<-- העברת משתנה השפה לקומפוננטה
+            locale={locale}
           />
         </div>
       )}
@@ -1527,9 +1521,9 @@ const RegisterStepsContent: React.FC<{
 
       <div className="mt-8 text-center text-sm text-gray-500">
         {dict.contactSupport}{' '}
-        <Link  href="/contact" className="text-cyan-600 hover:underline">
+        <Link href="/contact" className="text-cyan-600 hover:underline">
           {dict.contactSupportLink}
-        </Link >
+        </Link>
       </div>
     </div>
   );
@@ -1537,8 +1531,6 @@ const RegisterStepsContent: React.FC<{
 
 /**
  * רכיב הייצוא הראשי (Wrapper).
- * הוא עוטף את כל הלוגיקה ב-RegistrationProvider כדי לספק את הקונטקסט
- * לכל רכיבי-הבן שלו. הוא מקבל את המילון והשפה מה-page.tsx.
  */
 export default function RegisterSteps({ dict, locale }: RegisterStepsProps) {
   return (
@@ -2834,7 +2826,7 @@ Content:
 // src/components/auth/steps/BasicInfoStep.tsx
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { useRegistration } from '../RegistrationContext';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -2850,13 +2842,11 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import ConsentCheckbox from '../ConsentCheckbox';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 import { Input } from '@/components/ui/input';
 
 interface BasicInfoStepProps {
   dict: RegisterStepsDict['steps']['basicInfo'];
-  consentDict: RegisterStepsDict['consentCheckbox'];
   locale: 'he' | 'en';
 }
 
@@ -2870,7 +2860,7 @@ const isValidPassword = (password: string): boolean => {
   return passwordRegex.test(password);
 };
 
-const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale }) => {
+const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, locale }) => {
   const { data, updateField, prevStep, proceedToEmailVerification } = useRegistration();
   
   // States for validation and UI
@@ -2881,13 +2871,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
   const [apiError, setApiError] = useState<string | null>(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
 
-  // States for consents
-  const [consentChecked, setConsentChecked] = useState(false);
-  const [consentError, setConsentError] = useState<string | null>(null);
-  const [engagementConsent, setEngagementConsent] = useState(false); // Default to true
-  const [promotionalConsent, setPromotionalConsent] = useState(false); // Optional, default to true
-  const [engagementConsentError, setEngagementConsentError] = useState<string | null>(null); // New error state
-
   useEffect(() => {
     const isEmailValid = isValidEmail(data.email);
     const isPasswordValid = isValidPassword(data.password);
@@ -2897,27 +2880,11 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
       isEmailValid &&
       isPasswordValid &&
       isNameValid &&
-      consentChecked &&
-      engagementConsent && // Now a required part of the validation
       !isLoading
     );
-  }, [data.email, data.password, data.firstName, data.lastName, consentChecked, engagementConsent, isLoading]);
+  }, [data.email, data.password, data.firstName, data.lastName, isLoading]);
 
   const handleRegisterSubmit = async () => {
-    setConsentError(null);
-    setEngagementConsentError(null); // Reset engagement consent error on submit attempt
-
-    if (!consentChecked) {
-      setConsentError(dict.errors.consentRequired);
-      return;
-    }
-
-    // New validation check for engagement consent
-    if (!engagementConsent) {
-      setEngagementConsentError(dict.errors.engagementConsentRequired);
-      return;
-    }
-
     if (!isFormValid) {
       setApiError(dict.errors.fillFields);
       return;
@@ -2927,6 +2894,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
     setApiError(null);
 
     try {
+      // שליחת הנתונים ללא הסכמות (הן יתקבלו בשלב הבא)
       const response = await fetch(`/api/auth/register?locale=${locale}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2936,8 +2904,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
           firstName: data.firstName,
           lastName: data.lastName,
           language: data.language,
-          engagementEmailsConsent: engagementConsent,
-          promotionalEmailsConsent: promotionalConsent,
         }),
       });
 
@@ -3070,66 +3036,15 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
         </select>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="mt-6">
-        <ConsentCheckbox
-          checked={consentChecked}
-          onChange={(isChecked) => {
-            setConsentChecked(isChecked);
-            if (isChecked) setConsentError(null);
-          }}
-          error={consentError}
-          dict={consentDict}
-        />
-      </motion.div>
-
-      <motion.div variants={itemVariants} className="space-y-4 pt-4">
-        <div className="space-y-1">
-          <div className="flex items-start space-x-2 rtl:space-x-reverse">
-            <input
-              type="checkbox"
-              id="engagementConsent"
-              checked={engagementConsent}
-              onChange={(e) => {
-                const isChecked = e.target.checked;
-                setEngagementConsent(isChecked);
-                if (isChecked) setEngagementConsentError(null);
-              }}
-              className="mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
-            />
-            <label htmlFor="engagementConsent" className="text-sm text-gray-700">
-              {dict.engagementConsentLabel}
-              <span className="text-red-500">*</span>
-            </label>
-          </div>
-          {engagementConsentError && <p className="text-xs text-red-500 pt-1">{engagementConsentError}</p>}
-        </div>
-        <div className="flex items-start space-x-2 rtl:space-x-reverse">
-          <input
-            type="checkbox"
-            id="promotionalConsent"
-            checked={promotionalConsent}
-            onChange={(e) => setPromotionalConsent(e.target.checked)}
-            className="mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
-          />
-          <label htmlFor="promotionalConsent" className="text-sm text-gray-700">
-            {dict.promotionalConsentLabel}
-          </label>
-        </div>
-      </motion.div>
-
       <motion.div
         variants={itemVariants}
-        className="flex justify-between pt-4 mt-6 border-t border-gray-200"
+        className="pt-4 mt-6 border-t border-gray-200"
       >
-        <Button type="button" onClick={prevStep} variant="outline" disabled={isLoading} className="flex items-center gap-2">
-          <ArrowRight className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`} />{' '}
-          {dict.backButton}{' '}
-        </Button>
         <Button
           type="button"
           onClick={handleRegisterSubmit}
           disabled={!isFormValid || isLoading}
-          className={`flex items-center gap-2 min-w-[200px] justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-opacity ${
+          className={`w-full flex items-center gap-2 justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-opacity ${
             isFormValid && !isLoading
               ? 'bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-md hover:shadow-lg'
               : 'bg-gray-300 cursor-not-allowed'
@@ -3147,7 +3062,18 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
             </>
           )}
         </Button>
+
+        <p className="text-[10px] text-gray-500 text-center mt-2 px-2">
+          {dict.termsDisclaimer}
+        </p>
       </motion.div>
+
+      <div className="flex justify-center mt-2">
+        <Button type="button" onClick={prevStep} variant="ghost" disabled={isLoading} className="text-xs text-gray-400 hover:text-gray-600">
+          <ArrowRight className={`h-3 w-3 ml-1 ${locale === 'en' ? 'transform rotate-180' : ''}`} />{' '}
+          {dict.backButton}
+        </Button>
+      </div>
     </motion.div>
   );
 };
@@ -3898,7 +3824,7 @@ export default OptionalInfoStep;
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\PersonalDetailsStep.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/auth/steps/PersonalDetailsStep.tsx - VERSION WITH MERGED STEPS
+// src/components/auth/steps/PersonalDetailsStep.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -3916,24 +3842,26 @@ import {
   Edit3,
   Loader2,
   AlertCircle,
-  Ruler, //  נוסף
-  Briefcase, //  נוסף
-  GraduationCap, //  נוסף
+  Ruler,
+  Briefcase,
+  GraduationCap,
 } from 'lucide-react';
 import { Gender } from '@prisma/client';
 import { motion } from 'framer-motion';
-import ConsentCheckbox from '../ConsentCheckbox';
+import ConsentCheckbox from '../ConsentCheckbox'; // מיובא כעת לכאן
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+import SubmissionStatusIndicator, {
+  SubmissionStatus,
+} from './SubmissionStatusIndicator';
 
 interface PersonalDetailsStepProps {
   personalDetailsDict: RegisterStepsDict['steps']['personalDetails'];
-  optionalInfoDict: RegisterStepsDict['steps']['optionalInfo']; //  נוסף
+  optionalInfoDict: RegisterStepsDict['steps']['optionalInfo'];
   consentDict: RegisterStepsDict['consentCheckbox'];
   locale: 'he' | 'en';
 }
 
-// פונקציה לולידציה של מספר טלפון
 const validatePhoneNumber = (phone: string): boolean => {
   if (!phone) return false;
   const cleanPhone = phone.replace(/\D/g, '');
@@ -3952,22 +3880,32 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
   const { data: session, update: updateSessionHook } = useSession();
   const router = useRouter();
 
-  // States for validation and UI
   const [firstNameError, setFirstNameError] = useState('');
   const [lastNameError, setLastNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [ageError, setAgeError] = useState('');
   const [isFormValid, setIsFormValid] = useState(false);
-  const [consentChecked, setConsentChecked] = useState(
-    !!session?.user?.termsAndPrivacyAcceptedAt
-  );
-  const [consentError, setConsentError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus>('idle');
 
+  // --- לוגיקת הסכמה חדשה (הועברה משלב 1) ---
+  // אם המשתמש כבר אישר בעבר (למשל נרשם כבר ויש DB record), נציג מסומן
+  // אבל משתמשים חדשים תמיד יצטרכו לסמן כאן
   const userHasAlreadyConsented = !!session?.user?.termsAndPrivacyAcceptedAt;
+  
+  const [consentChecked, setConsentChecked] = useState(userHasAlreadyConsented);
+  const [consentError, setConsentError] = useState<string | null>(null);
+  
+  // דיוור - ברירת מחדל false למשתמש חדש, true אם כבר אישר
+  const [engagementConsent, setEngagementConsent] = useState(session?.user?.engagementEmailsConsent || false);
+  const [promotionalConsent, setPromotionalConsent] = useState(session?.user?.promotionalEmailsConsent || false);
+  const [engagementConsentError, setEngagementConsentError] = useState<string | null>(null);
 
-  // פונקציות ולידציה
+  useEffect(() => {
+    router.prefetch(`/${locale}/auth/verify-phone`);
+  }, [router, locale]);
+
   const validateFirstName = (name: string) => {
     if (!name.trim()) {
       setFirstNameError(personalDetailsDict.errors.firstNameRequired);
@@ -4005,7 +3943,10 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
     if (age < 18) {
@@ -4020,7 +3961,6 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
     return true;
   };
 
-  // בדיקת תקינות הטופס
   useEffect(() => {
     const isFieldsValid =
       registrationState.firstName.trim() &&
@@ -4031,36 +3971,49 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
       registrationState.gender &&
       registrationState.maritalStatus;
 
-    const consentRequirementMet = userHasAlreadyConsented || consentChecked;
-    setIsFormValid(!!isFieldsValid && consentRequirementMet);
-  }, [registrationState, consentChecked, userHasAlreadyConsented]);
+    // ולידציה מלאה: שדות תקינים + צ'קבוקס תנאי שימוש + צ'קבוקס דיוור חובה
+    setIsFormValid(!!isFieldsValid && consentChecked && engagementConsent);
+  }, [registrationState, consentChecked, engagementConsent]);
 
-  //  ====== LOGIC MERGE: This is the combined submission logic ======
   const handleSubmit = async () => {
     setApiError(null);
+    setConsentError(null);
+    setEngagementConsentError(null);
+
     const isFirstNameValid = validateFirstName(registrationState.firstName);
     const isLastNameValid = validateLastName(registrationState.lastName);
     const isPhoneValid = validatePhone(registrationState.phone);
     const isAgeValid = validateAge(registrationState.birthDate);
-    if (!userHasAlreadyConsented && !consentChecked) {
+
+    // בדיקת צ'קבוקסים ידנית בעת לחיצה
+    if (!consentChecked) {
       setConsentError(personalDetailsDict.errors.consentRequired);
       return;
     }
+    if (!engagementConsent) {
+        setEngagementConsentError(personalDetailsDict.errors.engagementConsentRequired);
+        return;
+    }
+
     if (!isFirstNameValid || !isLastNameValid || !isPhoneValid || !isAgeValid) {
       return;
     }
 
     setIsLoading(true);
+    setSubmissionStatus('savingProfile');
 
     try {
-      // 1. Accept terms if needed
+      // עדכון הסכמת תנאים (אם טרם אושר) - ה-API של accept-terms מטפל בזה
       if (!userHasAlreadyConsented) {
-        const consentResponse = await fetch('/api/user/accept-terms', { method: 'POST' });
-        if (!consentResponse.ok) throw new Error(personalDetailsDict.errors.consentApiError);
-        await updateSessionHook();
+        const consentResponse = await fetch('/api/user/accept-terms', {
+          method: 'POST',
+        });
+        if (!consentResponse.ok)
+          throw new Error(personalDetailsDict.errors.consentApiError);
+        // מעדכן את הסשן כדי שהלקוח ידע שאושר
+      /*   await updateSessionHook();  */
       }
 
-      // 2. Save the complete profile data
       const profileData = {
         firstName: registrationState.firstName,
         lastName: registrationState.lastName,
@@ -4071,129 +4024,428 @@ const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         height: registrationState.height,
         occupation: registrationState.occupation,
         education: registrationState.education,
+        // ▼▼▼ שליחת העדפות הדיוור לפרופיל ▼▼▼
+        engagementEmailsConsent: engagementConsent,
+        promotionalEmailsConsent: promotionalConsent,
       };
+
       const profileResponse = await fetch('/api/auth/complete-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData),
       });
+      
       if (!profileResponse.ok) {
         const errorData = await profileResponse.json();
         throw new Error(errorData.error || optionalInfoDict.errors.default);
       }
 
-      // 3. Send the verification code
-      const sendCodeResponse = await fetch('/api/auth/send-phone-code', { method: 'POST' });
+      setSubmissionStatus('sendingCode');
+
+      const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
+        method: 'POST',
+      });
       if (!sendCodeResponse.ok) {
         const errorData = await sendCodeResponse.json();
         throw new Error(errorData.error || optionalInfoDict.errors.default);
       }
 
-      // 4. Navigate to the phone verification page
+      setSubmissionStatus('redirecting');
       router.push(`/${locale}/auth/verify-phone`);
+
     } catch (err) {
-      setApiError(err instanceof Error ? err.message : optionalInfoDict.errors.default);
+      setApiError(
+        err instanceof Error ? err.message : optionalInfoDict.errors.default
+      );
       setIsLoading(false);
+      setSubmissionStatus('error');
     }
   };
-  //  ====== END OF LOGIC MERGE ======
 
-  // Animations
-  const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } };
-  const itemVariants = { hidden: { opacity: 0, y: 15 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+  };
+
+  const submissionSteps = [
+    {
+      id: 'savingProfile' as SubmissionStatus,
+      text: optionalInfoDict.status.saving,
+    },
+    {
+      id: 'sendingCode' as SubmissionStatus,
+      text: optionalInfoDict.status.sendingCode,
+    },
+    {
+      id: 'redirecting' as SubmissionStatus,
+      text:
+        locale === 'he'
+          ? 'מעבירים אותך לאימות...'
+          : 'Redirecting to verification...',
+    },
+  ];
 
   return (
-    <motion.div className="space-y-6" variants={containerVariants} initial="hidden" animate="visible">
-      <motion.div variants={itemVariants} className="text-center">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">{personalDetailsDict.title}</h2>
-        <p className="text-gray-600">{personalDetailsDict.subtitle}</p>
-      </motion.div>
-
-      {apiError && (
-        <motion.div variants={itemVariants}>
-          <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertTitle>שגיאה</AlertTitle><AlertDescription>{apiError}</AlertDescription></Alert>
+    <>
+      <SubmissionStatusIndicator
+        currentStatus={submissionStatus}
+        steps={submissionSteps}
+        dict={{
+          title: 'מאמתים את הפרטים',
+          subtitle: 'זה לוקח רק מספר שניות, נא לא לסגור את החלון.',
+        }}
+      />
+      <motion.div
+        className="space-y-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={itemVariants} className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            {personalDetailsDict.title}
+          </h2>
+          <p className="text-gray-600">{personalDetailsDict.subtitle}</p>
         </motion.div>
-      )}
 
-      <motion.div variants={itemVariants} className="space-y-5">
-        {/* Personal Details Fields... */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* First Name */}
+        {apiError && (
+          <motion.div variants={itemVariants}>
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>שגיאה</AlertTitle>
+              <AlertDescription>{apiError}</AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
+
+        <motion.div variants={itemVariants} className="space-y-5">
+           {/* --- שדות הטופס המקוריים (שם, טלפון, מגדר וכו') --- */}
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="firstNamePersonal" className="text-sm font-medium text-gray-700">{personalDetailsDict.firstNameLabel} <span className="text-red-500">*</span></label>
-              <div className="relative"><Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" /><Input id="firstNamePersonal" value={registrationState.firstName} onChange={(e) => updateField('firstName', e.target.value)} onBlur={(e) => validateFirstName(e.target.value)} placeholder={personalDetailsDict.firstNamePlaceholder} required disabled={isLoading} className={`pr-12 py-3 ${firstNameError ? 'border-red-400 focus:ring-red-200' : 'focus:ring-blue-200'}`} /></div>
-              {firstNameError && <p className="text-red-500 text-sm">{firstNameError}</p>}
+              <label
+                htmlFor="firstNamePersonal"
+                className="text-sm font-medium text-gray-700"
+              >
+                {personalDetailsDict.firstNameLabel}{' '}
+                <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" />
+                <Input
+                  id="firstNamePersonal"
+                  value={registrationState.firstName}
+                  onChange={(e) => updateField('firstName', e.target.value)}
+                  onBlur={(e) => validateFirstName(e.target.value)}
+                  placeholder={personalDetailsDict.firstNamePlaceholder}
+                  required
+                  disabled={isLoading}
+                  className={`pr-12 py-3 ${firstNameError ? 'border-red-400 focus:ring-red-200' : 'focus:ring-blue-200'}`}
+                />
+              </div>
+              {firstNameError && (
+                <p className="text-red-500 text-sm">{firstNameError}</p>
+              )}
             </div>
-            {/* Last Name */}
+
             <div className="space-y-2">
-              <label htmlFor="lastNamePersonal" className="text-sm font-medium text-gray-700">{personalDetailsDict.lastNameLabel} <span className="text-red-500">*</span></label>
-              <div className="relative"><Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" /><Input id="lastNamePersonal" value={registrationState.lastName} onChange={(e) => updateField('lastName', e.target.value)} onBlur={(e) => validateLastName(e.target.value)} placeholder={personalDetailsDict.lastNamePlaceholder} required disabled={isLoading} className={`pr-12 py-3 ${lastNameError ? 'border-red-400 focus:ring-red-200' : 'focus:ring-blue-200'}`} /></div>
-              {lastNameError && <p className="text-red-500 text-sm">{lastNameError}</p>}
+              <label
+                htmlFor="lastNamePersonal"
+                className="text-sm font-medium text-gray-700"
+              >
+                {personalDetailsDict.lastNameLabel}{' '}
+                <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" />
+                <Input
+                  id="lastNamePersonal"
+                  value={registrationState.lastName}
+                  onChange={(e) => updateField('lastName', e.target.value)}
+                  onBlur={(e) => validateLastName(e.target.value)}
+                  placeholder={personalDetailsDict.lastNamePlaceholder}
+                  required
+                  disabled={isLoading}
+                  className={`pr-12 py-3 ${lastNameError ? 'border-red-400 focus:ring-red-200' : 'focus:ring-blue-200'}`}
+                />
+              </div>
+              {lastNameError && (
+                <p className="text-red-500 text-sm">{lastNameError}</p>
+              )}
             </div>
-        </div>
-
-        {/* Phone Number */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">{personalDetailsDict.phoneLabel} <span className="text-red-500">*</span></label>
-          <PhoneNumberInput value={registrationState.phone} onChange={(value) => updateField('phone', value || '')} disabled={isLoading} locale={locale} error={phoneError}/>
-        </div>
-        
-        {/* Gender */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">{personalDetailsDict.genderLabel} <span className="text-red-500">*</span></label>
-          <div className="grid grid-cols-2 gap-3"><Button type="button" onClick={() => updateField('gender', Gender.MALE)} variant={registrationState.gender === Gender.MALE ? 'default' : 'outline'} disabled={isLoading} className={`py-4 ${registrationState.gender === Gender.MALE ? 'bg-blue-500' : ''}`}>👨 {personalDetailsDict.male}</Button><Button type="button" onClick={() => updateField('gender', Gender.FEMALE)} variant={registrationState.gender === Gender.FEMALE ? 'default' : 'outline'} disabled={isLoading} className={`py-4 ${registrationState.gender === Gender.FEMALE ? 'bg-pink-500' : ''}`}>👩 {personalDetailsDict.female}</Button></div>
-        </div>
-
-        {/* Birth Date & Marital Status */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label htmlFor="birthDatePersonal" className="text-sm font-medium text-gray-700">{personalDetailsDict.birthDateLabel} <span className="text-red-500">*</span></label>
-            <div className="relative"><Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" /><Input id="birthDatePersonal" type="date" value={registrationState.birthDate} onChange={(e) => updateField('birthDate', e.target.value)} onBlur={(e) => validateAge(e.target.value)} required disabled={isLoading} className={`pr-12 py-3 ${ageError ? 'border-red-400 focus:ring-red-200' : 'focus:ring-blue-200'}`} /></div>
-            {ageError && <p className="text-red-500 text-sm">{ageError}</p>}
           </div>
-          <div className="space-y-2">
-            <label htmlFor="maritalStatusPersonal" className="text-sm font-medium text-gray-700">{personalDetailsDict.maritalStatusLabel} <span className="text-red-500">*</span></label>
-            <div className="relative"><Users className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" /><select id="maritalStatusPersonal" value={registrationState.maritalStatus} onChange={(e) => updateField('maritalStatus', e.target.value)} required disabled={isLoading} className="w-full pr-12 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none appearance-none bg-white"><option value="" disabled>{personalDetailsDict.maritalStatusPlaceholder}</option><option value="רווק/ה">{personalDetailsDict.maritalStatuses.single}</option><option value="גרוש/ה">{personalDetailsDict.maritalStatuses.divorced}</option><option value="אלמן/ה">{personalDetailsDict.maritalStatuses.widowed}</option></select></div>
-          </div>
-        </div>
 
-        {/* ====== NEWLY ADDED OPTIONAL FIELDS ====== */}
-        <div className="pt-4 border-t">
-            <h3 className="text-lg font-semibold text-gray-700 mb-1">{optionalInfoDict.title}</h3>
-            <p className="text-sm text-gray-500 mb-4">{optionalInfoDict.subtitle}</p>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              {personalDetailsDict.phoneLabel}{' '}
+              <span className="text-red-500">*</span>
+            </label>
+            <PhoneNumberInput
+              value={registrationState.phone}
+              onChange={(value) => updateField('phone', value || '')}
+              disabled={isLoading}
+              locale={locale}
+              error={phoneError}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              {personalDetailsDict.genderLabel}{' '}
+              <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                type="button"
+                onClick={() => updateField('gender', Gender.MALE)}
+                variant={
+                  registrationState.gender === Gender.MALE
+                    ? 'default'
+                    : 'outline'
+                }
+                disabled={isLoading}
+                className={`py-4 ${registrationState.gender === Gender.MALE ? 'bg-blue-500' : ''}`}
+              >
+                👨 {personalDetailsDict.male}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => updateField('gender', Gender.FEMALE)}
+                variant={
+                  registrationState.gender === Gender.FEMALE
+                    ? 'default'
+                    : 'outline'
+                }
+                disabled={isLoading}
+                className={`py-4 ${registrationState.gender === Gender.FEMALE ? 'bg-pink-500' : ''}`}
+              >
+                👩 {personalDetailsDict.female}
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label
+                htmlFor="birthDatePersonal"
+                className="text-sm font-medium text-gray-700"
+              >
+                {personalDetailsDict.birthDateLabel}{' '}
+                <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" />
+                <Input
+                  id="birthDatePersonal"
+                  type="date"
+                  value={registrationState.birthDate}
+                  onChange={(e) => updateField('birthDate', e.target.value)}
+                  onBlur={(e) => validateAge(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  className={`pr-12 py-3 ${ageError ? 'border-red-400 focus:ring-red-200' : 'focus:ring-blue-200'}`}
+                />
+              </div>
+              {ageError && <p className="text-red-500 text-sm">{ageError}</p>}
+            </div>
+            <div className="space-y-2">
+              <label
+                htmlFor="maritalStatusPersonal"
+                className="text-sm font-medium text-gray-700"
+              >
+                {personalDetailsDict.maritalStatusLabel}{' '}
+                <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <Users className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" />
+                <select
+                  id="maritalStatusPersonal"
+                  value={registrationState.maritalStatus}
+                  onChange={(e) => updateField('maritalStatus', e.target.value)}
+                  required
+                  disabled={isLoading}
+                  className="w-full pr-12 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none appearance-none bg-white"
+                >
+                  <option value="" disabled>
+                    {personalDetailsDict.maritalStatusPlaceholder}
+                  </option>
+                  <option value="רווק/ה">
+                    {personalDetailsDict.maritalStatuses.single}
+                  </option>
+                  <option value="גרוש/ה">
+                    {personalDetailsDict.maritalStatuses.divorced}
+                  </option>
+                  <option value="אלמן/ה">
+                    {personalDetailsDict.maritalStatuses.widowed}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t">
+            <h3 className="text-lg font-semibold text-gray-700 mb-1">
+              {optionalInfoDict.title}
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {optionalInfoDict.subtitle}
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 {/* Height */}
-                <div className="space-y-2">
-                    <label htmlFor="heightOptional" className="text-sm font-medium text-gray-700 flex items-center gap-1"><Ruler className="h-4 w-4 text-gray-400" />{optionalInfoDict.heightLabel}</label>
-                    <Input type="number" id="heightOptional" min="120" max="220" value={registrationState.height ?? ''} onChange={(e) => updateField('height', e.target.value ? parseInt(e.target.value, 10) : undefined)} placeholder={optionalInfoDict.heightPlaceholder} disabled={isLoading} />
-                </div>
-                 {/* Occupation */}
-                <div className="space-y-2">
-                    <label htmlFor="occupationOptional" className="text-sm font-medium text-gray-700 flex items-center gap-1"><Briefcase className="h-4 w-4 text-gray-400" />{optionalInfoDict.occupationLabel}</label>
-                    <Input type="text" id="occupationOptional" value={registrationState.occupation ?? ''} onChange={(e) => updateField('occupation', e.target.value)} placeholder={optionalInfoDict.occupationPlaceholder} disabled={isLoading} />
-                </div>
+              <div className="space-y-2">
+                <label
+                  htmlFor="heightOptional"
+                  className="text-sm font-medium text-gray-700 flex items-center gap-1"
+                >
+                  <Ruler className="h-4 w-4 text-gray-400" />
+                  {optionalInfoDict.heightLabel}
+                </label>
+                <Input
+                  type="number"
+                  id="heightOptional"
+                  min="120"
+                  max="220"
+                  value={registrationState.height ?? ''}
+                  onChange={(e) =>
+                    updateField(
+                      'height',
+                      e.target.value ? parseInt(e.target.value, 10) : undefined
+                    )
+                  }
+                  placeholder={optionalInfoDict.heightPlaceholder}
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <label
+                  htmlFor="occupationOptional"
+                  className="text-sm font-medium text-gray-700 flex items-center gap-1"
+                >
+                  <Briefcase className="h-4 w-4 text-gray-400" />
+                  {optionalInfoDict.occupationLabel}
+                </label>
+                <Input
+                  type="text"
+                  id="occupationOptional"
+                  value={registrationState.occupation ?? ''}
+                  onChange={(e) => updateField('occupation', e.target.value)}
+                  placeholder={optionalInfoDict.occupationPlaceholder}
+                  disabled={isLoading}
+                />
+              </div>
             </div>
-             {/* Education */}
             <div className="space-y-2 mt-4">
-                <label htmlFor="educationOptional" className="text-sm font-medium text-gray-700 flex items-center gap-1"><GraduationCap className="h-4 w-4 text-gray-400" />{optionalInfoDict.educationLabel}</label>
-                <Input type="text" id="educationOptional" value={registrationState.education ?? ''} onChange={(e) => updateField('education', e.target.value)} placeholder={optionalInfoDict.educationPlaceholder} disabled={isLoading} />
+              <label
+                htmlFor="educationOptional"
+                className="text-sm font-medium text-gray-700 flex items-center gap-1"
+              >
+                <GraduationCap className="h-4 w-4 text-gray-400" />
+                {optionalInfoDict.educationLabel}
+              </label>
+              <Input
+                type="text"
+                id="educationOptional"
+                value={registrationState.education ?? ''}
+                onChange={(e) => updateField('education', e.target.value)}
+                placeholder={optionalInfoDict.educationPlaceholder}
+                disabled={isLoading}
+              />
             </div>
-        </div>
-      </motion.div>
-
-      {!userHasAlreadyConsented && (
-        <motion.div variants={itemVariants} className="pt-6 border-t border-gray-200">
-          <ConsentCheckbox checked={consentChecked} onChange={setConsentChecked} error={consentError} dict={consentDict} />
+          </div>
         </motion.div>
-      )}
 
-      <motion.div variants={itemVariants} className="flex justify-between items-center pt-6 border-t border-gray-200">
-        <Button onClick={prevStep} variant="outline" disabled={isLoading} className="flex items-center gap-2"><ArrowRight className={`h-4 w-4 ${locale === 'en' ? 'transform rotate-180' : ''}`} />{personalDetailsDict.backButton}</Button>
-        <Button onClick={handleSubmit} disabled={!isFormValid || isLoading} className="flex items-center gap-2 min-w-[150px] justify-center"><>
-          {isLoading ? (<><Loader2 className="h-5 w-5 animate-spin" /><span>{personalDetailsDict.nextButtonLoading}</span></>) : (<><span>{personalDetailsDict.nextButton}</span><ArrowLeft className={`h-4 w-4 ${locale === 'en' ? 'transform rotate-180' : ''}`} /></>)}
-        </></Button>
+        {/* ▼▼▼ אזור ההסכמות החדש (הועבר משלב 1) ▼▼▼ */}
+        <motion.div variants={itemVariants} className="pt-6 border-t border-gray-200 space-y-4">
+            {/* 1. תנאי שימוש ופרטיות */}
+            <ConsentCheckbox
+              checked={consentChecked}
+              onChange={(isChecked) => {
+                  setConsentChecked(isChecked);
+                  if (isChecked) setConsentError(null);
+              }}
+              error={consentError}
+              dict={consentDict}
+            />
+
+            {/* 2. דיוור שיווקי ותפעולי */}
+            <div className="space-y-3 pt-2">
+                <div className="space-y-1">
+                    <div className="flex items-start space-x-2 rtl:space-x-reverse">
+                        <input
+                        type="checkbox"
+                        id="engagementConsent"
+                        checked={engagementConsent}
+                        onChange={(e) => {
+                            const isChecked = e.target.checked;
+                            setEngagementConsent(isChecked);
+                            if (isChecked) setEngagementConsentError(null);
+                        }}
+                        className="mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
+                        />
+                        <label htmlFor="engagementConsent" className="text-sm text-gray-700">
+                        {personalDetailsDict.engagementConsentLabel}
+                        <span className="text-red-500">*</span>
+                        </label>
+                    </div>
+                    {engagementConsentError && <p className="text-xs text-red-500 pt-1">{engagementConsentError}</p>}
+                </div>
+
+                <div className="flex items-start space-x-2 rtl:space-x-reverse">
+                    <input
+                        type="checkbox"
+                        id="promotionalConsent"
+                        checked={promotionalConsent}
+                        onChange={(e) => setPromotionalConsent(e.target.checked)}
+                        className="mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
+                    />
+                    <label htmlFor="promotionalConsent" className="text-sm text-gray-700">
+                        {personalDetailsDict.promotionalConsentLabel}
+                    </label>
+                </div>
+            </div>
+        </motion.div>
+
+        <motion.div
+          variants={itemVariants}
+          className="flex justify-between items-center pt-6 border-t border-gray-200"
+        >
+          <Button
+            onClick={prevStep}
+            variant="outline"
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <ArrowRight
+              className={`h-4 w-4 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+            />
+            {personalDetailsDict.backButton}
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!isFormValid || isLoading}
+            className="flex items-center gap-2 min-w-[150px] justify-center"
+          >
+            <>
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>{personalDetailsDict.nextButtonLoading}</span>
+                </>
+              ) : (
+                <>
+                  <span>{personalDetailsDict.nextButton}</span>
+                  <ArrowLeft
+                    className={`h-4 w-4 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+                  />
+                </>
+              )}
+            </>
+          </Button>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </>
   );
 };
 
@@ -4210,12 +4462,14 @@ Content:
 import { CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// === NEW: Added 'allDone' to the status types ===
+// ▼▼▼ 1. הוספת 'redirecting' לטיפוס ▼▼▼
 export type SubmissionStatus =
   | 'idle'
+  | 'creatingAccount'
+  | 'sendingCode'
   | 'savingProfile'
   | 'updatingSession'
-  | 'sendingCode'
+  | 'redirecting' // <--- חדש
   | 'error';
 
 interface Step {
@@ -4225,34 +4479,26 @@ interface Step {
 
 interface SubmissionStatusIndicatorProps {
   currentStatus: SubmissionStatus;
+  steps: Step[];
   dict: {
-    saving: string;
-    updating: string;
-    sendingCode: string;
+    title: string;
+    subtitle: string;
   };
 }
 
 const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
   currentStatus,
+  steps,
   dict,
 }) => {
-  const steps: Step[] = [
-    { id: 'savingProfile', text: dict.saving },
-    { id: 'updatingSession', text: dict.updating },
-    { id: 'sendingCode', text: dict.sendingCode },
-  ];
-
   const getStepStatus = (
     stepId: SubmissionStatus,
-    currentStatus: SubmissionStatus
+    current: SubmissionStatus
   ): 'completed' | 'in-progress' | 'pending' => {
-    // === NEW: If the status is 'allDone', all steps are completed ===
-  
-    
     const stepIndex = steps.findIndex((s) => s.id === stepId);
-    const currentIndex = steps.findIndex((s) => s.id === currentStatus);
+    const currentIndex = steps.findIndex((s) => s.id === current);
 
-    if (currentIndex === -1 || currentStatus === 'idle' || currentStatus === 'error') {
+    if (currentIndex === -1 || current === 'idle' || current === 'error') {
       return 'pending';
     }
     if (stepIndex < currentIndex) {
@@ -4267,7 +4513,9 @@ const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
   const statusIcons = {
     completed: <CheckCircle className="h-6 w-6 text-green-500" />,
     'in-progress': <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />,
-    pending: <div className="h-6 w-6 rounded-full border-2 border-gray-300"></div>,
+    pending: (
+      <div className="h-6 w-6 rounded-full border-2 border-gray-300"></div>
+    ),
   };
 
   const isVisible = currentStatus !== 'idle' && currentStatus !== 'error';
@@ -4275,12 +4523,13 @@ const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
   return (
     <AnimatePresence>
       {isVisible && (
-        // === FIX: Stronger, more visible backdrop ===
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
+          aria-modal="true"
+          role="dialog"
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -4288,39 +4537,37 @@ const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
             className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"
           >
-            {/* === NEW: Themed gradient top bar for better design === */}
             <div className="h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
-            
+
             <div className="p-6 text-center">
               <div className="flex justify-center items-center gap-2 mb-4">
                 <ShieldCheck className="h-7 w-7 text-cyan-500" />
                 <h3 className="text-xl font-bold text-gray-800">
-                  מאמתים את הפרטים
+                  {dict.title}
                 </h3>
               </div>
-
-              <p className="text-sm text-gray-600 mb-6">
-                זה לוקח רק מספר שניות, נא לא לסגור את החלון.
-              </p>
+              <p className="text-sm text-gray-600 mb-6">{dict.subtitle}</p>
 
               <div className="space-y-4">
                 {steps.map((step) => {
                   const status = getStepStatus(step.id, currentStatus);
                   return (
-                    <div key={step.id} className="flex items-center gap-4 text-right p-2 bg-gray-50 rounded-lg">
+                    <div
+                      key={step.id}
+                      className="flex items-center gap-4 text-right p-3 bg-gray-50 rounded-lg"
+                    >
                       <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
                         {statusIcons[status]}
                       </div>
-                      <span className={`text-base font-medium ${status === 'pending' ? 'text-gray-400' : 'text-gray-700'}`}>
+                      <span
+                        className={`text-base font-medium ${status === 'pending' ? 'text-gray-400' : 'text-gray-700'}`}
+                      >
                         {step.text}
                       </span>
                     </div>
                   );
                 })}
               </div>
-
-              {/* === NEW: Final success message before redirecting === */}
-            
             </div>
           </motion.div>
         </motion.div>

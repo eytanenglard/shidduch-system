@@ -330,8 +330,8 @@
       },
       "religion": {
         "title": "Worldview & Faith",
-        "religiousLevelLabel": "Religious Observance",
-        "religiousLevelPlaceholder": "Select level",
+       "religiousLevelLabel": "Religious Style",
+"religiousLevelPlaceholder": "Select style",
         "religiousJourneyLabel": "Religious Background",
         "religiousJourneyPlaceholder": "Select background",
         "shomerNegiahLabel": "Observant of Shomer Negiah?",
@@ -961,7 +961,7 @@
       "religion": {
         "title": "Worldview & Faith",
 "religiousLevelLabel": "Religious Style",
-        "religiousLevelPlaceholder": "Select level",
+        "religiousLevelPlaceholder": "Select style",
         "religiousJourneyLabel": "Religious Background",
         "religiousJourneyPlaceholder": "Select background",
         "shomerNegiahLabel": "Observant of Shomer Negiah?",

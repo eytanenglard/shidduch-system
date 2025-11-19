@@ -237,6 +237,7 @@ export type RegisterStepsDict = {
       backButton: string;
       nextButton: string;
       nextButtonLoading: string;
+      termsDisclaimer: string; // <--- שדה חדש: המשפט הקטן
       errors: {
         title: string;
         invalidEmail: string;
@@ -245,17 +246,17 @@ export type RegisterStepsDict = {
         requiredPassword: string;
         fillFields: string;
         fixErrors: string;
-        consentRequired: string;
+        // consentRequired הוסר מכאן
         default: string;
-        engagementConsentRequired: string; 
+        // engagementConsentRequired הוסר מכאן
       };
-      engagementConsentLabel: string; // <-- שדה חדש
-      promotionalConsentLabel: string; // <-- שדה חדש
-       status: { // הוסף את האובייקט הזה
+      // תוויות ההסכמה הוסרו מכאן ועברו ל-personalDetails
+       status: {
         creatingAccount: string;
         sendingCode: string;
       };
     };
+
     emailVerification: {
       title: string;
       subtitle: string;
@@ -297,6 +298,12 @@ export type RegisterStepsDict = {
         divorced: string;
         widowed: string;
       };
+            religiousLevelLabel: string;
+      religiousLevelPlaceholder: string;
+      religiousLevels: { [key: string]: string }; // מיפוי של אפשרויות הרמה הדתית
+
+       engagementConsentLabel: string;
+      promotionalConsentLabel: string;
       backButton: string;
       nextButton: string;
       nextButtonLoading: string;
@@ -311,6 +318,9 @@ export type RegisterStepsDict = {
         genderRequired: string;
         maritalStatusRequired: string;
         consentRequired: string;
+                engagementConsentRequired: string; // הועבר לכאן
+        religiousLevelRequired: string; // הודעת שגיאה חדשה
+
         consentApiError: string;
       };
     };

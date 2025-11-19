@@ -28,8 +28,6 @@ type LogMetadata = {
   hasFirstName?: boolean;
   hasLastName?: boolean;
   verificationId?: string;
-  engagementEmailsConsent?: boolean;
-  promotionalEmailsConsent?: boolean;
    language?: 'he' | 'en';
 };
 
@@ -61,12 +59,13 @@ interface InitialRegistrationData {
   password: string;
   firstName: string;
   lastName: string;
-  engagementEmailsConsent?: boolean;
-  promotionalEmailsConsent?: boolean;
   language?: Language;
+  // הוסר: engagementEmailsConsent
+  // הוסר: promotionalEmailsConsent
 }
 
 function handleError(error: unknown): { message: string; status: number } {
+    // ... (פונקציית ה-Error Handler נשארת ללא שינוי)
     const logMeta: LogMetadata = { 
         errorContext: "Inside handleError before processing",
         timestamp: new Date().toISOString(),
@@ -143,8 +142,6 @@ export async function POST(req: NextRequest) {
       firstName: body.firstName,
       lastName: body.lastName,
       hasPassword: !!body.password,
-      engagementEmailsConsent: body.engagementEmailsConsent,
-      promotionalEmailsConsent: body.promotionalEmailsConsent,
       language: body.language,
     });
 
@@ -200,9 +197,11 @@ export async function POST(req: NextRequest) {
             isProfileComplete: false, 
             isPhoneVerified: false, 
             source: UserSource.REGISTRATION,
+            // נשמור כאן את התאריך כי המשתמש מאשר "בלחיצה על כפתור"
+            // אבל ההסכמה השיווקית תעודכן בשלב הבא
             termsAndPrivacyAcceptedAt: new Date(),
-    engagementEmailsConsent: body.engagementEmailsConsent || false,
-    promotionalEmailsConsent: body.promotionalEmailsConsent || false,
+            engagementEmailsConsent: false, // ברירת מחדל, יעודכן בשלב הבא
+            promotionalEmailsConsent: false, // ברירת מחדל, יעודכן בשלב הבא
           },
       });
       logger.info('User created successfully within transaction', { userId: user.id });
@@ -267,6 +266,7 @@ export async function POST(req: NextRequest) {
     );
 
   } catch (error: unknown) { 
+    // ... (Error Handling Block נשאר ללא שינוי)
     const logMetaForCatch: LogMetadata = { 
         errorContext: "Main catch block in POST /api/auth/register",
         timestamp: new Date().toISOString(),

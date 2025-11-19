@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\auth
-# Generated on: 2025-11-04 14:59:52
+# Generated on: 2025-11-19 18:57:15
 ################################################################################
 
 ================================================================================
@@ -243,6 +243,7 @@ Content:
         "backButton": "Back",
         "nextButton": "Create Account & Continue to Verification",
         "nextButtonLoading": "Creating account...",
+         "termsDisclaimer": "By clicking 'Create Account', I agree to the Terms of Use and Privacy Policy.",
         "errors": {
           "title": "Registration Error",
           "invalidEmail": "Invalid email address",
@@ -252,12 +253,15 @@ Content:
           "fillFields": "Please fill in all required fields correctly.",
           "fixErrors": "Please fix the highlighted errors.",
           "consentRequired": "You must accept the terms of use and privacy policy.",
-          "default": "An unexpected error occurred during registration",
-                    "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system."
+          "default": "An unexpected error occurred during registration"
 
         },
        "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
-  "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech."
+  "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech.",
+  "status": {
+          "creatingAccount": "Creating your account...",
+          "sendingCode": "Sending verification code to your email..."
+        }
 
       },
       "emailVerification": {
@@ -306,6 +310,8 @@ Content:
         "backButton": "Back",
         "nextButton": "Continue to Next Step",
         "nextButtonLoading": "Accepting terms...",
+        "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
+        "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech.",
         "errors": {
           "firstNameRequired": "First name is a required field",
           "lastNameRequired": "Last name is a required field",
@@ -316,8 +322,8 @@ Content:
           "ageTooHigh": "Invalid date of birth",
           "genderRequired": "Gender selection is required",
           "maritalStatusRequired": "Marital status selection is required",
-          "consentRequired": "You must accept the terms of use and privacy policy.",
-          "consentApiError": "An error occurred while accepting the terms."
+  "consentRequired": "You must accept the terms of use and privacy policy.",
+          "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system.",          "consentApiError": "An error occurred while accepting the terms."
         }
       },
       "optionalInfo": {
@@ -360,6 +366,7 @@ Content:
         "backToHomeLink": "Back to Homepage"
       }
     },
+    
     "consentCheckbox": {
       "text": "I have read and agree to the {termsLink} and the {privacyLink} of NeshamaTech, and I consent to the collection, processing, and storage of my personal information, including sensitive information, as detailed therein, and to the transfer of my information to servers that may be located outside of Israel.",
       "termsLink": "Terms of Use",
@@ -859,7 +866,7 @@ Content:
         "signInPrompt": "כבר יש לך חשבון?",
         "signInLink": "התחברות"
       },
-           "basicInfo": {
+      "basicInfo": {
         "title": "פרטי חשבון",
         "emailLabel": "אימייל",
         "emailPlaceholder": "you@example.com",
@@ -874,6 +881,7 @@ Content:
         "backButton": "חזרה",
         "nextButton": "צור חשבון והמשך לאימות",
         "nextButtonLoading": "יוצר חשבון...",
+        "termsDisclaimer": "בלחיצה על 'צור חשבון', אני מאשר/ת את תנאי השימוש ומדיניות הפרטיות.", 
         "errors": {
           "title": "שגיאה בהרשמה",
           "invalidEmail": "כתובת אימייל לא תקינה",
@@ -882,15 +890,14 @@ Content:
           "requiredPassword": "שדה סיסמה הוא חובה",
           "fillFields": "אנא מלא את כל השדות הנדרשים בצורה תקינה.",
           "fixErrors": "אנא תקן את השגיאות המסומנות.",
-          "consentRequired": "חובה לאשר את תנאי השימוש ומדיניות הפרטיות.",
-          "default": "אירעה שגיאה בלתי צפויה בהרשמה",
-                    "engagementConsentRequired": "כדי להבטיח שנוכל ללוות אותך בתהליך, יש לאשר קבלת עדכונים והצעות מהמערכת."
-
+          "default": "אירעה שגיאה בלתי צפויה בהרשמה"
         },
-          "engagementConsentLabel": "כן, אני רוצה לקבל טיפים, תובנות AI ומשובים אישיים מהצוות שיעזרו לי לשפר את הפרופיל ולמצוא התאמה מהר יותר.",
-  "promotionalConsentLabel": "אשמח לקבל עדכונים על פיצ'רים חדשים, אירועים ומבצעים מ-נשמהטק."
-
+        "status": {
+          "creatingAccount": "יוצר את החשבון שלך...",
+          "sendingCode": "שולח קוד אימות למייל..."
+        }
       },
+
       "emailVerification": {
         "title": "אימות כתובת מייל",
         "subtitle": "שלחנו קוד אימות בן {{length}} ספרות לכתובת",
@@ -912,7 +919,7 @@ Content:
           "resent": "קוד חדש נשלח בהצלחה."
         }
       },
-      "personalDetails": {
+           "personalDetails": {
         "title": "פרטים אישיים חיוניים",
         "subtitle": "אנו צריכים פרטים אלו כדי להמשיך בתהליך ההרשמה שלך.",
         "firstNameLabel": "שם פרטי",
@@ -927,11 +934,14 @@ Content:
         "birthDateLabel": "תאריך לידה",
         "maritalStatusLabel": "מצב משפחתי",
         "maritalStatusPlaceholder": "בחר/י מצב משפחתי...",
+        
         "maritalStatuses": {
           "single": "רווק/ה",
           "divorced": "גרוש/ה",
           "widowed": "אלמן/ה"
         },
+        "engagementConsentLabel": "כן, אני רוצה לקבל טיפים, תובנות AI ומשובים אישיים מהצוות שיעזרו לי לשפר את הפרופיל ולמצוא התאמה מהר יותר.",
+        "promotionalConsentLabel": "אשמח לקבל עדכונים על פיצ'רים חדשים, אירועים ומבצעים מ-נשמהטק.",
         "backButton": "חזרה",
         "nextButton": "המשך לשלב הבא",
         "nextButtonLoading": "מאשר תנאים...",
@@ -946,9 +956,11 @@ Content:
           "genderRequired": "יש לבחור מגדר",
           "maritalStatusRequired": "יש לבחור מצב משפחתי",
           "consentRequired": "חובה לאשר את תנאי השימוש ומדיניות הפרטיות.",
+          "engagementConsentRequired": "כדי להבטיח שנוכל ללוות אותך בתהליך, יש לאשר קבלת עדכונים והצעות מהמערכת.",
           "consentApiError": "אירעה שגיאה באישור התנאים."
         }
-      },
+      }
+,
       "optionalInfo": {
         "title": "מידע נוסף",
         "subtitle": "מידע זה יעזור לנו להתאים לך שידוכים מדויקים יותר. מומלץ למלא כמה שיותר פרטים.",

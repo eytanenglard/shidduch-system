@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth
-# Generated on: 2025-10-05 16:46:15
+# Generated on: 2025-11-19 18:05:38
 ################################################################################
 
 ================================================================================
@@ -711,12 +711,11 @@ Content:
 // app/api/auth/register/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType, UserSource  } from '@prisma/client';
+import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType, UserSource, Language } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { emailService } from '@/lib/email/emailService';
 import { VerificationService } from '@/lib/services/verificationService'; 
 import { applyRateLimit } from '@/lib/rate-limiter';
-import { UserEngagementService } from '@/lib/engagement/userEngagementService';
 
 const prisma = new PrismaClient();
 
@@ -739,8 +738,7 @@ type LogMetadata = {
   hasFirstName?: boolean;
   hasLastName?: boolean;
   verificationId?: string;
-    marketingConsent?: boolean;
-
+   language?: 'he' | 'en';
 };
 
 const logger = {
@@ -756,7 +754,6 @@ const logger = {
     const loggableMeta = { ...meta };
     if (loggableMeta.errorObject && process.env.NODE_ENV !== 'development') {
         // In production, we might want to remove the full object if not handled properly.
-        // For now, we'll keep it.
     }
     console.error(JSON.stringify({
       timestamp: new Date().toISOString(),
@@ -772,12 +769,13 @@ interface InitialRegistrationData {
   password: string;
   firstName: string;
   lastName: string;
-  // --- START OF CHANGE ---
-  marketingConsent?: boolean;
-  // --- END OF CHANGE ---
+  language?: Language;
+  // הוסר: engagementEmailsConsent
+  // הוסר: promotionalEmailsConsent
 }
 
 function handleError(error: unknown): { message: string; status: number } {
+    // ... (פונקציית ה-Error Handler נשארת ללא שינוי)
     const logMeta: LogMetadata = { 
         errorContext: "Inside handleError before processing",
         timestamp: new Date().toISOString(),
@@ -854,9 +852,7 @@ export async function POST(req: NextRequest) {
       firstName: body.firstName,
       lastName: body.lastName,
       hasPassword: !!body.password,
-      // --- START OF CHANGE ---
-      marketingConsent: body.marketingConsent,
-      // --- END OF CHANGE ---
+      language: body.language,
     });
 
     if (!body.email || !body.password || !body.firstName || !body.lastName) {
@@ -904,16 +900,18 @@ export async function POST(req: NextRequest) {
             password: hashedPassword,
             firstName: body.firstName,
             lastName: body.lastName,
+            language: body.language || 'he',
             role: UserRole.CANDIDATE,
             status: UserStatus.PENDING_EMAIL_VERIFICATION,
             isVerified: false, 
             isProfileComplete: false, 
             isPhoneVerified: false, 
             source: UserSource.REGISTRATION,
+            // נשמור כאן את התאריך כי המשתמש מאשר "בלחיצה על כפתור"
+            // אבל ההסכמה השיווקית תעודכן בשלב הבא
             termsAndPrivacyAcceptedAt: new Date(),
-            // --- START OF CHANGE ---
-            marketingConsent: body.marketingConsent || false,
-            // --- END OF CHANGE ---
+            engagementEmailsConsent: false, // ברירת מחדל, יעודכן בשלב הבא
+            promotionalEmailsConsent: false, // ברירת מחדל, יעודכן בשלב הבא
           },
       });
       logger.info('User created successfully within transaction', { userId: user.id });
@@ -932,27 +930,14 @@ export async function POST(req: NextRequest) {
     });
 
     logger.info('Database transaction completed successfully', { userId: result.user.id });
-    // --- ✨ הוספה חדשה: הפעלת קמפיין המיילים ✨ ---
-// קריאה זו אינה שולחת מייל מיידית, אלא רק מתזמנת את המייל הראשון בעוד מספר ימים.
-try {
-  await UserEngagementService.startCampaignForNewUser(result.user.id);
-  logger.info('User engagement campaign successfully scheduled', { userId: result.user.id });
-} catch (campaignError) {
-  // אם יש בעיה בתזמון הקמפיין, אנחנו רק מתעדים אותה ולא עוצרים את תהליך ההרשמה.
-  logger.error('Failed to start user engagement campaign', { 
-    userId: result.user.id,
-    errorObject: campaignError 
-  });
-}
-// --- סוף ההוספה ---
-
+    
     let emailSentSuccess = false;
-        const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour"; 
+    const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour"; 
 
     try {
       logger.info('Sending verification OTP email', { userId: result.user.id, email: result.user.email });
         await emailService.sendVerificationEmail({
-                locale, // <<<<<<<<<<<< הוספת ה-locale
+                locale,
                 email: result.user.email,
                 verificationCode: result.generatedOtp, 
                 firstName: result.user.firstName,
@@ -991,6 +976,7 @@ try {
     );
 
   } catch (error: unknown) { 
+    // ... (Error Handling Block נשאר ללא שינוי)
     const logMetaForCatch: LogMetadata = { 
         errorContext: "Main catch block in POST /api/auth/register",
         timestamp: new Date().toISOString(),
@@ -1055,12 +1041,10 @@ import { VerificationService } from '@/lib/services/verificationService';
 import { emailService } from '@/lib/email/emailService';
 import { z } from 'zod';
 
-// Zod schema for validating the request body
 const requestPasswordResetSchema = z.object({
   email: z.string().email({ message: "כתובת מייל לא תקינה" }),
 });
 
-// Helper for logging (consistent with your existing logs)
 type LogMetadata = {
   email?: string;
   userId?: string;
@@ -1069,7 +1053,7 @@ type LogMetadata = {
   timestamp?: string;
   action?: string;
   status?: UserStatus | VerificationStatus;
-  locale?: 'he' | 'en'; // <<<<<<<<<<<< התיקון: הוספת המאפיין החסר
+  locale?: 'he' | 'en';
 };
 
 const logger = {
@@ -1079,21 +1063,18 @@ const logger = {
 };
 
 export async function POST(req: NextRequest) {
-  // 1. Apply Rate Limiting (prevents email spam)
   const rateLimitResponse = await applyRateLimit(req, { requests: 5, window: '1 h' });
   if (rateLimitResponse) {
     return rateLimitResponse;
   }
 
-  // 2. Get Locale from URL for translation
   const url = new URL(req.url);
-  const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he'; // Default to Hebrew
+  const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
   
   const action = "request-password-reset";
   let requestBody: { email?: string } | undefined;
 
   try {
-    // 3. Parse and Validate Request Body
     requestBody = await req.json();
     logger.info('Request password reset initiated', { action });
 
@@ -1108,24 +1089,22 @@ export async function POST(req: NextRequest) {
 
     const { email } = validation.data;
     const normalizedEmail = email.toLowerCase();
-    // הקריאה הזו תקינה עכשיו
     logger.info('Processing password reset request', { action, email: normalizedEmail, locale });
 
-    // 4. Find the user in the database
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
-    // SECURITY: Always return a generic success message to prevent user enumeration attacks.
     const genericSuccessMessage = locale === 'he'
       ? 'אם קיימת כתובת מייל זו במערכת וניתן לאפס עבורה סיסמה, קוד אימות נשלח כעת.'
       : 'If an account with this email exists and is eligible for password reset, a code has been sent.';
 
-    // 5. Handle cases where no email should be sent, but still return success to the client
     if (!user) {
       logger.info('User not found for password reset request', { action, email: normalizedEmail });
       return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
     }
+
+    const finalLocale = user.language || locale;
 
     if (!user.password) {
       logger.info('Password reset attempted for account without a password (e.g., OAuth user)', { action, email: normalizedEmail, userId: user.id });
@@ -1137,7 +1116,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
     }
 
-    // 6. Invalidate previous pending password reset OTPs for this user
     await prisma.verification.updateMany({
         where: {
             userId: user.id,
@@ -1150,22 +1128,20 @@ export async function POST(req: NextRequest) {
     });
     logger.info('Invalidated previous pending password reset OTPs', { action, userId: user.id });
 
-    // 7. Create a new OTP using the Verification Service
     const expiresInMinutes = 15;
     const { otp: generatedOtp, verification: passwordResetVerification } = await VerificationService.createVerification(
       user.id,
       VerificationType.PASSWORD_RESET,
       user.email,
-      expiresInMinutes / 60 // Service expects hours
+      expiresInMinutes / 60 
     );
     logger.info('New password reset OTP created', { action, userId: user.id, verificationId: passwordResetVerification.id });
 
-    // 8. Send the password reset email using the updated Email Service
     try {
-      const expiresInText = locale === 'he' ? `${expiresInMinutes} דקות` : `${expiresInMinutes} minutes`;
+      const expiresInText = finalLocale === 'he' ? `${expiresInMinutes} דקות` : `${expiresInMinutes} minutes`;
 
       await emailService.sendPasswordResetOtpEmail({
-        locale,
+         locale: finalLocale,
         email: user.email,
         otp: generatedOtp,
         firstName: user.firstName,
@@ -1181,11 +1157,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 9. Return the generic success response
     return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
 
   } catch (error: unknown) {
-    // 10. Handle unexpected errors
     const emailForLog = requestBody?.email;
     logger.error('Critical error in request password reset process', {
       action,
@@ -1220,7 +1194,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { generateOtp, sendOtpViaWhatsApp } from '@/lib/phoneVerificationService';
-import { VerificationType, VerificationStatus } from '@prisma/client';
+import { VerificationType } from '@prisma/client';
 
 // --- הגדרות ---
 const RESEND_RATE_LIMIT_SECONDS = 60; // זמן המתנה בשניות בין בקשות חוזרות
@@ -1626,7 +1600,6 @@ import { emailService } from '@/lib/email/emailService';
 import { hash } from 'bcryptjs';
 import { z } from 'zod';
 
-// Zod schema for validating the request body with detailed messages
 const resetPasswordSchema = z.object({
   email: z.string().email({ message: "כתובת מייל לא תקינה" }),
   otp: z.string()
@@ -1639,7 +1612,6 @@ const resetPasswordSchema = z.object({
     .regex(/[0-9]/, { message: "הסיסמה חייבת להכיל לפחות ספרה אחת" }),
 });
 
-// Helper for consistent logging
 type LogMetadata = {
   email?: string;
   userId?: string;
@@ -1661,17 +1633,14 @@ export async function POST(req: NextRequest) {
   let requestBody: { email?: string } | undefined;
 
   try {
-    // 1. Apply Rate Limiting (prevents brute-force attacks on OTP)
     const rateLimitResponse = await applyRateLimit(req, { requests: 10, window: '15 m' });
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
-    // 2. Get Locale from URL for translation
     const url = new URL(req.url);
-    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he'; // Default to Hebrew
+    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
 
-    // 3. Parse and Validate Request Body
     requestBody = await req.json();
     logger.info('Reset password with OTP process initiated', { action, locale });
 
@@ -1690,17 +1659,14 @@ export async function POST(req: NextRequest) {
     const { email, otp, newPassword } = validation.data;
     const normalizedEmail = email.toLowerCase();
 
-    // 4. Verify the OTP using the centralized VerificationService
     logger.info('Attempting to verify OTP for password reset', { action, email: normalizedEmail });
     
-    // This service will throw an error if the OTP is invalid, expired, or has too many attempts.
     const verificationResult = await VerificationService.verifyCode(
       otp,
       VerificationType.PASSWORD_RESET,
       normalizedEmail
     );
 
-    // Ensure the result from the service contains the necessary data
     if (!verificationResult.success || !verificationResult.userId || !verificationResult.id) {
       logger.error('OTP verification failed unexpectedly or did not return required data', {
         action,
@@ -1713,40 +1679,31 @@ export async function POST(req: NextRequest) {
     const { userId, id: verificationId } = verificationResult;
     logger.info('OTP verified successfully', { action, userId, verificationId });
 
-    // 5. Hash the new password
     const hashedPassword = await hash(newPassword, 12);
     logger.info('New password hashed', { action, userId });
 
-    // 6. Update user's password and mark OTP as used
-    // These are done sequentially. If marking as completed fails, it's not critical as the token will expire.
-    
-    // Update the user's password
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
         password: hashedPassword,
         updatedAt: new Date(),
       },
-      select: { email: true, firstName: true } // Select data needed for confirmation email
+      select: { email: true, firstName: true, language: true }
     });
     logger.info('User password updated in database', { action, userId });
 
-    // Mark the verification record as COMPLETED
     await VerificationService.completeVerification(verificationId);
     logger.info('Verification record marked as completed', { action, verificationId });
 
-    // 7. Send password change confirmation email (non-critical step)
     if (user) {
       try {
-        // *** CRITICAL FIX: Pass the locale to the email service ***
         await emailService.sendPasswordChangedConfirmationEmail({
-          locale, // Pass the determined locale
+         locale: user.language || locale,
           email: user.email,
           firstName: user.firstName,
         });
-        logger.info('Password change confirmation email sent', { action, userId, locale });
+        logger.info('Password change confirmation email sent', { action, userId, locale: user.language || locale });
       } catch (emailError) {
-        // Log the error but do not fail the request, as the password has been successfully changed.
         logger.error('Failed to send password change confirmation email', {
           action,
           userId,
@@ -1755,15 +1712,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 8. Return success response
-    const successMessage = locale === 'he'
+    const successMessage = (user.language || locale) === 'he'
       ? 'הסיסמה אופסה בהצלחה. כעת תוכל להתחבר עם הסיסמה החדשה.'
       : 'Password has been reset successfully. You can now log in with your new password.';
       
     return NextResponse.json({ success: true, message: successMessage }, { status: 200 });
 
   } catch (error: unknown) {
-    // 9. Handle all errors gracefully
     const emailForLog = requestBody?.email;
     logger.error('Critical error in reset password with OTP process', {
       action,
@@ -1774,7 +1729,6 @@ export async function POST(req: NextRequest) {
     let errorMessage = 'אירעה שגיאה באיפוס הסיסמה.';
     let errorStatus = 500;
 
-    // Map specific known errors from VerificationService to user-friendly messages and statuses
     if (error instanceof Error) {
       const knownClientErrors = [
         'הקוד כבר נוצל.',
@@ -1785,9 +1739,9 @@ export async function POST(req: NextRequest) {
       ];
       if (knownClientErrors.includes(error.message)) {
         errorMessage = error.message;
-        errorStatus = 400; // Bad Request
-        if (error.message.includes("פג תוקפו")) errorStatus = 410; // Gone
-        if (error.message.includes("חרגת ממספר ניסיונות")) errorStatus = 429; // Too Many Requests
+        errorStatus = 400;
+        if (error.message.includes("פג תוקפו")) errorStatus = 410;
+        if (error.message.includes("חרגת ממספר ניסיונות")) errorStatus = 429;
       }
     }
 
@@ -2282,34 +2236,24 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { emailService } from '@/lib/email/emailService';
 
-// --- הגדרות ---
-// מספר ניסיונות אימות מקסימלי לפני שהקוד ייכשל
 const MAX_VERIFICATION_ATTEMPTS = 5;
 
-// --- סכמת Zod לאימות גוף הבקשה ---
-// מוודאת שהלקוח שולח אובייקט עם שדה 'code' תקין
 const verifyCodeSchema = z.object({
   code: z.string()
     .length(6, { message: "קוד האימות חייב להכיל 6 ספרות" })
     .regex(/^\d+$/, { message: "פורמט קוד לא תקין, ספרות בלבד" }),
 });
 
-
-// --- לוגר פשוט לדיבאגינג ---
 const logger = {
     info: (message: string, meta?: Record<string, unknown>) => console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', message, ...meta })),
     warn: (message: string, meta?: Record<string, unknown>) => console.warn(JSON.stringify({ timestamp: new Date().toISOString(), level: 'warn', message, ...meta })),
     error: (message: string, meta?: Record<string, unknown>) => console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', message, ...meta })),
 };
 
-
-// --- נקודת הקצה (Endpoint) הראשית ---
 export async function POST(req: NextRequest) {
   const action = "verify-phone-code";
 
   try {
-    // שלב 1: אימות משתמש
-    // ------------------------------------
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       logger.warn("ניסיון לאימות טלפון ללא סשן פעיל", { action });
@@ -2318,17 +2262,10 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id;
     logger.info("תהליך אימות טלפון החל עבור משתמש", { action, userId });
 
-
-    // שלב 2: קבלת שפת הממשק מהלקוח
-    // ------------------------------------
-    // השפה נשלחת כפרמטר ב-URL, למשל: /api/auth/verify-phone-code?locale=en
     const url = new URL(req.url);
-    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he'; // ברירת מחדל לעברית
+    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
     logger.info("שפת הממשק זוהתה", { action, userId, locale });
 
-
-    // שלב 3: קריאת ואימות גוף הבקשה
-    // ------------------------------------
     const body = await req.json();
     const validation = verifyCodeSchema.safeParse(body);
 
@@ -2338,9 +2275,6 @@ export async function POST(req: NextRequest) {
     }
     const { code } = validation.data;
 
-
-    // שלב 4: איתור בקשת האימות בבסיס הנתונים
-    // ------------------------------------
     const verification = await prisma.verification.findFirst({
         where: {
             userId: userId,
@@ -2348,7 +2282,7 @@ export async function POST(req: NextRequest) {
             status: 'PENDING',
         },
         orderBy: {
-            createdAt: 'desc' // ודא שאנחנו מקבלים את הבקשה האחרונה
+            createdAt: 'desc'
         }
     });
 
@@ -2357,30 +2291,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'לא נמצאה בקשת אימות פעילה או שהחשבון כבר אומת.' }, { status: 404 });
     }
 
-
-    // שלב 5: בדיקת תוקף ותקינות הקוד
-    // ------------------------------------
-    // בדיקה 5א: האם הקוד פג תוקף?
     if (new Date() > verification.expiresAt) {
         await prisma.verification.update({
             where: { id: verification.id },
             data: { status: 'EXPIRED' }
         });
         logger.warn("ניסיון להשתמש בקוד שפג תוקפו", { action, userId, verificationId: verification.id });
-        return NextResponse.json({ error: 'קוד האימות פג תוקף. אנא בקש קוד חדש.' }, { status: 410 }); // 410 Gone
+        return NextResponse.json({ error: 'קוד האימות פג תוקף. אנא בקש קוד חדש.' }, { status: 410 });
     }
 
-    // בדיקה 5ב: האם המשתמש חרג ממספר הניסיונות?
     if (verification.attempts >= MAX_VERIFICATION_ATTEMPTS) {
         await prisma.verification.update({
             where: { id: verification.id },
             data: { status: 'FAILED' }
         });
         logger.warn("חרגה ממספר ניסיונות האימות", { action, userId, verificationId: verification.id });
-        return NextResponse.json({ error: 'חרגת ממספר ניסיונות האימות המותר. אנא בקש קוד חדש.' }, { status: 429 }); // 429 Too Many Requests
+        return NextResponse.json({ error: 'חרגת ממספר ניסיונות האימות המותר. אנא בקש קוד חדש.' }, { status: 429 });
     }
 
-    // בדיקה 5ג: האם הקוד שהוזן שגוי?
     if (verification.token !== code) {
         const updatedVerification = await prisma.verification.update({
             where: { id: verification.id },
@@ -2391,12 +2319,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: `קוד אימות שגוי. נותרו לך ${attemptsLeft} ניסיונות.` }, { status: 400 });
     }
 
-
-    // שלב 6: אימות מוצלח - עדכון בסיס הנתונים ושליחת מייל
-    // ----------------------------------------------------
-    // שימוש בטרנזקציה כדי להבטיח ששתי הפעולות (עדכון משתמש ועדכון אימות) יצליחו יחד או ייכשלו יחד
-    const [updatedVerification, updatedUser] = await prisma.$transaction([
-        // 6א: עדכון רשומת האימות לסטטוס 'COMPLETED'
+    const [, updatedUser] = await prisma.$transaction([
         prisma.verification.update({
             where: { id: verification.id },
             data: {
@@ -2405,20 +2328,19 @@ export async function POST(req: NextRequest) {
                 attempts: verification.attempts + 1
              }
         }),
-        // 6ב: עדכון רשומת המשתמש - הפוך אותו לפעיל!
         prisma.user.update({
             where: { id: userId },
             data: {
                 isPhoneVerified: true,
-                isProfileComplete: true, // לאחר אימות טלפון, הפרופיל נחשב שלם
-                status: UserStatus.ACTIVE, // המשתמש הופך לפעיל
+                isProfileComplete: true,
+                status: UserStatus.ACTIVE,
                 updatedAt: new Date(),
             },
-            // בחירת השדות שיוחזרו - חשוב לקבל את המייל והשם עבור שליחת המייל
             select: {
                 id: true,
                 email: true,
                 firstName: true,
+                language: true, 
                 isPhoneVerified: true,
                 isProfileComplete: true,
                 status: true,
@@ -2428,32 +2350,25 @@ export async function POST(req: NextRequest) {
     
     logger.info("אימות טלפון הושלם בהצלחה, משתמש הוגדר כפעיל", { action, userId });
 
-    // 6ג: שליחת מייל "ברוכים הבאים" - רק לאחר שהטרנזקציה הצליחה
     try {
         await emailService.sendWelcomeEmail({
-            locale, // << העברת השפה הדינמית שהתקבלה מהלקוח
+            locale: updatedUser.language || locale,
             email: updatedUser.email,
             firstName: updatedUser.firstName || 'חבר',
             dashboardUrl: '/profile'
         });
-        logger.info("מייל ברוכים הבאים נשלח בהצלחה", { action, userId, email: updatedUser.email, locale });
+        logger.info("מייל ברוכים הבאים נשלח בהצלחה", { action, userId, email: updatedUser.email, locale: updatedUser.language || locale });
     } catch (emailError) {
-        // כישלון בשליחת המייל לא צריך להכשיל את כל הבקשה. המשתמש עדיין מאומת.
-        // חשוב לרשום את השגיאה למעקב.
         logger.error("כשל בשליחת מייל ברוכים הבאים לאחר אימות טלפון", { action, userId, error: emailError });
     }
 
-
-    // שלב 7: החזרת תשובת הצלחה ללקוח
-    // ------------------------------------
     return NextResponse.json({
          success: true,
          message: 'אימות הטלפון הושלם בהצלחה!',
-         user: updatedUser // החזרת פרטי המשתמש המעודכנים לעדכון הסשן בצד הלקוח
+         user: updatedUser
     }, { status: 200 });
 
   } catch (error) {
-    // --- טיפול כללי בשגיאות לא צפויות ---
     const userId = (await getServerSession(authOptions))?.user?.id || 'unknown';
     logger.error("שגיאה קריטית בתהליך אימות הטלפון", { action, userId, error });
 

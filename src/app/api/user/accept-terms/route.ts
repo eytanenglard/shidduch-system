@@ -1,10 +1,10 @@
 // src/app/api/user/accept-terms/route.ts
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth'; // ודא שהנתיב ל-authOptions נכון
+import { authOptions } from '@/lib/auth';
 import prisma from "@/lib/prisma";
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -14,33 +14,51 @@ export async function POST() {
 
     const userId = session.user.id;
 
-    // בדוק אם המשתמש כבר אישר את התנאים כדי למנוע עדכונים מיותרים
+    // נסה לקרוא את הגוף למקרה שנשלחו גם הסכמות שיווקיות
+    let body = {};
+    try {
+      body = await req.json();
+    } catch (e) {
+      // הגוף ריק, זה בסדר
+    }
+    
+    const { engagementEmailsConsent, promotionalEmailsConsent } = body as any;
+
+    // בדוק מצב קיים
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { termsAndPrivacyAcceptedAt: true },
     });
 
-    if (user?.termsAndPrivacyAcceptedAt) {
-      return NextResponse.json({ success: true, message: 'Terms already accepted' });
+    // הכן אובייקט לעדכון
+    const updateData: any = {};
+
+    // עדכן תאריך רק אם טרם אושר
+    if (!user?.termsAndPrivacyAcceptedAt) {
+      updateData.termsAndPrivacyAcceptedAt = new Date();
     }
 
-    // עדכן את המשתמש עם חתימת זמן ההסכמה
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        termsAndPrivacyAcceptedAt: new Date(),
-      },
-    });
+    // עדכן הסכמות שיווקיות אם נשלחו בבקשה (גם אם המשתמש כבר אישר תנאים בעבר)
+    if (typeof engagementEmailsConsent === 'boolean') {
+      updateData.engagementEmailsConsent = engagementEmailsConsent;
+    }
+    if (typeof promotionalEmailsConsent === 'boolean') {
+      updateData.promotionalEmailsConsent = promotionalEmailsConsent;
+    }
 
-    // אין צורך להחזיר את הסשן המעודכן כאן, הלקוח ירענן אותו עם update()
-    return NextResponse.json({ success: true, message: 'Terms accepted successfully' });
+    // בצע עדכון רק אם יש מה לעדכן
+    if (Object.keys(updateData).length > 0) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+      });
+      return NextResponse.json({ success: true, message: 'User terms/consents updated' });
+    } else {
+      return NextResponse.json({ success: true, message: 'No changes needed' });
+    }
 
   } catch (error) {
     console.error('Error accepting terms:', error);
-    let errorMessage = 'An unexpected error occurred';
-    if (error instanceof Error) {
-        errorMessage = error.message;
-    }
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Error' }, { status: 500 });
   }
 }

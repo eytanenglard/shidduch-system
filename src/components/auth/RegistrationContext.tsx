@@ -32,6 +32,8 @@ export interface RegistrationData {
   isCompletingProfile: boolean;
   isVerifyingEmailCode: boolean;
   emailForVerification: string | null;
+    religiousLevel?: string; // הוסף את השדה כאן
+
 }
 
 const initialRegistrationData: RegistrationData = {
@@ -46,6 +48,8 @@ const initialRegistrationData: RegistrationData = {
   height: undefined,
   occupation: '',
   education: '',
+    religiousLevel: '', // ערך התחלתי ריק
+
   step: 0,
   isGoogleSignup: false,
   language: 'he',

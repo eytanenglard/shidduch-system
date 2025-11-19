@@ -4,13 +4,14 @@
 import { CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// הגדרת טיפוסים למצבים האפשריים של התהליך
+// ▼▼▼ 1. הוספת 'redirecting' לטיפוס ▼▼▼
 export type SubmissionStatus =
   | 'idle'
   | 'creatingAccount'
   | 'sendingCode'
   | 'savingProfile'
   | 'updatingSession'
+  | 'redirecting' // <--- חדש
   | 'error';
 
 interface Step {
@@ -18,11 +19,10 @@ interface Step {
   text: string;
 }
 
-// ▼▼▼ כאן השינוי המרכזי ▼▼▼
 interface SubmissionStatusIndicatorProps {
   currentStatus: SubmissionStatus;
-  steps: Step[]; // מערך של שלבים להצגה
-  dict: { // אובייקט כללי לכותרות וטקסטים
+  steps: Step[];
+  dict: {
     title: string;
     subtitle: string;
   };
@@ -31,9 +31,8 @@ interface SubmissionStatusIndicatorProps {
 const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
   currentStatus,
   steps,
-  dict, // שימוש ב-prop המעודכן
+  dict,
 }) => {
-  // ... (שאר לוגיקת הרכיב נשארת זהה)
   const getStepStatus = (
     stepId: SubmissionStatus,
     current: SubmissionStatus
@@ -56,7 +55,9 @@ const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
   const statusIcons = {
     completed: <CheckCircle className="h-6 w-6 text-green-500" />,
     'in-progress': <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />,
-    pending: <div className="h-6 w-6 rounded-full border-2 border-gray-300"></div>,
+    pending: (
+      <div className="h-6 w-6 rounded-full border-2 border-gray-300"></div>
+    ),
   };
 
   const isVisible = currentStatus !== 'idle' && currentStatus !== 'error';
@@ -79,29 +80,30 @@ const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
             className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"
           >
             <div className="h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
-            
+
             <div className="p-6 text-center">
               <div className="flex justify-center items-center gap-2 mb-4">
                 <ShieldCheck className="h-7 w-7 text-cyan-500" />
-                {/* ▼▼▼ שימוש בכותרת מה-dict ▼▼▼ */}
                 <h3 className="text-xl font-bold text-gray-800">
                   {dict.title}
                 </h3>
               </div>
-              {/* ▼▼▼ שימוש בכותרת המשנה מה-dict ▼▼▼ */}
-              <p className="text-sm text-gray-600 mb-6">
-                {dict.subtitle}
-              </p>
+              <p className="text-sm text-gray-600 mb-6">{dict.subtitle}</p>
 
               <div className="space-y-4">
                 {steps.map((step) => {
                   const status = getStepStatus(step.id, currentStatus);
                   return (
-                    <div key={step.id} className="flex items-center gap-4 text-right p-3 bg-gray-50 rounded-lg">
+                    <div
+                      key={step.id}
+                      className="flex items-center gap-4 text-right p-3 bg-gray-50 rounded-lg"
+                    >
                       <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
                         {statusIcons[status]}
                       </div>
-                      <span className={`text-base font-medium ${status === 'pending' ? 'text-gray-400' : 'text-gray-700'}`}>
+                      <span
+                        className={`text-base font-medium ${status === 'pending' ? 'text-gray-400' : 'text-gray-700'}`}
+                      >
                         {step.text}
                       </span>
                     </div>

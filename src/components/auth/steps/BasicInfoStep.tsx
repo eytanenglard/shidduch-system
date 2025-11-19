@@ -1,7 +1,7 @@
 // src/components/auth/steps/BasicInfoStep.tsx
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { useRegistration } from '../RegistrationContext';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -17,13 +17,11 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import ConsentCheckbox from '../ConsentCheckbox';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 import { Input } from '@/components/ui/input';
 
 interface BasicInfoStepProps {
   dict: RegisterStepsDict['steps']['basicInfo'];
-  consentDict: RegisterStepsDict['consentCheckbox'];
   locale: 'he' | 'en';
 }
 
@@ -37,7 +35,7 @@ const isValidPassword = (password: string): boolean => {
   return passwordRegex.test(password);
 };
 
-const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale }) => {
+const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, locale }) => {
   const { data, updateField, prevStep, proceedToEmailVerification } = useRegistration();
   
   // States for validation and UI
@@ -48,13 +46,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
   const [apiError, setApiError] = useState<string | null>(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
 
-  // States for consents
-  const [consentChecked, setConsentChecked] = useState(false);
-  const [consentError, setConsentError] = useState<string | null>(null);
-  const [engagementConsent, setEngagementConsent] = useState(false); // Default to true
-  const [promotionalConsent, setPromotionalConsent] = useState(false); // Optional, default to true
-  const [engagementConsentError, setEngagementConsentError] = useState<string | null>(null); // New error state
-
   useEffect(() => {
     const isEmailValid = isValidEmail(data.email);
     const isPasswordValid = isValidPassword(data.password);
@@ -64,27 +55,11 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
       isEmailValid &&
       isPasswordValid &&
       isNameValid &&
-      consentChecked &&
-      engagementConsent && // Now a required part of the validation
       !isLoading
     );
-  }, [data.email, data.password, data.firstName, data.lastName, consentChecked, engagementConsent, isLoading]);
+  }, [data.email, data.password, data.firstName, data.lastName, isLoading]);
 
   const handleRegisterSubmit = async () => {
-    setConsentError(null);
-    setEngagementConsentError(null); // Reset engagement consent error on submit attempt
-
-    if (!consentChecked) {
-      setConsentError(dict.errors.consentRequired);
-      return;
-    }
-
-    // New validation check for engagement consent
-    if (!engagementConsent) {
-      setEngagementConsentError(dict.errors.engagementConsentRequired);
-      return;
-    }
-
     if (!isFormValid) {
       setApiError(dict.errors.fillFields);
       return;
@@ -94,6 +69,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
     setApiError(null);
 
     try {
+      // שליחת הנתונים ללא הסכמות (הן יתקבלו בשלב הבא)
       const response = await fetch(`/api/auth/register?locale=${locale}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -103,8 +79,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
           firstName: data.firstName,
           lastName: data.lastName,
           language: data.language,
-          engagementEmailsConsent: engagementConsent,
-          promotionalEmailsConsent: promotionalConsent,
         }),
       });
 
@@ -237,66 +211,15 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
         </select>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="mt-6">
-        <ConsentCheckbox
-          checked={consentChecked}
-          onChange={(isChecked) => {
-            setConsentChecked(isChecked);
-            if (isChecked) setConsentError(null);
-          }}
-          error={consentError}
-          dict={consentDict}
-        />
-      </motion.div>
-
-      <motion.div variants={itemVariants} className="space-y-4 pt-4">
-        <div className="space-y-1">
-          <div className="flex items-start space-x-2 rtl:space-x-reverse">
-            <input
-              type="checkbox"
-              id="engagementConsent"
-              checked={engagementConsent}
-              onChange={(e) => {
-                const isChecked = e.target.checked;
-                setEngagementConsent(isChecked);
-                if (isChecked) setEngagementConsentError(null);
-              }}
-              className="mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
-            />
-            <label htmlFor="engagementConsent" className="text-sm text-gray-700">
-              {dict.engagementConsentLabel}
-              <span className="text-red-500">*</span>
-            </label>
-          </div>
-          {engagementConsentError && <p className="text-xs text-red-500 pt-1">{engagementConsentError}</p>}
-        </div>
-        <div className="flex items-start space-x-2 rtl:space-x-reverse">
-          <input
-            type="checkbox"
-            id="promotionalConsent"
-            checked={promotionalConsent}
-            onChange={(e) => setPromotionalConsent(e.target.checked)}
-            className="mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
-          />
-          <label htmlFor="promotionalConsent" className="text-sm text-gray-700">
-            {dict.promotionalConsentLabel}
-          </label>
-        </div>
-      </motion.div>
-
       <motion.div
         variants={itemVariants}
-        className="flex justify-between pt-4 mt-6 border-t border-gray-200"
+        className="pt-4 mt-6 border-t border-gray-200"
       >
-        <Button type="button" onClick={prevStep} variant="outline" disabled={isLoading} className="flex items-center gap-2">
-          <ArrowRight className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`} />{' '}
-          {dict.backButton}{' '}
-        </Button>
         <Button
           type="button"
           onClick={handleRegisterSubmit}
           disabled={!isFormValid || isLoading}
-          className={`flex items-center gap-2 min-w-[200px] justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-opacity ${
+          className={`w-full flex items-center gap-2 justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-opacity ${
             isFormValid && !isLoading
               ? 'bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-md hover:shadow-lg'
               : 'bg-gray-300 cursor-not-allowed'
@@ -314,7 +237,18 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
             </>
           )}
         </Button>
+
+        <p className="text-[10px] text-gray-500 text-center mt-2 px-2">
+          {dict.termsDisclaimer}
+        </p>
       </motion.div>
+
+      <div className="flex justify-center mt-2">
+        <Button type="button" onClick={prevStep} variant="ghost" disabled={isLoading} className="text-xs text-gray-400 hover:text-gray-600">
+          <ArrowRight className={`h-3 w-3 ml-1 ${locale === 'en' ? 'transform rotate-180' : ''}`} />{' '}
+          {dict.backButton}
+        </Button>
+      </div>
     </motion.div>
   );
 };

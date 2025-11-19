@@ -225,6 +225,7 @@
         "backButton": "Back",
         "nextButton": "Create Account & Continue to Verification",
         "nextButtonLoading": "Creating account...",
+         "termsDisclaimer": "By clicking 'Create Account', I agree to the Terms of Use and Privacy Policy.",
         "errors": {
           "title": "Registration Error",
           "invalidEmail": "Invalid email address",
@@ -234,8 +235,7 @@
           "fillFields": "Please fill in all required fields correctly.",
           "fixErrors": "Please fix the highlighted errors.",
           "consentRequired": "You must accept the terms of use and privacy policy.",
-          "default": "An unexpected error occurred during registration",
-                    "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system."
+          "default": "An unexpected error occurred during registration"
 
         },
        "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
@@ -292,6 +292,8 @@
         "backButton": "Back",
         "nextButton": "Continue to Next Step",
         "nextButtonLoading": "Accepting terms...",
+        "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
+        "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech.",
         "errors": {
           "firstNameRequired": "First name is a required field",
           "lastNameRequired": "Last name is a required field",
@@ -302,8 +304,8 @@
           "ageTooHigh": "Invalid date of birth",
           "genderRequired": "Gender selection is required",
           "maritalStatusRequired": "Marital status selection is required",
-          "consentRequired": "You must accept the terms of use and privacy policy.",
-          "consentApiError": "An error occurred while accepting the terms."
+  "consentRequired": "You must accept the terms of use and privacy policy.",
+          "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system.",          "consentApiError": "An error occurred while accepting the terms."
         }
       },
       "optionalInfo": {
@@ -322,11 +324,36 @@
           "updating": "Updating session...",
           "sendingCode": "Sending verification code..."
         },
-        "errors": {
-          "title": "Error",
-          "missingData": "Essential data to complete the profile is missing. Please go back to the previous step and check the details.",
-          "default": "An unexpected error occurred"
-        }
+"religiousLevelLabel": "Religious Style",
+"religiousLevelPlaceholder": "How do you define yourself?",
+"religiousLevels": {
+  "dati_leumi_standard": "Religious Zionist (Standard)",
+  "dati_leumi_liberal": "Religious Zionist (Liberal)",
+  "dati_leumi_torani": "Religious Zionist (Torani)",
+  "masorti_strong": "Traditional (Observant)",
+  "masorti_light": "Traditional (Lightly connected)",
+  "secular_traditional_connection": "Secular with connection to tradition",
+  "secular": "Secular",
+  "charedi_modern": "Modern Haredi",
+  "charedi": "Haredi",
+  "spiritual_not_religious": "Spiritual (not necessarily religious)",
+  "other": "Other"
+},
+     "errors": {
+        "firstNameRequired": "First name is a required field",
+        "lastNameRequired": "Last name is a required field",
+        "phoneRequired": "Phone number is a required field",
+        "phoneInvalid": "Invalid phone number (10 digits, starting with 0)",
+        "birthDateRequired": "Date of birth is a required field",
+        "ageTooLow": "Minimum age for registration is 18",
+        "ageTooHigh": "Invalid date of birth",
+        "genderRequired": "Gender selection is required",
+        "maritalStatusRequired": "Marital status selection is required",
+        "religiousLevelRequired": "Religious level selection is required",
+        "consentRequired": "You must accept the terms of use and privacy policy.",
+        "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system.",
+        "consentApiError": "An error occurred while accepting the terms."
+      }
       },
       "complete": {
         "loading": "Loading data...",
