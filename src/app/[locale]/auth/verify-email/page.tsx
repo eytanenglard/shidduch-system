@@ -13,7 +13,6 @@ function Loading() {
   );
 }
 
-// ▼▼▼ כאן השינוי ▼▼▼
 type VerifyEmailPageProps = {
   params: Promise<{ locale: Locale }>;
 };
@@ -25,7 +24,10 @@ export default async function VerifyEmailPage({ params }: VerifyEmailPageProps) 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
       <Suspense fallback={<Loading />}>
-        <VerifyEmailClient dict={dictionary.auth.verifyEmail} />
+        <VerifyEmailClient 
+          dict={dictionary.auth.verifyEmail} 
+          locale={locale} 
+        />
       </Suspense>
     </div>
   );
