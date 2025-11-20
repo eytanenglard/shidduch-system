@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\auth
-# Generated on: 2025-11-19 18:57:15
+# Generated on: 2025-11-20 11:17:51
 ################################################################################
 
 ================================================================================
@@ -342,11 +342,36 @@ Content:
           "updating": "Updating session...",
           "sendingCode": "Sending verification code..."
         },
-        "errors": {
-          "title": "Error",
-          "missingData": "Essential data to complete the profile is missing. Please go back to the previous step and check the details.",
-          "default": "An unexpected error occurred"
-        }
+"religiousLevelLabel": "Religious Style",
+"religiousLevelPlaceholder": "How do you define yourself?",
+"religiousLevels": {
+  "dati_leumi_standard": "Religious Zionist (Standard)",
+  "dati_leumi_liberal": "Religious Zionist (Liberal)",
+  "dati_leumi_torani": "Religious Zionist (Torani)",
+  "masorti_strong": "Traditional (Observant)",
+  "masorti_light": "Traditional (Lightly connected)",
+  "secular_traditional_connection": "Secular with connection to tradition",
+  "secular": "Secular",
+  "charedi_modern": "Modern Haredi",
+  "charedi": "Haredi",
+  "spiritual_not_religious": "Spiritual (not necessarily religious)",
+  "other": "Other"
+},
+     "errors": {
+        "firstNameRequired": "First name is a required field",
+        "lastNameRequired": "Last name is a required field",
+        "phoneRequired": "Phone number is a required field",
+        "phoneInvalid": "Invalid phone number (10 digits, starting with 0)",
+        "birthDateRequired": "Date of birth is a required field",
+        "ageTooLow": "Minimum age for registration is 18",
+        "ageTooHigh": "Invalid date of birth",
+        "genderRequired": "Gender selection is required",
+        "maritalStatusRequired": "Marital status selection is required",
+        "religiousLevelRequired": "Religious level selection is required",
+        "consentRequired": "You must accept the terms of use and privacy policy.",
+        "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system.",
+        "consentApiError": "An error occurred while accepting the terms."
+      }
       },
       "complete": {
         "loading": "Loading data...",
@@ -945,7 +970,22 @@ Content:
         "backButton": "חזרה",
         "nextButton": "המשך לשלב הבא",
         "nextButtonLoading": "מאשר תנאים...",
-        "errors": {
+"religiousLevelLabel": "סגנון דתי",
+"religiousLevelPlaceholder": "איך את/ה מגדיר/ה את עצמך?",
+"religiousLevels": {
+  "dati_leumi_standard": "דתי/ה לאומי/ת (סטנדרטי)",
+  "dati_leumi_liberal": "דתי/ה לאומי/ת ליברלי/ת",
+  "dati_leumi_torani": "דתי/ה לאומי/ת תורני/ת",
+  "masorti_strong": "מסורתי/ת (קרוב/ה לדת)",
+  "masorti_light": "מסורתי/ת (קשר קל למסורת)",
+  "secular_traditional_connection": "חילוני/ת עם זיקה למסורת",
+  "secular": "חילוני/ת",
+  "charedi_modern": "חרדי/ת מודרני/ת",
+  "charedi": "חרדי/ת",
+  "spiritual_not_religious": "רוחני/ת (לאו דווקא דתי/ה)",
+  "other": "אחר"
+},
+       "errors": {
           "firstNameRequired": "שם פרטי הוא שדה חובה",
           "lastNameRequired": "שם משפחה הוא שדה חובה",
           "phoneRequired": "מספר טלפון הוא שדה חובה",
@@ -957,7 +997,9 @@ Content:
           "maritalStatusRequired": "יש לבחור מצב משפחתי",
           "consentRequired": "חובה לאשר את תנאי השימוש ומדיניות הפרטיות.",
           "engagementConsentRequired": "כדי להבטיח שנוכל ללוות אותך בתהליך, יש לאשר קבלת עדכונים והצעות מהמערכת.",
-          "consentApiError": "אירעה שגיאה באישור התנאים."
+          "consentApiError": "אירעה שגיאה באישור התנאים.",
+                     "religiousLevelRequired": "יש לבחור רמה דתית"
+
         }
       }
 ,

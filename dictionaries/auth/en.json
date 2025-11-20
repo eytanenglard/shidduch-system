@@ -203,128 +203,183 @@
     "contactSupport": "Have questions?",
     "contactSupportLink": "Contact us",
     "steps": {
-        "personalDetails": {
-          "welcomeTitle": "בואו נכיר!",
-          "welcomeSubtitle": "המידע שתשתפו יעזור לנו להכיר אתכם טוב יותר וליצור התאמות מדויקות",
-          "sectionTitle": "פרטים אישיים",
-          "sectionSubtitle": "נתחיל בבסיס - איך קוראים לך ומתי נולדת",
-          "firstNameLabel": "שם פרטי",
-          "firstNamePlaceholder": "איך קוראים לך?",
-          "firstNameRequired": "נא להזין שם פרטי",
-          "lastNameLabel": "שם משפחה",
-          "lastNamePlaceholder": "שם המשפחה שלך",
-          "lastNameRequired": "נא להזין שם משפחה",
-          "birthDateLabel": "תאריך לידה",
-          "birthDateRequired": "נא לבחור תאריך לידה",
-          "genderLabel": "מגדר",
-          "genderPlaceholder": "בחר מגדר",
-          "genderMale": "זכר",
-          "genderFemale": "נקבה",
-          "genderRequired": "נא לבחור מגדר",
-          "cityLabel": "עיר מגורים",
-          "cityPlaceholder": "באיזו עיר אתה גר?",
-          "cityRequired": "נא להזין עיר מגורים",
-          "privacyNote": "כל המידע שלך מוצפן ומאובטח. נשתמש בו רק כדי למצוא לך את ההתאמה הטובה ביותר.",
-          "submitButton": "המשך",
-          "submitButtonLoading": "שומר...",
-          "allFieldsCompleted": "כל השדות החובה מולאו ✓",
-          "validationFailed": "יש לתקן שגיאות בטופס",
-          "saveError": "שגיאה בשמירת הנתונים",
-          "unexpectedError": "אירעה שגיאה בלתי צפויה",
-          "COMMENT_1": "=== השדות הישנים - שמור לתאימות לאחור ===",
-          "title": "פרטים אישיים",
-          "subtitle": "ספר לנו קצת עליך",
-          "phoneLabel": "מספר טלפון",
-          "phonePlaceholder": "05X-XXXXXXX",
-          "phoneRequired": "נא להזין מספר טלפון",
-          "phoneInvalid": "מספר הטלפון אינו תקין",
-          "male": "זכר",
-          "female": "נקבה",
-          "maritalStatusLabel": "מצב משפחתי",
-          "maritalStatusPlaceholder": "בחר מצב משפחתי",
-          "maritalStatuses": {
-            "single": "רווק/ה",
-            "divorced": "גרוש/ה",
-            "widowed": "אלמן/ה"
-          },
-          "religiousLevelLabel": "רמת דתיות",
-          "religiousLevelPlaceholder": "בחר רמת דתיות",
-          "religiousLevels": {
-            "secular": "חילוני/ת",
-            "traditional": "מסורתי/ת",
-            "religious": "דתי/ה",
-            "ultraOrthodox": "חרדי/ת"
-          },
-          "engagementConsentLabel": "אני מסכים/ה לקבל הצעות שידוך",
-          "promotionalConsentLabel": "אני מסכים/ה לקבל עדכונים",
-          "backButton": "חזור",
-          "nextButton": "המשך",
-          "nextButtonLoading": "שומר...",
-          "errors": {
-            "consentRequired": "יש לאשר את התנאים",
-            "engagementConsentRequired": "יש לאשר קבלת הצעות שידוך",
-            "religiousLevelRequired": "נא לבחור רמת דתיות",
-            "consentApiError": "שגיאה בשמירת ההסכמות",
-            "ageTooLow": "גיל מינימלי הוא 18",
-            "ageTooHigh": "גיל מקסימלי הוא 120"
-          }
+      "welcome": {
+        "title": "Welcome!",
+        "subtitle": "We're happy you've chosen to join us. Let's start with a short and simple registration process that will allow us to get to know you better.",
+        "googleButton": "Continue with Google",
+        "emailButton": "Continue with Email",
+        "signInPrompt": "Already have an account?",
+        "signInLink": "Sign In"
+      },
+      "basicInfo": {
+        "title": "Account Details",
+        "emailLabel": "Email",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "At least 8 characters",
+        "passwordHint": "Password must contain at least 8 characters, an uppercase English letter, a lowercase English letter, and a number.",
+        "firstNameLabel": "First Name",
+        "firstNamePlaceholder": "John",
+        "lastNameLabel": "Last Name",
+        "lastNamePlaceholder": "Doe",
+        "backButton": "Back",
+        "nextButton": "Create Account & Continue to Verification",
+        "nextButtonLoading": "Creating account...",
+         "termsDisclaimer": "By clicking 'Create Account', I agree to the Terms of Use and Privacy Policy.",
+        "errors": {
+          "title": "Registration Error",
+          "invalidEmail": "Invalid email address",
+          "invalidPassword": "Password must be at least 8 characters long, including an uppercase letter, a lowercase letter, and a number",
+          "requiredEmail": "Email field is required",
+          "requiredPassword": "Password field is required",
+          "fillFields": "Please fill in all required fields correctly.",
+          "fixErrors": "Please fix the highlighted errors.",
+          "consentRequired": "You must accept the terms of use and privacy policy.",
+          "default": "An unexpected error occurred during registration"
+
         },
-        "optionalInfo": {
-          "sectionTitle": "פרטים נוספים (אופציונלי)",
-          "title": "קצת יותר עליך",
-          "subtitle": "המידע הזה עוזר לנו להבין אותך טוב יותר, אבל אפשר לדלג",
-          "maritalStatusLabel": "מצב משפחתי",
-          "maritalStatusPlaceholder": "בחר מצב משפחתי",
-          "maritalStatusSingle": "רווק/ה",
-          "maritalStatusDivorced": "גרוש/ה",
-          "maritalStatusWidowed": "אלמן/ה",
-          "childrenLabel": "ילדים",
-          "childrenPlaceholder": "מספר ילדים",
-          "childrenNone": "אין",
-          "professionLabel": "מקצוע",
-          "professionPlaceholder": "מה אתה עושה לפרנסה?",
-          "educationLabel": "השכלה",
-          "educationPlaceholder": "רמת השכלה",
-          "educationHighSchool": "תיכונית",
-          "educationBachelors": "תואר ראשון",
-          "educationMasters": "תואר שני",
-          "educationDoctorate": "דוקטורט",
-          "religiousLevelLabel": "רמת דתיות",
-          "religiousLevelPlaceholder": "בחר רמת דתיות",
-          "religiousLevelSecular": "חילוני/ת",
-          "religiousLevelTraditional": "מסורתי/ת",
-          "religiousLevelReligious": "דתי/ה",
-          "religiousLevelUltraOrthodox": "חרדי/ת",
-          "COMMENT_2": "=== השדות הישנים - שמור לתאימות לאחור ===",
-          "heightLabel": "גובה",
-          "heightPlaceholder": "גובה בס\"מ",
-          "occupationLabel": "מקצוע",
-          "occupationPlaceholder": "מה אתה עושה?",
-          "backButton": "חזור",
-          "nextButton": "המשך",
-          "status": {
-            "saving": "שומר...",
-            "updating": "מעדכן...",
-            "sendingCode": "שולח קוד..."
-          },
-          "errors": {
-            "title": "שגיאה",
-            "missingData": "חסר מידע",
-            "default": "אירעה שגיאה"
-          }
+       "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
+  "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech.",
+  "status": {
+          "creatingAccount": "Creating your account...",
+          "sendingCode": "Sending verification code to your email..."
+        }
+
+      },
+      "emailVerification": {
+        "title": "Email Address Verification",
+        "subtitle": "We sent a {{length}}-digit verification code to",
+        "yourEmail": "your email",
+        "submitButton": "Verify Code & Continue to Profile Completion",
+        "submitButtonLoading": "Verifying & Signing In...",
+        "resendPrompt": "Didn't receive a code?",
+        "resendButton": "Send new code",
+        "resendButtonLoading": "Sending new code...",
+        "backButton": "Back to Details",
+        "errors": {
+          "title": "Error",
+          "incompleteCode": "The code must be {{length}} digits.",
+          "default": "An unexpected error occurred during verification",
+          "autoSignInFailed": "Email verification succeeded, but we encountered an issue with auto-login: {{error}}. Please try to sign in manually."
+        },
+        "alerts": {
+          "title": "Notice",
+          "resent": "A new code has been successfully sent."
         }
       },
-      "consentCheckbox": {
-        "label": "אני מאשר/ת את",
-        "termsText": "תנאי השימוש",
-        "termsLink": "/terms",
-        "and": "ואת",
-        "privacyText": "מדיניות הפרטיות",
-        "privacyLink": "/privacy",
-        "error": "יש לאשר את התנאים והפרטיות",
-        "COMMENT_3": "=== שדה ישן - שמור לתאימות לאחור ===",
-        "text": "אני מאשר/ת את תנאי השימוש ומדיניות הפרטיות"
-      }  
+      "personalDetails": {
+        "title": "Essential Personal Details",
+        "subtitle": "We need these details to continue with your registration process.",
+        "firstNameLabel": "First Name",
+        "firstNamePlaceholder": "e.g., John",
+        "lastNameLabel": "Last Name",
+        "lastNamePlaceholder": "e.g., Doe",
+                "languageLabel": "Preferred Communication Language",
+
+        "phoneLabel": "Mobile Phone",
+        "phonePlaceholder": "0501234567",
+        "genderLabel": "Gender",
+        "male": "Male",
+        "female": "Female",
+        "birthDateLabel": "Date of Birth",
+        "maritalStatusLabel": "Marital Status",
+        "maritalStatusPlaceholder": "Select your marital status...",
+        "maritalStatuses": {
+          "single": "Single",
+          "divorced": "Divorced",
+          "widowed": "Widowed"
+        },
+        "backButton": "Back",
+        "nextButton": "Continue to Next Step",
+        "nextButtonLoading": "Accepting terms...",
+        "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
+        "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech.",
+        "errors": {
+          "firstNameRequired": "First name is a required field",
+          "lastNameRequired": "Last name is a required field",
+          "phoneRequired": "Phone number is a required field",
+          "phoneInvalid": "Invalid phone number (10 digits, starting with 0)",
+          "birthDateRequired": "Date of birth is a required field",
+          "ageTooLow": "Minimum age for registration is 18",
+          "ageTooHigh": "Invalid date of birth",
+          "genderRequired": "Gender selection is required",
+          "maritalStatusRequired": "Marital status selection is required",
+  "consentRequired": "You must accept the terms of use and privacy policy.",
+          "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system.",          "consentApiError": "An error occurred while accepting the terms."
+        }
+      },
+      "optionalInfo": {
+        "title": "Additional Information",
+        "subtitle": "This information will help us find more accurate matches for you. It is recommended to fill in as many details as possible.",
+        "heightLabel": "Height (in cm)",
+        "heightPlaceholder": "e.g., 175",
+        "occupationLabel": "Occupation",
+        "occupationPlaceholder": "e.g., Software Engineer, Teacher, Student",
+        "educationLabel": "Education",
+        "educationPlaceholder": "e.g., Bachelor's in Computer Science",
+        "backButton": "Back",
+        "nextButton": "Finish & Continue to Verification",
+        "status": {
+          "saving": "Saving details...",
+          "updating": "Updating session...",
+          "sendingCode": "Sending verification code..."
+        },
+"religiousLevelLabel": "Religious Style",
+"religiousLevelPlaceholder": "How do you define yourself?",
+"religiousLevels": {
+  "dati_leumi_standard": "Religious Zionist (Standard)",
+  "dati_leumi_liberal": "Religious Zionist (Liberal)",
+  "dati_leumi_torani": "Religious Zionist (Torani)",
+  "masorti_strong": "Traditional (Observant)",
+  "masorti_light": "Traditional (Lightly connected)",
+  "secular_traditional_connection": "Secular with connection to tradition",
+  "secular": "Secular",
+  "charedi_modern": "Modern Haredi",
+  "charedi": "Haredi",
+  "spiritual_not_religious": "Spiritual (not necessarily religious)",
+  "other": "Other"
+},
+     "errors": {
+        "firstNameRequired": "First name is a required field",
+        "lastNameRequired": "Last name is a required field",
+        "phoneRequired": "Phone number is a required field",
+        "phoneInvalid": "Invalid phone number (10 digits, starting with 0)",
+        "birthDateRequired": "Date of birth is a required field",
+        "ageTooLow": "Minimum age for registration is 18",
+        "ageTooHigh": "Invalid date of birth",
+        "genderRequired": "Gender selection is required",
+        "maritalStatusRequired": "Marital status selection is required",
+        "religiousLevelRequired": "Religious level selection is required",
+        "consentRequired": "You must accept the terms of use and privacy policy.",
+        "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system.",
+        "consentApiError": "An error occurred while accepting the terms."
+      }
+      },
+      "complete": {
+        "loading": "Loading data...",
+        "verifyEmailTitle": "Email Address Verification",
+        "verifyEmailSubtitle": "We've sent an email to",
+        "verifyEmailPrompt": "Please click the link in the email to complete the verification process.",
+        "completeProfileTitle": "Complete Profile Details",
+        "completeProfileSubtitle": "To help us find the best matches for you, please complete your profile details.",
+        "completeProfileButton": "Complete Profile",
+        "verifyPhoneTitle": "Phone Number Verification",
+        "verifyPhoneSubtitle": "Almost done! Please verify your phone number to activate your account and start receiving matches.",
+        "verifyPhoneButton": "Verify Phone Number",
+        "allDoneTitle": "Registration and Profile Completed Successfully!",
+        "allDoneSubtitle": "Excellent! All your details are verified and ready. You can now start the process of finding a match.",
+        "myProfileButton": "To My Profile",
+        "questionnaireButton": "Fill Out Matching Questionnaire",
+        "backToHomeLink": "Back to Homepage"
+      }
+    },
+    
+    "consentCheckbox": {
+      "text": "I have read and agree to the {termsLink} and the {privacyLink} of NeshamaTech, and I consent to the collection, processing, and storage of my personal information, including sensitive information, as detailed therein, and to the transfer of my information to servers that may be located outside of Israel.",
+      "termsLink": "Terms of Use",
+      "privacyLink": "Privacy Policy"
+    }
+   
 
   }, 
        "unsubscribePage": {
