@@ -58,13 +58,6 @@ const itemVariants = {
   },
 };
 
-const shakeVariants = {
-  shake: {
-    x: [-10, 10, -10, 10, 0],
-    transition: { duration: 0.5 },
-  },
-};
-
 // ============================================================================
 // BACKGROUND COMPONENT
 // ============================================================================
@@ -210,12 +203,12 @@ const LoadingState: React.FC<LoadingStateProps> = ({ status, dict }) => (
     {/* Decorative circles */}
     <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
       <motion.div
-        className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-transparent rounded-full"
+        className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-transparent rounded-full pointer-events-none"
         animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
         transition={{ duration: 4, repeat: Infinity }}
       />
       <motion.div
-        className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-br from-pink-400/20 to-transparent rounded-full"
+        className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-br from-pink-400/20 to-transparent rounded-full pointer-events-none"
         animate={{ scale: [1, 1.2, 1], rotate: [0, -90, 0] }}
         transition={{ duration: 4, repeat: Infinity, delay: 1 }}
       />
@@ -321,8 +314,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
       <DynamicBackground />
 
       <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative z-10">
-
-
+        
         {/* Hero Section */}
         <motion.div
           variants={containerVariants}
@@ -383,10 +375,10 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
           className="w-full max-w-md"
         >
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative">
-            {/* Top Gradient Line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400" />
+            {/* Top Gradient Line - POINTER EVENTS NONE */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 pointer-events-none" />
 
-            {/* Decorative Elements */}
+            {/* Decorative Elements - POINTER EVENTS NONE */}
             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 pointer-events-none" />
 
@@ -442,7 +434,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                       autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className={`w-full ${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 focus:outline-none transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400`}
+                      className={`w-full ${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 focus:outline-none transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10`}
                       placeholder={dict.emailPlaceholder}
                       required
                       disabled={isLoading || isGoogleLoading}
@@ -476,7 +468,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                       autoComplete="current-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className={`w-full ${isRTL ? 'pr-11 pl-12' : 'pl-11 pr-12'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 focus:outline-none transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400`}
+                      className={`w-full ${isRTL ? 'pr-11 pl-12' : 'pl-11 pr-12'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 focus:outline-none transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10`}
                       placeholder={dict.passwordPlaceholder}
                       required
                       disabled={isLoading || isGoogleLoading}
@@ -485,7 +477,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors`}
+                      className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-20`}
                       tabIndex={-1}
                     >
                       {showPassword ? (
@@ -498,21 +490,21 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   <div className={`flex ${isRTL ? 'justify-start' : 'justify-end'}`}>
                     <Link
                       href={`/${locale}/auth/forgot-password`}
-                      className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline font-medium transition-colors"
+                      className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline font-medium transition-colors relative z-20"
                     >
                       {dict.forgotPasswordLink}
                     </Link>
                   </div>
                 </div>
 
-                {/* Submit Button */}
+                {/* Submit Button - Z-20 + Relative */}
                 <Button
                   type="submit"
                   disabled={isLoading || isGoogleLoading}
-                  className="w-full py-4 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-600 hover:via-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden"
+                  className="w-full relative z-20 py-4 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-600 hover:via-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group overflow-hidden"
                 >
-                  {/* Shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  {/* Shine effect - POINTER EVENTS NONE */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none" />
 
                   {isLoading ? (
                     <>
@@ -544,13 +536,13 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                 </div>
               </div>
 
-              {/* Google Sign In Button */}
+              {/* Google Sign In Button - Z-20 + Relative + BG-White/50 */}
               <Button
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading || isGoogleLoading}
                 variant="outline"
-                className="w-full relative border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 py-4 rounded-xl flex items-center justify-center gap-3 group transition-all duration-300 bg-white/50 backdrop-blur-sm"
+                className="w-full relative z-20 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 py-4 rounded-xl flex items-center justify-center gap-3 group transition-all duration-300 bg-white/50 backdrop-blur-sm"
               >
                 {isGoogleLoading ? (
                   <>
@@ -559,7 +551,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   </>
                 ) : (
                   <>
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg className="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                       <path
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                         fill="#4285F4"
@@ -590,7 +582,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   {dict.noAccountPrompt}{' '}
                   <Link
                     href={`/${locale}/auth/register`}
-                    className="text-cyan-600 font-semibold hover:text-cyan-700 hover:underline transition-colors inline-flex items-center gap-1"
+                    className="text-cyan-600 font-semibold hover:text-cyan-700 hover:underline transition-colors inline-flex items-center gap-1 relative z-20"
                   >
                     {dict.signUpLink}
                     {isRTL ? (
@@ -603,8 +595,8 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
               </div>
             </div>
 
-            {/* Bottom Shine Effect */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-50" />
+            {/* Bottom Shine Effect - POINTER EVENTS NONE */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-50 pointer-events-none" />
           </div>
         </motion.div>
 

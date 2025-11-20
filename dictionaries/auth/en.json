@@ -85,6 +85,7 @@
     "emailAddressNotSpecified": "Address not specified",
     "checkYourInbox": "Please check your inbox and click the link to verify your account.",
     "errors": {
+      "title": "Error",
       "noEmail": "Cannot resend without an email address.",
       "linkInvalid": "The verification link is invalid (missing required information).",
       "sessionMismatch": "You are logged in with a different email account. Please log out and try the link again.",

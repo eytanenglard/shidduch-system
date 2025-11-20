@@ -89,6 +89,7 @@ export type VerifyEmailDict = {
   emailAddressNotSpecified: string;
   checkYourInbox: string;
   errors: {
+    title: string; 
     noEmail: string;
     linkInvalid: string;
     sessionMismatch: string;

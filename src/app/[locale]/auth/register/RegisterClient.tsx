@@ -20,7 +20,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 
-// Import existing step components
+// Import step components
 import WelcomeStep from '@/components/auth/steps/WelcomeStep';
 import BasicInfoStep from '@/components/auth/steps/BasicInfoStep';
 import EmailVerificationCodeStep from '@/components/auth/steps/EmailVerificationCodeStep';
@@ -178,7 +178,7 @@ const DynamicBackground: React.FC = () => (
 );
 
 // ============================================================================
-// HERO SECTION (MINI)
+// HERO SECTION
 // ============================================================================
 
 interface HeroSectionProps {
@@ -439,13 +439,14 @@ const RegisterStepsContent: React.FC<{
     }
   }
 
+  // קובע אם השלב הנוכחי דורש רוחב מלא או צר
+  const isWideStep = registrationContextData.isCompletingProfile && registrationContextData.step === 2;
+
   return (
     <>
       <DynamicBackground />
 
       <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative z-10">
-    
-
         {/* Hero Section */}
         <HeroSection
           title={pageTitle}
@@ -461,7 +462,7 @@ const RegisterStepsContent: React.FC<{
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               transition={{ duration: 0.3 }}
-              className="w-full max-w-md mb-6"
+              className="w-full max-w-md md:max-w-2xl mb-6 mx-auto"
             >
               <Alert className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 shadow-lg">
                 <div className="flex items-start gap-3">
@@ -492,7 +493,7 @@ const RegisterStepsContent: React.FC<{
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.4 }}
-              className="w-full max-w-md mb-6"
+              className="w-full max-w-md md:max-w-2xl mb-6 mx-auto"
             >
               <ProgressBar
                 currentStep={currentProgressBarStep}
@@ -504,18 +505,19 @@ const RegisterStepsContent: React.FC<{
           )}
         </AnimatePresence>
 
-        {/* Main Card Container */}
-        <motion.div
-          {...pageTransition}
-          className="w-full max-w-md"
+        {/* Main Card Container - כאן השינוי לרוחב */}
+        <motion.div 
+          {...pageTransition} 
+          className="w-full max-w-md md:max-w-2xl relative"
         >
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative">
-            {/* Decorative Elements */}
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16" />
+            {/* Decorative Elements - POINTER EVENTS NONE */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 pointer-events-none" />
 
-            {/* Content */}
-            <div className="relative z-10 p-6 sm:p-8">
+            {/* Content - Z-10 RELATIVE */}
+            {/* הגדלנו padding בדסקטופ */}
+            <div className="relative z-10 p-6 sm:p-8 md:p-12">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={registrationContextData.step}
@@ -523,14 +525,16 @@ const RegisterStepsContent: React.FC<{
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: isRTL ? 20 : -20 }}
                   transition={{ duration: 0.3 }}
+                  // כאן הלוגיקה: אם זה שלב רחב, קח 100%. אחרת, תמרכז ותגביל רוחב.
+                  className={isWideStep ? "w-full" : "max-w-md mx-auto"}
                 >
                   {renderStep()}
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* Bottom Shine Effect */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-50" />
+            {/* Bottom Shine Effect - POINTER EVENTS NONE */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-50 pointer-events-none" />
           </div>
         </motion.div>
 
