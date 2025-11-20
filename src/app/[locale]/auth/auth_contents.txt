@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth
-# Generated on: 2025-11-20 11:15:36
+# Generated on: 2025-11-20 11:49:44
 ################################################################################
 
 ================================================================================
@@ -2425,27 +2425,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
       <DynamicBackground />
 
       <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative z-10">
-        {/* Back to Home Link */}
-        <motion.div
-          initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className={`absolute top-6 ${isRTL ? 'right-6' : 'left-6'}`}
-        >
-          <Link
-            href={`/${locale}`}
-            className="group flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors duration-300"
-          >
-            {isRTL ? (
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            ) : (
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            )}
-            <span className="text-sm font-medium">
-              {locale === 'he' ? 'חזרה לדף הבית' : 'Back to Home'}
-            </span>
-          </Link>
-        </motion.div>
+
 
         {/* Hero Section */}
         <motion.div
