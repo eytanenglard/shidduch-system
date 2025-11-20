@@ -3,31 +3,149 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
+import {
+  Mail,
+  Loader2,
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  Send,
+  KeyRound,
+  Sparkles,
+  CheckCircle2,
+} from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mail, Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import Link from 'next/link';
 import type { ForgotPasswordDict } from '@/types/dictionaries/auth';
 
-/**
- * הגדרת ה-Props שהקומפוננטה מקבלת.
- * dict: אובייקט התרגומים לשימוש ב-UI.
- * locale: השפה הנוכחית, לצורך שליחתה ל-API.
- */
+// ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
+
 interface ForgotPasswordClientProps {
   dict: ForgotPasswordDict;
   locale: 'he' | 'en';
 }
 
+// ============================================================================
+// ANIMATION VARIANTS
+// ============================================================================
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: 'easeOut' },
+  },
+};
+
+// ============================================================================
+// BACKGROUND COMPONENT
+// ============================================================================
+
+const DynamicBackground: React.FC = () => (
+  <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+    {/* Floating Gradients */}
+    <motion.div
+      className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl"
+      animate={{
+        y: [0, -30, 0],
+        x: [0, 20, 0],
+        scale: [1, 1.1, 1],
+      }}
+      transition={{
+        duration: 15,
+        repeat: Infinity,
+        ease: 'easeInOut',
+      }}
+    />
+    <motion.div
+      className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-pink-400/20 to-purple-500/20 rounded-full blur-3xl"
+      animate={{
+        y: [0, 40, 0],
+        x: [0, -30, 0],
+        scale: [1, 1.15, 1],
+      }}
+      transition={{
+        duration: 18,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 1,
+      }}
+    />
+    <motion.div
+      className="absolute bottom-32 left-1/4 w-72 h-72 bg-gradient-to-br from-orange-400/15 to-red-500/15 rounded-full blur-3xl"
+      animate={{
+        y: [0, -25, 0],
+        x: [0, 15, 0],
+        scale: [1, 1.08, 1],
+      }}
+      transition={{
+        duration: 20,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 2,
+      }}
+    />
+
+    {/* Dot Pattern */}
+    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:24px_24px]" />
+
+    {/* SVG Decorative Wave */}
+    <svg
+      className="absolute inset-0 w-full h-full"
+      viewBox="0 0 1000 1000"
+      xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="none"
+    >
+      <defs>
+        <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.08" />
+          <stop offset="100%" stopColor="#ec4899" stopOpacity="0.04" />
+        </linearGradient>
+      </defs>
+      <motion.path
+        d="M0,200 C300,100 700,300 1000,200 L1000,0 L0,0 Z"
+        fill="url(#waveGrad)"
+        initial={{ opacity: 0.6 }}
+        animate={{ opacity: [0.6, 0.9, 0.6] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+    </svg>
+  </div>
+);
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
 export default function ForgotPasswordClient({
   dict,
-  locale, // קבלת השפה כ-prop
+  locale,
 }: ForgotPasswordClientProps) {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const isRTL = locale === 'he';
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,15 +159,14 @@ export default function ForgotPasswordClient({
     }
 
     try {
-      // ============================ התיקון המרכזי ============================
-      // הוספת פרמטר השפה `locale` לכתובת ה-URL של בקשת ה-API.
-      // כך השרת ידע באיזו שפה לשלוח את המייל.
-      const response = await fetch(`/api/auth/request-password-reset?locale=${locale}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      // =====================================================================
+      const response = await fetch(
+        `/api/auth/request-password-reset?locale=${locale}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        }
+      );
 
       const data = await response.json();
 
@@ -57,78 +174,325 @@ export default function ForgotPasswordClient({
         throw new Error(data.error || dict.errors.default);
       }
 
-      // לאחר הצלחה, מעבירים את המשתמש לדף איפוס הסיסמה עם המייל שלו ב-URL.
-      router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
+      // Show success message before redirect
+      setSuccess(true);
+
+      // Redirect after showing success
+      setTimeout(() => {
+        router.push(
+          `/${locale}/auth/reset-password?email=${encodeURIComponent(email)}`
+        );
+      }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.errors.default);
-      // חשוב להפסיק את הטעינה במקרה של שגיאה.
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
-      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
-      <div className="p-6 sm:p-8">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            {dict.title}
-          </h1>
-          <p className="text-gray-600 text-sm">{dict.subtitle}</p>
-        </div>
+    <>
+      <DynamicBackground />
 
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{dict.errors.title}</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-1">
-            <label
-              htmlFor="email-forgot"
-              className="block text-sm font-medium text-gray-700"
-            >
-              {dict.emailLabel}
-            </label>
-            <div className="relative">
-              <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                type="email"
-                id="email-forgot"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={dict.emailPlaceholder}
-                required
-                className="w-full pr-10 pl-3 py-3"
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-
-          <Button type="submit" disabled={isLoading} className="w-full py-3">
-            {isLoading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                <span>{dict.submitButtonLoading}</span>
-              </>
-            ) : (
-              dict.submitButton
-            )}
-          </Button>
-        </form>
-
-        <div className="mt-6 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative z-10">
+        {/* Back to Sign In Link */}
+        <motion.div
+          initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className={`absolute top-6 ${isRTL ? 'right-6' : 'left-6'}`}
+        >
           <Link
-            href="/auth/signin"
-            className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline"
+            href={`/${locale}/auth/signin`}
+            className="group flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors duration-300"
           >
-            {dict.backToSignInLink}
+            {isRTL ? (
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            ) : (
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            )}
+            <span className="text-sm font-medium">
+              {locale === 'he' ? 'חזרה להתחברות' : 'Back to Sign In'}
+            </span>
           </Link>
-        </div>
+        </motion.div>
+
+        {/* Hero Section */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="mb-8 text-center"
+        >
+          <motion.div variants={itemVariants} className="mb-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl shadow-lg mb-6">
+              <motion.div
+                animate={{
+                  rotate: [0, -10, 10, -10, 0],
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              >
+                <KeyRound className="w-10 h-10 text-white" />
+              </motion.div>
+            </div>
+          </motion.div>
+
+          <motion.h1
+            variants={itemVariants}
+            className="text-3xl md:text-4xl font-bold mb-3"
+          >
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 animate-gradient-slow">
+              {dict.title}
+            </span>
+          </motion.h1>
+
+          <motion.p
+            variants={itemVariants}
+            className="text-gray-600 text-base md:text-lg max-w-md mx-auto px-4"
+          >
+            {dict.subtitle}
+          </motion.p>
+
+          {/* Decorative Line */}
+          <motion.div variants={itemVariants} className="relative mt-6">
+            <div className="w-20 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-full mx-auto" />
+          </motion.div>
+        </motion.div>
+
+        {/* Main Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="w-full max-w-md"
+        >
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative">
+            {/* Top Gradient Line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400" />
+
+            {/* Decorative Elements */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 pointer-events-none" />
+
+            <div className="relative z-10 p-6 sm:p-8">
+              {/* Success State */}
+              <AnimatePresence mode="wait">
+                {success ? (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="text-center py-8"
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                      className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6"
+                    >
+                      <CheckCircle2 className="w-10 h-10 text-green-600" />
+                    </motion.div>
+
+                    <motion.h2
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-2xl font-bold text-gray-800 mb-3"
+                    >
+                      {locale === 'he' ? 'נשלח בהצלחה!' : 'Email Sent!'}
+                    </motion.h2>
+
+                    <motion.p
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="text-gray-600 mb-6"
+                    >
+                      {locale === 'he'
+                        ? 'מעביר אותך לדף איפוס הסיסמה...'
+                        : 'Redirecting to reset password...'}
+                    </motion.p>
+
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      <Loader2 className="w-6 h-6 animate-spin text-cyan-500 mx-auto" />
+                    </motion.div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="form"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {/* Info Box */}
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="mb-6 p-4 bg-gradient-to-r from-cyan-50 to-purple-50 rounded-2xl border border-cyan-100"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-white rounded-lg flex-shrink-0">
+                          <Sparkles className="w-5 h-5 text-cyan-500" />
+                        </div>
+                        <p className="text-sm text-gray-700 leading-relaxed pt-1">
+                          {locale === 'he'
+                            ? 'נשלח לך קישור לאיפוס הסיסמה למייל שרשמת'
+                            : "We'll send you a link to reset your password"}
+                        </p>
+                      </div>
+                    </motion.div>
+
+                    {/* Error Alert */}
+                    <AnimatePresence>
+                      {error && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10, height: 0 }}
+                          animate={{ opacity: 1, y: 0, height: 'auto' }}
+                          exit={{ opacity: 0, y: -10, height: 0 }}
+                          className="mb-6"
+                        >
+                          <Alert variant="destructive" className="border-2">
+                            <div className="flex items-start gap-3">
+                              <div className="p-2 bg-red-100 rounded-lg flex-shrink-0">
+                                <AlertCircle className="h-5 w-5 text-red-600" />
+                              </div>
+                              <div className="flex-1">
+                                <AlertTitle className="font-bold mb-1">
+                                  {dict.errors.title}
+                                </AlertTitle>
+                                <AlertDescription className="text-sm">
+                                  {error}
+                                </AlertDescription>
+                              </div>
+                            </div>
+                          </Alert>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      {/* Email Field */}
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="email-forgot"
+                          className="block text-sm font-semibold text-gray-700"
+                        >
+                          {dict.emailLabel}
+                        </label>
+                        <div className="relative group">
+                          <div
+                            className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 transition-colors ${
+                              email ? 'text-cyan-500' : 'text-gray-400'
+                            }`}
+                          >
+                            <Mail className="h-5 w-5" />
+                          </div>
+                          <Input
+                            type="email"
+                            id="email-forgot"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder={dict.emailPlaceholder}
+                            required
+                            className={`w-full ${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 focus:outline-none transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400`}
+                            disabled={isLoading}
+                            dir={isRTL ? 'rtl' : 'ltr'}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Submit Button */}
+                      <Button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full py-4 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-600 hover:via-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden"
+                      >
+                        {/* Shine effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <span>{dict.submitButtonLoading}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-5 h-5" />
+                            <span>{dict.submitButton}</span>
+                          </>
+                        )}
+                      </Button>
+                    </form>
+
+                    {/* Back Link */}
+                    <div className="mt-8 text-center">
+                      <p className="text-gray-600 text-sm">
+                        {locale === 'he' ? 'זכרת את הסיסמה?' : 'Remember your password?'}{' '}
+                        <Link
+                          href={`/${locale}/auth/signin`}
+                          className="text-cyan-600 font-semibold hover:text-cyan-700 hover:underline transition-colors inline-flex items-center gap-1"
+                        >
+                          {dict.backToSignInLink}
+                          {isRTL ? (
+                            <ArrowLeft className="w-3 h-3" />
+                          ) : (
+                            <ArrowRight className="w-3 h-3" />
+                          )}
+                        </Link>
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Bottom Shine Effect */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-50" />
+          </div>
+        </motion.div>
+
+        {/* Help Text */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.5 }}
+          className="mt-8 text-center max-w-md"
+        >
+          <p className="text-xs text-gray-500">
+            {locale === 'he'
+              ? 'לא קיבלת מייל? בדוק את תיקיית הספאם או נסה שוב'
+              : "Didn't receive an email? Check your spam folder or try again"}
+          </p>
+        </motion.div>
       </div>
-    </div>
+
+      {/* Animations CSS */}
+      <style>{`
+        @keyframes gradient-slow {
+          0%,
+          100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+        .animate-gradient-slow {
+          background-size: 200% 200%;
+          animation: gradient-slow 6s ease infinite;
+        }
+      `}</style>
+    </>
   );
 }

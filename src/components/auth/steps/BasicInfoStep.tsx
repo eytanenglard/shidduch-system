@@ -22,6 +22,8 @@ import { Input } from '@/components/ui/input';
 
 interface BasicInfoStepProps {
   dict: RegisterStepsDict['steps']['basicInfo'];
+  // הוספת השדה החסר לממשק כדי למנוע את השגיאה
+  consentDict: RegisterStepsDict['consentCheckbox']; 
   locale: 'he' | 'en';
 }
 
@@ -35,7 +37,8 @@ const isValidPassword = (password: string): boolean => {
   return passwordRegex.test(password);
 };
 
-const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, locale }) => {
+// הוספת consentDict לפרמטרים (גם אם לא משתמשים בו כרגע בתוך הקומפוננטה, זה פותר את שגיאת ה-TS)
+const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale }) => {
   const { data, updateField, prevStep, proceedToEmailVerification } = useRegistration();
   
   // States for validation and UI

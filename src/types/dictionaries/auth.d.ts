@@ -278,74 +278,137 @@ export type RegisterStepsDict = {
         resent: string;
       };
     };
-    personalDetails: {
-      title: string;
-      subtitle: string;
-      firstNameLabel: string;
-      firstNamePlaceholder: string;
-      lastNameLabel: string;
-      lastNamePlaceholder: string;
-      phoneLabel: string;
-      phonePlaceholder: string;
-      genderLabel: string;
-      male: string;
-      female: string;
-      birthDateLabel: string;
-      maritalStatusLabel: string;
-      maritalStatusPlaceholder: string;
-      maritalStatuses: {
-        single: string;
-        divorced: string;
-        widowed: string;
-      };
-            religiousLevelLabel: string;
-      religiousLevelPlaceholder: string;
-      religiousLevels: { [key: string]: string }; // מיפוי של אפשרויות הרמה הדתית
-
-       engagementConsentLabel: string;
-      promotionalConsentLabel: string;
-      backButton: string;
-      nextButton: string;
-      nextButtonLoading: string;
-      errors: {
-        firstNameRequired: string;
-        lastNameRequired: string;
-        phoneRequired: string;
-        phoneInvalid: string;
-        birthDateRequired: string;
-        ageTooLow: string;
-        ageTooHigh: string;
-        genderRequired: string;
-        maritalStatusRequired: string;
-        consentRequired: string;
-                engagementConsentRequired: string; // הועבר לכאן
-        religiousLevelRequired: string; // הודעת שגיאה חדשה
-
-        consentApiError: string;
-      };
-    };
-    optionalInfo: {
-      title: string;
-      subtitle: string;
-      heightLabel: string;
-      heightPlaceholder: string;
-      occupationLabel: string;
-      occupationPlaceholder: string;
-      educationLabel: string;
-      educationPlaceholder: string;
-      backButton: string;
-      nextButton: string;
-      status: {
-        saving: string;
-        updating: string;
-        sendingCode: string;
-      };
-      errors: {
-        title: string;
-        missingData: string;
-        default: string;
-      };
-    };
+  personalDetails: {
+  // Welcome Section
+  welcomeTitle: string;
+  welcomeSubtitle: string;
+  
+  // Section Headers
+  sectionTitle: string;
+  sectionSubtitle: string;
+  
+  // Personal Info Fields
+  firstNameLabel: string;
+  firstNamePlaceholder: string;
+  firstNameRequired: string;
+  
+  lastNameLabel: string;
+  lastNamePlaceholder: string;
+  lastNameRequired: string;
+  
+  birthDateLabel: string;
+  birthDateRequired: string;
+  
+  genderLabel: string;
+  genderPlaceholder: string;
+  genderMale: string;
+  genderFemale: string;
+  genderRequired: string;
+  
+  cityLabel: string;
+  cityPlaceholder: string;
+  cityRequired: string;
+  
+  // Phone (keep from old)
+  phoneLabel: string;
+  phonePlaceholder: string;
+  phoneRequired: string;
+  phoneInvalid: string;
+  
+  // Messages & Buttons
+  privacyNote: string;
+  submitButton: string;
+  submitButtonLoading: string;
+  allFieldsCompleted: string;
+  
+  // Errors
+  validationFailed: string;
+  saveError: string;
+  unexpectedError: string;
+  ageTooLow: string;
+  ageTooHigh: string;
+  
+  // Old fields (backwards compatibility)
+  title: string;
+  subtitle: string;
+  maritalStatusLabel: string;
+  maritalStatusPlaceholder: string;
+  maritalStatuses: {
+    single: string;
+    divorced: string;
+    widowed: string;
+  };
+  religiousLevelLabel: string;
+  religiousLevelPlaceholder: string;
+  religiousLevels: { [key: string]: string };
+  engagementConsentLabel: string;
+  promotionalConsentLabel: string;
+  backButton: string;
+  nextButton: string;
+  nextButtonLoading: string;
+  errors: {
+    consentRequired: string;
+    engagementConsentRequired: string;
+    religiousLevelRequired: string;
+    consentApiError: string;
+  };
+};
+ optionalInfo: {
+  // Section
+  sectionTitle: string;
+  title: string;
+  subtitle: string;
+  
+  // Marital Status
+  maritalStatusLabel: string;
+  maritalStatusPlaceholder: string;
+  maritalStatusSingle: string;
+  maritalStatusDivorced: string;
+  maritalStatusWidowed: string;
+  
+  // Children
+  childrenLabel: string;
+  childrenPlaceholder: string;
+  childrenNone: string;
+  
+  // Profession
+  professionLabel: string;
+  professionPlaceholder: string;
+  
+  // Education
+  educationLabel: string;
+  educationPlaceholder: string;
+  educationHighSchool: string;
+  educationBachelors: string;
+  educationMasters: string;
+  educationDoctorate: string;
+  
+  // Religious Level
+  religiousLevelLabel: string;
+  religiousLevelPlaceholder: string;
+  religiousLevelSecular: string;
+  religiousLevelTraditional: string;
+  religiousLevelReligious: string;
+  religiousLevelUltraOrthodox: string;
+  
+  // Old fields (backwards compatibility)
+  heightLabel: string;
+  heightPlaceholder: string;
+  occupationLabel: string;
+  occupationPlaceholder: string;
+  backButton: string;
+  nextButton: string;
+  status: {
+    saving: string;
+    updating: string;
+    sendingCode: string;
+  };
+  errors: {
+    title: string;
+    missingData: string;
+    default: string;
+  };
+};
     complete: {
       loading: string;
       // Email verification required
@@ -368,11 +431,17 @@ export type RegisterStepsDict = {
       backToHomeLink: string;
     };
   };
-  consentCheckbox: {
-    text: string;
-    termsLink: string;
-    privacyLink: string;
-  };
+consentCheckbox: {
+  label: string;
+  termsText: string;
+  termsLink: string;
+  and: string;
+  privacyText: string;
+  privacyLink: string;
+  error: string;
+  // Old (backwards compatibility)
+  text: string;
+};
 };
 
 // Main Auth Dictionary Type

@@ -1,4 +1,4 @@
-// src/components/auth/RegistrationContext.tsx - CORRECTED LOGIC
+// src/components/auth/RegistrationContext.tsx
 
 'use client';
 
@@ -12,8 +12,6 @@ import React, {
 import { Gender, UserStatus, UserSource } from '@prisma/client';
 import type { User as SessionUserType } from '@/types/next-auth';
 
-// ... (interface RegistrationData and initialRegistrationData remain the same) ...
-
 export interface RegistrationData {
   email: string;
   password: string;
@@ -26,14 +24,22 @@ export interface RegistrationData {
   height?: number;
   occupation?: string;
   education?: string;
+  religiousLevel?: string;
+  
+  // שדות חדשים שהוספו לתיקון השגיאות
+  city: string;
+  hasChildren: boolean;
+  numberOfChildren: string;
+  profession: string;
+  termsAccepted: boolean;
+
+  // שדות ניהול מצב
   step: number;
   isGoogleSignup: boolean;
   language: 'he' | 'en'; 
   isCompletingProfile: boolean;
   isVerifyingEmailCode: boolean;
   emailForVerification: string | null;
-    religiousLevel?: string; // הוסף את השדה כאן
-
 }
 
 const initialRegistrationData: RegistrationData = {
@@ -48,7 +54,14 @@ const initialRegistrationData: RegistrationData = {
   height: undefined,
   occupation: '',
   education: '',
-    religiousLevel: '', // ערך התחלתי ריק
+  religiousLevel: '',
+
+  // אתחול שדות חדשים
+  city: '',
+  hasChildren: false,
+  numberOfChildren: '',
+  profession: '',
+  termsAccepted: false,
 
   step: 0,
   isGoogleSignup: false,
@@ -58,7 +71,6 @@ const initialRegistrationData: RegistrationData = {
   emailForVerification: null,
 };
 
-// ... (interface RegistrationContextType remains the same) ...
 interface RegistrationContextType {
   data: RegistrationData;
   setData: React.Dispatch<React.SetStateAction<RegistrationData>>;
@@ -81,7 +93,6 @@ interface RegistrationContextType {
   exitEmailVerification: () => void;
 }
 
-
 const RegistrationContext = createContext<RegistrationContextType | undefined>(undefined);
 
 export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
@@ -89,7 +100,6 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [data, setData] = useState<RegistrationData>(initialRegistrationData);
 
-  // ... (updateField, nextStep, prevStep, etc. remain the same) ...
   const updateField = useCallback(
     <K extends keyof RegistrationData>(
       field: K,
@@ -140,6 +150,7 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
 
       const sessionGender: Gender | '' = sessionUser.profile?.gender || '';
 
+      // המרת נתונים מהסשן למבנה הנתונים של הטופס
       const baseStateFromSession = {
         email: sessionUser.email || '',
         firstName: sessionUser.firstName || '',
@@ -153,6 +164,13 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
         height: sessionUser.profile?.height ?? undefined,
         occupation: sessionUser.profile?.occupation || '',
         education: sessionUser.profile?.education || '',
+        
+        // מיפוי שדות חדשים מהפרופיל (אם קיימים בטיפוס של הסשן, אחרת ברירת מחדל)
+        city: (sessionUser.profile as any)?.city || '',
+        profession: (sessionUser.profile as any)?.profession || '',
+        numberOfChildren: (sessionUser.profile as any)?.numberOfChildren || '',
+        hasChildren: (sessionUser.profile as any)?.hasChildren || false,
+        termsAccepted: !!sessionUser.termsAndPrivacyAcceptedAt,
       };
 
       // Scenario 1: New user needs to verify email (non-Google)
@@ -166,16 +184,13 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
           ...baseStateFromSession,
           isVerifyingEmailCode: true,
           emailForVerification: sessionUser.email,
-          step: 1, // Stay on a step that can render the verification component
+          step: 1,
           isCompletingProfile: false,
           isGoogleSignup: false,
         };
       }
 
-      // ============================ FIX STARTS HERE ============================
       // Scenario 2: User needs to start the profile completion process.
-      // The redirect logic for `isPhoneVerified: false` is now in RegisterClient,
-      // so this block can focus only on starting the process.
       if (!sessionUser.isProfileComplete) {
         return {
           ...initialRegistrationData,
@@ -188,14 +203,11 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
       }
       
       // If code reaches here, it means profile is complete.
-      // The RegisterClient's useEffect will handle redirection to either
-      // verify-phone or the main profile. We just need to sync data.
       return {
         ...prevData,
         ...baseStateFromSession,
         isGoogleSignup: isGoogleAcc,
       };
-      // ============================= FIX ENDS HERE =============================
     });
   }, []);
 
@@ -225,7 +237,6 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
       step: 1,
     }));
   }, []);
-
 
   const value: RegistrationContextType = {
     data,

@@ -202,172 +202,129 @@
     },
     "contactSupport": "יש לך שאלות?",
     "contactSupportLink": "צור קשר",
-    "steps": {
-      "welcome": {
-        "title": "ברוכים הבאים!",
-        "subtitle": "אנחנו שמחים שבחרת להצטרף אלינו. בואו נתחיל בתהליך הרשמה קצר ופשוט שיאפשר לנו להכיר אותך טוב יותר.",
-        "googleButton": "המשך עם Google",
-        "emailButton": "המשך עם אימייל",
-        "signInPrompt": "כבר יש לך חשבון?",
-        "signInLink": "התחברות"
-      },
-      "basicInfo": {
-        "title": "פרטי חשבון",
-        "emailLabel": "אימייל",
-        "emailPlaceholder": "you@example.com",
-        "passwordLabel": "סיסמה",
-        "passwordPlaceholder": "לפחות 8 תווים",
-        "passwordHint": "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה באנגלית ומספר.",
-        "firstNameLabel": "שם פרטי",
-        "firstNamePlaceholder": "ישראל",
-        "lastNameLabel": "שם משפחה",
-        "lastNamePlaceholder": "ישראלי",
-        "languageLabel": "שפת התקשורת המועדפת",
-        "backButton": "חזרה",
-        "nextButton": "צור חשבון והמשך לאימות",
-        "nextButtonLoading": "יוצר חשבון...",
-        "termsDisclaimer": "בלחיצה על 'צור חשבון', אני מאשר/ת את תנאי השימוש ומדיניות הפרטיות.", 
-        "errors": {
-          "title": "שגיאה בהרשמה",
-          "invalidEmail": "כתובת אימייל לא תקינה",
-          "invalidPassword": "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר",
-          "requiredEmail": "שדה אימייל הוא חובה",
-          "requiredPassword": "שדה סיסמה הוא חובה",
-          "fillFields": "אנא מלא את כל השדות הנדרשים בצורה תקינה.",
-          "fixErrors": "אנא תקן את השגיאות המסומנות.",
-          "default": "אירעה שגיאה בלתי צפויה בהרשמה"
+  "steps": {
+        "personalDetails": {
+          "welcomeTitle": "בואו נכיר!",
+          "welcomeSubtitle": "המידע שתשתפו יעזור לנו להכיר אתכם טוב יותר וליצור התאמות מדויקות",
+          "sectionTitle": "פרטים אישיים",
+          "sectionSubtitle": "נתחיל בבסיס - איך קוראים לך ומתי נולדת",
+          "firstNameLabel": "שם פרטי",
+          "firstNamePlaceholder": "איך קוראים לך?",
+          "firstNameRequired": "נא להזין שם פרטי",
+          "lastNameLabel": "שם משפחה",
+          "lastNamePlaceholder": "שם המשפחה שלך",
+          "lastNameRequired": "נא להזין שם משפחה",
+          "birthDateLabel": "תאריך לידה",
+          "birthDateRequired": "נא לבחור תאריך לידה",
+          "genderLabel": "מגדר",
+          "genderPlaceholder": "בחר מגדר",
+          "genderMale": "זכר",
+          "genderFemale": "נקבה",
+          "genderRequired": "נא לבחור מגדר",
+          "cityLabel": "עיר מגורים",
+          "cityPlaceholder": "באיזו עיר אתה גר?",
+          "cityRequired": "נא להזין עיר מגורים",
+          "privacyNote": "כל המידע שלך מוצפן ומאובטח. נשתמש בו רק כדי למצוא לך את ההתאמה הטובה ביותר.",
+          "submitButton": "המשך",
+          "submitButtonLoading": "שומר...",
+          "allFieldsCompleted": "כל השדות החובה מולאו ✓",
+          "validationFailed": "יש לתקן שגיאות בטופס",
+          "saveError": "שגיאה בשמירת הנתונים",
+          "unexpectedError": "אירעה שגיאה בלתי צפויה",
+          "COMMENT_1": "=== השדות הישנים - שמור לתאימות לאחור ===",
+          "title": "פרטים אישיים",
+          "subtitle": "ספר לנו קצת עליך",
+          "phoneLabel": "מספר טלפון",
+          "phonePlaceholder": "05X-XXXXXXX",
+          "phoneRequired": "נא להזין מספר טלפון",
+          "phoneInvalid": "מספר הטלפון אינו תקין",
+          "male": "זכר",
+          "female": "נקבה",
+          "maritalStatusLabel": "מצב משפחתי",
+          "maritalStatusPlaceholder": "בחר מצב משפחתי",
+          "maritalStatuses": {
+            "single": "רווק/ה",
+            "divorced": "גרוש/ה",
+            "widowed": "אלמן/ה"
+          },
+          "religiousLevelLabel": "רמת דתיות",
+          "religiousLevelPlaceholder": "בחר רמת דתיות",
+          "religiousLevels": {
+            "secular": "חילוני/ת",
+            "traditional": "מסורתי/ת",
+            "religious": "דתי/ה",
+            "ultraOrthodox": "חרדי/ת"
+          },
+          "engagementConsentLabel": "אני מסכים/ה לקבל הצעות שידוך",
+          "promotionalConsentLabel": "אני מסכים/ה לקבל עדכונים",
+          "backButton": "חזור",
+          "nextButton": "המשך",
+          "nextButtonLoading": "שומר...",
+          "errors": {
+            "consentRequired": "יש לאשר את התנאים",
+            "engagementConsentRequired": "יש לאשר קבלת הצעות שידוך",
+            "religiousLevelRequired": "נא לבחור רמת דתיות",
+            "consentApiError": "שגיאה בשמירת ההסכמות",
+            "ageTooLow": "גיל מינימלי הוא 18",
+            "ageTooHigh": "גיל מקסימלי הוא 120"
+          }
         },
-        "status": {
-          "creatingAccount": "יוצר את החשבון שלך...",
-          "sendingCode": "שולח קוד אימות למייל..."
+        "optionalInfo": {
+          "sectionTitle": "פרטים נוספים (אופציונלי)",
+          "title": "קצת יותר עליך",
+          "subtitle": "המידע הזה עוזר לנו להבין אותך טוב יותר, אבל אפשר לדלג",
+          "maritalStatusLabel": "מצב משפחתי",
+          "maritalStatusPlaceholder": "בחר מצב משפחתי",
+          "maritalStatusSingle": "רווק/ה",
+          "maritalStatusDivorced": "גרוש/ה",
+          "maritalStatusWidowed": "אלמן/ה",
+          "childrenLabel": "ילדים",
+          "childrenPlaceholder": "מספר ילדים",
+          "childrenNone": "אין",
+          "professionLabel": "מקצוע",
+          "professionPlaceholder": "מה אתה עושה לפרנסה?",
+          "educationLabel": "השכלה",
+          "educationPlaceholder": "רמת השכלה",
+          "educationHighSchool": "תיכונית",
+          "educationBachelors": "תואר ראשון",
+          "educationMasters": "תואר שני",
+          "educationDoctorate": "דוקטורט",
+          "religiousLevelLabel": "רמת דתיות",
+          "religiousLevelPlaceholder": "בחר רמת דתיות",
+          "religiousLevelSecular": "חילוני/ת",
+          "religiousLevelTraditional": "מסורתי/ת",
+          "religiousLevelReligious": "דתי/ה",
+          "religiousLevelUltraOrthodox": "חרדי/ת",
+          "COMMENT_2": "=== השדות הישנים - שמור לתאימות לאחור ===",
+          "heightLabel": "גובה",
+          "heightPlaceholder": "גובה בס\"מ",
+          "occupationLabel": "מקצוע",
+          "occupationPlaceholder": "מה אתה עושה?",
+          "backButton": "חזור",
+          "nextButton": "המשך",
+          "status": {
+            "saving": "שומר...",
+            "updating": "מעדכן...",
+            "sendingCode": "שולח קוד..."
+          },
+          "errors": {
+            "title": "שגיאה",
+            "missingData": "חסר מידע",
+            "default": "אירעה שגיאה"
+          }
         }
       },
-
-      "emailVerification": {
-        "title": "אימות כתובת מייל",
-        "subtitle": "שלחנו קוד אימות בן {{length}} ספרות לכתובת",
-        "yourEmail": "האימייל שלך",
-        "submitButton": "אמת קוד והמשך להשלמת פרופיל",
-        "submitButtonLoading": "מאמת ומתחבר...",
-        "resendPrompt": "לא קיבלת קוד?",
-        "resendButton": "שלח קוד חדש",
-        "resendButtonLoading": "שולח קוד חדש...",
-        "backButton": "חזור למילוי פרטים",
-        "errors": {
-          "title": "שגיאה",
-          "incompleteCode": "הקוד חייב להכיל {{length}} ספרות.",
-          "default": "אירעה שגיאה בלתי צפויה בתהליך האימות",
-          "autoSignInFailed": "אימות המייל הצליח, אך נתקלנו בבעיה בהתחברות האוטומטית: {{error}}. אנא נסה להתחבר ידנית."
-        },
-        "alerts": {
-          "title": "הודעה",
-          "resent": "קוד חדש נשלח בהצלחה."
-        }
-      },
-           "personalDetails": {
-        "title": "פרטים אישיים חיוניים",
-        "subtitle": "אנו צריכים פרטים אלו כדי להמשיך בתהליך ההרשמה שלך.",
-        "firstNameLabel": "שם פרטי",
-        "firstNamePlaceholder": "לדוגמה: ישראל",
-        "lastNameLabel": "שם משפחה",
-        "lastNamePlaceholder": "לדוגמה: ישראלי",
-        "phoneLabel": "טלפון נייד",
-        "phonePlaceholder": "0501234567",
-        "genderLabel": "מגדר",
-        "male": "זכר",
-        "female": "נקבה",
-        "birthDateLabel": "תאריך לידה",
-        "maritalStatusLabel": "מצב משפחתי",
-        "maritalStatusPlaceholder": "בחר/י מצב משפחתי...",
-        
-        "maritalStatuses": {
-          "single": "רווק/ה",
-          "divorced": "גרוש/ה",
-          "widowed": "אלמן/ה"
-        },
-        "engagementConsentLabel": "כן, אני רוצה לקבל טיפים, תובנות AI ומשובים אישיים מהצוות שיעזרו לי לשפר את הפרופיל ולמצוא התאמה מהר יותר.",
-        "promotionalConsentLabel": "אשמח לקבל עדכונים על פיצ'רים חדשים, אירועים ומבצעים מ-נשמהטק.",
-        "backButton": "חזרה",
-        "nextButton": "המשך לשלב הבא",
-        "nextButtonLoading": "מאשר תנאים...",
-"religiousLevelLabel": "סגנון דתי",
-"religiousLevelPlaceholder": "איך את/ה מגדיר/ה את עצמך?",
-"religiousLevels": {
-  "dati_leumi_standard": "דתי/ה לאומי/ת (סטנדרטי)",
-  "dati_leumi_liberal": "דתי/ה לאומי/ת ליברלי/ת",
-  "dati_leumi_torani": "דתי/ה לאומי/ת תורני/ת",
-  "masorti_strong": "מסורתי/ת (קרוב/ה לדת)",
-  "masorti_light": "מסורתי/ת (קשר קל למסורת)",
-  "secular_traditional_connection": "חילוני/ת עם זיקה למסורת",
-  "secular": "חילוני/ת",
-  "charedi_modern": "חרדי/ת מודרני/ת",
-  "charedi": "חרדי/ת",
-  "spiritual_not_religious": "רוחני/ת (לאו דווקא דתי/ה)",
-  "other": "אחר"
-},
-       "errors": {
-          "firstNameRequired": "שם פרטי הוא שדה חובה",
-          "lastNameRequired": "שם משפחה הוא שדה חובה",
-          "phoneRequired": "מספר טלפון הוא שדה חובה",
-          "phoneInvalid": "מספר טלפון לא תקין (10 ספרות, מתחיל ב-0)",
-          "birthDateRequired": "תאריך לידה הוא שדה חובה",
-          "ageTooLow": "גיל מינימלי להרשמה הוא 18",
-          "ageTooHigh": "תאריך לידה לא תקין",
-          "genderRequired": "יש לבחור מגדר",
-          "maritalStatusRequired": "יש לבחור מצב משפחתי",
-          "consentRequired": "חובה לאשר את תנאי השימוש ומדיניות הפרטיות.",
-          "engagementConsentRequired": "כדי להבטיח שנוכל ללוות אותך בתהליך, יש לאשר קבלת עדכונים והצעות מהמערכת.",
-          "consentApiError": "אירעה שגיאה באישור התנאים.",
-                     "religiousLevelRequired": "יש לבחור רמה דתית"
-
-        }
+      "consentCheckbox": {
+        "label": "אני מאשר/ת את",
+        "termsText": "תנאי השימוש",
+        "termsLink": "/terms",
+        "and": "ואת",
+        "privacyText": "מדיניות הפרטיות",
+        "privacyLink": "/privacy",
+        "error": "יש לאשר את התנאים והפרטיות",
+        "COMMENT_3": "=== שדה ישן - שמור לתאימות לאחור ===",
+        "text": "אני מאשר/ת את תנאי השימוש ומדיניות הפרטיות"
       }
-,
-      "optionalInfo": {
-        "title": "מידע נוסף",
-        "subtitle": "מידע זה יעזור לנו להתאים לך שידוכים מדויקים יותר. מומלץ למלא כמה שיותר פרטים.",
-        "heightLabel": "גובה (בס\"מ)",
-        "heightPlaceholder": "לדוגמה: 175",
-        "occupationLabel": "עיסוק",
-        "occupationPlaceholder": "לדוגמה: מהנדס תוכנה, מורה, סטודנט/ית",
-        "educationLabel": "השכלה",
-        "educationPlaceholder": "לדוגמה: תואר ראשון במדעי המחשב",
-        "backButton": "חזרה",
-        "nextButton": "סיום והמשך לאימות",
-        "status": {
-          "saving": "שומר פרטים...",
-          "updating": "מעדכן סשן...",
-          "sendingCode": "שולח קוד אימות..."
-        },
-        "errors": {
-          "title": "שגיאה",
-          "missingData": "חסרים נתונים חיוניים להשלמת הפרופיל. אנא חזור לשלב הקודם ובדוק את הפרטים.",
-          "default": "אירעה שגיאה לא צפויה"
-        }
-      },
-      "complete": {
-        "loading": "טוען נתונים...",
-        "verifyEmailTitle": "אימות כתובת המייל",
-        "verifyEmailSubtitle": "שלחנו לך מייל לכתובת",
-        "verifyEmailPrompt": "אנא לחץ על הקישור במייל כדי להשלים את תהליך האימות.",
-        "completeProfileTitle": "השלמת פרטי פרופיל",
-        "completeProfileSubtitle": "כדי שנוכל להתאים לך את השידוכים הטובים ביותר, אנא השלם את פרטי הפרופיל שלך.",
-        "completeProfileButton": "להשלמת הפרופיל",
-        "verifyPhoneTitle": "אימות מספר טלפון",
-        "verifyPhoneSubtitle": "כמעט סיימנו! אנא אמת את מספר הטלפון כדי להפעיל את חשבונך ולהתחיל לקבל הצעות.",
-        "verifyPhoneButton": "לאימות מספר הטלפון",
-        "allDoneTitle": "ההרשמה והפרופיל הושלמו בהצלחה!",
-        "allDoneSubtitle": "מעולה! כל הפרטים שלך מאומתים ומוכנים. עכשיו תוכל להתחיל בתהליך מציאת השידוך.",
-        "myProfileButton": "לפרופיל שלי",
-        "questionnaireButton": "למילוי שאלון התאמה",
-        "backToHomeLink": "חזרה לדף הבית"
-      }
-    },
-    "consentCheckbox": {
-      "text": "קראתי ואני מאשר/ת את {termsLink} ואת {privacyLink} של נשמהטק, ומסכים/ה לאיסוף, עיבוד ושמירת המידע האישי שלי, לרבות מידע רגיש, בהתאם למפורט בהם, ולהעברת המידע שלי לשרתים שעשויים להיות ממוקמים מחוץ לגבולות ישראל.",
-      "termsLink": "תנאי השימוש",
-      "privacyLink": "מדיניות הפרטיות"
-    }
      
   },
 
