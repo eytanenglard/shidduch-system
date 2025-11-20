@@ -53,8 +53,8 @@ const COUNTRIES = [
     popular: true,
     placeholder: '06 12 34 56 78',
   },
-
-  // מדינות עם קהילות יהודיות משמעותיות
+  // ... שאר המדינות נשארות אותו דבר
+  // (קיצרתי כאן כדי לחסוך מקום, הרשימה המלאה קיימת בקוד המקורי שלך)
   {
     code: 'AR',
     name: 'Argentina',
@@ -460,8 +460,6 @@ const COUNTRIES = [
     popular: false,
     placeholder: '412-1234567',
   },
-
-  // מדינות נוספות
   {
     code: 'JP',
     name: 'Japan',
@@ -661,7 +659,11 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
       className="relative w-full"
       onKeyDown={handleKeyDown}
     >
-      <div className="flex gap-2">
+      {/* 
+          שינוי קריטי: הוספנו dir="ltr" כדי לכפות סדר אלמנטים משמאל לימין 
+          (קידומת משמאל, שדה קלט מימין) גם כאשר שפת הדף היא עברית.
+      */}
+      <div className="flex gap-2" dir="ltr">
         {/* בוחר מדינה או קידומת ידנית */}
         <div className="relative">
           {isManualPrefix ? (
@@ -754,10 +756,15 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                 transition={{ duration: 0.2 }}
                 className="absolute top-full mt-1 left-0 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96"
               >
-                {/* חיפוש */}
-                <div className="p-3 border-b border-gray-100">
+                {/* חיפוש - כאן אנחנו מכבדים את כיוון השפה עבור טקסט החיפוש */}
+                <div
+                  className="p-3 border-b border-gray-100"
+                  dir={locale === 'he' ? 'rtl' : 'ltr'}
+                >
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search
+                      className={`absolute top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 ${locale === 'he' ? 'right-3' : 'left-3'}`}
+                    />
                     <input
                       ref={searchInputRef}
                       type="text"
@@ -766,14 +773,13 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                       }
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-10 py-2 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
-                      dir={locale === 'he' ? 'rtl' : 'ltr'}
+                      className={`w-full py-2 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-200 focus:border-blue-500 ${locale === 'he' ? 'pr-10 pl-3' : 'pl-10 pr-3'}`}
                     />
                     {searchTerm && (
                       <button
                         type="button"
                         onClick={() => setSearchTerm('')}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 ${locale === 'he' ? 'left-3' : 'right-3'}`}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -782,7 +788,10 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                 </div>
 
                 {/* אפשרות לקידומת ידנית */}
-                <div className="p-2 border-b border-gray-100">
+                <div
+                  className="p-2 border-b border-gray-100"
+                  dir={locale === 'he' ? 'rtl' : 'ltr'}
+                >
                   <button
                     type="button"
                     onClick={enableManualPrefix}
@@ -816,7 +825,9 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                           hover:bg-blue-50 transition-colors duration-150
                           ${selectedCountry.code === country.code ? 'bg-blue-100 text-blue-700' : 'text-gray-700'}
                         `}
-                        dir={locale === 'he' ? 'rtl' : 'ltr'}
+                        // כאן אנחנו שומרים על כיוון LTR כדי שהדגלים והמספרים יהיו בצד שמאל והטקסט מימין,
+                        // גם בעברית זה נראה טוב ברשימות טלפונים
+                        dir="ltr"
                       >
                         <span className="text-lg">{country.flag}</span>
                         <span className="flex-1 text-left">
@@ -853,6 +864,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                   ? `לדוגמה: ${selectedCountry.placeholder}`
                   : `Example: ${selectedCountry.placeholder}`
             }
+            // כיוון שהקונטיינר כולו LTR עכשיו, אנחנו רוצים יישור לשמאל תמיד כדי שזה יהיה צמוד לקידומת
             className={`
               w-full pl-3 pr-10 py-3 border rounded-lg
               transition-all duration-200 text-left
@@ -869,6 +881,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
             `}
             dir="ltr"
           />
+          {/* האייקון ממוקם תמיד בימין כי הכל LTR */}
           <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
         </div>
       </div>
@@ -878,7 +891,8 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         <motion.p
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-red-500 text-xs mt-2"
+          // הודעת השגיאה תמיד מיושרת לפי שפת הממשק
+          className={`text-red-500 text-xs mt-2 ${locale === 'he' ? 'text-right' : 'text-left'}`}
         >
           {error}
         </motion.p>
