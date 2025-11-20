@@ -164,7 +164,14 @@ export type EmailDictionary = {
   passwordResetOtp: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
   passwordChangedConfirmation: EmailTemplateContent & { intro: string; securityNote: string; actionButton: string; };
   profileFeedback: ProfileFeedbackEmailDict;
-  profileSummaryUpdate: EmailTemplateContent & { intro: string; highlight: string; encouragement: string; actionButton: string; };
-
+profileSummaryUpdate: { 
+    subject: string; 
+    title: string; 
+    introMatchmaker: string; 
+    introSystem: string; 
+    highlight: string; 
+    encouragement: string; 
+    actionButton: string; 
+};
   notifications: NotificationDictionary;
 };
