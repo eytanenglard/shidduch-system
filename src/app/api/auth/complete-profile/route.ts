@@ -6,12 +6,13 @@ import { authOptions } from '@/lib/auth'; // ודא שהנתיב הזה נכון
 import prisma from '@/lib/prisma'; // ודא שהנתיב הזה נכון
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { Gender, UserStatus } from '@prisma/client'; // ייבוא Gender ו-UserStatus
+import { Gender, UserStatus, Language } from '@prisma/client'; 
 
 // Zod Schema - כולל phone לאימות וגם את שדות הדיוור החדשים
 const completeProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required").max(100, "First name too long"),
   lastName: z.string().min(1, "Last name is required").max(100, "Last name too long"),
+
   phone: z.string().refine(
     (phone) => /^\+[1-9]\d{1,14}$/.test(phone), 
     { message: "Invalid international phone number format (E.164 required)." }
@@ -28,6 +29,7 @@ const completeProfileSchema = z.object({
   occupation: z.string().optional(),
   education: z.string().optional(),
     religiousLevel: z.string().optional(),
+  language: z.nativeEnum(Language).optional().default(Language.he),
 
   // --- הוספת שדות הדיוור לסכמה (כדי שלא ייזרקו ע"י Zod) ---
   engagementEmailsConsent: z.boolean().optional().default(false),
@@ -89,6 +91,7 @@ export async function POST(req: Request) {
         occupation,
         education,
               religiousLevel,
+              language,
         // חילוץ שדות הדיוור
         engagementEmailsConsent,
         promotionalEmailsConsent
@@ -154,6 +157,8 @@ export async function POST(req: Request) {
           lastName: lastName,
           phone: phone,
           isProfileComplete: true,
+         language: language,  // <--- הוסף שורה זו לעדכון השפה ב-DB
+
           // מעבירים את הסטטוס למצב הבא (אימות טלפון)
           status: UserStatus.PENDING_PHONE_VERIFICATION,
           updatedAt: new Date(),

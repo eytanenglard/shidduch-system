@@ -35,6 +35,7 @@ const SETUP_PATHS = [
   '/auth/setup-account',
   '/auth/verify-phone',
   '/auth/update-phone',
+   '/settings', 
 ];
 
 const PUBLIC_API_PATHS = ['/api/feedback'];

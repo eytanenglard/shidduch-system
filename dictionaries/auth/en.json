@@ -220,6 +220,9 @@
         "firstNameLabel": "First Name",
         "firstNamePlaceholder": "John",
         "lastNameLabel": "Last Name",
+  "languageLabel": "Preferred Communication Language",
+  "languagePlaceholder": "Select language...",
+
         "lastNamePlaceholder": "Doe",
         "backButton": "Back",
         "nextButton": "Create Account & Continue to Verification",

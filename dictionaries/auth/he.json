@@ -269,6 +269,8 @@
         "subtitle": "אנו צריכים פרטים אלו כדי להמשיך בתהליך ההרשמה שלך.",
         "firstNameLabel": "שם פרטי",
         "firstNamePlaceholder": "לדוגמה: ישראל",
+"languageLabel": "שפת התקשורת המועדפת", 
+  "languagePlaceholder": "בחר שפה...",
         "lastNameLabel": "שם משפחה",
         "lastNamePlaceholder": "לדוגמה: ישראלי",
         "phoneLabel": "טלפון נייד",

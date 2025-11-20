@@ -1,7 +1,9 @@
 {{!-- src/lib/email/templates/shared/footer.hbs --}}
 <table role="presentation" style="width: 100%; margin-top: 40px; border-top: 2px solid #e5e7eb;">
   <tr>
-    <td style="padding: 30px 20px; text-align: center;">
+    <!-- הוספתי כיווניות דינמית גם כאן -->
+    <td style="padding: 30px 20px; text-align: center; direction: {{#if (eq locale 'he')}}rtl{{else}}ltr{{/if}};">
+      
       <!-- Logo -->
       <div style="margin-bottom: 20px;">
         <img 

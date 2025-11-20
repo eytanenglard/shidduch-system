@@ -4,34 +4,27 @@ import nodemailer from 'nodemailer';
 import { emailTemplates, TemplateContextMap } from './templates/emailTemplates';
 import { getDictionary } from '@/lib/dictionaries';
 import { EmailDictionary } from '@/types/dictionary';
-import { Locale } from '../../../i18n-config'; // ודא שהנתיב נכון
+import { Locale } from '../../../i18n-config';
+import prisma from '@/lib/prisma';
 
-// =================  עדכון הממשק הקיים =================
-/**
- * ממשק זה מאגד את כל המאפיינים האפשריים שניתן להעביר לכל תבנית אימייל.
- * הוא מחליף את השימוש ב-'any' ומספק בטיחות טיפוסים מלאה.
- * כל המאפיינים הם אופציונליים מכיוון שכל תבנית משתמשת בתת-קבוצה שונה של מאפיינים.
- */
+// =================  ממשקים (ללא שינוי) =================
 
 interface ProfileSummaryUpdateEmailParams {
     locale: Locale;
     email: string;
     firstName: string;
-    matchmakerName: string;
+    matchmakerName?: string;
 }
 
-
 interface TemplateContext {
-  // מאפיינים שנוספים אוטומטית בפונקציה sendEmail
   supportEmail: string;
   companyName: string;
   currentYear: string;
   baseUrl: string;
 
-  // מאפיינים דינמיים המגיעים מהקונטקסט של כל סוג אימייל
-  locale?: Locale; // אופציונלי, כי אימיילים פנימיים לא צריכים אותו
-  dict?: EmailDictionary[keyof EmailDictionary]; // אופציונלי
-  sharedDict?: EmailDictionary['shared']; // אופציונלי
+  locale?: Locale;
+  dict?: EmailDictionary[keyof EmailDictionary];
+  sharedDict?: EmailDictionary['shared'];
   name?: string;
   firstName?: string;
   matchmakerAssigned?: boolean;
@@ -59,7 +52,6 @@ interface TemplateContext {
   loginUrl?: string;
   inquiryId?: string;
 
-  // --- הוספת שדות עבור אימייל הפידבק ---
   feedbackType?: string;
   userIdentifier?: string;
   content?: string;
@@ -67,9 +59,7 @@ interface TemplateContext {
   screenshotUrl?: string;
   feedbackId?: string;
 }
-// =================  סוף עדכון הממשק =================
 
-// הגדרות טיפוסים בסיסיות עם locale
 interface EmailConfig {
   to: string;
   subject: string;
@@ -77,7 +67,6 @@ interface EmailConfig {
   context: Omit<TemplateContext, 'supportEmail' | 'companyName' | 'currentYear' | 'baseUrl'>;
 }
 
-// ================= הוספת locale לכל הטיפוסים =================
 interface AccountSetupEmailParams {
     locale: Locale;
     email: string;
@@ -158,8 +147,8 @@ interface PasswordChangedConfirmationParams {
     email: string;
     firstName?: string;
 }
-// ================= סוף השינויים בטיפוסים =================
 
+// ================= מחלקת השירות =================
 
 class EmailService {
   private static instance: EmailService;
@@ -185,6 +174,31 @@ class EmailService {
     return EmailService.instance;
   }
 
+  /**
+   * פונקציית עזר לבדיקת שפת המשתמש מתוך הדאטה-בייס.
+   * אם המשתמש קיים ב-DB, נשתמש בשדה language שלו.
+   * אחרת, נשתמש ב-locale שהועבר כברירת מחדל.
+   */
+  private async resolveLocale(email: string, defaultLocale: Locale): Promise<Locale> {
+    try {
+      if (!email) return defaultLocale;
+
+      const user = await prisma.user.findUnique({
+        where: { email: email.toLowerCase() },
+        select: { language: true }
+      });
+
+      if (user && user.language) {
+        // המרה מטיפוס ה-Enum של פריזמה לטיפוס Locale שלנו
+        return user.language as Locale;
+      }
+    } catch (error) {
+      console.warn(`Could not resolve locale from DB for ${email}, using default.`, error);
+    }
+
+    return defaultLocale;
+  }
+
   async sendEmail({ to, subject, templateName, context }: EmailConfig): Promise<void> {
     try {
       const templateFunction = emailTemplates[templateName];
@@ -201,7 +215,7 @@ class EmailService {
         baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
       };
       
-      const html = templateFunction(fullContext as any); // Use 'as any' here as a bridge, since the function signatures are typed
+      const html = templateFunction(fullContext as any); 
 
       const mailOptions: nodemailer.SendMailOptions = {
         from: `${process.env.EMAIL_FROM_NAME || 'NeshamaTech'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
@@ -214,7 +228,7 @@ class EmailService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('אימייל נשלח בהצלחה:', info.messageId, 'אל:', to, 'נושא:', subject);
+      console.log('אימייל נשלח בהצלחה:', info.messageId, 'אל:', to, 'נושא:', subject, 'שפה:', context.locale);
       
     } catch (error) {
       console.error('שגיאה בשליחת אימייל אל:', to, 'נושא:', subject, 'תבנית:', templateName, 'שגיאה:', error);
@@ -222,239 +236,229 @@ class EmailService {
     }
   }
 
-  // ============================ פונקציות מעודכנות עם locale ============================
+  // ================= פונקציות שליחה (מעודכנות עם בדיקת DB) =================
 
-  async sendWelcomeEmail({
-    locale,
-    email,
-    firstName,
-    matchmakerAssigned = false,
-    matchmakerName = '',
-    dashboardUrl,
-  }: WelcomeEmailParams): Promise<void> {
+  async sendWelcomeEmail(params: WelcomeEmailParams): Promise<void> {
+    // 1. בודקים ב-DB מה השפה המועדפת
+    const locale = await this.resolveLocale(params.email, params.locale);
+    
+    // 2. מושכים מילון לפי השפה שנמצאה
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
 
     await this.sendEmail({
-      to: email,
+      to: params.email,
       subject: emailDict.welcome.subject,
       templateName: 'welcome',
       context: {
-        locale,
+        locale, // מעבירים את השפה המעודכנת
         dict: emailDict.welcome,
         sharedDict: emailDict.shared,
-        name: firstName,
-        firstName,
-        matchmakerAssigned,
-        matchmakerName,
-        dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${dashboardUrl}`,
+        name: params.firstName,
+        firstName: params.firstName,
+        matchmakerAssigned: params.matchmakerAssigned,
+        matchmakerName: params.matchmakerName,
+        dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${params.dashboardUrl}`,
       }
     });
   }
 
-  async sendAccountSetupEmail({ locale, email, firstName, matchmakerName, setupToken, expiresIn }: AccountSetupEmailParams): Promise<void> {
+  async sendAccountSetupEmail(params: AccountSetupEmailParams): Promise<void> {
+    const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
-    const setupLink = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-account?token=${setupToken}`;
+    const setupLink = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-account?token=${params.setupToken}`;
     
     await this.sendEmail({
-      to: email,
+      to: params.email,
       subject: emailDict.accountSetup.subject,
       templateName: 'accountSetup',
       context: {
         locale,
         dict: emailDict.accountSetup,
         sharedDict: emailDict.shared,
-        name: firstName,
-        firstName,
-        matchmakerName,
+        name: params.firstName,
+        firstName: params.firstName,
+        matchmakerName: params.matchmakerName,
         setupLink,
-        expiresIn,
+        expiresIn: params.expiresIn,
       },
     });
   }
-  async sendProfileSummaryUpdateEmail({
-    locale,
-    email,
-    firstName,
-    matchmakerName,
-  }: ProfileSummaryUpdateEmailParams): Promise<void> {
+
+  async sendProfileSummaryUpdateEmail(params: ProfileSummaryUpdateEmailParams): Promise<void> {
+    const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
 
     await this.sendEmail({
-      to: email,
+      to: params.email,
       subject: emailDict.profileSummaryUpdate.subject,
       templateName: 'profileSummaryUpdate',
       context: {
         locale,
         dict: emailDict.profileSummaryUpdate,
         sharedDict: emailDict.shared,
-        name: firstName,
-        firstName,
-        matchmakerName,
+        name: params.firstName,
+        firstName: params.firstName,
+        matchmakerName: params.matchmakerName, // מעביר את הערך (שיכול להיות undefined)
         dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/profile`,
       }
     });
   }
 
-  async sendVerificationEmail({
-    locale,
-    email,
-    verificationCode,
-    firstName,
-    expiresIn = '1 hour'
-  }: VerificationEmailParams): Promise<void> {
+
+  async sendVerificationEmail(params: VerificationEmailParams): Promise<void> {
+    const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
 
     await this.sendEmail({
-      to: email,
+      to: params.email,
       subject: emailDict.emailOtpVerification.subject,
       templateName: 'emailOtpVerification',
       context: {
         locale,
         dict: emailDict.emailOtpVerification,
         sharedDict: emailDict.shared,
-        name: firstName || email,
-        firstName,
-        verificationCode,
-        expiresIn,
+        name: params.firstName || params.email,
+        firstName: params.firstName,
+        verificationCode: params.verificationCode,
+        expiresIn: params.expiresIn,
       }
     });
   }
 
-  async sendInvitation({
-    locale,
-    email,
-    invitationLink,
-    matchmakerName,
-    expiresIn = '7 days'
-  }: InvitationEmailParams): Promise<void> {
+  async sendInvitation(params: InvitationEmailParams): Promise<void> {
+    // בהזמנה ייתכן שהמשתמש עוד לא קיים, אבל ננסה לבדוק בכל זאת
+    const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const fullInvitationLink = `${baseUrl}/auth/accept-invitation?token=${invitationLink}`;
+    const fullInvitationLink = `${baseUrl}/auth/accept-invitation?token=${params.invitationLink}`;
     
     await this.sendEmail({
-      to: email,
-      subject: emailDict.invitation.subject.replace('{{matchmakerName}}', matchmakerName),
+      to: params.email,
+      subject: emailDict.invitation.subject.replace('{{matchmakerName}}', params.matchmakerName),
       templateName: 'invitation',
       context: {
         locale,
         dict: emailDict.invitation,
         sharedDict: emailDict.shared,
-        name: email,
-        matchmakerName,
+        name: params.email,
+        matchmakerName: params.matchmakerName,
         invitationLink: fullInvitationLink,
-        expiresIn,
+        expiresIn: params.expiresIn,
       }
     });
   }
 
-  async sendContactDetailsEmail({
-    locale,
-    email,
-    recipientName,
-    otherPartyName,
-    otherPartyContact,
-    matchmakerName,
-  }: ContactDetailsEmailParams): Promise<void> {
+  async sendContactDetailsEmail(params: ContactDetailsEmailParams): Promise<void> {
+    const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
     
     await this.sendEmail({
-      to: email,
+      to: params.email,
       subject: emailDict.shareContactDetails.subject,
       templateName: 'shareContactDetails',
       context: {
         locale,
         dict: emailDict.shareContactDetails,
         sharedDict: emailDict.shared,
-        name: recipientName,
-        recipientName,
-        otherPartyName,
-        otherPartyContact,
-        matchmakerName,
+        name: params.recipientName,
+        recipientName: params.recipientName,
+        otherPartyName: params.otherPartyName,
+        otherPartyContact: params.otherPartyContact,
+        matchmakerName: params.matchmakerName,
       }
     });
   }
 
-  async sendSuggestionNotification({
-    locale,
-    email,
-    recipientName,
-    matchmakerName,
-    suggestionDetails
-  }: SuggestionEmailParams): Promise<void> {
+  async sendSuggestionNotification(params: SuggestionEmailParams): Promise<void> {
+    const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
 
     await this.sendEmail({
-      to: email,
+      to: params.email,
       subject: emailDict.suggestion.subject,
       templateName: 'suggestion',
       context: {
         locale,
         dict: emailDict.suggestion,
         sharedDict: emailDict.shared,
-        name: recipientName,
-        recipientName,
-        matchmakerName,
-        suggestionDetails,
+        name: params.recipientName,
+        recipientName: params.recipientName,
+        matchmakerName: params.matchmakerName,
+        suggestionDetails: params.suggestionDetails,
         dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/dashboard/suggestions`,
       }
     });
   }
 
-  async sendPasswordResetOtpEmail({
-    locale,
-    email,
-    otp,
-    firstName,
-    expiresIn = '15 minutes'
-  }: PasswordResetOtpEmailParams): Promise<void> {
+  async sendPasswordResetOtpEmail(params: PasswordResetOtpEmailParams): Promise<void> {
+    const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
     
     await this.sendEmail({
-      to: email,
+      to: params.email,
       subject: emailDict.passwordResetOtp.subject,
       templateName: 'passwordResetOtp',
       context: {
         locale,
         dict: emailDict.passwordResetOtp,
         sharedDict: emailDict.shared,
-        name: firstName || email,
-        firstName,
-        otp,
-        expiresIn,
+        name: params.firstName || params.email,
+        firstName: params.firstName,
+        otp: params.otp,
+        expiresIn: params.expiresIn,
       }
     });
   }
 
-  async sendPasswordChangedConfirmationEmail({
-      locale,
-      email,
-      firstName,
-  }: PasswordChangedConfirmationParams): Promise<void> {
+  async sendPasswordChangedConfirmationEmail(params: PasswordChangedConfirmationParams): Promise<void> {
+      const locale = await this.resolveLocale(params.email, params.locale);
       const dictionary = await getDictionary(locale);
       const emailDict = dictionary.email;
       
       await this.sendEmail({
-          to: email,
+          to: params.email,
           subject: emailDict.passwordChangedConfirmation.subject,
           templateName: 'passwordChangedConfirmation',
           context: {
               locale,
               dict: emailDict.passwordChangedConfirmation,
               sharedDict: emailDict.shared,
-              name: firstName || email,
-              firstName,
+              name: params.firstName || params.email,
+              firstName: params.firstName,
               loginUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/signin`,
           }
       });
   }
+
+  async sendAvailabilityCheck(params: AvailabilityCheckEmailParams): Promise<void> {
+    const locale = await this.resolveLocale(params.email, params.locale);
+    const dictionary = await getDictionary(locale);
+    const emailDict = dictionary.email;
+    
+    await this.sendEmail({
+      to: params.email,
+      subject: emailDict.availabilityCheck.subject,
+      templateName: 'availabilityCheck',
+      context: {
+        locale,
+        dict: emailDict.availabilityCheck,
+        sharedDict: emailDict.shared,
+        name: params.recipientName,
+        recipientName: params.recipientName,
+        matchmakerName: params.matchmakerName,
+        inquiryId: params.inquiryId,
+      }
+    });
+  }
+  
   async sendRawEmail({ to, subject, html }: { to: string; subject: string; html: string }): Promise<void> {
     try {
       const mailOptions: nodemailer.SendMailOptions = {
@@ -476,32 +480,6 @@ class EmailService {
     }
   }
 
-  async sendAvailabilityCheck({
-    locale,
-    email,
-    recipientName,
-    matchmakerName,
-    inquiryId,
-  }: AvailabilityCheckEmailParams): Promise<void> {
-    const dictionary = await getDictionary(locale);
-    const emailDict = dictionary.email;
-    
-    await this.sendEmail({
-      to: email,
-      subject: emailDict.availabilityCheck.subject,
-      templateName: 'availabilityCheck',
-      context: {
-        locale,
-        dict: emailDict.availabilityCheck,
-        sharedDict: emailDict.shared,
-        name: recipientName,
-        recipientName,
-        matchmakerName,
-        inquiryId,
-      }
-    });
-  }
-  
   async verifyConnection(): Promise<boolean> {
     try {
       await this.transporter.verify();

@@ -1,0 +1,344 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user
+# Generated on: 2025-11-20 13:39:53
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\user_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\accept-terms
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\accept-terms\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/user/accept-terms/route.ts
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from "@/lib/prisma";
+
+export async function POST(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+
+    // נסה לקרוא את הגוף למקרה שנשלחו גם הסכמות שיווקיות
+    let body = {};
+    try {
+      body = await req.json();
+    } catch (e) {
+      // הגוף ריק, זה בסדר
+    }
+    
+    const { engagementEmailsConsent, promotionalEmailsConsent } = body as any;
+
+    // בדוק מצב קיים
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { termsAndPrivacyAcceptedAt: true },
+    });
+
+    // הכן אובייקט לעדכון
+    const updateData: any = {};
+
+    // עדכן תאריך רק אם טרם אושר
+    if (!user?.termsAndPrivacyAcceptedAt) {
+      updateData.termsAndPrivacyAcceptedAt = new Date();
+    }
+
+    // עדכן הסכמות שיווקיות אם נשלחו בבקשה (גם אם המשתמש כבר אישר תנאים בעבר)
+    if (typeof engagementEmailsConsent === 'boolean') {
+      updateData.engagementEmailsConsent = engagementEmailsConsent;
+    }
+    if (typeof promotionalEmailsConsent === 'boolean') {
+      updateData.promotionalEmailsConsent = promotionalEmailsConsent;
+    }
+
+    // בצע עדכון רק אם יש מה לעדכן
+    if (Object.keys(updateData).length > 0) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+      });
+      return NextResponse.json({ success: true, message: 'User terms/consents updated' });
+    } else {
+      return NextResponse.json({ success: true, message: 'No changes needed' });
+    }
+
+  } catch (error) {
+    console.error('Error accepting terms:', error);
+    return NextResponse.json({ error: 'Internal Error' }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\complete-onboarding
+================================================================================
+
+(This directory is empty.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\consent-settings
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\consent-settings\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/user/consent-settings/route.ts
+
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { z } from 'zod';
+
+// סכמת ולידציה קפדנית לבקשה
+const updateConsentSchema = z.object({
+  consentType: z.enum(['engagement', 'promotional'], {
+    required_error: "Consent type is required ('engagement' or 'promotional').",
+  }),
+  consentValue: z.boolean({
+    required_error: 'Consent value (true/false) is required.',
+  }),
+});
+
+export async function PUT(req: Request) {
+  try {
+    // 1. אימות המשתמש
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = session.user.id;
+
+    // 2. קריאה וולידציה של גוף הבקשה
+    const body = await req.json();
+    const validationResult = updateConsentSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid input', details: validationResult.error.flatten() },
+        { status: 400 }
+      );
+    }
+    
+    const { consentType, consentValue } = validationResult.data;
+
+    // 3. הכנת הנתונים לעדכון
+    let dataToUpdate = {};
+    if (consentType === 'engagement') {
+      dataToUpdate = { engagementEmailsConsent: consentValue };
+    } else { // consentType === 'promotional'
+      dataToUpdate = { promotionalEmailsConsent: consentValue };
+    }
+
+    // 4. עדכון מסד הנתונים
+    await prisma.user.update({
+      where: { id: userId },
+      data: dataToUpdate,
+    });
+
+    // 5. החזרת תשובת הצלחה
+    return NextResponse.json({ success: true, message: 'Consent preferences updated successfully.' });
+
+  } catch (error) {
+    console.error('Error updating consent settings:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json(
+      { success: false, error: "Internal server error.", details: errorMessage },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\marketing-consent
+================================================================================
+
+(This directory is empty.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\settings
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\settings\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/user/settings/route.ts
+
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { z } from 'zod';
+import { Language } from '@prisma/client';
+
+// סכמת ולידציה קפדנית לוודא שרק ערכים מותרים מתקבלים
+const updateSettingsSchema = z.object({
+  language: z.nativeEnum(Language, {
+    errorMap: () => ({ message: "ערך השפה חייב להיות 'he' או 'en'." }),
+  }),
+});
+
+export async function PUT(req: Request) {
+  try {
+    // 1. אימות המשתמש המחובר
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      console.error('[API Settings] Unauthorized access attempt');
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = session.user.id;
+
+    // 2. קריאה ואימות של גוף הבקשה
+    const body = await req.json();
+    console.log('[API Settings] Received language update request:', body);
+    
+    const validationResult = updateSettingsSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      console.error('[API Settings] Validation failed:', validationResult.error.flatten());
+      return NextResponse.json(
+        { success: false, error: 'Invalid input', details: validationResult.error.flatten() },
+        { status: 400 }
+      );
+    }
+    
+    const { language } = validationResult.data;
+    console.log('[API Settings] Updating language to:', language, 'for user:', userId);
+
+    // 3. עדכון רשומת המשתמש במסד הנתונים
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        language: language,
+      },
+      select: {
+        id: true,
+        language: true,
+        email: true,
+      }
+    });
+
+    console.log('[API Settings] ✅ Language updated successfully in DB:', {
+      userId: updatedUser.id,
+      email: updatedUser.email,
+      newLanguage: updatedUser.language
+    });
+
+    // 4. החזרת תשובת הצלחה
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Language updated successfully.',
+      language: updatedUser.language // ✅ מחזיר את השפה המעודכנת (לדיבוג)
+    });
+
+  } catch (error) {
+    console.error('[API Settings] ❌ Error updating user settings:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json(
+      { success: false, error: "Internal server error.", details: errorMessage },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\unsubscribe
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\unsubscribe\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/user/unsubscribe/route.ts
+
+import { NextRequest, NextResponse } from 'next/server';
+import { jwtVerify, JWTPayload } from 'jose';
+import prisma from '@/lib/prisma';
+
+interface UnsubscribeTokenPayload extends JWTPayload {
+  userId: string;
+  email: string;
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const { token } = await req.json();
+
+    if (!token) {
+      return NextResponse.json({ success: false, error: 'Token is required.' }, { status: 400 });
+    }
+
+    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
+    if (!secret) {
+      console.error("FATAL: NEXTAUTH_SECRET is not defined.");
+      throw new Error("Server configuration error.");
+    }
+
+    const { payload } = await jwtVerify(token, secret);
+    const { userId, email } = payload as UnsubscribeTokenPayload;
+
+    if (!userId || !email) {
+      throw new Error("Invalid token payload.");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true }
+    });
+
+    if (!user || user.email !== email) {
+      throw new Error("User not found or token mismatch.");
+    }
+
+    // This is the core action: update the consent fields
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        engagementEmailsConsent: false, // Set to false
+        // We can also set promotional to false as a safety measure
+        promotionalEmailsConsent: false, 
+      },
+    });
+    
+    console.log(`[Unsubscribe] User ${userId} (${email}) has successfully unsubscribed from engagement mailings.`);
+
+    return NextResponse.json({ success: true, message: 'Successfully unsubscribed.' });
+
+  } catch (error) {
+    console.error('Error during unsubscribe process:', error);
+    let errorMessage = 'The unsubscribe link is invalid or has expired.';
+    
+    if (error instanceof Error) {
+        if (error.name === 'JWTExpired') {
+            errorMessage = 'This unsubscribe link has expired. Please use the link from a more recent email.';
+        } else if (error.message.includes('User not found')) {
+            errorMessage = 'The user associated with this link could not be found.';
+        }
+    }
+    
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 400 });
+  }
+}
+--- End of Content for route.ts ---
+

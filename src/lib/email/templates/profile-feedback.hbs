@@ -109,6 +109,7 @@
         /* AI Summary */
         .ai-summary {
             background: linear-gradient(135deg, #fefce8, #fef3c7);
+            /* גבול דינמי בהתאם לשפה */
             border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 5px solid #f59e0b;
             padding: 25px;
             border-radius: 12px;
@@ -216,6 +217,7 @@
         }
         
         .status-icon {
+            /* מרווח דינמי לאייקון */
             margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 10px;
             font-size: 18px;
         }
@@ -366,8 +368,13 @@
                     <div class="progress-bar" style="width: {{report.completionPercentage}}%;"></div>
                 </div>
                 <div class="progress-text">
-                    השקעת עד כה והגעת ל-<strong>{{report.completionPercentage}}% השלמה</strong>.<br>
-                    כל הכבוד! עוד מאמץ קטן והפרופיל שלך יהיה מוכן למצוא את ההתאמה המושלמת.
+                    {{#if (eq locale 'he')}}
+                        השקעת עד כה והגעת ל-<strong>{{report.completionPercentage}}% השלמה</strong>.<br>
+                        כל הכבוד! עוד מאמץ קטן והפרופיל שלך יהיה מוכן למצוא את ההתאמה המושלמת.
+                    {{else}}
+                        You have reached <strong>{{report.completionPercentage}}% completion</strong>.<br>
+                        Great job! A little more effort and your profile will be ready to find the perfect match.
+                    {{/if}}
                 </div>
             </div>
 
@@ -387,19 +394,23 @@
                 </div>
                 
                 <div class="ai-disclaimer">
-                    זוהי רק טעימה מהתובנות שה-AI שלנו יכול להפיק מפרופיל מלא. ככל שתוסיף יותר מידע, כך נוכל לחדד יותר את ההתאמות עבורך.
+                    {{#if (eq locale 'he')}}
+                        זוהי רק טעימה מהתובנות שה-AI שלנו יכול להפיק מפרופיל מלא. ככל שתוסיף יותר מידע, כך נוכל לחדד יותר את ההתאמות עבורך.
+                    {{else}}
+                        This is just a taste of the insights our AI can generate from a full profile. The more info you add, the better we can refine matches for you.
+                    {{/if}}
                 </div>
             </div>
             {{/if}}
 
             <!-- Status Section -->
             <div class="status-section">
-                <h2 class="section-title">סטטוס הפרופיל שלך</h2>
+                <h2 class="section-title">{{#if (eq locale 'he')}}סטטוס הפרופיל שלך{{else}}Your Profile Status{{/if}}</h2>
                 
                 <div class="status-grid">
                     <!-- Completed Items -->
                     <div class="status-card completed-card">
-                        <h4 class="card-title">כל הכבוד! מה שכבר השלמת:</h4>
+                        <h4 class="card-title">{{#if (eq locale 'he')}}כל הכבוד! מה שכבר השלמת:{{else}}Great! Completed items:{{/if}}</h4>
                         <ul class="status-list">
                             {{#each report.completedProfileItems}}
                                 <li class="status-item">
@@ -412,7 +423,7 @@
                     
                     <!-- Missing Items -->
                     <div class="status-card missing-card">
-                        <h4 class="card-title">השלב הבא: מה חסר</h4>
+                        <h4 class="card-title">{{#if (eq locale 'he')}}השלב הבא: מה חסר{{else}}Next Steps: What's missing{{/if}}</h4>
                         <ul class="status-list">
                              {{#each report.missingProfileItems}}
                                 <li class="status-item">
@@ -428,16 +439,25 @@
                 <div class="questionnaire-section">
                     <div class="questionnaire-title">
                         <span class="questionnaire-icon">📋</span>
-                        שאלון המעמיק - הזדמנות זהב!
+                        {{#if (eq locale 'he')}}שאלון המעמיק - הזדמנות זהב!{{else}}In-depth Questionnaire - A Golden Opportunity!{{/if}}
                     </div>
                     
                     <div class="question-summary">
-                        יש לנו {{report.missingQuestionnaireItems.length}} שאלות מעמיקות שמחכות לך!<br>
-                        הן יעזרו לנו להכיר אותך טוב יותר ולמצוא התאמות מדויקות.
+                        {{#if (eq locale 'he')}}
+                            יש לנו {{report.missingQuestionnaireItems.length}} שאלות מעמיקות שמחכות לך!<br>
+                            הן יעזרו לנו להכיר אותך טוב יותר ולמצוא התאמות מדויקות.
+                        {{else}}
+                            We have {{report.missingQuestionnaireItems.length}} in-depth questions waiting for you!<br>
+                            They help us know you better and find accurate matches.
+                        {{/if}}
                     </div>
                     
                     <p class="question-details">
-                        השאלות מחולקות לעולמות: אישיות, ערכים, זוגיות, פרטנר ודת ומסורת
+                        {{#if (eq locale 'he')}}
+                            השאלות מחולקות לעולמות: אישיות, ערכים, זוגיות, פרטנר ודת ומסורת
+                        {{else}}
+                            Questions cover: Personality, Values, Relationship, Partner, and Religion & Tradition
+                        {{/if}}
                     </p>
                 </div>
                 {{/if}}
@@ -446,7 +466,7 @@
             <!-- CTA Section -->
             <div class="cta-section">
                 <h3 class="cta-title">{{dict.cta.title}}</h3>
-                <p class="cta-text">השלמת הפרופיל מגדילה משמעותית את הסיכוי למצוא התאמה איכותית.</p>
+                <p class="cta-text">{{#if (eq locale 'he')}}השלמת הפרופיל מגדילה משמעותית את הסיכוי למצוא התאמה איכותית.{{else}}Completing your profile significantly increases the chance of finding a quality match.{{/if}}</p>
                 <a href="{{baseUrl}}/profile" class="cta-button">{{dict.cta.button}}</a>
             </div>
 

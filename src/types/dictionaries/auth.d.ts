@@ -285,6 +285,9 @@ export type RegisterStepsDict = {
       firstNamePlaceholder: string;
       lastNameLabel: string;
       lastNamePlaceholder: string;
+      languageLabel: string;
+      languagePlaceholder: string;
+
       phoneLabel: string;
       phonePlaceholder: string;
       genderLabel: string;

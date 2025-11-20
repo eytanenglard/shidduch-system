@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth
-# Generated on: 2025-11-19 18:05:38
+# Generated on: 2025-11-20 13:40:07
 ################################################################################
 
 ================================================================================
@@ -143,14 +143,13 @@ import { authOptions } from '@/lib/auth'; // ודא שהנתיב הזה נכון
 import prisma from '@/lib/prisma'; // ודא שהנתיב הזה נכון
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { Gender, UserStatus } from '@prisma/client'; // ייבוא Gender ו-UserStatus
+import { Gender, UserStatus, Language } from '@prisma/client'; 
 
-// Zod Schema - כולל phone לאימות מהלקוח
+// Zod Schema - כולל phone לאימות וגם את שדות הדיוור החדשים
 const completeProfileSchema = z.object({
-  // --- הוספת שם פרטי ושם משפחה ---
   firstName: z.string().min(1, "First name is required").max(100, "First name too long"),
   lastName: z.string().min(1, "Last name is required").max(100, "Last name too long"),
-  // --- סוף הוספה ---
+
   phone: z.string().refine(
     (phone) => /^\+[1-9]\d{1,14}$/.test(phone), 
     { message: "Invalid international phone number format (E.164 required)." }
@@ -166,6 +165,12 @@ const completeProfileSchema = z.object({
   height: z.coerce.number().int().min(120).max(220).optional(),
   occupation: z.string().optional(),
   education: z.string().optional(),
+    religiousLevel: z.string().optional(),
+  language: z.nativeEnum(Language).optional().default(Language.he),
+
+  // --- הוספת שדות הדיוור לסכמה (כדי שלא ייזרקו ע"י Zod) ---
+  engagementEmailsConsent: z.boolean().optional().default(false),
+  promotionalEmailsConsent: z.boolean().optional().default(false),
 });
 
 export async function POST(req: Request) {
@@ -176,16 +181,11 @@ export async function POST(req: Request) {
   req.headers.forEach((value, key) => {
     headersObject[key] = value;
   });
-  console.log("[API /api/auth/complete-profile] Request Headers:", JSON.stringify(headersObject, null, 2));
-
-  // !!! הסר את זה בסביבת Production !!!
-  // console.log("[API /api/auth/complete-profile] DEBUG: NEXTAUTH_SECRET value (first 5 chars):", process.env.NEXTAUTH_SECRET?.substring(0, 5) || "NOT SET");
+  // console.log("[API /api/auth/complete-profile] Request Headers:", JSON.stringify(headersObject, null, 2)); // אפשר להוריד בלוגים עמוסים
 
   try {
     console.log("[API /api/auth/complete-profile] Attempting to get session using getServerSession...");
     const session = await getServerSession(authOptions);
-
-    console.log("[API /api/auth/complete-profile] Session object from getServerSession:", JSON.stringify(session, null, 2));
 
     if (!session || !session.user || !session.user.id) {
       console.error("[API /api/auth/complete-profile] ERROR: Unauthorized access attempt. Session or user.id is missing.");
@@ -194,20 +194,13 @@ export async function POST(req: Request) {
 
     const userId = session.user.id;
     console.log(`[API /api/auth/complete-profile] User authenticated with ID: ${userId}`);
-    console.log(`[API /api/auth/complete-profile] User email from session: ${session.user.email}`);
 
-    if (session.user.isPhoneVerified) {
-        console.warn(`[API /api/auth/complete-profile] User ${userId} phone is ALREADY verified according to session. Proceeding, but this might indicate a flow issue.`);
-    }
-    if (session.user.isProfileComplete) {
-        console.warn(`[API /api/auth/complete-profile] User ${userId} profile is ALREADY complete according to session. Proceeding, but this might indicate a flow issue.`);
-    }
-
+    // קריאת הגוף
     console.log("[API /api/auth/complete-profile] Attempting to parse request body...");
     let body;
     try {
         body = await req.json();
-        console.log("[API /api/auth/complete-profile] Request body parsed successfully:", JSON.stringify(body, null, 2));
+        // console.log("[API /api/auth/complete-profile] Request body parsed successfully:", JSON.stringify(body, null, 2));
     } catch (parseError) {
         console.error("[API /api/auth/complete-profile] ERROR: Failed to parse request body as JSON:", parseError);
         return NextResponse.json({ error: 'Invalid request body - Must be JSON' }, { status: 400 });
@@ -223,25 +216,32 @@ export async function POST(req: Request) {
     }
     console.log("[API /api/auth/complete-profile] Request body validated successfully.");
 
+    // חילוץ המשתנים מהוולידציה
     const {
-        // --- הוספת שם פרטי ושם משפחה ---
         firstName,
         lastName,
-        // --- סוף הוספה ---
         phone,
         gender,
         birthDate,
         maritalStatus,
         height,
         occupation,
-        education
+        education,
+              religiousLevel,
+              language,
+        // חילוץ שדות הדיוור
+        engagementEmailsConsent,
+        promotionalEmailsConsent
     } = validation.data;
 
+    console.log(`[API /api/auth/complete-profile] Consents received -> Engagement: ${engagementEmailsConsent}, Promotional: ${promotionalEmailsConsent}`);
+
     console.log(`[API /api/auth/complete-profile] Attempting to update profile and user details for user ${userId} in a transaction.`);
-    console.log("[API /api/auth/complete-profile] Data to be saved:", JSON.stringify(validation.data, null, 2));
 
     const updatedUser = await prisma.$transaction(async (tx) => {
-      console.log(`[API /api/auth/complete-profile] Inside transaction for user ${userId}. Upserting profile...`);
+      
+      // 1. עדכון/יצירת הפרופיל (טבלת Profile)
+      console.log(`[API /api/auth/complete-profile] Inside transaction. Upserting profile...`);
       await tx.profile.upsert({
         where: { userId: userId },
         create: {
@@ -252,6 +252,11 @@ export async function POST(req: Request) {
           height: height,
           occupation: occupation,
           education: education,
+                    religiousLevel: religiousLevel,
+
+          // הגדרות ברירת מחדל
+          isProfileVisible: true,
+          availabilityStatus: 'AVAILABLE',
         },
         update: {
           gender: gender,
@@ -260,26 +265,47 @@ export async function POST(req: Request) {
           height: height,
           occupation: occupation,
           education: education,
+                    religiousLevel: religiousLevel,
+
           updatedAt: new Date(),
         },
       });
-      console.log(`[API /api/auth/complete-profile] Profile data upserted for user ${userId}.`);
+      console.log(`[API /api/auth/complete-profile] Profile data upserted.`);
 
-      console.log(`[API /api/auth/complete-profile] Updating User record for user ${userId} (names, phone, isProfileComplete, status)...`);
+      // 2. בדיקה האם יש לעדכן את תאריך אישור התנאים
+      // אם המשתמש כבר אישר בעבר (למשל נרשם במייל רגיל), לא ניגע בזה.
+      // אם המשתמש נרשם בגוגל וישר הגיע לכאן, זה הזמן להחתים אותו.
+      const currentUser = await tx.user.findUnique({ 
+          where: { id: userId }, 
+          select: { termsAndPrivacyAcceptedAt: true } 
+      });
+      
+      const termsDateToSet = currentUser?.termsAndPrivacyAcceptedAt ? undefined : new Date();
+      if (termsDateToSet) {
+          console.log(`[API /api/auth/complete-profile] User accepts terms now. Setting timestamp.`);
+      }
+
+      // 3. עדכון המשתמש (טבלת User) - כולל שדות הדיוור!
+      console.log(`[API /api/auth/complete-profile] Updating User record (names, phone, status, consents)...`);
       const user = await tx.user.update({
         where: { id: userId },
         data: {
-          // --- הוספת שם פרטי ושם משפחה ---
           firstName: firstName,
           lastName: lastName,
-          // --- סוף הוספה ---
           phone: phone,
           isProfileComplete: true,
-          // אם המשתמש מגיע לכאן, סביר להניח שאימות המייל הושלם (אם היה כזה).
-          // לכן, הסטטוס צריך לעבור ל-PENDING_PHONE_VERIFICATION.
-          // אם אימות הטלפון הוא אופציונלי או לא השלב הבא המיידי, ייתכן ו-ACTIVE הוא הסטטוס הנכון.
-          status: UserStatus.PENDING_PHONE_VERIFICATION, // ודא שזה הסטטוס הנכון בהתאם לזרימה
+         language: language,  // <--- הוסף שורה זו לעדכון השפה ב-DB
+
+          // מעבירים את הסטטוס למצב הבא (אימות טלפון)
+          status: UserStatus.PENDING_PHONE_VERIFICATION,
           updatedAt: new Date(),
+          
+          // --- עדכון שדות הדיוור ---
+          engagementEmailsConsent: engagementEmailsConsent,
+          promotionalEmailsConsent: promotionalEmailsConsent,
+          
+          // --- עדכון תאריך אישור תנאים (אם רלוונטי) ---
+          ...(termsDateToSet && { termsAndPrivacyAcceptedAt: termsDateToSet }),
         },
          select: {
              id: true,
@@ -290,15 +316,17 @@ export async function POST(req: Request) {
              isPhoneVerified: true,
              role: true,
              status: true,
-             phone: true
+             phone: true,
+             engagementEmailsConsent: true, // מחזירים לבדיקה
+             promotionalEmailsConsent: true // מחזירים לבדיקה
          }
       });
-      console.log(`[API /api/auth/complete-profile] User record updated for user ${userId}. New profile status: isProfileComplete=${user.isProfileComplete}, isPhoneVerified=${user.isPhoneVerified}, status=${user.status}`);
+      
+      console.log(`[API /api/auth/complete-profile] User updated. Consents saved as: Engagement=${user.engagementEmailsConsent}, Promo=${user.promotionalEmailsConsent}`);
       return user;
     });
 
     console.log(`[API /api/auth/complete-profile] Profile completed successfully for user ${userId}.`);
-    console.log("[API /api/auth/complete-profile] Returning success response with user data:", JSON.stringify({ message: "Profile completed successfully", user: updatedUser }, null, 2));
     return NextResponse.json({ message: "Profile completed successfully", user: updatedUser }, { status: 200 });
 
   } catch (error: unknown) {
@@ -306,17 +334,15 @@ export async function POST(req: Request) {
     console.error("[API /api/auth/complete-profile] Error object:", error);
 
     if (error instanceof z.ZodError) {
-        console.error("[API /api/auth/complete-profile] Zod validation error during processing:", JSON.stringify(error.flatten(), null, 2));
+        console.error("[API /api/auth/complete-profile] Zod validation error:", JSON.stringify(error.flatten(), null, 2));
         return NextResponse.json({ error: 'Validation Error during processing', details: error.flatten() }, { status: 400 });
     }
 
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        console.error(`[API /api/auth/complete-profile] Prisma Known Request Error - Code: ${error.code}`);
-        console.error("[API /api/auth/complete-profile] Prisma Error Meta:", error.meta);
-        console.error("[API /api/auth/complete-profile] Prisma Error Message:", error.message);
+        console.error(`[API /api/auth/complete-profile] Prisma Error Code: ${error.code}`);
         if (error.code === 'P2002') {
             const target = error.meta?.target as string[] | undefined;
-            if (target?.includes('phone') && target?.includes('User')) {
+            if (target?.includes('phone')) {
                  return NextResponse.json({ error: 'מספר טלפון זה כבר רשום במערכת.' }, { status: 409 });
             } else {
                  return NextResponse.json({ error: `Unique constraint violation on ${target?.join(', ')}.` }, { status: 409 });
@@ -327,7 +353,7 @@ export async function POST(req: Request) {
 
     if (error instanceof Prisma.PrismaClientValidationError) {
         console.error("[API /api/auth/complete-profile] Prisma Validation Error:", error.message);
-        return NextResponse.json({ error: 'Database validation error (Prisma Validation Error).' }, { status: 400 });
+        return NextResponse.json({ error: 'Database validation error.' }, { status: 400 });
     }
 
     let errorMessage = 'Internal Server Error';

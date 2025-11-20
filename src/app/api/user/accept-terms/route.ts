@@ -30,11 +30,18 @@ export async function POST(req: Request) {
       select: { termsAndPrivacyAcceptedAt: true },
     });
 
+    // --- התיקון: בדיקה שהמשתמש קיים ---
+    if (!user) {
+      console.error(`[accept-terms] User ID ${userId} from session not found in database.`);
+      return NextResponse.json({ error: 'User not found in database' }, { status: 404 });
+    }
+    // ----------------------------------
+
     // הכן אובייקט לעדכון
     const updateData: any = {};
 
     // עדכן תאריך רק אם טרם אושר
-    if (!user?.termsAndPrivacyAcceptedAt) {
+    if (!user.termsAndPrivacyAcceptedAt) {
       updateData.termsAndPrivacyAcceptedAt = new Date();
     }
 
