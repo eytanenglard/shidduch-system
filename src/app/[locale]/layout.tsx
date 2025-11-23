@@ -1,6 +1,6 @@
 // src/app/[locale]/layout.tsx
 
-import { Inter } from 'next/font/google';
+import { Assistant, Heebo, Rubik, Frank_Ruhl_Libre } from 'next/font/google';
 import '../globals.css';
 import Providers from '@/components/Providers';
 import AppContent from './AppContent';
@@ -12,13 +12,37 @@ import { Locale } from '../../../i18n-config';
 import FeedbackWidget from '@/components/layout/FeedbackWidget';
 import { QuestionnaireStateProvider } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
+// --- הגדרת ארסנל הפונטים לבדיקה ---
+
+// 1. Assistant: ברירת המחדל. נקי, קריא, מאוזן.
+const assistant = Assistant({
+  subsets: ['hebrew', 'latin'],
+  variable: '--font-assistant',
   display: 'swap',
 });
 
-// ✅ Next.js 15: params is a Promise with string type (not union)
+// 2. Heebo: טכנולוגי, חד, גיאומטרי. משדר "הייטק" ודיוק.
+const heebo = Heebo({
+  subsets: ['hebrew', 'latin'],
+  variable: '--font-heebo',
+  display: 'swap',
+});
+
+// 3. Rubik: עגול, חמים, נגיש. משדר "אנושיות" ורוך.
+const rubik = Rubik({
+  subsets: ['hebrew', 'latin'],
+  variable: '--font-rubik',
+  display: 'swap',
+});
+
+// 4. Frank Ruhl Libre: סריף, קלאסי, ספרותי. משדר "מסורת" ורצינות.
+const frankRuhl = Frank_Ruhl_Libre({
+  subsets: ['hebrew', 'latin'],
+  variable: '--font-frank',
+  display: 'swap',
+});
+
+// ✅ Next.js 15: params is a Promise with string type
 type LayoutParams = Promise<{
   locale: string;
 }>;
@@ -39,7 +63,6 @@ export async function generateMetadata(props: {
   };
 }
 
-// ✅ Next.js 15: params is a Promise with string type (not union)
 export default async function RootLayout(props: {
   children: React.ReactNode;
   params: LayoutParams;
@@ -47,7 +70,7 @@ export default async function RootLayout(props: {
   const params = await props.params;
   const locale = params.locale as Locale;
   
-  // טעינת המילון המתאים לשפה מה-URL
+  // טעינת המילון המתאים לשפה
   const dictionary = await getDictionary(locale);
 
   // הגדרת כיווניות (direction) על סמך השפה
@@ -62,7 +85,15 @@ export default async function RootLayout(props: {
     >
       <head />
       <body
-        className={`${inter.variable} antialiased`}
+        // אנחנו מזריקים את כל המשתנים של הפונטים ל-body.
+        // זה לא מכביד על האתר, אבל מאפשר לנו לבחור ב-CSS באיזה מהם להשתמש.
+        className={`
+          ${assistant.variable} 
+          ${heebo.variable} 
+          ${rubik.variable} 
+          ${frankRuhl.variable} 
+          antialiased font-sans
+        `}
         suppressHydrationWarning
       >
         <GoogleAnalytics />
