@@ -68,51 +68,57 @@ const MatchingConstellation: React.FC<{
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // --- UPDATED WORLDS PALETTE (Teal/Orange/Amber/Rose) ---
   const worlds: WorldData[] = useMemo(
     () => [
       {
         id: 1,
         icon: <User className="w-6 h-6 md:w-8 md:h-8" />,
         ...dict.worlds[0],
-        color: 'from-sky-400 to-blue-500',
-        gradientFrom: '#38bdf8',
-        gradientTo: '#3b82f6',
+        // Was Blue -> Now Teal
+        color: 'from-teal-400 to-emerald-500',
+        gradientFrom: '#2dd4bf',
+        gradientTo: '#10b981',
         angle: -72,
       },
       {
         id: 2,
         icon: <Heart className="w-6 h-6 md:w-8 md:h-8" />,
         ...dict.worlds[1],
-        color: 'from-rose-400 to-pink-500',
+        // Was Rose -> Kept Rose (Fits "Heart")
+        color: 'from-rose-400 to-red-500',
         gradientFrom: '#fb7185',
-        gradientTo: '#ec4899',
+        gradientTo: '#ef4444',
         angle: -144,
       },
       {
         id: 3,
         icon: <Users className="w-6 h-6 md:w-8 md:h-8" />,
         ...dict.worlds[2],
-        color: 'from-emerald-400 to-teal-500',
-        gradientFrom: '#34d399',
-        gradientTo: '#14b8a6',
+        // Was Green -> Now Amber
+        color: 'from-amber-400 to-orange-500',
+        gradientFrom: '#fbbf24',
+        gradientTo: '#f97316',
         angle: 144,
       },
       {
         id: 4,
         icon: <UserCheck className="w-6 h-6 md:w-8 md:h-8" />,
         ...dict.worlds[3],
-        color: 'from-violet-400 to-purple-500',
-        gradientFrom: '#a78bfa',
-        gradientTo: '#8b5cf6',
+        // Was Purple -> Now Orange/Red
+        color: 'from-orange-400 to-red-500',
+        gradientFrom: '#fb923c',
+        gradientTo: '#ef4444',
         angle: 72,
       },
       {
         id: 5,
         icon: <Scroll className="w-6 h-6 md:w-8 md:h-8" />,
         ...dict.worlds[4],
-        color: 'from-amber-400 to-orange-500',
-        gradientFrom: '#fbbf24',
-        gradientTo: '#f97316',
+        // Was Orange -> Now Cyan/Blue (Complementary)
+        color: 'from-cyan-400 to-blue-500',
+        gradientFrom: '#22d3ee',
+        gradientTo: '#3b82f6',
         angle: 0,
       },
     ],
@@ -250,14 +256,16 @@ const MatchingConstellation: React.FC<{
         className="text-center mb-8 md:mb-16 px-4"
       >
         <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 md:px-8 py-3 md:py-4 shadow-md border border-gray-200 mb-6 md:mb-8">
-          <Heart className="w-5 h-5 md:w-6 md:h-6 text-rose-500" />
+          {/* Icon updated to Orange */}
+          <Heart className="w-5 h-5 md:w-6 md:h-6 text-orange-500" />
           <span className="text-gray-700 font-medium text-base md:text-lg">
             {dict.header}
           </span>
         </div>
         <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 md:mb-6 leading-tight px-4">
           {dict.title_part1}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-violet-600">
+          {/* Gradient updated to Teal/Orange */}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-rose-600">
             {' '}
             {dict.title_part2}{' '}
           </span>
@@ -294,7 +302,8 @@ const MatchingConstellation: React.FC<{
               height: dimensions.size,
             }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-rose-50/80 via-amber-50/60 to-sky-50/80 rounded-full blur-3xl" />
+            {/* Background glow updated to Warm tones */}
+            <div className="absolute inset-0 bg-gradient-to-br from-teal-50/80 via-orange-50/60 to-rose-50/80 rounded-full blur-3xl" />
             <svg
               viewBox={`0 0 ${dimensions.size} ${dimensions.size}`}
               className="absolute inset-0 w-full h-full pointer-events-none"
@@ -332,9 +341,10 @@ const MatchingConstellation: React.FC<{
                   x2="100%"
                   y2="100%"
                 >
-                  <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.4" />
-                  <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.4" />
+                  {/* Gradient updated: Teal -> Orange -> Rose */}
+                  <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.4" />
+                  <stop offset="50%" stopColor="#f97316" stopOpacity="0.5" />
+                  <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.4" />
                 </linearGradient>
                 <radialGradient id="coreGradient">
                   <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
@@ -423,9 +433,9 @@ const MatchingConstellation: React.FC<{
                         className="absolute inset-0 rounded-full"
                         animate={{
                           boxShadow: [
-                            '0 0 0 0 rgba(139, 92, 246, 0)',
-                            '0 0 0 4px rgba(139, 92, 246, 0.1)',
-                            '0 0 0 0 rgba(139, 92, 246, 0)',
+                            '0 0 0 0 rgba(249, 115, 22, 0)', // Orange tint
+                            '0 0 0 4px rgba(249, 115, 22, 0.1)',
+                            '0 0 0 0 rgba(249, 115, 22, 0)',
                           ],
                         }}
                         transition={{
@@ -645,15 +655,16 @@ const MatchingConstellation: React.FC<{
                     </div>
                   </div>
                 </div>
-                <div className="bg-gradient-to-r from-violet-50 to-rose-50 rounded-2xl p-4 md:p-6 border border-violet-100">
+                {/* Updated Insight Box to Teal */}
+                <div className="bg-gradient-to-r from-teal-50 to-emerald-50 rounded-2xl p-4 md:p-6 border border-teal-100">
                   <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-violet-600 mt-1 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-teal-600 mt-1 flex-shrink-0" />
                     <div>
-                      <h5 className="font-semibold text-violet-800 mb-2">
+                      <h5 className="font-semibold text-teal-800 mb-2">
                         {dict.insight_header}
                       </h5>
 
-                      <p className="text-violet-700 text-sm md:text-base">
+                      <p className="text-teal-700 text-sm md:text-base">
                         {displayedWorld.insight}
                       </p>
                     </div>
@@ -693,26 +704,28 @@ const OurMethodSection: React.FC<OurMethodProps> = ({ dict }) => {
     <motion.section
       ref={sectionRef}
       id="our-method"
-      className="relative pt-0 pb-12 md:pb-20 lg:pb-28 px-4 bg-gradient-to-b from-white via-rose-50/30 to-white overflow-hidden"
+      // Background gradient updated to Warm tones
+      className="relative pt-0 pb-12 md:pb-20 lg:pb-28 px-4 bg-gradient-to-b from-white via-orange-50/30 to-white overflow-hidden"
       initial={{ opacity: 0 }}
       animate={isInView ? { opacity: 1 } : { opacity: 0 }}
       transition={{ duration: 1 }}
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 md:w-40 h-32 md:h-40 bg-gradient-to-br from-rose-200/30 to-pink-300/20 rounded-full blur-3xl animate-soft-float" />
+        {/* Floating orbs updated to Teal/Orange/Rose/Amber */}
+        <div className="absolute top-20 left-10 w-32 md:w-40 h-32 md:h-40 bg-gradient-to-br from-teal-200/20 to-emerald-300/10 rounded-full blur-3xl animate-soft-float" />
         <div
-          className="absolute top-60 right-20 w-24 md:w-32 h-24 md:h-32 bg-gradient-to-br from-violet-200/30 to-purple-300/20 rounded-full blur-2xl animate-soft-float"
+          className="absolute top-60 right-20 w-24 md:w-32 h-24 md:h-32 bg-gradient-to-br from-orange-200/20 to-amber-300/10 rounded-full blur-2xl animate-soft-float"
           style={{ animationDelay: '2s' }}
         />
         <div
-          className="absolute bottom-40 left-1/3 w-36 md:w-48 h-36 md:h-48 bg-gradient-to-br from-sky-200/20 to-cyan-300/15 rounded-full blur-3xl animate-soft-float"
+          className="absolute bottom-40 left-1/3 w-36 md:w-48 h-36 md:h-48 bg-gradient-to-br from-rose-200/15 to-pink-300/10 rounded-full blur-3xl animate-soft-float"
           style={{ animationDelay: '4s' }}
         />
         <div
-          className="absolute bottom-20 right-10 w-28 md:w-36 h-28 md:h-36 bg-gradient-to-br from-emerald-200/25 to-teal-300/20 rounded-full blur-2xl animate-soft-float"
+          className="absolute bottom-20 right-10 w-28 md:w-36 h-28 md:h-36 bg-gradient-to-br from-amber-200/20 to-yellow-300/10 rounded-full blur-2xl animate-soft-float"
           style={{ animationDelay: '1s' }}
         />
-        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#8b5cf6_1px,transparent_1px)] [background-size:30px_30px]"></div>
+        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#f97316_1px,transparent_1px)] [background-size:30px_30px]"></div>
         <svg
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 1200 800"
@@ -726,9 +739,10 @@ const OurMethodSection: React.FC<OurMethodProps> = ({ dict }) => {
               x2="100%"
               y2="100%"
             >
-              <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.08" />
-              <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.06" />
-              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.08" />
+              {/* Gradient updated: Teal -> Orange -> Rose */}
+              <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.08" />
+              <stop offset="50%" stopColor="#f97316" stopOpacity="0.06" />
+              <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.08" />
             </linearGradient>
           </defs>
           <path

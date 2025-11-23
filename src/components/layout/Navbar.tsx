@@ -34,7 +34,7 @@ import UserDropdown from './UserDropdown';
 import type { Dictionary } from '@/types/dictionary';
 import { useQuestionnaireState } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
-// --- רכיב לוגו (עם תיקון) ---
+// --- רכיב לוגו (מעודכן לצבעים החדשים) ---
 const Logo = ({ locale }: { locale: string }) => (
   <Link
     href={`/${locale}`}
@@ -58,7 +58,7 @@ const Logo = ({ locale }: { locale: string }) => (
   </Link>
 );
 
-// --- רכיבי ניווט (ללא שינוי, הם היו תקינים) ---
+// --- רכיבי ניווט (מעודכנים ל-Teal) ---
 const NavItem = ({
   href,
   text,
@@ -83,8 +83,8 @@ const NavItem = ({
       className={cn(
         'relative px-3 py-2 rounded-full text-sm transition-colors duration-200',
         isActive
-          ? 'font-semibold text-cyan-600 bg-cyan-500/10'
-          : 'font-medium text-gray-700 hover:text-cyan-600 hover:bg-cyan-500/10'
+          ? 'font-semibold text-teal-600 bg-teal-500/10' // שינוי ל-Teal
+          : 'font-medium text-gray-700 hover:text-teal-600 hover:bg-teal-500/10' // שינוי ל-Teal
       )}
     >
       {text}
@@ -134,7 +134,7 @@ const MobileNavItem = ({
       className={cn(
         'flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group gap-4',
         isActive
-          ? 'bg-cyan-100 text-cyan-800 shadow-inner'
+          ? 'bg-teal-100 text-teal-800 shadow-inner' // שינוי ל-Teal
           : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
       )}
     >
@@ -143,7 +143,7 @@ const MobileNavItem = ({
           className={cn(
             'transition-colors',
             isActive
-              ? 'text-cyan-600'
+              ? 'text-teal-600' // שינוי ל-Teal
               : 'text-gray-500 group-hover:text-gray-700'
           )}
         >
@@ -154,7 +154,7 @@ const MobileNavItem = ({
       {badge !== undefined && badge > 0 && (
         <span
           className={cn(
-            'bg-pink-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-semibold',
+            'bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-semibold', // שינוי ל-Orange
             isRtl ? 'mr-auto' : 'ml-auto'
           )}
         >
@@ -400,19 +400,19 @@ const Navbar = ({ dict }: NavbarProps) => {
               <Button
                 variant="ghost"
                 onClick={handleLanguageChange}
-                className="group flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-cyan-600 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-pink-50 rounded-full transition-all duration-300 border border-gray-200/60 hover:border-cyan-300 shadow-sm hover:shadow-lg"
+                className="group flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-teal-600 hover:bg-gradient-to-r hover:from-teal-50 hover:to-orange-50 rounded-full transition-all duration-300 border border-gray-200/60 hover:border-teal-300 shadow-sm hover:shadow-lg"
                 aria-label={`Switch to ${locale === 'he' ? 'English' : 'Hebrew'}`}
                 title={`Switch to ${locale === 'he' ? 'English' : 'Hebrew'}`}
               >
                 <div className="relative">
-                  <Globe className="h-4 w-4 transition-all duration-300 group-hover:scale-110 group-hover:text-cyan-500" />
-                  <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-gradient-to-r from-cyan-500 to-pink-500 rounded-full flex items-center justify-center shadow-sm border border-white">
+                  <Globe className="h-4 w-4 transition-all duration-300 group-hover:scale-110 group-hover:text-teal-500" />
+                  <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full flex items-center justify-center shadow-sm border border-white">
                     <span className="text-[8px] font-bold text-white leading-none">
                       {locale === 'he' ? 'ע' : 'E'}
                     </span>
                   </div>
                 </div>
-                <span className="text-sm font-semibold transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-600 group-hover:to-pink-600">
+                <span className="text-sm font-semibold transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-teal-600 group-hover:to-orange-600">
                   {locale === 'he' ? 'EN' : 'HE'}
                 </span>
               </Button>
@@ -445,7 +445,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                   />
                   <NavItem href="/auth/signin" text={dict.navbar.login} />
                   <Link href={`/${locale}/auth/register`}>
-                    <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
+                    <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
                       <span className="relative z-10 flex items-center">
                         <UserPlus
                           className={cn('h-4 w-4', isRtl ? 'ml-1.5' : 'mr-1.5')}
@@ -459,7 +459,7 @@ const Navbar = ({ dict }: NavbarProps) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-gray-600 hover:text-cyan-600 hover:bg-cyan-100/50 rounded-full"
+                className="md:hidden text-gray-600 hover:text-teal-600 hover:bg-teal-100/50 rounded-full"
                 onClick={toggleMobileMenu}
                 aria-label="פתח תפריט"
                 aria-expanded={mobileMenuOpen}
@@ -525,10 +525,10 @@ const Navbar = ({ dict }: NavbarProps) => {
                   onClick={toggleMobileMenu}
                   className="block"
                 >
-                  <div className="p-4 border rounded-xl bg-gradient-to-br from-cyan-50/50 to-pink-50/50 hover:from-cyan-100/50 hover:to-pink-100/50 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer group">
+                  <div className="p-4 border rounded-xl bg-gradient-to-br from-teal-50/50 to-orange-50/50 hover:from-teal-100/50 hover:to-orange-100/50 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer group">
                     <div className="flex items-center gap-4">
                       <div
-                        className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden ring-2 ring-white group-hover:ring-cyan-200 transition-all`}
+                        className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden ring-2 ring-white group-hover:ring-teal-200 transition-all`}
                       >
                         {mainProfileImage?.url ? (
                           <Image
@@ -541,19 +541,19 @@ const Navbar = ({ dict }: NavbarProps) => {
                             sizes="40px"
                           />
                         ) : (
-                          <span className="font-semibold text-xl text-cyan-700 bg-cyan-100 w-full h-full flex items-center justify-center rounded-full">
+                          <span className="font-semibold text-xl text-teal-700 bg-teal-100 w-full h-full flex items-center justify-center rounded-full">
                             {getInitials()}
                           </span>
                         )}
                       </div>
                       <div className="flex-grow min-w-0">
-                        <div className="font-semibold text-gray-800 truncate group-hover:text-cyan-700 transition-colors">
+                        <div className="font-semibold text-gray-800 truncate group-hover:text-teal-700 transition-colors">
                           {session.user.name}
                         </div>
                         <div className="text-sm text-gray-500 truncate">
                           {session.user.email}
                         </div>
-                        <div className="text-xs text-cyan-600 font-medium mt-1 group-hover:text-cyan-700">
+                        <div className="text-xs text-teal-600 font-medium mt-1 group-hover:text-teal-700">
                           {dict.userDropdown.myProfile} ←
                         </div>
                       </div>
@@ -575,12 +575,12 @@ const Navbar = ({ dict }: NavbarProps) => {
                 <Button
                   variant="outline"
                   onClick={handleLanguageChange}
-                  className="w-full border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-pink-50 hover:border-cyan-300 flex items-center justify-between py-3 text-base transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
+                  className="w-full border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-teal-50 hover:to-orange-50 hover:border-teal-300 flex items-center justify-between py-3 text-base transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative flex-shrink-0">
-                      <Globe className="h-5 w-5 text-cyan-600" />
-                      <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gradient-to-r from-cyan-500 to-pink-500 rounded-full flex items-center justify-center border border-white">
+                      <Globe className="h-5 w-5 text-teal-600" />
+                      <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full flex items-center justify-center border border-white">
                         <span className="text-[8px] font-bold text-white leading-none">
                           {locale === 'he' ? 'ע' : 'E'}
                         </span>
@@ -590,7 +590,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                       {locale === 'he' ? 'English' : 'עברית'}
                     </span>
                   </div>
-                  <span className="font-bold text-sm bg-gradient-to-r from-cyan-600 to-pink-600 bg-clip-text text-transparent">
+                  <span className="font-bold text-sm bg-gradient-to-r from-teal-600 to-orange-600 bg-clip-text text-transparent">
                     {locale === 'he' ? 'EN' : 'HE'}
                   </span>
                 </Button>
@@ -699,12 +699,12 @@ const Navbar = ({ dict }: NavbarProps) => {
                     <Button
                       variant="outline"
                       onClick={handleLanguageChange}
-                      className="w-full border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-pink-50 hover:border-cyan-300 flex items-center justify-between py-3 text-base transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
+                      className="w-full border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-teal-50 hover:to-orange-50 hover:border-teal-300 flex items-center justify-between py-3 text-base transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
                     >
                       <div className="flex items-center gap-3">
                         <div className="relative flex-shrink-0">
-                          <Globe className="h-5 w-5 text-cyan-600" />
-                          <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gradient-to-r from-cyan-500 to-pink-500 rounded-full flex items-center justify-center border border-white">
+                          <Globe className="h-5 w-5 text-teal-600" />
+                          <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full flex items-center justify-center border border-white">
                             <span className="text-[8px] font-bold text-white leading-none">
                               {locale === 'he' ? 'ע' : 'E'}
                             </span>
@@ -714,7 +714,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                           {locale === 'he' ? 'English' : 'עברית'}
                         </span>
                       </div>
-                      <span className="font-bold text-sm bg-gradient-to-r from-cyan-600 to-pink-600 bg-clip-text text-transparent">
+                      <span className="font-bold text-sm bg-gradient-to-r from-teal-600 to-orange-600 bg-clip-text text-transparent">
                         {locale === 'he' ? 'EN' : 'HE'}
                       </span>
                     </Button>

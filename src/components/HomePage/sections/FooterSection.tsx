@@ -89,7 +89,8 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
   return (
     <motion.footer
       ref={ref}
-      className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12 md:py-16 px-4 relative overflow-hidden"
+      // Updated background to Slate for a richer dark tone, compatible with warm accents
+      className="bg-gradient-to-br from-slate-900 to-slate-800 text-white py-12 md:py-16 px-4 relative overflow-hidden"
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
@@ -105,12 +106,14 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
             >
               <Link href="/" className="flex items-center gap-2 group mb-6">
                 <div className="relative overflow-hidden rounded-full p-1 transition-all duration-300 group-hover:scale-110">
+                  {/* Updated Heart icon to Rose (Warmth) */}
                   <Heart
-                    className="h-7 w-7 text-cyan-400 transition-all duration-300 group-hover:text-cyan-300"
+                    className="h-7 w-7 text-rose-500 transition-all duration-300 group-hover:text-rose-400"
                     fill="#1e293b"
                   />
                 </div>
-                <span className="text-xl font-bold text-white group-hover:text-cyan-300 transition-all duration-300">
+                {/* Text hover effect updated to Orange */}
+                <span className="text-xl font-bold text-white group-hover:text-orange-300 transition-all duration-300">
                   NeshamaTech
                 </span>
               </Link>
@@ -120,12 +123,15 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
             </motion.p>
           </motion.div>
 
+          {/* Navigation Column */}
           <motion.div variants={columnVariants}>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
-              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
+              {/* Gradient updated: Teal -> Orange */}
+              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-orange-400">
                 {dict.columns.navigation.title}
               </span>
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
+              {/* Separator updated */}
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-teal-400/30 to-orange-400/30" />
             </h3>
             <motion.ul
               className="space-y-3 md:space-y-4"
@@ -139,12 +145,14 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
             </motion.ul>
           </motion.div>
 
+          {/* Information Column */}
           <motion.div variants={columnVariants}>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
-              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
+              {/* Gradient updated: Teal -> Orange */}
+              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-orange-400">
                 {dict.columns.information.title}
               </span>
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-teal-400/30 to-orange-400/30" />
             </h3>
             <motion.ul
               className="space-y-3 md:space-y-4"
@@ -158,12 +166,14 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
             </motion.ul>
           </motion.div>
 
+          {/* Contact Column */}
           <motion.div variants={columnVariants}>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
-              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
+              {/* Gradient updated: Teal -> Orange */}
+              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-orange-400">
                 {dict.columns.contact.title}
               </span>
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-teal-400/30 to-orange-400/30" />
             </h3>
             <motion.ul
               className="space-y-3 md:space-y-4"
@@ -179,7 +189,7 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
         </div>
 
         <motion.div
-          className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-gray-700/50"
+          className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-slate-700/50"
           variants={bottomSectionVariants}
         >
           <div className="text-center">
@@ -188,7 +198,8 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-cyan-400/10 text-cyan-400 hover:from-cyan-500/20 hover:to-cyan-400/20 transition-colors duration-300">
+              {/* Motto Badge: Updated to Teal/Orange mix */}
+              <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-teal-500/10 to-orange-400/10 text-teal-400 hover:from-teal-500/20 hover:to-orange-400/20 transition-colors duration-300 border border-teal-500/20">
                 {dict.motto}
               </span>
             </motion.div>

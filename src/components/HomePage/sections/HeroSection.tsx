@@ -27,7 +27,7 @@ interface HeroSectionProps {
   locale: 'he' | 'en';
 }
 
-// --- קומפוננטת מכונת הכתיבה (מעודכנת) ---
+// --- קומפוננטת מכונת הכתיבה (מעודכנת לצבעים החדשים) ---
 const TypewriterText: React.FC<{
   text: string;
   delay?: number;
@@ -37,7 +37,7 @@ const TypewriterText: React.FC<{
 }> = ({ text, delay = 0, speed = 30, className = '', locale }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [isStarted, setIsStarted] = useState(false);
-  const [isFinished, setIsFinished] = useState(false); // מצב חדש למעקב אחר סיום הכתיבה
+  const [isFinished, setIsFinished] = useState(false);
 
   useEffect(() => {
     const startTimer = setTimeout(() => setIsStarted(true), delay);
@@ -51,10 +51,11 @@ const TypewriterText: React.FC<{
     }, speed);
     return () => clearInterval(interval);
   }, [displayedText, text, speed, isStarted]);
+
   useEffect(() => {
-    if (!isStarted || isFinished) return; // עצור אם האנימציה הסתיימה
+    if (!isStarted || isFinished) return;
     if (displayedText.length >= text.length) {
-      setIsFinished(true); // קבע שהכתיבה הסתיימה
+      setIsFinished(true);
       return;
     }
     const interval = setInterval(() => {
@@ -63,11 +64,10 @@ const TypewriterText: React.FC<{
     return () => clearInterval(interval);
   }, [displayedText, text, speed, isStarted, isFinished]);
 
-  // קביעת סגנון דינמי בהתבסס על השפה ועל מצב הסיום
   const dynamicStyle: React.CSSProperties = {
     direction: locale === 'he' ? 'rtl' : 'ltr',
     textAlign: isFinished ? 'center' : locale === 'he' ? 'right' : 'left',
-    width: '100%', // ודא שהאלמנט תופס את כל הרוחב כדי שהיישור יעבוד
+    width: '100%',
   };
 
   return (
@@ -75,17 +75,18 @@ const TypewriterText: React.FC<{
       className={className}
       aria-label={text}
       aria-live="polite"
-      style={dynamicStyle} // החלת הסגנון הדינמי
+      style={dynamicStyle}
     >
       {displayedText}
       {!isFinished && (
-        <span className="inline-block w-0.5 h-6 bg-gradient-to-b from-cyan-500 via-pink-400 to-cyan-500 animate-pulse ml-1 align-text-top shadow-sm shadow-cyan-400/40 rounded-full"></span>
+        // צבע הסמן עודכן ל-Teal/Orange
+        <span className="inline-block w-0.5 h-6 bg-gradient-to-b from-teal-500 via-orange-400 to-teal-500 animate-pulse ml-1 align-text-top shadow-sm shadow-teal-400/40 rounded-full"></span>
       )}
     </div>
   );
 };
 
-// --- קומפוננטות העקרונות (מעודכנות לקבל props) ---
+// --- קומפוננטות העקרונות ---
 const principleIcons = [
   <BookOpen
     key="principle-icon-1"
@@ -110,7 +111,7 @@ const principleIcons = [
   />,
 ];
 
-// --- קומפוננטת כרטיסיית העקרונות עבור דסקטופ ---
+// --- קומפוננטת כרטיסיית העקרונות (מעודכנת לפלטה החדשה) ---
 interface DesktopPrincipleCardProps {
   principle: PrincipleDict;
   index: number;
@@ -122,22 +123,25 @@ const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
   const getColors = (idx: number) => {
     const colors = [
       {
-        gradient: 'from-cyan-400 via-cyan-500 to-blue-500',
-        shadowColor: 'shadow-cyan-500/25',
-        glowColor: 'shadow-cyan-400/30',
-        bgGradient: 'from-cyan-50 via-white to-blue-50',
+        // Teal / Knowledge
+        gradient: 'from-teal-400 via-teal-500 to-emerald-500',
+        shadowColor: 'shadow-teal-500/25',
+        glowColor: 'shadow-teal-400/30',
+        bgGradient: 'from-teal-50 via-white to-emerald-50',
       },
       {
-        gradient: 'from-purple-400 via-purple-500 to-indigo-500',
-        shadowColor: 'shadow-purple-500/25',
-        glowColor: 'shadow-purple-400/30',
-        bgGradient: 'from-purple-50 via-white to-indigo-50',
+        // Orange / Privacy (Shifted from Purple to Orange/Amber to match Landing)
+        gradient: 'from-orange-400 via-amber-500 to-yellow-500',
+        shadowColor: 'shadow-orange-500/25',
+        glowColor: 'shadow-orange-400/30',
+        bgGradient: 'from-orange-50 via-white to-amber-50',
       },
       {
-        gradient: 'from-pink-400 via-pink-500 to-rose-500',
-        shadowColor: 'shadow-pink-500/25',
-        glowColor: 'shadow-pink-400/30',
-        bgGradient: 'from-pink-50 via-white to-rose-50',
+        // Rose / Personal (Shifted from Pink to Rose)
+        gradient: 'from-rose-400 via-pink-500 to-red-500',
+        shadowColor: 'shadow-rose-500/25',
+        glowColor: 'shadow-rose-400/30',
+        bgGradient: 'from-rose-50 via-white to-red-50',
       },
     ];
     return colors[idx % colors.length];
@@ -151,10 +155,10 @@ const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
       whileHover={{ y: -8, scale: 1.02 }}
-      className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${colors.bgGradient} p-8 ${colors.shadowColor} shadow-2xl border border-white/50 h-full transition-all duration-500`}
+      className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${colors.bgGradient} p-8 ${colors.shadowColor} shadow-2xl border border-white/60 h-full transition-all duration-500`}
     >
-      <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-gradient-to-br from-white/20 to-transparent blur-xl" />
-      <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-gradient-to-br from-white/30 to-transparent blur-lg" />
+      <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-gradient-to-br from-white/30 to-transparent blur-xl" />
+      <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-gradient-to-br from-white/40 to-transparent blur-lg" />
       <div className="relative z-10 h-full flex flex-col">
         <div className="flex items-center justify-center mb-6">
           <div
@@ -176,7 +180,7 @@ const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
   );
 };
 
-// --- קומפוננטת הטאבים למובייל ---
+// --- קומפוננטת הטאבים למובייל (מעודכנת) ---
 interface MobilePrinciplesTabsProps {
   isVisible: boolean;
   dict: {
@@ -194,25 +198,28 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
       dict.principles.map((p, index) => {
         const colors = [
           {
-            gradient: 'from-cyan-400 via-cyan-500 to-blue-500',
-            shadowColor: 'shadow-cyan-500/25',
-            glowColor: 'shadow-cyan-400/30',
-            bgGradient: 'from-cyan-50 via-white to-blue-50',
-            accentColor: 'bg-cyan-500',
+            // Teal
+            gradient: 'from-teal-400 via-teal-500 to-emerald-500',
+            shadowColor: 'shadow-teal-500/25',
+            glowColor: 'shadow-teal-400/30',
+            bgGradient: 'from-teal-50 via-white to-emerald-50',
+            accentColor: 'bg-teal-500',
           },
           {
-            gradient: 'from-purple-400 via-purple-500 to-indigo-500',
-            shadowColor: 'shadow-purple-500/25',
-            glowColor: 'shadow-purple-400/30',
-            bgGradient: 'from-purple-50 via-white to-indigo-50',
-            accentColor: 'bg-purple-500',
+            // Orange/Amber
+            gradient: 'from-orange-400 via-amber-500 to-yellow-500',
+            shadowColor: 'shadow-orange-500/25',
+            glowColor: 'shadow-orange-400/30',
+            bgGradient: 'from-orange-50 via-white to-amber-50',
+            accentColor: 'bg-orange-500',
           },
           {
-            gradient: 'from-pink-400 via-pink-500 to-rose-500',
-            shadowColor: 'shadow-pink-500/25',
-            glowColor: 'shadow-pink-400/30',
-            bgGradient: 'from-pink-50 via-white to-rose-50',
-            accentColor: 'bg-pink-500',
+            // Rose
+            gradient: 'from-rose-400 via-pink-500 to-red-500',
+            shadowColor: 'shadow-rose-500/25',
+            glowColor: 'shadow-rose-400/30',
+            bgGradient: 'from-rose-50 via-white to-red-50',
+            accentColor: 'bg-rose-500',
           },
         ];
         return {
@@ -239,8 +246,8 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
           {dict.principlesHeader.subtitle}
         </p>
         <div className="relative mt-4">
-          <div className="w-16 h-0.5 bg-gradient-to-r from-cyan-400 via-pink-400 to-purple-400 rounded-full mx-auto" />
-          <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-pink-400" />
+          <div className="w-16 h-0.5 bg-gradient-to-r from-teal-400 via-orange-400 to-rose-400 rounded-full mx-auto" />
+          <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-orange-400" />
         </div>
       </motion.div>
       <motion.div
@@ -263,10 +270,10 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${activeTab === index ? `bg-gradient-to-br ${principle.gradient} shadow-lg` : 'bg-white/60 shadow-sm'}`}
                   >
-                 {React.cloneElement(principle.icon as React.ReactElement<{ className?: string; strokeWidth?: number }>, {
-  className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
-  strokeWidth: 2.5,
-})}
+                    {React.cloneElement(principle.icon as React.ReactElement<{ className?: string; strokeWidth?: number }>, {
+                      className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
+                      strokeWidth: 2.5,
+                    })}
                   </div>
                 </div>
                 <div
@@ -332,7 +339,7 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
   );
 };
 
-// --- הרכיב הראשי - מעודכן במלואו ---
+// --- הרכיב הראשי - HeroSection ---
 const HeroSection: React.FC<HeroSectionProps> = ({
   isVisible,
   dict,
@@ -348,15 +355,22 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       animate={isVisible ? 'visible' : 'hidden'}
       transition={{ staggerChildren: 0.2 }}
     >
+      {/* רקע מעודכן - תואם ל-Landing Page */}
       <div
-        className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-pink-50 animate-gradient-slow"
+        className="absolute inset-0 bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20 animate-gradient-slow"
         style={{ backgroundSize: '400% 400%' }}
       />
-      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
-      <div className="absolute top-1/4 left-[10%] w-32 h-32 rounded-full bg-cyan-200/20 blur-2xl animate-float-slow"></div>
+      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:20px_20px]"></div>
+      
+      {/* Orbs צבעוניים - Teal, Orange, Rose */}
+      <div className="absolute top-[15%] left-[5%] w-72 h-72 rounded-full bg-teal-300/20 blur-3xl animate-float-slow"></div>
       <div
-        className="absolute bottom-1/4 right-[10%] w-40 h-40 rounded-full bg-pink-200/20 blur-2xl animate-float-slow"
+        className="absolute bottom-[20%] right-[5%] w-64 h-64 rounded-full bg-orange-300/20 blur-3xl animate-float-slow"
         style={{ animationDelay: '2s' }}
+      ></div>
+       <div
+        className="absolute top-[40%] right-[15%] w-48 h-48 rounded-full bg-rose-300/15 blur-3xl animate-float-slow"
+        style={{ animationDelay: '4s' }}
       ></div>
 
       <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center">
@@ -366,16 +380,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           transition={{ duration: 0.7, ease: 'easeOut' }}
           className="text-center"
         >
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 tracking-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 tracking-tight leading-tight">
             {dict.titleLine1}
             <br className="sm:hidden" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 animate-gradient mx-3">
+            {/* גרדיאנט כותרת חדש - Teal -> Orange -> Rose */}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-rose-600 animate-gradient mx-3">
               {dict.highlightedWord}
             </span>
           </h1>
           <div className="mt-6 max-w-4xl mx-auto text-lg md:text-xl leading-relaxed min-h-[8rem] md:min-h-[6rem]">
             <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/70 via-cyan-50/40 to-pink-50/40 backdrop-blur-lg rounded-3xl border-2 border-white/70 shadow-2xl group-hover:shadow-cyan-200/30 transition-all duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/70 via-teal-50/40 to-orange-50/40 backdrop-blur-lg rounded-3xl border-2 border-white/70 shadow-2xl group-hover:shadow-teal-200/30 transition-all duration-500"></div>
               <div className="relative p-8 md:p-10">
                 {isVisible && (
                   <TypewriterText
@@ -387,7 +402,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   />
                 )}
               </div>
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-1.5 bg-gradient-to-r from-cyan-400 via-pink-400 to-cyan-400 rounded-full shadow-lg shadow-pink-300/40"></div>
+              {/* קו תחתון - Teal/Orange */}
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-1.5 bg-gradient-to-r from-teal-400 via-orange-400 to-teal-400 rounded-full shadow-lg shadow-orange-300/40"></div>
             </div>
           </div>
         </motion.div>
@@ -399,9 +415,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           className="w-full max-w-4xl mt-12 md:mt-16"
           aria-hidden="true"
         >
-          {/* START: ויזואליזציית סינרגיה - שוחזר והותאם למובייל */}
+          {/* START: ויזואליזציית סינרגיה - מובייל (צבעים מעודכנים) */}
           <div className={`md:hidden relative h-64`}>
-            {/* SVG של הקווים */}
             <svg
               className="absolute inset-0 w-full h-full overflow-visible"
               viewBox="0 0 320 256"
@@ -418,19 +433,21 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </feMerge>
                 </filter>
               </defs>
+              {/* קו שמאלי (טכנולוגי) - Teal */}
               <path
                 className={`${isVisible ? 'path-draw' : ''}`}
                 d="M 30 128 C 90 60, 130 60, 160 110"
-                stroke="#06b6d4"
+                stroke="#0d9488" 
                 strokeWidth="2.5"
                 fill="none"
                 strokeLinecap="round"
                 filter="url(#glow-mobile)"
               />
+              {/* קו ימני (אנושי) - Orange */}
               <path
                 className={`${isVisible ? 'path-draw' : ''}`}
                 d="M 290 128 C 230 196, 190 196, 160 110"
-                stroke="#ec4899"
+                stroke="#f97316" 
                 strokeWidth="2.5"
                 fill="none"
                 strokeLinecap="round"
@@ -443,7 +460,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               className={`absolute top-1/2 left-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-left' : ''}`}
             >
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                <Brain className="w-8 h-8 text-cyan-500" />
+                <Brain className="w-8 h-8 text-teal-600" />
               </div>
               <span className="font-bold text-gray-700 text-sm text-center">
                 {dict.synergy.techTools}
@@ -455,7 +472,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               className={`absolute top-1/2 right-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-right' : ''}`}
             >
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                <Handshake className="w-8 h-8 text-pink-500" />
+                <Handshake className="w-8 h-8 text-orange-500" />
               </div>
               <span className="font-bold text-gray-700 text-sm text-center">
                 {dict.synergy.personalGuidance}
@@ -466,7 +483,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             <div
               className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${isVisible ? 'animate-match-point-appear' : ''}`}
             >
-              <div className="p-3 bg-gradient-to-br from-white to-gray-50 rounded-full shadow-2xl border-2 border-white">
+              <div className="p-3 bg-gradient-to-br from-white to-orange-50 rounded-full shadow-2xl border-2 border-white">
                 <div className="relative w-9 h-9">
                   <Image
                     src={getRelativeCloudinaryPath(logoUrl)}
@@ -480,12 +497,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
           {/* END: ויזואליזציית סינרגיה למובייל */}
 
+          {/* ויזואליזציית סינרגיה - דסקטופ (צבעים מעודכנים) */}
           <div className={`hidden md:block relative h-64`}>
             <div
               className={`absolute top-1/2 left-0 -translate-y-1/2 flex items-center gap-3 opacity-0 ${isVisible ? 'animate-synergy-enter-left' : ''}`}
             >
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                <Brain className="w-8 h-8 text-cyan-500" />
+                <Brain className="w-8 h-8 text-teal-600" />
               </div>
               <span className="font-bold text-gray-700">
                 {dict.synergy.techTools}
@@ -498,7 +516,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 {dict.synergy.personalGuidance}
               </span>
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                <Handshake className="w-8 h-8 text-pink-500" />
+                <Handshake className="w-8 h-8 text-orange-500" />
               </div>
             </div>
             <svg
@@ -517,19 +535,21 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </feMerge>
                 </filter>
               </defs>
+              {/* קו שמאלי - Teal */}
               <path
                 className={`${isVisible ? 'path-draw' : ''}`}
                 d="M 60 128 C 180 50, 280 50, 350 128"
-                stroke="#06b6d4"
+                stroke="#0d9488"
                 strokeWidth="2.5"
                 fill="none"
                 strokeLinecap="round"
                 filter="url(#glow)"
               />
+              {/* קו ימני - Orange */}
               <path
                 className={`${isVisible ? 'path-draw' : ''}`}
                 d="M 640 128 C 520 200, 420 200, 350 128"
-                stroke="#ec4899"
+                stroke="#f97316"
                 strokeWidth="2.5"
                 fill="none"
                 strokeLinecap="round"
@@ -539,7 +559,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             <div
               className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${isVisible ? 'animate-match-point-appear' : ''}`}
             >
-              <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-gray-50 rounded-full shadow-2xl border-2 border-white">
+              <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-orange-50 rounded-full shadow-2xl border-2 border-white">
                 <div className="relative w-9 h-9">
                   <Image
                     src={getRelativeCloudinaryPath(logoUrl)}
@@ -548,7 +568,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                     className="object-contain"
                   />
                 </div>
-                <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500">
+                <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
                   NeshamaTech
                 </span>
               </div>
@@ -562,10 +582,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           transition={{ duration: 0.7, delay: 0.4 }}
           className="mt-8 flex flex-row items-center justify-center gap-4"
         >
+          {/* כפתור ראשי - גרדיאנט חדש */}
           <Link href={`/${locale}/auth/register`}>
             <Button
               size="lg"
-              className="text-base md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
+              className="text-base md:text-lg px-8 py-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
             >
               <span className="hidden md:inline">{dict.ctaButton}</span>
               <span className="md:hidden">
@@ -578,6 +599,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               )}
             </Button>
           </Link>
+          {/* כפתור משני - צבעים מעודכנים */}
           <Link
             href={`/${locale}/questionnaire`}
             id="onboarding-target-questionnaire-button"
@@ -585,7 +607,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             <Button
               variant="outline"
               size="lg"
-              className="text-base md:text-lg px-8 py-6 border-2 border-cyan-200 text-cyan-600 bg-white/50 hover:bg-white hover:border-cyan-300 rounded-full transition-all duration-300"
+              className="text-base md:text-lg px-8 py-6 border-2 border-teal-200 text-teal-700 bg-white/50 hover:bg-white hover:border-teal-300 rounded-full transition-all duration-300"
             >
               <span className="hidden md:inline">{dict.secondaryButton}</span>
               <span className="md:hidden">
@@ -619,8 +641,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   {dict.principlesHeader.subtitle}
                 </p>
                 <div className="relative mt-4">
-                  <div className="w-16 h-0.5 bg-gradient-to-r from-cyan-400 via-pink-400 to-purple-400 rounded-full mx-auto" />
-                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-pink-400" />
+                  {/* מפריד צבעוני מעודכן */}
+                  <div className="w-16 h-0.5 bg-gradient-to-r from-teal-400 via-orange-400 to-rose-400 rounded-full mx-auto" />
+                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-orange-400" />
                 </div>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -666,14 +689,20 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         @keyframes float-slow {
           0%,
           100% {
-            transform: translateY(0);
+            transform: translateY(0) translateX(0);
+          }
+          25% {
+            transform: translateY(-15px) translateX(10px);
           }
           50% {
-            transform: translateY(-20px);
+            transform: translateY(-5px) translateX(20px);
+          }
+          75% {
+            transform: translateY(-10px) translateX(5px);
           }
         }
         .animate-float-slow {
-          animation: float-slow 8s ease-in-out infinite;
+          animation: float-slow 12s ease-in-out infinite;
         }
         @keyframes synergy-enter-left {
           from {

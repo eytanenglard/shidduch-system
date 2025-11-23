@@ -7,7 +7,7 @@
 @layer base {
   
   :root {
-    /* המשתנים הרגילים שלך נשארים אותו דבר */
+    /* המשתנים הרגילים שלך נשארים ללא שינוי */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -31,7 +31,7 @@
   }
 
   .dark {
-    /* משתני דארק מוד נשארים אותו דבר */
+    /* משתני דארק מוד נשארים ללא שינוי */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -57,16 +57,16 @@
     @apply border-border;
   }
 
-  /* === זה השינוי החשוב === */
-  /* אנחנו מגדירים שהפונט של כל הגוף יהיה המשתנה שהגדרנו ב-Layout */
+  /* === ההגדרה של פונט Rubik === */
+  /* הורדנו את ה-important ואת צבע הרקע */
   
   html {
-    font-family: var(--font-assistant), system-ui, sans-serif;
+    font-family: var(--font-rubik), system-ui, sans-serif;
   }
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-heebo), system-ui, sans-serif;
+    font-family: var(--font-rubik), system-ui, sans-serif;
   }
 }
 
