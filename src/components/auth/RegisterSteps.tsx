@@ -10,8 +10,6 @@ import WelcomeStep from './steps/WelcomeStep';
 import BasicInfoStep from './steps/BasicInfoStep';
 import EmailVerificationCodeStep from './steps/EmailVerificationCodeStep';
 import PersonalDetailsStep from './steps/PersonalDetailsStep';
-// ▼▼▼ 1. הסרנו את הייבוא של הרכיב שכבר לא בשימוש ▼▼▼
-// import OptionalInfoStep from './steps/OptionalInfoStep';
 import CompleteStep from './steps/CompleteStep';
 import ProgressBar from './ProgressBar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -28,7 +26,7 @@ interface RegisterStepsProps {
 }
 
 /**
- * רכיב התוכן הפנימי שמכיל את הלוגיКА המרכזית של תהליך ההרשמה.
+ * רכיב התוכן הפנימי שמכיל את הלוגיקה המרכזית של תהליך ההרשמה.
  */
 const RegisterStepsContent: React.FC<{
   dict: RegisterStepsDict;
@@ -70,6 +68,8 @@ const RegisterStepsContent: React.FC<{
     }
     if (sessionStatus === 'authenticated' && session?.user) {
       const user = session.user as SessionUserType;
+      
+      // בדיקה אם המשתמש כבר סיים את כל התהליך
       if (
         user.isProfileComplete &&
         user.isPhoneVerified &&
@@ -84,10 +84,12 @@ const RegisterStepsContent: React.FC<{
         return;
       }
 
+      // בדיקה אם נדרשת השלמת פרטים
       const needsSetup =
         !user.termsAndPrivacyAcceptedAt ||
         !user.isProfileComplete ||
         !user.isPhoneVerified;
+        
       if (
         needsSetup &&
         (!initializationAttempted ||
@@ -142,28 +144,27 @@ const RegisterStepsContent: React.FC<{
       );
     }
 
-    // ▼▼▼ 2. עדכון לוגיקת הצגת השלבים לאחר איחוד הקומפוננטות ▼▼▼
+    // תהליך השלמת פרופיל (מאוחד)
     if (registrationContextData.isCompletingProfile) {
       switch (registrationContextData.step) {
-        case 2: // זהו כעת השלב היחיד והמאוחד
+        case 2: // שלב מילוי הפרטים המאוחד
           return (
             <PersonalDetailsStep
               personalDetailsDict={dict.steps.personalDetails}
-              optionalInfoDict={dict.steps.optionalInfo} // העברת המילון של השדות האופציונליים
+              optionalInfoDict={dict.steps.optionalInfo}
               consentDict={dict.consentCheckbox}
               locale={locale}
             />
           );
-        // case 3 הוסר לחלוטין מכיוון ש-OptionalInfoStep אוחד לתוך PersonalDetailsStep
-        case 4:
+        case 4: // דף סיום והפניה
           return <CompleteStep dict={dict.steps.complete} />;
         default:
           resetForm();
           return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
       }
     }
-    // ▲▲▲ סוף העדכון ▲▲▲
 
+    // תהליך הרשמה רגיל (אימייל וסיסמה)
     switch (registrationContextData.step) {
       case 0:
         return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
@@ -181,17 +182,18 @@ const RegisterStepsContent: React.FC<{
     }
   };
 
-  // ▼▼▼ 3. עדכון לוגיקת סרגל ההתקדמות והכותרות ▼▼▼
+  // ▼▼▼ לוגיקת הכותרות וסרגל ההתקדמות ▼▼▼
   let pageTitle = dict.headers.registerTitle;
   let stepDescription = dict.headers.welcomeDescription;
   let currentProgressBarStep = 0;
-  let totalProgressBarSteps = 3; // ברירת מחדל להרשמה ראשונית
+  const totalProgressBarSteps = 3;
   let showProgressBar = false;
 
   if (
     registrationContextData.isVerifyingEmailCode &&
     !registrationContextData.isCompletingProfile
   ) {
+    // מצב אימות אימייל
     pageTitle = dict.headers.verifyEmailTitle;
     stepDescription = dict.headers.verifyEmailDescription.replace(
       '{{email}}',
@@ -199,25 +201,30 @@ const RegisterStepsContent: React.FC<{
     );
     showProgressBar = true;
     currentProgressBarStep = 1;
+
   } else if (registrationContextData.isCompletingProfile) {
+    // מצב השלמת פרופיל (גוגל או משתמש רשום ללא פרופיל)
     pageTitle = dict.headers.completeProfileTitle;
-    totalProgressBarSteps = 1; // יש עכשיו רק שלב אחד (מאוחד) בתהליך השלמת הפרופיל
+    
+    // אין צורך בסרגל התקדמות כי זה טופס אחד מאוחד
+    showProgressBar = false; 
+
     if (registrationContextData.step === 2) {
+      // שלב הפרטים האישיים
       stepDescription = session?.user?.termsAndPrivacyAcceptedAt
         ? dict.headers.personalDetailsConsentedDescription
         : dict.headers.personalDetailsDescription;
-      currentProgressBarStep = 1;
-      showProgressBar = true;
     } else if (registrationContextData.step === 4) {
+      // שלב הסיום
       stepDescription = session?.user?.isPhoneVerified
         ? dict.headers.completionReadyDescription
         : dict.headers.completionPhoneVerificationDescription;
-      showProgressBar = false; // אין סרגל התקדמות בעמוד הסיום
     } else {
       stepDescription = dict.headers.loadingProfileDescription;
-      showProgressBar = false;
     }
+
   } else {
+    // הרשמה רגילה - שלב יצירת החשבון
     if (registrationContextData.step === 1) {
       pageTitle = dict.headers.registerTitle;
       stepDescription = dict.headers.accountCreationDescription;
@@ -225,7 +232,7 @@ const RegisterStepsContent: React.FC<{
       showProgressBar = true;
     }
   }
-  // ▲▲▲ סוף עדכון הלוגיקה ▲▲▲
+  // ▲▲▲ סוף הלוגיקה ▲▲▲
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">

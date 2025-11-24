@@ -14,7 +14,7 @@ import { signOut } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
 import UserDropdown from '@/components/layout/UserDropdown';
-import type { StickyNavDict } from '@/types/dictionary'; // ✨ 1. ייבוא הטיפוס החדש
+import type { StickyNavDict } from '@/types/dictionary';
 
 export interface NavLink {
   id: string;
@@ -26,25 +26,25 @@ interface StickyNavProps {
   navLinks: NavLink[];
   session: Session | null;
   isVisible: boolean;
-  dict: StickyNavDict; // ✨ 2. הוספת המילון לממשק ה-props
+  dict: StickyNavDict;
 }
 
-// ======================== קומפוננטת הלוגו המעודכנת ========================
+// ======================== קומפוננטת הלוגו ========================
 const StickyLogo = ({ homepageAriaLabel }: { homepageAriaLabel: string }) => {
   return (
     <Link
       href="/"
       className="hidden md:flex items-center gap-x-2 group shrink-0"
-      aria-label={homepageAriaLabel} // ✨ שימוש ב-prop
+      aria-label={homepageAriaLabel}
     >
-      <div className="relative h-8 w-8">
+      <div className="relative h-9 w-9">
         <Image
           src={getRelativeCloudinaryPath(
             'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
           )}
           alt="NeshamaTech Icon"
           fill
-          className="object-contain transition-transform duration-300 group-hover:scale-110"
+          className="object-contain transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3"
           priority
         />
       </div>
@@ -69,7 +69,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
   navLinks,
   session,
   isVisible,
-  dict, // ✨ 3. קבלת המילון כ-prop
+  dict,
   locale,
 }) => {
   const [activeSection, setActiveSection] = useState('');
@@ -90,21 +90,18 @@ const StickyNav: React.FC<StickyNavProps> = ({
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      // START: Improved Logic
-      const navHeight = isMobile ? 64 : 80; // Height of the sticky nav
-      const triggerPoint = currentScrollY + navHeight + 40; // Nav height + extra margin
+      const navHeight = isMobile ? 64 : 80;
+      const triggerPoint = currentScrollY + navHeight + 40;
 
       let currentSection = '';
 
-      // Iterate backwards to find the last section that is above the trigger point
       for (let i = sectionRefs.current.length - 1; i >= 0; i--) {
         const section = sectionRefs.current[i];
         if (section && section.offsetTop <= triggerPoint) {
           currentSection = navLinks[i].id;
-          break; // Found the active section, no need to continue
+          break;
         }
       }
-      // END: Improved Logic
 
       setActiveSection(currentSection);
     };
@@ -120,10 +117,10 @@ const StickyNav: React.FC<StickyNavProps> = ({
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
     };
-  }, [navLinks, isMobile]); // Dependencies remain the same
+  }, [navLinks, isMobile]);
 
   const handleLinkClick = (
-    e: React.PointerEvent<HTMLAnchorElement>, // שנה את סוג האירוע
+    e: React.PointerEvent<HTMLAnchorElement>,
     href: string
   ) => {
     e.preventDefault();
@@ -192,27 +189,29 @@ const StickyNav: React.FC<StickyNavProps> = ({
             transition={{ duration: 0.3, ease: 'easeOut' }}
             className="fixed top-0 left-0 right-0 z-40 w-full h-16 md:h-20"
           >
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80"></div>
+            {/* רקע משודרג: Blur עם גוון Teal עדין */}
+            <div className="absolute inset-0 bg-white/85 backdrop-blur-lg shadow-sm border-b border-teal-100/50 support-[backdrop-filter]:bg-white/60"></div>
+
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
               <StickyLogo homepageAriaLabel={dict.homepageAriaLabel} />
 
-              <nav className="hidden md:flex items-center gap-2 relative">
+              <nav className="hidden md:flex items-center gap-1 relative">
                 {navLinks.map((link) => (
                   <a
                     key={link.id}
                     href={`#${link.id}`}
                     onPointerDown={(e) => handleLinkClick(e, `#${link.id}`)}
                     className={cn(
-                      'relative px-3 py-2 rounded-full text-sm transition-colors duration-200',
+                      'relative px-4 py-2 rounded-full text-sm transition-all duration-300',
                       activeSection === link.id
-                        ? 'font-semibold text-cyan-600'
-                        : 'font-medium text-gray-700 hover:text-cyan-600 hover:bg-cyan-500/10'
+                        ? 'font-bold text-teal-700' // Active state
+                        : 'font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/80' // Hover state
                     )}
                   >
                     {activeSection === link.id && (
                       <motion.div
                         layoutId="active-nav-link"
-                        className="absolute inset-0 bg-cyan-500/10 rounded-full z-0"
+                        className="absolute inset-0 bg-teal-100/60 rounded-full z-0"
                         transition={{
                           type: 'spring',
                           stiffness: 300,
@@ -236,8 +235,8 @@ const StickyNav: React.FC<StickyNavProps> = ({
                         className={cn(
                           'relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0',
                           activeSection === link.id
-                            ? 'font-semibold text-cyan-600 bg-cyan-500/10'
-                            : 'font-medium text-gray-700 hover:text-cyan-600 hover:bg-cyan-500/10'
+                            ? 'font-bold text-teal-700 bg-teal-100/60 border border-teal-200/50'
+                            : 'font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/50'
                         )}
                       >
                         {link.label}
@@ -249,9 +248,9 @@ const StickyNav: React.FC<StickyNavProps> = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full text-gray-500 hover:bg-gray-200"
+                    className="rounded-full text-gray-500 hover:bg-gray-100 hover:text-teal-600"
                     onClick={() => setMobileNavState('closed')}
-                    aria-label={dict.closeNavAriaLabel} // ✨ שימוש בתרגום
+                    aria-label={dict.closeNavAriaLabel}
                   >
                     <X className="h-5 w-5" />
                   </Button>
@@ -270,10 +269,12 @@ const StickyNav: React.FC<StickyNavProps> = ({
                   />
                 ) : (
                   <Link href="/auth/register">
-                    <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
-                      <span className="relative z-10 flex items-center">
+                    {/* כפתור הרשמה משודרג עם אנימציית Shimmer */}
+                    <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2.5">
+                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-[shimmer_2s_infinite]"></span>
+                      <span className="relative z-10 flex items-center font-semibold">
                         <UserPlus className="ml-1.5 h-4 w-4" />
-                        {dict.signUpButton} {/* ✨ שימוש בתרגום */}
+                        {dict.signUpButton}
                       </span>
                     </Button>
                   </Link>
@@ -295,11 +296,11 @@ const StickyNav: React.FC<StickyNavProps> = ({
           >
             <Button
               size="icon"
-              className="rounded-full h-14 w-14 bg-white/80 backdrop-blur-md border border-gray-200/80 shadow-lg hover:bg-gray-100"
+              className="rounded-full h-14 w-14 bg-white/90 backdrop-blur-md border border-teal-100 shadow-xl hover:bg-teal-50"
               onClick={() => setMobileNavState('open')}
-              aria-label={dict.openNavAriaLabel} // ✨ שימוש בתרגום
+              aria-label={dict.openNavAriaLabel}
             >
-              <Menu className="h-6 w-6 text-cyan-600" />
+              <Menu className="h-6 w-6 text-teal-600" />
             </Button>
           </motion.div>
         )}
