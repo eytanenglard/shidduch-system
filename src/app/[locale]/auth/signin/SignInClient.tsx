@@ -59,14 +59,14 @@ const itemVariants = {
 };
 
 // ============================================================================
-// BACKGROUND COMPONENT
+// BACKGROUND COMPONENT (מעודכן לפלטת Teal/Orange)
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
     {/* Floating Gradients */}
     <motion.div
-      className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl"
+      className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-teal-400/20 to-emerald-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, -30, 0],
         x: [0, 20, 0],
@@ -79,7 +79,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-pink-400/20 to-purple-500/20 rounded-full blur-3xl"
+      className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-orange-400/20 to-amber-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, 40, 0],
         x: [0, -30, 0],
@@ -93,7 +93,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute bottom-32 left-1/4 w-72 h-72 bg-gradient-to-br from-orange-400/15 to-red-500/15 rounded-full blur-3xl"
+      className="absolute bottom-32 left-1/4 w-72 h-72 bg-gradient-to-br from-rose-400/15 to-orange-500/15 rounded-full blur-3xl"
       animate={{
         y: [0, -25, 0],
         x: [0, 15, 0],
@@ -107,7 +107,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute bottom-20 right-10 w-64 h-64 bg-gradient-to-br from-emerald-400/20 to-teal-500/20 rounded-full blur-3xl"
+      className="absolute bottom-20 right-10 w-64 h-64 bg-gradient-to-br from-teal-400/20 to-cyan-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, 35, 0],
         scale: [1, 1.12, 1],
@@ -120,10 +120,10 @@ const DynamicBackground: React.FC = () => (
       }}
     />
 
-    {/* Dot Pattern */}
-    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:24px_24px]" />
+    {/* Dot Pattern (Teal) */}
+    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:24px_24px]" />
 
-    {/* SVG Decorative Waves */}
+    {/* SVG Decorative Waves (Teal -> Orange) */}
     <svg
       className="absolute inset-0 w-full h-full"
       viewBox="0 0 1000 1000"
@@ -132,8 +132,8 @@ const DynamicBackground: React.FC = () => (
     >
       <defs>
         <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.08" />
-          <stop offset="100%" stopColor="#ec4899" stopOpacity="0.04" />
+          <stop offset="0%" stopColor="#0d9488" stopOpacity="0.08" />
+          <stop offset="100%" stopColor="#f97316" stopOpacity="0.04" />
         </linearGradient>
       </defs>
       <motion.path
@@ -148,7 +148,7 @@ const DynamicBackground: React.FC = () => (
 );
 
 // ============================================================================
-// LOADING STATE COMPONENT
+// LOADING STATE COMPONENT (Colors Updated)
 // ============================================================================
 
 interface LoadingStateProps {
@@ -168,7 +168,8 @@ const LoadingState: React.FC<LoadingStateProps> = ({ status, dict }) => (
       transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
       className="mb-6"
     >
-      <div className="p-4 bg-gradient-to-br from-cyan-400 to-pink-400 rounded-full">
+      {/* Loading Gradient: Teal -> Orange */}
+      <div className="p-4 bg-gradient-to-br from-teal-400 to-orange-400 rounded-full">
         <Loader2 className="h-12 w-12 text-white" />
       </div>
     </motion.div>
@@ -192,23 +193,23 @@ const LoadingState: React.FC<LoadingStateProps> = ({ status, dict }) => (
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.3, type: 'spring' }}
-          className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium"
+          className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium"
         >
           <CheckCircle2 className="w-4 h-4" />
-          <span>מתחבר בהצלחה</span>
+          <span>{dict.loader.success}</span>
         </motion.div>
       )}
     </motion.div>
 
-    {/* Decorative circles */}
+    {/* Decorative circles (Teal/Orange) */}
     <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
       <motion.div
-        className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-transparent rounded-full pointer-events-none"
+        className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-teal-400/20 to-transparent rounded-full pointer-events-none"
         animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
         transition={{ duration: 4, repeat: Infinity }}
       />
       <motion.div
-        className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-br from-pink-400/20 to-transparent rounded-full pointer-events-none"
+        className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-transparent rounded-full pointer-events-none"
         animate={{ scale: [1, 1.2, 1], rotate: [0, -90, 0] }}
         transition={{ duration: 4, repeat: Infinity, delay: 1 }}
       />
@@ -314,7 +315,6 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
       <DynamicBackground />
 
       <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative z-10">
-        
         {/* Hero Section */}
         <motion.div
           variants={containerVariants}
@@ -326,14 +326,20 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
             <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-6">
               <motion.div
                 animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
               >
-                <Heart className="w-5 h-5 text-pink-500" />
+                {/* Heart -> Orange */}
+                <Heart className="w-5 h-5 text-orange-500" />
               </motion.div>
               <span className="text-sm font-medium text-gray-700">
                 {locale === 'he' ? 'ברוכים השבים' : 'Welcome Back'}
               </span>
-              <Sparkles className="w-5 h-5 text-cyan-500" />
+              {/* Sparkles -> Teal */}
+              <Sparkles className="w-5 h-5 text-teal-500" />
             </div>
           </motion.div>
 
@@ -341,7 +347,8 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
             variants={itemVariants}
             className="text-3xl md:text-4xl font-bold mb-3"
           >
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 animate-gradient-slow">
+            {/* Title Gradient -> Teal-Orange-Amber */}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient-slow">
               {dict.title}
             </span>
           </motion.h1>
@@ -353,9 +360,9 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
             {dict.subtitle}
           </motion.p>
 
-          {/* Decorative Line */}
+          {/* Decorative Line (Teal -> Orange) */}
           <motion.div variants={itemVariants} className="relative mt-6">
-            <div className="w-20 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-full mx-auto" />
+            <div className="w-20 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 rounded-full mx-auto" />
           </motion.div>
         </motion.div>
 
@@ -368,19 +375,17 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
               : { opacity: 1, y: 0 }
           }
           transition={
-            shouldShake
-              ? { duration: 0.5 }
-              : { duration: 0.5, delay: 0.3 }
+            shouldShake ? { duration: 0.5 } : { duration: 0.5, delay: 0.3 }
           }
           className="w-full max-w-md"
         >
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative">
-            {/* Top Gradient Line - POINTER EVENTS NONE */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 pointer-events-none" />
+            {/* Top Gradient Line (Teal -> Orange) */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 pointer-events-none" />
 
-            {/* Decorative Elements - POINTER EVENTS NONE */}
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 pointer-events-none" />
+            {/* Decorative Elements */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-teal-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 pointer-events-none" />
 
             <div className="relative z-10 p-6 sm:p-8">
               {/* Error Alert */}
@@ -422,7 +427,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   <div className="relative group">
                     <div
                       className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 transition-colors ${
-                        email ? 'text-cyan-500' : 'text-gray-400'
+                        email ? 'text-teal-500' : 'text-gray-400'
                       }`}
                     >
                       <Mail className="h-5 w-5" />
@@ -434,7 +439,8 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                       autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className={`w-full ${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 focus:outline-none transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10`}
+                      // Focus Colors: Teal
+                      className={`w-full ${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10`}
                       placeholder={dict.emailPlaceholder}
                       required
                       disabled={isLoading || isGoogleLoading}
@@ -456,7 +462,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   <div className="relative group">
                     <div
                       className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 transition-colors ${
-                        password ? 'text-cyan-500' : 'text-gray-400'
+                        password ? 'text-teal-500' : 'text-gray-400'
                       }`}
                     >
                       <Lock className="h-5 w-5" />
@@ -468,7 +474,8 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                       autoComplete="current-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className={`w-full ${isRTL ? 'pr-11 pl-12' : 'pl-11 pr-12'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 focus:outline-none transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10`}
+                      // Focus Colors: Teal
+                      className={`w-full ${isRTL ? 'pr-11 pl-12' : 'pl-11 pr-12'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10`}
                       placeholder={dict.passwordPlaceholder}
                       required
                       disabled={isLoading || isGoogleLoading}
@@ -487,23 +494,26 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                       )}
                     </button>
                   </div>
-                  <div className={`flex ${isRTL ? 'justify-start' : 'justify-end'}`}>
+                  <div
+                    className={`flex ${isRTL ? 'justify-start' : 'justify-end'}`}
+                  >
                     <Link
                       href={`/${locale}/auth/forgot-password`}
-                      className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline font-medium transition-colors relative z-20"
+                      // Link Color: Teal
+                      className="text-sm text-teal-600 hover:text-teal-700 hover:underline font-medium transition-colors relative z-20"
                     >
                       {dict.forgotPasswordLink}
                     </Link>
                   </div>
                 </div>
 
-                {/* Submit Button - Z-20 + Relative */}
+                {/* Submit Button (Teal -> Orange -> Amber) */}
                 <Button
                   type="submit"
                   disabled={isLoading || isGoogleLoading}
-                  className="w-full relative z-20 py-4 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-600 hover:via-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group overflow-hidden"
+                  className="w-full relative z-20 py-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group overflow-hidden"
                 >
-                  {/* Shine effect - POINTER EVENTS NONE */}
+                  {/* Shine effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none" />
 
                   {isLoading ? (
@@ -536,7 +546,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                 </div>
               </div>
 
-              {/* Google Sign In Button - Z-20 + Relative + BG-White/50 */}
+              {/* Google Sign In Button */}
               <Button
                 type="button"
                 onClick={handleGoogleSignIn}
@@ -547,11 +557,17 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                 {isGoogleLoading ? (
                   <>
                     <Loader2 className="animate-spin h-5 w-5" />
-                    <span className="font-medium">{dict.googleButtonLoading}</span>
+                    <span className="font-medium">
+                      {dict.googleButtonLoading}
+                    </span>
                   </>
                 ) : (
                   <>
-                    <svg className="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg
+                      className="h-5 w-5 flex-shrink-0"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
                       <path
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                         fill="#4285F4"
@@ -582,7 +598,8 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   {dict.noAccountPrompt}{' '}
                   <Link
                     href={`/${locale}/auth/register`}
-                    className="text-cyan-600 font-semibold hover:text-cyan-700 hover:underline transition-colors inline-flex items-center gap-1 relative z-20"
+                    // Link Color: Teal
+                    className="text-teal-600 font-semibold hover:text-teal-700 hover:underline transition-colors inline-flex items-center gap-1 relative z-20"
                   >
                     {dict.signUpLink}
                     {isRTL ? (
@@ -595,8 +612,8 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
               </div>
             </div>
 
-            {/* Bottom Shine Effect - POINTER EVENTS NONE */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-50 pointer-events-none" />
+            {/* Bottom Shine Effect (Teal -> Orange) */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 opacity-50 pointer-events-none" />
           </div>
         </motion.div>
 
@@ -607,7 +624,8 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
           transition={{ delay: 0.8, duration: 0.5 }}
           className="mt-8 flex items-center gap-2 text-sm text-gray-500"
         >
-          <Shield className="w-4 h-4 text-cyan-500" />
+          {/* Shield -> Teal */}
+          <Shield className="w-4 h-4 text-teal-500" />
           <span>
             {locale === 'he'
               ? 'המידע שלך מוגן ומאובטח'

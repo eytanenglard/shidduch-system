@@ -1,4 +1,4 @@
-// src/app/components/suggestions/MatchSuggestionsContainer.tsx
+// src/components/suggestions/MatchSuggestionsContainer.tsx
 
 'use client';
 
@@ -46,16 +46,17 @@ import type {
   ProfileCardDict,
 } from '@/types/dictionary';
 
+// --- Skeleton Loading Updated to Hero Colors (Teal/Orange) ---
 const LoadingSkeleton: React.FC<{
   dict: SuggestionsDictionary['container']['loading'];
 }> = ({ dict }) => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20">
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/20 to-orange-50/20">
     <div className="container mx-auto px-4 py-8">
       {/* Hero Skeleton */}
       <div className="mb-8">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-full bg-gradient-to-r from-purple-100 to-cyan-100 animate-pulse">
+            <div className="p-3 rounded-full bg-gradient-to-r from-teal-100 to-orange-100 animate-pulse">
               <div className="w-8 h-8 bg-gray-300 rounded-full animate-pulse"></div>
             </div>
           </div>
@@ -89,7 +90,7 @@ const LoadingSkeleton: React.FC<{
 
       {/* Main Card Skeleton */}
       <div className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl">
-        <div className="px-8 py-6 bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/30 border-b border-gray-100">
+        <div className="px-8 py-6 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/30 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
@@ -101,7 +102,7 @@ const LoadingSkeleton: React.FC<{
 
         <div className="p-6">
           <div className="flex justify-center mb-6">
-            <div className="grid grid-cols-3 bg-purple-50/50 rounded-2xl p-1 h-14 w-fit gap-2">
+            <div className="grid grid-cols-3 bg-teal-50/50 rounded-2xl p-1 h-14 w-fit gap-2">
               {Array.from({ length: 3 }).map((_, index) => (
                 <div
                   key={index}
@@ -113,15 +114,15 @@ const LoadingSkeleton: React.FC<{
 
           <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-6">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 via-cyan-100 to-emerald-100 animate-pulse border-4 border-white shadow-xl"></div>
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-teal-100 via-orange-100 to-rose-100 animate-pulse border-4 border-white shadow-xl"></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
+                <Loader2 className="w-12 h-12 text-teal-600 animate-spin" />
               </div>
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-400 via-cyan-400 to-emerald-400 opacity-20 animate-ping"></div>
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-teal-400 via-orange-400 to-rose-400 opacity-20 animate-ping"></div>
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-cyan-600 to-emerald-600 bg-clip-text text-transparent">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600 bg-clip-text text-transparent">
                 {dict.title}
               </h3>
               <p className="text-gray-600 max-w-md leading-relaxed">
@@ -133,7 +134,7 @@ const LoadingSkeleton: React.FC<{
               {Array.from({ length: 3 }).map((_, index) => (
                 <div
                   key={index}
-                  className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 animate-bounce"
+                  className="w-3 h-3 rounded-full bg-gradient-to-r from-teal-500 to-orange-500 animate-bounce"
                   style={{ animationDelay: `${index * 0.2}s` }}
                 ></div>
               ))}
@@ -145,6 +146,7 @@ const LoadingSkeleton: React.FC<{
   </div>
 );
 
+// --- Stats Component Updated to Hero Colors ---
 const WelcomeStats: React.FC<{
   activeSuggestions: ExtendedMatchSuggestion[];
   historySuggestions: ExtendedMatchSuggestion[];
@@ -170,22 +172,25 @@ const WelcomeStats: React.FC<{
       label: dict.new,
       value: activeSuggestions.length,
       icon: <Sparkles className="w-5 h-5" />,
-      color: 'from-cyan-500 to-blue-500',
+      // Teal/Emerald -> New/Fresh (Knowledge)
+      color: 'from-teal-400 via-teal-500 to-emerald-500',
       description: dict.newDesc,
     },
     {
       label: dict.yourTurn,
       value: myTurnCount,
       icon: <Zap className="w-5 h-5" />,
-      color: 'from-orange-500 to-amber-500',
+      // Orange/Amber -> Action/Warmth (Privacy/Focus)
+      color: 'from-orange-400 via-amber-500 to-yellow-500',
       description: dict.yourTurnDesc,
       pulse: myTurnCount > 0,
     },
     {
       label: dict.approved,
       value: approvedCount,
-      icon: <CheckCircle className="w-5 h-5" />,
-      color: 'from-emerald-500 to-green-500',
+      icon: <Heart className="w-5 h-5" />, // Changed to Heart to match Rose
+      // Rose/Pink -> Love/Connection (Personal)
+      color: 'from-rose-400 via-pink-500 to-red-500',
       description: dict.approvedDesc,
     },
   ];
@@ -194,11 +199,11 @@ const WelcomeStats: React.FC<{
     <div className="mb-8">
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-3 mb-4">
-          <div className="p-3 rounded-full bg-gradient-to-r from-purple-100 to-cyan-100">
-            <Heart className="w-8 h-8 text-purple-600" />
+          <div className="p-3 rounded-full bg-gradient-to-r from-teal-100 to-orange-100">
+            <Target className="w-8 h-8 text-teal-600" />
           </div>
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-cyan-600 to-emerald-600 bg-clip-text text-transparent mb-3">
+        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-amber-600 bg-clip-text text-transparent mb-3">
           {dict.title}
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -215,7 +220,7 @@ const WelcomeStats: React.FC<{
               <div className="flex items-center justify-between mb-4">
                 <div
                   className={cn(
-                    'p-3 rounded-xl bg-gradient-to-r text-white shadow-lg group-hover:scale-110 transition-transform duration-300',
+                    'p-3 rounded-xl bg-gradient-to-br text-white shadow-lg group-hover:scale-110 transition-transform duration-300',
                     stat.color,
                     stat.pulse && 'animate-pulse'
                   )}
@@ -254,6 +259,7 @@ interface MatchSuggestionsContainerProps {
   profileCardDict: ProfileCardDict;
 }
 
+// --- Main Container Updated ---
 const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   userId,
   className,
@@ -498,7 +504,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   return (
     <div
       className={cn(
-        'min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20',
+        // Updated Background to match Hero
+        'min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/20 to-orange-50/20',
         className
       )}
       dir={locale === 'he' ? 'rtl' : 'ltr'}
@@ -511,7 +518,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           dict={suggestionsDict.container.stats}
         />
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden">
-          <CardHeader className="pb-4 bg-gradient-to-r from-white via-cyan-50/30 to-emerald-50/30 border-b border-gray-100">
+          <CardHeader className="pb-4 bg-gradient-to-r from-white via-teal-50/30 to-orange-50/30 border-b border-gray-100">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Button
@@ -519,12 +526,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   size="icon"
                   onClick={handleRefresh}
                   disabled={isRefreshing}
-                  className="rounded-full h-10 w-10 hover:bg-cyan-100 transition-colors"
+                  className="rounded-full h-10 w-10 hover:bg-teal-100 transition-colors"
                   aria-label={suggestionsDict.container.main.refreshAriaLabel}
                 >
                   <RefreshCw
                     className={cn(
-                      'h-5 w-5 text-cyan-600',
+                      'h-5 w-5 text-teal-600',
                       isRefreshing && 'animate-spin'
                     )}
                   />
@@ -557,31 +564,40 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               className="space-y-6"
             >
               <div className="flex justify-center">
-                <TabsList className="grid grid-cols-3 bg-purple-50/50 rounded-2xl p-1 h-14 w-fit">
+                <TabsList className="grid grid-cols-3 bg-teal-50/50 rounded-2xl p-1 h-14 w-fit">
+                  {/* Tab: Active (Teal) */}
                   <TabsTrigger
                     value="active"
                     className="relative flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                   >
-                    <Target className="w-5 h-5 text-purple-500" />
-                    <span>{suggestionsDict.container.main.tabs.active}</span>
+                    <Target className="w-5 h-5 text-teal-500" />
+                    <span className="group-data-[state=active]:text-teal-700">
+                      {suggestionsDict.container.main.tabs.active}
+                    </span>
                     {activeSuggestions.length > 0 && (
-                      <Badge className="bg-purple-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
+                      <Badge className="bg-teal-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
                         {activeSuggestions.length}
                       </Badge>
                     )}
                   </TabsTrigger>
+
+                  {/* Tab: Urgent (Orange) */}
                   {myTurnCount > 0 && (
                     <TabsTrigger
                       value="urgent"
                       className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                     >
                       <Zap className="w-5 h-5 text-orange-500" />
-                      <span>{suggestionsDict.container.main.tabs.urgent}</span>
+                      <span className="group-data-[state=active]:text-orange-700">
+                        {suggestionsDict.container.main.tabs.urgent}
+                      </span>
                       <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6 animate-pulse shadow-lg">
                         {myTurnCount}
                       </Badge>
                     </TabsTrigger>
                   )}
+
+                  {/* Tab: History (Gray/Rose) */}
                   <TabsTrigger
                     value="history"
                     className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
@@ -689,8 +705,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               className={cn(
                 'rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300',
                 actionType === 'approve'
-                  ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
-                  : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
+                  ? // Approve: Teal/Green gradient
+                    'bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700'
+                  : // Decline: Rose/Red gradient
+                    'bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700'
               )}
             >
               {actionType === 'approve' ? (

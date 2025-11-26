@@ -56,14 +56,14 @@ const itemVariants = {
 };
 
 // ============================================================================
-// BACKGROUND COMPONENT
+// BACKGROUND COMPONENT (Teal/Orange Theme)
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
     {/* Floating Gradients */}
     <motion.div
-      className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl"
+      className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-teal-400/20 to-emerald-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, -30, 0],
         x: [0, 20, 0],
@@ -76,7 +76,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-pink-400/20 to-purple-500/20 rounded-full blur-3xl"
+      className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-orange-400/20 to-amber-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, 40, 0],
         x: [0, -30, 0],
@@ -90,7 +90,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute bottom-32 left-1/4 w-72 h-72 bg-gradient-to-br from-orange-400/15 to-red-500/15 rounded-full blur-3xl"
+      className="absolute bottom-32 left-1/4 w-72 h-72 bg-gradient-to-br from-rose-400/15 to-orange-500/15 rounded-full blur-3xl"
       animate={{
         y: [0, -25, 0],
         x: [0, 15, 0],
@@ -104,10 +104,10 @@ const DynamicBackground: React.FC = () => (
       }}
     />
 
-    {/* Dot Pattern */}
-    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:24px_24px]" />
+    {/* Dot Pattern (Teal) */}
+    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:24px_24px]" />
 
-    {/* SVG Decorative Wave */}
+    {/* SVG Decorative Wave (Teal -> Orange) */}
     <svg
       className="absolute inset-0 w-full h-full"
       viewBox="0 0 1000 1000"
@@ -116,8 +116,8 @@ const DynamicBackground: React.FC = () => (
     >
       <defs>
         <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.08" />
-          <stop offset="100%" stopColor="#ec4899" stopOpacity="0.04" />
+          <stop offset="0%" stopColor="#0d9488" stopOpacity="0.08" />
+          <stop offset="100%" stopColor="#f97316" stopOpacity="0.04" />
         </linearGradient>
       </defs>
       <motion.path
@@ -224,7 +224,8 @@ export default function ForgotPasswordClient({
           className="mb-8 text-center"
         >
           <motion.div variants={itemVariants} className="mb-4">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl shadow-lg mb-6">
+            {/* Key Icon Background: Teal -> Orange */}
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-teal-400 to-orange-500 rounded-2xl shadow-lg mb-6">
               <motion.div
                 animate={{
                   rotate: [0, -10, 10, -10, 0],
@@ -245,7 +246,8 @@ export default function ForgotPasswordClient({
             variants={itemVariants}
             className="text-3xl md:text-4xl font-bold mb-3"
           >
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 animate-gradient-slow">
+            {/* Title Gradient: Teal -> Orange -> Amber */}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient-slow">
               {dict.title}
             </span>
           </motion.h1>
@@ -257,9 +259,9 @@ export default function ForgotPasswordClient({
             {dict.subtitle}
           </motion.p>
 
-          {/* Decorative Line */}
+          {/* Decorative Line (Teal -> Orange) */}
           <motion.div variants={itemVariants} className="relative mt-6">
-            <div className="w-20 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-full mx-auto" />
+            <div className="w-20 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 rounded-full mx-auto" />
           </motion.div>
         </motion.div>
 
@@ -272,11 +274,11 @@ export default function ForgotPasswordClient({
         >
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative">
             {/* Top Gradient Line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400" />
 
             {/* Decorative Elements */}
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-teal-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 pointer-events-none" />
 
             <div className="relative z-10 p-6 sm:p-8">
               {/* Success State */}
@@ -289,13 +291,18 @@ export default function ForgotPasswordClient({
                     exit={{ opacity: 0, scale: 0.9 }}
                     className="text-center py-8"
                   >
+                    {/* Success Icon (Green is usually good to keep for success, or switch to Teal) */}
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-                      className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6"
+                      transition={{
+                        delay: 0.2,
+                        type: 'spring',
+                        stiffness: 200,
+                      }}
+                      className="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 rounded-full mb-6"
                     >
-                      <CheckCircle2 className="w-10 h-10 text-green-600" />
+                      <CheckCircle2 className="w-10 h-10 text-emerald-600" />
                     </motion.div>
 
                     <motion.h2
@@ -323,7 +330,8 @@ export default function ForgotPasswordClient({
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.5 }}
                     >
-                      <Loader2 className="w-6 h-6 animate-spin text-cyan-500 mx-auto" />
+                      {/* Loader -> Teal */}
+                      <Loader2 className="w-6 h-6 animate-spin text-teal-500 mx-auto" />
                     </motion.div>
                   </motion.div>
                 ) : (
@@ -333,16 +341,17 @@ export default function ForgotPasswordClient({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    {/* Info Box */}
+                    {/* Info Box -> Teal/Orange mix */}
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="mb-6 p-4 bg-gradient-to-r from-cyan-50 to-purple-50 rounded-2xl border border-cyan-100"
+                      className="mb-6 p-4 bg-gradient-to-r from-teal-50 to-orange-50 rounded-2xl border border-teal-100"
                     >
                       <div className="flex items-start gap-3">
                         <div className="p-2 bg-white rounded-lg flex-shrink-0">
-                          <Sparkles className="w-5 h-5 text-cyan-500" />
+                          {/* Sparkles -> Teal */}
+                          <Sparkles className="w-5 h-5 text-teal-500" />
                         </div>
                         <p className="text-sm text-gray-700 leading-relaxed pt-1">
                           {locale === 'he'
@@ -393,7 +402,7 @@ export default function ForgotPasswordClient({
                         <div className="relative group">
                           <div
                             className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 transition-colors ${
-                              email ? 'text-cyan-500' : 'text-gray-400'
+                              email ? 'text-teal-500' : 'text-gray-400'
                             }`}
                           >
                             <Mail className="h-5 w-5" />
@@ -405,18 +414,19 @@ export default function ForgotPasswordClient({
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder={dict.emailPlaceholder}
                             required
-                            className={`w-full ${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 focus:outline-none transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400`}
+                            // Input Focus -> Teal
+                            className={`w-full ${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400`}
                             disabled={isLoading}
                             dir={isRTL ? 'rtl' : 'ltr'}
                           />
                         </div>
                       </div>
 
-                      {/* Submit Button */}
+                      {/* Submit Button -> Teal/Orange/Amber */}
                       <Button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full py-4 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-600 hover:via-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden"
+                        className="w-full py-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden"
                       >
                         {/* Shine effect */}
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
@@ -438,10 +448,12 @@ export default function ForgotPasswordClient({
                     {/* Back Link */}
                     <div className="mt-8 text-center">
                       <p className="text-gray-600 text-sm">
-                        {locale === 'he' ? 'זכרת את הסיסמה?' : 'Remember your password?'}{' '}
+                        {locale === 'he'
+                          ? 'זכרת את הסיסמה?'
+                          : 'Remember your password?'}{' '}
                         <Link
                           href={`/${locale}/auth/signin`}
-                          className="text-cyan-600 font-semibold hover:text-cyan-700 hover:underline transition-colors inline-flex items-center gap-1"
+                          className="text-teal-600 font-semibold hover:text-teal-700 hover:underline transition-colors inline-flex items-center gap-1"
                         >
                           {dict.backToSignInLink}
                           {isRTL ? (
@@ -457,8 +469,8 @@ export default function ForgotPasswordClient({
               </AnimatePresence>
             </div>
 
-            {/* Bottom Shine Effect */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-50" />
+            {/* Bottom Shine Effect -> Teal/Orange */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 opacity-50" />
           </div>
         </motion.div>
 

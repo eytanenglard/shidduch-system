@@ -73,14 +73,14 @@ const itemVariants = {
 };
 
 // ============================================================================
-// BACKGROUND COMPONENT
+// BACKGROUND COMPONENT (מעודכן לפלטת Teal/Orange)
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
     {/* Floating Gradients */}
     <motion.div
-      className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl"
+      className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-teal-400/20 to-emerald-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, -30, 0],
         x: [0, 20, 0],
@@ -93,7 +93,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-pink-400/20 to-purple-500/20 rounded-full blur-3xl"
+      className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-orange-400/20 to-amber-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, 40, 0],
         x: [0, -30, 0],
@@ -107,7 +107,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute bottom-32 left-1/4 w-72 h-72 bg-gradient-to-br from-orange-400/15 to-red-500/15 rounded-full blur-3xl"
+      className="absolute bottom-32 left-1/4 w-72 h-72 bg-gradient-to-br from-rose-400/15 to-orange-500/15 rounded-full blur-3xl"
       animate={{
         y: [0, -25, 0],
         x: [0, 15, 0],
@@ -121,7 +121,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute bottom-20 right-10 w-64 h-64 bg-gradient-to-br from-emerald-400/20 to-teal-500/20 rounded-full blur-3xl"
+      className="absolute bottom-20 right-10 w-64 h-64 bg-gradient-to-br from-teal-400/20 to-cyan-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, 35, 0],
         scale: [1, 1.12, 1],
@@ -134,10 +134,10 @@ const DynamicBackground: React.FC = () => (
       }}
     />
 
-    {/* Dot Pattern */}
-    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:24px_24px]" />
+    {/* Dot Pattern (Teal Accent) */}
+    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:24px_24px]" />
 
-    {/* SVG Decorative Waves */}
+    {/* SVG Decorative Waves (Teal -> Orange) */}
     <svg
       className="absolute inset-0 w-full h-full"
       viewBox="0 0 1000 1000"
@@ -146,12 +146,16 @@ const DynamicBackground: React.FC = () => (
     >
       <defs>
         <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.08" />
-          <stop offset="100%" stopColor="#ec4899" stopOpacity="0.04" />
+          <stop offset="0%" stopColor="#0d9488" stopOpacity="0.08" />{' '}
+          {/* Teal */}
+          <stop offset="100%" stopColor="#f97316" stopOpacity="0.04" />{' '}
+          {/* Orange */}
         </linearGradient>
         <linearGradient id="waveGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.06" />
-          <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.03" />
+          <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.06" />{' '}
+          {/* Amber */}
+          <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.03" />{' '}
+          {/* Teal */}
         </linearGradient>
       </defs>
       <motion.path
@@ -207,12 +211,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             animate={{ rotate: [0, 10, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <Sparkles className="w-5 h-5 text-cyan-500" />
+            {/* Sparkles - Teal (Tech) */}
+            <Sparkles className="w-5 h-5 text-teal-500" />
           </motion.div>
           <span className="text-sm font-medium text-gray-700">
             {locale === 'he' ? 'הצעד הראשון למסע שלכם' : 'Your First Step'}
           </span>
-          <Heart className="w-5 h-5 text-pink-500" />
+          {/* Heart - Orange (Human) */}
+          <Heart className="w-5 h-5 text-orange-500" />
         </div>
       </motion.div>
 
@@ -220,7 +226,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         variants={itemVariants}
         className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
       >
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 animate-gradient-slow">
+        {/* Main Gradient Text */}
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient-slow">
           {title}
         </span>
       </motion.h1>
@@ -236,11 +243,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         {subtitle}
       </motion.p>
 
-      {/* Decorative Line */}
+      {/* Decorative Line (Teal -> Orange) */}
       <motion.div variants={itemVariants} className="relative mt-6">
-        <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-full mx-auto" />
+        <div className="w-24 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 rounded-full mx-auto" />
         <motion.div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-pink-400"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-orange-400"
           animate={{ scale: [1, 1.3, 1] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         />
@@ -338,7 +345,7 @@ const RegisterStepsContent: React.FC<{
     if (sessionStatus === 'loading') {
       return (
         <div className="flex flex-col items-center justify-center p-16">
-          <Loader2 className="h-10 w-10 animate-spin text-cyan-600 mb-4" />
+          <Loader2 className="h-10 w-10 animate-spin text-teal-600 mb-4" />
           <p className="text-gray-600 text-sm">
             {locale === 'he' ? 'טוען...' : 'Loading...'}
           </p>
@@ -439,8 +446,9 @@ const RegisterStepsContent: React.FC<{
     }
   }
 
-  // קובע אם השלב הנוכחי דורש רוחב מלא או צר
-  const isWideStep = registrationContextData.isCompletingProfile && registrationContextData.step === 2;
+  const isWideStep =
+    registrationContextData.isCompletingProfile &&
+    registrationContextData.step === 2;
 
   return (
     <>
@@ -505,18 +513,17 @@ const RegisterStepsContent: React.FC<{
           )}
         </AnimatePresence>
 
-        {/* Main Card Container - כאן השינוי לרוחב */}
-        <motion.div 
-          {...pageTransition} 
+        {/* Main Card Container */}
+        <motion.div
+          {...pageTransition}
           className="w-full max-w-md md:max-w-2xl relative"
         >
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative">
             {/* Decorative Elements - POINTER EVENTS NONE */}
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-teal-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 pointer-events-none" />
 
             {/* Content - Z-10 RELATIVE */}
-            {/* הגדלנו padding בדסקטופ */}
             <div className="relative z-10 p-6 sm:p-8 md:p-12">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -525,16 +532,15 @@ const RegisterStepsContent: React.FC<{
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: isRTL ? 20 : -20 }}
                   transition={{ duration: 0.3 }}
-                  // כאן הלוגיקה: אם זה שלב רחב, קח 100%. אחרת, תמרכז ותגביל רוחב.
-                  className={isWideStep ? "w-full" : "max-w-md mx-auto"}
+                  className={isWideStep ? 'w-full' : 'max-w-md mx-auto'}
                 >
                   {renderStep()}
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* Bottom Shine Effect - POINTER EVENTS NONE */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-50 pointer-events-none" />
+            {/* Bottom Shine Effect (Teal -> Orange) */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 opacity-50 pointer-events-none" />
           </div>
         </motion.div>
 
@@ -549,7 +555,7 @@ const RegisterStepsContent: React.FC<{
             {dict.contactSupport}{' '}
             <Link
               href={`/${locale}/contact`}
-              className="text-cyan-600 hover:text-cyan-700 font-medium hover:underline transition-colors inline-flex items-center gap-1"
+              className="text-teal-600 hover:text-teal-700 font-medium hover:underline transition-colors inline-flex items-center gap-1"
             >
               {dict.contactSupportLink}
               <Shield className="w-3 h-3" />

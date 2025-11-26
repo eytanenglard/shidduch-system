@@ -1,4 +1,4 @@
-// src/app/components/suggestions/list/SuggestionsList.tsx
+// src/components/suggestions/list/SuggestionsList.tsx
 
 'use client';
 import React, { useState, useEffect } from 'react';
@@ -8,7 +8,6 @@ import {
   SortAsc,
   SortDesc,
   Calendar,
-
   Check,
   XCircle,
   Sparkles,
@@ -18,7 +17,6 @@ import {
   TrendingUp,
   BarChart3,
 } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,18 +42,15 @@ import SuggestionDetailsModal from '../modals/SuggestionDetailsModal';
 import AskMatchmakerDialog from '../dialogs/AskMatchmakerDialog';
 import { cn } from '@/lib/utils';
 import type { ExtendedMatchSuggestion } from '../types';
-// ✅ 1. ייבוא הטיפוסים הנדרשים
 import type {
   SuggestionsDictionary,
   ProfileCardDict,
 } from '@/types/dictionary';
 
-// ✅ 2. עדכון הממשק לקבל props נפרדים
 interface SuggestionsListProps {
   suggestions: ExtendedMatchSuggestion[];
   userId: string;
-  locale: 'he' | 'en'; // <-- 1. הוסף את locale לממשק ה-props
-
+  locale: 'he' | 'en';
   isHistory?: boolean;
   viewMode: 'grid' | 'list';
   isLoading?: boolean;
@@ -83,6 +78,7 @@ type FilterOption =
   | 'declined'
   | 'contact_shared';
 
+// --- Empty State Updated to Teal/Orange/Rose ---
 const EmptyState: React.FC<{
   isFiltered: boolean;
   isHistory: boolean;
@@ -91,17 +87,18 @@ const EmptyState: React.FC<{
 }> = ({ isFiltered, isHistory, onClearFilters, dict }) => (
   <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
     <div className="relative mb-8">
-      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center shadow-lg">
+      {/* Background Gradient: Teal -> Orange */}
+      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-teal-100 to-orange-100 flex items-center justify-center shadow-lg">
         {isFiltered ? (
-          <Search className="w-16 h-16 text-purple-400" />
+          <Search className="w-16 h-16 text-teal-500" />
         ) : isHistory ? (
           <Clock className="w-16 h-16 text-gray-400" />
         ) : (
-          <Heart className="w-16 h-16 text-pink-400" />
+          <Heart className="w-16 h-16 text-rose-400" />
         )}
       </div>
       {!isFiltered && !isHistory && (
-        <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg">
+        <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center shadow-lg">
           <Sparkles className="w-4 h-4 text-white" />
         </div>
       )}
@@ -123,7 +120,7 @@ const EmptyState: React.FC<{
     {isFiltered && (
       <Button
         onClick={onClearFilters}
-        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+        className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
       >
         <XCircle className="w-4 h-4 ml-2" />
         {dict.clearFilters}
@@ -132,6 +129,7 @@ const EmptyState: React.FC<{
   </div>
 );
 
+// --- Stats Bar Updated to Teal/Indigo/Orange/Green ---
 const StatsBar: React.FC<{
   total: number;
   filtered: number;
@@ -139,26 +137,27 @@ const StatsBar: React.FC<{
   isHistory: boolean;
   dict: SuggestionsDictionary['list']['stats'];
 }> = ({ total, filtered, pending, isHistory, dict }) => (
-  <Card className="mb-6 border-0 shadow-lg bg-gradient-to-r from-white via-purple-50/50 to-pink-50/50">
+  <Card className="mb-6 border-0 shadow-lg bg-gradient-to-r from-white via-teal-50/50 to-orange-50/50">
     <CardContent className="p-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <BarChart3 className="w-4 h-4 text-blue-500" />
-            <span className="text-2xl font-bold text-blue-600">{filtered}</span>
+            <BarChart3 className="w-4 h-4 text-teal-500" />
+            <span className="text-2xl font-bold text-teal-600">{filtered}</span>
           </div>
           <p className="text-xs text-gray-600 font-medium">{dict.showing}</p>
         </div>
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <Users className="w-4 h-4 text-purple-500" />
-            <span className="text-2xl font-bold text-purple-600">{total}</span>
+            <Users className="w-4 h-4 text-indigo-500" />
+            <span className="text-2xl font-bold text-indigo-600">{total}</span>
           </div>
           <p className="text-xs text-gray-600 font-medium">{dict.total}</p>
         </div>
         {!isHistory && (
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-1">
+              {/* Pending: Orange (Action) */}
               <Clock className="w-4 h-4 text-orange-500" />
               <span className="text-2xl font-bold text-orange-600">
                 {pending}
@@ -169,8 +168,8 @@ const StatsBar: React.FC<{
         )}
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <TrendingUp className="w-4 h-4 text-green-500" />
-            <span className="text-2xl font-bold text-green-600">
+            <TrendingUp className="w-4 h-4 text-emerald-500" />
+            <span className="text-2xl font-bold text-emerald-600">
               {total > 0 ? Math.round(((total - pending) / total) * 100) : 0}%
             </span>
           </div>
@@ -191,7 +190,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   className,
   onActionRequest,
   isUserInActiveProcess,
-  suggestionsDict, // ✅ 3. קבלת ה-props הנפרדים
+  suggestionsDict,
   profileCardDict,
 }) => {
   const [selectedSuggestion, setSelectedSuggestion] =
@@ -281,7 +280,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           );
         });
         break;
-    case 'priority': { // ◀️ FIX: Wrapped case block in curly braces
+    case 'priority': {
         const priorityOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
         result.sort(
           (a, b) =>
@@ -368,7 +367,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                     }
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pr-12 text-right border-gray-200 focus:border-purple-300 focus:ring-purple-200 rounded-xl h-12"
+                    className="pr-12 text-right border-gray-200 focus:border-teal-300 focus:ring-teal-200 rounded-xl h-12"
                   />
                 </div>
                 <DropdownMenu>
@@ -376,7 +375,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-12 w-12 border-gray-200 hover:border-purple-300 hover:bg-purple-50 rounded-xl transition-colors"
+                      className="h-12 w-12 border-gray-200 hover:border-teal-300 hover:bg-teal-50 rounded-xl transition-colors"
                     >
                       <Filter className="h-5 w-5" />
                     </Button>
@@ -454,7 +453,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   value={sortOption}
                   onValueChange={(value) => setSortOption(value as SortOption)}
                 >
-                  <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-purple-300 rounded-xl">
+                  <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-teal-300 rounded-xl">
                     <SelectValue
                       placeholder={
                         suggestionsDict.list.controls.sortPlaceholder
@@ -497,7 +496,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   {searchQuery && (
                     <Badge
                       variant="outline"
-                      className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200"
+                      className="flex items-center gap-1 bg-teal-50 text-teal-700 border-teal-200"
                     >
                       {suggestionsDict.list.activeFilters.search} {searchQuery}
                       <Button
@@ -513,7 +512,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   {filterOption !== 'all' && (
                     <Badge
                       variant="outline"
-                      className="flex items-center gap-1 bg-pink-50 text-pink-700 border-pink-200"
+                      className="flex items-center gap-1 bg-orange-50 text-orange-700 border-orange-200"
                     >
                       {filterOption === 'pending' &&
                         suggestionsDict.list.controls.filterPending}
@@ -559,7 +558,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           </span>
           {filteredSuggestions.length > 0 && (
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-purple-500" />
+              <Sparkles className="w-4 h-4 text-rose-500" />
               <span className="font-medium">
                 {suggestionsDict.list.resultsCount.qualityMatches}
               </span>
@@ -624,7 +623,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         questionnaire={
           selectedSuggestion?.secondParty?.questionnaireResponses?.[0] || null
         }
-        // ✅ 4. העברת שני ה-props ליעד הסופי
         dict={{
           suggestions: suggestionsDict,
           profileCard: profileCardDict,

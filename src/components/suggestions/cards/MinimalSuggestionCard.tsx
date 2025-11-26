@@ -1,18 +1,15 @@
-// src/app/components/suggestions/cards/MinimalSuggestionCard.tsx
+// src/components/suggestions/cards/MinimalSuggestionCard.tsx
+
 import React from 'react';
 import Image from 'next/image';
-import { isAfter, subDays } from 'date-fns';
+import { subDays } from 'date-fns';
 import {
   User,
-  MapPin,
-  Briefcase,
   Eye,
   XCircle,
   ChevronRight,
   MessageCircle,
   Heart,
-  BookOpen,
-  Scroll,
   AlertTriangle,
   Sparkles,
   ChevronLeft,
@@ -123,22 +120,25 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
     <Card
       className={cn(
         'group w-full rounded-2xl overflow-hidden shadow-lg border-0 bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-1',
-        isUrgent && 'ring-2 ring-orange-300 ring-opacity-60',
+        // Urgent Ring: Orange (Action)
+        isUrgent && 'ring-2 ring-orange-400 ring-opacity-60',
         className
       )}
     >
-      <div className="relative p-4 bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-cyan-100/50">
+      {/* Header Gradient: Teal -> White -> Orange */}
+      <div className="relative p-4 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-b border-teal-100/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10 border-2 border-white shadow-md">
-              <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white font-bold text-sm">
+              {/* Avatar: Teal (Professional/Knowledge) */}
+              <AvatarFallback className="bg-gradient-to-br from-teal-500 to-teal-600 text-white font-bold text-sm">
                 {getInitials(
                   `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
                 )}
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-xs text-cyan-600 font-medium">
+              <p className="text-xs text-teal-600 font-medium">
                 {dict.suggestedBy}
               </p>
               <p className="text-sm font-bold text-gray-800">
@@ -181,6 +181,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
         </div>
         {isUrgent && (
           <div className="absolute top-2 left-2">
+            {/* Urgent Badge: Orange/Red */}
             <Badge className="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg animate-pulse">
               <AlertTriangle className="w-3 h-3" />
               <span className="font-semibold text-xs">{dict.urgent}</span>
@@ -188,6 +189,8 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
           </div>
         )}
       </div>
+
+      {/* Image Section */}
       <button
         type="button"
         onClick={handleCardClick}
@@ -195,7 +198,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
           '{{name}}',
           targetParty.firstName
         )}
-        className="block w-full text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+        className="block w-full text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
       >
         <div className="relative h-64">
           {mainImage?.url ? (
@@ -231,6 +234,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
           </div>
         </div>
       </button>
+
       <div onClick={handleCardClick} className="cursor-pointer">
         <CardContent className="p-5 space-y-4">
           {statusInfo.description && (
@@ -243,23 +247,27 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
               </div>
             </div>
           )}
+
           <div className="grid grid-cols-2 gap-3">
-            {/* Grid content remains the same */}
+            {/* Note: Assuming children or specific grid content was here in original, keeping layout structure */}
           </div>
-          <div className="relative p-4 bg-gradient-to-r from-cyan-50/50 to-blue-50/50 border border-cyan-100/50 rounded-xl">
+
+          {/* "Why Special" / Teaser Box - Changed to Orange/Amber (Personal/Warmth) */}
+          <div className="relative p-4 bg-gradient-to-r from-orange-50/50 to-amber-50/50 border border-orange-100/50 rounded-xl">
             <div className="flex items-start gap-3">
-              <Quote className="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0" />
+              <Quote className="w-4 h-4 text-orange-500 mt-1 flex-shrink-0" />
               <div className="flex-1">
-                <h4 className="text-sm font-bold text-cyan-800 mb-1">
+                <h4 className="text-sm font-bold text-orange-800 mb-1">
                   {dict.whySpecial}
                 </h4>
-                <p className="text-sm text-cyan-700 leading-relaxed">
+                <p className="text-sm text-orange-900/80 leading-relaxed">
                   {reasonTeaser}
                 </p>
               </div>
             </div>
-            <div className="absolute top-0 right-0 w-6 h-6 bg-gradient-to-br from-cyan-200/50 to-blue-200/50 rounded-bl-xl"></div>
+            <div className="absolute top-0 right-0 w-6 h-6 bg-gradient-to-br from-orange-200/50 to-amber-200/50 rounded-bl-xl"></div>
           </div>
+
           <div className="text-center py-2">
             <p className="text-xs text-gray-500 font-medium">
               {dict.clickForDetails}
@@ -267,15 +275,17 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
           </div>
         </CardContent>
       </div>
+
       {!isHistory && (
         <CardFooter className="p-4 bg-gradient-to-r from-gray-50/50 to-slate-50/50 border-t border-gray-100">
           {(suggestion.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
           (suggestion.status === 'PENDING_SECOND_PARTY' && !isFirstParty) ? (
             <div className="grid grid-cols-2 gap-3 w-full">
+              {/* Decline: Rose (Pink/Red) */}
               <Button
                 size="sm"
                 variant="outline"
-                className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 rounded-xl font-medium transition-all duration-300"
+                className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 rounded-xl font-medium transition-all duration-300"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDecline?.(suggestion);
@@ -286,14 +296,16 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 />
                 {dict.buttons.decline}
               </Button>
+
               <TooltipProvider>
                 <Tooltip delayDuration={100}>
                   <TooltipTrigger asChild>
                     <div className="w-full">
+                      {/* Approve: Teal -> Emerald */}
                       <Button
                         size="sm"
                         variant="default"
-                        className="w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
+                        className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
                         disabled={isApprovalDisabled}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -326,10 +338,11 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 w-full">
+              {/* Ask Matchmaker: Teal accent */}
               <Button
                 size="sm"
                 variant="outline"
-                className="w-full border-gray-200 hover:bg-cyan-50 hover:border-cyan-200 rounded-xl font-medium transition-all duration-300"
+                className="w-full border-gray-200 hover:bg-teal-50 hover:border-teal-200 text-gray-700 hover:text-teal-700 rounded-xl font-medium transition-all duration-300"
                 onClick={(e) => {
                   e.stopPropagation();
                   onInquiry?.(suggestion);
@@ -340,11 +353,12 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 />
                 {dict.buttons.askMatchmaker}
               </Button>
-              {/* 🎨 שינוי כאן: כפתור דינמי לכיווניות */}
+
+              {/* View Details: Teal Gradient */}
               <Button
                 size="sm"
                 variant="default"
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
+                className="w-full bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
                 onClick={() => onClick(suggestion)}
               >
                 <Eye

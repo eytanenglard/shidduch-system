@@ -91,26 +91,27 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
     },
   };
 
+  // Updated Icons Palette to match Hero (Teal, Orange, Rose, Amber)
   const faqIcons = [
     {
       icon: <Sparkles className="w-5 h-5" />,
-      color: 'from-amber-500 to-orange-500',
+      color: 'from-amber-400 to-orange-500', // Energy/Warmth
     },
     {
       icon: <Users className="w-5 h-5" />,
-      color: 'from-purple-500 to-indigo-500',
+      color: 'from-teal-400 to-emerald-500', // Tech/Growth
     },
     {
       icon: <Shield className="w-5 h-5" />,
-      color: 'from-cyan-500 to-blue-500',
+      color: 'from-orange-400 to-rose-500', // Security/Protection (Warm)
     },
     {
       icon: <FileText className="w-5 h-5" />,
-      color: 'from-pink-500 to-rose-500',
+      color: 'from-rose-400 to-pink-500', // Content/Heart
     },
     {
       icon: <Clock className="w-5 h-5" />,
-      color: 'from-emerald-500 to-teal-500',
+      color: 'from-teal-500 to-cyan-500', // Time/Efficiency
     },
   ];
 
@@ -118,22 +119,24 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
     <motion.section
       ref={ref}
       id="faq"
-      className="py-16 md:py-20 px-4 bg-gradient-to-br from-slate-50 via-white to-cyan-50/30 relative overflow-hidden"
+      // Updated Background: Slate -> Teal hint -> Orange hint
+      className="py-16 md:py-20 px-4 bg-gradient-to-br from-slate-50 via-white to-orange-50/20 relative overflow-hidden"
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-cyan-200/30 to-blue-300/20 rounded-full blur-3xl animate-float-slow"></div>
+        {/* Updated Orbs colors */}
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-emerald-300/20 rounded-full blur-3xl animate-float-slow"></div>
         <div
-          className="absolute top-60 right-20 w-40 h-40 bg-gradient-to-br from-purple-200/25 to-pink-300/15 rounded-full blur-3xl animate-float-slow"
+          className="absolute top-60 right-20 w-40 h-40 bg-gradient-to-br from-orange-200/25 to-amber-300/15 rounded-full blur-3xl animate-float-slow"
           style={{ animationDelay: '2s' }}
         ></div>
         <div
-          className="absolute bottom-40 left-1/3 w-36 h-36 bg-gradient-to-br from-emerald-200/20 to-teal-300/15 rounded-full blur-3xl animate-float-slow"
+          className="absolute bottom-40 left-1/3 w-36 h-36 bg-gradient-to-br from-rose-200/20 to-pink-300/15 rounded-full blur-3xl animate-float-slow"
           style={{ animationDelay: '4s' }}
         ></div>
-        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:30px_30px]"></div>
+        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:30px_30px]"></div>
 
         <svg
           className="absolute inset-0 w-full h-full"
@@ -142,8 +145,8 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
         >
           <defs>
             <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.05" />
+              <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.08" /> {/* Teal */}
+              <stop offset="100%" stopColor="#f97316" stopOpacity="0.05" /> {/* Orange */}
             </linearGradient>
           </defs>
           <path
@@ -163,24 +166,26 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
       <div className="max-w-4xl mx-auto relative">
         <motion.div className="text-center mb-16" variants={headerVariants}>
           <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-8 py-4 shadow-lg border border-white/60 mb-8">
-            <HelpCircle className="w-6 h-6 text-cyan-600" />
-            <span className="text-cyan-700 font-semibold text-lg">
+            <HelpCircle className="w-6 h-6 text-teal-600" />
+            <span className="text-teal-700 font-semibold text-lg">
               {dict.header}
             </span>
           </div>
 
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800 mb-6 leading-tight">
             {dict.title_part1}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-purple-600">
+            {/* Updated Title Gradient */}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500">
               {' '}
               {dict.title_highlight}
             </span>
           </h2>
 
+          {/* Updated Divider Lines */}
           <div className="flex items-center justify-center gap-2 mb-8">
-            <div className="w-16 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full"></div>
-            <div className="w-3 h-3 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full"></div>
-            <div className="w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+            <div className="w-16 h-1 bg-gradient-to-r from-teal-400 to-orange-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-gradient-to-r from-orange-400 to-rose-500 rounded-full"></div>
+            <div className="w-16 h-1 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full"></div>
           </div>
 
           <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
@@ -201,7 +206,7 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
                   transition={{ duration: 0.2 }}
                   className="group"
                 >
-                  <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100/80 hover:border-gray-200 transition-all duration-300 hover:shadow-lg overflow-hidden">
+                  <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100/80 hover:border-teal-200 transition-all duration-300 hover:shadow-lg overflow-hidden">
                     <div className="relative">
                       <div
                         className={`h-1 bg-gradient-to-r ${faqIcons[index % faqIcons.length].color} opacity-60 group-hover:opacity-100 transition-opacity duration-300`}
@@ -239,11 +244,13 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
           className="relative text-center"
           variants={contactBlockVariants}
         >
-          <div className="absolute inset-0 -m-8 bg-gradient-to-br from-cyan-500/10 via-purple-500/5 to-pink-500/10 rounded-3xl backdrop-blur-sm border border-white/30"></div>
+          {/* Updated Contact Block Background */}
+          <div className="absolute inset-0 -m-8 bg-gradient-to-br from-teal-500/10 via-orange-500/5 to-rose-500/10 rounded-3xl backdrop-blur-sm border border-white/30"></div>
 
           <div className="relative max-w-2xl mx-auto p-12">
             <motion.div
-              className="inline-block mb-6 p-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full shadow-xl"
+              // Updated Icon Background
+              className="inline-block mb-6 p-4 bg-gradient-to-r from-teal-500 to-orange-600 rounded-full shadow-xl"
               whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
               transition={{ duration: 0.6 }}
             >
@@ -252,7 +259,7 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
 
             <h3 className="text-3xl font-bold text-gray-800 mb-4">
               {dict.contact_block.title_part1}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-purple-600">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
                 {' '}
                 {dict.contact_block.title_highlight}
               </span>
@@ -263,7 +270,6 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              {/* ▼▼▼ כאן השינוי ▼▼▼ */}
               <Link href={`/${locale}/contact`}>
                 <motion.div
                   whileHover={{ scale: 1.05, y: -2 }}
@@ -271,7 +277,8 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
                 >
                   <Button
                     size="lg"
-                    className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-8 py-4 text-lg font-semibold group"
+                    // Updated Button Gradient
+                    className="bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-8 py-4 text-lg font-semibold group"
                   >
                     <span className="flex items-center gap-3">
                       {dict.contact_block.button}
@@ -284,7 +291,6 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
                   </Button>
                 </motion.div>
               </Link>
-              {/* ▲▲▲ כאן השינוי ▲▲▲ */}
 
               <div className="flex items-center gap-3 text-gray-600">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -297,7 +303,7 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
         </motion.div>
       </div>
 
-      <style >{`
+      <style>{`
         @keyframes float-slow {
           0%,
           100% {

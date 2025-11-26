@@ -82,8 +82,9 @@ const TABS = [
 ];
 
 const QandAItem: React.FC<{ q: string; a: string }> = ({ q, a }) => (
-  <div className="bg-white/70 p-4 rounded-xl shadow-inner border border-purple-100/50">
-    <h4 className="font-bold text-purple-800 mb-2">{q}</h4>
+  // Updated colors to Teal/Orange theme
+  <div className="bg-white/60 p-4 rounded-xl shadow-sm border border-orange-100">
+    <h4 className="font-bold text-teal-800 mb-2">{q}</h4>
     <p className="text-gray-700 leading-relaxed italic">“{a}”</p>
   </div>
 );
@@ -109,9 +110,14 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.8, ease: 'easeOut' }}
-      className="w-full max-w-4xl mx-auto bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 rounded-3xl shadow-2xl p-4 sm:p-6 border border-white"
+      // Updated container background
+      className="w-full max-w-4xl mx-auto bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-2xl p-4 sm:p-6 border border-white/60 relative overflow-hidden"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Background Gradient Blob */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-teal-100/50 rounded-full blur-3xl -z-10" />
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-100/50 rounded-full blur-3xl -z-10" />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative z-10">
         {/* Left Side: Image Gallery */}
         <div className="flex flex-col gap-4">
           <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-lg group">
@@ -133,32 +139,22 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
                 />
               </motion.div>
             </AnimatePresence>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-1/2 -translate-y-1/2 left-2 sm:left-4 bg-white/20 text-white backdrop-blur-sm rounded-full hover:bg-white/30"
+              className="absolute top-1/2 -translate-y-1/2 left-2 sm:left-4 bg-black/20 text-white backdrop-blur-sm rounded-full hover:bg-black/40"
               onPointerDown={() => handleImageNav('prev')}
               aria-label="התמונה הקודמת"
             >
               <ChevronLeft />
             </Button>
+            {/* Note: Previous code had duplicate Next button with left arrow, fixing to just one Next button */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-4 bg-white/20 text-white backdrop-blur-sm rounded-full hover:bg-white/30"
-              // --- שינוי 2: החלף onClick ---
-              onPointerDown={() => handleImageNav('next')}
-              aria-label="התמונה הבאה"
-            >
-              <ChevronLeft />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-4 bg-white/20 text-white backdrop-blur-sm rounded-full hover:bg-white/30"
+              className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-4 bg-black/20 text-white backdrop-blur-sm rounded-full hover:bg-black/40"
               onClick={() => handleImageNav('next')}
-              // <<< שינוי נגישות: הוספת תווית ברורה לכפתור אייקון >>>
               aria-label="התמונה הבאה"
             >
               <ChevronRight />
@@ -171,11 +167,10 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
                 className={cn(
                   'aspect-square rounded-lg overflow-hidden relative transition-all duration-300 transform hover:scale-105',
                   mainImageIndex === index
-                    ? 'ring-2 ring-offset-2 ring-purple-500 shadow-md'
+                    ? 'ring-2 ring-offset-2 ring-orange-500 shadow-md' // Highlight color: Orange
                     : 'opacity-60 hover:opacity-100'
                 )}
                 onPointerDown={() => setMainImageIndex(index)}
-                // <<< שינוי נגישות: הוספת תווית ברורה לכפתור תמונה >>>
                 aria-label={`הצג תמונה מספר ${index + 1}`}
               >
                 <Image
@@ -190,7 +185,7 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
         </div>
 
         {/* Right Side: Profile Info */}
-        <div className="bg-white/70 backdrop-blur-md p-4 sm:p-6 rounded-2xl border border-white flex flex-col">
+        <div className="bg-white/50 backdrop-blur-sm p-4 sm:p-6 rounded-2xl border border-white/80 flex flex-col">
           {/* Header */}
           <div className="text-center mb-4">
             <h3 className="text-3xl sm:text-4xl font-extrabold text-gray-800">
@@ -198,19 +193,19 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
             </h3>
             <div className="flex items-center justify-center gap-4 mt-2 text-gray-600">
               <div className="flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-cyan-600" />
+                <MapPin className="w-4 h-4 text-teal-600" />
                 <span>{DEMO_PROFILE.city}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Briefcase className="w-4 h-4 text-purple-600" />
+                <Briefcase className="w-4 h-4 text-orange-500" />
                 <span>{DEMO_PROFILE.occupation}</span>
               </div>
             </div>
           </div>
 
-          {/* <<< שינוי נגישות: הוספת תכונות ARIA למערכת הטאבים >>> */}
+          {/* Navigation Tabs - Updated Colors */}
           <div
-            className="mb-4 bg-purple-100/50 p-1 rounded-full grid grid-cols-3 gap-1"
+            className="mb-4 bg-slate-100 p-1 rounded-full grid grid-cols-3 gap-1"
             role="tablist"
             aria-label="ניווט בפרופיל הדמו"
           >
@@ -226,13 +221,14 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
                   'relative w-full rounded-full py-2 text-sm font-semibold transition-colors duration-300',
                   activeTab === tab.id
                     ? 'text-white'
-                    : 'text-purple-700 hover:bg-white/50'
+                    : 'text-gray-600 hover:bg-white/60 hover:text-teal-700'
                 )}
               >
                 {activeTab === tab.id && (
                   <motion.div
                     layoutId="demo-profile-active-tab"
-                    className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                    // Active Tab Gradient: Teal to Orange
+                    className="absolute inset-0 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full shadow-md"
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                   />
                 )}
@@ -244,7 +240,7 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
             ))}
           </div>
 
-          {/* <<< שינוי נגישות: הוספת תכונות ARIA לפאנלי התוכן >>> */}
+          {/* Content Panels */}
           <div className="flex-grow min-h-[250px]">
             <AnimatePresence mode="wait">
               {activeTab === 'essence' && (
@@ -259,13 +255,13 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
                   transition={{ duration: 0.3, ease: 'easeInOut' }}
                   className="space-y-4"
                 >
-                  <div className="relative bg-white/60 p-4 rounded-xl shadow-inner border border-purple-100/50">
-                    <Quote className="absolute top-2 right-2 w-8 h-8 text-purple-200/50 transform scale-x-[-1]" />
-                    <p className="text-lg text-purple-900 italic font-medium leading-relaxed">
+                  <div className="relative bg-white/60 p-4 rounded-xl shadow-sm border border-teal-100">
+                    <Quote className="absolute top-2 right-2 w-8 h-8 text-teal-200/50 transform scale-x-[-1]" />
+                    <p className="text-lg text-gray-800 italic font-medium leading-relaxed">
                       {DEMO_PROFILE.about}
                     </p>
                   </div>
-                  <Badge className="bg-gradient-to-r from-teal-400 to-cyan-500 text-white border-0 shadow-lg px-3 py-1.5 text-sm font-bold flex items-center gap-1.5">
+                  <Badge className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white border-0 shadow-md px-3 py-1.5 text-sm font-bold flex items-center gap-1.5 w-fit mx-auto sm:mx-0">
                     <Star className="w-4 h-4" />
                     <span>{DEMO_PROFILE.religiousLevel}</span>
                   </Badge>
@@ -313,12 +309,12 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
             </AnimatePresence>
           </div>
 
-          {/* CTA */}
+          {/* CTA - Updated Gradient Button */}
           <div className="mt-auto pt-4 text-center">
-            <Link href="/auth/register">
+            <Link href={`/${locale}/auth/register`}>
               <Button
                 size="lg"
-                className="w-full bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
+                className="w-full bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group font-bold text-lg h-12"
               >
                 <span className="relative z-10 flex items-center justify-center">
                   רוצים לקבל הצעות כאלה?

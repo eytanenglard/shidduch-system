@@ -43,7 +43,7 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// Custom Components from Old File
+// Custom Components
 import PhoneNumberInput from '../PhoneNumberInput';
 import ConsentCheckbox from '../ConsentCheckbox';
 import SubmissionStatusIndicator, {
@@ -77,7 +77,7 @@ const itemVariants = {
   },
 };
 
-// Helper Component: Field Wrapper (New Design Style)
+// Helper Component: Field Wrapper
 interface FieldWrapperProps {
   children: React.ReactNode;
   icon: React.ReactNode;
@@ -95,7 +95,8 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
     <div
       className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 z-10 pointer-events-none ${
         hasValue
-          ? 'text-cyan-500 scale-110'
+          // UPDATED: Active Icon Color (Teal)
+          ? 'text-teal-500 scale-110'
           : 'text-gray-400 group-hover:text-gray-500'
       }`}
     >
@@ -105,7 +106,7 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
   </div>
 );
 
-// Helper Component: Section Header (New Design Style)
+// Helper Component: Section Header
 interface SectionHeaderProps {
   icon: React.ReactNode;
   title: string;
@@ -157,12 +158,11 @@ export default function PersonalDetailsStep({
   consentDict,
   locale,
 }: PersonalDetailsStepProps) {
-  // --- LOGIC FROM OLD FILE STARTS HERE ---
   const { data: registrationState, updateField, prevStep } = useRegistration();
   const { data: session } = useSession();
   const router = useRouter();
 
-  // States for validation errors
+  // States
   const [firstNameError, setFirstNameError] = useState('');
   const [lastNameError, setLastNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
@@ -192,7 +192,6 @@ export default function PersonalDetailsStep({
 
   const isRTL = locale === 'he';
 
-  // Create options array for Religious Level from dictionary
   const religiousLevelOptions = useMemo(() => {
     return Object.entries(personalDetailsDict.religiousLevels).map(
       ([value, label]) => ({
@@ -206,7 +205,7 @@ export default function PersonalDetailsStep({
     router.prefetch(`/${locale}/auth/verify-phone`);
   }, [router, locale]);
 
-  // Validation Functions
+  // Validation Functions (Same as before)
   const validateFirstName = (name: string) => {
     if (!name.trim()) {
       setFirstNameError(personalDetailsDict.errors.firstNameRequired);
@@ -311,7 +310,6 @@ export default function PersonalDetailsStep({
     setSubmissionStatus('savingProfile');
 
     try {
-      // Update terms acceptance if needed
       if (!userHasAlreadyConsented) {
         const consentResponse = await fetch('/api/user/accept-terms', {
           method: 'POST',
@@ -384,9 +382,6 @@ export default function PersonalDetailsStep({
           : 'Redirecting to verification...',
     },
   ];
-  // --- LOGIC FROM OLD FILE ENDS HERE ---
-
-  // --- DESIGN FROM NEW FILE (With Old Fields) STARTS HERE ---
 
   return (
     <>
@@ -408,17 +403,17 @@ export default function PersonalDetailsStep({
         animate="visible"
         className="space-y-8"
       >
-        {/* Welcome Message */}
+        {/* UPDATED: Welcome Message Box (Teal/Orange/Rose gradient background) */}
         <motion.div
           variants={itemVariants}
-          className="text-center p-4 bg-gradient-to-r from-cyan-50 via-purple-50 to-pink-50 rounded-2xl border border-cyan-100"
+          className="text-center p-4 bg-gradient-to-r from-teal-50 via-orange-50 to-rose-50 rounded-2xl border border-teal-100"
         >
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Sparkles className="w-5 h-5 text-cyan-500" />
+            <Sparkles className="w-5 h-5 text-teal-500" />
             <h2 className="text-lg font-bold text-gray-800">
               {personalDetailsDict.title}
             </h2>
-            <Heart className="w-5 h-5 text-pink-500" />
+            <Heart className="w-5 h-5 text-rose-500" />
           </div>
           <p className="text-sm text-gray-600 leading-relaxed">
             {personalDetailsDict.subtitle}
@@ -451,10 +446,11 @@ export default function PersonalDetailsStep({
         <div className="space-y-8">
           {/* --- PERSONAL DETAILS SECTION --- */}
           <div className="space-y-5">
+            {/* UPDATED: Section Header Gradient (Teal -> Emerald) */}
             <SectionHeader
               icon={<User className="w-5 h-5" />}
-              title={personalDetailsDict.title} // Or hardcoded "Personal Details" if preferred
-              gradient="from-cyan-400 to-blue-500"
+              title={personalDetailsDict.title}
+              gradient="from-teal-400 to-emerald-500"
             />
 
             {/* First Name */}
@@ -478,11 +474,12 @@ export default function PersonalDetailsStep({
                   placeholder={personalDetailsDict.firstNamePlaceholder}
                   required
                   disabled={isLoading}
+                  // UPDATED: Focus Ring (Teal)
                   className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
                     firstNameError
                       ? 'border-red-300 focus:border-red-400'
-                      : 'border-gray-200 focus:border-cyan-400'
-                  } focus:ring-2 focus:ring-cyan-200`}
+                      : 'border-gray-200 focus:border-teal-400'
+                  } focus:ring-2 focus:ring-teal-200`}
                   dir={isRTL ? 'rtl' : 'ltr'}
                 />
               </FieldWrapper>
@@ -514,11 +511,12 @@ export default function PersonalDetailsStep({
                   placeholder={personalDetailsDict.lastNamePlaceholder}
                   required
                   disabled={isLoading}
+                  // UPDATED: Focus Ring (Teal)
                   className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
                     lastNameError
                       ? 'border-red-300 focus:border-red-400'
-                      : 'border-gray-200 focus:border-cyan-400'
-                  } focus:ring-2 focus:ring-cyan-200`}
+                      : 'border-gray-200 focus:border-teal-400'
+                  } focus:ring-2 focus:ring-teal-200`}
                   dir={isRTL ? 'rtl' : 'ltr'}
                 />
               </FieldWrapper>
@@ -528,6 +526,7 @@ export default function PersonalDetailsStep({
                 </p>
               )}
             </motion.div>
+
             {/* Language Selection */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label className="text-sm font-semibold text-gray-700 flex items-center">
@@ -546,7 +545,7 @@ export default function PersonalDetailsStep({
                   }
                   disabled={isLoading}
                 >
-                  <SelectTrigger className="w-full pr-11 pl-3 py-3 h-auto border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200">
+                  <SelectTrigger className="w-full pr-11 pl-3 py-3 h-auto border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200">
                     <SelectValue
                       placeholder={personalDetailsDict.languagePlaceholder}
                     />
@@ -558,13 +557,13 @@ export default function PersonalDetailsStep({
                 </Select>
               </FieldWrapper>
             </motion.div>
-            {/* Phone (Custom Component wrapped to match style) */}
+
+            {/* Phone */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label className="text-sm font-semibold text-gray-700 flex items-center">
                 {personalDetailsDict.phoneLabel}{' '}
                 <span className="text-red-500 mr-1">*</span>
               </Label>
-              {/* Note: PhoneNumberInput has its own style, but we try to blend it */}
               <div
                 className={`rounded-xl ${phoneError ? 'ring-2 ring-red-300' : ''}`}
               >
@@ -578,13 +577,14 @@ export default function PersonalDetailsStep({
               </div>
             </motion.div>
 
-            {/* Gender */}
+            {/* Gender Selection */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label className="text-sm font-semibold text-gray-700 flex items-center">
                 {personalDetailsDict.genderLabel}{' '}
                 <span className="text-red-500 mr-1">*</span>
               </Label>
               <div className="grid grid-cols-2 gap-4">
+                {/* Male Button - UPDATED: Teal Theme */}
                 <Button
                   type="button"
                   onClick={() => updateField('gender', Gender.MALE)}
@@ -592,13 +592,15 @@ export default function PersonalDetailsStep({
                   disabled={isLoading}
                   className={`py-6 rounded-xl border-2 transition-all ${
                     registrationState.gender === Gender.MALE
-                      ? 'bg-blue-50 border-blue-400 text-blue-700 ring-2 ring-blue-200'
-                      : 'border-gray-200 hover:border-blue-200 text-gray-600'
+                      ? 'bg-teal-50 border-teal-400 text-teal-700 ring-2 ring-teal-200'
+                      : 'border-gray-200 hover:border-teal-200 text-gray-600'
                   }`}
                 >
                   <span className="text-xl mr-2">👨</span>{' '}
                   {personalDetailsDict.male}
                 </Button>
+                
+                {/* Female Button - UPDATED: Rose Theme */}
                 <Button
                   type="button"
                   onClick={() => updateField('gender', Gender.FEMALE)}
@@ -606,8 +608,8 @@ export default function PersonalDetailsStep({
                   disabled={isLoading}
                   className={`py-6 rounded-xl border-2 transition-all ${
                     registrationState.gender === Gender.FEMALE
-                      ? 'bg-pink-50 border-pink-400 text-pink-700 ring-2 ring-pink-200'
-                      : 'border-gray-200 hover:border-pink-200 text-gray-600'
+                      ? 'bg-rose-50 border-rose-400 text-rose-700 ring-2 ring-rose-200'
+                      : 'border-gray-200 hover:border-rose-200 text-gray-600'
                   }`}
                 >
                   <span className="text-xl mr-2">👩</span>{' '}
@@ -639,11 +641,12 @@ export default function PersonalDetailsStep({
                     onBlur={(e) => validateAge(e.target.value)}
                     required
                     disabled={isLoading}
+                    // UPDATED: Focus Ring (Teal)
                     className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
                       ageError
                         ? 'border-red-300 focus:border-red-400'
-                        : 'border-gray-200 focus:border-cyan-400'
-                    } focus:ring-2 focus:ring-cyan-200`}
+                        : 'border-gray-200 focus:border-teal-400'
+                    } focus:ring-2 focus:ring-teal-200`}
                   />
                 </FieldWrapper>
                 {ageError && (
@@ -653,7 +656,7 @@ export default function PersonalDetailsStep({
                 )}
               </motion.div>
 
-              {/* Marital Status (Using native select styled as new input) */}
+              {/* Marital Status */}
               <motion.div variants={itemVariants} className="space-y-2">
                 <Label
                   htmlFor="maritalStatusPersonal"
@@ -674,7 +677,8 @@ export default function PersonalDetailsStep({
                     }
                     required
                     disabled={isLoading}
-                    className="w-full pr-11 pl-3 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200 appearance-none text-gray-900"
+                    // UPDATED: Focus Ring (Teal)
+                    className="w-full pr-11 pl-3 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200 appearance-none text-gray-900"
                   >
                     <option value="" disabled>
                       {personalDetailsDict.maritalStatusPlaceholder}
@@ -708,11 +712,12 @@ export default function PersonalDetailsStep({
 
           {/* --- OPTIONAL INFO SECTION --- */}
           <div className="space-y-5">
+            {/* UPDATED: Section Header Gradient (Orange -> Amber) */}
             <SectionHeader
               icon={<Sparkles className="w-5 h-5" />}
               title={optionalInfoDict.title}
               subtitle={optionalInfoDict.subtitle}
-              gradient="from-purple-400 to-pink-500"
+              gradient="from-orange-400 to-amber-500"
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -744,7 +749,8 @@ export default function PersonalDetailsStep({
                     }
                     placeholder={optionalInfoDict.heightPlaceholder}
                     disabled={isLoading}
-                    className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-200"
+                    // UPDATED: Focus Ring (Orange)
+                    className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
                   />
                 </FieldWrapper>
               </motion.div>
@@ -768,7 +774,8 @@ export default function PersonalDetailsStep({
                     onChange={(e) => updateField('occupation', e.target.value)}
                     placeholder={optionalInfoDict.occupationPlaceholder}
                     disabled={isLoading}
-                    className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-200"
+                    // UPDATED: Focus Ring (Orange)
+                    className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
                   />
                 </FieldWrapper>
               </motion.div>
@@ -793,12 +800,13 @@ export default function PersonalDetailsStep({
                   onChange={(e) => updateField('education', e.target.value)}
                   placeholder={optionalInfoDict.educationPlaceholder}
                   disabled={isLoading}
-                  className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-200"
+                  // UPDATED: Focus Ring (Orange)
+                  className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
                 />
               </FieldWrapper>
             </motion.div>
 
-            {/* Religious Level (Using Shadcn Select as in old file, styled as new) */}
+            {/* Religious Level */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label className="text-sm font-semibold text-gray-700 flex items-center">
                 {personalDetailsDict.religiousLevelLabel}{' '}
@@ -818,10 +826,11 @@ export default function PersonalDetailsStep({
                   disabled={isLoading}
                 >
                   <SelectTrigger
+                    // UPDATED: Focus Ring (Orange)
                     className={`w-full pr-11 pl-3 py-3 h-auto border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
                       religiousLevelError
                         ? 'border-red-300 focus:ring-red-200'
-                        : 'border-gray-200 hover:border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-200'
+                        : 'border-gray-200 hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200'
                     }`}
                   >
                     <SelectValue
@@ -849,12 +858,12 @@ export default function PersonalDetailsStep({
 
           {/* --- CONSENTS SECTION --- */}
           <motion.div variants={itemVariants} className="space-y-4">
-            {/* Terms Container Style */}
+            {/* UPDATED: Container Style (Warm Amber/Orange background) */}
             <div
               className={`p-4 rounded-2xl border-2 transition-all ${
                 consentError
                   ? 'border-red-300 bg-red-50'
-                  : 'border-gray-200 bg-gradient-to-r from-cyan-50/50 to-purple-50/50'
+                  : 'border-gray-200 bg-gradient-to-r from-amber-50/50 to-orange-50/50'
               }`}
             >
               <ConsentCheckbox
@@ -868,7 +877,7 @@ export default function PersonalDetailsStep({
               />
             </div>
 
-            {/* Marketing Consents (Styled) */}
+            {/* Marketing Consents */}
             <div className="space-y-3 px-2">
               {/* Engagement Consent */}
               <div className="flex items-start space-x-2 rtl:space-x-reverse">
@@ -880,7 +889,8 @@ export default function PersonalDetailsStep({
                     setEngagementConsent(isChecked);
                     if (isChecked) setEngagementConsentError(null);
                   }}
-                  className="mt-1 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
+                  // UPDATED: Checkbox Color (Teal)
+                  className="mt-1 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
                 />
                 <div className="grid gap-1.5 leading-none">
                   <label
@@ -906,7 +916,8 @@ export default function PersonalDetailsStep({
                   onCheckedChange={(checked) =>
                     setPromotionalConsent(checked as boolean)
                   }
-                  className="mt-1 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                  // UPDATED: Checkbox Color (Orange)
+                  className="mt-1 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
                 />
                 <div className="grid gap-1.5 leading-none">
                   <label
@@ -921,7 +932,7 @@ export default function PersonalDetailsStep({
 
             {/* Privacy Note */}
             <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 mt-2">
-              <Shield className="w-5 h-5 text-cyan-500 flex-shrink-0 mt-0.5" />
+              <Shield className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-gray-600 leading-relaxed">
                 {isRTL
                   ? 'הפרטים שלך מאובטחים ומוצפנים.'
@@ -947,9 +958,9 @@ export default function PersonalDetailsStep({
               type="button"
               onClick={handleSubmit}
               disabled={!isFormValid || isLoading}
-              className="flex-1 py-6 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-600 hover:via-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+              // UPDATED: Main Gradient (Teal -> Orange -> Amber)
+              className="flex-1 py-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {/* Shine effect */}
               {!isLoading && (
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
               )}

@@ -380,11 +380,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           transition={{ duration: 0.7, ease: 'easeOut' }}
           className="text-center"
         >
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 tracking-tight leading-tight">
+   <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 tracking-tight leading-tight">
             {dict.titleLine1}
             <br className="sm:hidden" />
-            {/* גרדיאנט כותרת חדש - Teal -> Orange -> Rose */}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-rose-600 animate-gradient mx-3">
+            {/* גרדיאנט כותרת מעודכן - תואם לכפתור (Teal -> Orange -> Amber) */}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient mx-3">
               {dict.highlightedWord}
             </span>
           </h1>

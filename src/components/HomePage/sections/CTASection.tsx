@@ -93,15 +93,18 @@ const CTASection: React.FC<CTAProps> = ({ dict, locale }) => {
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-pink-50/50 opacity-70"></div>
+      {/* Updated Background Overlay: Teal -> Orange/Rose mix */}
+      <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-orange-50/50 opacity-70"></div>
 
       <div className="max-w-4xl mx-auto text-center relative">
         <motion.div
-          className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-xl border border-cyan-100"
+          // Updated Border
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-xl border border-teal-100"
           variants={cardVariants}
         >
           <motion.div
-            className="inline-block mb-6 p-3 bg-cyan-100 rounded-full text-cyan-600"
+            // Updated Icon Colors
+            className="inline-block mb-6 p-3 bg-teal-100 rounded-full text-teal-600"
             variants={iconVariants}
             whileHover={{
               rotate: [0, -10, 10, 0],
@@ -116,7 +119,8 @@ const CTASection: React.FC<CTAProps> = ({ dict, locale }) => {
             variants={textVariants}
           >
             {dict.title_part1}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
+            {/* Updated Title Gradient */}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500">
               {' '}
               {dict.title_highlight}
             </span>
@@ -137,7 +141,8 @@ const CTASection: React.FC<CTAProps> = ({ dict, locale }) => {
               >
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group"
+                  // Updated Button Gradient to Match Hero
+                  className="bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group"
                 >
                   <span className="relative z-10 flex items-center">
                     {dict.button}

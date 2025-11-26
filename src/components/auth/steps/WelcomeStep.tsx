@@ -7,7 +7,7 @@ import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Heart, ArrowLeft, Mail, Loader2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { motion } from 'framer-motion'; // הוספת ספריית אנימציה
+import { motion } from 'framer-motion';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
 interface WelcomeStepProps {
@@ -23,7 +23,6 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
   const handleGoogleSignIn = async () => {
     try {
       setIsGoogleLoading(true);
-      // שמירת אינדיקציה שהתחלנו הרשמה
       localStorage.setItem('registration_started', 'true');
       await signIn('google', undefined, { hl: locale });
     } catch (error) {
@@ -36,7 +35,6 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
     nextStep();
   };
 
-  // וריאנטים לאנימציה
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -63,16 +61,18 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
       {/* --- Icon Header --- */}
       <motion.div variants={itemVariants} className="flex justify-center mb-6">
         <div className="relative">
-          {/* רקע זוהר מאחורי הלב */}
-          <div className="absolute inset-0 bg-pink-200 rounded-full blur-xl opacity-50 animate-pulse"></div>
+          {/* UPDATED: Glow Effect (Rose/Orange) */}
+          <div className="absolute inset-0 bg-rose-200/60 rounded-full blur-xl animate-pulse"></div>
           
-          <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-white to-pink-50 border border-pink-100 flex items-center justify-center shadow-xl transform rotate-3 transition-transform hover:rotate-6 duration-500">
-            <Heart className="h-10 w-10 text-pink-500 fill-pink-500 drop-shadow-sm" />
+          {/* UPDATED: Card Background (White/Rose/Orange) */}
+          <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-white to-rose-50 border border-rose-100 flex items-center justify-center shadow-xl transform rotate-3 transition-transform hover:rotate-6 duration-500">
+            {/* UPDATED: Icon Color (Rose to match the "Personal" principle) */}
+            <Heart className="h-10 w-10 text-rose-500 fill-rose-500 drop-shadow-sm" />
           </div>
           
-          {/* אלמנט קישוטי קטן */}
+          {/* UPDATED: Decorative Element (Teal - for contrast) */}
           <motion.div 
-            className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-lg font-bold shadow-lg border-2 border-white"
+            className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white text-lg font-bold shadow-lg border-2 border-white"
             animate={{ y: [0, -5, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           >
@@ -105,6 +105,7 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
             <Loader2 className="animate-spin h-5 w-5 text-gray-500" />
           ) : (
             <>
+              {/* Google SVG remains standard colors */}
               <svg className="h-6 w-6 flex-shrink-0 transition-transform group-hover:scale-110 duration-300" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -134,7 +135,8 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
         <Button
           onClick={handleEmailSignUp}
           size="lg"
-          className="w-full relative z-20 py-7 rounded-2xl bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 group overflow-hidden"
+          // UPDATED: Gradient (Teal -> Orange -> Amber)
+          className="w-full relative z-20 py-7 rounded-2xl bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 group overflow-hidden"
         >
           {/* Shine Effect */}
           <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></span>
@@ -156,16 +158,16 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
       >
         <p className="text-gray-500 text-sm">
           {dict.signInPrompt}{' '}
+          {/* UPDATED: Link Gradient (Teal -> Orange) */}
           <Link
             href="/auth/signin"
-            className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 hover:underline transition-all"
+            className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600 hover:from-teal-700 hover:to-orange-700 hover:underline transition-all"
           >
             {dict.signInLink}
           </Link>
         </p>
       </motion.div>
 
-      {/* CSS for shimmer animation if not in global CSS */}
       <style>{`
         @keyframes shimmer {
           100% { transform: translateX(100%); }

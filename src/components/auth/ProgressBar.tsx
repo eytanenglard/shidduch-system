@@ -8,20 +8,19 @@ interface ProgressBarProps {
   currentStep: number;
   totalSteps: number;
   stepLabel: string;
-  locale: 'he' | 'en'; // 1. הוספת Prop לקבלת השפה
+  locale: 'he' | 'en';
 }
 
 const ProgressBar: React.FC<ProgressBarProps> = ({
   currentStep,
   totalSteps,
   stepLabel,
-  locale, // 2. קבלת השפה מה-props
+  locale,
 }) => {
   const percentage = (currentStep / totalSteps) * 100;
   const steps = Array.from({ length: totalSteps }, (_, i) => i + 1);
 
   return (
-    // 3. הוספת המאפיין 'dir' כדי לקבוע את כיווניות הקומפוננטה
     <div className="w-full relative" dir={locale === 'he' ? 'rtl' : 'ltr'}>
       {/* Step labels */}
       <div className="flex justify-between mb-2">
@@ -39,9 +38,9 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
 
       {/* Progress bar track */}
       <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-        {/* Animated progress fill */}
+        {/* UPDATED: Animated progress fill (Teal -> Orange -> Amber) */}
         <motion.div
-          className="h-full bg-gradient-to-r from-cyan-500 to-pink-500"
+          className="h-full bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500"
           initial={{ width: `${((currentStep - 1) / totalSteps) * 100}%` }}
           animate={{ width: `${percentage}%` }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
@@ -56,7 +55,8 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
             className={`w-6 h-6 rounded-full flex items-center justify-center -mt-4 z-10 transition-all duration-300
               ${
                 step <= currentStep
-                  ? "bg-gradient-to-r from-cyan-500 to-pink-500 shadow-md text-white"
+                  // UPDATED: Marker Color
+                  ? "bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 shadow-md text-white"
                   : "bg-white border-2 border-gray-300 text-gray-500"
               }`}
             initial={{ scale: step === currentStep ? 0.8 : 1 }}

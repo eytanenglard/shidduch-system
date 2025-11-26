@@ -6,8 +6,8 @@ export interface StepProps {
   title: string;
   description: React.ReactNode;
   isLast?: boolean;
-  // עדכון הטיפוסים לצבעים החדשים
-  color: "teal" | "amber" | "rose" | "purple";
+  // עדכון: החלפתי את purple ב-orange כדי להתאים לקריאה מ-HowItWorksSection
+  color: "teal" | "amber" | "rose" | "orange";
 }
 
 // Modernized Step Component with enhanced visuals matching the Landing Page theme
@@ -43,13 +43,14 @@ const Step: React.FC<StepProps> = ({
       line: "from-rose-400 to-rose-200",
       bgBadge: "bg-rose-50",
     },
-    purple: {
-      gradient: "from-purple-400 to-indigo-500",
-      hover: "group-hover:text-purple-700",
-      border: "group-hover:border-purple-200",
-      shadow: "group-hover:shadow-purple-100",
-      line: "from-purple-400 to-purple-200",
-      bgBadge: "bg-purple-50",
+    // כאן הוספתי את orange במקום purple
+    orange: {
+      gradient: "from-orange-400 to-red-500",
+      hover: "group-hover:text-orange-700",
+      border: "group-hover:border-orange-200",
+      shadow: "group-hover:shadow-orange-100",
+      line: "from-orange-400 to-orange-200",
+      bgBadge: "bg-orange-50",
     },
   };
 

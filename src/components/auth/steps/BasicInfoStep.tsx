@@ -22,7 +22,6 @@ import { Input } from '@/components/ui/input';
 
 interface BasicInfoStepProps {
   dict: RegisterStepsDict['steps']['basicInfo'];
-  // הוספת השדה החסר לממשק כדי למנוע את השגיאה
   consentDict: RegisterStepsDict['consentCheckbox']; 
   locale: 'he' | 'en';
 }
@@ -37,7 +36,6 @@ const isValidPassword = (password: string): boolean => {
   return passwordRegex.test(password);
 };
 
-// הוספת consentDict לפרמטרים (גם אם לא משתמשים בו כרגע בתוך הקומפוננטה, זה פותר את שגיאת ה-TS)
 const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale }) => {
   const { data, updateField, prevStep, proceedToEmailVerification } = useRegistration();
   
@@ -72,7 +70,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
     setApiError(null);
 
     try {
-      // שליחת הנתונים ללא הסכמות (הן יתקבלו בשלב הבא)
       const response = await fetch(`/api/auth/register?locale=${locale}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -141,7 +138,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
               onChange={(e) => updateField('email', e.target.value)}
               onBlur={() => setEmailError(isValidEmail(data.email) ? '' : dict.errors.invalidEmail)}
               placeholder={dict.emailPlaceholder} disabled={isLoading} required
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${isLoading ? 'bg-gray-100' : ''} ${emailError ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'}`}
+              // UPDATED: Focus Ring (Cyan -> Teal)
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${isLoading ? 'bg-gray-100' : ''} ${emailError ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-teal-200 focus:border-teal-500'}`}
             />
           </div>
           {emailError && <p role="alert" className="text-red-500 text-xs mt-1">{emailError}</p>}
@@ -158,7 +156,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
               onChange={(e) => updateField('password', e.target.value)}
               onBlur={() => setPasswordError(isValidPassword(data.password) ? '' : dict.errors.invalidPassword)}
               placeholder={dict.passwordPlaceholder} disabled={isLoading} required
-              className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${isLoading ? 'bg-gray-100' : ''} ${passwordError ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'}`}
+              // UPDATED: Focus Ring (Cyan -> Teal)
+              className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${isLoading ? 'bg-gray-100' : ''} ${passwordError ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-teal-200 focus:border-teal-500'}`}
             />
             <button type="button" onClick={() => setPasswordVisible(!passwordVisible)} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700" aria-label={passwordVisible ? 'הסתר סיסמה' : 'הצג סיסמה'}>
               {passwordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -177,7 +176,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
               type="text" id="firstNameBasic" value={data.firstName}
               onChange={(e) => updateField('firstName', e.target.value)}
               placeholder={dict.firstNamePlaceholder} disabled={isLoading} required
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${isLoading ? 'bg-gray-100' : ''} border-gray-300 focus:ring-cyan-200 focus:border-cyan-500`}
+              // UPDATED: Focus Ring (Cyan -> Teal)
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${isLoading ? 'bg-gray-100' : ''} border-gray-300 focus:ring-teal-200 focus:border-teal-500`}
             />
           </div>
         </div>
@@ -192,7 +192,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
               type="text" id="lastNameBasic" value={data.lastName}
               onChange={(e) => updateField('lastName', e.target.value)}
               placeholder={dict.lastNamePlaceholder} disabled={isLoading} required
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${isLoading ? 'bg-gray-100' : ''} border-gray-300 focus:ring-cyan-200 focus:border-cyan-500`}
+              // UPDATED: Focus Ring (Cyan -> Teal)
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${isLoading ? 'bg-gray-100' : ''} border-gray-300 focus:ring-teal-200 focus:border-teal-500`}
             />
           </div>
         </div>
@@ -207,7 +208,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
           value={data.language}
           onChange={(e) => updateField('language', e.target.value as 'he' | 'en')}
           disabled={isLoading}
-          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none bg-white"
+          // UPDATED: Focus Ring (Cyan -> Teal)
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-500 focus:outline-none bg-white"
         >
           <option value="he">עברית</option>
           <option value="en">English</option>
@@ -222,9 +224,10 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale
           type="button"
           onClick={handleRegisterSubmit}
           disabled={!isFormValid || isLoading}
+          // UPDATED: Button Gradient (Teal -> Orange -> Amber)
           className={`w-full flex items-center gap-2 justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-opacity ${
             isFormValid && !isLoading
-              ? 'bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-md hover:shadow-lg'
+              ? 'bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-md hover:shadow-lg'
               : 'bg-gray-300 cursor-not-allowed'
           }`}
         >

@@ -34,44 +34,45 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
   imageSrc,
   contactButtonText,
 }) => {
+  // Mapping 'cyan' and 'green' props to the new Hero-based palette (Teal & Orange/Rose)
+  const isTealTheme = color === 'cyan'; // 'cyan' prop now maps to the Teal/Tech theme
+  
   const getGradientByColor = () => {
-    switch (color) {
-      case 'cyan':
-        return 'from-cyan-500 to-cyan-700';
-      case 'green':
-        return 'from-teal-500 to-teal-700';
-      default:
-        return 'from-cyan-500 to-cyan-700';
-    }
+    return isTealTheme
+      ? 'from-teal-500 to-emerald-600' // Teal theme
+      : 'from-orange-500 to-rose-500'; // Orange/Warm theme
   };
 
-  const getButtonColorByColor = () => {
-    switch (color) {
-      case 'cyan':
-        return 'bg-cyan-600 hover:bg-cyan-700';
-      case 'green':
-        return 'bg-teal-600 hover:bg-teal-700';
-      default:
-        return 'bg-cyan-600 hover:bg-cyan-700';
-    }
+  const getBorderColor = () => {
+    return isTealTheme ? 'group-hover:border-teal-200' : 'group-hover:border-orange-200';
   };
 
-  const getTagColorByColor = () => {
-    switch (color) {
-      case 'cyan':
-        return 'bg-cyan-100 text-cyan-800';
-      case 'green':
-        return 'bg-teal-100 text-teal-800';
-      default:
-        return 'bg-cyan-100 text-cyan-800';
-    }
+  const getButtonGradient = () => {
+    return isTealTheme
+      ? 'bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 shadow-teal-500/20'
+      : 'bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 shadow-orange-500/20';
+  };
+
+  const getTagStyle = () => {
+    return isTealTheme
+      ? 'bg-teal-50 text-teal-700 border-teal-100'
+      : 'bg-orange-50 text-orange-700 border-orange-100';
+  };
+
+  const getGlowColor = () => {
+    return isTealTheme ? 'bg-teal-400/20' : 'bg-orange-400/20';
   };
 
   return (
-    <div className="rounded-xl shadow-lg overflow-hidden bg-white border border-gray-100 flex flex-col h-full transition-all duration-300 hover:shadow-xl">
-      <div className="p-8 flex flex-col items-center flex-grow">
+    <div 
+      className={`group relative rounded-3xl overflow-hidden bg-white/80 backdrop-blur-sm border border-white/60 flex flex-col h-full transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 ${getBorderColor()}`}
+    >
+      {/* Subtle colorful glow inside the card */}
+      <div className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -z-10 transition-opacity duration-500 opacity-0 group-hover:opacity-100 ${getGlowColor()}`} />
+
+      <div className="p-8 flex flex-col items-center flex-grow relative z-10">
         <motion.div
-          className="w-48 h-48 mb-6 overflow-hidden rounded-full border-4 border-white shadow-md relative"
+          className="w-48 h-48 mb-6 overflow-hidden rounded-full border-[6px] border-white shadow-xl relative ring-1 ring-gray-100"
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.3 }}
         >
@@ -95,17 +96,17 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
           )}
         </motion.div>
 
-        <h3 className="text-2xl font-bold text-gray-800 mb-1 text-center">
+        <h3 className="text-2xl font-bold text-gray-800 mb-2 text-center tracking-tight">
           {name}
         </h3>
         <p
-          className={`text-lg font-medium mb-4 text-transparent bg-clip-text bg-gradient-to-r ${getGradientByColor()} text-center`}
+          className={`text-lg font-bold mb-5 text-transparent bg-clip-text bg-gradient-to-r ${getGradientByColor()} text-center`}
         >
           {role}
         </p>
 
         <motion.div
-          className="flex flex-wrap gap-2 justify-center mb-5"
+          className="flex flex-wrap gap-2 justify-center mb-6"
           initial="hidden"
           animate="visible"
           variants={{
@@ -119,7 +120,7 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
           {tags.map((tag) => (
             <motion.span
               key={tag}
-              className={`text-sm px-3 py-1 rounded-full ${getTagColorByColor()}`}
+              className={`text-sm px-3 py-1 rounded-full border ${getTagStyle()} font-medium shadow-sm`}
               variants={{
                 hidden: { opacity: 0, scale: 0.8 },
                 visible: {
@@ -134,15 +135,15 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
           ))}
         </motion.div>
 
-        <p className="text-gray-600 mb-6 text-center leading-relaxed flex-grow">
+        <p className="text-gray-600 mb-8 text-center leading-relaxed flex-grow text-base">
           {description}
         </p>
 
-        <div className="mt-auto">
+        <div className="mt-auto w-full flex justify-center">
           <Link href={`/contact?matchmaker=${encodeURIComponent(name)}`}>
             <motion.div
-              className={`inline-block text-center px-8 py-3 rounded-lg text-white ${getButtonColorByColor()} transition-colors duration-300 font-medium cursor-pointer`}
-              whileHover={{ scale: 1.05 }}
+              className={`inline-block text-center px-8 py-3.5 rounded-full text-white ${getButtonGradient()} transition-all duration-300 font-semibold cursor-pointer shadow-lg`}
+              whileHover={{ scale: 1.05, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
               whileTap={{ scale: 0.95 }}
             >
               {`${contactButtonText} ${name.split(' ')[0]}`}
@@ -198,36 +199,39 @@ const MatchmakerTeamSection: React.FC<MatchmakerTeamProps> = ({ dict }) => {
     <motion.section
       ref={ref}
       id="our-team"
-      className="py-16 md:py-24 px-4 bg-gradient-to-b from-blue-50 to-white relative overflow-hidden"
+      // Updated background to match HeroSection: Slate via Teal to Orange
+      className="py-16 md:py-24 px-4 bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20 relative overflow-hidden"
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      <div className="absolute top-0 left-0 w-64 h-64 bg-cyan-100/30 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl"></div>
+      {/* Background Orbs updated to match Hero colors (Teal & Orange/Rose) */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-teal-300/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute bottom-0 right-0 w-[30rem] h-[30rem] bg-orange-300/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3"></div>
+      <div className="absolute top-1/2 left-1/2 w-full h-full bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.03] pointer-events-none"></div>
 
-      <div className="max-w-6xl mx-auto relative">
+      <div className="max-w-6xl mx-auto relative z-10">
         <motion.div className="text-center mb-16" variants={headerVariants}>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+          <h2 className="text-3xl md:text-5xl font-extrabold text-gray-800 mb-6 tracking-tight">
             {dict.title_part1}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600">
-              {' '}
-              {dict.title_highlight}{' '}
+            {/* Updated Gradient Text to match Hero (Teal -> Orange) */}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 px-2">
+              {dict.title_highlight}
             </span>
             {dict.title_part2}
           </h2>
-          <div className="w-32 h-1 bg-gradient-to-r from-cyan-500 to-teal-500 mx-auto rounded-full mb-6" />
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+
+          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
             {dict.subtitle}
           </p>
         </motion.div>
 
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 max-w-5xl mx-auto"
+          className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-5xl mx-auto"
           variants={cardContainerVariants}
         >
           {dict.team.map((member) => (
-            <motion.div key={member.name} variants={cardVariants}>
+            <motion.div key={member.name} variants={cardVariants} className="h-full">
               <MatchmakerCard
                 name={member.name}
                 role={member.role}

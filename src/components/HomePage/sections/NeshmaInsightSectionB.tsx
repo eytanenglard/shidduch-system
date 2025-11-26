@@ -83,17 +83,20 @@ export default function NeshmaInsightSectionB({
     () => [
       {
         icon: Heart,
-        gradient: 'from-rose-400 to-red-500',
+        // Rose palette (Match Hero)
+        gradient: 'from-rose-400 via-pink-500 to-red-500',
         ...dict.insights.items[0],
       },
       {
         icon: Target,
-        gradient: 'from-teal-400 to-cyan-500',
+        // Teal palette (Match Hero)
+        gradient: 'from-teal-400 via-teal-500 to-emerald-500',
         ...dict.insights.items[1],
       },
       {
         icon: Zap,
-        gradient: 'from-amber-400 to-orange-500',
+        // Orange/Amber palette (Match Hero)
+        gradient: 'from-orange-400 via-amber-500 to-yellow-500',
         ...dict.insights.items[2],
       },
     ],
@@ -105,12 +108,11 @@ export default function NeshmaInsightSectionB({
     const playConversation = (index: number) => {
       if (index >= conversation.length) {
         setIsTyping(false);
-        // עדכון זמנים: הופעה מהירה יותר של האלמנטים אחרי השיחה
-        setTimeout(() => setShowTransitionText(true), 800);  // קוצר מ-1000
-        setTimeout(() => setShowInsights(true), 1800);       // קוצר מ-2500
-        setTimeout(() => setShowTransitionCTA(true), 2500);  // קוצר מ-3500
-        setTimeout(() => setShowCTA(true), 3500);            // קוצר משמעותית מ-7000
-        setTimeout(() => setShowPostConversationTransition(true), 4200); // קוצר מ-8000
+        setTimeout(() => setShowTransitionText(true), 800);
+        setTimeout(() => setShowInsights(true), 1800);
+        setTimeout(() => setShowTransitionCTA(true), 2500);
+        setTimeout(() => setShowCTA(true), 3500);
+        setTimeout(() => setShowPostConversationTransition(true), 4200);
         setProgressStep(5);
         return;
       }
@@ -219,13 +221,14 @@ export default function NeshmaInsightSectionB({
   return (
     <motion.section
       ref={ref}
-      className="relative py-20 md:py-32 bg-gradient-to-br from-slate-50 via-teal-50/30 to-orange-50/20 overflow-hidden"
+      // Updated Background to match Hero (Slate -> Teal -> Orange)
+      className="relative py-20 md:py-32 bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20 overflow-hidden"
       dir={direction}
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      {/* Background Elements */}
+      {/* Background Elements - Updated to match Hero Orbs (Teal, Orange, Rose) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-teal-200/20 to-emerald-200/10 rounded-full blur-3xl animate-float-slow"></div>
         <div
@@ -249,11 +252,11 @@ export default function NeshmaInsightSectionB({
           </div>
         </motion.div>
 
-        {/* Title */}
+        {/* Title - Updated Highlight Gradient to match Hero (Teal-Orange-Amber) */}
         <motion.div variants={fadeInUp} className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-800 leading-tight mb-6">
             {dict.title.part1}{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-rose-600">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500">
               {dict.title.highlight}
             </span>
             {dict.title.part2}
@@ -273,6 +276,7 @@ export default function NeshmaInsightSectionB({
               className="max-w-md mx-auto mb-20"
             >
               <div className="relative group">
+                {/* Updated Glow to Match Hero's Palette */}
                 <div className="absolute -inset-2 bg-gradient-to-r from-teal-400/20 via-orange-400/20 to-amber-400/20 rounded-[2.9rem] blur-xl"></div>
                 <div className="relative bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-1.5 border border-teal-100 shadow-2xl transition-transform duration-500 group-hover:-rotate-1">
                   <div className="bg-white rounded-[2rem] overflow-hidden">
@@ -302,13 +306,13 @@ export default function NeshmaInsightSectionB({
                       </div>
                     </div>
 
-                    {/* Progress Bar */}
+                    {/* Progress Bar - Updated Gradient */}
                     <div className="px-4 py-2 bg-teal-50/50 border-b border-teal-100/40">
                       <div className="flex items-center justify-between gap-1">
                         {dict.progressLabels.map((_, step) => (
                           <div
                             key={step}
-                            className={`flex-1 h-1 rounded-full transition-all duration-500 ${progressStep > step ? 'bg-gradient-to-r from-teal-500 to-orange-500' : 'bg-gray-200'}`}
+                            className={`flex-1 h-1 rounded-full transition-all duration-500 ${progressStep > step ? 'bg-gradient-to-r from-teal-500 to-amber-500' : 'bg-gray-200'}`}
                           />
                         ))}
                       </div>
@@ -340,7 +344,7 @@ export default function NeshmaInsightSectionB({
                               <div
                                 className={`relative z-10 rounded-2xl px-4 py-2.5 shadow-md flex items-center gap-2 ${
                                   message.sender === 'user'
-                                    ? 'bg-gradient-to-r from-teal-500 to-orange-500 text-white rounded-br-lg'
+                                    ? 'bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white rounded-br-lg' // Updated User Bubble
                                     : `bg-white text-gray-800 border border-gray-100 rounded-bl-lg ${message.isEureka ? 'border-amber-400/80 ring-4 ring-amber-400/10 animate-pulse-glow' : ''}`
                                 }`}
                               >
@@ -433,7 +437,7 @@ export default function NeshmaInsightSectionB({
           )}
         </AnimatePresence>
 
-        {/* Insights Section - עודכן למירכוז הטקסט */}
+        {/* Insights Section */}
         <AnimatePresence>
           {showInsights && (
             <motion.div
@@ -461,7 +465,6 @@ export default function NeshmaInsightSectionB({
                     }}
                     className="group"
                   >
-                    {/* עודכן: הוספת flex-col, items-center ו-text-center למירכוז הטקסט והאייקון */}
                     <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl hover:border-teal-200 transition-all duration-300 h-full relative overflow-hidden flex flex-col items-center text-center">
                       <div
                         className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
@@ -518,6 +521,7 @@ export default function NeshmaInsightSectionB({
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.98 }}
+                  // Updated Gradient to match Hero CTA
                   className="group relative inline-flex items-center gap-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white font-bold py-5 px-12 md:px-16 rounded-full text-xl md:text-2xl shadow-2xl hover:shadow-3xl transition-all duration-300"
                 >
                   <FileText className="w-7 h-7 group-hover:rotate-6 transition-transform" />
@@ -552,7 +556,8 @@ export default function NeshmaInsightSectionB({
               <h3 className="text-2xl md:text-3xl font-bold text-gray-800 leading-tight">
                 {dict.postConversationTransition.line1}
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
+                {/* Updated Gradient to match Hero Text */}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-amber-600">
                   {dict.postConversationTransition.line2}
                 </span>
               </h3>

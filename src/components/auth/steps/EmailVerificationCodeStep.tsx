@@ -16,7 +16,7 @@ const OTP_LENGTH = 6;
 
 interface EmailVerificationCodeStepProps {
   dict: RegisterStepsDict['steps']['emailVerification'];
-  locale: 'he' | 'en'; // הוסף את locale
+  locale: 'he' | 'en';
 }
 
 const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
@@ -43,7 +43,7 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
   const handleChange = (element: HTMLInputElement, index: number) => {
     const value = element.value.replace(/[^0-9]/g, '');
     const newOtp = [...otp];
-    newOtp[index] = value.slice(-1); // Only take the last digit
+    newOtp[index] = value.slice(-1);
     setOtp(newOtp);
 
     if (value && index < OTP_LENGTH - 1) {
@@ -147,7 +147,8 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
       animate="visible"
     >
       <motion.div variants={itemVariants}>
-        <MailCheck className="h-12 w-12 text-cyan-500 mx-auto mb-3" />
+        {/* UPDATED: Icon Color (Teal) */}
+        <MailCheck className="h-12 w-12 text-teal-500 mx-auto mb-3" />
         <h2 className="text-2xl font-bold text-gray-800">{dict.title}</h2>
         <p className="text-gray-600 mt-2">
           {dict.subtitle.replace('{{length}}', OTP_LENGTH.toString())}{' '}
@@ -202,7 +203,8 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
               ref={(el) => {
                 inputRefs.current[index] = el;
               }}
-              className="w-12 h-14 text-center text-xl font-semibold"
+              // UPDATED: Input Focus (Teal)
+              className="w-12 h-14 text-center text-xl font-semibold border-2 border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl"
               disabled={isLoading || isResending}
               aria-label={`OTP digit ${index + 1}`}
               autoComplete="one-time-code"
@@ -217,7 +219,8 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
             disabled={
               isLoading || isResending || otp.join('').length !== OTP_LENGTH
             }
-            className="w-full"
+            // UPDATED: Main Button Gradient (Teal -> Orange -> Amber)
+            className="w-full py-6 text-lg bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg transition-all"
           >
             {isLoading ? (
               <>
@@ -241,7 +244,8 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
           variant="link"
           onClick={handleResendCode}
           disabled={isLoading || isResending}
-          className="p-0 h-auto text-cyan-600"
+          // UPDATED: Link Color (Teal)
+          className="p-0 h-auto text-teal-600 hover:text-teal-700 font-semibold"
         >
           {isResending ? (
             <>
@@ -260,6 +264,7 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
           onClick={goBackToBasicInfo}
           variant="outline"
           disabled={isLoading || isResending}
+          className="hover:bg-gray-50 border-gray-200"
         >
           <ArrowRight
             className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}

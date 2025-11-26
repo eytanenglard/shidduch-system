@@ -89,7 +89,7 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
   return (
     <motion.footer
       ref={ref}
-      // Updated background to Slate for a richer dark tone, compatible with warm accents
+      // Background: Slate-900 with gradients matching the Hero theme
       className="bg-gradient-to-br from-slate-900 to-slate-800 text-white py-12 md:py-16 px-4 relative overflow-hidden"
       variants={containerVariants}
       initial="hidden"
@@ -106,13 +106,13 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
             >
               <Link href="/" className="flex items-center gap-2 group mb-6">
                 <div className="relative overflow-hidden rounded-full p-1 transition-all duration-300 group-hover:scale-110">
-                  {/* Updated Heart icon to Rose (Warmth) */}
+                  {/* Heart Icon: Rose color for warmth */}
                   <Heart
                     className="h-7 w-7 text-rose-500 transition-all duration-300 group-hover:text-rose-400"
                     fill="#1e293b"
                   />
                 </div>
-                {/* Text hover effect updated to Orange */}
+                {/* Logo Text Hover: Orange */}
                 <span className="text-xl font-bold text-white group-hover:text-orange-300 transition-all duration-300">
                   NeshamaTech
                 </span>
@@ -126,11 +126,11 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
           {/* Navigation Column */}
           <motion.div variants={columnVariants}>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
-              {/* Gradient updated: Teal -> Orange */}
+              {/* Header Gradient: Teal -> Orange */}
               <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-orange-400">
                 {dict.columns.navigation.title}
               </span>
-              {/* Separator updated */}
+              {/* Separator Line: Teal/Orange */}
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-teal-400/30 to-orange-400/30" />
             </h3>
             <motion.ul
@@ -148,7 +148,7 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
           {/* Information Column */}
           <motion.div variants={columnVariants}>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
-              {/* Gradient updated: Teal -> Orange */}
+              {/* Header Gradient: Teal -> Orange */}
               <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-orange-400">
                 {dict.columns.information.title}
               </span>
@@ -169,7 +169,7 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
           {/* Contact Column */}
           <motion.div variants={columnVariants}>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
-              {/* Gradient updated: Teal -> Orange */}
+              {/* Header Gradient: Teal -> Orange */}
               <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-orange-400">
                 {dict.columns.contact.title}
               </span>
@@ -198,7 +198,7 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              {/* Motto Badge: Updated to Teal/Orange mix */}
+              {/* Motto Badge: Teal/Orange background */}
               <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-teal-500/10 to-orange-400/10 text-teal-400 hover:from-teal-500/20 hover:to-orange-400/20 transition-colors duration-300 border border-teal-500/20">
                 {dict.motto}
               </span>

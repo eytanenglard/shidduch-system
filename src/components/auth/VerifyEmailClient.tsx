@@ -1,7 +1,13 @@
 // src/components/auth/VerifyEmailClient.tsx
 'use client';
 
-import React, { useState, useRef, useEffect, KeyboardEvent, ClipboardEvent } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  KeyboardEvent,
+  ClipboardEvent,
+} from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -44,7 +50,10 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
   // Countdown timer for resend
   useEffect(() => {
     if (resendCountdown > 0) {
-      const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000);
+      const timer = setTimeout(
+        () => setResendCountdown(resendCountdown - 1),
+        1000
+      );
       return () => clearTimeout(timer);
     } else {
       setCanResend(true);
@@ -59,34 +68,25 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
     }
   }, [code, status]);
 
-  // Handle input change
   const handleInputChange = (index: number, value: string) => {
-    // Only allow digits
     if (!/^\d*$/.test(value)) return;
-
     const newCode = [...code];
-    newCode[index] = value.slice(-1); // Only take the last digit
+    newCode[index] = value.slice(-1);
     setCode(newCode);
-
-    // Auto-focus next input
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  // Handle backspace
   const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !code[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
-  // Handle paste
   const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').trim();
-    
-    // Only accept 6-digit codes
     if (/^\d{6}$/.test(pastedData)) {
       const newCode = pastedData.split('');
       setCode(newCode);
@@ -94,7 +94,6 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
     }
   };
 
-  // Verify code with API
   const handleVerifyCode = async (verificationCode: string) => {
     setStatus('verifying');
     setErrorMessage('');
@@ -113,21 +112,22 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
       }
 
       setStatus('success');
-      
-      // Redirect to continue registration after 2 seconds
-      setTimeout(() => {
-        router.push(`/${locale}/auth/register?step=personal-details&email=${encodeURIComponent(email)}`);
-      }, 2000);
 
+      setTimeout(() => {
+        router.push(
+          `/${locale}/auth/register?step=personal-details&email=${encodeURIComponent(email)}`
+        );
+      }, 2000);
     } catch (error) {
       setStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה');
-      setCode(Array(6).fill('')); // Clear code on error
+      setErrorMessage(
+        error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה'
+      );
+      setCode(Array(6).fill(''));
       inputRefs.current[0]?.focus();
     }
   };
 
-  // Resend verification code
   const handleResendCode = async () => {
     setIsResending(true);
     setErrorMessage('');
@@ -145,20 +145,20 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
         throw new Error(data.error || 'אירעה שגיאה בשליחת הקוד');
       }
 
-      // Reset countdown
       setCanResend(false);
       setResendCountdown(60);
       setCode(Array(6).fill(''));
       inputRefs.current[0]?.focus();
-
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'אירעה שגיאה בשליחת הקוד');
+      setErrorMessage(
+        error instanceof Error ? error.message : 'אירעה שגיאה בשליחת הקוד'
+      );
     } finally {
       setIsResending(false);
     }
   };
 
-  // Dictionary (inline for now)
+  // Dictionary
   const dict = {
     title: isHebrew ? 'אמת את כתובת המייל שלך' : 'Verify Your Email',
     subtitle: isHebrew
@@ -186,32 +186,37 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-cyan-50 via-white to-pink-50 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Decorative Background Elements */}
+    // UPDATED: Main Background (Slate/Teal/Orange)
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* UPDATED: Decorative Orbs (Teal/Orange/Rose) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-cyan-200/40 to-blue-300/30 rounded-full blur-3xl"
+          // Teal Orb
+          className="absolute top-20 left-10 w-64 h-64 bg-teal-200/40 rounded-full blur-3xl"
         />
         <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.3, 0.5, 0.3],
+          animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 2,
           }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute bottom-20 right-10 w-72 h-72 bg-gradient-to-br from-pink-200/40 to-rose-300/30 rounded-full blur-3xl"
+          // Orange Orb
+          className="absolute bottom-20 right-10 w-72 h-72 bg-orange-200/40 rounded-full blur-3xl"
         />
         <motion.div
-          animate={{
-            scale: [1, 1.15, 1],
-            opacity: [0.2, 0.4, 0.2],
+          animate={{ scale: [1, 1.15, 1], opacity: [0.2, 0.4, 0.2] }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 4,
           }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-200/30 to-indigo-300/20 rounded-full blur-3xl"
+          // Rose/Purple Orb (Center)
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-rose-200/30 rounded-full blur-3xl"
         />
       </div>
 
@@ -223,8 +228,8 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
         className="relative w-full max-w-md"
       >
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden">
-          {/* Gradient Header */}
-          <div className="h-2 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500"></div>
+          {/* UPDATED: Gradient Header (Teal -> Orange -> Amber) */}
+          <div className="h-2 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500"></div>
 
           <div className="p-8 sm:p-10">
             {/* Icon & Title Section */}
@@ -236,20 +241,21 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
             >
               <div className="relative inline-block mb-6">
                 <motion.div
-                  animate={{
-                    rotate: [0, 5, -5, 0],
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
                   }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                  className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-400 to-pink-500 flex items-center justify-center shadow-lg"
+                  // UPDATED: Main Icon Background (Teal -> Emerald)
+                  className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-500/20"
                 >
                   <Mail className="w-10 h-10 text-white" strokeWidth={2.5} />
                 </motion.div>
                 <motion.div
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.5, 1, 0.5],
-                  }}
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
+                  // UPDATED: Sparkle Background (Amber/Orange)
                   className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center"
                 >
                   <Sparkles className="w-4 h-4 text-white" />
@@ -259,13 +265,14 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
               <h1 className="text-3xl font-bold text-gray-800 mb-3">
                 {dict.title}
               </h1>
-              <p className="text-gray-600 text-base mb-4">
-                {dict.subtitle}
-              </p>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-50 to-pink-50 rounded-full border border-cyan-100">
-                <Mail className="w-4 h-4 text-cyan-600" />
+              <p className="text-gray-600 text-base mb-4">{dict.subtitle}</p>
+
+              {/* UPDATED: Email Badge (Teal/Gray) */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-200">
+                <Mail className="w-4 h-4 text-teal-600" />
                 <span className="text-sm font-medium text-gray-700">
-                  {dict.emailSentTo} <span className="text-cyan-600">{email}</span>
+                  {dict.emailSentTo}{' '}
+                  <span className="text-teal-700 font-bold">{email}</span>
                 </span>
               </div>
             </motion.div>
@@ -280,8 +287,11 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
               <label className="block text-sm font-medium text-gray-700 mb-4 text-center">
                 {dict.enterCode}
               </label>
-              
-              <div className="flex justify-center gap-2 sm:gap-3 mb-6" dir="ltr">
+
+              <div
+                className="flex justify-center gap-2 sm:gap-3 mb-6"
+                dir="ltr"
+              >
                 {code.map((digit, index) => (
                   <motion.input
                     key={index}
@@ -297,6 +307,7 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                     onPaste={index === 0 ? handlePaste : undefined}
                     disabled={status === 'verifying' || status === 'success'}
                     whileFocus={{ scale: 1.05 }}
+                    // UPDATED: Input Colors (Teal Focus/Fill)
                     className={`
                       w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold rounded-xl
                       border-2 transition-all duration-200
@@ -304,12 +315,12 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                         status === 'error'
                           ? 'border-red-400 bg-red-50 text-red-600'
                           : status === 'success'
-                          ? 'border-green-400 bg-green-50 text-green-600'
-                          : digit
-                          ? 'border-cyan-400 bg-cyan-50 text-gray-800'
-                          : 'border-gray-300 bg-white text-gray-800'
+                            ? 'border-green-400 bg-green-50 text-green-600'
+                            : digit
+                              ? 'border-teal-400 bg-teal-50 text-gray-800'
+                              : 'border-gray-200 bg-white text-gray-800 hover:border-teal-200'
                       }
-                      focus:outline-none focus:ring-2 focus:ring-cyan-500/50
+                      focus:outline-none focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500
                       disabled:opacity-60 disabled:cursor-not-allowed
                     `}
                   />
@@ -319,14 +330,17 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
               {/* Status Messages */}
               <AnimatePresence mode="wait">
                 {status === 'verifying' && (
+                  // UPDATED: Text Color (Teal)
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="flex items-center justify-center gap-2 text-cyan-600 mb-4"
+                    className="flex items-center justify-center gap-2 text-teal-600 mb-4"
                   >
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span className="text-sm font-medium">{dict.verifying}</span>
+                    <span className="text-sm font-medium">
+                      {dict.verifying}
+                    </span>
                   </motion.div>
                 )}
 
@@ -339,13 +353,21 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 200,
+                        damping: 15,
+                      }}
                       className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-full border-2 border-green-400 mb-2"
                     >
                       <CheckCircle className="w-6 h-6 text-green-600" />
-                      <span className="text-green-700 font-bold">{dict.success}</span>
+                      <span className="text-green-700 font-bold">
+                        {dict.success}
+                      </span>
                     </motion.div>
-                    <p className="text-sm text-gray-600">{dict.successMessage}</p>
+                    <p className="text-sm text-gray-600">
+                      {dict.successMessage}
+                    </p>
                   </motion.div>
                 )}
 
@@ -373,14 +395,15 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
               {status !== 'success' && (
                 <div className="text-center space-y-3">
                   <p className="text-sm text-gray-600">{dict.didntReceive}</p>
-                  
+
                   {canResend ? (
                     <Button
                       onClick={handleResendCode}
                       disabled={isResending}
                       variant="outline"
                       size="sm"
-                      className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 rounded-full px-6 py-2"
+                      // UPDATED: Resend Button (Teal Border/Text)
+                      className="border-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300 rounded-full px-6 py-2 transition-all"
                     >
                       {isResending ? (
                         <>
@@ -398,26 +421,32 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-200">
                       <Clock className="w-4 h-4 text-gray-500" />
                       <span className="text-sm text-gray-600">
-                        {dict.resendIn} <span className="font-bold text-gray-800">{resendCountdown}</span> {dict.seconds}
+                        {dict.resendIn}{' '}
+                        <span className="font-bold text-gray-800">
+                          {resendCountdown}
+                        </span>{' '}
+                        {dict.seconds}
                       </span>
                     </div>
                   )}
 
-                  <p className="text-xs text-gray-500 italic">{dict.checkSpam}</p>
+                  <p className="text-xs text-gray-500 italic">
+                    {dict.checkSpam}
+                  </p>
                 </div>
               )}
             </motion.div>
 
-            {/* Security Note */}
+            {/* UPDATED: Security Note (Warm/Amber background) */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.5 }}
-              className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100 mb-6"
+              className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100 mb-6"
             >
               <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-purple-800">{dict.securityNote}</p>
+                <Shield className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800">{dict.securityNote}</p>
               </div>
             </motion.div>
 
@@ -425,9 +454,12 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
             <div className="text-center">
               <Link
                 href={`/${locale}/auth/register`}
-                className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-cyan-600 transition-colors group"
+                // UPDATED: Link Hover (Teal)
+                className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-teal-600 transition-colors group"
               >
-                <ArrowLeft className={`w-4 h-4 group-hover:-translate-x-1 transition-transform ${isHebrew ? '' : 'rotate-180'}`} />
+                <ArrowLeft
+                  className={`w-4 h-4 group-hover:-translate-x-1 transition-transform ${isHebrew ? '' : 'rotate-180'}`}
+                />
                 <span>{dict.backToRegister}</span>
               </Link>
             </div>
@@ -436,24 +468,24 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
 
         {/* Floating Decorative Elements */}
         <motion.div
-          animate={{
-            y: [0, -10, 0],
-            rotate: [0, 5, 0],
-          }}
+          animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
           transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -top-6 -right-6 w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl opacity-20 blur-xl"
+          // Teal Blob
+          className="absolute -top-6 -right-6 w-16 h-16 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-2xl opacity-20 blur-xl"
         />
         <motion.div
-          animate={{
-            y: [0, 10, 0],
-            rotate: [0, -5, 0],
+          animate={{ y: [0, 10, 0], rotate: [0, -5, 0] }}
+          transition={{
+            duration: 7,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 1,
           }}
-          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute -bottom-6 -left-6 w-20 h-20 bg-gradient-to-br from-pink-400 to-rose-500 rounded-2xl opacity-20 blur-xl"
+          // Orange Blob
+          className="absolute -bottom-6 -left-6 w-20 h-20 bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl opacity-20 blur-xl"
         />
       </motion.div>
 
-      {/* Custom Styles */}
       <style>{`
         input[type='number']::-webkit-inner-spin-button,
         input[type='number']::-webkit-outer-spin-button {

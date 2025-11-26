@@ -72,14 +72,14 @@ const cardVariants = {
 };
 
 // ============================================================================
-// DYNAMIC BACKGROUND COMPONENT
+// DYNAMIC BACKGROUND COMPONENT (Teal/Orange Theme)
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
     {/* Floating Gradients */}
     <motion.div
-      className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl"
+      className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-teal-400/20 to-emerald-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, -30, 0],
         x: [0, 20, 0],
@@ -92,7 +92,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-pink-400/20 to-purple-500/20 rounded-full blur-3xl"
+      className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-orange-400/20 to-amber-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, 40, 0],
         x: [0, -30, 0],
@@ -106,7 +106,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute bottom-32 left-1/4 w-72 h-72 bg-gradient-to-br from-orange-400/15 to-red-500/15 rounded-full blur-3xl"
+      className="absolute bottom-32 left-1/4 w-72 h-72 bg-gradient-to-br from-rose-400/15 to-orange-500/15 rounded-full blur-3xl"
       animate={{
         y: [0, -25, 0],
         x: [0, 15, 0],
@@ -120,7 +120,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute bottom-20 right-10 w-64 h-64 bg-gradient-to-br from-emerald-400/20 to-teal-500/20 rounded-full blur-3xl"
+      className="absolute bottom-20 right-10 w-64 h-64 bg-gradient-to-br from-teal-400/20 to-cyan-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, 20, 0],
         x: [0, -10, 0],
@@ -134,10 +134,10 @@ const DynamicBackground: React.FC = () => (
       }}
     />
 
-    {/* Decorative Dots Pattern */}
-    <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#8b5cf6_1px,transparent_1px)] [background-size:30px_30px]"></div>
+    {/* Decorative Dots Pattern (Teal) */}
+    <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:30px_30px]"></div>
 
-    {/* SVG Decorative Paths */}
+    {/* SVG Decorative Paths (Teal -> Orange) */}
     <svg
       className="absolute inset-0 w-full h-full"
       viewBox="0 0 1200 800"
@@ -151,9 +151,9 @@ const DynamicBackground: React.FC = () => (
           x2="100%"
           y2="100%"
         >
-          <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.08" />
-          <stop offset="50%" stopColor="#ec4899" stopOpacity="0.06" />
-          <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.08" />
+          <stop offset="0%" stopColor="#0d9488" stopOpacity="0.08" />
+          <stop offset="50%" stopColor="#f97316" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.08" />
         </linearGradient>
       </defs>
       <motion.path
@@ -180,7 +180,7 @@ const DynamicBackground: React.FC = () => (
 );
 
 // ============================================================================
-// ANIMATED ICON COMPONENTS
+// ANIMATED ICON COMPONENTS (Colors Updated)
 // ============================================================================
 
 const AnimatedMailIcon: React.FC = () => (
@@ -191,7 +191,8 @@ const AnimatedMailIcon: React.FC = () => (
     transition={{ duration: 0.6, ease: 'easeOut' }}
   >
     <motion.div
-      className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-500/20"
+      // Gradient: Teal -> Emerald
+      className="absolute inset-0 rounded-full bg-gradient-to-br from-teal-400/20 to-emerald-500/20"
       animate={{
         scale: [1, 1.2, 1],
         opacity: [0.5, 0.8, 0.5],
@@ -202,7 +203,8 @@ const AnimatedMailIcon: React.FC = () => (
         ease: 'easeInOut',
       }}
     />
-    <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg">
+    {/* Inner Gradient: Teal -> Emerald */}
+    <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg">
       <Mail className="w-10 h-10 text-white" />
     </div>
   </motion.div>
@@ -216,6 +218,7 @@ const AnimatedSuccessIcon: React.FC = () => (
     transition={{ duration: 0.5, ease: 'backOut' }}
   >
     <motion.div
+      // Gradient: Green -> Emerald (Success state stays green/emerald, fits palette)
       className="absolute inset-0 rounded-full bg-gradient-to-br from-green-400/30 to-emerald-500/30"
       animate={{
         scale: [1, 1.3, 1],
@@ -247,6 +250,7 @@ const AnimatedErrorIcon: React.FC = () => (
     transition={{ duration: 0.5, ease: 'easeOut' }}
   >
     <motion.div
+      // Gradient: Red -> Rose (Fits 'Rose' from palette)
       className="absolute inset-0 rounded-full bg-gradient-to-br from-red-400/30 to-rose-500/30"
       animate={{
         scale: [1, 1.2, 1],
@@ -271,7 +275,8 @@ const AnimatedLoadingIcon: React.FC = () => (
     transition={{ duration: 0.3 }}
   >
     <motion.div
-      className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400/20 to-pink-500/20"
+      // Gradient: Teal -> Orange (Main Palette)
+      className="absolute inset-0 rounded-full bg-gradient-to-br from-teal-400/20 to-orange-500/20"
       animate={{
         scale: [1, 1.3, 1],
         rotate: [0, 360],
@@ -282,7 +287,8 @@ const AnimatedLoadingIcon: React.FC = () => (
         ease: 'linear',
       }}
     />
-    <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shadow-lg">
+    {/* Inner Gradient: Teal -> Orange */}
+    <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-400 to-orange-500 flex items-center justify-center shadow-lg">
       <Loader2 className="w-10 h-10 text-white animate-spin" />
     </div>
   </motion.div>
@@ -385,8 +391,7 @@ export default function VerifyEmailClient({
         body: JSON.stringify({ email: email, type: 'EMAIL' }),
       });
       const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || dict.errors.resendFailed);
+      if (!response.ok) throw new Error(data.error || dict.errors.resendFailed);
       setInfoMessage(dict.alerts.resendSuccess);
     } catch (error) {
       setVerification({
@@ -418,8 +423,9 @@ export default function VerifyEmailClient({
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
           >
-            <Shield className="w-6 h-6 text-cyan-500" />
-            <span className="text-cyan-700 font-semibold text-lg">
+            {/* Shield: Teal */}
+            <Shield className="w-6 h-6 text-teal-500" />
+            <span className="text-teal-700 font-semibold text-lg">
               {dict.title}
             </span>
           </motion.div>
@@ -430,10 +436,10 @@ export default function VerifyEmailClient({
           variants={cardVariants}
           className="relative overflow-hidden rounded-3xl bg-white/70 backdrop-blur-xl shadow-2xl border border-white/60 p-8 md:p-12"
         >
-          {/* Decorative Elements */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-transparent rounded-full transform translate-x-16 -translate-y-16 blur-2xl" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/20 to-transparent rounded-full transform -translate-x-16 translate-y-16 blur-2xl" />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-purple-400/5 to-transparent rounded-full blur-3xl" />
+          {/* Decorative Elements (Teal/Orange) */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-400/20 to-transparent rounded-full transform translate-x-16 -translate-y-16 blur-2xl" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-transparent rounded-full transform -translate-x-16 translate-y-16 blur-2xl" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-amber-400/5 to-transparent rounded-full blur-3xl" />
 
           <div className="relative z-10">
             <AnimatePresence mode="wait">
@@ -448,21 +454,22 @@ export default function VerifyEmailClient({
                   className="text-center space-y-6"
                 >
                   <AnimatedMailIcon />
-                  
+
                   <div className="space-y-3">
                     <h2 className="text-3xl font-bold text-gray-800">
                       {dict.title}
                     </h2>
-                    
+
                     {infoMessage && (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <Alert className="border-blue-200 bg-blue-50">
-                          <Sparkles className="h-5 w-5 text-blue-600" />
-                          <AlertDescription className="text-blue-700">
+                        {/* Info Alert: Teal/Blue */}
+                        <Alert className="border-teal-200 bg-teal-50">
+                          <Sparkles className="h-5 w-5 text-teal-600" />
+                          <AlertDescription className="text-teal-700">
                             {infoMessage}
                           </AlertDescription>
                         </Alert>
@@ -471,7 +478,8 @@ export default function VerifyEmailClient({
 
                     {emailParam && (
                       <div className="space-y-4 pt-4">
-                        <div className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-2xl p-6 border border-cyan-100">
+                        {/* Email Box: Teal Light */}
+                        <div className="bg-gradient-to-r from-teal-50 to-emerald-50 rounded-2xl p-6 border border-teal-100">
                           <p className="text-gray-600 text-sm mb-2">
                             {dict.emailSentTo}
                           </p>
@@ -479,7 +487,7 @@ export default function VerifyEmailClient({
                             {emailParam}
                           </p>
                         </div>
-                        
+
                         <p className="text-gray-600 leading-relaxed">
                           {dict.checkYourInbox}
                         </p>
@@ -488,10 +496,11 @@ export default function VerifyEmailClient({
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
+                          {/* Resend Button: Teal -> Orange */}
                           <Button
                             onClick={handleResendVerification}
                             disabled={isResending}
-                            className="w-full py-6 text-lg font-semibold rounded-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-600 hover:from-cyan-600 hover:via-blue-600 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 relative overflow-hidden group"
+                            className="w-full py-6 text-lg font-semibold rounded-xl bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 relative overflow-hidden group"
                           >
                             {isResending ? (
                               <div className="flex items-center justify-center gap-3">
@@ -525,7 +534,7 @@ export default function VerifyEmailClient({
                   className="text-center space-y-6"
                 >
                   <AnimatedLoadingIcon />
-                  
+
                   <div className="space-y-3">
                     <h2 className="text-2xl font-bold text-gray-800">
                       {dict.verifyingMessage}
@@ -534,7 +543,8 @@ export default function VerifyEmailClient({
                       {[0, 1, 2].map((i) => (
                         <motion.div
                           key={i}
-                          className="w-3 h-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                          // Loading dots: Teal -> Orange
+                          className="w-3 h-3 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full"
                           animate={{
                             scale: [1, 1.5, 1],
                             opacity: [0.5, 1, 0.5],
@@ -562,15 +572,15 @@ export default function VerifyEmailClient({
                   className="text-center space-y-6"
                 >
                   <AnimatedSuccessIcon />
-                  
+
                   <div className="space-y-4">
-                    <h2 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
+                    <h2 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-600">
                       {verification.message}
                     </h2>
-                    
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
+
+                    <div className="bg-gradient-to-r from-teal-50 to-emerald-50 rounded-2xl p-6 border border-teal-100">
                       <div className="flex items-center justify-center gap-3">
-                        <Clock className="w-5 h-5 text-green-600" />
+                        <Clock className="w-5 h-5 text-teal-600" />
                         <p className="text-gray-700">{dict.successRedirect}</p>
                       </div>
                       <motion.div
@@ -582,7 +592,7 @@ export default function VerifyEmailClient({
                           ease: 'linear',
                         }}
                       >
-                        <Loader2 className="h-6 w-6 mx-auto text-green-600" />
+                        <Loader2 className="h-6 w-6 mx-auto text-teal-600" />
                       </motion.div>
                     </div>
                   </div>
@@ -600,12 +610,12 @@ export default function VerifyEmailClient({
                   className="text-center space-y-6"
                 >
                   <AnimatedErrorIcon />
-                  
+
                   <div className="space-y-4">
                     <h2 className="text-2xl font-bold text-red-600">
                       {dict.errorMessage}
                     </h2>
-                    
+
                     <Alert
                       variant="destructive"
                       className="border-red-200 bg-red-50"
@@ -614,7 +624,9 @@ export default function VerifyEmailClient({
                       <AlertTitle className="font-semibold">
                         {dict.errors.title || 'שגיאה'}
                       </AlertTitle>
-                      <AlertDescription>{verification.message}</AlertDescription>
+                      <AlertDescription>
+                        {verification.message}
+                      </AlertDescription>
                     </Alert>
 
                     <motion.div
@@ -622,6 +634,7 @@ export default function VerifyEmailClient({
                       whileTap={{ scale: 0.98 }}
                       className="pt-4"
                     >
+                      {/* Back Button: Gray/Teal */}
                       <Button
                         onClick={() => router.push(`/${locale}/auth/signin`)}
                         className="w-full py-6 text-lg font-semibold rounded-xl bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white shadow-lg hover:shadow-xl transition-all duration-300"

@@ -39,8 +39,9 @@ interface WorldData extends WorldDict {
   gradientFrom: string;
   gradientTo: string;
   angle: number;
+  bgGradient: string; // Added to match Hero card styles
+  shadowColor: string; // Added to match Hero card styles
 }
-// --- END: Type Definitions ---
 
 const MatchingConstellation: React.FC<{
   dict: OurMethodDict['constellation'];
@@ -68,57 +69,67 @@ const MatchingConstellation: React.FC<{
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // --- UPDATED WORLDS PALETTE (Teal/Orange/Amber/Rose) ---
+  // --- UPDATED WORLDS PALETTE (Matched to HeroSection: Teal, Orange, Amber, Rose) ---
   const worlds: WorldData[] = useMemo(
     () => [
       {
         id: 1,
         icon: <User className="w-6 h-6 md:w-8 md:h-8" />,
         ...dict.worlds[0],
-        // Was Blue -> Now Teal
-        color: 'from-teal-400 to-emerald-500',
-        gradientFrom: '#2dd4bf',
-        gradientTo: '#10b981',
+        // Hero "Knowledge" Style (Teal)
+        color: 'from-teal-400 via-teal-500 to-emerald-500',
+        gradientFrom: '#2dd4bf', // teal-400
+        gradientTo: '#10b981',   // emerald-500
+        bgGradient: 'from-teal-50 via-white to-emerald-50',
+        shadowColor: 'shadow-teal-500/25',
         angle: -72,
       },
       {
         id: 2,
         icon: <Heart className="w-6 h-6 md:w-8 md:h-8" />,
         ...dict.worlds[1],
-        // Was Rose -> Kept Rose (Fits "Heart")
-        color: 'from-rose-400 to-red-500',
-        gradientFrom: '#fb7185',
-        gradientTo: '#ef4444',
+        // Hero "Personal" Style (Rose)
+        color: 'from-rose-400 via-pink-500 to-red-500',
+        gradientFrom: '#fb7185', // rose-400
+        gradientTo: '#ef4444',   // red-500
+        bgGradient: 'from-rose-50 via-white to-red-50',
+        shadowColor: 'shadow-rose-500/25',
         angle: -144,
       },
       {
         id: 3,
         icon: <Users className="w-6 h-6 md:w-8 md:h-8" />,
         ...dict.worlds[2],
-        // Was Green -> Now Amber
-        color: 'from-amber-400 to-orange-500',
-        gradientFrom: '#fbbf24',
-        gradientTo: '#f97316',
+        // Hero "Privacy/Guidance" Style (Orange/Amber)
+        color: 'from-orange-400 via-amber-500 to-yellow-500',
+        gradientFrom: '#fbbf24', // amber-400
+        gradientTo: '#f97316',   // orange-500
+        bgGradient: 'from-orange-50 via-white to-amber-50',
+        shadowColor: 'shadow-orange-500/25',
         angle: 144,
       },
       {
         id: 4,
         icon: <UserCheck className="w-6 h-6 md:w-8 md:h-8" />,
         ...dict.worlds[3],
-        // Was Purple -> Now Orange/Red
-        color: 'from-orange-400 to-red-500',
-        gradientFrom: '#fb923c',
-        gradientTo: '#ef4444',
+        // Deep Orange/Red (Strong synergy color)
+        color: 'from-orange-500 via-red-500 to-red-600',
+        gradientFrom: '#f97316', // orange-500
+        gradientTo: '#dc2626',   // red-600
+        bgGradient: 'from-orange-50 via-white to-red-50',
+        shadowColor: 'shadow-orange-600/25',
         angle: 72,
       },
       {
         id: 5,
         icon: <Scroll className="w-6 h-6 md:w-8 md:h-8" />,
         ...dict.worlds[4],
-        // Was Orange -> Now Cyan/Blue (Complementary)
-        color: 'from-cyan-400 to-blue-500',
-        gradientFrom: '#22d3ee',
-        gradientTo: '#3b82f6',
+        // Cyan/Blue (Complementary to Orange, fits "Tech" vibe)
+        color: 'from-cyan-400 via-sky-500 to-blue-500',
+        gradientFrom: '#22d3ee', // cyan-400
+        gradientTo: '#3b82f6',   // blue-500
+        bgGradient: 'from-cyan-50 via-white to-blue-50',
+        shadowColor: 'shadow-sky-500/25',
         angle: 0,
       },
     ],
@@ -244,6 +255,24 @@ const MatchingConstellation: React.FC<{
   const activeWorld = hoveredWorld || selectedWorld;
   const displayedWorld = worlds.find((w) => w.id === activeWorld) || worlds[0];
 
+  // Helper to determine text color class based on world color (simplified)
+  const getAccentTextColor = (id: number) => {
+     if (id === 1) return 'text-teal-700';
+     if (id === 2) return 'text-rose-700';
+     if (id === 3) return 'text-amber-700';
+     if (id === 4) return 'text-orange-700';
+     return 'text-sky-700';
+  }
+
+    // Helper to determine border color class
+  const getAccentBorderColor = (id: number) => {
+     if (id === 1) return 'border-teal-200';
+     if (id === 2) return 'border-rose-200';
+     if (id === 3) return 'border-amber-200';
+     if (id === 4) return 'border-orange-200';
+     return 'border-sky-200';
+  }
+
   return (
     <div
       ref={sectionRef}
@@ -256,7 +285,7 @@ const MatchingConstellation: React.FC<{
         className="text-center mb-8 md:mb-16 px-4"
       >
         <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 md:px-8 py-3 md:py-4 shadow-md border border-gray-200 mb-6 md:mb-8">
-          {/* Icon updated to Orange */}
+          {/* Icon updated to match Hero synergy (Orange) */}
           <Heart className="w-5 h-5 md:w-6 md:h-6 text-orange-500" />
           <span className="text-gray-700 font-medium text-base md:text-lg">
             {dict.header}
@@ -264,10 +293,10 @@ const MatchingConstellation: React.FC<{
         </div>
         <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 md:mb-6 leading-tight px-4">
           {dict.title_part1}
-          {/* Gradient updated to Teal/Orange */}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-rose-600">
-            {' '}
-            {dict.title_part2}{' '}
+          <br className="sm:hidden" />
+          {/* Gradient updated to match Hero Header: Teal -> Orange -> Amber */}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-2">
+            {dict.title_part2}
           </span>
         </h3>
         <p className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed px-4">
@@ -302,7 +331,7 @@ const MatchingConstellation: React.FC<{
               height: dimensions.size,
             }}
           >
-            {/* Background glow updated to Warm tones */}
+            {/* Background glow updated to Hero Palette */}
             <div className="absolute inset-0 bg-gradient-to-br from-teal-50/80 via-orange-50/60 to-rose-50/80 rounded-full blur-3xl" />
             <svg
               viewBox={`0 0 ${dimensions.size} ${dimensions.size}`}
@@ -583,7 +612,8 @@ const MatchingConstellation: React.FC<{
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.4 }}
-              className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 md:p-10 shadow-2xl border border-white/60 relative overflow-hidden"
+              // Updated to match Hero Card Background Style
+              className={`bg-gradient-to-br ${displayedWorld.bgGradient} rounded-3xl p-6 md:p-10 ${displayedWorld.shadowColor} shadow-2xl border border-white/60 relative overflow-hidden`}
             >
               <div
                 className={`absolute inset-0 bg-gradient-to-br ${displayedWorld.color} opacity-5 rounded-3xl`}
@@ -641,9 +671,9 @@ const MatchingConstellation: React.FC<{
                 <p className="text-gray-700 leading-relaxed text-base md:text-lg mb-6 md:mb-8">
                   {displayedWorld.fullDescription}
                 </p>
-                <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-4 md:p-6 mb-4 md:mb-6 border border-gray-100">
+                <div className="bg-white/60 rounded-2xl p-4 md:p-6 mb-4 md:mb-6 border border-white/80 shadow-sm">
                   <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-gray-400 to-gray-500 mt-3 flex-shrink-0"></div>
+                    <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${displayedWorld.color} mt-3 flex-shrink-0`}></div>
                     <div>
                       <h5 className="font-semibold text-gray-800 mb-2">
                         {dict.example_header}
@@ -655,16 +685,16 @@ const MatchingConstellation: React.FC<{
                     </div>
                   </div>
                 </div>
-                {/* Updated Insight Box to Teal */}
-                <div className="bg-gradient-to-r from-teal-50 to-emerald-50 rounded-2xl p-4 md:p-6 border border-teal-100">
+                {/* Updated Insight Box to dynamically match world color */}
+                <div className={`bg-white/40 rounded-2xl p-4 md:p-6 border ${getAccentBorderColor(displayedWorld.id)}`}>
                   <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-teal-600 mt-1 flex-shrink-0" />
+                    <CheckCircle className={`w-5 h-5 ${getAccentTextColor(displayedWorld.id)} mt-1 flex-shrink-0`} />
                     <div>
-                      <h5 className="font-semibold text-teal-800 mb-2">
+                      <h5 className={`font-semibold ${getAccentTextColor(displayedWorld.id)} mb-2`}>
                         {dict.insight_header}
                       </h5>
 
-                      <p className="text-teal-700 text-sm md:text-base">
+                      <p className={`${getAccentTextColor(displayedWorld.id)} opacity-90 text-sm md:text-base`}>
                         {displayedWorld.insight}
                       </p>
                     </div>
@@ -689,7 +719,6 @@ const MatchingConstellation: React.FC<{
           </AnimatePresence>
         </motion.div>
       </div>
-
     </div>
   );
 };
@@ -704,28 +733,29 @@ const OurMethodSection: React.FC<OurMethodProps> = ({ dict }) => {
     <motion.section
       ref={sectionRef}
       id="our-method"
-      // Background gradient updated to Warm tones
-      className="relative pt-0 pb-12 md:pb-20 lg:pb-28 px-4 bg-gradient-to-b from-white via-orange-50/30 to-white overflow-hidden"
+      // Background updated to match HeroSection: Slate-50 base with Teal/Orange tint
+      className="relative pt-0 pb-12 md:pb-20 lg:pb-28 px-4 bg-gradient-to-b from-slate-50 via-teal-50/20 to-orange-50/20 overflow-hidden"
       initial={{ opacity: 0 }}
       animate={isInView ? { opacity: 1 } : { opacity: 0 }}
       transition={{ duration: 1 }}
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Floating orbs updated to Teal/Orange/Rose/Amber */}
-        <div className="absolute top-20 left-10 w-32 md:w-40 h-32 md:h-40 bg-gradient-to-br from-teal-200/20 to-emerald-300/10 rounded-full blur-3xl animate-soft-float" />
+        {/* Floating orbs updated to Hero Palette: Teal, Orange, Rose, Amber */}
+        <div className="absolute top-20 left-10 w-32 md:w-40 h-32 md:h-40 bg-teal-300/20 rounded-full blur-3xl animate-soft-float" />
         <div
-          className="absolute top-60 right-20 w-24 md:w-32 h-24 md:h-32 bg-gradient-to-br from-orange-200/20 to-amber-300/10 rounded-full blur-2xl animate-soft-float"
+          className="absolute top-60 right-20 w-24 md:w-32 h-24 md:h-32 bg-orange-300/20 rounded-full blur-2xl animate-soft-float"
           style={{ animationDelay: '2s' }}
         />
         <div
-          className="absolute bottom-40 left-1/3 w-36 md:w-48 h-36 md:h-48 bg-gradient-to-br from-rose-200/15 to-pink-300/10 rounded-full blur-3xl animate-soft-float"
+          className="absolute bottom-40 left-1/3 w-36 md:w-48 h-36 md:h-48 bg-rose-300/15 rounded-full blur-3xl animate-soft-float"
           style={{ animationDelay: '4s' }}
         />
         <div
-          className="absolute bottom-20 right-10 w-28 md:w-36 h-28 md:h-36 bg-gradient-to-br from-amber-200/20 to-yellow-300/10 rounded-full blur-2xl animate-soft-float"
+          className="absolute bottom-20 right-10 w-28 md:w-36 h-28 md:h-36 bg-amber-300/20 rounded-full blur-2xl animate-soft-float"
           style={{ animationDelay: '1s' }}
         />
-        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#f97316_1px,transparent_1px)] [background-size:30px_30px]"></div>
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:20px_20px]"></div>
+        
         <svg
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 1200 800"
@@ -739,7 +769,7 @@ const OurMethodSection: React.FC<OurMethodProps> = ({ dict }) => {
               x2="100%"
               y2="100%"
             >
-              {/* Gradient updated: Teal -> Orange -> Rose */}
+              {/* Decorative Gradient updated: Teal -> Orange -> Rose */}
               <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.08" />
               <stop offset="50%" stopColor="#f97316" stopOpacity="0.06" />
               <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.08" />

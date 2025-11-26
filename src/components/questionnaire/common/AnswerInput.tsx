@@ -17,6 +17,7 @@ import {
 import {
   X,
   Plus,
+  Minus, // הוספתי את זה
   CheckCircle,
   Eraser,
   Info,
@@ -305,7 +306,7 @@ export default function AnswerInput({
               )
         )}
         onMouseDown={(e) => {
-          e.preventDefault(); // מונע התנהגויות לא רצויות כמו סימון טקסט
+          e.preventDefault();
           handleValueChange(choiceOption.value);
         }}
       >
@@ -333,12 +334,7 @@ export default function AnswerInput({
             isRTL && 'flex-row-reverse'
           )}
         >
-          <div
-            className={cn(
-              'flex items-center gap-3 flex-1'
-              // אין צורך בהיפוך נוסף כאן, ההורה כבר עושה זאת
-            )}
-          >
+          <div className={cn('flex items-center gap-3 flex-1')}>
             {choiceOption.icon && (
               <motion.div
                 animate={{
@@ -1513,300 +1509,186 @@ export default function AnswerInput({
         );
       }
 
+      // --- התיקון הגדול ---
       case 'budgetAllocation': {
         const budgetValues = (internalValue as Record<string, number>) || {};
-        const totalAllocatedPoints = Object.values(budgetValues).reduce(
+        const totalPointsRequired = question.totalPoints ?? 100;
+
+        // Calculate totals
+        const totalAllocated = Object.values(budgetValues).reduce(
           (sum, val) => sum + (Number(val) || 0),
           0
         );
-        const totalPointsRequired = question.totalPoints ?? 100;
-        const pointsDifference = totalPointsRequired - totalAllocatedPoints;
-        const isAllocationComplete = pointsDifference === 0;
-        const isOverAllocated = pointsDifference < 0;
-        const allocationPercentage = Math.min(
-          100,
-          (totalAllocatedPoints / totalPointsRequired) * 100
-        );
-        const headerTheme = isAllocationComplete
-          ? 'green'
-          : isOverAllocated
-            ? 'red'
-            : themeColor;
-        const headerColors = {
-          green: {
-            bg: 'bg-gradient-to-r from-green-50 to-emerald-50',
-            border: 'border-green-400',
-            iconBg: 'bg-gradient-to-br from-green-500 to-emerald-600',
-            text: 'text-green-700',
-            progress: 'from-green-500 to-emerald-600',
-          },
-          red: {
-            bg: 'bg-gradient-to-r from-red-50 to-rose-50',
-            border: 'border-red-400',
-            iconBg: 'bg-gradient-to-br from-red-500 to-rose-600',
-            text: 'text-red-700',
-            progress: 'from-red-500 to-rose-600',
-          },
-          [themeColor]: {
-            bg: `bg-gradient-to-r ${theme.lightBg}`,
-            border: theme.borderColor,
-            iconBg: `bg-gradient-to-br ${theme.gradient}`,
-            text: theme.textColor,
-            progress: `${theme.progressFrom} ${theme.progressTo}`,
-          },
-        };
-        const currentHeaderColors =
-          headerColors[headerTheme as keyof typeof headerColors];
+        const remaining = totalPointsRequired - totalAllocated;
+
+        // Determine status color
+        let statusColor = 'text-blue-600';
+        let statusBg = 'bg-blue-100';
+        let statusBorder = 'border-blue-200';
+
+        if (remaining === 0) {
+          statusColor = 'text-green-600';
+          statusBg = 'bg-green-100';
+          statusBorder = 'border-green-200';
+        } else if (remaining < 0) {
+          statusColor = 'text-red-600';
+          statusBg = 'bg-red-100';
+          statusBorder = 'border-red-200';
+        }
 
         return (
-          <div className="space-y-6">
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
+          <div className="space-y-5">
+            {/* 1. Cleaner Summary Bar */}
+            <div
               className={cn(
-                'relative p-6 rounded-2xl border-2 overflow-hidden',
-                currentHeaderColors.bg,
-                currentHeaderColors.border
+                'sticky top-0 z-20 flex items-center justify-between p-3 rounded-xl border-2 backdrop-blur-md shadow-sm transition-colors duration-300',
+                statusBg,
+                statusBorder
               )}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-white/50 to-transparent rounded-bl-full" />
-
-              <div className="relative z-10 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={cn(
-                        'p-3 rounded-xl',
-                        currentHeaderColors.iconBg
-                      )}
-                    >
-                      <Award className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        {dict.answerInput.budgetAllocation.totalAllocated}
-                      </p>
-                      <p
-                        className={cn(
-                          'text-2xl font-bold',
-                          currentHeaderColors.text
-                        )}
-                      >
-                        {totalAllocatedPoints} / {totalPointsRequired}
-                      </p>
-                    </div>
-                  </div>
-
-                  {isAllocationComplete && (
-                    <motion.div
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-full"
-                    >
-                      <CheckCircle className="w-5 h-5" fill="white" />
-                      <span className="font-bold">מושלם!</span>
-                    </motion.div>
-                  )}
-
-                  {!isAllocationComplete && (
-                    <Badge
-                      className={cn(
-                        'text-sm px-3 py-1',
-                        isOverAllocated
-                          ? 'bg-red-600 text-white'
-                          : 'bg-amber-600 text-white'
-                      )}
-                    >
-                      {pointsDifference > 0
-                        ? dict.answerInput.budgetAllocation.remaining.replace(
-                            '{{count}}',
-                            String(pointsDifference)
-                          )
-                        : dict.answerInput.budgetAllocation.surplus.replace(
-                            '{{count}}',
-                            String(Math.abs(pointsDifference))
-                          )}
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="relative h-4 bg-white/50 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${allocationPercentage}%` }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                    className={cn(
-                      'absolute inset-y-0 left-0 rounded-full',
-                      'bg-gradient-to-r',
-                      currentHeaderColors.progress
-                    )}
-                  />
-                </div>
-              </div>
-            </motion.div>
-            {totalAllocatedPoints > 0 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="flex justify-center"
-              >
-                <Button
-                  onClick={handleClear}
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    'group relative overflow-hidden',
-                    'border-2 rounded-xl px-4 py-2',
-                    'transition-all duration-300',
-                    'bg-white hover:bg-red-50',
-                    'border-red-200 hover:border-red-400',
-                    'text-red-600 hover:text-red-700',
-                    'shadow-sm hover:shadow-md',
-                    'font-medium'
-                  )}
+              <div className="flex items-center gap-2">
+                <div
+                  className={cn('p-1.5 rounded-full bg-white/50', statusColor)}
                 >
-                  <div className="flex items-center gap-2 relative z-10">
-                    <Eraser className="w-4 h-4 transition-transform group-hover:rotate-12" />
-                    <span>{dict.answerInput.budgetAllocation.resetButton}</span>
-                  </div>
-                  <motion.div
-                    className="absolute inset-0 bg-red-100 opacity-0 group-hover:opacity-100"
-                    transition={{ duration: 0.2 }}
-                  />
-                </Button>
-              </motion.div>
-            )}
-            <div className="space-y-4">
+                  {remaining === 0 ? (
+                    <CheckCircle className="w-5 h-5" />
+                  ) : (
+                    <Target className="w-5 h-5" />
+                  )}
+                </div>
+                <span className={cn('font-bold text-sm', statusColor)}>
+                  {remaining === 0
+                    ? 'התקציב הושלם!'
+                    : remaining > 0
+                      ? `נותרו להקצאה: ${remaining}`
+                      : `חריגה של ${Math.abs(remaining)}`}
+                </span>
+              </div>
+              <div className="text-xs font-semibold px-2 py-1 bg-white/60 rounded-md">
+                {totalAllocated} / {totalPointsRequired}
+              </div>
+            </div>
+
+            {/* 2. Simplified Category List */}
+            <div className="grid gap-3">
               {question.categories?.map((category, index) => {
-                const categoryValue = budgetValues[category.value] || 0;
-                const isActive = categoryValue > 0;
-                const percentage = (categoryValue / totalPointsRequired) * 100;
+                const currentValue = budgetValues[category.value] || 0;
+
+                // --- הלוגיקה החדשה: המקסימום המותר הוא הערך הנוכחי + מה שנשאר ---
+                // זה מונע "תקיעה" אבל חוסם חריגה
+                const maxAllowed = Math.min(
+                  totalPointsRequired,
+                  currentValue + Math.max(0, remaining)
+                );
 
                 return (
-                  <motion.div
+                  <div
                     key={category.value}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
                     className={cn(
-                      'relative p-5 rounded-2xl border-2 transition-all',
-                      isActive
-                        ? cn(
-                            'bg-gradient-to-r shadow-lg',
-                            theme.lightBg,
-                            theme.borderColor
-                          )
-                        : cn('bg-white border-gray-200', theme.hoverBorder)
+                      'bg-white rounded-xl border-2 p-3 sm:p-4 transition-all duration-200',
+                      currentValue > 0
+                        ? 'border-blue-200 shadow-sm'
+                        : 'border-gray-100 hover:border-gray-200'
                     )}
                   >
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {category.icon && (
-                            <motion.div
-                              animate={{
-                                scale: isActive ? [1, 1.1, 1] : 1,
-                              }}
-                              transition={{ duration: 0.3 }}
-                              className={cn(
-                                'p-2.5 rounded-xl transition-all',
-                                isActive
-                                  ? cn(
-                                      'bg-gradient-to-br text-white shadow-md',
-                                      theme.gradient
-                                    )
-                                  : 'bg-gray-100 text-gray-500'
-                              )}
-                            >
-                              {category.icon}
-                            </motion.div>
-                          )}
-                          <div>
-                            <Label className="font-semibold text-base text-gray-800">
-                              {category.label}
-                            </Label>
-                            {category.description && (
-                              <p className="text-xs text-gray-500 mt-0.5">
-                                {category.description}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            className={cn(
-                              'text-lg font-bold px-3 py-1',
-                              isActive
-                                ? cn(
-                                    'bg-gradient-to-r text-white',
-                                    theme.gradient
-                                  )
-                                : 'bg-gray-200 text-gray-600'
-                            )}
-                          >
-                            {categoryValue}
-                            {!question.totalPoints && '%'}
-                          </Badge>
-                          {isActive && (
-                            <Badge variant="outline" className="text-xs">
-                              {percentage.toFixed(0)}%
-                            </Badge>
-                          )}
-                        </div>
+                    {/* Header: Label + Controls */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 text-gray-700">
+                        {category.icon && (
+                          <span className="text-gray-400">{category.icon}</span>
+                        )}
+                        <span className="font-medium text-sm sm:text-base">
+                          {category.label}
+                        </span>
                       </div>
 
-                      <div className="space-y-2">
-                        <Slider
-                          value={[categoryValue]}
-                          min={category.min ?? 0}
-                          max={category.max ?? totalPointsRequired}
-                          step={1}
-                          onValueChange={(newValues: number[]) => {
+                      {/* Manual Controls (+/- buttons) */}
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 rounded-full hover:bg-gray-100 text-gray-500"
+                          onClick={() => {
+                            const newVal = Math.max(0, currentValue - 1);
                             handleValueChange({
                               ...budgetValues,
-                              [category.value]: newValues[0],
+                              [category.value]: newVal,
                             });
                           }}
-                          className={cn(
-                            'py-2',
-                            isActive
-                              ? `[&>span:first-child]:bg-gradient-to-r ${theme.gradient}`
-                              : '[&>span:first-child]:bg-gray-300'
-                          )}
-                        />
+                          disabled={currentValue <= 0}
+                        >
+                          <Minus className="w-3 h-3" />
+                        </Button>
 
-                        {isActive && (
-                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${percentage}%` }}
-                              className={cn(
-                                'h-full rounded-full bg-gradient-to-r',
-                                theme.gradient
-                              )}
-                              transition={{ duration: 0.3 }}
-                            />
-                          </div>
-                        )}
+                        <div
+                          className={cn(
+                            'min-w-[40px] text-center font-bold text-sm py-1 px-2 rounded-md',
+                            currentValue > 0
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'bg-gray-100 text-gray-500'
+                          )}
+                        >
+                          {currentValue}
+                        </div>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 rounded-full hover:bg-gray-100 text-gray-500"
+                          onClick={() => {
+                            if (remaining > 0) {
+                              const newVal = currentValue + 1;
+                              handleValueChange({
+                                ...budgetValues,
+                                [category.value]: newVal,
+                              });
+                            }
+                          }}
+                          disabled={remaining <= 0}
+                        >
+                          <Plus className="w-3 h-3" />
+                        </Button>
                       </div>
                     </div>
 
-                    {isActive && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.5 }}
-                        className={cn(
-                          'absolute inset-0 rounded-2xl blur-xl bg-gradient-to-r opacity-10',
-                          theme.gradient
-                        )}
-                      />
-                    )}
-                  </motion.div>
+                    {/* Slider */}
+                    <Slider
+                      value={[currentValue]}
+                      min={0}
+                      max={maxAllowed} // שימוש בערך הדינמי החדש
+                      step={1}
+                      onValueChange={(val) => {
+                        // סליידר חופשי שנעצר בגבול המותר
+                        handleValueChange({
+                          ...budgetValues,
+                          [category.value]: val[0],
+                        });
+                      }}
+                      className={cn(
+                        'cursor-pointer',
+                        currentValue > 0
+                          ? '[&>.bg-primary]:bg-blue-500'
+                          : '[&>.bg-primary]:bg-gray-300'
+                      )}
+                    />
+                  </div>
                 );
               })}
             </div>
+            {/* Reset Button (Optional, smaller) */}
+            {totalAllocated > 0 && (
+              <div className="flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClear}
+                  className="text-gray-400 hover:text-red-500 text-xs gap-1"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  אפס הכל
+                </Button>
+              </div>
+            )}
 
             <AnimatePresence>
               {validationError && (

@@ -17,17 +17,11 @@ import { Info, Loader2 } from 'lucide-react';
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
-/**
- * הגדרת ה-Props עבור הקומפוננטה הראשית.
- */
 interface RegisterStepsProps {
   dict: RegisterStepsDict;
   locale: 'he' | 'en';
 }
 
-/**
- * רכיב התוכן הפנימי שמכיל את הלוגיקה המרכזית של תהליך ההרשמה.
- */
 const RegisterStepsContent: React.FC<{
   dict: RegisterStepsDict;
   locale: 'he' | 'en';
@@ -49,7 +43,6 @@ const RegisterStepsContent: React.FC<{
     useState(false);
   const [initializationAttempted, setInitializationAttempted] = useState(false);
 
-  // useEffect שמנהל את מצב ההרשמה והסשן
   useEffect(() => {
     const reasonParam = searchParams.get('reason');
     if (
@@ -69,7 +62,6 @@ const RegisterStepsContent: React.FC<{
     if (sessionStatus === 'authenticated' && session?.user) {
       const user = session.user as SessionUserType;
       
-      // בדיקה אם המשתמש כבר סיים את כל התהליך
       if (
         user.isProfileComplete &&
         user.isPhoneVerified &&
@@ -84,7 +76,6 @@ const RegisterStepsContent: React.FC<{
         return;
       }
 
-      // בדיקה אם נדרשת השלמת פרטים
       const needsSetup =
         !user.termsAndPrivacyAcceptedAt ||
         !user.isProfileComplete ||
@@ -120,14 +111,12 @@ const RegisterStepsContent: React.FC<{
     locale,
   ]);
 
-  /**
-   * פונקציה שמחזירה את רכיב-השלב המתאים למצב הנוכחי.
-   */
   const renderStep = (): React.ReactNode => {
     if (sessionStatus === 'loading') {
       return (
         <div className="flex justify-center p-10">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+          {/* UPDATED: Cyan -> Teal */}
+          <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
         </div>
       );
     }
@@ -144,10 +133,9 @@ const RegisterStepsContent: React.FC<{
       );
     }
 
-    // תהליך השלמת פרופיל (מאוחד)
     if (registrationContextData.isCompletingProfile) {
       switch (registrationContextData.step) {
-        case 2: // שלב מילוי הפרטים המאוחד
+        case 2:
           return (
             <PersonalDetailsStep
               personalDetailsDict={dict.steps.personalDetails}
@@ -156,7 +144,7 @@ const RegisterStepsContent: React.FC<{
               locale={locale}
             />
           );
-        case 4: // דף סיום והפניה
+        case 4:
           return <CompleteStep dict={dict.steps.complete} />;
         default:
           resetForm();
@@ -164,7 +152,6 @@ const RegisterStepsContent: React.FC<{
       }
     }
 
-    // תהליך הרשמה רגיל (אימייל וסיסמה)
     switch (registrationContextData.step) {
       case 0:
         return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
@@ -182,7 +169,6 @@ const RegisterStepsContent: React.FC<{
     }
   };
 
-  // ▼▼▼ לוגיקת הכותרות וסרגל ההתקדמות ▼▼▼
   let pageTitle = dict.headers.registerTitle;
   let stepDescription = dict.headers.welcomeDescription;
   let currentProgressBarStep = 0;
@@ -193,7 +179,6 @@ const RegisterStepsContent: React.FC<{
     registrationContextData.isVerifyingEmailCode &&
     !registrationContextData.isCompletingProfile
   ) {
-    // מצב אימות אימייל
     pageTitle = dict.headers.verifyEmailTitle;
     stepDescription = dict.headers.verifyEmailDescription.replace(
       '{{email}}',
@@ -203,19 +188,14 @@ const RegisterStepsContent: React.FC<{
     currentProgressBarStep = 1;
 
   } else if (registrationContextData.isCompletingProfile) {
-    // מצב השלמת פרופיל (גוגל או משתמש רשום ללא פרופיל)
     pageTitle = dict.headers.completeProfileTitle;
-    
-    // אין צורך בסרגל התקדמות כי זה טופס אחד מאוחד
     showProgressBar = false; 
 
     if (registrationContextData.step === 2) {
-      // שלב הפרטים האישיים
       stepDescription = session?.user?.termsAndPrivacyAcceptedAt
         ? dict.headers.personalDetailsConsentedDescription
         : dict.headers.personalDetailsDescription;
     } else if (registrationContextData.step === 4) {
-      // שלב הסיום
       stepDescription = session?.user?.isPhoneVerified
         ? dict.headers.completionReadyDescription
         : dict.headers.completionPhoneVerificationDescription;
@@ -224,7 +204,6 @@ const RegisterStepsContent: React.FC<{
     }
 
   } else {
-    // הרשמה רגילה - שלב יצירת החשבון
     if (registrationContextData.step === 1) {
       pageTitle = dict.headers.registerTitle;
       stepDescription = dict.headers.accountCreationDescription;
@@ -232,20 +211,22 @@ const RegisterStepsContent: React.FC<{
       showProgressBar = true;
     }
   }
-  // ▲▲▲ סוף הלוגיקה ▲▲▲
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
+    // UPDATED: Background Gradient (Teal/Orange/Slate)
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40 p-4 sm:p-8">
       <div className="mb-6 text-center">
-        <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 text-3xl font-bold mb-2">
+        {/* UPDATED: Text Gradient (Teal -> Orange -> Amber) */}
+        <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 text-3xl font-bold mb-2">
           {pageTitle}
         </h1>
         <p className="text-gray-600 max-w-md mx-auto">{stepDescription}</p>
       </div>
 
       {showIncompleteProfileMessage && (
-        <Alert className="mb-6 w-full max-w-md bg-yellow-50 border-yellow-200 text-yellow-800 shadow-md">
-          <Info className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
+        // UPDATED: Yellow/Amber alerts match the new palette well
+        <Alert className="mb-6 w-full max-w-md bg-amber-50 border-amber-200 text-amber-800 shadow-md">
+          <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-1" />
           <div className="ml-3 rtl:mr-3 rtl:ml-0">
             <AlertTitle className="font-semibold mb-1">
               {dict.incompleteProfileAlert.title}
@@ -270,13 +251,14 @@ const RegisterStepsContent: React.FC<{
         </div>
       )}
 
-      <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative border border-white/50">
         <div className="p-6 sm:p-8">{renderStep()}</div>
       </div>
 
       <div className="mt-8 text-center text-sm text-gray-500">
         {dict.contactSupport}{' '}
-        <Link href="/contact" className="text-cyan-600 hover:underline">
+        {/* UPDATED: Link Color (Teal) */}
+        <Link href="/contact" className="text-teal-600 hover:underline hover:text-teal-700">
           {dict.contactSupportLink}
         </Link>
       </div>
@@ -284,9 +266,6 @@ const RegisterStepsContent: React.FC<{
   );
 };
 
-/**
- * רכיב הייצוא הראשי (Wrapper).
- */
 export default function RegisterSteps({ dict, locale }: RegisterStepsProps) {
   return (
     <RegistrationProvider>

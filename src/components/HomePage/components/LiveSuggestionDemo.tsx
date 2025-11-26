@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -30,6 +31,7 @@ interface LiveSuggestionDemoProps {
 
 /**
  * קומפוננטה להצגת הדגמה חיה של כרטיס הצעה והמודאל הנפתח ממנו.
+ * עודכן לעיצוב התואם את ה-HeroSection (Teal/Orange palette).
  */
 export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
   suggestion,
@@ -52,20 +54,20 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
     <div className="w-full max-w-sm lg:max-w-md mx-auto flex flex-col items-center gap-4">
       {/*
        * ===================================================================
-       * כאן בוצע התיקון המרכזי:
-       * 1. תג ה-<button> הוחלף ב-<div> כדי למנוע קינון לא חוקי של כפתורים.
-       * 2. נוסף 'role="button"' ו-'tabIndex={0}' לשמירה על נגישות (מיקוד וזיהוי על ידי קוראי מסך).
-       * 3. נוסף אירוע 'onKeyDown' כדי לאפשר הפעלה באמצעות מקלדת (Enter או Space).
+       * עדכון עיצובי:
+       * 1. צללים (Shadows): הוחלפו לצללים צבעוניים (Teal/Orange) כדי להתאים ל-Hero.
+       * 2. מסגרת (Border): נוספה מסגרת עדינה לבנה/שקופה למראה "זכוכית".
+       * 3. פוקוס (Ring): עודכן לצבע Teal.
        * ===================================================================
        */}
       <div
         role="button"
         tabIndex={0}
-        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-500"
+        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-xl shadow-teal-900/5 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-500 w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-teal-500 border border-white/60 bg-white"
         onClick={handleOpenModal}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault(); // מונע גלילה בעת לחיצה על מקש רווח
+            e.preventDefault();
             handleOpenModal();
           }
         }}
@@ -83,15 +85,25 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
           locale={locale}
         />
 
-        {/* שכבת הריחוף עם הטקסט הדינמי */}
-        <div className="absolute inset-0 bg-black/50 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-4 pointer-events-none">
-          <ZoomIn className="w-12 h-12 mb-2" />
-          <p className="font-bold text-lg text-center">
+        {/* 
+         * שכבת הריחוף (Overlay) - עודכנה לגרדיאנט Teal עמוק ושקיפות 
+         * במקום שחור פשוט, כדי להתאים לאווירה היוקרתית והנקייה של ה-Hero.
+         */}
+        <div className="absolute inset-0 bg-gradient-to-t from-teal-900/95 via-teal-800/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center text-white p-4 pointer-events-none backdrop-blur-[2px]">
+          {/* אייקון עם אנימציה קלה */}
+          <div className="bg-white/10 p-3 rounded-full mb-3 backdrop-blur-sm border border-white/20 transform group-hover:scale-110 transition-transform duration-300">
+            <ZoomIn className="w-10 h-10 text-white drop-shadow-md" />
+          </div>
+          
+          <p className="font-bold text-xl text-center drop-shadow-sm">
             {suggestionDemoDict.hoverTitle}
           </p>
-          <p className="text-sm text-center text-white/80">
+          <p className="text-sm text-center text-teal-50 mt-1 max-w-[80%] leading-relaxed">
             {suggestionDemoDict.hoverSubtitle}
           </p>
+          
+          {/* פס קישוט תחתון התואם לגרדיאנט של הכפתור הראשי */}
+          <div className="mt-4 w-12 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 rounded-full shadow-lg shadow-orange-500/30" />
         </div>
       </div>
 
