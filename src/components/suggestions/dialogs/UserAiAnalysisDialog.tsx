@@ -1,4 +1,4 @@
-// File: src/app/components/suggestions/dialogs/UserAiAnalysisDialog.tsx
+// src/components/suggestions/dialogs/UserAiAnalysisDialog.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -102,7 +102,7 @@ const mockAnalysisResult: AiSuggestionAnalysisResult = {
   ],
 };
 
-// --- Sub-components for better modularity ---
+// --- Sub-components ---
 
 const AnalysisItem: React.FC<{
   icon: React.ElementType;
@@ -126,6 +126,7 @@ const AnalysisItem: React.FC<{
   </div>
 );
 
+// --- Loading Screen Updated (Teal/Orange/Rose) ---
 const LoadingScreen: React.FC<{
   progress: number;
   step: number;
@@ -143,13 +144,15 @@ const LoadingScreen: React.FC<{
   return (
     <div className="flex flex-col items-center justify-center h-full text-center space-y-8 p-8">
       <div className="relative">
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 via-purple-50 to-pink-100 animate-pulse border-4 border-white shadow-xl" />
+        {/* Spinner Background: Teal -> Orange -> Rose */}
+        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-teal-100 via-orange-50 to-rose-100 animate-pulse border-4 border-white shadow-xl" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+          <Loader2 className="w-12 h-12 text-teal-600 animate-spin" />
         </div>
       </div>
       <div className="space-y-3">
-        <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+        {/* Text Gradient: Teal -> Orange -> Rose */}
+        <h3 className="text-2xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600 bg-clip-text text-transparent">
           {dict.loadingTitle}
         </h3>
         <p className="text-gray-600 max-w-md text-lg">
@@ -170,7 +173,8 @@ const LoadingScreen: React.FC<{
           transition={{ duration: 0.5 }}
           className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-lg border border-gray-100"
         >
-          <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg">
+          {/* Step Icon: Teal -> Orange */}
+          <div className="p-3 rounded-full bg-gradient-to-br from-teal-500 to-orange-500 text-white shadow-lg">
             {React.createElement(loadingSteps[step].icon, {
               className: 'w-5 h-5',
             })}
@@ -191,7 +195,7 @@ const ErrorScreen: React.FC<{
   locale: 'he' | 'en';
 }> = ({ error, onRetry, dict, locale }) => (
   <div className="flex flex-col items-center justify-center h-full text-center space-y-6 p-8">
-    <XCircle className="w-16 h-16 text-red-400" />
+    <XCircle className="w-16 h-16 text-rose-400" />
     <div className="space-y-4 max-w-md">
       <h3 className="text-2xl font-bold text-gray-800">{dict.errorTitle}</h3>
       <Alert variant="destructive">
@@ -204,7 +208,7 @@ const ErrorScreen: React.FC<{
         </AlertDescription>
       </Alert>
     </div>
-    <Button onClick={onRetry}>
+    <Button onClick={onRetry} className="bg-teal-600 hover:bg-teal-700 text-white">
       <Brain className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')} />
       {dict.retryButton}
     </Button>
@@ -277,22 +281,21 @@ export const DialogBody: React.FC<
 
   useEffect(() => {
     fetchAnalysis();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [suggestedUserId, isDemo]);
 
-  // Correctly set back button icon based on locale
   const BackButtonIcon = locale === 'he' ? ArrowRight : ArrowLeft;
   const directionArrow = locale === 'he' ? '⟵' : '⟶';
 
   return (
     <>
-      {/* ======================= START: HEADER REDESIGN ======================= */}
       <DialogHeader className="relative p-6 border-b text-center bg-gradient-to-b from-slate-50 to-white flex-shrink-0">
         <div className="flex flex-col items-center gap-2">
-          <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white shadow-lg">
+          {/* Bot Icon: Teal -> Orange -> Rose */}
+          <div className="p-3 rounded-full bg-gradient-to-br from-teal-500 via-orange-500 to-rose-500 text-white shadow-lg">
             <Bot className="w-7 h-7" />
           </div>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+          {/* Title: Teal -> Orange -> Rose */}
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600 bg-clip-text text-transparent">
             {dict.dialogTitle}
           </DialogTitle>
           <DialogDescription className="text-base text-gray-500">
@@ -315,7 +318,6 @@ export const DialogBody: React.FC<
           </Button>
         </div>
       </DialogHeader>
-      {/* ======================= END: HEADER REDESIGN ======================= */}
 
       <main className="flex-1 flex flex-col min-h-0 bg-white">
         <AnimatePresence mode="wait">
@@ -359,13 +361,11 @@ export const DialogBody: React.FC<
                 </TabsList>
 
                 <ScrollArea className="flex-1">
-                  {/* ======================= START: LTR ALIGNMENT FIX ======================= */}
-                  {/* This ensures that when the locale is English, the text aligns to the left */}
                   <div className={cn('p-6', locale === 'en' && 'text-left')}>
-                    {/* ======================= END: LTR ALIGNMENT FIX ======================= */}
                     <TabsContent value="summary" className="space-y-6 mt-0">
                       <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                        <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2 text-blue-600">
+                        {/* Match Title: Teal */}
+                        <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2 text-teal-600">
                           <Info className="w-5 h-5" />
                           {analysis.matchTitle}
                         </h3>
@@ -374,8 +374,9 @@ export const DialogBody: React.FC<
                         </p>
                       </div>
                       <div>
+                        {/* Strength: Emerald (Success) */}
                         <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                          <CheckCircle className="w-5 h-5 text-green-500" />
+                          <CheckCircle className="w-5 h-5 text-emerald-500" />
                           {dict.summaryTab.strengthTitle}
                         </h3>
                         <div className="space-y-4">
@@ -383,7 +384,7 @@ export const DialogBody: React.FC<
                             <AnalysisItem
                               key={point.area}
                               icon={CheckCircle}
-                              iconColor="text-green-500"
+                              iconColor="text-emerald-500"
                               {...point}
                             />
                           ))}
@@ -392,8 +393,9 @@ export const DialogBody: React.FC<
                     </TabsContent>
 
                     <TabsContent value="consider" className="mt-0">
+                      {/* Considerations: Amber/Orange */}
                       <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <AlertTriangle className="w-5 h-5 text-amber-500" />
+                        <AlertTriangle className="w-5 h-5 text-orange-500" />
                         {dict.considerTab.title}
                       </h3>
                       <div className="space-y-4">
@@ -401,7 +403,7 @@ export const DialogBody: React.FC<
                           <AnalysisItem
                             key={point.area}
                             icon={AlertTriangle}
-                            iconColor="text-amber-500"
+                            iconColor="text-orange-500"
                             {...point}
                           />
                         ))}
@@ -409,8 +411,9 @@ export const DialogBody: React.FC<
                     </TabsContent>
 
                     <TabsContent value="conversation" className="mt-0">
+                      {/* Conversation: Teal */}
                       <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <MessageSquare className="w-5 h-5 text-indigo-500" />
+                        <MessageSquare className="w-5 h-5 text-teal-500" />
                         {dict.conversationTab.title}
                       </h3>
                       <ul className="space-y-3 list-inside">
@@ -418,9 +421,9 @@ export const DialogBody: React.FC<
                           (starter, index) => (
                             <li
                               key={index}
-                              className="flex items-start gap-2 p-2 rounded-md hover:bg-indigo-50/50"
+                              className="flex items-start gap-2 p-2 rounded-md hover:bg-teal-50/50"
                             >
-                              <MessageSquare className="w-4 h-4 text-indigo-400 mt-1 flex-shrink-0" />
+                              <MessageSquare className="w-4 h-4 text-teal-400 mt-1 flex-shrink-0" />
                               <span className="text-sm text-gray-700">
                                 {starter}
                               </span>
@@ -462,16 +465,17 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
+        {/* Trigger Button: Teal -> Orange -> Rose */}
         <Button
           variant="outline"
           size="lg"
-          className="relative overflow-hidden group bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border-2 border-blue-200 text-blue-700 hover:from-blue-100 hover:to-pink-100 hover:border-blue-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl"
+          className="relative overflow-hidden group bg-gradient-to-r from-teal-50 via-orange-50 to-rose-50 border-2 border-teal-200 text-teal-700 hover:from-teal-100 hover:to-rose-100 hover:border-teal-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent transform -translate-x-full group-hover:animate-shimmer" />
           <div className="relative z-10 flex items-center gap-3">
             <div className="relative">
-              <Brain className="w-6 h-6 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110 text-blue-600" />
-              <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-purple-500 opacity-0 group-hover:opacity-100" />
+              <Brain className="w-6 h-6 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110 text-teal-600" />
+              <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-orange-500 opacity-0 group-hover:opacity-100" />
             </div>
             <span className="text-lg font-bold">{dict.triggerButton}</span>
           </div>

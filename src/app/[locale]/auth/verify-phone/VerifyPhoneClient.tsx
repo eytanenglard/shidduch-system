@@ -71,14 +71,14 @@ const cardVariants = {
 };
 
 // ============================================================================
-// DYNAMIC BACKGROUND COMPONENT
+// DYNAMIC BACKGROUND COMPONENT (Teal/Orange Theme)
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
     {/* Floating Gradients */}
     <motion.div
-      className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl"
+      className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-teal-400/20 to-emerald-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, -30, 0],
         x: [0, 20, 0],
@@ -91,7 +91,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-pink-400/20 to-purple-500/20 rounded-full blur-3xl"
+      className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-orange-400/20 to-amber-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, 40, 0],
         x: [0, -30, 0],
@@ -105,7 +105,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute bottom-32 left-1/4 w-72 h-72 bg-gradient-to-br from-orange-400/15 to-red-500/15 rounded-full blur-3xl"
+      className="absolute bottom-32 left-1/4 w-72 h-72 bg-gradient-to-br from-rose-400/15 to-orange-500/15 rounded-full blur-3xl"
       animate={{
         y: [0, -25, 0],
         x: [0, 15, 0],
@@ -119,7 +119,7 @@ const DynamicBackground: React.FC = () => (
       }}
     />
     <motion.div
-      className="absolute bottom-20 right-10 w-64 h-64 bg-gradient-to-br from-emerald-400/20 to-teal-500/20 rounded-full blur-3xl"
+      className="absolute bottom-20 right-10 w-64 h-64 bg-gradient-to-br from-teal-400/20 to-cyan-500/20 rounded-full blur-3xl"
       animate={{
         y: [0, 20, 0],
         x: [0, -10, 0],
@@ -133,10 +133,10 @@ const DynamicBackground: React.FC = () => (
       }}
     />
 
-    {/* Decorative Dots Pattern */}
-    <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#8b5cf6_1px,transparent_1px)] [background-size:30px_30px]"></div>
+    {/* Decorative Dots Pattern (Teal) */}
+    <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:30px_30px]"></div>
 
-    {/* SVG Decorative Paths */}
+    {/* SVG Decorative Paths (Teal -> Orange) */}
     <svg
       className="absolute inset-0 w-full h-full"
       viewBox="0 0 1200 800"
@@ -150,9 +150,9 @@ const DynamicBackground: React.FC = () => (
           x2="100%"
           y2="100%"
         >
-          <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.08" />
-          <stop offset="50%" stopColor="#ec4899" stopOpacity="0.06" />
-          <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.08" />
+          <stop offset="0%" stopColor="#0d9488" stopOpacity="0.08" />
+          <stop offset="50%" stopColor="#f97316" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.08" />
         </linearGradient>
       </defs>
       <motion.path
@@ -217,7 +217,8 @@ const CircularTimer: React.FC<CircularTimerProps> = ({
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          className="text-cyan-500"
+          // Color updated to Teal
+          className="text-teal-500"
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset }}
           transition={{ duration: 0.3, ease: 'linear' }}
@@ -415,7 +416,8 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
       return (
         <>
           {parts[0]}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
+          {/* Number Accent: Teal -> Pink (retained for contrast) or Teal -> Orange */}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
             {OTP_LENGTH}
           </span>
           {parts[1]}
@@ -447,8 +449,9 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
           >
-            <Shield className="w-6 h-6 text-cyan-500" />
-            <span className="text-cyan-700 font-semibold text-lg">
+            {/* Shield: Teal */}
+            <Shield className="w-6 h-6 text-teal-500" />
+            <span className="text-teal-700 font-semibold text-lg">
               {dict.title}
             </span>
           </motion.div>
@@ -464,15 +467,15 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
           variants={cardVariants}
           className="relative overflow-hidden rounded-3xl bg-white/70 backdrop-blur-xl shadow-2xl border border-white/60 p-8 md:p-10"
         >
-          {/* Decorative Elements */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-transparent rounded-full transform translate-x-16 -translate-y-16 blur-2xl" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/20 to-transparent rounded-full transform -translate-x-16 translate-y-16 blur-2xl" />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-purple-400/5 to-transparent rounded-full blur-3xl" />
+          {/* Decorative Elements (Teal/Orange) */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-400/20 to-transparent rounded-full transform translate-x-16 -translate-y-16 blur-2xl" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-transparent rounded-full transform -translate-x-16 translate-y-16 blur-2xl" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-amber-400/5 to-transparent rounded-full blur-3xl" />
 
           <div className="relative z-10 space-y-8">
-            {/* WhatsApp Icon & Phone Number */}
+            {/* WhatsApp/Phone Icon & Phone Number */}
             <div className="text-center space-y-3">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 shadow-lg mb-2">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-600 shadow-lg mb-2">
                 <MessageSquare className="w-8 h-8 text-white" />
               </div>
               {/* Fixed Code Sent To Logic */}
@@ -514,7 +517,7 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <Alert className="border-green-200 bg-green-50">
+                  <Alert className="border-emerald-200 bg-emerald-50">
                     <motion.div
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{
@@ -523,12 +526,12 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
                         repeatDelay: 1,
                       }}
                     >
-                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <CheckCircle className="h-5 w-5 text-emerald-600" />
                     </motion.div>
-                    <AlertTitle className="font-semibold text-green-800">
+                    <AlertTitle className="font-semibold text-emerald-800">
                       {dict.success.title}
                     </AlertTitle>
-                    <AlertDescription className="text-green-700">
+                    <AlertDescription className="text-emerald-700">
                       {successMessage}
                     </AlertDescription>
                   </Alert>
@@ -542,12 +545,13 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <Alert className="border-blue-200 bg-blue-50">
-                    <Sparkles className="h-5 w-5 text-blue-600" />
-                    <AlertTitle className="font-semibold text-blue-800">
+                  {/* Info: Teal */}
+                  <Alert className="border-teal-200 bg-teal-50">
+                    <Sparkles className="h-5 w-5 text-teal-600" />
+                    <AlertTitle className="font-semibold text-teal-800">
                       {dict.info.title}
                     </AlertTitle>
-                    <AlertDescription className="text-blue-700">
+                    <AlertDescription className="text-teal-700">
                       {infoMessage}
                     </AlertDescription>
                   </Alert>
@@ -585,6 +589,7 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
                         '{{index}}',
                         (index + 1).toString()
                       )}
+                      // Updated Focus and Filled Colors (Teal/Emerald)
                       className={`
                         w-12 h-14 md:w-14 md:h-16 
                         text-center text-2xl md:text-3xl font-bold 
@@ -593,26 +598,26 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
                         shadow-md
                         ${
                           focusedIndex === index
-                            ? 'border-cyan-500 ring-4 ring-cyan-200 scale-105 bg-white'
+                            ? 'border-teal-500 ring-4 ring-teal-200 scale-105 bg-white'
                             : digit
-                              ? 'border-green-400 bg-green-50'
+                              ? 'border-teal-400 bg-teal-50'
                               : 'border-gray-300 bg-white/50'
                         }
-                        ${disableForm ? 'opacity-50 cursor-not-allowed' : 'hover:border-cyan-400'}
+                        ${disableForm ? 'opacity-50 cursor-not-allowed' : 'hover:border-teal-400'}
                       `}
                     />
                   </motion.div>
                 ))}
               </div>
 
-              {/* Progress Indicator */}
+              {/* Progress Indicator (Teal -> Orange) */}
               <div className="flex justify-center items-center gap-2">
                 {code.map((digit, index) => (
                   <motion.div
                     key={index}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
                       digit
-                        ? 'bg-gradient-to-r from-cyan-500 to-pink-500 w-8'
+                        ? 'bg-gradient-to-r from-teal-500 to-orange-500 w-8'
                         : 'bg-gray-200 w-4'
                     }`}
                     animate={{
@@ -623,7 +628,7 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
                 ))}
               </div>
 
-              {/* Verify Button */}
+              {/* Verify Button (Main Gradient) */}
               <motion.div
                 whileHover={{ scale: disableForm ? 1 : 1.02 }}
                 whileTap={{ scale: disableForm ? 1 : 0.98 }}
@@ -631,7 +636,7 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
                 <Button
                   type="submit"
                   disabled={disableForm || !isCodeComplete}
-                  className="w-full py-6 text-lg font-bold rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:from-purple-700 hover:via-pink-700 hover:to-rose-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
+                  className="w-full py-6 text-lg font-bold rounded-xl bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center gap-3">
@@ -676,7 +681,7 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
                       ${
                         disableResend
                           ? 'border-gray-300 text-gray-400 cursor-not-allowed'
-                          : 'border-cyan-500 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-600'
+                          : 'border-teal-500 text-teal-600 hover:bg-teal-50 hover:border-teal-600'
                       }
                     `}
                   >
@@ -718,7 +723,7 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
                     ${
                       disableForm
                         ? 'text-gray-400 pointer-events-none'
-                        : 'text-cyan-600 hover:text-cyan-700 hover:gap-3'
+                        : 'text-teal-600 hover:text-teal-700 hover:gap-3'
                     }
                   `}
                 >

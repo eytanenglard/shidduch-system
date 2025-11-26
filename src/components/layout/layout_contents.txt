@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\layout
-# Generated on: 2025-09-02 20:02:37
+# Generated on: 2025-11-26 12:48:07
 ################################################################################
 
 ================================================================================
@@ -362,6 +362,8 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\layout\FeedbackWidget.tsx
 --------------------------------------------------------------------------------
 Content:
+// --- START OF FILE FeedbackWidget.tsx ---
+
 'use client';
 
 import React, { useState, useRef, useEffect, Fragment } from 'react';
@@ -377,7 +379,6 @@ import {
   Loader2,
   Paperclip,
   X,
-  Image as ImageIcon,
   Send,
   Sparkles,
 } from 'lucide-react';
@@ -385,11 +386,18 @@ import type { FeedbackWidgetDict } from '@/types/dictionary';
 
 interface FeedbackWidgetProps {
   dict: FeedbackWidgetDict;
+  locale?: string; // 🌐 הוספת locale כ-prop
 }
 
 type FeedbackType = 'SUGGESTION' | 'BUG' | 'POSITIVE';
 
-const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
+const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
+  dict,
+  locale = 'en',
+}) => {
+  // 🌐 שימוש ב-locale מה-props במקום useLocale
+  const isRTL = locale === 'he' || locale === 'ar';
+
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<'type' | 'form'>('type');
   const [feedbackType, setFeedbackType] = useState<FeedbackType | null>(null);
@@ -400,21 +408,22 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [isTabHidden, setIsTabHidden] = useState(false);
   const [isPermanentlyHidden, setIsPermanentlyHidden] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false); // <--- שינוי 1: הוספת משתנה State חדש
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // <--- שינוי 2: הוספת useEffect למניעת הקלקה בזמן אנימציה
+  // 🔧 הוספת ref למניעת clicks לא רצויים
+  const tabButtonRef = useRef<HTMLButtonElement>(null);
+  const [isProcessingClick, setIsProcessingClick] = useState(false);
+
   useEffect(() => {
     if (isOpen) {
       setIsTransitioning(true);
       const timer = setTimeout(() => {
         setIsTransitioning(false);
-      }, 500); // משך זמן זהה לאנימציה (duration-500)
-
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
@@ -454,23 +463,47 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
   // Minimum swipe distance (in px)
   const minSwipeDistance = 50;
 
+  // 🔧 שיפור Touch Events עם מניעת clicks מיותרים
   const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null); // Reset touchEnd
+    setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
+    // מניעת click event במקביל
+    e.preventDefault();
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart || !touchEnd) {
+      // אם לא היה swipe, נפתח את הווידג'ט
+      if (!isProcessingClick) {
+        setIsProcessingClick(true);
+        setTimeout(() => {
+          setStep('type'); // FIX: Ensure the widget starts at step 1
+          setIsOpen(true);
+          setIsProcessingClick(false);
+        }, 50);
+      }
+      return;
+    }
 
     const distance = touchStart - touchEnd;
     const isRightSwipe = distance < -minSwipeDistance;
 
     if (isRightSwipe) {
       handleHidePermanently();
+    } else {
+      // אם לא היה swipe משמעותי, נפתח את הווידג'ט
+      if (!isProcessingClick) {
+        setIsProcessingClick(true);
+        setTimeout(() => {
+          setStep('type'); // FIX: Ensure the widget starts at step 1
+          setIsOpen(true);
+          setIsProcessingClick(false);
+        }, 50);
+      }
     }
   };
 
@@ -496,7 +529,15 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
     }
   }, [screenshot]);
 
+  // 🔧 שיפור handleFileChange עם בדיקות נוספות
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // בדיקה שהקובץ נבחר באופן מכוון
+    if (!isOpen || step !== 'form') {
+      // אם הווידג'ט לא פתוח או לא בשלב הנכון, נעצור
+      if (event.target) event.target.value = '';
+      return;
+    }
+
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
@@ -524,6 +565,32 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
       setContent('');
       setScreenshot(null);
       setScreenshotPreview(null);
+    }
+  };
+
+  // 🔧 שיפור handleTabClick עם מניעת conflicts
+  const handleTabClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isProcessingClick || isOpen) return;
+
+    setIsProcessingClick(true);
+    setTimeout(() => {
+      setStep('type'); // FIX: Ensure the widget starts at step 1
+      setIsOpen(true);
+      setIsProcessingClick(false);
+    }, 50);
+  };
+
+  // 🔧 הוספת handler מיוחד לכפתור העלאת קבצים
+  const handleFileButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // וידוא שאנחנו בשלב הנכון
+    if (step === 'form' && isOpen && !isTransitioning) {
+      fileInputRef.current?.click();
     }
   };
 
@@ -559,9 +626,11 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
     }
   };
 
+  // ... (שאר הקוד נשאר ללא שינוי)
+  // The rest of the component's JSX remains unchanged.
   return (
     <Fragment>
-      {/* Floating Tab Button - Responsive */}
+      {/* Floating Tab Button - Responsive - תמיד בצד ימין */}
       <div className="fixed top-1/2 -translate-y-1/2 right-0 z-50">
         <div
           className={`transition-all duration-700 ${
@@ -572,13 +641,15 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
         >
           <div className="relative group">
             <button
-              onClick={() => setIsOpen(true)}
+              ref={tabButtonRef}
+              onClick={handleTabClick}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
-              className={`relative text-white px-1.5 sm:px-2 py-4 sm:py-6 rounded-l-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-600 via-orange-500 to-amber-400 bg-size-200 hover:bg-pos-100 ${
+              disabled={isProcessingClick}
+              className={`relative text-white px-1.5 sm:px-2 py-4 sm:py-6 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-600 via-orange-500 to-amber-400 bg-size-200 hover:bg-pos-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-2xl ${
                 isHovered ? 'w-20 sm:w-32' : 'w-8 sm:w-12'
               }`}
               style={{
@@ -626,7 +697,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
               )}
             </button>
 
-            {/* Close button (X) - Both mobile and desktop */}
+            {/* Close button (X) - תמיד בצד שמאל של הכפתור */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -665,8 +736,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
         />
       )}
 
-      {/* Main Widget - Responsive */}
-      {/* <--- שינוי 3: עדכון ה-className של המודאל */}
+      {/* Main Widget - Responsive - תמיד בצד ימין */}
       <div
         className={cn(
           'fixed inset-x-4 top-1/2 -translate-y-1/2 sm:top-1/2 sm:-translate-y-1/2 sm:right-16 sm:left-auto sm:right-24 z-50 w-auto sm:w-96 max-w-lg mx-auto sm:mx-0 transition-all duration-500',
@@ -683,10 +753,14 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
           <div className="relative">
             {/* Header - Mobile optimized */}
             <div className="bg-gradient-to-r from-teal-500/20 via-orange-500/15 to-amber-500/20 p-4 sm:p-6 border-b border-white/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 sm:gap-3">
+              <div
+                className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}
+              >
+                <div
+                  className={`flex items-center gap-2 sm:gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}
+                >
                   <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gradient-to-r from-teal-400 to-amber-400 rounded-full animate-pulse shadow-lg" />
-                  <div>
+                  <div className={isRTL ? 'text-right' : 'text-left'}>
                     <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-400 bg-clip-text text-transparent">
                       {dict.title}
                     </h3>
@@ -723,14 +797,18 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                         setFeedbackType(option.type);
                         setStep('form');
                       }}
-                      className="w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-gray-50/80 to-white/80 hover:from-white to-gray-50 border border-gray-100/50 hover:border-orange-200/50 transition-all duration-300 group flex items-center gap-3 sm:gap-4 hover:shadow-md hover:scale-[1.02]"
+                      className={`w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-gray-50/80 to-white/80 hover:from-white to-gray-50 border border-gray-100/50 hover:border-orange-200/50 transition-all duration-300 group flex items-center gap-3 sm:gap-4 hover:shadow-md hover:scale-[1.02] ${
+                        isRTL ? 'flex-row-reverse' : ''
+                      }`}
                     >
                       <div
                         className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br ${option.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
                       >
                         <option.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-sm" />
                       </div>
-                      <div className="flex-1 text-right">
+                      <div
+                        className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}
+                      >
                         <div className="font-medium text-gray-800 mb-1 text-sm sm:text-base">
                           {option.label}
                         </div>
@@ -747,16 +825,28 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                 <div className="space-y-4 sm:space-y-6">
                   <button
                     onClick={() => setStep('type')}
-                    className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-2 transition-colors duration-300 group"
+                    className={`text-sm text-gray-500 hover:text-gray-700 flex items-center gap-2 transition-colors duration-300 group ${
+                      isRTL ? 'flex-row-reverse' : ''
+                    }`}
                   >
-                    <span className="group-hover:translate-x-1 transition-transform">
-                      ←
+                    <span
+                      className={`transition-transform ${
+                        isRTL
+                          ? 'group-hover:-translate-x-1'
+                          : 'group-hover:translate-x-1'
+                      }`}
+                    >
+                      {isRTL ? '→' : '←'}
                     </span>
                     {dict.cancelButton}
                   </button>
 
                   {/* Selected type indicator - Mobile optimized */}
-                  <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gradient-to-r from-gray-50/80 to-white/80 rounded-lg sm:rounded-xl border border-gray-100/50">
+                  <div
+                    className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gradient-to-r from-gray-50/80 to-white/80 rounded-lg sm:rounded-xl border border-gray-100/50 ${
+                      isRTL ? 'flex-row-reverse' : ''
+                    }`}
+                  >
                     {(() => {
                       const selectedOption = feedbackOptions.find(
                         (option) => option.type === feedbackType
@@ -768,7 +858,9 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                           >
                             <selectedOption.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white drop-shadow-sm" />
                           </div>
-                          <div className="flex-1">
+                          <div
+                            className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}
+                          >
                             <div className="font-medium text-gray-800 text-sm sm:text-base">
                               {selectedOption.label}
                             </div>
@@ -785,7 +877,10 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     placeholder={dict.placeholder}
-                    className="min-h-[100px] sm:min-h-[120px] resize-none border-0 bg-gray-50/80 focus:bg-white rounded-xl sm:rounded-2xl shadow-inner transition-all duration-300 placeholder:text-gray-400 text-sm sm:text-base"
+                    className={`min-h-[100px] sm:min-h-[120px] resize-none border-0 bg-gray-50/80 focus:bg-white rounded-xl sm:rounded-2xl shadow-inner transition-all duration-300 placeholder:text-gray-400 text-sm sm:text-base ${
+                      isRTL ? 'text-right' : 'text-left'
+                    }`}
+                    dir={isRTL ? 'rtl' : 'ltr'}
                     required
                   />
 
@@ -794,8 +889,9 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <button
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="group relative px-3 py-2.5 sm:px-4 sm:py-3 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 hover:border-orange-300 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center gap-2 sm:gap-3 hover:shadow-md hover:scale-[1.02] overflow-hidden w-full sm:w-auto"
+                        onClick={handleFileButtonClick}
+                        disabled={isTransitioning}
+                        className="group relative px-3 py-2.5 sm:px-4 sm:py-3 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 hover:border-orange-300 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center gap-2 sm:gap-3 hover:shadow-md hover:scale-[1.02] overflow-hidden w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {/* Background animation */}
                         <div className="absolute inset-0 bg-gradient-to-r from-teal-50/50 via-orange-50/30 to-amber-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -831,7 +927,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                               <div className="absolute inset-0 bg-black/0 group-hover/preview:bg-black/20 transition-colors duration-300" />
                             </div>
 
-                            {/* Remove button */}
+                            {/* Remove button - תמיד בצד ימין של התמונה */}
                             <button
                               type="button"
                               onClick={() => setScreenshot(null)}
@@ -847,17 +943,23 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                     </div>
 
                     {/* Upload instructions */}
-                    <div className="text-xs text-gray-500 flex items-center gap-2">
+                    <div
+                      className={`text-xs text-gray-500 flex items-center gap-2 ${
+                        isRTL ? 'flex-row-reverse' : ''
+                      }`}
+                    >
                       <div className="w-1.5 h-1.5 bg-gradient-to-r from-teal-400 to-amber-400 rounded-full" />
                       <span>{dict.fileInstructions}</span>
                     </div>
 
+                    {/* 🔧 שיפור input עם תנאי נוסף */}
                     <input
                       type="file"
                       ref={fileInputRef}
                       onChange={handleFileChange}
                       accept="image/png, image/jpeg, image/webp"
                       className="hidden"
+                      tabIndex={-1}
                     />
                   </div>
 
@@ -877,15 +979,19 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ dict }) => {
                       className="flex-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm sm:text-base"
                     >
                       {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin ml-2" />
-                          {dict.submittingButton}
-                        </>
+                        <div
+                          className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+                        >
+                          <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                          <span>{dict.submittingButton}</span>
+                        </div>
                       ) : (
-                        <>
-                          <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-2" />
-                          {dict.submitButton}
-                        </>
+                        <div
+                          className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+                        >
+                          <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span>{dict.submitButton}</span>
+                        </div>
                       )}
                     </Button>
                   </div>
@@ -935,17 +1041,17 @@ import {
   Info,
   Award,
   HelpCircle,
+  Mail,
 } from 'lucide-react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import UserDropdown from './UserDropdown';
 import type { Dictionary } from '@/types/dictionary';
 import { useQuestionnaireState } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
-// --- רכיב לוגו (עם תיקון) ---
-// ✨ תיקון: הוספנו את המשתנה locale כדי שהלוגו יקשר לדף הבית בשפה הנכונה
+// --- רכיב לוגו (מעודכן לצבעים החדשים) ---
 const Logo = ({ locale }: { locale: string }) => (
   <Link
-    href={`/${locale}`} // <-- התיקון כאן
+    href={`/${locale}`}
     className="flex items-center gap-x-2 group shrink-0"
     aria-label="NeshamaTech Homepage"
   >
@@ -966,7 +1072,7 @@ const Logo = ({ locale }: { locale: string }) => (
   </Link>
 );
 
-// --- רכיבי ניווט (ללא שינוי, הם היו תקינים) ---
+// --- רכיבי ניווט (מעודכנים ל-Teal) ---
 const NavItem = ({
   href,
   text,
@@ -991,8 +1097,8 @@ const NavItem = ({
       className={cn(
         'relative px-3 py-2 rounded-full text-sm transition-colors duration-200',
         isActive
-          ? 'font-semibold text-cyan-600 bg-cyan-500/10'
-          : 'font-medium text-gray-700 hover:text-cyan-600 hover:bg-cyan-500/10'
+          ? 'font-semibold text-teal-600 bg-teal-500/10' // שינוי ל-Teal
+          : 'font-medium text-gray-700 hover:text-teal-600 hover:bg-teal-500/10' // שינוי ל-Teal
       )}
     >
       {text}
@@ -1018,6 +1124,7 @@ const MobileNavItem = ({
   badge,
   onClick,
   id,
+  isRtl,
 }: {
   href: string;
   text: string;
@@ -1025,6 +1132,7 @@ const MobileNavItem = ({
   badge?: number;
   onClick: () => void;
   id?: string;
+  isRtl: boolean;
 }) => {
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'he';
@@ -1038,9 +1146,9 @@ const MobileNavItem = ({
       aria-current={isActive ? 'page' : undefined}
       onClick={onClick}
       className={cn(
-        'flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group',
+        'flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group gap-4',
         isActive
-          ? 'bg-cyan-100 text-cyan-800 shadow-inner'
+          ? 'bg-teal-100 text-teal-800 shadow-inner' // שינוי ל-Teal
           : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
       )}
     >
@@ -1049,7 +1157,7 @@ const MobileNavItem = ({
           className={cn(
             'transition-colors',
             isActive
-              ? 'text-cyan-600'
+              ? 'text-teal-600' // שינוי ל-Teal
               : 'text-gray-500 group-hover:text-gray-700'
           )}
         >
@@ -1058,7 +1166,12 @@ const MobileNavItem = ({
       )}
       <span className="flex-grow">{text}</span>
       {badge !== undefined && badge > 0 && (
-        <span className="ml-auto bg-pink-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-semibold">
+        <span
+          className={cn(
+            'bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-semibold', // שינוי ל-Orange
+            isRtl ? 'mr-auto' : 'ml-auto'
+          )}
+        >
           {badge}
         </span>
       )}
@@ -1092,7 +1205,7 @@ const MobileHomePageLink = ({
     <a
       href={href}
       onClick={handleScroll}
-      className="flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+      className="flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group text-gray-700 hover:bg-gray-100 hover:text-gray-900 gap-4"
     >
       <span className="text-gray-500 group-hover:text-gray-700">{icon}</span>
       <span className="flex-grow">{text}</span>
@@ -1117,8 +1230,8 @@ const Navbar = ({ dict }: NavbarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // ✨ שינוי מרכזי: קביעת ה-locale פעם אחת במקום בכל רכיב מחדש
   const locale = (pathname.split('/')[1] || 'he') as 'he' | 'en';
+  const isRtl = locale === 'he';
 
   const isHomePage = pathname === `/${locale}` || pathname === '/';
 
@@ -1127,27 +1240,27 @@ const Navbar = ({ dict }: NavbarProps) => {
         {
           id: 'how-it-works',
           text: dict.stickyNav.navLinks.howItWorks,
-          icon: <Info className="ml-2 h-5 w-5" />,
+          icon: <Info className="h-5 w-5" />,
         },
         {
           id: 'suggestion-demo',
           text: dict.stickyNav.navLinks.suggestionDemo,
-          icon: <Heart className="ml-2 h-5 w-5" />,
+          icon: <Heart className="h-5 w-5" />,
         },
         {
           id: 'success-stories',
           text: dict.stickyNav.navLinks.successStories,
-          icon: <Award className="ml-2 h-5 w-5" />,
+          icon: <Award className="h-5 w-5" />,
         },
         {
           id: 'our-team',
           text: dict.stickyNav.navLinks.ourTeam,
-          icon: <Users className="ml-2 h-5 w-5" />,
+          icon: <Users className="h-5 w-5" />,
         },
         {
           id: 'faq',
           text: dict.stickyNav.navLinks.faq,
-          icon: <HelpCircle className="ml-2 h-5 w-5" />,
+          icon: <HelpCircle className="h-5 w-5" />,
         },
       ]
     : [];
@@ -1177,10 +1290,36 @@ const Navbar = ({ dict }: NavbarProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
+  // ניקוי גלילה במקרה שהקומפוננטה נפרקת בזמן שהתפריט פתוח
+  useEffect(() => {
+    return () => {
+      if (mobileMenuOpen) {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+      }
+    };
+  }, [mobileMenuOpen]);
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen((prev) => {
+      const newState = !prev;
+      // חסימת/שחרור גלילת ה-body
+      if (newState) {
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+      } else {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+      }
+      return newState;
+    });
+  };
   const handleSignOut = () => {
     setMobileMenuOpen(false);
-    signOut({ callbackUrl: `/${locale}` }); // ✨ תיקון: חזרה לדף הבית בשפה הנכונה
+    signOut({ callbackUrl: `/${locale}` });
   };
   const getInitials = () => {
     const fullName = session?.user?.name;
@@ -1215,8 +1354,8 @@ const Navbar = ({ dict }: NavbarProps) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-4 md:gap-8">
-              <Logo locale={locale} /> {/* ✨ תיקון: העברת ה-locale ללוגו */}
-              <nav
+              <Logo locale={locale} />
+              <div
                 aria-label="ניווט ראשי"
                 className="hidden md:flex items-center gap-2 md:gap-3"
               >
@@ -1231,7 +1370,14 @@ const Navbar = ({ dict }: NavbarProps) => {
                         <NavItem
                           href="/matchmaker/clients"
                           text={dict.navbar.matchmakerClients}
-                        />{' '}
+                        />
+                        <NavItem
+                          href="/admin/engagement"
+                          text={
+                            dict.navbar.engagementDashboard ||
+                            'ניהול Engagement'
+                          }
+                        />
                       </>
                     ) : (
                       <NavItem
@@ -1241,10 +1387,9 @@ const Navbar = ({ dict }: NavbarProps) => {
                       />
                     )}
 
-                    {/* ✨ הוספה: קישור ישיר לפרופיל האישי בניווט הראשי לדסקטופ */}
                     <NavItem
                       href="/profile"
-                      text={dict.userDropdown.myProfile} // שימוש בטקסט קיים מה-dropdown
+                      text={dict.userDropdown.myProfile}
                     />
 
                     <NavItem
@@ -1263,25 +1408,25 @@ const Navbar = ({ dict }: NavbarProps) => {
                     />
                   </>
                 ) : null}
-              </nav>
+              </div>
             </div>
             <div className="flex items-center gap-2 md:gap-4">
               <Button
                 variant="ghost"
                 onClick={handleLanguageChange}
-                className="group flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-cyan-600 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-pink-50 rounded-full transition-all duration-300 border border-gray-200/60 hover:border-cyan-300 shadow-sm hover:shadow-lg"
+                className="group flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-teal-600 hover:bg-gradient-to-r hover:from-teal-50 hover:to-orange-50 rounded-full transition-all duration-300 border border-gray-200/60 hover:border-teal-300 shadow-sm hover:shadow-lg"
                 aria-label={`Switch to ${locale === 'he' ? 'English' : 'Hebrew'}`}
                 title={`Switch to ${locale === 'he' ? 'English' : 'Hebrew'}`}
               >
                 <div className="relative">
-                  <Globe className="h-4 w-4 transition-all duration-300 group-hover:scale-110 group-hover:text-cyan-500" />
-                  <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-gradient-to-r from-cyan-500 to-pink-500 rounded-full flex items-center justify-center shadow-sm border border-white">
+                  <Globe className="h-4 w-4 transition-all duration-300 group-hover:scale-110 group-hover:text-teal-500" />
+                  <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full flex items-center justify-center shadow-sm border border-white">
                     <span className="text-[8px] font-bold text-white leading-none">
                       {locale === 'he' ? 'ע' : 'E'}
                     </span>
                   </div>
                 </div>
-                <span className="text-sm font-semibold transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-600 group-hover:to-pink-600">
+                <span className="text-sm font-semibold transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-teal-600 group-hover:to-orange-600">
                   {locale === 'he' ? 'EN' : 'HE'}
                 </span>
               </Button>
@@ -1304,9 +1449,6 @@ const Navbar = ({ dict }: NavbarProps) => {
                   handleSignOut={handleSignOut}
                   profileIconSize={profileIconSize}
                   dict={dict.userDropdown}
-                  // ✨ תיקון: העברת ה-locale לרכיב ה-Dropdown
-                  // יש לוודא שברכיב UserDropdown אתם משתמשים ב-locale לבניית הקישורים
-                  // לדוגמה: <Link href={`/${props.locale}/profile`}>...</Link>
                   locale={locale}
                 />
               ) : (
@@ -1316,11 +1458,12 @@ const Navbar = ({ dict }: NavbarProps) => {
                     text={dict.navbar.toQuestionnaire}
                   />
                   <NavItem href="/auth/signin" text={dict.navbar.login} />
-                  {/* ✨ תיקון: הוספת תחילית השפה לקישור ההרשמה */}
                   <Link href={`/${locale}/auth/register`}>
-                    <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
+                    <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
                       <span className="relative z-10 flex items-center">
-                        <UserPlus className="ml-1.5 h-4 w-4" />
+                        <UserPlus
+                          className={cn('h-4 w-4', isRtl ? 'ml-1.5' : 'mr-1.5')}
+                        />
                         {dict.navbar.register}
                       </span>
                     </Button>
@@ -1330,7 +1473,7 @@ const Navbar = ({ dict }: NavbarProps) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-gray-600 hover:text-cyan-600 hover:bg-cyan-100/50 rounded-full"
+                className="md:hidden text-gray-600 hover:text-teal-600 hover:bg-teal-100/50 rounded-full"
                 onClick={toggleMobileMenu}
                 aria-label="פתח תפריט"
                 aria-expanded={mobileMenuOpen}
@@ -1344,222 +1487,295 @@ const Navbar = ({ dict }: NavbarProps) => {
       </nav>
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm md:hidden touch-none"
           onClick={toggleMobileMenu}
           aria-hidden="true"
+          style={{ touchAction: 'none' }}
         />
       )}
       <div
-        className={`fixed top-0 ${locale === 'he' ? 'right-0' : 'left-0'} z-50 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden ${mobileMenuOpen ? 'translate-x-0' : locale === 'he' ? 'translate-x-full' : '-translate-x-full'}`}
+        className={cn(
+          'fixed top-0 z-50 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden touch-pan-y overscroll-none',
+          isRtl ? 'right-0' : 'left-0',
+          mobileMenuOpen
+            ? 'translate-x-0'
+            : isRtl
+              ? 'translate-x-full'
+              : '-translate-x-full'
+        )}
         id="mobile-menu-panel"
         role="dialog"
         aria-modal="true"
         aria-label="תפריט ניווט"
+        style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}
       >
-        <div className="flex justify-between items-center p-4 border-b border-gray-100">
-          <Logo locale={locale} /> {/* ✨ תיקון: העברת ה-locale ללוגו */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleMobileMenu}
-            className="text-gray-500 hover:text-gray-800 rounded-full"
-            aria-label="סגור תפריט"
+        <div className="flex flex-col h-full">
+          <div className="flex justify-between items-center p-4 border-b border-gray-100 shrink-0">
+            <Logo locale={locale} />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleMobileMenu}
+              className="text-gray-500 hover:text-gray-800 rounded-full"
+              aria-label="סגור תפריט"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Container for scrollable content */}
+          <div
+            className="overflow-y-auto flex-grow pb-8 overscroll-y-contain"
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehaviorY: 'contain',
+            }}
           >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-        <div className="overflow-y-auto h-[calc(100%-4.5rem)] pb-20">
-          {session?.user && (
-            <div className="p-4">
-              <div className="p-4 border rounded-xl bg-gray-50/80">
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden`}
-                  >
-                    {mainProfileImage?.url ? (
-                      <Image
-                        src={getRelativeCloudinaryPath(mainProfileImage.url)}
-                        alt={session.user.name || 'תמונת פרופיל'}
-                        fill
-                        className="object-cover rounded-full"
-                        sizes="40px"
-                      />
-                    ) : (
-                      <span className="font-semibold text-xl text-cyan-700 bg-cyan-100 w-full h-full flex items-center justify-center rounded-full">
-                        {getInitials()}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex-grow min-w-0">
-                    <div className="font-semibold text-gray-800 truncate">
-                      {session.user.name}
+            {session?.user && (
+              <div className="p-4 space-y-3">
+                {/* כרטיס פרופיל עם קישור */}
+                <Link
+                  href={`/${locale}/profile`}
+                  onClick={toggleMobileMenu}
+                  className="block"
+                >
+                  <div className="p-4 border rounded-xl bg-gradient-to-br from-teal-50/50 to-orange-50/50 hover:from-teal-100/50 hover:to-orange-100/50 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer group">
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden ring-2 ring-white group-hover:ring-teal-200 transition-all`}
+                      >
+                        {mainProfileImage?.url ? (
+                          <Image
+                            src={getRelativeCloudinaryPath(
+                              mainProfileImage.url
+                            )}
+                            alt={session.user.name || 'תמונת פרופיל'}
+                            fill
+                            className="object-cover rounded-full"
+                            sizes="40px"
+                          />
+                        ) : (
+                          <span className="font-semibold text-xl text-teal-700 bg-teal-100 w-full h-full flex items-center justify-center rounded-full">
+                            {getInitials()}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-grow min-w-0">
+                        <div className="font-semibold text-gray-800 truncate group-hover:text-teal-700 transition-colors">
+                          {session.user.name}
+                        </div>
+                        <div className="text-sm text-gray-500 truncate">
+                          {session.user.email}
+                        </div>
+                        <div className="text-xs text-teal-600 font-medium mt-1 group-hover:text-teal-700">
+                          {dict.userDropdown.myProfile} ←
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500 truncate">
-                      {session.user.email}
-                    </div>
                   </div>
-                </div>
+                </Link>
+
+                {/* סטטוס זמינות */}
                 <div
                   id="onboarding-target-availability-status"
-                  className="mt-4 pt-4 border-t border-gray-200"
+                  className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm"
                 >
                   <AvailabilityStatus
                     dict={dict.profilePage.availabilityStatus}
                   />
                 </div>
-              </div>
-            </div>
-          )}
-          <nav className="space-y-1.5 p-2">
-            {session ? (
-              <>
-                {isMatchmaker ? (
-                  <>
-                    <MobileNavItem
-                      href="/matchmaker/suggestions"
-                      text={dict.navbar.matchmakerSuggestions}
-                      icon={<Heart className="ml-2 h-5 w-5" />}
-                      onClick={toggleMobileMenu}
-                    />
-                    <MobileNavItem
-                      href="/matchmaker/clients"
-                      text={dict.navbar.matchmakerClients}
-                      icon={<Users className="ml-2 h-5 w-5" />}
-                      onClick={toggleMobileMenu}
-                    />
-                  </>
-                ) : (
-                  <MobileNavItem
-                    id="onboarding-target-matches-link"
-                    href="/matches"
-                    text={dict.navbar.myMatches}
-                    icon={<Users className="ml-2 h-5 w-5" />}
-                    onClick={toggleMobileMenu}
-                  />
-                )}
-                <MobileNavItem
-                  href="/questionnaire"
-                  text={dict.navbar.matchmakingQuestionnaire}
-                  icon={<Lightbulb className="ml-2 h-5 w-5" />}
-                  onClick={toggleMobileMenu}
-                />
-                <MobileNavItem
-                  id="onboarding-target-messages-link"
-                  href="/messages"
-                  text={dict.navbar.messages}
-                  icon={<MessageCircle className="ml-2 h-5 w-5" />}
-                  badge={
-                    notifications.total > 0 ? notifications.total : undefined
-                  }
-                  onClick={toggleMobileMenu}
-                />
-                {isHomePage && homePageLinks.length > 0 && (
-                  <>
-                    <hr className="my-3" />
-                    <div className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                      {dict.stickyNav.mobileTitle || 'ניווט בדף'}
-                    </div>
-                    {homePageLinks.map((link) => (
-                      <MobileHomePageLink
-                        key={link.id}
-                        href={`#${link.id}`}
-                        text={link.text}
-                        icon={link.icon}
-                        onClick={toggleMobileMenu}
-                      />
-                    ))}
-                  </>
-                )}
-                <hr className="my-3" />
-                <MobileNavItem
-                  href="/profile"
-                  text={dict.userDropdown.myProfile}
-                  icon={<User className="ml-2 h-5 w-5" />}
-                  onClick={toggleMobileMenu}
-                />
-                <MobileNavItem
-                  href="/settings"
-                  text={dict.userDropdown.accountSettings}
-                  icon={<Settings className="ml-2 h-5 w-5" />}
-                  onClick={toggleMobileMenu}
-                />
-                <button
-                  onClick={handleSignOut}
-                  className="w-full flex items-center text-right px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+
+                {/* כפתור שינוי שפה */}
+                <Button
+                  variant="outline"
+                  onClick={handleLanguageChange}
+                  className="w-full border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-teal-50 hover:to-orange-50 hover:border-teal-300 flex items-center justify-between py-3 text-base transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
                 >
-                  <LogOut className="ml-2 h-5 w-5" />
-                  {dict.userDropdown.signOut}
-                </button>
-              </>
-            ) : (
-              <>
-                {isHomePage && homePageLinks.length > 0 && (
-                  <>
-                    <div className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                      {dict.stickyNav.mobileTitle || 'ניווט בדף'}
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex-shrink-0">
+                      <Globe className="h-5 w-5 text-teal-600" />
+                      <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full flex items-center justify-center border border-white">
+                        <span className="text-[8px] font-bold text-white leading-none">
+                          {locale === 'he' ? 'ע' : 'E'}
+                        </span>
+                      </div>
                     </div>
-                    {homePageLinks.map((link) => (
-                      <MobileHomePageLink
-                        key={link.id}
-                        href={`#${link.id}`}
-                        text={link.text}
-                        icon={link.icon}
-                        onClick={toggleMobileMenu}
-                      />
-                    ))}
-                    <hr className="my-3" />
-                  </>
-                )}
-                <MobileNavItem
-                  href="/questionnaire"
-                  text={dict.navbar.matchmakingQuestionnaire}
-                  icon={<Lightbulb className="ml-2 h-5 w-5" />}
-                  onClick={toggleMobileMenu}
-                />
-                <MobileNavItem
-                  href="/auth/signin"
-                  text={dict.navbar.login}
-                  icon={<LogIn className="ml-2 h-5 w-5" />}
-                  onClick={toggleMobileMenu}
-                />
-                <MobileNavItem
-                  href="/auth/register"
-                  text={dict.navbar.register}
-                  icon={<UserPlus className="ml-2 h-5 w-5" />}
-                  onClick={toggleMobileMenu}
-                />
-              </>
-            )}
-          </nav>
-          <div className="absolute bottom-4 left-0 right-0 px-4">
-            <Button
-              variant="outline"
-              onClick={handleLanguageChange}
-              className="w-full font-medium border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-pink-50 hover:border-cyan-300 flex items-center justify-center py-6 text-base gap-4 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
-            >
-              <div className="relative">
-                <Globe className="h-6 w-6 text-cyan-600 transition-transform duration-300 hover:scale-110" />
-                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gradient-to-r from-cyan-500 to-pink-500 rounded-full flex items-center justify-center shadow-md border-2 border-white">
-                  <span className="text-[10px] font-bold text-white leading-none">
-                    {locale === 'he' ? 'ע' : 'E'}
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col items-start">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-lg bg-gradient-to-r from-cyan-600 to-pink-600 bg-clip-text text-transparent">
+                    <span className="font-semibold text-gray-700">
+                      {locale === 'he' ? 'English' : 'עברית'}
+                    </span>
+                  </div>
+                  <span className="font-bold text-sm bg-gradient-to-r from-teal-600 to-orange-600 bg-clip-text text-transparent">
                     {locale === 'he' ? 'EN' : 'HE'}
                   </span>
-                  <span className="text-sm text-gray-400">•</span>
-                  <span className="text-sm font-medium text-gray-600">
-                    {locale === 'he' ? 'English' : 'עברית'}
-                  </span>
-                </div>
-                <span className="text-xs text-gray-400 mt-0.5">
-                  {locale === 'he' ? 'Switch to English' : 'החלף לעברית'}
-                </span>
+                </Button>
               </div>
-            </Button>
+            )}
+
+            <nav className="space-y-1.5 p-2 pb-6">
+              {session ? (
+                <>
+                  {isMatchmaker ? (
+                    <>
+                      <MobileNavItem
+                        href="/matchmaker/suggestions"
+                        text={dict.navbar.matchmakerSuggestions}
+                        icon={<Heart className="h-5 w-5" />}
+                        onClick={toggleMobileMenu}
+                        isRtl={isRtl}
+                      />
+                      <MobileNavItem
+                        href="/matchmaker/clients"
+                        text={dict.navbar.matchmakerClients}
+                        icon={<Users className="h-5 w-5" />}
+                        onClick={toggleMobileMenu}
+                        isRtl={isRtl}
+                      />
+                      <MobileNavItem
+                        href="/admin/engagement"
+                        text={
+                          dict.navbar.engagementDashboard || 'ניהול Engagement'
+                        }
+                        icon={<Mail className="h-5 w-5" />}
+                        onClick={toggleMobileMenu}
+                        isRtl={isRtl}
+                      />
+                    </>
+                  ) : (
+                    <MobileNavItem
+                      id="onboarding-target-matches-link"
+                      href="/matches"
+                      text={dict.navbar.myMatches}
+                      icon={<Users className="h-5 w-5" />}
+                      onClick={toggleMobileMenu}
+                      isRtl={isRtl}
+                    />
+                  )}
+                  <MobileNavItem
+                    href="/questionnaire"
+                    text={dict.navbar.matchmakingQuestionnaire}
+                    icon={<Lightbulb className="h-5 w-5" />}
+                    onClick={toggleMobileMenu}
+                    isRtl={isRtl}
+                  />
+                  <MobileNavItem
+                    id="onboarding-target-messages-link"
+                    href="/messages"
+                    text={dict.navbar.messages}
+                    icon={<MessageCircle className="h-5 w-5" />}
+                    badge={
+                      notifications.total > 0 ? notifications.total : undefined
+                    }
+                    onClick={toggleMobileMenu}
+                    isRtl={isRtl}
+                  />
+
+                  {isHomePage && homePageLinks.length > 0 && (
+                    <>
+                      <hr className="my-3" />
+                      <div className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        {dict.stickyNav.mobileTitle || 'ניווט בדף'}
+                      </div>
+                      {homePageLinks.map((link) => (
+                        <MobileHomePageLink
+                          key={link.id}
+                          href={`#${link.id}`}
+                          text={link.text}
+                          icon={link.icon}
+                          onClick={toggleMobileMenu}
+                        />
+                      ))}
+                    </>
+                  )}
+
+                  <hr className="my-3" />
+
+                  <MobileNavItem
+                    href="/settings"
+                    text={dict.userDropdown.accountSettings}
+                    icon={<Settings className="h-5 w-5" />}
+                    onClick={toggleMobileMenu}
+                    isRtl={isRtl}
+                  />
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors gap-4"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <span className="flex-grow text-start">
+                      {dict.userDropdown.signOut}
+                    </span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  {/* כפתור שינוי שפה למשתמשים לא מחוברים */}
+                  <div className="p-4">
+                    <Button
+                      variant="outline"
+                      onClick={handleLanguageChange}
+                      className="w-full border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-teal-50 hover:to-orange-50 hover:border-teal-300 flex items-center justify-between py-3 text-base transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="relative flex-shrink-0">
+                          <Globe className="h-5 w-5 text-teal-600" />
+                          <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full flex items-center justify-center border border-white">
+                            <span className="text-[8px] font-bold text-white leading-none">
+                              {locale === 'he' ? 'ע' : 'E'}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="font-semibold text-gray-700">
+                          {locale === 'he' ? 'English' : 'עברית'}
+                        </span>
+                      </div>
+                      <span className="font-bold text-sm bg-gradient-to-r from-teal-600 to-orange-600 bg-clip-text text-transparent">
+                        {locale === 'he' ? 'EN' : 'HE'}
+                      </span>
+                    </Button>
+                  </div>
+
+                  {isHomePage && homePageLinks.length > 0 && (
+                    <>
+                      <div className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        {dict.stickyNav.mobileTitle || 'ניווט בדף'}
+                      </div>
+                      {homePageLinks.map((link) => (
+                        <MobileHomePageLink
+                          key={link.id}
+                          href={`#${link.id}`}
+                          text={link.text}
+                          icon={link.icon}
+                          onClick={toggleMobileMenu}
+                        />
+                      ))}
+                      <hr className="my-3" />
+                    </>
+                  )}
+
+                  <MobileNavItem
+                    href="/questionnaire"
+                    text={dict.navbar.matchmakingQuestionnaire}
+                    icon={<Lightbulb className="h-5 w-5" />}
+                    onClick={toggleMobileMenu}
+                    isRtl={isRtl}
+                  />
+                  <MobileNavItem
+                    href="/auth/signin"
+                    text={dict.navbar.login}
+                    icon={<LogIn className="h-5 w-5" />}
+                    onClick={toggleMobileMenu}
+                    isRtl={isRtl}
+                  />
+                  <MobileNavItem
+                    href="/auth/register"
+                    text={dict.navbar.register}
+                    icon={<UserPlus className="h-5 w-5" />}
+                    onClick={toggleMobileMenu}
+                    isRtl={isRtl}
+                  />
+                </>
+              )}
+            </nav>
           </div>
         </div>
       </div>

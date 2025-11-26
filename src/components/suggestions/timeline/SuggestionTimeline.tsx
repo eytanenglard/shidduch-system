@@ -1,4 +1,4 @@
-// src/app/components/suggestions/timeline/SuggestionTimeline.tsx
+// src/components/suggestions/timeline/SuggestionTimeline.tsx
 
 import React from 'react';
 import { format, differenceInCalendarDays } from 'date-fns';
@@ -20,7 +20,7 @@ import {
   Edit3,
   UserX,
   Archive,
-  Ban
+  Ban,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -42,46 +42,52 @@ interface SuggestionTimelineProps {
 }
 
 const getStatusVisuals = (status: MatchSuggestionStatus) => {
-    const statusMap: { [key in MatchSuggestionStatus]?: { icon: React.ElementType; category: string } } = {
-        DRAFT: { icon: Edit3, category: 'pending' },
-        PENDING_FIRST_PARTY: { icon: User, category: 'pending' },
-        PENDING_SECOND_PARTY: { icon: User, category: 'pending' },
-        FIRST_PARTY_APPROVED: { icon: Check, category: 'approved' },
-        SECOND_PARTY_APPROVED: { icon: Check, category: 'approved' },
-        FIRST_PARTY_DECLINED: { icon: XCircle, category: 'declined' },
-        SECOND_PARTY_DECLINED: { icon: XCircle, category: 'declined' },
-        AWAITING_MATCHMAKER_APPROVAL: { icon: Zap, category: 'progress' },
-        CONTACT_DETAILS_SHARED: { icon: Phone, category: 'progress' },
-        AWAITING_FIRST_DATE_FEEDBACK: { icon: MessageCircle, category: 'progress' },
-        THINKING_AFTER_DATE: { icon: Clock, category: 'pending' },
-        PROCEEDING_TO_SECOND_DATE: { icon: Heart, category: 'approved' },
-        ENDED_AFTER_FIRST_DATE: { icon: UserX, category: 'declined' },
-        MEETING_PENDING: { icon: Calendar, category: 'progress' },
-        MEETING_SCHEDULED: { icon: Calendar, category: 'progress' },
-        MATCH_APPROVED: { icon: Award, category: 'completed' },
-        MATCH_DECLINED: { icon: XCircle, category: 'declined' },
-        DATING: { icon: Heart, category: 'completed' },
-        ENGAGED: { icon: Star, category: 'completed' },
-        MARRIED: { icon: Star, category: 'completed' },
-        EXPIRED: { icon: TimerOff, category: 'declined' },
-        CLOSED: { icon: Archive, category: 'declined' },
-        CANCELLED: { icon: Ban, category: 'declined' },
+  const statusMap: {
+    [key in MatchSuggestionStatus]?: {
+      icon: React.ElementType;
+      category: string;
     };
-    return statusMap[status] || { icon: Clock, category: 'default' };
+  } = {
+    DRAFT: { icon: Edit3, category: 'pending' },
+    PENDING_FIRST_PARTY: { icon: User, category: 'pending' },
+    PENDING_SECOND_PARTY: { icon: User, category: 'pending' },
+    FIRST_PARTY_APPROVED: { icon: Check, category: 'approved' },
+    SECOND_PARTY_APPROVED: { icon: Check, category: 'approved' },
+    FIRST_PARTY_DECLINED: { icon: XCircle, category: 'declined' },
+    SECOND_PARTY_DECLINED: { icon: XCircle, category: 'declined' },
+    AWAITING_MATCHMAKER_APPROVAL: { icon: Zap, category: 'progress' },
+    CONTACT_DETAILS_SHARED: { icon: Phone, category: 'progress' },
+    AWAITING_FIRST_DATE_FEEDBACK: { icon: MessageCircle, category: 'progress' },
+    THINKING_AFTER_DATE: { icon: Clock, category: 'pending' },
+    PROCEEDING_TO_SECOND_DATE: { icon: Heart, category: 'approved' },
+    ENDED_AFTER_FIRST_DATE: { icon: UserX, category: 'declined' },
+    MEETING_PENDING: { icon: Calendar, category: 'progress' },
+    MEETING_SCHEDULED: { icon: Calendar, category: 'progress' },
+    MATCH_APPROVED: { icon: Award, category: 'completed' },
+    MATCH_DECLINED: { icon: XCircle, category: 'declined' },
+    DATING: { icon: Heart, category: 'completed' },
+    ENGAGED: { icon: Star, category: 'completed' },
+    MARRIED: { icon: Star, category: 'completed' },
+    EXPIRED: { icon: TimerOff, category: 'declined' },
+    CLOSED: { icon: Archive, category: 'declined' },
+    CANCELLED: { icon: Ban, category: 'declined' },
+  };
+  return statusMap[status] || { icon: Clock, category: 'default' };
 };
 
+// Updated Category Border Colors
 const getCategoryColor = (category: string) => {
   switch (category) {
     case 'pending':
-      return 'border-purple-200';
+      return 'border-orange-200'; // Waiting -> Orange
     case 'approved':
-      return 'border-emerald-200';
+      return 'border-teal-200'; // Approved -> Teal
     case 'progress':
-      return 'border-blue-200';
+      return 'border-blue-200'; // Progress -> Blue
     case 'completed':
-      return 'border-yellow-200';
+      return 'border-amber-200'; // Completed -> Amber (Gold)
     case 'declined':
-      return 'border-red-200';
+      return 'border-rose-200'; // Declined -> Rose
     default:
       return 'border-gray-200';
   }
@@ -93,12 +99,13 @@ const TimelineNode: React.FC<{
   isLast: boolean;
   category: string;
 }> = ({ IconComponent, isLatest, isLast, category }) => {
+  // Updated Gradient Map to match Hero Palette
   const gradientMap: { [key: string]: string } = {
-    pending: 'bg-gradient-to-br from-purple-400 to-purple-500',
-    approved: 'bg-gradient-to-br from-emerald-400 to-green-500',
-    progress: 'bg-gradient-to-br from-blue-400 to-cyan-500',
-    completed: 'bg-gradient-to-br from-yellow-400 to-amber-500',
-    declined: 'bg-gradient-to-br from-red-400 to-rose-500',
+    pending: 'bg-gradient-to-br from-orange-400 to-amber-500', // Orange/Amber
+    approved: 'bg-gradient-to-br from-teal-400 to-emerald-500', // Teal/Emerald
+    progress: 'bg-gradient-to-br from-blue-400 to-teal-500', // Blue/Teal
+    completed: 'bg-gradient-to-br from-amber-400 to-yellow-500', // Amber/Gold
+    declined: 'bg-gradient-to-br from-rose-400 to-red-500', // Rose/Red
     default: 'bg-gradient-to-br from-gray-400 to-gray-500',
   };
 
@@ -108,7 +115,8 @@ const TimelineNode: React.FC<{
         <div
           className={cn(
             'absolute top-12 right-6 w-0.5 h-16 bg-gradient-to-b rounded-full',
-            isLatest ? 'from-cyan-300 to-cyan-100' : 'from-gray-300 to-gray-100'
+            // Connecting Line: Teal for active, Gray for past
+            isLatest ? 'from-teal-300 to-teal-100' : 'from-gray-300 to-gray-100'
           )}
         />
       )}
@@ -116,7 +124,8 @@ const TimelineNode: React.FC<{
         className={cn(
           'relative z-10 w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white',
           gradientMap[category],
-          isLatest && 'ring-4 ring-cyan-200 animate-pulse-subtle'
+          // Active Ring: Teal
+          isLatest && 'ring-4 ring-teal-200 animate-pulse-subtle'
         )}
       >
         <IconComponent className="w-6 h-6" />
@@ -148,9 +157,6 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
     );
   }
 
-  const latestStatusInfo = dict.statuses[
-    sortedHistory[0].status as MatchSuggestionStatus
-  ] || { label: sortedHistory[0].status, description: '' };
   const latestStatusVisuals = getStatusVisuals(
     sortedHistory[0].status as MatchSuggestionStatus
   );
@@ -159,7 +165,8 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
     <Card className={cn('border-0 shadow-lg overflow-hidden', className)}>
       <CardContent className="p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-md">
+          {/* Header Icon: Teal Gradient */}
+          <div className="p-2 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md">
             <Clock className="w-5 h-5" />
           </div>
           <div>
@@ -214,7 +221,7 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
                             {isLatest && (
                               <Badge
                                 variant="outline"
-                                className="bg-white/80 text-cyan-600 border-cyan-200 text-xs"
+                                className="bg-white/80 text-teal-600 border-teal-200 text-xs"
                               >
                                 {dict.latestBadge}
                               </Badge>
@@ -251,8 +258,9 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
         </div>
         <div className="mt-8 pt-6 border-t border-gray-200">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            {/* Stats Colors Updated */}
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-cyan-600">
+              <div className="text-2xl font-bold text-teal-600">
                 {sortedHistory.length}
               </div>
               <div className="text-xs text-gray-500 font-medium">

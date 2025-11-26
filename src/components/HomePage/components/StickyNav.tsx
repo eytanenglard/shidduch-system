@@ -34,25 +34,26 @@ const StickyLogo = ({ homepageAriaLabel }: { homepageAriaLabel: string }) => {
   return (
     <Link
       href="/"
-      className="hidden md:flex items-center gap-x-2 group shrink-0"
+      className="hidden md:flex items-center gap-x-3 group shrink-0"
       aria-label={homepageAriaLabel}
     >
-      <div className="relative h-9 w-9">
+      <div className="relative h-10 w-10">
         <Image
           src={getRelativeCloudinaryPath(
             'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
           )}
           alt="NeshamaTech Icon"
           fill
-          className="object-contain transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3"
+          className="object-contain transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6"
           priority
         />
       </div>
       <span
         className="
-        text-xl
+        text-2xl
         font-bold
-        bg-gradient-to-r from-teal-600 via-orange-500 to-amber-400
+        tracking-tight
+        bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500
         text-transparent bg-clip-text
         bg-size-200 bg-pos-0 group-hover:bg-pos-100
         transition-all duration-700 ease-in-out
@@ -189,8 +190,8 @@ const StickyNav: React.FC<StickyNavProps> = ({
             transition={{ duration: 0.3, ease: 'easeOut' }}
             className="fixed top-0 left-0 right-0 z-40 w-full h-16 md:h-20"
           >
-            {/* רקע משודרג: Blur עם גוון Teal עדין */}
-            <div className="absolute inset-0 bg-white/85 backdrop-blur-lg shadow-sm border-b border-teal-100/50 support-[backdrop-filter]:bg-white/60"></div>
+            {/* Background: Glassmorphism with subtle Teal tint */}
+            <div className="absolute inset-0 bg-white/90 backdrop-blur-xl shadow-sm border-b border-teal-50/50 supports-[backdrop-filter]:bg-white/80"></div>
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
               <StickyLogo homepageAriaLabel={dict.homepageAriaLabel} />
@@ -202,16 +203,16 @@ const StickyNav: React.FC<StickyNavProps> = ({
                     href={`#${link.id}`}
                     onPointerDown={(e) => handleLinkClick(e, `#${link.id}`)}
                     className={cn(
-                      'relative px-4 py-2 rounded-full text-sm transition-all duration-300',
+                      'relative px-5 py-2.5 rounded-full text-sm transition-all duration-300',
                       activeSection === link.id
-                        ? 'font-bold text-teal-700' // Active state
-                        : 'font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/80' // Hover state
+                        ? 'font-bold text-teal-700' // Active
+                        : 'font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/50' // Hover
                     )}
                   >
                     {activeSection === link.id && (
                       <motion.div
                         layoutId="active-nav-link"
-                        className="absolute inset-0 bg-teal-100/60 rounded-full z-0"
+                        className="absolute inset-0 bg-gradient-to-r from-teal-50 to-orange-50/50 rounded-full z-0 border border-teal-100/50"
                         transition={{
                           type: 'spring',
                           stiffness: 300,
@@ -235,7 +236,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                         className={cn(
                           'relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0',
                           activeSection === link.id
-                            ? 'font-bold text-teal-700 bg-teal-100/60 border border-teal-200/50'
+                            ? 'font-bold text-teal-700 bg-teal-100/50 border border-teal-200/30'
                             : 'font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/50'
                         )}
                       >
@@ -257,7 +258,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                 </div>
               </div>
 
-              <div className="hidden md:flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-3">
                 {session ? (
                   <UserDropdown
                     session={session}
@@ -269,11 +270,10 @@ const StickyNav: React.FC<StickyNavProps> = ({
                   />
                 ) : (
                   <Link href="/auth/register">
-                    {/* כפתור הרשמה משודרג עם אנימציית Shimmer */}
-                    <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2.5">
-                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-[shimmer_2s_infinite]"></span>
-                      <span className="relative z-10 flex items-center font-semibold">
-                        <UserPlus className="ml-1.5 h-4 w-4" />
+                    <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-7 py-6">
+                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
+                      <span className="relative z-10 flex items-center font-bold text-base">
+                        <UserPlus className="mr-2 h-5 w-5" />
                         {dict.signUpButton}
                       </span>
                     </Button>
@@ -296,11 +296,11 @@ const StickyNav: React.FC<StickyNavProps> = ({
           >
             <Button
               size="icon"
-              className="rounded-full h-14 w-14 bg-white/90 backdrop-blur-md border border-teal-100 shadow-xl hover:bg-teal-50"
+              className="rounded-full h-14 w-14 bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20"
               onClick={() => setMobileNavState('open')}
               aria-label={dict.openNavAriaLabel}
             >
-              <Menu className="h-6 w-6 text-teal-600" />
+              <Menu className="h-7 w-7" />
             </Button>
           </motion.div>
         )}

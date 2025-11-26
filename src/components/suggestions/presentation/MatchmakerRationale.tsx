@@ -1,4 +1,4 @@
-// src/app/components/suggestions/presentation/MatchmakerRationale.tsx
+// src/components/suggestions/presentation/MatchmakerRationale.tsx
 import React from 'react';
 import {
   Card,
@@ -16,7 +16,7 @@ interface MatchmakerRationaleProps {
   matchmaker: { firstName: string; lastName: string };
   generalReason?: string | null;
   personalNote?: string | null;
-  dict: SuggestionsPresentationDict['rationale']; // Updated to use the specific dictionary part
+  dict: SuggestionsPresentationDict['rationale'];
 }
 
 const MatchmakerRationale: React.FC<MatchmakerRationaleProps> = ({
@@ -28,16 +28,18 @@ const MatchmakerRationale: React.FC<MatchmakerRationaleProps> = ({
   const fullName = `${matchmaker.firstName} ${matchmaker.lastName}`;
 
   return (
-    <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 shadow-xl border-purple-200/50">
+    // Background: Teal -> Orange -> Rose
+    <Card className="bg-gradient-to-br from-teal-50 via-orange-50 to-rose-50 shadow-xl border-teal-200/50">
       <CardHeader className="text-center">
         <div className="flex justify-center items-center gap-3 mb-3">
           <Avatar className="w-12 h-12 border-2 border-white shadow-lg">
-            <AvatarFallback className="bg-purple-500 text-white font-bold">
+            {/* Avatar: Teal */}
+            <AvatarFallback className="bg-teal-500 text-white font-bold">
               {getInitials(fullName)}
             </AvatarFallback>
           </Avatar>
           <div>
-            <CardDescription className="text-sm text-purple-800">
+            <CardDescription className="text-sm text-teal-800">
               {dict.description.replace('{{name}}', fullName)}
             </CardDescription>
             <CardTitle className="text-2xl font-bold text-gray-800">
@@ -48,8 +50,9 @@ const MatchmakerRationale: React.FC<MatchmakerRationaleProps> = ({
       </CardHeader>
       <CardContent className="space-y-6 text-center">
         {personalNote && (
-          <div className="bg-white/70 p-4 rounded-xl shadow-inner border border-purple-100">
-            <h3 className="font-semibold text-lg text-purple-700 flex items-center justify-center gap-2 mb-2">
+          // Personal Note: Rose Tint (Love/Heart)
+          <div className="bg-white/70 p-4 rounded-xl shadow-inner border border-rose-100">
+            <h3 className="font-semibold text-lg text-rose-700 flex items-center justify-center gap-2 mb-2">
               <Heart className="w-5 h-5" />
               {dict.personalNoteTitle}
             </h3>
@@ -60,8 +63,9 @@ const MatchmakerRationale: React.FC<MatchmakerRationaleProps> = ({
         )}
 
         {generalReason && (
-          <div className="bg-white/70 p-4 rounded-xl shadow-inner border border-blue-100">
-            <h3 className="font-semibold text-lg text-blue-700 flex items-center justify-center gap-2 mb-2">
+          // General Reason: Teal Tint (Sparkles/Magic)
+          <div className="bg-white/70 p-4 rounded-xl shadow-inner border border-teal-100">
+            <h3 className="font-semibold text-lg text-teal-700 flex items-center justify-center gap-2 mb-2">
               <Sparkles className="w-5 h-5" />
               {dict.generalReasonTitle}
             </h3>

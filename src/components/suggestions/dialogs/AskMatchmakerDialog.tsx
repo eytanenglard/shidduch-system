@@ -1,4 +1,4 @@
-// src/app/components/suggestions/dialogs/AskMatchmakerDialog.tsx
+// src/components/suggestions/dialogs/AskMatchmakerDialog.tsx
 import React, { useState, useMemo } from 'react';
 import {
   Dialog,
@@ -29,6 +29,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import type { AskMatchmakerDict } from '@/types/dictionary';
+
 interface AskMatchmakerDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -36,6 +37,7 @@ interface AskMatchmakerDialogProps {
   matchmakerName?: string;
   dict: AskMatchmakerDict;
 }
+
 const iconMap: { [key: string]: React.ElementType } = {
   values: Heart,
   family: Users,
@@ -44,14 +46,17 @@ const iconMap: { [key: string]: React.ElementType } = {
   future: Calendar,
   other: Lightbulb,
 };
+
+// Updated Color Map to match Hero Palette (Teal, Orange, Rose)
 const colorMap: { [key: string]: string } = {
-  values: 'from-cyan-500 to-blue-500',
-  family: 'from-emerald-500 to-green-500',
-  career: 'from-blue-500 to-cyan-500',
-  personality: 'from-pink-500 to-rose-500',
-  future: 'from-amber-500 to-orange-500',
-  other: 'from-gray-500 to-slate-500',
+  values: 'from-teal-400 to-emerald-500',    // Teal/Emerald -> Knowledge/Truth
+  family: 'from-orange-400 to-amber-500',    // Orange/Amber -> Warmth/Home
+  career: 'from-blue-500 to-teal-500',       // Blue/Teal -> Professional
+  personality: 'from-rose-400 to-pink-500',  // Rose/Pink -> Personal/Emotion
+  future: 'from-amber-400 to-orange-500',    // Amber/Orange -> Ambition
+  other: 'from-gray-500 to-slate-500',       // Neutral
 };
+
 export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
   isOpen,
   onClose,
@@ -63,6 +68,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+
   const questionTopics = useMemo(() => {
     return Object.keys(dict.topics).map((key) => ({
       id: key,
@@ -73,6 +79,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
       color: colorMap[key],
     }));
   }, [dict]);
+
   const handleSubmit = async () => {
     if (!question.trim()) return;
 
@@ -90,23 +97,28 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
       setIsSubmitting(false);
     }
   };
+
   const getInitials = (name?: string) => {
     if (!name) return 'שד';
     const parts = name.split(' ');
     if (parts.length === 1) return parts[0].charAt(0);
     return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`;
   };
+
   const selectedTopicData = questionTopics.find((t) => t.id === selectedTopic);
   const dialogTitle = matchmakerName
     ? dict.title.replace('{{name}}', matchmakerName)
     : dict.titleDefault;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 border-0 shadow-2xl rounded-3xl bg-white overflow-hidden z-[9999]">
-        <DialogHeader className="px-8 py-6 bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-gray-100">
+        {/* Header: Teal -> White -> Orange Gradient */}
+        <DialogHeader className="px-8 py-6 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-b border-gray-100">
           <div className="flex items-center gap-4 mb-4">
             <Avatar className="w-16 h-16 border-4 border-white shadow-lg">
-              <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-xl font-bold">
+              {/* Avatar: Teal Gradient */}
+              <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white text-xl font-bold">
                 {getInitials(matchmakerName)}
               </AvatarFallback>
             </Avatar>
@@ -118,13 +130,14 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
                 {dict.description}
               </DialogDescription>
             </div>
-            <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-md px-3 py-1">
+            {/* Badge: Teal/Emerald */}
+            <Badge className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white border-0 shadow-md px-3 py-1">
               <Clock className="w-3 h-3 ml-1" />
               {dict.statusBadge}
             </Badge>
           </div>
         </DialogHeader>
-        code Code
+
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
           {error && (
             <Alert variant="destructive" className="border-red-200 bg-red-50">
@@ -151,9 +164,10 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
                   key={topic.id}
                   className={cn(
                     'cursor-pointer transition-all duration-300 border-2 hover:shadow-lg hover:-translate-y-1',
+                    // Selection state: Teal
                     selectedTopic === topic.id
-                      ? 'border-cyan-300 bg-cyan-50 shadow-md'
-                      : 'border-gray-200 hover:border-cyan-200'
+                      ? 'border-teal-300 bg-teal-50 shadow-md'
+                      : 'border-gray-200 hover:border-teal-200'
                   )}
                   onClick={() => setSelectedTopic(topic.id)}
                 >
@@ -179,11 +193,12 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
           </div>
 
           {selectedTopicData && (
-            <Card className="bg-gradient-to-r from-cyan-50/50 to-emerald-50/50 border-cyan-200/50">
+            // Sample Questions: Teal/Orange Gradient
+            <Card className="bg-gradient-to-r from-teal-50/50 to-orange-50/50 border-teal-200/50">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <selectedTopicData.icon className="w-5 h-5 text-cyan-600" />
-                  <h4 className="font-semibold text-cyan-800">
+                  <selectedTopicData.icon className="w-5 h-5 text-teal-600" />
+                  <h4 className="font-semibold text-teal-800">
                     {dict.sampleQuestions.title.replace(
                       '{{topic}}',
                       selectedTopicData.label
@@ -195,7 +210,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
                     <Button
                       key={index}
                       variant="ghost"
-                      className="w-full justify-end text-right hover:bg-cyan-100 hover:text-cyan-800 transition-colors rounded-lg p-3 h-auto"
+                      className="w-full justify-end text-right hover:bg-teal-100 hover:text-teal-800 transition-colors rounded-lg p-3 h-auto"
                       onClick={() => setQuestion(q)}
                     >
                       <span className="text-sm leading-relaxed">{q}</span>
@@ -213,12 +228,13 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             >
               {dict.input.label}
             </Label>
+            {/* Textarea Focus: Teal */}
             <Textarea
               id="question"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               placeholder={dict.input.placeholder}
-              className="min-h-[120px] text-right border-gray-200 focus:border-cyan-300 focus:ring-cyan-200 rounded-xl text-base leading-relaxed resize-none"
+              className="min-h-[120px] text-right border-gray-200 focus:border-teal-300 focus:ring-teal-200 rounded-xl text-base leading-relaxed resize-none"
             />
             <div className="flex justify-between items-center text-xs text-gray-500">
               <span>
@@ -242,11 +258,12 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             >
               {dict.buttons.cancel}
             </Button>
+            {/* Submit Button: Hero Gradient (Teal -> Orange -> Amber) */}
             <Button
               type="submit"
               onClick={handleSubmit}
               disabled={!question.trim() || isSubmitting}
-              className="flex-1 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
+              className="flex-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
             >
               {isSubmitting ? (
                 <>

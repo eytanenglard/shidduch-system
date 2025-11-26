@@ -1,4 +1,4 @@
-// src/components/AvailabilityStatus.tsx
+// src/components/layout/AvailabilityStatus.tsx
 
 'use client';
 import React, { useState, useEffect } from 'react';
@@ -40,64 +40,69 @@ import {
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { Session } from 'next-auth';
-import type { AvailabilityStatusDict } from '@/types/dictionary'; // ✨ 1. ייבוא הטיפוס החדש
+import type { AvailabilityStatusDict } from '@/types/dictionary';
 
-// This helper function now only handles STYLES, not text.
+// --- עדכון פונקציית הסגנונות לפלטה החדשה (Teal/Rose/Orange) ---
 const getStatusStyles = (status: AvailabilityStatusEnum) => {
   switch (status) {
     case AvailabilityStatusEnum.AVAILABLE:
       return {
-        dotClasses: 'bg-cyan-500',
+        // שינוי: Cyan -> Teal
+        dotClasses: 'bg-teal-500',
         pulse: true,
         icon: <CheckCircle2 />,
-        iconColorClass: 'text-cyan-600',
+        iconColorClass: 'text-teal-600',
+        // גרדיאנט תואם ל-Hero (Knowledge/Growth)
         dialogButtonClasses:
-          'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white',
+          'bg-gradient-to-r from-teal-500 via-teal-600 to-emerald-600 hover:from-teal-600 hover:via-teal-700 hover:to-emerald-700 text-white',
       };
     case AvailabilityStatusEnum.UNAVAILABLE:
       return {
-        dotClasses: 'bg-gray-400',
+        dotClasses: 'bg-slate-400', // שינוי ל-Slate למראה נקי יותר
         pulse: false,
         icon: <XCircle />,
-        iconColorClass: 'text-gray-500',
+        iconColorClass: 'text-slate-500',
         dialogButtonClasses:
-          'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white',
+          'bg-gradient-to-r from-slate-500 to-gray-600 hover:from-slate-600 hover:to-gray-700 text-white',
       };
     case AvailabilityStatusEnum.DATING:
       return {
-        dotClasses: 'bg-pink-500',
+        // שינוי: Pink -> Rose (תואם ל-Hero Personal/Emotion)
+        dotClasses: 'bg-rose-500',
         pulse: false,
         icon: <Heart />,
-        iconColorClass: 'text-pink-600',
+        iconColorClass: 'text-rose-600',
         dialogButtonClasses:
-          'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white',
+          'bg-gradient-to-r from-rose-500 via-pink-500 to-red-500 hover:from-rose-600 hover:via-pink-600 hover:to-red-600 text-white',
       };
     case AvailabilityStatusEnum.PAUSED:
       return {
+        // שינוי: Orange -> Orange/Amber (תואם ל-Hero Privacy/Human)
         dotClasses: 'bg-orange-500',
         pulse: false,
         icon: <PauseCircle />,
         iconColorClass: 'text-orange-600',
         dialogButtonClasses:
-          'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white',
+          'bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 hover:from-orange-600 hover:via-amber-600 hover:to-yellow-600 text-white',
       };
     case AvailabilityStatusEnum.ENGAGED:
       return {
-        dotClasses: 'bg-pink-500',
+        // שינוי: תואם ל-Dating עם Pulse
+        dotClasses: 'bg-rose-500',
         pulse: true,
         icon: <Heart fill="currentColor" />,
-        iconColorClass: 'text-pink-600',
+        iconColorClass: 'text-rose-600',
         dialogButtonClasses:
-          'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white',
+          'bg-gradient-to-r from-rose-500 via-pink-500 to-red-500 hover:from-rose-600 hover:via-pink-600 hover:to-red-600 text-white',
       };
     case AvailabilityStatusEnum.MARRIED:
       return {
-        dotClasses: 'bg-gray-400',
+        dotClasses: 'bg-slate-400',
         pulse: false,
         icon: <UserMinus />,
-        iconColorClass: 'text-gray-500',
+        iconColorClass: 'text-slate-500',
         dialogButtonClasses:
-          'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white',
+          'bg-gradient-to-r from-slate-500 to-gray-600 hover:from-slate-600 hover:to-gray-700 text-white',
       };
     default:
       return {
@@ -111,7 +116,6 @@ const getStatusStyles = (status: AvailabilityStatusEnum) => {
   }
 };
 
-// ✨ 2. הוספת המילון לממשק ה-props
 interface AvailabilityStatusProps {
   dict: AvailabilityStatusDict;
 }
@@ -168,7 +172,7 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
       setShowSuccessDialog(true);
     } catch (err) {
       console.error('Error in update:', err);
-      setError(err instanceof Error ? err.message : dict.updateError); // ✨ שימוש בתרגום
+      setError(err instanceof Error ? err.message : dict.updateError);
     } finally {
       setIsUpdating(false);
     }
@@ -196,7 +200,8 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
           setError('');
           setShowDialog(true);
         }}
-        className="flex items-center gap-x-2 px-3 h-10 rounded-full font-medium text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        // שינוי: ריווח פנימי ואפקט hover עדין יותר
+        className="flex items-center gap-x-2 px-3 h-10 rounded-full font-medium text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200"
       >
         <span className="relative flex h-2.5 w-2.5">
           {currentStatusStyles.pulse && (
@@ -208,8 +213,7 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
             className={`relative inline-flex rounded-full h-2.5 w-2.5 ${currentStatusStyles.dotClasses}`}
           ></span>
         </span>
-        <span className="text-sm">{dict.status[displayStatus]}</span>{' '}
-        {/* ✨ שימוש בתרגום */}
+        <span className="text-sm">{dict.status[displayStatus]}</span>
       </Button>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
@@ -217,10 +221,9 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
           <DialogHeader className="mb-4 text-right">
             <DialogTitle className="text-2xl font-bold text-gray-800">
               {dict.dialogTitle}
-            </DialogTitle>{' '}
-            {/* ✨ שימוש בתרגום */}
+            </DialogTitle>
             <DialogDescription className="text-sm text-gray-600">
-              {dict.dialogDescription} {/* ✨ שימוש בתרגום */}
+              {dict.dialogDescription}
             </DialogDescription>
           </DialogHeader>
 
@@ -230,7 +233,7 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
                 htmlFor="status-select"
                 className="text-sm font-medium text-gray-700"
               >
-                {dict.statusLabel} {/* ✨ שימוש בתרגום */}
+                {dict.statusLabel}
               </label>
               <Select
                 value={status}
@@ -239,12 +242,12 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
                 }
                 disabled={isUpdating}
               >
+                {/* שינוי: Focus Ring ל-Teal */}
                 <SelectTrigger
                   id="status-select"
-                  className="w-full rounded-lg h-12 text-base bg-gray-50 border-gray-200 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+                  className="w-full rounded-lg h-12 text-base bg-gray-50 border-gray-200 focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition-all"
                 >
-                  <SelectValue placeholder={dict.selectPlaceholder} />{' '}
-                  {/* ✨ שימוש בתרגום */}
+                  <SelectValue placeholder={dict.selectPlaceholder} />
                 </SelectTrigger>
                 <SelectContent className="rounded-lg">
                   {Object.values(AvailabilityStatusEnum).map((enumKey) => {
@@ -259,8 +262,7 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
                           {React.cloneElement(itemStyle.icon, {
                             className: `w-4 h-4 ${itemStyle.iconColorClass}`,
                           })}
-                          <span>{dict.status[enumKey]}</span>{' '}
-                          {/* ✨ שימוש בתרגום */}
+                          <span>{dict.status[enumKey]}</span>
                         </div>
                       </SelectItem>
                     );
@@ -274,15 +276,16 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
                 htmlFor="status-note"
                 className="text-sm font-medium text-gray-700"
               >
-                {dict.noteLabel} {/* ✨ שימוש בתרגום */}
+                {dict.noteLabel}
               </label>
               <Textarea
                 id="status-note"
-                placeholder={dict.notePlaceholder} // ✨ שימוש בתרגום
+                placeholder={dict.notePlaceholder}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 disabled={isUpdating}
-                className="rounded-lg min-h-[100px] text-base bg-gray-50 border-gray-200 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 placeholder:text-gray-400"
+                // שינוי: Focus Ring ל-Teal
+                className="rounded-lg min-h-[100px] text-base bg-gray-50 border-gray-200 focus:ring-2 focus:ring-teal-400 focus:border-teal-400 placeholder:text-gray-400 transition-all"
               />
             </div>
           </div>
@@ -301,7 +304,7 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
               disabled={isUpdating}
               className="rounded-lg text-gray-600 hover:bg-gray-100"
             >
-              {dict.cancelButton} {/* ✨ שימוש בתרגום */}
+              {dict.cancelButton}
             </Button>
             <Button
               onClick={handleUpdate}
@@ -312,8 +315,7 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 dict.updateButton
-              )}{' '}
-              {/* ✨ שימוש בתרגום */}
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -322,21 +324,23 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <AlertDialogContent className="sm:max-w-md p-6 bg-white rounded-xl shadow-2xl">
           <AlertDialogHeader className="text-center">
-            <div className="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-cyan-100 mb-4">
-              <CheckCircle2 className="h-8 w-8 text-cyan-600" />
+            {/* שינוי: רקע האייקון ל-Teal */}
+            <div className="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-teal-100 mb-4">
+              <CheckCircle2 className="h-8 w-8 text-teal-600" />
             </div>
             <AlertDialogTitle className="text-xl font-bold text-gray-800">
-              {dict.successDialogTitle} {/* ✨ שימוש בתרגום */}
+              {dict.successDialogTitle}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm text-gray-600 mt-2">
-              {dict.successDialogDescription} {/* ✨ שימוש בתרגום */}
+              {dict.successDialogDescription}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogAction
             onClick={() => setShowSuccessDialog(false)}
-            className="w-full mt-4 rounded-lg bg-gradient-to-r from-cyan-500 to-cyan-600 text-white text-base h-11 shadow-md hover:shadow-lg transition-all"
+            // שינוי: כפתור אישור ב-Teal Gradient
+            className="w-full mt-4 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-600 text-white text-base h-11 shadow-md hover:shadow-lg transition-all border-none"
           >
-            {dict.successDialogAction} {/* ✨ שימוש בתרגום */}
+            {dict.successDialogAction}
           </AlertDialogAction>
         </AlertDialogContent>
       </AlertDialog>
