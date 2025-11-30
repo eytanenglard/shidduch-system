@@ -138,6 +138,7 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState('');
 
+  // סנכרון עם הסשן כשהוא מתעדכן
   useEffect(() => {
     if (session?.user?.profile) {
       setStatus(
@@ -167,7 +168,9 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
         throw new Error(errorData.error || 'Failed to update status');
       }
 
+      // כאן הקריאה לשרת לחידוש הסשן. עם התיקון ב-auth.ts זה יחזיר את הסטטוס החדש.
       await updateSession();
+
       setShowDialog(false);
       setShowSuccessDialog(true);
     } catch (err) {

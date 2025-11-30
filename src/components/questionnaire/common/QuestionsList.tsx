@@ -10,13 +10,8 @@ import {
   Sparkles,
   Star,
   Zap,
-  Clock,
   CheckCircle2,
   AlertTriangle,
-  ChevronLeft,
-  ChevronRight,
-  TrendingUp,
-  Target,
   Award,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -27,7 +22,6 @@ import type {
   QuestionDepth,
 } from '../types/types';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { QuestionsListDict } from '@/types/dictionary';
 
@@ -143,44 +137,44 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
   const totalCount = allQuestions.length;
   const progressPercentage = Math.round((answeredCount / totalCount) * 100);
 
-  // הודעת מוטיבציה דינמית
+  // הודעת מוטיבציה דינמית מהמילון
   const getMotivationalMessage = () => {
     if (progressPercentage >= 100) {
       return {
         emoji: '🎉',
-        title: isRTL ? 'מדהים! סיימת!' : 'Amazing! All Done!',
-        subtitle: isRTL ? 'השלמת את כל השאלות' : 'You completed all questions',
+        title: dict.motivationalMessages.finish.title,
+        subtitle: dict.motivationalMessages.finish.subtitle,
         color: 'from-green-500 to-emerald-500',
       };
     }
     if (progressPercentage >= 75) {
       return {
         emoji: '🔥',
-        title: isRTL ? 'כמעט שם!' : 'Almost There!',
-        subtitle: isRTL ? 'עוד קצת והגעת לסיום' : 'Just a bit more to go',
+        title: dict.motivationalMessages.threeQuarters.title,
+        subtitle: dict.motivationalMessages.threeQuarters.subtitle,
         color: theme.gradient,
       };
     }
     if (progressPercentage >= 50) {
       return {
         emoji: '⭐',
-        title: isRTL ? 'באמצע הדרך!' : 'Halfway There!',
-        subtitle: isRTL ? 'עבודה מצוינת' : 'Great progress',
+        title: dict.motivationalMessages.half.title,
+        subtitle: dict.motivationalMessages.half.subtitle,
         color: theme.gradient,
       };
     }
     if (progressPercentage >= 25) {
       return {
         emoji: '🚀',
-        title: isRTL ? 'התחלה מעולה!' : 'Great Start!',
-        subtitle: isRTL ? 'המשך כך' : 'Keep it up',
+        title: dict.motivationalMessages.quarter.title,
+        subtitle: dict.motivationalMessages.quarter.subtitle,
         color: theme.gradient,
       };
     }
     return {
       emoji: '💪',
-      title: isRTL ? 'בואו נתחיל!' : "Let's Begin!",
-      subtitle: isRTL ? 'כל תשובה מקרבת אותך' : 'Every answer brings you closer',
+      title: dict.motivationalMessages.start.title,
+      subtitle: dict.motivationalMessages.start.subtitle,
       color: theme.gradient,
     };
   };
@@ -235,7 +229,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
                     {answeredCount}/{totalCount}
                   </div>
                   <div className="text-xs text-gray-600">
-                    {isRTL ? 'שאלות שנענו' : 'Questions Answered'}
+                    {dict.stats.answeredQuestions}
                   </div>
                 </div>
               </div>
@@ -244,7 +238,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
                   {progressPercentage}%
                 </div>
                 <div className="text-xs text-gray-500">
-                  {isRTL ? 'הושלם' : 'Complete'}
+                  {dict.stats.complete}
                 </div>
               </div>
             </div>
@@ -294,7 +288,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
               <div className="flex items-center gap-2 mb-1">
                 <Zap className="w-4 h-4 text-blue-600" />
                 <span className="text-xs font-semibold text-blue-700">
-                  {isRTL ? 'נותרו' : 'Remaining'}
+                  {dict.stats.remaining}
                 </span>
               </div>
               <div className="text-2xl font-bold text-blue-900">
@@ -306,7 +300,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
               <div className="flex items-center gap-2 mb-1">
                 <Award className="w-4 h-4 text-green-600" />
                 <span className="text-xs font-semibold text-green-700">
-                  {isRTL ? 'נענו' : 'Done'}
+                  {dict.stats.done}
                 </span>
               </div>
               <div className="text-2xl font-bold text-green-900">
@@ -474,7 +468,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
                         className="text-[10px] font-semibold bg-rose-50 border-rose-300 text-rose-700"
                       >
                         <AlertCircle className="w-2.5 h-2.5 mr-1" />
-                        {isRTL ? 'חובה' : 'Required'}
+                        {dict.badges.required}
                       </Badge>
                     )}
 
@@ -485,7 +479,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
                         className="text-[10px] font-semibold bg-green-50 border-green-300 text-green-700"
                       >
                         <CheckCircle className="w-2.5 h-2.5 mr-1" />
-                        {isRTL ? '✓ נענתה' : '✓ Done'}
+                        {dict.badges.answered}
                       </Badge>
                     )}
                   </div>

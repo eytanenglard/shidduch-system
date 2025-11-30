@@ -1,4 +1,4 @@
-// lib/auth.ts
+// src/lib/auth.ts
 
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { NextAuthOptions, Profile as OAuthProfile } from "next-auth";
@@ -9,12 +9,10 @@ import { compare } from "bcryptjs";
 import type {
   User as ExtendedUser,
   UserProfile,
-  UserImage,
-  QuestionnaireResponse
 } from "@/types/next-auth";
 import { JWT as ExtendedUserJWT } from "next-auth/jwt";
 import { Session as ExtendedSession } from "next-auth";
-import { UserRole, UserStatus, UserSource, Language  } from "@prisma/client";
+import { UserRole, UserStatus, UserSource, Language } from "@prisma/client";
 
 console.log("Auth options file loaded");
 
@@ -37,46 +35,46 @@ export const authOptions: NextAuthOptions = {
         const now = new Date();
         console.log("[GoogleProvider Profile Fn] Raw profile from Google:", profile);
         console.log("[GoogleProvider Profile Fn] Tokens from Google:", tokens);
-    
+
         if (!profile.email) {
           throw new Error("Email not found in Google profile");
         }
         if (!profile.sub) {
           throw new Error("Sub (Google User ID) not found in Google profile");
         }
-    
+
         const firstName = profile.given_name || profile.name?.split(' ')[0] || "";
         const lastName = profile.family_name || profile.name?.split(' ').slice(1).join(' ') || "";
 
         const userForAdapter: ExtendedUser = {
-          id: profile.sub, 
+          id: profile.sub,
           email: profile.email.toLowerCase(),
           firstName: firstName,
           lastName: lastName,
-          name: profile.name || `${firstName} ${lastName}`.trim(), 
-          phone: null, 
-          image: profile.picture || null, 
+          name: profile.name || `${firstName} ${lastName}`.trim(),
+          phone: null,
+          image: profile.picture || null,
           role: UserRole.CANDIDATE,
           status: UserStatus.PENDING_PHONE_VERIFICATION,
           isVerified: !!profile.email_verified,
           isProfileComplete: false,
           isPhoneVerified: false,
-          lastLogin: null, 
+          lastLogin: null,
           createdAt: now,
           updatedAt: now,
-          source: UserSource.REGISTRATION, 
-          addedByMatchmakerId: null,  
+          source: UserSource.REGISTRATION,
+          addedByMatchmakerId: null,
           termsAndPrivacyAcceptedAt: null,
-          profile: null, 
-          images: [], 
+          profile: null,
+          images: [],
           questionnaireResponses: [],
           language: Language.he,
           questionnaireCompleted: false,
           redirectUrl: undefined,
-          newlyCreated: true, 
-          requiresCompletion: true, 
+          newlyCreated: true,
+          requiresCompletion: true,
         };
-    
+
         console.log("[GoogleProvider Profile Fn] User object for adapter:", userForAdapter);
         return userForAdapter;
       }
@@ -122,7 +120,7 @@ export const authOptions: NextAuthOptions = {
         return {
           ...restOfUser,
           name: `${userFromDb.firstName} ${userFromDb.lastName}`,
-          image: images?.[0]?.url || null, 
+          image: images?.[0]?.url || null,
           profile: null,
           images: [],
           questionnaireResponses: [],
@@ -176,7 +174,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
         console.log(`[AutoLoginProvider Authorize] Auto-login successful for user ${userFromDb.email}`);
-        
+
         const { images, ...restOfUser } = userFromDb;
         return {
           ...restOfUser,
@@ -197,7 +195,7 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async signIn({ user, account, profile }) {
-      const typedUser = user as ExtendedUser; 
+      const typedUser = user as ExtendedUser;
       const oauthProfile = profile as OAuthProfile & { email_verified?: boolean };
       console.log("[signIn Callback] Triggered.", {
         userId: typedUser.id,
@@ -206,7 +204,7 @@ export const authOptions: NextAuthOptions = {
         isUserVerifiedByProvider: oauthProfile?.email_verified,
         accountId: account?.providerAccountId
       });
-    
+
       const userEmail = typedUser.email?.toLowerCase();
       if (!userEmail) {
         console.error("[signIn Callback] Critical: No user email available.", { user, account });
@@ -216,90 +214,90 @@ export const authOptions: NextAuthOptions = {
       let dbUser = await prisma.user.findUnique({
         where: { email: userEmail },
       });
-    
+
       if (!dbUser && account?.provider === 'google') {
         console.log(`[signIn Callback] Google sign-in for potentially new user: ${userEmail}.`);
-        
-        dbUser = await prisma.user.findUnique({ 
-            where: { email: userEmail } 
+
+        dbUser = await prisma.user.findUnique({
+          where: { email: userEmail }
         });
 
         if (!dbUser) {
-            try {
-                console.log(`[signIn Callback] User ${userEmail} not found. Attempting to create.`);
-                const createdDbUser = await prisma.user.create({
-                    data: {
-                        email: userEmail,
-                        firstName: typedUser.firstName || "", 
-                        lastName: typedUser.lastName || "",  
-                        role: typedUser.role || UserRole.CANDIDATE,
-                        status: typedUser.status || UserStatus.PENDING_PHONE_VERIFICATION,
-                        isVerified: typedUser.isVerified === undefined ? (!!oauthProfile?.email_verified) : typedUser.isVerified,
-                        isProfileComplete: typedUser.isProfileComplete || false,
-                        isPhoneVerified: typedUser.isPhoneVerified || false,
-                        source: UserSource.REGISTRATION,
-                        language: Language.he,
-                    },
-                });
-                dbUser = createdDbUser; 
-                console.log(`[signIn Callback] Created new user ${dbUser.email} during signIn.`);
+          try {
+            console.log(`[signIn Callback] User ${userEmail} not found. Attempting to create.`);
+            const createdDbUser = await prisma.user.create({
+              data: {
+                email: userEmail,
+                firstName: typedUser.firstName || "",
+                lastName: typedUser.lastName || "",
+                role: typedUser.role || UserRole.CANDIDATE,
+                status: typedUser.status || UserStatus.PENDING_PHONE_VERIFICATION,
+                isVerified: typedUser.isVerified === undefined ? (!!oauthProfile?.email_verified) : typedUser.isVerified,
+                isProfileComplete: typedUser.isProfileComplete || false,
+                isPhoneVerified: typedUser.isPhoneVerified || false,
+                source: UserSource.REGISTRATION,
+                language: Language.he,
+              },
+            });
+            dbUser = createdDbUser;
+            console.log(`[signIn Callback] Created new user ${dbUser.email} during signIn.`);
 
-                if (account && account.providerAccountId) {
-                    const existingAccount = await prisma.account.findUnique({
-                        where: { provider_providerAccountId: { provider: account.provider, providerAccountId: account.providerAccountId }}
-                    });
-                    if (!existingAccount) {
-                        await prisma.account.create({
-                            data: {
-                                userId: dbUser.id,
-                                type: account.type,
-                                provider: account.provider,
-                                providerAccountId: account.providerAccountId,
-                                access_token: account.access_token,
-                                refresh_token: account.refresh_token,
-                                expires_at: account.expires_at,
-                                token_type: account.token_type,
-                                scope: account.scope,
-                                id_token: account.id_token,
-                                session_state: account.session_state,
-                            },
-                        });
-                        console.log(`[signIn Callback] Linked Google account for ${dbUser.email}`);
-                    }
-                }
-              } catch (error: unknown) { 
-                console.error("[signIn Callback] Failed to create user or link account:", error);
-                
-                if (typeof error === 'object' && error !== null && 'code' in error && 'meta' in error) {
-                    const prismaError = error as { code?: string; meta?: { target?: string[] } }; 
-                    if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('email')) {
-                        console.log("[signIn Callback] User likely created by adapter in parallel. Re-fetching.");
-                        dbUser = await prisma.user.findUnique({ where: { email: userEmail }});
-                        if (!dbUser) {
-                            console.error("[signIn Callback] Failed to re-fetch user after P2002 error.");
-                            return false;
-                        }
-                    } else {
-                        return false; 
-                    }
-                } else {
-                  console.error("[signIn Callback] An unexpected error type occurred:", error);
+            if (account && account.providerAccountId) {
+              const existingAccount = await prisma.account.findUnique({
+                where: { provider_providerAccountId: { provider: account.provider, providerAccountId: account.providerAccountId } }
+              });
+              if (!existingAccount) {
+                await prisma.account.create({
+                  data: {
+                    userId: dbUser.id,
+                    type: account.type,
+                    provider: account.provider,
+                    providerAccountId: account.providerAccountId,
+                    access_token: account.access_token,
+                    refresh_token: account.refresh_token,
+                    expires_at: account.expires_at,
+                    token_type: account.token_type,
+                    scope: account.scope,
+                    id_token: account.id_token,
+                    session_state: account.session_state,
+                  },
+                });
+                console.log(`[signIn Callback] Linked Google account for ${dbUser.email}`);
+              }
+            }
+          } catch (error: unknown) {
+            console.error("[signIn Callback] Failed to create user or link account:", error);
+
+            if (typeof error === 'object' && error !== null && 'code' in error && 'meta' in error) {
+              const prismaError = error as { code?: string; meta?: { target?: string[] } };
+              if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('email')) {
+                console.log("[signIn Callback] User likely created by adapter in parallel. Re-fetching.");
+                dbUser = await prisma.user.findUnique({ where: { email: userEmail } });
+                if (!dbUser) {
+                  console.error("[signIn Callback] Failed to re-fetch user after P2002 error.");
                   return false;
                 }
+              } else {
+                return false;
+              }
+            } else {
+              console.error("[signIn Callback] An unexpected error type occurred:", error);
+              return false;
             }
+          }
         }
       }
-    
+
       if (!dbUser) {
         console.error(`[signIn Callback] User with email ${userEmail} not found and could not be created.`);
         return false;
       }
-    
-      typedUser.id = dbUser.id; 
+
+      typedUser.id = dbUser.id;
       typedUser.email = dbUser.email;
       typedUser.firstName = dbUser.firstName;
       typedUser.lastName = dbUser.lastName;
-      typedUser.name = `${dbUser.firstName} ${dbUser.lastName}`.trim(); 
+      typedUser.name = `${dbUser.firstName} ${dbUser.lastName}`.trim();
       typedUser.role = dbUser.role;
       typedUser.status = dbUser.status;
       typedUser.isVerified = dbUser.isVerified;
@@ -309,11 +307,11 @@ export const authOptions: NextAuthOptions = {
       typedUser.addedByMatchmakerId = dbUser.addedByMatchmakerId;
       typedUser.termsAndPrivacyAcceptedAt = dbUser.termsAndPrivacyAcceptedAt;
       typedUser.engagementEmailsConsent = dbUser.engagementEmailsConsent;
-         typedUser.promotionalEmailsConsent = dbUser.promotionalEmailsConsent;
-      typedUser.language = dbUser.language;  
-      typedUser.createdAt = dbUser.createdAt; 
-      typedUser.updatedAt = dbUser.updatedAt; 
-      typedUser.lastLogin = dbUser.lastLogin; 
+      typedUser.promotionalEmailsConsent = dbUser.promotionalEmailsConsent;
+      typedUser.language = dbUser.language;
+      typedUser.createdAt = dbUser.createdAt;
+      typedUser.updatedAt = dbUser.updatedAt;
+      typedUser.lastLogin = dbUser.lastLogin;
 
       if (account?.provider === "google") {
         if (dbUser.isVerified === false && oauthProfile?.email_verified === true) {
@@ -326,12 +324,12 @@ export const authOptions: NextAuthOptions = {
           typedUser.status = updatedUser.status;
         }
       }
-    
+
       await prisma.user.update({
         where: { id: dbUser.id },
         data: { lastLogin: new Date() }
       }).catch(err => console.error(`[signIn Callback] Failed to update lastLogin for user ${dbUser.id}:`, err));
-    
+
       const requiresCompletion = !dbUser.isProfileComplete || !dbUser.isPhoneVerified || !dbUser.termsAndPrivacyAcceptedAt;
       typedUser.requiresCompletion = requiresCompletion;
 
@@ -340,7 +338,7 @@ export const authOptions: NextAuthOptions = {
       } else {
         typedUser.redirectUrl = '/profile';
       }
-    
+
       console.log("[signIn Callback] Processed user. Flags:", {
         requiresCompletion: typedUser.requiresCompletion,
         redirectUrl: typedUser.redirectUrl,
@@ -366,13 +364,13 @@ export const authOptions: NextAuthOptions = {
         typedToken.firstName = typedUserFromCallback.firstName;
         typedToken.lastName = typedUserFromCallback.lastName;
         typedToken.name = typedUserFromCallback.name || `${typedUserFromCallback.firstName} ${typedUserFromCallback.lastName}`.trim();
-        typedToken.picture = typedUserFromCallback.image || null; 
+        typedToken.picture = typedUserFromCallback.image || null;
         typedToken.role = typedUserFromCallback.role;
         typedToken.status = typedUserFromCallback.status;
         typedToken.isVerified = typedUserFromCallback.isVerified;
         typedToken.isProfileComplete = typedUserFromCallback.isProfileComplete || false;
         typedToken.isPhoneVerified = typedUserFromCallback.isPhoneVerified || false;
-        typedToken.questionnaireCompleted = typedUserFromCallback.questionnaireCompleted; 
+        typedToken.questionnaireCompleted = typedUserFromCallback.questionnaireCompleted;
         typedToken.source = typedUserFromCallback.source;
         typedToken.addedByMatchmakerId = typedUserFromCallback.addedByMatchmakerId;
         typedToken.termsAndPrivacyAcceptedAt = typedUserFromCallback.termsAndPrivacyAcceptedAt;
@@ -380,22 +378,23 @@ export const authOptions: NextAuthOptions = {
         typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
         typedToken.engagementEmailsConsent = typedUserFromCallback.engagementEmailsConsent;
         typedToken.promotionalEmailsConsent = typedUserFromCallback.promotionalEmailsConsent;
-        typedToken.language = typedUserFromCallback.language; 
+        typedToken.language = typedUserFromCallback.language;
         typedToken.createdAt = typedUserFromCallback.createdAt;
         typedToken.updatedAt = typedUserFromCallback.updatedAt;
         typedToken.lastLogin = typedUserFromCallback.lastLogin;
-        
+
         console.log('[JWT Callback] Token populated with language:', typedToken.language);
       }
-      
+
       // ✅ תיקון: טיפול ב-trigger === 'update' - זה קורה כאשר updateSession() נקרא
       if (typedToken.id && trigger === "update") {
         console.log('[JWT Callback] Update trigger detected - refreshing user data from DB');
-        
+
         const dbUserForJwt = await prisma.user.findUnique({
           where: { id: typedToken.id },
           include: {
             images: { where: { isMain: true }, take: 1 },
+            profile: true, // ✅ הוספה: חובה לשלוף את הפרופיל כדי לעדכן את הסטטוס
           }
         });
 
@@ -403,7 +402,7 @@ export const authOptions: NextAuthOptions = {
           console.log('[JWT Callback] Found user in DB, updating token');
           typedToken.firstName = dbUserForJwt.firstName;
           typedToken.lastName = dbUserForJwt.lastName;
-          typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture; 
+          typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture;
           typedToken.role = dbUserForJwt.role;
           typedToken.status = dbUserForJwt.status;
           typedToken.isVerified = dbUserForJwt.isVerified;
@@ -412,14 +411,20 @@ export const authOptions: NextAuthOptions = {
           typedToken.source = dbUserForJwt.source;
           typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId;
           typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
-            typedToken.engagementEmailsConsent = dbUserForJwt.engagementEmailsConsent;
+          typedToken.engagementEmailsConsent = dbUserForJwt.engagementEmailsConsent;
           typedToken.promotionalEmailsConsent = dbUserForJwt.promotionalEmailsConsent;
-          typedToken.language = dbUserForJwt.language; // ✅ עדכון השפה מה-DB
+          typedToken.language = dbUserForJwt.language;
           typedToken.createdAt = dbUserForJwt.createdAt;
           typedToken.updatedAt = dbUserForJwt.updatedAt;
-typedToken.lastLogin = dbUserForJwt.lastLogin;
-typedToken.neshamaInsightLastGeneratedAt = dbUserForJwt.neshamaInsightLastGeneratedAt;
-typedToken.neshamaInsightGeneratedCount = dbUserForJwt.neshamaInsightGeneratedCount;
+          typedToken.lastLogin = dbUserForJwt.lastLogin;
+          typedToken.neshamaInsightLastGeneratedAt = dbUserForJwt.neshamaInsightLastGeneratedAt;
+          typedToken.neshamaInsightGeneratedCount = dbUserForJwt.neshamaInsightGeneratedCount;
+
+          // ✅ הוספה: עדכון הפרופיל ב-Token
+          if (dbUserForJwt.profile) {
+            typedToken.profile = dbUserForJwt.profile as unknown as UserProfile;
+          }
+
           console.log('[JWT Callback] Language updated in token:', typedToken.language);
 
           const questionnaireStatus = await prisma.questionnaireResponse.findFirst({
@@ -436,22 +441,23 @@ typedToken.neshamaInsightGeneratedCount = dbUserForJwt.neshamaInsightGeneratedCo
           console.log('[JWT Callback] User not found in DB');
         }
       }
-      
+
       // ✅ רענון נתונים גם ב-signIn (אם צריך)
       if (typedToken.id && trigger === "signIn" && !typedUserFromCallback) {
         console.log('[JWT Callback] SignIn trigger without user object - refreshing from DB');
-        
+
         const dbUserForJwt = await prisma.user.findUnique({
           where: { id: typedToken.id },
           include: {
             images: { where: { isMain: true }, take: 1 },
+            profile: true // ✅ הוספתי גם כאן ליתר ביטחון
           }
         });
 
         if (dbUserForJwt) {
           typedToken.firstName = dbUserForJwt.firstName;
           typedToken.lastName = dbUserForJwt.lastName;
-          typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture; 
+          typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture;
           typedToken.role = dbUserForJwt.role;
           typedToken.status = dbUserForJwt.status;
           typedToken.isVerified = dbUserForJwt.isVerified;
@@ -467,6 +473,11 @@ typedToken.neshamaInsightGeneratedCount = dbUserForJwt.neshamaInsightGeneratedCo
           typedToken.updatedAt = dbUserForJwt.updatedAt;
           typedToken.lastLogin = dbUserForJwt.lastLogin;
 
+          // ✅ הוספה: עדכון הפרופיל ב-Token
+          if (dbUserForJwt.profile) {
+            typedToken.profile = dbUserForJwt.profile as unknown as UserProfile;
+          }
+
           const questionnaireStatus = await prisma.questionnaireResponse.findFirst({
             where: { userId: typedToken.id },
             select: { completed: true },
@@ -479,7 +490,7 @@ typedToken.neshamaInsightGeneratedCount = dbUserForJwt.neshamaInsightGeneratedCo
           typedToken.redirectUrl = requiresCompletionFromDb ? '/auth/register' : '/profile';
         }
       }
-      
+
       return typedToken;
     },
 
@@ -492,8 +503,8 @@ typedToken.neshamaInsightGeneratedCount = dbUserForJwt.neshamaInsightGeneratedCo
         typedSession.user.email = typedToken.email;
         typedSession.user.firstName = typedToken.firstName;
         typedSession.user.lastName = typedToken.lastName;
-        typedSession.user.name = typedToken.name ?? null; 
-        typedSession.user.image = typedToken.picture ?? null; 
+        typedSession.user.name = typedToken.name ?? null;
+        typedSession.user.image = typedToken.picture ?? null;
         typedSession.user.role = typedToken.role;
         typedSession.user.status = typedToken.status;
         typedSession.user.isVerified = typedToken.isVerified;
@@ -505,7 +516,12 @@ typedToken.neshamaInsightGeneratedCount = dbUserForJwt.neshamaInsightGeneratedCo
         typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId;
         typedSession.user.engagementEmailsConsent = typedToken.engagementEmailsConsent;
         typedSession.user.promotionalEmailsConsent = typedToken.promotionalEmailsConsent;
-        typedSession.user.language = typedToken.language; // ✅ העברה ל-session
+        typedSession.user.language = typedToken.language;
+        
+        // ✅ הוספה קריטית: העברת הפרופיל מה-Token ל-Session
+        if (typedToken.profile) {
+            typedSession.user.profile = typedToken.profile;
+        }
 
         if (typedToken.createdAt) {
           typedSession.user.createdAt = new Date(typedToken.createdAt as unknown as string);
@@ -519,7 +535,7 @@ typedToken.neshamaInsightGeneratedCount = dbUserForJwt.neshamaInsightGeneratedCo
         if (typedToken.termsAndPrivacyAcceptedAt) {
           typedSession.user.termsAndPrivacyAcceptedAt = new Date(typedToken.termsAndPrivacyAcceptedAt as unknown as string);
         }
-        
+
         typedSession.requiresCompletion = typedToken.requiresCompletion;
         typedSession.redirectUrl = typedToken.redirectUrl;
       }
@@ -527,21 +543,21 @@ typedToken.neshamaInsightGeneratedCount = dbUserForJwt.neshamaInsightGeneratedCo
     },
 
     async redirect({ url, baseUrl }) {
-        console.log(`[Redirect Callback] Triggered with url: ${url}`);
-        
-        if (url.startsWith('/')) {
-            const finalUrl = `${baseUrl}${url}`;
-            console.log(`[Redirect Callback] Relative URL detected. Returning: ${finalUrl}`);
-            return finalUrl;
-        }
-        
-        if (new URL(url).origin === baseUrl) {
-            console.log(`[Redirect Callback] Same origin URL detected. Returning: ${url}`);
-            return url;
-        }
-        
-        console.log(`[Redirect Callback] External URL detected. Redirecting to baseUrl: ${baseUrl}`);
-        return baseUrl;
+      console.log(`[Redirect Callback] Triggered with url: ${url}`);
+
+      if (url.startsWith('/')) {
+        const finalUrl = `${baseUrl}${url}`;
+        console.log(`[Redirect Callback] Relative URL detected. Returning: ${finalUrl}`);
+        return finalUrl;
+      }
+
+      if (new URL(url).origin === baseUrl) {
+        console.log(`[Redirect Callback] Same origin URL detected. Returning: ${url}`);
+        return url;
+      }
+
+      console.log(`[Redirect Callback] External URL detected. Redirecting to baseUrl: ${baseUrl}`);
+      return baseUrl;
     }
   },
 

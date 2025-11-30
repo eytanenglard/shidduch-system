@@ -90,21 +90,41 @@
       "visible": "גלוי לפרופיל",
       "hidden": "מוסתר מהפרופיל"
     },
-  "completion": {
-    "title": "כל הכבוד! סיימת את השאלון",
-    "loggedInDescription": "התשובות שלך יעזרו לנו למצוא עבורך את ההתאמה הטובה ביותר",
-    "guestDescription": "כדי לשמור את התשובות ולהתחיל בתהליך ההתאמה, יש להתחבר למערכת",
-    "loggedInContent": {
-      "prompt": "כעת ניתן לשלוח את השאלון לצוות האיפיון שלנו",
-      "promptSubtitle": "הצוות יעבור על התשובות ויתחיל בתהליך ההתאמה",
-      "sendButton": "שלח לאיפיון",
-      "sendingButton": "שולח...",
-      "reviewButton": "סקירת כל התשובות שלי"
-    },
-    "guestContent": {
-      "loginButton": "התחבר למערכת"
-    }
+"completion": {
+  "title": "כל הכבוד! סיימת את השאלון",
+  "loggedInDescription": "התשובות שלך יעזרו לנו למצוא עבורך את ההתאמה הטובה ביותר",
+  "guestDescription": "כדי לשמור את התשובות ולהתחיל בתהליך ההתאמה, יש להתחבר למערכת",
+  "loggedInContent": {
+    "prompt": "כעת ניתן לשלוח את השאלון לצוות האיפיון שלנו",
+    "promptSubtitle": "הצוות יעבור על התשובות ויתחיל בתהליך ההתאמה",
+    "sendButton": "שלח לאיפיון",
+    "sendingButton": "שולח...",
+    "reviewButton": "סקירת כל התשובות שלי"
   },
+  "guestContent": {
+    "loginButton": "התחבר למערכת"
+  },
+  "stats": {
+    "completion": "% השלמה",
+    "answered": "שאלות נענו",
+    "time": "זמן השקעה"
+  },
+  "unlocksTitle": "🎉 הישגים שפתחת",
+  "achievements": {
+    "completed": {
+      "title": "🎯 השלמת את השאלון!",
+      "description": "מילאת את כל השאלות בהצלחה"
+    },
+    "speed": {
+      "title": "⚡ מהירות מרשימה",
+      "description": "סיימת תוך {{minutes}} דקות"
+    },
+    "profile": {
+      "title": "🎨 פרופיל מלא",
+      "description": "יצרת פרופיל עשיר ומפורט"
+    }
+  }
+},
   "matchmaking": {
     "worldLabels": {
       "PERSONALITY": "אישיות",
@@ -233,67 +253,72 @@
     "copyright": "© {{year}} NeshamaTech. כל הזכויות שמורות."
   }
 },
-  "worldsMap": {
-    "worldLabels": {
-      "PERSONALITY": "אישיות",
-      "VALUES": "ערכים ואמונות",
-      "RELATIONSHIP": "זוגיות",
-      "PARTNER": "הפרטנר האידיאלי",
-      "RELIGION": "דת ומסורת"
+"worldsMap": {
+  "worldLabels": {
+    "PERSONALITY": "אישיות",
+    "VALUES": "ערכים ואמונות",
+    "RELATIONSHIP": "זוגיות",
+    "PARTNER": "הפרטנר האידיאלי",
+    "RELIGION": "דת ומסורת"
+  },
+  "progressHeader": {
+    "greeting": "היי {{name}},",
+    "greetingNoName": "שלום,",
+    "journeyQuestion": "איפה אנחנו במסע?",
+    "journeyTitle": "המסע שלך לגילוי עצמי",
+    "progressText": "השלמת {{completedCount}} מתוך {{totalCount}} עולמות • {{totalAnswered}} מתוך {{totalQuestions}} שאלות",
+    "ctaButton": "בוא נמשיך!",
+    "mapTitle": "מפת העולמות שלך",
+    "milestones": {
+      "start": "התחלה",
+      "onTrack": "במסלול",
+      "inProgress": "בעיצומו",
+      "almostThere": "כמעט שם",
+      "completed": "הושלם!"
     },
-    "progressHeader": {
-      "greeting": "היי {{name}},",
-      "journeyQuestion": "איפה אנחנו במסע?",
-      "defaultTitle": "המסע שלך לגילוי עצמי",
-      "progressText": "השלמת {{completedCount}} מתוך {{totalCount}} עולמות • {{totalAnswered}} מתוך {{totalQuestions}} שאלות",
-      "ctaButton": "בוא נמשיך!",
-      "mapTitle": "מפת העולמות שלך",
-      "milestones": {
-        "start": "התחלה",
-        "onTrack": "במסלול",
-        "inProgress": "בעיצומו",
-        "almostThere": "כמעט שם",
-        "completed": "הושלם!"
-      },
-      "nextStepTitle": "הצעד הבא במסע",
-      "nextStepPrompt": "מוכן/ה להמשיך לעולם {{worldName}}?",
-      "completionTitle": "🎉 כל הכבוד! השלמת את כל העולמות",
-      "completionSubtitle": "עכשיו אפשר לעיין בפרופיל המלא שלך ולראות את דוח הנשמה"
+    "nextStepTitle": "הצעד הבא במסע",
+    "nextStepPrompt": "מוכן/ה להמשיך ל{{worldName}}?",
+    "completionTitle": "🎉 כל הכבוד! השלמת את כל העולמות",
+    "completionSubtitle": "עכשיו אפשר לעיין בפרופיל המלא שלך ולראות את דוח הנשמה"
+  },
+  "reviewCard": {
+    "title": "רוצה לסקור את התשובות שלך?",
+    "description": "צפה/י בכל התשובות שמילאת עד כה במקום אחד.",
+    "button": "לסקירת התשובות"
+  },
+  "worldCard": {
+    "discoverTitle": "מה תגלה בעולם הזה?",
+    "questionsLabel": "שאלות",
+    "minutesLabel": "דקות",
+    "worldNumberLabel": "עולם {{number}}",
+    "progressLabel": "התקדמות: {{completed}}/{{total}}",
+    "recommendedRibbon": "מומלץ",
+    "expandButton": "מה תגלה בעולם הזה?",
+    "benefitsTitle": "מה תגלה:",
+    "statuses": {
+      "completed": "הושלם",
+      "recommended": "מומלץ",
+      "active": "בתהליך",
+      "available": "זמין",
+      "locked": "נעול"
     },
-    "reviewCard": {
-      "title": "רוצה לסקור את התשובות שלך?",
-      "description": "צפה/י בכל התשובות שמילאת עד כה במקום אחד.",
-      "button": "לסקירת התשובות"
-    },
-    "worldCard": {
-      "discoverTitle": "מה תגלה בעולם הזה?",
-      "questionCount": "{{count}} שאלות",
-      "estimatedTime": "~{{count}} דקות",
-      "worldNumberLabel": "עולם {{number}}",
-      "progressLabel": "התקדמות: {{completed}}/{{total}}",
-      "recommendedRibbon": "מומלץ",
-      "statuses": {
-        "completed": "הושלם",
-        "recommended": "מומלץ",
-        "active": "בתהליך",
-        "available": "זמין",
-        "locked": "נעול"
-      },
-      "actions": {
-        "edit": "ערוך תשובות",
-        "startRecommended": "התחל עכשיו",
-        "continue": "המשך",
-        "start": "התחל",
-        "locked": "השלם עולמות קודמים"
-      }
-    },
-    "completionBanner": {
-      "title": "כל הכבוד, {{name}}!",
-      "subtitle": "סיימת את כל עולמות השאלון. עשית צעד ענק במסע שלך!",
-      "description": "הפרופיל המלא שלך מוכן כעת עבור השדכנים שלנו.",
-      "statWorlds": "5 עולמות",
-      "statReport": "דוח נשמה מלא"
-    },
+    "actions": {
+      "edit": "ערוך תשובות",
+      "startRecommended": "התחל עכשיו",
+      "continue": "המשך",
+      "start": "התחל",
+      "locked": "השלם עולמות קודמים"
+    }
+  },
+  "completionBanner": {
+    "title": "כל הכבוד, {{name}}!",
+    "titleNoName": "כל הכבוד!",
+    "subtitle": "סיימת את כל עולמות השאלון. עשית צעד ענק במסע שלך!",
+    "description": "הפרופיל המלא שלך מוכן כעת עבור השדכנים שלנו.",
+    "statWorlds": "5 עולמות",
+    "statReport": "דוח נשמה מלא"
+  },
+  
     "worldsContent": {
       "PERSONALITY": {
         "title": "עולם האישיות",
@@ -421,69 +446,81 @@
   }
 
 ,
-  "world": {
-    "header": {
-      "questionLabel": "שאלה {{current}} מתוך {{total}}",
-      "estimatedTimeLeft": "{{minutes}} דקות נותרו",
-      "statusCard": {
-        "progress": "התקדמות",
-        "required": "חובה",
-        "status": "מצב",
-        "questions": "שאלות",
-        "complete": "✓ הושלם",
-        "left": "{{count}} נותרו",
-        "keepItUp": "המשך כך!",
-        "states": {
-          "started": "🌱 מתחיל",
-          "going": "🚀 קדימה!",
-          "great": "⭐ מעולה",
-          "almost": "🔥 כמעט!",
-          "perfect": "🎉 מושלם!"
-        }
-      },
-      "overallProgress": "התקדמות כוללת"
-    },
-    "errors": {
-      "loadingFailedTitle": "שגיאה בטעינת השאלות",
-      "loadingFailedDescription": "לא ניתן היה לטעון את השאלות עבור עולם זה.",
-      "invalidQuestion": "שגיאה בטעינת השאלה...",
-      "validation": {
-        "required": "נדרשת תשובה לשאלה זו",
-        "minLength": "התשובה חייבת להכיל לפחות {{count}} תווים",
-        "maxLength": "התשובה לא יכולה לחרוג מ-{{count}} תווים",
-        "minSelections": "יש לבחור לפחות {{count}} אפשרויות",
-        "maxSelections": "ניתן לבחור עד {{count}} אפשרויות",
-        "budgetAllocation": "יש להקצות בדיוק {{count}} נקודות",
-        "budgetRequired": "נדרשת הקצאת תקציב"
+"world": {
+  "header": {
+    "questionLabel": "שאלה {{current}} מתוך {{total}}",
+    "estimatedTimeLeft": "{{minutes}} דקות נותרו",
+    "statusCard": {
+      "progress": "התקדמות",
+      "required": "חובה",
+      "status": "מצב",
+      "questions": "שאלות",
+      "complete": "✓ הושלם",
+      "left": "{{count}} נותרו",
+      "keepItUp": "המשך כך!",
+      "states": {
+        "started": "🌱 מתחיל",
+        "going": "🚀 קדימה!",
+        "great": "⭐ מעולה",
+        "almost": "🔥 כמעט!",
+        "perfect": "🎉 מושלם!"
       }
     },
-    "buttons": {
-      "backToMap": "חזרה למפה",
-      "hideList": "הסתר רשימה",
-      "showList": "הצג רשימה",
-      "questionList": "רשימת שאלות",
-      "previous": "שאלה קודמת",
-      "next": "שאלה הבאה",
-      "finish": "סיים עולם זה",
-      "save": "שמור",
-      "saving": "שומר..."
-    },
-    "listSheet": {
-      "title": "כל השאלות ב{{worldTitle}}",
-      "description": "לחץ על שאלה כדי לעבור אליה ישירות.",
-      "legend": {
-        "completed": "הושלם",
-        "required": "חובה (לא נענה)",
-        "notAnswered": "לא נענה"
-      }
-    },
-    "celebration": {
-      "quarter": "🎉 רבע הדרך!",
-      "half": "🚀 אמצע הדרך!",
-      "threeQuarters": "⭐ כמעט סיימת!",
-      "complete": "🎊 מדהים! השלמת הכל!"
+    "overallProgress": "התקדמות כוללת",
+    "lastSaved": {
+      "now": "נשמר כעת",
+      "minuteAgo": "נשמר לפני דקה",
+      "minutesAgo": "נשמר לפני {{count}} דק'",
+      "hoursAgo": "נשמר לפני {{count}} שעות"
     }
+  },
+  "errors": {
+    "loadingFailedTitle": "שגיאה בטעינת השאלות",
+    "loadingFailedDescription": "לא ניתן היה לטעון את השאלות עבור עולם זה.",
+    "invalidQuestion": "שגיאה בטעינת השאלה...",
+    "noQuestionFound": "לא נמצאה שאלה להצגה",
+    "validation": {
+      "required": "נדרשת תשובה לשאלה זו",
+      "minLength": "התשובה חייבת להכיל לפחות {{count}} תווים",
+      "maxLength": "התשובה לא יכולה לחרוג מ-{{count}} תווים",
+      "minSelections": "יש לבחור לפחות {{count}} אפשרויות",
+      "maxSelections": "ניתן לבחור עד {{count}} אפשרויות",
+      "budgetAllocation": "יש להקצות בדיוק {{count}} נקודות",
+      "budgetRequired": "נדרשת הקצאת תקציב",
+      "generalRequired": "נא להשיב על כל השאלות הנדרשות ({{current}}/{{total}})"
+    }
+  },
+  "buttons": {
+    "backToMap": "חזרה למפה",
+    "hideList": "הסתר רשימה",
+    "showList": "הצג רשימה",
+    "questionList": "רשימת שאלות",
+    "previous": "שאלה קודמת",
+    "next": "שאלה הבאה",
+    "finish": "סיים עולם זה",
+    "save": "שמור",
+    "saving": "שומר...",
+    "completing": "מסיים...",
+    "prevShort": "הקודם",
+    "nextShort": "הבא",
+    "finishShort": "סיים"
+  },
+  "listSheet": {
+    "title": "כל השאלות ב{{worldTitle}}",
+    "description": "לחץ על שאלה כדי לעבור אליה ישירות.",
+    "legend": {
+      "completed": "הושלם",
+      "required": "חובה (לא נענה)",
+      "notAnswered": "לא נענה"
+    }
+  },
+  "celebration": {
+    "quarter": "🎉 רבע הדרך!",
+    "half": "🚀 אמצע הדרך!",
+    "threeQuarters": "⭐ כמעט סיימת!",
+    "complete": "🎊 מדהים! השלמת הכל!"
   }
+}
 ,
    "answerInput": {
     "clearSelection": "נקה בחירה",
@@ -867,37 +904,30 @@
     "profilePrompt": "בזמן שהצוות עובד על ההתאמות עבורך, תוכל/י להשלים את הפרופיל האישי שלך",
     "continueButton": "המשך לפרופיל"
   },
-   "questionsList": {
-    "depthLabels": {
-      "BASIC": "בסיסי",
-      "ADVANCED": "מתקדם",
-      "EXPERT": "מעמיק"
-    },
-    
- "buttons": {
-  "backToMap": "חזרה למפה",
-  "hideList": "הסתר רשימה",
-  "showList": "הצג רשימה",
-  "questionList": "רשימת שאלות",
-  "previous": "שאלה קודמת",
-  "next": "שאלה הבאה",
-  "finish": "סיים עולם זה"
-},
-    "sections": {
-      "about": "קצת על {{name}}",
-      "topMatches": "תחומי התאמה בולטים",
-      "commonInterests": "תחומי עניין משותפים",
-      "lastActive": "פעילות אחרונה: {{time}}"
-    },
-    "lastActiveFormat": {
-      "unknown": "לא ידוע",
-      "today": "היום",
-      "yesterday": "אתמול",
-      "daysAgo": "לפני {{count}} ימים",
-      "weeksAgo": "לפני {{count}} שבועות",
-      "monthsAgo": "לפני {{count}} חודשים"
-    }
+"questionsList": {
+  "depthLabels": {
+    "BASIC": "Foundations",
+    "ADVANCED": "Deeper Insights",
+    "EXPERT": "Core Reflections"
   },
+  "stats": {
+    "answeredQuestions": "Questions Answered",
+    "complete": "Complete",
+    "remaining": "Remaining",
+    "done": "Done"
+  },
+  "badges": {
+    "required": "Required",
+    "answered": "✓ Done"
+  },
+  "motivationalMessages": {
+    "start": { "title": "Let's Begin!", "subtitle": "Every answer brings you closer" },
+    "quarter": { "title": "Great Start!", "subtitle": "Keep it up" },
+    "half": { "title": "Halfway There!", "subtitle": "Great progress" },
+    "threeQuarters": { "title": "Almost There!", "subtitle": "Just a bit more to go" },
+    "finish": { "title": "Amazing! All Done!", "subtitle": "You completed all questions" }
+  }
+},
 "matchResultCard": {
     "premiumBadge": "התאמה מומלצת",
     "matchPercentageBadge": "{{percentage}}% התאמה",

@@ -1,4 +1,4 @@
-// --- START OF FILE FeedbackWidget.tsx ---
+// src/components/layout/FeedbackWidget.tsx
 
 'use client';
 
@@ -22,7 +22,7 @@ import type { FeedbackWidgetDict } from '@/types/dictionary';
 
 interface FeedbackWidgetProps {
   dict: FeedbackWidgetDict;
-  locale?: string; // 🌐 הוספת locale כ-prop
+  locale?: string;
 }
 
 type FeedbackType = 'SUGGESTION' | 'BUG' | 'POSITIVE';
@@ -31,7 +31,6 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
   dict,
   locale = 'en',
 }) => {
-  // 🌐 שימוש ב-locale מה-props במקום useLocale
   const isRTL = locale === 'he' || locale === 'ar';
 
   const [isOpen, setIsOpen] = useState(false);
@@ -50,7 +49,6 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
   const [isTransitioning, setIsTransitioning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 🔧 הוספת ref למניעת clicks לא רצויים
   const tabButtonRef = useRef<HTMLButtonElement>(null);
   const [isProcessingClick, setIsProcessingClick] = useState(false);
 
@@ -64,7 +62,6 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
     }
   }, [isOpen]);
 
-  // Load hidden state from localStorage on mount
   useEffect(() => {
     const hidden = localStorage.getItem('feedback-widget-hidden');
     if (hidden === 'true') {
@@ -78,6 +75,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
       icon: Lightbulb,
       label: dict.types.suggestion.label,
       description: dict.types.suggestion.description,
+      // שינוי: גרדיאנט המותג הראשי
       gradient: 'from-teal-400 via-orange-400 to-amber-400',
     },
     {
@@ -85,25 +83,24 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
       icon: Bug,
       label: dict.types.bug.label,
       description: dict.types.bug.description,
-      gradient: 'from-red-400 via-orange-400 to-pink-400',
+      // שינוי: Rose/Red (תואם ל-AvailabilityStatus - Engaged/Error)
+      gradient: 'from-rose-500 via-red-500 to-orange-500',
     },
     {
       type: 'POSITIVE' as FeedbackType,
       icon: ThumbsUp,
       label: dict.types.positive.label,
       description: dict.types.positive.description,
-      gradient: 'from-teal-400 via-green-400 to-amber-400',
+      // שינוי: Teal/Emerald (תואם ל-AvailabilityStatus - Available)
+      gradient: 'from-teal-400 via-emerald-400 to-teal-500',
     },
   ];
 
-  // Minimum swipe distance (in px)
   const minSwipeDistance = 50;
 
-  // 🔧 שיפור Touch Events עם מניעת clicks מיותרים
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
-    // מניעת click event במקביל
     e.preventDefault();
   };
 
@@ -113,11 +110,10 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
 
   const onTouchEnd = (e: React.TouchEvent) => {
     if (!touchStart || !touchEnd) {
-      // אם לא היה swipe, נפתח את הווידג'ט
       if (!isProcessingClick) {
         setIsProcessingClick(true);
         setTimeout(() => {
-          setStep('type'); // FIX: Ensure the widget starts at step 1
+          setStep('type');
           setIsOpen(true);
           setIsProcessingClick(false);
         }, 50);
@@ -131,11 +127,10 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
     if (isRightSwipe) {
       handleHidePermanently();
     } else {
-      // אם לא היה swipe משמעותי, נפתח את הווידג'ט
       if (!isProcessingClick) {
         setIsProcessingClick(true);
         setTimeout(() => {
-          setStep('type'); // FIX: Ensure the widget starts at step 1
+          setStep('type');
           setIsOpen(true);
           setIsProcessingClick(false);
         }, 50);
@@ -143,13 +138,11 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
     }
   };
 
-  // Function to hide widget permanently
   const handleHidePermanently = () => {
     setIsPermanentlyHidden(true);
     localStorage.setItem('feedback-widget-hidden', 'true');
   };
 
-  // Function to show widget again
   const handleShowWidget = () => {
     setIsPermanentlyHidden(false);
     localStorage.setItem('feedback-widget-hidden', 'false');
@@ -165,11 +158,8 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
     }
   }, [screenshot]);
 
-  // 🔧 שיפור handleFileChange עם בדיקות נוספות
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // בדיקה שהקובץ נבחר באופן מכוון
     if (!isOpen || step !== 'form') {
-      // אם הווידג'ט לא פתוח או לא בשלב הנכון, נעצור
       if (event.target) event.target.value = '';
       return;
     }
@@ -204,7 +194,6 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
     }
   };
 
-  // 🔧 שיפור handleTabClick עם מניעת conflicts
   const handleTabClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -213,18 +202,16 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
 
     setIsProcessingClick(true);
     setTimeout(() => {
-      setStep('type'); // FIX: Ensure the widget starts at step 1
+      setStep('type');
       setIsOpen(true);
       setIsProcessingClick(false);
     }, 50);
   };
 
-  // 🔧 הוספת handler מיוחד לכפתור העלאת קבצים
   const handleFileButtonClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // וידוא שאנחנו בשלב הנכון
     if (step === 'form' && isOpen && !isTransitioning) {
       fileInputRef.current?.click();
     }
@@ -262,11 +249,9 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
     }
   };
 
-  // ... (שאר הקוד נשאר ללא שינוי)
-  // The rest of the component's JSX remains unchanged.
   return (
     <Fragment>
-      {/* Floating Tab Button - Responsive - תמיד בצד ימין */}
+      {/* Floating Tab Button */}
       <div className="fixed top-1/2 -translate-y-1/2 right-0 z-50">
         <div
           className={`transition-all duration-700 ${
@@ -285,7 +270,8 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
               disabled={isProcessingClick}
-              className={`relative text-white px-1.5 sm:px-2 py-4 sm:py-6 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-600 via-orange-500 to-amber-400 bg-size-200 hover:bg-pos-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-2xl ${
+              // שינוי: גרדיאנט ראשי (Teal -> Orange -> Amber)
+              className={`relative text-white px-1.5 sm:px-2 py-4 sm:py-6 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-500 via-orange-500 to-amber-500 bg-size-200 hover:bg-pos-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-2xl ${
                 isHovered ? 'w-20 sm:w-32' : 'w-8 sm:w-12'
               }`}
               style={{
@@ -294,15 +280,11 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
               }}
               aria-label={dict.openAriaLabel}
             >
-              {/* Glass overlay */}
               <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
 
-              {/* Content container */}
               <div className="relative z-10 flex flex-col items-center justify-center h-full">
-                {/* Icon */}
                 <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 mb-2 sm:mb-3 drop-shadow-sm" />
 
-                {/* Text - Mobile optimized */}
                 {!isHovered ? (
                   <span
                     className="text-xs sm:text-sm font-bold tracking-wider transition-all duration-300 ease-in-out drop-shadow-sm"
@@ -320,10 +302,9 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                 )}
               </div>
 
-              {/* Animated glow effect */}
+              {/* שינוי: הילה בצבעי Teal/Orange */}
               <div className="absolute -inset-1 bg-gradient-to-br from-teal-400 via-orange-400 to-amber-400 rounded-2xl blur opacity-30 group-hover:opacity-60 transition-all duration-300" />
 
-              {/* Floating particles on hover */}
               {isHovered && (
                 <>
                   <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-amber-400 rounded-full animate-ping shadow-lg" />
@@ -333,13 +314,13 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
               )}
             </button>
 
-            {/* Close button (X) - תמיד בצד שמאל של הכפתור */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleHidePermanently();
               }}
-              className="absolute -top-2 -left-2 w-6 h-6 bg-white/90 hover:bg-red-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/close opacity-0 group-hover:opacity-100 backdrop-blur-sm border border-gray-200 z-20"
+              // שינוי: כפתור סגירה ב-Rose
+              className="absolute -top-2 -left-2 w-6 h-6 bg-white/90 hover:bg-rose-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/close opacity-0 group-hover:opacity-100 backdrop-blur-sm border border-gray-200 z-20"
               aria-label="הסתר כפתור פידבק"
             >
               <X className="w-3 h-3 group-hover/close:rotate-45 transition-all duration-300" />
@@ -347,24 +328,22 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
           </div>
         </div>
 
-        {/* Show button when permanently hidden */}
         {isPermanentlyHidden && (
           <div className="transition-all duration-700 opacity-100 translate-x-0">
             <button
               onClick={handleShowWidget}
+              // שינוי: כפתור חזרה ב-Teal/Orange
               className="w-8 h-8 bg-gradient-to-r from-teal-500 to-amber-500 hover:from-teal-600 hover:to-amber-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group/show"
               aria-label="הצג כפתור משוב"
               title="הצג כפתור משוב"
             >
               <MessageSquare className="w-4 h-4 group-hover/show:scale-110 transition-transform duration-300" />
-              {/* Subtle pulse ring */}
               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-teal-400 to-amber-400 animate-ping opacity-20"></div>
             </button>
           </div>
         )}
       </div>
 
-      {/* Backdrop */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-all duration-500"
@@ -372,7 +351,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
         />
       )}
 
-      {/* Main Widget - Responsive - תמיד בצד ימין */}
+      {/* Main Widget */}
       <div
         className={cn(
           'fixed inset-x-4 top-1/2 -translate-y-1/2 sm:top-1/2 sm:-translate-y-1/2 sm:right-16 sm:left-auto sm:right-24 z-50 w-auto sm:w-96 max-w-lg mx-auto sm:mx-0 transition-all duration-500',
@@ -383,12 +362,12 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
         )}
       >
         <div className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/50 overflow-hidden max-h-[85vh] sm:max-h-none overflow-y-auto">
-          {/* Ambient light effect */}
+          {/* שינוי: הילת רקע ב-Teal/Orange */}
           <div className="absolute -inset-1 bg-gradient-to-r from-teal-400/20 via-orange-400/20 to-amber-400/20 rounded-2xl sm:rounded-3xl blur-xl" />
 
           <div className="relative">
-            {/* Header - Mobile optimized */}
-            <div className="bg-gradient-to-r from-teal-500/20 via-orange-500/15 to-amber-500/20 p-4 sm:p-6 border-b border-white/30">
+            {/* שינוי: כותרת עם רקע Teal עדין */}
+            <div className="bg-gradient-to-r from-teal-500/10 via-orange-500/5 to-amber-500/10 p-4 sm:p-6 border-b border-white/30">
               <div
                 className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}
               >
@@ -415,7 +394,6 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
               </div>
             </div>
 
-            {/* Content - Mobile optimized */}
             <div className="p-4 sm:p-6">
               {step === 'type' && (
                 <div className="space-y-3 sm:space-y-4">
@@ -433,7 +411,8 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                         setFeedbackType(option.type);
                         setStep('form');
                       }}
-                      className={`w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-gray-50/80 to-white/80 hover:from-white to-gray-50 border border-gray-100/50 hover:border-orange-200/50 transition-all duration-300 group flex items-center gap-3 sm:gap-4 hover:shadow-md hover:scale-[1.02] ${
+                      // שינוי: בורדר ו-Hover ב-Teal
+                      className={`w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-gray-50/80 to-white/80 hover:from-white to-gray-50 border border-gray-100/50 hover:border-teal-200/50 transition-all duration-300 group flex items-center gap-3 sm:gap-4 hover:shadow-md hover:scale-[1.02] ${
                         isRTL ? 'flex-row-reverse' : ''
                       }`}
                     >
@@ -461,7 +440,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                 <div className="space-y-4 sm:space-y-6">
                   <button
                     onClick={() => setStep('type')}
-                    className={`text-sm text-gray-500 hover:text-gray-700 flex items-center gap-2 transition-colors duration-300 group ${
+                    className={`text-sm text-gray-500 hover:text-teal-600 flex items-center gap-2 transition-colors duration-300 group ${
                       isRTL ? 'flex-row-reverse' : ''
                     }`}
                   >
@@ -477,7 +456,6 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                     {dict.cancelButton}
                   </button>
 
-                  {/* Selected type indicator - Mobile optimized */}
                   <div
                     className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gradient-to-r from-gray-50/80 to-white/80 rounded-lg sm:rounded-xl border border-gray-100/50 ${
                       isRTL ? 'flex-row-reverse' : ''
@@ -513,72 +491,61 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     placeholder={dict.placeholder}
-                    className={`min-h-[100px] sm:min-h-[120px] resize-none border-0 bg-gray-50/80 focus:bg-white rounded-xl sm:rounded-2xl shadow-inner transition-all duration-300 placeholder:text-gray-400 text-sm sm:text-base ${
+                    // שינוי: Focus ב-Teal
+                    className={`min-h-[100px] sm:min-h-[120px] resize-none border-0 bg-gray-50/80 focus:bg-white focus:ring-2 focus:ring-teal-400 rounded-xl sm:rounded-2xl shadow-inner transition-all duration-300 placeholder:text-gray-400 text-sm sm:text-base ${
                       isRTL ? 'text-right' : 'text-left'
                     }`}
                     dir={isRTL ? 'rtl' : 'ltr'}
                     required
                   />
 
-                  {/* File Upload Section - Mobile optimized */}
                   <div className="space-y-3 sm:space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <button
                         type="button"
                         onClick={handleFileButtonClick}
                         disabled={isTransitioning}
-                        className="group relative px-3 py-2.5 sm:px-4 sm:py-3 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 hover:border-orange-300 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center gap-2 sm:gap-3 hover:shadow-md hover:scale-[1.02] overflow-hidden w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                        // שינוי: Border ב-Teal/Orange ב-Hover
+                        className="group relative px-3 py-2.5 sm:px-4 sm:py-3 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 hover:border-teal-300 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center gap-2 sm:gap-3 hover:shadow-md hover:scale-[1.02] overflow-hidden w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {/* Background animation */}
                         <div className="absolute inset-0 bg-gradient-to-r from-teal-50/50 via-orange-50/30 to-amber-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                        {/* Icon with animation */}
                         <div className="relative">
-                          <Paperclip className="w-4 h-4 text-gray-600 group-hover:text-orange-600 transition-all duration-300 group-hover:rotate-12" />
-                          {/* Pulse ring on hover */}
-                          <div className="absolute inset-0 border-2 border-orange-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping" />
+                          <Paperclip className="w-4 h-4 text-gray-600 group-hover:text-teal-600 transition-all duration-300 group-hover:rotate-12" />
+                          <div className="absolute inset-0 border-2 border-teal-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping" />
                         </div>
 
-                        {/* Text */}
-                        <span className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-orange-700 transition-colors duration-300 relative z-10">
+                        <span className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-teal-700 transition-colors duration-300 relative z-10">
                           {dict.attachScreenshot}
                         </span>
 
-                        {/* Hover indicator */}
                         <div className="w-2 h-2 bg-gradient-to-r from-teal-400 to-amber-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse" />
                       </button>
 
-                      {/* Screenshot Preview - Mobile optimized */}
                       {screenshotPreview && (
                         <div className="flex items-center justify-center sm:justify-start">
                           <div className="relative group/preview">
-                            {/* Image container */}
-                            <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-xl overflow-hidden border-2 border-orange-200 shadow-lg bg-white">
+                            <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-xl overflow-hidden border-2 border-teal-200 shadow-lg bg-white">
                               <img
                                 src={screenshotPreview}
                                 alt="Screenshot preview"
                                 className="w-full h-full object-cover transition-transform duration-300 group-hover/preview:scale-110"
                               />
-                              {/* Overlay on hover */}
                               <div className="absolute inset-0 bg-black/0 group-hover/preview:bg-black/20 transition-colors duration-300" />
                             </div>
 
-                            {/* Remove button - תמיד בצד ימין של התמונה */}
                             <button
                               type="button"
                               onClick={() => setScreenshot(null)}
-                              className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/remove"
+                              className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/remove"
                             >
                               <X className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover/remove:rotate-90 transition-transform duration-300" />
-                              {/* Glow effect */}
-                              <div className="absolute inset-0 bg-red-400 rounded-full blur opacity-0 group-hover/remove:opacity-50 transition-opacity duration-300" />
                             </button>
                           </div>
                         </div>
                       )}
                     </div>
 
-                    {/* Upload instructions */}
                     <div
                       className={`text-xs text-gray-500 flex items-center gap-2 ${
                         isRTL ? 'flex-row-reverse' : ''
@@ -588,7 +555,6 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                       <span>{dict.fileInstructions}</span>
                     </div>
 
-                    {/* 🔧 שיפור input עם תנאי נוסף */}
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -599,7 +565,6 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                     />
                   </div>
 
-                  {/* Action Buttons - Mobile optimized */}
                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4">
                     <Button
                       type="button"
@@ -612,6 +577,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                     <Button
                       onClick={handleSubmit}
                       disabled={isSubmitting || !content.trim()}
+                      // שינוי: כפתור ראשי ב-Teal/Orange Gradient
                       className="flex-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm sm:text-base"
                     >
                       {isSubmitting ? (

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-11-26 11:50:27
+# Generated on: 2025-11-27 18:12:54
 ################################################################################
 
 ================================================================================
@@ -108,7 +108,7 @@ export default function MatchmakingQuestionnaire({
 }: MatchmakingQuestionnaireProps) {
   console.log(
     `%c[MatchmakingQuestionnaire] 🚀 Initializing | User: ${userId ? 'Authenticated' : 'Guest'} | World: ${initialWorld || 'None'} | Question: ${initialQuestionId || 'None'}`,
-    'color: #14b8a6; font-weight: bold; font-size: 14px;'
+    'color: #0d9488; font-weight: bold; font-size: 14px;' // Teal log
   );
 
   const router = useRouter();
@@ -168,7 +168,7 @@ export default function MatchmakingQuestionnaire({
     if (userId) {
       console.log(
         '%c[MatchmakingQuestionnaire] ⏰ User idle detected',
-        'color: #f59e0b; font-weight: bold;'
+        'color: #f97316; font-weight: bold;'
       );
       setShowIdleModal(true);
       logoutTimer.current = setTimeout(() => {
@@ -190,7 +190,7 @@ export default function MatchmakingQuestionnaire({
     resetIdleTimer();
     console.log(
       '%c[MatchmakingQuestionnaire] ✅ User stayed active',
-      'color: #10b981; font-weight: bold;'
+      'color: #0d9488; font-weight: bold;'
     );
   }, [resetIdleTimer]);
 
@@ -265,7 +265,7 @@ export default function MatchmakingQuestionnaire({
 
       console.log(
         `%c[Save] ${isAutoSave ? '💾 Auto-saving' : '🖱️ Manual save'} | Answers: ${answers.length} | Completed: ${completedWorlds.length}/${WORLD_ORDER.length}`,
-        'color: #8b5cf6; font-weight: bold;'
+        'color: #f97316; font-weight: bold;'
       );
 
       setIsSaving(true);
@@ -297,7 +297,7 @@ export default function MatchmakingQuestionnaire({
           );
           console.log(
             '%c[Save] ✅ Saved to localStorage (guest user)',
-            'color: #10b981; font-weight: bold;'
+            'color: #0d9488; font-weight: bold;'
           );
 
           if (currentStep === OnboardingStep.COMPLETED) {
@@ -320,7 +320,7 @@ export default function MatchmakingQuestionnaire({
 
           console.log(
             '%c[Save] ✅ Saved to backend (authenticated user)',
-            'color: #10b981; font-weight: bold;'
+            'color: #0d9488; font-weight: bold;'
           );
         }
 
@@ -334,7 +334,7 @@ export default function MatchmakingQuestionnaire({
       } catch (err) {
         console.error(
           '%c[Save] ❌ Save failed:',
-          'color: #ef4444; font-weight: bold;',
+          'color: #f43f5e; font-weight: bold;',
           err
         );
         const errorMessage =
@@ -360,7 +360,6 @@ export default function MatchmakingQuestionnaire({
     ]
   );
 
-  // קוד חדש ומתוקן
   useEffect(() => {
     setSaveHandler(() => handleQuestionnaireSave(false));
   }, [handleQuestionnaireSave, setSaveHandler]);
@@ -370,7 +369,7 @@ export default function MatchmakingQuestionnaire({
     const loadProgress = async () => {
       console.log(
         '%c[Load] 📂 Loading progress...',
-        'color: #3b82f6; font-weight: bold;'
+        'color: #0d9488; font-weight: bold;'
       );
       setIsLoading(true);
       setError(null);
@@ -379,28 +378,25 @@ export default function MatchmakingQuestionnaire({
         if (!userId) {
           // Guest user - load from localStorage
           const saved = localStorage.getItem('tempQuestionnaire');
-       if (saved) {
-    const loadedData = JSON.parse(saved);
-    console.log(
-      '%c[Load] ✅ Loaded from localStorage',
-      'color: #10b981; font-weight: bold;',
-      loadedData
-    );
-    setAnswers(loadedData.answers || []);
-    setCompletedWorlds(loadedData.worldsCompleted || []);
+          if (saved) {
+            const loadedData = JSON.parse(saved);
+            console.log(
+              '%c[Load] ✅ Loaded from localStorage',
+              'color: #0d9488; font-weight: bold;',
+              loadedData
+            );
+            setAnswers(loadedData.answers || []);
+            setCompletedWorlds(loadedData.worldsCompleted || []);
 
-    // --- התיקון ---
-    // ודא שכל העולמות קיימים, גם אם לא נשמרו
-    setCurrentQuestionIndices(prevIndices => ({
-        ...prevIndices, // התחל עם האינדקסים הקיימים (ברירת המחדל)
-        ...(loadedData.currentQuestionIndices || {}) // דרוס אותם עם המידע השמור, אם קיים
-    }));
+            setCurrentQuestionIndices((prevIndices) => ({
+              ...prevIndices,
+              ...(loadedData.currentQuestionIndices || {}),
+            }));
 
-    // If there's progress, go to the map to allow continuation
-    if ((loadedData.answers || []).length > 0) {
-      setCurrentStep(OnboardingStep.MAP);
-    }
-} else {
+            if ((loadedData.answers || []).length > 0) {
+              setCurrentStep(OnboardingStep.MAP);
+            }
+          } else {
             console.log(
               '%c[Load] ℹ️ No saved progress found for guest',
               'color: #6b7280; font-weight: bold;'
@@ -431,14 +427,13 @@ export default function MatchmakingQuestionnaire({
           const apiResponse = await response.json();
           console.log(
             '%c[Load] ✅ Loaded from backend',
-            'color: #10b981; font-weight: bold;',
+            'color: #0d9488; font-weight: bold;',
             apiResponse
           );
 
           if (apiResponse.success && apiResponse.data) {
             const loadedData = apiResponse.data;
 
-            // 1. Consolidate all answers from different sources
             const allAnswers = [
               ...(loadedData.answers || []),
               ...(loadedData.valuesAnswers || []),
@@ -470,9 +465,7 @@ export default function MatchmakingQuestionnaire({
               loadedData.completed ||
               loadedCompletedWorlds.length === WORLD_ORDER.length;
 
-            // 2. Restore the full navigation logic
             if (initialWorld && initialQuestionId) {
-              // Handle direct navigation from URL
               const worldQuestions = worldConfig[initialWorld].questions;
               const questionIndex = worldQuestions.findIndex(
                 (q) => q.id === initialQuestionId
@@ -489,22 +482,19 @@ export default function MatchmakingQuestionnaire({
                 setCurrentStep(OnboardingStep.MAP);
               }
             } else if (isQuestionnaireComplete) {
-              // If questionnaire is complete, send to the world map
               setCurrentStep(OnboardingStep.MAP);
             } else if (allAnswers.length > 0) {
-              // If there's saved progress, resume from the last point
               const worldToResume =
                 WORLD_ORDER.find(
                   (world) => !loadedCompletedWorlds.includes(world)
                 ) || WORLD_ORDER[0];
               setCurrentWorld(worldToResume);
-              setCurrentStep(OnboardingStep.WORLDS); // <-- This re-enters the questionnaire
+              setCurrentStep(OnboardingStep.WORLDS);
               console.log(
                 `%c[Load]  resuming questionnaire at world: ${worldToResume}.`,
                 'color: #28a745; font-weight: bold;'
               );
             } else {
-              // If no progress at all, start from the landing page/map
               setCurrentStep(OnboardingStep.LANDING);
             }
           } else {
@@ -518,7 +508,7 @@ export default function MatchmakingQuestionnaire({
       } catch (err) {
         console.error(
           '%c[Load] ❌ Load failed:',
-          'color: #ef4444; font-weight: bold;',
+          'color: #f43f5e; font-weight: bold;',
           err
         );
         const errorMessage =
@@ -527,7 +517,7 @@ export default function MatchmakingQuestionnaire({
             : dict.matchmaking.errors.loadFailed;
         setError(errorMessage);
         showToast(errorMessage, 'error', 5000);
-        setCurrentStep(OnboardingStep.LANDING); // On error, return to start
+        setCurrentStep(OnboardingStep.LANDING);
       } finally {
         setIsLoading(false);
       }
@@ -575,12 +565,42 @@ export default function MatchmakingQuestionnaire({
   );
 
   // Visibility change handler
+// Visibility change handler
   const handleVisibilityChange = useCallback(
     (worldId: WorldId, questionId: string, isVisible: boolean) => {
       console.log(
         `%c[Visibility] ${isVisible ? '👁️' : '👁️‍🗨️'} ${worldId} | ${questionId}`,
-        'color: #f59e0b;'
+        'color: #f97316;'
       );
+
+      setAnswers((prev) => {
+        const existingIndex = prev.findIndex(
+          (a) => a.worldId === worldId && a.questionId === questionId
+        );
+
+        // אם קיימת כבר תשובה (אפילו חלקית), נעדכן את שדה הנראות שלה
+        if (existingIndex >= 0) {
+          const updated = [...prev];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            isVisible: isVisible,
+          };
+          return updated;
+        }
+
+        // אם המשתמש שינה נראות לפני שענה על השאלה, ניצור רשומה חדשה
+        const newAnswer: QuestionnaireAnswer = {
+          worldId,
+          questionId,
+          value: undefined, // ערך ריק כי עדיין לא ענו
+          answeredAt: new Date().toISOString(),
+          isVisible: isVisible,
+        };
+        return [...prev, newAnswer];
+      });
+
+      // מסמנים שיש שינויים שלא נשמרו כדי להפעיל את השמירה האוטומטית/ידנית
+      setIsDirty(true);
     },
     []
   );
@@ -601,7 +621,7 @@ export default function MatchmakingQuestionnaire({
     async (worldId: WorldId) => {
       console.log(
         `%c[Complete] ✨ World completed: ${worldId}`,
-        'color: #10b981; font-weight: bold;'
+        'color: #0d9488; font-weight: bold;'
       );
 
       if (!completedWorlds.includes(worldId)) {
@@ -625,7 +645,6 @@ export default function MatchmakingQuestionnaire({
             }
           );
         } else {
-          // All worlds completed!
           console.log(
             '%c[Complete] 🏆 ALL WORLDS COMPLETED!',
             'color: #fbbf24; font-weight: bold; font-size: 16px;'
@@ -656,14 +675,12 @@ export default function MatchmakingQuestionnaire({
   const handleStartQuestionnaire = useCallback(() => {
     console.log(
       '%c[Start] 🚀 Starting questionnaire',
-      'color: #14b8a6; font-weight: bold;'
+      'color: #0d9488; font-weight: bold;'
     );
 
-    // If has saved progress, go to map to choose where to continue
     if (hasSavedProgress && completedWorlds.length > 0) {
       setCurrentStep(OnboardingStep.MAP);
     } else {
-      // Start fresh from first world
       setCurrentWorld('PERSONALITY');
       setCurrentStep(OnboardingStep.WORLDS);
     }
@@ -718,7 +735,6 @@ export default function MatchmakingQuestionnaire({
     locale,
   ]);
 
-  // World statistics and total questions
   const worldStats = useMemo(
     () => ({
       PERSONALITY: { questionCount: personalityQuestions.length },
@@ -730,41 +746,17 @@ export default function MatchmakingQuestionnaire({
     []
   );
 
-  // Calculate total questions across all worlds
-  const totalQuestions = useMemo(
-    () =>
-      personalityQuestions.length +
-      valuesQuestions.length +
-      relationshipQuestions.length +
-      partnerQuestions.length +
-      religionQuestions.length,
-    []
-  );
-
-  // Calculate answered questions (unique answers)
-  const totalAnswered = useMemo(() => {
-    const uniqueAnswers = new Set(
-      answers.map((a) => `${a.worldId}-${a.questionId}`)
-    );
-    return uniqueAnswers.size;
-  }, [answers]);
-
-  // Calculate overall completion percentage based on answers
-  const overallCompletionPercent = useMemo(
-    () => Math.round((totalAnswered / totalQuestions) * 100),
-    [totalAnswered, totalQuestions]
-  );
-
-  // Render current step
   const renderCurrentStep = () => {
     if (isLoading) {
       return (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 via-teal-50/30 to-slate-50"
+          // Updated Background
+          className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20"
         >
           <div className="relative">
+            {/* Updated Loader Colors */}
             <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-orange-500 rounded-full blur-xl opacity-50 animate-pulse" />
             <Loader2 className="relative h-16 w-16 animate-spin text-teal-600" />
           </div>
@@ -840,7 +832,7 @@ export default function MatchmakingQuestionnaire({
             onSendToMatching={async () => {
               console.log(
                 '%c[Complete] 🎯 Sending to matching...',
-                'color: #10b981; font-weight: bold;'
+                'color: #0d9488; font-weight: bold;'
               );
               if (onComplete) onComplete();
               else router.push('/dashboard');
@@ -865,7 +857,7 @@ export default function MatchmakingQuestionnaire({
     }
   };
 
-  // Enhanced Toast Component
+  // Enhanced Toast Component (Colors Updated)
   const Toast = ({
     message,
     type,
@@ -881,14 +873,14 @@ export default function MatchmakingQuestionnaire({
 
     const typeConfig = {
       success: {
-        bg: 'from-green-500 to-emerald-600',
+        bg: 'from-teal-500 to-emerald-600', // Updated to Teal
         icon: CheckCircle,
-        border: 'border-green-400',
+        border: 'border-teal-400',
       },
       error: {
-        bg: 'from-red-500 to-rose-600',
+        bg: 'from-rose-500 to-red-600', // Updated to Rose
         icon: XCircle,
-        border: 'border-red-400',
+        border: 'border-rose-400',
       },
       info: {
         bg: 'from-blue-500 to-cyan-600',
@@ -896,9 +888,9 @@ export default function MatchmakingQuestionnaire({
         border: 'border-blue-400',
       },
       warning: {
-        bg: 'from-amber-500 to-orange-600',
+        bg: 'from-orange-500 to-amber-600', // Updated to Orange/Amber
         icon: AlertCircle,
-        border: 'border-amber-400',
+        border: 'border-orange-400',
       },
     };
 
@@ -954,7 +946,7 @@ export default function MatchmakingQuestionnaire({
     );
   };
 
-  // Enhanced Idle Modal Component
+  // Enhanced Idle Modal Component (Colors Updated)
   const IdleModal = () => {
     if (!showIdleModal) return null;
 
@@ -997,13 +989,14 @@ export default function MatchmakingQuestionnaire({
                   <Button
                     variant="outline"
                     onClick={() => signOut({ callbackUrl: '/' })}
-                    className="w-full sm:w-auto border-2 border-red-300 text-red-600 hover:bg-red-50"
+                    className="w-full sm:w-auto border-2 border-rose-300 text-rose-600 hover:bg-rose-50"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     {dict.matchmaking.idleModal.logoutButton}
                   </Button>
                   <Button
                     onClick={handleStayActive}
+                    // Updated Gradient
                     className="w-full sm:w-auto bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white font-bold"
                   >
                     <Zap className="w-4 h-4 mr-2" />
@@ -1018,7 +1011,7 @@ export default function MatchmakingQuestionnaire({
     );
   };
 
-  // Last Saved Indicator
+  // Last Saved Indicator (Updated to Teal)
   const LastSavedIndicator = () => {
     if (!lastSavedTime || currentStep !== OnboardingStep.WORLDS || !userId)
       return null;
@@ -1028,10 +1021,10 @@ export default function MatchmakingQuestionnaire({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
-        className="fixed bottom-6 left-6 z-40 bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border-2 border-green-200"
+        className="fixed bottom-6 left-6 z-40 bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border-2 border-teal-200"
       >
         <div className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 text-green-600" />
+          <CheckCircle className="h-4 w-4 text-teal-600" />
           <span className="text-sm font-semibold text-gray-700">
             {dict.matchmaking.lastSaved.replace(
               '{{time}}',
@@ -1046,7 +1039,7 @@ export default function MatchmakingQuestionnaire({
     );
   };
 
-  // Error Alert
+  // Error Alert (Updated to Rose)
   const ErrorAlert = () => {
     if (!error || currentStep === OnboardingStep.WORLDS) return null;
 
@@ -1058,11 +1051,11 @@ export default function MatchmakingQuestionnaire({
       >
         <Alert
           variant="destructive"
-          className="border-2 border-red-300 shadow-lg"
+          className="border-2 border-rose-300 shadow-lg"
         >
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 mt-0.5" />
-            <AlertDescription className="text-base leading-relaxed">
+            <AlertTriangle className="h-5 w-5 mt-0.5 text-rose-600" />
+            <AlertDescription className="text-base leading-relaxed text-rose-800">
               {error}
             </AlertDescription>
           </div>
@@ -1074,20 +1067,15 @@ export default function MatchmakingQuestionnaire({
   return (
     <div
       className={cn(
-        'min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50',
+        // Updated Global Background
+        'min-h-screen bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20',
         locale === 'he' ? 'dir-rtl' : 'dir-ltr'
       )}
     >
-      {/* Modals and Overlays */}
       <IdleModal />
-
-      {/* Indicators */}
       <LastSavedIndicator />
-
-      {/* Error Display */}
       <ErrorAlert />
 
-      {/* Main Content */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
@@ -1100,7 +1088,6 @@ export default function MatchmakingQuestionnaire({
         </motion.div>
       </AnimatePresence>
 
-      {/* Toast Notifications */}
       <Toast
         message={toastState.message}
         type={toastState.type}
@@ -1531,6 +1518,7 @@ import {
 import {
   X,
   Plus,
+  Minus, // הוספתי את זה
   CheckCircle,
   Eraser,
   Info,
@@ -1819,7 +1807,7 @@ export default function AnswerInput({
               )
         )}
         onMouseDown={(e) => {
-          e.preventDefault(); // מונע התנהגויות לא רצויות כמו סימון טקסט
+          e.preventDefault();
           handleValueChange(choiceOption.value);
         }}
       >
@@ -1847,12 +1835,7 @@ export default function AnswerInput({
             isRTL && 'flex-row-reverse'
           )}
         >
-          <div
-            className={cn(
-              'flex items-center gap-3 flex-1'
-              // אין צורך בהיפוך נוסף כאן, ההורה כבר עושה זאת
-            )}
-          >
+          <div className={cn('flex items-center gap-3 flex-1')}>
             {choiceOption.icon && (
               <motion.div
                 animate={{
@@ -3027,300 +3010,186 @@ export default function AnswerInput({
         );
       }
 
+      // --- התיקון הגדול ---
       case 'budgetAllocation': {
         const budgetValues = (internalValue as Record<string, number>) || {};
-        const totalAllocatedPoints = Object.values(budgetValues).reduce(
+        const totalPointsRequired = question.totalPoints ?? 100;
+
+        // Calculate totals
+        const totalAllocated = Object.values(budgetValues).reduce(
           (sum, val) => sum + (Number(val) || 0),
           0
         );
-        const totalPointsRequired = question.totalPoints ?? 100;
-        const pointsDifference = totalPointsRequired - totalAllocatedPoints;
-        const isAllocationComplete = pointsDifference === 0;
-        const isOverAllocated = pointsDifference < 0;
-        const allocationPercentage = Math.min(
-          100,
-          (totalAllocatedPoints / totalPointsRequired) * 100
-        );
-        const headerTheme = isAllocationComplete
-          ? 'green'
-          : isOverAllocated
-            ? 'red'
-            : themeColor;
-        const headerColors = {
-          green: {
-            bg: 'bg-gradient-to-r from-green-50 to-emerald-50',
-            border: 'border-green-400',
-            iconBg: 'bg-gradient-to-br from-green-500 to-emerald-600',
-            text: 'text-green-700',
-            progress: 'from-green-500 to-emerald-600',
-          },
-          red: {
-            bg: 'bg-gradient-to-r from-red-50 to-rose-50',
-            border: 'border-red-400',
-            iconBg: 'bg-gradient-to-br from-red-500 to-rose-600',
-            text: 'text-red-700',
-            progress: 'from-red-500 to-rose-600',
-          },
-          [themeColor]: {
-            bg: `bg-gradient-to-r ${theme.lightBg}`,
-            border: theme.borderColor,
-            iconBg: `bg-gradient-to-br ${theme.gradient}`,
-            text: theme.textColor,
-            progress: `${theme.progressFrom} ${theme.progressTo}`,
-          },
-        };
-        const currentHeaderColors =
-          headerColors[headerTheme as keyof typeof headerColors];
+        const remaining = totalPointsRequired - totalAllocated;
+
+        // Determine status color
+        let statusColor = 'text-blue-600';
+        let statusBg = 'bg-blue-100';
+        let statusBorder = 'border-blue-200';
+
+        if (remaining === 0) {
+          statusColor = 'text-green-600';
+          statusBg = 'bg-green-100';
+          statusBorder = 'border-green-200';
+        } else if (remaining < 0) {
+          statusColor = 'text-red-600';
+          statusBg = 'bg-red-100';
+          statusBorder = 'border-red-200';
+        }
 
         return (
-          <div className="space-y-6">
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
+          <div className="space-y-5">
+            {/* 1. Cleaner Summary Bar */}
+            <div
               className={cn(
-                'relative p-6 rounded-2xl border-2 overflow-hidden',
-                currentHeaderColors.bg,
-                currentHeaderColors.border
+                'sticky top-0 z-20 flex items-center justify-between p-3 rounded-xl border-2 backdrop-blur-md shadow-sm transition-colors duration-300',
+                statusBg,
+                statusBorder
               )}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-white/50 to-transparent rounded-bl-full" />
-
-              <div className="relative z-10 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={cn(
-                        'p-3 rounded-xl',
-                        currentHeaderColors.iconBg
-                      )}
-                    >
-                      <Award className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        {dict.answerInput.budgetAllocation.totalAllocated}
-                      </p>
-                      <p
-                        className={cn(
-                          'text-2xl font-bold',
-                          currentHeaderColors.text
-                        )}
-                      >
-                        {totalAllocatedPoints} / {totalPointsRequired}
-                      </p>
-                    </div>
-                  </div>
-
-                  {isAllocationComplete && (
-                    <motion.div
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-full"
-                    >
-                      <CheckCircle className="w-5 h-5" fill="white" />
-                      <span className="font-bold">מושלם!</span>
-                    </motion.div>
-                  )}
-
-                  {!isAllocationComplete && (
-                    <Badge
-                      className={cn(
-                        'text-sm px-3 py-1',
-                        isOverAllocated
-                          ? 'bg-red-600 text-white'
-                          : 'bg-amber-600 text-white'
-                      )}
-                    >
-                      {pointsDifference > 0
-                        ? dict.answerInput.budgetAllocation.remaining.replace(
-                            '{{count}}',
-                            String(pointsDifference)
-                          )
-                        : dict.answerInput.budgetAllocation.surplus.replace(
-                            '{{count}}',
-                            String(Math.abs(pointsDifference))
-                          )}
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="relative h-4 bg-white/50 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${allocationPercentage}%` }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                    className={cn(
-                      'absolute inset-y-0 left-0 rounded-full',
-                      'bg-gradient-to-r',
-                      currentHeaderColors.progress
-                    )}
-                  />
-                </div>
-              </div>
-            </motion.div>
-            {totalAllocatedPoints > 0 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="flex justify-center"
-              >
-                <Button
-                  onClick={handleClear}
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    'group relative overflow-hidden',
-                    'border-2 rounded-xl px-4 py-2',
-                    'transition-all duration-300',
-                    'bg-white hover:bg-red-50',
-                    'border-red-200 hover:border-red-400',
-                    'text-red-600 hover:text-red-700',
-                    'shadow-sm hover:shadow-md',
-                    'font-medium'
-                  )}
+              <div className="flex items-center gap-2">
+                <div
+                  className={cn('p-1.5 rounded-full bg-white/50', statusColor)}
                 >
-                  <div className="flex items-center gap-2 relative z-10">
-                    <Eraser className="w-4 h-4 transition-transform group-hover:rotate-12" />
-                    <span>{dict.answerInput.budgetAllocation.resetButton}</span>
-                  </div>
-                  <motion.div
-                    className="absolute inset-0 bg-red-100 opacity-0 group-hover:opacity-100"
-                    transition={{ duration: 0.2 }}
-                  />
-                </Button>
-              </motion.div>
-            )}
-            <div className="space-y-4">
+                  {remaining === 0 ? (
+                    <CheckCircle className="w-5 h-5" />
+                  ) : (
+                    <Target className="w-5 h-5" />
+                  )}
+                </div>
+                <span className={cn('font-bold text-sm', statusColor)}>
+                  {remaining === 0
+                    ? 'התקציב הושלם!'
+                    : remaining > 0
+                      ? `נותרו להקצאה: ${remaining}`
+                      : `חריגה של ${Math.abs(remaining)}`}
+                </span>
+              </div>
+              <div className="text-xs font-semibold px-2 py-1 bg-white/60 rounded-md">
+                {totalAllocated} / {totalPointsRequired}
+              </div>
+            </div>
+
+            {/* 2. Simplified Category List */}
+            <div className="grid gap-3">
               {question.categories?.map((category, index) => {
-                const categoryValue = budgetValues[category.value] || 0;
-                const isActive = categoryValue > 0;
-                const percentage = (categoryValue / totalPointsRequired) * 100;
+                const currentValue = budgetValues[category.value] || 0;
+
+                // --- הלוגיקה החדשה: המקסימום המותר הוא הערך הנוכחי + מה שנשאר ---
+                // זה מונע "תקיעה" אבל חוסם חריגה
+                const maxAllowed = Math.min(
+                  totalPointsRequired,
+                  currentValue + Math.max(0, remaining)
+                );
 
                 return (
-                  <motion.div
+                  <div
                     key={category.value}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
                     className={cn(
-                      'relative p-5 rounded-2xl border-2 transition-all',
-                      isActive
-                        ? cn(
-                            'bg-gradient-to-r shadow-lg',
-                            theme.lightBg,
-                            theme.borderColor
-                          )
-                        : cn('bg-white border-gray-200', theme.hoverBorder)
+                      'bg-white rounded-xl border-2 p-3 sm:p-4 transition-all duration-200',
+                      currentValue > 0
+                        ? 'border-blue-200 shadow-sm'
+                        : 'border-gray-100 hover:border-gray-200'
                     )}
                   >
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {category.icon && (
-                            <motion.div
-                              animate={{
-                                scale: isActive ? [1, 1.1, 1] : 1,
-                              }}
-                              transition={{ duration: 0.3 }}
-                              className={cn(
-                                'p-2.5 rounded-xl transition-all',
-                                isActive
-                                  ? cn(
-                                      'bg-gradient-to-br text-white shadow-md',
-                                      theme.gradient
-                                    )
-                                  : 'bg-gray-100 text-gray-500'
-                              )}
-                            >
-                              {category.icon}
-                            </motion.div>
-                          )}
-                          <div>
-                            <Label className="font-semibold text-base text-gray-800">
-                              {category.label}
-                            </Label>
-                            {category.description && (
-                              <p className="text-xs text-gray-500 mt-0.5">
-                                {category.description}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            className={cn(
-                              'text-lg font-bold px-3 py-1',
-                              isActive
-                                ? cn(
-                                    'bg-gradient-to-r text-white',
-                                    theme.gradient
-                                  )
-                                : 'bg-gray-200 text-gray-600'
-                            )}
-                          >
-                            {categoryValue}
-                            {!question.totalPoints && '%'}
-                          </Badge>
-                          {isActive && (
-                            <Badge variant="outline" className="text-xs">
-                              {percentage.toFixed(0)}%
-                            </Badge>
-                          )}
-                        </div>
+                    {/* Header: Label + Controls */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 text-gray-700">
+                        {category.icon && (
+                          <span className="text-gray-400">{category.icon}</span>
+                        )}
+                        <span className="font-medium text-sm sm:text-base">
+                          {category.label}
+                        </span>
                       </div>
 
-                      <div className="space-y-2">
-                        <Slider
-                          value={[categoryValue]}
-                          min={category.min ?? 0}
-                          max={category.max ?? totalPointsRequired}
-                          step={1}
-                          onValueChange={(newValues: number[]) => {
+                      {/* Manual Controls (+/- buttons) */}
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 rounded-full hover:bg-gray-100 text-gray-500"
+                          onClick={() => {
+                            const newVal = Math.max(0, currentValue - 1);
                             handleValueChange({
                               ...budgetValues,
-                              [category.value]: newValues[0],
+                              [category.value]: newVal,
                             });
                           }}
-                          className={cn(
-                            'py-2',
-                            isActive
-                              ? `[&>span:first-child]:bg-gradient-to-r ${theme.gradient}`
-                              : '[&>span:first-child]:bg-gray-300'
-                          )}
-                        />
+                          disabled={currentValue <= 0}
+                        >
+                          <Minus className="w-3 h-3" />
+                        </Button>
 
-                        {isActive && (
-                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${percentage}%` }}
-                              className={cn(
-                                'h-full rounded-full bg-gradient-to-r',
-                                theme.gradient
-                              )}
-                              transition={{ duration: 0.3 }}
-                            />
-                          </div>
-                        )}
+                        <div
+                          className={cn(
+                            'min-w-[40px] text-center font-bold text-sm py-1 px-2 rounded-md',
+                            currentValue > 0
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'bg-gray-100 text-gray-500'
+                          )}
+                        >
+                          {currentValue}
+                        </div>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 rounded-full hover:bg-gray-100 text-gray-500"
+                          onClick={() => {
+                            if (remaining > 0) {
+                              const newVal = currentValue + 1;
+                              handleValueChange({
+                                ...budgetValues,
+                                [category.value]: newVal,
+                              });
+                            }
+                          }}
+                          disabled={remaining <= 0}
+                        >
+                          <Plus className="w-3 h-3" />
+                        </Button>
                       </div>
                     </div>
 
-                    {isActive && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.5 }}
-                        className={cn(
-                          'absolute inset-0 rounded-2xl blur-xl bg-gradient-to-r opacity-10',
-                          theme.gradient
-                        )}
-                      />
-                    )}
-                  </motion.div>
+                    {/* Slider */}
+                    <Slider
+                      value={[currentValue]}
+                      min={0}
+                      max={maxAllowed} // שימוש בערך הדינמי החדש
+                      step={1}
+                      onValueChange={(val) => {
+                        // סליידר חופשי שנעצר בגבול המותר
+                        handleValueChange({
+                          ...budgetValues,
+                          [category.value]: val[0],
+                        });
+                      }}
+                      className={cn(
+                        'cursor-pointer',
+                        currentValue > 0
+                          ? '[&>.bg-primary]:bg-blue-500'
+                          : '[&>.bg-primary]:bg-gray-300'
+                      )}
+                    />
+                  </div>
                 );
               })}
             </div>
+            {/* Reset Button (Optional, smaller) */}
+            {totalAllocated > 0 && (
+              <div className="flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClear}
+                  className="text-gray-400 hover:text-red-500 text-xs gap-1"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  אפס הכל
+                </Button>
+              </div>
+            )}
 
             <AnimatePresence>
               {validationError && (
@@ -3804,7 +3673,7 @@ interface QuestionCardProps {
   validationError?: string;
   isDisabled?: boolean;
   children?: React.ReactNode;
-  locale?: 'he' | 'en'; // Prop לקביעת השפה והכיווניות
+  locale?: 'he' | 'en';
   isFirstInList?: boolean;
   themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
   isVisible: boolean;
@@ -3817,45 +3686,45 @@ interface QuestionCardProps {
   estimatedTimeMinutes?: number;
 }
 
-// --- Helper Functions ---
+// --- Helper Functions (Updated Palette) ---
 const getThemeConfig = (themeColor: string) => {
   const themes = {
     sky: {
-      gradient: 'from-cyan-400 via-sky-500 to-blue-500',
-      lightGradient: 'from-cyan-50 via-sky-50 to-blue-50',
-      glowColor: 'shadow-cyan-400/40',
-      iconColor: 'text-cyan-600',
-      bgAccent: 'bg-cyan-50',
-      borderAccent: 'border-cyan-200',
+      gradient: 'from-sky-400 to-blue-500',
+      lightGradient: 'from-sky-50 via-blue-50 to-white',
+      glowColor: 'shadow-sky-400/30',
+      iconColor: 'text-sky-600',
+      bgAccent: 'bg-sky-50',
+      borderAccent: 'border-sky-200',
     },
     rose: {
-      gradient: 'from-rose-400 via-pink-500 to-red-500',
-      lightGradient: 'from-rose-50 via-pink-50 to-red-50',
-      glowColor: 'shadow-rose-400/40',
+      gradient: 'from-rose-400 to-red-500', // Matches Hero Rose
+      lightGradient: 'from-rose-50 via-red-50 to-white',
+      glowColor: 'shadow-rose-400/30',
       iconColor: 'text-rose-600',
       bgAccent: 'bg-rose-50',
       borderAccent: 'border-rose-200',
     },
     purple: {
-      gradient: 'from-purple-400 via-violet-500 to-indigo-500',
-      lightGradient: 'from-purple-50 via-violet-50 to-indigo-50',
-      glowColor: 'shadow-purple-400/40',
+      gradient: 'from-purple-400 to-indigo-500',
+      lightGradient: 'from-purple-50 via-indigo-50 to-white',
+      glowColor: 'shadow-purple-400/30',
       iconColor: 'text-purple-600',
       bgAccent: 'bg-purple-50',
       borderAccent: 'border-purple-200',
     },
     teal: {
-      gradient: 'from-teal-400 via-emerald-500 to-green-500',
-      lightGradient: 'from-teal-50 via-emerald-50 to-green-50',
-      glowColor: 'shadow-teal-400/40',
+      gradient: 'from-teal-400 to-emerald-500', // Matches Hero Teal
+      lightGradient: 'from-teal-50 via-emerald-50 to-white',
+      glowColor: 'shadow-teal-400/30',
       iconColor: 'text-teal-600',
       bgAccent: 'bg-teal-50',
       borderAccent: 'border-teal-200',
     },
     amber: {
-      gradient: 'from-amber-400 via-orange-500 to-yellow-500',
-      lightGradient: 'from-amber-50 via-orange-50 to-yellow-50',
-      glowColor: 'shadow-amber-400/40',
+      gradient: 'from-amber-400 to-orange-500', // Matches Hero Orange/Amber
+      lightGradient: 'from-amber-50 via-orange-50 to-white',
+      glowColor: 'shadow-amber-400/30',
       iconColor: 'text-amber-600',
       bgAccent: 'bg-amber-50',
       borderAccent: 'border-amber-200',
@@ -3867,24 +3736,24 @@ const getThemeConfig = (themeColor: string) => {
 const getDepthIcon = (depth: QuestionDepth) => {
   switch (depth) {
     case 'BASIC':
-      return <Star className="w-4 h-4" fill="currentColor" />;
+      return <Star className="w-3.5 h-3.5" fill="currentColor" />;
     case 'ADVANCED':
       return (
         <>
-          <Star className="w-4 h-4" fill="currentColor" />
-          <Star className="w-4 h-4" fill="currentColor" />
+          <Star className="w-3.5 h-3.5" fill="currentColor" />
+          <Star className="w-3.5 h-3.5" fill="currentColor" />
         </>
       );
     case 'EXPERT':
       return (
         <>
-          <Star className="w-4 h-4" fill="currentColor" />
-          <Star className="w-4 h-4" fill="currentColor" />
-          <Star className="w-4 h-4" fill="currentColor" />
+          <Star className="w-3.5 h-3.5" fill="currentColor" />
+          <Star className="w-3.5 h-3.5" fill="currentColor" />
+          <Star className="w-3.5 h-3.5" fill="currentColor" />
         </>
       );
     default:
-      return <Star className="w-4 h-4" fill="currentColor" />;
+      return <Star className="w-3.5 h-3.5" fill="currentColor" />;
   }
 };
 
@@ -3967,32 +3836,26 @@ export default function QuestionCard({
         role="region"
         aria-labelledby={question.id}
         className={cn(
-          'relative overflow-hidden rounded-3xl bg-gradient-to-br from-white via-white to-gray-50/50 shadow-2xl hover:shadow-3xl transition-all duration-500 border-2 border-white',
+          'relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-sm shadow-xl border border-white/60 transition-all duration-500',
           isDisabled && 'opacity-75 cursor-not-allowed',
           className
         )}
       >
-        {/* Decorative Elements */}
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-        <div
-          className={cn(
-            'absolute top-4 w-32 h-32 rounded-full bg-gradient-to-br opacity-40 blur-3xl',
-            theme.lightGradient,
-            isRTL ? 'left-4' : 'right-4'
-          )}
-        />
-        <div
-          className={cn(
-            'absolute bottom-4 w-24 h-24 rounded-full bg-gradient-to-br opacity-30 blur-2xl',
-            theme.lightGradient,
-            isRTL ? 'right-4' : 'left-4'
-          )}
-        />
+        {/* Top Gradient Bar */}
+        <div className={cn('h-1.5 w-full bg-gradient-to-r', theme.gradient)} />
 
-        <div className={cn('h-1.5 bg-gradient-to-r', theme.gradient)} />
+        {/* Decorative Orbs */}
+        <div
+          className={cn(
+            'absolute top-4 w-40 h-40 rounded-full bg-gradient-to-br opacity-20 blur-3xl pointer-events-none',
+            theme.lightGradient,
+            isRTL ? 'left-[-20px]' : 'right-[-20px]'
+          )}
+        />
 
         {/* Header Section */}
         <div className="relative px-6 sm:px-8 pt-6 pb-4 space-y-4">
+          {/* Progress Bar */}
           {currentQuestionNumber && totalQuestions && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -4005,7 +3868,8 @@ export default function QuestionCard({
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPercentage}%` }}
                     transition={{ duration: 0.8, ease: 'easeOut' }}
-                    className={cn('h-full bg-gradient-to-r', theme.gradient)}
+                    // Updated Gradient for Progress
+                    className="h-full bg-gradient-to-r from-teal-400 to-orange-400"
                   />
                 </div>
               </div>
@@ -4013,21 +3877,11 @@ export default function QuestionCard({
                 <span className="text-sm font-bold text-gray-700">
                   {currentQuestionNumber}/{totalQuestions}
                 </span>
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    'text-xs font-semibold border-2',
-                    theme.borderAccent,
-                    theme.bgAccent,
-                    theme.iconColor
-                  )}
-                >
-                  {progressPercentage}%
-                </Badge>
               </div>
             </motion.div>
           )}
 
+          {/* Badges Row */}
           <div className="flex items-center justify-between">
             <div
               className={cn(
@@ -4040,13 +3894,13 @@ export default function QuestionCard({
                   <TooltipTrigger>
                     <Badge
                       className={cn(
-                        'flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r text-white border-0 shadow-md',
+                        'flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r text-white border-0 shadow-sm transition-all hover:shadow-md',
                         theme.gradient,
                         theme.glowColor
                       )}
                     >
                       {getDepthIcon(depth)}
-                      <span className="text-xs font-bold">
+                      <span className="text-xs font-bold tracking-wide">
                         {dict.depthLabels[depth]}
                       </span>
                     </Badge>
@@ -4063,7 +3917,11 @@ export default function QuestionCard({
               </TooltipProvider>
 
               {isRequired && (
-                <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-xs font-semibold px-3 py-1.5 animate-pulse border-0">
+                <Badge className="bg-gradient-to-r from-rose-500 to-red-600 text-white text-xs font-semibold px-3 py-1.5 border-0 shadow-sm">
+                  <span className="relative flex h-2 w-2 mr-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                  </span>
                   {dict.requiredBadge}
                 </Badge>
               )}
@@ -4071,7 +3929,7 @@ export default function QuestionCard({
               {estimatedTimeMinutes && (
                 <Badge
                   variant="outline"
-                  className="flex items-center gap-1.5 text-xs border-gray-200 bg-white/80 text-gray-600"
+                  className="flex items-center gap-1.5 text-xs border-gray-200 bg-white/50 text-gray-600 backdrop-blur-sm"
                 >
                   <Clock className="w-3.5 h-3.5" />
                   <span>
@@ -4084,6 +3942,7 @@ export default function QuestionCard({
               )}
             </div>
 
+            {/* Action Buttons (Help/Bookmark) */}
             <div className="flex items-center gap-1">
               {onBookmark && (
                 <TooltipProvider>
@@ -4096,28 +3955,18 @@ export default function QuestionCard({
                         className={cn(
                           'h-9 w-9 rounded-xl transition-all duration-300',
                           isBookmarked
-                            ? cn(
-                                'bg-gradient-to-br shadow-md',
-                                theme.lightGradient,
-                                theme.iconColor,
-                                theme.glowColor
-                              )
+                            ? 'text-orange-500 bg-orange-50'
                             : 'text-gray-400 hover:bg-gray-100'
                         )}
-                        aria-label={
-                          isBookmarked
-                            ? dict.tooltips.removeBookmark
-                            : dict.tooltips.addBookmark
-                        }
                       >
                         <Bookmark
-                          className="w-4 h-4"
+                          className="w-5 h-5"
                           fill={isBookmarked ? 'currentColor' : 'none'}
                         />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent className="bg-white/95 backdrop-blur-sm">
-                      <p className="text-sm">
+                    <TooltipContent>
+                      <p>
                         {isBookmarked
                           ? dict.tooltips.removeBookmark
                           : dict.tooltips.addBookmark}
@@ -4138,27 +3987,18 @@ export default function QuestionCard({
                         className={cn(
                           'h-9 w-9 rounded-xl transition-all duration-300',
                           showHelp
-                            ? cn(
-                                'bg-gradient-to-br shadow-md',
-                                theme.lightGradient,
-                                theme.iconColor
-                              )
+                            ? 'text-teal-600 bg-teal-50'
                             : 'text-gray-400 hover:bg-gray-100'
                         )}
-                        aria-label={
-                          showHelp
-                            ? dict.tooltips.hideHelp
-                            : dict.tooltips.showHelp
-                        }
                       >
-                        <HelpCircle className="w-4 h-4" />
+                        <HelpCircle className="w-5 h-5" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent className="bg-white/95 backdrop-blur-sm">
-                      <p className="text-sm">
+                    <TooltipContent>
+                      <p>
                         {showHelp
                           ? dict.tooltips.hideHelp
-                          : dict.tooltips.whyQuestion}
+                          : dict.tooltips.showHelp}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -4167,6 +4007,7 @@ export default function QuestionCard({
             </div>
           </div>
 
+          {/* Question Text */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -4175,28 +4016,17 @@ export default function QuestionCard({
             <h2
               id={question.id}
               className={cn(
-                'text-2xl sm:text-3xl font-bold text-gray-800 leading-tight mt-4',
+                'text-2xl sm:text-3xl font-bold text-gray-800 leading-tight mt-2',
                 isRTL ? 'text-right' : 'text-left'
               )}
             >
               {question.question}
             </h2>
           </motion.div>
-
-          <div className="relative mt-4">
-            <div
-              className={cn(
-                'absolute h-1 w-20 bg-gradient-to-r rounded-full',
-                theme.gradient,
-                theme.glowColor,
-                isRTL ? 'right-0' : 'left-0'
-              )}
-            />
-          </div>
         </div>
 
         {/* Content Section */}
-        <div className="relative px-6 sm:px-8 pb-6 space-y-4">
+        <div className="relative px-6 sm:px-8 pb-6 space-y-6">
           <AnimatePresence>
             {showHelp && question.metadata?.helpText && (
               <motion.div
@@ -4205,29 +4035,18 @@ export default function QuestionCard({
                 exit={{ opacity: 0, height: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
               >
-                <div
-                  className={cn(
-                    'rounded-2xl p-4 border-2 bg-gradient-to-br shadow-md',
-                    theme.lightGradient,
-                    theme.borderAccent
-                  )}
-                >
+                <div className="rounded-2xl p-4 border bg-teal-50/50 border-teal-100">
                   <div
                     className={cn(
                       'flex items-start gap-3',
                       isRTL && 'flex-row-reverse'
                     )}
                   >
-                    <div
-                      className={cn(
-                        'flex-shrink-0 p-2 rounded-xl bg-white shadow-sm',
-                        theme.iconColor
-                      )}
-                    >
+                    <div className="flex-shrink-0 p-1.5 rounded-lg bg-teal-100 text-teal-600">
                       <Lightbulb className="w-5 h-5" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-700 leading-relaxed">
+                      <p className="text-sm font-medium text-teal-800 leading-relaxed">
                         {question.metadata.helpText}
                       </p>
                     </div>
@@ -4237,6 +4056,7 @@ export default function QuestionCard({
             )}
           </AnimatePresence>
 
+          {/* Validation Error */}
           <AnimatePresence>
             {validationError && (
               <motion.div
@@ -4247,7 +4067,7 @@ export default function QuestionCard({
               >
                 <Alert
                   role="alert"
-                  className="bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl"
+                  className="bg-rose-50 border-rose-200 text-rose-900"
                 >
                   <div
                     className={cn(
@@ -4255,8 +4075,8 @@ export default function QuestionCard({
                       isRTL && 'flex-row-reverse'
                     )}
                   >
-                    <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-                    <AlertDescription className="text-sm font-medium text-red-700">
+                    <AlertCircle className="h-5 w-5 text-rose-600 flex-shrink-0" />
+                    <AlertDescription className="text-sm font-medium">
                       {validationError}
                     </AlertDescription>
                   </div>
@@ -4265,52 +4085,31 @@ export default function QuestionCard({
             )}
           </AnimatePresence>
 
+          {/* Answer Input Container */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.4 }}
-            className="relative mt-6"
+            className="relative"
           >
             {children}
           </motion.div>
         </div>
-        {/* ✨ --- START: ADD THIS NEW BLOCK --- ✨ */}
 
-        {/* Benefit Message integrated into the footer */}
+        {/* Encouragement Footer */}
         <AnimatePresence>
           {showBenefit &&
             currentQuestionNumber &&
             currentQuestionNumber % 5 === 0 && (
               <motion.div
-                initial={{ opacity: 0, y: 10, height: 0 }}
-                animate={{ opacity: 1, y: 0, height: 'auto' }}
-                exit={{ opacity: 0, y: 10, height: 0 }}
-                transition={{ duration: 0.4, ease: 'easeInOut' }}
-                className="mt-4 pt-4 border-t border-gray-200"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="bg-orange-50/50 border-t border-orange-100 px-6 py-3"
               >
-                <div
-                  className={cn(
-                    'flex items-center gap-3 p-3 rounded-xl',
-                    'bg-gradient-to-br',
-                    theme.lightGradient,
-                    theme.borderAccent,
-                    'border'
-                  )}
-                >
-                  <div
-                    className={cn(
-                      'p-1.5 rounded-lg bg-white shadow-sm',
-                      theme.iconColor
-                    )}
-                  >
-                    <TrendingUp className="w-4 h-4" />
-                  </div>
-                  <span
-                    className={cn(
-                      'text-sm font-semibold',
-                      theme.iconColor.replace('text-', 'text-')
-                    )}
-                  >
+                <div className="flex items-center justify-center gap-2 text-orange-700">
+                  <TrendingUp className="w-4 h-4" />
+                  <span className="text-sm font-semibold">
                     {currentBenefit}
                   </span>
                 </div>
@@ -4318,160 +4117,93 @@ export default function QuestionCard({
             )}
         </AnimatePresence>
 
-        {/* Footer Section */}
-        <div className="relative px-6 sm:px-8 py-5 border-t-2 border-gray-100 bg-gradient-to-br from-gray-50/50 via-white to-gray-50/30">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <TooltipProvider delayDuration={200}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <VisibilityToggleButton
-                      isVisible={isVisible}
-                      onToggle={() => onVisibilityChange(!isVisible)}
-                      disabled={isDisabled}
-                      visibleText={dict.visibilityButton.visible}
-                      hiddenText={dict.visibilityButton.hidden}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    className="max-w-xs bg-white/95 backdrop-blur-sm"
-                  >
-                    <div className="text-center space-y-1">
-                      <p className="font-semibold text-sm">
-                        {isVisible
-                          ? dict.tooltips.visibility.visibleTitle
-                          : dict.tooltips.visibility.hiddenTitle}
-                      </p>
-                      <p className="text-xs text-gray-600">
-                        {isVisible
-                          ? dict.tooltips.visibility.visibleDesc
-                          : dict.tooltips.visibility.hiddenDesc}
-                      </p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+        {/* Card Footer */}
+        <div className="relative px-6 sm:px-8 py-4 bg-gray-50/80 border-t border-gray-100 flex justify-between items-center backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <VisibilityToggleButton
+              isVisible={isVisible}
+              onToggle={() => onVisibilityChange(!isVisible)}
+              disabled={isDisabled}
+              visibleText={dict.visibilityButton.visible}
+              hiddenText={dict.visibilityButton.hidden}
+            />
 
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href="/profile?tab=questionnaire"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                    >
+                      <BookUser className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm">{dict.tooltips.viewProfile}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {onSave && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Link
-                      href="/profile?tab=questionnaire"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-xl text-teal-600 hover:bg-teal-50"
+                      onClick={onSave}
+                      disabled={isSaving || isDisabled}
                     >
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all"
-                        aria-label={dict.tooltips.viewProfile}
-                      >
-                        <BookUser className="w-4 h-4" />
-                      </Button>
-                    </Link>
+                      {isSaving ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Save className="w-4 h-4" />
+                      )}
+                    </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-white/95 backdrop-blur-sm">
-                    <p className="text-sm">{dict.tooltips.viewProfile}</p>
+                  <TooltipContent>
+                    <p>
+                      {isSaving
+                        ? dict.tooltips.saveProgressSaving
+                        : dict.tooltips.saveProgress}
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            </div>
+            )}
 
-            <div className="flex items-center gap-2">
-              {onSave && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                          'h-9 w-9 rounded-xl transition-all duration-300',
-                          isSaving
-                            ? cn('bg-gradient-to-br', theme.lightGradient)
-                            : 'text-gray-500 hover:bg-gray-100'
-                        )}
-                        onClick={onSave}
-                        disabled={isSaving || isDisabled}
-                        aria-label={dict.tooltips.saveProgress}
-                      >
-                        {isSaving ? (
-                          <Loader2
-                            className={cn(
-                              'w-4 h-4 animate-spin',
-                              theme.iconColor
-                            )}
-                          />
-                        ) : (
-                          <Save className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-white/95 backdrop-blur-sm">
-                      <p className="text-sm">
-                        {isSaving
-                          ? dict.tooltips.saveProgressSaving
-                          : dict.tooltips.saveProgress}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-
-              {onSkip && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onSkip}
-                  disabled={isRequired || isDisabled}
-                  className={cn(
-                    'rounded-xl px-4 py-2 flex items-center gap-2 transition-all',
-                    isRequired || isDisabled
-                      ? 'opacity-50 cursor-not-allowed text-gray-400'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
-                  )}
-                >
-                  {isRequired ? (
-                    <span className="text-sm font-medium">
-                      {dict.skipButton.required}
-                    </span>
-                  ) : (
-                    <>
-                      <span className="text-sm font-medium">
-                        {dict.skipButton.skip}
-                      </span>
-                      <SkipForward className="w-4 h-4" />
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {currentQuestionNumber && currentQuestionNumber % 3 === 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.4 }}
-              className="mt-4 pt-4 border-t border-gray-200"
-            >
-              <div
+            {onSkip && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onSkip}
+                disabled={isRequired || isDisabled}
                 className={cn(
-                  'flex items-center gap-2 text-sm text-gray-600',
-                  isRTL && 'flex-row-reverse'
+                  'rounded-xl px-3 text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+                  isRequired && 'opacity-50 cursor-not-allowed'
                 )}
               >
-                <TrendingUp
-                  className={cn(
-                    'w-4 h-4 text-green-500',
-                    isRTL ? 'ml-2' : 'mr-2'
-                  )}
-                />
-                <span className="font-medium">{dict.encouragementMessage}</span>
-              </div>
-            </motion.div>
-          )}
+                {isRequired ? (
+                  <span className="text-xs">{dict.skipButton.required}</span>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm">{dict.skipButton.skip}</span>
+                    <SkipForward className="w-4 h-4" />
+                  </div>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </motion.div>
@@ -7480,29 +7212,8 @@ export interface QuestionnaireLayoutProps {
   onMenuOpen?: () => void;
 }
 
-const worldConfig = {
-  PERSONALITY: { icon: () => <div />, themeColor: 'sky' },
-  VALUES: { icon: () => <div />, themeColor: 'rose' },
-  RELATIONSHIP: { icon: () => <div />, themeColor: 'purple' },
-  PARTNER: { icon: () => <div />, themeColor: 'teal' },
-  RELIGION: { icon: () => <div />, themeColor: 'amber' },
-};
-
-const colorMap = {
-  sky: { border: 'border-sky-300', bg: 'bg-sky-50', text: 'text-sky-600' },
-  rose: { border: 'border-rose-300', bg: 'bg-rose-50', text: 'text-rose-600' },
-  purple: {
-    border: 'border-purple-300',
-    bg: 'bg-purple-50',
-    text: 'text-purple-600',
-  },
-  teal: { border: 'border-teal-300', bg: 'bg-teal-50', text: 'text-teal-600' },
-  amber: {
-    border: 'border-amber-300',
-    bg: 'bg-amber-50',
-    text: 'text-amber-600',
-  },
-};
+// Note: Specific world colors (Sky, Rose, etc.) are kept for the specific world content,
+// but the layout shell uses the new global palette (Teal/Orange).
 
 export default function QuestionnaireLayout({
   children,
@@ -7526,10 +7237,7 @@ export default function QuestionnaireLayout({
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
-  const isSmallScreen = useMediaQuery('(max-width: 640px)');
   const isRTL = locale === 'he';
-  const currentThemeColor = worldConfig[currentWorld]?.themeColor || 'sky';
-  const currentColors = colorMap[currentThemeColor as keyof typeof colorMap];
 
   const handleSave = useCallback(async () => {
     if (!onSaveProgress) return;
@@ -7556,7 +7264,8 @@ export default function QuestionnaireLayout({
   return (
     <div
       className={cn(
-        'min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50',
+        // Updated Main Background
+        'min-h-screen bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20',
         isRTL ? 'rtl' : 'ltr'
       )}
     >
@@ -7620,17 +7329,19 @@ export default function QuestionnaireLayout({
           <main className="flex-1">
             {!isLoggedIn && (
               <div className="p-4">
-                <div className="rounded-xl bg-yellow-50 p-4 border border-yellow-200 text-center">
-                  <h3 className="text-sm font-semibold text-yellow-800">
+                {/* Updated Unauthenticated Prompt Colors */}
+                <div className="rounded-xl bg-amber-50 p-4 border border-amber-200 text-center">
+                  <h3 className="text-sm font-semibold text-amber-800">
                     {dict.layout.unauthenticatedPrompt.title}
                   </h3>
-                  <p className="text-xs text-yellow-700 mt-1">
+                  <p className="text-xs text-amber-700 mt-1">
                     {dict.layout.unauthenticatedPrompt.subtitle}
                   </p>
                   <div className="flex justify-center gap-2 mt-3">
                     <Button
                       size="sm"
-                      className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                      // Teal buttons for action
+                      className="bg-teal-600 hover:bg-teal-700 text-white"
                       onClick={() => router.push('/auth/signin')}
                     >
                       <LogIn className="w-4 h-4 ml-2" />
@@ -7639,7 +7350,7 @@ export default function QuestionnaireLayout({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-yellow-600 text-yellow-700 hover:bg-yellow-100"
+                      className="border-teal-600 text-teal-700 hover:bg-teal-50"
                       onClick={() => router.push('/auth/register')}
                     >
                       <UserPlus className="w-4 h-4 ml-2" />
@@ -7650,7 +7361,7 @@ export default function QuestionnaireLayout({
               </div>
             )}
             <div className="p-2 sm:p-4">
-              {/* העברת הפונקציה לפתיחת התפריט ל-children דרך Context או props */}
+              {/* Pass menu opener function to children */}
               {React.Children.map(children, (child) => {
                 if (React.isValidElement(child)) {
                   return React.cloneElement(child as React.ReactElement<any>, {
@@ -8349,21 +8060,21 @@ interface ProgressHeaderProps {
   totalQuestions: number;
 }
 
-// Enhanced Background Component
+// Enhanced Background Component (Updated Colors)
 const EnhancedBackground: React.FC = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     <div className="absolute inset-0 opacity-30">
-      <div className="absolute top-10 left-10 w-64 h-64 bg-gradient-to-br from-teal-300/40 to-cyan-400/25 rounded-full blur-3xl animate-float-slow" />
+      <div className="absolute top-10 left-10 w-64 h-64 bg-teal-300/20 rounded-full blur-3xl animate-float-slow" />
       <div
-        className="absolute top-1/3 right-20 w-56 h-56 bg-gradient-to-br from-orange-300/35 to-amber-400/25 rounded-full blur-3xl animate-float-slow"
+        className="absolute top-1/3 right-20 w-56 h-56 bg-orange-300/20 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '2s' }}
       />
       <div
-        className="absolute bottom-20 left-1/3 w-72 h-72 bg-gradient-to-br from-pink-300/30 to-rose-400/20 rounded-full blur-3xl animate-float-slow"
+        className="absolute bottom-20 left-1/3 w-72 h-72 bg-rose-300/15 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '4s' }}
       />
       <div
-        className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-gradient-to-br from-purple-300/30 to-indigo-400/20 rounded-full blur-3xl animate-float-slow"
+        className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-amber-200/20 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '6s' }}
       />
     </div>
@@ -8375,9 +8086,9 @@ const EnhancedBackground: React.FC = () => (
     >
       <defs>
         <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.2" />
-          <stop offset="50%" stopColor="#f97316" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="#ec4899" stopOpacity="0.1" />
+          <stop offset="0%" stopColor="#0d9488" stopOpacity="0.2" /> {/* Teal */}
+          <stop offset="50%" stopColor="#f97316" stopOpacity="0.15" /> {/* Orange */}
+          <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.1" /> {/* Rose */}
         </linearGradient>
       </defs>
       <path
@@ -8467,6 +8178,7 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
               className="flex-shrink-0"
             >
               <div className="relative">
+                {/* Updated Badge Gradient */}
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-400 to-orange-500 flex items-center justify-center shadow-lg">
                   <span className="text-2xl font-extrabold text-white">
                     {completionPercent}%
@@ -8493,6 +8205,7 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
             <Progress
               value={completionPercent}
               className="h-3 rounded-full flex-1 bg-gray-200/80"
+              // Updated Indicator Gradient
               indicatorClassName="bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 transition-all duration-500 rounded-full"
             />
           </div>
@@ -8547,6 +8260,7 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
               <Button
                 size="lg"
                 onClick={onGoToRecommended}
+                // Updated CTA Button
                 className="w-full sm:w-auto bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white font-bold shadow-xl hover:shadow-2xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
               >
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
@@ -8663,6 +8377,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
         'bg-gradient-to-r from-teal-100 to-orange-100 text-teal-700 border-teal-300 font-bold animate-pulse-glow',
       action: 'התחל עכשיו',
       ActionIcon: Zap,
+      // Updated Recommended Card Style (Teal/Orange border/bg)
       cardStyle:
         'border-teal-400 bg-gradient-to-br from-white via-teal-50/30 to-orange-50/30 shadow-2xl scale-[1.02] ring-2 ring-teal-300/50',
     },
@@ -8868,6 +8583,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
               status === 'completed' &&
                 'bg-white border-2 border-green-300 text-green-700 hover:bg-green-50',
               status === 'recommended' &&
+                // Updated Recommended CTA
                 'bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white',
               (status === 'active' || status === 'available') &&
                 `bg-gradient-to-r ${colors.gradient} hover:opacity-90 text-white`,
@@ -8910,6 +8626,7 @@ const ReviewCard: React.FC<{
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
+      {/* Updated Review Card Colors */}
       <Card className="relative overflow-hidden bg-gradient-to-br from-white via-teal-50/40 to-white backdrop-blur-md shadow-xl border-2 border-teal-200/60">
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-teal-200/30 to-transparent rounded-bl-full blur-2xl" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-200/30 to-transparent rounded-tr-full blur-xl" />
@@ -8959,6 +8676,7 @@ const CompletionBanner: React.FC<{
       animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.6, type: 'spring' }}
     >
+      {/* Updated Completion Banner Gradient */}
       <Card className="relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white text-center shadow-2xl border-0">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl animate-float-slow" />
@@ -9294,21 +9012,22 @@ const staggeredCardVariants = {
   },
 };
 
-// --- Enhanced Background Component ---
+// --- Enhanced Background Component (Updated Colors) ---
 const DynamicBackground: React.FC = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     <div className="absolute inset-0 opacity-30">
-      <div className="absolute top-10 left-10 w-72 h-72 bg-gradient-to-br from-teal-300/30 to-cyan-400/20 rounded-full blur-3xl animate-float-slow" />
+      {/* Updated Orbs to match Hero: Teal, Orange, Rose */}
+      <div className="absolute top-10 left-10 w-72 h-72 bg-teal-300/20 rounded-full blur-3xl animate-float-slow" />
       <div
-        className="absolute top-1/3 right-20 w-64 h-64 bg-gradient-to-br from-orange-300/30 to-amber-400/20 rounded-full blur-3xl animate-float-slow"
+        className="absolute top-1/3 right-20 w-64 h-64 bg-orange-300/20 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '2s' }}
       />
       <div
-        className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-br from-pink-300/25 to-rose-400/20 rounded-full blur-3xl animate-float-slow"
+        className="absolute bottom-20 left-1/3 w-80 h-80 bg-rose-300/15 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '4s' }}
       />
       <div
-        className="absolute bottom-1/4 right-1/4 w-56 h-56 bg-gradient-to-br from-purple-300/25 to-indigo-400/20 rounded-full blur-3xl animate-float-slow"
+        className="absolute bottom-1/4 right-1/4 w-56 h-56 bg-amber-200/20 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '6s' }}
       />
     </div>
@@ -9320,9 +9039,9 @@ const DynamicBackground: React.FC = () => (
     >
       <defs>
         <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.2" />
-          <stop offset="50%" stopColor="#f97316" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="#ec4899" stopOpacity="0.1" />
+          <stop offset="0%" stopColor="#0d9488" stopOpacity="0.2" /> {/* Teal */}
+          <stop offset="50%" stopColor="#f97316" stopOpacity="0.15" /> {/* Orange */}
+          <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.1" /> {/* Rose */}
         </linearGradient>
       </defs>
       <path
@@ -9340,7 +9059,7 @@ const DynamicBackground: React.FC = () => (
   </div>
 );
 
-// --- Problem Card Component ---
+// --- Problem Card Component (Updated to Rose/Red theme for problems) ---
 interface ProblemCardProps {
   icon: React.ReactNode;
   title: string;
@@ -9365,7 +9084,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
       transition={{ duration: 0.6, delay }}
       className="flex items-start gap-4 p-6 bg-rose-50/80 backdrop-blur-sm rounded-2xl border-2 border-rose-200/60 shadow-sm hover:shadow-lg transition-all duration-300 group"
     >
-      <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-rose-400 to-red-500 text-white shadow-md group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+      <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-rose-400 to-red-500 text-white shadow-md group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-rose-500/25">
         {icon}
       </div>
       <div className="flex-1">
@@ -9382,6 +9101,8 @@ interface SolutionCardProps {
   title: string;
   description: string;
   gradient: string;
+  shadowColor: string; // Added to match Hero style
+  bgGradient: string;  // Added to match Hero style
   delay?: number;
 }
 
@@ -9390,6 +9111,8 @@ const SolutionCard: React.FC<SolutionCardProps> = ({
   title,
   description,
   gradient,
+  shadowColor,
+  bgGradient,
   delay = 0,
 }) => {
   const ref = useRef(null);
@@ -9402,10 +9125,10 @@ const SolutionCard: React.FC<SolutionCardProps> = ({
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
       transition={{ duration: 0.6, delay }}
       whileHover={{ y: -8, scale: 1.02 }}
-      className="group relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-sm p-8 shadow-lg hover:shadow-2xl border border-white/60 transition-all duration-500 h-full"
+      className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${bgGradient} p-8 ${shadowColor} shadow-xl hover:shadow-2xl border border-white/60 transition-all duration-500 h-full`}
     >
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/40 to-transparent rounded-bl-full blur-2xl" />
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-white/30 to-transparent rounded-tr-full blur-xl" />
+      <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-gradient-to-br from-white/30 to-transparent blur-xl" />
+      <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-gradient-to-br from-white/40 to-transparent blur-lg" />
 
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex items-center justify-center mb-6">
@@ -9413,7 +9136,7 @@ const SolutionCard: React.FC<SolutionCardProps> = ({
             className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white shadow-xl transform group-hover:rotate-12 transition-transform duration-500`}
           >
             {icon}
-            <div className="absolute inset-0 rounded-2xl bg-white/20 backdrop-blur-sm" />
+            <div className="absolute inset-0 rounded-2xl bg-white/15 backdrop-blur-sm" />
           </div>
         </div>
         <h4 className="font-bold text-gray-800 text-xl mb-4 text-center leading-tight">
@@ -9422,7 +9145,7 @@ const SolutionCard: React.FC<SolutionCardProps> = ({
         <p className="text-gray-600 text-base leading-relaxed text-center flex-1">
           {description}
         </p>
-        <div className="mt-6 w-12 h-1 bg-gradient-to-r from-transparent via-gray-300/60 to-transparent rounded-full mx-auto" />
+        <div className="mt-6 w-12 h-1 bg-gradient-to-r from-transparent via-white/60 to-transparent rounded-full mx-auto" />
       </div>
     </motion.div>
   );
@@ -9467,15 +9190,15 @@ export default function QuestionnaireLandingPage({
   }, [isMobile]);
 
   const worldVisuals = [
-    { id: 'PERSONALITY', icon: <User className="h-7 w-7" />, color: 'sky' },
-    { id: 'VALUES', icon: <Heart className="h-7 w-7" />, color: 'rose' },
+    { id: 'PERSONALITY', icon: <User className="h-7 w-7" />, color: 'blue' },
+    { id: 'VALUES', icon: <Heart className="h-7 w-7" />, color: 'rose' }, // Rose (Hero match)
     {
       id: 'RELATIONSHIP',
       icon: <Users className="h-7 w-7" />,
       color: 'purple',
     },
-    { id: 'PARTNER', icon: <UserCheck className="h-7 w-7" />, color: 'teal' },
-    { id: 'RELIGION', icon: <Scroll className="h-7 w-7" />, color: 'amber' },
+    { id: 'PARTNER', icon: <UserCheck className="h-7 w-7" />, color: 'teal' }, // Teal (Hero match)
+    { id: 'RELIGION', icon: <Scroll className="h-7 w-7" />, color: 'amber' }, // Amber (Hero match)
   ] as const;
 
   const getCtaText = () => {
@@ -9487,12 +9210,12 @@ export default function QuestionnaireLandingPage({
 
   const CtaIcon = hasSavedProgress ? CheckCircle : Heart;
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
-  const backArrowIcon = isRTL ? ArrowRight : ArrowLeft;
 
   return (
     <div
       className={cn(
-        'relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-teal-50/30 to-slate-50',
+        // Updated main background to match HeroSection
+        'relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20',
         isRTL ? 'dir-rtl text-right' : 'dir-ltr text-left',
         isMobile && 'pb-28'
       )}
@@ -9523,7 +9246,8 @@ export default function QuestionnaireLandingPage({
           >
             <span className="text-gray-800">{dict.hero.title1}</span>
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-rose-600 animate-gradient">
+            {/* Updated Gradient Title to match Hero (Teal->Orange->Amber) */}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient">
               {dict.hero.title2}
             </span>
           </motion.h1>
@@ -9558,7 +9282,8 @@ export default function QuestionnaireLandingPage({
           >
             <Button
               size="lg"
-              className="w-full sm:w-auto text-lg font-bold px-10 py-7 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
+              // Updated Button Gradient: Teal -> Orange -> Amber
+              className="w-full sm:w-auto text-lg font-bold px-10 py-7 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
               onClick={onStartQuestionnaire}
               disabled={isLoading}
             >
@@ -9581,7 +9306,7 @@ export default function QuestionnaireLandingPage({
                 <Button
                   variant="outline"
                   size="lg"
-                  className="w-full sm:w-auto text-base font-medium px-8 py-6 border-2 border-teal-300 text-teal-700 hover:bg-teal-50 hover:border-teal-400 rounded-full transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                  className="w-full sm:w-auto text-base font-medium px-8 py-6 border-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300 rounded-full transition-all duration-300 bg-white/80 backdrop-blur-sm"
                 >
                   <Lock className={cn('h-5 w-5', isRTL ? 'ms-2' : 'me-2')} />
                   {dict.cta.login}
@@ -9651,7 +9376,7 @@ export default function QuestionnaireLandingPage({
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <div className="inline-block bg-gradient-to-r from-amber-100 via-orange-100 to-rose-100 rounded-3xl px-8 py-5 shadow-xl border-2 border-amber-300/60">
+            <div className="inline-block bg-gradient-to-r from-amber-50 via-orange-50 to-rose-50 rounded-3xl px-8 py-5 shadow-xl border-2 border-amber-200/60">
               <p className="text-xl md:text-2xl font-bold text-gray-800">
                 {dict.problemSection.insight}
               </p>
@@ -9660,9 +9385,9 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* SECTION 3: THE SOLUTION - The Questionnaire */}
+      {/* SECTION 3: THE SOLUTION - The Questionnaire (Matching Hero Cards) */}
       <motion.section
-        className="py-20 px-4 relative bg-white/60 backdrop-blur-sm"
+        className="py-20 px-4 relative bg-white/40 backdrop-blur-sm"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
@@ -9670,7 +9395,7 @@ export default function QuestionnaireLandingPage({
       >
         <div className="max-w-6xl mx-auto">
           <motion.div className="text-center mb-16" variants={fadeInUp}>
-            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-teal-100 to-cyan-100 backdrop-blur-sm rounded-full px-6 py-3 shadow-md border border-teal-300/60 mb-6">
+            <div className="inline-flex items-center gap-3 bg-teal-50 backdrop-blur-sm rounded-full px-6 py-3 shadow-md border border-teal-200 mb-6">
               <Lightbulb className="w-5 h-5 text-teal-600" />
               <span className="text-teal-700 font-bold">
                 {dict.solutionSection.badge}
@@ -9678,7 +9403,8 @@ export default function QuestionnaireLandingPage({
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-gray-800 leading-tight">
               {dict.solutionSection.title}{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
+              {/* Updated Gradient Text */}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500">
                 {dict.solutionSection.titleHighlight}
               </span>
             </h2>
@@ -9690,25 +9416,34 @@ export default function QuestionnaireLandingPage({
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Card 1: Self Discovery -> Rose Theme */}
             <SolutionCard
               icon={<Heart className="w-8 h-8" />}
               title={dict.solutionSection.cards.selfDiscovery.title}
               description={dict.solutionSection.cards.selfDiscovery.description}
-              gradient="from-rose-400 to-pink-500"
+              gradient="from-rose-400 via-pink-500 to-red-500"
+              shadowColor="shadow-rose-500/25"
+              bgGradient="from-rose-50 via-white to-red-50"
               delay={0}
             />
+            {/* Card 2: Soul Report -> Teal Theme */}
             <SolutionCard
               icon={<FileText className="w-8 h-8" />}
               title={dict.solutionSection.cards.soulReport.title}
               description={dict.solutionSection.cards.soulReport.description}
-              gradient="from-teal-400 to-cyan-500"
+              gradient="from-teal-400 via-teal-500 to-emerald-500"
+              shadowColor="shadow-teal-500/25"
+              bgGradient="from-teal-50 via-white to-emerald-50"
               delay={0.15}
             />
+            {/* Card 3: Focused Search -> Orange/Amber Theme */}
             <SolutionCard
               icon={<Target className="w-8 h-8" />}
               title={dict.solutionSection.cards.focusedSearch.title}
               description={dict.solutionSection.cards.focusedSearch.description}
-              gradient="from-amber-400 to-orange-500"
+              gradient="from-orange-400 via-amber-500 to-yellow-500"
+              shadowColor="shadow-orange-500/25"
+              bgGradient="from-orange-50 via-white to-amber-50"
               delay={0.3}
             />
           </div>
@@ -9720,7 +9455,7 @@ export default function QuestionnaireLandingPage({
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.5 }}
           >
-            <div className="inline-block bg-gradient-to-r from-purple-50 via-pink-50 to-rose-50 rounded-2xl p-8 shadow-lg border border-purple-200/60">
+            <div className="inline-block bg-gradient-to-r from-teal-50 via-white to-orange-50 rounded-2xl p-8 shadow-lg border border-teal-100/60">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <Zap className="w-6 h-6 text-orange-500" />
                 <h3 className="text-2xl font-bold text-gray-800">
@@ -9749,6 +9484,7 @@ export default function QuestionnaireLandingPage({
             <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-800">
               {dict.worldsSection.title}
             </h2>
+            {/* Updated Divider */}
             <div className="w-24 h-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-auto rounded-full mb-6" />
             <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
               {dict.worldsSection.subtitle}
@@ -9760,12 +9496,13 @@ export default function QuestionnaireLandingPage({
             variants={staggeredCardVariants}
           >
             {worldVisuals.map((world, index) => {
+              // Exact matches to Hero palette where possible
               const colorClasses = {
-                sky: 'from-sky-400 to-blue-500',
-                rose: 'from-rose-400 to-red-500',
-                purple: 'from-purple-400 to-indigo-500',
-                teal: 'from-teal-400 to-emerald-500',
-                amber: 'from-amber-400 to-orange-500',
+                blue: 'from-sky-400 to-blue-500', // Keep Blue for variety
+                rose: 'from-rose-400 to-red-500', // Matches Hero Rose
+                purple: 'from-purple-400 to-indigo-500', // Keep Purple for variety
+                teal: 'from-teal-400 to-emerald-500', // Matches Hero Teal
+                amber: 'from-amber-400 to-yellow-500', // Matches Hero Orange/Amber
               };
 
               const worldInfo = dict.worldsSection.worlds[world.id];
@@ -9805,7 +9542,7 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* SECTION 5: ADDITIONAL FEATURES */}
+      {/* SECTION 5: ADDITIONAL FEATURES (Updated Colors) */}
       <motion.section
         className="py-20 px-4 bg-gradient-to-b from-white/80 to-teal-50/40"
         initial="hidden"
@@ -9825,11 +9562,12 @@ export default function QuestionnaireLandingPage({
             className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
             variants={staggeredCardVariants}
           >
+            {/* Feature 1: Fast (Teal) */}
             <motion.div
               className="flex flex-col items-center p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-white/60 group"
               variants={fadeInUp}
             >
-              <div className="p-5 rounded-2xl mb-6 bg-gradient-to-br from-sky-400 to-cyan-500 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+              <div className="p-5 rounded-2xl mb-6 bg-gradient-to-br from-teal-400 to-emerald-500 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-teal-500/25">
                 <Clock className="h-8 w-8 text-white" />
               </div>
               <h3 className="font-bold text-xl mb-3 text-gray-800">
@@ -9840,11 +9578,12 @@ export default function QuestionnaireLandingPage({
               </p>
             </motion.div>
 
+            {/* Feature 2: Private (Rose/Orange) */}
             <motion.div
               className="flex flex-col items-center p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-white/60 group"
               variants={fadeInUp}
             >
-              <div className="p-5 rounded-2xl mb-6 bg-gradient-to-br from-rose-400 to-pink-500 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+              <div className="p-5 rounded-2xl mb-6 bg-gradient-to-br from-orange-400 to-amber-500 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-orange-500/25">
                 <Shield className="h-8 w-8 text-white" />
               </div>
               <h3 className="font-bold text-xl mb-3 text-gray-800">
@@ -9855,11 +9594,12 @@ export default function QuestionnaireLandingPage({
               </p>
             </motion.div>
 
+            {/* Feature 3: Instant Result (Rose) */}
             <motion.div
               className="flex flex-col items-center p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-white/60 group"
               variants={fadeInUp}
             >
-              <div className="p-5 rounded-2xl mb-6 bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+              <div className="p-5 rounded-2xl mb-6 bg-gradient-to-br from-rose-400 to-red-500 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-rose-500/25">
                 <Star className="h-8 w-8 text-white" />
               </div>
               <h3 className="font-bold text-xl mb-3 text-gray-800">
@@ -9883,6 +9623,7 @@ export default function QuestionnaireLandingPage({
       >
         <div className="max-w-4xl mx-auto">
           <motion.div
+            // Updated container background to match Hero vibes
             className="relative bg-gradient-to-br from-white/95 via-teal-50/80 to-orange-50/80 backdrop-blur-xl rounded-3xl p-12 md:p-16 shadow-2xl border-2 border-white/60"
             variants={fadeInUp}
           >
@@ -9899,7 +9640,7 @@ export default function QuestionnaireLandingPage({
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-gray-800 leading-tight">
                 {dict.finalCta.title1}
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-600 to-amber-600">
                   {dict.finalCta.title2}
                 </span>
               </h2>
@@ -9912,6 +9653,7 @@ export default function QuestionnaireLandingPage({
                   size="lg"
                   onClick={onStartQuestionnaire}
                   disabled={isLoading}
+                  // Updated Final CTA Button
                   className="text-xl font-bold px-12 py-8 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1 hover:scale-105"
                 >
                   <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/40 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
@@ -9943,7 +9685,7 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* MOBILE STICKY CTA - Only shows when top CTA is out of view */}
+      {/* MOBILE STICKY CTA */}
       {isMobile && showBottomCta && (
         <motion.div
           initial={{ y: 100, opacity: 0 }}
@@ -9954,6 +9696,7 @@ export default function QuestionnaireLandingPage({
         >
           <Button
             size="lg"
+            // Updated Mobile Sticky Button
             className="w-full text-base font-bold py-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white rounded-xl shadow-xl hover:shadow-2xl transition-all group relative overflow-hidden"
             onClick={onStartQuestionnaire}
             disabled={isLoading}
@@ -12353,7 +12096,7 @@ Content:
 // src/components/questionnaire/worlds/WorldComponent.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react'; // הוספתי useMemo
 import QuestionCard from '../common/QuestionCard';
 import AnswerInput from '../common/AnswerInput';
 import QuestionsList from '../common/QuestionsList';
@@ -12366,18 +12109,11 @@ import {
   CheckCircle,
   List,
   Loader2,
-  Save,
-  PanelLeftClose,
-  PanelRightClose,
   ListChecks,
-  CircleDot,
   Sparkles,
   Target,
-  Rocket,
   Star,
-  TrendingUp,
   Award,
-  Zap,
   Heart,
   Compass,
 } from 'lucide-react';
@@ -12385,7 +12121,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -12545,7 +12280,7 @@ interface WorldComponentDynamicProps {
     worldLabels: Record<WorldId, string>;
   };
   locale: 'he' | 'en';
-  onMobileMenuOpen?: () => void; // פונקציה חדשה שמועברת מ-Layout
+  onMobileMenuOpen?: () => void;
 }
 
 export default function WorldComponent({
@@ -12585,9 +12320,14 @@ export default function WorldComponent({
     gradient,
   } = worldConfig[worldId];
 
-  const allQuestions = allQuestionsStructure.map((qStruct) =>
-    getQuestionWithText(qStruct, dict)
+  const allQuestions = useMemo(
+    () =>
+      allQuestionsStructure.map((qStruct) =>
+        getQuestionWithText(qStruct, dict)
+      ),
+    [allQuestionsStructure, dict]
   );
+
   const title = dict.worldLabels[worldId];
 
   const answeredQuestions = allQuestions.filter((q) =>
@@ -12599,6 +12339,18 @@ export default function WorldComponent({
       answers.find((a) => a.questionId === q.id && a.value !== undefined)
   ).length;
   const totalRequired = allQuestions.filter((q) => q.isRequired).length;
+
+  // --- תיקון: חישוב דינמי של הזמן הנותר ---
+  const remainingTimeMinutes = useMemo(() => {
+    let totalMinutes = 0;
+    // מסכמים את הזמן של כל השאלות מהשאלה הנוכחית ועד הסוף
+    for (let i = currentQuestionIndex; i < allQuestions.length; i++) {
+      // אם לא מוגדר זמן, נניח דקה אחת כברירת מחדל
+      totalMinutes += allQuestions[i].metadata?.estimatedTime || 1;
+    }
+    return Math.max(1, Math.round(totalMinutes));
+  }, [currentQuestionIndex, allQuestions]);
+  // ------------------------------------------
 
   useEffect(() => {
     if (currentQuestionIndex < 0) {
@@ -12685,7 +12437,7 @@ export default function WorldComponent({
     validationDict,
     requiredAnswered,
     totalRequired,
-    worldDict.errors.validation,
+    locale,
   ]);
 
   const handlePrevious = useCallback(() => {
@@ -12738,6 +12490,11 @@ export default function WorldComponent({
             onVisibilityChange(worldId, currentQuestion.id, isVisible)
           }
           dict={dict.questionCard}
+          // --- העברת המשתנים החדשים לכרטיס השאלה ---
+          currentQuestionNumber={currentQuestionIndex + 1}
+          totalQuestions={allQuestions.length}
+          estimatedTimeMinutes={remainingTimeMinutes} // שימוש בזמן המחושב
+          // -----------------------------------------
         >
           <AnswerInput
             question={currentQuestion}
@@ -12773,7 +12530,6 @@ export default function WorldComponent({
     const PrevIcon = isRTL ? ArrowRight : ArrowLeft;
     const NextIcon = isRTL ? ArrowLeft : ArrowRight;
 
-    // Desktop version - stays the same
     if (isDesktop) {
       return (
         <motion.div
@@ -12831,7 +12587,7 @@ export default function WorldComponent({
       );
     }
 
-    // Mobile version - floating buttons
+    // Mobile buttons
     return (
       <motion.div
         className="fixed bottom-4 left-0 right-0 z-40 px-4"
@@ -12840,7 +12596,6 @@ export default function WorldComponent({
         transition={{ delay: 0.3, type: 'spring', stiffness: 100 }}
       >
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
-          {/* Previous Button */}
           <Button
             variant="outline"
             onClick={handlePrevious}
@@ -12858,14 +12613,12 @@ export default function WorldComponent({
             </span>
           </Button>
 
-          {/* Progress indicator */}
           <div className="flex items-center gap-2 px-4 py-3 bg-white/95 backdrop-blur-sm rounded-full border-2 border-gray-200 shadow-lg">
             <span className="text-xs font-bold text-gray-600">
               {currentQuestionIndex + 1}/{allQuestions.length}
             </span>
           </div>
 
-          {/* Next/Finish Button */}
           {currentQuestionIndex < allQuestions.length - 1 ? (
             <Button
               onClick={handleNext}
@@ -12947,9 +12700,8 @@ export default function WorldComponent({
     );
   };
 
-  // --- START: MOBILE HEADER WITH MENU BUTTON AND QUESTION LIST ---
+  // Mobile Header logic...
   const MobileWorldHeader = () => {
-    // Format last saved time
     const formatLastSaved = (date: Date | null) => {
       if (!date) return null;
       const now = new Date();
@@ -12977,18 +12729,15 @@ export default function WorldComponent({
     return (
       <div className="bg-white/80 backdrop-blur-sm p-3 rounded-2xl shadow-lg border-2 border-white mb-6">
         <div className="flex items-center justify-between gap-2">
-          {/* כפתור תפריט משולב בצד */}
           <Button
             variant="outline"
             size="sm"
             onClick={onMobileMenuOpen}
             className="p-2.5 bg-white border-2 border-gray-300 rounded-xl flex-shrink-0 transition-all duration-200 hover:scale-105 hover:bg-gray-50 hover:border-gray-400 shadow-sm"
-            title={locale === 'he' ? 'תפריט עולמות' : 'Worlds Menu'}
           >
             <Compass className="h-5 w-5 text-gray-700" />
           </Button>
 
-          {/* פרטי העולם הנוכחי */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div
               className={cn(
@@ -13003,7 +12752,6 @@ export default function WorldComponent({
                 <h2 className="font-bold text-base text-gray-800 truncate">
                   {title}
                 </h2>
-                {/* Save indicator */}
                 {(isSaving || lastSavedText) && (
                   <div className="flex items-center gap-1">
                     {isSaving ? (
@@ -13032,7 +12780,6 @@ export default function WorldComponent({
             </div>
           </div>
 
-          {/* כפתור רשימת שאלות */}
           <Sheet>
             <SheetTrigger asChild>
               <Button
@@ -13086,7 +12833,6 @@ export default function WorldComponent({
           </Sheet>
         </div>
 
-        {/* פס התקדמות */}
         <div className="mt-3 space-y-1">
           <div className="flex justify-between text-xs font-medium">
             <span className="text-gray-600">התקדמות בעולם</span>
@@ -13103,7 +12849,6 @@ export default function WorldComponent({
       </div>
     );
   };
-  // --- END: MOBILE HEADER WITH MENU BUTTON AND QUESTION LIST ---
 
   if (isDesktop) {
     return (

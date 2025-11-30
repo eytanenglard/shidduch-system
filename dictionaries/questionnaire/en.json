@@ -89,21 +89,41 @@
       "visible": "Visible",
       "hidden": "Hidden"
     },
-  "completion": {
-    "title": "Congratulations, You've Completed the Journey!",
-    "loggedInDescription": "You've taken a significant step towards finding a meaningful connection. Our team will now carefully review your profile.",
-    "guestDescription": "You've finished the questionnaire! Please sign in or register to save your answers and begin the matching process.",
-    "loggedInContent": {
-      "prompt": "Your profile is now ready for our matchmaking team.",
-      "promptSubtitle": "We will be in touch as soon as we find a promising match for you.",
-      "sendButton": "Proceed to My Dashboard",
-      "sendingButton": "Proceeding...",
-      "reviewButton": "Review My Answers"
-    },
-    "guestContent": {
-      "loginButton": "Save Answers and Continue"
-    }
+ "completion": {
+  "title": "Congratulations, You've Completed the Journey!",
+  "loggedInDescription": "You've taken a significant step towards finding a meaningful connection. Our team will now carefully review your profile.",
+  "guestDescription": "You've finished the questionnaire! Please sign in or register to save your answers and begin the matching process.",
+  "loggedInContent": {
+    "prompt": "Your profile is now ready for our matchmaking team.",
+    "promptSubtitle": "We will be in touch as soon as we find a promising match for you.",
+    "sendButton": "Proceed to My Dashboard",
+    "sendingButton": "Proceeding...",
+    "reviewButton": "Review My Answers"
   },
+  "guestContent": {
+    "loginButton": "Save Answers and Continue"
+  },
+  "stats": {
+    "completion": "% Complete",
+    "answered": "Questions Answered",
+    "time": "Time Invested"
+  },
+  "unlocksTitle": "🎉 Achievements Unlocked",
+  "achievements": {
+    "completed": {
+      "title": "🎯 Completed Questionnaire!",
+      "description": "You answered all questions successfully"
+    },
+    "speed": {
+      "title": "⚡ Impressive Speed",
+      "description": "Completed in {{minutes}} minutes"
+    },
+    "profile": {
+      "title": "🎨 Complete Profile",
+      "description": "Created a rich and detailed profile"
+    }
+  }
+},
   "matchmaking": {
     "worldLabels": {
       "PERSONALITY": "Personality",
@@ -231,67 +251,73 @@
     "copyright": "© {{year}} NeshamaTech. All rights reserved."
   }
 },
-  "worldsMap": {
-    "worldLabels": {
-      "PERSONALITY": "Personality",
-      "VALUES": "Values & Beliefs",
-      "RELATIONSHIP": "Partnership",
-      "PARTNER": "The Ideal Partner",
-      "RELIGION": "Religion & Tradition"
+"worldsMap": {
+  "worldLabels": {
+    "PERSONALITY": "Personality",
+    "VALUES": "Values & Beliefs",
+    "RELATIONSHIP": "Partnership",
+    "PARTNER": "The Ideal Partner",
+    "RELIGION": "Religion & Tradition"
+  },
+  "progressHeader": {
+    "greeting": "Hi {{name}},",
+    "greetingNoName": "Hello,",
+    "journeyQuestion": "Where are we on the journey?",
+    "journeyTitle": "Your Journey of Self-Discovery",
+    "progressText": "You've completed {{completedCount}} of {{totalCount}} worlds • {{totalAnswered}} of {{totalQuestions}} questions",
+    "ctaButton": "Let's Continue!",
+    "mapTitle": "Your Worlds Map",
+    "milestones": {
+      "start": "Start",
+      "onTrack": "On Track",
+      "inProgress": "In Progress",
+      "almostThere": "Almost There",
+      "completed": "Completed!"
     },
-    "progressHeader": {
-      "greeting": "Hi {{name}},",
-      "journeyQuestion": "Where are we on the journey?",
-      "defaultTitle": "Your Journey of Self-Discovery",
-      "progressText": "You've completed {{completedCount}} of {{totalCount}} worlds • {{totalAnswered}} of {{totalQuestions}} questions",
-      "ctaButton": "Let's Continue!",
-      "mapTitle": "Your Worlds Map",
-      "milestones": {
-        "start": "Start",
-        "onTrack": "On Track",
-        "inProgress": "In Progress",
-        "almostThere": "Almost There",
-        "completed": "Completed!"
-      },
-      "nextStepTitle": "The Next Step on Your Journey",
-      "nextStepPrompt": "Ready to continue to {{worldName}}?",
-      "completionTitle": "🎉 Congratulations! You've completed all worlds",
-      "completionSubtitle": "You can now review your full profile and see your Soul Report."
+    "nextStepTitle": "The Next Step on Your Journey",
+    "nextStepPrompt": "Ready to continue to {{worldName}}?",
+    "completionTitle": "🎉 Congratulations! You've completed all worlds",
+    "completionSubtitle": "You can now review your full profile and see your Soul Report."
+  },
+  "reviewCard": {
+    "title": "Want to review your answers?",
+    "description": "View all the answers you've provided so far in one place.",
+    "button": "Review Answers"
+  },
+  "worldCard": {
+    "discoverTitle": "What will you discover?",
+    "questionsLabel": "questions",
+    "minutesLabel": "minutes",
+    "worldNumberLabel": "World {{number}}",
+    "progressLabel": "Progress: {{completed}}/{{total}}",
+    "recommendedRibbon": "Recommended",
+    "expandButton": "What will you discover?",
+    "benefitsTitle": "What you'll discover:",
+    "statuses": {
+      "completed": "Completed",
+      "recommended": "Recommended",
+      "active": "In Progress",
+      "available": "Available",
+      "locked": "Locked"
     },
-    "reviewCard": {
-      "title": "Want to review your answers?",
-      "description": "View all the answers you've provided so far in one place.",
-      "button": "Review Answers"
-    },
-    "worldCard": {
-      "discoverTitle": "What will you discover in this world?",
-      "questionCount": "{{count}} questions",
-      "estimatedTime": "~{{count}} minutes",
-      "worldNumberLabel": "World {{number}}",
-      "progressLabel": "Progress: {{completed}}/{{total}}",
-      "recommendedRibbon": "Recommended",
-      "statuses": {
-        "completed": "Completed",
-        "recommended": "Recommended",
-        "active": "In Progress",
-        "available": "Available",
-        "locked": "Locked"
-      },
-      "actions": {
-        "edit": "Edit Answers",
-        "startRecommended": "Start Now",
-        "continue": "Continue",
-        "start": "Start",
-        "locked": "Complete previous worlds"
-      }
-    },
-    "completionBanner": {
-      "title": "Congratulations, {{name}}!",
-      "subtitle": "You've completed all the questionnaire worlds. You've taken a huge step on your journey!",
-      "description": "Your full profile is now ready for our matchmakers.",
-      "statWorlds": "5 Worlds",
-      "statReport": "Full Soul Report"
-    },
+    "actions": {
+      "edit": "Edit Answers",
+      "startRecommended": "Start Now",
+      "continue": "Continue",
+      "start": "Start",
+      "locked": "Complete previous worlds"
+    }
+  },
+  "completionBanner": {
+    "title": "Congratulations, {{name}}!",
+    "titleNoName": "Congratulations!",
+    "subtitle": "You've completed all the questionnaire worlds. You've taken a huge step on your journey!",
+    "description": "Your full profile is now ready for our matchmakers.",
+    "statWorlds": "5 Worlds",
+    "statReport": "Full Soul Report"
+  },
+
+
     "worldsContent": {
       "PERSONALITY": {
         "title": "World of Personality",
@@ -418,69 +444,81 @@
   }
 
 ,
-  "world": {
-    "header": {
-      "questionLabel": "Question {{current}} of {{total}}",
-      "estimatedTimeLeft": "{{minutes}} min left",
-      "statusCard": {
-        "progress": "Progress",
-        "required": "Required",
-        "status": "Status",
-        "questions": "questions",
-        "complete": "✓ Complete",
-        "left": "{{count}} left",
-        "keepItUp": "Keep it up!",
-        "states": {
-          "started": "🌱 Started",
-          "going": "🚀 Going!",
-          "great": "⭐ Great",
-          "almost": "🔥 Almost!",
-          "perfect": "🎉 Perfect!"
-        }
-      },
-      "overallProgress": "Overall Progress"
-    },
-    "errors": {
-      "loadingFailedTitle": "Loading Error",
-      "loadingFailedDescription": "We couldn't load the questions for this world. Please try returning to the map and re-entering.",
-      "invalidQuestion": "Invalid question. Please try again.",
-      "validation": {
-        "required": "This field is required",
-        "minLength": "Answer must be at least {{count}} characters",
-        "maxLength": "Answer cannot exceed {{count}} characters",
-        "minSelections": "Please select at least {{count}} options",
-        "maxSelections": "You can select up to {{count}} options",
-        "budgetAllocation": "You must allocate exactly {{count}} points",
-        "budgetRequired": "Budget allocation is required"
+ "world": {
+  "header": {
+    "questionLabel": "Question {{current}} of {{total}}",
+    "estimatedTimeLeft": "{{minutes}} min left",
+    "statusCard": {
+      "progress": "Progress",
+      "required": "Required",
+      "status": "Status",
+      "questions": "questions",
+      "complete": "✓ Complete",
+      "left": "{{count}} left",
+      "keepItUp": "Keep it up!",
+      "states": {
+        "started": "🌱 Started",
+        "going": "🚀 Going!",
+        "great": "⭐ Great",
+        "almost": "🔥 Almost!",
+        "perfect": "🎉 Perfect!"
       }
     },
-    "buttons": {
-      "backToMap": "Back to Map",
-      "hideList": "Hide List",
-      "showList": "Show List",
-      "questionList": "Question List",
-      "previous": "Previous",
-      "next": "Next",
-      "finish": "Finish World",
-      "save": "Save",
-      "saving": "Saving..."
-    },
-    "listSheet": {
-      "title": "All Questions in {{worldTitle}}",
-      "description": "Navigate to any question or review your progress.",
-      "legend": {
-        "completed": "Answered",
-        "required": "Required",
-        "notAnswered": "Not Answered"
-      }
-    },
-    "celebration": {
-      "quarter": "🎉 Quarter way!",
-      "half": "🚀 Halfway there!",
-      "threeQuarters": "⭐ Almost done!",
-      "complete": "🎊 Amazing! All done!"
+    "overallProgress": "Overall Progress",
+    "lastSaved": {
+      "now": "Saved now",
+      "minuteAgo": "Saved 1 min ago",
+      "minutesAgo": "Saved {{count}} mins ago",
+      "hoursAgo": "Saved {{count}} hours ago"
     }
+  },
+  "errors": {
+    "loadingFailedTitle": "Loading Error",
+    "loadingFailedDescription": "We couldn't load the questions for this world. Please try returning to the map and re-entering.",
+    "invalidQuestion": "Invalid question. Please try again.",
+    "noQuestionFound": "No question found to display",
+    "validation": {
+      "required": "This field is required",
+      "minLength": "Answer must be at least {{count}} characters",
+      "maxLength": "Answer cannot exceed {{count}} characters",
+      "minSelections": "Please select at least {{count}} options",
+      "maxSelections": "You can select up to {{count}} options",
+      "budgetAllocation": "You must allocate exactly {{count}} points",
+      "budgetRequired": "Budget allocation is required",
+      "generalRequired": "Please answer all required questions ({{current}}/{{total}})"
+    }
+  },
+  "buttons": {
+    "backToMap": "Back to Map",
+    "hideList": "Hide List",
+    "showList": "Show List",
+    "questionList": "Question List",
+    "previous": "Previous",
+    "next": "Next",
+    "finish": "Finish World",
+    "save": "Save",
+    "saving": "Saving...",
+    "completing": "Completing...",
+    "prevShort": "Prev",
+    "nextShort": "Next",
+    "finishShort": "Finish"
+  },
+  "listSheet": {
+    "title": "All Questions in {{worldTitle}}",
+    "description": "Navigate to any question or review your progress.",
+    "legend": {
+      "completed": "Answered",
+      "required": "Required",
+      "notAnswered": "Not Answered"
+    }
+  },
+  "celebration": {
+    "quarter": "🎉 Quarter way!",
+    "half": "🚀 Halfway there!",
+    "threeQuarters": "⭐ Almost done!",
+    "complete": "🎊 Amazing! All done!"
   }
+}
 ,
   "answerInput": {
     "clearSelection": "Clear selection",
@@ -869,13 +907,30 @@
     "profilePrompt": "We recommend visiting your profile to upload photos and review your personal details.",
     "continueButton": "Continue to My Profile"
   },
-  "questionsList": {
-    "depthLabels": {
-      "BASIC": "Foundations",
-      "ADVANCED": "Deeper Insights",
-      "EXPERT": "Core Reflections"
-    }
+"questionsList": {
+  "depthLabels": {
+    "BASIC": "בסיסי",
+    "ADVANCED": "מתקדם",
+    "EXPERT": "מעמיק"
   },
+  "stats": {
+    "answeredQuestions": "שאלות שנענו",
+    "complete": "הושלם",
+    "remaining": "נותרו",
+    "done": "נענו"
+  },
+  "badges": {
+    "required": "חובה",
+    "answered": "✓ נענתה"
+  },
+  "motivationalMessages": {
+    "start": { "title": "בואו נתחיל!", "subtitle": "כל תשובה מקרבת אותך" },
+    "quarter": { "title": "התחלה מעולה!", "subtitle": "המשך כך" },
+    "half": { "title": "באמצע הדרך!", "subtitle": "עבודה מצוינת" },
+    "threeQuarters": { "title": "כמעט שם!", "subtitle": "עוד קצת והגעת לסיום" },
+    "finish": { "title": "מדהים! סיימת!", "subtitle": "השלמת את כל השאלות" }
+  }
+},
   "matchResultCard": {
     "premiumBadge": "Premium",
     "matchPercentageBadge": "{{percentage}}% Match",

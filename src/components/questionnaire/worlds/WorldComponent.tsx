@@ -1,7 +1,8 @@
 // src/components/questionnaire/worlds/WorldComponent.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import QuestionCard from '../common/QuestionCard';
 import AnswerInput from '../common/AnswerInput';
 import QuestionsList from '../common/QuestionsList';
@@ -14,26 +15,18 @@ import {
   CheckCircle,
   List,
   Loader2,
-  Save,
-  PanelLeftClose,
-  PanelRightClose,
   ListChecks,
-  CircleDot,
   Sparkles,
   Target,
-  Rocket,
   Star,
-  TrendingUp,
   Award,
-  Zap,
   Heart,
   Compass,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -41,8 +34,8 @@ import {
 import type {
   AnswerValue,
   Question,
-  WorldId,
   QuestionnaireAnswer,
+  WorldId,
 } from '../types/types';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -56,6 +49,7 @@ import type {
   QuestionsDictionary,
 } from '@/types/dictionary';
 
+// Questions Imports
 import { personalityQuestions } from '../questions/personality/personalityQuestions';
 import { valuesQuestions } from '../questions/values/valuesQuestions';
 import { relationshipQuestions } from '../questions/relationship/relationshipQuestions';
@@ -193,7 +187,7 @@ interface WorldComponentDynamicProps {
     worldLabels: Record<WorldId, string>;
   };
   locale: 'he' | 'en';
-  onMobileMenuOpen?: () => void; // פונקציה חדשה שמועברת מ-Layout
+  onMobileMenuOpen?: () => void;
 }
 
 export default function WorldComponent({
@@ -233,9 +227,14 @@ export default function WorldComponent({
     gradient,
   } = worldConfig[worldId];
 
-  const allQuestions = allQuestionsStructure.map((qStruct) =>
-    getQuestionWithText(qStruct, dict)
+  const allQuestions = useMemo(
+    () =>
+      allQuestionsStructure.map((qStruct) =>
+        getQuestionWithText(qStruct, dict)
+      ),
+    [allQuestionsStructure, dict]
   );
+
   const title = dict.worldLabels[worldId];
 
   const answeredQuestions = allQuestions.filter((q) =>
@@ -247,6 +246,14 @@ export default function WorldComponent({
       answers.find((a) => a.questionId === q.id && a.value !== undefined)
   ).length;
   const totalRequired = allQuestions.filter((q) => q.isRequired).length;
+
+  const remainingTimeMinutes = useMemo(() => {
+    let totalMinutes = 0;
+    for (let i = currentQuestionIndex; i < allQuestions.length; i++) {
+      totalMinutes += allQuestions[i].metadata?.estimatedTime || 1;
+    }
+    return Math.max(1, Math.round(totalMinutes));
+  }, [currentQuestionIndex, allQuestions]);
 
   useEffect(() => {
     if (currentQuestionIndex < 0) {
@@ -308,10 +315,9 @@ export default function WorldComponent({
     } else {
       if (requiredAnswered < totalRequired) {
         setValidationErrors({
-          general:
-            locale === 'he'
-              ? `נא להשיב על כל השאלות הנדרשות (${requiredAnswered}/${totalRequired})`
-              : `Please answer all required questions (${requiredAnswered}/${totalRequired})`,
+          general: validationDict.generalRequired
+            .replace('{{current}}', requiredAnswered.toString())
+            .replace('{{total}}', totalRequired.toString()),
         });
         setAnimateError(true);
         setTimeout(() => setAnimateError(false), 500);
@@ -333,7 +339,6 @@ export default function WorldComponent({
     validationDict,
     requiredAnswered,
     totalRequired,
-    worldDict.errors.validation,
   ]);
 
   const handlePrevious = useCallback(() => {
@@ -356,7 +361,7 @@ export default function WorldComponent({
         <Card className="rounded-3xl shadow-xl border-2 border-gray-200 p-8">
           <div className="text-center text-gray-500">
             <AlertCircle className="w-12 h-12 mx-auto mb-4" />
-            <p>{locale === 'he' ? 'לא נמצאה שאלה' : 'No question found'}</p>
+            <p>{worldDict.errors.noQuestionFound}</p>
           </div>
         </Card>
       );
@@ -386,6 +391,9 @@ export default function WorldComponent({
             onVisibilityChange(worldId, currentQuestion.id, isVisible)
           }
           dict={dict.questionCard}
+          currentQuestionNumber={currentQuestionIndex + 1}
+          totalQuestions={allQuestions.length}
+          estimatedTimeMinutes={remainingTimeMinutes}
         >
           <AnswerInput
             question={currentQuestion}
@@ -421,7 +429,6 @@ export default function WorldComponent({
     const PrevIcon = isRTL ? ArrowRight : ArrowLeft;
     const NextIcon = isRTL ? ArrowLeft : ArrowRight;
 
-    // Desktop version - stays the same
     if (isDesktop) {
       return (
         <motion.div
@@ -465,7 +472,7 @@ export default function WorldComponent({
               {isCompleting ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>{locale === 'he' ? 'משלים...' : 'Completing...'}</span>
+                  <span>{worldDict.buttons.completing}</span>
                 </>
               ) : (
                 <>
@@ -479,7 +486,7 @@ export default function WorldComponent({
       );
     }
 
-    // Mobile version - floating buttons
+    // Mobile buttons
     return (
       <motion.div
         className="fixed bottom-4 left-0 right-0 z-40 px-4"
@@ -488,7 +495,6 @@ export default function WorldComponent({
         transition={{ delay: 0.3, type: 'spring', stiffness: 100 }}
       >
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
-          {/* Previous Button */}
           <Button
             variant="outline"
             onClick={handlePrevious}
@@ -497,23 +503,17 @@ export default function WorldComponent({
             <PrevIcon className="h-5 w-5" />
             <span className="font-semibold text-sm">
               {currentQuestionIndex === 0
-                ? locale === 'he'
-                  ? 'חזור'
-                  : 'Back'
-                : locale === 'he'
-                  ? 'קודם'
-                  : 'Prev'}
+                ? worldDict.buttons.backToMap
+                : worldDict.buttons.prevShort}
             </span>
           </Button>
 
-          {/* Progress indicator */}
           <div className="flex items-center gap-2 px-4 py-3 bg-white/95 backdrop-blur-sm rounded-full border-2 border-gray-200 shadow-lg">
             <span className="text-xs font-bold text-gray-600">
               {currentQuestionIndex + 1}/{allQuestions.length}
             </span>
           </div>
 
-          {/* Next/Finish Button */}
           {currentQuestionIndex < allQuestions.length - 1 ? (
             <Button
               onClick={handleNext}
@@ -523,9 +523,7 @@ export default function WorldComponent({
                 gradient
               )}
             >
-              <span className="text-sm">
-                {locale === 'he' ? 'הבא' : 'Next'}
-              </span>
+              <span className="text-sm">{worldDict.buttons.nextShort}</span>
               <NextIcon className="h-5 w-5" />
             </Button>
           ) : (
@@ -538,13 +536,13 @@ export default function WorldComponent({
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
                   <span className="text-sm">
-                    {locale === 'he' ? 'משלים...' : 'Completing...'}
+                    {worldDict.buttons.completing}
                   </span>
                 </>
               ) : (
                 <>
                   <span className="text-sm">
-                    {locale === 'he' ? 'סיים' : 'Finish'}
+                    {worldDict.buttons.finishShort}
                   </span>
                   <CheckCircle className="h-5 w-5" />
                 </>
@@ -595,9 +593,7 @@ export default function WorldComponent({
     );
   };
 
-  // --- START: MOBILE HEADER WITH MENU BUTTON AND QUESTION LIST ---
   const MobileWorldHeader = () => {
-    // Format last saved time
     const formatLastSaved = (date: Date | null) => {
       if (!date) return null;
       const now = new Date();
@@ -605,18 +601,20 @@ export default function WorldComponent({
       const diffMins = Math.floor(diffMs / 60000);
 
       if (diffMins < 1) {
-        return locale === 'he' ? 'נשמר כעת' : 'Saved now';
+        return worldDict.header.lastSaved.now;
       } else if (diffMins === 1) {
-        return locale === 'he' ? 'נשמר לפני דקה' : 'Saved 1 min ago';
+        return worldDict.header.lastSaved.minuteAgo;
       } else if (diffMins < 60) {
-        return locale === 'he'
-          ? `נשמר לפני ${diffMins} דקות`
-          : `Saved ${diffMins} mins ago`;
+        return worldDict.header.lastSaved.minutesAgo.replace(
+          '{{count}}',
+          diffMins.toString()
+        );
       } else {
         const diffHours = Math.floor(diffMins / 60);
-        return locale === 'he'
-          ? `נשמר לפני ${diffHours} שעות`
-          : `Saved ${diffHours} hours ago`;
+        return worldDict.header.lastSaved.hoursAgo.replace(
+          '{{count}}',
+          diffHours.toString()
+        );
       }
     };
 
@@ -625,18 +623,15 @@ export default function WorldComponent({
     return (
       <div className="bg-white/80 backdrop-blur-sm p-3 rounded-2xl shadow-lg border-2 border-white mb-6">
         <div className="flex items-center justify-between gap-2">
-          {/* כפתור תפריט משולב בצד */}
           <Button
             variant="outline"
             size="sm"
             onClick={onMobileMenuOpen}
             className="p-2.5 bg-white border-2 border-gray-300 rounded-xl flex-shrink-0 transition-all duration-200 hover:scale-105 hover:bg-gray-50 hover:border-gray-400 shadow-sm"
-            title={locale === 'he' ? 'תפריט עולמות' : 'Worlds Menu'}
           >
             <Compass className="h-5 w-5 text-gray-700" />
           </Button>
 
-          {/* פרטי העולם הנוכחי */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div
               className={cn(
@@ -651,14 +646,13 @@ export default function WorldComponent({
                 <h2 className="font-bold text-base text-gray-800 truncate">
                   {title}
                 </h2>
-                {/* Save indicator */}
                 {(isSaving || lastSavedText) && (
                   <div className="flex items-center gap-1">
                     {isSaving ? (
                       <>
                         <Loader2 className="h-3 w-3 text-blue-500 animate-spin" />
                         <span className="text-xs text-blue-600 font-medium whitespace-nowrap">
-                          {locale === 'he' ? 'שומר...' : 'Saving...'}
+                          {worldDict.buttons.saving}
                         </span>
                       </>
                     ) : lastSavedText ? (
@@ -680,7 +674,6 @@ export default function WorldComponent({
             </div>
           </div>
 
-          {/* כפתור רשימת שאלות */}
           <Sheet>
             <SheetTrigger asChild>
               <Button
@@ -734,10 +727,11 @@ export default function WorldComponent({
           </Sheet>
         </div>
 
-        {/* פס התקדמות */}
         <div className="mt-3 space-y-1">
           <div className="flex justify-between text-xs font-medium">
-            <span className="text-gray-600">התקדמות בעולם</span>
+            <span className="text-gray-600">
+              {worldDict.header.overallProgress}
+            </span>
             <span className={cn('font-bold', `text-${themeColor}-600`)}>
               {Math.round(overallProgress)}%
             </span>
@@ -751,7 +745,6 @@ export default function WorldComponent({
       </div>
     );
   };
-  // --- END: MOBILE HEADER WITH MENU BUTTON AND QUESTION LIST ---
 
   if (isDesktop) {
     return (

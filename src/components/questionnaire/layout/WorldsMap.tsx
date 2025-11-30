@@ -24,23 +24,22 @@ import {
   Award,
   BookUser,
   ChevronDown,
-  ChevronUp,
+  Compass,
+  Map,
+  Check,
   Clock,
   ArrowLeft,
   Trophy,
   Target,
   Zap,
   TrendingUp,
-  Compass,
-  Map,
-  Check,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
-import type { WorldsMapDict } from '@/types/dictionary';
-import type { QuestionnaireAnswer } from '../types/types';
+import type { WorldsMapDict, WorldsMapWorldContent } from '@/types/dictionary';
+import type { QuestionnaireAnswer, WorldId } from '../types/types';
 
-// Konfiguracja wizualna (ikony, kolory)
+// Visual configuration (icons, colors)
 const worldsConfig = {
   PERSONALITY: { icon: User, order: 1, themeColor: 'sky' },
   VALUES: { icon: Heart, order: 2, themeColor: 'rose' },
@@ -57,7 +56,7 @@ const worldsConfig = {
   RELIGION: { icon: Scroll, order: 5, themeColor: 'amber' },
 } as const;
 
-type WorldId = keyof typeof worldsConfig;
+// Ensure this matches your WorldId type definition
 const WORLD_ORDER: WorldId[] = [
   'PERSONALITY',
   'VALUES',
@@ -65,6 +64,7 @@ const WORLD_ORDER: WorldId[] = [
   'PARTNER',
   'RELIGION',
 ];
+
 type WorldStatus =
   | 'completed'
   | 'recommended'
@@ -72,7 +72,7 @@ type WorldStatus =
   | 'available'
   | 'locked';
 
-// Interfejsy propsów komponentów
+// Component Props Interfaces
 interface WorldsMapProps {
   currentWorld: WorldId;
   completedWorlds: WorldId[];
@@ -89,12 +89,13 @@ interface WorldCardProps {
   status: WorldStatus;
   onSelect: () => void;
   dict: WorldsMapDict['worldCard'];
-  fullContent: WorldsMapDict['worldsContent'][WorldId];
+  fullContent: WorldsMapWorldContent; // <--- התיקון: שימוש בטיפוס הישיר
   stats: { questionCount: number; estimatedTime: number };
   progress: { completed: number; total: number };
   locale: 'he' | 'en';
   worldNumber: number;
 }
+
 
 interface ProgressHeaderProps {
   userName?: string | null;
@@ -113,17 +114,17 @@ interface ProgressHeaderProps {
 const EnhancedBackground: React.FC = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     <div className="absolute inset-0 opacity-30">
-      <div className="absolute top-10 left-10 w-64 h-64 bg-gradient-to-br from-teal-300/40 to-cyan-400/25 rounded-full blur-3xl animate-float-slow" />
+      <div className="absolute top-10 left-10 w-64 h-64 bg-teal-300/20 rounded-full blur-3xl animate-float-slow" />
       <div
-        className="absolute top-1/3 right-20 w-56 h-56 bg-gradient-to-br from-orange-300/35 to-amber-400/25 rounded-full blur-3xl animate-float-slow"
+        className="absolute top-1/3 right-20 w-56 h-56 bg-orange-300/20 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '2s' }}
       />
       <div
-        className="absolute bottom-20 left-1/3 w-72 h-72 bg-gradient-to-br from-pink-300/30 to-rose-400/20 rounded-full blur-3xl animate-float-slow"
+        className="absolute bottom-20 left-1/3 w-72 h-72 bg-rose-300/15 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '4s' }}
       />
       <div
-        className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-gradient-to-br from-purple-300/30 to-indigo-400/20 rounded-full blur-3xl animate-float-slow"
+        className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-amber-200/20 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '6s' }}
       />
     </div>
@@ -135,9 +136,12 @@ const EnhancedBackground: React.FC = () => (
     >
       <defs>
         <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.2" />
-          <stop offset="50%" stopColor="#f97316" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="#ec4899" stopOpacity="0.1" />
+          <stop offset="0%" stopColor="#0d9488" stopOpacity="0.2" />{' '}
+          {/* Teal */}
+          <stop offset="50%" stopColor="#f97316" stopOpacity="0.15" />{' '}
+          {/* Orange */}
+          <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.1" />{' '}
+          {/* Rose */}
         </linearGradient>
       </defs>
       <path
@@ -190,31 +194,34 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-teal-100 to-orange-100 rounded-full px-4 py-2 mb-4">
               <Map className="w-4 h-4 text-teal-600" />
               <span className="text-sm font-bold text-teal-700">
-                מפת העולמות שלך
+                {dict.mapTitle}
               </span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-2 leading-tight">
               {userName ? (
                 <>
-                  היי {userName},
+                  {dict.greeting.replace('{{name}}', userName)}
                   <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
-                    איפה אנחנו במסע?
+                    {dict.journeyQuestion}
                   </span>
                 </>
               ) : (
                 <>
+                  {dict.greetingNoName}
+                  <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
-                    המסע שלך לגילוי עצמי
+                    {dict.journeyTitle}
                   </span>
                 </>
               )}
             </h1>
             <p className="text-base text-gray-600">
-              השלמת {completedCount} מתוך {totalCount} עולמות •{' '}
-              <span className="font-semibold text-teal-600">
-                {totalAnswered} מתוך {totalQuestions} שאלות
-              </span>
+              {dict.progressText
+                .replace('{{completedCount}}', completedCount.toString())
+                .replace('{{totalCount}}', totalCount.toString())
+                .replace('{{totalAnswered}}', totalAnswered.toString())
+                .replace('{{totalQuestions}}', totalQuestions.toString())}
             </p>
           </div>
 
@@ -259,20 +266,40 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
 
           {/* Milestones */}
           <div className="flex justify-between text-xs text-gray-500 px-1">
-            <span className={completionPercent >= 20 ? 'text-teal-600 font-bold' : ''}>
-              התחלה
+            <span
+              className={
+                completionPercent >= 20 ? 'text-teal-600 font-bold' : ''
+              }
+            >
+              {dict.milestones.start}
             </span>
-            <span className={completionPercent >= 40 ? 'text-teal-600 font-bold' : ''}>
-              במסלול
+            <span
+              className={
+                completionPercent >= 40 ? 'text-teal-600 font-bold' : ''
+              }
+            >
+              {dict.milestones.onTrack}
             </span>
-            <span className={completionPercent >= 60 ? 'text-orange-600 font-bold' : ''}>
-              בעיצומו
+            <span
+              className={
+                completionPercent >= 60 ? 'text-orange-600 font-bold' : ''
+              }
+            >
+              {dict.milestones.inProgress}
             </span>
-            <span className={completionPercent >= 80 ? 'text-orange-600 font-bold' : ''}>
-              כמעט שם
+            <span
+              className={
+                completionPercent >= 80 ? 'text-orange-600 font-bold' : ''
+              }
+            >
+              {dict.milestones.almostThere}
             </span>
-            <span className={completionPercent === 100 ? 'text-amber-600 font-bold' : ''}>
-              הושלם!
+            <span
+              className={
+                completionPercent === 100 ? 'text-amber-600 font-bold' : ''
+              }
+            >
+              {dict.milestones.completed}
             </span>
           </div>
         </div>
@@ -292,15 +319,13 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-800 mb-1">
-                    הצעד הבא במסע
+                    {dict.nextStepTitle}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    מוכן/ה להמשיך ל
-                    <span className="font-bold text-teal-600">
-                      {' '}
-                      {worldLabels[nextRecommendedWorld]}
-                    </span>
-                    ?
+                    {dict.nextStepPrompt.replace(
+                      '{{worldName}}',
+                      worldLabels[nextRecommendedWorld]
+                    )}
                   </p>
                 </div>
               </div>
@@ -312,7 +337,7 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
                 <div className="relative z-10 flex items-center gap-2">
                   <Sparkles className="h-5 w-5 fill-current" />
-                  <span>בוא נמשיך!</span>
+                  <span>{dict.ctaButton}</span>
                   <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
                 </div>
               </Button>
@@ -330,11 +355,9 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
             <div className="text-center p-6 bg-gradient-to-r from-teal-50 via-orange-50 to-amber-50 rounded-2xl">
               <Trophy className="w-12 h-12 mx-auto mb-3 text-amber-500 fill-amber-400" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">
-                🎉 כל הכבוד! השלמת את כל העולמות
+                {dict.completionTitle}
               </h3>
-              <p className="text-gray-600">
-                עכשיו אפשר לעיין בפרופיל המלא שלך ולראות את דוח הנשמה
-              </p>
+              <p className="text-gray-600">{dict.completionSubtitle}</p>
             </div>
           </motion.div>
         )}
@@ -365,7 +388,9 @@ const WorldCard: React.FC<WorldCardProps> = ({
   const ForwardArrow = isRTL ? ArrowLeft : ArrowRight;
 
   const progressPercent =
-    progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0;
+    progress.total > 0
+      ? Math.round((progress.completed / progress.total) * 100)
+      : 0;
 
   const colorMap = {
     sky: {
@@ -410,43 +435,43 @@ const WorldCard: React.FC<WorldCardProps> = ({
   const statusInfo = {
     completed: {
       Icon: CheckCircle2,
-      text: 'הושלם',
+      text: dict.statuses.completed,
       badge: 'bg-green-100 text-green-700 border-green-300',
-      action: 'ערוך תשובות',
+      action: dict.actions.edit,
       ActionIcon: Edit3,
       cardStyle: 'border-green-300 bg-white/90',
     },
     recommended: {
       Icon: Star,
-      text: 'מומלץ',
+      text: dict.statuses.recommended,
       badge:
         'bg-gradient-to-r from-teal-100 to-orange-100 text-teal-700 border-teal-300 font-bold animate-pulse-glow',
-      action: 'התחל עכשיו',
+      action: dict.actions.startRecommended,
       ActionIcon: Zap,
       cardStyle:
         'border-teal-400 bg-gradient-to-br from-white via-teal-50/30 to-orange-50/30 shadow-2xl scale-[1.02] ring-2 ring-teal-300/50',
     },
     active: {
       Icon: Target,
-      text: 'בתהליך',
+      text: dict.statuses.active,
       badge: `${colors.bg} ${colors.text} ${colors.border}`,
-      action: 'המשך',
+      action: dict.actions.continue,
       ActionIcon: ForwardArrow,
       cardStyle: `${colors.border} bg-white/90`,
     },
     available: {
       Icon: Compass,
-      text: 'זמין',
+      text: dict.statuses.available,
       badge: 'bg-gray-100 text-gray-700 border-gray-300',
-      action: 'התחל',
+      action: dict.actions.start,
       ActionIcon: ForwardArrow,
       cardStyle: 'border-gray-300 bg-white/80',
     },
     locked: {
       Icon: Lock,
-      text: 'נעול',
+      text: dict.statuses.locked,
       badge: 'bg-gray-200 text-gray-500 border-gray-300',
-      action: 'השלם עולמות קודמים',
+      action: dict.actions.locked,
       ActionIcon: Lock,
       cardStyle: 'border-gray-300 bg-gray-50/80 opacity-60',
     },
@@ -479,7 +504,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
         {/* Recommended Badge Ribbon */}
         {status === 'recommended' && (
           <div className="absolute top-4 -right-10 rotate-45 bg-gradient-to-r from-teal-500 to-orange-500 text-white text-xs font-bold px-12 py-1 shadow-lg z-20">
-            מומלץ
+            {dict.recommendedRibbon}
           </div>
         )}
 
@@ -516,7 +541,10 @@ const WorldCard: React.FC<WorldCardProps> = ({
           <div className="flex items-center gap-2">
             <div className="inline-flex items-center gap-1.5 bg-gray-100 rounded-full px-3 py-1">
               <span className="text-xs font-bold text-gray-600">
-                עולם {worldNumber}
+                {dict.worldNumberLabel.replace(
+                  '{{number}}',
+                  worldNumber.toString()
+                )}
               </span>
             </div>
             {status === 'completed' && (
@@ -541,11 +569,14 @@ const WorldCard: React.FC<WorldCardProps> = ({
           </div>
 
           {/* Progress Bar (for active/in-progress worlds) */}
-          {(status === 'active' || (status === 'completed' && progressPercent < 100)) && (
+          {(status === 'active' ||
+            (status === 'completed' && progressPercent < 100)) && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-600 font-medium">
-                  התקדמות: {progress.completed}/{progress.total}
+                  {dict.progressLabel
+                    .replace('{{completed}}', progress.completed.toString())
+                    .replace('{{total}}', progress.total.toString())}
                 </span>
                 <span className={cn('font-bold', colors.text)}>
                   {progressPercent}%
@@ -554,7 +585,10 @@ const WorldCard: React.FC<WorldCardProps> = ({
               <Progress
                 value={progressPercent}
                 className="h-2 rounded-full bg-gray-200/80"
-                indicatorClassName={cn('bg-gradient-to-r transition-all duration-500', colors.gradient)}
+                indicatorClassName={cn(
+                  'bg-gradient-to-r transition-all duration-500',
+                  colors.gradient
+                )}
               />
             </div>
           )}
@@ -565,13 +599,17 @@ const WorldCard: React.FC<WorldCardProps> = ({
               <div className={cn('p-1.5 rounded-lg', colors.bg)}>
                 <BookUser className={cn('w-4 h-4', colors.text)} />
               </div>
-              <span className="font-medium">{stats.questionCount} שאלות</span>
+              <span className="font-medium">
+                {stats.questionCount} {dict.questionsLabel}
+              </span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <div className={cn('p-1.5 rounded-lg', colors.bg)}>
                 <Clock className={cn('w-4 h-4', colors.text)} />
               </div>
-              <span className="font-medium">~{stats.estimatedTime} דקות</span>
+              <span className="font-medium">
+                ~{stats.estimatedTime} {dict.minutesLabel}
+              </span>
             </div>
           </div>
 
@@ -583,7 +621,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
                 className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors w-full"
                 disabled={status === 'locked'}
               >
-                <span>מה תגלה בעולם הזה?</span>
+                <span>{dict.expandButton}</span>
                 <motion.div
                   animate={{ rotate: isExpanded ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
@@ -610,7 +648,12 @@ const WorldCard: React.FC<WorldCardProps> = ({
                           transition={{ delay: idx * 0.1 }}
                           className="flex items-start gap-2 text-sm text-gray-600"
                         >
-                          <Check className={cn('w-4 h-4 mt-0.5 flex-shrink-0', colors.text)} />
+                          <Check
+                            className={cn(
+                              'w-4 h-4 mt-0.5 flex-shrink-0',
+                              colors.text
+                            )}
+                          />
                           <span>{benefit}</span>
                         </motion.li>
                       ))}
@@ -628,6 +671,7 @@ const WorldCard: React.FC<WorldCardProps> = ({
               status === 'completed' &&
                 'bg-white border-2 border-green-300 text-green-700 hover:bg-green-50',
               status === 'recommended' &&
+                // Updated Recommended CTA
                 'bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white',
               (status === 'active' || status === 'available') &&
                 `bg-gradient-to-r ${colors.gradient} hover:opacity-90 text-white`,
@@ -670,6 +714,7 @@ const ReviewCard: React.FC<{
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
+      {/* Updated Review Card Colors */}
       <Card className="relative overflow-hidden bg-gradient-to-br from-white via-teal-50/40 to-white backdrop-blur-md shadow-xl border-2 border-teal-200/60">
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-teal-200/30 to-transparent rounded-bl-full blur-2xl" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-200/30 to-transparent rounded-tr-full blur-xl" />
@@ -731,14 +776,18 @@ const CompletionBanner: React.FC<{
         <CardContent className="relative z-10 p-12">
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
-            animate={isInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -180 }}
+            animate={
+              isInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -180 }
+            }
             transition={{ type: 'spring', stiffness: 150, delay: 0.2 }}
           >
             <Trophy className="w-20 h-20 mx-auto mb-6 text-amber-300 fill-amber-200" />
           </motion.div>
 
           <h2 className="text-4xl font-extrabold mb-4">
-            {userName ? `כל הכבוד, ${userName}!` : 'כל הכבוד!'}
+            {userName
+              ? dict.title.replace('{{name}}', userName)
+              : dict.titleNoName}
           </h2>
           <p className="text-xl font-semibold mb-2 opacity-95">
             {dict.subtitle}
@@ -757,13 +806,13 @@ const CompletionBanner: React.FC<{
               <div className="p-2 bg-white/20 rounded-lg">
                 <Check className="w-5 h-5" />
               </div>
-              <span className="font-semibold">5 עולמות</span>
+              <span className="font-semibold">{dict.statWorlds}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="p-2 bg-white/20 rounded-lg">
                 <TrendingUp className="w-5 h-5" />
               </div>
-              <span className="font-semibold">דוח נשמה מלא</span>
+              <span className="font-semibold">{dict.statReport}</span>
             </div>
           </motion.div>
         </CardContent>

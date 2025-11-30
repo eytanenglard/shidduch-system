@@ -10,16 +10,12 @@ import {
   BookUser,
   Loader2,
   Trophy,
-  Sparkles,
-  Heart,
-  Star,
   Zap,
   Award,
-  TrendingUp,
+  Star,
   Target,
   Clock,
   ArrowRight,
-  PartyPopper,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -185,7 +181,6 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
   totalQuestions = 0,
   answeredQuestions = 0,
   timeSpentMinutes = 0,
-  worldsCompleted = 5,
   locale = 'he',
 }) => {
   const [showConfetti, setShowConfetti] = useState(false);
@@ -208,29 +203,29 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
   const achievements = [
     {
       icon: <CheckCircle2 className="w-5 h-5" />,
-      title: isRTL ? '🎯 השלמת את השאלון!' : '🎯 Completed Questionnaire!',
-      description: isRTL
-        ? 'מילאת את כל השאלות בהצלחה'
-        : 'You answered all questions successfully',
+      title: dict.achievements.completed.title,
+      description: dict.achievements.completed.description,
     },
     {
       icon: <Zap className="w-5 h-5" />,
-      title: isRTL ? '⚡ מהירות מרשימה' : '⚡ Impressive Speed',
-      description: isRTL
-        ? `סיימת תוך ${timeSpentMinutes} דקות`
-        : `Completed in ${timeSpentMinutes} minutes`,
+      title: dict.achievements.speed.title,
+      description: dict.achievements.speed.description.replace(
+        '{{minutes}}',
+        timeSpentMinutes.toString()
+      ),
     },
     {
       icon: <Target className="w-5 h-5" />,
-      title: isRTL ? '🎨 פרופיל מלא' : '🎨 Complete Profile',
-      description: isRTL
-        ? 'יצרת פרופיל עשיר ומפורט'
-        : 'Created a rich and detailed profile',
+      title: dict.achievements.profile.title,
+      description: dict.achievements.profile.description,
     },
   ];
 
   return (
-    <div className="min-h-screen relative overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div
+      className="min-h-screen relative overflow-hidden"
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
       {/* Background Gradient */}
       <div className="fixed inset-0 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 -z-10" />
 
@@ -292,7 +287,10 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full blur-xl opacity-50" />
                     <div className="relative p-8 bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 rounded-full shadow-2xl">
-                      <Trophy className="w-20 h-20 text-white" strokeWidth={2.5} />
+                      <Trophy
+                        className="w-20 h-20 text-white"
+                        strokeWidth={2.5}
+                      />
                     </div>
                   </div>
                 </motion.div>
@@ -313,7 +311,9 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
                     transition={{ delay: 0.5, duration: 0.6 }}
                     className="text-xl md:text-2xl text-gray-700 font-medium max-w-2xl mx-auto leading-relaxed"
                   >
-                    {isLoggedIn ? dict.loggedInDescription : dict.guestDescription}
+                    {isLoggedIn
+                      ? dict.loggedInDescription
+                      : dict.guestDescription}
                   </motion.p>
                 </div>
               </motion.div>
@@ -324,21 +324,21 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
                   <StatsCard
                     icon={<Star className="w-6 h-6" />}
                     value={completionPercentage}
-                    label={isRTL ? '% השלמה' : '% Complete'}
+                    label={dict.stats.completion}
                     gradient="from-purple-500 via-pink-500 to-rose-500"
                     delay={0.7}
                   />
                   <StatsCard
                     icon={<CheckCircle2 className="w-6 h-6" />}
                     value={answeredQuestions}
-                    label={isRTL ? 'שאלות נענו' : 'Questions Answered'}
+                    label={dict.stats.answered}
                     gradient="from-cyan-500 via-blue-500 to-indigo-500"
                     delay={0.9}
                   />
                   <StatsCard
                     icon={<Clock className="w-6 h-6" />}
                     value={`${timeSpentMinutes}'`}
-                    label={isRTL ? 'זמן השקעה' : 'Time Invested'}
+                    label={dict.stats.time}
                     gradient="from-emerald-500 via-teal-500 to-green-500"
                     delay={1.1}
                   />
@@ -357,7 +357,7 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
                     <Award className="w-6 h-6 text-white" />
                   </div>
                   <h2 className="text-2xl font-bold text-gray-800">
-                    {isRTL ? '🎉 הישגים שפתחת' : '🎉 Achievements Unlocked'}
+                    {dict.unlocksTitle}
                   </h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -405,18 +405,25 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
                         {isLoading ? (
                           <>
                             <Loader2 className="w-6 h-6 animate-spin" />
-                            <span className="mr-2">{dict.loggedInContent.sendingButton}</span>
+                            <span className="mr-2">
+                              {dict.loggedInContent.sendingButton}
+                            </span>
                           </>
                         ) : (
                           <>
                             <Send className="w-6 h-6" />
-                            <span className="mr-2">{dict.loggedInContent.sendButton}</span>
+                            <span className="mr-2">
+                              {dict.loggedInContent.sendButton}
+                            </span>
                             <ArrowRight className="w-5 h-5" />
                           </>
                         )}
                       </Button>
 
-                      <Link href="/profile?tab=questionnaire" className="flex-1">
+                      <Link
+                        href="/profile?tab=questionnaire"
+                        className="flex-1"
+                      >
                         <Button
                           variant="outline"
                           size="lg"
@@ -424,7 +431,9 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
                           className="w-full h-14 text-lg font-semibold rounded-2xl border-2 bg-white hover:bg-gray-50 transition-all duration-300 hover:scale-105"
                         >
                           <BookUser className="w-6 h-6 text-blue-600" />
-                          <span className="mr-2">{dict.loggedInContent.reviewButton}</span>
+                          <span className="mr-2">
+                            {dict.loggedInContent.reviewButton}
+                          </span>
                         </Button>
                       </Link>
                     </div>
@@ -441,7 +450,9 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
                       size="lg"
                       className="w-full h-14 text-lg font-bold rounded-2xl shadow-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 hover:scale-105"
                     >
-                      <span className="mr-2">{dict.guestContent.loginButton}</span>
+                      <span className="mr-2">
+                        {dict.guestContent.loginButton}
+                      </span>
                       <ArrowRight className="w-5 h-5" />
                     </Button>
                   </div>

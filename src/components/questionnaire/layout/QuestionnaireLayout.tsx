@@ -57,29 +57,8 @@ export interface QuestionnaireLayoutProps {
   onMenuOpen?: () => void;
 }
 
-const worldConfig = {
-  PERSONALITY: { icon: () => <div />, themeColor: 'sky' },
-  VALUES: { icon: () => <div />, themeColor: 'rose' },
-  RELATIONSHIP: { icon: () => <div />, themeColor: 'purple' },
-  PARTNER: { icon: () => <div />, themeColor: 'teal' },
-  RELIGION: { icon: () => <div />, themeColor: 'amber' },
-};
-
-const colorMap = {
-  sky: { border: 'border-sky-300', bg: 'bg-sky-50', text: 'text-sky-600' },
-  rose: { border: 'border-rose-300', bg: 'bg-rose-50', text: 'text-rose-600' },
-  purple: {
-    border: 'border-purple-300',
-    bg: 'bg-purple-50',
-    text: 'text-purple-600',
-  },
-  teal: { border: 'border-teal-300', bg: 'bg-teal-50', text: 'text-teal-600' },
-  amber: {
-    border: 'border-amber-300',
-    bg: 'bg-amber-50',
-    text: 'text-amber-600',
-  },
-};
+// Note: Specific world colors (Sky, Rose, etc.) are kept for the specific world content,
+// but the layout shell uses the new global palette (Teal/Orange).
 
 export default function QuestionnaireLayout({
   children,
@@ -103,10 +82,7 @@ export default function QuestionnaireLayout({
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
-  const isSmallScreen = useMediaQuery('(max-width: 640px)');
   const isRTL = locale === 'he';
-  const currentThemeColor = worldConfig[currentWorld]?.themeColor || 'sky';
-  const currentColors = colorMap[currentThemeColor as keyof typeof colorMap];
 
   const handleSave = useCallback(async () => {
     if (!onSaveProgress) return;
@@ -133,7 +109,8 @@ export default function QuestionnaireLayout({
   return (
     <div
       className={cn(
-        'min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50',
+        // Updated Main Background
+        'min-h-screen bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20',
         isRTL ? 'rtl' : 'ltr'
       )}
     >
@@ -197,17 +174,19 @@ export default function QuestionnaireLayout({
           <main className="flex-1">
             {!isLoggedIn && (
               <div className="p-4">
-                <div className="rounded-xl bg-yellow-50 p-4 border border-yellow-200 text-center">
-                  <h3 className="text-sm font-semibold text-yellow-800">
+                {/* Updated Unauthenticated Prompt Colors */}
+                <div className="rounded-xl bg-amber-50 p-4 border border-amber-200 text-center">
+                  <h3 className="text-sm font-semibold text-amber-800">
                     {dict.layout.unauthenticatedPrompt.title}
                   </h3>
-                  <p className="text-xs text-yellow-700 mt-1">
+                  <p className="text-xs text-amber-700 mt-1">
                     {dict.layout.unauthenticatedPrompt.subtitle}
                   </p>
                   <div className="flex justify-center gap-2 mt-3">
                     <Button
                       size="sm"
-                      className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                      // Teal buttons for action
+                      className="bg-teal-600 hover:bg-teal-700 text-white"
                       onClick={() => router.push('/auth/signin')}
                     >
                       <LogIn className="w-4 h-4 ml-2" />
@@ -216,7 +195,7 @@ export default function QuestionnaireLayout({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-yellow-600 text-yellow-700 hover:bg-yellow-100"
+                      className="border-teal-600 text-teal-700 hover:bg-teal-50"
                       onClick={() => router.push('/auth/register')}
                     >
                       <UserPlus className="w-4 h-4 ml-2" />
@@ -227,7 +206,7 @@ export default function QuestionnaireLayout({
               </div>
             )}
             <div className="p-2 sm:p-4">
-              {/* העברת הפונקציה לפתיחת התפריט ל-children דרך Context או props */}
+              {/* Pass menu opener function to children */}
               {React.Children.map(children, (child) => {
                 if (React.isValidElement(child)) {
                   return React.cloneElement(child as React.ReactElement<any>, {

@@ -34,7 +34,7 @@ import UserDropdown from './UserDropdown';
 import type { Dictionary } from '@/types/dictionary';
 import { useQuestionnaireState } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
-// --- רכיב לוגו (מעודכן לצבעים החדשים) ---
+// --- רכיב לוגו (מעודכן: Teal -> Orange -> Amber) ---
 const Logo = ({ locale }: { locale: string }) => (
   <Link
     href={`/${locale}`}
@@ -52,13 +52,13 @@ const Logo = ({ locale }: { locale: string }) => (
         priority
       />
     </div>
-    <span className="text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-400 text-transparent bg-clip-text bg-size-200 bg-pos-0 group-hover:bg-pos-100 transition-all duration-700 ease-in-out">
+    <span className="text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 text-transparent bg-clip-text bg-size-200 bg-pos-0 group-hover:bg-pos-100 transition-all duration-700 ease-in-out">
       NeshamaTech
     </span>
   </Link>
 );
 
-// --- רכיבי ניווט (מעודכנים ל-Teal) ---
+// --- רכיבי ניווט (מעודכנים: Teal/Orange Highlights) ---
 const NavItem = ({
   href,
   text,
@@ -81,16 +81,16 @@ const NavItem = ({
       href={fullHref}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'relative px-3 py-2 rounded-full text-sm transition-colors duration-200',
+        'relative px-3 py-2 rounded-full text-sm transition-all duration-200',
         isActive
-          ? 'font-semibold text-teal-600 bg-teal-500/10' // שינוי ל-Teal
-          : 'font-medium text-gray-700 hover:text-teal-600 hover:bg-teal-500/10' // שינוי ל-Teal
+          ? 'font-bold text-teal-700 bg-teal-50'
+          : 'font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/50'
       )}
     >
       {text}
       {badge !== undefined && badge > 0 && (
         <motion.span
-          className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-bold shadow-lg border-2 border-white"
+          className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-bold shadow-sm border-2 border-white"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 500, damping: 30 }}
@@ -132,10 +132,10 @@ const MobileNavItem = ({
       aria-current={isActive ? 'page' : undefined}
       onClick={onClick}
       className={cn(
-        'flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group gap-4',
+        'flex items-center px-4 py-3 rounded-xl text-base font-medium transition-colors duration-150 group gap-4 mb-1 touch-manipulation active:bg-gray-100',
         isActive
-          ? 'bg-teal-100 text-teal-800 shadow-inner' // שינוי ל-Teal
-          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+          ? 'bg-teal-50 text-teal-700 shadow-sm border border-teal-100/50'
+          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
       )}
     >
       {icon && (
@@ -143,8 +143,8 @@ const MobileNavItem = ({
           className={cn(
             'transition-colors',
             isActive
-              ? 'text-teal-600' // שינוי ל-Teal
-              : 'text-gray-500 group-hover:text-gray-700'
+              ? 'text-teal-600'
+              : 'text-gray-400 group-hover:text-gray-600'
           )}
         >
           {icon}
@@ -154,7 +154,7 @@ const MobileNavItem = ({
       {badge !== undefined && badge > 0 && (
         <span
           className={cn(
-            'bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-semibold', // שינוי ל-Orange
+            'bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center justify-center font-bold shadow-sm',
             isRtl ? 'mr-auto' : 'ml-auto'
           )}
         >
@@ -176,7 +176,7 @@ const MobileHomePageLink = ({
   icon: React.ReactNode;
   onClick: () => void;
 }) => {
-  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement> | React.TouchEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const element = document.querySelector(href);
     if (element) {
@@ -191,9 +191,10 @@ const MobileHomePageLink = ({
     <a
       href={href}
       onClick={handleScroll}
-      className="flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group text-gray-700 hover:bg-gray-100 hover:text-gray-900 gap-4"
+      onTouchEnd={handleScroll}
+      className="flex items-center px-4 py-3 rounded-xl text-base font-medium transition-colors duration-150 group text-gray-600 hover:bg-gray-50 hover:text-gray-900 gap-4 touch-manipulation active:bg-gray-100"
     >
-      <span className="text-gray-500 group-hover:text-gray-700">{icon}</span>
+      <span className="text-gray-400 group-hover:text-gray-600">{icon}</span>
       <span className="flex-grow">{text}</span>
     </a>
   );
@@ -276,13 +277,10 @@ const Navbar = ({ dict }: NavbarProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // ניקוי גלילה במקרה שהקומפוננטה נפרקת בזמן שהתפריט פתוח
   useEffect(() => {
     return () => {
       if (mobileMenuOpen) {
         document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
       }
     };
   }, [mobileMenuOpen]);
@@ -290,15 +288,10 @@ const Navbar = ({ dict }: NavbarProps) => {
   const toggleMobileMenu = () => {
     setMobileMenuOpen((prev) => {
       const newState = !prev;
-      // חסימת/שחרור גלילת ה-body
       if (newState) {
         document.body.style.overflow = 'hidden';
-        document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
       } else {
         document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
       }
       return newState;
     });
@@ -316,19 +309,21 @@ const Navbar = ({ dict }: NavbarProps) => {
       (names.length > 1 ? names[names.length - 1]?.[0] || '' : '')
     ).toUpperCase();
   };
+
   const mainProfileImage = session?.user?.image
     ? {
         id: 'session-image',
         url: session.user.image,
         isMain: true,
-        userId: session.user.id,
+        userId: session.user.id || '', // הוספתי הגנה למקרה של undefined
         createdAt: new Date(),
         updatedAt: new Date(),
         cloudinaryPublicId: null,
       }
     : null;
+
   const navbarClasses = scrolled
-    ? 'bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80'
+    ? 'bg-white/90 backdrop-blur-xl shadow-sm border-b border-gray-100'
     : 'bg-transparent border-b border-transparent';
   const profileIconSize = 'w-10 h-10';
 
@@ -343,7 +338,7 @@ const Navbar = ({ dict }: NavbarProps) => {
               <Logo locale={locale} />
               <div
                 aria-label="ניווט ראשי"
-                className="hidden md:flex items-center gap-2 md:gap-3"
+                className="hidden md:flex items-center gap-1 md:gap-2"
               >
                 {session ? (
                   <>
@@ -400,12 +395,12 @@ const Navbar = ({ dict }: NavbarProps) => {
               <Button
                 variant="ghost"
                 onClick={handleLanguageChange}
-                className="group flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-teal-600 hover:bg-gradient-to-r hover:from-teal-50 hover:to-orange-50 rounded-full transition-all duration-300 border border-gray-200/60 hover:border-teal-300 shadow-sm hover:shadow-lg"
+                className="group flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-teal-700 hover:bg-teal-50 rounded-full transition-all duration-300 border border-transparent hover:border-teal-100"
                 aria-label={`Switch to ${locale === 'he' ? 'English' : 'Hebrew'}`}
                 title={`Switch to ${locale === 'he' ? 'English' : 'Hebrew'}`}
               >
                 <div className="relative">
-                  <Globe className="h-4 w-4 transition-all duration-300 group-hover:scale-110 group-hover:text-teal-500" />
+                  <Globe className="h-4 w-4 transition-all duration-300 group-hover:scale-110 group-hover:text-teal-600" />
                   <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full flex items-center justify-center shadow-sm border border-white">
                     <span className="text-[8px] font-bold text-white leading-none">
                       {locale === 'he' ? 'ע' : 'E'}
@@ -445,10 +440,10 @@ const Navbar = ({ dict }: NavbarProps) => {
                   />
                   <NavItem href="/auth/signin" text={dict.navbar.login} />
                   <Link href={`/${locale}/auth/register`}>
-                    <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
-                      <span className="relative z-10 flex items-center">
+                    <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2.5">
+                      <span className="relative z-10 flex items-center font-bold">
                         <UserPlus
-                          className={cn('h-4 w-4', isRtl ? 'ml-1.5' : 'mr-1.5')}
+                          className={cn('h-4 w-4', isRtl ? 'ml-2' : 'mr-2')}
                         />
                         {dict.navbar.register}
                       </span>
@@ -459,7 +454,7 @@ const Navbar = ({ dict }: NavbarProps) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-gray-600 hover:text-teal-600 hover:bg-teal-100/50 rounded-full"
+                className="md:hidden text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-full touch-manipulation"
                 onClick={toggleMobileMenu}
                 aria-label="פתח תפריט"
                 aria-expanded={mobileMenuOpen}
@@ -473,15 +468,18 @@ const Navbar = ({ dict }: NavbarProps) => {
       </nav>
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm md:hidden touch-none"
+          className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm md:hidden"
           onClick={toggleMobileMenu}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            toggleMobileMenu();
+          }}
           aria-hidden="true"
-          style={{ touchAction: 'none' }}
         />
       )}
       <div
         className={cn(
-          'fixed top-0 z-50 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden touch-pan-y overscroll-none',
+          'fixed top-0 z-50 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden',
           isRtl ? 'right-0' : 'left-0',
           mobileMenuOpen
             ? 'translate-x-0'
@@ -493,39 +491,35 @@ const Navbar = ({ dict }: NavbarProps) => {
         role="dialog"
         aria-modal="true"
         aria-label="תפריט ניווט"
-        style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}
       >
         <div className="flex flex-col h-full">
-          <div className="flex justify-between items-center p-4 border-b border-gray-100 shrink-0">
+          <div className="flex justify-between items-center p-5 border-b border-gray-100 shrink-0 bg-gray-50/30">
             <Logo locale={locale} />
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleMobileMenu}
-              className="text-gray-500 hover:text-gray-800 rounded-full"
+              className="text-gray-400 hover:text-gray-800 rounded-full hover:bg-gray-100 touch-manipulation"
               aria-label="סגור תפריט"
             >
               <X className="h-5 w-5" />
             </Button>
           </div>
 
-          {/* Container for scrollable content */}
           <div
-            className="overflow-y-auto flex-grow pb-8 overscroll-y-contain"
+            className="overflow-y-auto flex-grow pb-8 scrollbar-hide"
             style={{
               WebkitOverflowScrolling: 'touch',
-              overscrollBehaviorY: 'contain',
             }}
           >
             {session?.user && (
-              <div className="p-4 space-y-3">
-                {/* כרטיס פרופיל עם קישור */}
+              <div className="p-4 space-y-4">
                 <Link
                   href={`/${locale}/profile`}
                   onClick={toggleMobileMenu}
                   className="block"
                 >
-                  <div className="p-4 border rounded-xl bg-gradient-to-br from-teal-50/50 to-orange-50/50 hover:from-teal-100/50 hover:to-orange-100/50 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer group">
+                  <div className="p-4 border border-teal-100/50 rounded-2xl bg-gradient-to-br from-teal-50/50 via-white to-orange-50/50 hover:from-teal-100/50 hover:to-orange-100/50 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer group">
                     <div className="flex items-center gap-4">
                       <div
                         className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden ring-2 ring-white group-hover:ring-teal-200 transition-all`}
@@ -541,41 +535,39 @@ const Navbar = ({ dict }: NavbarProps) => {
                             sizes="40px"
                           />
                         ) : (
-                          <span className="font-semibold text-xl text-teal-700 bg-teal-100 w-full h-full flex items-center justify-center rounded-full">
+                          <span className="font-semibold text-xl text-teal-800 bg-teal-100 w-full h-full flex items-center justify-center rounded-full">
                             {getInitials()}
                           </span>
                         )}
                       </div>
                       <div className="flex-grow min-w-0">
-                        <div className="font-semibold text-gray-800 truncate group-hover:text-teal-700 transition-colors">
+                        <div className="font-bold text-gray-800 truncate group-hover:text-teal-800 transition-colors">
                           {session.user.name}
                         </div>
                         <div className="text-sm text-gray-500 truncate">
                           {session.user.email}
                         </div>
-                        <div className="text-xs text-teal-600 font-medium mt-1 group-hover:text-teal-700">
-                          {dict.userDropdown.myProfile} ←
+                        <div className="text-xs text-teal-600 font-bold mt-1 group-hover:text-teal-700 flex items-center gap-1">
+                          {dict.userDropdown.myProfile}
+                          <span className="text-[10px]">
+                            {isRtl ? '←' : '→'}
+                          </span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </Link>
 
-                {/* סטטוס זמינות */}
-                <div
-                  id="onboarding-target-availability-status"
-                  className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm"
-                >
+                <div id="onboarding-target-availability-status" className="p-1">
                   <AvailabilityStatus
                     dict={dict.profilePage.availabilityStatus}
                   />
                 </div>
 
-                {/* כפתור שינוי שפה */}
                 <Button
                   variant="outline"
                   onClick={handleLanguageChange}
-                  className="w-full border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-teal-50 hover:to-orange-50 hover:border-teal-300 flex items-center justify-between py-3 text-base transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
+                  className="w-full border border-gray-200 text-gray-700 hover:bg-teal-50 hover:border-teal-200 flex items-center justify-between py-6 h-auto text-base transition-all duration-300 rounded-xl"
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative flex-shrink-0">
@@ -597,9 +589,13 @@ const Navbar = ({ dict }: NavbarProps) => {
               </div>
             )}
 
-            <nav className="space-y-1.5 p-2 pb-6">
+            <nav className="space-y-1 p-2 pb-6">
               {session ? (
                 <>
+                  <div className="px-4 pt-2 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    {/* תיקון: טקסט קבוע במקום קריאה למפתח לא קיים */}
+                    {isRtl ? 'תפריט ראשי' : 'Main Menu'}
+                  </div>
                   {isMatchmaker ? (
                     <>
                       <MobileNavItem
@@ -657,8 +653,8 @@ const Navbar = ({ dict }: NavbarProps) => {
 
                   {isHomePage && homePageLinks.length > 0 && (
                     <>
-                      <hr className="my-3" />
-                      <div className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      <div className="my-4 border-t border-gray-100 mx-4" />
+                      <div className="px-4 pt-2 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
                         {dict.stickyNav.mobileTitle || 'ניווט בדף'}
                       </div>
                       {homePageLinks.map((link) => (
@@ -673,7 +669,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                     </>
                   )}
 
-                  <hr className="my-3" />
+                  <div className="my-4 border-t border-gray-100 mx-4" />
 
                   <MobileNavItem
                     href="/settings"
@@ -684,7 +680,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                   />
                   <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors gap-4"
+                    className="w-full flex items-center px-4 py-3 rounded-xl text-base font-medium text-gray-600 hover:bg-rose-50 hover:text-rose-600 transition-colors duration-150 gap-4 touch-manipulation active:bg-rose-100"
                   >
                     <LogOut className="h-5 w-5" />
                     <span className="flex-grow text-start">
@@ -694,12 +690,11 @@ const Navbar = ({ dict }: NavbarProps) => {
                 </>
               ) : (
                 <>
-                  {/* כפתור שינוי שפה למשתמשים לא מחוברים */}
                   <div className="p-4">
                     <Button
                       variant="outline"
                       onClick={handleLanguageChange}
-                      className="w-full border-2 border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-teal-50 hover:to-orange-50 hover:border-teal-300 flex items-center justify-between py-3 text-base transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
+                      className="w-full border border-gray-200 text-gray-700 hover:bg-teal-50 hover:border-teal-200 flex items-center justify-between py-6 h-auto text-base transition-all duration-300 rounded-xl"
                     >
                       <div className="flex items-center gap-3">
                         <div className="relative flex-shrink-0">
@@ -722,7 +717,7 @@ const Navbar = ({ dict }: NavbarProps) => {
 
                   {isHomePage && homePageLinks.length > 0 && (
                     <>
-                      <div className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      <div className="px-4 pt-2 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
                         {dict.stickyNav.mobileTitle || 'ניווט בדף'}
                       </div>
                       {homePageLinks.map((link) => (
@@ -734,7 +729,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                           onClick={toggleMobileMenu}
                         />
                       ))}
-                      <hr className="my-3" />
+                      <div className="my-4 border-t border-gray-100 mx-4" />
                     </>
                   )}
 

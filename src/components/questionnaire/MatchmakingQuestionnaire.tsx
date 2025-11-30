@@ -95,7 +95,7 @@ export default function MatchmakingQuestionnaire({
 }: MatchmakingQuestionnaireProps) {
   console.log(
     `%c[MatchmakingQuestionnaire] 🚀 Initializing | User: ${userId ? 'Authenticated' : 'Guest'} | World: ${initialWorld || 'None'} | Question: ${initialQuestionId || 'None'}`,
-    'color: #14b8a6; font-weight: bold; font-size: 14px;'
+    'color: #0d9488; font-weight: bold; font-size: 14px;' // Teal log
   );
 
   const router = useRouter();
@@ -155,7 +155,7 @@ export default function MatchmakingQuestionnaire({
     if (userId) {
       console.log(
         '%c[MatchmakingQuestionnaire] ⏰ User idle detected',
-        'color: #f59e0b; font-weight: bold;'
+        'color: #f97316; font-weight: bold;'
       );
       setShowIdleModal(true);
       logoutTimer.current = setTimeout(() => {
@@ -177,7 +177,7 @@ export default function MatchmakingQuestionnaire({
     resetIdleTimer();
     console.log(
       '%c[MatchmakingQuestionnaire] ✅ User stayed active',
-      'color: #10b981; font-weight: bold;'
+      'color: #0d9488; font-weight: bold;'
     );
   }, [resetIdleTimer]);
 
@@ -252,7 +252,7 @@ export default function MatchmakingQuestionnaire({
 
       console.log(
         `%c[Save] ${isAutoSave ? '💾 Auto-saving' : '🖱️ Manual save'} | Answers: ${answers.length} | Completed: ${completedWorlds.length}/${WORLD_ORDER.length}`,
-        'color: #8b5cf6; font-weight: bold;'
+        'color: #f97316; font-weight: bold;'
       );
 
       setIsSaving(true);
@@ -284,7 +284,7 @@ export default function MatchmakingQuestionnaire({
           );
           console.log(
             '%c[Save] ✅ Saved to localStorage (guest user)',
-            'color: #10b981; font-weight: bold;'
+            'color: #0d9488; font-weight: bold;'
           );
 
           if (currentStep === OnboardingStep.COMPLETED) {
@@ -307,7 +307,7 @@ export default function MatchmakingQuestionnaire({
 
           console.log(
             '%c[Save] ✅ Saved to backend (authenticated user)',
-            'color: #10b981; font-weight: bold;'
+            'color: #0d9488; font-weight: bold;'
           );
         }
 
@@ -321,7 +321,7 @@ export default function MatchmakingQuestionnaire({
       } catch (err) {
         console.error(
           '%c[Save] ❌ Save failed:',
-          'color: #ef4444; font-weight: bold;',
+          'color: #f43f5e; font-weight: bold;',
           err
         );
         const errorMessage =
@@ -347,7 +347,6 @@ export default function MatchmakingQuestionnaire({
     ]
   );
 
-  // קוד חדש ומתוקן
   useEffect(() => {
     setSaveHandler(() => handleQuestionnaireSave(false));
   }, [handleQuestionnaireSave, setSaveHandler]);
@@ -357,7 +356,7 @@ export default function MatchmakingQuestionnaire({
     const loadProgress = async () => {
       console.log(
         '%c[Load] 📂 Loading progress...',
-        'color: #3b82f6; font-weight: bold;'
+        'color: #0d9488; font-weight: bold;'
       );
       setIsLoading(true);
       setError(null);
@@ -366,28 +365,25 @@ export default function MatchmakingQuestionnaire({
         if (!userId) {
           // Guest user - load from localStorage
           const saved = localStorage.getItem('tempQuestionnaire');
-       if (saved) {
-    const loadedData = JSON.parse(saved);
-    console.log(
-      '%c[Load] ✅ Loaded from localStorage',
-      'color: #10b981; font-weight: bold;',
-      loadedData
-    );
-    setAnswers(loadedData.answers || []);
-    setCompletedWorlds(loadedData.worldsCompleted || []);
+          if (saved) {
+            const loadedData = JSON.parse(saved);
+            console.log(
+              '%c[Load] ✅ Loaded from localStorage',
+              'color: #0d9488; font-weight: bold;',
+              loadedData
+            );
+            setAnswers(loadedData.answers || []);
+            setCompletedWorlds(loadedData.worldsCompleted || []);
 
-    // --- התיקון ---
-    // ודא שכל העולמות קיימים, גם אם לא נשמרו
-    setCurrentQuestionIndices(prevIndices => ({
-        ...prevIndices, // התחל עם האינדקסים הקיימים (ברירת המחדל)
-        ...(loadedData.currentQuestionIndices || {}) // דרוס אותם עם המידע השמור, אם קיים
-    }));
+            setCurrentQuestionIndices((prevIndices) => ({
+              ...prevIndices,
+              ...(loadedData.currentQuestionIndices || {}),
+            }));
 
-    // If there's progress, go to the map to allow continuation
-    if ((loadedData.answers || []).length > 0) {
-      setCurrentStep(OnboardingStep.MAP);
-    }
-} else {
+            if ((loadedData.answers || []).length > 0) {
+              setCurrentStep(OnboardingStep.MAP);
+            }
+          } else {
             console.log(
               '%c[Load] ℹ️ No saved progress found for guest',
               'color: #6b7280; font-weight: bold;'
@@ -418,14 +414,13 @@ export default function MatchmakingQuestionnaire({
           const apiResponse = await response.json();
           console.log(
             '%c[Load] ✅ Loaded from backend',
-            'color: #10b981; font-weight: bold;',
+            'color: #0d9488; font-weight: bold;',
             apiResponse
           );
 
           if (apiResponse.success && apiResponse.data) {
             const loadedData = apiResponse.data;
 
-            // 1. Consolidate all answers from different sources
             const allAnswers = [
               ...(loadedData.answers || []),
               ...(loadedData.valuesAnswers || []),
@@ -457,9 +452,7 @@ export default function MatchmakingQuestionnaire({
               loadedData.completed ||
               loadedCompletedWorlds.length === WORLD_ORDER.length;
 
-            // 2. Restore the full navigation logic
             if (initialWorld && initialQuestionId) {
-              // Handle direct navigation from URL
               const worldQuestions = worldConfig[initialWorld].questions;
               const questionIndex = worldQuestions.findIndex(
                 (q) => q.id === initialQuestionId
@@ -476,22 +469,19 @@ export default function MatchmakingQuestionnaire({
                 setCurrentStep(OnboardingStep.MAP);
               }
             } else if (isQuestionnaireComplete) {
-              // If questionnaire is complete, send to the world map
               setCurrentStep(OnboardingStep.MAP);
             } else if (allAnswers.length > 0) {
-              // If there's saved progress, resume from the last point
               const worldToResume =
                 WORLD_ORDER.find(
                   (world) => !loadedCompletedWorlds.includes(world)
                 ) || WORLD_ORDER[0];
               setCurrentWorld(worldToResume);
-              setCurrentStep(OnboardingStep.WORLDS); // <-- This re-enters the questionnaire
+              setCurrentStep(OnboardingStep.WORLDS);
               console.log(
                 `%c[Load]  resuming questionnaire at world: ${worldToResume}.`,
                 'color: #28a745; font-weight: bold;'
               );
             } else {
-              // If no progress at all, start from the landing page/map
               setCurrentStep(OnboardingStep.LANDING);
             }
           } else {
@@ -505,7 +495,7 @@ export default function MatchmakingQuestionnaire({
       } catch (err) {
         console.error(
           '%c[Load] ❌ Load failed:',
-          'color: #ef4444; font-weight: bold;',
+          'color: #f43f5e; font-weight: bold;',
           err
         );
         const errorMessage =
@@ -514,7 +504,7 @@ export default function MatchmakingQuestionnaire({
             : dict.matchmaking.errors.loadFailed;
         setError(errorMessage);
         showToast(errorMessage, 'error', 5000);
-        setCurrentStep(OnboardingStep.LANDING); // On error, return to start
+        setCurrentStep(OnboardingStep.LANDING);
       } finally {
         setIsLoading(false);
       }
@@ -562,12 +552,42 @@ export default function MatchmakingQuestionnaire({
   );
 
   // Visibility change handler
+// Visibility change handler
   const handleVisibilityChange = useCallback(
     (worldId: WorldId, questionId: string, isVisible: boolean) => {
       console.log(
         `%c[Visibility] ${isVisible ? '👁️' : '👁️‍🗨️'} ${worldId} | ${questionId}`,
-        'color: #f59e0b;'
+        'color: #f97316;'
       );
+
+      setAnswers((prev) => {
+        const existingIndex = prev.findIndex(
+          (a) => a.worldId === worldId && a.questionId === questionId
+        );
+
+        // אם קיימת כבר תשובה (אפילו חלקית), נעדכן את שדה הנראות שלה
+        if (existingIndex >= 0) {
+          const updated = [...prev];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            isVisible: isVisible,
+          };
+          return updated;
+        }
+
+        // אם המשתמש שינה נראות לפני שענה על השאלה, ניצור רשומה חדשה
+        const newAnswer: QuestionnaireAnswer = {
+          worldId,
+          questionId,
+          value: undefined, // ערך ריק כי עדיין לא ענו
+          answeredAt: new Date().toISOString(),
+          isVisible: isVisible,
+        };
+        return [...prev, newAnswer];
+      });
+
+      // מסמנים שיש שינויים שלא נשמרו כדי להפעיל את השמירה האוטומטית/ידנית
+      setIsDirty(true);
     },
     []
   );
@@ -588,7 +608,7 @@ export default function MatchmakingQuestionnaire({
     async (worldId: WorldId) => {
       console.log(
         `%c[Complete] ✨ World completed: ${worldId}`,
-        'color: #10b981; font-weight: bold;'
+        'color: #0d9488; font-weight: bold;'
       );
 
       if (!completedWorlds.includes(worldId)) {
@@ -612,7 +632,6 @@ export default function MatchmakingQuestionnaire({
             }
           );
         } else {
-          // All worlds completed!
           console.log(
             '%c[Complete] 🏆 ALL WORLDS COMPLETED!',
             'color: #fbbf24; font-weight: bold; font-size: 16px;'
@@ -643,14 +662,12 @@ export default function MatchmakingQuestionnaire({
   const handleStartQuestionnaire = useCallback(() => {
     console.log(
       '%c[Start] 🚀 Starting questionnaire',
-      'color: #14b8a6; font-weight: bold;'
+      'color: #0d9488; font-weight: bold;'
     );
 
-    // If has saved progress, go to map to choose where to continue
     if (hasSavedProgress && completedWorlds.length > 0) {
       setCurrentStep(OnboardingStep.MAP);
     } else {
-      // Start fresh from first world
       setCurrentWorld('PERSONALITY');
       setCurrentStep(OnboardingStep.WORLDS);
     }
@@ -705,7 +722,6 @@ export default function MatchmakingQuestionnaire({
     locale,
   ]);
 
-  // World statistics and total questions
   const worldStats = useMemo(
     () => ({
       PERSONALITY: { questionCount: personalityQuestions.length },
@@ -717,41 +733,17 @@ export default function MatchmakingQuestionnaire({
     []
   );
 
-  // Calculate total questions across all worlds
-  const totalQuestions = useMemo(
-    () =>
-      personalityQuestions.length +
-      valuesQuestions.length +
-      relationshipQuestions.length +
-      partnerQuestions.length +
-      religionQuestions.length,
-    []
-  );
-
-  // Calculate answered questions (unique answers)
-  const totalAnswered = useMemo(() => {
-    const uniqueAnswers = new Set(
-      answers.map((a) => `${a.worldId}-${a.questionId}`)
-    );
-    return uniqueAnswers.size;
-  }, [answers]);
-
-  // Calculate overall completion percentage based on answers
-  const overallCompletionPercent = useMemo(
-    () => Math.round((totalAnswered / totalQuestions) * 100),
-    [totalAnswered, totalQuestions]
-  );
-
-  // Render current step
   const renderCurrentStep = () => {
     if (isLoading) {
       return (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 via-teal-50/30 to-slate-50"
+          // Updated Background
+          className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20"
         >
           <div className="relative">
+            {/* Updated Loader Colors */}
             <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-orange-500 rounded-full blur-xl opacity-50 animate-pulse" />
             <Loader2 className="relative h-16 w-16 animate-spin text-teal-600" />
           </div>
@@ -827,7 +819,7 @@ export default function MatchmakingQuestionnaire({
             onSendToMatching={async () => {
               console.log(
                 '%c[Complete] 🎯 Sending to matching...',
-                'color: #10b981; font-weight: bold;'
+                'color: #0d9488; font-weight: bold;'
               );
               if (onComplete) onComplete();
               else router.push('/dashboard');
@@ -852,7 +844,7 @@ export default function MatchmakingQuestionnaire({
     }
   };
 
-  // Enhanced Toast Component
+  // Enhanced Toast Component (Colors Updated)
   const Toast = ({
     message,
     type,
@@ -868,14 +860,14 @@ export default function MatchmakingQuestionnaire({
 
     const typeConfig = {
       success: {
-        bg: 'from-green-500 to-emerald-600',
+        bg: 'from-teal-500 to-emerald-600', // Updated to Teal
         icon: CheckCircle,
-        border: 'border-green-400',
+        border: 'border-teal-400',
       },
       error: {
-        bg: 'from-red-500 to-rose-600',
+        bg: 'from-rose-500 to-red-600', // Updated to Rose
         icon: XCircle,
-        border: 'border-red-400',
+        border: 'border-rose-400',
       },
       info: {
         bg: 'from-blue-500 to-cyan-600',
@@ -883,9 +875,9 @@ export default function MatchmakingQuestionnaire({
         border: 'border-blue-400',
       },
       warning: {
-        bg: 'from-amber-500 to-orange-600',
+        bg: 'from-orange-500 to-amber-600', // Updated to Orange/Amber
         icon: AlertCircle,
-        border: 'border-amber-400',
+        border: 'border-orange-400',
       },
     };
 
@@ -941,7 +933,7 @@ export default function MatchmakingQuestionnaire({
     );
   };
 
-  // Enhanced Idle Modal Component
+  // Enhanced Idle Modal Component (Colors Updated)
   const IdleModal = () => {
     if (!showIdleModal) return null;
 
@@ -984,13 +976,14 @@ export default function MatchmakingQuestionnaire({
                   <Button
                     variant="outline"
                     onClick={() => signOut({ callbackUrl: '/' })}
-                    className="w-full sm:w-auto border-2 border-red-300 text-red-600 hover:bg-red-50"
+                    className="w-full sm:w-auto border-2 border-rose-300 text-rose-600 hover:bg-rose-50"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     {dict.matchmaking.idleModal.logoutButton}
                   </Button>
                   <Button
                     onClick={handleStayActive}
+                    // Updated Gradient
                     className="w-full sm:w-auto bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white font-bold"
                   >
                     <Zap className="w-4 h-4 mr-2" />
@@ -1005,7 +998,7 @@ export default function MatchmakingQuestionnaire({
     );
   };
 
-  // Last Saved Indicator
+  // Last Saved Indicator (Updated to Teal)
   const LastSavedIndicator = () => {
     if (!lastSavedTime || currentStep !== OnboardingStep.WORLDS || !userId)
       return null;
@@ -1015,10 +1008,10 @@ export default function MatchmakingQuestionnaire({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
-        className="fixed bottom-6 left-6 z-40 bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border-2 border-green-200"
+        className="fixed bottom-6 left-6 z-40 bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border-2 border-teal-200"
       >
         <div className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 text-green-600" />
+          <CheckCircle className="h-4 w-4 text-teal-600" />
           <span className="text-sm font-semibold text-gray-700">
             {dict.matchmaking.lastSaved.replace(
               '{{time}}',
@@ -1033,7 +1026,7 @@ export default function MatchmakingQuestionnaire({
     );
   };
 
-  // Error Alert
+  // Error Alert (Updated to Rose)
   const ErrorAlert = () => {
     if (!error || currentStep === OnboardingStep.WORLDS) return null;
 
@@ -1045,11 +1038,11 @@ export default function MatchmakingQuestionnaire({
       >
         <Alert
           variant="destructive"
-          className="border-2 border-red-300 shadow-lg"
+          className="border-2 border-rose-300 shadow-lg"
         >
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 mt-0.5" />
-            <AlertDescription className="text-base leading-relaxed">
+            <AlertTriangle className="h-5 w-5 mt-0.5 text-rose-600" />
+            <AlertDescription className="text-base leading-relaxed text-rose-800">
               {error}
             </AlertDescription>
           </div>
@@ -1061,20 +1054,15 @@ export default function MatchmakingQuestionnaire({
   return (
     <div
       className={cn(
-        'min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50',
+        // Updated Global Background
+        'min-h-screen bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20',
         locale === 'he' ? 'dir-rtl' : 'dir-ltr'
       )}
     >
-      {/* Modals and Overlays */}
       <IdleModal />
-
-      {/* Indicators */}
       <LastSavedIndicator />
-
-      {/* Error Display */}
       <ErrorAlert />
 
-      {/* Main Content */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
@@ -1087,7 +1075,6 @@ export default function MatchmakingQuestionnaire({
         </motion.div>
       </AnimatePresence>
 
-      {/* Toast Notifications */}
       <Toast
         message={toastState.message}
         type={toastState.type}

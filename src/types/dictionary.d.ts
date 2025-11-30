@@ -950,6 +950,27 @@ export type QuestionnaireCompletionDict = {
   guestContent: {
     loginButton: string;
   };
+  // --- New Fields ---
+  stats: {
+    completion: string;
+    answered: string;
+    time: string;
+  };
+  unlocksTitle: string; // e.g. "Achievements Unlocked"
+  achievements: {
+    completed: {
+      title: string;
+      description: string;
+    };
+    speed: {
+      title: string;
+      description: string; // Placeholder: {{minutes}}
+    };
+    profile: {
+      title: string;
+      description: string;
+    };
+  };
 };
 
 export type MatchmakingQuestionnaireDict = {
@@ -1031,6 +1052,24 @@ export type QuestionsListDict = {
     BASIC: string;
     ADVANCED: string;
     EXPERT: string;
+  };
+  // --- New Fields ---
+  stats: {
+    answeredQuestions: string;
+    complete: string;
+    remaining: string;
+    done: string;
+  };
+  badges: {
+    required: string;
+    answered: string;
+  };
+  motivationalMessages: {
+    start: { title: string; subtitle: string };
+    quarter: { title: string; subtitle: string };
+    half: { title: string; subtitle: string };
+    threeQuarters: { title: string; subtitle: string };
+    finish: { title: string; subtitle: string };
   };
 };
 
@@ -1602,8 +1641,7 @@ export type QuestionnaireLandingPageDict = {
 };
 
 
-type WorldsMapWorldContent = {
-  title: string;
+export type WorldsMapWorldContent = {  title: string;
   description: string; // החליף את 'subtitle'
   whyIsItImportant: string;
   benefits: string[]; // החליף את 'whatYouWillDiscover'
@@ -1613,12 +1651,13 @@ type WorldsMapWorldContent = {
 export type WorldsMapDict = {
   worldLabels: Record<WorldId, string>;
   progressHeader: {
-    greeting: string; // לדוגמה: "היי {{name}},"
-    journeyQuestion: string; // לדוגמה: "איפה אנחנו במסע?"
-    defaultTitle: string;
-    progressText: string; // כולל ספירת שאלות, לדוגמה: "השלמת {{completedCount}} מתוך... • {{totalAnswered}} מתוך {{totalQuestions}} שאלות"
-    ctaButton: string; // לדוגמה: "בוא נמשיך!"
-    mapTitle: string; // לדוגמה: "מפת העולמות שלך"
+    greeting: string; // "Hi {{name}},"
+    greetingNoName: string; // "Hello," (New)
+    journeyQuestion: string; 
+    journeyTitle: string; // (New - for the title when no user name)
+    progressText: string; 
+    ctaButton: string; 
+    mapTitle: string; 
     milestones: {
       start: string;
       onTrack: string;
@@ -1627,7 +1666,7 @@ export type WorldsMapDict = {
       completed: string;
     };
     nextStepTitle: string;
-    nextStepPrompt: string; // Placeholder: {{worldName}}
+    nextStepPrompt: string; 
     completionTitle: string;
     completionSubtitle: string;
   };
@@ -1637,12 +1676,14 @@ export type WorldsMapDict = {
     button: string;
   };
   worldCard: {
-    discoverTitle: string; // לדוגמה: "מה תגלה בעולם הזה?"
-    questionCount: string; // Placeholder: {{count}}
-    estimatedTime: string; // Placeholder: {{count}}
-    worldNumberLabel: string; // Placeholder: {{number}}
-    progressLabel: string; // Placeholder: {{completed}}, {{total}}
-    recommendedRibbon: string; // לדוגמה: "מומלץ"
+    discoverTitle: string;
+    questionsLabel: string; // (New) e.g. "questions"
+    minutesLabel: string;   // (New) e.g. "minutes"
+    worldNumberLabel: string; 
+    progressLabel: string; 
+    recommendedRibbon: string; 
+    expandButton: string; // (New) "What will you discover?"
+    benefitsTitle: string; // (New) "What you'll discover:"
     statuses: {
       completed: string;
       recommended: string;
@@ -1659,14 +1700,16 @@ export type WorldsMapDict = {
     };
   };
   completionBanner: {
-    title: string; // Placeholder: {{name}}
+    title: string; 
+    titleNoName: string; // (New)
     subtitle: string;
     description: string;
-    statWorlds: string; // לדוגמה: "5 עולמות"
-    statReport: string; // לדוגמה: "דוח נשמה מלא"
+    statWorlds: string; 
+    statReport: string; 
   };
   worldsContent: Record<WorldId, WorldsMapWorldContent>;
 };
+
 
 
 
@@ -1742,15 +1785,15 @@ export type QuestionnaireLayoutDict = {
 
 export type WorldComponentDict = {
   header: {
-    questionLabel: string; // e.g., "שאלה {{current}} מתוך {{total}}"
-    estimatedTimeLeft: string; // e.g., "{{minutes}} דקות נותרו"
+    questionLabel: string;
+    estimatedTimeLeft: string;
     statusCard: {
       progress: string;
       required: string;
       status: string;
       questions: string;
-      complete: string; // e.g., "✓ הושלם"
-      left: string; // e.g., "{{count}} נותרו"
+      complete: string;
+      left: string;
       keepItUp: string;
       states: {
         started: string;
@@ -1761,19 +1804,28 @@ export type WorldComponentDict = {
       };
     };
     overallProgress: string;
+    // --- New: Last saved messages for mobile header ---
+    lastSaved: {
+      now: string;
+      minuteAgo: string;
+      minutesAgo: string; // {{count}}
+      hoursAgo: string; // {{count}}
+    };
   };
   errors: {
     loadingFailedTitle: string;
     loadingFailedDescription: string;
     invalidQuestion: string;
+    noQuestionFound: string; // --- New ---
     validation: {
       required: string;
-      minLength: string; // e.g., "התשובה חייבת להכיל לפחות {{count}} תווים"
-      maxLength: string; // e.g., "התשובה לא יכולה לחרוג מ-{{count}} תווים"
-      minSelections: string; // e.g., "יש לבחור לפחות {{count}} אפשרויות"
-      maxSelections: string; // e.g., "ניתן לבחור עד {{count}} אפשרויות"
-      budgetAllocation: string; // e.g., "יש להקצות בדיוק {{count}} נקודות"
+      minLength: string;
+      maxLength: string;
+      minSelections: string;
+      maxSelections: string;
+      budgetAllocation: string;
       budgetRequired: string;
+      generalRequired: string; // --- New: "Please answer all required (X/Y)" ---
     };
   };
   buttons: {
@@ -1786,9 +1838,14 @@ export type WorldComponentDict = {
     finish: string;
     save: string;
     saving: string;
+    completing: string; // --- New ---
+    // --- New: Short labels for mobile ---
+    prevShort: string;
+    nextShort: string;
+    finishShort: string;
   };
   listSheet: {
-    title: string; // e.g., "כל השאלות ב{{worldTitle}}"
+    title: string;
     description: string;
     legend: {
       completed: string;
