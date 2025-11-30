@@ -1,3 +1,4 @@
+// src/components/questionnaire/components/AccessibilityFeatures.tsx
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -29,8 +30,8 @@ import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import type { AccessibilityFeaturesDict } from '@/types/dictionary'; // Import dictionary type
-import { useIsMobile } from '../hooks/useMediaQuery'; // <-- הוסף את הייבוא הזה
+import type { AccessibilityFeaturesDict } from '@/types/dictionary';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 declare global {
   interface Window {
@@ -42,7 +43,7 @@ interface AccessibilityFeaturesProps {
   className?: string;
   isPanelOpen?: boolean;
   onPanelOpenChange?: (isOpen: boolean) => void;
-  dict: AccessibilityFeaturesDict; // Use the specific dictionary type
+  dict: AccessibilityFeaturesDict;
 }
 
 interface AccessibilitySettings {
@@ -90,7 +91,7 @@ export default function AccessibilityFeatures({
 
   const panelRef = useRef<HTMLDivElement>(null);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isMobile = useIsMobile(); // <-- הוסף את השורה הזו
+  const isMobile = useIsMobile();
 
   const showAccessibilityPanel =
     isPanelOpen !== undefined ? isPanelOpen : internalShowPanel;
@@ -297,7 +298,7 @@ export default function AccessibilityFeatures({
       <div
         className={cn(
           'fixed z-50 right-4',
-          isMobile ? 'bottom-24' : 'bottom-4' // <-- התיקון נמצא כאן
+          isMobile ? 'bottom-24' : 'bottom-4'
         )}
       >
         <Button

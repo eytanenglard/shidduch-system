@@ -440,7 +440,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       // Focus Colors: Teal
-                      className={`w-full ${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10`}
+                      className={`w-full ${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-colors bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10 touch-manipulation`}
                       placeholder={dict.emailPlaceholder}
                       required
                       disabled={isLoading || isGoogleLoading}
@@ -475,7 +475,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       // Focus Colors: Teal
-                      className={`w-full ${isRTL ? 'pr-11 pl-12' : 'pl-11 pr-12'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10`}
+                      className={`w-full ${isRTL ? 'pr-11 pl-12' : 'pl-11 pr-12'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-colors bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10 touch-manipulation`}
                       placeholder={dict.passwordPlaceholder}
                       required
                       disabled={isLoading || isGoogleLoading}
@@ -484,7 +484,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-20`}
+                      className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-20 touch-manipulation p-1`}
                       tabIndex={-1}
                     >
                       {showPassword ? (
@@ -500,7 +500,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                     <Link
                       href={`/${locale}/auth/forgot-password`}
                       // Link Color: Teal
-                      className="text-sm text-teal-600 hover:text-teal-700 hover:underline font-medium transition-colors relative z-20"
+                      className="text-sm text-teal-600 hover:text-teal-700 hover:underline font-medium transition-colors relative z-20 touch-manipulation"
                     >
                       {dict.forgotPasswordLink}
                     </Link>
@@ -511,7 +511,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                 <Button
                   type="submit"
                   disabled={isLoading || isGoogleLoading}
-                  className="w-full relative z-20 py-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group overflow-hidden"
+                  className="w-full relative z-20 py-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group overflow-hidden touch-manipulation active:scale-[0.98]"
                 >
                   {/* Shine effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none" />
@@ -552,7 +552,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                 onClick={handleGoogleSignIn}
                 disabled={isLoading || isGoogleLoading}
                 variant="outline"
-                className="w-full relative z-20 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 py-4 rounded-xl flex items-center justify-center gap-3 group transition-all duration-300 bg-white/50 backdrop-blur-sm"
+                className="w-full relative z-20 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 py-4 rounded-xl flex items-center justify-center gap-3 group transition-all duration-200 bg-white/50 backdrop-blur-sm touch-manipulation active:scale-[0.98]"
               >
                 {isGoogleLoading ? (
                   <>
@@ -599,7 +599,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   <Link
                     href={`/${locale}/auth/register`}
                     // Link Color: Teal
-                    className="text-teal-600 font-semibold hover:text-teal-700 hover:underline transition-colors inline-flex items-center gap-1 relative z-20"
+                    className="text-teal-600 font-semibold hover:text-teal-700 hover:underline transition-colors inline-flex items-center gap-1 relative z-20 touch-manipulation"
                   >
                     {dict.signUpLink}
                     {isRTL ? (

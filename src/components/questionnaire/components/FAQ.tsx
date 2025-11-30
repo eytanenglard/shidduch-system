@@ -1,3 +1,6 @@
+// src/components/questionnaire/components/FAQ.tsx
+'use client';
+
 import React, { useState, useMemo } from 'react';
 import {
   Accordion,
@@ -18,19 +21,23 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import type { QuestionnaireFaqDict, FaqAnswerPart } from '@/types/dictionary'; // Import dictionary type
+import type { QuestionnaireFaqDict, FaqAnswerPart } from '@/types/dictionary';
 
 interface FAQProps {
   className?: string;
   showSearch?: boolean;
   showCategories?: boolean;
   initialOpenId?: string;
-  dict: QuestionnaireFaqDict; // Use the specific dictionary type
+  dict: QuestionnaireFaqDict;
 }
 
-// Metadata for FAQs (category, popularity) which is not part of translation
+// Metadata for FAQs (category, popularity) which is NOT in the dictionary
+// Keys must match the keys in dict.items
 const faqMetadata: {
-  [key: string]: { category: string; isPopular?: boolean };
+  [key: string]: {
+    category: keyof QuestionnaireFaqDict['categories'];
+    isPopular?: boolean;
+  };
 } = {
   'save-progress': { category: 'technical', isPopular: true },
   'time-to-complete': { category: 'process', isPopular: true },
@@ -52,7 +59,7 @@ const renderAnswer = (answerParts: FaqAnswerPart[]) => (
           return <p key={index}>{part.content}</p>;
         case 'list':
           return (
-            <ol key={index} className="list-decimal mr-5 space-y-1">
+            <ol key={index} className="list-decimal mr-5 space-y-1 pr-5">
               {(part.content as string[]).map((item, i) => (
                 <li key={i}>{item}</li>
               ))}
@@ -64,9 +71,9 @@ const renderAnswer = (answerParts: FaqAnswerPart[]) => (
               key={index}
               className="flex items-start gap-2 mt-2 p-3 bg-blue-50 rounded-md"
             >
-              <Clock className="h-5 w-5 text-blue-500 mt-0.5" />
+              <Clock className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-blue-700">
-                <p className="font-medium mb-1">{part.title}</p>
+                {part.title && <p className="font-medium mb-1">{part.title}</p>}
                 <p>{part.content}</p>
               </div>
             </div>
@@ -77,7 +84,7 @@ const renderAnswer = (answerParts: FaqAnswerPart[]) => (
               key={index}
               className="flex items-start gap-2 mt-2 p-3 bg-blue-50 rounded-md"
             >
-              <Info className="h-5 w-5 text-blue-500 mt-0.5" />
+              <Info className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-blue-700">
                 <p>{part.content}</p>
               </div>
@@ -89,7 +96,7 @@ const renderAnswer = (answerParts: FaqAnswerPart[]) => (
               key={index}
               className="flex items-start gap-2 mt-2 p-3 bg-amber-50 rounded-md border border-amber-100"
             >
-              <Star className="h-5 w-5 text-amber-500 mt-0.5" />
+              <Star className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-amber-700">
                 <p>{part.content}</p>
               </div>
@@ -101,7 +108,7 @@ const renderAnswer = (answerParts: FaqAnswerPart[]) => (
               key={index}
               className="flex items-start gap-2 mt-2 p-3 bg-red-50 rounded-md border border-red-100"
             >
-              <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+              <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-red-700">
                 <p>{part.content}</p>
               </div>
@@ -134,11 +141,11 @@ export default function FAQ({
         id,
         question: dict.items[key].question,
         answer: renderAnswer(dict.items[key].answer),
-        category: faqMetadata[key].category,
-        isPopular: faqMetadata[key].isPopular || false,
+        category: faqMetadata[key]?.category || 'general',
+        isPopular: faqMetadata[key]?.isPopular || false,
       };
     });
-  }, [dict]); // <-- Change dict.items to dict
+  }, [dict]);
 
   const categories = useMemo(
     () => [
@@ -257,11 +264,13 @@ export default function FAQ({
               >
                 <AccordionTrigger className="hover:no-underline py-3">
                   <div className="flex items-center gap-2 text-right">
-                    <span className="font-medium">{item.question}</span>
+                    <span className="font-medium text-start">
+                      {item.question}
+                    </span>
                     {item.isPopular && (
                       <Badge
                         variant="outline"
-                        className="bg-amber-50 text-amber-700 border-amber-200 text-xs"
+                        className="bg-amber-50 text-amber-700 border-amber-200 text-xs whitespace-nowrap"
                       >
                         {dict.popularBadge}
                       </Badge>

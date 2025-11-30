@@ -1,3 +1,4 @@
+// src/components/questionnaire/components/UserStats.tsx
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -21,7 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { UserStatsDict } from '@/types/dictionary'; // Import dictionary type
+import type { UserStatsDict } from '@/types/dictionary';
 
 interface UserStatsProps {
   totalQuestionsAnswered: number;
@@ -39,7 +40,7 @@ interface UserStatsProps {
   registrationDate?: Date;
   lastActive?: Date;
   className?: string;
-  dict: UserStatsDict; // Use the specific dictionary type
+  dict: UserStatsDict;
 }
 
 export default function UserStats({

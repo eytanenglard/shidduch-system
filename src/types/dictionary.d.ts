@@ -1991,7 +1991,13 @@ export type AccessibilityFeaturesDict = {
     motion: AdvancedOptionDict;
   };
   settingNames: {
-    [key in 'fontScale' | 'contrastMode' | 'reducedMotion' | 'readableMode' | 'bigCursor' | 'textReader' | 'soundEnabled']: string;
+    fontScale: string;
+    contrastMode: string;
+    reducedMotion: string;
+    readableMode: string;
+    bigCursor: string;
+    textReader: string;
+    soundEnabled: string;
   };
   toasts: {
     settingUpdated: string; // Placeholder: {{settingName}}

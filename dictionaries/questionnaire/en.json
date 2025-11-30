@@ -573,208 +573,150 @@
     "selectedValue": "Selected value: {{value}}",
     "ariaLabel": "Scale value {{value}}"
   },
-  "accessibilityFeatures": {
-    "panelTitle": "Accessibility",
-    "panelSubtitle": "Adjust display settings for your comfort.",
-    "changedBadge": "Changed",
-    "triggerButton": {
-      "open": "Open accessibility panel",
-      "close": "Close accessibility panel"
+"accessibilityFeatures": {
+  "panelTitle": "Accessibility",
+  "panelSubtitle": "Adjust display settings for your comfort.",
+  "changedBadge": "Changed",
+  "triggerButton": {
+    "open": "Open accessibility panel",
+    "close": "Close accessibility panel"
+  },
+  "resetButton": "Reset All Settings",
+  "textSize": {
+    "title": "Text Size",
+    "description": "Increase or decrease the size of text on the page."
+  },
+  "displayMode": {
+    "title": "Display Mode"
+  },
+  "contrastOptions": {
+    "normal": {
+      "label": "Normal",
+      "description": "Standard display mode."
     },
-    "resetButton": "Reset All Settings",
-    "textSize": {
-      "title": "Text Size",
-      "description": "Increase or decrease the size of text on the page."
+    "high": {
+      "label": "High Contrast",
+      "description": "Increase text and element contrast."
     },
-    "displayMode": {
-      "title": "Display Mode"
-    },
-    "contrastOptions": {
-      "normal": {
-        "label": "Normal",
-        "description": "Standard display mode."
-      },
-      "high": {
-        "label": "High Contrast",
-        "description": "Increase text and element contrast."
-      },
-      "dark": {
-        "label": "Dark Mode",
-        "description": "Reduces eye strain in low light."
-      }
-    },
-    "additionalSettings": {
-      "title": "Additional Tools"
-    },
-    "advancedOptions": {
-      "sound": {
-        "label": "Interaction Sounds",
-        "description": "Enable sound feedback for actions."
-      },
-      "reader": {
-        "label": "Text Reader",
-        "description": "Click on text to hear it read aloud."
-      },
-      "cursor": {
-        "label": "Large Cursor",
-        "description": "Increase the size of the mouse cursor."
-      },
-      "font": {
-        "label": "Readable Font",
-        "description": "Switch to a standard, high-legibility font."
-      },
-      "motion": {
-        "label": "Reduce Motion",
-        "description": "Disable animations and transition effects."
-      }
-    },
-    "settingNames": {
-      "fontScale": "Text Size",
-      "contrastMode": "Display Mode",
-      "reducedMotion": "Reduce Motion",
-      "readableMode": "Readable Font",
-      "bigCursor": "Large Cursor",
-      "textReader": "Text Reader",
-      "soundEnabled": "Interaction Sounds"
-    },
-    "toasts": {
-      "settingUpdated": "{{settingName}} updated.",
-      "settingsReset": "Accessibility settings reset to default.",
-      "readerEnabled": "Text Reader is now active. Click any text to hear it."
+    "dark": {
+      "label": "Dark Mode",
+      "description": "Reduces eye strain in low light."
     }
   },
-  "faq": {
-    "title": "Questionnaire FAQ",
-    "subtitle": "Answers to common questions about the journey.",
-    "searchPlaceholder": "Search questions...",
-    "popularBadge": "Popular",
-    "emptyState": "No questions found matching your search.",
-    "categories": {
-      "all": "All",
-      "process": "Process",
-      "technical": "Technical",
-      "privacy": "Privacy",
-      "results": "Results",
-      "general": "General"
+  "additionalSettings": {
+    "title": "Additional Tools"
+  },
+  "advancedOptions": {
+    "sound": {
+      "label": "Interaction Sounds",
+      "description": "Enable sound feedback for actions."
     },
-    "items": {
-      "save-progress": {
-        "question": "Is my progress saved automatically?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "Yes, if you are logged into your account, your progress is saved automatically in the background. You will see a 'Last saved' timestamp appear. You can also manually save at any time. If you are not logged in, your progress is saved only to your current browser session."
-          },
-          {
-            "type": "alert",
-            "content": "To ensure your progress is never lost, we highly recommend creating an account or logging in before you begin."
-          }
-        ]
-      },
-      "time-to-complete": {
-        "question": "How long does the questionnaire take?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "We recommend setting aside 45-60 minutes of quiet, reflective time to complete the entire journey. You don't have to do it all at once! The questionnaire is divided into five 'worlds', and you can complete them at your own pace."
-          },
-          {
-            "type": "tip",
-            "title": "Our Recommendation",
-            "content": "Try to complete one full 'world' in each session. This helps maintain your flow of thought and leads to more cohesive answers."
-          }
-        ]
-      },
-      "required-questions": {
-        "question": "Do I have to answer every question?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "Not all of them, but we encourage it! Questions marked as 'Required' are essential for our matching algorithm to function effectively. Other questions, while optional, provide crucial nuance that helps your matchmaker understand you better and find higher quality connections for you."
-          },
-          {
-            "type": "star",
-            "content": "The more you share, the more accurately we can find someone who truly complements you."
-          }
-        ]
-      },
-      "how-matching-works": {
-        "question": "How are my answers used for matching?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "Your answers are the primary data source for our unique matching process:"
-          },
-          {
-            "type": "list",
-            "content": [
-              "Our AI algorithm analyzes your responses across all five worlds to identify patterns, priorities, and potential compatibility scores with other users.",
-              "Your personal matchmaker reviews both the data and your open-text answers to understand the person behind the profile.",
-              "The system highlights promising matches for the matchmaker, who then uses their human intuition and experience to make the final decision on whether to suggest a match.",
-              "Your answers also help us craft the 'Why we think this could work' rationale that accompanies every suggestion you receive."
-            ]
-          }
-        ]
-      },
-      "privacy-info": {
-        "question": "Who can see my answers?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "Your privacy is our highest priority. By default:"
-          },
-          {
-            "type": "list",
-            "content": [
-              "Only your dedicated matchmaking team can view your complete set of answers.",
-              "You have control over each answer's visibility. You can mark sensitive answers as 'Hidden', making them visible only to the matchmaking team.",
-              "When a match is suggested, a curated selection of your 'Visible' answers is shared with the potential match, but only after you approve the suggestion."
-            ]
-          },
-          {
-            "type": "info",
-            "content": "We never share your data with third parties. You are always in control of your story."
-          }
-        ]
-      },
-      "edit-answers": {
-        "question": "Can I change my answers later?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "Of course. We understand that people grow and perspectives change. You can return to your profile at any time to review and edit your answers to the questionnaire. We actually recommend reviewing your answers every 6-12 months to ensure they still reflect who you are."
-          }
-        ]
-      },
-      "match-percentage": {
-        "question": "What does the 'match percentage' mean?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "The match percentage is a guide, not a verdict. It's a score generated by our algorithm based on dozens of compatibility factors from the questionnaire. It represents the potential for alignment in values, personality, and lifestyle. However, it's the matchmaker's job to look beyond the number and see the human connection, which is why every suggestion is personally vetted."
-          }
-        ]
-      },
-      "incomplete-questionnaire": {
-        "question": "What happens if I don't complete the whole questionnaire?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "While you can receive matches with a partially completed questionnaire, its effectiveness is significantly reduced. Completing all required questions across the five worlds is necessary to be fully active in our matching pool and to receive the most accurate, high-quality suggestions."
-          }
-        ]
-      },
-      "inactive-account": {
-        "question": "What happens if my account is inactive?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "For security and to ensure our matching pool remains active, users who are inactive for an extended period (typically over 2 hours) will be automatically logged out. You can always log back in to continue where you left off."
-          }
-        ]
-      }
+    "reader": {
+      "label": "Text Reader",
+      "description": "Click on text to hear it read aloud."
+    },
+    "cursor": {
+      "label": "Large Cursor",
+      "description": "Increase the size of the mouse cursor."
+    },
+    "font": {
+      "label": "Readable Font",
+      "description": "Switch to a standard, high-legibility font."
+    },
+    "motion": {
+      "label": "Reduce Motion",
+      "description": "Disable animations and transition effects."
     }
   },
+  "settingNames": {
+    "fontScale": "Text Size",
+    "contrastMode": "Display Mode",
+    "reducedMotion": "Reduce Motion",
+    "readableMode": "Readable Font",
+    "bigCursor": "Large Cursor",
+    "textReader": "Text Reader",
+    "soundEnabled": "Interaction Sounds"
+  },
+  "toasts": {
+    "settingUpdated": "{{settingName}} updated.",
+    "settingsReset": "Accessibility settings reset to default.",
+    "readerEnabled": "Text Reader is now active. Click any text to hear it."
+  }
+},
+ "faq": {
+  "title": "Questionnaire FAQ",
+  "subtitle": "Common questions about the process.",
+  "searchPlaceholder": "Search questions...",
+  "popularBadge": "Popular",
+  "emptyState": "No questions found.",
+  "categories": {
+    "all": "All",
+    "process": "Process",
+    "technical": "Technical",
+    "privacy": "Privacy",
+    "results": "Results",
+    "general": "General"
+  },
+  "items": {
+    "save-progress": {
+      "question": "Is my progress saved automatically?",
+      "answer": [
+        { "type": "p", "content": "Yes, progress is saved automatically when you complete a section or switch worlds." },
+        { "type": "tip", "title": "Tip:", "content": "Make sure to log in so progress is saved to your account." }
+      ]
+    },
+    "time-to-complete": {
+      "question": "How long does it take?",
+      "answer": [
+        { "type": "p", "content": "The full questionnaire takes about 30-40 minutes, but you can do it in stages." }
+      ]
+    },
+    "required-questions": {
+      "question": "Do I have to answer everything?",
+      "answer": [
+        { "type": "p", "content": "No, only questions marked as 'Required *' are mandatory." },
+        { "type": "p", "content": "However, more answers lead to better matches." }
+      ]
+    },
+    "how-matching-works": {
+      "question": "How does matching work?",
+      "answer": [
+        { "type": "p", "content": "We analyze your personality and values profile using both professional matchmakers and smart algorithms to find compatible partners." }
+      ]
+    },
+    "privacy-info": {
+      "question": "Who can see my answers?",
+      "answer": [
+        { "type": "p", "content": "Only our matchmaking team sees your full answers. Matches see only general info and shared interests." },
+        { "type": "info", "content": "Your privacy is our top priority." }
+      ]
+    },
+    "edit-answers": {
+      "question": "Can I edit answers later?",
+      "answer": [
+        { "type": "p", "content": "Yes, you can edit your answers at any time via your profile." }
+      ]
+    },
+    "match-percentage": {
+      "question": "What is the match percentage?",
+      "answer": [
+        { "type": "p", "content": "It indicates the potential compatibility based on values, lifestyle, and personality traits." }
+      ]
+    },
+    "incomplete-questionnaire": {
+      "question": "What if I don't finish?",
+      "answer": [
+        { "type": "p", "content": "You can still get matches if you answer the required questions, but accuracy improves with completion." }
+      ]
+    },
+    "inactive-account": {
+      "question": "What happens if I'm inactive?",
+      "answer": [
+        { "type": "p", "content": "Inactive profiles are paused after a long period. Logging in reactivates your profile." }
+      ]
+    }
+  }
+},
   "questionnaireProgress": {
     "worldLabels": {
       "PERSONALITY": "Personality",
@@ -862,45 +804,45 @@
       "timePerWorld": "~{{time}} min"
     }
   },
-  "userStats": {
-    "matchStatsCard": {
-      "title": "Match Statistics",
-      "activeMatches": "Active Matches",
-      "pendingMatches": "Pending Matches",
-      "matchScore": "Average Match Score",
-      "daysActive": "{{days}} days active",
-      "joinDate": "Joined: {{date}}"
-    },
-    "profileProgressCard": {
-      "title": "Profile Progress",
-      "profileCompletion": "Profile Completion",
-      "questionsAnswered": "Questionnaire Answers",
-      "outOf": "of",
-      "completedWorlds": "Completed Worlds",
-      "activityLevel": "Activity Level"
-    },
-    "personalityTraitsCard": {
-      "title": "Top Personality Traits"
-    },
-    "tooltips": {
-      "traitScore": "Score based on your answers: {{score}}%"
-    },
-    "common": {
-      "notAvailable": "N/A"
-    },
-    "worlds": {
-      "PERSONALITY": "Personality",
-      "VALUES": "Values",
-      "RELATIONSHIP": "Partnership",
-      "PARTNER": "Partner",
-      "RELIGION": "Religion"
-    },
-    "activityLevels": {
-      "high": "High",
-      "medium": "Medium",
-      "low": "Low"
-    }
+ "userStats": {
+  "matchStatsCard": {
+    "title": "Match Statistics",
+    "activeMatches": "Active Matches",
+    "pendingMatches": "Pending Matches",
+    "matchScore": "Average Match Score",
+    "daysActive": "{{days}} days active",
+    "joinDate": "Joined: {{date}}"
   },
+  "profileProgressCard": {
+    "title": "Profile Progress",
+    "profileCompletion": "Profile Completion",
+    "questionsAnswered": "Questionnaire Answers",
+    "outOf": "of",
+    "completedWorlds": "Completed Worlds",
+    "activityLevel": "Activity Level"
+  },
+  "personalityTraitsCard": {
+    "title": "Top Personality Traits"
+  },
+  "tooltips": {
+    "traitScore": "Score based on your answers: {{score}}%"
+  },
+  "common": {
+    "notAvailable": "N/A"
+  },
+  "worlds": {
+    "PERSONALITY": "Personality",
+    "VALUES": "Values",
+    "RELATIONSHIP": "Partnership",
+    "PARTNER": "Partner",
+    "RELIGION": "Religion"
+  },
+  "activityLevels": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  }
+},
   "questionnaireRestore": {
     "loading": "Loading...",
     "restoringTitle": "Restoring Your Journey",
