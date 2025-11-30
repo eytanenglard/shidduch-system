@@ -1,19 +1,14 @@
 // src/app/[locale]/auth/setup-account/page.tsx
 import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import SetupAccountClient from './SetupAccountClient';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 function Loading() {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
-    </div>
-  );
+  return <StandardizedLoadingSpinner />;
 }
 
-// ▼▼▼ כאן השינוי ▼▼▼
 type SetupAccountPageProps = {
   params: Promise<{ locale: Locale }>;
 };
@@ -23,7 +18,8 @@ export default async function SetupAccountPage({ params }: SetupAccountPageProps
   const dictionary = await getDictionary(locale);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+    // הסרתי את bg-gray-100 לטובת הגרדיאנט המובנה או נקי
+    <div className="flex items-center justify-center min-h-screen p-4">
       <Suspense fallback={<Loading />}>
         <SetupAccountClient dict={dictionary.auth.setupAccount} />
       </Suspense>

@@ -1,5 +1,6 @@
 // src/app/[locale]/auth/update-phone/UpdatePhoneClient.tsx
 'use client';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 import { useState, useCallback, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
@@ -66,14 +67,11 @@ const UpdatePhoneClient = ({ dict, locale }: UpdatePhoneClientProps) => {
     [newPhone, router, dict]
   );
 
-  if (sessionStatus === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
-        <span className="ml-2">{dict.loaderText}</span>
-      </div>
-    );
+   if (sessionStatus === 'loading') {
+    // החלפת ה-div הישן
+    return <StandardizedLoadingSpinner text={dict.loaderText} />;
   }
+
   if (sessionStatus === 'unauthenticated') {
     router.push('/auth/signin?callbackUrl=/auth/update-phone');
     return null;

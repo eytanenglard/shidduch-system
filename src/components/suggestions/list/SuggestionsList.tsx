@@ -17,6 +17,7 @@ import {
   TrendingUp,
   BarChart3,
 } from 'lucide-react';
+import { LoadingContainer } from '@/components/matchmaker/new//shared/LoadingStates';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -280,7 +281,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           );
         });
         break;
-    case 'priority': {
+      case 'priority': {
         const priorityOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
         result.sort(
           (a, b) =>
@@ -288,8 +289,8 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
             (priorityOrder[b.priority as keyof typeof priorityOrder] || 4)
         );
         break;
+      }
     }
-     }
     setFilteredSuggestions(result);
   }, [initialSuggestions, searchQuery, sortOption, filterOption, userId]);
 
@@ -337,9 +338,61 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
 
   if (isLoading) {
     return (
-      <div className={cn('space-y-6', className)}>
-        {/* Skeleton content... */}
-      </div>
+      <LoadingContainer className="mt-6">
+        <div
+          className={cn(
+            viewMode === 'grid'
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+              : 'space-y-6'
+          )}
+        >
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              // Updated: Skeleton Card to match SuggestionCard design
+              className={cn(
+                'relative overflow-hidden rounded-3xl bg-white shadow-lg border border-gray-100',
+                viewMode === 'list' ? 'h-48 flex' : 'h-[450px] flex flex-col'
+              )}
+            >
+              {/* Header Area */}
+              <div className="h-24 bg-gradient-to-r from-gray-50 to-white p-6 border-b border-gray-50">
+                <div className="flex justify-between">
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+                    <div className="space-y-2">
+                      <div className="w-32 h-4 bg-gray-200 rounded animate-pulse" />
+                      <div className="w-20 h-3 bg-gray-100 rounded animate-pulse" />
+                    </div>
+                  </div>
+                  <div className="w-24 h-6 rounded-full bg-teal-50 animate-pulse" />
+                </div>
+              </div>
+
+              {/* Body Area */}
+              <div className="p-6 flex-1 space-y-6">
+                <div className="flex gap-4">
+                  <div className="w-16 h-16 rounded-full bg-gray-100 animate-pulse" />
+                  <div className="flex-1 space-y-3">
+                    <div className="w-3/4 h-4 bg-gray-200 rounded animate-pulse" />
+                    <div className="w-1/2 h-4 bg-gray-100 rounded animate-pulse" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="w-full h-3 bg-gray-50 rounded animate-pulse" />
+                  <div className="w-5/6 h-3 bg-gray-50 rounded animate-pulse" />
+                </div>
+              </div>
+
+              {/* Footer Area */}
+              <div className="p-4 bg-gray-50/50 border-t border-gray-100 flex justify-between gap-4">
+                <div className="h-10 flex-1 bg-white rounded-xl border border-gray-200 animate-pulse" />
+                <div className="h-10 flex-1 bg-teal-50 rounded-xl animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </LoadingContainer>
     );
   }
 

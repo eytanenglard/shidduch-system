@@ -1,19 +1,15 @@
 // src/app/[locale]/auth/signin/page.tsx
 import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import SignInClient from './SignInClient';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
+// עדכון רכיב הטעינה
 function Loading() {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
-    </div>
-  );
+  return <StandardizedLoadingSpinner />;
 }
 
-// ▼▼▼ כאן השינוי ▼▼▼
 type SignInPageProps = {
   params: Promise<{ locale: Locale }>;
 };

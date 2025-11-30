@@ -1,6 +1,8 @@
 // src/app/[locale]/auth/register/RegisterClient.tsx
 'use client';
 
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+
 import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -343,14 +345,8 @@ const RegisterStepsContent: React.FC<{
   // Render appropriate step
   const renderStep = (): React.ReactNode => {
     if (sessionStatus === 'loading') {
-      return (
-        <div className="flex flex-col items-center justify-center p-16">
-          <Loader2 className="h-10 w-10 animate-spin text-teal-600 mb-4" />
-          <p className="text-gray-600 text-sm">
-            {locale === 'he' ? 'טוען...' : 'Loading...'}
-          </p>
-        </div>
-      );
+        return <StandardizedLoadingSpinner text={locale === 'he' ? 'טוען...' : 'Loading...'} layout="inline" />;
+
     }
 
     if (

@@ -1,21 +1,17 @@
 // src/app/[locale]/auth/reset-password/page.tsx
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../i18n-config';
 import ResetPasswordClient from './ResetPasswordClient';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
+// עדכון רכיב הטעינה
 function Loading() {
-  return (
-    <div className="flex flex-col items-center justify-center p-8 bg-white rounded-xl shadow-xl">
-      <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-      <p className="mt-4 text-gray-600">טוען...</p>
-    </div>
-  );
+  return <StandardizedLoadingSpinner />;
 }
 
-// ▼▼▼ כאן השינוי ▼▼▼
 type ResetPasswordPageProps = {
   params: Promise<{ locale: Locale }>;
 };

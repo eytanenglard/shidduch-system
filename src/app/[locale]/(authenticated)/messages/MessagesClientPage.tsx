@@ -1,5 +1,6 @@
 // src/app/[locale]/messages/MessagesClientPage.tsx
 'use client';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
@@ -74,14 +75,13 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
   const actionRequiredCount = feedItems.filter(
     (item) => item.type === 'ACTION_REQUIRED'
   ).length;
-
   if (isLoading) {
+    // החלפת ה-div הישן. משתמשים ב-className כדי להתאים לגובה שהיה קודם
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-80px)]">
-        <Loader2 className="h-10 w-10 animate-spin text-cyan-600" />
-      </div>
+      <StandardizedLoadingSpinner className="h-[calc(100vh-80px)]" />
     );
   }
+
 
   return (
     <div 

@@ -1,25 +1,20 @@
 // src/app/[locale]/questionnaire/restore/page.tsx
 import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
 import { getDictionary } from '@/lib/dictionaries';
 import { Locale } from '../../../../../i18n-config';
 import QuestionnaireRestore from '@/components/questionnaire/QuestionnaireRestore';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 function Loading() {
-  return (
-    <div className="flex h-screen w-full items-center justify-center">
-      <Loader2 className="h-10 w-10 animate-spin text-cyan-600" />
-    </div>
-  );
+  return <StandardizedLoadingSpinner />;
 }
 
-// ▼▼▼ כאן השינוי ▼▼▼
 type RestorePageProps = {
   params: Promise<{ locale: Locale }>;
 };
 
 export default async function RestorePage({ params }: RestorePageProps) {
-  const { locale } = await params; // הוספת await
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (
