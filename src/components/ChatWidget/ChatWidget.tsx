@@ -14,11 +14,11 @@ import { usePathname } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { ChatWidgetDict } from '@/types/dictionary'; // <-- ייבוא הטיפוס
+import type { ChatWidgetDict } from '@/types/dictionary';
 
 // --- Type Definitions ---
 interface ChatWidgetProps {
-  dict: ChatWidgetDict; // <-- הגדרת prop חדש
+  dict: ChatWidgetDict;
 }
 
 interface ActionButton {
@@ -39,7 +39,6 @@ type ChatMode = 'question' | 'gatheringEmail' | 'composingEmail';
 const EMAIL_REGEX = /\S+@\S+\.\S+/;
 
 export default function ChatWidget({ dict }: ChatWidgetProps) {
-  // <-- קבלת ה-prop
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -80,7 +79,7 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
       setTimeout(() => {
         const welcomeMessage: ChatMessage = {
           sender: 'bot',
-          text: dict.texts.welcome, // <-- שימוש במילון
+          text: dict.texts.welcome,
           timestamp: new Date(),
         };
         setMessages([welcomeMessage]);
@@ -103,13 +102,13 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
 
   const clearError = () => setError(null);
   const pathname = usePathname();
-  const locale = pathname.split('/')[1] || 'he'; // קובע את השפה הנוכחית
+  const locale = pathname.split('/')[1] || 'he';
 
   const switchToEmailMode = () => {
     setChatMode('gatheringEmail');
     const emailModeMessage: ChatMessage = {
       sender: 'bot',
-      text: dict.texts.switchToEmailPrompt, // <-- שימוש במילון
+      text: dict.texts.switchToEmailPrompt,
       timestamp: new Date(),
     };
     setMessages((prev) => [...prev, emailModeMessage]);
@@ -125,8 +124,8 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
     if (userMessageCount >= 10 && !isLimitReached) {
       const limitMessage: ChatMessage = {
         sender: 'bot',
-        text: dict.texts.limitReached, // <-- שימוש במילון
-        actions: [{ type: 'email', label: dict.email_action_button }], // <-- שימוש במילון
+        text: dict.texts.limitReached,
+        actions: [{ type: 'email', label: dict.email_action_button }],
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, limitMessage]);
@@ -149,7 +148,7 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: questionText, locale }), // <-- השינוי כאן
+        body: JSON.stringify({ message: questionText, locale }),
       });
 
       if (!response.ok) throw new Error(`Server error: ${response.status}`);
@@ -169,7 +168,7 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
       }, 1000);
     } catch (error) {
       console.error('Chat error:', error);
-      setError(dict.texts.genericError); // <-- שימוש במילון
+      setError(dict.texts.genericError);
       setIsLoading(false);
     }
   };
@@ -180,7 +179,7 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
 
     if (chatMode === 'gatheringEmail') {
       if (!EMAIL_REGEX.test(inputValue)) {
-        setError(dict.texts.emailError); // <-- שימוש במילון
+        setError(dict.texts.emailError);
         return;
       }
 
@@ -192,7 +191,7 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
       };
       const confirmEmailMessage: ChatMessage = {
         sender: 'bot',
-        text: dict.texts.composeEmailPrompt, // <-- שימוש במילון
+        text: dict.texts.composeEmailPrompt,
         timestamp: new Date(),
       };
 
@@ -242,7 +241,7 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
         }, 1000);
       } catch (error) {
         console.error('Email error:', error);
-        setError(dict.texts.sendEmailError); // <-- שימוש במילון
+        setError(dict.texts.sendEmailError);
         setIsLoading(false);
       }
     }
@@ -293,20 +292,22 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
       <div className="fixed bottom-6 left-6 md:bottom-6 md:left-6 z-[100]">
         <div className="relative">
           {hasUnreadMessage && !isOpen && (
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full animate-pulse border-2 border-white z-10 flex items-center justify-center">
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full animate-pulse border-2 border-white z-10 flex items-center justify-center">
               <span className="text-white text-xs font-bold">1</span>
             </div>
           )}
           {!isOpen && (
-            <div className="absolute inset-0 rounded-full bg-cyan-400 opacity-20 animate-ping" />
+            // Updated to teal-400 for the ping animation
+            <div className="absolute inset-0 rounded-full bg-teal-400 opacity-20 animate-ping" />
           )}
           <Button
             id="onboarding-target-chat-widget"
-            aria-label={isOpen ? dict.aria_close : dict.aria_open} // <-- שימוש במילון
+            aria-label={isOpen ? dict.aria_close : dict.aria_open}
             aria-expanded={isOpen}
             aria-controls="chat-panel"
             size="icon"
-            className="relative rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 group w-16 h-16 md:w-16 md:h-16 border-2 border-white touch-manipulation"
+            // Updated gradient to match Hero Section (Teal -> Orange -> Amber)
+            className="relative rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 group w-16 h-16 md:w-16 md:h-16 border-2 border-white touch-manipulation"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? (
@@ -340,23 +341,25 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
               : undefined,
         }}
       >
-        <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 p-4 md:p-5 rounded-t-3xl text-white flex items-center justify-between shadow-lg shrink-0">
+        {/* Updated Header Gradient to Teal */}
+        <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-4 md:p-5 rounded-t-3xl text-white flex items-center justify-between shadow-lg shrink-0">
           <div className="flex items-center min-w-0 flex-1">
             <div className="relative shrink-0">
               <Bot className="w-7 h-7 md:w-7 md:h-7 mr-3 opacity-90" />
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border border-white" />
+              {/* Updated Status dot to Emerald/Green (matches palette) */}
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border border-white" />
             </div>
             <div className="min-w-0 flex-1">
               <h3 id="chat-panel-title" className="font-bold text-lg truncate">
-                {dict.header_title} {/* <-- שימוש במילון */}
+                {dict.header_title}
               </h3>
               <p className="text-sm opacity-90 truncate">
-                {dict.header_subtitle} {/* <-- שימוש במילון */}
+                {dict.header_subtitle}
               </p>
             </div>
           </div>
           <div className="text-xs opacity-75 bg-white/10 px-3 py-1.5 rounded-full shrink-0">
-            {dict.header_status} {/* <-- שימוש במילון */}
+            {dict.header_status}
           </div>
         </div>
 
@@ -374,8 +377,9 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
                   }`}
                 >
                   {msg.sender === 'bot' && (
-                    <div className="bg-cyan-100 p-2.5 rounded-full self-start shadow-sm shrink-0">
-                      <Bot className="w-5 h-5 text-cyan-700" />
+                    // Updated Bot Icon Background to Teal-50
+                    <div className="bg-teal-50 p-2.5 rounded-full self-start shadow-sm shrink-0">
+                      <Bot className="w-5 h-5 text-teal-700" />
                     </div>
                   )}
                   <div className="flex flex-col max-w-[85%] md:max-w-[80%] min-w-0">
@@ -383,7 +387,8 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
                       className={cn(
                         'p-4 rounded-2xl shadow-sm leading-relaxed break-words',
                         msg.sender === 'user'
-                          ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-white rounded-br-lg'
+                          ? // Updated User Bubble Gradient to Teal
+                            'bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-br-lg'
                           : 'bg-white border border-gray-100 rounded-bl-lg'
                       )}
                     >
@@ -413,11 +418,12 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
                       <Button
                         key={actionIndex}
                         variant="outline"
-                        className="justify-start text-right bg-white border-cyan-200 text-cyan-700 hover:bg-cyan-50 rounded-xl shadow-sm text-base py-3 px-4 h-auto touch-manipulation min-h-[48px]"
+                        // Updated Action Button to Teal colors
+                        className="justify-start text-right bg-white border-teal-200 text-teal-700 hover:bg-teal-50 rounded-xl shadow-sm text-base py-3 px-4 h-auto touch-manipulation min-h-[48px]"
                         onClick={switchToEmailMode}
                       >
                         <Mail className="w-5 h-5 ml-2" />
-                        {dict.email_action_button} {/* <-- שימוש במילון */}
+                        {dict.email_action_button}
                       </Button>
                     ))}
                   </div>
@@ -427,14 +433,16 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
 
             {isLoading && (
               <div className="flex items-start gap-3 justify-start">
-                <div className="bg-cyan-100 p-2.5 rounded-full self-start shadow-sm shrink-0">
-                  <Bot className="w-5 h-5 text-cyan-700" />
+                {/* Updated Loading Icon to Teal */}
+                <div className="bg-teal-50 p-2.5 rounded-full self-start shadow-sm shrink-0">
+                  <Bot className="w-5 h-5 text-teal-700" />
                 </div>
                 <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-lg p-4 shadow-sm">
+                  {/* Updated Loading Dots: Teal, Orange, Teal (Synergy!) */}
                   <div className="flex items-center space-x-1 rtl:space-x-reverse">
-                    <div className="h-2 w-2 bg-cyan-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                    <div className="h-2 w-2 bg-cyan-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                    <div className="h-2 w-2 bg-cyan-500 rounded-full animate-bounce"></div>
+                    <div className="h-2 w-2 bg-teal-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                    <div className="h-2 w-2 bg-orange-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                    <div className="h-2 w-2 bg-teal-500 rounded-full animate-bounce"></div>
                   </div>
                 </div>
               </div>
@@ -443,24 +451,22 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
             {shouldShowPromptQuestions() && (
               <div className="pt-3 mr-14">
                 <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-                  <Sparkles className="w-4 h-4 text-cyan-500" />
-                  <span>{dict.prompt_header}</span> {/* <-- שימוש במילון */}
+                  {/* Updated Sparkles to Orange for contrast */}
+                  <Sparkles className="w-4 h-4 text-orange-500" />
+                  <span>{dict.prompt_header}</span>
                 </div>
                 <div className="flex flex-wrap gap-2.5">
-                  {dict.prompt_questions.map(
-                    (
-                      q // <-- שימוש במילון
-                    ) => (
-                      <Button
-                        key={q}
-                        variant="outline"
-                        className="rounded-full text-sm h-auto py-3 px-4 bg-white hover:bg-cyan-50 border-cyan-200 text-cyan-700 transition-all duration-200 hover:shadow-sm touch-manipulation min-h-[44px]"
-                        onClick={() => submitQuestion(q)}
-                      >
-                        {q}
-                      </Button>
-                    )
-                  )}
+                  {dict.prompt_questions.map((q) => (
+                    <Button
+                      key={q}
+                      variant="outline"
+                      // Updated Prompt Buttons to Teal theme
+                      className="rounded-full text-sm h-auto py-3 px-4 bg-white hover:bg-teal-50 border-teal-200 text-teal-700 transition-all duration-200 hover:shadow-sm touch-manipulation min-h-[44px]"
+                      onClick={() => submitQuestion(q)}
+                    >
+                      {q}
+                    </Button>
+                  ))}
                 </div>
               </div>
             )}
@@ -486,10 +492,11 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
               <Button
                 type="button"
                 variant="link"
-                className="text-sm text-cyan-600 hover:text-cyan-800 h-auto p-2 underline-offset-4 touch-manipulation min-h-[44px]"
+                // Updated Link Button to Teal
+                className="text-sm text-teal-600 hover:text-teal-800 h-auto p-2 underline-offset-4 touch-manipulation min-h-[44px]"
                 onClick={switchToEmailMode}
               >
-                {dict.email_link_button} {/* <-- שימוש במילון */}
+                {dict.email_link_button}
               </Button>
             </div>
           )}
@@ -504,7 +511,8 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={getPlaceholderText()}
-              className="flex-1 px-4 py-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-base transition-all duration-200 bg-gray-50 focus:bg-white min-w-0 touch-manipulation"
+              // Updated Focus Ring to Teal
+              className="flex-1 px-4 py-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-base transition-all duration-200 bg-gray-50 focus:bg-white min-w-0 touch-manipulation"
               disabled={isLoading || isLimitReached}
               dir="rtl"
               style={{ fontSize: '16px' }}
@@ -513,7 +521,8 @@ export default function ChatWidget({ dict }: ChatWidgetProps) {
               type="submit"
               size="icon"
               aria-label="שלח הודעה"
-              className="rounded-2xl bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 shrink-0 shadow-md hover:shadow-lg transition-all duration-200 w-12 h-12 touch-manipulation"
+              // Updated Send Button to Teal
+              className="rounded-2xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 shrink-0 shadow-md hover:shadow-lg transition-all duration-200 w-12 h-12 touch-manipulation"
               disabled={isLoading || !inputValue.trim() || isLimitReached}
             >
               <Send className="w-6 h-6" />

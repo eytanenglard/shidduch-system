@@ -5118,43 +5118,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               )}
             {/* --- END: VERIFY THIS CODE BLOCK --- */}
 
-            {profile.about && (
-              <SectionCard
-                title={displayDict.content.focus.aboutMe}
-                subtitle={displayDict.content.focus.myStory}
-                icon={Heart}
-                variant="romantic"
-                gradient={THEME.colors.primary.main}
-                compact={true}
-                className="min-w-0 max-w-full"
-              >
-                <div
-                  className={cn(
-                    'p-3 sm:p-4 rounded-xl border border-rose-200/50 min-w-0 max-w-full overflow-hidden',
-                    `bg-gradient-to-r ${THEME.colors.neutral.warm}`
-                  )}
-                >
-                  <p
-                    className="text-gray-800 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-start"
-                    dir={direction}
-                  >
-                    <Quote
-                      className={cn(
-                        'w-3 h-3 sm:w-4 sm:h-4 inline text-rose-400 flex-shrink-0',
-                        direction === 'rtl' ? 'ml-1' : 'mr-1'
-                      )}
-                    />
-                    {profile.about}
-                    <Quote
-                      className={cn(
-                        'w-3 h-3 sm:w-4 sm:h-4 inline text-rose-400 transform rotate-180 flex-shrink-0',
-                        direction === 'rtl' ? 'mr-1' : 'ml-1'
-                      )}
-                    />
-                  </p>
-                </div>
-              </SectionCard>
-            )}
+           
             <SectionCard
               title={displayDict.content.focus.quickSummary}
               subtitle={displayDict.content.focus.importantDetails}

@@ -476,8 +476,8 @@ export default function QuestionnaireLandingPage({
             />
             <SolutionCard
               icon={<FileText className="w-8 h-8" />}
-              title={dict.solutionSection.cards.soulReport.title}
-              description={dict.solutionSection.cards.soulReport.description}
+              title={dict.solutionSection.cards.fullPicture.title}
+              description={dict.solutionSection.cards.fullPicture.description}
               gradient="from-teal-400 via-teal-500 to-emerald-500"
               shadowColor="shadow-teal-500/25"
               bgGradient="from-teal-50 via-white to-emerald-50"

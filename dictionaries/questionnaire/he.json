@@ -184,7 +184,7 @@
     "title2": "צריך לדעת מה באמת רוצים",
     "subtitle1": "שאלון עומק שעוזר לך להבין את עצמך, מה שחשוב לך באמת,",
     "subtitle2": "ומייצר עבורך",
-    "subtitleHighlight": "דוח נשמה מפורט",
+"subtitleHighlight": "התמונה המלאה שלך",
     "subtitle3": "- מפת דרכים לזוגיות שאתה באמת מחפש",
     "timeEstimate": "20-30 דקות שיחסכו לך חודשים של חיפושים"
   },
@@ -214,8 +214,8 @@
     "subtitle2": "ובסוף תקבל דוח אישי מפורט - מפת דרכים לזוגיות שאתה מחפש",
     "cards": {
       "selfDiscovery": { "title": "גילוי עצמי אמיתי", "description": "השאלון מוביל אותך דרך תהליך מובנה שעוזר לך להבין מה באמת חשוב לך בחיים ובזוגיות - מעבר למשפטים כלליים." },
-      "soulReport": { "title": "קבל את “דוח הנשמה” שלך", "description": "בסיום השאלון תקבל דוח PDF מפורט ואישי שמזקק את כל התובנות - מסמך שתוכל לחזור אליו שוב ושוב." },
-      "focusedSearch": { "title": "חיפוש ממוקד ויעיל", "description": "עם דוח הנשמה, תדע בדיוק מה אתה מחפש. זה יעזור לך להסביר לשדכנים, לקבל החלטות טובות יותר, ולחסוך זמן." }
+"fullPicture": { "title": "קבל את \"התמונה המלאה\" שלך", "description": "בסיום השאלון תקבל מסמך PDF מפורט ואישי - תמונה ברורה של מי שאתה ומה אתה מחפש בזוגיות." },
+"focusedSearch": { "title": "חיפוש ממוקד ויעיל", "description": "עם התמונה המלאה שלך, תדע בדיוק מה אתה מחפש. זה יעזור לך להסביר לשדכנים, לקבל החלטות טובות יותר, ולחסוך זמן." }
     },
     "result": {
       "title": "התוצאה: בהירות ובטחון",
@@ -239,15 +239,15 @@
     "cards": {
       "fast": { "title": "מהיר ונוח", "description": "20-30 דקות בלבד. אפשר להתחיל, לעצור, ולחזור בכל זמן. השאלון נשמר אוטומטית." },
       "private": { "title": "פרטי ומאובטח", "description": "התשובות שלך נשארות אצלך בלבד. רק אתה ושדכנים מורשים יכולים לגשת אליהן." },
-      "instantResult": { "title": "תוצאה מיידית", "description": "בסיום השאלון תקבל את דוח הנשמה שלך - מסמך PDF מפורט ואישי שמזקק את כל התובנות." }
+"instantResult": { "title": "תוצאה מיידית", "description": "בסיום השאלון תקבל את התמונה המלאה שלך - מסמך PDF מפורט ואישי שמזקק את כל התובנות." }
     }
   },
   "finalCta": {
     "title1": "מוכנים להתחיל?",
-    "title2": "דוח הנשמה שלכם מחכה",
-    "subtitle": "20 דקות של מיקוד שיחסכו לכם חודשים של חיפושים.\nהתחילו עכשיו וגלו מה באמת חשוב לכם בזוגיות.",
-    "buttonText": "קבל את דוח הנשמה שלך עכשיו",
-    "assurance": "ללא תשלום • ללא התחייבות • פרטי לחלוטין"
+"title2": "התמונה המלאה שלכם מחכה"
+,    "subtitle": "20 דקות של מיקוד שיחסכו לכם חודשים של חיפושים.\nהתחילו עכשיו וגלו מה באמת חשוב לכם בזוגיות.",
+"buttonText": "קבל את התמונה המלאה שלך עכשיו"
+,    "assurance": "ללא תשלום • ללא התחייבות • פרטי לחלוטין"
   },
   "footer": {
     "copyright": "© {{year}} NeshamaTech. כל הזכויות שמורות."
@@ -279,7 +279,7 @@
     "nextStepTitle": "הצעד הבא במסע",
     "nextStepPrompt": "מוכן/ה להמשיך ל{{worldName}}?",
     "completionTitle": "🎉 כל הכבוד! השלמת את כל העולמות",
-    "completionSubtitle": "עכשיו אפשר לעיין בפרופיל המלא שלך ולראות את דוח הנשמה"
+"completionSubtitle": "עכשיו אפשר לעיין בפרופיל המלא שלך ולראות את התמונה המלאה"
   },
   "reviewCard": {
     "title": "רוצה לסקור את התשובות שלך?",
@@ -316,7 +316,7 @@
     "subtitle": "סיימת את כל עולמות השאלון. עשית צעד ענק במסע שלך!",
     "description": "הפרופיל המלא שלך מוכן כעת עבור השדכנים שלנו.",
     "statWorlds": "5 עולמות",
-    "statReport": "דוח נשמה מלא"
+"statReport": "התמונה המלאה שלך"
   },
   
     "worldsContent": {
@@ -880,38 +880,38 @@
   }
 },
 "matchResultCard": {
-    "premiumBadge": "התאמה מומלצת",
-    "matchPercentageBadge": "{{percentage}}% התאמה",
-    "tooltips": {
-      "addToBookmarks": "הוסף למועדפים",
-      "removeFromBookmarks": "הסר ממועדפים",
-      "traitDescription": "{{description}}"
-    },
-    "buttons": {
-      "reject": "לא מתאים",
-      "confirmReject": "לאשר דחייה",
-      "cancel": "בטל",
-      "accept": "מעוניין/ת",
-      "continueChat": "המשך שיחה",
-      "showMore": "הצג פרטים נוספים",
-      "hideMore": "הסתר פרטים נוספים",
-      "viewFullProfile": "צפייה בפרופיל מלא"
-    },
-    "sections": {
-      "about": "קצת על {{name}}",
-      "topMatches": "תחומי התאמה בולטים",
-      "commonInterests": "תחומי עניין משותפים",
-      "lastActive": "פעילות אחרונה: {{time}}"
-    },
-    "lastActiveFormat": {
-      "unknown": "לא ידוע",
-      "today": "היום",
-      "yesterday": "אתמול",
-      "daysAgo": "לפני {{count}} ימים",
-      "weeksAgo": "לפני {{count}} שבועות",
-      "monthsAgo": "לפני {{count}} חודשים"
-    }
+  "premiumBadge": "התאמה מומלצת",
+  "matchPercentageBadge": "{{percentage}}% התאמה",
+  "tooltips": {
+    "addToBookmarks": "הוסף למועדפים",
+    "removeFromBookmarks": "הסר ממועדפים",
+    "traitDescription": "{{description}}"
+  },
+  "buttons": {
+    "reject": "לא מתאים",
+    "confirmReject": "לאשר דחייה",
+    "cancel": "בטל",
+    "accept": "מעוניין/ת",
+    "continueChat": "המשך שיחה",
+    "showMore": "הצג פרטים נוספים",
+    "hideMore": "הסתר פרטים נוספים",
+    "viewFullProfile": "צפייה בפרופיל מלא"
+  },
+  "sections": {
+    "about": "קצת על {{name}}",
+    "topMatches": "תחומי התאמה בולטים",
+    "commonInterests": "תחומי עניין משותפים",
+    "lastActive": "פעילות אחרונה: {{time}}"
+  },
+  "lastActiveFormat": {
+    "unknown": "לא ידוע",
+    "today": "היום",
+    "yesterday": "אתמול",
+    "daysAgo": "לפני {{count}} ימים",
+    "weeksAgo": "לפני {{count}} שבועות",
+    "monthsAgo": "לפני {{count}} חודשים"
   }
+}
 
   
 

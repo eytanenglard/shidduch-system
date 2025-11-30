@@ -1,3 +1,4 @@
+// src/components/questionnaire/components/MatchResultCard.tsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -31,7 +32,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { MatchResultCardDict } from '@/types/dictionary'; // Import dictionary type
+import type { MatchResultCardDict } from '@/types/dictionary';
 
 interface MatchTrait {
   name: string;
@@ -74,7 +75,7 @@ interface MatchResultCardProps {
   onViewProfile?: (id: string) => void;
   onBookmark?: (id: string, bookmarked: boolean) => void;
   isPremium?: boolean;
-  dict: MatchResultCardDict; // Use the specific dictionary type
+  dict: MatchResultCardDict;
 }
 
 export default function MatchResultCard({

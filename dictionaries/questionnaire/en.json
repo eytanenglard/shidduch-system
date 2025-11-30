@@ -183,7 +183,7 @@
     "title2": "You need to know what you truly want",
     "subtitle1": "An in-depth questionnaire that helps you understand yourself, what truly matters to you,",
     "subtitle2": "and generates a",
-    "subtitleHighlight": "detailed Soul Report",
+"subtitleHighlight": "detailed Full Picture",
     "subtitle3": "for you - a roadmap to the relationship you're really looking for.",
     "timeEstimate": "20-30 minutes that will save you months of searching"
   },
@@ -213,8 +213,8 @@
     "subtitle2": "and at the end, you'll receive a detailed personal report - a roadmap to the relationship you're looking for.",
     "cards": {
       "selfDiscovery": { "title": "True Self-Discovery", "description": "The questionnaire guides you through a structured process that helps you understand what's truly important to you in life and relationships - beyond generic phrases." },
-      "soulReport": { "title": "Get Your “Soul Report”", "description": "Upon completion, you'll receive a detailed and personal PDF report that distills all your insights - a document you can return to again and again." },
-      "focusedSearch": { "title": "Focused and Efficient Search", "description": "With the Soul Report, you'll know exactly what you're looking for. It will help you explain to matchmakers, make better decisions, and save time." }
+"fullPicture": { "title": "Get Your 'Full Picture'", "description": "Upon completion, you'll receive a detailed and personal PDF document that distills all your insights - a clear view of who you are and what you're looking for." },
+"focusedSearch": { "title": "Focused and Efficient Search", "description": "With your Full Picture, you'll know exactly what you're looking for. It will help you explain to matchmakers, make better decisions, and save time." }
     },
     "result": {
       "title": "The Result: Clarity and Confidence",
@@ -238,15 +238,15 @@
     "cards": {
       "fast": { "title": "Quick and Convenient", "description": "Only 20-30 minutes. You can start, stop, and return at any time. Your progress is saved automatically." },
       "private": { "title": "Private and Secure", "description": "Your answers are yours alone. Only you and authorized matchmakers can access them." },
-      "instantResult": { "title": "Instant Result", "description": "Upon completion, you'll receive your Soul Report - a detailed, personal PDF document distilling all your insights." }
+"instantResult": { "title": "Instant Result", "description": "Upon completion, you'll receive your Full Picture - a detailed, personal PDF document distilling all your insights." }
     }
   },
   "finalCta": {
     "title1": "Ready to start?",
-    "title2": "Your Soul Report is waiting",
+"title2": "Your Full Picture is waiting",
     "subtitle": "20 minutes of focus that will save you months of searching.\nStart now and discover what truly matters to you in a relationship.",
-    "buttonText": "Get Your Soul Report Now",
-    "assurance": "Free • No Commitment • Completely Private"
+"buttonText": "Get Your Full Picture Now"
+,    "assurance": "Free • No Commitment • Completely Private"
   },
   "footer": {
     "copyright": "© {{year}} NeshamaTech. All rights reserved."
@@ -278,7 +278,7 @@
     "nextStepTitle": "The Next Step on Your Journey",
     "nextStepPrompt": "Ready to continue to {{worldName}}?",
     "completionTitle": "🎉 Congratulations! You've completed all worlds",
-    "completionSubtitle": "You can now review your full profile and see your Soul Report."
+"completionSubtitle": "You can now review your full profile and see your Full Picture."
   },
   "reviewCard": {
     "title": "Want to review your answers?",
@@ -315,7 +315,7 @@
     "subtitle": "You've completed all the questionnaire worlds. You've taken a huge step on your journey!",
     "description": "Your full profile is now ready for our matchmakers.",
     "statWorlds": "5 Worlds",
-    "statReport": "Full Soul Report"
+"statReport": "Your Full Picture"
   },
 
 
@@ -882,37 +882,37 @@
     "finish": { "title": "מדהים! סיימת!", "subtitle": "השלמת את כל השאלות" }
   }
 },
-  "matchResultCard": {
-    "premiumBadge": "Premium",
-    "matchPercentageBadge": "{{percentage}}% Match",
-    "tooltips": {
-      "addToBookmarks": "Add to bookmarks",
-      "removeFromBookmarks": "Remove from bookmarks",
-      "traitDescription": "{{description}}"
-    },
-    "buttons": {
-      "reject": "Decline",
-      "confirmReject": "Confirm Decline",
-      "cancel": "Cancel",
-      "accept": "Accept",
-      "continueChat": "Continue Chat",
-      "showMore": "Show More",
-      "hideMore": "Show Less",
-      "viewFullProfile": "View Full Profile"
-    },
-    "sections": {
-      "about": "About {{name}}",
-      "topMatches": "Top Matching Traits",
-      "commonInterests": "Common Interests",
-      "lastActive": "Last active: {{time}}"
-    },
-    "lastActiveFormat": {
-      "unknown": "Unknown",
-      "today": "Today",
-      "yesterday": "Yesterday",
-      "daysAgo": "{{count}} days ago",
-      "weeksAgo": "{{count}} weeks ago",
-      "monthsAgo": "{{count}} months ago"
-    }
+"matchResultCard": {
+  "premiumBadge": "Premium",
+  "matchPercentageBadge": "{{percentage}}% Match",
+  "tooltips": {
+    "addToBookmarks": "Add to bookmarks",
+    "removeFromBookmarks": "Remove from bookmarks",
+    "traitDescription": "{{description}}"
+  },
+  "buttons": {
+    "reject": "Decline",
+    "confirmReject": "Confirm Decline",
+    "cancel": "Cancel",
+    "accept": "Accept",
+    "continueChat": "Continue Chat",
+    "showMore": "Show More",
+    "hideMore": "Show Less",
+    "viewFullProfile": "View Full Profile"
+  },
+  "sections": {
+    "about": "About {{name}}",
+    "topMatches": "Top Matching Traits",
+    "commonInterests": "Common Interests",
+    "lastActive": "Last active: {{time}}"
+  },
+  "lastActiveFormat": {
+    "unknown": "Unknown",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{{count}} days ago",
+    "weeksAgo": "{{count}} weeks ago",
+    "monthsAgo": "{{count}} months ago"
   }
+}
 }

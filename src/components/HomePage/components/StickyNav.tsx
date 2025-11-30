@@ -292,7 +292,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0, opacity: 0, y: 50 }}
             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            className="fixed bottom-24 right-4 z-50"
+            className="fixed bottom-32 left-4 z-50"
           >
             <Button
               size="icon"

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email
-# Generated on: 2025-11-20 14:23:01
+# Generated on: 2025-11-30 12:43:49
 ################################################################################
 
 ================================================================================
@@ -26,7 +26,7 @@ interface ProfileSummaryUpdateEmailParams {
     locale: Locale;
     email: string;
     firstName: string;
-    matchmakerName: string;
+    matchmakerName?: string;
 }
 
 interface TemplateContext {
@@ -314,11 +314,12 @@ class EmailService {
         sharedDict: emailDict.shared,
         name: params.firstName,
         firstName: params.firstName,
-        matchmakerName: params.matchmakerName,
+        matchmakerName: params.matchmakerName, // מעביר את הערך (שיכול להיות undefined)
         dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/profile`,
       }
     });
   }
+
 
   async sendVerificationEmail(params: VerificationEmailParams): Promise<void> {
     const locale = await this.resolveLocale(params.email, params.locale);
@@ -851,11 +852,15 @@ export interface InvitationTemplateContext extends BaseTemplateContext {
   expiresIn: string;
 }
 export interface ProfileSummaryUpdateTemplateContext extends BaseTemplateContext {
-  dict: EmailDictionary['profileSummaryUpdate'];
+  dict: EmailDictionary['profileSummaryUpdate'] & { 
+      introMatchmaker: string; 
+      introSystem: string; 
+  }; // הרחבת הטיפוס באופן ידני אם ה-Type הראשי עדיין לא עודכן
   firstName: string;
-  matchmakerName: string;
+  matchmakerName?: string; // אופציונלי
   dashboardUrl: string;
 }
+
 
 export interface SuggestionTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['suggestion'];
@@ -1124,17 +1129,28 @@ export const emailTemplates: {
     <p>${context.dict.nextStep}</p>
   `, context),
   
-  profileSummaryUpdate: (context) => createBaseEmailHtml(context.dict.title, `
-    <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
-    <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
-    <div class="highlight-box">
-      <p><strong>${context.dict.highlight}</strong></p>
-    </div>
-    <p>${context.dict.encouragement}</p>
-    <p style="text-align: center;">
-      <a href="${context.dashboardUrl}" class="button">${context.dict.actionButton}</a>
-    </p>
-  `, context),
+profileSummaryUpdate: (context) => {
+    // בדיקה: האם יש שם שדכן?
+    const introText = context.matchmakerName
+      ? context.dict.introMatchmaker.replace('{{matchmakerName}}', context.matchmakerName)
+      : context.dict.introSystem;
+
+    return createBaseEmailHtml(context.dict.title, `
+      <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
+      
+      <!-- שימוש בטקסט שנבחר למעלה -->
+      <p>${introText}</p>
+      
+      <div class="highlight-box">
+        <p><strong>${context.dict.highlight}</strong></p>
+      </div>
+      <p>${context.dict.encouragement}</p>
+      <p style="text-align: center;">
+        <a href="${context.dashboardUrl}" class="button">${context.dict.actionButton}</a>
+      </p>
+    `, context);
+  },
+
 
   emailOtpVerification: (context) => createBaseEmailHtml(context.dict.title, `
     <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>

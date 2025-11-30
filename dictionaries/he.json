@@ -649,39 +649,88 @@
       "status": "פעיל עכשיו"
     },
     "conversation": [
-      { "sender": "user", "text": "היה לי עוד דייט... שוב לא הוביל לשום מקום 😞" },
-      { "sender": "friend", "text": "אוף. מה קרה?" },
-      { "sender": "user", "text": "לא יודע... היא נחמדה והכל, אבל משהו פשוט לא \"זה\"." },
-      { "sender": "friend", "text": "אז מה זה \"זה\" הזה שאתה מחפש? 🎯" },
-      { "sender": "user", "text": "שאלה טובה... מישהי עם ערכים טובים? שיהיה כיף איתה? אני לא באמת יודע להגדיר 😅" },
-      { "sender": "friend", "text": "בדיוק! זו הבעיה. איך תדע שמצאת אם אתה לא יודע מה אתה מחפש?" },
-      { "sender": "user", "text": "וואו. נכון. אז מה הפתרון?" },
-      { "sender": "friend", "text": "שמע, NeshamaTech בנו שאלון עומק שמייצר לך בסוף \"דוח נשמה\" אישי. זה מסמך PDF שאתה מקבל, כמו מפת דרכים לעצמך ולזוגיות שאתה רוצה." },
-      { "sender": "user", "text": "נשמע רציני. זה בטח לוקח שעות." },
-      { "sender": "friend", "text": "ממש לא, 20-30 דקות. חבר שלי אמר שזה חסך לו חודשים של דייטים לא רלוונטיים." },
-      { "sender": "user", "text": "אוקיי, שכנעת אותי. איפה מתחילים? 💪" }
+      {
+        "sender": "user",
+        "text": "היה לי עוד דייט... שוב לא הוביל לשום מקום 😞"
+      },
+      {
+        "sender": "friend",
+        "text": "אוף. מה קרה?"
+      },
+      {
+        "sender": "user",
+        "text": "לא יודע... היא נחמדה והכל, אבל משהו פשוט לא \"זה\"."
+      },
+      {
+        "sender": "friend",
+        "text": "אז מה זה \"זה\" הזה שאתה מחפש? 🎯"
+      },
+      {
+        "sender": "user",
+        "text": "שאלה טובה... מישהי עם ערכים טובים? שיהיה כיף איתה? אני לא באמת יודע להגדיר 😅"
+      },
+      {
+        "sender": "friend",
+        "text": "בדיוק! זו הבעיה. איך תדע שמצאת אם אתה לא יודע מה אתה מחפש?"
+      },
+      {
+        "sender": "user",
+        "text": "וואו. נכון. אז מה הפתרון?"
+      },
+      {
+        "sender": "friend",
+        "text": "שמע, NeshamaTech בנו שאלון עומק שמייצר לך בסוף את \"התמונה המלאה\" שלך. זה מסמך אישי שאתה מקבל, שמראה לך בדיוק מי אתה ומה אתה מחפש בזוגיות."
+      },
+      {
+        "sender": "user",
+        "text": "נשמע רציני. זה בטח לוקח שעות."
+      },
+      {
+        "sender": "friend",
+        "text": "ממש לא, 20-30 דקות. חבר שלי אמר שזה חסך לו חודשים של דייטים לא רלוונטיים."
+      },
+      {
+        "sender": "user",
+        "text": "אוקיי, שכנעת אותי. איפה מתחילים? 💪"
+      }
     ],
     "insights": {
       "title": "איך 20 דקות של מיקוד יכולות לשנות את כל התמונה?",
       "items": [
-        { "title": "גילוי עצמי", "description": "קבלו 'דוח נשמה' אישי שמזקק את הערכים והצרכים האמיתיים שלכם." },
-        { "title": "חיפוש ממוקד", "description": "תפסיקו לבזבז אנרגיה על דייטים שנגמרים ב'זה לא זה'." },
-        { "title": "ביטחון ובהירות", "description": "תגיעו לדייט הבא כשאתם יודעים בדיוק מה אתם מביאים לקשר." }
+        {
+          "title": "גילוי עצמי",
+          "description": "קבלו את 'התמונה המלאה' שלכם - מסמך אישי שמזקק את הערכים והצרכים האמיתיים שלכם."
+        },
+        {
+          "title": "חיפוש ממוקד",
+          "description": "תפסיקו לבזבז אנרגיה על דייטים שנגמרים ב'זה לא זה'."
+        },
+        {
+          "title": "ביטחון ובהירות",
+          "description": "תגיעו לדייט הבא כשאתם יודעים בדיוק מה אתם מביאים לקשר."
+        }
       ]
     },
     "transitionText": "רגע... זה בדיוק מה שקורה אצלך עכשיו, נכון? 🤔",
     "transitionCTA": "אז מה עושים עם התובנות האלה? 👇",
     "cta": {
-      "button": "אני רוצה לקבל את דוח הנשמה שלי",
+      "button": "אני רוצה לראות את התמונה המלאה שלי",
       "subtitle": "התחילו עכשיו וגלו את הדרך לזוגיות שתמיד רציתם."
     },
     "placeholder": "הודעה...",
-    "progressLabels": ["התחלה", "השאלה", "ההארה", "הפתרון", "הסיום"],
+    "progressLabels": [
+      "התחלה",
+      "השאלה",
+      "ההארה",
+      "הפתרון",
+      "הסיום"
+    ],
     "postConversationTransition": {
       "line1": "אז איך מתחילים לענות על השאלה \"מה אני באמת מחפש/ת\"?",
       "line2": "בנינו עבורך מסע לגילוי עצמי."
     }
   }
+
 
 
 

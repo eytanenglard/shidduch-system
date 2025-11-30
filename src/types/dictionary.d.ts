@@ -1602,7 +1602,7 @@ export type QuestionnaireLandingPageDict = {
     subtitle2: string;
     cards: {
       selfDiscovery: { title: string; description: string };
-      soulReport: { title: string; description: string };
+      fullPicture: { title: string; description: string };
       focusedSearch: { title: string; description: string };
     };
     result: {

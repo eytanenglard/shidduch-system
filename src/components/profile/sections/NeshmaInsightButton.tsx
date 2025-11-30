@@ -76,14 +76,14 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
       if (!isProfileComplete) {
         toast.error(
           locale === 'he'
-            ? 'יש להשלים את הפרופיל ל-100% כדי לקבל תובנת נשמה'
-            : 'Complete your profile to 100% to get Neshama Insight'
+            ? 'יש להשלים את הפרופיל ל-100% כדי לקבל את התמונה המלאה'
+            : 'Complete your profile to 100% to get your Full Picture'
         );
       } else if (!canGenerateToday()) {
         toast.error(
           locale === 'he'
-            ? 'ניתן ליצור תובנת נשמה פעם אחת ב-24 שעות'
-            : 'You can generate Neshama Insight once every 24 hours'
+            ? 'ניתן ליצור את התמונה המלאה פעם אחת ב-24 שעות'
+            : 'You can generate your Full Picture once every 24 hours'
         );
       }
       return;
@@ -110,8 +110,8 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
       setInsightData(data.insight);
       toast.success(
         locale === 'he'
-          ? 'התובנה נוצרה בהצלחה!'
-          : 'Insight generated successfully!'
+          ? 'התמונה המלאה נוצרה בהצלחה!'
+          : 'Your Full Picture was generated successfully!'
       );
 
       setTimeout(() => {
@@ -122,8 +122,8 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
       toast.error(
         error.message ||
           (locale === 'he'
-            ? 'אירעה שגיאה ביצירת התובנה'
-            : 'Error generating insight')
+            ? 'אירעה שגיאה ביצירת התמונה המלאה'
+            : 'Error generating your Full Picture')
       );
       setIsOpen(false);
     } finally {
@@ -155,8 +155,8 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
                 <h4 className="text-sm font-bold text-gray-700">
                   {dict.lockedTitle ||
                     (locale === 'he'
-                      ? 'תובנת נשמה - נעולה'
-                      : 'Neshama Insight - Locked')}
+                      ? 'התמונה המלאה - נעולה'
+                      : 'Full Picture - Locked')}
                 </h4>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {dict.lockedDescription ||
@@ -189,13 +189,13 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
               <div>
                 <h4 className="text-sm font-semibold text-gray-800">
                   {dict.minimizedButtonText ||
-                    (locale === 'he' ? 'תובנת נשמה' : 'Neshama Insight')}
+                    (locale === 'he' ? 'התמונה המלאה' : 'Full Picture')}
                 </h4>
                 <p className="text-xs text-gray-500">
                   {canGenerateToday()
                     ? locale === 'he'
-                      ? 'לחץ ליצירת תובנה מעודכנת'
-                      : 'Click to generate updated insight'
+                      ? 'לחץ ליצירת תמונה מעודכנת'
+                      : 'Click to generate updated picture'
                     : dict.alreadyGeneratedToday ||
                       (locale === 'he'
                         ? 'נוצרה היום - זמינה מחר'
@@ -234,19 +234,10 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center py-12 space-y-4">
                 <Loader2 className="w-16 h-16 text-purple-600 animate-spin" />
-                <p className="text-gray-600 text-lg">{dict.generating}</p>
-                <p className="text-gray-500 text-sm">
-                  {locale === 'he'
-                    ? 'אנחנו מנתחים את הפרופיל שלך ויוצרים תובנה מותאמת אישית...'
-                    : 'Analyzing your profile and creating personalized insights...'}
-                </p>
+                <p className="text-lg text-gray-600">{dict.generating}</p>
               </div>
             ) : insightData ? (
-              <NeshmaInsightDisplay
-                data={insightData}
-                locale={locale}
-                dict={dict}
-              />
+              <InsightDisplay data={insightData} locale={locale} dict={dict} />
             ) : null}
           </DialogContent>
         </Dialog>
@@ -255,65 +246,37 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
   }
 
   return (
-    <>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+      className="my-6"
+    >
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="my-8 relative"
+        className="relative cursor-pointer"
+        onClick={handleGenerateInsight}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
       >
-        <button
-          onClick={() => setIsMinimized(true)}
-          className="absolute top-4 end-4 z-10 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-all"
-          aria-label={locale === 'he' ? 'הקטן' : 'Minimize'}
-        >
-          <X className="w-4 h-4 text-gray-600" />
-        </button>
-        <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-500 rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition duration-500 animate-pulse"></div>
-          <div className="relative bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 rounded-3xl p-8 shadow-xl border border-white/50 backdrop-blur-sm">
-            <div className="text-center space-y-4">
-              <motion.div
-                animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.05, 1] }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  repeatType: 'reverse',
-                }}
-                className="flex justify-center"
-              >
-                <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 p-4 rounded-2xl shadow-lg">
-                  <Sparkles className="w-12 h-12 text-white" />
-                </div>
-              </motion.div>
-              <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 bg-clip-text text-transparent">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 rounded-2xl blur-lg opacity-30 animate-pulse" />
+
+        <div className="relative bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 rounded-2xl p-5 shadow-lg border border-purple-200">
+          <div className="flex items-center gap-4">
+            <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 p-3 rounded-xl shadow-md">
+              <Sparkles className="w-7 h-7 text-white" />
+            </div>
+
+            <div className="flex-1">
+              <h4 className="text-lg font-bold text-gray-800">
                 {dict.buttonText}
-              </h3>
-              <p className="text-gray-600 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+              </h4>
+              <p className="text-sm text-gray-600 mt-1">
                 {dict.buttonSubtitle}
               </p>
-              <Button
-                onClick={handleGenerateInsight}
-                disabled={!canGenerate}
-                size="lg"
-                className={cn(
-                  'mt-4 font-semibold px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-lg',
-                  canGenerate
-                    ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 hover:from-purple-700 hover:via-pink-700 hover:to-cyan-700 text-white'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                )}
-              >
-                <Sparkles className="w-5 h-5 me-2" />
-                {locale === 'he' ? 'קבלו את התובנה שלכם' : 'Get Your Insight'}
-              </Button>
-              {!canGenerateToday() && (
-                <p className="text-xs text-orange-600 mt-2">
-                  {dict.alreadyGeneratedToday ||
-                    (locale === 'he'
-                      ? 'כבר יצרת תובנה היום. נסה שוב מחר!'
-                      : 'You already generated an insight today. Try again tomorrow!')}
-                </p>
-              )}
+            </div>
+
+            <div className="bg-gradient-to-r from-purple-600 to-cyan-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-md">
+              {locale === 'he' ? 'צור עכשיו' : 'Generate'}
             </div>
           </div>
         </div>
@@ -333,33 +296,30 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
           {isGenerating ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-4">
               <Loader2 className="w-16 h-16 text-purple-600 animate-spin" />
-              <p className="text-gray-600 text-lg">{dict.generating}</p>
-              <p className="text-gray-500 text-sm">
-                {locale === 'he'
-                  ? 'אנחנו מנתחים את הפרופיל שלך ויוצרים תובנה מותאמת אישית...'
-                  : 'Analyzing your profile and creating personalized insights...'}
-              </p>
+              <p className="text-lg text-gray-600">{dict.generating}</p>
             </div>
           ) : insightData ? (
-            <NeshmaInsightDisplay
-              data={insightData}
-              locale={locale}
-              dict={dict}
-            />
+            <InsightDisplay data={insightData} locale={locale} dict={dict} />
           ) : null}
         </DialogContent>
       </Dialog>
-    </>
+    </motion.div>
   );
 };
 
-const NeshmaInsightDisplay: React.FC<{
+interface InsightDisplayProps {
   data: any;
   locale: 'he' | 'en';
-  dict: any;
-}> = ({ data, locale, dict }) => {
+  dict: NeshmaInsightButtonProps['dict'];
+}
+
+const InsightDisplay: React.FC<InsightDisplayProps> = ({
+  data,
+  locale,
+  dict,
+}) => {
   return (
-    <div className="space-y-8 py-4">
+    <div className="space-y-6 py-4">
       <InsightSection
         title={locale === 'he' ? '🌟 מי את/ה באמת' : '🌟 Who You Really Are'}
         content={data.whoYouAre}
@@ -372,7 +332,7 @@ const NeshmaInsightDisplay: React.FC<{
             : '💫 Your Ideal Partner'
         }
         content={data.idealPartner}
-        bgColor="from-pink-50 to-cyan-50"
+        bgColor="from-pink-50 to-rose-50"
       />
       <InsightSection
         title={
@@ -381,7 +341,7 @@ const NeshmaInsightDisplay: React.FC<{
             : '🎯 Preparing for the First Meeting'
         }
         content={data.firstMeetingTips}
-        bgColor="from-cyan-50 to-blue-50"
+        bgColor="from-rose-50 to-orange-50"
       />
       <InsightSection
         title={
@@ -524,7 +484,7 @@ const handleDownloadPDF = async (data: any, locale: 'he' | 'en') => {
 
     doc.setFontSize(H1_SIZE);
     doc.setFont('Rubik', 'normal');
-    const title = isHebrew ? 'תובנת נשמה' : 'Neshama Insight';
+    const title = isHebrew ? 'התמונה המלאה שלך' : 'Your Full Picture';
     // ✨ תיקון: קוראים לפונקציה הרגילה במקום ישירות ל-doc.text
     writeText(title, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += LINE_SPACING_H1;
@@ -613,7 +573,7 @@ const handleDownloadPDF = async (data: any, locale: 'he' | 'en') => {
       doc.text(footerText, pageWidth / 2, pageHeight - 10, footerOptions);
     }
 
-    const filename = isHebrew ? 'תובנת-נשמה.pdf' : 'neshama-insight.pdf';
+    const filename = isHebrew ? 'התמונה-המלאה-שלי.pdf' : 'my-full-picture.pdf';
     doc.save(filename);
 
     toast.success(
