@@ -32,6 +32,7 @@ import { useSession } from 'next-auth/react';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { motion, useInView } from 'framer-motion';
 import type { QuestionnaireLandingPageDict } from '@/types/dictionary';
+import type { WorldId } from '../types/types';
 
 // --- Props Interface ---
 interface QuestionnaireLandingPageProps {
@@ -68,11 +69,10 @@ const staggeredCardVariants = {
   },
 };
 
-// --- Enhanced Background Component (Updated Colors) ---
+// --- Enhanced Background Component ---
 const DynamicBackground: React.FC = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     <div className="absolute inset-0 opacity-30">
-      {/* Updated Orbs to match Hero: Teal, Orange, Rose */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-teal-300/20 rounded-full blur-3xl animate-float-slow" />
       <div
         className="absolute top-1/3 right-20 w-64 h-64 bg-orange-300/20 rounded-full blur-3xl animate-float-slow"
@@ -95,9 +95,9 @@ const DynamicBackground: React.FC = () => (
     >
       <defs>
         <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#0d9488" stopOpacity="0.2" /> {/* Teal */}
-          <stop offset="50%" stopColor="#f97316" stopOpacity="0.15" /> {/* Orange */}
-          <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.1" /> {/* Rose */}
+          <stop offset="0%" stopColor="#0d9488" stopOpacity="0.2" />
+          <stop offset="50%" stopColor="#f97316" stopOpacity="0.15" />
+          <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.1" />
         </linearGradient>
       </defs>
       <path
@@ -115,7 +115,7 @@ const DynamicBackground: React.FC = () => (
   </div>
 );
 
-// --- Problem Card Component (Updated to Rose/Red theme for problems) ---
+// --- Problem Card Component ---
 interface ProblemCardProps {
   icon: React.ReactNode;
   title: string;
@@ -157,8 +157,8 @@ interface SolutionCardProps {
   title: string;
   description: string;
   gradient: string;
-  shadowColor: string; // Added to match Hero style
-  bgGradient: string;  // Added to match Hero style
+  shadowColor: string;
+  bgGradient: string;
   delay?: number;
 }
 
@@ -219,17 +219,14 @@ export default function QuestionnaireLandingPage({
   const isMobile = useIsMobile();
   const isRTL = locale === 'he';
 
-  // Track visibility of top CTA button
   const [showBottomCta, setShowBottomCta] = useState(false);
   const topCtaRef = useRef<HTMLDivElement>(null);
 
-  // Intersection Observer to track when top CTA is visible
   useEffect(() => {
     if (!isMobile || !topCtaRef.current) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Show bottom CTA when top CTA is NOT visible
         setShowBottomCta(!entry.isIntersecting);
       },
       {
@@ -247,14 +244,14 @@ export default function QuestionnaireLandingPage({
 
   const worldVisuals = [
     { id: 'PERSONALITY', icon: <User className="h-7 w-7" />, color: 'blue' },
-    { id: 'VALUES', icon: <Heart className="h-7 w-7" />, color: 'rose' }, // Rose (Hero match)
+    { id: 'VALUES', icon: <Heart className="h-7 w-7" />, color: 'rose' },
     {
       id: 'RELATIONSHIP',
       icon: <Users className="h-7 w-7" />,
       color: 'purple',
     },
-    { id: 'PARTNER', icon: <UserCheck className="h-7 w-7" />, color: 'teal' }, // Teal (Hero match)
-    { id: 'RELIGION', icon: <Scroll className="h-7 w-7" />, color: 'amber' }, // Amber (Hero match)
+    { id: 'PARTNER', icon: <UserCheck className="h-7 w-7" />, color: 'teal' },
+    { id: 'RELIGION', icon: <Scroll className="h-7 w-7" />, color: 'amber' },
   ] as const;
 
   const getCtaText = () => {
@@ -270,7 +267,6 @@ export default function QuestionnaireLandingPage({
   return (
     <div
       className={cn(
-        // Updated main background to match HeroSection
         'relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20',
         isRTL ? 'dir-rtl text-right' : 'dir-ltr text-left',
         isMobile && 'pb-28'
@@ -278,7 +274,7 @@ export default function QuestionnaireLandingPage({
     >
       <DynamicBackground />
 
-      {/* SECTION 1: HERO - The Invitation */}
+      {/* SECTION 1: HERO */}
       <motion.section
         className="relative py-16 sm:py-20 px-4 text-center"
         initial="hidden"
@@ -302,7 +298,6 @@ export default function QuestionnaireLandingPage({
           >
             <span className="text-gray-800">{dict.hero.title1}</span>
             <br />
-            {/* Updated Gradient Title to match Hero (Teal->Orange->Amber) */}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient">
               {dict.hero.title2}
             </span>
@@ -338,7 +333,6 @@ export default function QuestionnaireLandingPage({
           >
             <Button
               size="lg"
-              // Updated Button Gradient: Teal -> Orange -> Amber
               className="w-full sm:w-auto text-lg font-bold px-10 py-7 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
               onClick={onStartQuestionnaire}
               disabled={isLoading}
@@ -373,7 +367,7 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* SECTION 2: THE PROBLEM - The Pain Point */}
+      {/* SECTION 2: THE PROBLEM */}
       <motion.section
         className="py-20 px-4 relative"
         initial="hidden"
@@ -441,7 +435,7 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* SECTION 3: THE SOLUTION - The Questionnaire (Matching Hero Cards) */}
+      {/* SECTION 3: THE SOLUTION */}
       <motion.section
         className="py-20 px-4 relative bg-white/40 backdrop-blur-sm"
         initial="hidden"
@@ -459,7 +453,6 @@ export default function QuestionnaireLandingPage({
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-gray-800 leading-tight">
               {dict.solutionSection.title}{' '}
-              {/* Updated Gradient Text */}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500">
                 {dict.solutionSection.titleHighlight}
               </span>
@@ -472,7 +465,6 @@ export default function QuestionnaireLandingPage({
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Card 1: Self Discovery -> Rose Theme */}
             <SolutionCard
               icon={<Heart className="w-8 h-8" />}
               title={dict.solutionSection.cards.selfDiscovery.title}
@@ -482,7 +474,6 @@ export default function QuestionnaireLandingPage({
               bgGradient="from-rose-50 via-white to-red-50"
               delay={0}
             />
-            {/* Card 2: Soul Report -> Teal Theme */}
             <SolutionCard
               icon={<FileText className="w-8 h-8" />}
               title={dict.solutionSection.cards.soulReport.title}
@@ -492,7 +483,6 @@ export default function QuestionnaireLandingPage({
               bgGradient="from-teal-50 via-white to-emerald-50"
               delay={0.15}
             />
-            {/* Card 3: Focused Search -> Orange/Amber Theme */}
             <SolutionCard
               icon={<Target className="w-8 h-8" />}
               title={dict.solutionSection.cards.focusedSearch.title}
@@ -527,7 +517,7 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* SECTION 4: THE WORLDS - The Journey */}
+      {/* SECTION 4: THE WORLDS */}
       <motion.section
         className="py-20 px-4 relative"
         initial="hidden"
@@ -540,7 +530,6 @@ export default function QuestionnaireLandingPage({
             <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-800">
               {dict.worldsSection.title}
             </h2>
-            {/* Updated Divider */}
             <div className="w-24 h-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-auto rounded-full mb-6" />
             <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
               {dict.worldsSection.subtitle}
@@ -552,16 +541,15 @@ export default function QuestionnaireLandingPage({
             variants={staggeredCardVariants}
           >
             {worldVisuals.map((world, index) => {
-              // Exact matches to Hero palette where possible
               const colorClasses = {
-                blue: 'from-sky-400 to-blue-500', // Keep Blue for variety
-                rose: 'from-rose-400 to-red-500', // Matches Hero Rose
-                purple: 'from-purple-400 to-indigo-500', // Keep Purple for variety
-                teal: 'from-teal-400 to-emerald-500', // Matches Hero Teal
-                amber: 'from-amber-400 to-yellow-500', // Matches Hero Orange/Amber
+                blue: 'from-sky-400 to-blue-500',
+                rose: 'from-rose-400 to-red-500',
+                purple: 'from-purple-400 to-indigo-500',
+                teal: 'from-teal-400 to-emerald-500',
+                amber: 'from-amber-400 to-yellow-500',
               };
 
-              const worldInfo = dict.worldsSection.worlds[world.id];
+              const worldInfo = dict.worldsSection.worlds[world.id as WorldId];
 
               return (
                 <motion.div key={world.id} variants={fadeInUp}>
@@ -598,7 +586,7 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* SECTION 5: ADDITIONAL FEATURES (Updated Colors) */}
+      {/* SECTION 5: FEATURES */}
       <motion.section
         className="py-20 px-4 bg-gradient-to-b from-white/80 to-teal-50/40"
         initial="hidden"
@@ -618,7 +606,6 @@ export default function QuestionnaireLandingPage({
             className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
             variants={staggeredCardVariants}
           >
-            {/* Feature 1: Fast (Teal) */}
             <motion.div
               className="flex flex-col items-center p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-white/60 group"
               variants={fadeInUp}
@@ -634,7 +621,6 @@ export default function QuestionnaireLandingPage({
               </p>
             </motion.div>
 
-            {/* Feature 2: Private (Rose/Orange) */}
             <motion.div
               className="flex flex-col items-center p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-white/60 group"
               variants={fadeInUp}
@@ -650,7 +636,6 @@ export default function QuestionnaireLandingPage({
               </p>
             </motion.div>
 
-            {/* Feature 3: Instant Result (Rose) */}
             <motion.div
               className="flex flex-col items-center p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-white/60 group"
               variants={fadeInUp}
@@ -679,7 +664,6 @@ export default function QuestionnaireLandingPage({
       >
         <div className="max-w-4xl mx-auto">
           <motion.div
-            // Updated container background to match Hero vibes
             className="relative bg-gradient-to-br from-white/95 via-teal-50/80 to-orange-50/80 backdrop-blur-xl rounded-3xl p-12 md:p-16 shadow-2xl border-2 border-white/60"
             variants={fadeInUp}
           >
@@ -709,7 +693,6 @@ export default function QuestionnaireLandingPage({
                   size="lg"
                   onClick={onStartQuestionnaire}
                   disabled={isLoading}
-                  // Updated Final CTA Button
                   className="text-xl font-bold px-12 py-8 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1 hover:scale-105"
                 >
                   <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/40 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
@@ -752,7 +735,6 @@ export default function QuestionnaireLandingPage({
         >
           <Button
             size="lg"
-            // Updated Mobile Sticky Button
             className="w-full text-base font-bold py-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white rounded-xl shadow-xl hover:shadow-2xl transition-all group relative overflow-hidden"
             onClick={onStartQuestionnaire}
             disabled={isLoading}

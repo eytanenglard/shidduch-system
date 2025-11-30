@@ -125,49 +125,51 @@
     }
   }
 },
-  "matchmaking": {
-    "worldLabels": {
-      "PERSONALITY": "אישיות",
-      "VALUES": "ערכים ואמונות",
-      "RELATIONSHIP": "זוגיות",
-      "PARTNER": "פרטנר",
-      "RELIGION": "דת ומסורת"
+ "matchmaking": {
+  "worldLabels": {
+    "PERSONALITY": "אישיות",
+    "VALUES": "ערכים ואמונות",
+    "RELATIONSHIP": "זוגיות",
+    "PARTNER": "פרטנר",
+    "RELIGION": "דת ומסורת"
+  },
+  "toasts": {
+    "saveSuccess": "השינויים נשמרו בהצלחה! 💾",
+    "autoSaveError": "שגיאה בשמירה אוטומטית",
+    "unsavedChanges": {
+      "message": "יש לך שינויים שלא נשמרו.",
+      "action": "שמור עכשיו"
     },
-    "toasts": {
-      "saveSuccess": "ההתקדמות נשמרה בהצלחה",
-      "autoSaveError": "שגיאה בשמירה אוטומטית",
-      "unsavedChanges": {
-        "message": "יש לך שינויים שלא נשמרו.",
-        "action": "שמור עכשיו"
-      },
-      "answerVisible": "התשובה תוצג בפרופיל",
-      "answerHidden": "התשובה תוסתר מהפרופיל",
-      "worldProgressSaved": "התקדמות העולם נשמרה",
-      "worldProgressSavedBrowser": "התקדמות העולם נשמרה בדפדפן",
-      "worldCompletionError": "שגיאה בשמירת התקדמות העולם",
-      "worldFinished": "כל הכבוד! סיימת את עולם ה{{worldName}}",
-      "submitSuccess": "השאלון נשלח בהצלחה!"
-    },
-    "errors": {
-      "invalidSubmission": "נתוני שליחה לא תקינים",
-      "saveFailed": "אירעה שגיאה בשמירת השאלון.",
-      "loadFailed": "נכשל בטעינת תשובות קיימות",
-      "genericLoadError": "אירעה שגיאה בטעינת התשובות הקיימות",
-      "stageLoadError": "שגיאה בטעינת השלב",
-      "invalidStep": "אירעה שגיאה: שלב לא תקין בתהליך.",
-      "submitFailed": "שגיאה בשליחת השאלון."
-    },
-    "idleModal": {
-      "title": "האם אתה עדיין כאן?",
-      "description": "לא זיהינו פעילות בחשבונך. למען אבטחת המידע, תתבצע יציאה אוטומטית מהמערכת בעוד כדקה.",
-      "logoutButton": "צא מהמערכת",
-      "stayActiveButton": "אני עדיין כאן"
-    },
-    "lastSaved": "נשמר לאחרונה: {{time}}",
-    "loading": "טוען את המסע שלך...",
-    "loadingSubtext": "טוען את השאלון שלך...",
-    "lastSavedIndicatorLabel": "נשמר"
-  }
+    "answerVisible": "התשובה תוצג בפרופיל",
+    "answerHidden": "התשובה תוסתר מהפרופיל",
+    "worldProgressSaved": "התקדמות העולם נשמרה",
+    "worldProgressSavedBrowser": "התקדמות נשמרה בדפדפן (אורח)",
+    "worldCompletionError": "שגיאה בשמירת התקדמות העולם",
+    "worldFinished": "כל הכבוד! השלמת את עולם ה{{worldName}}! 🎉",
+    "allWorldsFinished": "🎊 מדהים! השלמת את כל העולמות! 🎊",
+    "submitSuccess": "השאלון נשלח בהצלחה!",
+    "nextWorldAction": "המשך ל{{name}}"
+  },
+  "errors": {
+    "invalidSubmission": "נתוני שליחה לא תקינים",
+    "saveFailed": "שגיאה בשמירה",
+    "loadFailed": "נכשל בטעינת הנתונים",
+    "genericLoadError": "אירעה שגיאה בטעינת התשובות הקיימות",
+    "stageLoadError": "שגיאה בטעינת השלב",
+    "invalidStep": "אירעה שגיאה: שלב לא תקין בתהליך.",
+    "submitFailed": "שגיאה בשליחת השאלון."
+  },
+  "idleModal": {
+    "title": "האם אתה עדיין כאן?",
+    "description": "לא זיהינו פעילות בחשבונך. למען אבטחת המידע, תתבצע יציאה אוטומטית מהמערכת בעוד כדקה.",
+    "logoutButton": "צא מהמערכת",
+    "stayActiveButton": "אני עדיין כאן"
+  },
+  "lastSaved": "נשמר לאחרונה: {{time}}",
+  "loading": "טוען את המסע שלך...",
+  "loadingSubtext": "מכין את השאלון שלך...",
+  "lastSavedIndicatorLabel": "נשמר"
+}
 ,
   "page": {
     "loading": "טוען שאלון...",
@@ -194,11 +196,10 @@
   },
   "problemSection": {
     "badge": "הבעיה שכולנו מכירים",
-"title1": "“אז מה אתה באמת מחפש?”",
+    "title1": "“אז מה אתה באמת מחפש?”",
     "title2": "...והתשובה הסטנדרטית שלא עוזרת",
     "cards": {
-"generalAnswers": { "title": "תשובות כלליות", "description": "“מישהו טוב”, “עם ערכים דומים”, “שיהיה כיף איתה” - אבל מה זה באמת אומר? איך תדע שמצאת?" }
-,
+      "generalAnswers": { "title": "תשובות כלליות", "description": "“מישהו טוב”, “עם ערכים דומים”, “שיהיה כיף איתה” - אבל מה זה באמת אומר? איך תדע שמצאת?" },
       "wastedTime": { "title": "בזבוז זמן ואנרגיה", "description": "דייטים שנגמרים ב\"זה לא זה\" כי לא ממש הבנת מה אתה מחפש מלכתחילה. כל דייט מרגיש כמו נסיון וטעייה." },
       "lackOfFocus": { "title": "חוסר מיקוד", "description": "קשה להסביר לשדכנים מה באמת חשוב לך, קשה לדעת אם הצעה מתאימה לך, קשה לקבל החלטות." },
       "frustration": { "title": "תסכול וחוסר בטחון", "description": "התחושה שאולי אתה פשוט לא יודע מה אתה רוצה, או שאולי אתה מחפש משהו שלא קיים." }
@@ -213,8 +214,7 @@
     "subtitle2": "ובסוף תקבל דוח אישי מפורט - מפת דרכים לזוגיות שאתה מחפש",
     "cards": {
       "selfDiscovery": { "title": "גילוי עצמי אמיתי", "description": "השאלון מוביל אותך דרך תהליך מובנה שעוזר לך להבין מה באמת חשוב לך בחיים ובזוגיות - מעבר למשפטים כלליים." },
-"soulReport": { "title": "קבל את “דוח הנשמה” שלך", "description": "בסיום השאלון תקבל דוח PDF מפורט ואישי שמזקק את כל התובנות - מסמך שתוכל לחזור אליו שוב ושוב." }
-,
+      "soulReport": { "title": "קבל את “דוח הנשמה” שלך", "description": "בסיום השאלון תקבל דוח PDF מפורט ואישי שמזקק את כל התובנות - מסמך שתוכל לחזור אליו שוב ושוב." },
       "focusedSearch": { "title": "חיפוש ממוקד ויעיל", "description": "עם דוח הנשמה, תדע בדיוק מה אתה מחפש. זה יעזור לך להסביר לשדכנים, לקבל החלטות טובות יותר, ולחסוך זמן." }
     },
     "result": {
@@ -381,69 +381,69 @@
 
 
 ,
-   "layout": {
-    "navHeader": "עולמות השאלון",
-    "navSubtitle": "נווט בין חלקי השאלון השונים",
-    "sidebarHeader": {
-      "title": "המסע שלך",
-      "subtitle": "גילוי עצמי מודרך"
-    },
-    "sidebarProgress": {
-      "title": "ההתקדמות שלך",
-      "worldsLabel": "{{completedCount}}/{{totalCount}} עולמות",
-      "completionMessage": "כל הכבוד! השלמת את כל העולמות 🎉"
-    },
-    "navButtonStatus": {
-      "active": "עכשיו",
-      "completed": "הושלם",
-      "available": "עולם {{order}}"
-    },
-    "saveButton": {
-      "default": "שמור התקדמות",
-      "saving": "שומר...",
-      "saved": "נשמר!"
-    },
-    "lastSavedSuccess": "נשמר בהצלחה ב-{{time}}",
-    "actionButtons": {
-      "review": "סקור את התשובות",
-      "exitToMap": "חזור למפה",
-      "faq": "שאלות נפוצות"
-    },
-    "faqSheet": {
-      "title": "שאלות נפוצות"
-    },
-    "unauthenticatedPrompt": {
-      "title": "התקדמותך נשמרת זמנית בדפדפן.",
-      "subtitle": "התחבר/י או הרשמ/י כדי לשמור את התשובות לחשבונך.",
-      "loginButton": "התחברות",
-      "registerButton": "הרשמה"
-    },
-    "exitPrompt": {
-      "title": "האם אתה בטוח שברצונך לצאת?",
-      "description": "כל התשובות שלא נשמרו יאבדו. האם ברצונך לשמור לפני היציאה?",
-      "cancel": "ביטול",
-      "saveAndExit": "שמור וצא",
-      "exitWithoutSaving": "צא ללא שמירה"
-    },
-    "mobileNav": {
-      "title": "ניווט בשאלון",
-      "backToMap": "חזרה למפת העולמות",
-      "exit": "יציאה",
-      "reviewAnswers": "צפייה בכל התשובות",
-      "menuTitle": "תפריט"
-    },
-    "tooltips": {
-      "faq": "שאלות נפוצות",
-      "accessibility": "נגישות ותצוגה"
-    },
-    "profileNotice": {
-      "title": "שימ/י לב:",
-      "textPart1": "כברירת מחדל, תשובות גלויות לשדכן. ניתן לבחור להסתיר תשובות ספציפיות באמצעות",
-      "visibilityToggleLabel": "מתג הנראות",
-      "textPart2": "שיוסתר מהפרופיל הציבורי שלך.",
-      "link": "ניתן לנהל את כל התשובות שלך דרך הפרופיל האישי."
-    }
+"layout": {
+  "navHeader": "עולמות השאלון",
+  "navSubtitle": "נווט בין חלקי השאלון השונים",
+  "sidebarHeader": {
+    "title": "המסע שלך",
+    "subtitle": "גילוי עצמי מודרך"
+  },
+  "sidebarProgress": {
+    "title": "ההתקדמות שלך",
+    "worldsLabel": "{{completedCount}}/{{totalCount}} עולמות",
+    "completionMessage": "כל הכבוד! סיימת הכל 🎉"
+  },
+  "navButtonStatus": {
+    "active": "עכשיו",
+    "completed": "הושלם",
+    "available": "עולם {{order}}"
+  },
+  "saveButton": {
+    "default": "שמור התקדמות",
+    "saving": "שומר...",
+    "saved": "נשמר!"
+  },
+  "lastSavedSuccess": "נשמר בהצלחה ב-{{time}}",
+  "actionButtons": {
+    "review": "סקור את התשובות",
+    "exitToMap": "חזור למפה",
+    "faq": "שאלות נפוצות"
+  },
+  "faqSheet": {
+    "title": "שאלות נפוצות"
+  },
+  "unauthenticatedPrompt": {
+    "title": "התקדמותך נשמרת זמנית",
+    "subtitle": "התחבר/י כדי לשמור את התשובות לחשבונך באופן קבוע.",
+    "loginButton": "התחברות",
+    "registerButton": "הרשמה"
+  },
+  "exitPrompt": {
+    "title": "לצאת מהשאלון?",
+    "description": "שינויים שלא נשמרו יאבדו.",
+    "cancel": "ביטול",
+    "saveAndExit": "שמור וצא",
+    "exitWithoutSaving": "צא ללא שמירה"
+  },
+  "mobileNav": {
+    "title": "ניווט",
+    "backToMap": "מפת עולמות",
+    "exit": "יציאה",
+    "reviewAnswers": "סקירה",
+    "menuTitle": "תפריט"
+  },
+  "tooltips": {
+    "faq": "עזרה ושאלות נפוצות",
+    "accessibility": "נגישות"
+  },
+  "profileNotice": {
+    "title": "שימו לב:",
+    "textPart1": "חלק מהתשובות גלויות. השתמשו ב",
+    "visibilityToggleLabel": "מתג הנראות",
+    "textPart2": "כדי להסתיר פרטים רגישים.",
+    "link": "ניהול הגדרות פרופיל"
   }
+}
 
 ,
 "world": {
@@ -522,46 +522,54 @@
   }
 }
 ,
-   "answerInput": {
-    "clearSelection": "נקה בחירה",
-    "tooltips": {
-      "copy": "העתק טקסט",
-      "copied": "הועתק!",
-      "clearText": "נקה טקסט",
-      "removeCustomAnswer": "הסר תשובה מותאמת",
-      "resetAllocation": "אפס הקצאה"
-    },
-    "multiSelectWithOther": {
-      "addOtherOptionLabel": "הוספת אפשרות אחרת (אופציונלי)",
-      "otherOptionPlaceholder": "הקלד/י אפשרות נוספת...",
-      "addButton": "הוסף",
-      "addedAnswersLabel": "תשובות שהוספת:",
-      "errorExists": "אפשרות זו כבר קיימת"
-    },
-    "multiSelect": {
-      "maxSelectionError": "ניתן לבחור עד {{count}} אפשרויות",
-      "selectedInfo": "נבחרו {{count}} אפשרויות",
-      "minLabel": "מינימום",
-      "maxLabel": "מקסימום"
-    },
-    "openText": {
-      "placeholder": "הקלד/י את תשובתך כאן...",
-      "minLengthRequired": "נדרשים עוד {{count}} תווים",
-      "minLengthMet": "הגעת למינימום הנדרש",
-      "maxLengthExceeded": "חריגה מהאורך המקסימלי",
-      "minLengthInfoRequired": "נדרש לפחות {{count}} תווים",
-      "minLengthInfoRecommended": "מומלץ לפחות {{count}} תווים",
-      "estimatedTime": "זמן כתיבה משוער: {{count}} דקות",
-      "tipsButton": "טיפים למענה על שאלה זו"
-    },
-    "budgetAllocation": {
-      "totalAllocated": "סה״כ הוקצה:",
-      "remaining": "חסר {{count}}",
-      "surplus": "עודף {{count}}",
-      "resetButton": "אפס הכל"
-    },
-    "unsupportedType": "אופס! סוג השאלה {{type}} אינו נתמך כרגע."
+"answerInput": {
+  "clearSelection": "נקה בחירה",
+  "tooltips": {
+    "copy": "העתק טקסט",
+    "copied": "הועתק!",
+    "clearText": "נקה טקסט",
+    "removeCustomAnswer": "הסר תשובה מותאמת",
+    "resetAllocation": "אפס הקצאה"
   },
+  "multiSelectWithOther": {
+    "addOtherOptionLabel": "הוספת אפשרות אחרת (אופציונלי)",
+    "otherOptionPlaceholder": "הקלד/י אפשרות נוספת...",
+    "addButton": "הוסף",
+    "addedAnswersLabel": "תשובות שהוספת:",
+    "errorExists": "אפשרות זו כבר קיימת"
+  },
+  "multiSelect": {
+    "maxSelectionError": "ניתן לבחור עד {{count}} אפשרויות",
+    "selectedInfo": "נבחרו {{count}} אפשרויות",
+    "minLabel": "מינימום",
+    "maxLabel": "מקסימום"
+  },
+  "openText": {
+    "placeholder": "הקלד/י את תשובתך כאן...",
+    "minLengthRequired": "נדרשים עוד {{count}} תווים",
+    "minLengthMet": "הגעת למינימום הנדרש",
+    "maxLengthExceeded": "חריגה מהאורך המקסימלי",
+    "minLengthInfoRequired": "נדרש לפחות {{count}} תווים",
+    "minLengthInfoRecommended": "מומלץ לפחות {{count}} תווים",
+    "estimatedTime": "זמן כתיבה משוער: {{count}} דקות",
+    "tipsButton": "טיפים למענה על שאלה זו",
+    "wordCount": "{{count}} מילים",
+    "readingTime": "{{count}} דקות קריאה",
+    "completionPercentage": "{{count}}% הושלם",
+    "writingGreat": "כתיבה מעולה! ממשיכים כך"
+  },
+  "budgetAllocation": {
+    "totalAllocated": "סה״כ הוקצה:",
+    "remaining": "חסר {{count}}",
+    "surplus": "עודף {{count}}",
+    "resetButton": "אפס הכל",
+    "statusComplete": "התקציב הושלם!",
+    "statusRemaining": "נותרו להקצאה: {{count}}",
+    "statusExceeded": "חריגה של {{count}}"
+  },
+  "unsupportedType": "אופס! סוג השאלה {{type}} אינו נתמך כרגע.",
+  "supportContactMessage": "אנא פנה לתמיכה טכנית לפתרון הבעיה"
+},
   "interactiveScale": {
     "selectedValue": "ערך נבחר: {{value}}",
     "ariaLabel": "ערך בסולם {{value}}"

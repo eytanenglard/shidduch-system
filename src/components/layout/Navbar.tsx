@@ -176,7 +176,9 @@ const MobileHomePageLink = ({
   icon: React.ReactNode;
   onClick: () => void;
 }) => {
-  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement> | React.TouchEvent<HTMLAnchorElement>) => {
+  const handleScroll = (
+    e: React.MouseEvent<HTMLAnchorElement> | React.TouchEvent<HTMLAnchorElement>
+  ) => {
     e.preventDefault();
     const element = document.querySelector(href);
     if (element) {
@@ -470,10 +472,7 @@ const Navbar = ({ dict }: NavbarProps) => {
         <div
           className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm md:hidden"
           onClick={toggleMobileMenu}
-          onTouchEnd={(e) => {
-            e.preventDefault();
-            toggleMobileMenu();
-          }}
+          style={{ touchAction: 'none' }}
           aria-hidden="true"
         />
       )}
@@ -491,8 +490,9 @@ const Navbar = ({ dict }: NavbarProps) => {
         role="dialog"
         aria-modal="true"
         aria-label="תפריט ניווט"
+        style={{ touchAction: 'pan-y' }}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full overflow-hidden">
           <div className="flex justify-between items-center p-5 border-b border-gray-100 shrink-0 bg-gray-50/30">
             <Logo locale={locale} />
             <Button
@@ -507,9 +507,11 @@ const Navbar = ({ dict }: NavbarProps) => {
           </div>
 
           <div
-            className="overflow-y-auto flex-grow pb-8 scrollbar-hide"
+            className="overflow-y-auto flex-grow pb-8 scrollbar-hide min-h-0"
             style={{
               WebkitOverflowScrolling: 'touch',
+              touchAction: 'pan-y',
+              overscrollBehavior: 'contain',
             }}
           >
             {session?.user && (

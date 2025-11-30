@@ -987,8 +987,10 @@ export type MatchmakingQuestionnaireDict = {
     worldProgressSaved: string;
     worldProgressSavedBrowser: string;
     worldCompletionError: string;
-    worldFinished: string; // e.g., "כל הכבוד! סיימת את עולם ה{{worldName}}"
-    submitSuccess: string; // <-- הוספה חדשה
+    worldFinished: string; // e.g., "Well done! You completed {{worldName}} world"
+    allWorldsFinished: string; // --- New ---
+    submitSuccess: string;
+    nextWorldAction: string; // "Continue to {{name}}"
   };
   errors: {
     invalidSubmission: string;
@@ -996,8 +998,8 @@ export type MatchmakingQuestionnaireDict = {
     loadFailed: string;
     genericLoadError: string;
     stageLoadError: string;
-    invalidStep: string; // <-- הוספה חדשה
-    submitFailed: string; // <-- הוספה חדשה
+    invalidStep: string;
+    submitFailed: string;
   };
   idleModal: {
     title: string;
@@ -1005,10 +1007,10 @@ export type MatchmakingQuestionnaireDict = {
     logoutButton: string;
     stayActiveButton: string;
   };
-  lastSaved: string; // e.g., "נשמר לאחרונה: {{time}}"
+  lastSaved: string; // e.g., "Last saved: {{time}}"
   loading: string;
-  loadingSubtext: string; // <-- הוספה חדשה
-  lastSavedIndicatorLabel: string; // <-- הוספה חדשה
+  loadingSubtext: string;
+  lastSavedIndicatorLabel: string;
 };
 
 
@@ -1611,6 +1613,7 @@ export type QuestionnaireLandingPageDict = {
   worldsSection: {
     title: string;
     subtitle: string;
+    // Using explicit keys to ensure type safety
     worlds: {
       PERSONALITY: WorldInfoDict;
       VALUES: WorldInfoDict;
@@ -1639,6 +1642,7 @@ export type QuestionnaireLandingPageDict = {
     copyright: string; // Placeholder: {{year}}
   };
 };
+
 
 
 export type WorldsMapWorldContent = {  title: string;
@@ -1716,8 +1720,6 @@ export type WorldsMapDict = {
 export type QuestionnaireLayoutDict = {
   navHeader: string;
   navSubtitle: string;
-  
-  // START: Updated Section
   sidebarHeader: {
     title: string;
     subtitle: string;
@@ -1737,7 +1739,7 @@ export type QuestionnaireLayoutDict = {
     saving: string;
     saved: string;
   };
-  lastSavedSuccess: string; // e.g., "Saved successfully at {{time}}"
+  lastSavedSuccess: string; // e.g., "Saved at {{time}}"
   actionButtons: {
     review: string;
     exitToMap: string;
@@ -1746,8 +1748,6 @@ export type QuestionnaireLayoutDict = {
   faqSheet: {
     title: string;
   };
-  // END: Updated Section
-
   unauthenticatedPrompt: {
     title: string;
     subtitle: string;
@@ -1891,7 +1891,7 @@ export type AnalysisResultDisplayDict = {
   };
 
  };
- export type AnswerInputDict = {
+export type AnswerInputDict = {
   clearSelection: string;
   tooltips: {
     copy: string;
@@ -1908,28 +1908,38 @@ export type AnalysisResultDisplayDict = {
     errorExists: string;
   };
   multiSelect: {
-    maxSelectionError: string; // e.g., "ניתן לבחור עד {{count}} אפשרויות"
-    selectedInfo: string; // e.g., "נבחרו {{count}} אפשרויות"
-    minLabel: string; // e.g., "מינימום"
-    maxLabel: string; // e.g., "מקסימום"
+    maxSelectionError: string;
+    selectedInfo: string;
+    minLabel: string;
+    maxLabel: string;
   };
   openText: {
     placeholder: string;
-    minLengthRequired: string; // e.g., "נדרשים עוד {{count}} תווים"
+    minLengthRequired: string;
     minLengthMet: string;
     maxLengthExceeded: string;
-    minLengthInfoRequired: string; // e.g., "נדרש לפחות {{count}} תווים"
-    minLengthInfoRecommended: string; // e.g., "מומלץ לפחות {{count}} תווים"
-    estimatedTime: string; // e.g., "זמן כתיבה משוער: {{count}} דקות"
+    minLengthInfoRequired: string;
+    minLengthInfoRecommended: string;
+    estimatedTime: string;
     tipsButton: string;
+    // --- New Fields ---
+    wordCount: string; // e.g. "{{count}} words"
+    readingTime: string; // e.g. "{{count}} min read"
+    completionPercentage: string; // e.g. "{{count}}% complete"
+    writingGreat: string; // e.g. "Great writing! Keep going"
   };
   budgetAllocation: {
-    totalAllocated: string; // e.g., "סה״כ הוקצה:"
-    remaining: string; // e.g., "חסר {{count}}"
-    surplus: string; // e.g., "עודף {{count}}"
+    totalAllocated: string;
+    remaining: string; // Used for tooltips/labels
+    surplus: string;
     resetButton: string;
+    // --- New Fields ---
+    statusComplete: string; // "Budget complete!"
+    statusRemaining: string; // "Remaining to allocate: {{count}}"
+    statusExceeded: string; // "Exceeded by {{count}}"
   };
-  unsupportedType: string; // e.g., "אופס! סוג השאלה {{type}} אינו נתמך כרגע."
+  unsupportedType: string;
+  supportContactMessage: string; // New field
 };
 
 export type InteractiveScaleDict = {

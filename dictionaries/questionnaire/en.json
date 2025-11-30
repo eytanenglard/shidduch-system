@@ -124,49 +124,51 @@
     }
   }
 },
-  "matchmaking": {
-    "worldLabels": {
-      "PERSONALITY": "Personality",
-      "VALUES": "Values",
-      "RELATIONSHIP": "Partnership",
-      "PARTNER": "The Partner",
-      "RELIGION": "Religion & Tradition"
+ "matchmaking": {
+  "worldLabels": {
+    "PERSONALITY": "Personality",
+    "VALUES": "Values",
+    "RELATIONSHIP": "Partnership",
+    "PARTNER": "The Partner",
+    "RELIGION": "Religion & Tradition"
+  },
+  "toasts": {
+    "saveSuccess": "Changes saved successfully! 💾",
+    "autoSaveError": "Auto-save failed.",
+    "unsavedChanges": {
+      "message": "You have unsaved changes.",
+      "action": "Save Now"
     },
-    "toasts": {
-      "saveSuccess": "Progress saved successfully!",
-      "autoSaveError": "Auto-save failed. Please check your connection.",
-      "unsavedChanges": {
-        "message": "You have unsaved changes.",
-        "action": "Save Now"
-      },
-      "answerVisible": "Answer will be visible to potential matches.",
-      "answerHidden": "Answer is now hidden (matchmakers only).",
-      "worldProgressSaved": "Your progress in this world has been saved.",
-      "worldProgressSavedBrowser": "Progress saved to this browser. Log in to save to your account.",
-      "worldCompletionError": "Error saving world completion. Please try again.",
-      "worldFinished": "Excellent! You've completed the World of {{worldName}}.",
-      "submitSuccess": "Questionnaire submitted successfully!"
-    },
-    "errors": {
-      "invalidSubmission": "Invalid data. Could not save progress.",
-      "saveFailed": "Failed to save progress. Please try again.",
-      "loadFailed": "Failed to load questionnaire data. Please refresh.",
-      "genericLoadError": "An error occurred while loading your data. Please try again later.",
-      "stageLoadError": "Error loading this stage. Please try again.",
-      "invalidStep": "An error occurred: Invalid step in the process.",
-      "submitFailed": "Error submitting the questionnaire."
-    },
-    "idleModal": {
-      "title": "Are You Still With Us?",
-      "description": "It looks like you've been inactive for a while. For your security, you will be logged out in one minute.",
-      "logoutButton": "Log Out",
-      "stayActiveButton": "I'm Still Here"
-    },
-    "lastSaved": "Last saved: {{time}}",
-    "loading": "Loading your journey...",
-    "loadingSubtext": "Loading your questionnaire...",
-    "lastSavedIndicatorLabel": "Saved"
-  }
+    "answerVisible": "Answer is visible.",
+    "answerHidden": "Answer is hidden.",
+    "worldProgressSaved": "World progress saved.",
+    "worldProgressSavedBrowser": "Progress saved to browser (Guest).",
+    "worldCompletionError": "Error saving world completion.",
+    "worldFinished": "Well done! You've completed the {{worldName}} world! 🎉",
+    "allWorldsFinished": "🎊 Amazing! You've completed all worlds! 🎊",
+    "submitSuccess": "Questionnaire submitted successfully!",
+    "nextWorldAction": "Continue to {{name}}"
+  },
+  "errors": {
+    "invalidSubmission": "Invalid submission data.",
+    "saveFailed": "Save failed.",
+    "loadFailed": "Failed to load data.",
+    "genericLoadError": "Error loading existing answers.",
+    "stageLoadError": "Error loading stage.",
+    "invalidStep": "Invalid step.",
+    "submitFailed": "Submission failed."
+  },
+  "idleModal": {
+    "title": "Are you still here?",
+    "description": "We haven't detected any activity. For your security, you will be logged out in one minute.",
+    "logoutButton": "Log Out",
+    "stayActiveButton": "I'm Here"
+  },
+  "lastSaved": "Last saved: {{time}}",
+  "loading": "Loading your journey...",
+  "loadingSubtext": "Preparing your questionnaire...",
+  "lastSavedIndicatorLabel": "Saved"
+}
 ,
   "page": {
     "loading": "Loading Questionnaire...",
@@ -196,8 +198,7 @@
     "title1": "“So, what are you really looking for?”",
     "title2": "...and the standard answer that doesn't help",
     "cards": {
-      "generalAnswers": { "title": "Vague Answers","description": "“Someone nice,” “with similar values,” “someone fun to be with” - but what does that really mean? How will you know when you've found it?"
-},
+      "generalAnswers": { "title": "Vague Answers", "description": "“Someone nice,” “with similar values,” “someone fun to be with” - but what does that really mean? How will you know when you've found it?" },
       "wastedTime": { "title": "Wasted Time and Energy", "description": "Dates that end with \"it's not a match\" because you didn't really understand what you were looking for in the first place. Every date feels like trial and error." },
       "lackOfFocus": { "title": "Lack of Focus", "description": "It's hard to explain to matchmakers what's truly important to you, hard to know if a suggestion is a good fit, hard to make decisions." },
       "frustration": { "title": "Frustration and Insecurity", "description": "The feeling that maybe you just don't know what you want, or perhaps you're looking for something that doesn't exist." }
@@ -212,7 +213,7 @@
     "subtitle2": "and at the end, you'll receive a detailed personal report - a roadmap to the relationship you're looking for.",
     "cards": {
       "selfDiscovery": { "title": "True Self-Discovery", "description": "The questionnaire guides you through a structured process that helps you understand what's truly important to you in life and relationships - beyond generic phrases." },
-"soulReport": { "title": "Get Your “Soul Report”", "description": "Upon completion, you'll receive a detailed and personal PDF report that distills all your insights - a document you can return to again and again." },
+      "soulReport": { "title": "Get Your “Soul Report”", "description": "Upon completion, you'll receive a detailed and personal PDF report that distills all your insights - a document you can return to again and again." },
       "focusedSearch": { "title": "Focused and Efficient Search", "description": "With the Soul Report, you'll know exactly what you're looking for. It will help you explain to matchmakers, make better decisions, and save time." }
     },
     "result": {
@@ -379,69 +380,69 @@
 
 
 ,
-   "layout": {
-    "navHeader": "Your Journey",
-    "navSubtitle": "Navigate the five worlds.",
-    "sidebarHeader": {
-      "title": "Your Journey",
-      "subtitle": "Guided Self-Discovery"
-    },
-    "sidebarProgress": {
-      "title": "Your Progress",
-      "worldsLabel": "{{completedCount}}/{{totalCount}} worlds",
-      "completionMessage": "Well done! You've completed all worlds 🎉"
-    },
-    "navButtonStatus": {
-      "active": "Now",
-      "completed": "Completed",
-      "available": "World {{order}}"
-    },
-    "saveButton": {
-      "default": "Save Progress",
-      "saving": "Saving...",
-      "saved": "Saved!"
-    },
-    "lastSavedSuccess": "Saved successfully at {{time}}",
-    "actionButtons": {
-      "review": "Review Answers",
-      "exitToMap": "Back to Map",
-      "faq": "Frequently Asked Questions"
-    },
-    "faqSheet": {
-      "title": "Frequently Asked Questions"
-    },
-    "unauthenticatedPrompt": {
-      "title": "Don't Lose Your Progress",
-      "subtitle": "Sign in or create an account to save your answers.",
-      "loginButton": "Sign In",
-      "registerButton": "Register"
-    },
-    "exitPrompt": {
-      "title": "Exit This World?",
-      "description": "You have unsaved changes. How would you like to proceed?",
-      "cancel": "Stay Here",
-      "saveAndExit": "Save & Exit",
-      "exitWithoutSaving": "Exit Without Saving"
-    },
-    "mobileNav": {
-      "title": "Navigation",
-      "backToMap": "Worlds Map",
-      "exit": "Exit Questionnaire",
-      "reviewAnswers": "Review My Answers",
-      "menuTitle": "Menu"
-    },
-    "tooltips": {
-      "faq": "Frequently Asked Questions",
-      "accessibility": "Accessibility Settings"
-    },
-    "profileNotice": {
-      "title": "A Note on Visibility:",
-      "textPart1": "By default, your answers are visible to your matchmaker. You can choose to hide specific answers using the",
-      "visibilityToggleLabel": "Visibility Toggle",
-      "textPart2": "which will hide them from your public profile.",
-      "link": "You can manage all your answers in your profile."
-    }
+"layout": {
+  "navHeader": "Questionnaire Worlds",
+  "navSubtitle": "Navigate through the sections",
+  "sidebarHeader": {
+    "title": "Your Journey",
+    "subtitle": "Guided Self-Discovery"
+  },
+  "sidebarProgress": {
+    "title": "Your Progress",
+    "worldsLabel": "{{completedCount}}/{{totalCount}} worlds",
+    "completionMessage": "Well done! All completed 🎉"
+  },
+  "navButtonStatus": {
+    "active": "Now",
+    "completed": "Completed",
+    "available": "World {{order}}"
+  },
+  "saveButton": {
+    "default": "Save Progress",
+    "saving": "Saving...",
+    "saved": "Saved!"
+  },
+  "lastSavedSuccess": "Saved successfully at {{time}}",
+  "actionButtons": {
+    "review": "Review Answers",
+    "exitToMap": "Back to Map",
+    "faq": "FAQ"
+  },
+  "faqSheet": {
+    "title": "Frequently Asked Questions"
+  },
+  "unauthenticatedPrompt": {
+    "title": "Progress saved temporarily",
+    "subtitle": "Log in to save answers to your account permanently.",
+    "loginButton": "Log In",
+    "registerButton": "Register"
+  },
+  "exitPrompt": {
+    "title": "Exit Questionnaire?",
+    "description": "Unsaved changes will be lost.",
+    "cancel": "Cancel",
+    "saveAndExit": "Save & Exit",
+    "exitWithoutSaving": "Exit"
+  },
+  "mobileNav": {
+    "title": "Navigation",
+    "backToMap": "Worlds Map",
+    "exit": "Exit",
+    "reviewAnswers": "Review",
+    "menuTitle": "Menu"
+  },
+  "tooltips": {
+    "faq": "Help & FAQ",
+    "accessibility": "Accessibility"
+  },
+  "profileNotice": {
+    "title": "Note:",
+    "textPart1": "Some answers are public. Use the",
+    "visibilityToggleLabel": "Visibility Toggle",
+    "textPart2": "to hide sensitive details.",
+    "link": "Manage Profile Settings"
   }
+}
 
 ,
  "world": {
@@ -520,46 +521,54 @@
   }
 }
 ,
-  "answerInput": {
-    "clearSelection": "Clear selection",
-    "tooltips": {
-      "copy": "Copy answer",
-      "copied": "Copied!",
-      "clearText": "Clear text",
-      "removeCustomAnswer": "Remove custom answer",
-      "resetAllocation": "Reset allocation"
-    },
-    "multiSelectWithOther": {
-      "addOtherOptionLabel": "Add another option",
-      "otherOptionPlaceholder": "Type your answer here...",
-      "addButton": "Add",
-      "addedAnswersLabel": "Your added answers:",
-      "errorExists": "This answer already exists."
-    },
-    "multiSelect": {
-      "maxSelectionError": "You can select up to {{count}} options.",
-      "selectedInfo": "{{count}} options selected",
-      "minLabel": "Min",
-      "maxLabel": "Max"
-    },
-    "openText": {
-      "placeholder": "Your reflection here...",
-      "minLengthRequired": "{{count}} more characters needed",
-      "minLengthMet": "Minimum length met",
-      "maxLengthExceeded": "Maximum length exceeded",
-      "minLengthInfoRequired": "At least {{count}} characters required",
-      "minLengthInfoRecommended": "At least {{count}} characters recommended",
-      "estimatedTime": "Estimated writing time: {{count}} minutes",
-      "tipsButton": "Tips for a great answer"
-    },
-    "budgetAllocation": {
-      "totalAllocated": "Total Allocated:",
-      "remaining": "{{count}} remaining",
-      "surplus": "{{count}} surplus",
-      "resetButton": "Reset"
-    },
-    "unsupportedType": "Oops! Question type '{{type}}' is not supported yet."
+"answerInput": {
+  "clearSelection": "Clear selection",
+  "tooltips": {
+    "copy": "Copy answer",
+    "copied": "Copied!",
+    "clearText": "Clear text",
+    "removeCustomAnswer": "Remove custom answer",
+    "resetAllocation": "Reset allocation"
   },
+  "multiSelectWithOther": {
+    "addOtherOptionLabel": "Add another option",
+    "otherOptionPlaceholder": "Type your answer here...",
+    "addButton": "Add",
+    "addedAnswersLabel": "Your added answers:",
+    "errorExists": "This answer already exists."
+  },
+  "multiSelect": {
+    "maxSelectionError": "You can select up to {{count}} options.",
+    "selectedInfo": "{{count}} options selected",
+    "minLabel": "Min",
+    "maxLabel": "Max"
+  },
+  "openText": {
+    "placeholder": "Your reflection here...",
+    "minLengthRequired": "{{count}} more characters needed",
+    "minLengthMet": "Minimum length met",
+    "maxLengthExceeded": "Maximum length exceeded",
+    "minLengthInfoRequired": "At least {{count}} characters required",
+    "minLengthInfoRecommended": "At least {{count}} characters recommended",
+    "estimatedTime": "Estimated writing time: {{count}} minutes",
+    "tipsButton": "Tips for a great answer",
+    "wordCount": "{{count}} words",
+    "readingTime": "{{count}} min read",
+    "completionPercentage": "{{count}}% complete",
+    "writingGreat": "Great writing! Keep going"
+  },
+  "budgetAllocation": {
+    "totalAllocated": "Total Allocated:",
+    "remaining": "{{count}} remaining",
+    "surplus": "{{count}} surplus",
+    "resetButton": "Reset All",
+    "statusComplete": "Budget complete!",
+    "statusRemaining": "Remaining to allocate: {{count}}",
+    "statusExceeded": "Exceeded by {{count}}"
+  },
+  "unsupportedType": "Oops! Question type '{{type}}' is not supported yet.",
+  "supportContactMessage": "Please contact technical support."
+},
   "interactiveScale": {
     "selectedValue": "Selected value: {{value}}",
     "ariaLabel": "Scale value {{value}}"

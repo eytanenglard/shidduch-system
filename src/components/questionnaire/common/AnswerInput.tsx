@@ -17,12 +17,11 @@ import {
 import {
   X,
   Plus,
-  Minus, // הוספתי את זה
+  Minus,
   CheckCircle,
   Eraser,
   Info,
   ChevronDown,
-  ChevronUp,
   CornerDownRight,
   AlertCircle,
   Sparkles,
@@ -31,11 +30,9 @@ import {
   CheckCheck,
   Edit,
   Trash2,
-  Zap,
-  TrendingUp,
-  Award,
   Target,
   Flame,
+  TrendingUp,
 } from 'lucide-react';
 import InteractiveScale from './InteractiveScale';
 import type { AnswerValue, Option, Question } from '../types/types';
@@ -62,11 +59,7 @@ const getThemeConfig = (themeColor: ThemeColor) => {
       ringColor: 'ring-sky-300',
       bgSoft: 'bg-sky-50',
       shadowColor: 'shadow-sky-200/50',
-      progressFrom: 'from-cyan-500',
-      progressTo: 'to-blue-600',
       hoverBorder: 'hover:border-sky-200',
-      glowColor: 'rgba(14, 165, 233, 0.3)',
-      glowColorStrong: 'rgba(14, 165, 233, 0.6)',
     },
     rose: {
       gradient: 'from-rose-400 via-pink-500 to-red-500',
@@ -77,11 +70,7 @@ const getThemeConfig = (themeColor: ThemeColor) => {
       ringColor: 'ring-rose-300',
       bgSoft: 'bg-rose-50',
       shadowColor: 'shadow-rose-200/50',
-      progressFrom: 'from-rose-500',
-      progressTo: 'to-red-600',
       hoverBorder: 'hover:border-rose-200',
-      glowColor: 'rgba(244, 63, 94, 0.3)',
-      glowColorStrong: 'rgba(244, 63, 94, 0.6)',
     },
     purple: {
       gradient: 'from-purple-400 via-violet-500 to-indigo-500',
@@ -92,11 +81,7 @@ const getThemeConfig = (themeColor: ThemeColor) => {
       ringColor: 'ring-purple-300',
       bgSoft: 'bg-purple-50',
       shadowColor: 'shadow-purple-200/50',
-      progressFrom: 'from-purple-500',
-      progressTo: 'to-indigo-600',
       hoverBorder: 'hover:border-purple-200',
-      glowColor: 'rgba(139, 92, 246, 0.3)',
-      glowColorStrong: 'rgba(139, 92, 246, 0.6)',
     },
     teal: {
       gradient: 'from-teal-400 via-emerald-500 to-green-500',
@@ -107,11 +92,7 @@ const getThemeConfig = (themeColor: ThemeColor) => {
       ringColor: 'ring-teal-300',
       bgSoft: 'bg-teal-50',
       shadowColor: 'shadow-teal-200/50',
-      progressFrom: 'from-teal-500',
-      progressTo: 'to-green-600',
       hoverBorder: 'hover:border-teal-200',
-      glowColor: 'rgba(20, 184, 166, 0.3)',
-      glowColorStrong: 'rgba(20, 184, 166, 0.6)',
     },
     amber: {
       gradient: 'from-amber-400 via-orange-500 to-yellow-500',
@@ -122,11 +103,7 @@ const getThemeConfig = (themeColor: ThemeColor) => {
       ringColor: 'ring-amber-300',
       bgSoft: 'bg-amber-50',
       shadowColor: 'shadow-amber-200/50',
-      progressFrom: 'from-amber-500',
-      progressTo: 'to-orange-600',
       hoverBorder: 'hover:border-amber-200',
-      glowColor: 'rgba(245, 158, 11, 0.3)',
-      glowColorStrong: 'rgba(245, 158, 11, 0.6)',
     },
   };
   return themes[themeColor] || themes.sky;
@@ -439,6 +416,7 @@ export default function AnswerInput({
                 required={question.isRequired}
                 ariaLabelledby={question.id}
                 dict={dict.interactiveScale}
+                themeColor={themeColor}
               />
             </div>
           </div>
@@ -1205,7 +1183,10 @@ export default function AnswerInput({
                   )}
                 >
                   <Edit className="w-3 h-3 mr-1" />
-                  {wordCount} מילים
+                  {dict.answerInput.openText.wordCount.replace(
+                    '{{count}}',
+                    wordCount.toString()
+                  )}
                 </Badge>
                 {wordCount > 0 && (
                   <Badge
@@ -1213,7 +1194,10 @@ export default function AnswerInput({
                     className="bg-purple-50 text-purple-700 border-purple-200"
                   >
                     <Clock className="w-3 h-3 mr-1" />
-                    {estimatedReadTime} דקות קריאה
+                    {dict.answerInput.openText.readingTime.replace(
+                      '{{count}}',
+                      estimatedReadTime.toString()
+                    )}
                   </Badge>
                 )}
               </div>
@@ -1229,7 +1213,10 @@ export default function AnswerInput({
                         : 'bg-gradient-to-r from-gray-400 to-gray-500 text-white'
                   )}
                 >
-                  {completionPercentage}% הושלם
+                  {dict.answerInput.openText.completionPercentage.replace(
+                    '{{count}}',
+                    completionPercentage.toString()
+                  )}
                 </Badge>
               )}
             </motion.div>
@@ -1462,7 +1449,7 @@ export default function AnswerInput({
                   className="border-green-300 bg-green-50 text-green-700"
                 >
                   <Flame className="w-3 h-3 mr-1" />
-                  כתיבה מעולה! ממשיכים כך
+                  {dict.answerInput.openText.writingGreat}
                 </Badge>
               )}
             </div>
@@ -1509,7 +1496,6 @@ export default function AnswerInput({
         );
       }
 
-      // --- התיקון הגדול ---
       case 'budgetAllocation': {
         const budgetValues = (internalValue as Record<string, number>) || {};
         const totalPointsRequired = question.totalPoints ?? 100;
@@ -1558,10 +1544,16 @@ export default function AnswerInput({
                 </div>
                 <span className={cn('font-bold text-sm', statusColor)}>
                   {remaining === 0
-                    ? 'התקציב הושלם!'
+                    ? dict.answerInput.budgetAllocation.statusComplete
                     : remaining > 0
-                      ? `נותרו להקצאה: ${remaining}`
-                      : `חריגה של ${Math.abs(remaining)}`}
+                      ? dict.answerInput.budgetAllocation.statusRemaining.replace(
+                          '{{count}}',
+                          remaining.toString()
+                        )
+                      : dict.answerInput.budgetAllocation.statusExceeded.replace(
+                          '{{count}}',
+                          Math.abs(remaining).toString()
+                        )}
                 </span>
               </div>
               <div className="text-xs font-semibold px-2 py-1 bg-white/60 rounded-md">
@@ -1574,8 +1566,6 @@ export default function AnswerInput({
               {question.categories?.map((category, index) => {
                 const currentValue = budgetValues[category.value] || 0;
 
-                // --- הלוגיקה החדשה: המקסימום המותר הוא הערך הנוכחי + מה שנשאר ---
-                // זה מונע "תקיעה" אבל חוסם חריגה
                 const maxAllowed = Math.min(
                   totalPointsRequired,
                   currentValue + Math.max(0, remaining)
@@ -1655,10 +1645,9 @@ export default function AnswerInput({
                     <Slider
                       value={[currentValue]}
                       min={0}
-                      max={maxAllowed} // שימוש בערך הדינמי החדש
+                      max={maxAllowed}
                       step={1}
                       onValueChange={(val) => {
-                        // סליידר חופשי שנעצר בגבול המותר
                         handleValueChange({
                           ...budgetValues,
                           [category.value]: val[0],
@@ -1675,7 +1664,7 @@ export default function AnswerInput({
                 );
               })}
             </div>
-            {/* Reset Button (Optional, smaller) */}
+            {/* Reset Button */}
             {totalAllocated > 0 && (
               <div className="flex justify-end">
                 <Button
@@ -1685,7 +1674,7 @@ export default function AnswerInput({
                   className="text-gray-400 hover:text-red-500 text-xs gap-1"
                 >
                   <Trash2 className="w-3 h-3" />
-                  אפס הכל
+                  {dict.answerInput.budgetAllocation.resetButton}
                 </Button>
               </div>
             )}
@@ -1729,7 +1718,7 @@ export default function AnswerInput({
                   )}
                 </p>
                 <p className="text-sm text-amber-700">
-                  אנא פנה לתמיכה טכנית לפתרון הבעיה
+                  {dict.answerInput.supportContactMessage}
                 </p>
               </div>
             </div>

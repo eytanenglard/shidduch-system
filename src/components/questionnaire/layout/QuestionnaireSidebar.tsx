@@ -9,7 +9,6 @@ import {
   User,
   Users,
   Save,
-  LogOut,
   CheckCircle,
   Loader2,
   UserCheck,
@@ -22,12 +21,10 @@ import {
   Edit,
   BookUser,
   Info,
-  Eye,
   Sparkles,
   Target,
   Compass,
   Award,
-  TrendingUp,
   Check,
 } from 'lucide-react';
 import type { WorldId } from '../types/types';
@@ -161,6 +158,7 @@ const NavButton = React.memo(
     dict,
     isMobile = false,
     currentThemeColor,
+    locale,
   }: {
     worldId: WorldId;
     currentWorld: WorldId;
@@ -169,6 +167,7 @@ const NavButton = React.memo(
     dict: QuestionnaireSidebarProps['dict'];
     isMobile?: boolean;
     currentThemeColor: ThemeColor;
+    locale: 'he' | 'en';
   }) => {
     const { icon: Icon, themeColor, order } = worldConfig[worldId];
     const label = dict.worldLabels[worldId];
@@ -176,7 +175,7 @@ const NavButton = React.memo(
     const isCompleted = completedWorlds.includes(worldId);
     const colors = colorMap[themeColor];
     const currentColors = colorMap[currentThemeColor];
-    const isRTL = dict.layout.navButtonStatus.active === 'עכשיו'; // Simple check for RTL
+    const isRTL = locale === 'he';
 
     let status: 'active' | 'completed' | 'available' = 'available';
     if (isActive) status = 'active';
@@ -407,6 +406,7 @@ const _QuestionnaireSidebar: React.FC<QuestionnaireSidebarProps> = ({
               onWorldChange={onWorldChange}
               dict={dict}
               currentThemeColor={currentThemeColor}
+              locale={locale}
             />
           ))}
         </div>

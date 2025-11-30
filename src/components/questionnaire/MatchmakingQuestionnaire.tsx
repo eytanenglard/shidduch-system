@@ -32,11 +32,8 @@ import {
   Clock,
   LogOut,
   Sparkles,
-  Save,
   AlertCircle,
-  TrendingUp,
   Zap,
-  Target,
 } from 'lucide-react';
 import type {
   WorldId,
@@ -95,7 +92,7 @@ export default function MatchmakingQuestionnaire({
 }: MatchmakingQuestionnaireProps) {
   console.log(
     `%c[MatchmakingQuestionnaire] 🚀 Initializing | User: ${userId ? 'Authenticated' : 'Guest'} | World: ${initialWorld || 'None'} | Question: ${initialQuestionId || 'None'}`,
-    'color: #0d9488; font-weight: bold; font-size: 14px;' // Teal log
+    'color: #0d9488; font-weight: bold; font-size: 14px;'
   );
 
   const router = useRouter();
@@ -316,7 +313,7 @@ export default function MatchmakingQuestionnaire({
         setToastState((prev) => ({ ...prev, isVisible: false }));
 
         if (!isAutoSave) {
-          showToast('השינויים נשמרו בהצלחה! 💾', 'success', 2000);
+          showToast(dict.matchmaking.toasts.saveSuccess, 'success', 2000);
         }
       } catch (err) {
         console.error(
@@ -341,6 +338,7 @@ export default function MatchmakingQuestionnaire({
       currentStep,
       router,
       dict.matchmaking.errors,
+      dict.matchmaking.toasts,
       showToast,
       answers.length,
       completedWorlds.length,
@@ -552,7 +550,6 @@ export default function MatchmakingQuestionnaire({
   );
 
   // Visibility change handler
-// Visibility change handler
   const handleVisibilityChange = useCallback(
     (worldId: WorldId, questionId: string, isVisible: boolean) => {
       console.log(
@@ -565,7 +562,6 @@ export default function MatchmakingQuestionnaire({
           (a) => a.worldId === worldId && a.questionId === questionId
         );
 
-        // אם קיימת כבר תשובה (אפילו חלקית), נעדכן את שדה הנראות שלה
         if (existingIndex >= 0) {
           const updated = [...prev];
           updated[existingIndex] = {
@@ -575,18 +571,16 @@ export default function MatchmakingQuestionnaire({
           return updated;
         }
 
-        // אם המשתמש שינה נראות לפני שענה על השאלה, ניצור רשומה חדשה
         const newAnswer: QuestionnaireAnswer = {
           worldId,
           questionId,
-          value: undefined, // ערך ריק כי עדיין לא ענו
+          value: undefined,
           answeredAt: new Date().toISOString(),
           isVisible: isVisible,
         };
         return [...prev, newAnswer];
       });
 
-      // מסמנים שיש שינויים שלא נשמרו כדי להפעיל את השמירה האוטומטית/ידנית
       setIsDirty(true);
     },
     []
@@ -620,11 +614,17 @@ export default function MatchmakingQuestionnaire({
         const nextWorld = getNextWorld(worldId);
         if (nextWorld) {
           showToast(
-            `כל הכבוד! השלמת את עולם ${dict.matchmaking.worldLabels[worldId]}! 🎉`,
+            dict.matchmaking.toasts.worldFinished.replace(
+              '{{worldName}}',
+              dict.matchmaking.worldLabels[worldId]
+            ),
             'success',
             4000,
             {
-              label: `המשך ל${dict.matchmaking.worldLabels[nextWorld]}`,
+              label: dict.matchmaking.toasts.nextWorldAction.replace(
+                '{{name}}',
+                dict.matchmaking.worldLabels[nextWorld]
+              ),
               onClick: () => {
                 setCurrentWorld(nextWorld);
                 setIsDirectNavigation(false);
@@ -636,7 +636,11 @@ export default function MatchmakingQuestionnaire({
             '%c[Complete] 🏆 ALL WORLDS COMPLETED!',
             'color: #fbbf24; font-weight: bold; font-size: 16px;'
           );
-          showToast('🎊 מדהים! השלמת את כל העולמות! 🎊', 'success', 3000);
+          showToast(
+            dict.matchmaking.toasts.allWorldsFinished,
+            'success',
+            3000
+          );
           setCurrentStep(OnboardingStep.COMPLETED);
         }
       }
@@ -646,6 +650,7 @@ export default function MatchmakingQuestionnaire({
       handleQuestionnaireSave,
       showToast,
       dict.matchmaking.worldLabels,
+      dict.matchmaking.toasts,
     ]
   );
 
@@ -739,11 +744,9 @@ export default function MatchmakingQuestionnaire({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          // Updated Background
           className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20"
         >
           <div className="relative">
-            {/* Updated Loader Colors */}
             <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-orange-500 rounded-full blur-xl opacity-50 animate-pulse" />
             <Loader2 className="relative h-16 w-16 animate-spin text-teal-600" />
           </div>
@@ -762,7 +765,7 @@ export default function MatchmakingQuestionnaire({
             className="mt-4 flex items-center gap-2 text-sm text-gray-500"
           >
             <Sparkles className="w-4 h-4" />
-            <span>מכין את המסע שלך...</span>
+            <span>{dict.matchmaking.loadingSubtext}</span>
           </motion.div>
         </motion.div>
       );
@@ -844,7 +847,7 @@ export default function MatchmakingQuestionnaire({
     }
   };
 
-  // Enhanced Toast Component (Colors Updated)
+  // Enhanced Toast Component
   const Toast = ({
     message,
     type,
@@ -860,12 +863,12 @@ export default function MatchmakingQuestionnaire({
 
     const typeConfig = {
       success: {
-        bg: 'from-teal-500 to-emerald-600', // Updated to Teal
+        bg: 'from-teal-500 to-emerald-600',
         icon: CheckCircle,
         border: 'border-teal-400',
       },
       error: {
-        bg: 'from-rose-500 to-red-600', // Updated to Rose
+        bg: 'from-rose-500 to-red-600',
         icon: XCircle,
         border: 'border-rose-400',
       },
@@ -875,7 +878,7 @@ export default function MatchmakingQuestionnaire({
         border: 'border-blue-400',
       },
       warning: {
-        bg: 'from-orange-500 to-amber-600', // Updated to Orange/Amber
+        bg: 'from-orange-500 to-amber-600',
         icon: AlertCircle,
         border: 'border-orange-400',
       },
@@ -933,7 +936,7 @@ export default function MatchmakingQuestionnaire({
     );
   };
 
-  // Enhanced Idle Modal Component (Colors Updated)
+  // Enhanced Idle Modal Component
   const IdleModal = () => {
     if (!showIdleModal) return null;
 
@@ -983,7 +986,6 @@ export default function MatchmakingQuestionnaire({
                   </Button>
                   <Button
                     onClick={handleStayActive}
-                    // Updated Gradient
                     className="w-full sm:w-auto bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white font-bold"
                   >
                     <Zap className="w-4 h-4 mr-2" />
@@ -998,7 +1000,7 @@ export default function MatchmakingQuestionnaire({
     );
   };
 
-  // Last Saved Indicator (Updated to Teal)
+  // Last Saved Indicator
   const LastSavedIndicator = () => {
     if (!lastSavedTime || currentStep !== OnboardingStep.WORLDS || !userId)
       return null;
@@ -1015,10 +1017,13 @@ export default function MatchmakingQuestionnaire({
           <span className="text-sm font-semibold text-gray-700">
             {dict.matchmaking.lastSaved.replace(
               '{{time}}',
-              lastSavedTime.toLocaleTimeString('he-IL', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })
+              lastSavedTime.toLocaleTimeString(
+                locale === 'he' ? 'he-IL' : 'en-US',
+                {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }
+              )
             )}
           </span>
         </div>
@@ -1026,7 +1031,7 @@ export default function MatchmakingQuestionnaire({
     );
   };
 
-  // Error Alert (Updated to Rose)
+  // Error Alert
   const ErrorAlert = () => {
     if (!error || currentStep === OnboardingStep.WORLDS) return null;
 
@@ -1054,7 +1059,6 @@ export default function MatchmakingQuestionnaire({
   return (
     <div
       className={cn(
-        // Updated Global Background
         'min-h-screen bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20',
         locale === 'he' ? 'dir-rtl' : 'dir-ltr'
       )}
