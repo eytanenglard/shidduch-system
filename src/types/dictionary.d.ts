@@ -935,7 +935,6 @@ export type QuestionCardDict = {
 };
 
 
-
 export type QuestionnaireCompletionDict = {
   title: string;
   loggedInDescription: string;

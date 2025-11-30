@@ -39,52 +39,51 @@
     }
   },
 
-  "questionCard": {
-    "depthLabels": {
-      "BASIC": "בסיסי",
-      "ADVANCED": "מתקדם",
-      "EXPERT": "מעמיק"
+ "questionCard": {
+  "depthLabels": {
+    "BASIC": "בסיסי",
+    "ADVANCED": "מתקדם",
+    "EXPERT": "מעמיק"
+  },
+  "depthDescriptions": {
+    "BASIC": "שאלות יסוד להבנת הבסיס",
+    "ADVANCED": "שאלות להעמקה והבנת ניואנסים",
+    "EXPERT": "שאלות עומק לבירור ערכי ליבה"
+  },
+  "requiredBadge": "חובה",
+  "estimatedTime": "נותרו כ-{{minutes}} דק'",
+  "benefitMessages": [
+    "כל תשובה מקרבת אותך להתאמה המדויקת 💫",
+    "הכנות שלך היא המפתח להצלחה 🗝️",
+    "אנחנו לומדים להכיר אותך טוב יותר ❤️",
+    "השקעה קטנה עכשיו תחסוך זמן יקר אח\"כ ⏳"
+  ],
+  "encouragementMessage": "המשך כך, אתה בדרך הנכונה!",
+  "tooltips": {
+    "removeBookmark": "הסר סימניה",
+    "addBookmark": "שמור לעיון מאוחר יותר",
+    "hideHelp": "הסתר עזרה",
+    "showHelp": "הצג עזרה והסברים",
+    "whyQuestion": "למה אנחנו שואלים את זה?",
+    "visibility": {
+      "visibleTitle": "גלוי למותאמים",
+      "hiddenTitle": "מוסתר ממותאמים",
+      "visibleDesc": "תשובה זו תהיה גלויה למי שנוצע לו שידוך איתך",
+      "hiddenDesc": "תשובה זו תהיה גלויה רק לשדכנים"
     },
-    "depthDescriptions": {
-      "BASIC": "שאלות חובה המהוות את הבסיס להיכרות",
-      "ADVANCED": "שאלות מומלצות להיכרות מעמיקה יותר",
-      "EXPERT": "שאלות העשרה לחיבור מעמיק במיוחד"
-    },
-        "estimatedTime": "{{minutes}} דקות נותרו",
-    "benefitMessages": [
-      "כל תשובה מקרבת אותך להתאמה מושלמת יותר 💫",
-      "השאלון עוזר לך להבין מה באמת חשוב לך 🎯",
-      "זמן שמושקע כאן חוסך חודשים של חיפושים ❤️",
-      "אתה בונה תשתית להצלחה ארוכת טווח 🌟"
-    ],
-    "encouragementMessage": "כל תשובה עוזרת לנו להכיר אותך טוב יותר ולמצוא לך את ההתאמה המושלמת",
-    "requiredBadge": "שאלת חובה *",
-
-    "tooltips": {
-      "removeBookmark": "הסר סימניה",
-      "addBookmark": "שמור לעיון חוזר",
-      "hideHelp": "הסתר עזרה",
-      "showHelp": "הצג עזרה",
-      "whyQuestion": "למה אנחנו שואלים את זה?",
-      "visibility": {
-        "visibleTitle": "👁️ גלוי לכולם",
-        "hiddenTitle": "🔒 מוסתר מהציבור",
-        "visibleDesc": "התשובה תוצג בפרופיל הציבורי שלך",
-        "hiddenDesc": "התשובה תהיה גלויה רק לשדכנים מאושרים"
-      },
-      "saveProgressSaving": "שומר...",
-      "saveProgress": "שמור התקדמות",
-      "viewProfile": "צפה בפרופיל ובתשובות"
-    },
-    "visibilityButton": {
-      "visible": "גלוי לפרופיל",
-      "hidden": "מוסתר מהפרופיל"
-    },
-    "skipButton": {
-      "skip": "דלג",
-      "required": "שאלת חובה"
-    }
+    "saveProgressSaving": "שומר נתונים...",
+    "saveProgress": "שמור התקדמות",
+    "viewProfile": "צפה בפרופיל המלא"
+  },
+  "visibilityButton": {
+    "visible": "גלוי",
+    "hidden": "מוסתר"
+  },
+  "skipButton": {
+    "skip": "דלג לשאלה הבאה",
+    "required": "שאלת חובה"
   }
+}
 ,
      "visibilityButton": {
       "visible": "גלוי לפרופיל",

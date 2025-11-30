@@ -38,52 +38,51 @@
       "description": "Detail your spiritual connection, practices, and vision for a Jewish home."
     }
   },
-
-   "questionCard": {
-    "depthLabels": {
-      "BASIC": "Foundations",
-      "ADVANCED": "Deeper Insights",
-      "EXPERT": "Core Reflections"
-    },
-    "depthDescriptions": {
-      "BASIC": "These foundational questions help us understand the basics of who you are and what you're looking for.",
-      "ADVANCED": "These questions invite a bit more reflection, helping us see the nuances of your personality and values.",
-      "EXPERT": "These are deep-dive questions that reveal your core beliefs and how you navigate complex situations."
-    },
-     "estimatedTime": "{{minutes}} min left",
-    "benefitMessages": [
-      "Each answer brings you closer to the perfect match 💫",
-      "The questionnaire helps you understand what truly matters 🎯",
-      "Time invested here saves months of searching ❤️",
-      "You're building a foundation for long-term success 🌟"
-    ],
-    "encouragementMessage": "Each answer helps us know you better and find your perfect match",
-    "requiredBadge": "Required",
-    "tooltips": {
-      "removeBookmark": "Remove Bookmark",
-      "addBookmark": "Bookmark for Later",
-      "hideHelp": "Hide Help",
-      "showHelp": "Show Help",
-      "whyQuestion": "Why we ask this",
-      "visibility": {
-        "visibleTitle": "Visible to Matches",
-        "hiddenTitle": "Hidden from Matches",
-        "visibleDesc": "This answer will be shared with potential matches upon your approval of a suggestion.",
-        "hiddenDesc": "This answer is for the matchmaking team only and will not be shared with matches."
-      },
-      "saveProgressSaving": "Saving...",
-      "saveProgress": "Save My Progress",
-      "viewProfile": "View My Answers in Profile"
-    },
-    "visibilityButton": {
-      "visible": "Visible",
-      "hidden": "Hidden"
-    },
-    "skipButton": {
-      "skip": "Skip",
-      "required": "Required"
-    }
+"questionCard": {
+  "depthLabels": {
+    "BASIC": "Basic",
+    "ADVANCED": "Advanced",
+    "EXPERT": "Deep Dive"
   },
+  "depthDescriptions": {
+    "BASIC": "Foundational questions to get the basics",
+    "ADVANCED": "Questions for deeper understanding",
+    "EXPERT": "Core value reflection questions"
+  },
+  "requiredBadge": "Required",
+  "estimatedTime": "~{{minutes}} min left",
+  "benefitMessages": [
+    "Every answer brings you closer to a match 💫",
+    "Honesty is key to success 🗝️",
+    "Getting to know the real you ❤️",
+    "Investing time now saves time later ⏳"
+  ],
+  "encouragementMessage": "Keep going, you're doing great!",
+  "tooltips": {
+    "removeBookmark": "Remove Bookmark",
+    "addBookmark": "Bookmark for later",
+    "hideHelp": "Hide Help",
+    "showHelp": "Show Help",
+    "whyQuestion": "Why we ask this",
+    "visibility": {
+      "visibleTitle": "Visible to Matches",
+      "hiddenTitle": "Hidden from Matches",
+      "visibleDesc": "This answer will be shown to suggested matches",
+      "hiddenDesc": "This answer is for matchmakers only"
+    },
+    "saveProgressSaving": "Saving...",
+    "saveProgress": "Save Progress",
+    "viewProfile": "View Full Profile"
+  },
+  "visibilityButton": {
+    "visible": "Visible",
+    "hidden": "Hidden"
+  },
+  "skipButton": {
+    "skip": "Skip",
+    "required": "Required"
+  }
+},
 
     "visibilityButton": {
       "visible": "Visible",

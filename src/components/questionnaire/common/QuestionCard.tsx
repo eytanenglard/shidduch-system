@@ -17,10 +17,8 @@ import {
   Save,
   Loader2,
   BookUser,
-  Sparkles,
   Clock,
   TrendingUp,
-  CheckCircle2,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -46,7 +44,6 @@ interface QuestionCardProps {
   isDisabled?: boolean;
   children?: React.ReactNode;
   locale?: 'he' | 'en';
-  isFirstInList?: boolean;
   themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
   isVisible: boolean;
   onVisibilityChange: (isVisible: boolean) => void;
@@ -58,48 +55,33 @@ interface QuestionCardProps {
   estimatedTimeMinutes?: number;
 }
 
-// --- Helper Functions (Updated Palette) ---
+// --- Helper Functions ---
 const getThemeConfig = (themeColor: string) => {
   const themes = {
     sky: {
       gradient: 'from-sky-400 to-blue-500',
       lightGradient: 'from-sky-50 via-blue-50 to-white',
       glowColor: 'shadow-sky-400/30',
-      iconColor: 'text-sky-600',
-      bgAccent: 'bg-sky-50',
-      borderAccent: 'border-sky-200',
     },
     rose: {
-      gradient: 'from-rose-400 to-red-500', // Matches Hero Rose
+      gradient: 'from-rose-400 to-red-500',
       lightGradient: 'from-rose-50 via-red-50 to-white',
       glowColor: 'shadow-rose-400/30',
-      iconColor: 'text-rose-600',
-      bgAccent: 'bg-rose-50',
-      borderAccent: 'border-rose-200',
     },
     purple: {
       gradient: 'from-purple-400 to-indigo-500',
       lightGradient: 'from-purple-50 via-indigo-50 to-white',
       glowColor: 'shadow-purple-400/30',
-      iconColor: 'text-purple-600',
-      bgAccent: 'bg-purple-50',
-      borderAccent: 'border-purple-200',
     },
     teal: {
-      gradient: 'from-teal-400 to-emerald-500', // Matches Hero Teal
+      gradient: 'from-teal-400 to-emerald-500',
       lightGradient: 'from-teal-50 via-emerald-50 to-white',
       glowColor: 'shadow-teal-400/30',
-      iconColor: 'text-teal-600',
-      bgAccent: 'bg-teal-50',
-      borderAccent: 'border-teal-200',
     },
     amber: {
-      gradient: 'from-amber-400 to-orange-500', // Matches Hero Orange/Amber
+      gradient: 'from-amber-400 to-orange-500',
       lightGradient: 'from-amber-50 via-orange-50 to-white',
       glowColor: 'shadow-amber-400/30',
-      iconColor: 'text-amber-600',
-      bgAccent: 'bg-amber-50',
-      borderAccent: 'border-amber-200',
     },
   };
   return themes[themeColor as keyof typeof themes] || themes.sky;
@@ -240,7 +222,6 @@ export default function QuestionCard({
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPercentage}%` }}
                     transition={{ duration: 0.8, ease: 'easeOut' }}
-                    // Updated Gradient for Progress
                     className="h-full bg-gradient-to-r from-teal-400 to-orange-400"
                   />
                 </div>

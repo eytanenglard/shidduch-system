@@ -3958,28 +3958,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   )}
                 {/* --- END OF CHANGE --- */}
 
-                {/* 5. כל התשובות מעולם "אישיות" */}
-                {personalityAnswers.length > 0 && (
-                  <SectionCard
-                    title={displayDict.content.deepDivePersonality}
-                    subtitle={displayDict.content.moreAnswersPersonality}
-                    icon={Telescope}
-                    variant="elegant"
-                    gradient={WORLDS.personality.gradient}
-                  >
-                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                      {personalityAnswers.map((answer) => (
-                        <QuestionnaireItem
-                          key={answer.questionId}
-                          answer={answer}
-                          worldName={WORLDS.personality.label}
-                          worldColor={WORLDS.personality.accentColor}
-                          worldGradient={WORLDS.personality.gradient}
-                          direction={direction}
-                        />
-                      ))}
-                    </div>
-                  </SectionCard>
+          {/* 5. שאלת הוו (Hook) מעולם "אישיות" */}
+                {personalityContent.hookAnswer && (
+                   <QuestionnaireItem
+                     answer={personalityContent.hookAnswer}
+                     worldName={WORLDS.personality.label}
+                     worldColor={WORLDS.personality.accentColor}
+                     worldGradient={WORLDS.personality.gradient}
+                     direction={direction}
+                   />
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-full min-w-0">
@@ -4096,63 +4083,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
               </div>
             </TabsContent>
-            <TabsContent
-              value="recommendations"
-              className="mt-0 max-w-full min-w-0"
-            >
-              <SectionCard
-                title={displayDict.content.recommendationsTitle.replace(
-                  '{{name}}',
-                  profile.user?.firstName || ''
-                )}
-                subtitle={displayDict.content.recommendationsSubtitle}
-                icon={MessageSquareQuote}
-                variant="default"
-                gradient={THEME.colors.primary.light}
-              >
-                <FriendTestimonialsSection
-                  profile={profile}
-                  dict={displayDict}
-                  THEME={THEME}
-                  direction={direction}
-                />
-              </SectionCard>
-            </TabsContent>
-            <TabsContent value="deepDive" className="mt-0 max-w-full min-w-0">
-              <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
-                {profile.inspiringCoupleStory?.trim() && (
-                  <SectionCard
-                    title={displayDict.content.myRoleModelForRelationship}
-                    subtitle={displayDict.content.theCoupleThatInspiresMe}
-                    icon={Stars}
-                    variant="elegant"
-                    gradient={THEME.colors.primary.gold}
-                  >
-                    <div
-                      className={cn(
-                        'p-4 sm:p-6 rounded-2xl border border-amber-200',
-                        `bg-gradient-to-r ${THEME.colors.neutral.warm}`
-                      )}
-                    >
-                      <p className="text-amber-800 leading-relaxed italic">
-                        &quot;{profile.inspiringCoupleStory}&quot;
-                      </p>
-                    </div>
-                  </SectionCard>
-                )}
-                {profile.influentialRabbi && (
-                  <SectionCard
-                    title={dict.display.content.influentialRabbi.title}
-                    icon={BookOpen}
-                    variant="elegant"
-                  >
-                    <p className="italic text-gray-700">
-                      &quot;{profile.influentialRabbi}&quot;
-                    </p>
-                  </SectionCard>
-                )}
-              </div>
-            </TabsContent>
+
+        
             {/* Journey Tab - REFACTORED */}
             <TabsContent
               value="journey"
