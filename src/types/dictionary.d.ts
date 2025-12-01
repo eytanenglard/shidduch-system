@@ -1180,7 +1180,7 @@ export type ProfileChecklistDict = {
     };
   };
   missingItems: { [key: string]: string }; // <-- הוסף שורה זו
-
+privacyNote?: string; // הערת פרטיות בצ'קליסט
 };
 export type PhotosSectionDict = {
   title: string;
@@ -1241,6 +1241,7 @@ export type PhotosSectionDict = {
   confirmations: {
     bulkDelete: string; // Placeholder: {{count}}
   };
+  privacyNote?: string; // הערת פרטיות לתמונות
 };
 
 
@@ -1306,6 +1307,7 @@ export type UnifiedProfileDashboardDict = {
     preferences: string;
     questionnaire: string;
   };
+  
   tabContent: {
     loadingOverview: string;
     loadingPreferences: string;
@@ -1318,7 +1320,17 @@ export type UnifiedProfileDashboardDict = {
   checklist: ProfileChecklistDict;
   aiAdvisor: AIAdvisorDialogDict;
   analysisResult: AnalysisResultDisplayDict;
-
+privacyAssurances?: {
+    banner?: {
+      icon?: string;
+      text?: string;
+      subtext?: string;
+    };
+    photos?: string;
+    medical?: string;
+    story?: string;
+    preview?: string;
+  };
 };
 export type PreferencesSectionDict = {
   header: {
@@ -2153,7 +2165,7 @@ export type ProfileSectionDict = {
       privateNotesPlaceholder: string;
       privateNotesEmpty: string;
     };
-    medical: {
+medical: {
       title: string;
       tooltip: string;
       description: string;
@@ -2182,6 +2194,7 @@ export type ProfileSectionDict = {
         visibleBadge: string;
         hiddenBadge: string;
       };
+      privacyNote?: string; // הערת פרטיות למידע רפואי
     };
     education: {
       title: string;

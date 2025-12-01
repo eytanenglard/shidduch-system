@@ -138,9 +138,21 @@
         "preferredHobbies": "תחביבים מועדפים",
         "preferredKippahTypes": "סוגי כיפה מועדפים (רלוונטי לנשים)",
         "preferredHeadCoverings": "סוגי כיסוי ראש מועדפים (רלוונטי לגברים)"
-      }
+      },
+      "privacyNote": "כל המידע נשמר בדיסקרטיות מלאה ומשמש רק להתאמות"
 
     },
+    "privacyAssurances": {
+  "banner": {
+    "icon": "🔒",
+    "text": "הפרטים שלך נשמרים בדיסקרטיות מלאה",
+    "subtext": "גלויים רק לשדכן ולמי שנשלחת אליו הצעה"
+  },
+  "photos": "התמונות שלך לא חשופות לגלישה - רק מי שקיבל הצעה יראה אותן",
+  "medical": "מידע זה מוצפן. רק השדכן רואה אותו, ואת/ה בוחר/ת מתי לחשוף",
+  "story": "הסיפור האישי מוצג רק בהצעות שידוך ממוקדות",
+  "preview": "זה בדיוק מה שהצד השני יראה - רק אחרי שתאשר/י הצעה"
+},
     "aiAdvisor": {
       "triggerButton": "קבל ניתוח וטיפים לשיפור הפרופיל",
       "dialogTitle": "יועץ הפרופיל החכם שלך",
@@ -284,7 +296,8 @@
     },
     "confirmations": {
       "bulkDelete": "האם למחוק {{count}} תמונות נבחרות? הפעולה אינה הפיכה."
-    }
+    },
+    "privacyNote": "התמונות שלך לא חשופות לגלישה - רק מי שקיבל הצעה יראה אותן"
   },
     "questionnaireSection": {
     "worlds": {
@@ -651,7 +664,8 @@
           "visibility": "נראות בפרופיל",
           "visibleBadge": "גלוי בפרופיל",
           "hiddenBadge": "דיסקרטי (לצוות בלבד)"
-        }
+        },
+        "privacyNote": "מידע זה מוצפן. רק השדכן רואה אותו, ואת/ה בוחר/ת מתי לחשוף"
       },
 
 "education": {

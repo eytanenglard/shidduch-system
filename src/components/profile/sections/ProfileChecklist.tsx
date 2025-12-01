@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Sparkles,
   Edit3,
+  Lock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -712,6 +713,18 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
                       : dict.welcomeSubtitle}
                   </motion.p>
                 )}
+                {!isAllComplete && (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    className="flex items-center justify-center md:justify-start gap-1.5 mt-2"
+  >
+    <Lock className="w-3.5 h-3.5 text-emerald-600" />
+    <span className="text-xs text-emerald-600">
+      {dict.privacyNote || "כל המידע נשמר בדיסקרטיות מלאה"}
+    </span>
+  </motion.div>
+)}
               </AnimatePresence>
             </div>
             <div className="mt-4 md:mt-0 md:w-auto lg:w-1/3 flex items-center gap-4">

@@ -182,16 +182,16 @@
     "progressBar": {
       "stepLabel": "שלב {{step}}"
     },
-    "headers": {
+   "headers": {
       "registerTitle": "הרשמה למערכת",
       "verifyEmailTitle": "אימות כתובת מייל",
       "completeProfileTitle": "השלמת פרטים",
       "welcomeDescription": "ברוכים הבאים! בואו נתחיל.",
-      "accountCreationDescription": "שלב 1 מתוך 3: אישור תנאים ופרטי התחברות.",
+      "accountCreationDescription": "יצירת חשבון ופרטי התחברות.",
       "verifyEmailDescription": "הזן את הקוד שנשלח ל: {{email}}.",
-      "personalDetailsDescription": "שלב 1: אישור תנאים ופרטים אישיים.",
-      "personalDetailsConsentedDescription": "שלב 1 מתוך 2: פרטים אישיים.",
-      "optionalInfoDescription": "שלב 2 מתוך 2: מידע נוסף (מומלץ).",
+      "personalDetailsDescription": "פרטים אישיים ליצירת הפרופיל.",
+      "personalDetailsConsentedDescription": "פרטים אישיים ליצירת הפרופיל.",
+      "optionalInfoDescription": "מידע נוסף (מומלץ).",
       "completionPhoneVerificationDescription": "הפרטים הושלמו! השלב הבא: אימות טלפון.",
       "completionReadyDescription": "הפרופיל שלך מוכן!",
       "loadingProfileDescription": "טוען שלב השלמת פרופיל..."

@@ -1,0 +1,5181 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
+# Generated on: 2025-12-01 08:24:47
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\AuthError.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/auth/AuthError.tsx
+
+'use client';
+
+import { useSearchParams, useRouter } from "next/navigation";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
+
+export default function AuthError() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const error = searchParams.get("error");
+
+  const getErrorMessage = (error: string | null) => {
+    switch (error) {
+      case "CredentialsSignin": return "פרטי ההתחברות שהזנת אינם נכונים. אנא נסה שנית.";
+      case "OAuthAccountNotLinked": return "כתובת מייל זו כבר משויכת לספק אחר (למשל, גוגל). אנא התחבר באמצעותו.";
+      default: return "אירעה שגיאה לא צפויה בתהליך האימות. אנא נסה שנית.";
+    }
+  };
+
+  return (
+    <Card className="w-full max-w-md">
+      <CardHeader className="text-center">
+        <AlertTriangle className="mx-auto h-12 w-12 text-red-500" />
+        <CardTitle className="text-2xl font-bold text-red-600 mt-4">
+          אירעה שגיאה
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 text-center">
+        <p className="text-gray-600">{getErrorMessage(error)}</p>
+        <Button onClick={() => router.push("/auth/signin")} className="w-full">
+          חזרה לדף ההתחברות
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+--- End of Content for AuthError.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ConsentCheckbox.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/ConsentCheckbox.tsx
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+
+interface ConsentCheckboxProps {
+  checked: boolean;
+  onChange: (isChecked: boolean) => void;
+  error?: string | null;
+  dict: RegisterStepsDict['consentCheckbox'];
+}
+
+const ConsentCheckbox: React.FC<ConsentCheckboxProps> = ({
+  checked,
+  onChange,
+  error,
+  dict,
+}) => {
+  const textParts = dict.text.split(/\{termsLink\}|\{privacyLink\}/);
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-start space-x-2 rtl:space-x-reverse">
+        <input
+          type="checkbox"
+          id="termsConsent"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          className={`mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500 ${error ? 'border-red-500' : ''}`}
+        />
+        <label htmlFor="termsConsent" className="text-sm text-gray-700">
+          {textParts[0]}
+          <Link
+            href="/legal/terms-of-service"
+            target="_blank"
+            className="font-medium text-cyan-600 hover:text-cyan-700 underline"
+          >
+            {dict.termsLink}
+          </Link>
+          {textParts[1]}
+          <Link
+            href="/legal/privacy-policy"
+            target="_blank"
+            className="font-medium text-cyan-600 hover:text-cyan-700 underline"
+          >
+            {dict.privacyLink}
+          </Link>
+          {textParts[2]}
+        </label>
+      </div>
+      {error && <p className="text-xs text-red-500">{error}</p>}
+    </div>
+  );
+};
+
+export default ConsentCheckbox;
+--- End of Content for ConsentCheckbox.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ForgotPasswordForm.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/auth/ResetPasswordForm.tsx
+'use client';
+
+import { useState, FormEvent, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Lock,
+  KeySquare,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  Eye,
+  EyeOff,
+  Mail,
+} from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import Link from 'next/link';
+
+const validatePassword = (value: string): string | null => {
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+  if (!passwordRegex.test(value)) {
+    return 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.';
+  }
+  return null;
+};
+
+export default function ResetPasswordForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    const emailFromQuery = searchParams.get('email');
+    const tokenFromQuery = searchParams.get('token');
+
+    if (emailFromQuery) {
+      setEmail(emailFromQuery);
+    }
+    if (tokenFromQuery) {
+      setOtp(tokenFromQuery);
+    }
+  }, [searchParams]);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setPasswordError(null);
+    setSuccessMessage(null);
+
+    if (!email) {
+      setError('כתובת המייל חסרה. אנא חזור להתחלה ונסה שנית.');
+      setIsLoading(false);
+      return;
+    }
+    if (!otp || otp.length !== 6 || !/^\d+$/.test(otp)) {
+      setError('קוד האימות (OTP) חייב להיות בן 6 ספרות.');
+      setIsLoading(false);
+      return;
+    }
+    const passValidationError = validatePassword(newPassword);
+    if (passValidationError) {
+      setPasswordError(passValidationError);
+      setIsLoading(false);
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('הסיסמאות אינן תואמות.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'אירעה שגיאה באיפוס הסיסמה.');
+      }
+
+      setSuccessMessage(
+        data.message || 'הסיסמה אופסה בהצלחה! כעת תוכל להתחבר עם הסיסמה החדשה.'
+      );
+      setOtp('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => {
+        router.push('/auth/signin?reset=success');
+      }, 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative border border-white/50">
+      {/* UPDATED: Top Bar Gradient (Teal -> Orange -> Amber) */}
+      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500"></div>
+      
+      <div className="p-6 sm:p-8">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">איפוס סיסמה</h1>
+          <p className="text-gray-600 text-sm">
+            הזן את קוד האימות (OTP) שקיבלת במייל ואת הסיסמה החדשה שלך.
+          </p>
+        </div>
+
+        {error && (
+          <Alert variant="destructive" className="mb-4" role="alert">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>שגיאה</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        {passwordError && !error && (
+          <Alert variant="destructive" className="mb-4" role="alert">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>שגיאת סיסמה</AlertTitle>
+            <AlertDescription id="password-error-message">
+              {passwordError}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {successMessage && (
+          // Success message can stay Green as it's a standard status color
+          <Alert
+            variant="default"
+            className="mb-4 bg-green-50 border-green-200 text-green-700"
+          >
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertTitle>הצלחה!</AlertTitle>
+            <AlertDescription>
+              {successMessage} אתה מועבר לדף ההתחברות...
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {!successMessage && (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-1">
+              <label
+                htmlFor="email-reset"
+                className="block text-sm font-medium text-gray-700"
+              >
+                כתובת מייל (לאימות) <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Input
+                  type="email"
+                  id="email-reset"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                  // UPDATED: Focus Ring
+                  className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-500 focus:outline-none"
+                  disabled={isLoading || !!searchParams.get('email')}
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label
+                htmlFor="otp-reset"
+                className="block text-sm font-medium text-gray-700"
+              >
+                קוד אימות (OTP) <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <KeySquare className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Input
+                  type="text"
+                  id="otp-reset"
+                  value={otp}
+                  onChange={(e) =>
+                    setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))
+                  }
+                  placeholder="xxxxxx"
+                  maxLength={6}
+                  required
+                  // UPDATED: Focus Ring
+                  className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-500 focus:outline-none tracking-widest text-center"
+                  disabled={isLoading}
+                  inputMode="numeric"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label
+                htmlFor="new-password-reset"
+                className="block text-sm font-medium text-gray-700"
+              >
+                סיסמה חדשה <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  id="new-password-reset"
+                  aria-describedby={
+                    passwordError ? 'password-error-message' : 'password-hint'
+                  }
+                  aria-invalid={!!passwordError}
+                  value={newPassword}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    const validationErr = validatePassword(e.target.value);
+                    if (e.target.value && validationErr)
+                      setPasswordError(validationErr);
+                    else setPasswordError(null);
+                  }}
+                  placeholder="לפחות 8 תווים, אות גדולה, קטנה ומספר"
+                  required
+                  // UPDATED: Focus Ring (Error red, else Teal)
+                  className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none ${
+                    passwordError
+                      ? 'border-red-500 focus:ring-red-200'
+                      : 'border-gray-300 focus:ring-teal-200 focus:border-teal-500'
+                  }`}
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+              {!passwordError && (
+                <p id="password-hint" className="mt-1 text-xs text-gray-500">
+                  חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <label
+                htmlFor="confirm-password-reset"
+                className="block text-sm font-medium text-gray-700"
+              >
+                אימות סיסמה חדשה <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  id="confirm-password-reset"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="הזן את הסיסמה החדשה שוב"
+                  required
+                  // UPDATED: Focus Ring
+                  className="w-full pr-10 pl-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-500 focus:outline-none"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  aria-label={showConfirmPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={
+                isLoading ||
+                !!passwordError ||
+                !otp ||
+                !newPassword ||
+                !confirmPassword ||
+                newPassword !== confirmPassword
+              }
+              // UPDATED: Button Gradient (Teal -> Orange -> Amber)
+              className="w-full py-3 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  <span>מאפס סיסמה...</span>
+                </>
+              ) : (
+                'אפס סיסמה'
+              )}
+            </Button>
+          </form>
+        )}
+
+        <div className="mt-6 text-center">
+          {/* UPDATED: Link Color (Teal) */}
+          <Link
+            href="/auth/signin"
+            className="text-sm text-teal-600 hover:text-teal-700 hover:underline"
+          >
+            חזרה להתחברות
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+--- End of Content for ForgotPasswordForm.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\PhoneNumberInput.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/PhoneNumberInput.tsx
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { Phone, ChevronDown, Search, X, Edit } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// רשימת מדינות מורחבת עם קהילות יהודיות
+const COUNTRIES = [
+  // מדינות פופולאריות
+  {
+    code: 'IL',
+    name: 'Israel',
+    nameHe: 'ישראל',
+    flag: '🇮🇱',
+    prefix: '+972',
+    popular: true,
+    placeholder: '50-123-4567',
+  },
+  {
+    code: 'US',
+    name: 'United States',
+    nameHe: 'ארצות הברית',
+    flag: '🇺🇸',
+    prefix: '+1',
+    popular: true,
+    placeholder: '555-123-4567',
+  },
+  {
+    code: 'GB',
+    name: 'United Kingdom',
+    nameHe: 'בריטניה',
+    flag: '🇬🇧',
+    prefix: '+44',
+    popular: true,
+    placeholder: '7123 456789',
+  },
+  {
+    code: 'CA',
+    name: 'Canada',
+    nameHe: 'קנדה',
+    flag: '🇨🇦',
+    prefix: '+1',
+    popular: true,
+    placeholder: '555-123-4567',
+  },
+  {
+    code: 'FR',
+    name: 'France',
+    nameHe: 'צרפת',
+    flag: '🇫🇷',
+    prefix: '+33',
+    popular: true,
+    placeholder: '06 12 34 56 78',
+  },
+  // ... שאר המדינות נשארות אותו דבר
+  // (קיצרתי כאן כדי לחסוך מקום, הרשימה המלאה קיימת בקוד המקורי שלך)
+  {
+    code: 'AR',
+    name: 'Argentina',
+    nameHe: 'ארגנטינה',
+    flag: '🇦🇷',
+    prefix: '+54',
+    popular: false,
+    placeholder: '11 1234-5678',
+  },
+  {
+    code: 'AU',
+    name: 'Australia',
+    nameHe: 'אוסטרליה',
+    flag: '🇦🇺',
+    prefix: '+61',
+    popular: false,
+    placeholder: '412 345 678',
+  },
+  {
+    code: 'AT',
+    name: 'Austria',
+    nameHe: 'אוסטריה',
+    flag: '🇦🇹',
+    prefix: '+43',
+    popular: false,
+    placeholder: '664 123456',
+  },
+  {
+    code: 'BE',
+    name: 'Belgium',
+    nameHe: 'בלגיה',
+    flag: '🇧🇪',
+    prefix: '+32',
+    popular: false,
+    placeholder: '470 12 34 56',
+  },
+  {
+    code: 'BR',
+    name: 'Brazil',
+    nameHe: 'ברזיל',
+    flag: '🇧🇷',
+    prefix: '+55',
+    popular: false,
+    placeholder: '11 91234-5678',
+  },
+  {
+    code: 'BG',
+    name: 'Bulgaria',
+    nameHe: 'בולגריה',
+    flag: '🇧🇬',
+    prefix: '+359',
+    popular: false,
+    placeholder: '87 123 4567',
+  },
+  {
+    code: 'CL',
+    name: 'Chile',
+    nameHe: "צ'ילה",
+    flag: '🇨🇱',
+    prefix: '+56',
+    popular: false,
+    placeholder: '9 1234 5678',
+  },
+  {
+    code: 'CO',
+    name: 'Colombia',
+    nameHe: 'קולומביה',
+    flag: '🇨🇴',
+    prefix: '+57',
+    popular: false,
+    placeholder: '300 123 4567',
+  },
+  {
+    code: 'HR',
+    name: 'Croatia',
+    nameHe: 'קרואטיה',
+    flag: '🇭🇷',
+    prefix: '+385',
+    popular: false,
+    placeholder: '91 234 567',
+  },
+  {
+    code: 'CZ',
+    name: 'Czech Republic',
+    nameHe: "צ'כיה",
+    flag: '🇨🇿',
+    prefix: '+420',
+    popular: false,
+    placeholder: '601 123 456',
+  },
+  {
+    code: 'DK',
+    name: 'Denmark',
+    nameHe: 'דנמרק',
+    flag: '🇩🇰',
+    prefix: '+45',
+    popular: false,
+    placeholder: '20 12 34 56',
+  },
+  {
+    code: 'EE',
+    name: 'Estonia',
+    nameHe: 'אסטוניה',
+    flag: '🇪🇪',
+    prefix: '+372',
+    popular: false,
+    placeholder: '5123 4567',
+  },
+  {
+    code: 'FI',
+    name: 'Finland',
+    nameHe: 'פינלנד',
+    flag: '🇫🇮',
+    prefix: '+358',
+    popular: false,
+    placeholder: '40 123 4567',
+  },
+  {
+    code: 'GE',
+    name: 'Georgia',
+    nameHe: 'גאורגיה',
+    flag: '🇬🇪',
+    prefix: '+995',
+    popular: false,
+    placeholder: '555 12 34 56',
+  },
+  {
+    code: 'DE',
+    name: 'Germany',
+    nameHe: 'גרמניה',
+    flag: '🇩🇪',
+    prefix: '+49',
+    popular: false,
+    placeholder: '1512 3456789',
+  },
+  {
+    code: 'GR',
+    name: 'Greece',
+    nameHe: 'יוון',
+    flag: '🇬🇷',
+    prefix: '+30',
+    popular: false,
+    placeholder: '694 123 4567',
+  },
+  {
+    code: 'HU',
+    name: 'Hungary',
+    nameHe: 'הונגריה',
+    flag: '🇭🇺',
+    prefix: '+36',
+    popular: false,
+    placeholder: '20 123 4567',
+  },
+  {
+    code: 'IN',
+    name: 'India',
+    nameHe: 'הודו',
+    flag: '🇮🇳',
+    prefix: '+91',
+    popular: false,
+    placeholder: '91234 56789',
+  },
+  {
+    code: 'IE',
+    name: 'Ireland',
+    nameHe: 'אירלנד',
+    flag: '🇮🇪',
+    prefix: '+353',
+    popular: false,
+    placeholder: '85 123 4567',
+  },
+  {
+    code: 'IT',
+    name: 'Italy',
+    nameHe: 'איטליה',
+    flag: '🇮🇹',
+    prefix: '+39',
+    popular: false,
+    placeholder: '312 345 6789',
+  },
+  {
+    code: 'LV',
+    name: 'Latvia',
+    nameHe: 'לטביה',
+    flag: '🇱🇻',
+    prefix: '+371',
+    popular: false,
+    placeholder: '21 234 567',
+  },
+  {
+    code: 'LT',
+    name: 'Lithuania',
+    nameHe: 'ליטא',
+    flag: '🇱🇹',
+    prefix: '+370',
+    popular: false,
+    placeholder: '612 34567',
+  },
+  {
+    code: 'LU',
+    name: 'Luxembourg',
+    nameHe: 'לוקסמבורג',
+    flag: '🇱🇺',
+    prefix: '+352',
+    popular: false,
+    placeholder: '621 123 456',
+  },
+  {
+    code: 'MX',
+    name: 'Mexico',
+    nameHe: 'מקסיקו',
+    flag: '🇲🇽',
+    prefix: '+52',
+    popular: false,
+    placeholder: '55 1234 5678',
+  },
+  {
+    code: 'MD',
+    name: 'Moldova',
+    nameHe: 'מולדובה',
+    flag: '🇲🇩',
+    prefix: '+373',
+    popular: false,
+    placeholder: '621 12 345',
+  },
+  {
+    code: 'NL',
+    name: 'Netherlands',
+    nameHe: 'הולנד',
+    flag: '🇳🇱',
+    prefix: '+31',
+    popular: false,
+    placeholder: '6 12345678',
+  },
+  {
+    code: 'NZ',
+    name: 'New Zealand',
+    nameHe: 'ניו זילנד',
+    flag: '🇳🇿',
+    prefix: '+64',
+    popular: false,
+    placeholder: '21 123 4567',
+  },
+  {
+    code: 'NO',
+    name: 'Norway',
+    nameHe: 'נורווגיה',
+    flag: '🇳🇴',
+    prefix: '+47',
+    popular: false,
+    placeholder: '412 34 567',
+  },
+  {
+    code: 'PA',
+    name: 'Panama',
+    nameHe: 'פנמה',
+    flag: '🇵🇦',
+    prefix: '+507',
+    popular: false,
+    placeholder: '6123-4567',
+  },
+  {
+    code: 'PE',
+    name: 'Peru',
+    nameHe: 'פרו',
+    flag: '🇵🇪',
+    prefix: '+51',
+    popular: false,
+    placeholder: '912 345 678',
+  },
+  {
+    code: 'PL',
+    name: 'Poland',
+    nameHe: 'פולין',
+    flag: '🇵🇱',
+    prefix: '+48',
+    popular: false,
+    placeholder: '501 234 567',
+  },
+  {
+    code: 'PT',
+    name: 'Portugal',
+    nameHe: 'פורטוגל',
+    flag: '🇵🇹',
+    prefix: '+351',
+    popular: false,
+    placeholder: '912 345 678',
+  },
+  {
+    code: 'RO',
+    name: 'Romania',
+    nameHe: 'רומניה',
+    flag: '🇷🇴',
+    prefix: '+40',
+    popular: false,
+    placeholder: '712 345 678',
+  },
+  {
+    code: 'RU',
+    name: 'Russia',
+    nameHe: 'רוסיה',
+    flag: '🇷🇺',
+    prefix: '+7',
+    popular: false,
+    placeholder: '912 123-45-67',
+  },
+  {
+    code: 'RS',
+    name: 'Serbia',
+    nameHe: 'סרביה',
+    flag: '🇷🇸',
+    prefix: '+381',
+    popular: false,
+    placeholder: '60 1234567',
+  },
+  {
+    code: 'SK',
+    name: 'Slovakia',
+    nameHe: 'סלובקיה',
+    flag: '🇸🇰',
+    prefix: '+421',
+    popular: false,
+    placeholder: '901 123 456',
+  },
+  {
+    code: 'SI',
+    name: 'Slovenia',
+    nameHe: 'סלובניה',
+    flag: '🇸🇮',
+    prefix: '+386',
+    popular: false,
+    placeholder: '31 234 567',
+  },
+  {
+    code: 'ZA',
+    name: 'South Africa',
+    nameHe: 'דרום אפריקה',
+    flag: '🇿🇦',
+    prefix: '+27',
+    popular: false,
+    placeholder: '82 123 4567',
+  },
+  {
+    code: 'ES',
+    name: 'Spain',
+    nameHe: 'ספרד',
+    flag: '🇪🇸',
+    prefix: '+34',
+    popular: false,
+    placeholder: '612 34 56 78',
+  },
+  {
+    code: 'SE',
+    name: 'Sweden',
+    nameHe: 'שבדיה',
+    flag: '🇸🇪',
+    prefix: '+46',
+    popular: false,
+    placeholder: '70 123 45 67',
+  },
+  {
+    code: 'CH',
+    name: 'Switzerland',
+    nameHe: 'שוויץ',
+    flag: '🇨🇭',
+    prefix: '+41',
+    popular: false,
+    placeholder: '78 123 45 67',
+  },
+  {
+    code: 'TR',
+    name: 'Turkey',
+    nameHe: 'טורקיה',
+    flag: '🇹🇷',
+    prefix: '+90',
+    popular: false,
+    placeholder: '531 234 56 78',
+  },
+  {
+    code: 'UA',
+    name: 'Ukraine',
+    nameHe: 'אוקראינה',
+    flag: '🇺🇦',
+    prefix: '+380',
+    popular: false,
+    placeholder: '50 123 4567',
+  },
+  {
+    code: 'UY',
+    name: 'Uruguay',
+    nameHe: 'אורוגוואי',
+    flag: '🇺🇾',
+    prefix: '+598',
+    popular: false,
+    placeholder: '91 123 456',
+  },
+  {
+    code: 'VE',
+    name: 'Venezuela',
+    nameHe: 'ונצואלה',
+    flag: '🇻🇪',
+    prefix: '+58',
+    popular: false,
+    placeholder: '412-1234567',
+  },
+  {
+    code: 'JP',
+    name: 'Japan',
+    nameHe: 'יפן',
+    flag: '🇯🇵',
+    prefix: '+81',
+    popular: false,
+    placeholder: '90-1234-5678',
+  },
+  {
+    code: 'CN',
+    name: 'China',
+    nameHe: 'סין',
+    flag: '🇨🇳',
+    prefix: '+86',
+    popular: false,
+    placeholder: '138 0013 8000',
+  },
+  {
+    code: 'KR',
+    name: 'South Korea',
+    nameHe: 'דרום קוריאה',
+    flag: '🇰🇷',
+    prefix: '+82',
+    popular: false,
+    placeholder: '10-1234-5678',
+  },
+];
+
+interface PhoneNumberInputProps {
+  value: string | undefined;
+  onChange: (value: string | undefined) => void;
+  disabled?: boolean;
+  locale: 'he' | 'en';
+  error?: string;
+}
+
+const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
+  value,
+  onChange,
+  disabled = false,
+  locale,
+  error,
+}) => {
+  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isManualPrefix, setIsManualPrefix] = useState(false);
+  const [manualPrefix, setManualPrefix] = useState('');
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // סינון מדינות לפי חיפוש
+  const filteredCountries = COUNTRIES.filter((country) => {
+    const searchLower = searchTerm.toLowerCase();
+    const name = locale === 'he' ? country.nameHe : country.name;
+    return (
+      name.toLowerCase().includes(searchLower) ||
+      country.prefix.includes(searchTerm) ||
+      country.code.toLowerCase().includes(searchLower)
+    );
+  });
+
+  // מיון: פופולאריות קודם, אחר כך א"ב
+  const sortedCountries = filteredCountries.sort((a, b) => {
+    if (a.popular && !b.popular) return -1;
+    if (!a.popular && b.popular) return 1;
+    const nameA = locale === 'he' ? a.nameHe : a.name;
+    const nameB = locale === 'he' ? b.nameHe : b.name;
+    return nameA.localeCompare(nameB);
+  });
+
+  // עדכון הערך המלא
+  const updateFullValue = (prefix: string, number: string) => {
+    const fullNumber = number ? `${prefix}${number.replace(/\D/g, '')}` : '';
+    onChange(fullNumber);
+  };
+
+  // טיפול בשינוי מספר טלפון
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setPhoneNumber(newValue);
+
+    const currentPrefix = isManualPrefix
+      ? manualPrefix
+      : selectedCountry.prefix;
+    updateFullValue(currentPrefix, newValue);
+  };
+
+  // טיפול בשינוי קידומת ידנית
+  const handleManualPrefixChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newPrefix = e.target.value;
+
+    // וידוא שהקידומת מתחילה ב-+
+    if (newPrefix && !newPrefix.startsWith('+')) {
+      newPrefix = '+' + newPrefix;
+    }
+
+    setManualPrefix(newPrefix);
+    updateFullValue(newPrefix, phoneNumber);
+  };
+
+  // בחירת מדינה
+  const handleCountrySelect = (country: (typeof COUNTRIES)[0]) => {
+    setSelectedCountry(country);
+    setIsOpen(false);
+    setSearchTerm('');
+    setIsManualPrefix(false);
+    setManualPrefix('');
+    updateFullValue(country.prefix, phoneNumber);
+  };
+
+  // מעבר למצב קידומת ידנית
+  const enableManualPrefix = () => {
+    setIsManualPrefix(true);
+    setManualPrefix(selectedCountry.prefix);
+    setIsOpen(false);
+  };
+
+  // חזרה למצב בחירת מדינה
+  const disableManualPrefix = () => {
+    setIsManualPrefix(false);
+    setManualPrefix('');
+    updateFullValue(selectedCountry.prefix, phoneNumber);
+  };
+
+  // פירוק הערך הנכנס לקידומת ומספר
+  useEffect(() => {
+    if (value && value.startsWith('+')) {
+      // נסה למצוא מדינה מתאימה
+      const matchingCountry = COUNTRIES.find((country) =>
+        value.startsWith(country.prefix)
+      );
+
+      if (matchingCountry) {
+        setSelectedCountry(matchingCountry);
+        setIsManualPrefix(false);
+        setManualPrefix('');
+        const numberPart = value.substring(matchingCountry.prefix.length);
+        setPhoneNumber(numberPart);
+      } else {
+        // אם לא נמצאה מדינה מתאימה, השתמש בקידומת ידנית
+        const prefixMatch = value.match(/^\+\d+/);
+        if (prefixMatch) {
+          setIsManualPrefix(true);
+          setManualPrefix(prefixMatch[0]);
+          const numberPart = value.substring(prefixMatch[0].length);
+          setPhoneNumber(numberPart);
+        }
+      }
+    } else if (!value) {
+      setPhoneNumber('');
+      setIsManualPrefix(false);
+      setManualPrefix('');
+    }
+  }, [value]);
+
+  // סגירת dropdown בלחיצה מחוץ
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+        setSearchTerm('');
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () =>
+        document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isOpen]);
+
+  // פוקוס על חיפוש כשהרשימה נפתחת
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    }
+  }, [isOpen]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setIsOpen(false);
+      setSearchTerm('');
+    }
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full"
+      onKeyDown={handleKeyDown}
+    >
+      {/* 
+          שינוי קריטי: הוספנו dir="ltr" כדי לכפות סדר אלמנטים משמאל לימין 
+          (קידומת משמאל, שדה קלט מימין) גם כאשר שפת הדף היא עברית.
+      */}
+      <div className="flex gap-2" dir="ltr">
+        {/* בוחר מדינה או קידומת ידנית */}
+        <div className="relative">
+          {isManualPrefix ? (
+            // מצב קידומת ידנית
+            <div className="flex items-center gap-1">
+              <input
+                type="text"
+                value={manualPrefix}
+                onChange={handleManualPrefixChange}
+                placeholder="+1"
+                disabled={disabled}
+                className={`
+                  w-20 px-2 py-3 text-sm border rounded-lg text-center font-mono
+                  transition-all duration-200
+                  ${
+                    disabled
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white hover:border-blue-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                  }
+                  ${
+                    error
+                      ? 'border-red-400 focus:ring-red-200 focus:border-red-500'
+                      : 'border-gray-300'
+                  }
+                `}
+              />
+              <button
+                type="button"
+                onClick={disableManualPrefix}
+                disabled={disabled}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                title={
+                  locale === 'he'
+                    ? 'חזור לבחירת מדינה'
+                    : 'Back to country selection'
+                }
+              >
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            // מצב בחירת מדינה
+            <button
+              type="button"
+              onClick={() => !disabled && setIsOpen(!isOpen)}
+              disabled={disabled}
+              className={`
+                flex items-center gap-2 px-3 py-3 border rounded-lg bg-white
+                transition-all duration-200 min-w-[140px]
+                ${
+                  disabled
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'hover:border-blue-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                }
+                ${
+                  error
+                    ? 'border-red-400 focus:ring-red-200 focus:border-red-500'
+                    : 'border-gray-300'
+                }
+                ${isOpen ? 'border-blue-500 ring-2 ring-blue-200' : ''}
+              `}
+              aria-expanded={isOpen}
+              aria-haspopup="listbox"
+            >
+              <span className="text-lg">{selectedCountry.flag}</span>
+              <span className="text-sm font-medium truncate">
+                {locale === 'he'
+                  ? selectedCountry.nameHe
+                  : selectedCountry.name}
+              </span>
+              <span className="text-xs text-gray-500 font-mono">
+                ({selectedCountry.prefix})
+              </span>
+              <ChevronDown
+                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                  isOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+          )}
+
+          {/* Dropdown */}
+          <AnimatePresence>
+            {isOpen && !isManualPrefix && (
+              <motion.div
+                ref={dropdownRef}
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-full mt-1 left-0 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96"
+              >
+                {/* חיפוש - כאן אנחנו מכבדים את כיוון השפה עבור טקסט החיפוש */}
+                <div
+                  className="p-3 border-b border-gray-100"
+                  dir={locale === 'he' ? 'rtl' : 'ltr'}
+                >
+                  <div className="relative">
+                    <Search
+                      className={`absolute top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 ${locale === 'he' ? 'right-3' : 'left-3'}`}
+                    />
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder={
+                        locale === 'he' ? 'חפש מדינה...' : 'Search country...'
+                      }
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className={`w-full py-2 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-200 focus:border-blue-500 ${locale === 'he' ? 'pr-10 pl-3' : 'pl-10 pr-3'}`}
+                    />
+                    {searchTerm && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchTerm('')}
+                        className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 ${locale === 'he' ? 'left-3' : 'right-3'}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* אפשרות לקידומת ידנית */}
+                <div
+                  className="p-2 border-b border-gray-100"
+                  dir={locale === 'he' ? 'rtl' : 'ltr'}
+                >
+                  <button
+                    type="button"
+                    onClick={enableManualPrefix}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>
+                      {locale === 'he'
+                        ? 'הכנס קידומת בעצמך'
+                        : 'Enter custom prefix'}
+                    </span>
+                  </button>
+                </div>
+
+                {/* רשימת מדינות */}
+                <div className="max-h-60 overflow-y-auto">
+                  {sortedCountries.length === 0 ? (
+                    <div className="p-4 text-sm text-gray-500 text-center">
+                      {locale === 'he'
+                        ? 'לא נמצאו מדינות'
+                        : 'No countries found'}
+                    </div>
+                  ) : (
+                    sortedCountries.map((country) => (
+                      <button
+                        key={country.code}
+                        type="button"
+                        onClick={() => handleCountrySelect(country)}
+                        className={`
+                          w-full flex items-center gap-3 px-4 py-3 text-sm
+                          hover:bg-blue-50 transition-colors duration-150
+                          ${selectedCountry.code === country.code ? 'bg-blue-100 text-blue-700' : 'text-gray-700'}
+                        `}
+                        // כאן אנחנו שומרים על כיוון LTR כדי שהדגלים והמספרים יהיו בצד שמאל והטקסט מימין,
+                        // גם בעברית זה נראה טוב ברשימות טלפונים
+                        dir="ltr"
+                      >
+                        <span className="text-lg">{country.flag}</span>
+                        <span className="flex-1 text-left">
+                          {locale === 'he' ? country.nameHe : country.name}
+                        </span>
+                        <span className="text-xs text-gray-500 font-mono">
+                          {country.prefix}
+                        </span>
+                        {country.popular && (
+                          <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                        )}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* שדה מספר טלפון */}
+        <div className="flex-1 relative">
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={handlePhoneChange}
+            disabled={disabled}
+            placeholder={
+              isManualPrefix
+                ? locale === 'he'
+                  ? 'מספר טלפון'
+                  : 'Phone number'
+                : locale === 'he'
+                  ? `לדוגמה: ${selectedCountry.placeholder}`
+                  : `Example: ${selectedCountry.placeholder}`
+            }
+            // כיוון שהקונטיינר כולו LTR עכשיו, אנחנו רוצים יישור לשמאל תמיד כדי שזה יהיה צמוד לקידומת
+            className={`
+              w-full pl-3 pr-10 py-3 border rounded-lg
+              transition-all duration-200 text-left
+              ${
+                disabled
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-white hover:border-blue-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+              }
+              ${
+                error
+                  ? 'border-red-400 focus:ring-red-200 focus:border-red-500'
+                  : 'border-gray-300'
+              }
+            `}
+            dir="ltr"
+          />
+          {/* האייקון ממוקם תמיד בימין כי הכל LTR */}
+          <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+        </div>
+      </div>
+
+      {/* הודעת שגיאה */}
+      {error && (
+        <motion.p
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          // הודעת השגיאה תמיד מיושרת לפי שפת הממשק
+          className={`text-red-500 text-xs mt-2 ${locale === 'he' ? 'text-right' : 'text-left'}`}
+        >
+          {error}
+        </motion.p>
+      )}
+    </div>
+  );
+};
+
+export default PhoneNumberInput;
+--- End of Content for PhoneNumberInput.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ProgressBar.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/ProgressBar.tsx
+"use client";
+
+import React from "react";
+import { motion } from "framer-motion";
+
+interface ProgressBarProps {
+  currentStep: number;
+  totalSteps: number;
+  stepLabel: string;
+  locale: 'he' | 'en';
+}
+
+const ProgressBar: React.FC<ProgressBarProps> = ({
+  currentStep,
+  totalSteps,
+  stepLabel,
+  locale,
+}) => {
+  const percentage = (currentStep / totalSteps) * 100;
+  const steps = Array.from({ length: totalSteps }, (_, i) => i + 1);
+
+  return (
+    <div className="w-full relative" dir={locale === 'he' ? 'rtl' : 'ltr'}>
+      {/* Step labels */}
+      <div className="flex justify-between mb-2">
+        {steps.map((step) => (
+          <div
+            key={step}
+            className={`text-xs font-medium transition-colors duration-300 ${
+              step <= currentStep ? "text-gray-800" : "text-gray-400"
+            }`}
+          >
+            {stepLabel.replace('{{step}}', step.toString())}
+          </div>
+        ))}
+      </div>
+
+      {/* Progress bar track */}
+      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        {/* UPDATED: Animated progress fill (Teal -> Orange -> Amber) */}
+        <motion.div
+          className="h-full bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500"
+          initial={{ width: `${((currentStep - 1) / totalSteps) * 100}%` }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        />
+      </div>
+
+      {/* Step markers */}
+      <div className="relative flex justify-between mt-1">
+        {steps.map((step) => (
+          <motion.div
+            key={step}
+            className={`w-6 h-6 rounded-full flex items-center justify-center -mt-4 z-10 transition-all duration-300
+              ${
+                step <= currentStep
+                  // UPDATED: Marker Color
+                  ? "bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 shadow-md text-white"
+                  : "bg-white border-2 border-gray-300 text-gray-500"
+              }`}
+            initial={{ scale: step === currentStep ? 0.8 : 1 }}
+            animate={{ scale: step === currentStep ? 1.1 : 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <span className="text-xs font-semibold">{step}</span>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default ProgressBar;
+--- End of Content for ProgressBar.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\RegisterSteps.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/RegisterSteps.tsx
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { RegistrationProvider, useRegistration } from './RegistrationContext';
+import Link from 'next/link';
+import WelcomeStep from './steps/WelcomeStep';
+import BasicInfoStep from './steps/BasicInfoStep';
+import EmailVerificationCodeStep from './steps/EmailVerificationCodeStep';
+import PersonalDetailsStep from './steps/PersonalDetailsStep';
+import CompleteStep from './steps/CompleteStep';
+import ProgressBar from './ProgressBar';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Info, Loader2 } from 'lucide-react';
+import type { User as SessionUserType } from '@/types/next-auth';
+import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+
+interface RegisterStepsProps {
+  dict: RegisterStepsDict;
+  locale: 'he' | 'en';
+}
+
+const RegisterStepsContent: React.FC<{
+  dict: RegisterStepsDict;
+  locale: 'he' | 'en';
+}> = ({
+  dict,
+  locale,
+}) => {
+  const {
+    data: registrationContextData,
+    initializeFromSession,
+    resetForm,
+    goToStep,
+  } = useRegistration();
+  const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
+  const searchParams = useSearchParams();
+
+  const [showIncompleteProfileMessage, setShowIncompleteProfileMessage] =
+    useState(false);
+  const [initializationAttempted, setInitializationAttempted] = useState(false);
+
+  useEffect(() => {
+    const reasonParam = searchParams.get('reason');
+    if (
+      (reasonParam === 'complete_profile' || reasonParam === 'verify_phone') &&
+      !registrationContextData.isCompletingProfile
+    ) {
+      setShowIncompleteProfileMessage(true);
+    } else {
+      setShowIncompleteProfileMessage(false);
+    }
+  }, [searchParams, registrationContextData.isCompletingProfile]);
+
+  useEffect(() => {
+    if (sessionStatus === 'loading') {
+      return;
+    }
+    if (sessionStatus === 'authenticated' && session?.user) {
+      const user = session.user as SessionUserType;
+      
+      if (
+        user.isProfileComplete &&
+        user.isPhoneVerified &&
+        user.termsAndPrivacyAcceptedAt
+      ) {
+        if (
+          typeof window !== 'undefined' &&
+          window.location.pathname !== `/${locale}/profile`
+        ) {
+          router.push(`/${locale}/profile`);
+        }
+        return;
+      }
+
+      const needsSetup =
+        !user.termsAndPrivacyAcceptedAt ||
+        !user.isProfileComplete ||
+        !user.isPhoneVerified;
+        
+      if (
+        needsSetup &&
+        (!initializationAttempted ||
+          (registrationContextData.step === 0 &&
+            !registrationContextData.isVerifyingEmailCode))
+      ) {
+        initializeFromSession(user);
+        setInitializationAttempted(true);
+      }
+    } else if (sessionStatus === 'unauthenticated') {
+      const registrationInProgress =
+        registrationContextData.step > 0 ||
+        registrationContextData.isVerifyingEmailCode;
+      if (registrationInProgress) {
+        resetForm();
+      }
+    }
+  }, [
+    sessionStatus,
+    session,
+    router,
+    registrationContextData,
+    initializeFromSession,
+    resetForm,
+    goToStep,
+    initializationAttempted,
+    searchParams,
+    locale,
+  ]);
+
+  const renderStep = (): React.ReactNode => {
+    if (sessionStatus === 'loading') {
+      return (
+        <div className="flex justify-center p-10">
+          {/* UPDATED: Cyan -> Teal */}
+          <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+        </div>
+      );
+    }
+
+    if (
+      registrationContextData.isVerifyingEmailCode &&
+      !registrationContextData.isCompletingProfile
+    ) {
+      return (
+        <EmailVerificationCodeStep
+          dict={dict.steps.emailVerification}
+          locale={locale}
+        />
+      );
+    }
+
+    if (registrationContextData.isCompletingProfile) {
+      switch (registrationContextData.step) {
+        case 2:
+          return (
+            <PersonalDetailsStep
+              personalDetailsDict={dict.steps.personalDetails}
+              optionalInfoDict={dict.steps.optionalInfo}
+              consentDict={dict.consentCheckbox}
+              locale={locale}
+            />
+          );
+        case 4:
+          return <CompleteStep dict={dict.steps.complete} />;
+        default:
+          resetForm();
+          return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
+      }
+    }
+
+    switch (registrationContextData.step) {
+      case 0:
+        return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
+      case 1:
+        return (
+          <BasicInfoStep
+            dict={dict.steps.basicInfo}
+            consentDict={dict.consentCheckbox}
+            locale={locale}
+          />
+        );
+      default:
+        resetForm();
+        return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
+    }
+  };
+
+  let pageTitle = dict.headers.registerTitle;
+  let stepDescription = dict.headers.welcomeDescription;
+  let currentProgressBarStep = 0;
+  const totalProgressBarSteps = 3;
+  let showProgressBar = false;
+
+  if (
+    registrationContextData.isVerifyingEmailCode &&
+    !registrationContextData.isCompletingProfile
+  ) {
+    pageTitle = dict.headers.verifyEmailTitle;
+    stepDescription = dict.headers.verifyEmailDescription.replace(
+      '{{email}}',
+      registrationContextData.emailForVerification || ''
+    );
+    showProgressBar = true;
+    currentProgressBarStep = 1;
+
+  } else if (registrationContextData.isCompletingProfile) {
+    pageTitle = dict.headers.completeProfileTitle;
+    showProgressBar = false; 
+
+    if (registrationContextData.step === 2) {
+      stepDescription = session?.user?.termsAndPrivacyAcceptedAt
+        ? dict.headers.personalDetailsConsentedDescription
+        : dict.headers.personalDetailsDescription;
+    } else if (registrationContextData.step === 4) {
+      stepDescription = session?.user?.isPhoneVerified
+        ? dict.headers.completionReadyDescription
+        : dict.headers.completionPhoneVerificationDescription;
+    } else {
+      stepDescription = dict.headers.loadingProfileDescription;
+    }
+
+  } else {
+    if (registrationContextData.step === 1) {
+      pageTitle = dict.headers.registerTitle;
+      stepDescription = dict.headers.accountCreationDescription;
+      currentProgressBarStep = 1;
+      showProgressBar = true;
+    }
+  }
+
+  return (
+    // UPDATED: Background Gradient (Teal/Orange/Slate)
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40 p-4 sm:p-8">
+      <div className="mb-6 text-center">
+        {/* UPDATED: Text Gradient (Teal -> Orange -> Amber) */}
+        <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 text-3xl font-bold mb-2">
+          {pageTitle}
+        </h1>
+        <p className="text-gray-600 max-w-md mx-auto">{stepDescription}</p>
+      </div>
+
+      {showIncompleteProfileMessage && (
+        // UPDATED: Yellow/Amber alerts match the new palette well
+        <Alert className="mb-6 w-full max-w-md bg-amber-50 border-amber-200 text-amber-800 shadow-md">
+          <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-1" />
+          <div className="ml-3 rtl:mr-3 rtl:ml-0">
+            <AlertTitle className="font-semibold mb-1">
+              {dict.incompleteProfileAlert.title}
+            </AlertTitle>
+            <AlertDescription className="text-sm">
+              {searchParams.get('reason') === 'verify_phone'
+                ? dict.incompleteProfileAlert.verifyPhoneDescription
+                : dict.incompleteProfileAlert.description}
+            </AlertDescription>
+          </div>
+        </Alert>
+      )}
+
+      {showProgressBar && (
+        <div className="w-full max-w-md mb-6">
+          <ProgressBar
+            currentStep={currentProgressBarStep}
+            totalSteps={totalProgressBarSteps}
+            stepLabel={dict.progressBar.stepLabel}
+            locale={locale}
+          />
+        </div>
+      )}
+
+      <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative border border-white/50">
+        <div className="p-6 sm:p-8">{renderStep()}</div>
+      </div>
+
+      <div className="mt-8 text-center text-sm text-gray-500">
+        {dict.contactSupport}{' '}
+        {/* UPDATED: Link Color (Teal) */}
+        <Link href="/contact" className="text-teal-600 hover:underline hover:text-teal-700">
+          {dict.contactSupportLink}
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+export default function RegisterSteps({ dict, locale }: RegisterStepsProps) {
+  return (
+    <RegistrationProvider>
+      <RegisterStepsContent dict={dict} locale={locale} />
+    </RegistrationProvider>
+  );
+}
+--- End of Content for RegisterSteps.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\RegistrationContext.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/RegistrationContext.tsx
+
+'use client';
+
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+} from 'react';
+import { Gender, UserStatus, UserSource } from '@prisma/client';
+import type { User as SessionUserType } from '@/types/next-auth';
+
+export interface RegistrationData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  gender: Gender | '';
+  birthDate: string;
+  maritalStatus: string;
+  height?: number;
+  occupation?: string;
+  education?: string;
+  religiousLevel?: string;
+  
+  // שדות חדשים שהוספו לתיקון השגיאות
+  city: string;
+  hasChildren: boolean;
+  numberOfChildren: string;
+  profession: string;
+  termsAccepted: boolean;
+
+  // שדות ניהול מצב
+  step: number;
+  isGoogleSignup: boolean;
+  language: 'he' | 'en'; 
+  isCompletingProfile: boolean;
+  isVerifyingEmailCode: boolean;
+  emailForVerification: string | null;
+}
+
+const initialRegistrationData: RegistrationData = {
+  email: '',
+  password: '',
+  firstName: '',
+  lastName: '',
+  phone: '',
+  gender: '',
+  birthDate: '',
+  maritalStatus: '',
+  height: undefined,
+  occupation: '',
+  education: '',
+  religiousLevel: '',
+
+  // אתחול שדות חדשים
+  city: '',
+  hasChildren: false,
+  numberOfChildren: '',
+  profession: '',
+  termsAccepted: false,
+
+  step: 0,
+  isGoogleSignup: false,
+  language: 'he',
+  isCompletingProfile: false,
+  isVerifyingEmailCode: false,
+  emailForVerification: null,
+};
+
+interface RegistrationContextType {
+  data: RegistrationData;
+  setData: React.Dispatch<React.SetStateAction<RegistrationData>>;
+  updateField: <K extends keyof RegistrationData>(
+    field: K,
+    value: RegistrationData[K]
+  ) => void;
+  nextStep: () => void;
+  prevStep: () => void;
+  goToStep: (step: number) => void;
+  resetForm: () => void;
+  setGoogleSignup: (googleUserData: {
+    email: string;
+    firstName?: string;
+    lastName?: string;
+  }) => void;
+  initializeFromSession: (sessionUser: SessionUserType) => void;
+  proceedToEmailVerification: (email: string) => void;
+  completeEmailVerification: () => void;
+  exitEmailVerification: () => void;
+}
+
+const RegistrationContext = createContext<RegistrationContextType | undefined>(undefined);
+
+export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [data, setData] = useState<RegistrationData>(initialRegistrationData);
+
+  const updateField = useCallback(
+    <K extends keyof RegistrationData>(
+      field: K,
+      value: RegistrationData[K]
+    ) => {
+      setData((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
+
+  const nextStep = useCallback(() => {
+    setData((prev) => ({ ...prev, step: prev.step + 1 }));
+  }, []);
+
+  const prevStep = useCallback(() => {
+    setData((prev) => ({ ...prev, step: prev.step > 0 ? prev.step - 1 : 0 }));
+  }, []);
+
+  const goToStep = useCallback((stepNum: number) => {
+    setData((prev) => ({ ...prev, step: stepNum }));
+  }, []);
+
+  const resetForm = useCallback(() => {
+    setData(initialRegistrationData);
+  }, []);
+  
+  const setGoogleSignup = useCallback(
+    (googleUserData: {
+      email: string;
+      firstName?: string;
+      lastName?: string;
+    }) => {
+      setData({
+        ...initialRegistrationData,
+        email: googleUserData.email,
+        isGoogleSignup: true,
+      });
+    },
+    []
+  );
+  
+  const initializeFromSession = useCallback((sessionUser: SessionUserType) => {
+    setData((prevData) => {
+      const isGoogleAcc = !!(
+        sessionUser.source === UserSource.REGISTRATION &&
+        sessionUser.accounts?.some((acc) => acc.provider === 'google')
+      );
+
+      const sessionGender: Gender | '' = sessionUser.profile?.gender || '';
+
+      // המרת נתונים מהסשן למבנה הנתונים של הטופס
+      const baseStateFromSession = {
+        email: sessionUser.email || '',
+        firstName: sessionUser.firstName || '',
+        lastName: sessionUser.lastName || '',
+        phone: sessionUser.phone || '',
+        gender: sessionGender,
+        birthDate: sessionUser.profile?.birthDate
+          ? new Date(sessionUser.profile.birthDate).toISOString().split('T')[0]
+          : '',
+        maritalStatus: sessionUser.profile?.maritalStatus || '',
+        height: sessionUser.profile?.height ?? undefined,
+        occupation: sessionUser.profile?.occupation || '',
+        education: sessionUser.profile?.education || '',
+        
+        // מיפוי שדות חדשים מהפרופיל (אם קיימים בטיפוס של הסשן, אחרת ברירת מחדל)
+        city: (sessionUser.profile as any)?.city || '',
+        profession: (sessionUser.profile as any)?.profession || '',
+        numberOfChildren: (sessionUser.profile as any)?.numberOfChildren || '',
+        hasChildren: (sessionUser.profile as any)?.hasChildren || false,
+        termsAccepted: !!sessionUser.termsAndPrivacyAcceptedAt,
+      };
+
+      // Scenario 1: New user needs to verify email (non-Google)
+      if (
+        sessionUser.status === UserStatus.PENDING_EMAIL_VERIFICATION &&
+        !isGoogleAcc &&
+        !sessionUser.isVerified
+      ) {
+        return {
+          ...initialRegistrationData,
+          ...baseStateFromSession,
+          isVerifyingEmailCode: true,
+          emailForVerification: sessionUser.email,
+          step: 1,
+          isCompletingProfile: false,
+          isGoogleSignup: false,
+        };
+      }
+
+      // Scenario 2: User needs to start the profile completion process.
+      if (!sessionUser.isProfileComplete) {
+        return {
+          ...initialRegistrationData,
+          ...baseStateFromSession,
+          isCompletingProfile: true,
+          isGoogleSignup: isGoogleAcc,
+          step: 2, // Always start at the combined personal details step
+          isVerifyingEmailCode: false,
+        };
+      }
+      
+      // If code reaches here, it means profile is complete.
+      return {
+        ...prevData,
+        ...baseStateFromSession,
+        isGoogleSignup: isGoogleAcc,
+      };
+    });
+  }, []);
+
+  const proceedToEmailVerification = useCallback((emailToVerify: string) => {
+    setData((prev) => ({
+      ...prev,
+      isVerifyingEmailCode: true,
+      emailForVerification: emailToVerify,
+    }));
+  }, []);
+
+  const completeEmailVerification = useCallback(() => {
+    setData((prev) => ({
+      ...prev,
+      isVerifyingEmailCode: false,
+      emailForVerification: null,
+      isCompletingProfile: true,
+      step: 2,
+    }));
+  }, []);
+
+  const exitEmailVerification = useCallback(() => {
+    setData((prev) => ({
+      ...prev,
+      isVerifyingEmailCode: false,
+      emailForVerification: null,
+      step: 1,
+    }));
+  }, []);
+
+  const value: RegistrationContextType = {
+    data,
+    setData,
+    updateField,
+    nextStep,
+    prevStep,
+    goToStep,
+    resetForm,
+    setGoogleSignup,
+    initializeFromSession,
+    proceedToEmailVerification,
+    completeEmailVerification,
+    exitEmailVerification,
+  };
+
+  return (
+    <RegistrationContext.Provider value={value}>
+      {children}
+    </RegistrationContext.Provider>
+  );
+};
+
+export const useRegistration = (): RegistrationContextType => {
+  const context = useContext(RegistrationContext);
+  if (context === undefined) {
+    throw new Error(
+      'useRegistration must be used within a RegistrationProvider'
+    );
+  }
+  return context;
+};
+--- End of Content for RegistrationContext.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ResetPasswordForm.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/auth/ResetPasswordForm.tsx
+'use client';
+
+import { useState, FormEvent, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Lock,
+  KeySquare,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  Eye,
+  EyeOff,
+  Mail,
+} from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import Link from 'next/link';
+
+// Password validation function (similar to your RegisterForm)
+const validatePassword = (value: string): string | null => {
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+  if (!passwordRegex.test(value)) {
+    return 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.';
+  }
+  return null;
+};
+
+export default function ResetPasswordForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [email, setEmail] = useState(''); // To prefill if passed, or keep empty
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    const emailFromQuery = searchParams.get('email');
+    const tokenFromQuery = searchParams.get('token'); // If you decide to also prefill OTP via token
+
+    if (emailFromQuery) {
+      setEmail(emailFromQuery);
+    }
+    if (tokenFromQuery) {
+      // This 'token' from query is the OTP
+      setOtp(tokenFromQuery);
+    }
+  }, [searchParams]);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setPasswordError(null);
+    setSuccessMessage(null);
+
+    if (!email) {
+      setError('כתובת המייל חסרה. אנא חזור להתחלה ונסה שנית.');
+      setIsLoading(false);
+      return;
+    }
+    if (!otp || otp.length !== 6 || !/^\d+$/.test(otp)) {
+      setError('קוד האימות (OTP) חייב להיות בן 6 ספרות.');
+      setIsLoading(false);
+      return;
+    }
+    const passValidationError = validatePassword(newPassword);
+    if (passValidationError) {
+      setPasswordError(passValidationError);
+      setIsLoading(false);
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('הסיסמאות אינן תואמות.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'אירעה שגיאה באיפוס הסיסמה.');
+      }
+
+      setSuccessMessage(
+        data.message || 'הסיסמה אופסה בהצלחה! כעת תוכל להתחבר עם הסיסמה החדשה.'
+      );
+      // Clear fields on success
+      setOtp('');
+      setNewPassword('');
+      setConfirmPassword('');
+      // Optionally redirect after a delay or with a button
+      setTimeout(() => {
+        router.push('/auth/signin?reset=success');
+      }, 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
+      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
+      <div className="p-6 sm:p-8">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">איפוס סיסמה</h1>
+          <p className="text-gray-600 text-sm">
+            הזן את קוד האימות (OTP) שקיבלת במייל ואת הסיסמה החדשה שלך.
+          </p>
+        </div>
+
+        {error && (
+          <Alert variant="destructive" className="mb-4" role="alert">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>שגיאה</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        {passwordError && !error && (
+          <Alert variant="destructive" className="mb-4" role="alert">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>שגיאת סיסמה</AlertTitle>
+            <AlertDescription id="password-error-message">
+              {passwordError}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {successMessage && (
+          <Alert
+            variant="default"
+            className="mb-4 bg-green-50 border-green-200 text-green-700"
+          >
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertTitle>הצלחה!</AlertTitle>
+            <AlertDescription>
+              {successMessage} אתה מועבר לדף ההתחברות...
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {!successMessage && ( // Only show form if no success message
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-1">
+              <label
+                htmlFor="email-reset"
+                className="block text-sm font-medium text-gray-700"
+              >
+                כתובת מייל (לאימות) <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Input
+                  type="email"
+                  id="email-reset"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                  className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+                  disabled={isLoading || !!searchParams.get('email')} // Disable if email came from query
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label
+                htmlFor="otp-reset"
+                className="block text-sm font-medium text-gray-700"
+              >
+                קוד אימות (OTP) <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <KeySquare className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Input
+                  type="text"
+                  id="otp-reset"
+                  value={otp}
+                  onChange={(e) =>
+                    setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))
+                  }
+                  placeholder="xxxxxx"
+                  maxLength={6}
+                  required
+                  className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none tracking-widest text-center"
+                  disabled={isLoading}
+                  inputMode="numeric"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label
+                htmlFor="new-password-reset"
+                className="block text-sm font-medium text-gray-700"
+              >
+                סיסמה חדשה <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  id="new-password-reset"
+                  aria-describedby={
+                    passwordError ? 'password-error-message' : 'password-hint'
+                  }
+                  aria-invalid={!!passwordError}
+                  value={newPassword}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    const validationErr = validatePassword(e.target.value);
+                    if (e.target.value && validationErr)
+                      setPasswordError(validationErr);
+                    else setPasswordError(null);
+                  }}
+                  placeholder="לפחות 8 תווים, אות גדולה, קטנה ומספר"
+                  required
+                  className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none ${
+                    passwordError
+                      ? 'border-red-500 focus:ring-red-200'
+                      : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
+                  }`}
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+              {!passwordError && (
+                <p id="password-hint" className="mt-1 text-xs text-gray-500">
+                  חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <label
+                htmlFor="confirm-password-reset"
+                className="block text-sm font-medium text-gray-700"
+              >
+                אימות סיסמה חדשה <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  id="confirm-password-reset"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="הזן את הסיסמה החדשה שוב"
+                  required
+                  className="w-full pr-10 pl-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  aria-label={showConfirmPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={
+                isLoading ||
+                !!passwordError ||
+                !otp ||
+                !newPassword ||
+                !confirmPassword ||
+                newPassword !== confirmPassword
+              }
+              className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  <span>מאפס סיסמה...</span>
+                </>
+              ) : (
+                'אפס סיסמה'
+              )}
+            </Button>
+          </form>
+        )}
+
+        <div className="mt-6 text-center">
+          <Link
+            href="/auth/signin"
+            className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline"
+          >
+            חזרה להתחברות
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+--- End of Content for ResetPasswordForm.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\VerifyEmailClient.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/VerifyEmailClient.tsx
+'use client';
+
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  KeyboardEvent,
+  ClipboardEvent,
+} from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Mail,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  ArrowLeft,
+  RefreshCw,
+  Sparkles,
+  Shield,
+  Clock,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+
+interface VerifyEmailClientProps {
+  locale: 'he' | 'en';
+}
+
+type VerificationStatus = 'idle' | 'verifying' | 'success' | 'error';
+
+export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const email = searchParams.get('email') || '';
+  const isHebrew = locale === 'he';
+
+  // State Management
+  const [code, setCode] = useState<string[]>(Array(6).fill(''));
+  const [status, setStatus] = useState<VerificationStatus>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [canResend, setCanResend] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(60);
+  const [isResending, setIsResending] = useState(false);
+
+  // Refs for input boxes
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Countdown timer for resend
+  useEffect(() => {
+    if (resendCountdown > 0) {
+      const timer = setTimeout(
+        () => setResendCountdown(resendCountdown - 1),
+        1000
+      );
+      return () => clearTimeout(timer);
+    } else {
+      setCanResend(true);
+    }
+  }, [resendCountdown]);
+
+  // Auto-submit when all 6 digits are filled
+  useEffect(() => {
+    const fullCode = code.join('');
+    if (fullCode.length === 6 && status === 'idle') {
+      handleVerifyCode(fullCode);
+    }
+  }, [code, status]);
+
+  const handleInputChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+    const newCode = [...code];
+    newCode[index] = value.slice(-1);
+    setCode(newCode);
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !code[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').trim();
+    if (/^\d{6}$/.test(pastedData)) {
+      const newCode = pastedData.split('');
+      setCode(newCode);
+      inputRefs.current[5]?.focus();
+    }
+  };
+
+  const handleVerifyCode = async (verificationCode: string) => {
+    setStatus('verifying');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: verificationCode }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'אירעה שגיאה באימות הקוד');
+      }
+
+      setStatus('success');
+
+      setTimeout(() => {
+        router.push(
+          `/${locale}/auth/register?step=personal-details&email=${encodeURIComponent(email)}`
+        );
+      }, 2000);
+    } catch (error) {
+      setStatus('error');
+      setErrorMessage(
+        error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה'
+      );
+      setCode(Array(6).fill(''));
+      inputRefs.current[0]?.focus();
+    }
+  };
+
+  const handleResendCode = async () => {
+    setIsResending(true);
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'אירעה שגיאה בשליחת הקוד');
+      }
+
+      setCanResend(false);
+      setResendCountdown(60);
+      setCode(Array(6).fill(''));
+      inputRefs.current[0]?.focus();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'אירעה שגיאה בשליחת הקוד'
+      );
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  // Dictionary
+  const dict = {
+    title: isHebrew ? 'אמת את כתובת המייל שלך' : 'Verify Your Email',
+    subtitle: isHebrew
+      ? 'שלחנו קוד אימות בן 6 ספרות למייל שלך'
+      : 'We sent a 6-digit verification code to your email',
+    emailSentTo: isHebrew ? 'נשלח אל:' : 'Sent to:',
+    enterCode: isHebrew ? 'הזן את הקוד כאן' : 'Enter the code here',
+    verifying: isHebrew ? 'מאמת...' : 'Verifying...',
+    success: isHebrew ? 'אומת בהצלחה!' : 'Verified Successfully!',
+    successMessage: isHebrew
+      ? 'המייל שלך אומת. מעביר אותך להמשך התהליך...'
+      : 'Your email has been verified. Redirecting...',
+    errorTitle: isHebrew ? 'קוד שגוי' : 'Invalid Code',
+    resendCode: isHebrew ? 'שלח קוד מחדש' : 'Resend Code',
+    resendIn: isHebrew ? 'שלח שוב בעוד' : 'Resend in',
+    seconds: isHebrew ? 'שניות' : 'seconds',
+    didntReceive: isHebrew ? 'לא קיבלת את הקוד?' : "Didn't receive the code?",
+    checkSpam: isHebrew
+      ? 'בדוק את תיבת הספאם או שלח שוב'
+      : 'Check your spam folder or resend',
+    backToRegister: isHebrew ? 'חזרה להרשמה' : 'Back to Registration',
+    securityNote: isHebrew
+      ? 'הקוד תקף ל-15 דקות מרגע השליחה'
+      : 'Code is valid for 15 minutes from sending',
+  };
+
+  return (
+    // UPDATED: Main Background (Slate/Teal/Orange)
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* UPDATED: Decorative Orbs (Teal/Orange/Rose) */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          // Teal Orb
+          className="absolute top-20 left-10 w-64 h-64 bg-teal-200/40 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 2,
+          }}
+          // Orange Orb
+          className="absolute bottom-20 right-10 w-72 h-72 bg-orange-200/40 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.15, 1], opacity: [0.2, 0.4, 0.2] }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 4,
+          }}
+          // Rose/Purple Orb (Center)
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-rose-200/30 rounded-full blur-3xl"
+        />
+      </div>
+
+      {/* Main Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative w-full max-w-md"
+      >
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden">
+          {/* UPDATED: Gradient Header (Teal -> Orange -> Amber) */}
+          <div className="h-2 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500"></div>
+
+          <div className="p-8 sm:p-10">
+            {/* Icon & Title Section */}
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="text-center mb-8"
+            >
+              <div className="relative inline-block mb-6">
+                <motion.div
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                  // UPDATED: Main Icon Background (Teal -> Emerald)
+                  className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-500/20"
+                >
+                  <Mail className="w-10 h-10 text-white" strokeWidth={2.5} />
+                </motion.div>
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  // UPDATED: Sparkle Background (Amber/Orange)
+                  className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center"
+                >
+                  <Sparkles className="w-4 h-4 text-white" />
+                </motion.div>
+              </div>
+
+              <h1 className="text-3xl font-bold text-gray-800 mb-3">
+                {dict.title}
+              </h1>
+              <p className="text-gray-600 text-base mb-4">{dict.subtitle}</p>
+
+              {/* UPDATED: Email Badge (Teal/Gray) */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-200">
+                <Mail className="w-4 h-4 text-teal-600" />
+                <span className="text-sm font-medium text-gray-700">
+                  {dict.emailSentTo}{' '}
+                  <span className="text-teal-700 font-bold">{email}</span>
+                </span>
+              </div>
+            </motion.div>
+
+            {/* Code Input Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="mb-8"
+            >
+              <label className="block text-sm font-medium text-gray-700 mb-4 text-center">
+                {dict.enterCode}
+              </label>
+
+              <div
+                className="flex justify-center gap-2 sm:gap-3 mb-6"
+                dir="ltr"
+              >
+                {code.map((digit, index) => (
+                  <motion.input
+                    key={index}
+                    ref={(el) => {
+                      inputRefs.current[index] = el;
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleInputChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    onPaste={index === 0 ? handlePaste : undefined}
+                    disabled={status === 'verifying' || status === 'success'}
+                    whileFocus={{ scale: 1.05 }}
+                    // UPDATED: Input Colors (Teal Focus/Fill)
+                    className={`
+                      w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold rounded-xl
+                      border-2 transition-all duration-200
+                      ${
+                        status === 'error'
+                          ? 'border-red-400 bg-red-50 text-red-600'
+                          : status === 'success'
+                            ? 'border-green-400 bg-green-50 text-green-600'
+                            : digit
+                              ? 'border-teal-400 bg-teal-50 text-gray-800'
+                              : 'border-gray-200 bg-white text-gray-800 hover:border-teal-200'
+                      }
+                      focus:outline-none focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500
+                      disabled:opacity-60 disabled:cursor-not-allowed
+                    `}
+                  />
+                ))}
+              </div>
+
+              {/* Status Messages */}
+              <AnimatePresence mode="wait">
+                {status === 'verifying' && (
+                  // UPDATED: Text Color (Teal)
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="flex items-center justify-center gap-2 text-teal-600 mb-4"
+                  >
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="text-sm font-medium">
+                      {dict.verifying}
+                    </span>
+                  </motion.div>
+                )}
+
+                {status === 'success' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center mb-4"
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 200,
+                        damping: 15,
+                      }}
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-full border-2 border-green-400 mb-2"
+                    >
+                      <CheckCircle className="w-6 h-6 text-green-600" />
+                      <span className="text-green-700 font-bold">
+                        {dict.success}
+                      </span>
+                    </motion.div>
+                    <p className="text-sm text-gray-600">
+                      {dict.successMessage}
+                    </p>
+                  </motion.div>
+                )}
+
+                {status === 'error' && errorMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-xl p-4 mb-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-red-800 text-sm mb-1">
+                          {dict.errorTitle}
+                        </p>
+                        <p className="text-red-600 text-sm">{errorMessage}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Resend Section */}
+              {status !== 'success' && (
+                <div className="text-center space-y-3">
+                  <p className="text-sm text-gray-600">{dict.didntReceive}</p>
+
+                  {canResend ? (
+                    <Button
+                      onClick={handleResendCode}
+                      disabled={isResending}
+                      variant="outline"
+                      size="sm"
+                      // UPDATED: Resend Button (Teal Border/Text)
+                      className="border-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300 rounded-full px-6 py-2 transition-all"
+                    >
+                      {isResending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          {isHebrew ? 'שולח...' : 'Sending...'}
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          {dict.resendCode}
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-200">
+                      <Clock className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-600">
+                        {dict.resendIn}{' '}
+                        <span className="font-bold text-gray-800">
+                          {resendCountdown}
+                        </span>{' '}
+                        {dict.seconds}
+                      </span>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-500 italic">
+                    {dict.checkSpam}
+                  </p>
+                </div>
+              )}
+            </motion.div>
+
+            {/* UPDATED: Security Note (Warm/Amber background) */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100 mb-6"
+            >
+              <div className="flex items-start gap-3">
+                <Shield className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800">{dict.securityNote}</p>
+              </div>
+            </motion.div>
+
+            {/* Back Link */}
+            <div className="text-center">
+              <Link
+                href={`/${locale}/auth/register`}
+                // UPDATED: Link Hover (Teal)
+                className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-teal-600 transition-colors group"
+              >
+                <ArrowLeft
+                  className={`w-4 h-4 group-hover:-translate-x-1 transition-transform ${isHebrew ? '' : 'rotate-180'}`}
+                />
+                <span>{dict.backToRegister}</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Floating Decorative Elements */}
+        <motion.div
+          animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+          // Teal Blob
+          className="absolute -top-6 -right-6 w-16 h-16 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-2xl opacity-20 blur-xl"
+        />
+        <motion.div
+          animate={{ y: [0, 10, 0], rotate: [0, -5, 0] }}
+          transition={{
+            duration: 7,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 1,
+          }}
+          // Orange Blob
+          className="absolute -bottom-6 -left-6 w-20 h-20 bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl opacity-20 blur-xl"
+        />
+      </motion.div>
+
+      <style>{`
+        input[type='number']::-webkit-inner-spin-button,
+        input[type='number']::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        input[type='number'] {
+          -moz-appearance: textfield;
+        }
+      `}</style>
+    </div>
+  );
+}
+--- End of Content for VerifyEmailClient.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\auth_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\BasicInfoStep.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/steps/BasicInfoStep.tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRegistration } from '../RegistrationContext';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  ArrowLeft,
+  ArrowRight,
+  User,
+  Mail,
+  Lock,
+  AlertCircle,
+  Loader2,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+import { Input } from '@/components/ui/input';
+
+interface BasicInfoStepProps {
+  dict: RegisterStepsDict['steps']['basicInfo'];
+  consentDict: RegisterStepsDict['consentCheckbox']; 
+  locale: 'he' | 'en';
+}
+
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+  return email.trim() !== '' && emailRegex.test(email);
+};
+
+const isValidPassword = (password: string): boolean => {
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+  return passwordRegex.test(password);
+};
+
+const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ dict, consentDict, locale }) => {
+  const { data, updateField, prevStep, proceedToEmailVerification } = useRegistration();
+  
+  // States for validation and UI
+  const [passwordError, setPasswordError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+
+  useEffect(() => {
+    const isEmailValid = isValidEmail(data.email);
+    const isPasswordValid = isValidPassword(data.password);
+    const isNameValid = data.firstName.trim().length > 0 && data.lastName.trim().length > 0;
+
+    setIsFormValid(
+      isEmailValid &&
+      isPasswordValid &&
+      isNameValid &&
+      !isLoading
+    );
+  }, [data.email, data.password, data.firstName, data.lastName, isLoading]);
+
+  const handleRegisterSubmit = async () => {
+    if (!isFormValid) {
+      setApiError(dict.errors.fillFields);
+      return;
+    }
+
+    setIsLoading(true);
+    setApiError(null);
+
+    try {
+      const response = await fetch(`/api/auth/register?locale=${locale}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          language: data.language,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || dict.errors.default);
+      }
+
+      proceedToEmailVerification(result.email);
+    } catch (error) {
+      setApiError(error instanceof Error ? error.message : dict.errors.default);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
+
+  return (
+    <motion.div
+      className="space-y-5"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {apiError && (
+        <motion.div variants={itemVariants}>
+          <Alert variant="destructive" role="alert">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{dict.errors.title}</AlertTitle>
+            <AlertDescription>{apiError}</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
+      <motion.h2 className="text-xl font-bold text-gray-800 mb-4" variants={itemVariants}>
+        {dict.title}
+      </motion.h2>
+
+      <motion.div variants={itemVariants} className="space-y-4">
+        <div className="space-y-1">
+          <label htmlFor="emailBasic" className="block text-sm font-medium text-gray-700">
+            {dict.emailLabel} <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              type="email" id="emailBasic" value={data.email}
+              onChange={(e) => updateField('email', e.target.value)}
+              onBlur={() => setEmailError(isValidEmail(data.email) ? '' : dict.errors.invalidEmail)}
+              placeholder={dict.emailPlaceholder} disabled={isLoading} required
+              // UPDATED: Focus Ring (Cyan -> Teal)
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${isLoading ? 'bg-gray-100' : ''} ${emailError ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-teal-200 focus:border-teal-500'}`}
+            />
+          </div>
+          {emailError && <p role="alert" className="text-red-500 text-xs mt-1">{emailError}</p>}
+        </div>
+        
+        <div className="space-y-1">
+          <label htmlFor="passwordBasic" className="block text-sm font-medium text-gray-700">
+            {dict.passwordLabel} <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
+            <Input
+              type={passwordVisible ? 'text' : 'password'} id="passwordBasic" value={data.password}
+              onChange={(e) => updateField('password', e.target.value)}
+              onBlur={() => setPasswordError(isValidPassword(data.password) ? '' : dict.errors.invalidPassword)}
+              placeholder={dict.passwordPlaceholder} disabled={isLoading} required
+              // UPDATED: Focus Ring (Cyan -> Teal)
+              className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${isLoading ? 'bg-gray-100' : ''} ${passwordError ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-teal-200 focus:border-teal-500'}`}
+            />
+            <button type="button" onClick={() => setPasswordVisible(!passwordVisible)} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700" aria-label={passwordVisible ? 'הסתר סיסמה' : 'הצג סיסמה'}>
+              {passwordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+          </div>
+          {passwordError ? <p role="alert" className="text-red-500 text-xs mt-1">{passwordError}</p> : <p className="text-gray-500 text-xs mt-1">{dict.passwordHint}</p>}
+        </div>
+
+        <div className="space-y-1">
+          <label htmlFor="firstNameBasic" className="block text-sm font-medium text-gray-700">
+            {dict.firstNameLabel} <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              type="text" id="firstNameBasic" value={data.firstName}
+              onChange={(e) => updateField('firstName', e.target.value)}
+              placeholder={dict.firstNamePlaceholder} disabled={isLoading} required
+              // UPDATED: Focus Ring (Cyan -> Teal)
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${isLoading ? 'bg-gray-100' : ''} border-gray-300 focus:ring-teal-200 focus:border-teal-500`}
+            />
+          </div>
+        </div>
+        
+        <div className="space-y-1">
+          <label htmlFor="lastNameBasic" className="block text-sm font-medium text-gray-700">
+            {dict.lastNameLabel} <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              type="text" id="lastNameBasic" value={data.lastName}
+              onChange={(e) => updateField('lastName', e.target.value)}
+              placeholder={dict.lastNamePlaceholder} disabled={isLoading} required
+              // UPDATED: Focus Ring (Cyan -> Teal)
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${isLoading ? 'bg-gray-100' : ''} border-gray-300 focus:ring-teal-200 focus:border-teal-500`}
+            />
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div variants={itemVariants} className="space-y-1">
+        <label htmlFor="language" className="block text-sm font-medium text-gray-700">
+          {dict.languageLabel}
+        </label>
+        <select
+          id="language"
+          value={data.language}
+          onChange={(e) => updateField('language', e.target.value as 'he' | 'en')}
+          disabled={isLoading}
+          // UPDATED: Focus Ring (Cyan -> Teal)
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-500 focus:outline-none bg-white"
+        >
+          <option value="he">עברית</option>
+          <option value="en">English</option>
+        </select>
+      </motion.div>
+
+      <motion.div
+        variants={itemVariants}
+        className="pt-4 mt-6 border-t border-gray-200"
+      >
+        <Button
+          type="button"
+          onClick={handleRegisterSubmit}
+          disabled={!isFormValid || isLoading}
+          // UPDATED: Button Gradient (Teal -> Orange -> Amber)
+          className={`w-full flex items-center gap-2 justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-opacity ${
+            isFormValid && !isLoading
+              ? 'bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-md hover:shadow-lg'
+              : 'bg-gray-300 cursor-not-allowed'
+          }`}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              <span>{dict.nextButtonLoading}</span>
+            </>
+          ) : (
+            <>
+              <span>{dict.nextButton}</span>
+              <ArrowLeft className={`h-4 w-4 mr-2 ${locale === 'en' ? 'transform rotate-180' : ''}`} />{' '}
+            </>
+          )}
+        </Button>
+
+        <p className="text-[10px] text-gray-500 text-center mt-2 px-2">
+          {dict.termsDisclaimer}
+        </p>
+      </motion.div>
+
+      <div className="flex justify-center mt-2">
+        <Button type="button" onClick={prevStep} variant="ghost" disabled={isLoading} className="text-xs text-gray-400 hover:text-gray-600">
+          <ArrowRight className={`h-3 w-3 ml-1 ${locale === 'en' ? 'transform rotate-180' : ''}`} />{' '}
+          {dict.backButton}
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+
+export default BasicInfoStep;
+--- End of Content for BasicInfoStep.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\CompleteStep.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/steps/CompleteStep.tsx
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import {
+  CheckCircle,
+  Mail,
+  User,
+  Phone,
+  Loader2,
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { UserStatus } from '@prisma/client';
+import type { User as SessionUserType } from '@/types/next-auth';
+import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+
+interface CompleteStepProps {
+  dict: RegisterStepsDict['steps']['complete'];
+}
+
+const containerVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } },
+};
+
+const circleVariants = {
+  hidden: { opacity: 0, scale: 0.5 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.5, ease: 'easeOut' },
+  },
+};
+
+const CompleteStep: React.FC<CompleteStepProps> = ({ dict }) => {
+  const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
+
+  if (sessionStatus === 'loading') {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center space-y-4">
+        <Loader2 className="h-10 w-10 animate-spin text-cyan-600" />
+        <p className="text-lg text-gray-600">{dict.loading}</p>
+      </div>
+    );
+  }
+
+  if (sessionStatus === 'unauthenticated' || !session?.user) {
+    // Should be handled by parent, but as a fallback:
+    router.push('/auth/signin');
+    return null;
+  }
+
+  const user = session.user as SessionUserType;
+
+  // Scenario 1: Needs email verification
+  if (user.status === UserStatus.PENDING_EMAIL_VERIFICATION) {
+    return (
+      <motion.div
+        className="space-y-6 text-center"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div className="flex justify-center" variants={circleVariants}>
+          <div className="w-24 h-24 rounded-full bg-cyan-100 flex items-center justify-center">
+            <Mail className="h-12 w-12 text-cyan-600" />
+          </div>
+        </motion.div>
+        <motion.h2
+          className="text-2xl font-bold text-gray-800"
+          variants={itemVariants}
+        >
+          {dict.verifyEmailTitle}
+        </motion.h2>
+        <motion.p className="text-gray-600" variants={itemVariants}>
+          {dict.verifyEmailSubtitle}{' '}
+          <span className="font-bold text-gray-700">{user.email}</span>.
+          <br />
+          {dict.verifyEmailPrompt}
+        </motion.p>
+      </motion.div>
+    );
+  }
+
+  // Scenario 2: Needs profile completion
+  if (!user.isProfileComplete) {
+    return (
+      <motion.div
+        className="space-y-6 text-center"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div className="flex justify-center" variants={circleVariants}>
+          <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center">
+            <User className="h-12 w-12 text-indigo-600" />
+          </div>
+        </motion.div>
+        <motion.h2
+          className="text-2xl font-bold text-gray-800"
+          variants={itemVariants}
+        >
+          {dict.completeProfileTitle}
+        </motion.h2>
+        <motion.p className="text-gray-600" variants={itemVariants}>
+          {dict.completeProfileSubtitle}
+        </motion.p>
+        <motion.div variants={itemVariants}>
+          <Button
+            onClick={() =>
+              router.push('/auth/register?reason=complete_profile')
+            }
+            className="w-full"
+          >
+            {dict.completeProfileButton}
+          </Button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // Scenario 3: Needs phone verification
+  if (!user.isPhoneVerified) {
+    return (
+      <motion.div
+        className="space-y-6 text-center"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div className="flex justify-center" variants={circleVariants}>
+          <div className="w-24 h-24 rounded-full bg-pink-100 flex items-center justify-center">
+            <Phone className="h-12 w-12 text-pink-600" />
+          </div>
+        </motion.div>
+        <motion.h2
+          className="text-2xl font-bold text-gray-800"
+          variants={itemVariants}
+        >
+          {dict.verifyPhoneTitle}
+        </motion.h2>
+        <motion.p className="text-gray-600" variants={itemVariants}>
+          {dict.verifyPhoneSubtitle}
+        </motion.p>
+        <motion.div variants={itemVariants}>
+          <Button
+            onClick={() => router.push('/auth/verify-phone')}
+            className="w-full"
+          >
+            {dict.verifyPhoneButton}
+          </Button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // Scenario 4: Everything is complete
+  return (
+    <motion.div
+      className="space-y-6 text-center"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div className="flex justify-center" variants={circleVariants}>
+        <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
+          <CheckCircle className="h-12 w-12 text-green-600" />
+        </div>
+      </motion.div>
+      <motion.h2
+        className="text-2xl font-bold text-gray-800"
+        variants={itemVariants}
+      >
+        {dict.allDoneTitle}
+      </motion.h2>
+      <motion.p className="text-gray-600" variants={itemVariants}>
+        {dict.allDoneSubtitle}
+      </motion.p>
+      <motion.div variants={itemVariants} className="flex flex-col gap-4">
+        <Button onClick={() => router.push('/profile')} className="w-full">
+          <User className="h-4 w-4 ml-2" /> {dict.myProfileButton}
+        </Button>
+        <Button
+          onClick={() => router.push('/questionnaire')}
+          variant="outline"
+          className="w-full"
+        >
+          {dict.questionnaireButton}
+        </Button>
+        <Link href="/" className="text-sm text-gray-500 hover:underline mt-2">
+          {dict.backToHomeLink}
+        </Link>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default CompleteStep;
+--- End of Content for CompleteStep.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\EmailVerificationCodeStep.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/steps/EmailVerificationCodeStep.tsx
+'use client';
+
+import { useState, useRef, KeyboardEvent, useEffect, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import { useRegistration } from '../RegistrationContext';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, AlertCircle, MailCheck, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Input } from '@/components/ui/input';
+import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+
+const OTP_LENGTH = 6;
+
+interface EmailVerificationCodeStepProps {
+  dict: RegisterStepsDict['steps']['emailVerification'];
+  locale: 'he' | 'en';
+}
+
+const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
+  dict,
+  locale,
+}) => {
+  const {
+    data: registrationData,
+    exitEmailVerification: goBackToBasicInfo,
+    completeEmailVerification,
+  } = useRegistration();
+  const router = useRouter();
+  const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(''));
+  const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    inputRefs.current[0]?.focus();
+  }, []);
+
+  const handleChange = (element: HTMLInputElement, index: number) => {
+    const value = element.value.replace(/[^0-9]/g, '');
+    const newOtp = [...otp];
+    newOtp[index] = value.slice(-1);
+    setOtp(newOtp);
+
+    if (value && index < OTP_LENGTH - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleFormSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    const enteredCode = otp.join('');
+    if (enteredCode.length !== OTP_LENGTH) {
+      setApiError(
+        dict.errors.incompleteCode.replace('{{length}}', OTP_LENGTH.toString())
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setApiError(null);
+    setResendMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/auth/verify-email-code?locale=${locale}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: registrationData.emailForVerification,
+            code: enteredCode,
+          }),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok || !result.success || !result.authToken) {
+        throw new Error(result.error || dict.errors.default);
+      }
+
+      const signInResult = await signIn('email-verified-autologin', {
+        authToken: result.authToken,
+        redirect: false,
+      });
+
+      if (signInResult?.ok) {
+        completeEmailVerification();
+        router.push('/auth/register');
+      } else {
+        throw new Error(
+          dict.errors.autoSignInFailed.replace(
+            '{error}',
+            signInResult?.error || 'Unknown error'
+          )
+        );
+      }
+    } catch (error) {
+      setApiError(error instanceof Error ? error.message : dict.errors.default);
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setIsResending(true);
+    setApiError(null);
+    setResendMessage(null);
+    try {
+      const response = await fetch('/api/auth/resend-verification-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: registrationData.emailForVerification }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setResendMessage(dict.alerts.resent);
+    } catch (error) {
+      setApiError(error instanceof Error ? error.message : dict.errors.default);
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
+
+  return (
+    <motion.div
+      className="space-y-6 text-center"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={itemVariants}>
+        {/* UPDATED: Icon Color (Teal) */}
+        <MailCheck className="h-12 w-12 text-teal-500 mx-auto mb-3" />
+        <h2 className="text-2xl font-bold text-gray-800">{dict.title}</h2>
+        <p className="text-gray-600 mt-2">
+          {dict.subtitle.replace('{{length}}', OTP_LENGTH.toString())}{' '}
+          <strong className="font-semibold text-gray-700">
+            {registrationData.emailForVerification || dict.yourEmail}
+          </strong>
+          .
+        </p>
+      </motion.div>
+
+      {apiError && (
+        <motion.div variants={itemVariants}>
+          <Alert variant="destructive" role="alert">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{dict.errors.title}</AlertTitle>
+            <AlertDescription>{apiError}</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+      {resendMessage && !apiError && (
+        <motion.div variants={itemVariants}>
+          <Alert
+            variant="default"
+            className="bg-green-50 border-green-300 text-green-700"
+            role="status"
+          >
+            <MailCheck className="h-4 w-4 text-green-600" />
+            <AlertTitle>{dict.alerts.title}</AlertTitle>
+            <AlertDescription>{resendMessage}</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
+      <form onSubmit={handleFormSubmit}>
+        <motion.div
+          variants={itemVariants}
+          className="flex justify-center space-x-2 rtl:space-x-reverse"
+          dir="ltr"
+        >
+          {otp.map((digit, index) => (
+            <Input
+              key={index}
+              type="text"
+              maxLength={1}
+              value={digit}
+              onChange={(e) =>
+                handleChange(e.target as HTMLInputElement, index)
+              }
+              onKeyDown={(e) =>
+                handleKeyDown(e as KeyboardEvent<HTMLInputElement>, index)
+              }
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
+              // UPDATED: Input Focus (Teal)
+              className="w-12 h-14 text-center text-xl font-semibold border-2 border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl"
+              disabled={isLoading || isResending}
+              aria-label={`OTP digit ${index + 1}`}
+              autoComplete="one-time-code"
+              inputMode="numeric"
+            />
+          ))}
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="mt-6">
+          <Button
+            type="submit"
+            disabled={
+              isLoading || isResending || otp.join('').length !== OTP_LENGTH
+            }
+            // UPDATED: Main Button Gradient (Teal -> Orange -> Amber)
+            className="w-full py-6 text-lg bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg transition-all"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin ml-2" />
+                <span>{dict.submitButtonLoading}</span>
+              </>
+            ) : (
+              dict.submitButton
+            )}
+          </Button>
+        </motion.div>
+      </form>
+
+      <motion.div
+        variants={itemVariants}
+        className="text-sm text-gray-500 mt-2"
+      >
+        {dict.resendPrompt}{' '}
+        <Button
+          type="button"
+          variant="link"
+          onClick={handleResendCode}
+          disabled={isLoading || isResending}
+          // UPDATED: Link Color (Teal)
+          className="p-0 h-auto text-teal-600 hover:text-teal-700 font-semibold"
+        >
+          {isResending ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin ml-1" />
+              <span>{dict.resendButtonLoading}</span>
+            </>
+          ) : (
+            dict.resendButton
+          )}
+        </Button>
+      </motion.div>
+
+      <motion.div variants={itemVariants} className="mt-6">
+        <Button
+          type="button"
+          onClick={goBackToBasicInfo}
+          variant="outline"
+          disabled={isLoading || isResending}
+          className="hover:bg-gray-50 border-gray-200"
+        >
+          <ArrowRight
+            className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+          />{' '}
+          {dict.backButton}{' '}
+        </Button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default EmailVerificationCodeStep;
+--- End of Content for EmailVerificationCodeStep.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\OptionalInfoStep.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/steps/OptionalInfoStep.tsx
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+// הסרנו את useSession כי אנחנו לא צריכים אותו יותר כאן
+import { useRegistration } from '../RegistrationContext';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Ruler,
+  Briefcase,
+  GraduationCap,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+
+interface OptionalInfoStepProps {
+  dict: RegisterStepsDict['steps']['optionalInfo'];
+  locale: 'he' | 'en';
+}
+
+const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
+  dict,
+  locale,
+}) => {
+  const { data, updateField, prevStep } = useRegistration();
+  const router = useRouter();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // ============================ התיקון הסופי ============================
+  const handleSubmit = async () => {
+    // נעל את הכפתורים כדי למנוע לחיצות כפולות
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const profileData = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        gender: data.gender,
+        birthDate: data.birthDate,
+        maritalStatus: data.maritalStatus,
+        height: data.height,
+        occupation: data.occupation,
+        education: data.education,
+      };
+
+      if (
+        !profileData.firstName ||
+        !profileData.lastName ||
+        !profileData.phone
+      ) {
+        throw new Error(dict.errors.missingData);
+      }
+
+      // 1. שמור את הפרופיל. חכה לסיום.
+      const profileResponse = await fetch('/api/auth/complete-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData),
+      });
+      if (!profileResponse.ok) {
+        const errorData = await profileResponse.json();
+        throw new Error(errorData.error || dict.errors.default);
+      }
+
+      // 2. שלח את קוד האימות. חכה לסיום.
+      const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
+        method: 'POST',
+      });
+      if (!sendCodeResponse.ok) {
+        const errorData = await sendCodeResponse.json();
+        throw new Error(errorData.error || dict.errors.default);
+      }
+
+      // 3. נווט מיידית לדף הבא. בלי שום דבר באמצע.
+      router.push(`/${locale}/auth/verify-phone`);
+    } catch (err) {
+      // אם משהו נכשל, הצג שגיאה ושחרר את הכפתורים
+      setError(err instanceof Error ? err.message : dict.errors.default);
+      setIsLoading(false);
+    }
+  };
+  // =====================================================================
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
+
+  return (
+    <motion.div
+      className="space-y-5"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.h2
+        className="text-xl font-bold text-gray-800"
+        variants={itemVariants}
+      >
+        {dict.title}
+      </motion.h2>
+      <motion.p className="text-gray-600 text-sm" variants={itemVariants}>
+        {dict.subtitle}
+      </motion.p>
+
+      {error && (
+        <motion.div variants={itemVariants}>
+          <Alert variant="destructive" role="alert">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{dict.errors.title}</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
+      <motion.div variants={itemVariants} className="space-y-4">
+        {/* שדות הטופס */}
+        <div className="space-y-1">
+          <label
+            htmlFor="heightOptional"
+            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+          >
+            <Ruler className="h-4 w-4 text-gray-400" />
+            {dict.heightLabel}
+          </label>
+          <Input
+            type="number"
+            id="heightOptional"
+            min="120"
+            max="220"
+            value={data.height ?? ''}
+            onChange={(e) =>
+              updateField(
+                'height',
+                e.target.value ? parseInt(e.target.value, 10) : undefined
+              )
+            }
+            placeholder={dict.heightPlaceholder}
+            disabled={isLoading}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+          />
+        </div>
+        <div className="space-y-1">
+          <label
+            htmlFor="occupationOptional"
+            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+          >
+            <Briefcase className="h-4 w-4 text-gray-400" />
+            {dict.occupationLabel}
+          </label>
+          <Input
+            type="text"
+            id="occupationOptional"
+            value={data.occupation ?? ''}
+            onChange={(e) => updateField('occupation', e.target.value)}
+            placeholder={dict.occupationPlaceholder}
+            disabled={isLoading}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+          />
+        </div>
+        <div className="space-y-1">
+          <label
+            htmlFor="educationOptional"
+            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+          >
+            <GraduationCap className="h-4 w-4 text-gray-400" />
+            {dict.educationLabel}
+          </label>
+          <Input
+            type="text"
+            id="educationOptional"
+            value={data.education ?? ''}
+            onChange={(e) => updateField('education', e.target.value)}
+            placeholder={dict.educationPlaceholder}
+            disabled={isLoading}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+          />
+        </div>
+      </motion.div>
+
+      <motion.div
+        variants={itemVariants}
+        className="flex justify-between pt-4 mt-6"
+      >
+        <Button
+          type="button"
+          onClick={prevStep}
+          variant="outline"
+          disabled={isLoading}
+        >
+          <ArrowRight
+            className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+          />{' '}
+          {dict.backButton}
+        </Button>
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className={`flex items-center gap-2 ${isLoading ? 'bg-gray-400' : 'bg-gradient-to-r from-cyan-500 to-pink-500'}`}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              <span></span>
+            </>
+          ) : (
+            <>
+              {dict.nextButton}{' '}
+              <ArrowLeft
+                className={`h-4 w-4 mr-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
+              />{' '}
+            </>
+          )}
+        </Button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default OptionalInfoStep;
+--- End of Content for OptionalInfoStep.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\PersonalDetailsStep.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/steps/PersonalDetailsStep.tsx
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useSession } from 'next-auth/react';
+import { useRegistration } from '../RegistrationContext';
+import { Gender } from '@prisma/client';
+
+// Icons
+import {
+  User,
+  Calendar,
+  Heart,
+  Sparkles,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  ArrowLeft,
+  ArrowRight,
+  Languages,
+  Edit3,
+  Ruler,
+  Briefcase,
+  GraduationCap,
+  BookOpen,
+  Shield,
+  Users,
+} from 'lucide-react';
+
+// UI Components
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+// Custom Components
+import PhoneNumberInput from '../PhoneNumberInput';
+import ConsentCheckbox from '../ConsentCheckbox';
+import SubmissionStatusIndicator, {
+  SubmissionStatus,
+} from './SubmissionStatusIndicator';
+
+// Types
+import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+
+// ============================================================================
+// ANIMATION & STYLING VARIANTS
+// ============================================================================
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: 'easeOut' },
+  },
+};
+
+// Helper Component: Field Wrapper
+interface FieldWrapperProps {
+  children: React.ReactNode;
+  icon: React.ReactNode;
+  hasValue?: boolean;
+  className?: string;
+}
+
+const FieldWrapper: React.FC<FieldWrapperProps> = ({
+  children,
+  icon,
+  hasValue = false,
+  className = '',
+}) => (
+  <div className={`relative group ${className}`}>
+    <div
+      className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 z-10 pointer-events-none ${
+        hasValue
+          // UPDATED: Active Icon Color (Teal)
+          ? 'text-teal-500 scale-110'
+          : 'text-gray-400 group-hover:text-gray-500'
+      }`}
+    >
+      {icon}
+    </div>
+    {children}
+  </div>
+);
+
+// Helper Component: Section Header
+interface SectionHeaderProps {
+  icon: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  gradient: string;
+}
+
+const SectionHeader: React.FC<SectionHeaderProps> = ({
+  icon,
+  title,
+  subtitle,
+  gradient,
+}) => (
+  <motion.div variants={itemVariants} className="mb-6">
+    <div className="flex items-center gap-3 mb-2">
+      <div className={`p-2 rounded-xl bg-gradient-to-br ${gradient} shadow-lg`}>
+        <div className="text-white">{icon}</div>
+      </div>
+      <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+    </div>
+    {subtitle && (
+      <p className="text-sm text-gray-600 leading-relaxed mr-12">{subtitle}</p>
+    )}
+  </motion.div>
+);
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+interface PersonalDetailsStepProps {
+  personalDetailsDict: RegisterStepsDict['steps']['personalDetails'];
+  optionalInfoDict: RegisterStepsDict['steps']['optionalInfo'];
+  consentDict: RegisterStepsDict['consentCheckbox'];
+  locale: 'he' | 'en';
+}
+
+const validatePhoneNumber = (phone: string): boolean => {
+  if (!phone) return false;
+  const cleanPhone = phone.replace(/\D/g, '');
+  return (
+    cleanPhone.length >= 10 && cleanPhone.length <= 15 && phone.startsWith('+')
+  );
+};
+
+export default function PersonalDetailsStep({
+  personalDetailsDict,
+  optionalInfoDict,
+  consentDict,
+  locale,
+}: PersonalDetailsStepProps) {
+  const { data: registrationState, updateField, prevStep } = useRegistration();
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  // States
+  const [firstNameError, setFirstNameError] = useState('');
+  const [lastNameError, setLastNameError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [ageError, setAgeError] = useState('');
+  const [religiousLevelError, setReligiousLevelError] = useState('');
+
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [submissionStatus, setSubmissionStatus] =
+    useState<SubmissionStatus>('idle');
+
+  // Consent Logic
+  const userHasAlreadyConsented = !!session?.user?.termsAndPrivacyAcceptedAt;
+  const [consentChecked, setConsentChecked] = useState(userHasAlreadyConsented);
+  const [consentError, setConsentError] = useState<string | null>(null);
+
+  const [engagementConsent, setEngagementConsent] = useState(
+    session?.user?.engagementEmailsConsent || false
+  );
+  const [promotionalConsent, setPromotionalConsent] = useState(
+    session?.user?.promotionalEmailsConsent || false
+  );
+  const [engagementConsentError, setEngagementConsentError] = useState<
+    string | null
+  >(null);
+
+  const isRTL = locale === 'he';
+
+  const religiousLevelOptions = useMemo(() => {
+    return Object.entries(personalDetailsDict.religiousLevels).map(
+      ([value, label]) => ({
+        value,
+        label,
+      })
+    );
+  }, [personalDetailsDict.religiousLevels]);
+
+  useEffect(() => {
+    router.prefetch(`/${locale}/auth/verify-phone`);
+  }, [router, locale]);
+
+  // Validation Functions (Same as before)
+  const validateFirstName = (name: string) => {
+    if (!name.trim()) {
+      setFirstNameError(personalDetailsDict.errors.firstNameRequired);
+      return false;
+    }
+    setFirstNameError('');
+    return true;
+  };
+  const validateLastName = (name: string) => {
+    if (!name.trim()) {
+      setLastNameError(personalDetailsDict.errors.lastNameRequired);
+      return false;
+    }
+    setLastNameError('');
+    return true;
+  };
+  const validatePhone = (phone: string) => {
+    if (!phone) {
+      setPhoneError(personalDetailsDict.errors.phoneRequired);
+      return false;
+    }
+    if (!validatePhoneNumber(phone)) {
+      setPhoneError(personalDetailsDict.errors.phoneInvalid);
+      return false;
+    }
+    setPhoneError('');
+    return true;
+  };
+  const validateAge = (birthDate: string) => {
+    if (!birthDate) {
+      setAgeError(personalDetailsDict.errors.birthDateRequired);
+      return false;
+    }
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+    if (age < 18) {
+      setAgeError(personalDetailsDict.errors.ageTooLow);
+      return false;
+    }
+    if (age > 120) {
+      setAgeError(personalDetailsDict.errors.ageTooHigh);
+      return false;
+    }
+    setAgeError('');
+    return true;
+  };
+
+  // Form Validity Effect
+  useEffect(() => {
+    const isFieldsValid =
+      registrationState.firstName.trim() &&
+      registrationState.lastName.trim() &&
+      registrationState.phone &&
+      validatePhoneNumber(registrationState.phone) &&
+      registrationState.birthDate &&
+      registrationState.gender &&
+      registrationState.maritalStatus &&
+      registrationState.religiousLevel;
+
+    setIsFormValid(!!isFieldsValid && consentChecked && engagementConsent);
+  }, [registrationState, consentChecked, engagementConsent]);
+
+  const handleSubmit = async () => {
+    setApiError(null);
+    setConsentError(null);
+    setEngagementConsentError(null);
+    setReligiousLevelError('');
+
+    const isFirstNameValid = validateFirstName(registrationState.firstName);
+    const isLastNameValid = validateLastName(registrationState.lastName);
+    const isPhoneValid = validatePhone(registrationState.phone);
+    const isAgeValid = validateAge(registrationState.birthDate);
+
+    if (!consentChecked) {
+      setConsentError(personalDetailsDict.errors.consentRequired);
+      return;
+    }
+    if (!engagementConsent) {
+      setEngagementConsentError(
+        personalDetailsDict.errors.engagementConsentRequired
+      );
+      return;
+    }
+    if (!registrationState.religiousLevel) {
+      setReligiousLevelError(personalDetailsDict.errors.religiousLevelRequired);
+      return;
+    }
+
+    if (!isFirstNameValid || !isLastNameValid || !isPhoneValid || !isAgeValid) {
+      return;
+    }
+
+    setIsLoading(true);
+    setSubmissionStatus('savingProfile');
+
+    try {
+      if (!userHasAlreadyConsented) {
+        const consentResponse = await fetch('/api/user/accept-terms', {
+          method: 'POST',
+        });
+        if (!consentResponse.ok)
+          throw new Error(personalDetailsDict.errors.consentApiError);
+      }
+
+      const profileData = {
+        firstName: registrationState.firstName,
+        lastName: registrationState.lastName,
+        phone: registrationState.phone,
+        gender: registrationState.gender,
+        birthDate: registrationState.birthDate,
+        maritalStatus: registrationState.maritalStatus,
+        religiousLevel: registrationState.religiousLevel,
+        height: registrationState.height,
+        occupation: registrationState.occupation,
+        education: registrationState.education,
+        engagementEmailsConsent: engagementConsent,
+        promotionalEmailsConsent: promotionalConsent,
+      };
+
+      const profileResponse = await fetch('/api/auth/complete-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData),
+      });
+
+      if (!profileResponse.ok) {
+        const errorData = await profileResponse.json();
+        throw new Error(errorData.error || optionalInfoDict.errors.default);
+      }
+
+      setSubmissionStatus('sendingCode');
+
+      const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
+        method: 'POST',
+      });
+      if (!sendCodeResponse.ok) {
+        const errorData = await sendCodeResponse.json();
+        throw new Error(errorData.error || optionalInfoDict.errors.default);
+      }
+
+      setSubmissionStatus('redirecting');
+      router.push(`/${locale}/auth/verify-phone`);
+    } catch (err) {
+      setApiError(
+        err instanceof Error ? err.message : optionalInfoDict.errors.default
+      );
+      setIsLoading(false);
+      setSubmissionStatus('error');
+    }
+  };
+
+  const submissionSteps = [
+    {
+      id: 'savingProfile' as SubmissionStatus,
+      text: optionalInfoDict.status.saving,
+    },
+    {
+      id: 'sendingCode' as SubmissionStatus,
+      text: optionalInfoDict.status.sendingCode,
+    },
+    {
+      id: 'redirecting' as SubmissionStatus,
+      text:
+        locale === 'he'
+          ? 'מעבירים אותך לאימות...'
+          : 'Redirecting to verification...',
+    },
+  ];
+
+  return (
+    <>
+      <SubmissionStatusIndicator
+        currentStatus={submissionStatus}
+        steps={submissionSteps}
+        dict={{
+          title: locale === 'he' ? 'מאמתים את הפרטים' : 'Verifying details',
+          subtitle:
+            locale === 'he'
+              ? 'זה לוקח רק מספר שניות, נא לא לסגור את החלון.'
+              : 'This takes just a few seconds, please do not close the window.',
+        }}
+      />
+
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-8"
+      >
+        {/* UPDATED: Welcome Message Box (Teal/Orange/Rose gradient background) */}
+        <motion.div
+          variants={itemVariants}
+          className="text-center p-4 bg-gradient-to-r from-teal-50 via-orange-50 to-rose-50 rounded-2xl border border-teal-100"
+        >
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Sparkles className="w-5 h-5 text-teal-500" />
+            <h2 className="text-lg font-bold text-gray-800">
+              {personalDetailsDict.title}
+            </h2>
+            <Heart className="w-5 h-5 text-rose-500" />
+          </div>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {personalDetailsDict.subtitle}
+          </p>
+        </motion.div>
+
+        {/* Error Alert */}
+        <AnimatePresence>
+          {apiError && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={{ opacity: 0, y: -10, height: 0 }}
+            >
+              <Alert variant="destructive" className="border-2">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-red-100 rounded-lg">
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                  </div>
+                  <AlertDescription className="text-sm">
+                    {apiError}
+                  </AlertDescription>
+                </div>
+              </Alert>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Form Container */}
+        <div className="space-y-8">
+          {/* --- PERSONAL DETAILS SECTION --- */}
+          <div className="space-y-5">
+            {/* UPDATED: Section Header Gradient (Teal -> Emerald) */}
+            <SectionHeader
+              icon={<User className="w-5 h-5" />}
+              title={personalDetailsDict.title}
+              gradient="from-teal-400 to-emerald-500"
+            />
+
+            {/* First Name */}
+            <motion.div variants={itemVariants} className="space-y-2">
+              <Label
+                htmlFor="firstNamePersonal"
+                className="text-sm font-semibold text-gray-700 flex items-center"
+              >
+                {personalDetailsDict.firstNameLabel}{' '}
+                <span className="text-red-500 mr-1">*</span>
+              </Label>
+              <FieldWrapper
+                icon={<Edit3 className="h-5 w-5" />}
+                hasValue={!!registrationState.firstName}
+              >
+                <Input
+                  id="firstNamePersonal"
+                  value={registrationState.firstName}
+                  onChange={(e) => updateField('firstName', e.target.value)}
+                  onBlur={(e) => validateFirstName(e.target.value)}
+                  placeholder={personalDetailsDict.firstNamePlaceholder}
+                  required
+                  disabled={isLoading}
+                  // UPDATED: Focus Ring (Teal)
+                  className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
+                    firstNameError
+                      ? 'border-red-300 focus:border-red-400'
+                      : 'border-gray-200 focus:border-teal-400'
+                  } focus:ring-2 focus:ring-teal-200`}
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                />
+              </FieldWrapper>
+              {firstNameError && (
+                <p className="text-xs text-red-600 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {firstNameError}
+                </p>
+              )}
+            </motion.div>
+
+            {/* Last Name */}
+            <motion.div variants={itemVariants} className="space-y-2">
+              <Label
+                htmlFor="lastNamePersonal"
+                className="text-sm font-semibold text-gray-700 flex items-center"
+              >
+                {personalDetailsDict.lastNameLabel}{' '}
+                <span className="text-red-500 mr-1">*</span>
+              </Label>
+              <FieldWrapper
+                icon={<Edit3 className="h-5 w-5" />}
+                hasValue={!!registrationState.lastName}
+              >
+                <Input
+                  id="lastNamePersonal"
+                  value={registrationState.lastName}
+                  onChange={(e) => updateField('lastName', e.target.value)}
+                  onBlur={(e) => validateLastName(e.target.value)}
+                  placeholder={personalDetailsDict.lastNamePlaceholder}
+                  required
+                  disabled={isLoading}
+                  // UPDATED: Focus Ring (Teal)
+                  className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
+                    lastNameError
+                      ? 'border-red-300 focus:border-red-400'
+                      : 'border-gray-200 focus:border-teal-400'
+                  } focus:ring-2 focus:ring-teal-200`}
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                />
+              </FieldWrapper>
+              {lastNameError && (
+                <p className="text-xs text-red-600 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {lastNameError}
+                </p>
+              )}
+            </motion.div>
+
+            {/* Language Selection */}
+            <motion.div variants={itemVariants} className="space-y-2">
+              <Label className="text-sm font-semibold text-gray-700 flex items-center">
+                {personalDetailsDict.languageLabel}{' '}
+                <span className="text-red-500 mr-1">*</span>
+              </Label>
+              <FieldWrapper
+                icon={<Languages className="h-5 w-5" />}
+                hasValue={!!registrationState.language}
+              >
+                <Select
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                  value={registrationState.language}
+                  onValueChange={(value) =>
+                    updateField('language', value as 'he' | 'en')
+                  }
+                  disabled={isLoading}
+                >
+                  <SelectTrigger className="w-full pr-11 pl-3 py-3 h-auto border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200">
+                    <SelectValue
+                      placeholder={personalDetailsDict.languagePlaceholder}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="he">עברית</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FieldWrapper>
+            </motion.div>
+
+            {/* Phone */}
+            <motion.div variants={itemVariants} className="space-y-2">
+              <Label className="text-sm font-semibold text-gray-700 flex items-center">
+                {personalDetailsDict.phoneLabel}{' '}
+                <span className="text-red-500 mr-1">*</span>
+              </Label>
+              <div
+                className={`rounded-xl ${phoneError ? 'ring-2 ring-red-300' : ''}`}
+              >
+                <PhoneNumberInput
+                  value={registrationState.phone}
+                  onChange={(value) => updateField('phone', value || '')}
+                  disabled={isLoading}
+                  locale={locale}
+                  error={phoneError}
+                />
+              </div>
+            </motion.div>
+
+            {/* Gender Selection */}
+            <motion.div variants={itemVariants} className="space-y-2">
+              <Label className="text-sm font-semibold text-gray-700 flex items-center">
+                {personalDetailsDict.genderLabel}{' '}
+                <span className="text-red-500 mr-1">*</span>
+              </Label>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Male Button - UPDATED: Teal Theme */}
+                <Button
+                  type="button"
+                  onClick={() => updateField('gender', Gender.MALE)}
+                  variant="outline"
+                  disabled={isLoading}
+                  className={`py-6 rounded-xl border-2 transition-all ${
+                    registrationState.gender === Gender.MALE
+                      ? 'bg-teal-50 border-teal-400 text-teal-700 ring-2 ring-teal-200'
+                      : 'border-gray-200 hover:border-teal-200 text-gray-600'
+                  }`}
+                >
+                  <span className="text-xl mr-2">👨</span>{' '}
+                  {personalDetailsDict.male}
+                </Button>
+                
+                {/* Female Button - UPDATED: Rose Theme */}
+                <Button
+                  type="button"
+                  onClick={() => updateField('gender', Gender.FEMALE)}
+                  variant="outline"
+                  disabled={isLoading}
+                  className={`py-6 rounded-xl border-2 transition-all ${
+                    registrationState.gender === Gender.FEMALE
+                      ? 'bg-rose-50 border-rose-400 text-rose-700 ring-2 ring-rose-200'
+                      : 'border-gray-200 hover:border-rose-200 text-gray-600'
+                  }`}
+                >
+                  <span className="text-xl mr-2">👩</span>{' '}
+                  {personalDetailsDict.female}
+                </Button>
+              </div>
+            </motion.div>
+
+            {/* Birth Date & Marital Status Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Birth Date */}
+              <motion.div variants={itemVariants} className="space-y-2">
+                <Label
+                  htmlFor="birthDatePersonal"
+                  className="text-sm font-semibold text-gray-700 flex items-center"
+                >
+                  {personalDetailsDict.birthDateLabel}{' '}
+                  <span className="text-red-500 mr-1">*</span>
+                </Label>
+                <FieldWrapper
+                  icon={<Calendar className="h-5 w-5" />}
+                  hasValue={!!registrationState.birthDate}
+                >
+                  <Input
+                    id="birthDatePersonal"
+                    type="date"
+                    value={registrationState.birthDate}
+                    onChange={(e) => updateField('birthDate', e.target.value)}
+                    onBlur={(e) => validateAge(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    // UPDATED: Focus Ring (Teal)
+                    className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
+                      ageError
+                        ? 'border-red-300 focus:border-red-400'
+                        : 'border-gray-200 focus:border-teal-400'
+                    } focus:ring-2 focus:ring-teal-200`}
+                  />
+                </FieldWrapper>
+                {ageError && (
+                  <p className="text-xs text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> {ageError}
+                  </p>
+                )}
+              </motion.div>
+
+              {/* Marital Status */}
+              <motion.div variants={itemVariants} className="space-y-2">
+                <Label
+                  htmlFor="maritalStatusPersonal"
+                  className="text-sm font-semibold text-gray-700 flex items-center"
+                >
+                  {personalDetailsDict.maritalStatusLabel}{' '}
+                  <span className="text-red-500 mr-1">*</span>
+                </Label>
+                <FieldWrapper
+                  icon={<Users className="h-5 w-5" />}
+                  hasValue={!!registrationState.maritalStatus}
+                >
+                  <select
+                    id="maritalStatusPersonal"
+                    value={registrationState.maritalStatus}
+                    onChange={(e) =>
+                      updateField('maritalStatus', e.target.value)
+                    }
+                    required
+                    disabled={isLoading}
+                    // UPDATED: Focus Ring (Teal)
+                    className="w-full pr-11 pl-3 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200 appearance-none text-gray-900"
+                  >
+                    <option value="" disabled>
+                      {personalDetailsDict.maritalStatusPlaceholder}
+                    </option>
+                    <option value="רווק/ה">
+                      {personalDetailsDict.maritalStatuses.single}
+                    </option>
+                    <option value="גרוש/ה">
+                      {personalDetailsDict.maritalStatuses.divorced}
+                    </option>
+                    <option value="אלמן/ה">
+                      {personalDetailsDict.maritalStatuses.widowed}
+                    </option>
+                  </select>
+                </FieldWrapper>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <motion.div variants={itemVariants} className="relative py-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t-2 border-gray-200" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="px-4 bg-white text-sm font-medium text-gray-500">
+                {optionalInfoDict.title}
+              </span>
+            </div>
+          </motion.div>
+
+          {/* --- OPTIONAL INFO SECTION --- */}
+          <div className="space-y-5">
+            {/* UPDATED: Section Header Gradient (Orange -> Amber) */}
+            <SectionHeader
+              icon={<Sparkles className="w-5 h-5" />}
+              title={optionalInfoDict.title}
+              subtitle={optionalInfoDict.subtitle}
+              gradient="from-orange-400 to-amber-500"
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Height */}
+              <motion.div variants={itemVariants} className="space-y-2">
+                <Label
+                  htmlFor="heightOptional"
+                  className="text-sm font-semibold text-gray-700 flex items-center gap-1"
+                >
+                  {optionalInfoDict.heightLabel}
+                </Label>
+                <FieldWrapper
+                  icon={<Ruler className="h-5 w-5" />}
+                  hasValue={!!registrationState.height}
+                >
+                  <Input
+                    type="number"
+                    id="heightOptional"
+                    min="120"
+                    max="220"
+                    value={registrationState.height ?? ''}
+                    onChange={(e) =>
+                      updateField(
+                        'height',
+                        e.target.value
+                          ? parseInt(e.target.value, 10)
+                          : undefined
+                      )
+                    }
+                    placeholder={optionalInfoDict.heightPlaceholder}
+                    disabled={isLoading}
+                    // UPDATED: Focus Ring (Orange)
+                    className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                  />
+                </FieldWrapper>
+              </motion.div>
+
+              {/* Occupation */}
+              <motion.div variants={itemVariants} className="space-y-2">
+                <Label
+                  htmlFor="occupationOptional"
+                  className="text-sm font-semibold text-gray-700 flex items-center gap-1"
+                >
+                  {optionalInfoDict.occupationLabel}
+                </Label>
+                <FieldWrapper
+                  icon={<Briefcase className="h-5 w-5" />}
+                  hasValue={!!registrationState.occupation}
+                >
+                  <Input
+                    type="text"
+                    id="occupationOptional"
+                    value={registrationState.occupation ?? ''}
+                    onChange={(e) => updateField('occupation', e.target.value)}
+                    placeholder={optionalInfoDict.occupationPlaceholder}
+                    disabled={isLoading}
+                    // UPDATED: Focus Ring (Orange)
+                    className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                  />
+                </FieldWrapper>
+              </motion.div>
+            </div>
+
+            {/* Education */}
+            <motion.div variants={itemVariants} className="space-y-2">
+              <Label
+                htmlFor="educationOptional"
+                className="text-sm font-semibold text-gray-700 flex items-center gap-1"
+              >
+                {optionalInfoDict.educationLabel}
+              </Label>
+              <FieldWrapper
+                icon={<GraduationCap className="h-5 w-5" />}
+                hasValue={!!registrationState.education}
+              >
+                <Input
+                  type="text"
+                  id="educationOptional"
+                  value={registrationState.education ?? ''}
+                  onChange={(e) => updateField('education', e.target.value)}
+                  placeholder={optionalInfoDict.educationPlaceholder}
+                  disabled={isLoading}
+                  // UPDATED: Focus Ring (Orange)
+                  className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                />
+              </FieldWrapper>
+            </motion.div>
+
+            {/* Religious Level */}
+            <motion.div variants={itemVariants} className="space-y-2">
+              <Label className="text-sm font-semibold text-gray-700 flex items-center">
+                {personalDetailsDict.religiousLevelLabel}{' '}
+                <span className="text-red-500 mr-1">*</span>
+              </Label>
+              <FieldWrapper
+                icon={<BookOpen className="h-5 w-5" />}
+                hasValue={!!registrationState.religiousLevel}
+              >
+                <Select
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                  value={registrationState.religiousLevel || ''}
+                  onValueChange={(value) => {
+                    updateField('religiousLevel', value);
+                    if (value) setReligiousLevelError('');
+                  }}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger
+                    // UPDATED: Focus Ring (Orange)
+                    className={`w-full pr-11 pl-3 py-3 h-auto border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
+                      religiousLevelError
+                        ? 'border-red-300 focus:ring-red-200'
+                        : 'border-gray-200 hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200'
+                    }`}
+                  >
+                    <SelectValue
+                      placeholder={
+                        personalDetailsDict.religiousLevelPlaceholder
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    {religiousLevelOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FieldWrapper>
+              {religiousLevelError && (
+                <p className="text-xs text-red-600 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {religiousLevelError}
+                </p>
+              )}
+            </motion.div>
+          </div>
+
+          {/* --- CONSENTS SECTION --- */}
+          <motion.div variants={itemVariants} className="space-y-4">
+            {/* UPDATED: Container Style (Warm Amber/Orange background) */}
+            <div
+              className={`p-4 rounded-2xl border-2 transition-all ${
+                consentError
+                  ? 'border-red-300 bg-red-50'
+                  : 'border-gray-200 bg-gradient-to-r from-amber-50/50 to-orange-50/50'
+              }`}
+            >
+              <ConsentCheckbox
+                checked={consentChecked}
+                onChange={(isChecked) => {
+                  setConsentChecked(isChecked);
+                  if (isChecked) setConsentError(null);
+                }}
+                error={consentError}
+                dict={consentDict}
+              />
+            </div>
+
+            {/* Marketing Consents */}
+            <div className="space-y-3 px-2">
+              {/* Engagement Consent */}
+              <div className="flex items-start space-x-2 rtl:space-x-reverse">
+                <Checkbox
+                  id="engagementConsent"
+                  checked={engagementConsent}
+                  onCheckedChange={(checked) => {
+                    const isChecked = checked as boolean;
+                    setEngagementConsent(isChecked);
+                    if (isChecked) setEngagementConsentError(null);
+                  }}
+                  // UPDATED: Checkbox Color (Teal)
+                  className="mt-1 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <label
+                    htmlFor="engagementConsent"
+                    className="text-sm font-medium text-gray-700 cursor-pointer"
+                  >
+                    {personalDetailsDict.engagementConsentLabel}
+                    <span className="text-red-500 mr-1">*</span>
+                  </label>
+                  {engagementConsentError && (
+                    <p className="text-xs text-red-500">
+                      {engagementConsentError}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Promotional Consent */}
+              <div className="flex items-start space-x-2 rtl:space-x-reverse">
+                <Checkbox
+                  id="promotionalConsent"
+                  checked={promotionalConsent}
+                  onCheckedChange={(checked) =>
+                    setPromotionalConsent(checked as boolean)
+                  }
+                  // UPDATED: Checkbox Color (Orange)
+                  className="mt-1 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <label
+                    htmlFor="promotionalConsent"
+                    className="text-sm text-gray-600 cursor-pointer"
+                  >
+                    {personalDetailsDict.promotionalConsentLabel}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Privacy Note */}
+            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 mt-2">
+              <Shield className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-gray-600 leading-relaxed">
+                {isRTL
+                  ? 'הפרטים שלך מאובטחים ומוצפנים.'
+                  : 'Your details are secure and encrypted.'}
+              </p>
+            </div>
+          </motion.div>
+
+          {/* --- BUTTONS --- */}
+          <motion.div variants={itemVariants} className="flex gap-4 pt-4">
+            <Button
+              type="button"
+              onClick={prevStep}
+              variant="outline"
+              disabled={isLoading}
+              className="px-6 py-6 rounded-xl border-2 hover:bg-gray-50"
+            >
+              <ArrowRight className={`h-5 w-5 ${isRTL ? '' : 'rotate-180'}`} />
+              <span className="sr-only">{personalDetailsDict.backButton}</span>
+            </Button>
+
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              disabled={!isFormValid || isLoading}
+              // UPDATED: Main Gradient (Teal -> Orange -> Amber)
+              className="flex-1 py-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {!isLoading && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+              )}
+
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>{personalDetailsDict.nextButtonLoading}</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span>{personalDetailsDict.nextButton}</span>
+                  <ArrowLeft
+                    className={`w-5 h-5 group-hover:-translate-x-1 transition-transform ${!isRTL ? 'rotate-180 group-hover:translate-x-1' : ''}`}
+                  />
+                </>
+              )}
+            </Button>
+          </motion.div>
+        </div>
+      </motion.div>
+    </>
+  );
+}
+--- End of Content for PersonalDetailsStep.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\SubmissionStatusIndicator.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/steps/SubmissionStatusIndicator.tsx
+'use client';
+
+import { CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// ▼▼▼ 1. הוספת 'redirecting' לטיפוס ▼▼▼
+export type SubmissionStatus =
+  | 'idle'
+  | 'creatingAccount'
+  | 'sendingCode'
+  | 'savingProfile'
+  | 'updatingSession'
+  | 'redirecting' // <--- חדש
+  | 'error';
+
+interface Step {
+  id: SubmissionStatus;
+  text: string;
+}
+
+interface SubmissionStatusIndicatorProps {
+  currentStatus: SubmissionStatus;
+  steps: Step[];
+  dict: {
+    title: string;
+    subtitle: string;
+  };
+}
+
+const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
+  currentStatus,
+  steps,
+  dict,
+}) => {
+  const getStepStatus = (
+    stepId: SubmissionStatus,
+    current: SubmissionStatus
+  ): 'completed' | 'in-progress' | 'pending' => {
+    const stepIndex = steps.findIndex((s) => s.id === stepId);
+    const currentIndex = steps.findIndex((s) => s.id === current);
+
+    if (currentIndex === -1 || current === 'idle' || current === 'error') {
+      return 'pending';
+    }
+    if (stepIndex < currentIndex) {
+      return 'completed';
+    }
+    if (stepIndex === currentIndex) {
+      return 'in-progress';
+    }
+    return 'pending';
+  };
+
+  const statusIcons = {
+    completed: <CheckCircle className="h-6 w-6 text-green-500" />,
+    'in-progress': <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />,
+    pending: (
+      <div className="h-6 w-6 rounded-full border-2 border-gray-300"></div>
+    ),
+  };
+
+  const isVisible = currentStatus !== 'idle' && currentStatus !== 'error';
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
+          aria-modal="true"
+          role="dialog"
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"
+          >
+            <div className="h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
+
+            <div className="p-6 text-center">
+              <div className="flex justify-center items-center gap-2 mb-4">
+                <ShieldCheck className="h-7 w-7 text-cyan-500" />
+                <h3 className="text-xl font-bold text-gray-800">
+                  {dict.title}
+                </h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-6">{dict.subtitle}</p>
+
+              <div className="space-y-4">
+                {steps.map((step) => {
+                  const status = getStepStatus(step.id, currentStatus);
+                  return (
+                    <div
+                      key={step.id}
+                      className="flex items-center gap-4 text-right p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                        {statusIcons[status]}
+                      </div>
+                      <span
+                        className={`text-base font-medium ${status === 'pending' ? 'text-gray-400' : 'text-gray-700'}`}
+                      >
+                        {step.text}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export default SubmissionStatusIndicator;
+--- End of Content for SubmissionStatusIndicator.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\WelcomeStep.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/steps/WelcomeStep.tsx
+'use client';
+
+import { useState } from 'react';
+import { useRegistration } from '../RegistrationContext';
+import { signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { Heart, ArrowLeft, Mail, Loader2, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+
+interface WelcomeStepProps {
+  dict: RegisterStepsDict['steps']['welcome'];
+  locale: 'he' | 'en';
+}
+
+const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
+  const { nextStep } = useRegistration();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const isRTL = locale === 'he';
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsGoogleLoading(true);
+      localStorage.setItem('registration_started', 'true');
+      await signIn('google', undefined, { hl: locale });
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const handleEmailSignUp = () => {
+    nextStep();
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1, 
+      transition: { 
+        staggerChildren: 0.1,
+        delayChildren: 0.2 
+      } 
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  };
+
+  return (
+    <motion.div 
+      className="space-y-8 text-center"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* --- Icon Header --- */}
+      <motion.div variants={itemVariants} className="flex justify-center mb-6">
+        <div className="relative">
+          {/* UPDATED: Glow Effect (Rose/Orange) */}
+          <div className="absolute inset-0 bg-rose-200/60 rounded-full blur-xl animate-pulse"></div>
+          
+          {/* UPDATED: Card Background (White/Rose/Orange) */}
+          <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-white to-rose-50 border border-rose-100 flex items-center justify-center shadow-xl transform rotate-3 transition-transform hover:rotate-6 duration-500">
+            {/* UPDATED: Icon Color (Rose to match the "Personal" principle) */}
+            <Heart className="h-10 w-10 text-rose-500 fill-rose-500 drop-shadow-sm" />
+          </div>
+          
+          {/* UPDATED: Decorative Element (Teal - for contrast) */}
+          <motion.div 
+            className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white text-lg font-bold shadow-lg border-2 border-white"
+            animate={{ y: [0, -5, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          >
+            👋
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* --- Title & Subtitle --- */}
+      <motion.div variants={itemVariants} className="space-y-3">
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 tracking-tight">
+          {dict.title}
+        </h2>
+        <p className="text-gray-600 max-w-sm mx-auto text-lg leading-relaxed">
+          {dict.subtitle}
+        </p>
+      </motion.div>
+
+      {/* --- Action Buttons --- */}
+      <motion.div variants={itemVariants} className="space-y-4 mt-8">
+        {/* Google Button */}
+        <Button
+          onClick={handleGoogleSignIn}
+          disabled={isGoogleLoading}
+          variant="outline"
+          size="lg"
+          className="w-full relative z-20 bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 py-7 rounded-2xl flex items-center justify-center gap-3 group transition-all duration-300 shadow-sm hover:shadow-md"
+        >
+          {isGoogleLoading ? (
+            <Loader2 className="animate-spin h-5 w-5 text-gray-500" />
+          ) : (
+            <>
+              {/* Google SVG remains standard colors */}
+              <svg className="h-6 w-6 flex-shrink-0 transition-transform group-hover:scale-110 duration-300" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              <span className="text-gray-700 font-semibold text-base">
+                {dict.googleButton}
+              </span>
+            </>
+          )}
+        </Button>
+
+        {/* Email Button */}
+        <Button
+          onClick={handleEmailSignUp}
+          size="lg"
+          // UPDATED: Gradient (Teal -> Orange -> Amber)
+          className="w-full relative z-20 py-7 rounded-2xl bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 group overflow-hidden"
+        >
+          {/* Shine Effect */}
+          <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></span>
+          
+          <Mail className="h-5 w-5 text-white" />
+          <span className="font-semibold text-base tracking-wide">{dict.emailButton}</span>
+          {isRTL ? (
+            <ArrowLeft className="h-5 w-5 text-white opacity-70 group-hover:opacity-100 group-hover:-translate-x-1 transition-all duration-300" />
+          ) : (
+            <ArrowRight className="h-5 w-5 text-white opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+          )}
+        </Button>
+      </motion.div>
+
+      {/* --- Footer Links --- */}
+      <motion.div 
+        variants={itemVariants} 
+        className="pt-6 border-t border-gray-100 relative z-20"
+      >
+        <p className="text-gray-500 text-sm">
+          {dict.signInPrompt}{' '}
+          {/* UPDATED: Link Gradient (Teal -> Orange) */}
+          <Link
+            href="/auth/signin"
+            className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600 hover:from-teal-700 hover:to-orange-700 hover:underline transition-all"
+          >
+            {dict.signInLink}
+          </Link>
+        </p>
+      </motion.div>
+
+      <style>{`
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
+    </motion.div>
+  );
+};
+
+export default WelcomeStep;
+--- End of Content for WelcomeStep.tsx ---
+

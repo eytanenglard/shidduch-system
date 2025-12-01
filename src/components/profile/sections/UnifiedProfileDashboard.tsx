@@ -13,7 +13,7 @@ import type { User as SessionUserType } from '@/types/next-auth';
 import { ProfileChecklist } from './ProfileChecklist';
 import { AIProfileAdvisorDialog } from './AIProfileAdvisorDialog';
 import { NeshmaInsightButton } from './NeshmaInsightButton';
-
+import { Lock } from 'lucide-react';
 // UI Components
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -696,6 +696,12 @@ const handleCvDelete = async () => {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="w-screen h-screen sm:w-[95vw] sm:h-[90vh] sm:max-w-6xl p-0 bg-white/95 backdrop-blur-md sm:rounded-3xl shadow-2xl border-none overflow-hidden">
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm border border-emerald-200 rounded-full shadow-sm">
+  <Lock className="w-3.5 h-3.5 text-emerald-600" />
+  <span className="text-xs text-emerald-700">
+    {dict.dashboard.privacyAssurances?.preview || "זה מה שהצד השני יראה - רק אחרי אישור"}
+  </span>
+</div>
                   {profileData ? (
                     <ProfileCard
                       profile={profileData}
@@ -718,8 +724,20 @@ const handleCvDelete = async () => {
                 </DialogContent>
               </Dialog>
             </div>
+            
           )}
-
+{/* Privacy Assurance Banner */}
+{!viewOnly && isOwnProfile && (
+  <div className="flex items-center justify-center gap-2 px-4 py-2.5 mb-6 bg-emerald-50/80 border border-emerald-200/60 rounded-full max-w-fit mx-auto">
+    <Lock className="w-4 h-4 text-emerald-600" />
+    <span className="text-sm text-emerald-700 font-medium">
+      {dict.dashboard.privacyAssurances?.banner?.text || "הפרטים שלך נשמרים בדיסקרטיות מלאה"}
+    </span>
+    <span className="text-xs text-emerald-600">
+      {dict.dashboard.privacyAssurances?.banner?.subtext || "גלויים רק לשדכן ולמי שנשלחת אליו הצעה"}
+    </span>
+  </div>
+)}
           <Tabs
             value={activeTab}
             onValueChange={handleTabChange}

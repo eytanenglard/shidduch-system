@@ -30,6 +30,7 @@ import {
   X,
   CheckCircle2,
   MinusSquare,
+  Lock,
 } from 'lucide-react';
 
 // Types
@@ -557,7 +558,15 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
           </div>
         ))}
       </div>
-
+{/* Privacy Note - shows when there are photos */}
+{images.length > 0 && !disabled && (
+  <div className="flex items-center justify-center gap-2 mt-4 px-3 py-2 bg-emerald-50/60 border border-emerald-100 rounded-lg">
+    <Lock className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+    <span className="text-xs text-emerald-700">
+      {dict.privacyNote || "התמונות שלך לא חשופות לגלישה - רק מי שקיבל הצעה יראה אותן"}
+    </span>
+  </div>
+)}
       {images.length === 0 &&
         uploadingFiles.length === 0 &&
         !disabled &&

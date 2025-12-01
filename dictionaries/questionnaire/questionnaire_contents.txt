@@ -1,6 +1,7 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\questionnaire
-# Generated on: 2025-11-16 11:30:38
+# Generated on: 2025-12-01 08:26:22
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
 ================================================================================
@@ -51,115 +52,136 @@ Content:
       "description": "Detail your spiritual connection, practices, and vision for a Jewish home."
     }
   },
-
-   "questionCard": {
-    "depthLabels": {
-      "BASIC": "Foundations",
-      "ADVANCED": "Deeper Insights",
-      "EXPERT": "Core Reflections"
-    },
-    "depthDescriptions": {
-      "BASIC": "These foundational questions help us understand the basics of who you are and what you're looking for.",
-      "ADVANCED": "These questions invite a bit more reflection, helping us see the nuances of your personality and values.",
-      "EXPERT": "These are deep-dive questions that reveal your core beliefs and how you navigate complex situations."
-    },
-     "estimatedTime": "{{minutes}} min left",
-    "benefitMessages": [
-      "Each answer brings you closer to the perfect match 💫",
-      "The questionnaire helps you understand what truly matters 🎯",
-      "Time invested here saves months of searching ❤️",
-      "You're building a foundation for long-term success 🌟"
-    ],
-    "encouragementMessage": "Each answer helps us know you better and find your perfect match",
-    "requiredBadge": "Required",
-    "tooltips": {
-      "removeBookmark": "Remove Bookmark",
-      "addBookmark": "Bookmark for Later",
-      "hideHelp": "Hide Help",
-      "showHelp": "Show Help",
-      "whyQuestion": "Why we ask this",
-      "visibility": {
-        "visibleTitle": "Visible to Matches",
-        "hiddenTitle": "Hidden from Matches",
-        "visibleDesc": "This answer will be shared with potential matches upon your approval of a suggestion.",
-        "hiddenDesc": "This answer is for the matchmaking team only and will not be shared with matches."
-      },
-      "saveProgressSaving": "Saving...",
-      "saveProgress": "Save My Progress",
-      "viewProfile": "View My Answers in Profile"
-    },
-    "visibilityButton": {
-      "visible": "Visible",
-      "hidden": "Hidden"
-    },
-    "skipButton": {
-      "skip": "Skip",
-      "required": "Required"
-    }
+"questionCard": {
+  "depthLabels": {
+    "BASIC": "Basic",
+    "ADVANCED": "Advanced",
+    "EXPERT": "Deep Dive"
   },
-
-    "visibilityButton": {
-      "visible": "Visible",
-      "hidden": "Hidden"
-    },
-  "completion": {
-    "title": "Congratulations, You've Completed the Journey!",
-    "loggedInDescription": "You've taken a significant step towards finding a meaningful connection. Our team will now carefully review your profile.",
-    "guestDescription": "You've finished the questionnaire! Please sign in or register to save your answers and begin the matching process.",
-    "loggedInContent": {
-      "prompt": "Your profile is now ready for our matchmaking team.",
-      "promptSubtitle": "We will be in touch as soon as we find a promising match for you.",
-      "sendButton": "Proceed to My Dashboard",
-      "sendingButton": "Proceeding...",
-      "reviewButton": "Review My Answers"
-    },
-    "guestContent": {
-      "loginButton": "Save Answers and Continue"
-    }
+  "depthDescriptions": {
+    "BASIC": "Foundational questions to get the basics",
+    "ADVANCED": "Questions for deeper understanding",
+    "EXPERT": "Core value reflection questions"
   },
-  "matchmaking": {
-    "worldLabels": {
-      "PERSONALITY": "Personality",
-      "VALUES": "Values",
-      "RELATIONSHIP": "Partnership",
-      "PARTNER": "The Partner",
-      "RELIGION": "Religion & Tradition"
+  "requiredBadge": "Required",
+  "estimatedTime": "~{{minutes}} min left",
+  "benefitMessages": [
+    "Every answer brings you closer to a match 💫",
+    "Honesty is key to success 🗝️",
+    "Getting to know the real you ❤️",
+    "Investing time now saves time later ⏳"
+  ],
+  "encouragementMessage": "Keep going, you're doing great!",
+  "tooltips": {
+    "removeBookmark": "Remove Bookmark",
+    "addBookmark": "Bookmark for later",
+    "hideHelp": "Hide Help",
+    "showHelp": "Show Help",
+    "whyQuestion": "Why we ask this",
+    "visibility": {
+      "visibleTitle": "Visible to Matches",
+      "hiddenTitle": "Hidden from Matches",
+      "visibleDesc": "This answer will be shown to suggested matches",
+      "hiddenDesc": "This answer is for matchmakers only"
     },
-    "toasts": {
-      "saveSuccess": "Progress saved successfully!",
-      "autoSaveError": "Auto-save failed. Please check your connection.",
-      "unsavedChanges": {
-        "message": "You have unsaved changes.",
-        "action": "Save Now"
-      },
-      "answerVisible": "Answer will be visible to potential matches.",
-      "answerHidden": "Answer is now hidden (matchmakers only).",
-      "worldProgressSaved": "Your progress in this world has been saved.",
-      "worldProgressSavedBrowser": "Progress saved to this browser. Log in to save to your account.",
-      "worldCompletionError": "Error saving world completion. Please try again.",
-      "worldFinished": "Excellent! You've completed the World of {{worldName}}.",
-      "submitSuccess": "Questionnaire submitted successfully!"
-    },
-    "errors": {
-      "invalidSubmission": "Invalid data. Could not save progress.",
-      "saveFailed": "Failed to save progress. Please try again.",
-      "loadFailed": "Failed to load questionnaire data. Please refresh.",
-      "genericLoadError": "An error occurred while loading your data. Please try again later.",
-      "stageLoadError": "Error loading this stage. Please try again.",
-      "invalidStep": "An error occurred: Invalid step in the process.",
-      "submitFailed": "Error submitting the questionnaire."
-    },
-    "idleModal": {
-      "title": "Are You Still With Us?",
-      "description": "It looks like you've been inactive for a while. For your security, you will be logged out in one minute.",
-      "logoutButton": "Log Out",
-      "stayActiveButton": "I'm Still Here"
-    },
-    "lastSaved": "Last saved: {{time}}",
-    "loading": "Loading your journey...",
-    "loadingSubtext": "Loading your questionnaire...",
-    "lastSavedIndicatorLabel": "Saved"
+    "saveProgressSaving": "Saving...",
+    "saveProgress": "Save Progress",
+    "viewProfile": "View Full Profile"
+  },
+  "visibilityButton": {
+    "visible": "Visible",
+    "hidden": "Hidden"
+  },
+  "skipButton": {
+    "skip": "Skip",
+    "required": "Required"
   }
+},
+
+    "visibilityButton": {
+      "visible": "Visible",
+      "hidden": "Hidden"
+    },
+ "completion": {
+  "title": "Congratulations, You've Completed the Journey!",
+  "loggedInDescription": "You've taken a significant step towards finding a meaningful connection. Our team will now carefully review your profile.",
+  "guestDescription": "You've finished the questionnaire! Please sign in or register to save your answers and begin the matching process.",
+  "loggedInContent": {
+    "prompt": "Your profile is now ready for our matchmaking team.",
+    "promptSubtitle": "We will be in touch as soon as we find a promising match for you.",
+    "sendButton": "Proceed to My Dashboard",
+    "sendingButton": "Proceeding...",
+    "reviewButton": "Review My Answers"
+  },
+  "guestContent": {
+    "loginButton": "Save Answers and Continue"
+  },
+  "stats": {
+    "completion": "% Complete",
+    "answered": "Questions Answered",
+    "time": "Time Invested"
+  },
+  "unlocksTitle": "🎉 Achievements Unlocked",
+  "achievements": {
+    "completed": {
+      "title": "🎯 Completed Questionnaire!",
+      "description": "You answered all questions successfully"
+    },
+    "speed": {
+      "title": "⚡ Impressive Speed",
+      "description": "Completed in {{minutes}} minutes"
+    },
+    "profile": {
+      "title": "🎨 Complete Profile",
+      "description": "Created a rich and detailed profile"
+    }
+  }
+},
+ "matchmaking": {
+  "worldLabels": {
+    "PERSONALITY": "Personality",
+    "VALUES": "Values",
+    "RELATIONSHIP": "Partnership",
+    "PARTNER": "The Partner",
+    "RELIGION": "Religion & Tradition"
+  },
+  "toasts": {
+    "saveSuccess": "Changes saved successfully! 💾",
+    "autoSaveError": "Auto-save failed.",
+    "unsavedChanges": {
+      "message": "You have unsaved changes.",
+      "action": "Save Now"
+    },
+    "answerVisible": "Answer is visible.",
+    "answerHidden": "Answer is hidden.",
+    "worldProgressSaved": "World progress saved.",
+    "worldProgressSavedBrowser": "Progress saved to browser (Guest).",
+    "worldCompletionError": "Error saving world completion.",
+    "worldFinished": "Well done! You've completed the {{worldName}} world! 🎉",
+    "allWorldsFinished": "🎊 Amazing! You've completed all worlds! 🎊",
+    "submitSuccess": "Questionnaire submitted successfully!",
+    "nextWorldAction": "Continue to {{name}}"
+  },
+  "errors": {
+    "invalidSubmission": "Invalid submission data.",
+    "saveFailed": "Save failed.",
+    "loadFailed": "Failed to load data.",
+    "genericLoadError": "Error loading existing answers.",
+    "stageLoadError": "Error loading stage.",
+    "invalidStep": "Invalid step.",
+    "submitFailed": "Submission failed."
+  },
+  "idleModal": {
+    "title": "Are you still here?",
+    "description": "We haven't detected any activity. For your security, you will be logged out in one minute.",
+    "logoutButton": "Log Out",
+    "stayActiveButton": "I'm Here"
+  },
+  "lastSaved": "Last saved: {{time}}",
+  "loading": "Loading your journey...",
+  "loadingSubtext": "Preparing your questionnaire...",
+  "lastSavedIndicatorLabel": "Saved"
+}
 ,
   "page": {
     "loading": "Loading Questionnaire...",
@@ -174,7 +196,7 @@ Content:
     "title2": "You need to know what you truly want",
     "subtitle1": "An in-depth questionnaire that helps you understand yourself, what truly matters to you,",
     "subtitle2": "and generates a",
-    "subtitleHighlight": "detailed Soul Report",
+"subtitleHighlight": "detailed Full Picture",
     "subtitle3": "for you - a roadmap to the relationship you're really looking for.",
     "timeEstimate": "20-30 minutes that will save you months of searching"
   },
@@ -189,8 +211,7 @@ Content:
     "title1": "“So, what are you really looking for?”",
     "title2": "...and the standard answer that doesn't help",
     "cards": {
-      "generalAnswers": { "title": "Vague Answers","description": "“Someone nice,” “with similar values,” “someone fun to be with” - but what does that really mean? How will you know when you've found it?"
-},
+      "generalAnswers": { "title": "Vague Answers", "description": "“Someone nice,” “with similar values,” “someone fun to be with” - but what does that really mean? How will you know when you've found it?" },
       "wastedTime": { "title": "Wasted Time and Energy", "description": "Dates that end with \"it's not a match\" because you didn't really understand what you were looking for in the first place. Every date feels like trial and error." },
       "lackOfFocus": { "title": "Lack of Focus", "description": "It's hard to explain to matchmakers what's truly important to you, hard to know if a suggestion is a good fit, hard to make decisions." },
       "frustration": { "title": "Frustration and Insecurity", "description": "The feeling that maybe you just don't know what you want, or perhaps you're looking for something that doesn't exist." }
@@ -205,8 +226,8 @@ Content:
     "subtitle2": "and at the end, you'll receive a detailed personal report - a roadmap to the relationship you're looking for.",
     "cards": {
       "selfDiscovery": { "title": "True Self-Discovery", "description": "The questionnaire guides you through a structured process that helps you understand what's truly important to you in life and relationships - beyond generic phrases." },
-"soulReport": { "title": "Get Your “Soul Report”", "description": "Upon completion, you'll receive a detailed and personal PDF report that distills all your insights - a document you can return to again and again." },
-      "focusedSearch": { "title": "Focused and Efficient Search", "description": "With the Soul Report, you'll know exactly what you're looking for. It will help you explain to matchmakers, make better decisions, and save time." }
+"fullPicture": { "title": "Get Your 'Full Picture'", "description": "Upon completion, you'll receive a detailed and personal PDF document that distills all your insights - a clear view of who you are and what you're looking for." },
+"focusedSearch": { "title": "Focused and Efficient Search", "description": "With your Full Picture, you'll know exactly what you're looking for. It will help you explain to matchmakers, make better decisions, and save time." }
     },
     "result": {
       "title": "The Result: Clarity and Confidence",
@@ -230,81 +251,87 @@ Content:
     "cards": {
       "fast": { "title": "Quick and Convenient", "description": "Only 20-30 minutes. You can start, stop, and return at any time. Your progress is saved automatically." },
       "private": { "title": "Private and Secure", "description": "Your answers are yours alone. Only you and authorized matchmakers can access them." },
-      "instantResult": { "title": "Instant Result", "description": "Upon completion, you'll receive your Soul Report - a detailed, personal PDF document distilling all your insights." }
+"instantResult": { "title": "Instant Result", "description": "Upon completion, you'll receive your Full Picture - a detailed, personal PDF document distilling all your insights." }
     }
   },
   "finalCta": {
     "title1": "Ready to start?",
-    "title2": "Your Soul Report is waiting",
+"title2": "Your Full Picture is waiting",
     "subtitle": "20 minutes of focus that will save you months of searching.\nStart now and discover what truly matters to you in a relationship.",
-    "buttonText": "Get Your Soul Report Now",
-    "assurance": "Free • No Commitment • Completely Private"
+"buttonText": "Get Your Full Picture Now"
+,    "assurance": "Free • No Commitment • Completely Private"
   },
   "footer": {
     "copyright": "© {{year}} NeshamaTech. All rights reserved."
   }
 },
-  "worldsMap": {
-    "worldLabels": {
-      "PERSONALITY": "Personality",
-      "VALUES": "Values & Beliefs",
-      "RELATIONSHIP": "Partnership",
-      "PARTNER": "The Ideal Partner",
-      "RELIGION": "Religion & Tradition"
+"worldsMap": {
+  "worldLabels": {
+    "PERSONALITY": "Personality",
+    "VALUES": "Values & Beliefs",
+    "RELATIONSHIP": "Partnership",
+    "PARTNER": "The Ideal Partner",
+    "RELIGION": "Religion & Tradition"
+  },
+  "progressHeader": {
+    "greeting": "Hi {{name}},",
+    "greetingNoName": "Hello,",
+    "journeyQuestion": "Where are we on the journey?",
+    "journeyTitle": "Your Journey of Self-Discovery",
+    "progressText": "You've completed {{completedCount}} of {{totalCount}} worlds • {{totalAnswered}} of {{totalQuestions}} questions",
+    "ctaButton": "Let's Continue!",
+    "mapTitle": "Your Worlds Map",
+    "milestones": {
+      "start": "Start",
+      "onTrack": "On Track",
+      "inProgress": "In Progress",
+      "almostThere": "Almost There",
+      "completed": "Completed!"
     },
-    "progressHeader": {
-      "greeting": "Hi {{name}},",
-      "journeyQuestion": "Where are we on the journey?",
-      "defaultTitle": "Your Journey of Self-Discovery",
-      "progressText": "You've completed {{completedCount}} of {{totalCount}} worlds • {{totalAnswered}} of {{totalQuestions}} questions",
-      "ctaButton": "Let's Continue!",
-      "mapTitle": "Your Worlds Map",
-      "milestones": {
-        "start": "Start",
-        "onTrack": "On Track",
-        "inProgress": "In Progress",
-        "almostThere": "Almost There",
-        "completed": "Completed!"
-      },
-      "nextStepTitle": "The Next Step on Your Journey",
-      "nextStepPrompt": "Ready to continue to {{worldName}}?",
-      "completionTitle": "🎉 Congratulations! You've completed all worlds",
-      "completionSubtitle": "You can now review your full profile and see your Soul Report."
+    "nextStepTitle": "The Next Step on Your Journey",
+    "nextStepPrompt": "Ready to continue to {{worldName}}?",
+    "completionTitle": "🎉 Congratulations! You've completed all worlds",
+"completionSubtitle": "You can now review your full profile and see your Full Picture."
+  },
+  "reviewCard": {
+    "title": "Want to review your answers?",
+    "description": "View all the answers you've provided so far in one place.",
+    "button": "Review Answers"
+  },
+  "worldCard": {
+    "discoverTitle": "What will you discover?",
+    "questionsLabel": "questions",
+    "minutesLabel": "minutes",
+    "worldNumberLabel": "World {{number}}",
+    "progressLabel": "Progress: {{completed}}/{{total}}",
+    "recommendedRibbon": "Recommended",
+    "expandButton": "What will you discover?",
+    "benefitsTitle": "What you'll discover:",
+    "statuses": {
+      "completed": "Completed",
+      "recommended": "Recommended",
+      "active": "In Progress",
+      "available": "Available",
+      "locked": "Locked"
     },
-    "reviewCard": {
-      "title": "Want to review your answers?",
-      "description": "View all the answers you've provided so far in one place.",
-      "button": "Review Answers"
-    },
-    "worldCard": {
-      "discoverTitle": "What will you discover in this world?",
-      "questionCount": "{{count}} questions",
-      "estimatedTime": "~{{count}} minutes",
-      "worldNumberLabel": "World {{number}}",
-      "progressLabel": "Progress: {{completed}}/{{total}}",
-      "recommendedRibbon": "Recommended",
-      "statuses": {
-        "completed": "Completed",
-        "recommended": "Recommended",
-        "active": "In Progress",
-        "available": "Available",
-        "locked": "Locked"
-      },
-      "actions": {
-        "edit": "Edit Answers",
-        "startRecommended": "Start Now",
-        "continue": "Continue",
-        "start": "Start",
-        "locked": "Complete previous worlds"
-      }
-    },
-    "completionBanner": {
-      "title": "Congratulations, {{name}}!",
-      "subtitle": "You've completed all the questionnaire worlds. You've taken a huge step on your journey!",
-      "description": "Your full profile is now ready for our matchmakers.",
-      "statWorlds": "5 Worlds",
-      "statReport": "Full Soul Report"
-    },
+    "actions": {
+      "edit": "Edit Answers",
+      "startRecommended": "Start Now",
+      "continue": "Continue",
+      "start": "Start",
+      "locked": "Complete previous worlds"
+    }
+  },
+  "completionBanner": {
+    "title": "Congratulations, {{name}}!",
+    "titleNoName": "Congratulations!",
+    "subtitle": "You've completed all the questionnaire worlds. You've taken a huge step on your journey!",
+    "description": "Your full profile is now ready for our matchmakers.",
+    "statWorlds": "5 Worlds",
+"statReport": "Your Full Picture"
+  },
+
+
     "worldsContent": {
       "PERSONALITY": {
         "title": "World of Personality",
@@ -366,381 +393,343 @@ Content:
 
 
 ,
-   "layout": {
-    "navHeader": "Your Journey",
-    "navSubtitle": "Navigate the five worlds.",
-    "sidebarHeader": {
-      "title": "Your Journey",
-      "subtitle": "Guided Self-Discovery"
-    },
-    "sidebarProgress": {
-      "title": "Your Progress",
-      "worldsLabel": "{{completedCount}}/{{totalCount}} worlds",
-      "completionMessage": "Well done! You've completed all worlds 🎉"
-    },
-    "navButtonStatus": {
-      "active": "Now",
-      "completed": "Completed",
-      "available": "World {{order}}"
-    },
-    "saveButton": {
-      "default": "Save Progress",
-      "saving": "Saving...",
-      "saved": "Saved!"
-    },
-    "lastSavedSuccess": "Saved successfully at {{time}}",
-    "actionButtons": {
-      "review": "Review Answers",
-      "exitToMap": "Back to Map",
-      "faq": "Frequently Asked Questions"
-    },
-    "faqSheet": {
-      "title": "Frequently Asked Questions"
-    },
-    "unauthenticatedPrompt": {
-      "title": "Don't Lose Your Progress",
-      "subtitle": "Sign in or create an account to save your answers.",
-      "loginButton": "Sign In",
-      "registerButton": "Register"
-    },
-    "exitPrompt": {
-      "title": "Exit This World?",
-      "description": "You have unsaved changes. How would you like to proceed?",
-      "cancel": "Stay Here",
-      "saveAndExit": "Save & Exit",
-      "exitWithoutSaving": "Exit Without Saving"
-    },
-    "mobileNav": {
-      "title": "Navigation",
-      "backToMap": "Worlds Map",
-      "exit": "Exit Questionnaire",
-      "reviewAnswers": "Review My Answers",
-      "menuTitle": "Menu"
-    },
-    "tooltips": {
-      "faq": "Frequently Asked Questions",
-      "accessibility": "Accessibility Settings"
-    },
-    "profileNotice": {
-      "title": "A Note on Visibility:",
-      "textPart1": "By default, your answers are visible to your matchmaker. You can choose to hide specific answers using the",
-      "visibilityToggleLabel": "Visibility Toggle",
-      "textPart2": "which will hide them from your public profile.",
-      "link": "You can manage all your answers in your profile."
-    }
+"layout": {
+  "navHeader": "Questionnaire Worlds",
+  "navSubtitle": "Navigate through the sections",
+  "sidebarHeader": {
+    "title": "Your Journey",
+    "subtitle": "Guided Self-Discovery"
+  },
+  "sidebarProgress": {
+    "title": "Your Progress",
+    "worldsLabel": "{{completedCount}}/{{totalCount}} worlds",
+    "completionMessage": "Well done! All completed 🎉"
+  },
+  "navButtonStatus": {
+    "active": "Now",
+    "completed": "Completed",
+    "available": "World {{order}}"
+  },
+  "saveButton": {
+    "default": "Save Progress",
+    "saving": "Saving...",
+    "saved": "Saved!"
+  },
+  "lastSavedSuccess": "Saved successfully at {{time}}",
+  "actionButtons": {
+    "review": "Review Answers",
+    "exitToMap": "Back to Map",
+    "faq": "FAQ"
+  },
+  "faqSheet": {
+    "title": "Frequently Asked Questions"
+  },
+  "unauthenticatedPrompt": {
+    "title": "Progress saved temporarily",
+    "subtitle": "Log in to save answers to your account permanently.",
+    "loginButton": "Log In",
+    "registerButton": "Register"
+  },
+  "exitPrompt": {
+    "title": "Exit Questionnaire?",
+    "description": "Unsaved changes will be lost.",
+    "cancel": "Cancel",
+    "saveAndExit": "Save & Exit",
+    "exitWithoutSaving": "Exit"
+  },
+  "mobileNav": {
+    "title": "Navigation",
+    "backToMap": "Worlds Map",
+    "exit": "Exit",
+    "reviewAnswers": "Review",
+    "menuTitle": "Menu"
+  },
+  "tooltips": {
+    "faq": "Help & FAQ",
+    "accessibility": "Accessibility"
+  },
+  "profileNotice": {
+    "title": "Note:",
+    "textPart1": "Some answers are public. Use the",
+    "visibilityToggleLabel": "Visibility Toggle",
+    "textPart2": "to hide sensitive details.",
+    "link": "Manage Profile Settings"
   }
+}
 
 ,
-  "world": {
-    "header": {
-      "questionLabel": "Question {{current}} of {{total}}",
-      "estimatedTimeLeft": "{{minutes}} min left",
-      "statusCard": {
-        "progress": "Progress",
-        "required": "Required",
-        "status": "Status",
-        "questions": "questions",
-        "complete": "✓ Complete",
-        "left": "{{count}} left",
-        "keepItUp": "Keep it up!",
-        "states": {
-          "started": "🌱 Started",
-          "going": "🚀 Going!",
-          "great": "⭐ Great",
-          "almost": "🔥 Almost!",
-          "perfect": "🎉 Perfect!"
-        }
-      },
-      "overallProgress": "Overall Progress"
-    },
-    "errors": {
-      "loadingFailedTitle": "Loading Error",
-      "loadingFailedDescription": "We couldn't load the questions for this world. Please try returning to the map and re-entering.",
-      "invalidQuestion": "Invalid question. Please try again.",
-      "validation": {
-        "required": "This field is required",
-        "minLength": "Answer must be at least {{count}} characters",
-        "maxLength": "Answer cannot exceed {{count}} characters",
-        "minSelections": "Please select at least {{count}} options",
-        "maxSelections": "You can select up to {{count}} options",
-        "budgetAllocation": "You must allocate exactly {{count}} points",
-        "budgetRequired": "Budget allocation is required"
+ "world": {
+  "header": {
+    "questionLabel": "Question {{current}} of {{total}}",
+    "estimatedTimeLeft": "{{minutes}} min left",
+    "statusCard": {
+      "progress": "Progress",
+      "required": "Required",
+      "status": "Status",
+      "questions": "questions",
+      "complete": "✓ Complete",
+      "left": "{{count}} left",
+      "keepItUp": "Keep it up!",
+      "states": {
+        "started": "🌱 Started",
+        "going": "🚀 Going!",
+        "great": "⭐ Great",
+        "almost": "🔥 Almost!",
+        "perfect": "🎉 Perfect!"
       }
     },
-    "buttons": {
-      "backToMap": "Back to Map",
-      "hideList": "Hide List",
-      "showList": "Show List",
-      "questionList": "Question List",
-      "previous": "Previous",
-      "next": "Next",
-      "finish": "Finish World",
-      "save": "Save",
-      "saving": "Saving..."
-    },
-    "listSheet": {
-      "title": "All Questions in {{worldTitle}}",
-      "description": "Navigate to any question or review your progress.",
-      "legend": {
-        "completed": "Answered",
-        "required": "Required",
-        "notAnswered": "Not Answered"
-      }
-    },
-    "celebration": {
-      "quarter": "🎉 Quarter way!",
-      "half": "🚀 Halfway there!",
-      "threeQuarters": "⭐ Almost done!",
-      "complete": "🎊 Amazing! All done!"
+    "overallProgress": "Overall Progress",
+    "lastSaved": {
+      "now": "Saved now",
+      "minuteAgo": "Saved 1 min ago",
+      "minutesAgo": "Saved {{count}} mins ago",
+      "hoursAgo": "Saved {{count}} hours ago"
     }
-  }
-,
-  "answerInput": {
-    "clearSelection": "Clear selection",
-    "tooltips": {
-      "copy": "Copy answer",
-      "copied": "Copied!",
-      "clearText": "Clear text",
-      "removeCustomAnswer": "Remove custom answer",
-      "resetAllocation": "Reset allocation"
-    },
-    "multiSelectWithOther": {
-      "addOtherOptionLabel": "Add another option",
-      "otherOptionPlaceholder": "Type your answer here...",
-      "addButton": "Add",
-      "addedAnswersLabel": "Your added answers:",
-      "errorExists": "This answer already exists."
-    },
-    "multiSelect": {
-      "maxSelectionError": "You can select up to {{count}} options.",
-      "selectedInfo": "{{count}} options selected",
-      "minLabel": "Min",
-      "maxLabel": "Max"
-    },
-    "openText": {
-      "placeholder": "Your reflection here...",
-      "minLengthRequired": "{{count}} more characters needed",
-      "minLengthMet": "Minimum length met",
-      "maxLengthExceeded": "Maximum length exceeded",
-      "minLengthInfoRequired": "At least {{count}} characters required",
-      "minLengthInfoRecommended": "At least {{count}} characters recommended",
-      "estimatedTime": "Estimated writing time: {{count}} minutes",
-      "tipsButton": "Tips for a great answer"
-    },
-    "budgetAllocation": {
-      "totalAllocated": "Total Allocated:",
-      "remaining": "{{count}} remaining",
-      "surplus": "{{count}} surplus",
-      "resetButton": "Reset"
-    },
-    "unsupportedType": "Oops! Question type '{{type}}' is not supported yet."
   },
+  "errors": {
+    "loadingFailedTitle": "Loading Error",
+    "loadingFailedDescription": "We couldn't load the questions for this world. Please try returning to the map and re-entering.",
+    "invalidQuestion": "Invalid question. Please try again.",
+    "noQuestionFound": "No question found to display",
+    "validation": {
+      "required": "This field is required",
+      "minLength": "Answer must be at least {{count}} characters",
+      "maxLength": "Answer cannot exceed {{count}} characters",
+      "minSelections": "Please select at least {{count}} options",
+      "maxSelections": "You can select up to {{count}} options",
+      "budgetAllocation": "You must allocate exactly {{count}} points",
+      "budgetRequired": "Budget allocation is required",
+      "generalRequired": "Please answer all required questions ({{current}}/{{total}})"
+    }
+  },
+  "buttons": {
+    "backToMap": "Back to Map",
+    "hideList": "Hide List",
+    "showList": "Show List",
+    "questionList": "Question List",
+    "previous": "Previous",
+    "next": "Next",
+    "finish": "Finish World",
+    "save": "Save",
+    "saving": "Saving...",
+    "completing": "Completing...",
+    "prevShort": "Prev",
+    "nextShort": "Next",
+    "finishShort": "Finish"
+  },
+  "listSheet": {
+    "title": "All Questions in {{worldTitle}}",
+    "description": "Navigate to any question or review your progress.",
+    "legend": {
+      "completed": "Answered",
+      "required": "Required",
+      "notAnswered": "Not Answered"
+    }
+  },
+  "celebration": {
+    "quarter": "🎉 Quarter way!",
+    "half": "🚀 Halfway there!",
+    "threeQuarters": "⭐ Almost done!",
+    "complete": "🎊 Amazing! All done!"
+  }
+}
+,
+"answerInput": {
+  "clearSelection": "Clear selection",
+  "tooltips": {
+    "copy": "Copy answer",
+    "copied": "Copied!",
+    "clearText": "Clear text",
+    "removeCustomAnswer": "Remove custom answer",
+    "resetAllocation": "Reset allocation"
+  },
+  "multiSelectWithOther": {
+    "addOtherOptionLabel": "Add another option",
+    "otherOptionPlaceholder": "Type your answer here...",
+    "addButton": "Add",
+    "addedAnswersLabel": "Your added answers:",
+    "errorExists": "This answer already exists."
+  },
+  "multiSelect": {
+    "maxSelectionError": "You can select up to {{count}} options.",
+    "selectedInfo": "{{count}} options selected",
+    "minLabel": "Min",
+    "maxLabel": "Max"
+  },
+  "openText": {
+    "placeholder": "Your reflection here...",
+    "minLengthRequired": "{{count}} more characters needed",
+    "minLengthMet": "Minimum length met",
+    "maxLengthExceeded": "Maximum length exceeded",
+    "minLengthInfoRequired": "At least {{count}} characters required",
+    "minLengthInfoRecommended": "At least {{count}} characters recommended",
+    "estimatedTime": "Estimated writing time: {{count}} minutes",
+    "tipsButton": "Tips for a great answer",
+    "wordCount": "{{count}} words",
+    "readingTime": "{{count}} min read",
+    "completionPercentage": "{{count}}% complete",
+    "writingGreat": "Great writing! Keep going"
+  },
+  "budgetAllocation": {
+    "totalAllocated": "Total Allocated:",
+    "remaining": "{{count}} remaining",
+    "surplus": "{{count}} surplus",
+    "resetButton": "Reset All",
+    "statusComplete": "Budget complete!",
+    "statusRemaining": "Remaining to allocate: {{count}}",
+    "statusExceeded": "Exceeded by {{count}}"
+  },
+  "unsupportedType": "Oops! Question type '{{type}}' is not supported yet.",
+  "supportContactMessage": "Please contact technical support."
+},
   "interactiveScale": {
     "selectedValue": "Selected value: {{value}}",
     "ariaLabel": "Scale value {{value}}"
   },
-  "accessibilityFeatures": {
-    "panelTitle": "Accessibility",
-    "panelSubtitle": "Adjust display settings for your comfort.",
-    "changedBadge": "Changed",
-    "triggerButton": {
-      "open": "Open accessibility panel",
-      "close": "Close accessibility panel"
+"accessibilityFeatures": {
+  "panelTitle": "Accessibility",
+  "panelSubtitle": "Adjust display settings for your comfort.",
+  "changedBadge": "Changed",
+  "triggerButton": {
+    "open": "Open accessibility panel",
+    "close": "Close accessibility panel"
+  },
+  "resetButton": "Reset All Settings",
+  "textSize": {
+    "title": "Text Size",
+    "description": "Increase or decrease the size of text on the page."
+  },
+  "displayMode": {
+    "title": "Display Mode"
+  },
+  "contrastOptions": {
+    "normal": {
+      "label": "Normal",
+      "description": "Standard display mode."
     },
-    "resetButton": "Reset All Settings",
-    "textSize": {
-      "title": "Text Size",
-      "description": "Increase or decrease the size of text on the page."
+    "high": {
+      "label": "High Contrast",
+      "description": "Increase text and element contrast."
     },
-    "displayMode": {
-      "title": "Display Mode"
-    },
-    "contrastOptions": {
-      "normal": {
-        "label": "Normal",
-        "description": "Standard display mode."
-      },
-      "high": {
-        "label": "High Contrast",
-        "description": "Increase text and element contrast."
-      },
-      "dark": {
-        "label": "Dark Mode",
-        "description": "Reduces eye strain in low light."
-      }
-    },
-    "additionalSettings": {
-      "title": "Additional Tools"
-    },
-    "advancedOptions": {
-      "sound": {
-        "label": "Interaction Sounds",
-        "description": "Enable sound feedback for actions."
-      },
-      "reader": {
-        "label": "Text Reader",
-        "description": "Click on text to hear it read aloud."
-      },
-      "cursor": {
-        "label": "Large Cursor",
-        "description": "Increase the size of the mouse cursor."
-      },
-      "font": {
-        "label": "Readable Font",
-        "description": "Switch to a standard, high-legibility font."
-      },
-      "motion": {
-        "label": "Reduce Motion",
-        "description": "Disable animations and transition effects."
-      }
-    },
-    "settingNames": {
-      "fontScale": "Text Size",
-      "contrastMode": "Display Mode",
-      "reducedMotion": "Reduce Motion",
-      "readableMode": "Readable Font",
-      "bigCursor": "Large Cursor",
-      "textReader": "Text Reader",
-      "soundEnabled": "Interaction Sounds"
-    },
-    "toasts": {
-      "settingUpdated": "{{settingName}} updated.",
-      "settingsReset": "Accessibility settings reset to default.",
-      "readerEnabled": "Text Reader is now active. Click any text to hear it."
+    "dark": {
+      "label": "Dark Mode",
+      "description": "Reduces eye strain in low light."
     }
   },
-  "faq": {
-    "title": "Questionnaire FAQ",
-    "subtitle": "Answers to common questions about the journey.",
-    "searchPlaceholder": "Search questions...",
-    "popularBadge": "Popular",
-    "emptyState": "No questions found matching your search.",
-    "categories": {
-      "all": "All",
-      "process": "Process",
-      "technical": "Technical",
-      "privacy": "Privacy",
-      "results": "Results",
-      "general": "General"
+  "additionalSettings": {
+    "title": "Additional Tools"
+  },
+  "advancedOptions": {
+    "sound": {
+      "label": "Interaction Sounds",
+      "description": "Enable sound feedback for actions."
     },
-    "items": {
-      "save-progress": {
-        "question": "Is my progress saved automatically?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "Yes, if you are logged into your account, your progress is saved automatically in the background. You will see a 'Last saved' timestamp appear. You can also manually save at any time. If you are not logged in, your progress is saved only to your current browser session."
-          },
-          {
-            "type": "alert",
-            "content": "To ensure your progress is never lost, we highly recommend creating an account or logging in before you begin."
-          }
-        ]
-      },
-      "time-to-complete": {
-        "question": "How long does the questionnaire take?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "We recommend setting aside 45-60 minutes of quiet, reflective time to complete the entire journey. You don't have to do it all at once! The questionnaire is divided into five 'worlds', and you can complete them at your own pace."
-          },
-          {
-            "type": "tip",
-            "title": "Our Recommendation",
-            "content": "Try to complete one full 'world' in each session. This helps maintain your flow of thought and leads to more cohesive answers."
-          }
-        ]
-      },
-      "required-questions": {
-        "question": "Do I have to answer every question?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "Not all of them, but we encourage it! Questions marked as 'Required' are essential for our matching algorithm to function effectively. Other questions, while optional, provide crucial nuance that helps your matchmaker understand you better and find higher quality connections for you."
-          },
-          {
-            "type": "star",
-            "content": "The more you share, the more accurately we can find someone who truly complements you."
-          }
-        ]
-      },
-      "how-matching-works": {
-        "question": "How are my answers used for matching?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "Your answers are the primary data source for our unique matching process:"
-          },
-          {
-            "type": "list",
-            "content": [
-              "Our AI algorithm analyzes your responses across all five worlds to identify patterns, priorities, and potential compatibility scores with other users.",
-              "Your personal matchmaker reviews both the data and your open-text answers to understand the person behind the profile.",
-              "The system highlights promising matches for the matchmaker, who then uses their human intuition and experience to make the final decision on whether to suggest a match.",
-              "Your answers also help us craft the 'Why we think this could work' rationale that accompanies every suggestion you receive."
-            ]
-          }
-        ]
-      },
-      "privacy-info": {
-        "question": "Who can see my answers?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "Your privacy is our highest priority. By default:"
-          },
-          {
-            "type": "list",
-            "content": [
-              "Only your dedicated matchmaking team can view your complete set of answers.",
-              "You have control over each answer's visibility. You can mark sensitive answers as 'Hidden', making them visible only to the matchmaking team.",
-              "When a match is suggested, a curated selection of your 'Visible' answers is shared with the potential match, but only after you approve the suggestion."
-            ]
-          },
-          {
-            "type": "info",
-            "content": "We never share your data with third parties. You are always in control of your story."
-          }
-        ]
-      },
-      "edit-answers": {
-        "question": "Can I change my answers later?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "Of course. We understand that people grow and perspectives change. You can return to your profile at any time to review and edit your answers to the questionnaire. We actually recommend reviewing your answers every 6-12 months to ensure they still reflect who you are."
-          }
-        ]
-      },
-      "match-percentage": {
-        "question": "What does the 'match percentage' mean?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "The match percentage is a guide, not a verdict. It's a score generated by our algorithm based on dozens of compatibility factors from the questionnaire. It represents the potential for alignment in values, personality, and lifestyle. However, it's the matchmaker's job to look beyond the number and see the human connection, which is why every suggestion is personally vetted."
-          }
-        ]
-      },
-      "incomplete-questionnaire": {
-        "question": "What happens if I don't complete the whole questionnaire?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "While you can receive matches with a partially completed questionnaire, its effectiveness is significantly reduced. Completing all required questions across the five worlds is necessary to be fully active in our matching pool and to receive the most accurate, high-quality suggestions."
-          }
-        ]
-      },
-      "inactive-account": {
-        "question": "What happens if my account is inactive?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "For security and to ensure our matching pool remains active, users who are inactive for an extended period (typically over 2 hours) will be automatically logged out. You can always log back in to continue where you left off."
-          }
-        ]
-      }
+    "reader": {
+      "label": "Text Reader",
+      "description": "Click on text to hear it read aloud."
+    },
+    "cursor": {
+      "label": "Large Cursor",
+      "description": "Increase the size of the mouse cursor."
+    },
+    "font": {
+      "label": "Readable Font",
+      "description": "Switch to a standard, high-legibility font."
+    },
+    "motion": {
+      "label": "Reduce Motion",
+      "description": "Disable animations and transition effects."
     }
   },
+  "settingNames": {
+    "fontScale": "Text Size",
+    "contrastMode": "Display Mode",
+    "reducedMotion": "Reduce Motion",
+    "readableMode": "Readable Font",
+    "bigCursor": "Large Cursor",
+    "textReader": "Text Reader",
+    "soundEnabled": "Interaction Sounds"
+  },
+  "toasts": {
+    "settingUpdated": "{{settingName}} updated.",
+    "settingsReset": "Accessibility settings reset to default.",
+    "readerEnabled": "Text Reader is now active. Click any text to hear it."
+  }
+},
+ "faq": {
+  "title": "Questionnaire FAQ",
+  "subtitle": "Common questions about the process.",
+  "searchPlaceholder": "Search questions...",
+  "popularBadge": "Popular",
+  "emptyState": "No questions found.",
+  "categories": {
+    "all": "All",
+    "process": "Process",
+    "technical": "Technical",
+    "privacy": "Privacy",
+    "results": "Results",
+    "general": "General"
+  },
+  "items": {
+    "save-progress": {
+      "question": "Is my progress saved automatically?",
+      "answer": [
+        { "type": "p", "content": "Yes, progress is saved automatically when you complete a section or switch worlds." },
+        { "type": "tip", "title": "Tip:", "content": "Make sure to log in so progress is saved to your account." }
+      ]
+    },
+    "time-to-complete": {
+      "question": "How long does it take?",
+      "answer": [
+        { "type": "p", "content": "The full questionnaire takes about 30-40 minutes, but you can do it in stages." }
+      ]
+    },
+    "required-questions": {
+      "question": "Do I have to answer everything?",
+      "answer": [
+        { "type": "p", "content": "No, only questions marked as 'Required *' are mandatory." },
+        { "type": "p", "content": "However, more answers lead to better matches." }
+      ]
+    },
+    "how-matching-works": {
+      "question": "How does matching work?",
+      "answer": [
+        { "type": "p", "content": "We analyze your personality and values profile using both professional matchmakers and smart algorithms to find compatible partners." }
+      ]
+    },
+    "privacy-info": {
+      "question": "Who can see my answers?",
+      "answer": [
+        { "type": "p", "content": "Only our matchmaking team sees your full answers. Matches see only general info and shared interests." },
+        { "type": "info", "content": "Your privacy is our top priority." }
+      ]
+    },
+    "edit-answers": {
+      "question": "Can I edit answers later?",
+      "answer": [
+        { "type": "p", "content": "Yes, you can edit your answers at any time via your profile." }
+      ]
+    },
+    "match-percentage": {
+      "question": "What is the match percentage?",
+      "answer": [
+        { "type": "p", "content": "It indicates the potential compatibility based on values, lifestyle, and personality traits." }
+      ]
+    },
+    "incomplete-questionnaire": {
+      "question": "What if I don't finish?",
+      "answer": [
+        { "type": "p", "content": "You can still get matches if you answer the required questions, but accuracy improves with completion." }
+      ]
+    },
+    "inactive-account": {
+      "question": "What happens if I'm inactive?",
+      "answer": [
+        { "type": "p", "content": "Inactive profiles are paused after a long period. Logging in reactivates your profile." }
+      ]
+    }
+  }
+},
   "questionnaireProgress": {
     "worldLabels": {
       "PERSONALITY": "Personality",
@@ -828,45 +817,45 @@ Content:
       "timePerWorld": "~{{time}} min"
     }
   },
-  "userStats": {
-    "matchStatsCard": {
-      "title": "Match Statistics",
-      "activeMatches": "Active Matches",
-      "pendingMatches": "Pending Matches",
-      "matchScore": "Average Match Score",
-      "daysActive": "{{days}} days active",
-      "joinDate": "Joined: {{date}}"
-    },
-    "profileProgressCard": {
-      "title": "Profile Progress",
-      "profileCompletion": "Profile Completion",
-      "questionsAnswered": "Questionnaire Answers",
-      "outOf": "of",
-      "completedWorlds": "Completed Worlds",
-      "activityLevel": "Activity Level"
-    },
-    "personalityTraitsCard": {
-      "title": "Top Personality Traits"
-    },
-    "tooltips": {
-      "traitScore": "Score based on your answers: {{score}}%"
-    },
-    "common": {
-      "notAvailable": "N/A"
-    },
-    "worlds": {
-      "PERSONALITY": "Personality",
-      "VALUES": "Values",
-      "RELATIONSHIP": "Partnership",
-      "PARTNER": "Partner",
-      "RELIGION": "Religion"
-    },
-    "activityLevels": {
-      "high": "High",
-      "medium": "Medium",
-      "low": "Low"
-    }
+ "userStats": {
+  "matchStatsCard": {
+    "title": "Match Statistics",
+    "activeMatches": "Active Matches",
+    "pendingMatches": "Pending Matches",
+    "matchScore": "Average Match Score",
+    "daysActive": "{{days}} days active",
+    "joinDate": "Joined: {{date}}"
   },
+  "profileProgressCard": {
+    "title": "Profile Progress",
+    "profileCompletion": "Profile Completion",
+    "questionsAnswered": "Questionnaire Answers",
+    "outOf": "of",
+    "completedWorlds": "Completed Worlds",
+    "activityLevel": "Activity Level"
+  },
+  "personalityTraitsCard": {
+    "title": "Top Personality Traits"
+  },
+  "tooltips": {
+    "traitScore": "Score based on your answers: {{score}}%"
+  },
+  "common": {
+    "notAvailable": "N/A"
+  },
+  "worlds": {
+    "PERSONALITY": "Personality",
+    "VALUES": "Values",
+    "RELATIONSHIP": "Partnership",
+    "PARTNER": "Partner",
+    "RELIGION": "Religion"
+  },
+  "activityLevels": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  }
+},
   "questionnaireRestore": {
     "loading": "Loading...",
     "restoringTitle": "Restoring Your Journey",
@@ -882,46 +871,63 @@ Content:
     "profilePrompt": "We recommend visiting your profile to upload photos and review your personal details.",
     "continueButton": "Continue to My Profile"
   },
-  "questionsList": {
-    "depthLabels": {
-      "BASIC": "Foundations",
-      "ADVANCED": "Deeper Insights",
-      "EXPERT": "Core Reflections"
-    }
+"questionsList": {
+  "depthLabels": {
+    "BASIC": "בסיסי",
+    "ADVANCED": "מתקדם",
+    "EXPERT": "מעמיק"
   },
-  "matchResultCard": {
-    "premiumBadge": "Premium",
-    "matchPercentageBadge": "{{percentage}}% Match",
-    "tooltips": {
-      "addToBookmarks": "Add to bookmarks",
-      "removeFromBookmarks": "Remove from bookmarks",
-      "traitDescription": "{{description}}"
-    },
-    "buttons": {
-      "reject": "Decline",
-      "confirmReject": "Confirm Decline",
-      "cancel": "Cancel",
-      "accept": "Accept",
-      "continueChat": "Continue Chat",
-      "showMore": "Show More",
-      "hideMore": "Show Less",
-      "viewFullProfile": "View Full Profile"
-    },
-    "sections": {
-      "about": "About {{name}}",
-      "topMatches": "Top Matching Traits",
-      "commonInterests": "Common Interests",
-      "lastActive": "Last active: {{time}}"
-    },
-    "lastActiveFormat": {
-      "unknown": "Unknown",
-      "today": "Today",
-      "yesterday": "Yesterday",
-      "daysAgo": "{{count}} days ago",
-      "weeksAgo": "{{count}} weeks ago",
-      "monthsAgo": "{{count}} months ago"
-    }
+  "stats": {
+    "answeredQuestions": "שאלות שנענו",
+    "complete": "הושלם",
+    "remaining": "נותרו",
+    "done": "נענו"
+  },
+  "badges": {
+    "required": "חובה",
+    "answered": "✓ נענתה"
+  },
+  "motivationalMessages": {
+    "start": { "title": "בואו נתחיל!", "subtitle": "כל תשובה מקרבת אותך" },
+    "quarter": { "title": "התחלה מעולה!", "subtitle": "המשך כך" },
+    "half": { "title": "באמצע הדרך!", "subtitle": "עבודה מצוינת" },
+    "threeQuarters": { "title": "כמעט שם!", "subtitle": "עוד קצת והגעת לסיום" },
+    "finish": { "title": "מדהים! סיימת!", "subtitle": "השלמת את כל השאלות" }
   }
+},
+"matchResultCard": {
+  "premiumBadge": "Premium",
+  "matchPercentageBadge": "{{percentage}}% Match",
+  "tooltips": {
+    "addToBookmarks": "Add to bookmarks",
+    "removeFromBookmarks": "Remove from bookmarks",
+    "traitDescription": "{{description}}"
+  },
+  "buttons": {
+    "reject": "Decline",
+    "confirmReject": "Confirm Decline",
+    "cancel": "Cancel",
+    "accept": "Accept",
+    "continueChat": "Continue Chat",
+    "showMore": "Show More",
+    "hideMore": "Show Less",
+    "viewFullProfile": "View Full Profile"
+  },
+  "sections": {
+    "about": "About {{name}}",
+    "topMatches": "Top Matching Traits",
+    "commonInterests": "Common Interests",
+    "lastActive": "Last active: {{time}}"
+  },
+  "lastActiveFormat": {
+    "unknown": "Unknown",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{{count}} days ago",
+    "weeksAgo": "{{count}} weeks ago",
+    "monthsAgo": "{{count}} months ago"
+  }
+}
 }
 --- End of Content for en.json ---
 
@@ -970,115 +976,136 @@ Content:
     }
   },
 
-  "questionCard": {
-    "depthLabels": {
-      "BASIC": "בסיסי",
-      "ADVANCED": "מתקדם",
-      "EXPERT": "מעמיק"
+ "questionCard": {
+  "depthLabels": {
+    "BASIC": "בסיסי",
+    "ADVANCED": "מתקדם",
+    "EXPERT": "מעמיק"
+  },
+  "depthDescriptions": {
+    "BASIC": "שאלות יסוד להבנת הבסיס",
+    "ADVANCED": "שאלות להעמקה והבנת ניואנסים",
+    "EXPERT": "שאלות עומק לבירור ערכי ליבה"
+  },
+  "requiredBadge": "חובה",
+  "estimatedTime": "נותרו כ-{{minutes}} דק'",
+  "benefitMessages": [
+    "כל תשובה מקרבת אותך להתאמה המדויקת 💫",
+    "הכנות שלך היא המפתח להצלחה 🗝️",
+    "אנחנו לומדים להכיר אותך טוב יותר ❤️",
+    "השקעה קטנה עכשיו תחסוך זמן יקר אח\"כ ⏳"
+  ],
+  "encouragementMessage": "המשך כך, אתה בדרך הנכונה!",
+  "tooltips": {
+    "removeBookmark": "הסר סימניה",
+    "addBookmark": "שמור לעיון מאוחר יותר",
+    "hideHelp": "הסתר עזרה",
+    "showHelp": "הצג עזרה והסברים",
+    "whyQuestion": "למה אנחנו שואלים את זה?",
+    "visibility": {
+      "visibleTitle": "גלוי למותאמים",
+      "hiddenTitle": "מוסתר ממותאמים",
+      "visibleDesc": "תשובה זו תהיה גלויה למי שנוצע לו שידוך איתך",
+      "hiddenDesc": "תשובה זו תהיה גלויה רק לשדכנים"
     },
-    "depthDescriptions": {
-      "BASIC": "שאלות חובה המהוות את הבסיס להיכרות",
-      "ADVANCED": "שאלות מומלצות להיכרות מעמיקה יותר",
-      "EXPERT": "שאלות העשרה לחיבור מעמיק במיוחד"
-    },
-        "estimatedTime": "{{minutes}} דקות נותרו",
-    "benefitMessages": [
-      "כל תשובה מקרבת אותך להתאמה מושלמת יותר 💫",
-      "השאלון עוזר לך להבין מה באמת חשוב לך 🎯",
-      "זמן שמושקע כאן חוסך חודשים של חיפושים ❤️",
-      "אתה בונה תשתית להצלחה ארוכת טווח 🌟"
-    ],
-    "encouragementMessage": "כל תשובה עוזרת לנו להכיר אותך טוב יותר ולמצוא לך את ההתאמה המושלמת",
-    "requiredBadge": "שאלת חובה *",
-
-    "tooltips": {
-      "removeBookmark": "הסר סימניה",
-      "addBookmark": "שמור לעיון חוזר",
-      "hideHelp": "הסתר עזרה",
-      "showHelp": "הצג עזרה",
-      "whyQuestion": "למה אנחנו שואלים את זה?",
-      "visibility": {
-        "visibleTitle": "👁️ גלוי לכולם",
-        "hiddenTitle": "🔒 מוסתר מהציבור",
-        "visibleDesc": "התשובה תוצג בפרופיל הציבורי שלך",
-        "hiddenDesc": "התשובה תהיה גלויה רק לשדכנים מאושרים"
-      },
-      "saveProgressSaving": "שומר...",
-      "saveProgress": "שמור התקדמות",
-      "viewProfile": "צפה בפרופיל ובתשובות"
-    },
-    "visibilityButton": {
-      "visible": "גלוי לפרופיל",
-      "hidden": "מוסתר מהפרופיל"
-    },
-    "skipButton": {
-      "skip": "דלג",
-      "required": "שאלת חובה"
-    }
+    "saveProgressSaving": "שומר נתונים...",
+    "saveProgress": "שמור התקדמות",
+    "viewProfile": "צפה בפרופיל המלא"
+  },
+  "visibilityButton": {
+    "visible": "גלוי",
+    "hidden": "מוסתר"
+  },
+  "skipButton": {
+    "skip": "דלג לשאלה הבאה",
+    "required": "שאלת חובה"
   }
+}
 ,
      "visibilityButton": {
       "visible": "גלוי לפרופיל",
       "hidden": "מוסתר מהפרופיל"
     },
-  "completion": {
-    "title": "כל הכבוד! סיימת את השאלון",
-    "loggedInDescription": "התשובות שלך יעזרו לנו למצוא עבורך את ההתאמה הטובה ביותר",
-    "guestDescription": "כדי לשמור את התשובות ולהתחיל בתהליך ההתאמה, יש להתחבר למערכת",
-    "loggedInContent": {
-      "prompt": "כעת ניתן לשלוח את השאלון לצוות האיפיון שלנו",
-      "promptSubtitle": "הצוות יעבור על התשובות ויתחיל בתהליך ההתאמה",
-      "sendButton": "שלח לאיפיון",
-      "sendingButton": "שולח...",
-      "reviewButton": "סקירת כל התשובות שלי"
-    },
-    "guestContent": {
-      "loginButton": "התחבר למערכת"
-    }
+"completion": {
+  "title": "כל הכבוד! סיימת את השאלון",
+  "loggedInDescription": "התשובות שלך יעזרו לנו למצוא עבורך את ההתאמה הטובה ביותר",
+  "guestDescription": "כדי לשמור את התשובות ולהתחיל בתהליך ההתאמה, יש להתחבר למערכת",
+  "loggedInContent": {
+    "prompt": "כעת ניתן לשלוח את השאלון לצוות האיפיון שלנו",
+    "promptSubtitle": "הצוות יעבור על התשובות ויתחיל בתהליך ההתאמה",
+    "sendButton": "שלח לאיפיון",
+    "sendingButton": "שולח...",
+    "reviewButton": "סקירת כל התשובות שלי"
   },
-  "matchmaking": {
-    "worldLabels": {
-      "PERSONALITY": "אישיות",
-      "VALUES": "ערכים ואמונות",
-      "RELATIONSHIP": "זוגיות",
-      "PARTNER": "פרטנר",
-      "RELIGION": "דת ומסורת"
+  "guestContent": {
+    "loginButton": "התחבר למערכת"
+  },
+  "stats": {
+    "completion": "% השלמה",
+    "answered": "שאלות נענו",
+    "time": "זמן השקעה"
+  },
+  "unlocksTitle": "🎉 הישגים שפתחת",
+  "achievements": {
+    "completed": {
+      "title": "🎯 השלמת את השאלון!",
+      "description": "מילאת את כל השאלות בהצלחה"
     },
-    "toasts": {
-      "saveSuccess": "ההתקדמות נשמרה בהצלחה",
-      "autoSaveError": "שגיאה בשמירה אוטומטית",
-      "unsavedChanges": {
-        "message": "יש לך שינויים שלא נשמרו.",
-        "action": "שמור עכשיו"
-      },
-      "answerVisible": "התשובה תוצג בפרופיל",
-      "answerHidden": "התשובה תוסתר מהפרופיל",
-      "worldProgressSaved": "התקדמות העולם נשמרה",
-      "worldProgressSavedBrowser": "התקדמות העולם נשמרה בדפדפן",
-      "worldCompletionError": "שגיאה בשמירת התקדמות העולם",
-      "worldFinished": "כל הכבוד! סיימת את עולם ה{{worldName}}",
-      "submitSuccess": "השאלון נשלח בהצלחה!"
+    "speed": {
+      "title": "⚡ מהירות מרשימה",
+      "description": "סיימת תוך {{minutes}} דקות"
     },
-    "errors": {
-      "invalidSubmission": "נתוני שליחה לא תקינים",
-      "saveFailed": "אירעה שגיאה בשמירת השאלון.",
-      "loadFailed": "נכשל בטעינת תשובות קיימות",
-      "genericLoadError": "אירעה שגיאה בטעינת התשובות הקיימות",
-      "stageLoadError": "שגיאה בטעינת השלב",
-      "invalidStep": "אירעה שגיאה: שלב לא תקין בתהליך.",
-      "submitFailed": "שגיאה בשליחת השאלון."
-    },
-    "idleModal": {
-      "title": "האם אתה עדיין כאן?",
-      "description": "לא זיהינו פעילות בחשבונך. למען אבטחת המידע, תתבצע יציאה אוטומטית מהמערכת בעוד כדקה.",
-      "logoutButton": "צא מהמערכת",
-      "stayActiveButton": "אני עדיין כאן"
-    },
-    "lastSaved": "נשמר לאחרונה: {{time}}",
-    "loading": "טוען את המסע שלך...",
-    "loadingSubtext": "טוען את השאלון שלך...",
-    "lastSavedIndicatorLabel": "נשמר"
+    "profile": {
+      "title": "🎨 פרופיל מלא",
+      "description": "יצרת פרופיל עשיר ומפורט"
+    }
   }
+},
+ "matchmaking": {
+  "worldLabels": {
+    "PERSONALITY": "אישיות",
+    "VALUES": "ערכים ואמונות",
+    "RELATIONSHIP": "זוגיות",
+    "PARTNER": "פרטנר",
+    "RELIGION": "דת ומסורת"
+  },
+  "toasts": {
+    "saveSuccess": "השינויים נשמרו בהצלחה! 💾",
+    "autoSaveError": "שגיאה בשמירה אוטומטית",
+    "unsavedChanges": {
+      "message": "יש לך שינויים שלא נשמרו.",
+      "action": "שמור עכשיו"
+    },
+    "answerVisible": "התשובה תוצג בפרופיל",
+    "answerHidden": "התשובה תוסתר מהפרופיל",
+    "worldProgressSaved": "התקדמות העולם נשמרה",
+    "worldProgressSavedBrowser": "התקדמות נשמרה בדפדפן (אורח)",
+    "worldCompletionError": "שגיאה בשמירת התקדמות העולם",
+    "worldFinished": "כל הכבוד! השלמת את עולם ה{{worldName}}! 🎉",
+    "allWorldsFinished": "🎊 מדהים! השלמת את כל העולמות! 🎊",
+    "submitSuccess": "השאלון נשלח בהצלחה!",
+    "nextWorldAction": "המשך ל{{name}}"
+  },
+  "errors": {
+    "invalidSubmission": "נתוני שליחה לא תקינים",
+    "saveFailed": "שגיאה בשמירה",
+    "loadFailed": "נכשל בטעינת הנתונים",
+    "genericLoadError": "אירעה שגיאה בטעינת התשובות הקיימות",
+    "stageLoadError": "שגיאה בטעינת השלב",
+    "invalidStep": "אירעה שגיאה: שלב לא תקין בתהליך.",
+    "submitFailed": "שגיאה בשליחת השאלון."
+  },
+  "idleModal": {
+    "title": "האם אתה עדיין כאן?",
+    "description": "לא זיהינו פעילות בחשבונך. למען אבטחת המידע, תתבצע יציאה אוטומטית מהמערכת בעוד כדקה.",
+    "logoutButton": "צא מהמערכת",
+    "stayActiveButton": "אני עדיין כאן"
+  },
+  "lastSaved": "נשמר לאחרונה: {{time}}",
+  "loading": "טוען את המסע שלך...",
+  "loadingSubtext": "מכין את השאלון שלך...",
+  "lastSavedIndicatorLabel": "נשמר"
+}
 ,
   "page": {
     "loading": "טוען שאלון...",
@@ -1093,7 +1120,7 @@ Content:
     "title2": "צריך לדעת מה באמת רוצים",
     "subtitle1": "שאלון עומק שעוזר לך להבין את עצמך, מה שחשוב לך באמת,",
     "subtitle2": "ומייצר עבורך",
-    "subtitleHighlight": "דוח נשמה מפורט",
+"subtitleHighlight": "התמונה המלאה שלך",
     "subtitle3": "- מפת דרכים לזוגיות שאתה באמת מחפש",
     "timeEstimate": "20-30 דקות שיחסכו לך חודשים של חיפושים"
   },
@@ -1105,11 +1132,10 @@ Content:
   },
   "problemSection": {
     "badge": "הבעיה שכולנו מכירים",
-"title1": "“אז מה אתה באמת מחפש?”",
+    "title1": "“אז מה אתה באמת מחפש?”",
     "title2": "...והתשובה הסטנדרטית שלא עוזרת",
     "cards": {
-"generalAnswers": { "title": "תשובות כלליות", "description": "“מישהו טוב”, “עם ערכים דומים”, “שיהיה כיף איתה” - אבל מה זה באמת אומר? איך תדע שמצאת?" }
-,
+      "generalAnswers": { "title": "תשובות כלליות", "description": "“מישהו טוב”, “עם ערכים דומים”, “שיהיה כיף איתה” - אבל מה זה באמת אומר? איך תדע שמצאת?" },
       "wastedTime": { "title": "בזבוז זמן ואנרגיה", "description": "דייטים שנגמרים ב\"זה לא זה\" כי לא ממש הבנת מה אתה מחפש מלכתחילה. כל דייט מרגיש כמו נסיון וטעייה." },
       "lackOfFocus": { "title": "חוסר מיקוד", "description": "קשה להסביר לשדכנים מה באמת חשוב לך, קשה לדעת אם הצעה מתאימה לך, קשה לקבל החלטות." },
       "frustration": { "title": "תסכול וחוסר בטחון", "description": "התחושה שאולי אתה פשוט לא יודע מה אתה רוצה, או שאולי אתה מחפש משהו שלא קיים." }
@@ -1124,9 +1150,8 @@ Content:
     "subtitle2": "ובסוף תקבל דוח אישי מפורט - מפת דרכים לזוגיות שאתה מחפש",
     "cards": {
       "selfDiscovery": { "title": "גילוי עצמי אמיתי", "description": "השאלון מוביל אותך דרך תהליך מובנה שעוזר לך להבין מה באמת חשוב לך בחיים ובזוגיות - מעבר למשפטים כלליים." },
-"soulReport": { "title": "קבל את “דוח הנשמה” שלך", "description": "בסיום השאלון תקבל דוח PDF מפורט ואישי שמזקק את כל התובנות - מסמך שתוכל לחזור אליו שוב ושוב." }
-,
-      "focusedSearch": { "title": "חיפוש ממוקד ויעיל", "description": "עם דוח הנשמה, תדע בדיוק מה אתה מחפש. זה יעזור לך להסביר לשדכנים, לקבל החלטות טובות יותר, ולחסוך זמן." }
+"fullPicture": { "title": "קבל את \"התמונה המלאה\" שלך", "description": "בסיום השאלון תקבל מסמך PDF מפורט ואישי - תמונה ברורה של מי שאתה ומה אתה מחפש בזוגיות." },
+"focusedSearch": { "title": "חיפוש ממוקד ויעיל", "description": "עם התמונה המלאה שלך, תדע בדיוק מה אתה מחפש. זה יעזור לך להסביר לשדכנים, לקבל החלטות טובות יותר, ולחסוך זמן." }
     },
     "result": {
       "title": "התוצאה: בהירות ובטחון",
@@ -1150,81 +1175,86 @@ Content:
     "cards": {
       "fast": { "title": "מהיר ונוח", "description": "20-30 דקות בלבד. אפשר להתחיל, לעצור, ולחזור בכל זמן. השאלון נשמר אוטומטית." },
       "private": { "title": "פרטי ומאובטח", "description": "התשובות שלך נשארות אצלך בלבד. רק אתה ושדכנים מורשים יכולים לגשת אליהן." },
-      "instantResult": { "title": "תוצאה מיידית", "description": "בסיום השאלון תקבל את דוח הנשמה שלך - מסמך PDF מפורט ואישי שמזקק את כל התובנות." }
+"instantResult": { "title": "תוצאה מיידית", "description": "בסיום השאלון תקבל את התמונה המלאה שלך - מסמך PDF מפורט ואישי שמזקק את כל התובנות." }
     }
   },
   "finalCta": {
     "title1": "מוכנים להתחיל?",
-    "title2": "דוח הנשמה שלכם מחכה",
-    "subtitle": "20 דקות של מיקוד שיחסכו לכם חודשים של חיפושים.\nהתחילו עכשיו וגלו מה באמת חשוב לכם בזוגיות.",
-    "buttonText": "קבל את דוח הנשמה שלך עכשיו",
-    "assurance": "ללא תשלום • ללא התחייבות • פרטי לחלוטין"
+"title2": "התמונה המלאה שלכם מחכה"
+,    "subtitle": "20 דקות של מיקוד שיחסכו לכם חודשים של חיפושים.\nהתחילו עכשיו וגלו מה באמת חשוב לכם בזוגיות.",
+"buttonText": "קבל את התמונה המלאה שלך עכשיו"
+,    "assurance": "ללא תשלום • ללא התחייבות • פרטי לחלוטין"
   },
   "footer": {
     "copyright": "© {{year}} NeshamaTech. כל הזכויות שמורות."
   }
 },
-  "worldsMap": {
-    "worldLabels": {
-      "PERSONALITY": "אישיות",
-      "VALUES": "ערכים ואמונות",
-      "RELATIONSHIP": "זוגיות",
-      "PARTNER": "הפרטנר האידיאלי",
-      "RELIGION": "דת ומסורת"
+"worldsMap": {
+  "worldLabels": {
+    "PERSONALITY": "אישיות",
+    "VALUES": "ערכים ואמונות",
+    "RELATIONSHIP": "זוגיות",
+    "PARTNER": "הפרטנר האידיאלי",
+    "RELIGION": "דת ומסורת"
+  },
+  "progressHeader": {
+    "greeting": "היי {{name}},",
+    "greetingNoName": "שלום,",
+    "journeyQuestion": "איפה אנחנו במסע?",
+    "journeyTitle": "המסע שלך לגילוי עצמי",
+    "progressText": "השלמת {{completedCount}} מתוך {{totalCount}} עולמות • {{totalAnswered}} מתוך {{totalQuestions}} שאלות",
+    "ctaButton": "בוא נמשיך!",
+    "mapTitle": "מפת העולמות שלך",
+    "milestones": {
+      "start": "התחלה",
+      "onTrack": "במסלול",
+      "inProgress": "בעיצומו",
+      "almostThere": "כמעט שם",
+      "completed": "הושלם!"
     },
-    "progressHeader": {
-      "greeting": "היי {{name}},",
-      "journeyQuestion": "איפה אנחנו במסע?",
-      "defaultTitle": "המסע שלך לגילוי עצמי",
-      "progressText": "השלמת {{completedCount}} מתוך {{totalCount}} עולמות • {{totalAnswered}} מתוך {{totalQuestions}} שאלות",
-      "ctaButton": "בוא נמשיך!",
-      "mapTitle": "מפת העולמות שלך",
-      "milestones": {
-        "start": "התחלה",
-        "onTrack": "במסלול",
-        "inProgress": "בעיצומו",
-        "almostThere": "כמעט שם",
-        "completed": "הושלם!"
-      },
-      "nextStepTitle": "הצעד הבא במסע",
-      "nextStepPrompt": "מוכן/ה להמשיך לעולם {{worldName}}?",
-      "completionTitle": "🎉 כל הכבוד! השלמת את כל העולמות",
-      "completionSubtitle": "עכשיו אפשר לעיין בפרופיל המלא שלך ולראות את דוח הנשמה"
+    "nextStepTitle": "הצעד הבא במסע",
+    "nextStepPrompt": "מוכן/ה להמשיך ל{{worldName}}?",
+    "completionTitle": "🎉 כל הכבוד! השלמת את כל העולמות",
+"completionSubtitle": "עכשיו אפשר לעיין בפרופיל המלא שלך ולראות את התמונה המלאה"
+  },
+  "reviewCard": {
+    "title": "רוצה לסקור את התשובות שלך?",
+    "description": "צפה/י בכל התשובות שמילאת עד כה במקום אחד.",
+    "button": "לסקירת התשובות"
+  },
+  "worldCard": {
+    "discoverTitle": "מה תגלה בעולם הזה?",
+    "questionsLabel": "שאלות",
+    "minutesLabel": "דקות",
+    "worldNumberLabel": "עולם {{number}}",
+    "progressLabel": "התקדמות: {{completed}}/{{total}}",
+    "recommendedRibbon": "מומלץ",
+    "expandButton": "מה תגלה בעולם הזה?",
+    "benefitsTitle": "מה תגלה:",
+    "statuses": {
+      "completed": "הושלם",
+      "recommended": "מומלץ",
+      "active": "בתהליך",
+      "available": "זמין",
+      "locked": "נעול"
     },
-    "reviewCard": {
-      "title": "רוצה לסקור את התשובות שלך?",
-      "description": "צפה/י בכל התשובות שמילאת עד כה במקום אחד.",
-      "button": "לסקירת התשובות"
-    },
-    "worldCard": {
-      "discoverTitle": "מה תגלה בעולם הזה?",
-      "questionCount": "{{count}} שאלות",
-      "estimatedTime": "~{{count}} דקות",
-      "worldNumberLabel": "עולם {{number}}",
-      "progressLabel": "התקדמות: {{completed}}/{{total}}",
-      "recommendedRibbon": "מומלץ",
-      "statuses": {
-        "completed": "הושלם",
-        "recommended": "מומלץ",
-        "active": "בתהליך",
-        "available": "זמין",
-        "locked": "נעול"
-      },
-      "actions": {
-        "edit": "ערוך תשובות",
-        "startRecommended": "התחל עכשיו",
-        "continue": "המשך",
-        "start": "התחל",
-        "locked": "השלם עולמות קודמים"
-      }
-    },
-    "completionBanner": {
-      "title": "כל הכבוד, {{name}}!",
-      "subtitle": "סיימת את כל עולמות השאלון. עשית צעד ענק במסע שלך!",
-      "description": "הפרופיל המלא שלך מוכן כעת עבור השדכנים שלנו.",
-      "statWorlds": "5 עולמות",
-      "statReport": "דוח נשמה מלא"
-    },
+    "actions": {
+      "edit": "ערוך תשובות",
+      "startRecommended": "התחל עכשיו",
+      "continue": "המשך",
+      "start": "התחל",
+      "locked": "השלם עולמות קודמים"
+    }
+  },
+  "completionBanner": {
+    "title": "כל הכבוד, {{name}}!",
+    "titleNoName": "כל הכבוד!",
+    "subtitle": "סיימת את כל עולמות השאלון. עשית צעד ענק במסע שלך!",
+    "description": "הפרופיל המלא שלך מוכן כעת עבור השדכנים שלנו.",
+    "statWorlds": "5 עולמות",
+"statReport": "התמונה המלאה שלך"
+  },
+  
     "worldsContent": {
       "PERSONALITY": {
         "title": "עולם האישיות",
@@ -1287,388 +1317,351 @@ Content:
 
 
 ,
-   "layout": {
-    "navHeader": "עולמות השאלון",
-    "navSubtitle": "נווט בין חלקי השאלון השונים",
-    "sidebarHeader": {
-      "title": "המסע שלך",
-      "subtitle": "גילוי עצמי מודרך"
-    },
-    "sidebarProgress": {
-      "title": "ההתקדמות שלך",
-      "worldsLabel": "{{completedCount}}/{{totalCount}} עולמות",
-      "completionMessage": "כל הכבוד! השלמת את כל העולמות 🎉"
-    },
-    "navButtonStatus": {
-      "active": "עכשיו",
-      "completed": "הושלם",
-      "available": "עולם {{order}}"
-    },
-    "saveButton": {
-      "default": "שמור התקדמות",
-      "saving": "שומר...",
-      "saved": "נשמר!"
-    },
-    "lastSavedSuccess": "נשמר בהצלחה ב-{{time}}",
-    "actionButtons": {
-      "review": "סקור את התשובות",
-      "exitToMap": "חזור למפה",
-      "faq": "שאלות נפוצות"
-    },
-    "faqSheet": {
-      "title": "שאלות נפוצות"
-    },
-    "unauthenticatedPrompt": {
-      "title": "התקדמותך נשמרת זמנית בדפדפן.",
-      "subtitle": "התחבר/י או הרשמ/י כדי לשמור את התשובות לחשבונך.",
-      "loginButton": "התחברות",
-      "registerButton": "הרשמה"
-    },
-    "exitPrompt": {
-      "title": "האם אתה בטוח שברצונך לצאת?",
-      "description": "כל התשובות שלא נשמרו יאבדו. האם ברצונך לשמור לפני היציאה?",
-      "cancel": "ביטול",
-      "saveAndExit": "שמור וצא",
-      "exitWithoutSaving": "צא ללא שמירה"
-    },
-    "mobileNav": {
-      "title": "ניווט בשאלון",
-      "backToMap": "חזרה למפת העולמות",
-      "exit": "יציאה",
-      "reviewAnswers": "צפייה בכל התשובות",
-      "menuTitle": "תפריט"
-    },
-    "tooltips": {
-      "faq": "שאלות נפוצות",
-      "accessibility": "נגישות ותצוגה"
-    },
-    "profileNotice": {
-      "title": "שימ/י לב:",
-      "textPart1": "כברירת מחדל, תשובות גלויות לשדכן. ניתן לבחור להסתיר תשובות ספציפיות באמצעות",
-      "visibilityToggleLabel": "מתג הנראות",
-      "textPart2": "שיוסתר מהפרופיל הציבורי שלך.",
-      "link": "ניתן לנהל את כל התשובות שלך דרך הפרופיל האישי."
-    }
+"layout": {
+  "navHeader": "עולמות השאלון",
+  "navSubtitle": "נווט בין חלקי השאלון השונים",
+  "sidebarHeader": {
+    "title": "המסע שלך",
+    "subtitle": "גילוי עצמי מודרך"
+  },
+  "sidebarProgress": {
+    "title": "ההתקדמות שלך",
+    "worldsLabel": "{{completedCount}}/{{totalCount}} עולמות",
+    "completionMessage": "כל הכבוד! סיימת הכל 🎉"
+  },
+  "navButtonStatus": {
+    "active": "עכשיו",
+    "completed": "הושלם",
+    "available": "עולם {{order}}"
+  },
+  "saveButton": {
+    "default": "שמור התקדמות",
+    "saving": "שומר...",
+    "saved": "נשמר!"
+  },
+  "lastSavedSuccess": "נשמר בהצלחה ב-{{time}}",
+  "actionButtons": {
+    "review": "סקור את התשובות",
+    "exitToMap": "חזור למפה",
+    "faq": "שאלות נפוצות"
+  },
+  "faqSheet": {
+    "title": "שאלות נפוצות"
+  },
+  "unauthenticatedPrompt": {
+    "title": "התקדמותך נשמרת זמנית",
+    "subtitle": "התחבר/י כדי לשמור את התשובות לחשבונך באופן קבוע.",
+    "loginButton": "התחברות",
+    "registerButton": "הרשמה"
+  },
+  "exitPrompt": {
+    "title": "לצאת מהשאלון?",
+    "description": "שינויים שלא נשמרו יאבדו.",
+    "cancel": "ביטול",
+    "saveAndExit": "שמור וצא",
+    "exitWithoutSaving": "צא ללא שמירה"
+  },
+  "mobileNav": {
+    "title": "ניווט",
+    "backToMap": "מפת עולמות",
+    "exit": "יציאה",
+    "reviewAnswers": "סקירה",
+    "menuTitle": "תפריט"
+  },
+  "tooltips": {
+    "faq": "עזרה ושאלות נפוצות",
+    "accessibility": "נגישות"
+  },
+  "profileNotice": {
+    "title": "שימו לב:",
+    "textPart1": "חלק מהתשובות גלויות. השתמשו ב",
+    "visibilityToggleLabel": "מתג הנראות",
+    "textPart2": "כדי להסתיר פרטים רגישים.",
+    "link": "ניהול הגדרות פרופיל"
   }
+}
 
 ,
-  "world": {
-    "header": {
-      "questionLabel": "שאלה {{current}} מתוך {{total}}",
-      "estimatedTimeLeft": "{{minutes}} דקות נותרו",
-      "statusCard": {
-        "progress": "התקדמות",
-        "required": "חובה",
-        "status": "מצב",
-        "questions": "שאלות",
-        "complete": "✓ הושלם",
-        "left": "{{count}} נותרו",
-        "keepItUp": "המשך כך!",
-        "states": {
-          "started": "🌱 מתחיל",
-          "going": "🚀 קדימה!",
-          "great": "⭐ מעולה",
-          "almost": "🔥 כמעט!",
-          "perfect": "🎉 מושלם!"
-        }
-      },
-      "overallProgress": "התקדמות כוללת"
-    },
-    "errors": {
-      "loadingFailedTitle": "שגיאה בטעינת השאלות",
-      "loadingFailedDescription": "לא ניתן היה לטעון את השאלות עבור עולם זה.",
-      "invalidQuestion": "שגיאה בטעינת השאלה...",
-      "validation": {
-        "required": "נדרשת תשובה לשאלה זו",
-        "minLength": "התשובה חייבת להכיל לפחות {{count}} תווים",
-        "maxLength": "התשובה לא יכולה לחרוג מ-{{count}} תווים",
-        "minSelections": "יש לבחור לפחות {{count}} אפשרויות",
-        "maxSelections": "ניתן לבחור עד {{count}} אפשרויות",
-        "budgetAllocation": "יש להקצות בדיוק {{count}} נקודות",
-        "budgetRequired": "נדרשת הקצאת תקציב"
+"world": {
+  "header": {
+    "questionLabel": "שאלה {{current}} מתוך {{total}}",
+    "estimatedTimeLeft": "{{minutes}} דקות נותרו",
+    "statusCard": {
+      "progress": "התקדמות",
+      "required": "חובה",
+      "status": "מצב",
+      "questions": "שאלות",
+      "complete": "✓ הושלם",
+      "left": "{{count}} נותרו",
+      "keepItUp": "המשך כך!",
+      "states": {
+        "started": "🌱 מתחיל",
+        "going": "🚀 קדימה!",
+        "great": "⭐ מעולה",
+        "almost": "🔥 כמעט!",
+        "perfect": "🎉 מושלם!"
       }
     },
-    "buttons": {
-      "backToMap": "חזרה למפה",
-      "hideList": "הסתר רשימה",
-      "showList": "הצג רשימה",
-      "questionList": "רשימת שאלות",
-      "previous": "שאלה קודמת",
-      "next": "שאלה הבאה",
-      "finish": "סיים עולם זה",
-      "save": "שמור",
-      "saving": "שומר..."
-    },
-    "listSheet": {
-      "title": "כל השאלות ב{{worldTitle}}",
-      "description": "לחץ על שאלה כדי לעבור אליה ישירות.",
-      "legend": {
-        "completed": "הושלם",
-        "required": "חובה (לא נענה)",
-        "notAnswered": "לא נענה"
-      }
-    },
-    "celebration": {
-      "quarter": "🎉 רבע הדרך!",
-      "half": "🚀 אמצע הדרך!",
-      "threeQuarters": "⭐ כמעט סיימת!",
-      "complete": "🎊 מדהים! השלמת הכל!"
+    "overallProgress": "התקדמות כוללת",
+    "lastSaved": {
+      "now": "נשמר כעת",
+      "minuteAgo": "נשמר לפני דקה",
+      "minutesAgo": "נשמר לפני {{count}} דק'",
+      "hoursAgo": "נשמר לפני {{count}} שעות"
     }
-  }
-,
-   "answerInput": {
-    "clearSelection": "נקה בחירה",
-    "tooltips": {
-      "copy": "העתק טקסט",
-      "copied": "הועתק!",
-      "clearText": "נקה טקסט",
-      "removeCustomAnswer": "הסר תשובה מותאמת",
-      "resetAllocation": "אפס הקצאה"
-    },
-    "multiSelectWithOther": {
-      "addOtherOptionLabel": "הוספת אפשרות אחרת (אופציונלי)",
-      "otherOptionPlaceholder": "הקלד/י אפשרות נוספת...",
-      "addButton": "הוסף",
-      "addedAnswersLabel": "תשובות שהוספת:",
-      "errorExists": "אפשרות זו כבר קיימת"
-    },
-    "multiSelect": {
-      "maxSelectionError": "ניתן לבחור עד {{count}} אפשרויות",
-      "selectedInfo": "נבחרו {{count}} אפשרויות",
-      "minLabel": "מינימום",
-      "maxLabel": "מקסימום"
-    },
-    "openText": {
-      "placeholder": "הקלד/י את תשובתך כאן...",
-      "minLengthRequired": "נדרשים עוד {{count}} תווים",
-      "minLengthMet": "הגעת למינימום הנדרש",
-      "maxLengthExceeded": "חריגה מהאורך המקסימלי",
-      "minLengthInfoRequired": "נדרש לפחות {{count}} תווים",
-      "minLengthInfoRecommended": "מומלץ לפחות {{count}} תווים",
-      "estimatedTime": "זמן כתיבה משוער: {{count}} דקות",
-      "tipsButton": "טיפים למענה על שאלה זו"
-    },
-    "budgetAllocation": {
-      "totalAllocated": "סה״כ הוקצה:",
-      "remaining": "חסר {{count}}",
-      "surplus": "עודף {{count}}",
-      "resetButton": "אפס הכל"
-    },
-    "unsupportedType": "אופס! סוג השאלה {{type}} אינו נתמך כרגע."
   },
+  "errors": {
+    "loadingFailedTitle": "שגיאה בטעינת השאלות",
+    "loadingFailedDescription": "לא ניתן היה לטעון את השאלות עבור עולם זה.",
+    "invalidQuestion": "שגיאה בטעינת השאלה...",
+    "noQuestionFound": "לא נמצאה שאלה להצגה",
+    "validation": {
+      "required": "נדרשת תשובה לשאלה זו",
+      "minLength": "התשובה חייבת להכיל לפחות {{count}} תווים",
+      "maxLength": "התשובה לא יכולה לחרוג מ-{{count}} תווים",
+      "minSelections": "יש לבחור לפחות {{count}} אפשרויות",
+      "maxSelections": "ניתן לבחור עד {{count}} אפשרויות",
+      "budgetAllocation": "יש להקצות בדיוק {{count}} נקודות",
+      "budgetRequired": "נדרשת הקצאת תקציב",
+      "generalRequired": "נא להשיב על כל השאלות הנדרשות ({{current}}/{{total}})"
+    }
+  },
+  "buttons": {
+    "backToMap": "חזרה למפה",
+    "hideList": "הסתר רשימה",
+    "showList": "הצג רשימה",
+    "questionList": "רשימת שאלות",
+    "previous": "שאלה קודמת",
+    "next": "שאלה הבאה",
+    "finish": "סיים עולם זה",
+    "save": "שמור",
+    "saving": "שומר...",
+    "completing": "מסיים...",
+    "prevShort": "הקודם",
+    "nextShort": "הבא",
+    "finishShort": "סיים"
+  },
+  "listSheet": {
+    "title": "כל השאלות ב{{worldTitle}}",
+    "description": "לחץ על שאלה כדי לעבור אליה ישירות.",
+    "legend": {
+      "completed": "הושלם",
+      "required": "חובה (לא נענה)",
+      "notAnswered": "לא נענה"
+    }
+  },
+  "celebration": {
+    "quarter": "🎉 רבע הדרך!",
+    "half": "🚀 אמצע הדרך!",
+    "threeQuarters": "⭐ כמעט סיימת!",
+    "complete": "🎊 מדהים! השלמת הכל!"
+  }
+}
+,
+"answerInput": {
+  "clearSelection": "נקה בחירה",
+  "tooltips": {
+    "copy": "העתק טקסט",
+    "copied": "הועתק!",
+    "clearText": "נקה טקסט",
+    "removeCustomAnswer": "הסר תשובה מותאמת",
+    "resetAllocation": "אפס הקצאה"
+  },
+  "multiSelectWithOther": {
+    "addOtherOptionLabel": "הוספת אפשרות אחרת (אופציונלי)",
+    "otherOptionPlaceholder": "הקלד/י אפשרות נוספת...",
+    "addButton": "הוסף",
+    "addedAnswersLabel": "תשובות שהוספת:",
+    "errorExists": "אפשרות זו כבר קיימת"
+  },
+  "multiSelect": {
+    "maxSelectionError": "ניתן לבחור עד {{count}} אפשרויות",
+    "selectedInfo": "נבחרו {{count}} אפשרויות",
+    "minLabel": "מינימום",
+    "maxLabel": "מקסימום"
+  },
+  "openText": {
+    "placeholder": "הקלד/י את תשובתך כאן...",
+    "minLengthRequired": "נדרשים עוד {{count}} תווים",
+    "minLengthMet": "הגעת למינימום הנדרש",
+    "maxLengthExceeded": "חריגה מהאורך המקסימלי",
+    "minLengthInfoRequired": "נדרש לפחות {{count}} תווים",
+    "minLengthInfoRecommended": "מומלץ לפחות {{count}} תווים",
+    "estimatedTime": "זמן כתיבה משוער: {{count}} דקות",
+    "tipsButton": "טיפים למענה על שאלה זו",
+    "wordCount": "{{count}} מילים",
+    "readingTime": "{{count}} דקות קריאה",
+    "completionPercentage": "{{count}}% הושלם",
+    "writingGreat": "כתיבה מעולה! ממשיכים כך"
+  },
+  "budgetAllocation": {
+    "totalAllocated": "סה״כ הוקצה:",
+    "remaining": "חסר {{count}}",
+    "surplus": "עודף {{count}}",
+    "resetButton": "אפס הכל",
+    "statusComplete": "התקציב הושלם!",
+    "statusRemaining": "נותרו להקצאה: {{count}}",
+    "statusExceeded": "חריגה של {{count}}"
+  },
+  "unsupportedType": "אופס! סוג השאלה {{type}} אינו נתמך כרגע.",
+  "supportContactMessage": "אנא פנה לתמיכה טכנית לפתרון הבעיה"
+},
   "interactiveScale": {
     "selectedValue": "ערך נבחר: {{value}}",
     "ariaLabel": "ערך בסולם {{value}}"
   },
-    "faq": {
-    "title": "שאלות נפוצות",
-    "subtitle": "כל מה שחשוב לדעת על השאלון ותהליך ההתאמה",
-    "searchPlaceholder": "חיפוש שאלה...",
-    "popularBadge": "נפוץ",
-    "emptyState": "לא נמצאו שאלות שתואמות את החיפוש",
-    "categories": {
-      "all": "הכל",
-      "process": "תהליך ההתאמה",
-      "technical": "טכני",
-      "privacy": "פרטיות ואבטחה",
-      "results": "תוצאות",
-      "general": "כללי"
+ "faq": {
+  "title": "שאלות נפוצות",
+  "subtitle": "כל מה שחשוב לדעת על השאלון ותהליך ההתאמה",
+  "searchPlaceholder": "חיפוש שאלה...",
+  "popularBadge": "נפוץ",
+  "emptyState": "לא נמצאו שאלות שתואמות את החיפוש",
+  "categories": {
+    "all": "הכל",
+    "process": "תהליך ההתאמה",
+    "technical": "טכני",
+    "privacy": "פרטיות ואבטחה",
+    "results": "תוצאות",
+    "general": "כללי"
+  },
+  "items": {
+    "save-progress": {
+      "question": "האם אפשר לשמור את ההתקדמות ולהמשיך בפעם אחרת?",
+      "answer": [
+        { "type": "p", "content": "כן, המערכת שומרת באופן אוטומטי את התקדמותך בשאלון. תוכל/י לחזור בכל עת ולהמשיך מהמקום שבו הפסקת." },
+        { "type": "tip", "title": "עצה:", "content": "בכל פעם שאתה עובר לעולם אחר או מסיים עולם, המערכת שומרת אוטומטית את התקדמותך." }
+      ]
     },
-    "items": {
-      "save-progress": {
-        "question": "האם אפשר לשמור את ההתקדמות ולהמשיך בפעם אחרת?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "כן, המערכת שומרת באופן אוטומטי את התקדמותך בשאלון. תוכל/י לחזור בכל עת ולהמשיך מהמקום שבו הפסקת."
-          },
-          {
-            "type": "tip",
-            "title": "עצה:",
-            "content": "בכל פעם שאתה עובר לעולם אחר או מסיים עולם, המערכת שומרת אוטומטית את התקדמותך."
-          }
-        ]
-      },
-      "time-to-complete": {
-        "question": "כמה זמן לוקח להשלים את השאלון?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "השאלון כולו אורך כ-30-40 דקות, אך אין צורך למלא הכל ברצף. אפשר למלא חלק בכל פעם. העולמות השונים אורכים כ-5-10 דקות כל אחד."
-          }
-        ]
-      },
-      "required-questions": {
-        "question": "האם חובה לענות על כל השאלות?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "לא, רק השאלות המסומנות ב-'חובה *' הן שאלות שחייבים לענות עליהן. שאלות אלו חיוניות ליצירת פרופיל התאמה בסיסי."
-          },
-          {
-            "type": "p",
-            "content": "עם זאת, ככל שתענה/י על יותר שאלות, כך נוכל לעשות התאמה טובה יותר עבורך."
-          }
-        ]
-      },
-      "how-matching-works": {
-        "question": "איך עובד תהליך ההתאמה?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "תהליך ההתאמה מבוסס על מספר שלבים:"
-          },
-          {
-            "type": "list",
-            "content": [
-              "מילוי השאלון ויצירת פרופיל אישיותי וערכי",
-              "ניתוח התשובות על ידי צוות מקצועי וגם אלגוריתם ממוחשב",
-              "איתור התאמות פוטנציאליות על סמך קריטריונים רבים",
-              "הצגת התאמות מובילות לשני הצדדים",
-              "במקרה של הסכמה הדדית, תיווך לקשר ראשוני"
-            ]
-          }
-        ]
-      },
-      "privacy-info": {
-        "question": "מי יכול לראות את התשובות שלי?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "המידע שלך נשמר בסודיות מוחלטת. רק צוות ההתאמות המקצועי שלנו יכול לראות את התשובות המלאות שלך, וזאת אך ורק לצורך יצירת התאמות."
-          },
-          {
-            "type": "info",
-            "content": "בעת הצגת התאמה פוטנציאלית, הצד השני רואה רק פרטים כלליים ותחומי עניין משותפים, לא את כל התשובות שלך."
-          }
-        ]
-      },
-      "edit-answers": {
-        "question": "האם ניתן לערוך תשובות אחרי שסיימתי?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "כן, תמיד אפשר לחזור ולערוך את התשובות. פשוט היכנס/י לשאלון דרך הפרופיל האישי ובחר/י את העולם שתרצה/י לערוך. שינוי התשובות עשוי להשפיע על ההתאמות העתידיות שלך."
-          }
-        ]
-      },
-      "match-percentage": {
-        "question": "איך מחושב אחוז ההתאמה?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "אחוז ההתאמה מחושב על סמך מגוון פרמטרים:"
-          },
-          {
-            "type": "list",
-            "content": [
-              "מידת ההתאמה בערכי ליבה ואמונות",
-              "סגנון חיים ושאיפות לעתיד",
-              "ציפיות מחיי משפחה וזוגיות",
-              "תחומי עניין משותפים",
-              "התאמה רגשית וקוגניטיבית"
-            ]
-          },
-          {
-            "type": "star",
-            "content": "אחוז התאמה גבוה מעיד על פוטנציאל טוב לקשר משמעותי, אך זכרו שכימיה אישית ומפגש פנים אל פנים הם תמיד המבחן האמיתי!"
-          }
-        ]
-      },
-      "incomplete-questionnaire": {
-        "question": "מה קורה אם לא אשלים את כל השאלון?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "אתה יכול להתחיל לקבל התאמות גם אם לא השלמת את כל העולמות בשאלון, בתנאי שענית על שאלות החובה ועל מספיק שאלות כדי ליצור פרופיל בסיסי."
-          },
-          {
-            "type": "alert",
-            "content": "עם זאת, ככל שתשלים יותר שאלות, כך תגדל הדיוק של ההתאמות שתקבל. מומלץ להשלים את כל השאלות בהדרגה."
-          }
-        ]
-      },
-      "inactive-account": {
-        "question": "מה קורה אם אני לא פעיל/ה לתקופה ממושכת?",
-        "answer": [
-          {
-            "type": "p",
-            "content": "אם חשבונך לא יהיה פעיל למשך 3 חודשים, נשלח לך התראה בדואל. לאחר 6 חודשים של חוסר פעילות, הפרופיל שלך יוגדר כלא פעיל ולא יוצג בהתאמות חדשות. תוכל/י תמיד להפעיל אותו מחדש בכניסה לחשבון."
-          }
-        ]
-      }
+    "time-to-complete": {
+      "question": "כמה זמן לוקח להשלים את השאלון?",
+      "answer": [
+        { "type": "p", "content": "השאלון כולו אורך כ-30-40 דקות, אך אין צורך למלא הכל ברצף. אפשר למלא חלק בכל פעם." }
+      ]
+    },
+    "required-questions": {
+      "question": "האם חובה לענות על כל השאלות?",
+      "answer": [
+        { "type": "p", "content": "לא, רק השאלות המסומנות ב-'חובה *' הן שאלות שחייבים לענות עליהן." },
+        { "type": "p", "content": "עם זאת, ככל שתענה/י על יותר שאלות, כך נוכל לעשות התאמה טובה יותר עבורך." }
+      ]
+    },
+    "how-matching-works": {
+      "question": "איך עובד תהליך ההתאמה?",
+      "answer": [
+        { "type": "p", "content": "תהליך ההתאמה מבוסס על מספר שלבים:" },
+        { "type": "list", "content": [
+          "מילוי השאלון ויצירת פרופיל אישיותי וערכי",
+          "ניתוח התשובות על ידי צוות מקצועי וגם אלגוריתם ממוחשב",
+          "איתור התאמות פוטנציאליות על סמך קריטריונים רבים",
+          "הצגת התאמות מובילות לשני הצדדים"
+        ]}
+      ]
+    },
+    "privacy-info": {
+      "question": "מי יכול לראות את התשובות שלי?",
+      "answer": [
+        { "type": "p", "content": "המידע שלך נשמר בסודיות מוחלטת. רק צוות ההתאמות המקצועי יכול לראות את התשובות המלאות." },
+        { "type": "info", "content": "בעת הצגת התאמה, הצד השני רואה רק פרטים כלליים ותחומי עניין משותפים." }
+      ]
+    },
+    "edit-answers": {
+      "question": "האם ניתן לערוך תשובות אחרי שסיימתי?",
+      "answer": [
+        { "type": "p", "content": "כן, תמיד אפשר לחזור ולערוך את התשובות דרך הפרופיל האישי." }
+      ]
+    },
+    "match-percentage": {
+      "question": "איך מחושב אחוז ההתאמה?",
+      "answer": [
+        { "type": "p", "content": "אחוז ההתאמה מחושב על סמך התאמה בערכים, סגנון חיים, ציפיות וכימיה אישיותית." },
+        { "type": "star", "content": "אחוז גבוה מעיד על פוטנציאל טוב, אך המפגש האישי הוא הקובע!" }
+      ]
+    },
+    "incomplete-questionnaire": {
+      "question": "מה קורה אם לא אשלים את כל השאלון?",
+      "answer": [
+        { "type": "p", "content": "ניתן לקבל התאמות גם עם פרופיל חלקי (בתנאי שענית על שאלות החובה), אך הדיוק יהיה נמוך יותר." },
+        { "type": "alert", "content": "מומלץ להשלים את כל השאלות לתוצאות מיטביות." }
+      ]
+    },
+    "inactive-account": {
+      "question": "מה קורה בחוסר פעילות?",
+      "answer": [
+        { "type": "p", "content": "לאחר תקופה ממושכת של חוסר פעילות, הפרופיל מוקפא כדי לא להציג משתמשים לא רלוונטיים. כניסה לחשבון מפעילה אותו מחדש." }
+      ]
+    }
+  }
+},
+ "accessibilityFeatures": {
+  "panelTitle": "הגדרות נגישות",
+  "panelSubtitle": "התאם את האתר לצרכיך האישיים",
+  "changedBadge": "שונה",
+  "triggerButton": {
+    "open": "פתח הגדרות נגישות",
+    "close": "סגור הגדרות נגישות"
+  },
+  "resetButton": "איפוס כל ההגדרות",
+  "textSize": {
+    "title": "גודל טקסט",
+    "description": "הגדל או הקטן את גודל הטקסט בכל האתר"
+  },
+  "displayMode": {
+    "title": "מצב תצוגה ונגישות"
+  },
+  "contrastOptions": {
+    "normal": {
+      "label": "רגיל",
+      "description": "מצב תצוגה רגיל"
+    },
+    "high": {
+      "label": "ניגודיות",
+      "description": "ניגודיות גבוהה לשיפור הקריאות"
+    },
+    "dark": {
+      "label": "חשוך",
+      "description": "מצב לילה להפחתת עומס על העיניים"
     }
   },
-    "accessibilityFeatures": {
-    "panelTitle": "הגדרות נגישות",
-    "panelSubtitle": "התאם את האתר לצרכיך האישיים",
-    "changedBadge": "שונה",
-    "triggerButton": {
-      "open": "פתח הגדרות נגישות",
-      "close": "סגור הגדרות נגישות"
+  "additionalSettings": {
+    "title": "הגדרות נוספות"
+  },
+  "advancedOptions": {
+    "sound": {
+      "label": "צלילי משוב",
+      "description": "השמע צלילים קצרים על פעולות ושינויים"
     },
-    "resetButton": "איפוס כל ההגדרות",
-    "textSize": {
-      "title": "גודל טקסט",
-      "description": "הגדל או הקטן את גודל הטקסט בכל האתר"
+    "reader": {
+      "label": "הקראת תוכן",
+      "description": "לחץ על כל טקסט באתר כדי להקריא אותו בקול"
     },
-    "displayMode": {
-      "title": "מצב תצוגה ונגישות"
+    "cursor": {
+      "label": "סמן עכבר גדול",
+      "description": "סמן עכבר מוגדל ובולט יותר"
     },
-    "contrastOptions": {
-      "normal": {
-        "label": "רגיל",
-        "description": "מצב תצוגה רגיל"
-      },
-      "high": {
-        "label": "ניגודיות",
-        "description": "ניגודיות גבוהה"
-      },
-      "dark": {
-        "label": "חשוך",
-        "description": "מצב לילה"
-      }
+    "font": {
+      "label": "פונט קריא",
+      "description": "פונט ברור עם ריווח מוגדל בין האותיות"
     },
-    "additionalSettings": {
-      "title": "הגדרות נוספות"
-    },
-    "advancedOptions": {
-      "sound": {
-        "label": "צלילי משוב",
-        "description": "השמע צלילים קצרים על פעולות ושינויים"
-      },
-      "reader": {
-        "label": "הקראת תוכן",
-        "description": "לחץ על כל טקסט באתר כדי להקריא אותו בקול"
-      },
-      "cursor": {
-        "label": "סמן עכבר גדול",
-        "description": "סמן עכבר מוגדל ובולט יותר"
-      },
-      "font": {
-        "label": "פונט קריא",
-        "description": "פונט ברור עם ריווח מוגדל בין האותיות"
-      },
-      "motion": {
-        "label": "הפחתת אנימציות",
-        "description": "מפחית תנועות ואנימציות ברחבי האתר"
-      }
-    },
-    "settingNames": {
-      "fontScale": "גודל הטקסט",
-      "contrastMode": "מצב התצוגה",
-      "reducedMotion": "הפחתת אנימציות",
-      "readableMode": "פונט קריא",
-      "bigCursor": "סמן גדול",
-      "textReader": "הקראת תוכן",
-      "soundEnabled": "צלילים"
-    },
-    "toasts": {
-      "settingUpdated": "הגדרת {{settingName}} עודכנה",
-      "settingsReset": "כל ההגדרות אופסו",
-      "readerEnabled": "הקראת תוכן הופעלה - לחץ על טקסט כדי להקריא"
+    "motion": {
+      "label": "הפחתת אנימציות",
+      "description": "מפחית תנועות ואנימציות ברחבי האתר"
     }
   },
+  "settingNames": {
+    "fontScale": "גודל הטקסט",
+    "contrastMode": "מצב התצוגה",
+    "reducedMotion": "הפחתת אנימציות",
+    "readableMode": "פונט קריא",
+    "bigCursor": "סמן גדול",
+    "textReader": "הקראת תוכן",
+    "soundEnabled": "צלילים"
+  },
+  "toasts": {
+    "settingUpdated": "הגדרת {{settingName}} עודכנה",
+    "settingsReset": "כל ההגדרות אופסו לברירת המחדל",
+    "readerEnabled": "הקראת תוכן הופעלה - לחץ על טקסט כדי להקריא"
+  }
+},
     "questionnaireProgress": {
     "worldLabels": {
       "PERSONALITY": "אישיות",
@@ -1744,45 +1737,45 @@ Content:
       "timePerWorld": "~{{time}} דקות"
     }
   },
-    "userStats": {
-    "matchStatsCard": {
-      "title": "סטטיסטיקת התאמות",
-      "activeMatches": "התאמות פעילות",
-      "pendingMatches": "ממתינות לבדיקה",
-      "matchScore": "ציון התאמה",
-      "daysActive": "פעיל {{days}} ימים",
-      "joinDate": "הצטרפת בתאריך {{date}}"
-    },
-    "profileProgressCard": {
-      "title": "התקדמות והשלמת פרופיל",
-      "profileCompletion": "השלמת פרופיל",
-      "questionsAnswered": "שאלות שנענו",
-      "outOf": "מתוך",
-      "completedWorlds": "עולמות שהושלמו:",
-      "activityLevel": "רמת פעילות:"
-    },
-    "personalityTraitsCard": {
-      "title": "מאפייני אישיות בולטים"
-    },
-    "tooltips": {
-      "traitScore": "ציון: {{score}}/100"
-    },
-    "common": {
-      "notAvailable": "לא זמין"
-    },
-    "worlds": {
-      "PERSONALITY": "אישיות",
-      "VALUES": "ערכים",
-      "RELATIONSHIP": "זוגיות",
-      "PARTNER": "פרטנר",
-      "RELIGION": "דת"
-    },
-    "activityLevels": {
-      "high": "גבוהה",
-      "medium": "בינונית",
-      "low": "נמוכה"
-    }
+"userStats": {
+  "matchStatsCard": {
+    "title": "סטטיסטיקת התאמות",
+    "activeMatches": "התאמות פעילות",
+    "pendingMatches": "ממתינות לבדיקה",
+    "matchScore": "ציון התאמה",
+    "daysActive": "פעיל {{days}} ימים",
+    "joinDate": "הצטרפת בתאריך {{date}}"
   },
+  "profileProgressCard": {
+    "title": "התקדמות והשלמת פרופיל",
+    "profileCompletion": "השלמת פרופיל",
+    "questionsAnswered": "שאלות שנענו",
+    "outOf": "מתוך",
+    "completedWorlds": "עולמות שהושלמו:",
+    "activityLevel": "רמת פעילות:"
+  },
+  "personalityTraitsCard": {
+    "title": "מאפייני אישיות בולטים"
+  },
+  "tooltips": {
+    "traitScore": "ציון: {{score}}/100"
+  },
+  "common": {
+    "notAvailable": "לא זמין"
+  },
+  "worlds": {
+    "PERSONALITY": "אישיות",
+    "VALUES": "ערכים",
+    "RELATIONSHIP": "זוגיות",
+    "PARTNER": "פרטנר",
+    "RELIGION": "דת"
+  },
+  "activityLevels": {
+    "high": "גבוהה",
+    "medium": "בינונית",
+    "low": "נמוכה"
+  }
+},
     "questionnaireRestore": {
     "loading": "טוען...",
     "restoringTitle": "משחזר את נתוני השאלון...",
@@ -1798,70 +1791,63 @@ Content:
     "profilePrompt": "בזמן שהצוות עובד על ההתאמות עבורך, תוכל/י להשלים את הפרופיל האישי שלך",
     "continueButton": "המשך לפרופיל"
   },
-   "questionsList": {
-    "depthLabels": {
-      "BASIC": "בסיסי",
-      "ADVANCED": "מתקדם",
-      "EXPERT": "מעמיק"
-    },
-    
- "buttons": {
-  "backToMap": "חזרה למפה",
-  "hideList": "הסתר רשימה",
-  "showList": "הצג רשימה",
-  "questionList": "רשימת שאלות",
-  "previous": "שאלה קודמת",
-  "next": "שאלה הבאה",
-  "finish": "סיים עולם זה"
-},
-    "sections": {
-      "about": "קצת על {{name}}",
-      "topMatches": "תחומי התאמה בולטים",
-      "commonInterests": "תחומי עניין משותפים",
-      "lastActive": "פעילות אחרונה: {{time}}"
-    },
-    "lastActiveFormat": {
-      "unknown": "לא ידוע",
-      "today": "היום",
-      "yesterday": "אתמול",
-      "daysAgo": "לפני {{count}} ימים",
-      "weeksAgo": "לפני {{count}} שבועות",
-      "monthsAgo": "לפני {{count}} חודשים"
-    }
+"questionsList": {
+  "depthLabels": {
+    "BASIC": "Foundations",
+    "ADVANCED": "Deeper Insights",
+    "EXPERT": "Core Reflections"
   },
-"matchResultCard": {
-    "premiumBadge": "התאמה מומלצת",
-    "matchPercentageBadge": "{{percentage}}% התאמה",
-    "tooltips": {
-      "addToBookmarks": "הוסף למועדפים",
-      "removeFromBookmarks": "הסר ממועדפים",
-      "traitDescription": "{{description}}"
-    },
-    "buttons": {
-      "reject": "לא מתאים",
-      "confirmReject": "לאשר דחייה",
-      "cancel": "בטל",
-      "accept": "מעוניין/ת",
-      "continueChat": "המשך שיחה",
-      "showMore": "הצג פרטים נוספים",
-      "hideMore": "הסתר פרטים נוספים",
-      "viewFullProfile": "צפייה בפרופיל מלא"
-    },
-    "sections": {
-      "about": "קצת על {{name}}",
-      "topMatches": "תחומי התאמה בולטים",
-      "commonInterests": "תחומי עניין משותפים",
-      "lastActive": "פעילות אחרונה: {{time}}"
-    },
-    "lastActiveFormat": {
-      "unknown": "לא ידוע",
-      "today": "היום",
-      "yesterday": "אתמול",
-      "daysAgo": "לפני {{count}} ימים",
-      "weeksAgo": "לפני {{count}} שבועות",
-      "monthsAgo": "לפני {{count}} חודשים"
-    }
+  "stats": {
+    "answeredQuestions": "Questions Answered",
+    "complete": "Complete",
+    "remaining": "Remaining",
+    "done": "Done"
+  },
+  "badges": {
+    "required": "Required",
+    "answered": "✓ Done"
+  },
+  "motivationalMessages": {
+    "start": { "title": "Let's Begin!", "subtitle": "Every answer brings you closer" },
+    "quarter": { "title": "Great Start!", "subtitle": "Keep it up" },
+    "half": { "title": "Halfway There!", "subtitle": "Great progress" },
+    "threeQuarters": { "title": "Almost There!", "subtitle": "Just a bit more to go" },
+    "finish": { "title": "Amazing! All Done!", "subtitle": "You completed all questions" }
   }
+},
+"matchResultCard": {
+  "premiumBadge": "התאמה מומלצת",
+  "matchPercentageBadge": "{{percentage}}% התאמה",
+  "tooltips": {
+    "addToBookmarks": "הוסף למועדפים",
+    "removeFromBookmarks": "הסר ממועדפים",
+    "traitDescription": "{{description}}"
+  },
+  "buttons": {
+    "reject": "לא מתאים",
+    "confirmReject": "לאשר דחייה",
+    "cancel": "בטל",
+    "accept": "מעוניין/ת",
+    "continueChat": "המשך שיחה",
+    "showMore": "הצג פרטים נוספים",
+    "hideMore": "הסתר פרטים נוספים",
+    "viewFullProfile": "צפייה בפרופיל מלא"
+  },
+  "sections": {
+    "about": "קצת על {{name}}",
+    "topMatches": "תחומי התאמה בולטים",
+    "commonInterests": "תחומי עניין משותפים",
+    "lastActive": "פעילות אחרונה: {{time}}"
+  },
+  "lastActiveFormat": {
+    "unknown": "לא ידוע",
+    "today": "היום",
+    "yesterday": "אתמול",
+    "daysAgo": "לפני {{count}} ימים",
+    "weeksAgo": "לפני {{count}} שבועות",
+    "monthsAgo": "לפני {{count}} חודשים"
+  }
+}
 
   
 
@@ -1963,6 +1949,36 @@ Content:
         "observer": "The Observer: I like to take my time, survey the room, and wait for a natural opening."
       }
     },
+    "personality_pressure_pattern": {
+  "question": "When you are under high pressure or in a crisis, what is your natural pattern?",
+  "helpText": "In a partnership, the way both partners react to crises is critical. This reveals personal coping mechanisms.",
+  "options": {
+    "need_space": "I need time to myself to process and calm down.",
+    "seek_support": "I seek support and conversation with people close to me.",
+    "action_oriented": "I move into immediate action and problem-solving mode.",
+    "avoidance_distraction": "I tend to avoid or distract myself until I'm ready to deal with it."
+  }
+},
+"personality_life_pace": {
+  "question": "Describe your ideal pace of life on a typical day:",
+  "helpText": "Compatibility in life's rhythm prevents many daily frictions. Are you a 'sprinter' or a 'marathon runner' of life?",
+  "options": {
+    "planned_efficient": "Planned in advance, efficient, and dedicated to clear goals.",
+    "organized_spontaneous": "Generally organized, but with room for spontaneity.",
+    "flexible_flow": "Flowing, flexible, and adapted to my mood and circumstances.",
+    "minimalist_calm": "Minimalist, calm, and with plenty of free time."
+  }
+},
+"personality_sleep_flexibility": {
+  "question": "Following the morning/night person question, how flexible are you in adapting to a partner's sleep schedule?",
+  "options": {
+    "very_flexible": "Very flexible, I can adjust.",
+    "somewhat_flexible": "Somewhat, but it will affect my functioning.",
+    "not_flexible": "It's very difficult for me to change my natural rhythm."
+  }
+},
+
+
     "personality_unproductive_day_feeling": {
       "question": "At the end of a day where you were less productive than you'd hoped, what is your internal dialogue like?",
       "helpText": "This question explores your capacity for self-compassion versus self-criticism, which often reflects how we treat a partner.",
@@ -2204,6 +2220,25 @@ Content:
       "placeholder": "Is success defined by financial stability, social impact, raising a wonderful family, inner peace, professional achievement?",
       "helpText": "This is a direct window into your deepest ambitions, helping us find someone with a compatible life vision."
     },
+    "values_extended_family_involvement": {
+  "question": "What level of involvement do you expect the extended family (parents, siblings) to have in your married life?",
+  "helpText": "This is a central issue in many relationships. It's important to understand expectations regarding boundaries and family involvement.",
+  "options": {
+    "high_involvement": "High involvement - the extended family is a central part of our lives.",
+    "healthy_boundaries": "Healthy involvement - a close relationship but with clear boundaries.",
+    "minimal_involvement": "Minimal involvement - we'll maintain contact but build an independent life.",
+    "depends_on_dynamics": "It depends on the dynamics - we'll see how it develops."
+  }
+},
+"values_social_perception_influence": {
+  "question": "To what extent do considerations of 'what will people say' or the opinion of your social circle influence significant decisions in your life?",
+  "helpText": "This question checks the balance between your internal compass and external social influences.",
+  "labels": {
+    "min": "Almost no influence; I act according to my inner truth.",
+    "max": "A strong influence; how I am perceived in society is important to me."
+  }
+},
+
     "values_lost_wallet": {
       "question": "You find a wallet on the street with a large amount of cash and an ID. No one is around. What are your immediate next steps?",
       "placeholder": "Describe your thought process and actions.",
@@ -2385,6 +2420,33 @@ Content:
         "hint_repeatedly": "I'll drop hints repeatedly until the other person gets the message."
       }
     },
+    "relationship_physical_intimacy_importance": {
+  "question": "To what extent are physical closeness and intimacy important to you as an expression of love and connection in a relationship?",
+  "helpText": "This is one of the most important topics for aligning expectations in a relationship. Please answer honestly about your personal needs.",
+  "labels": {
+    "min": "It's important, but the emotional and spiritual connection is more central for me.",
+    "max": "It is central and absolutely vital for my sense of connection and love."
+  }
+},
+"relationship_screen_time_approach": {
+  "question": "What is your approach to using technology (phones, screens) during family time and quality time as a couple?",
+  "options": {
+    "very_limited": "Very limited - it's important for me to maintain 'screen-free' time.",
+    "balanced_usage": "Balanced - conscious use with clear boundaries.",
+    "flexible_usage": "Flexible - each according to their needs, as long as it's not harmful."
+  }
+},
+"relationship_argument_style": {
+  "question": "When you have a disagreement or argument, what is your natural style *during* the conflict?",
+  "helpText": "This question focuses on your reaction 'in the moment', not just how you make up afterward.",
+  "options": {
+    "expressive_emotive": "I express my feelings loudly and then I calm down.",
+    "need_time_to_process": "I need quiet time to process before I'm ready to talk.",
+    "immediate_resolution": "I strive to resolve the issue immediately, no matter the hour.",
+    "conflict_avoidant": "I tend to avoid direct confrontation and hope things blow over."
+  }
+},
+
     "relationship_partner_bad_day": {
       "question": "Your partner comes home after a terrible day, clearly upset. What is your most natural way of offering support?",
       "helpText": "This reveals your 'language of support' in action. There's no single right answer.",
@@ -2575,6 +2637,21 @@ Content:
       "placeholder": "Try to think of the single most fundamental trait for you...",
       "helpText": "This is a powerful focusing question. It helps us understand the absolute core of your search."
     },
+    "partner_romantic_past_comfort": {
+  "question": "What is your comfort level with a partner's romantic past?",
+  "options": {
+    "no_past": "I prefer someone with no significant romantic past.",
+    "short_term_ok": "I'm okay with short-term relationships in the past.",
+    "long_term_ok": "I'm okay with serious/long-term relationships in the past.",
+    "past_is_past": "The past is the past; what matters is the present and future."
+  }
+},
+"partner_what_you_bring": {
+  "question": "Beyond what you are looking for, what are the three main qualities or strengths you feel you would contribute to a relationship?",
+  "placeholder": "For example: listening skills, sense of humor, emotional stability, optimism...",
+  "helpText": "This question helps us understand not just what you want, but also what you give."
+},
+
     "partner_dating_persona": {
       "question": "A date is a unique social situation. If your personality on a date was a pie chart worth 100%, how would you distribute the points among the different 'roles' you tend to play?",
       "helpText": "We're all a bit different on a date than in daily life. Think honestly: do you tend to listen more or talk more? Be humorous or serious? Your answer helps us understand the dynamic you create.",
@@ -2693,6 +2770,42 @@ Content:
         "not_seeking": "I'm not actively seeking a community."
       }
     },
+    "religion_partner_torah_learning_expectation": {
+  "question": "What is your expectation from a partner regarding regular Torah study?",
+  "helpText": "This is an important question for aligning expectations when building a Torah-observant home.",
+  "options": {
+    "dedicated_daily": "It's very important to me that they learn seriously and regularly, on a daily basis.",
+    "regularly_flexible": "It's important to me that they have a connection to learning, even if not daily (e.g., a weekly class).",
+    "when_possible": "I would be happy if they learn when time permits, but it's not a central expectation.",
+    "not_a_focus": "This is not a top priority for me."
+  }
+},
+"religion_army_service_attitude": {
+  "question": "What is your attitude towards significant military / national service?",
+  "helpText": "For many in the Religious Zionist community, this is a core value and issue.",
+  "options": {
+    "essential_for_men": "Meaningful/combat service for men is a supreme value.",
+    "meaningful_service": "Meaningful service (military or national) is important, but not necessarily combat.",
+    "torah_is_protection": "Torah study holds the highest importance, and military service is secondary to it.",
+    "flexible_personal_choice": "It's a personal and flexible decision depending on the person and circumstances."
+  }
+},
+"religion_zionism_importance": {
+  "question": "To what extent are the connection to the Land of Israel and the national-Zionist dimension essential to your Jewish identity?",
+  "labels": {
+    "min": "My connection is primarily religious-halachic.",
+    "max": "Religious Zionism is the core of my identity and worldview."
+  }
+},
+"religion_intergroup_friendships": {
+  "question": "Following the previous question, do you have close friends from other sectors/streams (secular, Haredi, traditional)?",
+  "helpText": "This answer shows in practice, not just in theory, your level of openness and connection to different parts of the nation.",
+  "options": {
+    "large_part": "Yes, they are a large part of my social circle.",
+    "some_friends": "Yes, I have a few such friends.",
+    "mostly_homogeneous": "Not really, my social circle is fairly homogeneous."
+  } 
+   },
     "religion_doubts_and_struggles": {
       "question": "How do you approach moments of spiritual questioning, doubt, or struggle, if and when they arise?",
       "placeholder": "For example: Do you tend to suppress them, discuss them with a mentor or friends, study the topic more deeply, or find strength in the process of wrestling with the question?",
@@ -2826,6 +2939,34 @@ Content:
         "observer": "המתבונן/ת - אני לוקח/ת את הזמן, סורק/ת את המרחב ומחכה להזדמנות הנכונה."
       }
     },
+    "personality_pressure_pattern": {
+  "question": "כשאת/ה מתחת ללחץ גבוה או במצב משבר, מהו הדפוס הטבעי שלך?",
+  "helpText": "בזוגיות, האופן שבו שני בני זוג מגיבים למשברים הוא קריטי. התשובה כאן חושפת דפוסי התמודדות אישיים.",
+  "options": {
+    "need_space": "אני צריך/ה זמן לעצמי כדי לעבד ולהירגע.",
+    "seek_support": "אני מחפש/ת תמיכה ושיח עם אנשים קרובים.",
+    "action_oriented": "אני עובר/ת לפעולה מיידית ופתרון בעיות.",
+    "avoidance_distraction": "אני נוטה להימנע או להסיח את דעתי עד שארגיש מוכן/ה להתמודד."
+  }
+},
+"personality_life_pace": {
+  "question": "איזה קצב חיים אידיאלי עבורך ביום-יום?",
+  "helpText": "התאמה בקצב החיים מונעת חיכוכים יומיומיים רבים. האם את/ה 'ספרינטר/ית' או 'רץ/ת מרתון' של החיים?",
+  "options": {
+    "planned_efficient": "מתוכנן מראש, יעיל ומוקדש למטרות ברורות.",
+    "organized_spontaneous": "מאורגן בגדול, אבל עם מקום לספונטניות.",
+    "flexible_flow": "זורם, גמיש ומותאם למצב הרוח והנסיבות.",
+    "minimalist_calm": "מינימליסטי, רגוע ועם הרבה זמן פנוי."
+  }
+},
+"personality_sleep_flexibility": {
+  "question": "בהמשך לשאלת הבוקר/לילה, כמה גמיש/ה את/ה בהתאמה לשגרת שינה של בן/בת הזוג?",
+  "options": {
+    "very_flexible": "גמיש/ה מאוד, אני יכול/ה להסתגל.",
+    "somewhat_flexible": "במידה מסוימת, אבל זה ישפיע על התפקוד שלי.",
+    "not_flexible": "קשה לי מאוד לשנות את המקצב הטבעי שלי."
+  }
+},
     "personality_unproductive_day_feeling": {
       "question": "איך את/ה מרגיש/ה עם עצמך בסוף יום שבו לא הספקת את מה שתכננת והיית פחות פרודוקטיבי/ת מהרצוי?",
       "helpText": "השאלה הזו בודקת את הדיאלוג הפנימי שלך - האם הוא ביקורתי או חומל? זה חשוב ליכולת להכיל גם את בן/בת הזוג.",
@@ -3066,6 +3207,25 @@ Content:
       "placeholder": "האם הצלחה היא יציבות כלכלית? השפעה חברתית? גידול משפחה לתפארת? שלווה פנימית?",
       "helpText": "התשובה כאן היא חלון ישיר לשאיפות הכי עמוקות שלך, ומסייעת לנו למצוא מישהו/י עם שאיפות דומות."
     },
+    "values_extended_family_involvement": {
+  "question": "מה מידת המעורבות שאת/ה מצפה שתהיה למשפחה המורחבת (הורים, אחים) בחיי הזוגיות שלכם?",
+  "helpText": "זוהי סוגיה מרכזית בזוגיות ישראלית. חשוב להבין את הציפיות לגבי גבולות ומעורבות משפחתית.",
+  "options": {
+    "high_involvement": "מעורבות גבוהה - המשפחה היא חלק מרכזי בחיינו.",
+    "healthy_boundaries": "מעורבות בריאה - קשר קרוב אבל עם גבולות ברורים.",
+    "minimal_involvement": "מעורבות מינימלית - נשמור על קשר אך נבנה חיים עצמאיים.",
+    "depends_on_dynamics": "תלוי בדינמיקה - צריך לראות איך זה מתפתח."
+  }
+},
+"values_social_perception_influence": {
+  "question": "באיזו מידה שיקולים של 'מה יגידו' או דעת הסביבה משפיעים על החלטות משמעותיות בחייך?",
+  "helpText": "השאלה בודקת את האיזון בין מצפן פנימי לבין השפעות חברתיות חיצוניות.",
+  "labels": {
+    "min": "כמעט לא משפיע, אני פועל/ת לפי האמת הפנימית שלי.",
+    "max": "משפיע מאוד, חשוב לי איך אני נתפס/ת בחברה."
+  }
+},
+
     "values_lost_wallet": {
       "question": "מצאת ברחוב ארנק ובו סכום כסף גדול ותעודה מזהה. אין איש בסביבה. מהם הצעדים המדויקים שתעשה/י?",
       "placeholder": "תאר/י את תהליך המחשבה והפעולות שלך, שלב אחר שלב.",
@@ -3247,6 +3407,33 @@ Content:
         "hint_repeatedly": "ארמוז על כך שוב ושוב עד שהצד השני יבין בעצמו."
       }
     },
+    "relationship_physical_intimacy_importance": {
+  "question": "באיזו מידה קרבה פיזית ואינטימיות הן חשובות לך כביטוי לאהבה ולחיבור בזוגיות?",
+  "helpText": "זהו אחד הנושאים החשובים ביותר לתיאום ציפיות בזוגיות. אנא ענה/י בכנות לגבי הצורך האישי שלך.",
+  "labels": {
+    "min": "חשובה, אך החיבור הרגשי והרוחני מרכזי יותר עבורי.",
+    "max": "מרכזית וחיונית ביותר לתחושת החיבור והאהבה שלי."
+  }
+},
+"relationship_screen_time_approach": {
+  "question": "מהי הגישה שלך לשימוש בטכנולוגיה (טלפונים, מסכים) בזמן משפחתי ובזמן איכות זוגי?",
+  "options": {
+    "very_limited": "מצומצם מאוד - חשוב לי לשמור על 'זמן נקי' ממסכים.",
+    "balanced_usage": "מאוזן - שימוש מודע עם גבולות ברורים.",
+    "flexible_usage": "גמיש - כל אחד לפי הצורך שלו, כל עוד זה לא פוגע."
+  }
+},
+"relationship_argument_style": {
+  "question": "כשיש ביניכם מחלוקת או ויכוח, מהו הסגנון הטבעי שלך *במהלך* העימות?",
+  "helpText": "השאלה הזו מתמקדת בתגובה שלך 'בזמן אמת', ולא רק באיך מתפייסים אחרי.",
+  "options": {
+    "expressive_emotive": "אני מביע/ה בקול רם את הרגשות ואז נרגע/ת.",
+    "need_time_to_process": "אני צריך/ה זמן שקט לעבד לפני שאני יכול/ה לדבר על זה.",
+    "immediate_resolution": "אני שואף/ת לפתור את הבעיה מיד, לא משנה מה השעה.",
+    "conflict_avoidant": "אני נוטה להימנע מעימותים ישירים ולקוות שהדברים יסתדרו."
+  }
+},
+
     "relationship_partner_bad_day": {
       "question": "בן/בת הזוג שלך חוזר/ת הביתה אחרי יום נוראי, מתוסכל/ת ועצבני/ת. מה תהיה התגובה הטבעית שלך?",
       "helpText": "השאלה בודקת את 'שפת התמיכה' שלך בפועל. אין פה תשובה נכונה, רק סגנונות שונים.",
@@ -3437,6 +3624,21 @@ Content:
       "placeholder": "נסה/י לחשוב על הדבר האחד והיחיד שהוא הבסיס להכל עבורך...",
       "helpText": "זו שאלת המיקוד החשובה ביותר. היא עוזרת לנו להבין מה נמצא בגרעין החיפוש שלך."
     },
+    "partner_romantic_past_comfort": {
+  "question": "מהי רמת הנוחות שלך עם עבר רומנטי של בן/בת הזוג?",
+  "options": {
+    "no_past": "אני מעדיף/ה מישהו/י ללא עבר רומנטי משמעותי.",
+    "short_term_ok": "אני בסדר עם קשרים קצרים בעבר.",
+    "long_term_ok": "אני בסדר עם קשרים רציניים/ארוכים בעבר.",
+    "past_is_past": "העבר הוא עבר, מה שחשוב זה ההווה והעתיד."
+  }
+},
+"partner_what_you_bring": {
+  "question": "מעבר למה שאת/ה מחפש/ת, מהן שלוש התכונות או החוזקות המרכזיות שאת/ה מרגיש/ה שתביא/י לקשר זוגי?",
+  "placeholder": "לדוגמה: יכולת הקשבה, חוש הומור, יציבות רגשית, אופטימיות...",
+  "helpText": "שאלה זו עוזרת לנו להבין לא רק מה אתה רוצה, אלא גם מה אתה נותן."
+},
+
     "partner_dating_persona": {
       "question": "דייט הוא סיטואציה חברתית ייחודית. אם אישיותך בדייט הייתה מורכבת מ-100%, איך היית מחלק/ת את האחוזים בין ה'תפקידים' השונים שאת/ה נוטה למלא?",
       "helpText": "כולנו קצת שונים בדייט מאשר בחיים. חשוב/י בכנות: האם את/ה נוטה יותר להקשיב או לדבר? להצחיק או להיות רציני/ת? התשובה כאן עוזרת לנו להבין את הדינמיקה שאת/ה יוצר/ת.",
@@ -3553,6 +3755,43 @@ Content:
         "not_seeking": "לא מחפש/ת קהילה באופן פעיל."
       }
     },
+    "religion_partner_torah_learning_expectation": {
+  "question": "מהי הציפייה שלך מבן/בת הזוג ביחס לקביעות עיתים לתורה?",
+  "helpText": "זוהי שאלה חשובה לתיאום ציפיות בבניית בית תורני.",
+  "options": {
+    "dedicated_daily": "חשוב לי מאוד שילמד/תלמד באופן קבוע ורציני, מדי יום.",
+    "regularly_flexible": "חשוב לי שיהיה חיבור ללימוד, גם אם לא יומיומי (למשל, שיעור שבועי).",
+    "when_possible": "אשמח שילמד/תלמד כשיש זמן ואפשרות, אך זו לא ציפייה מרכזית.",
+    "not_a_focus": "זה לא בראש סדר העדיפויות שלי."
+  }
+},
+"religion_army_service_attitude": {
+  "question": "מהי גישתך לשירות צבאי / לאומי משמעותי?",
+  "helpText": "עבור רבים בציבור הדתי-לאומי, זוהי סוגיה ערכית ומהותית.",
+  "options": {
+    "essential_for_men": "שירות קרבי/משמעותי לגברים הוא ערך עליון.",
+    "meaningful_service": "שירות משמעותי (צבאי או לאומי) חשוב, אך לאו דווקא קרבי.",
+    "torah_is_protection": "לימוד תורה הוא בעל חשיבות עליונה, והשירות הצבאי משני לו.",
+    "flexible_personal_choice": "זוהי החלטה אישית וגמישה לפי הנסיבות והאדם."
+  }
+},
+"religion_zionism_importance": {
+  "question": "באיזו מידה החיבור לארץ ישראל והמימד הלאומי-ציוני מהותיים בזהות היהודית שלך?",
+  "labels": {
+    "min": "החיבור שלי הוא בעיקר דתי-הלכתי.",
+    "max": "הציונות הדתית היא לב הזהות והשקפת העולם שלי."
+  }
+},
+"religion_intergroup_friendships": {
+  "question": "בהמשך לשאלה הקודמת, האם יש לך חברים קרובים ממגזרים/זרמים אחרים (חילונים, חרדים, מסורתיים)?",
+  "helpText": "התשובה כאן מראה בפועל, ולא רק בתיאוריה, את רמת הפתיחות והחיבור שלך לחלקים שונים בעם.",
+  "options": {
+    "large_part": "כן, הם חלק גדול מהמעגל החברתי שלי.",
+    "some_friends": "כן, יש לי כמה חברים כאלה.",
+    "mostly_homogeneous": "לא ממש, המעגל החברתי שלי הומוגני למדי."
+  }
+},
+
     "religion_doubts_and_struggles": {
       "question": "כיצד את/ה מתמודד/ת עם שאלות, ספקות או אתגרים באמונה, אם וכאשר הם עולים?",
       "placeholder": "למשל: האם את/ה מדחיק/ה, מתייעץ/ת עם רב/חברים, לומד/ת את הנושא לעומק, או מוצא/ת כוח באתגר?",

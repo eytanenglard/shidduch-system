@@ -1,6 +1,7 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\profile
-# Generated on: 2025-11-19 18:57:36
+# Generated on: 2025-12-01 08:15:12
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
 ================================================================================
@@ -343,8 +344,8 @@ Content:
       },
       "religion": {
         "title": "Worldview & Faith",
-        "religiousLevelLabel": "Religious Observance",
-        "religiousLevelPlaceholder": "Select level",
+       "religiousLevelLabel": "Religious Style",
+"religiousLevelPlaceholder": "Select style",
         "religiousJourneyLabel": "Religious Background",
         "religiousJourneyPlaceholder": "Select background",
         "shomerNegiahLabel": "Observant of Shomer Negiah?",
@@ -974,7 +975,7 @@ Content:
       "religion": {
         "title": "Worldview & Faith",
 "religiousLevelLabel": "Religious Style",
-        "religiousLevelPlaceholder": "Select level",
+        "religiousLevelPlaceholder": "Select style",
         "religiousJourneyLabel": "Religious Background",
         "religiousJourneyPlaceholder": "Select background",
         "shomerNegiahLabel": "Observant of Shomer Negiah?",
@@ -2014,8 +2015,8 @@ Content:
       },
       "religion": {
         "title": "השקפה ואמונה",
-        "religiousLevelLabel": "רמה דתית",
-        "religiousLevelPlaceholder": "בחר/י רמה",
+   "religiousLevelLabel": "סגנון דתי",
+"religiousLevelPlaceholder": "בחר/י סגנון",
         "religiousJourneyLabel": "מסע דתי",
         "religiousJourneyPlaceholder": "בחר/י רקע דתי",
         "shomerNegiahLabel": "שומר/ת נגיעה?",
@@ -2544,7 +2545,7 @@ Content:
       "religion": {
         "title": "השקפה ואמונה",
 "religiousLevelLabel": "סגנון דתי",
-        "religiousLevelPlaceholder": "בחר/י רמה",
+        "religiousLevelPlaceholder": "בחר/י סגנון",
         "religiousJourneyLabel": "מסע דתי",
         "religiousJourneyPlaceholder": "בחר/י רקע דתי",
         "shomerNegiahLabel": "שומר/ת נגיעה?",

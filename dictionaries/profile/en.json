@@ -117,8 +117,20 @@
         "preferredHobbies": "Preferred hobbies",
         "preferredKippahTypes": "Preferred Kippah types (for women's preference)",
         "preferredHeadCoverings": "Preferred head covering types (for men's preference)"
-      }
+      },
+      "privacyNote": "All information is kept confidential and used only for matching"
     },
+    "privacyAssurances": {
+  "banner": {
+    "icon": "🔒",
+    "text": "Your details are kept completely private",
+    "subtext": "Visible only to matchmakers and approved matches"
+  },
+  "photos": "Your photos aren't publicly visible - only approved matches see them",
+  "medical": "This info is encrypted. Only the matchmaker sees it, and you choose when to share",
+  "story": "Your personal story is shown only in targeted match suggestions",
+  "preview": "This is exactly what the other side will see - only after you approve"
+},
     "aiAdvisor": {
       "triggerButton": "Get AI Analysis & Tips to Improve Your Profile",
       "dialogTitle": "Your Smart Profile Advisor",
@@ -220,7 +232,8 @@
     },
     "confirmations": {
       "bulkDelete": "Are you sure you want to delete {{count}} selected photos? This action is irreversible."
-    }
+    },
+    "privacyNote": "Your photos aren't publicly visible - only approved matches see them"
   },
   "profileSection": {
  "aboutMe": {
@@ -396,7 +409,9 @@
           "visibility": "Profile Visibility",
           "visibleBadge": "Visible on profile",
           "hiddenBadge": "Discreet (team only)"
-        }
+        },
+        "privacyNote": "This info is encrypted. Only the matchmaker sees it, and you choose when to share"
+
       },
 
 "education": {

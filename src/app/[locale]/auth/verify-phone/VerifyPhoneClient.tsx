@@ -22,6 +22,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+// Import ProgressBar
+import ProgressBar from '@/components/auth/ProgressBar';
 import type { VerifyPhoneDict } from '@/types/dictionaries/auth';
 
 // ============================================================================
@@ -444,6 +446,17 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
       >
         {/* Header Section */}
         <motion.div variants={itemVariants} className="text-center mb-8">
+          {/* --- Progress Bar Added Here --- */}
+          <div className="w-full max-w-xs mx-auto mb-6">
+            <ProgressBar
+              currentStep={2}
+              totalSteps={2}
+              stepLabel={locale === 'he' ? 'שלב {{step}}' : 'Step {{step}}'}
+              locale={locale}
+            />
+          </div>
+          {/* ------------------------------- */}
+
           <motion.div
             className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-6"
             whileHover={{ scale: 1.05 }}

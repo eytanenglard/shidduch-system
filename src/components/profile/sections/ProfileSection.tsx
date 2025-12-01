@@ -2303,34 +2303,27 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
             </Card>
 
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-red-50/40 to-pink-50/40 border-b border-gray-200/50 p-4">
-                <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                  <HeartPulse className="w-5 h-5 text-red-700" />
-                  <CardTitle className="text-base font-semibold text-gray-700">
-                    {dict.cards.medical.title}
-                  </CardTitle>
-                  <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          aria-describedby="medical-tooltip"
-                        >
-                          <Lock className="w-4 h-4 text-gray-400" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent
-                        id="medical-tooltip"
-                        dir={direction}
-                        sideOffset={5}
-                        collisionPadding={10}
-                      >
-                        <p>{dict.cards.medical.tooltip}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </CardHeader>
+              <CardHeader className="bg-gradient-to-r from-rose-50/40 to-pink-50/40 border-b border-gray-200/50 p-4 flex items-center justify-between">
+  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+    <HeartPulse className="w-5 h-5 text-rose-600" />
+    <CardTitle className="text-base font-semibold text-gray-700">
+      {dict.cards.medical.title}
+    </CardTitle>
+  </div>
+  <TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-full cursor-help">
+          <Lock className="w-3 h-3 text-emerald-600" />
+          <span className="text-xs text-emerald-600">מוגן</span>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs" dir={direction}>
+        <p>{dict.cards.medical.privacyNote || "מידע זה מוצפן. רק השדכן רואה אותו, ואת/ה בוחר/ת מתי לחשוף"}</p>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+</CardHeader>
               <CardContent className="p-4 md:p-6 space-y-4">
                 <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200/80">
                   {dict.cards.medical.description}

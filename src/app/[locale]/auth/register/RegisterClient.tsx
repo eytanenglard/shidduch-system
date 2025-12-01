@@ -12,15 +12,7 @@ import {
 } from '@/components/auth/RegistrationContext';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Info,
-  Loader2,
-  Sparkles,
-  Heart,
-  Shield,
-  ArrowRight,
-  ArrowLeft,
-} from 'lucide-react';
+import { Info, Sparkles, Heart, Shield } from 'lucide-react';
 
 // Import step components
 import WelcomeStep from '@/components/auth/steps/WelcomeStep';
@@ -75,7 +67,7 @@ const itemVariants = {
 };
 
 // ============================================================================
-// BACKGROUND COMPONENT (מעודכן לפלטת Teal/Orange)
+// BACKGROUND COMPONENT (Teal/Orange Theme)
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
@@ -345,8 +337,12 @@ const RegisterStepsContent: React.FC<{
   // Render appropriate step
   const renderStep = (): React.ReactNode => {
     if (sessionStatus === 'loading') {
-        return <StandardizedLoadingSpinner text={locale === 'he' ? 'טוען...' : 'Loading...'} layout="inline" />;
-
+      return (
+        <StandardizedLoadingSpinner
+          text={locale === 'he' ? 'טוען...' : 'Loading...'}
+          layout="inline"
+        />
+      );
     }
 
     if (
@@ -408,23 +404,29 @@ const RegisterStepsContent: React.FC<{
     registrationContextData.isVerifyingEmailCode &&
     !registrationContextData.isCompletingProfile
   ) {
+    // Flow A: Account Creation -> Email Verify
     pageTitle = dict.headers.verifyEmailTitle;
     stepDescription = dict.headers.verifyEmailDescription.replace(
       '{{email}}',
       registrationContextData.emailForVerification || ''
     );
     showProgressBar = true;
-    currentProgressBarStep = 1;
+    currentProgressBarStep = 2; // Step 2 of 2
+    totalProgressBarSteps = 2;
   } else if (registrationContextData.isCompletingProfile) {
+    // Flow B: Profile Completion (Google / Post-Email)
     pageTitle = dict.headers.completeProfileTitle;
-    totalProgressBarSteps = 1;
+    totalProgressBarSteps = 2; // Fixed: Now it's 2 steps (Details + Phone)
+
     if (registrationContextData.step === 2) {
+      // Step 1: Personal Details
       stepDescription = session?.user?.termsAndPrivacyAcceptedAt
         ? dict.headers.personalDetailsConsentedDescription
         : dict.headers.personalDetailsDescription;
-      currentProgressBarStep = 1;
+      currentProgressBarStep = 1; // Step 1 of 2
       showProgressBar = true;
     } else if (registrationContextData.step === 4) {
+      // Transition state
       stepDescription = session?.user?.isPhoneVerified
         ? dict.headers.completionReadyDescription
         : dict.headers.completionPhoneVerificationDescription;
@@ -434,10 +436,12 @@ const RegisterStepsContent: React.FC<{
       showProgressBar = false;
     }
   } else {
+    // Initial Register Flow
     if (registrationContextData.step === 1) {
       pageTitle = dict.headers.registerTitle;
       stepDescription = dict.headers.accountCreationDescription;
-      currentProgressBarStep = 1;
+      currentProgressBarStep = 1; // Step 1 of 2 (Account Creation)
+      totalProgressBarSteps = 2;
       showProgressBar = true;
     }
   }

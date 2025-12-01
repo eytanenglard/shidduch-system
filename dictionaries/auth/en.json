@@ -181,16 +181,16 @@
     "progressBar": {
       "stepLabel": "Step {{step}}"
     },
-    "headers": {
+  "headers": {
       "registerTitle": "System Registration",
       "verifyEmailTitle": "Email Address Verification",
       "completeProfileTitle": "Complete Details",
       "welcomeDescription": "Welcome! Let's get started.",
-      "accountCreationDescription": "Step 1 of 3: Consent and Login Details.",
+      "accountCreationDescription": "Account creation and login details.",
       "verifyEmailDescription": "Enter the code sent to: {{email}}.",
-      "personalDetailsDescription": "Step 1: Consent and Personal Details.",
-      "personalDetailsConsentedDescription": "Step 1 of 2: Personal Details.",
-      "optionalInfoDescription": "Step 2 of 2: Additional Information (Recommended).",
+      "personalDetailsDescription": "Personal details for profile creation.",
+      "personalDetailsConsentedDescription": "Personal details for profile creation.",
+      "optionalInfoDescription": "Additional Information (Recommended).",
       "completionPhoneVerificationDescription": "Details complete! Next step: Phone verification.",
       "completionReadyDescription": "Your profile is ready!",
       "loadingProfileDescription": "Loading profile completion step..."
