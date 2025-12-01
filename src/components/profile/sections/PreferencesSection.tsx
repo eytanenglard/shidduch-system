@@ -288,7 +288,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   const renderMultiSelectBadges = (
     fieldValues: string[] | undefined | null,
     options: { value: string; label: string; icon?: React.ElementType }[],
-    badgeClass: string = 'bg-sky-100 text-sky-700',
+    badgeClass: string = 'bg-teal-100 text-teal-700',
     emptyPlaceholder: string
   ) => {
     if (!fieldValues || fieldValues.length === 0) {
@@ -349,7 +349,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={() => setIsEditing(true)}
-                    className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50"
+                    className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-teal-400 text-teal-700 hover:bg-teal-50"
                   >
                     <Pencil className="w-3.5 h-3.5 ltr:ml-1.5 rtl:mr-1.5" />
                     {t.buttons.edit}
@@ -371,7 +371,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                         variant="default"
                         size="sm"
                         onClick={handleSave}
-                        className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white"
+                        className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white"
                       >
                         <Save className="w-3.5 h-3.5 ltr:ml-1.5 rtl:mr-1.5" />
                         {t.buttons.save}
@@ -433,7 +433,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       value={formData.matchingNotes || ''}
                       onChange={handleInputChange}
                       placeholder={t.cards.general.notesPlaceholder}
-                      className="text-sm focus:ring-cyan-500 min-h-[100px] rounded-lg"
+                      className="text-sm focus:ring-teal-500 min-h-[100px] rounded-lg"
                       rows={4}
                     />
                   ) : (
@@ -490,7 +490,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                         value={formData.preferredAgeMin ?? ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
-                        className="h-9 text-sm focus:ring-cyan-500 disabled:bg-gray-100/70"
+                        className="h-9 text-sm focus:ring-teal-500 disabled:bg-gray-100/70"
                       />
                       <span aria-hidden="true" className="text-gray-500">
                         -
@@ -506,7 +506,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                         value={formData.preferredAgeMax ?? ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
-                        className="h-9 text-sm focus:ring-cyan-500 disabled:bg-gray-100/70"
+                        className="h-9 text-sm focus:ring-teal-500 disabled:bg-gray-100/70"
                       />
                     </div>
                     {!isEditing &&
@@ -533,7 +533,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                         value={formData.preferredHeightMin ?? ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
-                        className="h-9 text-sm focus:ring-cyan-500 disabled:bg-gray-100/70"
+                        className="h-9 text-sm focus:ring-teal-500 disabled:bg-gray-100/70"
                       />
                       <span aria-hidden="true" className="text-gray-500">
                         -
@@ -549,7 +549,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                         value={formData.preferredHeightMax ?? ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
-                        className="h-9 text-sm focus:ring-cyan-500 disabled:bg-gray-100/70"
+                        className="h-9 text-sm focus:ring-teal-500 disabled:bg-gray-100/70"
                       />
                     </div>
                     {!isEditing &&
@@ -568,8 +568,8 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
           {/* --- Column 2 --- */}
           <div className="space-y-6">
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-sky-50/40 to-blue-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
-                <MapPin className="w-5 h-5 text-sky-700" />
+              <CardHeader className="bg-gradient-to-r from-teal-50/40 to-orange-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
+                <MapPin className="w-5 h-5 text-teal-700" />
                 <CardTitle className="text-base font-semibold text-gray-700">
                   {t.cards.locationAndReligion.title}
                 </CardTitle>
@@ -589,12 +589,12 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                           <Badge
                             key={loc}
                             variant="secondary"
-                            className="bg-sky-100 text-sky-800 rounded-full px-2 py-1 text-sm font-normal"
+                            className="bg-teal-100 text-teal-800 rounded-full px-2 py-1 text-sm font-normal"
                           >
                             <span>{loc}</span>
                             <button
                               type="button"
-                              className="ltr:mr-1.5 rtl:ml-1.5 text-sky-600 hover:text-sky-900"
+                              className="ltr:mr-1.5 rtl:ml-1.5 text-teal-600 hover:text-teal-900"
                               onClick={() =>
                                 handleRemoveItemFromArray(
                                   'preferredLocations',
@@ -636,7 +636,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                           types: ['(cities)'],
                           componentRestrictions: { country: 'il' },
                         }}
-                        className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+                        className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
                         placeholder={
                           t.cards.locationAndReligion.locationsPlaceholder
                         }
@@ -654,7 +654,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                           <Badge
                             key={loc}
                             variant="secondary"
-                            className="ltr:mr-1 rtl:ml-1 mb-1 bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full"
+                            className="ltr:mr-1 rtl:ml-1 mb-1 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full"
                           >
                             {loc}
                           </Badge>
@@ -762,7 +762,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             (
                               formData.preferredReligiousJourneys || []
                             ).includes(opt.value as ReligiousJourney)
-                              ? 'bg-cyan-500 hover:bg-cyan-600 text-white border-cyan-500'
+                              ? 'bg-teal-500 hover:bg-teal-600 text-white border-teal-500'
                               : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                           )}
                         >
@@ -775,7 +775,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       {renderMultiSelectBadges(
                         formData.preferredReligiousJourneys as string[],
                         preferredReligiousJourneyOptions,
-                        'bg-cyan-100 text-cyan-700',
+                        'bg-teal-100 text-teal-700',
                         t.cards.locationAndReligion.religiousJourneysEmpty
                       )}
                     </div>
@@ -799,7 +799,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     >
                       <SelectTrigger
                         id="preferredShomerNegiah"
-                        className="h-9 text-sm focus:ring-cyan-500"
+                        className="h-9 text-sm focus:ring-teal-500"
                       >
                         <SelectValue
                           placeholder={
@@ -1158,7 +1158,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     >
                       <SelectTrigger
                         id="preferredPartnerHasChildren"
-                        className="h-9 text-sm focus:ring-cyan-500"
+                        className="h-9 text-sm focus:ring-teal-500"
                       >
                         <SelectValue
                           placeholder={
@@ -1287,7 +1287,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             setOriginInputValue('');
                           }}
                           options={{ types: ['country'] }}
-                          className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+                          className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
                           placeholder={
                             t.cards.personalBackground.originPlaceholder
                           }
@@ -1338,7 +1338,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     >
                       <SelectTrigger
                         id="preferredAliyaStatus"
-                        className="h-9 text-sm focus:ring-cyan-500"
+                        className="h-9 text-sm focus:ring-teal-500"
                       >
                         <SelectValue
                           placeholder={
@@ -1516,7 +1516,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
               variant="default"
               size="sm"
               onClick={handleSave}
-              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2"
+              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white px-6 py-2"
             >
               <Save className="w-4 h-4" />
               {t.buttons.save}

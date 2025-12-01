@@ -1,202 +1,139 @@
 {
   "pageLoader": "טוען פרופיל...",
- "dashboard": {
-    "loading": {
-      "title": "מכינים עבורך את מרכז הבקרה...",
-      "subtitle": "אנו אוספים את כל הפרטים שלך כדי ליצור חוויה אישית. זה ייקח רק רגע."
-    },
-    "stats": {
-      "title": "ברוך הבא למרכז ניהול הפרופיל",
-      "subtitle": "זהו המרחב האישי שלך לנהל את המסע למציאת התאמה. הנה מבט מהיר על ההתקדמות שלך.",
-      "profileCompletion": "השלמת הפרופיל",
-      "profileCompletionDesc": "פרופיל מלא זוכה ליותר צפיות.",
-      "photos": "תמונות שהועלו",
-      "photosDesc": "יותר תמונות מגדילות מעורבות.",
-      "questionnaire": "שאלון התאמה",
-      "questionnaireDesc": "המפתח להתאמות החכמות שלנו.",
-      "completed": "הושלם",
-      "pending": "ממתין"
-    },
-    "main": {
-      "title": "ניהול הפרופיל שלך"
-    },
-    "refreshSuccess": "נתוני הפרופיל רועננו בהצלחה.",
-    "loadingData": "טוען נתונים...",
-    "loadError": "שגיאה בטעינת הנתונים: {{error}}",
-    "updateSuccess": "הפרופיל עודכן בהצלחה",
-    "updateError": "שגיאה בעדכון הפרופיל: {{error}}",
-    "previewButton": "תצוגה מקדימה של הפרופיל",
-    "previewLoading": "טוען תצוגה מקדימה...",
-    "viewedPreviewSuccess": "תודה! שלב 'הצפייה בתצוגה' הושלם.",
-    "viewedPreviewError": "שגיאה בעדכון סטטוס הצפייה בתצוגה המקדימה.",
-    "tabs": {
-      "overview": "פרטים כלליים",
-      "overviewShort": "פרופיל",
-      "photos": "תמונות",
-      "photosShort": "תמונות",
-      "preferences": "העדפות",
-      "preferencesShort": "העדפות",
-      "questionnaire": "שאלון",
-      "questionnaireShort": "תשובות"
-    },
-    "tabContent": {
-      "loadingOverview": "טוען סקירה כללית...",
-      "loadingPreferences": "טוען העדפות...",
-      "loadingQuestionnaire": "טוען שאלון...",
-      "noQuestionnaire": "לא מולאו תשובות לשאלון.",
-      "fillQuestionnaireLink": "למילוי השאלון",
-       "questionnaireUpdateSuccess": "השאלון עודכן בהצלחה",
-      "questionnaireUpdateError": "שגיאה בעדכון השאלון"
-    },
-    "checklist": {
-  "welcome": "ברוך הבא, {{firstName}}! בוא נכין את הפרופיל שלך להצלחה",
-  "welcome_female": "ברוכה הבאה, {{firstName}}! בואי נכין את הפרופיל שלךְ להצלחה",
-  "allComplete": "כל הכבוד, {{firstName}}! הפרופיל שלך מושלם!",
-  "allComplete_female": "כל הכבוד, {{firstName}}! הפרופיל שלךְ מושלם!",
-      "welcomeSubtitle": "השלמת הצעדים הבאים תקדם אותך משמעותית למציאת התאמה.",
-      "allCompleteSubtitle": "השלמת את כל השלבים. פרופיל עשיר הוא המפתח למציאת ההתאמה המדויקת ביותר.",
-        "checklistPurpose": "הרשימה הזו מציגה את הפעולות הנדרשות להשלמת פרופיל שימשוך את ההצעות הנכונות ביותר עבורך.",
-
-      "completionLabel": "השלמת הפרופיל",
-      "expandLabel": "הרחב",
-      "minimizeLabel": "מזער",
-      "missingItemsTitle": "מה חסר להשלמת השלב?",
-      "tasks": {
-        "photos": {
-          "title": "העלאת תמונות",
-          "description": "הכרטיס ביקור הראשוני שלך.",
-          "missing": "נדרשות לפחות 3 תמונות (הועלו: {{count}})"
-        },
-        "personalDetails": {
-          "title": "פרטים כלליים",
-          "description": "הבסיס להכיר אותך לעומק."
-        },
-        "partnerPreferences": {
-          "title": "העדפות התאמה",
-          "description": "לדייק את מי שמחפשים."
-        },
-        "questionnaire": {
-          "title": "שאלון התאמה",
-          "description": "המפתח להתאמות AI."
-        },
-        "review": {
-          "title": "תצוגה מקדימה",
-          "description": "לראות איך אחרים רואים אותך.",
-          "missing": "יש לצפות בתצוגה המקדימה של הפרופיל"
-        }
-      },
-      "missingItems": {
-        "profileHeadline": "כותרת פרופיל",
-        "about": "שדה 'אודותיי' (לפחות 100 תווים)",
-                "testimonials": "לפחות המלצה מאושרת אחת מחבר/ה",
-        "inspiringCoupleStory": "סיפור על זוג מעורר השראה",
-        "influentialRabbi": "דמות רבנית/רוחנית משפיעה",
-        "medicalInfoReference": "התייחסות למידע רפואי/רגיש",
-        "medicalInfoDetails": "פירוט מידע רפואי (כאשר סומן 'כן')",
-        "medicalInfoDisclosureTiming": "תזמון חשיפת מידע רפואי",
-        "birthDate": "תאריך לידה",
-        "height": "גובה",
-        "city": "עיר מגורים",
-        "origin": "מוצא/עדה",
-        "nativeLanguage": "שפת אם",
-        "aliyaYear": "שנת עליה (כאשר מדינת עליה צוינה)",
-        "maritalStatus": "מצב משפחתי",
-        "childrenFromPreviousReference": "התייחסות לילדים מקשר קודם",
-        "parentStatus": "מצב משפחתי של ההורים",
-        "fatherOccupation": "מקצוע האב",
-        "motherOccupation": "מקצוע האם",
-        "siblings": "מספר אחים ואחיות",
-        "position": "מיקום במשפחה",
-        "religiousLevel": "רמה דתית",
-        "religiousJourney": "מסע/רקע דתי",
-        "shomerNegiah": "שמירת נגיעה",
-        "educationLevel": "רמת השכלה",
-        "educationDetails": "פירוט השכלה",
-        "occupation": "עיסוק",
-        "serviceType": "סוג שירות (צבאי/לאומי)",
-        "serviceDetails": "פירוט על השירות",
-        "characterTraits": "לפחות תכונת אופי אחת",
-        "hobbies": "לפחות תחביב אחד",
-        "headCovering": "סוג כיסוי ראש (רלוונטי לנשים)",
-        "kippahType": "סוג כיפה (רלוונטי לגברים)",
-        "matchingNotes": "תיאור כללי על בן/בת הזוג",
-        "contactPreference": "העדפת אופן יצירת קשר",
-        "preferredAgeRange": "טווח גילאים מועדף",
-        "preferredHeightRange": "טווח גבהים מועדף",
-        "preferredLocations": "אזורי מגורים מועדפים",
-        "preferredReligiousLevels": "רמות דתיות מועדפות",
-        "preferredReligiousJourneys": "מסע/רקע דתי מועדף",
-        "preferredShomerNegiah": "העדפה לשמירת נגיעה",
-        "preferredEducation": "רמות השכלה מועדפות",
-        "preferredOccupations": "תחומי עיסוק מועדפים",
-        "preferredServiceTypes": "סוגי שירות מועדפים",
-        "preferredMaritalStatuses": "מצבים משפחתיים מועדפים",
-        "preferredPartnerHasChildren": "העדפה לגבי ילדים של בן/בת הזוג",
-        "preferredOrigins": "מוצא/עדה מועדפים",
-        "preferredAliyaStatus": "סטטוס עליה מועדף",
-        "preferredCharacterTraits": "תכונות אופי מועדפות",
-        "preferredHobbies": "תחביבים מועדפים",
-        "preferredKippahTypes": "סוגי כיפה מועדפים (רלוונטי לנשים)",
-        "preferredHeadCoverings": "סוגי כיסוי ראש מועדפים (רלוונטי לגברים)"
-      },
-      "privacyNote": "כל המידע נשמר בדיסקרטיות מלאה ומשמש רק להתאמות"
-
-    },
-    "privacyAssurances": {
-  "banner": {
-    "icon": "🔒",
-    "text": "הפרטים שלך נשמרים בדיסקרטיות מלאה",
-    "subtext": "גלויים רק לשדכן ולמי שנשלחת אליו הצעה"
+"dashboard": {
+  "loadingData": "טוען נתוני פרופיל...",
+  "loadError": "שגיאה בטעינת הפרופיל: {{error}}",
+  "updateSuccess": "הפרופיל עודכן בהצלחה",
+  "updateError": "שגיאה בעדכון הפרופיל: {{error}}",
+  "previewButton": "תצוגה מקדימה",
+  "previewLoading": "טוען תצוגה מקדימה...",
+  "viewedPreviewSuccess": "מצב תצוגה מקדימה עודכן",
+  "viewedPreviewError": "שגיאה בעדכון סטטוס תצוגה מקדימה",
+  "tabs": {
+    "overview": "סקירה כללית",
+    "photos": "תמונות",
+    "preferences": "העדפות",
+    "questionnaire": "שאלון"
   },
-  "photos": "התמונות שלך לא חשופות לגלישה - רק מי שקיבל הצעה יראה אותן",
-  "medical": "מידע זה מוצפן. רק השדכן רואה אותו, ואת/ה בוחר/ת מתי לחשוף",
-  "story": "הסיפור האישי מוצג רק בהצעות שידוך ממוקדות",
-  "preview": "זה בדיוק מה שהצד השני יראה - רק אחרי שתאשר/י הצעה"
-},
-    "aiAdvisor": {
-      "triggerButton": "קבל ניתוח וטיפים לשיפור הפרופיל",
-      "dialogTitle": "יועץ הפרופיל החכם שלך",
-      "dialogDescription": "ניתוח מבוסס AI שיעזור לך להציג את עצמך בצורה הטובה ביותר ולמצוא התאמות מדויקות יותר.",
-      "closeButton": "סגור",
-      "loadingTitle": "ה-AI שלנו מנתח את הפרופיל שלך...",
-      "loadingDescription": "זה עשוי לקחת מספר שניות. תודה על סבלנותך.",
-      "errorAlertTitle": "אופס, משהו השתבש",
-      "errorAlertDescription": "לא הצלחנו להשלים את ניתוח הפרופיל כרגע.",
-      "retryButton": "נסה שוב",
-      "initialState": "לחץ על הכפתור כדי להתחיל את הניתוח.",
-      "toast": {
-        "errorTitle": "שגיאה בתהליך הניתוח",
-        "errorDescription": "שגיאה בקבלת ניתוח הפרופיל: {{error}}"
+  "tabContent": {
+    "loadingOverview": "טוען פרטים אישיים...",
+    "loadingPreferences": "טוען העדפות...",
+    "loadingQuestionnaire": "טוען תשובות לשאלון...",
+    "noQuestionnaire": "טרם מילאת את שאלון ההתאמה.",
+    "fillQuestionnaireLink": "לחץ כאן למילוי השאלון",
+    "questionnaireUpdateSuccess": "התשובה עודכנה בהצלחה",
+    "questionnaireUpdateError": "שגיאה בעדכון התשובה"
+  },
+  "privacyAssurances": {
+    "banner": {
+      "text": "הפרטים שלך נשמרים בדיסקרטיות מלאה",
+      "subtext": "גלויים רק לשדכן ולמי שנשלחת אליו הצעה"
+    },
+    "preview": "זה בדיוק מה שהצד השני יראה - כשתישלח אליו ההצעה על ידי השדכן"
+  },
+  "neshmaInsightButton": {
+    "buttonText": "✨ תובנת נשמה - הדו\"ח האישי שלך מוכן!",
+    "buttonSubtitle": "סיימת את הפרופיל! קבלו ניתוח מעמיק ואישי שיעזור לכם להבין את עצמכם טוב יותר.",
+    "dialogTitle": "תובנת נשמה - הדו\"ח האישי שלך",
+    "generating": "יוצרים את התובנה שלך...",
+    "downloadPdf": "הורדה כ-PDF",
+    "close": "סגור",
+    "lockedTitle": "תובנת נשמה - נעולה",
+    "lockedDescription": "השלם את הפרופיל ל-100% כדי לפתוח (כרגע: {{percentage}}%)",
+    "alreadyGeneratedToday": "כבר יצרת תובנה היום - זמינה מחר",
+    "minimizedButtonText": "תובנת נשמה"
+  },
+  "checklist": {
+    "welcome": "היי {{firstName}}, ברוך הבא!",
+    "welcome_female": "היי {{firstName}}, ברוכה הבאה!",
+    "welcomeSubtitle": "בוא/י נשלים את הפרופיל שלך כדי שנוכל להתחיל.",
+    "checklistPurpose": "פרופיל מלא מגדיל את הסיכוי להתאמה מדויקת.",
+    "completionLabel": "{{percentage}}% הושלמו",
+    "allComplete": "כל הכבוד, הפרופיל שלך מושלם!",
+    "allComplete_female": "כל הכבוד, הפרופיל שלך מושלם!",
+    "allCompleteSubtitle": "הכל מוכן. צוות השדכנים שלנו כבר עובד עבורך.",
+    "expandLabel": "הצג משימות",
+    "minimizeLabel": "הסתר משימות",
+    "missingItemsTitle": "מה חסר?",
+    "privacyNote": "המידע הזה חסוי ונשמר בדיסקרטיות מלאה.",
+    "tasks": {
+      "photos": {
+        "title": "העלאת תמונות",
+        "description": "תמונה טובה שווה אלף מילים.",
+        "missing": "חסרות {{count}} תמונות"
+      },
+      "personalDetails": {
+        "title": "פרטים אישיים",
+        "description": "ספר/י לנו קצת על עצמך."
+      },
+      "partnerPreferences": {
+        "title": "העדפות בן/בת זוג",
+        "description": "את מי את/ה מחפש/ת?"
+      },
+      "questionnaire": {
+        "title": "שאלון התאמה",
+        "description": "המסע לגילוי העצמי שלך."
+      },
+      "review": {
+        "title": "בדיקת פרופיל",
+        "description": "מעבר אחרון לפני שיוצאים לדרך.",
+        "missing": "ישנם שדות חובה ריקים"
       }
     },
-  
-    "analysisResult": {
-      "tabs": {
-        "summary": "סיכום",
-        "completeness": "השלמת פרופיל",
-        "tips": "טיפים לשיפור"
-      },
-      "summary": {
-        "myPersonalityTitle": "מי אני? (סיכום AI)",
-        "myPersonalityDescription": "כך ה-AI מבין את האישיות שלך על סמך מה שסיפרת.",
-        "lookingForTitle": "את מי אני מחפש/ת? (סיכום AI)",
-        "lookingForDescription": "סיכום ההעדפות שלך לבן/בת הזוג האידיאלי/ת."
-      },
-      "completeness": {
-        "title": "דוח השלמת פרופיל",
-        "description": "סקירה של החלקים שהושלמו בפרופיל שלך ואלו שעדיין דורשים התייחסות.",
-        "status": {
-          "complete": "הושלם",
-          "partial": "חלקי",
-          "missing": "חסר"
-        }
-      },
-      "tips": {
-        "title": "המלצות וטיפים לשיפור",
-        "description": "הצעות קונקרטיות שיעזרו לך לשדרג את הפרופיל ולמשוך התאמות טובות יותר."
-      }
+    "missingItems": {
+      "aboutMe": "קצת עלי",
+      "birthDate": "תאריך לידה",
+      "city": "עיר מגורים",
+      "occupation": "עיסוק",
+      "height": "גובה",
+      "religiousLevel": "רמה דתית",
+      "maritalStatus": "מצב משפחתי",
+      "education": "השכלה"
     }
   },
+  "aiAdvisor": {
+    "triggerButton": "היועץ החכם",
+    "dialogTitle": "ניתוח פרופיל חכם",
+    "dialogDescription": "ה-AI שלנו מנתח את הפרופיל שלך ונותן טיפים לשיפור.",
+    "closeButton": "סגור",
+    "loadingTitle": "מנתח נתונים...",
+    "loadingDescription": "אנא המתן בזמן שאנחנו מעבדים את המידע.",
+    "errorAlertTitle": "שגיאה",
+    "errorAlertDescription": "לא הצלחנו לייצר את הניתוח כרגע.",
+    "retryButton": "נסה שוב",
+    "initialState": "לחץ כדי להתחיל בניתוח",
+    "toast": {
+      "errorTitle": "שגיאה",
+      "errorDescription": "אירעה תקלה: {{error}}"
+    }
+  },
+  "analysisResult": {
+    "tabs": {
+      "summary": "סיכום",
+      "completeness": "שלמות הפרופיל",
+      "tips": "טיפים לשיפור"
+    },
+    "summary": {
+      "myPersonalityTitle": "האישיות שלך",
+      "myPersonalityDescription": "ניתוח מבוסס על השאלון שמילאת.",
+      "lookingForTitle": "מה את/ה מחפש/ת",
+      "lookingForDescription": "סיכום ההעדפות שלך."
+    },
+    "completeness": {
+      "title": "מדד שלמות",
+      "description": "עד כמה הפרופיל שלך מוכן לשידוך?",
+      "status": {
+        "complete": "מצוין",
+        "partial": "חלקי",
+        "missing": "חסר מידע מהותי"
+      }
+    },
+    "tips": {
+      "title": "המלצות המערכת",
+      "description": "דברים שכדאי לשים לב אליהם."
+    }
+  }
+},
       "aiAdvisor": {
       "triggerButton": "קבל ניתוח וטיפים לשיפור הפרופיל",
       "dialogTitle": "יועץ הפרופיל החכם שלך",

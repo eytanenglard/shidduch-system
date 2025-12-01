@@ -35,7 +35,6 @@ import {
   Pencil,
   Save,
   X,
-
   Award,
   Send,
   Copy,
@@ -55,7 +54,6 @@ import {
   HeartPulse,
   Lock,
   Eye,
-
 } from 'lucide-react';
 import { UserProfile, FriendTestimonial } from '@/types/next-auth';
 import { cn } from '@/lib/utils';
@@ -284,7 +282,7 @@ const StoryAndMoreCard: React.FC<{
                   </Tooltip>
                 </TooltipProvider>
               </div>
-           {/*    <TooltipProvider>
+              {/*    <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="flex items-center gap-2">
@@ -916,8 +914,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   setIsEditing,
   viewOnly = false,
   onSave,
-  onCvUpload,    // ✨ Add this
-  onCvDelete,    // ✨ Add this
+  onCvUpload, // ✨ Add this
+  onCvDelete, // ✨ Add this
   isCvUploading, // ✨ Add this
   dict,
   locale,
@@ -1115,7 +1113,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       isFriendsSectionVisible: profileData?.isFriendsSectionVisible ?? true,
       isNeshamaTechSummaryVisible:
         profileData?.isNeshamaTechSummaryVisible ?? true,
-          cvUrl: profileData?.cvUrl,
+      cvUrl: profileData?.cvUrl,
       cvSummary: profileData?.cvSummary,
     };
     setFormData(dataToSet);
@@ -1423,7 +1421,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     {isEditing && !viewOnly ? (
                       <Autocomplete
                         apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-                         id="city-autocomplete"
+                        id="city-autocomplete"
                         value={cityInputValue}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           setCityInputValue(e.target.value);
@@ -2304,26 +2302,33 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-rose-50/40 to-pink-50/40 border-b border-gray-200/50 p-4 flex items-center justify-between">
-  <div className="flex items-center space-x-2 rtl:space-x-reverse">
-    <HeartPulse className="w-5 h-5 text-rose-600" />
-    <CardTitle className="text-base font-semibold text-gray-700">
-      {dict.cards.medical.title}
-    </CardTitle>
-  </div>
-  <TooltipProvider>
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-full cursor-help">
-          <Lock className="w-3 h-3 text-emerald-600" />
-          <span className="text-xs text-emerald-600">מוגן</span>
-        </div>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs" dir={direction}>
-        <p>{dict.cards.medical.privacyNote || "מידע זה מוצפן. רק השדכן רואה אותו, ואת/ה בוחר/ת מתי לחשוף"}</p>
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
-</CardHeader>
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <HeartPulse className="w-5 h-5 text-rose-600" />
+                  <CardTitle className="text-base font-semibold text-gray-700">
+                    {dict.cards.medical.title}
+                  </CardTitle>
+                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-full cursor-help">
+                        <Lock className="w-3 h-3 text-emerald-600" />
+                        <span className="text-xs text-emerald-600">מוגן</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      className="max-w-xs"
+                      dir={direction}
+                    >
+                      <p>
+                        {dict.cards.medical.privacyNote ||
+                          'מידע זה מוצפן. רק השדכן רואה אותו, ואת/ה בוחר/ת מתי לחשוף'}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-4">
                 <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200/80">
                   {dict.cards.medical.description}
@@ -2533,190 +2538,189 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               direction={direction} // Pass direction
             />
 
-          <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-  <CardHeader className="bg-gradient-to-r from-teal-50/40 to-green-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
-    <Briefcase className="w-5 h-5 text-teal-700" />
-    <CardTitle className="text-base font-semibold text-gray-700">
-      {dict.cards.education.title}
-    </CardTitle>
-  </CardHeader>
-  <CardContent className="p-4 md:p-6">
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
-      <div>
-        <Label
-          htmlFor="educationLevel"
-          className="block mb-1.5 text-xs font-medium text-gray-600"
-        >
-          {dict.cards.education.levelLabel}
-        </Label>
-        {isEditing && !viewOnly ? (
-          <Select
-            dir={direction}
-            value={formData.educationLevel || ''}
-            onValueChange={(value) =>
-              handleChange('educationLevel', value || undefined)
-            }
-          >
-            <SelectTrigger
-              id="educationLevel"
-              className="h-9 text-sm focus:ring-cyan-500 text-start"
-            >
-              <SelectValue
-                placeholder={dict.cards.education.levelPlaceholder}
-              />
-            </SelectTrigger>
-            <SelectContent>
-              {educationLevelOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <p className="text-sm text-gray-800 font-medium mt-1">
-            {renderSelectDisplayValue(
-              formData.educationLevel,
-              educationLevelOptions,
-              dict
-            )}
-          </p>
-        )}
-      </div>
-      <div className="sm:col-span-2">
-        <Label
-          htmlFor="education"
-          className="block mb-1.5 text-xs font-medium text-gray-600"
-        >
-          {dict.cards.education.detailsLabel}
-        </Label>
-        {isEditing && !viewOnly ? (
-          <Input
-            id="education"
-            value={formData.education || ''}
-            onChange={(e) =>
-              handleChange('education', e.target.value)
-            }
-            placeholder={dict.cards.education.detailsPlaceholder}
-            className="h-9 text-sm focus:ring-cyan-500"
-          />
-        ) : (
-          <p className="text-sm text-gray-800 font-medium mt-1">
-            {renderDisplayValue(formData.education, dict)}
-          </p>
-        )}
-      </div>
-      <div className="sm:col-span-2">
-        <Label
-          htmlFor="occupation"
-          className="block mb-1.5 text-xs font-medium text-gray-600"
-        >
-          {dict.cards.education.occupationLabel}
-        </Label>
-        {isEditing && !viewOnly ? (
-          <Input
-            id="occupation"
-            value={formData.occupation || ''}
-            onChange={(e) =>
-              handleChange('occupation', e.target.value)
-            }
-            placeholder={dict.cards.education.occupationPlaceholder}
-            className="h-9 text-sm focus:ring-cyan-500"
-            maxLength={20}
-          />
-        ) : (
-          <p className="text-sm text-gray-800 font-medium mt-1">
-            {renderDisplayValue(formData.occupation, dict)}
-          </p>
-        )}
-      </div>
-      <div>
-        <Label
-          htmlFor="serviceType"
-          className="block mb-1.5 text-xs font-medium text-gray-600"
-        >
-          {dict.cards.education.serviceTypeLabel}
-        </Label>
-        {isEditing && !viewOnly ? (
-          <Select
-            dir={direction}
-            value={formData.serviceType || ''}
-            onValueChange={(value) =>
-              handleChange(
-                'serviceType',
-                (value as ServiceType) || undefined
-              )
-            }
-          >
-            <SelectTrigger
-              id="serviceType"
-              className="h-9 text-sm focus:ring-cyan-500 text-start"
-            >
-              <SelectValue
-                placeholder={
-                  dict.cards.education.serviceTypePlaceholder
-                }
-              />
-            </SelectTrigger>
-            <SelectContent className="max-h-[250px]">
-              {serviceTypeOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <p className="text-sm text-gray-800 font-medium mt-1">
-            {renderSelectDisplayValue(
-              formData.serviceType,
-              serviceTypeOptions,
-              dict
-            )}
-          </p>
-        )}
-      </div>
-      <div className="sm:col-span-2">
-        <Label
-          htmlFor="serviceDetails"
-          className="block mb-1.5 text-xs font-medium text-gray-600"
-        >
-          {dict.cards.education.serviceDetailsLabel}
-        </Label>
-        {isEditing && !viewOnly ? (
-          <Input
-            id="serviceDetails"
-            value={formData.serviceDetails || ''}
-            onChange={(e) =>
-              handleChange('serviceDetails', e.target.value)
-            }
-            placeholder={
-              dict.cards.education.serviceDetailsPlaceholder
-            }
-            className="h-9 text-sm focus:ring-cyan-500"
-          />
-        ) : (
-          <p className="text-sm text-gray-800 font-medium mt-1">
-            {renderDisplayValue(formData.serviceDetails, dict)}
-          </p>
-        )}
-      </div>
-    </div>
-  </CardContent>
+            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-teal-50/40 to-green-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
+                <Briefcase className="w-5 h-5 text-teal-700" />
+                <CardTitle className="text-base font-semibold text-gray-700">
+                  {dict.cards.education.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+                  <div>
+                    <Label
+                      htmlFor="educationLevel"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.education.levelLabel}
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Select
+                        dir={direction}
+                        value={formData.educationLevel || ''}
+                        onValueChange={(value) =>
+                          handleChange('educationLevel', value || undefined)
+                        }
+                      >
+                        <SelectTrigger
+                          id="educationLevel"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
+                        >
+                          <SelectValue
+                            placeholder={dict.cards.education.levelPlaceholder}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {educationLevelOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderSelectDisplayValue(
+                          formData.educationLevel,
+                          educationLevelOptions,
+                          dict
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label
+                      htmlFor="education"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.education.detailsLabel}
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        id="education"
+                        value={formData.education || ''}
+                        onChange={(e) =>
+                          handleChange('education', e.target.value)
+                        }
+                        placeholder={dict.cards.education.detailsPlaceholder}
+                        className="h-9 text-sm focus:ring-cyan-500"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.education, dict)}
+                      </p>
+                    )}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label
+                      htmlFor="occupation"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.education.occupationLabel}
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        id="occupation"
+                        value={formData.occupation || ''}
+                        onChange={(e) =>
+                          handleChange('occupation', e.target.value)
+                        }
+                        placeholder={dict.cards.education.occupationPlaceholder}
+                        className="h-9 text-sm focus:ring-cyan-500"
+                        maxLength={20}
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.occupation, dict)}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="serviceType"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.education.serviceTypeLabel}
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Select
+                        dir={direction}
+                        value={formData.serviceType || ''}
+                        onValueChange={(value) =>
+                          handleChange(
+                            'serviceType',
+                            (value as ServiceType) || undefined
+                          )
+                        }
+                      >
+                        <SelectTrigger
+                          id="serviceType"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
+                        >
+                          <SelectValue
+                            placeholder={
+                              dict.cards.education.serviceTypePlaceholder
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[250px]">
+                          {serviceTypeOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderSelectDisplayValue(
+                          formData.serviceType,
+                          serviceTypeOptions,
+                          dict
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label
+                      htmlFor="serviceDetails"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
+                      {dict.cards.education.serviceDetailsLabel}
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        id="serviceDetails"
+                        value={formData.serviceDetails || ''}
+                        onChange={(e) =>
+                          handleChange('serviceDetails', e.target.value)
+                        }
+                        placeholder={
+                          dict.cards.education.serviceDetailsPlaceholder
+                        }
+                        className="h-9 text-sm focus:ring-cyan-500"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.serviceDetails, dict)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
 
-  {/* --- ✨ START: CV SECTION INTEGRATION ✨ --- */}
-  {/* This section is added after CardContent to appear at the bottom of the card */}
-<CvUploadSection
-    cvUrl={formData.cvUrl}
-    isUploading={isCvUploading ?? false}
-    onUpload={onCvUpload || (async () => {})}
-    onDelete={onCvDelete || (async () => {})}
-    disabled={viewOnly || !isEditing}
-    dict={dict.cards.education.cvSection}
-/>
-  {/* --- ✨ END: CV SECTION INTEGRATION ✨ --- */}
-
-</Card>
+              {/* --- ✨ START: CV SECTION INTEGRATION ✨ --- */}
+              {/* This section is added after CardContent to appear at the bottom of the card */}
+              <CvUploadSection
+                cvUrl={formData.cvUrl}
+                isUploading={isCvUploading ?? false}
+                onUpload={onCvUpload || (async () => {})}
+                onDelete={onCvDelete || (async () => {})}
+                disabled={viewOnly || !isEditing}
+                dict={dict.cards.education.cvSection}
+              />
+              {/* --- ✨ END: CV SECTION INTEGRATION ✨ --- */}
+            </Card>
 
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-amber-50/40 to-yellow-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">

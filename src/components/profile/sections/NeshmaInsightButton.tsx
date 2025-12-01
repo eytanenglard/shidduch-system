@@ -14,7 +14,6 @@ import { Sparkles, Loader2, Download, Lock, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-// ✨ תיקון: מייבאים את הטיפוס הנכון - TextOptionsLight
 import type { TextOptionsLight } from 'jspdf';
 
 interface NeshmaInsightButtonProps {
@@ -140,10 +139,11 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
         className="my-6"
       >
         <div className="relative group opacity-60">
-          <div className="relative bg-gradient-to-br from-purple-50/50 via-pink-50/50 to-cyan-50/50 rounded-2xl p-4 shadow-md border border-gray-200">
+          {/* Locked State: Slate/Teal/Orange neutral mix */}
+          <div className="relative bg-gradient-to-br from-slate-50/50 via-teal-50/50 to-orange-50/50 rounded-2xl p-4 shadow-md border border-gray-200">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="bg-gradient-to-br from-purple-400 via-pink-400 to-cyan-400 p-3 rounded-xl">
+                <div className="bg-gradient-to-br from-slate-400 via-teal-400 to-orange-400 p-3 rounded-xl">
                   <Sparkles className="w-6 h-6 text-white" />
                 </div>
                 <div className="absolute -top-1 -end-1 bg-white rounded-full p-1 shadow-md">
@@ -159,10 +159,15 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
                       : 'Full Picture - Locked')}
                 </h4>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  {dict.lockedDescription ||
-                    (locale === 'he'
+                  {/* התיקון: אם הטקסט קיים במילון, בצע החלפה של האחוזים */}
+                  {dict.lockedDescription
+                    ? dict.lockedDescription.replace(
+                        '{{percentage}}',
+                        completionPercentage.toString()
+                      )
+                    : locale === 'he'
                       ? `השלם את הפרופיל ל-100% כדי לפתוח (כרגע: ${completionPercentage}%)`
-                      : `Complete your profile to 100% to unlock (Currently: ${completionPercentage}%)`)}
+                      : `Complete your profile to 100% to unlock (Currently: ${completionPercentage}%)`}
                 </p>
               </div>
             </div>
@@ -183,7 +188,8 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
         <div className="relative bg-white/70 rounded-2xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 flex-1">
-              <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 p-2 rounded-lg">
+              {/* Minimized Icon: Teal/Orange/Amber */}
+              <div className="bg-gradient-to-br from-teal-500 via-orange-500 to-amber-500 p-2 rounded-lg">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -210,7 +216,7 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
               className={cn(
                 'gap-1.5 rounded-full text-xs',
                 canGenerate
-                  ? 'bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white'
+                  ? 'bg-gradient-to-r from-teal-600 to-orange-600 hover:from-teal-700 hover:to-orange-700 text-white'
                   : 'bg-gray-200 text-gray-500 cursor-not-allowed'
               )}
             >
@@ -226,14 +232,14 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
             dir={direction}
           >
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-purple-600" />
+              <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-amber-600 bg-clip-text text-transparent flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-teal-600" />
                 {dict.dialogTitle}
               </DialogTitle>
             </DialogHeader>
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                <Loader2 className="w-16 h-16 text-purple-600 animate-spin" />
+                <Loader2 className="w-16 h-16 text-teal-600 animate-spin" />
                 <p className="text-lg text-gray-600">{dict.generating}</p>
               </div>
             ) : insightData ? (
@@ -258,11 +264,13 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 rounded-2xl blur-lg opacity-30 animate-pulse" />
+        {/* Glow Effect: Teal/Orange */}
+        <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 rounded-2xl blur-lg opacity-30 animate-pulse" />
 
-        <div className="relative bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 rounded-2xl p-5 shadow-lg border border-purple-200">
+        {/* Main Card Background */}
+        <div className="relative bg-gradient-to-br from-teal-50 via-orange-50 to-amber-50 rounded-2xl p-5 shadow-lg border border-teal-200">
           <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 p-3 rounded-xl shadow-md">
+            <div className="bg-gradient-to-br from-teal-500 via-orange-500 to-amber-500 p-3 rounded-xl shadow-md">
               <Sparkles className="w-7 h-7 text-white" />
             </div>
 
@@ -275,7 +283,7 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
               </p>
             </div>
 
-            <div className="bg-gradient-to-r from-purple-600 to-cyan-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-md">
+            <div className="bg-gradient-to-r from-teal-600 to-orange-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-md">
               {locale === 'he' ? 'צור עכשיו' : 'Generate'}
             </div>
           </div>
@@ -288,14 +296,14 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
           dir={direction}
         >
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-purple-600" />
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-amber-600 bg-clip-text text-transparent flex items-center gap-2">
+              <Sparkles className="w-6 h-6 text-teal-600" />
               {dict.dialogTitle}
             </DialogTitle>
           </DialogHeader>
           {isGenerating ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-4">
-              <Loader2 className="w-16 h-16 text-purple-600 animate-spin" />
+              <Loader2 className="w-16 h-16 text-teal-600 animate-spin" />
               <p className="text-lg text-gray-600">{dict.generating}</p>
             </div>
           ) : insightData ? (
@@ -320,10 +328,18 @@ const InsightDisplay: React.FC<InsightDisplayProps> = ({
 }) => {
   return (
     <div className="space-y-6 py-4">
+      {/* 
+        Updated Section Colors to Match Palette:
+        1. Teal/Emerald (Growth)
+        2. Orange/Amber (Warmth)
+        3. Rose/Pink (Connection)
+        4. Amber/Yellow (Light)
+        5. Teal/Blue (Future)
+      */}
       <InsightSection
         title={locale === 'he' ? '🌟 מי את/ה באמת' : '🌟 Who You Really Are'}
         content={data.whoYouAre}
-        bgColor="from-purple-50 to-pink-50"
+        bgColor="from-teal-50 to-emerald-50"
       />
       <InsightSection
         title={
@@ -332,7 +348,7 @@ const InsightDisplay: React.FC<InsightDisplayProps> = ({
             : '💫 Your Ideal Partner'
         }
         content={data.idealPartner}
-        bgColor="from-pink-50 to-rose-50"
+        bgColor="from-orange-50 to-amber-50"
       />
       <InsightSection
         title={
@@ -341,7 +357,7 @@ const InsightDisplay: React.FC<InsightDisplayProps> = ({
             : '🎯 Preparing for the First Meeting'
         }
         content={data.firstMeetingTips}
-        bgColor="from-rose-50 to-orange-50"
+        bgColor="from-rose-50 to-pink-50"
       />
       <InsightSection
         title={
@@ -350,17 +366,17 @@ const InsightDisplay: React.FC<InsightDisplayProps> = ({
             : '✨ Your Unique Potential'
         }
         content={data.uniquePotential}
-        bgColor="from-blue-50 to-indigo-50"
+        bgColor="from-amber-50 to-yellow-50"
       />
       <InsightSection
         title={locale === 'he' ? '🚀 הצעדים הבאים שלך' : '🚀 Your Next Steps'}
         content={data.nextSteps}
-        bgColor="from-indigo-50 to-purple-50"
+        bgColor="from-teal-50 to-blue-50"
       />
       <div className="flex justify-center pt-4">
         <Button
           variant="outline"
-          className="gap-2"
+          className="gap-2 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200"
           onClick={() => handleDownloadPDF(data, locale)}
         >
           <Download className="w-4 h-4" />
@@ -394,7 +410,7 @@ const InsightSection: React.FC<{
         <ul className="space-y-2">
           {content.details.map((detail, index) => (
             <li key={index} className="flex items-start gap-2 text-gray-600">
-              <span className="text-purple-600 mt-1">•</span>
+              <span className="text-teal-600 mt-1">•</span>
               <span className="text-sm leading-relaxed">{detail}</span>
             </li>
           ))}
@@ -485,7 +501,6 @@ const handleDownloadPDF = async (data: any, locale: 'he' | 'en') => {
     doc.setFontSize(H1_SIZE);
     doc.setFont('Rubik', 'normal');
     const title = isHebrew ? 'התמונה המלאה שלך' : 'Your Full Picture';
-    // ✨ תיקון: קוראים לפונקציה הרגילה במקום ישירות ל-doc.text
     writeText(title, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += LINE_SPACING_H1;
 
@@ -519,7 +534,6 @@ const handleDownloadPDF = async (data: any, locale: 'he' | 'en') => {
           const detailX = isHebrew
             ? pageWidth - margin - LIST_INDENT
             : margin + LIST_INDENT;
-          // ✨ תיקון: מסירים את המאפיין lang שלא נתמך
           const detailOptions: TextOptionsLight = isHebrew
             ? { align: 'right' }
             : {};
@@ -568,7 +582,6 @@ const handleDownloadPDF = async (data: any, locale: 'he' | 'en') => {
         : 'Created by NeshamaTech - Advanced Matchmaking System';
       doc.setFontSize(8);
       doc.setTextColor(150);
-      // ✨ תיקון: משתמשים ב-TextOptionsLight
       const footerOptions: TextOptionsLight = { align: 'center' };
       doc.text(footerText, pageWidth / 2, pageHeight - 10, footerOptions);
     }

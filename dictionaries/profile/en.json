@@ -1,179 +1,139 @@
 {
   "pageLoader": "Loading profile...",
-  "dashboard": {
-    "loadingData": "Loading data...",
-    "loadError": "Error loading data: {{error}}",
-    "updateSuccess": "Profile updated successfully.",
-    "updateError": "Error updating profile: {{error}}",
-    "previewButton": "Preview My Profile",
-    "previewLoading": "Loading preview...",
-    "viewedPreviewSuccess": "Thank you! Your profile preview has been marked as viewed.",
-    "viewedPreviewError": "Error updating your preview status.",
-    "tabs": {
-      "overview": "Overview",
-      "photos": "Photos",
-      "preferences": "My Preferences",
-      "questionnaire": "My Questionnaire"
-    },
-    "tabContent": {
-      "loadingOverview": "Loading overview...",
-      "loadingPreferences": "Loading preferences...",
-      "loadingQuestionnaire": "Loading questionnaire...",
-      "noQuestionnaire": "Your questionnaire is the key to finding a deep connection. It hasn't been started yet.",
-      "fillQuestionnaireLink": "Begin your questionnaire",
-      "questionnaireUpdateSuccess": "Questionnaire updated successfully.",
-      "questionnaireUpdateError": "Error updating questionnaire."
-    },
-    "checklist": {
-  "welcome": "Welcome, {{firstName}}! Let's create a profile that truly tells your story.",
-  "welcome_female": "Welcome, {{firstName}}! Let's create a profile that truly tells your story.",
-  "allComplete": "Excellent work, {{firstName}}! Your profile is complete and ready to shine.",
-  "allComplete_female": "Excellent work, {{firstName}}! Your profile is complete and ready to shine.",
-      "welcomeSubtitle": "Completing these steps is the key to unlocking meaningful, high-quality matches.",
-      "allCompleteSubtitle": "You've completed all the steps. A rich, detailed profile is essential for finding your best match.",
-        "checklistPurpose": "This checklist outlines the necessary steps to build a standout profile that attracts the best possible matches for you.",
-
-      "completionLabel": "Profile Completion",
-      "expandLabel": "Expand",
-      "minimizeLabel": "Minimize",
-      "missingItemsTitle": "What’s next to complete this step?",
-      "tasks": {
-        "photos": {
-          "title": "Upload Photos",
-          "description": "Your first impression starts here.",
-          "missing": "At least 3 photos required ({{count}} uploaded)"
-        },
-        "personalDetails": {
-          "title": "Overview",
-          "description": "The heart of your story.",
-          "missing": "Fill in essential personal details"
-        },
-        "partnerPreferences": {
-          "title": "Match Preferences",
-          "description": "Define what you're looking for.",
-          "missing": "Set your partner preferences"
-        },
-        "questionnaire": {
-          "title": "Compatibility Questionnaire",
-          "description": "Unlocks our smart-matching technology.",
-          "missing": "Complete the matchmaking questionnaire"
-        },
-        "review": {
-          "title": "Preview Profile",
-          "description": "See yourself through others' eyes.",
-          "missing": "View your profile preview"
-        }
-      },
-        "missingItems": {
-        "profileHeadline": "Profile Headline",
-        "about": "'About Me' section (min. 100 characters)",
-                "testimonials": "At least one approved testimonial from a friend",
-        "inspiringCoupleStory": "Story of an inspiring couple",
-        "influentialRabbi": "Influential rabbinic/spiritual figure",
-        "medicalInfoReference": "Reference to sensitive/medical info",
-        "medicalInfoDetails": "Details for medical info (when 'Yes' is selected)",
-        "medicalInfoDisclosureTiming": "Disclosure timing for medical info",
-        "birthDate": "Date of Birth",
-        "height": "Height",
-        "city": "City of Residence",
-        "origin": "Origin / Heritage",
-        "nativeLanguage": "Native Language",
-        "aliyaYear": "Year of Aliyah (when country is specified)",
-        "maritalStatus": "Marital Status",
-        "childrenFromPreviousReference": "Reference to children from a previous relationship",
-        "parentStatus": "Parents' Marital Status",
-        "fatherOccupation": "Father's Occupation",
-        "motherOccupation": "Mother's Occupation",
-        "siblings": "Number of Siblings",
-        "position": "Birth Order",
-        "religiousLevel": "Religious Observance",
-        "religiousJourney": "Religious Background",
-        "shomerNegiah": "Shomer Negiah observance",
-        "educationLevel": "Education Level",
-        "educationDetails": "Education Details",
-        "occupation": "Occupation",
-        "serviceType": "Service Type (Military/National)",
-        "serviceDetails": "Service Details",
-        "characterTraits": "At least one character trait",
-        "hobbies": "At least one hobby",
-        "headCovering": "Head covering type (for women)",
-        "kippahType": "Kippah type (for men)",
-        "matchingNotes": "General description of desired partner",
-        "contactPreference": "Contact preference",
-        "preferredAgeRange": "Preferred age range",
-        "preferredHeightRange": "Preferred height range",
-        "preferredLocations": "Preferred locations",
-        "preferredReligiousLevels": "Preferred religious levels",
-        "preferredReligiousJourneys": "Preferred religious background",
-        "preferredShomerNegiah": "Preference for Shomer Negiah",
-        "preferredEducation": "Preferred education levels",
-        "preferredOccupations": "Preferred occupations",
-        "preferredServiceTypes": "Preferred service types",
-        "preferredMaritalStatuses": "Preferred marital statuses",
-        "preferredPartnerHasChildren": "Preference regarding partner's children",
-        "preferredOrigins": "Preferred origins",
-        "preferredAliyaStatus": "Preferred Aliyah status",
-        "preferredCharacterTraits": "Preferred character traits",
-        "preferredHobbies": "Preferred hobbies",
-        "preferredKippahTypes": "Preferred Kippah types (for women's preference)",
-        "preferredHeadCoverings": "Preferred head covering types (for men's preference)"
-      },
-      "privacyNote": "All information is kept confidential and used only for matching"
-    },
-    "privacyAssurances": {
-  "banner": {
-    "icon": "🔒",
-    "text": "Your details are kept completely private",
-    "subtext": "Visible only to matchmakers and approved matches"
+ "dashboard": {
+  "loadingData": "Loading profile data...",
+  "loadError": "Error loading profile: {{error}}",
+  "updateSuccess": "Profile updated successfully",
+  "updateError": "Error updating profile: {{error}}",
+  "previewButton": "Preview Profile",
+  "previewLoading": "Loading preview...",
+  "viewedPreviewSuccess": "Preview status updated",
+  "viewedPreviewError": "Error updating preview status",
+  "tabs": {
+    "overview": "Overview",
+    "photos": "Photos",
+    "preferences": "Preferences",
+    "questionnaire": "Questionnaire"
   },
-  "photos": "Your photos aren't publicly visible - only approved matches see them",
-  "medical": "This info is encrypted. Only the matchmaker sees it, and you choose when to share",
-  "story": "Your personal story is shown only in targeted match suggestions",
-  "preview": "This is exactly what the other side will see - only after you approve"
-},
-    "aiAdvisor": {
-      "triggerButton": "Get AI Analysis & Tips to Improve Your Profile",
-      "dialogTitle": "Your Smart Profile Advisor",
-      "dialogDescription": "AI-powered analysis to help you present your best self and attract more compatible matches.",
-      "closeButton": "Close",
-      "loadingTitle": "Our AI is analyzing your profile...",
-      "loadingDescription": "This may take a few moments. Thank you for your patience.",
-      "errorTitle": "Oops, something went wrong",
-      "errorAlertDescription": "We couldn't complete the profile analysis at this time. Please try again later.",
-      "retryButton": "Try Again",
-      "initialState": "Click the button to begin the analysis.",
-      "toast": {
-        "errorTitle": "Analysis Error",
-        "errorDescription": "Failed to retrieve profile analysis: {{error}}"
+  "tabContent": {
+    "loadingOverview": "Loading personal details...",
+    "loadingPreferences": "Loading preferences...",
+    "loadingQuestionnaire": "Loading questionnaire answers...",
+    "noQuestionnaire": "You haven't filled out the matchmaking questionnaire yet.",
+    "fillQuestionnaireLink": "Click here to fill out the questionnaire",
+    "questionnaireUpdateSuccess": "Answer updated successfully",
+    "questionnaireUpdateError": "Error updating answer"
+  },
+  "privacyAssurances": {
+    "banner": {
+      "text": "Your details are kept completely confidential",
+      "subtext": "Visible only to the matchmaker and potential matches"
+    },
+    "preview": "This is exactly what the other side will see when a suggestion is sent by the matchmaker"
+  },
+  "neshmaInsightButton": {
+    "buttonText": "✨ Your Neshama Insight is Ready!",
+    "buttonSubtitle": "You completed your profile! Receive a deep, personalized analysis that will help you understand yourself better.",
+    "dialogTitle": "Your Neshama Insight",
+    "generating": "Generating your insight...",
+    "downloadPdf": "Download as PDF",
+    "close": "Close",
+    "lockedTitle": "Neshama Insight - Locked",
+    "lockedDescription": "Complete your profile to 100% to unlock (Currently: {{percentage}}%)",
+    "alreadyGeneratedToday": "Already generated today - Available tomorrow",
+    "minimizedButtonText": "Neshama Insight"
+  },
+  "checklist": {
+    "welcome": "Hi {{firstName}}, Welcome!",
+    "welcome_female": "Hi {{firstName}}, Welcome!",
+    "welcomeSubtitle": "Let's complete your profile so we can get started.",
+    "checklistPurpose": "A complete profile significantly increases match chances.",
+    "completionLabel": "{{percentage}}% Complete",
+    "allComplete": "Great job, your profile is complete!",
+    "allComplete_female": "Great job, your profile is complete!",
+    "allCompleteSubtitle": "Everything is ready. Our matchmaking team is already working for you.",
+    "expandLabel": "Show Tasks",
+    "minimizeLabel": "Hide Tasks",
+    "missingItemsTitle": "What's Missing?",
+    "privacyNote": "This information is confidential and kept private.",
+    "tasks": {
+      "photos": {
+        "title": "Upload Photos",
+        "description": "A good photo is worth a thousand words.",
+        "missing": "{{count}} photos missing"
+      },
+      "personalDetails": {
+        "title": "Personal Details",
+        "description": "Tell us a bit about yourself."
+      },
+      "partnerPreferences": {
+        "title": "Partner Preferences",
+        "description": "Who are you looking for?"
+      },
+      "questionnaire": {
+        "title": "Matchmaking Questionnaire",
+        "description": "Your journey of self-discovery."
+      },
+      "review": {
+        "title": "Profile Review",
+        "description": "One last check before we start.",
+        "missing": "Required fields are empty"
       }
     },
-    "analysisResult": {
-      "tabs": {
-        "summary": "Summary",
-        "completeness": "Profile Completeness",
-        "tips": "Improvement Tips"
-      },
-      "summary": {
-        "myPersonalityTitle": "Who Am I? (AI Summary)",
-        "myPersonalityDescription": "How our AI understands your personality based on your profile and answers.",
-        "lookingForTitle": "Who Am I Looking For? (AI Summary)",
-        "lookingForDescription": "A summary of your preferences for your ideal partner."
-      },
-      "completeness": {
-        "title": "Profile Completeness Report",
-        "description": "An overview of the sections you've completed and those that could use a little more detail.",
-        "status": {
-          "complete": "Complete",
-          "partial": "Partially Complete",
-          "missing": "Missing"
-        }
-      },
-      "tips": {
-        "title": "Personalized Recommendations",
-        "description": "Actionable tips to enhance your profile and attract higher-quality matches."
-      }
+    "missingItems": {
+      "aboutMe": "About Me",
+      "birthDate": "Date of Birth",
+      "city": "City",
+      "occupation": "Occupation",
+      "height": "Height",
+      "religiousLevel": "Religious Level",
+      "maritalStatus": "Marital Status",
+      "education": "Education"
     }
   },
+  "aiAdvisor": {
+    "triggerButton": "Smart Advisor",
+    "dialogTitle": "Smart Profile Analysis",
+    "dialogDescription": "Our AI analyzes your profile and gives improvement tips.",
+    "closeButton": "Close",
+    "loadingTitle": "Analyzing data...",
+    "loadingDescription": "Please wait while we process the information.",
+    "errorAlertTitle": "Error",
+    "errorAlertDescription": "Could not generate analysis right now.",
+    "retryButton": "Try Again",
+    "initialState": "Click to start analysis",
+    "toast": {
+      "errorTitle": "Error",
+      "errorDescription": "An error occurred: {{error}}"
+    }
+  },
+  "analysisResult": {
+    "tabs": {
+      "summary": "Summary",
+      "completeness": "Completeness",
+      "tips": "Tips"
+    },
+    "summary": {
+      "myPersonalityTitle": "Your Personality",
+      "myPersonalityDescription": "Analysis based on your questionnaire.",
+      "lookingForTitle": "What You're Looking For",
+      "lookingForDescription": "Summary of your preferences."
+    },
+    "completeness": {
+      "title": "Completeness Score",
+      "description": "How ready is your profile for matchmaking?",
+      "status": {
+        "complete": "Excellent",
+        "partial": "Partial",
+        "missing": "Essential Info Missing"
+      }
+    },
+    "tips": {
+      "title": "System Recommendations",
+      "description": "Things worth paying attention to."
+    }
+  }
+},
   "photosSection": {
     "title": "Your Profile Photos",
     "subtitle": "Upload up to {{maxImages}} photos. Your first photo will be your main profile picture.",

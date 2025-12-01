@@ -654,100 +654,68 @@
       }
     }
   },
-  "neshmaInsight": {
-    "badge": "Real Talk. Real Results.",
+"neshmaInsight": {
+    "badge": "Neshama Insight",
     "title": {
-      "part1": "\"So what are you",
-      "highlight": "really looking for",
-      "part2": "?\""
+      "part1": "The Matchmaking Revolution",
+      "highlight": "Starts Here",
+      "part2": ""
     },
-    "subtitle": "The common problem that wastes precious time - and the solution that will shorten your path.",
+    "subtitle": "Experience a new way to find love, powered by deep compatibility analysis.",
     "chatHeader": {
-      "name": "Daniel, your colleague",
-      "status": "Online"
+      "name": "Sarah (Matchmaker)",
+      "status": "Online • Analyzing Profile"
     },
-    "conversation": [
-      {
-        "sender": "user",
-        "text": "I had another date... went nowhere again 😞"
-      },
-      {
-        "sender": "friend",
-        "text": "Ugh. What happened?"
-      },
-      {
-        "sender": "user",
-        "text": "I don't know... she was nice and all, but something just wasn't 'it'."
-      },
-      {
-        "sender": "friend",
-        "text": "So what is this 'it' you're looking for? 🎯"
-      },
-      {
-        "sender": "user",
-        "text": "Good question... someone with good values? Fun to be with? I can't really define it 😅"
-      },
-      {
-        "sender": "friend",
-        "text": "Exactly! That's the problem. How will you know you've found it if you don't know what you're looking for?"
-      },
-      {
-        "sender": "user",
-        "text": "Wow. True. So what's the solution?"
-      },
-      {
-        "sender": "friend",
-        "text": "Listen, NeshamaTech built an in-depth questionnaire that creates 'The Full Picture' of you. It's a personal document you receive that shows you exactly who you are and what you're looking for in a relationship."
-      },
-      {
-        "sender": "user",
-        "text": "Sounds serious. Must take hours."
-      },
-      {
-        "sender": "friend",
-        "text": "Not at all, 20-30 minutes. A friend of mine said it saved him months of irrelevant dates."
-      },
-      {
-        "sender": "user",
-        "text": "Okay, you've convinced me. Where do I start? 💪"
-      }
+    "progressLabels": [
+      "Intro",
+      "Values",
+      "Vision",
+      "Insight",
+      "Match"
     ],
+    "conversation": [
+      { "sender": "friend", "text": "Hi! I've just finished reviewing your profile deep-dive. 📋" },
+      { "sender": "user", "text": "Hey Sarah! That was fast. What do you think?" },
+      { "sender": "friend", "text": "It's fascinating. You have a unique blend of modern ambition and traditional roots." },
+      { "sender": "friend", "text": "Specifically, your answers on 'Family Vision' stood out." },
+      { "sender": "user", "text": "I really tried to be honest there." },
+      { "sender": "friend", "text": "It shows. I have someone in mind who shares that exact balance. 💡" },
+      { "sender": "user", "text": "Really? usually people don't get that nuance." },
+      { "sender": "friend", "text": "Our system connects the dots others miss. It's not just data, it's about the soul." },
+      { "sender": "friend", "text": "Generating your compatibility report now..." },
+      { "sender": "friend", "text": "Done! You have a 94% compatibility score on core values." },
+      { "sender": "user", "text": "Wow, I want to meet them!" }
+    ],
+    "placeholder": "Chat is read-only during demo...",
+    "transitionText": "And that's just the beginning...",
     "insights": {
-      "title": "How can 20 minutes of focus change the whole picture?",
+      "title": "What You'll Discover",
       "items": [
         {
-          "title": "Self-Discovery",
-          "description": "Receive 'The Full Picture' - a personal document that distills your true values and needs."
+          "title": "Emotional Intelligence",
+          "description": "Understand how your emotional styles complement each other for a harmonious relationship."
         },
         {
-          "title": "Focused Search",
-          "description": "Stop wasting energy on dates that end with 'it's not it'."
+          "title": "Life Goals Alignment",
+          "description": "See exactly where your future visions align and where you can grow together."
         },
         {
-          "title": "Confidence & Clarity",
-          "description": "Arrive at your next date knowing exactly what you bring to a relationship."
+          "title": "The 'Spark' Factor",
+          "description": "Our unique algorithm identifies the intangible energy that creates lasting chemistry."
         }
       ]
     },
-    "transitionText": "Wait... this is exactly what's happening to you right now, isn't it? 🤔",
-    "transitionCTA": "So what do you do with these insights? 👇",
+    "transitionCTA": "Ready to find your match?",
     "cta": {
-      "button": "I want to see my Full Picture",
-      "subtitle": "Start now and discover the path to the relationship you've always wanted."
+      "button": "Start Your Journey",
+      "subtitle": "Join thousands of happy couples."
     },
-    "placeholder": "Message...",
-    "progressLabels": [
-      "Start",
-      "The Question",
-      "The Insight",
-      "The Solution",
-      "The End"
-    ],
     "postConversationTransition": {
-      "line1": "So how do you start answering the question \"What am I really looking for?\"",
-      "line2": "We've built a journey of self-discovery just for you."
+      "line1": "Stop guessing.",
+      "line2": "Start connecting."
     }
   }
+
 
 
 

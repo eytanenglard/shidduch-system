@@ -386,7 +386,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                         asChild
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-cyan-600 hover:bg-cyan-50"
+                        className="h-7 w-7 text-teal-600 hover:bg-teal-50"
                       >
                         <a href={editUrl}>
                           <Pencil className="h-4 w-4" />
@@ -422,6 +422,7 @@ const WorldSection: React.FC<WorldSectionProps> = ({
   dict,
   locale,
 }) => {
+  // צבעי העולמות נשארים כפי שהם - מגיעים מ-WORLDS_CONFIG
   const { icon: Icon, color, bgColor, borderColor } = worldConfig;
   const t = dict.questionnaireSection.worldSection;
   const direction = locale === 'he' ? 'rtl' : 'ltr';
@@ -556,7 +557,7 @@ const QuestionnaireResponsesSection: React.FC<
           <Button
             asChild
             variant="default"
-            className="bg-cyan-600 hover:bg-cyan-700"
+            className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600"
           >
             <Link
               href={QUESTIONNAIRE_URL}
@@ -583,7 +584,7 @@ const QuestionnaireResponsesSection: React.FC<
             {questionnaire.completed ? (
               <CheckCircle className="h-6 w-6 text-emerald-500 flex-shrink-0" />
             ) : (
-              <Clock className="h-6 w-6 text-blue-500 flex-shrink-0" />
+              <Clock className="h-6 w-6 text-teal-500 flex-shrink-0" />
             )}
             <div>
               <h2 className="text-xl font-semibold text-gray-800">
@@ -603,7 +604,7 @@ const QuestionnaireResponsesSection: React.FC<
 
           {/* שורה שנייה - כפתורים */}
           <div className="flex items-center justify-center gap-3 pt-2 border-t border-gray-100">
-            <Button asChild variant="outline" size="sm" className="h-9 px-4">
+            <Button asChild variant="outline" size="sm" className="h-9 px-4 border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300">
               <Link
                 href={QUESTIONNAIRE_URL}
                 className="flex items-center gap-2"
@@ -618,7 +619,12 @@ const QuestionnaireResponsesSection: React.FC<
                 variant={isEditingGlobally ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setIsEditingGlobally(!isEditingGlobally)}
-                className="h-9 px-4 gap-2"
+                className={cn(
+                  'h-9 px-4 gap-2',
+                  isEditingGlobally 
+                    ? 'bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white'
+                    : 'border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300'
+                )}
               >
                 {isEditingGlobally ? (
                   <>
@@ -654,8 +660,8 @@ const QuestionnaireResponsesSection: React.FC<
           ))}
         </div>
       ) : (
-        <div className="text-center py-10 text-gray-500 bg-gray-50/50 rounded-lg border border-gray-200">
-          <Book className="h-8 w-8 mx-auto mb-2 opacity-50 text-gray-400" />
+        <div className="text-center py-10 text-gray-500 bg-gradient-to-br from-teal-50/30 via-white to-orange-50/30 rounded-lg border border-teal-100">
+          <Book className="h-8 w-8 mx-auto mb-2 opacity-50 text-teal-400" />
           <p className="font-medium text-lg">{t.noAnswersState.title}</p>
           <p className="text-sm mt-1 text-gray-600">
             {t.noAnswersState.subtitle}
@@ -664,7 +670,7 @@ const QuestionnaireResponsesSection: React.FC<
             <Button
               asChild
               variant="default"
-              className="bg-cyan-600 hover:bg-cyan-700 text-white"
+              className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white"
             >
               <Link
                 href={QUESTIONNAIRE_URL}

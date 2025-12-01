@@ -1292,46 +1292,68 @@ export type AnalysisResultDisplayDict = {
   };
 };
 
+export type NeshamaInsightButtonDict = {
+  buttonText: string;
+  buttonSubtitle: string;
+  dialogTitle: string;
+  generating: string;
+  downloadPdf: string;
+  close: string;
+  lockedTitle: string;
+  lockedDescription: string; // Placeholder: {{percentage}}
+  alreadyGeneratedToday: string;
+  minimizedButtonText: string;
+};
+
+// 2. עדכן את הטיפוס UnifiedProfileDashboardDict כך שיכיל את כל השדות החדשים
 export type UnifiedProfileDashboardDict = {
+  // הודעות כלליות וסטטוסים
   loadingData: string;
   loadError: string; // Placeholder: {{error}}
   updateSuccess: string;
   updateError: string; // Placeholder: {{error}}
+  
+  // כפתור ודיאלוג תצוגה מקדימה
   previewButton: string;
   previewLoading: string;
   viewedPreviewSuccess: string;
   viewedPreviewError: string;
+  
+  // טאבים
   tabs: {
     overview: string;
     photos: string;
     preferences: string;
     questionnaire: string;
   };
-  
+
+  // תוכן הטאבים (מצבי טעינה וריק)
   tabContent: {
     loadingOverview: string;
     loadingPreferences: string;
     loadingQuestionnaire: string;
     noQuestionnaire: string;
     fillQuestionnaireLink: string;
-    questionnaireUpdateSuccess: string; // <-- הוספה
-    questionnaireUpdateError: string; 
+    questionnaireUpdateSuccess: string;
+    questionnaireUpdateError: string;
   };
+
+  // באנרים של פרטיות
+  privacyAssurances: {
+    banner: {
+      text: string;
+      subtext: string;
+    };
+    preview: string;
+  };
+
+  // רכיבים פנימיים (הפניות לטיפוסים שקיימים או שהוספת)
   checklist: ProfileChecklistDict;
   aiAdvisor: AIAdvisorDialogDict;
   analysisResult: AnalysisResultDisplayDict;
-privacyAssurances?: {
-    banner?: {
-      icon?: string;
-      text?: string;
-      subtext?: string;
-    };
-    photos?: string;
-    medical?: string;
-    story?: string;
-    preview?: string;
-  };
+  neshmaInsightButton: NeshamaInsightButtonDict; // <-- החדש שהוספנו
 };
+
 export type PreferencesSectionDict = {
   header: {
     title: string;
@@ -2029,10 +2051,14 @@ export interface NeshmaInsightDict {
     name: string;
     status: string;
   };
+  progressLabels: string[]; // Array of strings for the phone progress bar
   conversation: {
     sender: 'user' | 'friend';
     text: string;
+    // logic like 'isEureka' and 'delay' is handled in the component to keep JSON clean
   }[];
+  placeholder: string; // Chat input placeholder
+  transitionText: string;
   insights: {
     title: string;
     items: {
@@ -2040,19 +2066,17 @@ export interface NeshmaInsightDict {
       description: string;
     }[];
   };
-  transitionText: string;
   transitionCTA: string;
   cta: {
     button: string;
     subtitle: string;
   };
-  placeholder: string;
-  progressLabels: string[];
   postConversationTransition: {
     line1: string;
     line2: string;
   };
 }
+
 
 
 

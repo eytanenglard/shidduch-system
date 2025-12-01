@@ -104,13 +104,13 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
             'relative flex items-center justify-center w-14 h-14 rounded-2xl transition-all duration-300 transform group-hover:scale-110',
             isCompleted
               ? 'bg-emerald-100 shadow-emerald-500/10'
-              : 'bg-cyan-100 shadow-cyan-500/10'
+              : 'bg-gradient-to-br from-teal-50 to-orange-50 shadow-teal-500/10'
           )}
         >
           <Icon
             className={cn(
               'w-7 h-7 transition-colors duration-300',
-              isCompleted ? 'text-emerald-500' : 'text-cyan-600'
+              isCompleted ? 'text-emerald-500' : 'text-teal-600'
             )}
           />
         </div>
@@ -206,7 +206,7 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="bg-slate-50/70 border-t border-slate-200 px-4 py-3 text-sm">
+            <div className="bg-gradient-to-br from-teal-50/50 via-white to-orange-50/50 border-t border-teal-100 px-4 py-3 text-sm">
               <h4 className="font-semibold text-xs mb-2 text-gray-800">
                 {dict.missingItemsTitle}
               </h4>
@@ -665,7 +665,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, height: 0, transition: { duration: 0.4 } }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="mb-8 rounded-3xl shadow-xl border border-white/50 bg-white/70 backdrop-blur-md overflow-hidden"
+        className="mb-8 rounded-3xl shadow-xl border border-white/50 bg-gradient-to-br from-white/80 via-white/70 to-teal-50/30 backdrop-blur-md overflow-hidden"
         dir={direction} // Added: set direction for the whole component
       >
         <div className="p-4 sm:p-6">
@@ -714,17 +714,17 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
                   </motion.p>
                 )}
                 {!isAllComplete && (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="flex items-center justify-center md:justify-start gap-1.5 mt-2"
-  >
-    <Lock className="w-3.5 h-3.5 text-emerald-600" />
-    <span className="text-xs text-emerald-600">
-      {dict.privacyNote || "כל המידע נשמר בדיסקרטיות מלאה"}
-    </span>
-  </motion.div>
-)}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex items-center justify-center md:justify-start gap-1.5 mt-2"
+                  >
+                    <Lock className="w-3.5 h-3.5 text-teal-600" />
+                    <span className="text-xs text-teal-600">
+                      {dict.privacyNote || 'כל המידע נשמר בדיסקרטיות מלאה'}
+                    </span>
+                  </motion.div>
+                )}
               </AnimatePresence>
             </div>
             <div className="mt-4 md:mt-0 md:w-auto lg:w-1/3 flex items-center gap-4">
@@ -734,22 +734,26 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
                     id="profile-completion-label"
                     className="font-medium text-gray-700"
                   >
-                    {dict.completionLabel}
+                    {/* התיקון: החלפת המחזיק-מקום בערך המספרי */}
+                    {dict.completionLabel.replace(
+                      '{{percentage}}',
+                      completionPercentage.toString()
+                    )}
                   </span>
-                  <span className="font-bold text-cyan-600">
+                  <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-500">
                     {completionPercentage}%
                   </span>
                 </div>
                 <Progress
                   value={completionPercentage}
                   aria-labelledby="profile-completion-label"
-                  className="h-2 bg-slate-200/70"
+                  className="h-2 bg-slate-200/70 [&>div]:bg-gradient-to-r [&>div]:from-teal-500 [&>div]:via-orange-400 [&>div]:to-amber-500"
                 />
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-slate-500 hover:bg-slate-200/50 rounded-full flex-shrink-0"
+                className="text-slate-500 hover:bg-teal-100/50 rounded-full flex-shrink-0"
                 onClick={() => setIsMinimized(!isMinimized)}
                 aria-label={isMinimized ? dict.expandLabel : dict.minimizeLabel}
               >

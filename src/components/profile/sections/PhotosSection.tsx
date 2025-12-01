@@ -330,7 +330,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                 {dict.subtitle.replace('{{maxImages}}', maxImages.toString())}
               </p>
               {uploadingFiles.length > 0 && (
-                <p className="mt-2 text-sm text-cyan-600 font-medium">
+                <p className="mt-2 text-sm text-teal-600 font-medium">
                   {dict.uploadingMultiple.replace(
                     '{{count}}',
                     uploadingFiles.length.toString()
@@ -353,7 +353,8 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                   variant="outline"
                   onClick={triggerFileInput}
                   disabled={isLoading || images.length >= maxImages}
-                  className="rounded-full border-2 border-cyan-300 text-cyan-700 hover:bg-cyan-50/50 hover:border-cyan-400 transition-all duration-300 px-5 py-2.5 text-sm font-medium flex items-center gap-2"
+                  // Updated Upload Button: Teal
+                  className="rounded-full border-2 border-teal-300 text-teal-700 hover:bg-teal-50/50 hover:border-teal-400 transition-all duration-300 px-5 py-2.5 text-sm font-medium flex items-center gap-2"
                 >
                   {isExternallyUploading || uploadingFiles.length > 0 ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -436,8 +437,9 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               selectionMode
                 ? 'cursor-pointer'
                 : 'cursor-pointer hover:shadow-lg',
+              // Updated Selection Ring: Teal
               selectedImageIds.has(image.id) &&
-                'ring-4 ring-offset-2 ring-cyan-500'
+                'ring-4 ring-offset-2 ring-teal-500'
             )}
             onClick={() => handleImageClick(index)}
             onKeyDown={(e) => {
@@ -512,7 +514,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
             {image.isMain && !selectionMode && (
               <Badge
                 className={cn(
-                  'absolute bottom-2 rounded-full px-2.5 py-0.5 text-xs font-medium shadow-md text-white bg-gradient-to-r from-cyan-500 to-pink-500 border-none',
+                  'absolute bottom-2 rounded-full px-2.5 py-0.5 text-xs font-medium shadow-md text-white bg-gradient-to-r from-teal-500 to-orange-500 border-none',
                   direction === 'rtl' ? 'right-2' : 'left-2'
                 )}
               >
@@ -525,19 +527,20 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
         {!disabled && !selectionMode && images.length < maxImages && (
           <div
             onClick={triggerFileInput}
-            className="flex flex-col items-center justify-center text-center p-4 aspect-square rounded-xl border-2 border-dashed border-cyan-300/70 bg-cyan-50/30 hover:bg-cyan-50/60 hover:border-cyan-400 transition-colors duration-300 cursor-pointer group"
+            // Updated Placeholder Colors: Teal
+            className="flex flex-col items-center justify-center text-center p-4 aspect-square rounded-xl border-2 border-dashed border-teal-300/70 bg-teal-50/30 hover:bg-teal-50/60 hover:border-teal-400 transition-colors duration-300 cursor-pointer group"
           >
-            <Upload className="w-8 h-8 text-cyan-500 mb-2 transition-transform group-hover:scale-110" />
-            <span className="text-sm font-medium text-cyan-700">
+            <Upload className="w-8 h-8 text-teal-500 mb-2 transition-transform group-hover:scale-110" />
+            <span className="text-sm font-medium text-teal-700">
               {dict.uploadPlaceholder.title}
             </span>
-            <span className="text-xs text-cyan-600/90 mt-1">
+            <span className="text-xs text-teal-600/90 mt-1">
               {dict.uploadPlaceholder.remaining.replace(
                 '{{count}}',
                 getRemainingSlots().toString()
               )}
             </span>
-            <span className="text-xs text-cyan-500/80 mt-1">
+            <span className="text-xs text-teal-500/80 mt-1">
               {dict.uploadPlaceholder.prompt}
             </span>
           </div>
@@ -549,29 +552,33 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
             className="relative aspect-square rounded-xl overflow-hidden bg-gray-200 shadow-md"
           >
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <Loader2 className="w-8 h-8 text-cyan-500 animate-spin mb-2" />
+              {/* Updated Loader: Teal */}
+              <Loader2 className="w-8 h-8 text-teal-500 animate-spin mb-2" />
               <span className="text-xs text-gray-600 text-center px-2">
                 {dict.uploadingPlaceholder}
               </span>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 bg-cyan-500 h-1 animate-pulse"></div>
+            {/* Updated Progress Bar: Teal */}
+            <div className="absolute bottom-0 left-0 right-0 bg-teal-500 h-1 animate-pulse"></div>
           </div>
         ))}
       </div>
-{/* Privacy Note - shows when there are photos */}
-{images.length > 0 && !disabled && (
-  <div className="flex items-center justify-center gap-2 mt-4 px-3 py-2 bg-emerald-50/60 border border-emerald-100 rounded-lg">
-    <Lock className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-    <span className="text-xs text-emerald-700">
-      {dict.privacyNote || "התמונות שלך לא חשופות לגלישה - רק מי שקיבל הצעה יראה אותן"}
-    </span>
-  </div>
-)}
+      {/* Privacy Note - shows when there are photos. Updated to Teal for consistency */}
+      {images.length > 0 && !disabled && (
+        <div className="flex items-center justify-center gap-2 mt-4 px-3 py-2 bg-teal-50/60 border border-teal-100 rounded-lg">
+          <Lock className="w-3.5 h-3.5 text-teal-600 flex-shrink-0" />
+          <span className="text-xs text-teal-700">
+            {dict.privacyNote ||
+              'התמונות שלך לא חשופות לגלישה - רק מי שקיבל הצעה יראה אותן'}
+          </span>
+        </div>
+      )}
       {images.length === 0 &&
         uploadingFiles.length === 0 &&
         !disabled &&
         !selectionMode && (
-          <div className="text-center py-16 mt-6 bg-gradient-to-br from-cyan-50/20 to-pink-50/20 rounded-xl border border-dashed border-gray-300">
+          // Updated Empty State: Teal/Orange Gradient
+          <div className="text-center py-16 mt-6 bg-gradient-to-br from-teal-50/20 to-orange-50/20 rounded-xl border border-dashed border-gray-300">
             <Camera className="w-12 h-12 mx-auto text-gray-400/80" />
             <p className="mt-4 text-gray-600 font-medium">
               {dict.emptyState.title}

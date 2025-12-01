@@ -2269,33 +2269,35 @@ const ProfileHeader: React.FC<{
                 compact ? '-bottom-1 -end-1' : '-bottom-2 -end-2'
               )}
             >
-              <Badge
-                className={cn(
-                  'font-bold text-white border-0 transition-all duration-300 hover:scale-110',
-                  compact
-                    ? 'text-xs px-2 py-1'
-                    : 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
-                  isMobile
-                    ? availability.bgColorSm || availability.bgColor
-                    : availability.bgColor,
-                  'animate-pulse',
-                  THEME.shadows.warm
-                )}
-              >
-                <availability.icon
-                  className={cn(
-                    'flex-shrink-0',
-                    compact ? 'w-2 h-2 me-1' : 'w-3 h-3 me-1 sm:me-1.5'
-                  )}
-                />
-                <span className={cn('break-words')}>
-                  {isMobile && compact
-                    ? availability.shortText || availability.text
-                    : isMobile
-                      ? availability.shortText || availability.text
-                      : availability.text}
-                </span>
-              </Badge>
+             <Badge
+  className={cn(
+    'font-bold text-white border-0 transition-all duration-300 hover:scale-110',
+    compact
+      ? 'text-xs px-2 py-1'
+      : 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
+    isMobile
+      ? availability.bgColorSm || availability.bgColor
+      : availability.bgColor,
+    // --- התיקון כאן: הסרנו את 'animate-pulse' הקבוע ---
+    // הוא יפעל רק אם הסטטוס מוגדר כ-pulse (למשל במצב "מסתורי")
+    availability.pulse && 'animate-pulse', 
+    THEME.shadows.warm
+  )}
+>
+  <availability.icon
+    className={cn(
+      'flex-shrink-0',
+      compact ? 'w-2 h-2 me-1' : 'w-3 h-3 me-1 sm:me-1.5'
+    )}
+  />
+  <span className={cn('break-words')}>
+    {isMobile && compact
+      ? availability.shortText || availability.text
+      : isMobile
+        ? availability.shortText || availability.text
+        : availability.text}
+  </span>
+</Badge>
             </div>
           </div>
 

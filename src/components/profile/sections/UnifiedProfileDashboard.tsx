@@ -13,7 +13,8 @@ import type { User as SessionUserType } from '@/types/next-auth';
 import { ProfileChecklist } from './ProfileChecklist';
 import { AIProfileAdvisorDialog } from './AIProfileAdvisorDialog';
 import { NeshmaInsightButton } from './NeshmaInsightButton';
-import { Lock } from 'lucide-react';
+import { Lock, Eye, Loader2 } from 'lucide-react';
+
 // UI Components
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -30,19 +31,15 @@ import {
   QuestionnaireResponsesSection,
 } from '@/components/profile';
 
-// Icons
-import { Eye, Loader2 } from 'lucide-react';
-
 // Types
 import type {
   UserProfile,
   UserImage,
   QuestionnaireResponse,
-  UpdateValue, // <-- פתרון בעיית ה-any
+  UpdateValue,
 } from '@/types/next-auth';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 
-// Props interface for the component, now including the dictionary
 interface UnifiedProfileDashboardProps {
   viewOnly?: boolean;
   userId?: string;
@@ -56,11 +53,9 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   userId,
   initialTab = 'overview',
   dict,
-  locale, // Destructure locale
+  locale,
 }) => {
-  console.log(
-    `---[ CLIENT LOG 3 | UnifiedProfileDashboard.tsx ]--- הרכיב נטען. הוא קיבל את ה-prop "initialTab" עם הערך: "${initialTab}".`
-  );
+  console.log(`---[ CLIENT LOG ]--- Dashboard loaded. Tab: "${initialTab}"`);
 
   const {
     data: session,
@@ -75,11 +70,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const [questionnaireResponse, setQuestionnaireResponse] =
     useState<QuestionnaireResponse | null>(null);
   const [activeTab, setActiveTab] = useState(initialTab);
-  console.log(
-    `---[ CLIENT LOG 4 | UnifiedProfileDashboard.tsx ]--- מאתחל את ה-state של "activeTab". הערך כעת הוא: "${activeTab}". ערך זה שולט על רכיב ה-Tabs.`
-  );
-// Inside UnifiedProfileDashboard component
-const [isCvUploading, setIsCvUploading] = useState(false);
+
+  const [isCvUploading, setIsCvUploading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -88,71 +80,33 @@ const [isCvUploading, setIsCvUploading] = useState(false);
     session?.user?.profile?.hasViewedProfilePreview || false
   );
   const [completionPercentage, setCompletionPercentage] = useState(0);
-  const direction = locale === 'he' ? 'rtl' : 'ltr'; // Define direction based on locale
+
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
 
-  // --- קוד מעודכן ---
-  // src/app/[locale]/(authenticated)/profile/components/dashboard/UnifiedProfileDashboard.tsx
-
   const handleTabChange = (newTab: string) => {
-    // --- לוג מקדים ---
-    console.log(
-      `---[ CLIENT LOG 5 | UnifiedProfileDashboard.tsx ]--- handleTabChange נקראה עם הטאב החדש: "${newTab}".`
-    );
-
-    console.log(
-      `---[ CLIENT LOG 5 | UnifiedProfileDashboard.tsx ]--- handleTabChange נקראה עם הטאב החדש: "${newTab}".`
-    );
-
     setActiveTab(newTab);
-    // ✨ התיקון המרכזי: הוספת משתנה ה-locale לכתובת ה-URL
     router.push(`/${locale}/profile?tab=${newTab}`, { scroll: false });
 
-    // הגדלנו מעט את ההשהיה כדי לתת ל-React יותר זמן לעבד את השינוי ב-DOM.
     setTimeout(() => {
-      console.log(
-        `---[ CLIENT LOG 6 | UnifiedProfileDashboard.tsx ]--- ה-setTimeout של הגלילה החל. מנסה לגלול לטאב: "${newTab}".`
-      );
-
       const elementId = `${newTab}-content`;
-      console.log(
-        `---[ CLIENT LOG 7 | UnifiedProfileDashboard.tsx ]--- מחפש אלמנט עם ID דינמי: "${elementId}".`
-      );
-
       const element = document.getElementById(elementId);
 
-      // --- זהו הלוג הקריטי ביותר ---
       if (element) {
-        console.log(
-          `✅ ---[ CLIENT LOG 8 | UnifiedProfileDashboard.tsx ]--- הצלחה! האלמנט נמצא. גולל אליו.`,
-          element
-        );
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
-        console.error(
-          `❌ ---[ CLIENT LOG 8 | UnifiedProfileDashboard.tsx ]--- כישלון! האלמנט עם ID "${elementId}" לא נמצא ב-DOM ברגע זה. הגלילה נכשלה.`
-        );
-
-        // ננסה לגלוש לאלמנט החלופי כדי לראות אם הוא קיים
         const fallbackElement = document.getElementById('profile-tabs-content');
         if (fallbackElement) {
-          console.warn(
-            `---[ CLIENT LOG 9 | UnifiedProfileDashboard.tsx ]--- נסוג לגלילה לאלמנט החלופי "profile-tabs-content".`
-          );
           fallbackElement.scrollIntoView({
             behavior: 'smooth',
             block: 'start',
           });
-        } else {
-          console.error(
-            `❌ ---[ CLIENT LOG 9 | UnifiedProfileDashboard.tsx ]--- כישלון קריטי! גם אלמנט הגיבוי "profile-tabs-content" לא נמצא.`
-          );
         }
       }
-    }, 150); // הגדלתי מעט את הזמן ל-150ms
+    }, 150);
   };
 
   const isOwnProfile = !userId || session?.user?.id === userId;
@@ -171,8 +125,6 @@ const [isCvUploading, setIsCvUploading] = useState(false);
       if (!profileResponse.ok || !profileJson.success) {
         throw new Error(profileJson.message || 'Failed to load profile');
       }
-      console.log('---[ CLIENT LOG 1 ]--- Received Profile Data from API:');
-      console.log(profileJson.profile);
 
       setProfileData(profileJson.profile);
       setImages(profileJson.images || []);
@@ -182,47 +134,22 @@ const [isCvUploading, setIsCvUploading] = useState(false);
 
       // Fetch questionnaire data
       const params = new URLSearchParams();
-      if (userId) {
-        params.append('userId', userId);
-      }
-      params.append('locale', locale); // ✨ הוספת פרמטר השפה
+      if (userId) params.append('userId', userId);
+      params.append('locale', locale);
 
       const questionnaireUrl = `/api/profile/questionnaire?${params.toString()}`;
-
       const questionnaireFetchResponse = await fetch(questionnaireUrl);
-
-      console.log(
-        `---[ CLIENT LOG | Dashboard loadData ]--- סטטוס תגובה מ-API השאלון: ${questionnaireFetchResponse.status}`
-      );
 
       if (questionnaireFetchResponse.status === 404) {
         setQuestionnaireResponse(null);
       } else if (questionnaireFetchResponse.ok) {
         const questionnaireJson = await questionnaireFetchResponse.json();
-        console.log(
-          '---[ DEBUG LOG | Questionnaire API Response ]---',
-          questionnaireJson
-        );
-
-        console.log(
-          '---[ CLIENT LOG | Dashboard loadData ]--- התקבל JSON מה-API:',
-          questionnaireJson
-        );
-
         if (questionnaireJson.success) {
           setQuestionnaireResponse(questionnaireJson.questionnaireResponse);
         } else {
-          console.warn(
-            'Could not load questionnaire. Reason:',
-            questionnaireJson.message
-          );
           setQuestionnaireResponse(null);
         }
       } else {
-        console.error(
-          'Failed to fetch questionnaire data. Status:',
-          questionnaireFetchResponse.status
-        );
         setQuestionnaireResponse(null);
       }
     } catch (err: unknown) {
@@ -240,80 +167,62 @@ const [isCvUploading, setIsCvUploading] = useState(false);
     } finally {
       setIsLoading(false);
     }
-  }, [userId, dict]);
-// Add these two functions inside the UnifiedProfileDashboard component
+  }, [userId, dict, locale]);
 
-// src/app/[locale]/(authenticated)/profile/components/dashboard/UnifiedProfileDashboard.tsx
+  const handleCvUpload = async (file: File) => {
+    setIsCvUploading(true);
+    const cvToasts = dict.profileSection.cards.education.cvSection.toasts;
 
-// בקובץ: src/app/[locale]/(authenticated)/profile/components/dashboard/UnifiedProfileDashboard.tsx
+    try {
+      const formData = new FormData();
+      formData.append('cv', file);
+      const response = await fetch('/api/profile/cv', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await response.json();
 
-const handleCvUpload = async (file: File) => {
-  setIsCvUploading(true);
-  // ✨ הגדרת משתנה עזר לנתיב הנכון של ה-toasts
-  const cvToasts = dict.profileSection.cards.education.cvSection.toasts;
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Failed to upload CV');
+      }
 
-  try {
-    const formData = new FormData();
-    formData.append('cv', file);
-
-    const response = await fetch('/api/profile/cv', {
-      method: 'POST',
-      body: formData,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || 'Failed to upload CV');
+      if (data.profile) {
+        setProfileData(data.profile);
+        toast.success(cvToasts.uploadSuccess);
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : cvToasts.uploadError;
+      toast.error(errorMessage);
+    } finally {
+      setIsCvUploading(false);
     }
+  };
 
-    // ✨ עדכון ישיר של ה-state עם הפרופיל המעודכן שהתקבל מה-API
-    if (data.profile) {
-      setProfileData(data.profile);
-      // ✨ שימוש בנתיב הנכון והמדויק להודעת ההצלחה
-      toast.success(cvToasts.uploadSuccess);
+  const handleCvDelete = async () => {
+    setIsCvUploading(true);
+    const cvToasts = dict.profileSection.cards.education.cvSection.toasts;
+
+    try {
+      const response = await fetch('/api/profile/cv', { method: 'DELETE' });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Failed to delete CV');
+      }
+
+      if (data.profile) {
+        setProfileData(data.profile);
+        toast.success(cvToasts.deleteSuccess);
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : cvToasts.deleteError;
+      toast.error(errorMessage);
+    } finally {
+      setIsCvUploading(false);
     }
-    
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : cvToasts.uploadError;
-    // ✨ שימוש בנתיב הנכון להודעת השגיאה
-    toast.error(errorMessage);
-  } finally {
-    setIsCvUploading(false);
-  }
-};
-
-const handleCvDelete = async () => {
-  setIsCvUploading(true);
-  // ✨ הגדרת משתנה עזר לנתיב הנכון של ה-toasts
-  const cvToasts = dict.profileSection.cards.education.cvSection.toasts;
-
-  try {
-    const response = await fetch('/api/profile/cv', {
-      method: 'DELETE',
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || 'Failed to delete CV');
-    }
-
-    // ✨ עדכון ישיר של ה-state עם הפרופיל המעודכן
-    if (data.profile) {
-      setProfileData(data.profile);
-      // ✨ שימוש בנתיב הנכון להודעת ההצלחה
-      toast.success(cvToasts.deleteSuccess);
-    }
-
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : cvToasts.deleteError;
-    // ✨ שימוש בנתיב הנכון להודעת השגיאה
-    toast.error(errorMessage);
-  } finally {
-    setIsCvUploading(false);
-  }
-};
+  };
 
   useEffect(() => {
     if (sessionStatus === 'authenticated') {
@@ -343,14 +252,11 @@ const handleCvDelete = async () => {
         const response = await fetch('/api/profile/viewed-preview', {
           method: 'POST',
         });
-        if (!response.ok) {
-          throw new Error('Failed to update preview status');
-        }
+        if (!response.ok) throw new Error('Failed');
         setHasSeenPreview(true);
         toast.success(dict.dashboard.viewedPreviewSuccess);
         await updateSession();
       } catch (error) {
-        console.error('Error in handlePreviewClick:', error);
         toast.error(dict.dashboard.viewedPreviewError);
       }
     }
@@ -373,7 +279,7 @@ const handleCvDelete = async () => {
         toast.success(dict.dashboard.updateSuccess);
         setError('');
       } else {
-        const errorMessage = data.message || 'Profile update error';
+        const errorMessage = data.message || 'Error';
         const translatedError = dict.dashboard.updateError.replace(
           '{{error}}',
           errorMessage
@@ -382,11 +288,9 @@ const handleCvDelete = async () => {
         toast.error(translatedError);
       }
     } catch (err) {
-      console.error('Save error:', err);
-      const errorMessage = 'Profile update error';
       const translatedError = dict.dashboard.updateError.replace(
         '{{error}}',
-        errorMessage
+        'Unknown Error'
       );
       setError(translatedError);
       toast.error(translatedError);
@@ -394,8 +298,6 @@ const handleCvDelete = async () => {
       setIsLoading(false);
     }
   };
-
-  // --- השלמת הפונקציות החסרות עם תרגום ---
 
   const handleImageUpload = async (files: File[]) => {
     if (!files || files.length === 0) return;
@@ -415,7 +317,6 @@ const handleCvDelete = async () => {
 
       try {
         toast.loading(loadingMsg, { id: toastId });
-
         const formData = new FormData();
         formData.append('file', file);
 
@@ -423,15 +324,11 @@ const handleCvDelete = async () => {
           method: 'POST',
           body: formData,
         });
-
         const data = await response.json();
 
         if (response.ok && data.success && data.image) {
           uploadedImages.push(data.image);
-          toast.success(
-            `${file.name} uploaded successfully!`, // This specific string is often kept in English for file names
-            { id: toastId }
-          );
+          toast.success(`${file.name}`, { id: toastId });
         } else {
           throw new Error(data.error || 'Upload failed');
         }
@@ -444,7 +341,7 @@ const handleCvDelete = async () => {
     }
 
     if (uploadedImages.length > 0) {
-      setImages((prev) => [...prev, ...uploadedImages].slice(0, 10)); // Assuming max 10 images
+      setImages((prev) => [...prev, ...uploadedImages].slice(0, 10));
       await updateSession();
       toast.success(
         toastsDict.uploadSuccess.replace(
@@ -459,7 +356,6 @@ const handleCvDelete = async () => {
       setError(toastsDict.uploadError);
       toast.error(toastsDict.uploadError);
     }
-
     setIsLoading(false);
   };
 
@@ -483,9 +379,8 @@ const handleCvDelete = async () => {
         toast.error(errorMsg);
       }
     } catch (err) {
-      const errorMsg = dict.photosSection.toasts.setMainError;
-      setError(errorMsg);
-      toast.error(errorMsg);
+      setError(dict.photosSection.toasts.setMainError);
+      toast.error(dict.photosSection.toasts.setMainError);
     } finally {
       setIsLoading(false);
     }
@@ -503,7 +398,6 @@ const handleCvDelete = async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageIds }),
       });
-
       const data = await response.json();
       if (data.success) {
         setImages(data.images);
@@ -524,7 +418,6 @@ const handleCvDelete = async () => {
         toast.error(errorMsg);
       }
     } catch (err) {
-      console.error('Delete image error:', err);
       setError(dict.photosSection.toasts.bulkDeleteError);
       toast.error(dict.photosSection.toasts.bulkDeleteError);
     } finally {
@@ -532,16 +425,13 @@ const handleCvDelete = async () => {
     }
   };
 
-  // src/app/[locale]/(authenticated)/profile/components/dashboard/UnifiedProfileDashboard.tsx
-
   const handleQuestionnaireUpdate = async (
     world: string,
     questionId: string,
     value: UpdateValue
   ) => {
-    // אין צורך ב-setIsLoading(true) כאן, כי loadData עושה זאת בעצמו.
     try {
-      const payload = { worldKey: world, questionId: questionId, value };
+      const payload = { worldKey: world, questionId, value };
       const response = await fetch('/api/profile/questionnaire', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -552,40 +442,32 @@ const handleCvDelete = async () => {
       if (data.success) {
         toast.success(dict.dashboard.tabContent.questionnaireUpdateSuccess);
         setError('');
-
-        // ✨ התיקון: במקום לעדכן עם תגובה חלקית מהשרת,
-        // נטען מחדש את כל המידע כדי להבטיח סנכרון מלא.
         await loadData();
       } else {
         const errorMsg =
           data.message || dict.dashboard.tabContent.questionnaireUpdateError;
         setError(errorMsg);
         toast.error(errorMsg);
-        // במקרה של שגיאה, נחזיר את המצב הטעינה לקדמותו
         setIsLoading(false);
       }
     } catch (err) {
       console.error('Failed to update questionnaire:', err);
       setError(dict.dashboard.tabContent.questionnaireUpdateError);
       toast.error(dict.dashboard.tabContent.questionnaireUpdateError);
-      // גם במקרה של חריגה, נחזיר את המצב הטעינה לקדמותו
       setIsLoading(false);
     }
-    // פונקציית loadData כבר משנה את isLoading ל-false בסופה,
-    // כך שאין צורך בלוק 'finally'.
   };
 
-  // --- סוף החלק שהושלם ---
-
+  // Render States
   if (isLoading && !profileData) {
     return (
       <div
         role="status"
         aria-live="polite"
-        className="flex items-center justify-center min-h-screen bg-gradient-to-br from-cyan-50 via-white to-pink-50"
-        dir={direction} // Changed
+        className="flex items-center justify-center min-h-screen bg-gradient-to-br from-teal-50 via-white to-orange-50"
+        dir={direction}
       >
-        <div className="flex items-center gap-2 text-lg text-cyan-600">
+        <div className="flex items-center gap-2 text-lg text-teal-600">
           <Loader2 className="animate-spin h-6 w-6" />
           <span>{dict.dashboard.loadingData}</span>
         </div>
@@ -597,7 +479,7 @@ const handleCvDelete = async () => {
     return (
       <div
         className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 p-4"
-        dir={direction} // Changed
+        dir={direction}
       >
         <Alert variant="destructive" className="max-w-md mx-auto">
           <AlertDescription className="text-center">{error}</AlertDescription>
@@ -610,11 +492,13 @@ const handleCvDelete = async () => {
 
   return (
     <div className="relative min-h-screen w-full" dir={direction}>
+      {/* Updated Design Backgrounds */}
       <div
-        className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-pink-50 animate-gradient-slow -z-10"
+        className="absolute inset-0 bg-gradient-to-br from-teal-50 via-white to-orange-50 animate-gradient-slow -z-10"
         style={{ backgroundSize: '400% 400%' }}
       />
-      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:30px_30px] -z-10"></div>
+      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:30px_30px] -z-10"></div>
+
       <div className="relative max-w-7xl mx-auto py-8 sm:py-12 px-4 sm:px-6 lg:px-8 z-10">
         <div className="space-y-6 md:space-y-8">
           {error && (
@@ -626,18 +510,14 @@ const handleCvDelete = async () => {
           {isOwnProfile && user && profileData && (
             <>
               <ProfileChecklist
-                user={{
-                  ...user,
-                  profile: profileData,
-                  images: images,
-                }}
+                user={{ ...user, profile: profileData, images: images }}
                 hasSeenPreview={hasSeenPreview}
                 onPreviewClick={handlePreviewClick}
                 questionnaireResponse={questionnaireResponse}
                 dict={dict.dashboard.checklist}
-                locale={locale} // Added
-                onNavigateToTab={handleTabChange} // <-- הוסף שורה זו
-                onCompletionChange={setCompletionPercentage} // Track completion
+                locale={locale}
+                onNavigateToTab={handleTabChange}
+                onCompletionChange={setCompletionPercentage}
               />
               <div className="my-6 md:my-8 flex justify-center">
                 <AIProfileAdvisorDialog
@@ -647,33 +527,15 @@ const handleCvDelete = async () => {
                   locale={locale}
                 />
               </div>
-              
-              
-              {/* Neshama Insight Button - Shows in different states based on profile completion */}
+
+              {/* Neshama Insight Button - Fully localized via dictionary */}
               <NeshmaInsightButton
                 userId={user.id}
                 locale={locale}
                 completionPercentage={completionPercentage}
                 lastGeneratedAt={user.neshamaInsightLastGeneratedAt}
                 generatedCount={user.neshamaInsightGeneratedCount || 0}
-                dict={{
-                  buttonText: locale === 'he' ? '✨ תובנת נשמה - הדו"ח האישי שלך מוכן!' : '✨ Your Neshama Insight is Ready!',
-                  buttonSubtitle: locale === 'he' 
-                    ? 'סיימת את הפרופיל! קבלו ניתוח מעמיק ואישי שיעזור לכם להבין את עצמכם טוב יותר ולהתכונן למסע השידוכים.'
-                    : 'You completed your profile! Receive a deep, personalized analysis that will help you understand yourself better and prepare for your dating journey.',
-                  dialogTitle: locale === 'he' ? 'תובנת נשמה - הדו"ח האישי שלך' : 'Your Neshama Insight',
-                  generating: locale === 'he' ? 'יוצרים את התובנה שלך...' : 'Generating your insight...',
-                  downloadPdf: locale === 'he' ? 'הורדה כ-PDF' : 'Download as PDF',
-                  close: locale === 'he' ? 'סגור' : 'Close',
-                  lockedTitle: locale === 'he' ? 'תובנת נשמה - נעולה' : 'Neshama Insight - Locked',
-                  lockedDescription: locale === 'he' 
-                    ? `השלם את הפרופיל ל-100% כדי לפתוח (כרגע: ${completionPercentage}%)`
-                    : `Complete your profile to 100% to unlock (Currently: ${completionPercentage}%)`,
-                  alreadyGeneratedToday: locale === 'he' 
-                    ? 'כבר יצרת תובנה היום - זמינה מחר'
-                    : 'Already generated today - Available tomorrow',
-                  minimizedButtonText: locale === 'he' ? 'תובנת נשמה' : 'Neshama Insight',
-                }}
+                dict={dict.dashboard.neshmaInsightButton}
               />
             </>
           )}
@@ -689,19 +551,23 @@ const handleCvDelete = async () => {
                     onClick={handlePreviewClick}
                     variant="outline"
                     size="lg"
-                    className="px-8 py-3 text-base sm:text-lg gap-2 rounded-full border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400 transition-all duration-300 shadow-sm hover:shadow-md"
+                    className="px-8 py-3 text-base sm:text-lg gap-2 rounded-full border-2 border-teal-200 text-teal-600 hover:bg-teal-50 hover:border-teal-400 transition-all duration-300 shadow-sm hover:shadow-md"
                   >
                     {dict.dashboard.previewButton}
                     <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-screen h-screen sm:w-[95vw] sm:h-[90vh] sm:max-w-6xl p-0 bg-white/95 backdrop-blur-md sm:rounded-3xl shadow-2xl border-none overflow-hidden">
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm border border-emerald-200 rounded-full shadow-sm">
-  <Lock className="w-3.5 h-3.5 text-emerald-600" />
-  <span className="text-xs text-emerald-700">
-    {dict.dashboard.privacyAssurances?.preview || "זה מה שהצד השני יראה - רק אחרי אישור"}
-  </span>
-</div>
+                <DialogContent className="w-screen h-screen sm:w-[95vw] sm:h-[90vh] sm:max-w-6xl p-0 bg-white/95 backdrop-blur-md sm:rounded-3xl shadow-2xl border-none overflow-hidden flex flex-col">
+                  {/* Privacy Banner inside Preview */}
+                  <div className="flex-shrink-0 w-full flex items-center justify-center py-2 bg-teal-50/80 border-b border-teal-100 backdrop-blur-sm z-20">
+                    <div className="flex items-center gap-2 px-3 py-1 bg-white border border-teal-200 rounded-full shadow-sm max-w-[95%]">
+                      <Lock className="w-3.5 h-3.5 text-teal-600 flex-shrink-0" />
+                      <span className="text-xs text-teal-700 font-medium text-center truncate sm:whitespace-normal">
+                        {dict.dashboard.privacyAssurances.preview}
+                      </span>
+                    </div>
+                  </div>
+
                   {profileData ? (
                     <ProfileCard
                       profile={profileData}
@@ -711,33 +577,36 @@ const handleCvDelete = async () => {
                       isProfileComplete={
                         session?.user?.isProfileComplete ?? false
                       }
-                      className="h-full"
+                      className="flex-1 min-h-0 w-full"
                       onClose={() => setPreviewOpen(false)}
                       dict={dict.profileCard}
-                      locale={locale} // Pass locale to ProfileCard
+                      locale={locale}
                     />
                   ) : (
-                    <p className="text-center text-gray-500 py-10">
-                      {dict.dashboard.previewLoading}
-                    </p>
+                    <div className="flex-1 flex items-center justify-center">
+                      <p className="text-center text-gray-500 py-10">
+                        {dict.dashboard.previewLoading}
+                      </p>
+                    </div>
                   )}
                 </DialogContent>
               </Dialog>
             </div>
-            
           )}
-{/* Privacy Assurance Banner */}
-{!viewOnly && isOwnProfile && (
-  <div className="flex items-center justify-center gap-2 px-4 py-2.5 mb-6 bg-emerald-50/80 border border-emerald-200/60 rounded-full max-w-fit mx-auto">
-    <Lock className="w-4 h-4 text-emerald-600" />
-    <span className="text-sm text-emerald-700 font-medium">
-      {dict.dashboard.privacyAssurances?.banner?.text || "הפרטים שלך נשמרים בדיסקרטיות מלאה"}
-    </span>
-    <span className="text-xs text-emerald-600">
-      {dict.dashboard.privacyAssurances?.banner?.subtext || "גלויים רק לשדכן ולמי שנשלחת אליו הצעה"}
-    </span>
-  </div>
-)}
+
+          {/* Privacy Assurance Banner (Dashboard) */}
+          {!viewOnly && isOwnProfile && (
+            <div className="flex items-center justify-center gap-2 px-4 py-2.5 mb-6 bg-teal-50/80 border border-teal-200/60 rounded-full max-w-fit mx-auto">
+              <Lock className="w-4 h-4 text-teal-600" />
+              <span className="text-sm text-teal-700 font-medium">
+                {dict.dashboard.privacyAssurances.banner.text}
+              </span>
+              <span className="text-xs text-teal-600">
+                {dict.dashboard.privacyAssurances.banner.subtext}
+              </span>
+            </div>
+          )}
+
           <Tabs
             value={activeTab}
             onValueChange={handleTabChange}
@@ -745,28 +614,29 @@ const handleCvDelete = async () => {
           >
             <div className="flex justify-center mb-6 md:mb-8">
               <ScrollArea dir={direction} className="w-auto max-w-full">
+                {/* Updated Tab List Styling */}
                 <TabsList className="h-auto p-1.5 bg-white/70 backdrop-blur-sm rounded-full shadow-md gap-1 inline-flex flex-nowrap">
                   <TabsTrigger
                     value="overview"
-                    className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 transition-colors duration-200 ease-in-out hover:bg-cyan-100/50 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                    className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 transition-colors duration-200 ease-in-out hover:bg-teal-100/50 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     {dict.dashboard.tabs.overview}
                   </TabsTrigger>
                   <TabsTrigger
                     value="photos"
-                    className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 transition-colors duration-200 ease-in-out hover:bg-cyan-100/50 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                    className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 transition-colors duration-200 ease-in-out hover:bg-teal-100/50 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     {dict.dashboard.tabs.photos}
                   </TabsTrigger>
                   <TabsTrigger
                     value="preferences"
-                    className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 transition-colors duration-200 ease-in-out hover:bg-cyan-100/50 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                    className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 transition-colors duration-200 ease-in-out hover:bg-teal-100/50 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     {dict.dashboard.tabs.preferences}
                   </TabsTrigger>
                   <TabsTrigger
                     value="questionnaire"
-                    className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 transition-colors duration-200 ease-in-out hover:bg-cyan-100/50 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                    className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 transition-colors duration-200 ease-in-out hover:bg-teal-100/50 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     {dict.dashboard.tabs.questionnaire}
                   </TabsTrigger>
@@ -774,31 +644,29 @@ const handleCvDelete = async () => {
                 <ScrollBar orientation="horizontal" className="mt-1" />
               </ScrollArea>
             </div>
+
             <div
               id="profile-tabs-content"
               className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl transition-all duration-300 ease-in-out scroll-mt-4"
             >
-              {/* הוסף id ו-className לכל TabsContent */}
               <TabsContent
                 value="overview"
                 id="overview-content"
-                className="scroll-mt-24" // ✨ שינוי: הגדלת המרווח
+                className="scroll-mt-24"
               >
                 {profileData ? (
-                // Inside UnifiedProfileDashboard.tsx, find the <ProfileSection /> component
-
-<ProfileSection
-  profile={profileData}
-  isEditing={isEditing}
-  setIsEditing={setIsEditing}
-  onSave={handleSave}
-  viewOnly={viewOnly || !isOwnProfile}
-  onCvUpload={handleCvUpload}         // ✨ Pass the function
-  onCvDelete={handleCvDelete}         // ✨ Pass the function
-  isCvUploading={isCvUploading}       // ✨ Pass the state
-  dict={dict.profileSection}
-  locale={locale}
-/>
+                  <ProfileSection
+                    profile={profileData}
+                    isEditing={isEditing}
+                    setIsEditing={setIsEditing}
+                    onSave={handleSave}
+                    viewOnly={viewOnly || !isOwnProfile}
+                    onCvUpload={handleCvUpload}
+                    onCvDelete={handleCvDelete}
+                    isCvUploading={isCvUploading}
+                    dict={dict.profileSection}
+                    locale={locale}
+                  />
                 ) : (
                   <p className="text-center text-gray-500 py-10">
                     {dict.dashboard.tabContent.loadingOverview}
@@ -864,7 +732,7 @@ const handleCvDelete = async () => {
                       <Button
                         asChild
                         variant="link"
-                        className="mt-2 text-cyan-600"
+                        className="mt-2 text-teal-600"
                       >
                         <Link href="/questionnaire">
                           {dict.dashboard.tabContent.fillQuestionnaireLink}
