@@ -14,7 +14,6 @@ import {
   CheckCheck,
   Lightbulb,
   ArrowLeft,
-  ArrowRight,
   Zap,
   TrendingUp,
 } from 'lucide-react';
@@ -34,21 +33,7 @@ interface NeshmaInsightProps {
   locale: 'he' | 'en';
   dict: NeshmaInsightDict;
 }
-
-// Animation Logic Configuration (Independent of language)
-const ANIMATION_LOGIC = [
-  { typingDelay: 1200 },
-  { typingDelay: 800 },
-  { typingDelay: 1500 },
-  { typingDelay: 1000 },
-  { typingDelay: 2000 },
-  { isEureka: true, typingDelay: 1800 }, // Key moment
-  { typingDelay: 1000 },
-  { typingDelay: 2500 },
-  { typingDelay: 1000 },
-  { typingDelay: 1800 },
-  { typingDelay: 1200 },
-];
+// --- End: Type Definitions ---
 
 export default function NeshmaInsightSectionB({
   locale,
@@ -57,10 +42,7 @@ export default function NeshmaInsightSectionB({
   const ref = useRef(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-
-  // Trigger animation when 15% of the section is visible
   const isInView = useInView(ref, { once: true, amount: 0.15 });
-
   const isHebrew = locale === 'he';
   const direction = isHebrew ? 'rtl' : 'ltr';
 
@@ -76,31 +58,44 @@ export default function NeshmaInsightSectionB({
   const [showPostConversationTransition, setShowPostConversationTransition] =
     useState(false);
 
-  // --- Memoized Data ---
-  // Combine Dictionary text with Animation Logic
+  // --- Memoized Data from Dictionary ---
   const conversation = useMemo(() => {
+    const logic = [
+      { typingDelay: 1200 },
+      { typingDelay: 800 },
+      { typingDelay: 1500 },
+      { typingDelay: 1000 },
+      { typingDelay: 2000 },
+      { isEureka: true, typingDelay: 1800 },
+      { typingDelay: 1000 },
+      { typingDelay: 2500 },
+      { typingDelay: 1000 },
+      { typingDelay: 1800 },
+      { typingDelay: 1200 },
+    ];
     return dict.conversation.map((msg, index) => ({
       ...msg,
-      // Fallback to default logic if dict is longer than logic array
-      ...(ANIMATION_LOGIC[index] || { typingDelay: 1000 }),
+      ...logic[index],
     }));
   }, [dict.conversation]);
 
-  // Map Dictionary items to Icons and Colors
   const insightDetails = useMemo(
     () => [
       {
         icon: Heart,
+        // Rose palette (Match Hero)
         gradient: 'from-rose-400 via-pink-500 to-red-500',
         ...dict.insights.items[0],
       },
       {
         icon: Target,
+        // Teal palette (Match Hero)
         gradient: 'from-teal-400 via-teal-500 to-emerald-500',
         ...dict.insights.items[1],
       },
       {
         icon: Zap,
+        // Orange/Amber palette (Match Hero)
         gradient: 'from-orange-400 via-amber-500 to-yellow-500',
         ...dict.insights.items[2],
       },
@@ -108,25 +103,22 @@ export default function NeshmaInsightSectionB({
     [dict.insights.items]
   );
 
-  // --- Animation Sequence Effect ---
+  // --- Animation Logic ---
   useEffect(() => {
     const playConversation = (index: number) => {
-      // End of conversation sequence
       if (index >= conversation.length) {
         setIsTyping(false);
-        // Trigger post-chat animations sequentially
         setTimeout(() => setShowTransitionText(true), 800);
         setTimeout(() => setShowInsights(true), 1800);
         setTimeout(() => setShowTransitionCTA(true), 2500);
         setTimeout(() => setShowCTA(true), 3500);
         setTimeout(() => setShowPostConversationTransition(true), 4200);
-        setProgressStep(5); // Fill progress bar
+        setProgressStep(5);
         return;
       }
 
       const currentMessage = conversation[index];
 
-      // Update progress bar based on specific message checkpoints
       if (index === 0) setProgressStep(1);
       if (index === 3) setProgressStep(2);
       if (index === 5) setProgressStep(3);
@@ -137,12 +129,10 @@ export default function NeshmaInsightSectionB({
       const baseTypingDuration =
         currentMessage.typingDelay ||
         Math.max(currentMessage.text.length * 40, 1000);
-
       const typingDuration = currentMessage.isEureka
         ? baseTypingDuration * 1.5
         : baseTypingDuration;
 
-      // Type the message
       setTimeout(() => {
         setIsTyping(false);
         const newMessage: Message = {
@@ -171,13 +161,13 @@ export default function NeshmaInsightSectionB({
     }
   }, [isInView, showPhone, conversation, locale]);
 
-  // Auto-scroll to bottom of chat
+  // Auto-scroll logic
   useEffect(() => {
     if (messagesContainerRef.current) {
       const container = messagesContainerRef.current;
       const isNearBottom =
         container.scrollHeight - container.scrollTop - container.clientHeight <
-        150;
+        100;
 
       if (isNearBottom) {
         requestAnimationFrame(() => {
@@ -188,7 +178,7 @@ export default function NeshmaInsightSectionB({
         });
       }
     }
-  }, [messages, isTyping]);
+  }, [messages]);
 
   // --- Animation Variants ---
   const containerVariants = {
@@ -227,18 +217,18 @@ export default function NeshmaInsightSectionB({
     exit: { opacity: 0, scale: 0.8, transition: { duration: 0.1 } },
   };
 
-  const ArrowIcon = isHebrew ? ArrowLeft : ArrowRight;
-
+  // --- Render ---
   return (
     <motion.section
       ref={ref}
+      // Updated Background to match Hero (Slate -> Teal -> Orange)
       className="relative py-20 md:py-32 bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20 overflow-hidden"
       dir={direction}
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      {/* Background Decorative Elements */}
+      {/* Background Elements - Updated to match Hero Orbs (Teal, Orange, Rose) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-teal-200/20 to-emerald-200/10 rounded-full blur-3xl animate-float-slow"></div>
         <div
@@ -251,8 +241,8 @@ export default function NeshmaInsightSectionB({
         ></div>
       </div>
 
-      <div className="container mx-auto px-4 max-w-6xl relative z-10">
-        {/* Header Badge */}
+      <div className="container mx-auto px-4 max-w-6xl relative">
+        {/* Header */}
         <motion.div className="flex justify-center mb-10" variants={fadeInUp}>
           <div className="inline-flex items-center gap-3 bg-white/90 backdrop-blur-md rounded-full px-8 py-4 shadow-lg border border-teal-100">
             <Sparkles className="w-6 h-6 text-teal-500" />
@@ -262,13 +252,13 @@ export default function NeshmaInsightSectionB({
           </div>
         </motion.div>
 
-        {/* Main Title */}
+        {/* Title - Updated Highlight Gradient to match Hero (Teal-Orange-Amber) */}
         <motion.div variants={fadeInUp} className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-800 leading-tight mb-6">
             {dict.title.part1}{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500">
               {dict.title.highlight}
-            </span>{' '}
+            </span>
             {dict.title.part2}
           </h2>
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -276,7 +266,7 @@ export default function NeshmaInsightSectionB({
           </p>
         </motion.div>
 
-        {/* Phone Simulation */}
+        {/* Phone Animation */}
         <AnimatePresence>
           {showPhone && (
             <motion.div
@@ -286,14 +276,12 @@ export default function NeshmaInsightSectionB({
               className="max-w-md mx-auto mb-20"
             >
               <div className="relative group">
-                {/* Glow Effect */}
+                {/* Updated Glow to Match Hero's Palette */}
                 <div className="absolute -inset-2 bg-gradient-to-r from-teal-400/20 via-orange-400/20 to-amber-400/20 rounded-[2.9rem] blur-xl"></div>
-
-                {/* Phone Frame */}
                 <div className="relative bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-1.5 border border-teal-100 shadow-2xl transition-transform duration-500 group-hover:-rotate-1">
-                  <div className="bg-white rounded-[2rem] overflow-hidden flex flex-col h-[600px] md:h-[650px]">
+                  <div className="bg-white rounded-[2rem] overflow-hidden">
                     {/* Phone Header */}
-                    <div className="px-4 pt-6 pb-3 relative z-10 flex items-center gap-3 border-b border-teal-100/60 bg-white">
+                    <div className="px-4 pt-6 pb-3 relative z-10 flex items-center gap-3 border-b border-teal-100/60">
                       <div className="relative">
                         <div className="relative w-10 h-10 rounded-full shadow-md overflow-hidden">
                           <Image
@@ -318,22 +306,14 @@ export default function NeshmaInsightSectionB({
                       </div>
                     </div>
 
-                    {/* Progress Bar */}
+                    {/* Progress Bar - Updated Gradient */}
                     <div className="px-4 py-2 bg-teal-50/50 border-b border-teal-100/40">
                       <div className="flex items-center justify-between gap-1">
-                        {dict.progressLabels.map((label, step) => (
+                        {dict.progressLabels.map((_, step) => (
                           <div
                             key={step}
-                            className="flex flex-col items-center flex-1"
-                          >
-                            <div
-                              className={`w-full h-1 rounded-full transition-all duration-500 mb-1 ${
-                                progressStep > step
-                                  ? 'bg-gradient-to-r from-teal-500 to-amber-500'
-                                  : 'bg-gray-200'
-                              }`}
-                            />
-                          </div>
+                            className={`flex-1 h-1 rounded-full transition-all duration-500 ${progressStep > step ? 'bg-gradient-to-r from-teal-500 to-amber-500' : 'bg-gray-200'}`}
+                          />
                         ))}
                       </div>
                     </div>
@@ -342,9 +322,13 @@ export default function NeshmaInsightSectionB({
                     <div
                       ref={messagesContainerRef}
                       aria-live="polite"
-                      className="flex-1 overflow-y-auto p-4 bg-gradient-to-br from-teal-50/20 to-orange-50/20 touch-pan-y scroll-smooth"
+                      className="h-[450px] md:h-[500px] overflow-y-auto p-4 bg-gradient-to-br from-teal-50/20 to-orange-50/20 touch-pan-y"
+                      style={{
+                        scrollBehavior: 'smooth',
+                        WebkitOverflowScrolling: 'touch',
+                      }}
                     >
-                      <AnimatePresence initial={false}>
+                      <AnimatePresence>
                         {messages.map((message) => (
                           <motion.div
                             key={message.id}
@@ -352,28 +336,16 @@ export default function NeshmaInsightSectionB({
                             variants={messageVariants}
                             initial="hidden"
                             animate="visible"
-                            className={`flex items-end gap-2 mb-4 ${
-                              message.sender === 'user'
-                                ? 'justify-end'
-                                : 'justify-start'
-                            }`}
+                            className={`flex items-end gap-2 mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                           >
                             <div
-                              className={`flex flex-col max-w-[85%] ${
-                                message.sender === 'user'
-                                  ? 'items-end'
-                                  : 'items-start'
-                              }`}
+                              className={`flex flex-col max-w-[80%] ${message.sender === 'user' ? 'items-end' : 'items-start'}`}
                             >
                               <div
-                                className={`relative z-10 rounded-2xl px-4 py-2.5 shadow-md flex items-center gap-2 text-start ${
+                                className={`relative z-10 rounded-2xl px-4 py-2.5 shadow-md flex items-center gap-2 ${
                                   message.sender === 'user'
-                                    ? 'bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white rounded-br-none'
-                                    : `bg-white text-gray-800 border border-gray-100 rounded-bl-none ${
-                                        message.isEureka
-                                          ? 'border-amber-400/80 ring-4 ring-amber-400/10 animate-pulse-glow'
-                                          : ''
-                                      }`
+                                    ? 'bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white rounded-br-lg' // Updated User Bubble
+                                    : `bg-white text-gray-800 border border-gray-100 rounded-bl-lg ${message.isEureka ? 'border-amber-400/80 ring-4 ring-amber-400/10 animate-pulse-glow' : ''}`
                                 }`}
                               >
                                 {message.isEureka && (
@@ -388,7 +360,7 @@ export default function NeshmaInsightSectionB({
                                       repeatDelay: 0.3,
                                     }}
                                   >
-                                    <Lightbulb className="w-5 h-5 text-amber-400 flex-shrink-0 fill-amber-400" />
+                                    <Lightbulb className="w-5 h-5 text-amber-400 flex-shrink-0" />
                                   </motion.div>
                                 )}
                                 <p className="text-[15px] leading-relaxed">
@@ -407,7 +379,6 @@ export default function NeshmaInsightSectionB({
                           </motion.div>
                         ))}
                       </AnimatePresence>
-
                       <AnimatePresence>
                         {isTyping && (
                           <motion.div
@@ -415,7 +386,7 @@ export default function NeshmaInsightSectionB({
                             {...typingVariants}
                             className="flex items-end gap-2 mb-4 justify-start"
                           >
-                            <div className="flex items-center gap-1.5 p-3 rounded-2xl shadow-md bg-white/80 border border-gray-200 rounded-bl-none">
+                            <div className="flex items-center gap-1.5 p-3 rounded-2xl shadow-md bg-white/80 border border-gray-200 rounded-bl-lg">
                               {[0, 0.2, 0.4].map((delay) => (
                                 <motion.div
                                   key={delay}
@@ -435,15 +406,10 @@ export default function NeshmaInsightSectionB({
                       <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Fake Input Area */}
+                    {/* Input Area */}
                     <div className="border-t border-gray-200/80 bg-gray-50/50 p-3">
-                      <div className="bg-white border border-gray-200 rounded-full px-4 py-3 text-gray-400 text-sm cursor-not-allowed flex items-center justify-between">
-                        <span>{dict.placeholder}</span>
-                        <div className="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center">
-                          <ArrowIcon
-                            className={`w-4 h-4 text-teal-600 ${isHebrew && 'rotate-180'}`}
-                          />
-                        </div>
+                      <div className="bg-gray-100 rounded-full px-4 py-2 text-gray-400 text-sm cursor-not-allowed text-center">
+                        {dict.placeholder}
                       </div>
                     </div>
                   </div>
@@ -471,7 +437,7 @@ export default function NeshmaInsightSectionB({
           )}
         </AnimatePresence>
 
-        {/* Insight Cards Section */}
+        {/* Insights Section */}
         <AnimatePresence>
           {showInsights && (
             <motion.div
@@ -508,10 +474,10 @@ export default function NeshmaInsightSectionB({
                       >
                         <item.icon className="w-8 h-8" />
                       </div>
-                      <h4 className="text-xl font-bold text-gray-800 mb-4 relative z-10 group-hover:text-gray-900">
+                      <h4 className="text-xl font-bold text-gray-800 mb-4 relative z-10">
                         {item.title}
                       </h4>
-                      <p className="text-gray-600 leading-relaxed relative z-10 group-hover:text-gray-800">
+                      <p className="text-gray-600 leading-relaxed relative z-10">
                         {item.description}
                       </p>
                     </div>
@@ -522,7 +488,7 @@ export default function NeshmaInsightSectionB({
           )}
         </AnimatePresence>
 
-        {/* Transition CTA Pill */}
+        {/* Transition CTA */}
         <AnimatePresence>
           {showTransitionCTA && !showCTA && (
             <motion.div
@@ -531,7 +497,7 @@ export default function NeshmaInsightSectionB({
               transition={{ delay: 0.8 }}
               className="text-center mb-8"
             >
-              <div className="inline-flex items-center gap-3 bg-gradient-to-r from-teal-100 to-orange-100 rounded-full px-6 py-3 shadow-md border border-teal-200/50">
+              <div className="inline-flex items-center gap-3 bg-gradient-to-r from-teal-100 to-orange-100 rounded-full px-6 py-3 shadow-md">
                 <TrendingUp className="w-5 h-5 text-teal-600" />
                 <p className="text-lg font-semibold text-gray-800">
                   {dict.transitionCTA}
@@ -541,7 +507,7 @@ export default function NeshmaInsightSectionB({
           )}
         </AnimatePresence>
 
-        {/* Final CTA Button */}
+        {/* Final CTA */}
         <AnimatePresence>
           {showCTA && (
             <motion.div
@@ -555,12 +521,13 @@ export default function NeshmaInsightSectionB({
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.98 }}
+                  // Updated Gradient to match Hero CTA
                   className="group relative inline-flex items-center gap-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white font-bold py-5 px-12 md:px-16 rounded-full text-xl md:text-2xl shadow-2xl hover:shadow-3xl transition-all duration-300"
                 >
                   <FileText className="w-7 h-7 group-hover:rotate-6 transition-transform" />
                   <span>{dict.cta.button}</span>
-                  <ArrowIcon
-                    className={`w-6 h-6 transition-transform group-hover:translate-x-1 ${isHebrew ? 'rotate-0' : ''}`}
+                  <ArrowLeft
+                    className={`w-6 h-6 group-hover:${isHebrew ? '-translate-x-1' : 'translate-x-1'} transition-transform ${isHebrew ? '' : 'rotate-180'}`}
                   />
                   <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000"></div>
                 </motion.button>
@@ -577,7 +544,7 @@ export default function NeshmaInsightSectionB({
           )}
         </AnimatePresence>
 
-        {/* Post-Conversation Transition Text */}
+        {/* Post-Conversation Transition */}
         <AnimatePresence>
           {showPostConversationTransition && (
             <motion.div
@@ -589,6 +556,7 @@ export default function NeshmaInsightSectionB({
               <h3 className="text-2xl md:text-3xl font-bold text-gray-800 leading-tight">
                 {dict.postConversationTransition.line1}
                 <br />
+                {/* Updated Gradient to match Hero Text */}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-amber-600">
                   {dict.postConversationTransition.line2}
                 </span>
@@ -598,12 +566,28 @@ export default function NeshmaInsightSectionB({
         </AnimatePresence>
       </div>
 
-      {/* Global Styles for Animations */}
+      {/* Styles */}
       <style>{`
         @keyframes float-slow { 0%, 100% { transform: translateY(0) translateX(0); } 25% { transform: translateY(-20px) translateX(10px); } 50% { transform: translateY(0) translateX(20px); } 75% { transform: translateY(20px) translateX(10px); } }
         .animate-float-slow { animation: float-slow 20s ease-in-out infinite; }
         @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(251, 191, 36, 0.3); } 50% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.6); } }
         .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        
+        /* Custom scrollbar for messages area */
+        .overflow-y-auto::-webkit-scrollbar {
+          width: 6px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-track {
+          background: rgba(243, 244, 246, 0.5);
+          border-radius: 10px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+          background: linear-gradient(to bottom, #14b8a6, #f97316);
+          border-radius: 10px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to bottom, #0d9488, #ea580c);
+        }
       `}</style>
     </motion.section>
   );

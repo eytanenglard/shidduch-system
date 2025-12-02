@@ -69,13 +69,14 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
     }
   }, []);
 
+  // פלטת צבעים מעודכנת - תואמת ל-HeroSection
   const feedbackOptions = [
     {
       type: 'SUGGESTION' as FeedbackType,
       icon: Lightbulb,
       label: dict.types.suggestion.label,
       description: dict.types.suggestion.description,
-      // שינוי: גרדיאנט המותג הראשי
+      // גרדיאנט המותג הראשי - Teal/Orange/Amber
       gradient: 'from-teal-400 via-orange-400 to-amber-400',
     },
     {
@@ -83,16 +84,16 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
       icon: Bug,
       label: dict.types.bug.label,
       description: dict.types.bug.description,
-      // שינוי: Rose/Red (תואם ל-AvailabilityStatus - Engaged/Error)
-      gradient: 'from-rose-500 via-red-500 to-orange-500',
+      // Rose/Red - תואם ל-HeroSection principle colors
+      gradient: 'from-rose-400 via-pink-500 to-red-500',
     },
     {
       type: 'POSITIVE' as FeedbackType,
       icon: ThumbsUp,
       label: dict.types.positive.label,
       description: dict.types.positive.description,
-      // שינוי: Teal/Emerald (תואם ל-AvailabilityStatus - Available)
-      gradient: 'from-teal-400 via-emerald-400 to-teal-500',
+      // Teal/Emerald - תואם ל-HeroSection principle colors
+      gradient: 'from-teal-400 via-teal-500 to-emerald-500',
     },
   ];
 
@@ -270,7 +271,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
               disabled={isProcessingClick}
-              // שינוי: גרדיאנט ראשי (Teal -> Orange -> Amber)
+              // גרדיאנט ראשי - Teal -> Orange -> Amber (תואם ל-HeroSection CTA)
               className={`relative text-white px-1.5 sm:px-2 py-4 sm:py-6 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-500 via-orange-500 to-amber-500 bg-size-200 hover:bg-pos-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-2xl ${
                 isHovered ? 'w-20 sm:w-32' : 'w-8 sm:w-12'
               }`}
@@ -302,7 +303,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                 )}
               </div>
 
-              {/* שינוי: הילה בצבעי Teal/Orange */}
+              {/* הילה בצבעי Teal/Orange - תואם ל-HeroSection */}
               <div className="absolute -inset-1 bg-gradient-to-br from-teal-400 via-orange-400 to-amber-400 rounded-2xl blur opacity-30 group-hover:opacity-60 transition-all duration-300" />
 
               {isHovered && (
@@ -319,7 +320,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                 e.stopPropagation();
                 handleHidePermanently();
               }}
-              // שינוי: כפתור סגירה ב-Rose
+              // כפתור סגירה - Rose (תואם לצבע ה-Rose ב-HeroSection principles)
               className="absolute -top-2 -left-2 w-6 h-6 bg-white/90 hover:bg-rose-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/close opacity-0 group-hover:opacity-100 backdrop-blur-sm border border-gray-200 z-20"
               aria-label="הסתר כפתור פידבק"
             >
@@ -332,7 +333,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
           <div className="transition-all duration-700 opacity-100 translate-x-0">
             <button
               onClick={handleShowWidget}
-              // שינוי: כפתור חזרה ב-Teal/Orange
+              // כפתור חזרה - Teal/Amber (תואם ל-HeroSection)
               className="w-8 h-8 bg-gradient-to-r from-teal-500 to-amber-500 hover:from-teal-600 hover:to-amber-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group/show"
               aria-label="הצג כפתור משוב"
               title="הצג כפתור משוב"
@@ -362,11 +363,11 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
         )}
       >
         <div className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/50 overflow-hidden max-h-[85vh] sm:max-h-none overflow-y-auto">
-          {/* שינוי: הילת רקע ב-Teal/Orange */}
+          {/* הילת רקע - Teal/Orange (תואם ל-HeroSection) */}
           <div className="absolute -inset-1 bg-gradient-to-r from-teal-400/20 via-orange-400/20 to-amber-400/20 rounded-2xl sm:rounded-3xl blur-xl" />
 
           <div className="relative">
-            {/* שינוי: כותרת עם רקע Teal עדין */}
+            {/* כותרת עם רקע Teal/Orange עדין */}
             <div className="bg-gradient-to-r from-teal-500/10 via-orange-500/5 to-amber-500/10 p-4 sm:p-6 border-b border-white/30">
               <div
                 className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}
@@ -376,7 +377,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                 >
                   <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gradient-to-r from-teal-400 to-amber-400 rounded-full animate-pulse shadow-lg" />
                   <div className={isRTL ? 'text-right' : 'text-left'}>
-                    <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-400 bg-clip-text text-transparent">
+                    <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">
                       {dict.title}
                     </h3>
                     <p className="text-xs sm:text-sm text-gray-600 mt-1">
@@ -411,7 +412,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                         setFeedbackType(option.type);
                         setStep('form');
                       }}
-                      // שינוי: בורדר ו-Hover ב-Teal
+                      // בורדר ו-Hover ב-Teal (תואם ל-HeroSection secondary button)
                       className={`w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-gray-50/80 to-white/80 hover:from-white to-gray-50 border border-gray-100/50 hover:border-teal-200/50 transition-all duration-300 group flex items-center gap-3 sm:gap-4 hover:shadow-md hover:scale-[1.02] ${
                         isRTL ? 'flex-row-reverse' : ''
                       }`}
@@ -491,7 +492,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     placeholder={dict.placeholder}
-                    // שינוי: Focus ב-Teal
+                    // Focus ring ב-Teal (תואם ל-HeroSection)
                     className={`min-h-[100px] sm:min-h-[120px] resize-none border-0 bg-gray-50/80 focus:bg-white focus:ring-2 focus:ring-teal-400 rounded-xl sm:rounded-2xl shadow-inner transition-all duration-300 placeholder:text-gray-400 text-sm sm:text-base ${
                       isRTL ? 'text-right' : 'text-left'
                     }`}
@@ -505,7 +506,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                         type="button"
                         onClick={handleFileButtonClick}
                         disabled={isTransitioning}
-                        // שינוי: Border ב-Teal/Orange ב-Hover
+                        // Border ב-Teal ב-Hover (תואם ל-HeroSection secondary button)
                         className="group relative px-3 py-2.5 sm:px-4 sm:py-3 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 hover:border-teal-300 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center gap-2 sm:gap-3 hover:shadow-md hover:scale-[1.02] overflow-hidden w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-teal-50/50 via-orange-50/30 to-amber-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -537,6 +538,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                             <button
                               type="button"
                               onClick={() => setScreenshot(null)}
+                              // כפתור מחיקה - Rose (תואם ל-HeroSection Rose principle)
                               className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/remove"
                             >
                               <X className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover/remove:rotate-90 transition-transform duration-300" />
@@ -577,7 +579,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                     <Button
                       onClick={handleSubmit}
                       disabled={isSubmitting || !content.trim()}
-                      // שינוי: כפתור ראשי ב-Teal/Orange Gradient
+                      // כפתור ראשי - Teal/Orange/Amber Gradient (תואם ל-HeroSection CTA)
                       className="flex-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm sm:text-base"
                     >
                       {isSubmitting ? (

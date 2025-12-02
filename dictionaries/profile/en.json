@@ -31,18 +31,18 @@
     },
     "preview": "This is exactly what the other side will see when a suggestion is sent by the matchmaker"
   },
-  "neshmaInsightButton": {
-    "buttonText": "✨ Your Neshama Insight is Ready!",
-    "buttonSubtitle": "You completed your profile! Receive a deep, personalized analysis that will help you understand yourself better.",
-    "dialogTitle": "Your Neshama Insight",
-    "generating": "Generating your insight...",
-    "downloadPdf": "Download as PDF",
-    "close": "Close",
-    "lockedTitle": "Neshama Insight - Locked",
-    "lockedDescription": "Complete your profile to 100% to unlock (Currently: {{percentage}}%)",
-    "alreadyGeneratedToday": "Already generated today - Available tomorrow",
-    "minimizedButtonText": "Neshama Insight"
-  },
+"neshmaInsightButton": {
+  "buttonText": "✨ Your Full Picture is Ready!",
+  "buttonSubtitle": "You completed your profile! Receive a deep, personalized analysis that paints the full picture of who you are.",
+  "dialogTitle": "Your Full Picture",
+  "generating": "Creating your Full Picture...",
+  "downloadPdf": "Download My Full Picture",
+  "close": "Close",
+  "lockedTitle": "Full Picture - Locked",
+  "lockedDescription": "Complete your profile to 100% to unlock (Currently: {{percentage}}%)",
+  "alreadyGeneratedToday": "Full Picture generated today - Available again tomorrow",
+  "minimizedButtonText": "Full Picture"
+},
   "checklist": {
     "welcome": "Hi {{firstName}}, Welcome!",
     "welcome_female": "Hi {{firstName}}, Welcome!",
@@ -91,22 +91,20 @@
       "education": "Education"
     }
   },
-  "aiAdvisor": {
-    "triggerButton": "Smart Advisor",
-    "dialogTitle": "Smart Profile Analysis",
-    "dialogDescription": "Our AI analyzes your profile and gives improvement tips.",
-    "closeButton": "Close",
-    "loadingTitle": "Analyzing data...",
-    "loadingDescription": "Please wait while we process the information.",
-    "errorAlertTitle": "Error",
-    "errorAlertDescription": "Could not generate analysis right now.",
-    "retryButton": "Try Again",
-    "initialState": "Click to start analysis",
-    "toast": {
-      "errorTitle": "Error",
-      "errorDescription": "An error occurred: {{error}}"
-    }
-  },
+"aiAdvisor": {
+  "triggerButton": "🤖 Our AI is Here to Help - Want Profile Tips?",
+  "dialogTitle": "Personal Recommendations from NeshamaTech's AI",
+  "dialogDescription": "Our AI analyzes your profile and suggests ways to improve it - so you can find the right match.",
+  "closeButton": "Close",
+  "loadingTitle": "Our AI is working on it...",
+  "loadingDescription": "Reading your profile and preparing tailored recommendations.",
+  "errorAlertTitle": "Something went wrong",
+  "errorAlertDescription": "We couldn't complete the analysis. Try again in a moment.",
+  "retryButton": "Try Again",
+  "initialState": "Click to get recommendations from our AI",
+  "toastErrorTitle": "Error",
+  "toastErrorDescription": "An error occurred: {{error}}"
+},
   "analysisResult": {
     "tabs": {
       "summary": "Summary",

@@ -23,12 +23,10 @@ import StickyNav, { NavLink } from './components/StickyNav';
 import CookieBanner from '../ui/CookieBanner';
 import type { Dictionary } from '@/types/dictionary';
 import { generateDemoData } from './components/demo-data';
-import NeshmaInsightSectionB from './sections/NeshmaInsightSectionB';  // ← חדש!
+import NeshmaInsightSectionB from './sections/NeshmaInsightSectionB';
 
-// ✅ 1. הגדרת הטיפוס עבור נתוני הדמו
 type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
 
-// ✅ 2. עדכון הממשק של ה-props כך שיכלול גם את demoData
 interface HomePageProps {
   dict: Dictionary;
   demoData: DemoData;
@@ -36,7 +34,6 @@ interface HomePageProps {
 }
 
 export default function HomePage({ dict, demoData, locale }: HomePageProps) {
-  // ✅ 3. קבלת demoData כ-prop
   const { data: session } = useSession();
   const [isVisible, setIsVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -72,7 +69,9 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         navLinks={navLinks}
         session={session}
         isVisible={isScrolled}
-        dict={dict.stickyNav} // ✨ הוסף את ה-prop הזה
+        dict={dict.stickyNav}
+        // 👇 השורה החשובה: העברת המילון של הדרופדאון
+        userDropdownDict={dict.userDropdown}
         locale={locale}
       />
 
@@ -83,12 +82,11 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         locale={locale}
       />
       <ValuePropositionSection dict={dict.valueProposition} />
-{/* ✨ תובנת נשמה - גרסה B (Personal Conversation) */}
+      
       <NeshmaInsightSectionB locale={locale} dict={dict.neshmaInsight} />
     
       <OurMethodSection dict={dict.ourMethod} />
 
-      {/* ✅ 4. העברת demoData לרכיב HowItWorksSection פותרת את שגיאת 'Cannot find name' */}
       <HowItWorksSection
         dict={dict.howItWorks}
         suggestionsDict={dict.suggestions}
@@ -96,7 +94,6 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         demoData={demoData}
         locale={locale}
       />
-
 
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
       <SuccessStoriesSection dict={dict.successStories} locale={locale} />

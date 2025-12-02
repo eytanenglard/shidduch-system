@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Menu, X } from 'lucide-react';
+import { UserPlus, Menu, X, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
@@ -14,7 +14,7 @@ import { signOut } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
 import UserDropdown from '@/components/layout/UserDropdown';
-import type { StickyNavDict } from '@/types/dictionary';
+import type { StickyNavDict, UserDropdownDict } from '@/types/dictionary';
 
 export interface NavLink {
   id: string;
@@ -27,9 +27,9 @@ interface StickyNavProps {
   session: Session | null;
   isVisible: boolean;
   dict: StickyNavDict;
+  userDropdownDict: UserDropdownDict;
 }
 
-// ======================== קומפוננטת הלוגו ========================
 const StickyLogo = ({ homepageAriaLabel }: { homepageAriaLabel: string }) => {
   return (
     <Link
@@ -64,13 +64,13 @@ const StickyLogo = ({ homepageAriaLabel }: { homepageAriaLabel: string }) => {
     </Link>
   );
 };
-// ========================================================================
 
 const StickyNav: React.FC<StickyNavProps> = ({
   navLinks,
   session,
   isVisible,
   dict,
+  userDropdownDict,
   locale,
 }) => {
   const [activeSection, setActiveSection] = useState('');
@@ -190,7 +190,6 @@ const StickyNav: React.FC<StickyNavProps> = ({
             transition={{ duration: 0.3, ease: 'easeOut' }}
             className="fixed top-0 left-0 right-0 z-40 w-full h-16 md:h-20"
           >
-            {/* Background: Glassmorphism with subtle Teal tint */}
             <div className="absolute inset-0 bg-white/90 backdrop-blur-xl shadow-sm border-b border-teal-50/50 supports-[backdrop-filter]:bg-white/80"></div>
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
@@ -205,8 +204,8 @@ const StickyNav: React.FC<StickyNavProps> = ({
                     className={cn(
                       'relative px-5 py-2.5 rounded-full text-sm transition-all duration-300',
                       activeSection === link.id
-                        ? 'font-bold text-teal-700' // Active
-                        : 'font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/50' // Hover
+                        ? 'font-bold text-teal-700'
+                        : 'font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/50'
                     )}
                   >
                     {activeSection === link.id && (
@@ -258,6 +257,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                 </div>
               </div>
 
+              {/* כפתורי פעולה - דסקטופ */}
               <div className="hidden md:flex items-center gap-3">
                 {session ? (
                   <UserDropdown
@@ -267,17 +267,42 @@ const StickyNav: React.FC<StickyNavProps> = ({
                     handleSignOut={handleSignOut}
                     profileIconSize={profileIconSize}
                     locale={locale}
+                    dict={userDropdownDict}
                   />
                 ) : (
-                  <Link href="/auth/register">
-                    <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-7 py-6">
-                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
-                      <span className="relative z-10 flex items-center font-bold text-base">
-                        <UserPlus className="mr-2 h-5 w-5" />
-                        {dict.signUpButton}
-                      </span>
-                    </Button>
-                  </Link>
+                  <>
+                    {/* לינק התחברות - טקסט פשוט */}
+                    <Link
+                      href={`/${locale}/auth/signin`}
+                      className="text-sm font-medium text-gray-600 hover:text-teal-600 transition-colors duration-200 px-3 py-2"
+                    >
+                      {dict.signInLink}
+                    </Link>
+
+                    {/* כפתור לשאלון - Secondary */}
+                    <Link href={`/${locale}/questionnaire`}>
+                      <Button
+                        variant="outline"
+                        className="group relative overflow-hidden border-2 border-teal-200 hover:border-teal-400 text-teal-700 hover:text-teal-800 bg-white hover:bg-teal-50/50 rounded-full shadow-sm hover:shadow-md transition-all duration-300 px-5 py-5"
+                      >
+                        <span className="relative z-10 flex items-center font-semibold text-sm">
+                          <Lightbulb className="h-4 w-4 ltr:mr-2 rtl:ml-2 transition-transform group-hover:scale-110" />
+                          {dict.toQuestionnaireButton}
+                        </span>
+                      </Button>
+                    </Link>
+
+                    {/* כפתור הרשמה - Primary */}
+                    <Link href={`/${locale}/auth/register`}>
+                      <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-5">
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
+                        <span className="relative z-10 flex items-center font-bold text-sm">
+                          <UserPlus className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                          {dict.signUpButton}
+                        </span>
+                      </Button>
+                    </Link>
+                  </>
                 )}
               </div>
             </div>

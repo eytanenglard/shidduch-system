@@ -31,18 +31,18 @@
     },
     "preview": "זה בדיוק מה שהצד השני יראה - כשתישלח אליו ההצעה על ידי השדכן"
   },
-  "neshmaInsightButton": {
-    "buttonText": "✨ תובנת נשמה - הדו\"ח האישי שלך מוכן!",
-    "buttonSubtitle": "סיימת את הפרופיל! קבלו ניתוח מעמיק ואישי שיעזור לכם להבין את עצמכם טוב יותר.",
-    "dialogTitle": "תובנת נשמה - הדו\"ח האישי שלך",
-    "generating": "יוצרים את התובנה שלך...",
-    "downloadPdf": "הורדה כ-PDF",
-    "close": "סגור",
-    "lockedTitle": "תובנת נשמה - נעולה",
-    "lockedDescription": "השלם את הפרופיל ל-100% כדי לפתוח (כרגע: {{percentage}}%)",
-    "alreadyGeneratedToday": "כבר יצרת תובנה היום - זמינה מחר",
-    "minimizedButtonText": "תובנת נשמה"
-  },
+ "neshmaInsightButton": {
+  "buttonText": "✨ התמונה המלאה שלך מוכנה!",
+  "buttonSubtitle": "סיימת את הפרופיל! קבל ניתוח מעמיק שמצייר את התמונה המלאה של מי שאתה.",
+  "dialogTitle": "התמונה המלאה שלך",
+  "generating": "יוצרים את התמונה המלאה שלך...",
+  "downloadPdf": "להורדת התמונה המלאה שלי",
+  "close": "סגור",
+  "lockedTitle": "התמונה המלאה - נעולה",
+  "lockedDescription": "השלם את הפרופיל ל-100% כדי לפתוח (כרגע: {{percentage}}%)",
+  "alreadyGeneratedToday": "התמונה המלאה נוצרה היום - זמינה מחדש מחר",
+  "minimizedButtonText": "התמונה המלאה"
+},
   "checklist": {
     "welcome": "היי {{firstName}}, ברוך הבא!",
     "welcome_female": "היי {{firstName}}, ברוכה הבאה!",
@@ -91,22 +91,20 @@
       "education": "השכלה"
     }
   },
-  "aiAdvisor": {
-    "triggerButton": "היועץ החכם",
-    "dialogTitle": "ניתוח פרופיל חכם",
-    "dialogDescription": "ה-AI שלנו מנתח את הפרופיל שלך ונותן טיפים לשיפור.",
-    "closeButton": "סגור",
-    "loadingTitle": "מנתח נתונים...",
-    "loadingDescription": "אנא המתן בזמן שאנחנו מעבדים את המידע.",
-    "errorAlertTitle": "שגיאה",
-    "errorAlertDescription": "לא הצלחנו לייצר את הניתוח כרגע.",
-    "retryButton": "נסה שוב",
-    "initialState": "לחץ כדי להתחיל בניתוח",
-    "toast": {
-      "errorTitle": "שגיאה",
-      "errorDescription": "אירעה תקלה: {{error}}"
-    }
-  },
+ "aiAdvisor": {
+  "triggerButton": "🤖 ה-AI שלנו כאן לעזור - רוצה טיפים לפרופיל?",
+  "dialogTitle": "המלצות אישיות מה-AI של NeshamaTech",
+  "dialogDescription": "ה-AI שלנו מנתח את הפרופיל ומציע דרכים לשפר אותו - כדי שתמצא את ההתאמה הנכונה.",
+  "closeButton": "סגור",
+  "loadingTitle": "ה-AI שלנו עובד על זה...",
+  "loadingDescription": "קוראים את הפרופיל ומכינים המלצות מותאמות.",
+  "errorAlertTitle": "משהו השתבש",
+  "errorAlertDescription": "לא הצלחנו להשלים את הניתוח. נסה שוב עוד מעט.",
+  "retryButton": "נסה שוב",
+  "initialState": "לחץ לקבלת המלצות מה-AI שלנו",
+  "toastErrorTitle": "שגיאה",
+  "toastErrorDescription": "אירעה תקלה: {{error}}"
+},
   "analysisResult": {
     "tabs": {
       "summary": "סיכום",

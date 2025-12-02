@@ -165,18 +165,18 @@ export type HowItWorksDict = {
 export type StickyNavDict = {
   homepageAriaLabel: string;
   signUpButton: string;
-    mobileTitle?: string; // <--- הוסף את השורה הזו
-
+  toQuestionnaireButton: string;  // ← חדש
+  signInLink: string;              // ← חדש
+  mobileTitle?: string;
   closeNavAriaLabel: string;
   openNavAriaLabel: string;
-    navLinks: {
+  navLinks: {
     howItWorks: string;
     suggestionDemo: string;
     successStories: string;
     ourTeam: string;
     faq: string;
   };
-
 };
 
 type TeamMemberDict = {
