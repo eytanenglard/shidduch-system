@@ -46,7 +46,29 @@ import type {
   ProfileCardDict,
 } from '@/types/dictionary';
 
-// --- Skeleton Loading Updated to Hero Colors (Teal/Orange) ---
+// =============================================================================
+// COLOR PALETTE REFERENCE (Matching HeroSection.tsx)
+// =============================================================================
+// Primary Colors:
+//   - Teal/Emerald: from-teal-400 via-teal-500 to-emerald-500 (Knowledge/New)
+//   - Orange/Amber: from-orange-400 via-amber-500 to-yellow-500 (Action/Warmth)
+//   - Rose/Pink:    from-rose-400 via-pink-500 to-red-500 (Love/Connection)
+//
+// Background Gradients:
+//   - Page: from-slate-50 via-teal-50/20 to-orange-50/20
+//   - Cards: from-teal-50 via-white to-emerald-50 (Teal variant)
+//           from-orange-50 via-white to-amber-50 (Orange variant)
+//           from-rose-50 via-white to-red-50 (Rose variant)
+//
+// Text Gradients:
+//   - from-teal-600 via-orange-600 to-amber-600
+//   - from-teal-600 to-orange-600
+//
+// Accent Lines:
+//   - from-teal-400 via-orange-400 to-rose-400
+// =============================================================================
+
+// --- Skeleton Loading (Hero Teal/Orange Palette) ---
 const LoadingSkeleton: React.FC<{
   dict: SuggestionsDictionary['container']['loading'];
 }> = ({ dict }) => (
@@ -146,7 +168,7 @@ const LoadingSkeleton: React.FC<{
   </div>
 );
 
-// --- Stats Component Updated to Hero Colors ---
+// --- Stats Component (Hero Teal/Orange Palette) ---
 const WelcomeStats: React.FC<{
   activeSuggestions: ExtendedMatchSuggestion[];
   historySuggestions: ExtendedMatchSuggestion[];
@@ -173,30 +195,40 @@ const WelcomeStats: React.FC<{
       value: activeSuggestions.length,
       icon: <Sparkles className="w-5 h-5" />,
       // Teal/Emerald -> New/Fresh (Knowledge)
-      color: 'from-teal-400 via-teal-500 to-emerald-500',
+      gradient: 'from-teal-400 via-teal-500 to-emerald-500',
+      shadowColor: 'shadow-teal-500/25',
+      glowColor: 'shadow-teal-400/30',
+      bgGradient: 'from-teal-50 via-white to-emerald-50',
       description: dict.newDesc,
     },
     {
       label: dict.yourTurn,
       value: myTurnCount,
       icon: <Zap className="w-5 h-5" />,
-      // Orange/Amber -> Action/Warmth (Privacy/Focus)
-      color: 'from-orange-400 via-amber-500 to-yellow-500',
+      // Orange/Amber -> Action/Warmth (Focus)
+      gradient: 'from-orange-400 via-amber-500 to-yellow-500',
+      shadowColor: 'shadow-orange-500/25',
+      glowColor: 'shadow-orange-400/30',
+      bgGradient: 'from-orange-50 via-white to-amber-50',
       description: dict.yourTurnDesc,
       pulse: myTurnCount > 0,
     },
     {
       label: dict.approved,
       value: approvedCount,
-      icon: <Heart className="w-5 h-5" />, // Changed to Heart to match Rose
+      icon: <Heart className="w-5 h-5" />,
       // Rose/Pink -> Love/Connection (Personal)
-      color: 'from-rose-400 via-pink-500 to-red-500',
+      gradient: 'from-rose-400 via-pink-500 to-red-500',
+      shadowColor: 'shadow-rose-500/25',
+      glowColor: 'shadow-rose-400/30',
+      bgGradient: 'from-rose-50 via-white to-red-50',
       description: dict.approvedDesc,
     },
   ];
 
   return (
     <div className="mb-8">
+      {/* Header with Hero gradient text */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-3 mb-4">
           <div className="p-3 rounded-full bg-gradient-to-r from-teal-100 to-orange-100">
@@ -209,19 +241,31 @@ const WelcomeStats: React.FC<{
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           {dict.subtitle}
         </p>
+        {/* Decorative divider matching Hero */}
+        <div className="relative mt-4">
+          <div className="w-16 h-0.5 bg-gradient-to-r from-teal-400 via-orange-400 to-rose-400 rounded-full mx-auto" />
+          <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-orange-400" />
+        </div>
       </div>
+
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, index) => (
           <Card
             key={index}
-            className="border-0 shadow-lg overflow-hidden bg-white hover:shadow-xl transition-all duration-300 group"
+            className={cn(
+              'border-0 shadow-lg overflow-hidden bg-gradient-to-br hover:shadow-xl transition-all duration-300 group',
+              stat.bgGradient,
+              stat.shadowColor
+            )}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div
                   className={cn(
-                    'p-3 rounded-xl bg-gradient-to-br text-white shadow-lg group-hover:scale-110 transition-transform duration-300',
-                    stat.color,
+                    'p-3 rounded-xl bg-gradient-to-br text-white shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-500',
+                    stat.gradient,
+                    stat.glowColor,
                     stat.pulse && 'animate-pulse'
                   )}
                 >
@@ -244,6 +288,8 @@ const WelcomeStats: React.FC<{
                 </h3>
                 <p className="text-sm text-gray-600">{stat.description}</p>
               </div>
+              {/* Subtle decorative element */}
+              <div className="mt-4 w-8 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent rounded-full" />
             </CardContent>
           </Card>
         ))}
@@ -259,7 +305,7 @@ interface MatchSuggestionsContainerProps {
   profileCardDict: ProfileCardDict;
 }
 
-// --- Main Container Updated ---
+// --- Main Container (Hero Teal/Orange Palette) ---
 const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   userId,
   className,
@@ -504,7 +550,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   return (
     <div
       className={cn(
-        // Updated Background to match Hero
+        // Background matching Hero: slate -> teal -> orange
         'min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/20 to-orange-50/20',
         className
       )}
@@ -517,7 +563,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           userId={userId}
           dict={suggestionsDict.container.stats}
         />
-        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden">
+
+        {/* Main Card with glassmorphism effect */}
+        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl">
+          {/* Card Header with Hero gradient */}
           <CardHeader className="pb-4 bg-gradient-to-r from-white via-teal-50/30 to-orange-50/30 border-b border-gray-100">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -556,6 +605,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               <div className="w-16"></div>
             </div>
           </CardHeader>
+
           <CardContent className="p-6">
             <Tabs
               value={activeTab}
@@ -597,7 +647,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                     </TabsTrigger>
                   )}
 
-                  {/* Tab: History (Gray/Rose) */}
+                  {/* Tab: History (Gray) */}
                   <TabsTrigger
                     value="history"
                     className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
@@ -612,6 +662,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   </TabsTrigger>
                 </TabsList>
               </div>
+
               {error && (
                 <Alert
                   variant="destructive"
@@ -626,6 +677,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   </AlertDescription>
                 </Alert>
               )}
+
               <TabsContent value="active" className="space-y-6">
                 <SuggestionsList
                   locale={locale}
@@ -641,6 +693,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   profileCardDict={profileCardDict}
                 />
               </TabsContent>
+
               <TabsContent value="history" className="space-y-6">
                 <SuggestionsList
                   locale={locale}
@@ -657,6 +710,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   profileCardDict={profileCardDict}
                 />
               </TabsContent>
+
               <TabsContent value="urgent" className="space-y-6">
                 <SuggestionsList
                   locale={locale}
@@ -682,6 +736,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Confirmation Dialog with Hero-matching gradients */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="border-0 shadow-2xl rounded-2xl z-[9999]">
           <AlertDialogHeader>
@@ -705,9 +761,9 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               className={cn(
                 'rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300',
                 actionType === 'approve'
-                  ? // Approve: Teal/Green gradient
+                  ? // Approve: Teal/Emerald gradient (matching Hero)
                     'bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700'
-                  : // Decline: Rose/Red gradient
+                  : // Decline: Rose/Red gradient (matching Hero)
                     'bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700'
               )}
             >

@@ -79,7 +79,7 @@ type FilterOption =
   | 'declined'
   | 'contact_shared';
 
-// --- Empty State Updated to Teal/Orange/Rose ---
+// --- Empty State (Teal/Orange/Rose Palette) ---
 const EmptyState: React.FC<{
   isFiltered: boolean;
   isHistory: boolean;
@@ -88,7 +88,7 @@ const EmptyState: React.FC<{
 }> = ({ isFiltered, isHistory, onClearFilters, dict }) => (
   <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
     <div className="relative mb-8">
-      {/* Background Gradient: Teal -> Orange */}
+      {/* Background Gradient: Teal -> Orange (matching HeroSection) */}
       <div className="w-32 h-32 rounded-full bg-gradient-to-br from-teal-100 to-orange-100 flex items-center justify-center shadow-lg">
         {isFiltered ? (
           <Search className="w-16 h-16 text-teal-500" />
@@ -99,6 +99,7 @@ const EmptyState: React.FC<{
         )}
       </div>
       {!isFiltered && !isHistory && (
+        // Sparkle Badge: Orange/Amber (matching HeroSection)
         <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center shadow-lg">
           <Sparkles className="w-4 h-4 text-white" />
         </div>
@@ -119,6 +120,7 @@ const EmptyState: React.FC<{
           : dict.noActiveDescription}
     </p>
     {isFiltered && (
+      // Clear Filters Button: Teal/Emerald (matching HeroSection secondary)
       <Button
         onClick={onClearFilters}
         className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
@@ -130,7 +132,7 @@ const EmptyState: React.FC<{
   </div>
 );
 
-// --- Stats Bar Updated to Teal/Indigo/Orange/Green ---
+// --- Stats Bar (Teal/Orange/Rose/Emerald Palette - matching HeroSection principles) ---
 const StatsBar: React.FC<{
   total: number;
   filtered: number;
@@ -141,6 +143,7 @@ const StatsBar: React.FC<{
   <Card className="mb-6 border-0 shadow-lg bg-gradient-to-r from-white via-teal-50/50 to-orange-50/50">
     <CardContent className="p-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Showing: Teal (Knowledge) */}
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-1">
             <BarChart3 className="w-4 h-4 text-teal-500" />
@@ -148,17 +151,18 @@ const StatsBar: React.FC<{
           </div>
           <p className="text-xs text-gray-600 font-medium">{dict.showing}</p>
         </div>
+        {/* Total: Rose (Personal) */}
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <Users className="w-4 h-4 text-indigo-500" />
-            <span className="text-2xl font-bold text-indigo-600">{total}</span>
+            <Users className="w-4 h-4 text-rose-500" />
+            <span className="text-2xl font-bold text-rose-600">{total}</span>
           </div>
           <p className="text-xs text-gray-600 font-medium">{dict.total}</p>
         </div>
         {!isHistory && (
+          // Pending: Orange/Amber (Privacy/Action) */}
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-1">
-              {/* Pending: Orange (Action) */}
               <Clock className="w-4 h-4 text-orange-500" />
               <span className="text-2xl font-bold text-orange-600">
                 {pending}
@@ -167,6 +171,7 @@ const StatsBar: React.FC<{
             <p className="text-xs text-gray-600 font-medium">{dict.pending}</p>
           </div>
         )}
+        {/* Progress: Emerald (Success) */}
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-1">
             <TrendingUp className="w-4 h-4 text-emerald-500" />
@@ -349,14 +354,14 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              // Updated: Skeleton Card to match SuggestionCard design
+              // Skeleton Card with Teal/Orange palette
               className={cn(
                 'relative overflow-hidden rounded-3xl bg-white shadow-lg border border-gray-100',
                 viewMode === 'list' ? 'h-48 flex' : 'h-[450px] flex flex-col'
               )}
             >
               {/* Header Area */}
-              <div className="h-24 bg-gradient-to-r from-gray-50 to-white p-6 border-b border-gray-50">
+              <div className="h-24 bg-gradient-to-r from-teal-50/50 to-orange-50/50 p-6 border-b border-gray-50">
                 <div className="flex justify-between">
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
@@ -385,7 +390,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
               </div>
 
               {/* Footer Area */}
-              <div className="p-4 bg-gray-50/50 border-t border-gray-100 flex justify-between gap-4">
+              <div className="p-4 bg-gradient-to-r from-teal-50/30 to-orange-50/30 border-t border-gray-100 flex justify-between gap-4">
                 <div className="h-10 flex-1 bg-white rounded-xl border border-gray-200 animate-pulse" />
                 <div className="h-10 flex-1 bg-teal-50 rounded-xl animate-pulse" />
               </div>
@@ -547,6 +552,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                     {suggestionsDict.list.activeFilters.title}
                   </span>
                   {searchQuery && (
+                    // Search Badge: Teal (Knowledge)
                     <Badge
                       variant="outline"
                       className="flex items-center gap-1 bg-teal-50 text-teal-700 border-teal-200"
@@ -563,6 +569,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                     </Badge>
                   )}
                   {filterOption !== 'all' && (
+                    // Filter Badge: Orange (Privacy/Action)
                     <Badge
                       variant="outline"
                       className="flex items-center gap-1 bg-orange-50 text-orange-700 border-orange-200"
@@ -611,6 +618,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           </span>
           {filteredSuggestions.length > 0 && (
             <div className="flex items-center gap-2">
+              {/* Quality Matches: Rose (Personal) */}
               <Sparkles className="w-4 h-4 text-rose-500" />
               <span className="font-medium">
                 {suggestionsDict.list.resultsCount.qualityMatches}

@@ -112,7 +112,7 @@ const useFullscreenModal = (isOpen: boolean) => {
   return { isFullscreen, isTransitioning, toggleFullscreen };
 };
 
-// --- Hero Section Updated (Teal/Orange/Rose) ---
+// --- Hero Section (Teal/Orange/Rose Palette - Matching HeroSection.tsx) ---
 const EnhancedHeroSection: React.FC<{
   matchmaker: { firstName: string; lastName: string };
   targetParty: ExtendedMatchSuggestion['secondParty'];
@@ -139,13 +139,17 @@ const EnhancedHeroSection: React.FC<{
   const mainImage = targetParty.images?.find((img) => img.isMain)?.url;
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/20 to-orange-50/20 overflow-hidden">
-      {/* Background elements - Teal/Orange/Rose Blobs */}
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/30 to-orange-50/30 overflow-hidden">
+      {/* Background elements - Teal/Orange/Rose Blobs (matching HeroSection) */}
       <div className="absolute inset-0">
         <div className="absolute top-10 right-10 w-72 h-72 bg-gradient-to-br from-teal-200/40 to-emerald-200/40 rounded-full blur-3xl animate-float"></div>
         <div
-          className="absolute bottom-10 left-10 w-64 h-64 bg-gradient-to-br from-orange-200/40 to-rose-200/40 rounded-full blur-2xl animate-float"
+          className="absolute bottom-10 left-10 w-64 h-64 bg-gradient-to-br from-orange-200/40 to-amber-200/40 rounded-full blur-2xl animate-float"
           style={{ animationDelay: '2s' }}
+        ></div>
+        <div
+          className="absolute top-1/2 right-1/4 w-48 h-48 bg-gradient-to-br from-rose-200/30 to-pink-200/30 rounded-full blur-2xl animate-float"
+          style={{ animationDelay: '4s' }}
         ></div>
       </div>
 
@@ -154,7 +158,7 @@ const EnhancedHeroSection: React.FC<{
           {/* Matchmaker Badge - Teal */}
           <div className="inline-flex items-center gap-2 mb-6 p-3 bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-teal-100 animate-fade-in-up">
             <Avatar className="w-12 h-12 border-2 border-white shadow-lg">
-              <AvatarFallback className="bg-gradient-to-br from-teal-500 to-teal-700 text-white text-sm font-bold">
+              <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white text-sm font-bold">
                 {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
               </AvatarFallback>
             </Avatar>
@@ -168,9 +172,9 @@ const EnhancedHeroSection: React.FC<{
             </div>
           </div>
           <div className="max-w-4xl mx-auto mb-8">
-            {/* Title Gradient - Teal/Orange/Rose */}
+            {/* Title Gradient - Teal/Orange/Rose (matching HeroSection) */}
             <h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600 bg-clip-text text-transparent mb-6 leading-tight animate-fade-in-up"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-rose-500 bg-clip-text text-transparent mb-6 leading-tight animate-fade-in-up"
               style={{ animationDelay: '0.5s' }}
             >
               {dict.title}
@@ -192,7 +196,7 @@ const EnhancedHeroSection: React.FC<{
             className="relative group animate-fade-in-up"
             style={{ animationDelay: '1.5s' }}
           >
-            {/* Glow Effect - Teal/Orange */}
+            {/* Glow Effect - Teal/Orange/Rose */}
             <div className="absolute -inset-4 bg-gradient-to-r from-teal-400/50 via-orange-400/50 to-rose-400/50 rounded-3xl blur-lg opacity-70 group-hover:opacity-100 transition-opacity animate-pulse"></div>
             <Card className="relative overflow-hidden shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
               <div className="relative h-96 lg:h-[600px]">
@@ -218,8 +222,8 @@ const EnhancedHeroSection: React.FC<{
                           {targetParty.firstName}
                         </h2>
                         {age && (
-                          // Age Badge - Orange/Rose
-                          <Badge className="bg-gradient-to-r from-orange-500 to-rose-500 text-white border-0 shadow-lg text-lg px-4 py-2">
+                          // Age Badge - Orange/Amber (matching HeroSection button)
+                          <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-lg text-lg px-4 py-2">
                             <Calendar
                               className={cn(
                                 'w-4 h-4',
@@ -234,7 +238,7 @@ const EnhancedHeroSection: React.FC<{
                         <div className="w-16 h-16 rounded-full bg-gradient-to-r from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg mb-2">
                           <Telescope className="w-8 h-8 text-white" />
                         </div>
-                        {/* Discover More - Teal */}
+                        {/* Discover More - Teal/Emerald */}
                         <Button
                           onClick={onViewProfile}
                           className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-xl rounded-full px-6 py-3 font-bold text-base"
@@ -253,20 +257,20 @@ const EnhancedHeroSection: React.FC<{
             className="space-y-8 animate-fade-in-up"
             style={{ animationDelay: '2s' }}
           >
-            {/* Story Card - Teal/Rose */}
-            <Card className="border-0 shadow-2xl bg-gradient-to-br from-teal-50 via-white to-rose-50 overflow-hidden">
+            {/* Story Card - Teal/Orange/Rose gradient */}
+            <Card className="border-0 shadow-2xl bg-gradient-to-br from-teal-50 via-white to-orange-50 overflow-hidden">
               <CardContent className="p-8 relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-rose-200/30 rounded-full blur-2xl"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-orange-200/30 rounded-full blur-2xl"></div>
                 <div className="relative z-10">
-                  <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600 bg-clip-text text-transparent mb-4 leading-tight text-center">
+                  <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-rose-500 bg-clip-text text-transparent mb-4 leading-tight text-center">
                     {dict.matchStoryTitle}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                    {/* View Profile - Teal/Orange */}
+                    {/* View Profile - Teal/Orange (matching HeroSection CTA) */}
                     <Button
                       onClick={onViewProfile}
                       size="lg"
-                      className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white shadow-xl rounded-xl h-14 font-bold text-base transform hover:scale-105 transition-all"
+                      className="bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-xl rounded-xl h-14 font-bold text-base transform hover:scale-105 transition-all"
                     >
                       <User
                         className={cn(
@@ -281,12 +285,12 @@ const EnhancedHeroSection: React.FC<{
                         <ArrowRight className="w-4 h-4 ml-2" />
                       )}
                     </Button>
-                    {/* Questions - Teal Outline */}
+                    {/* Questions - Teal Outline (matching HeroSection secondary) */}
                     <Button
                       onClick={onStartConversation}
                       variant="outline"
                       size="lg"
-                      className="border-2 border-teal-300 text-teal-700 hover:bg-teal-50 shadow-lg rounded-xl h-14 font-bold text-base transform hover:scale-105 transition-all"
+                      className="border-2 border-teal-200 text-teal-700 bg-white/50 hover:bg-white hover:border-teal-300 shadow-lg rounded-xl h-14 font-bold text-base transform hover:scale-105 transition-all"
                     >
                       <MessageCircle
                         className={cn(
@@ -303,7 +307,7 @@ const EnhancedHeroSection: React.FC<{
 
             {(personalNote || matchingReason) && (
               // Insights Card - Orange/Teal
-              <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 to-teal-50 overflow-hidden">
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 via-white to-teal-50 overflow-hidden">
                 <CardContent className="p-6 relative">
                   <div
                     className={cn(
@@ -311,7 +315,7 @@ const EnhancedHeroSection: React.FC<{
                       locale === 'he' ? 'flex-row-reverse' : 'flex-row'
                     )}
                   >
-                    <div className="p-4 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg flex-shrink-0">
+                    <div className="p-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg flex-shrink-0">
                       <Lightbulb className="w-7 h-7" />
                     </div>
                     <div
@@ -320,7 +324,7 @@ const EnhancedHeroSection: React.FC<{
                         locale === 'he' ? 'text-right' : 'text-left'
                       )}
                     >
-                      <h3 className="font-bold text-orange-900 text-xl mb-4">
+                      <h3 className="font-bold text-orange-800 text-xl mb-4">
                         {dict.matchmakerInsight}
                       </h3>
                       {personalNote && (
@@ -344,7 +348,7 @@ const EnhancedHeroSection: React.FC<{
                             <div>
                               <h4
                                 className={cn(
-                                  'font-semibold text-orange-800 mb-2',
+                                  'font-semibold text-orange-700 mb-2',
                                   locale === 'he' ? 'text-right' : 'text-left'
                                 )}
                               >
@@ -352,11 +356,11 @@ const EnhancedHeroSection: React.FC<{
                               </h4>
                               <p
                                 className={cn(
-                                  'text-orange-900 leading-relaxed italic font-medium',
+                                  'text-orange-800 leading-relaxed italic font-medium',
                                   locale === 'he' ? 'text-right' : 'text-left'
                                 )}
                               >
-                                “{personalNote}”
+                               &quot;{personalNote}&quot;
                               </p>
                             </div>
                           </div>
@@ -383,7 +387,7 @@ const EnhancedHeroSection: React.FC<{
                             <div>
                               <h4
                                 className={cn(
-                                  'font-semibold text-teal-800 mb-2',
+                                  'font-semibold text-teal-700 mb-2',
                                   locale === 'he' ? 'text-right' : 'text-left'
                                 )}
                               >
@@ -391,11 +395,11 @@ const EnhancedHeroSection: React.FC<{
                               </h4>
                               <p
                                 className={cn(
-                                  'text-teal-900 leading-relaxed font-medium',
+                                  'text-teal-800 leading-relaxed font-medium',
                                   locale === 'he' ? 'text-right' : 'text-left'
                                 )}
                               >
-                                “{matchingReason}”
+                                &quot;{matchingReason}&quot;
                               </p>
                             </div>
                           </div>
@@ -413,7 +417,7 @@ const EnhancedHeroSection: React.FC<{
   );
 };
 
-// --- Quick Actions Updated (Rose/Teal) ---
+// --- Quick Actions (Teal/Orange/Rose Palette) ---
 const EnhancedQuickActions: React.FC<{
   isExpanded: boolean;
   onToggleExpand: () => void;
@@ -447,12 +451,12 @@ const EnhancedQuickActions: React.FC<{
         onClick={onToggleExpand}
       >
         <div className="flex items-center gap-3">
-          {/* Main Icon - Rose/Orange (Celebration) */}
-          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-rose-400 to-orange-500 flex items-center justify-center shadow-lg">
+          {/* Main Icon - Orange/Amber (Celebration) */}
+          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center shadow-lg">
             <PartyPopper className="w-5 h-5 text-white" />
           </div>
           <div>
-            <p className="text-base font-bold text-teal-900">
+            <p className="text-base font-bold text-teal-800">
               {isExpanded ? dict.titleExpanded : dict.titleCollapsed}
             </p>
             {isExpanded && (
@@ -476,9 +480,9 @@ const EnhancedQuickActions: React.FC<{
         <div className="mt-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 gap-4 md:flex md:gap-6">
             {canAct && (
-              // Approve - Teal/Emerald (Success)
+              // Approve - Teal/Orange (matching HeroSection CTA gradient)
               <Button
-                className="relative w-full md:flex-1 bg-gradient-to-r from-teal-500 via-emerald-500 to-teal-600 hover:from-teal-600 hover:via-emerald-600 hover:to-teal-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-2xl h-16 font-bold text-lg transform hover:scale-105"
+                className="relative w-full md:flex-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-2xl h-16 font-bold text-lg transform hover:scale-105"
                 disabled={isSubmitting}
                 onClick={onApprove}
               >
@@ -511,12 +515,12 @@ const EnhancedQuickActions: React.FC<{
                 )}
               </Button>
             )}
-            {/* Ask - Teal Outline */}
+            {/* Ask - Teal Outline (matching HeroSection secondary button) */}
             <Button
               variant="outline"
               onClick={onAskQuestion}
               disabled={isSubmitting}
-              className="w-full md:flex-1 border-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300 transition-all duration-300 rounded-2xl h-16 font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="w-full md:flex-1 border-2 border-teal-200 text-teal-700 bg-white/50 hover:bg-white hover:border-teal-300 transition-all duration-300 rounded-2xl h-16 font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               <MessageCircle
                 className={cn('w-6 h-6', locale === 'he' ? 'ml-3' : 'mr-3')}
@@ -567,7 +571,7 @@ const EnhancedQuickActions: React.FC<{
   </div>
 );
 
-// --- Tabs Updated (Orange/Rose/Teal) ---
+// --- Tabs (Teal/Orange/Rose Palette - Matching HeroSection principles) ---
 const EnhancedTabsSection: React.FC<{
   activeTab: string;
   onTabChange: (tab: string) => void;
@@ -587,37 +591,37 @@ const EnhancedTabsSection: React.FC<{
   isTransitioning = false,
   dict,
 }) => (
-  <div className="border-b border-teal-100 px-2 sm:px-6 pt-4 bg-gradient-to-r from-teal-50/80 to-orange-50/80 backdrop-blur-sm sticky top-0 z-20">
+  <div className="border-b border-teal-100 px-2 sm:px-6 pt-4 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/80 backdrop-blur-sm sticky top-0 z-20">
     <div className="flex items-center justify-between mb-4">
       <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-sm rounded-3xl p-2 h-20 shadow-xl border-2 border-teal-100 overflow-hidden">
-        {/* Presentation - Rose/Orange */}
+        {/* Presentation - Orange/Amber (matching HeroSection privacy principle) */}
         <TabsTrigger
           value="presentation"
-          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-rose-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-400 data-[state=active]:via-amber-500 data-[state=active]:to-yellow-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
         >
           <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
           <span className="hidden sm:inline">{dict.presentation}</span>
           <span className="sm:hidden">{dict.presentationShort}</span>
         </TabsTrigger>
-        {/* Profile - Teal/Emerald */}
+        {/* Profile - Teal/Emerald (matching HeroSection knowledge principle) */}
         <TabsTrigger
           value="profile"
-          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-teal-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-teal-400 data-[state=active]:via-teal-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
         >
           <User className="w-5 h-5 sm:w-6 sm:h-6" />
           <span className="hidden sm:inline">{dict.profile}</span>
           <span className="sm:hidden">{dict.profileShort}</span>
         </TabsTrigger>
-        {/* Compatibility - Indigo/Teal */}
+        {/* Compatibility - Rose/Pink (matching HeroSection personal principle) */}
         <TabsTrigger
           value="compatibility"
-          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-indigo-500 data-[state=active]:to-teal-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-rose-400 data-[state=active]:via-pink-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
         >
           <GitCompareArrows className="w-5 h-5 sm:w-6 sm:h-6" />
           <span className="hidden sm:inline">{dict.compatibility}</span>
           <span className="sm:hidden">{dict.compatibilityShort}</span>
         </TabsTrigger>
-        {/* Details - Slate */}
+        {/* Details - Slate/Gray (neutral) */}
         <TabsTrigger
           value="details"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-500 data-[state=active]:to-gray-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
@@ -815,7 +819,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </TabsContent>
               <TabsContent
                 value="profile"
-                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-teal-50"
+                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50"
               >
                 {isQuestionnaireLoading ? (
                   <div className="flex justify-center items-center h-64">
@@ -841,8 +845,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   />
                 ) : (
                   <div className="text-center p-12">
-                    <div className="w-24 h-24 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
-                      <AlertTriangle className="w-12 h-12 text-red-500" />
+                    <div className="w-24 h-24 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-6">
+                      <AlertTriangle className="w-12 h-12 text-rose-500" />
                     </div>
                     <h3 className="text-2xl font-bold text-gray-800 mb-4">
                       {dict.suggestions.modal.profile.errorTitle}
@@ -852,7 +856,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     </p>
                     <Button
                       onClick={() => setShowAskDialog(true)}
-                      className="mt-6 bg-gradient-to-r from-orange-500 to-rose-500 text-white"
+                      className="mt-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
                     >
                       <MessageCircle className="w-4 h-4 ml-2" />
                       {dict.suggestions.modal.profile.contactMatchmaker}
@@ -862,7 +866,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </TabsContent>
               <TabsContent
                 value="compatibility"
-                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-indigo-50"
+                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-rose-50"
               >
                 <div className="flex flex-col items-center justify-center h-full min-h-[600px] text-center space-y-8 p-6">
                   <div className="relative">
@@ -870,7 +874,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     <div className="w-32 h-32 rounded-full bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center mx-auto shadow-2xl">
                       <Bot className="w-16 h-16 text-teal-600" />
                     </div>
-                    {/* Badge - Orange */}
+                    {/* Badge - Orange/Amber */}
                     <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
                       <Wand2 className="w-6 h-6 text-white" />
                     </div>
@@ -920,7 +924,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </TabsContent>
               <TabsContent
                 value="details"
-                className="mt-0 p-6 md:p-8 space-y-8 bg-gradient-to-br from-slate-50 to-gray-50"
+                className="mt-0 p-6 md:p-8 space-y-8 bg-gradient-to-br from-slate-50 via-white to-gray-50"
               >
                 <div className="max-w-6xl mx-auto space-y-8">
                   <SuggestionTimeline
