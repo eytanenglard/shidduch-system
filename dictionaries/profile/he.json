@@ -91,7 +91,7 @@
       "education": "השכלה"
     }
   },
- "aiAdvisor": {
+"aiAdvisor": {
   "triggerButton": "🤖 ה-AI שלנו כאן לעזור - רוצה טיפים לפרופיל?",
   "dialogTitle": "המלצות אישיות מה-AI של NeshamaTech",
   "dialogDescription": "ה-AI שלנו מנתח את הפרופיל ומציע דרכים לשפר אותו - כדי שתמצא את ההתאמה הנכונה.",
@@ -102,8 +102,10 @@
   "errorAlertDescription": "לא הצלחנו להשלים את הניתוח. נסה שוב עוד מעט.",
   "retryButton": "נסה שוב",
   "initialState": "לחץ לקבלת המלצות מה-AI שלנו",
-  "toastErrorTitle": "שגיאה",
-  "toastErrorDescription": "אירעה תקלה: {{error}}"
+  "toast": {
+    "errorTitle": "שגיאה",
+    "errorDescription": "אירעה תקלה: {{error}}"
+  }
 },
   "analysisResult": {
     "tabs": {

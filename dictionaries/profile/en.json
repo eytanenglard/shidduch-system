@@ -102,8 +102,10 @@
   "errorAlertDescription": "We couldn't complete the analysis. Try again in a moment.",
   "retryButton": "Try Again",
   "initialState": "Click to get recommendations from our AI",
-  "toastErrorTitle": "Error",
-  "toastErrorDescription": "An error occurred: {{error}}"
+  "toast": {
+    "errorTitle": "Error",
+    "errorDescription": "An error occurred: {{error}}"
+  }
 },
   "analysisResult": {
     "tabs": {
