@@ -77,7 +77,7 @@ export default function ContactClient({ dict }: ContactClientProps) {
     {
       name: dict.sidebar.team.members[1].name,
       image:
-        'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg',
+        'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764678709/6a978d37-584c-4c70-8dac-36682d3149ff_olupeg.jpg',
     },
   ];
   // --- END: FIX 1 ---

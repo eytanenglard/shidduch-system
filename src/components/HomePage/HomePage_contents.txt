@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2025-12-01 08:14:36
+# Generated on: 2025-12-02 14:24:49
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -37,12 +37,10 @@ import StickyNav, { NavLink } from './components/StickyNav';
 import CookieBanner from '../ui/CookieBanner';
 import type { Dictionary } from '@/types/dictionary';
 import { generateDemoData } from './components/demo-data';
-import NeshmaInsightSectionB from './sections/NeshmaInsightSectionB';  // ← חדש!
+import NeshmaInsightSectionB from './sections/NeshmaInsightSectionB';
 
-// ✅ 1. הגדרת הטיפוס עבור נתוני הדמו
 type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
 
-// ✅ 2. עדכון הממשק של ה-props כך שיכלול גם את demoData
 interface HomePageProps {
   dict: Dictionary;
   demoData: DemoData;
@@ -50,7 +48,6 @@ interface HomePageProps {
 }
 
 export default function HomePage({ dict, demoData, locale }: HomePageProps) {
-  // ✅ 3. קבלת demoData כ-prop
   const { data: session } = useSession();
   const [isVisible, setIsVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -86,7 +83,9 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         navLinks={navLinks}
         session={session}
         isVisible={isScrolled}
-        dict={dict.stickyNav} // ✨ הוסף את ה-prop הזה
+        dict={dict.stickyNav}
+        // 👇 השורה החשובה: העברת המילון של הדרופדאון
+        userDropdownDict={dict.userDropdown}
         locale={locale}
       />
 
@@ -97,12 +96,11 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         locale={locale}
       />
       <ValuePropositionSection dict={dict.valueProposition} />
-{/* ✨ תובנת נשמה - גרסה B (Personal Conversation) */}
+      
       <NeshmaInsightSectionB locale={locale} dict={dict.neshmaInsight} />
     
       <OurMethodSection dict={dict.ourMethod} />
 
-      {/* ✅ 4. העברת demoData לרכיב HowItWorksSection פותרת את שגיאת 'Cannot find name' */}
       <HowItWorksSection
         dict={dict.howItWorks}
         suggestionsDict={dict.suggestions}
@@ -110,7 +108,6 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         demoData={demoData}
         locale={locale}
       />
-
 
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
       <SuccessStoriesSection dict={dict.successStories} locale={locale} />
@@ -1080,7 +1077,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Menu, X } from 'lucide-react';
+import { UserPlus, Menu, X, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
@@ -1088,7 +1085,7 @@ import { signOut } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
 import UserDropdown from '@/components/layout/UserDropdown';
-import type { StickyNavDict } from '@/types/dictionary';
+import type { StickyNavDict, UserDropdownDict } from '@/types/dictionary';
 
 export interface NavLink {
   id: string;
@@ -1101,9 +1098,9 @@ interface StickyNavProps {
   session: Session | null;
   isVisible: boolean;
   dict: StickyNavDict;
+  userDropdownDict: UserDropdownDict;
 }
 
-// ======================== קומפוננטת הלוגו ========================
 const StickyLogo = ({ homepageAriaLabel }: { homepageAriaLabel: string }) => {
   return (
     <Link
@@ -1138,13 +1135,13 @@ const StickyLogo = ({ homepageAriaLabel }: { homepageAriaLabel: string }) => {
     </Link>
   );
 };
-// ========================================================================
 
 const StickyNav: React.FC<StickyNavProps> = ({
   navLinks,
   session,
   isVisible,
   dict,
+  userDropdownDict,
   locale,
 }) => {
   const [activeSection, setActiveSection] = useState('');
@@ -1264,7 +1261,6 @@ const StickyNav: React.FC<StickyNavProps> = ({
             transition={{ duration: 0.3, ease: 'easeOut' }}
             className="fixed top-0 left-0 right-0 z-40 w-full h-16 md:h-20"
           >
-            {/* Background: Glassmorphism with subtle Teal tint */}
             <div className="absolute inset-0 bg-white/90 backdrop-blur-xl shadow-sm border-b border-teal-50/50 supports-[backdrop-filter]:bg-white/80"></div>
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
@@ -1279,8 +1275,8 @@ const StickyNav: React.FC<StickyNavProps> = ({
                     className={cn(
                       'relative px-5 py-2.5 rounded-full text-sm transition-all duration-300',
                       activeSection === link.id
-                        ? 'font-bold text-teal-700' // Active
-                        : 'font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/50' // Hover
+                        ? 'font-bold text-teal-700'
+                        : 'font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/50'
                     )}
                   >
                     {activeSection === link.id && (
@@ -1332,6 +1328,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                 </div>
               </div>
 
+              {/* כפתורי פעולה - דסקטופ */}
               <div className="hidden md:flex items-center gap-3">
                 {session ? (
                   <UserDropdown
@@ -1341,17 +1338,42 @@ const StickyNav: React.FC<StickyNavProps> = ({
                     handleSignOut={handleSignOut}
                     profileIconSize={profileIconSize}
                     locale={locale}
+                    dict={userDropdownDict}
                   />
                 ) : (
-                  <Link href="/auth/register">
-                    <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-7 py-6">
-                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
-                      <span className="relative z-10 flex items-center font-bold text-base">
-                        <UserPlus className="mr-2 h-5 w-5" />
-                        {dict.signUpButton}
-                      </span>
-                    </Button>
-                  </Link>
+                  <>
+                    {/* לינק התחברות - טקסט פשוט */}
+                    <Link
+                      href={`/${locale}/auth/signin`}
+                      className="text-sm font-medium text-gray-600 hover:text-teal-600 transition-colors duration-200 px-3 py-2"
+                    >
+                      {dict.signInLink}
+                    </Link>
+
+                    {/* כפתור לשאלון - Secondary */}
+                    <Link href={`/${locale}/questionnaire`}>
+                      <Button
+                        variant="outline"
+                        className="group relative overflow-hidden border-2 border-teal-200 hover:border-teal-400 text-teal-700 hover:text-teal-800 bg-white hover:bg-teal-50/50 rounded-full shadow-sm hover:shadow-md transition-all duration-300 px-5 py-5"
+                      >
+                        <span className="relative z-10 flex items-center font-semibold text-sm">
+                          <Lightbulb className="h-4 w-4 ltr:mr-2 rtl:ml-2 transition-transform group-hover:scale-110" />
+                          {dict.toQuestionnaireButton}
+                        </span>
+                      </Button>
+                    </Link>
+
+                    {/* כפתור הרשמה - Primary */}
+                    <Link href={`/${locale}/auth/register`}>
+                      <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-5">
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
+                        <span className="relative z-10 flex items-center font-bold text-sm">
+                          <UserPlus className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                          {dict.signUpButton}
+                        </span>
+                      </Button>
+                    </Link>
+                  </>
                 )}
               </div>
             </div>
@@ -4382,7 +4404,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     <div className="relative w-32 h-32 rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white ring-4 ring-teal-100/50 transform hover:scale-105 transition-transform duration-300">
                       <Image
                         src={getRelativeCloudinaryPath(
-                          'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg'
+                          'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764678709/6a978d37-584c-4c70-8dac-36682d3149ff_olupeg.jpg'
                         )}
                         alt={dict.testimonial.author_name}
                         fill
@@ -8668,7 +8690,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                 <div className="relative w-20 h-20 rounded-full overflow-hidden shadow-lg border-2 border-white">
                   <Image
                     src={getRelativeCloudinaryPath(
-                      'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg'
+                      'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764678709/6a978d37-584c-4c70-8dac-36682d3149ff_olupeg.jpg'
                     )}
                     alt={dict.testimonial.author_name}
                     fill

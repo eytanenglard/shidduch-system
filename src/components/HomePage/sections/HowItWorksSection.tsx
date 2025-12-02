@@ -388,7 +388,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                   <div className="relative">
                     {/* Decorative elements around image - Updated to Hero Palette */}
                     <div className="absolute -inset-4 bg-gradient-to-br from-teal-400/30 to-orange-400/30 rounded-full blur-xl" />
-                    
+
                     {/* Floating accents */}
                     <div className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-xl rotate-12 shadow-lg z-20" />
                     <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-gradient-to-br from-orange-400 to-amber-500 rounded-lg -rotate-12 shadow-lg z-20" />
@@ -396,7 +396,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     <div className="relative w-32 h-32 rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white ring-4 ring-teal-100/50 transform hover:scale-105 transition-transform duration-300">
                       <Image
                         src={getRelativeCloudinaryPath(
-                          'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg'
+                          'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764678709/6a978d37-584c-4c70-8dac-36682d3149ff_olupeg.jpg'
                         )}
                         alt={dict.testimonial.author_name}
                         fill

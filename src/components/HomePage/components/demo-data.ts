@@ -18,6 +18,9 @@ export const generateDemoData = async (locale: Locale) => {
   const { femaleProfileContent, maleProfileContent, suggestionContent, aiAnalysisContent, matchmakerContent } = content;
   const isHebrew = locale === 'he';
 
+  // --- קבועים לשימוש במערכת הדמו ---
+  const VISITOR_ID = 'visitor-user-id';
+
   const noaQuestionnaireResponse: QuestionnaireResponseType = {
     id: 'qr-demo-noa-updated', userId: 'demo-profile-noa',
     personalityAnswers: {}, 
@@ -83,13 +86,11 @@ export const generateDemoData = async (locale: Locale) => {
       parentStatus: 'נשואים באושר', fatherOccupation: 'יועץ פיננסי', motherOccupation: 'אמנית ובעלת סטודיו לקרמיקה', siblings: 2, position: 2,
       hasMedicalInfo: false, isMedicalInfoVisible: false, medicalInfoDetails: null, medicalInfoDisclosureTiming: null, preferredAgeMin: 28, preferredAgeMax: 35,
       preferredHeightMin: 175, preferredHeightMax: 190, 
-      // --- START: עדכון ערכים ---
       preferredReligiousLevels: ['דתי-לאומי ליברלי', 'דתי-לאומי תורני', 'דתי-לאומי סטנדרטי'], 
       preferredLocations: ['תל אביב', 'רמת גן', 'גבעתיים', 'ירושלים'],
       preferredEducation: ['תואר ראשון', 'תואר שני'], 
       preferredOccupations: ['הייטק', 'הנדסה', 'חינוך', 'מחקר'],
       preferredOrigins: ['אנגלו-סקסי', 'מעורב', 'צפון אפריקאי'],
-      // --- END: עדכון ערכים ---
       contactPreference: 'both', preferredMaritalStatuses: ['רווק/ה'],
       preferredShomerNegiah: 'flexible', preferredPartnerHasChildren: 'no_preferred', preferredServiceTypes: [], preferredHeadCoverings: [],
       preferredKippahTypes: [], preferredCharacterTraits: [], preferredHobbies: [], preferredAliyaStatus: 'no_preference', preferredReligiousJourneys: [],
@@ -150,13 +151,11 @@ export const generateDemoData = async (locale: Locale) => {
       parentStatus: 'נשואים', fatherOccupation: 'מהנדס תוכנה', motherOccupation: 'רופאת משפחה', siblings: 3, position: 2,
       hasMedicalInfo: false, isMedicalInfoVisible: false, medicalInfoDetails: null, medicalInfoDisclosureTiming: null, preferredAgeMin: 26, preferredAgeMax: 32,
       preferredHeightMin: 160, preferredHeightMax: 175, 
-      // --- START: עדכון ערכים ---
       preferredReligiousLevels: ['דתי-לאומי תורני', 'דתי-לאומי סטנדרטי'], 
       preferredLocations: ['ירושלים', 'גוש עציון', 'מודיעין'],
       preferredEducation: ['תואר ראשון', 'תואר שני'],
       preferredOccupations: ['עיצוב', 'אמנות', 'חינוך', 'טיפול'],
-      preferredOrigins: [], // פתוח לכל המוצאים
-      // --- END: עדכון ערכים ---
+      preferredOrigins: [], 
       contactPreference: 'matchmaker', preferredMaritalStatuses: ['רווק/ה'],
       preferredShomerNegiah: 'yes', preferredPartnerHasChildren: 'no_preferred', preferredServiceTypes: [], preferredHeadCoverings: [],
       preferredKippahTypes: [], preferredCharacterTraits: [], preferredHobbies: [], preferredAliyaStatus: 'no_preference', preferredReligiousJourneys: [],
@@ -193,27 +192,72 @@ export const generateDemoData = async (locale: Locale) => {
     questionnaireResponses: [danielQuestionnaireResponse],
   };
 
-  const baseFirstParty: PartyInfo = {
-    id: 'visitor-user-id', email: 'visitor@example.com',
-    firstName: locale === 'he' ? 'המשתמש/ת' : 'Our', lastName: locale === 'he' ? 'שלנו' : 'User',
-    isProfileComplete: true, profile: null, images: [], questionnaireResponses: [],
+  // --- יצירת פרופילי צופים מדויקים ---
+  // אלו משמשים כ-"הצד הראשון" בהצעה, כדי שכותרת הדיאלוג תציג את השמות הנכונים
+  // (נועה צופה בדניאל, דניאל צופה בנועה). אנו שומרים על VISITOR_ID כדי שהמערכת
+  // תזהה את המשתמש הנוכחי כצד הראשון.
+
+  const viewerAsNoa: PartyInfo = {
+    id: VISITOR_ID,
+    email: 'noa.demo@example.com',
+    firstName: femaleProfileContent.firstName, // "נועה"
+    lastName: femaleProfileContent.lastName,
+    isProfileComplete: true,
+    profile: null, 
+    images: [],
+    questionnaireResponses: [],
   };
 
+  const viewerAsDaniel: PartyInfo = {
+    id: VISITOR_ID,
+    email: 'daniel.demo@example.com',
+    firstName: maleProfileContent.firstName, // "דניאל"
+    lastName: maleProfileContent.lastName,
+    isProfileComplete: true,
+    profile: null,
+    images: [],
+    questionnaireResponses: [],
+  };
+
+  // --- הצעות השידוך המעודכנות ---
+
+  // ההצעה עבור הצופה (נועה) לראות את דניאל
   const demoSuggestionDataMale: ExtendedMatchSuggestion = {
-    id: 'demo-suggestion-homepage-male', firstPartyId: 'visitor-user-id', secondPartyId: 'demo-profile-daniel', status: 'PENDING_FIRST_PARTY', priority: 'HIGH',
-    matchingReason: suggestionContent.femaleToMaleReason, firstPartyNotes: suggestionContent.femaleToMalePersonalNote, secondPartyNotes: null,
-    internalNotes: null, followUpNotes: null, responseDeadline: null,     matchmaker: { firstName: matchmakerContent.eytan.firstName, lastName: matchmakerContent.eytan.lastName },
-    secondParty: danielProfile, firstParty: baseFirstParty, matchmakerId: 'matchmaker-demo-2', createdAt: new Date(), updatedAt: new Date(),
+    id: 'demo-suggestion-homepage-male', 
+    firstPartyId: VISITOR_ID, 
+    secondPartyId: 'demo-profile-daniel', 
+    status: 'PENDING_FIRST_PARTY', 
+    priority: 'HIGH',
+    matchingReason: suggestionContent.femaleToMaleReason, 
+    firstPartyNotes: suggestionContent.femaleToMalePersonalNote, 
+    secondPartyNotes: null,
+    internalNotes: null, followUpNotes: null, responseDeadline: null,     
+    matchmaker: { firstName: matchmakerContent.eytan.firstName, lastName: matchmakerContent.eytan.lastName },
+    secondParty: danielProfile, 
+    firstParty: viewerAsNoa, // הצופה היא נועה
+    matchmakerId: 'matchmaker-demo-2', 
+    createdAt: new Date(), updatedAt: new Date(),
     lastActivity: new Date(), category: 'ACTIVE', decisionDeadline: new Date(), lastStatusChange: new Date(), previousStatus: 'DRAFT',
     firstPartySent: new Date(), firstPartyResponded: null, secondPartySent: null, secondPartyResponded: null, firstMeetingScheduled: null, closedAt: null,
     statusHistory: [],
   };
 
+  // ההצעה עבור הצופה (דניאל) לראות את נועה
   const demoSuggestionDataFemale: ExtendedMatchSuggestion = {
-    id: 'demo-suggestion-homepage-female', firstPartyId: 'visitor-user-id', secondPartyId: 'demo-profile-noa', status: 'PENDING_FIRST_PARTY', priority: 'HIGH',
-    matchingReason: suggestionContent.maleToFemaleReason, firstPartyNotes: suggestionContent.maleToFemalePersonalNote, secondPartyNotes: null,
-    internalNotes: null, followUpNotes: null, responseDeadline: null,  matchmaker: { firstName: matchmakerContent.dina.firstName, lastName: matchmakerContent.dina.lastName },
-    secondParty: noaProfile, firstParty: baseFirstParty, matchmakerId: 'matchmaker-demo', createdAt: new Date(), updatedAt: new Date(),
+    id: 'demo-suggestion-homepage-female', 
+    firstPartyId: VISITOR_ID, 
+    secondPartyId: 'demo-profile-noa', 
+    status: 'PENDING_FIRST_PARTY', 
+    priority: 'HIGH',
+    matchingReason: suggestionContent.maleToFemaleReason, 
+    firstPartyNotes: suggestionContent.maleToFemalePersonalNote, 
+    secondPartyNotes: null,
+    internalNotes: null, followUpNotes: null, responseDeadline: null,  
+    matchmaker: { firstName: matchmakerContent.dina.firstName, lastName: matchmakerContent.dina.lastName },
+    secondParty: noaProfile, 
+    firstParty: viewerAsDaniel, // הצופה הוא דניאל
+    matchmakerId: 'matchmaker-demo', 
+    createdAt: new Date(), updatedAt: new Date(),
     lastActivity: new Date(), category: 'ACTIVE', decisionDeadline: new Date(), lastStatusChange: new Date(), previousStatus: 'DRAFT',
     firstPartySent: new Date(), firstPartyResponded: null, secondPartySent: null, secondPartyResponded: null, firstMeetingScheduled: null, closedAt: null,
     statusHistory: [],
@@ -223,7 +267,6 @@ export const generateDemoData = async (locale: Locale) => {
     overallScore: 91, 
     matchTitle: aiAnalysisContent.forMaleTitle, 
     matchSummary: aiAnalysisContent.forMaleSummary,
-    // עכשיו המערכים האלה יתמלאו מהתוכן שהוספנו
     compatibilityPoints: aiAnalysisContent.compatibilityPoints,
     pointsToConsider: aiAnalysisContent.pointsToConsider,
     suggestedConversationStarters: aiAnalysisContent.suggestedConversationStarters,
@@ -233,7 +276,6 @@ export const generateDemoData = async (locale: Locale) => {
     overallScore: 91, 
     matchTitle: aiAnalysisContent.forFemaleTitle, 
     matchSummary: aiAnalysisContent.forFemaleSummary,
-    // עכשיו המערכים האלה יתמלאו מהתוכן שהוספנו
     compatibilityPoints: aiAnalysisContent.compatibilityPoints,
     pointsToConsider: aiAnalysisContent.pointsToConsider,
     suggestedConversationStarters: aiAnalysisContent.suggestedConversationStarters,
