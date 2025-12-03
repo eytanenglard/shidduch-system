@@ -39,7 +39,7 @@ Content:
     "siteName": "NeshamaTech",
     "images": [
       {
-        "url": "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png",
+        "url": "/logo.png",
         "width": 1200,
         "height": 630,
         "alt": "NeshamaTech Logo - Technology and Soul"
@@ -52,7 +52,7 @@ Content:
     "card": "summary_large_image",
     "title": "NeshamaTech | Where Soul Meets Technology",
     "description": "Relationships that start from the soul. Genuine connections based on technology and personal guidance.",
-    "images": ["https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png"]
+    "images": ["/logo.png"]
   }
 },
 
@@ -806,7 +806,7 @@ Content:
     "siteName": "NeshamaTech",
     "images": [
       {
-        "url": "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png",
+        "url": "/logo.png",
         "width": 1200,
         "height": 630,
         "alt": "הלוגו של NeshamaTech - טכנולוגיה ונשמה"
@@ -819,7 +819,7 @@ Content:
     "card": "summary_large_image",
     "title": "NeshamaTech | נשמה פוגשת טכנולוגיה",
     "description": "זוגיות שמתחילה מהנשמה. חיבורים אמיתיים המבוססים על טכנולוגיה וליווי אישי.",
-    "images": ["https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png"]
+    "images": ["/logo.png"]
   }
 },
 

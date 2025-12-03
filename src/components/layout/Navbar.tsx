@@ -35,6 +35,9 @@ import type { Dictionary } from '@/types/dictionary';
 import { useQuestionnaireState } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
 // --- רכיב לוגו (מעודכן: Teal -> Orange -> Amber) ---
+// src/components/layout/Navbar.tsx
+
+
 const Logo = ({ locale }: { locale: string }) => (
   <Link
     href={`/${locale}`}
@@ -43,13 +46,13 @@ const Logo = ({ locale }: { locale: string }) => (
   >
     <div className="relative h-9 w-9">
       <Image
-        src={getRelativeCloudinaryPath(
-          'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png'
-        )}
+        src="/logo.png"
         alt="NeshamaTech Icon"
         fill
         className="object-contain transition-transform duration-300 group-hover:scale-110"
         priority
+        sizes="36px"
+        unoptimized // <--- הוספנו את זה! זה הפתרון.
       />
     </div>
     <span className="text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 text-transparent bg-clip-text bg-size-200 bg-pos-0 group-hover:bg-pos-100 transition-all duration-700 ease-in-out">
@@ -57,6 +60,10 @@ const Logo = ({ locale }: { locale: string }) => (
     </span>
   </Link>
 );
+
+// ... המשך הקובץ Navbar...
+
+// ... (המשך הקובץ נשאר ללא שינוי)
 
 // --- רכיבי ניווט (מעודכנים: Teal/Orange Highlights) ---
 const NavItem = ({

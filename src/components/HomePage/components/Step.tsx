@@ -6,8 +6,8 @@ export interface StepProps {
   title: string;
   description: React.ReactNode;
   isLast?: boolean;
-  // עדכון: החלפתי את purple ב-orange כדי להתאים לקריאה מ-HowItWorksSection
-  color: "teal" | "amber" | "rose" | "orange";
+  // Added "emerald" to the type definition to match the parent component's array
+  color: "teal" | "amber" | "rose" | "orange" | "emerald";
 }
 
 // Modernized Step Component with enhanced visuals matching the Landing Page theme
@@ -43,7 +43,6 @@ const Step: React.FC<StepProps> = ({
       line: "from-rose-400 to-rose-200",
       bgBadge: "bg-rose-50",
     },
-    // כאן הוספתי את orange במקום purple
     orange: {
       gradient: "from-orange-400 to-red-500",
       hover: "group-hover:text-orange-700",
@@ -51,6 +50,15 @@ const Step: React.FC<StepProps> = ({
       shadow: "group-hover:shadow-orange-100",
       line: "from-orange-400 to-orange-200",
       bgBadge: "bg-orange-50",
+    },
+    // Added emerald styling configuration
+    emerald: {
+      gradient: "from-emerald-400 to-green-500",
+      hover: "group-hover:text-emerald-700",
+      border: "group-hover:border-emerald-200",
+      shadow: "group-hover:shadow-emerald-100",
+      line: "from-emerald-400 to-emerald-200",
+      bgBadge: "bg-emerald-50",
     },
   };
 
@@ -61,8 +69,7 @@ const Step: React.FC<StepProps> = ({
       {/* Connecting line between steps */}
       {!isLast && (
         <div
-          // הערה: אם האתר בעברית (RTL), הקו צריך להיות ממוקם בצד ימין.
-          // right-6 מותאם למרכז העיגול שרוחבו 12 (3rem -> אמצע 1.5rem/24px = right-6)
+          // RTL/LTR note: if direction is RTL, ensure 'right-6' is correct visually or use logical properties if available in tailwind config
           className={`absolute top-12 bottom-0 right-6 w-0.5 bg-gradient-to-b ${currentStyle.line} rounded-full opacity-40`}
         />
       )}

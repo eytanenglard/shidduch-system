@@ -1,4 +1,4 @@
-// src/middleware.ts - VERSION WITH ADMIN SUPPORT
+// src/middleware.ts - VERSION WITH ADMIN SUPPORT AND STATIC FILE FIX
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -35,7 +35,7 @@ const SETUP_PATHS = [
   '/auth/setup-account',
   '/auth/verify-phone',
   '/auth/update-phone',
-   '/settings', 
+  '/settings', 
 ];
 
 const PUBLIC_API_PATHS = ['/api/feedback'];
@@ -60,12 +60,16 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
+  // בדיקה האם מדובר בקובץ סטטי לפי הסיומת שלו
+  const isStaticFile = /\.(png|jpg|jpeg|gif|svg|webp|ico|css|js|woff|woff2|ttf|eot)$/i.test(pathname);
+
   // 1. התעלם מנכסים סטטיים ומנתיבי API פנימיים
   if (
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/assets/') ||
     pathname.startsWith('/images/') ||
     pathname.includes('/favicon.ico') ||
+    isStaticFile || // <-- התיקון החשוב: מאפשר גישה ישירה לקבצים ב-public
     PUBLIC_API_PATHS.some(path => pathname.startsWith(path)) ||
     pathname.startsWith('/api/')
   ) {

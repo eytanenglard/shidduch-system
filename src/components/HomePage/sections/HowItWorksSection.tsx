@@ -71,36 +71,43 @@ const DynamicBackground: React.FC = () => (
 );
 
 // 2. כרטיס יתרון עם צבעים מעודכנים (תואם ל-DesktopPrincipleCard מה-Hero)
+// Updated: 4 distinct colors matching HeroSection principles exactly
 const KeyBenefit: React.FC<{
   icon: React.ReactNode;
   title: string;
   description: string;
-  color: 'teal' | 'rose' | 'amber' | 'orange';
+  color: 'teal' | 'orange' | 'rose' | 'emerald';
   delay?: number;
 }> = ({ icon, title, description, color, delay = 0 }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
 
+  // Updated color classes to match HeroSection principles exactly
+  // Each color is now distinctly different
   const colorClasses = {
-    // Teal / Knowledge style
+    // Teal / Knowledge style (matching HeroSection principle 1)
     teal: {
       bg: 'from-teal-400 via-teal-500 to-emerald-500',
       shadow: 'shadow-teal-500/25',
+      bgCard: 'from-teal-50 via-white to-emerald-50',
     },
-    // Rose / Personal style
-    rose: {
-      bg: 'from-rose-400 via-pink-500 to-red-500',
-      shadow: 'shadow-rose-500/25',
-    },
-    // Amber style
-    amber: {
-      bg: 'from-amber-400 via-yellow-500 to-orange-500',
-      shadow: 'shadow-amber-500/25',
-    },
-    // Orange / Privacy style (Updated to match Hero)
+    // Orange / Privacy style (matching HeroSection principle 2)
     orange: {
       bg: 'from-orange-400 via-amber-500 to-yellow-500',
       shadow: 'shadow-orange-500/25',
+      bgCard: 'from-orange-50 via-white to-amber-50',
+    },
+    // Rose / Personal style (matching HeroSection principle 3)
+    rose: {
+      bg: 'from-rose-400 via-pink-500 to-red-500',
+      shadow: 'shadow-rose-500/25',
+      bgCard: 'from-rose-50 via-white to-pink-50',
+    },
+    // Emerald / Success style (additional for 4th benefit)
+    emerald: {
+      bg: 'from-emerald-400 via-green-500 to-teal-500',
+      shadow: 'shadow-emerald-500/25',
+      bgCard: 'from-emerald-50 via-white to-teal-50',
     },
   };
 
@@ -110,7 +117,7 @@ const KeyBenefit: React.FC<{
       initial={{ opacity: 0, y: 30 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
       transition={{ duration: 0.6, delay }}
-      className="text-center group p-6 bg-gradient-to-br from-white via-white to-slate-50 backdrop-blur-md rounded-3xl border border-white/60 shadow-lg hover:shadow-xl transition-all duration-300 h-full"
+      className={`text-center group p-6 bg-gradient-to-br ${colorClasses[color].bgCard} backdrop-blur-md rounded-3xl border border-white/60 shadow-lg hover:shadow-xl transition-all duration-300 h-full`}
     >
       <div
         className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${colorClasses[color].bg} ${colorClasses[color].shadow} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300 text-white`}
@@ -134,22 +141,27 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
   const demoRef = useRef(null);
   const isDemoInView = useInView(demoRef, { once: true, amount: 0.1 });
 
-  // מערך צבעים תואם לפלטת ה-Hero (Teal, Amber, Rose, Orange)
-  const stepColors = ['teal', 'amber', 'rose', 'orange'] as const;
+  // מערך צבעים תואם לפלטת ה-Hero (Teal, Orange, Rose, Emerald)
+  const stepColors = ['teal', 'orange', 'rose', 'emerald'] as const;
 
+  // Updated: 4 distinctly different colors for benefits
+  // Matching HeroSection's 3 principles + 1 additional (emerald for success/growth)
   const benefitDetails = [
     {
       icon: <TrendingUp className="w-8 h-8" />,
-      color: 'teal' as const,
+      color: 'teal' as const,      // Knowledge/Growth - Teal
     },
-    { icon: <Award className="w-8 h-8" />, color: 'rose' as const },
+    {
+      icon: <Award className="w-8 h-8" />,
+      color: 'orange' as const,    // Achievement - Orange/Amber
+    },
     {
       icon: <Lightbulb className="w-8 h-8" />,
-      color: 'amber' as const,
+      color: 'rose' as const,      // Insight/Personal - Rose
     },
     {
       icon: <HeartHandshake className="w-8 h-8" />,
-      color: 'orange' as const,
+      color: 'emerald' as const,   // Connection/Success - Emerald
     },
   ];
 
@@ -183,7 +195,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
             {dict.promise.title_line1}
             <br />
             {dict.promise.title_line2_part1}{' '}
-            {/* Updated Gradient: Teal -> Orange -> Amber (Matching Hero) */}
+            {/* Gradient: Teal -> Orange -> Amber (Matching Hero CTA) */}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient">
               {dict.promise.title_line2_part2}
             </span>
@@ -199,7 +211,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
 
         {/* --- Chapter 2: The Process --- */}
         <div className="relative mb-24">
-          {/* Card Background Updated: White/Teal/Orange Mix */}
+          {/* Card Background: White/Teal/Orange Mix */}
           <div className="absolute inset-0 -m-8 bg-gradient-to-br from-white/80 via-teal-50/40 to-orange-50/40 rounded-[3rem] backdrop-blur-xl border border-white/60 shadow-2xl" />
           <div className="relative max-w-5xl mx-auto space-y-12 p-8">
             {dict.process.steps.map((step, index) => (
@@ -249,8 +261,8 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
             </div>
             <h3 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
               {dict.proof.title_part1}
-              {/* Gradient: Orange -> Amber -> Red */}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-red-600">
+              {/* Gradient: Orange -> Amber -> Rose */}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-amber-500 to-rose-500">
                 {' '}
                 {dict.proof.title_part2}
               </span>
@@ -326,7 +338,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                 {' '}
                 {dict.keyBenefits.title_part2}
               </span>
-              <div className="absolute -bottom-2 left-0 right-0 h-3 bg-amber-200/40 -z-10 skew-x-12" />
+              <div className="absolute -bottom-2 left-0 right-0 h-3 bg-gradient-to-r from-teal-200/40 via-orange-200/40 to-amber-200/40 -z-10 skew-x-12" />
             </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
@@ -368,7 +380,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
             transition={{ duration: 0.8, delay: 0.2 }}
             className="max-w-6xl mx-auto"
           >
-            {/* Updated Card Gradient to match Hero Cards exactly */}
+            {/* Card Gradient matching Hero Cards */}
             <div className="relative bg-gradient-to-br from-white via-teal-50/40 to-orange-50/40 backdrop-blur-xl rounded-[3rem] shadow-2xl border border-white/60 overflow-hidden">
               {/* Subtle mesh background inside */}
               <div className="absolute inset-0 opacity-40">
@@ -386,7 +398,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                   className="flex flex-col items-center md:items-start gap-6"
                 >
                   <div className="relative">
-                    {/* Decorative elements around image - Updated to Hero Palette */}
+                    {/* Decorative elements around image - Hero Palette */}
                     <div className="absolute -inset-4 bg-gradient-to-br from-teal-400/30 to-orange-400/30 rounded-full blur-xl" />
 
                     {/* Floating accents */}
@@ -457,12 +469,12 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
           transition={{ duration: 0.8 }}
           className="relative text-center pb-10"
         >
-          {/* Background updated to glass/gradient */}
+          {/* Background: glass/gradient */}
           <div className="relative max-w-4xl mx-auto p-12 bg-gradient-to-br from-white/90 via-teal-50/60 to-orange-50/60 backdrop-blur-xl rounded-[3rem] shadow-2xl border border-white/60">
             <h4 className="text-3xl md:text-5xl font-extrabold text-gray-800 mb-6 leading-tight">
               {dict.finalCta.title_line1}
               <br />
-              {/* Gradient Title: Teal -> Orange -> Amber */}
+              {/* Gradient Title: Teal -> Orange -> Amber (matching Hero CTA) */}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient">
                 {dict.finalCta.title_line2}
               </span>
@@ -473,7 +485,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Link href={`/${locale}/auth/register`}>
-                {/* Button Style copied EXACTLY from HeroSection for perfect match */}
+                {/* Button Style copied EXACTLY from HeroSection CTA */}
                 <Button
                   size="lg"
                   className="text-xl font-bold px-12 py-8 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
