@@ -79,7 +79,7 @@ const MatchingConstellation: React.FC<{
         // Hero "Knowledge" Style (Teal)
         color: 'from-teal-400 via-teal-500 to-emerald-500',
         gradientFrom: '#2dd4bf', // teal-400
-        gradientTo: '#10b981',   // emerald-500
+        gradientTo: '#10b981', // emerald-500
         bgGradient: 'from-teal-50 via-white to-emerald-50',
         shadowColor: 'shadow-teal-500/25',
         angle: -72,
@@ -91,7 +91,7 @@ const MatchingConstellation: React.FC<{
         // Hero "Personal" Style (Rose)
         color: 'from-rose-400 via-pink-500 to-red-500',
         gradientFrom: '#fb7185', // rose-400
-        gradientTo: '#ef4444',   // red-500
+        gradientTo: '#ef4444', // red-500
         bgGradient: 'from-rose-50 via-white to-red-50',
         shadowColor: 'shadow-rose-500/25',
         angle: -144,
@@ -103,7 +103,7 @@ const MatchingConstellation: React.FC<{
         // Hero "Privacy/Guidance" Style (Orange/Amber)
         color: 'from-orange-400 via-amber-500 to-yellow-500',
         gradientFrom: '#fbbf24', // amber-400
-        gradientTo: '#f97316',   // orange-500
+        gradientTo: '#f97316', // orange-500
         bgGradient: 'from-orange-50 via-white to-amber-50',
         shadowColor: 'shadow-orange-500/25',
         angle: 144,
@@ -115,7 +115,7 @@ const MatchingConstellation: React.FC<{
         // Deep Orange/Red (Strong synergy color)
         color: 'from-orange-500 via-red-500 to-red-600',
         gradientFrom: '#f97316', // orange-500
-        gradientTo: '#dc2626',   // red-600
+        gradientTo: '#dc2626', // red-600
         bgGradient: 'from-orange-50 via-white to-red-50',
         shadowColor: 'shadow-orange-600/25',
         angle: 72,
@@ -127,7 +127,7 @@ const MatchingConstellation: React.FC<{
         // Cyan/Blue (Complementary to Orange, fits "Tech" vibe)
         color: 'from-cyan-400 via-sky-500 to-blue-500',
         gradientFrom: '#22d3ee', // cyan-400
-        gradientTo: '#3b82f6',   // blue-500
+        gradientTo: '#3b82f6', // blue-500
         bgGradient: 'from-cyan-50 via-white to-blue-50',
         shadowColor: 'shadow-sky-500/25',
         angle: 0,
@@ -257,21 +257,21 @@ const MatchingConstellation: React.FC<{
 
   // Helper to determine text color class based on world color (simplified)
   const getAccentTextColor = (id: number) => {
-     if (id === 1) return 'text-teal-700';
-     if (id === 2) return 'text-rose-700';
-     if (id === 3) return 'text-amber-700';
-     if (id === 4) return 'text-orange-700';
-     return 'text-sky-700';
-  }
+    if (id === 1) return 'text-teal-700';
+    if (id === 2) return 'text-rose-700';
+    if (id === 3) return 'text-amber-700';
+    if (id === 4) return 'text-orange-700';
+    return 'text-sky-700';
+  };
 
-    // Helper to determine border color class
+  // Helper to determine border color class
   const getAccentBorderColor = (id: number) => {
-     if (id === 1) return 'border-teal-200';
-     if (id === 2) return 'border-rose-200';
-     if (id === 3) return 'border-amber-200';
-     if (id === 4) return 'border-orange-200';
-     return 'border-sky-200';
-  }
+    if (id === 1) return 'border-teal-200';
+    if (id === 2) return 'border-rose-200';
+    if (id === 3) return 'border-amber-200';
+    if (id === 4) return 'border-orange-200';
+    return 'border-sky-200';
+  };
 
   return (
     <div
@@ -449,7 +449,7 @@ const MatchingConstellation: React.FC<{
                     >
                       <Image
                         src={getRelativeCloudinaryPath(
-                          'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
+                          'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png'
                         )}
                         alt="NeshamaTech"
                         fill
@@ -673,7 +673,9 @@ const MatchingConstellation: React.FC<{
                 </p>
                 <div className="bg-white/60 rounded-2xl p-4 md:p-6 mb-4 md:mb-6 border border-white/80 shadow-sm">
                   <div className="flex items-start gap-3">
-                    <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${displayedWorld.color} mt-3 flex-shrink-0`}></div>
+                    <div
+                      className={`w-2 h-2 rounded-full bg-gradient-to-r ${displayedWorld.color} mt-3 flex-shrink-0`}
+                    ></div>
                     <div>
                       <h5 className="font-semibold text-gray-800 mb-2">
                         {dict.example_header}
@@ -686,15 +688,23 @@ const MatchingConstellation: React.FC<{
                   </div>
                 </div>
                 {/* Updated Insight Box to dynamically match world color */}
-                <div className={`bg-white/40 rounded-2xl p-4 md:p-6 border ${getAccentBorderColor(displayedWorld.id)}`}>
+                <div
+                  className={`bg-white/40 rounded-2xl p-4 md:p-6 border ${getAccentBorderColor(displayedWorld.id)}`}
+                >
                   <div className="flex items-start gap-3">
-                    <CheckCircle className={`w-5 h-5 ${getAccentTextColor(displayedWorld.id)} mt-1 flex-shrink-0`} />
+                    <CheckCircle
+                      className={`w-5 h-5 ${getAccentTextColor(displayedWorld.id)} mt-1 flex-shrink-0`}
+                    />
                     <div>
-                      <h5 className={`font-semibold ${getAccentTextColor(displayedWorld.id)} mb-2`}>
+                      <h5
+                        className={`font-semibold ${getAccentTextColor(displayedWorld.id)} mb-2`}
+                      >
                         {dict.insight_header}
                       </h5>
 
-                      <p className={`${getAccentTextColor(displayedWorld.id)} opacity-90 text-sm md:text-base`}>
+                      <p
+                        className={`${getAccentTextColor(displayedWorld.id)} opacity-90 text-sm md:text-base`}
+                      >
                         {displayedWorld.insight}
                       </p>
                     </div>
@@ -755,7 +765,7 @@ const OurMethodSection: React.FC<OurMethodProps> = ({ dict }) => {
           style={{ animationDelay: '1s' }}
         />
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:20px_20px]"></div>
-        
+
         <svg
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 1200 800"

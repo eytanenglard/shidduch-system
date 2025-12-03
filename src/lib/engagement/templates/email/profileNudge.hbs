@@ -1,16 +1,19 @@
-<!DOCTYPE html>
-<html dir="{{getDir locale}}" lang="{{locale}}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{#if (eq locale 'he')}}טיפ קטן שיעשה הבדל גדול{{else}}A small tip that makes a big difference{{/if}}</title>
-    <style>
+<html dir='{{getDir locale}}' lang='{{locale}}'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>{{#if (eq locale 'he')}}טיפ קטן שיעשה הבדל גדול{{else}}A small tip
+        that makes a big difference{{/if}}</title>
+    <style
+    >
         body {
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #ecfeff 0%, #fce7f3 100%);
-            direction: {{getDir locale}};
+            direction: {{getDir
+        locale
+      }};
         }
         
         .email-wrapper {
@@ -69,7 +72,9 @@
         
         .stat-box {
             background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
-            border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #ec4899;
+            border-{{#if
+        (eq locale 'he')
+      }}right{{else}}left{{/if}}: 4px solid #ec4899;
             border-radius: 16px;
             padding: 24px;
             margin: 28px 0;
@@ -125,7 +130,9 @@
         .missing-icon {
             color: #f56565;
             font-size: 20px;
-            margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 10px;
+            margin-{{#if
+        (eq locale 'he')
+      }}left{{else}}right{{/if}}: 10px;
             flex-shrink: 0;
         }
         
@@ -276,146 +283,177 @@
             }
         }
     </style>
-</head>
-<body>
-    <table role="presentation" style="width: 100%; border-collapse: collapse;">
-        <tr>
-            <td class="email-wrapper">
-                <table role="presentation" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto;">
-                    
-                    <!-- Header -->
-                    <tr>
-                        <td class="email-header">
-                            <div class="header-icon">💡</div>
-                            <h1>
-                                {{#if (eq locale 'he')}}
-                                    {{firstName}}, יש כאן כמה דברים שחסרים...
-                                {{else}}
-                                    {{firstName}}, a few things are missing...
-                                {{/if}}
-                            </h1>
-                        </td>
-                    </tr>
-                    
-                    <!-- Body -->
-                    <tr>
-                        <td class="email-body">
-                            <p class="greeting">
-                                {{#if (eq locale 'he')}}שלום{{else}}Hello{{/if}} {{firstName}},
-                            </p>
-                            
-                            <p>
-                                {{#if (eq locale 'he')}}
-                                    שמנו לב שהפרופיל שלך עדיין לא מושלם לגמרי. אנחנו יודעים שזה לוקח זמן, אבל יש לנו נתון מעניין לשתף אתך:
-                                {{else}}
-                                    We noticed your profile isn't quite complete yet. We know it takes time, but we have an interesting statistic to share with you:
-                                {{/if}}
-                            </p>
+  </head>
+  <body>
+    <table role='presentation' style='width: 100%; border-collapse: collapse;'>
+      <tr>
+        <td class='email-wrapper'>
+          <table
+            role='presentation'
+            class='email-container'
+            style='width: 100%; max-width: 600px; margin: 0 auto;'
+          >
 
-                            <!-- Stat Box -->
-                            <div class="stat-box">
-                                <p>
-                                    <strong>📊 {{#if (eq locale 'he')}}נתון שווה לדעת:{{else}}A stat worth knowing:{{/if}}</strong>
-                                    {{#if (eq locale 'he')}}
-                                        פרופילים מלאים עם תמונות איכותיות מקבלים <span class="stat-highlight">פי 3 יותר</span> הצעות התאמה מפרופילים חלקיים!
-                                    {{else}}
-                                        Complete profiles with high-quality photos receive <span class="stat-highlight">3 times more</span> match suggestions than partial profiles!
-                                    {{/if}}
-                                </p>
-                            </div>
+            <!-- Header -->
+            <tr>
+              <td class='email-header'>
+                <div class='header-icon'>💡</div>
+                <h1>
+                  {{#if (eq locale 'he')}}
+                    {{firstName}}, יש כאן כמה דברים שחסרים...
+                  {{else}}
+                    {{firstName}}, a few things are missing...
+                  {{/if}}
+                </h1>
+              </td>
+            </tr>
 
-                            <!-- Missing Items Section -->
-                            <div class="missing-section">
-                                <h2>
-                                    {{#if (eq locale 'he')}}הנה מה שחסר בפרופיל שלך:{{else}}Here is what's missing from your profile:{{/if}}
-                                </h2>
+            <!-- Body -->
+            <tr>
+              <td class='email-body'>
+                <p class='greeting'>
+                  {{#if (eq locale 'he')}}שלום{{else}}Hello{{/if}}
+                  {{firstName}},
+                </p>
 
-                                <div class="missing-items">
-                                    {{#each missingItems}}
-                                    <div class="missing-item">
-                                        <span class="missing-icon">✗</span>
-                                        <p class="missing-text">{{this}}</p>
-                                    </div>
-                                    {{/each}}
-                                </div>
-                            </div>
+                <p>
+                  {{#if (eq locale 'he')}}
+                    שמנו לב שהפרופיל שלך עדיין לא מושלם לגמרי. אנחנו יודעים שזה
+                    לוקח זמן, אבל יש לנו נתון מעניין לשתף אתך:
+                  {{else}}
+                    We noticed your profile isn't quite complete yet. We know it
+                    takes time, but we have an interesting statistic to share
+                    with you:
+                  {{/if}}
+                </p>
 
-                            <p class="promise-text">
-                                {{#if (eq locale 'he')}}
-                                    אנחנו מבטיחים שזה לא ייקח יותר מ-<strong>10 דקות</strong>! וזה יכול לעשות את כל ההבדל.
-                                {{else}}
-                                    We promise it won't take more than <strong>10 minutes</strong>! And it can make all the difference.
-                                {{/if}}
-                            </p>
+                <!-- Stat Box -->
+                <div class='stat-box'>
+                  <p>
+                    <strong>📊
+                      {{#if (eq locale 'he')}}נתון שווה לדעת:{{else}}A stat
+                        worth knowing:{{/if}}</strong>
+                    {{#if (eq locale 'he')}}
+                      פרופילים מלאים עם תמונות איכותיות מקבלים
+                      <span class='stat-highlight'>פי 3 יותר</span>
+                      הצעות התאמה מפרופילים חלקיים!
+                    {{else}}
+                      Complete profiles with high-quality photos receive
+                      <span class='stat-highlight'>3 times more</span>
+                      match suggestions than partial profiles!
+                    {{/if}}
+                  </p>
+                </div>
 
-                            <!-- CTA -->
-                            <div class="cta-section">
-                                <a href="{{baseUrl}}/profile" class="cta-button">
-                                    {{#if (eq locale 'he')}}להשלמת הפרופיל 🚀{{else}}Complete Your Profile 🚀{{/if}}
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
+                <!-- Missing Items Section -->
+                <div class='missing-section'>
+                  <h2>
+                    {{#if (eq locale 'he')}}הנה מה שחסר בפרופיל שלך:{{else}}Here
+                      is what's missing from your profile:{{/if}}
+                  </h2>
 
-                    <!-- Footer -->
-                    <tr>
-                        <td class="email-footer">
-                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                                <tr>
-                                    <td class="footer-content">
-                                        <div class="footer-logo">
-                                            <img 
-                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
-                                                alt="NeshamaTech Logo"
-                                            />
-                                        </div>
-                                        
-                                        <div class="footer-company-name">
-                                            <span>NeshamaTech</span>
-                                        </div>
-                                        
-                                        <p class="footer-tagline">
-                                            {{#if (eq locale 'he')}}
-                                                מחברים לבבות, בונים עתיד משותף
-                                            {{else}}
-                                                Connecting Hearts, Building Shared Futures
-                                            {{/if}}
-                                        </p>
-                                        
-                                        <div class="footer-contact">
-                                            <p><strong>{{#if (eq locale 'he')}}צור קשר:{{else}}Contact:{{/if}}</strong></p>
-                                            <p>📧 <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
-                                            <p>🌐 <a href="{{baseUrl}}">{{baseUrl}}</a></p>
-                                        </div>
-                                        
-                                        <div class="footer-social">
-                                            <a href="#" title="Facebook">📘</a>
-                                            <a href="#" title="Instagram">📷</a>
-                                            <a href="#" title="Twitter">🐦</a>
-                                        </div>
-                                        
-                                        <p class="footer-copyright">
-                                            © {{currentYear}} NeshamaTech. 
-                                            {{#if (eq locale 'he')}}כל הזכויות שמורות{{else}}All rights reserved{{/if}}
-                                        </p>
-                                        
-                                        <p class="footer-legal">
-                                            <a href="{{baseUrl}}/privacy">
-                                                {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy Policy{{/if}}
-                                            </a> | 
-                                            <a href="{{baseUrl}}/terms">
-                                                {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of Service{{/if}}
-                                            </a>
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    
+                  <div class='missing-items'>
+                    {{#each missingItems}}
+                      <div class='missing-item'>
+                        <span class='missing-icon'>✗</span>
+                        <p class='missing-text'>{{this}}</p>
+                      </div>
+                    {{/each}}
+                  </div>
+                </div>
+
+                <p class='promise-text'>
+                  {{#if (eq locale 'he')}}
+                    אנחנו מבטיחים שזה לא ייקח יותר מ-<strong>10 דקות</strong>!
+                    וזה יכול לעשות את כל ההבדל.
+                  {{else}}
+                    We promise it won't take more than
+                    <strong>10 minutes</strong>! And it can make all the
+                    difference.
+                  {{/if}}
+                </p>
+
+                <!-- CTA -->
+                <div class='cta-section'>
+                  <a href='{{baseUrl}}/profile' class='cta-button'>
+                    {{#if (eq locale 'he')}}להשלמת הפרופיל 🚀{{else}}Complete
+                      Your Profile 🚀{{/if}}
+                  </a>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td class='email-footer'>
+                <table
+                  role='presentation'
+                  style='width: 100%; border-collapse: collapse;'
+                >
+                  <tr>
+                    <td class='footer-content'>
+                      <div class='footer-logo'>
+                        <img
+                          src='https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png'
+                          alt='NeshamaTech Logo'
+                        />
+                      </div>
+
+                      <div class='footer-company-name'>
+                        <span>NeshamaTech</span>
+                      </div>
+
+                      <p class='footer-tagline'>
+                        {{#if (eq locale 'he')}}
+                          מחברים לבבות, בונים עתיד משותף
+                        {{else}}
+                          Connecting Hearts, Building Shared Futures
+                        {{/if}}
+                      </p>
+
+                      <div class='footer-contact'>
+                        <p><strong>{{#if (eq locale 'he')}}צור קשר:{{else}}Contact:{{/if}}</strong></p>
+                        <p>📧
+                          <a
+                            href='mailto:{{supportEmail}}'
+                          >{{supportEmail}}</a></p>
+                        <p>🌐 <a href='{{baseUrl}}'>{{baseUrl}}</a></p>
+                      </div>
+
+                      <div class='footer-social'>
+                        <a href='#' title='Facebook'>📘</a>
+                        <a href='#' title='Instagram'>📷</a>
+                        <a href='#' title='Twitter'>🐦</a>
+                      </div>
+
+                      <p class='footer-copyright'>
+                        ©
+                        {{currentYear}}
+                        NeshamaTech.
+                        {{#if (eq locale 'he')}}כל הזכויות שמורות{{else}}All
+                          rights reserved{{/if}}
+                      </p>
+
+                      <p class='footer-legal'>
+                        <a href='{{baseUrl}}/privacy'>
+                          {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy
+                            Policy{{/if}}
+                        </a>
+                        |
+                        <a href='{{baseUrl}}/terms'>
+                          {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of
+                            Service{{/if}}
+                        </a>
+                      </p>
+                    </td>
+                  </tr>
                 </table>
-            </td>
-        </tr>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
     </table>
-</body>
+  </body>
 </html>

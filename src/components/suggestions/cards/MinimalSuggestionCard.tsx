@@ -36,6 +36,30 @@ import {
 import type { ExtendedMatchSuggestion } from '../types';
 import type { SuggestionsCardDict } from '@/types/dictionary';
 
+// =============================================================================
+// COLOR PALETTE REFERENCE (Matching HeroSection.tsx)
+// =============================================================================
+// Primary Colors:
+//   - Teal/Emerald: from-teal-400 via-teal-500 to-emerald-500 (Knowledge/New)
+//   - Orange/Amber: from-orange-400 via-amber-500 to-yellow-500 (Action/Warmth)
+//   - Rose/Pink:    from-rose-400 via-pink-500 to-red-500 (Love/Connection)
+//
+// Background Gradients:
+//   - Page: from-slate-50 via-teal-50/20 to-orange-50/20
+//   - Cards: from-teal-50 via-white to-emerald-50 (Teal variant)
+//           from-orange-50 via-white to-amber-50 (Orange variant)
+//           from-rose-50 via-white to-red-50 (Rose variant)
+//
+// Buttons:
+//   - Primary Action: from-teal-500 to-emerald-500 (Approve/View)
+//   - Secondary Action: from-orange-500 to-amber-500 (Urgent/Action)
+//   - Decline: from-rose-500 to-red-500
+//
+// Accents:
+//   - Focus ring: ring-teal-500
+//   - Hover states: hover:bg-teal-50, hover:border-teal-200
+// =============================================================================
+
 interface MinimalSuggestionCardProps {
   suggestion: ExtendedMatchSuggestion;
   userId: string;
@@ -120,18 +144,18 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
     <Card
       className={cn(
         'group w-full rounded-2xl overflow-hidden shadow-lg border-0 bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-1',
-        // Urgent Ring: Orange (Action)
+        // Urgent Ring: Orange (Action/Warmth - matching Hero)
         isUrgent && 'ring-2 ring-orange-400 ring-opacity-60',
         className
       )}
     >
-      {/* Header Gradient: Teal -> White -> Orange */}
+      {/* Header Gradient: Teal -> White -> Orange (matching Hero) */}
       <div className="relative p-4 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-b border-teal-100/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            {/* Avatar: Teal gradient (Knowledge/Professional) */}
             <Avatar className="w-10 h-10 border-2 border-white shadow-md">
-              {/* Avatar: Teal (Professional/Knowledge) */}
-              <AvatarFallback className="bg-gradient-to-br from-teal-500 to-teal-600 text-white font-bold text-sm">
+              <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white font-bold text-sm">
                 {getInitials(
                   `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
                 )}
@@ -179,9 +203,9 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
             )}
           </div>
         </div>
+        {/* Urgent Badge: Orange -> Red gradient (matching Hero urgent states) */}
         {isUrgent && (
           <div className="absolute top-2 left-2">
-            {/* Urgent Badge: Orange/Red */}
             <Badge className="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg animate-pulse">
               <AlertTriangle className="w-3 h-3" />
               <span className="font-semibold text-xs">{dict.urgent}</span>
@@ -210,6 +234,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
+            // Fallback: Slate gradient (neutral)
             <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
               <User className="w-20 h-20 text-slate-400" />
             </div>
@@ -227,6 +252,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                   </p>
                 )}
               </div>
+              {/* Sparkle icon with glassmorphism */}
               <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
@@ -237,6 +263,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
 
       <div onClick={handleCardClick} className="cursor-pointer">
         <CardContent className="p-5 space-y-4">
+          {/* Status Description Box */}
           {statusInfo.description && (
             <div className="p-3 bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg border border-slate-200">
               <div className="flex items-start gap-2">
@@ -249,10 +276,10 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
           )}
 
           <div className="grid grid-cols-2 gap-3">
-            {/* Note: Assuming children or specific grid content was here in original, keeping layout structure */}
+            {/* Grid content placeholder */}
           </div>
 
-          {/* "Why Special" / Teaser Box - Changed to Orange/Amber (Personal/Warmth) */}
+          {/* "Why Special" / Teaser Box: Orange/Amber (Personal/Warmth - matching Hero) */}
           <div className="relative p-4 bg-gradient-to-r from-orange-50/50 to-amber-50/50 border border-orange-100/50 rounded-xl">
             <div className="flex items-start gap-3">
               <Quote className="w-4 h-4 text-orange-500 mt-1 flex-shrink-0" />
@@ -265,6 +292,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 </p>
               </div>
             </div>
+            {/* Decorative corner */}
             <div className="absolute top-0 right-0 w-6 h-6 bg-gradient-to-br from-orange-200/50 to-amber-200/50 rounded-bl-xl"></div>
           </div>
 
@@ -276,16 +304,17 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
         </CardContent>
       </div>
 
+      {/* Footer Actions */}
       {!isHistory && (
         <CardFooter className="p-4 bg-gradient-to-r from-gray-50/50 to-slate-50/50 border-t border-gray-100">
           {(suggestion.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
           (suggestion.status === 'PENDING_SECOND_PARTY' && !isFirstParty) ? (
             <div className="grid grid-cols-2 gap-3 w-full">
-              {/* Decline: Rose (Pink/Red) */}
+              {/* Decline Button: Rose/Red (matching Hero decline actions) */}
               <Button
                 size="sm"
                 variant="outline"
-                className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 rounded-xl font-medium transition-all duration-300"
+                className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 hover:border-rose-300 rounded-xl font-medium transition-all duration-300"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDecline?.(suggestion);
@@ -297,11 +326,11 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 {dict.buttons.decline}
               </Button>
 
+              {/* Approve Button: Teal -> Emerald (matching Hero primary CTA) */}
               <TooltipProvider>
                 <Tooltip delayDuration={100}>
                   <TooltipTrigger asChild>
                     <div className="w-full">
-                      {/* Approve: Teal -> Emerald */}
                       <Button
                         size="sm"
                         variant="default"
@@ -338,7 +367,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 w-full">
-              {/* Ask Matchmaker: Teal accent */}
+              {/* Ask Matchmaker: Teal accent on hover */}
               <Button
                 size="sm"
                 variant="outline"
@@ -354,7 +383,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 {dict.buttons.askMatchmaker}
               </Button>
 
-              {/* View Details: Teal Gradient */}
+              {/* View Details: Teal gradient (matching Hero secondary CTA) */}
               <Button
                 size="sm"
                 variant="default"
@@ -378,4 +407,5 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
     </Card>
   );
 };
+
 export default MinimalSuggestionCard;

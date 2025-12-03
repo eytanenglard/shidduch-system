@@ -4226,7 +4226,7 @@ Content:
       <!-- Logo -->
       <div style="margin-bottom: 20px;">
         <img 
-          src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+          src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" 
           alt="NeshamaTech Logo" 
           style="height: 50px; width: auto; display: inline-block;"
         />
@@ -4445,7 +4445,7 @@ Content:
       <!-- Logo -->
       <div style="margin-bottom: 20px;">
         <img 
-          src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+          src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" 
           alt="NeshamaTech Logo" 
           style="height: 50px; width: auto; display: inline-block;"
         />

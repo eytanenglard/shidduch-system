@@ -25,6 +25,27 @@ import { cn } from '@/lib/utils';
 import type { PartyInfo } from '../types';
 import type { SuggestionsCompatibilityDict } from '@/types/dictionary';
 
+// =============================================================================
+// COLOR PALETTE REFERENCE (Matching HeroSection.tsx)
+// =============================================================================
+// Primary Colors:
+//   - Teal/Emerald: from-teal-400 via-teal-500 to-emerald-500 (Knowledge/New)
+//   - Orange/Amber: from-orange-400 via-amber-500 to-yellow-500 (Action/Warmth)
+//   - Rose/Pink:    from-rose-400 via-pink-500 to-red-500 (Love/Connection)
+//
+// Score Colors (Hero-aligned):
+//   - High (85+): Teal/Emerald (Excellence)
+//   - Good (70+): Teal (Good match)
+//   - Medium (55+): Orange/Amber (Moderate)
+//   - Low (<55): Rose (Needs attention)
+//
+// Category Colors:
+//   - Basic: Teal (from-teal-50 to-emerald-50)
+//   - Lifestyle: Orange (from-orange-50 to-amber-50)
+//   - Values: Rose (from-rose-50 to-red-50)
+//   - Preferences: Teal variant (from-emerald-50 to-teal-50)
+// =============================================================================
+
 interface CompatibilityItem {
   criterion: string;
   icon: React.ReactNode;
@@ -65,29 +86,38 @@ const calculateAge = (birthDate?: Date | string | null): number | null => {
   }
 };
 
+// Hero-aligned importance colors
 const getImportanceColor = (importance: string) => {
   switch (importance) {
     case 'high':
-      return 'from-red-400 to-red-500';
+      // Rose/Red for high importance (critical)
+      return 'from-rose-400 to-red-500';
     case 'medium':
-      return 'from-amber-400 to-orange-500';
+      // Orange/Amber for medium importance (attention)
+      return 'from-orange-400 to-amber-500';
     case 'low':
-      return 'from-cyan-400 to-blue-500';
+      // Teal for low importance (informational)
+      return 'from-teal-400 to-teal-500';
     default:
       return 'from-gray-400 to-gray-500';
   }
 };
 
+// Hero-aligned category colors
 const getCategoryColor = (category: string) => {
   switch (category) {
     case 'basic':
-      return 'from-cyan-50 to-blue-50';
+      // Teal - Knowledge/Basics
+      return 'from-teal-50 to-emerald-50';
     case 'lifestyle':
-      return 'from-emerald-50 to-green-50';
+      // Orange - Action/Lifestyle
+      return 'from-orange-50 to-amber-50';
     case 'values':
-      return 'from-blue-50 to-cyan-50';
+      // Rose - Connection/Values
+      return 'from-rose-50 to-red-50';
     case 'preferences':
-      return 'from-green-50 to-emerald-50';
+      // Emerald/Teal variant
+      return 'from-emerald-50 to-teal-50';
     default:
       return 'from-gray-50 to-slate-50';
   }
@@ -115,8 +145,10 @@ const CompatibilityCard: React.FC<{
             className={cn(
               'flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br text-white flex items-center justify-center shadow-md',
               item.compatible
-                ? 'from-emerald-500 to-green-500'
-                : 'from-red-400 to-rose-500'
+                ? // Compatible: Teal/Emerald (positive - Hero primary)
+                  'from-teal-500 to-emerald-500'
+                : // Not compatible: Rose/Red (negative - Hero decline)
+                  'from-rose-400 to-red-500'
             )}
           >
             {item.icon}
@@ -131,7 +163,7 @@ const CompatibilityCard: React.FC<{
                   <Badge
                     variant="outline"
                     className={cn(
-                      'text-xs px-2 py-0.5 font-semibold border-0 text-white',
+                      'text-xs px-2 py-0.5 font-semibold border-0 text-white bg-gradient-to-r',
                       importanceColor
                     )}
                   >
@@ -145,7 +177,7 @@ const CompatibilityCard: React.FC<{
                 <p
                   className={cn(
                     'text-sm font-medium leading-relaxed',
-                    item.compatible ? 'text-emerald-700' : 'text-red-700'
+                    item.compatible ? 'text-teal-700' : 'text-rose-700'
                   )}
                 >
                   {item.reason}
@@ -153,9 +185,9 @@ const CompatibilityCard: React.FC<{
               </div>
               <div className="flex-shrink-0">
                 {item.compatible ? (
-                  <CheckCircle className="w-6 h-6 text-emerald-500" />
+                  <CheckCircle className="w-6 h-6 text-teal-500" />
                 ) : (
-                  <XCircle className="w-6 h-6 text-red-500" />
+                  <XCircle className="w-6 h-6 text-rose-500" />
                 )}
               </div>
             </div>
@@ -226,11 +258,12 @@ const CategorySection: React.FC<{
           <div
             className={cn(
               'text-2xl font-bold',
+              // Hero-aligned score colors
               compatibilityRate >= 70
-                ? 'text-emerald-600'
+                ? 'text-teal-600'
                 : compatibilityRate >= 50
-                  ? 'text-amber-600'
-                  : 'text-red-600'
+                  ? 'text-orange-600'
+                  : 'text-rose-600'
             )}
           >
             {Math.round(compatibilityRate)}%
@@ -264,9 +297,10 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
   if (!firstParty.profile || !secondParty.profile) {
     return (
       <Card className={cn('shadow-xl border-0 overflow-hidden', className)}>
-        <CardHeader className="bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-gray-100">
+        {/* Header: Teal -> White -> Orange (Hero gradient) */}
+        <CardHeader className="bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-b border-gray-100">
           <CardTitle className="flex items-center gap-3 text-2xl">
-            <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg">
+            <div className="p-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg">
               <Heart className="w-6 h-6" />
             </div>
             <div>
@@ -573,11 +607,12 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     (item) => item.category === 'preferences'
   );
 
+  // Hero-aligned score colors
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-emerald-600';
-    if (score >= 60) return 'text-cyan-600';
-    if (score >= 40) return 'text-amber-600';
-    return 'text-red-600';
+    if (score >= 80) return 'text-teal-600';
+    if (score >= 60) return 'text-emerald-600';
+    if (score >= 40) return 'text-orange-600';
+    return 'text-rose-600';
   };
 
   const getScoreDescription = (score: number) => {
@@ -589,9 +624,10 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
 
   return (
     <Card className={cn('shadow-xl border-0 overflow-hidden', className)}>
-      <CardHeader className="bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-gray-100">
+      {/* Header: Teal -> White -> Orange (Hero gradient) */}
+      <CardHeader className="bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-b border-gray-100">
         <CardTitle className="flex items-center gap-3 text-2xl">
-          <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg">
+          <div className="p-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg">
             <Heart className="w-6 h-6" />
           </div>
           <div>
@@ -604,11 +640,12 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
       </CardHeader>
 
       <CardContent className="p-8 space-y-8">
+        {/* Overall Score Card */}
         <Card className="border-0 shadow-lg bg-gradient-to-r from-slate-50 to-gray-50">
           <CardContent className="p-6">
             <div className="text-center space-y-4">
               <div className="flex items-center justify-center gap-3">
-                <Star className="w-8 h-8 text-yellow-500 fill-current" />
+                <Star className="w-8 h-8 text-amber-500 fill-current" />
                 <div>
                   <div
                     className={cn(
@@ -646,38 +683,42 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
 
         {compatibilityItems.length > 0 ? (
           <div className="space-y-8">
+            {/* Basic: Teal */}
             <CategorySection
               title={dict.categoryTitles.basic}
               icon={User}
               items={basicItems}
-              color="from-cyan-500 to-blue-500"
+              color="from-teal-500 to-emerald-500"
               firstParty={firstParty}
               secondParty={secondParty}
               dict={dict}
             />
+            {/* Values: Rose */}
             <CategorySection
               title={dict.categoryTitles.values}
               icon={Heart}
               items={valuesItems}
-              color="from-emerald-500 to-green-500"
+              color="from-rose-400 to-pink-500"
               firstParty={firstParty}
               secondParty={secondParty}
               dict={dict}
             />
+            {/* Lifestyle: Orange */}
             <CategorySection
               title={dict.categoryTitles.lifestyle}
               icon={Target}
               items={lifestyleItems}
-              color="from-blue-500 to-cyan-500"
+              color="from-orange-400 to-amber-500"
               firstParty={firstParty}
               secondParty={secondParty}
               dict={dict}
             />
+            {/* Preferences: Emerald/Teal variant */}
             <CategorySection
               title={dict.categoryTitles.preferences}
               icon={Star}
               items={preferencesItems}
-              color="from-green-500 to-emerald-500"
+              color="from-emerald-500 to-teal-500"
               firstParty={firstParty}
               secondParty={secondParty}
               dict={dict}
@@ -695,18 +736,19 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
           </div>
         )}
 
+        {/* Matchmaker Rationale: Orange/Amber (Personal warmth) */}
         {matchingReason && (
-          <Card className="border-0 shadow-lg bg-gradient-to-r from-cyan-50 to-emerald-50">
+          <Card className="border-0 shadow-lg bg-gradient-to-r from-orange-50 to-amber-50">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-md flex-shrink-0">
+                <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md flex-shrink-0">
                   <Users className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-cyan-800 text-lg mb-2">
+                  <h3 className="font-bold text-orange-800 text-lg mb-2">
                     {dict.matchmakerRationaleTitle}
                   </h3>
-                  <p className="text-cyan-700 leading-relaxed">
+                  <p className="text-orange-900/80 leading-relaxed">
                     {matchingReason}
                   </p>
                 </div>

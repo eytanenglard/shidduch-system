@@ -47,14 +47,20 @@ const iconMap: { [key: string]: React.ElementType } = {
   other: Lightbulb,
 };
 
-// Updated Color Map to match Hero Palette (Teal, Orange, Rose)
+// Color Map matching HeroSection Palette (Teal/Orange/Rose)
 const colorMap: { [key: string]: string } = {
-  values: 'from-teal-400 to-emerald-500',    // Teal/Emerald -> Knowledge/Truth
-  family: 'from-orange-400 to-amber-500',    // Orange/Amber -> Warmth/Home
-  career: 'from-blue-500 to-teal-500',       // Blue/Teal -> Professional
-  personality: 'from-rose-400 to-pink-500',  // Rose/Pink -> Personal/Emotion
-  future: 'from-amber-400 to-orange-500',    // Amber/Orange -> Ambition
-  other: 'from-gray-500 to-slate-500',       // Neutral
+  // Teal/Emerald -> Knowledge/Values (matching HeroSection principle 1)
+  values: 'from-teal-400 via-teal-500 to-emerald-500',
+  // Orange/Amber -> Warmth/Home (matching HeroSection principle 2)
+  family: 'from-orange-400 via-amber-500 to-yellow-500',
+  // Teal/Emerald -> Professional/Stability
+  career: 'from-teal-500 to-emerald-600',
+  // Rose/Pink -> Personal/Emotion (matching HeroSection principle 3)
+  personality: 'from-rose-400 via-pink-500 to-red-500',
+  // Orange/Amber -> Ambition/Future
+  future: 'from-amber-400 via-orange-500 to-amber-600',
+  // Gray/Slate -> Neutral
+  other: 'from-gray-400 to-slate-500',
 };
 
 export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
@@ -113,11 +119,11 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 border-0 shadow-2xl rounded-3xl bg-white overflow-hidden z-[9999]">
-        {/* Header: Teal -> White -> Orange Gradient */}
-        <DialogHeader className="px-8 py-6 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-b border-gray-100">
+        {/* Header: Teal -> White -> Orange Gradient (matching HeroSection) */}
+        <DialogHeader className="px-8 py-6 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-b border-teal-100">
           <div className="flex items-center gap-4 mb-4">
             <Avatar className="w-16 h-16 border-4 border-white shadow-lg">
-              {/* Avatar: Teal Gradient */}
+              {/* Avatar: Teal/Emerald Gradient (matching HeroSection knowledge) */}
               <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white text-xl font-bold">
                 {getInitials(matchmakerName)}
               </AvatarFallback>
@@ -130,7 +136,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
                 {dict.description}
               </DialogDescription>
             </div>
-            {/* Badge: Teal/Emerald */}
+            {/* Badge: Teal/Emerald (matching HeroSection) */}
             <Badge className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white border-0 shadow-md px-3 py-1">
               <Clock className="w-3 h-3 ml-1" />
               {dict.statusBadge}
@@ -140,9 +146,9 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
 
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
           {error && (
-            <Alert variant="destructive" className="border-red-200 bg-red-50">
+            <Alert variant="destructive" className="border-rose-200 bg-rose-50">
               <AlertCircle className="h-5 w-5" />
-              <AlertDescription className="text-red-800 font-medium">
+              <AlertDescription className="text-rose-800 font-medium">
                 {error}
               </AlertDescription>
             </Alert>
@@ -164,7 +170,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
                   key={topic.id}
                   className={cn(
                     'cursor-pointer transition-all duration-300 border-2 hover:shadow-lg hover:-translate-y-1',
-                    // Selection state: Teal
+                    // Selection state: Teal (matching HeroSection)
                     selectedTopic === topic.id
                       ? 'border-teal-300 bg-teal-50 shadow-md'
                       : 'border-gray-200 hover:border-teal-200'
@@ -174,7 +180,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
                   <CardContent className="p-4 text-center">
                     <div
                       className={cn(
-                        'w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center bg-gradient-to-r text-white shadow-md',
+                        'w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center bg-gradient-to-br text-white shadow-md',
                         topic.color
                       )}
                     >
@@ -193,8 +199,8 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
           </div>
 
           {selectedTopicData && (
-            // Sample Questions: Teal/Orange Gradient
-            <Card className="bg-gradient-to-r from-teal-50/50 to-orange-50/50 border-teal-200/50">
+            // Sample Questions: Teal/Orange Gradient (matching HeroSection)
+            <Card className="bg-gradient-to-r from-teal-50/50 via-white to-orange-50/50 border-teal-200/50">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <selectedTopicData.icon className="w-5 h-5 text-teal-600" />
@@ -228,7 +234,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             >
               {dict.input.label}
             </Label>
-            {/* Textarea Focus: Teal */}
+            {/* Textarea Focus: Teal (matching HeroSection secondary button) */}
             <Textarea
               id="question"
               value={question}
@@ -247,7 +253,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             </div>
           </div>
         </div>
-        <DialogFooter className="px-8 py-6 border-t border-gray-100 bg-gray-50/50">
+        <DialogFooter className="px-8 py-6 border-t border-teal-100 bg-gradient-to-r from-teal-50/30 to-orange-50/30">
           <div className="flex gap-3 w-full">
             <Button
               type="button"
@@ -258,7 +264,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             >
               {dict.buttons.cancel}
             </Button>
-            {/* Submit Button: Hero Gradient (Teal -> Orange -> Amber) */}
+            {/* Submit Button: Hero Gradient (Teal -> Orange -> Amber) - matching HeroSection CTA */}
             <Button
               type="submit"
               onClick={handleSubmit}

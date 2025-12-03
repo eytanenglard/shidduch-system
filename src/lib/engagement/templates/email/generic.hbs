@@ -1,10 +1,10 @@
-<!DOCTYPE html>
-<html dir="{{getDir locale}}" lang="{{locale}}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html dir='{{getDir locale}}' lang='{{locale}}'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
     <title>{{subject}}</title>
-    <style>
+    <style
+    >
         body {
             margin: 0;
             padding: 0;
@@ -108,7 +108,9 @@
         
         .highlight-icon {
             font-size: 28px;
-            {{#if (eq locale 'he')}}margin-left{{else}}margin-right{{/if}}: 12px;
+            {{#if
+        (eq locale 'he')
+      }}margin-left{{else}}margin-right{{/if}}: 12px;
         }
         
         .highlight-content {
@@ -145,7 +147,9 @@
         
         .info-icon {
             font-size: 24px;
-            {{#if (eq locale 'he')}}margin-left{{else}}margin-right{{/if}}: 10px;
+            {{#if
+        (eq locale 'he')
+      }}margin-left{{else}}margin-right{{/if}}: 10px;
         }
         
         .info-section ul {
@@ -159,14 +163,18 @@
             margin-bottom: 14px;
             font-size: 15px;
             line-height: 1.7;
-            padding-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 30px;
+            padding-{{#if
+        (eq locale 'he')
+      }}right{{else}}left{{/if}}: 30px;
             position: relative;
         }
         
         .info-section li:before {
             content: "✓";
             position: absolute;
-            {{#if (eq locale 'he')}}right{{else}}left{{/if}}: 0;
+            {{#if
+        (eq locale 'he')
+      }}right{{else}}left{{/if}}: 0;
             color: #667eea;
             font-weight: 700;
             font-size: 18px;
@@ -362,167 +370,189 @@
             }
         }
     </style>
-</head>
-<body>
-    <table role="presentation" style="width: 100%; border-collapse: collapse;">
-        <tr>
-            <td class="email-wrapper">
-                <table role="presentation" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto;">
-                    
-                    <!-- Header -->
-                    <tr>
-                        <td class="email-header">
-                            {{#if headerIcon}}
-                            <span class="header-icon">{{headerIcon}}</span>
-                            {{/if}}
-                            <h1>{{headerTitle}}</h1>
-                            {{#if headerSubtitle}}
-                            <p>{{headerSubtitle}}</p>
-                            {{/if}}
-                        </td>
-                    </tr>
-                    
-                    <!-- Body -->
-                    <tr>
-                        <td class="email-body">
-                            <!-- Greeting -->
-                            <p class="greeting">
-                                {{#if (eq locale 'he')}}שלום{{else}}Hello{{/if}} {{firstName}},
-                            </p>
-                            
-                            <!-- Main Content -->
-                            <div class="main-content">
-                                {{{mainContent}}}
-                            </div>
-                            
-                            <!-- Highlight Box (Optional) -->
-                            {{#if highlightTitle}}
-                            <div class="highlight-box">
-                                <h3>
-                                    {{#if highlightIcon}}
-                                    <span class="highlight-icon">{{highlightIcon}}</span>
-                                    {{/if}}
-                                    {{highlightTitle}}
-                                </h3>
-                                <div class="highlight-content">
-                                    <p>{{{highlightContent}}}</p>
-                                </div>
-                            </div>
-                            {{/if}}
-                            
-                            <!-- Info Section (Optional) -->
-                            {{#if infoTitle}}
-                            <div class="info-section">
-                                <h3>
-                                    {{#if infoIcon}}
-                                    <span class="info-icon">{{infoIcon}}</span>
-                                    {{/if}}
-                                    {{infoTitle}}
-                                </h3>
-                                {{{infoContent}}}
-                            </div>
-                            {{/if}}
-                            
-                            <!-- Call to Action -->
-                            {{#if ctaText}}
-                            <div class="cta-section">
-                                <a href="{{ctaLink}}" class="cta-button">{{ctaText}}</a>
-                            </div>
-                            {{/if}}
-                            
-                            <!-- Additional Content (Optional) -->
-                            {{#if additionalContent}}
-                            <div class="additional-content">
-                                {{{additionalContent}}}
-                            </div>
-                            {{/if}}
-                            
-                            <!-- Help Text -->
-                            <p class="help-text">
-                                {{#if (eq locale 'he')}}
-                                    יש שאלות? אנחנו כאן בשבילך! 💜<br>
-                                    פשוט תשיב למייל הזה ונחזור אליך בהקדם.
-                                {{else}}
-                                    Questions? We're here for you! 💜<br>
-                                    Just reply to this email and we'll get back to you soon.
-                                {{/if}}
-                            </p>
-                        </td>
-                    </tr>
+  </head>
+  <body>
+    <table role='presentation' style='width: 100%; border-collapse: collapse;'>
+      <tr>
+        <td class='email-wrapper'>
+          <table
+            role='presentation'
+            class='email-container'
+            style='width: 100%; max-width: 600px; margin: 0 auto;'
+          >
 
-                    <!-- Footer -->
-                    <tr>
-                        <td class="email-footer">
-                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                                <tr>
-                                    <td class="footer-content">
-                                        <div class="footer-logo">
-                                            <img 
-                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
-                                                alt="NeshamaTech Logo"
-                                            />
-                                        </div>
-                                        
-                                        <div class="footer-company-name">
-                                            <span>NeshamaTech</span>
-                                        </div>
-                                        
-                                        <p class="footer-tagline">
-                                            {{#if (eq locale 'he')}}
-                                                מחברים לבבות, בונים עתיד משותף
-                                            {{else}}
-                                                Connecting Hearts, Building Shared Futures
-                                            {{/if}}
-                                        </p>
-                                        
-                                        <div class="footer-contact">
-                                            <p>📧 <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
-                                            <p>🌐 <a href="{{baseUrl}}">{{baseUrl}}</a></p>
-                                        </div>
-                                        
-                                        <div class="footer-social">
-                                            <a href="#" title="Facebook">📘</a>
-                                            <a href="#" title="Instagram">📷</a>
-                                            <a href="#" title="Twitter">🐦</a>
-                                        </div>
-                                        
-                                        <div class="footer-links">
-                                            {{#if (eq locale 'he')}}
-                                                <a href="{{baseUrl}}/profile">הפרופיל שלי</a> |
-                                                <a href="{{baseUrl}}/settings">הגדרות</a> |
-                                                <a href="{{baseUrl}}/support">תמיכה</a>
-                                            {{else}}
-                                                <a href="{{baseUrl}}/profile">My Profile</a> |
-                                                <a href="{{baseUrl}}/settings">Settings</a> |
-                                                <a href="{{baseUrl}}/support">Support</a>
-                                            {{/if}}
-                                        </div>
-                                        
-                                        <p class="footer-copyright">
-                                            © {{currentYear}} NeshamaTech. 
-                                            {{#if (eq locale 'he')}}כל הזכויות שמורות{{else}}All rights reserved{{/if}}
-                                        </p>
-                                        
-                                        <p class="footer-legal">
-                                            <a href="{{baseUrl}}/privacy">
-                                                {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy Policy{{/if}}
-                                            </a> | 
-                                            <a href="{{baseUrl}}/terms">
-                                                {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of Service{{/if}}
-                                            </a> | 
-                                            <a href="{{unsubscribeUrl}}">
-                                                {{#if (eq locale 'he')}}הסרה מהרשימה{{else}}Unsubscribe{{/if}}
-                                            </a>
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    
+            <!-- Header -->
+            <tr>
+              <td class='email-header'>
+                {{#if headerIcon}}
+                  <span class='header-icon'>{{headerIcon}}</span>
+                {{/if}}
+                <h1>{{headerTitle}}</h1>
+                {{#if headerSubtitle}}
+                  <p>{{headerSubtitle}}</p>
+                {{/if}}
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td class='email-body'>
+                <!-- Greeting -->
+                <p class='greeting'>
+                  {{#if (eq locale 'he')}}שלום{{else}}Hello{{/if}}
+                  {{firstName}},
+                </p>
+
+                <!-- Main Content -->
+                <div class='main-content'>
+                  {{{mainContent}}}
+                </div>
+
+                <!-- Highlight Box (Optional) -->
+                {{#if highlightTitle}}
+                  <div class='highlight-box'>
+                    <h3>
+                      {{#if highlightIcon}}
+                        <span class='highlight-icon'>{{highlightIcon}}</span>
+                      {{/if}}
+                      {{highlightTitle}}
+                    </h3>
+                    <div class='highlight-content'>
+                      <p>{{{highlightContent}}}</p>
+                    </div>
+                  </div>
+                {{/if}}
+
+                <!-- Info Section (Optional) -->
+                {{#if infoTitle}}
+                  <div class='info-section'>
+                    <h3>
+                      {{#if infoIcon}}
+                        <span class='info-icon'>{{infoIcon}}</span>
+                      {{/if}}
+                      {{infoTitle}}
+                    </h3>
+                    {{{infoContent}}}
+                  </div>
+                {{/if}}
+
+                <!-- Call to Action -->
+                {{#if ctaText}}
+                  <div class='cta-section'>
+                    <a href='{{ctaLink}}' class='cta-button'>{{ctaText}}</a>
+                  </div>
+                {{/if}}
+
+                <!-- Additional Content (Optional) -->
+                {{#if additionalContent}}
+                  <div class='additional-content'>
+                    {{{additionalContent}}}
+                  </div>
+                {{/if}}
+
+                <!-- Help Text -->
+                <p class='help-text'>
+                  {{#if (eq locale 'he')}}
+                    יש שאלות? אנחנו כאן בשבילך! 💜<br />
+                    פשוט תשיב למייל הזה ונחזור אליך בהקדם.
+                  {{else}}
+                    Questions? We're here for you! 💜<br />
+                    Just reply to this email and we'll get back to you soon.
+                  {{/if}}
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td class='email-footer'>
+                <table
+                  role='presentation'
+                  style='width: 100%; border-collapse: collapse;'
+                >
+                  <tr>
+                    <td class='footer-content'>
+                      <div class='footer-logo'>
+                        <img
+                          src='https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png'
+                          alt='NeshamaTech Logo'
+                        />
+                      </div>
+
+                      <div class='footer-company-name'>
+                        <span>NeshamaTech</span>
+                      </div>
+
+                      <p class='footer-tagline'>
+                        {{#if (eq locale 'he')}}
+                          מחברים לבבות, בונים עתיד משותף
+                        {{else}}
+                          Connecting Hearts, Building Shared Futures
+                        {{/if}}
+                      </p>
+
+                      <div class='footer-contact'>
+                        <p>📧
+                          <a
+                            href='mailto:{{supportEmail}}'
+                          >{{supportEmail}}</a></p>
+                        <p>🌐 <a href='{{baseUrl}}'>{{baseUrl}}</a></p>
+                      </div>
+
+                      <div class='footer-social'>
+                        <a href='#' title='Facebook'>📘</a>
+                        <a href='#' title='Instagram'>📷</a>
+                        <a href='#' title='Twitter'>🐦</a>
+                      </div>
+
+                      <div class='footer-links'>
+                        {{#if (eq locale 'he')}}
+                          <a href='{{baseUrl}}/profile'>הפרופיל שלי</a>
+                          |
+                          <a href='{{baseUrl}}/settings'>הגדרות</a>
+                          |
+                          <a href='{{baseUrl}}/support'>תמיכה</a>
+                        {{else}}
+                          <a href='{{baseUrl}}/profile'>My Profile</a>
+                          |
+                          <a href='{{baseUrl}}/settings'>Settings</a>
+                          |
+                          <a href='{{baseUrl}}/support'>Support</a>
+                        {{/if}}
+                      </div>
+
+                      <p class='footer-copyright'>
+                        ©
+                        {{currentYear}}
+                        NeshamaTech.
+                        {{#if (eq locale 'he')}}כל הזכויות שמורות{{else}}All
+                          rights reserved{{/if}}
+                      </p>
+
+                      <p class='footer-legal'>
+                        <a href='{{baseUrl}}/privacy'>
+                          {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy
+                            Policy{{/if}}
+                        </a>
+                        |
+                        <a href='{{baseUrl}}/terms'>
+                          {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of
+                            Service{{/if}}
+                        </a>
+                        |
+                        <a href='{{unsubscribeUrl}}'>
+                          {{#if (eq locale 'he')}}הסרה מהרשימה{{else}}Unsubscribe{{/if}}
+                        </a>
+                      </p>
+                    </td>
+                  </tr>
                 </table>
-            </td>
-        </tr>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
     </table>
-</body>
+  </body>
 </html>

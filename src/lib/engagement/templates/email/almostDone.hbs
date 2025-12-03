@@ -1,16 +1,18 @@
-<!DOCTYPE html>
-<html dir="{{getDir locale}}" lang="{{locale}}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html dir='{{getDir locale}}' lang='{{locale}}'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
     <title>{{#if (eq locale 'he')}}את/ה כמעט שם!{{else}}You're almost there!{{/if}}</title>
-    <style>
+    <style
+    >
         body {
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            direction: {{getDir locale}};
+            direction: {{getDir
+        locale
+      }};
         }
         
         .email-wrapper {
@@ -329,164 +331,202 @@
             }
         }
     </style>
-</head>
-<body>
-    <table role="presentation" style="width: 100%; border-collapse: collapse;">
-        <tr>
-            <td class="email-wrapper">
-                <table role="presentation" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto;">
-                    
-                    <!-- Header -->
-                    <tr>
-                        <td class="email-header">
-                            <div class="header-icon">🎊</div>
-                            <h1>
-                                {{#if (eq locale 'he')}}
-                                    {{firstName}}, את/ה כמעט שם!
-                                {{else}}
-                                    {{firstName}}, You're Almost There!
-                                {{/if}}
-                            </h1>
-                            <p>
-                                {{#if (eq locale 'he')}}
-                                    רק עוד דחיפה קטנה לסיום
-                                {{else}}
-                                    Just one last push to the finish line
-                                {{/if}}
-                            </p>
-                        </td>
-                    </tr>
-                    
-                    <!-- Body -->
-                    <tr>
-                        <td class="email-body">
-                            <p class="greeting">
-                                {{#if (eq locale 'he')}}היי{{else}}Hi{{/if}} {{firstName}},
-                            </p>
-                            
-                            <p>
-                                {{#if (eq locale 'he')}}
-                                    כל הכבוד על ההתקדמות! הפרופיל שלך כבר ב-<strong>{{progressPercentage}}%</strong>. נשאר לך רק עוד צעד אחד קטן כדי להשלים אותו ולהגדיל משמעותית את הסיכויים שלך למצוא התאמה.
-                                {{else}}
-                                    Great job on your progress! Your profile is already at <strong>{{progressPercentage}}%</strong>. You have just one small step left to complete it and significantly increase your chances of finding a match.
-                                {{/if}}
-                            </p>
+  </head>
+  <body>
+    <table role='presentation' style='width: 100%; border-collapse: collapse;'>
+      <tr>
+        <td class='email-wrapper'>
+          <table
+            role='presentation'
+            class='email-container'
+            style='width: 100%; max-width: 600px; margin: 0 auto;'
+          >
 
-                            <!-- Progress Reminder -->
-                            <div class="progress-reminder">
-                                <h3>
-                                    🎯 {{#if (eq locale 'he')}}היעד הסופי{{else}}The Final Goal{{/if}}
-                                </h3>
-                                <div class="progress-circle">
-                                    <div class="circle">
-                                        <div class="circle-inner">
-                                            <div class="circle-percentage">{{progressPercentage}}%</div>
-                                            <div class="circle-label">{{#if (eq locale 'he')}}הושלם{{else}}Completed{{/if}}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p class="progress-text">
-                                    {{#if (eq locale 'he')}}את/ה כל כך קרוב/ה ל-100%!{{else}}You're so close to 100%!{{/if}}
-                                </p>
-                            </div>
+            <!-- Header -->
+            <tr>
+              <td class='email-header'>
+                <div class='header-icon'>🎊</div>
+                <h1>
+                  {{#if (eq locale 'he')}}
+                    {{firstName}}, את/ה כמעט שם!
+                  {{else}}
+                    {{firstName}}, You're Almost There!
+                  {{/if}}
+                </h1>
+                <p>
+                  {{#if (eq locale 'he')}}
+                    רק עוד דחיפה קטנה לסיום
+                  {{else}}
+                    Just one last push to the finish line
+                  {{/if}}
+                </p>
+              </td>
+            </tr>
 
-                            {{#if aiSummary}}
-                            <!-- AI Summary -->
-                            <div class="ai-summary-box">
-                                <h3>
-                                    🧠 {{#if (eq locale 'he')}}מה ה-AI שלנו חושב עד כה{{else}}What Our AI Thinks So Far{{/if}}
-                                </h3>
-                                <div class="ai-summary-content">
-                                    <p>"{{aiSummary}}"</p>
-                                </div>
-                            </div>
-                            {{/if}}
+            <!-- Body -->
+            <tr>
+              <td class='email-body'>
+                <p class='greeting'>
+                  {{#if (eq locale 'he')}}היי{{else}}Hi{{/if}}
+                  {{firstName}},
+                </p>
 
-                            <!-- Next Step -->
-                            <div class="last-step-box">
-                                <div class="last-step-inner">
-                                    <h3>
-                                        🎯 {{#if (eq locale 'he')}}הדבר האחרון שנשאר{{else}}Your Last Step{{/if}}
-                                    </h3>
-                                    <p>{{remainingItem}}</p>
-                                    <p class="time-estimate">
-                                        {{#if (eq locale 'he')}}
-                                            זה ייקח בערך {{estimatedTime}} - ממש עוד רגע!
-                                        {{else}}
-                                            This will take about {{estimatedTime}} - you're almost done!
-                                        {{/if}}
-                                    </p>
-                                </div>
-                            </div>
+                <p>
+                  {{#if (eq locale 'he')}}
+                    כל הכבוד על ההתקדמות! הפרופיל שלך כבר ב-<strong
+                    >{{progressPercentage}}%</strong>. נשאר לך רק עוד צעד אחד
+                    קטן כדי להשלים אותו ולהגדיל משמעותית את הסיכויים שלך למצוא
+                    התאמה.
+                  {{else}}
+                    Great job on your progress! Your profile is already at
+                    <strong>{{progressPercentage}}%</strong>. You have just one
+                    small step left to complete it and significantly increase
+                    your chances of finding a match.
+                  {{/if}}
+                </p>
 
-                            <!-- CTA -->
-                            <div class="cta-section">
-                                <a href="{{ctaLink}}" class="cta-button">
-                                    {{#if (eq locale 'he')}}בוא/י נסיים את זה! 💪{{else}}Let's Finish This! 💪{{/if}}
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
+                <!-- Progress Reminder -->
+                <div class='progress-reminder'>
+                  <h3>
+                    🎯
+                    {{#if (eq locale 'he')}}היעד הסופי{{else}}The Final Goal{{/if}}
+                  </h3>
+                  <div class='progress-circle'>
+                    <div class='circle'>
+                      <div class='circle-inner'>
+                        <div
+                          class='circle-percentage'
+                        >{{progressPercentage}}%</div>
+                        <div class='circle-label'>{{#if
+                            (eq locale 'he')
+                          }}הושלם{{else}}Completed{{/if}}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <p class='progress-text'>
+                    {{#if (eq locale 'he')}}את/ה כל כך קרוב/ה ל-100%!{{else}}You're
+                      so close to 100%!{{/if}}
+                  </p>
+                </div>
 
-                    <!-- Footer -->
-                    <tr>
-                        <td class="email-footer">
-                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                                <tr>
-                                    <td class="footer-content">
-                                        <div class="footer-logo">
-                                            <img 
-                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
-                                                alt="NeshamaTech Logo"
-                                            />
-                                        </div>
-                                        
-                                        <div class="footer-company-name">
-                                            <span>NeshamaTech</span>
-                                        </div>
-                                        
-                                        <p class="footer-tagline">
-                                            {{#if (eq locale 'he')}}
-                                                מחברים לבבות, בונים עתיד משותף
-                                            {{else}}
-                                                Connecting Hearts, Building Shared Futures
-                                            {{/if}}
-                                        </p>
-                                        
-                                        <div class="footer-contact">
-                                            <p><strong>{{#if (eq locale 'he')}}צור קשר:{{else}}Contact:{{/if}}</strong></p>
-                                            <p>📧 <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
-                                            <p>🌐 <a href="{{baseUrl}}">{{baseUrl}}</a></p>
-                                        </div>
-                                        
-                                        <div class="footer-social">
-                                            <a href="#" title="Facebook">📘</a>
-                                            <a href="#" title="Instagram">📷</a>
-                                            <a href="#" title="Twitter">🐦</a>
-                                        </div>
-                                        
-                                        <p class="footer-copyright">
-                                            © {{currentYear}} NeshamaTech. 
-                                            {{#if (eq locale 'he')}}כל הזכויות שמורות{{else}}All rights reserved{{/if}}
-                                        </p>
-                                        
-                                        <p class="footer-legal">
-                                            <a href="{{baseUrl}}/privacy">
-                                                {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy Policy{{/if}}
-                                            </a> | 
-                                            <a href="{{baseUrl}}/terms">
-                                                {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of Service{{/if}}
-                                            </a>
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    
+                {{#if aiSummary}}
+                  <!-- AI Summary -->
+                  <div class='ai-summary-box'>
+                    <h3>
+                      🧠
+                      {{#if (eq locale 'he')}}מה ה-AI שלנו חושב עד כה{{else}}What
+                        Our AI Thinks So Far{{/if}}
+                    </h3>
+                    <div class='ai-summary-content'>
+                      <p>"{{aiSummary}}"</p>
+                    </div>
+                  </div>
+                {{/if}}
+
+                <!-- Next Step -->
+                <div class='last-step-box'>
+                  <div class='last-step-inner'>
+                    <h3>
+                      🎯
+                      {{#if (eq locale 'he')}}הדבר האחרון שנשאר{{else}}Your Last
+                        Step{{/if}}
+                    </h3>
+                    <p>{{remainingItem}}</p>
+                    <p class='time-estimate'>
+                      {{#if (eq locale 'he')}}
+                        זה ייקח בערך
+                        {{estimatedTime}}
+                        - ממש עוד רגע!
+                      {{else}}
+                        This will take about
+                        {{estimatedTime}}
+                        - you're almost done!
+                      {{/if}}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- CTA -->
+                <div class='cta-section'>
+                  <a href='{{ctaLink}}' class='cta-button'>
+                    {{#if (eq locale 'he')}}בוא/י נסיים את זה! 💪{{else}}Let's
+                      Finish This! 💪{{/if}}
+                  </a>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td class='email-footer'>
+                <table
+                  role='presentation'
+                  style='width: 100%; border-collapse: collapse;'
+                >
+                  <tr>
+                    <td class='footer-content'>
+                      <div class='footer-logo'>
+                        <img
+                          src='https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png'
+                          alt='NeshamaTech Logo'
+                        />
+                      </div>
+
+                      <div class='footer-company-name'>
+                        <span>NeshamaTech</span>
+                      </div>
+
+                      <p class='footer-tagline'>
+                        {{#if (eq locale 'he')}}
+                          מחברים לבבות, בונים עתיד משותף
+                        {{else}}
+                          Connecting Hearts, Building Shared Futures
+                        {{/if}}
+                      </p>
+
+                      <div class='footer-contact'>
+                        <p><strong>{{#if (eq locale 'he')}}צור קשר:{{else}}Contact:{{/if}}</strong></p>
+                        <p>📧
+                          <a
+                            href='mailto:{{supportEmail}}'
+                          >{{supportEmail}}</a></p>
+                        <p>🌐 <a href='{{baseUrl}}'>{{baseUrl}}</a></p>
+                      </div>
+
+                      <div class='footer-social'>
+                        <a href='#' title='Facebook'>📘</a>
+                        <a href='#' title='Instagram'>📷</a>
+                        <a href='#' title='Twitter'>🐦</a>
+                      </div>
+
+                      <p class='footer-copyright'>
+                        ©
+                        {{currentYear}}
+                        NeshamaTech.
+                        {{#if (eq locale 'he')}}כל הזכויות שמורות{{else}}All
+                          rights reserved{{/if}}
+                      </p>
+
+                      <p class='footer-legal'>
+                        <a href='{{baseUrl}}/privacy'>
+                          {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy
+                            Policy{{/if}}
+                        </a>
+                        |
+                        <a href='{{baseUrl}}/terms'>
+                          {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of
+                            Service{{/if}}
+                        </a>
+                      </p>
+                    </td>
+                  </tr>
                 </table>
-            </td>
-        </tr>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
     </table>
-</body>
+  </body>
 </html>

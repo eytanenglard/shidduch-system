@@ -270,10 +270,16 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${activeTab === index ? `bg-gradient-to-br ${principle.gradient} shadow-lg` : 'bg-white/60 shadow-sm'}`}
                   >
-                    {React.cloneElement(principle.icon as React.ReactElement<{ className?: string; strokeWidth?: number }>, {
-                      className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
-                      strokeWidth: 2.5,
-                    })}
+                    {React.cloneElement(
+                      principle.icon as React.ReactElement<{
+                        className?: string;
+                        strokeWidth?: number;
+                      }>,
+                      {
+                        className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
+                        strokeWidth: 2.5,
+                      }
+                    )}
                   </div>
                 </div>
                 <div
@@ -346,7 +352,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   locale,
 }) => {
   const logoUrl =
-    'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png';
+    'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png';
 
   return (
     <motion.section
@@ -361,14 +367,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         style={{ backgroundSize: '400% 400%' }}
       />
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:20px_20px]"></div>
-      
+
       {/* Orbs צבעוניים - Teal, Orange, Rose */}
       <div className="absolute top-[15%] left-[5%] w-72 h-72 rounded-full bg-teal-300/20 blur-3xl animate-float-slow"></div>
       <div
         className="absolute bottom-[20%] right-[5%] w-64 h-64 rounded-full bg-orange-300/20 blur-3xl animate-float-slow"
         style={{ animationDelay: '2s' }}
       ></div>
-       <div
+      <div
         className="absolute top-[40%] right-[15%] w-48 h-48 rounded-full bg-rose-300/15 blur-3xl animate-float-slow"
         style={{ animationDelay: '4s' }}
       ></div>
@@ -380,7 +386,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           transition={{ duration: 0.7, ease: 'easeOut' }}
           className="text-center"
         >
-   <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 tracking-tight leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 tracking-tight leading-tight">
             {dict.titleLine1}
             <br className="sm:hidden" />
             {/* גרדיאנט כותרת מעודכן - תואם לכפתור (Teal -> Orange -> Amber) */}
@@ -437,7 +443,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               <path
                 className={`${isVisible ? 'path-draw' : ''}`}
                 d="M 30 128 C 90 60, 130 60, 160 110"
-                stroke="#0d9488" 
+                stroke="#0d9488"
                 strokeWidth="2.5"
                 fill="none"
                 strokeLinecap="round"
@@ -447,7 +453,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               <path
                 className={`${isVisible ? 'path-draw' : ''}`}
                 d="M 290 128 C 230 196, 190 196, 160 110"
-                stroke="#f97316" 
+                stroke="#f97316"
                 strokeWidth="2.5"
                 fill="none"
                 strokeLinecap="round"

@@ -755,7 +755,7 @@ Content:
                                     <td class="footer-content">
                                         <div class="footer-logo">
                                             <img 
-                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" 
                                                 alt="NeshamaTech Logo"
                                             />
                                         </div>
@@ -1251,7 +1251,7 @@ Content:
                                     <td class="footer-content">
                                         <div class="footer-logo">
                                             <img 
-                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" 
                                                 alt="NeshamaTech Logo"
                                             />
                                         </div>
@@ -1997,7 +1997,7 @@ Content:
                                         <!-- Logo -->
                                         <div class="footer-logo">
                                             <img 
-                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" 
                                                 alt="NeshamaTech Logo"
                                             />
                                         </div>
@@ -2443,7 +2443,7 @@ Content:
                                     <td class="footer-content">
                                         <div class="footer-logo">
                                             <img 
-                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" 
                                                 alt="NeshamaTech Logo"
                                             />
                                         </div>
@@ -2977,7 +2977,7 @@ Content:
                                     <td class="footer-content">
                                         <div class="footer-logo">
                                             <img 
-                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" 
                                                 alt="NeshamaTech Logo"
                                             />
                                         </div>
@@ -3492,7 +3492,7 @@ This should take about {{estimatedTime}} - sound good?
                                 <td class="footer-content">
                                     <div class="footer-logo">
                                         <img 
-                                            src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+                                            src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" 
                                             alt="NeshamaTech Logo"
                                         />
                                     </div>
@@ -3922,7 +3922,7 @@ Content:
                                     <td class="footer-content">
                                         <div class="footer-logo">
                                             <img 
-                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
+                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" 
                                                 alt="NeshamaTech Logo"
                                             />
                                         </div>

@@ -2,12 +2,7 @@
 'use client';
 
 import React from 'react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -24,38 +19,58 @@ import {
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 import { cn } from '@/lib/utils';
 
+// =============================================================================
+// COLOR PALETTE REFERENCE (Matching HeroSection.tsx)
+// =============================================================================
+// Primary Colors:
+//   - Teal/Emerald: from-teal-400 via-teal-500 to-emerald-500 (Knowledge/New)
+//   - Orange/Amber: from-orange-400 via-amber-500 to-yellow-500 (Action/Warmth)
+//   - Rose/Pink:    from-rose-400 via-pink-500 to-red-500 (Love/Connection)
+//
+// Score Colors (Hero-aligned):
+//   - Excellent (85+): Teal/Emerald
+//   - Good (70+): Teal
+//   - Moderate (55+): Orange/Amber
+//   - Challenging (<55): Rose
+//
+// Section Colors:
+//   - Compatibility Points: Teal/Emerald (positive connections)
+//   - Points to Consider: Orange/Amber (attention/growth)
+//   - Conversation Starters: Rose (relationship/connection)
+// =============================================================================
+
 interface UserAiAnalysisDisplayProps {
   analysis: AiSuggestionAnalysisResult;
 }
 
-// Score color helper עם הפלטה החדשה
+// Hero-aligned score colors
 const getScoreColor = (score: number) => {
   if (score >= 85)
     return {
-      text: 'text-emerald-600',
-      bg: 'from-emerald-50 to-green-50',
-      progress: 'bg-gradient-to-r from-emerald-500 to-green-500',
-      badge: 'bg-gradient-to-r from-emerald-500 to-green-500',
+      text: 'text-teal-600',
+      bg: 'from-teal-50 to-emerald-50',
+      progress: 'bg-gradient-to-r from-teal-500 to-emerald-500',
+      badge: 'bg-gradient-to-r from-teal-500 to-emerald-500',
     };
   if (score >= 70)
     return {
-      text: 'text-cyan-600',
-      bg: 'from-cyan-50 to-blue-50',
-      progress: 'bg-gradient-to-r from-cyan-500 to-blue-500',
-      badge: 'bg-gradient-to-r from-cyan-500 to-blue-500',
+      text: 'text-teal-600',
+      bg: 'from-teal-50 to-emerald-50',
+      progress: 'bg-gradient-to-r from-teal-500 to-emerald-500',
+      badge: 'bg-gradient-to-r from-teal-500 to-emerald-500',
     };
   if (score >= 55)
     return {
-      text: 'text-blue-600',
-      bg: 'from-blue-50 to-cyan-50',
-      progress: 'bg-gradient-to-r from-blue-500 to-cyan-500',
-      badge: 'bg-gradient-to-r from-blue-500 to-cyan-500',
+      text: 'text-orange-600',
+      bg: 'from-orange-50 to-amber-50',
+      progress: 'bg-gradient-to-r from-orange-500 to-amber-500',
+      badge: 'bg-gradient-to-r from-orange-500 to-amber-500',
     };
   return {
-    text: 'text-amber-600',
-    bg: 'from-amber-50 to-orange-50',
-    progress: 'bg-gradient-to-r from-amber-500 to-orange-500',
-    badge: 'bg-gradient-to-r from-amber-500 to-orange-500',
+    text: 'text-rose-600',
+    bg: 'from-rose-50 to-red-50',
+    progress: 'bg-gradient-to-r from-rose-500 to-red-500',
+    badge: 'bg-gradient-to-r from-rose-500 to-red-500',
   };
 };
 
@@ -111,20 +126,21 @@ const Section: React.FC<{
   </Card>
 );
 
+// Compatibility Point: Teal/Emerald (positive connections)
 const CompatibilityPoint: React.FC<{
   point: { area: string; explanation: string };
   index: number;
 }> = ({ point, index }) => (
-  <div className="group p-4 bg-white/70 backdrop-blur-sm rounded-xl border border-emerald-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+  <div className="group p-4 bg-white/70 backdrop-blur-sm rounded-xl border border-teal-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
     <div className="flex items-start gap-3">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-emerald-400 to-green-500 text-white flex items-center justify-center text-sm font-bold shadow-md">
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-teal-400 to-emerald-500 text-white flex items-center justify-center text-sm font-bold shadow-md">
         {index + 1}
       </div>
       <div className="flex-1 space-y-2">
-        <h4 className="font-semibold text-emerald-800 text-base leading-tight">
+        <h4 className="font-semibold text-teal-800 text-base leading-tight">
           {point.area}
         </h4>
-        <p className="text-sm text-emerald-900/80 leading-relaxed">
+        <p className="text-sm text-teal-900/80 leading-relaxed">
           {point.explanation}
         </p>
       </div>
@@ -132,20 +148,21 @@ const CompatibilityPoint: React.FC<{
   </div>
 );
 
+// Consideration Point: Orange/Amber (attention/growth areas)
 const ConsiderationPoint: React.FC<{
   point: { area: string; explanation: string };
   index: number;
 }> = ({ point, index }) => (
-  <div className="group p-4 bg-white/70 backdrop-blur-sm rounded-xl border border-cyan-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+  <div className="group p-4 bg-white/70 backdrop-blur-sm rounded-xl border border-orange-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
     <div className="flex items-start gap-3">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 text-white flex items-center justify-center text-sm font-bold shadow-md">
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white flex items-center justify-center text-sm font-bold shadow-md">
         {index + 1}
       </div>
       <div className="flex-1 space-y-2">
-        <h4 className="font-semibold text-cyan-800 text-base leading-tight">
+        <h4 className="font-semibold text-orange-800 text-base leading-tight">
           {point.area}
         </h4>
-        <p className="text-sm text-cyan-900/80 leading-relaxed">
+        <p className="text-sm text-orange-900/80 leading-relaxed">
           {point.explanation}
         </p>
       </div>
@@ -153,15 +170,16 @@ const ConsiderationPoint: React.FC<{
   </div>
 );
 
+// Conversation Starter: Rose (relationship/connection)
 const ConversationStarter: React.FC<{
   starter: string;
   index: number;
 }> = ({ starter, index }) => (
-  <div className="group flex items-start gap-3 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-blue-100 hover:bg-white/80 transition-all duration-300 hover:shadow-sm">
-    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+  <div className="group flex items-start gap-3 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-rose-100 hover:bg-white/80 transition-all duration-300 hover:shadow-sm">
+    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-rose-400 to-pink-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
       {index + 1}
     </div>
-    <p className="text-sm text-blue-900 leading-relaxed font-medium">
+    <p className="text-sm text-rose-900 leading-relaxed font-medium">
       {starter}
     </p>
   </div>
@@ -175,7 +193,7 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
 
   return (
     <div className="space-y-8 p-2">
-      {/* Header Summary */}
+      {/* Header Summary Card */}
       <Card
         className={cn(
           'text-center border-0 shadow-xl overflow-hidden bg-gradient-to-br',
@@ -207,7 +225,9 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
 
             <div className="space-y-4">
               <div className="flex items-center justify-center gap-3">
-                {scoreInterpretation.icon}
+                <span className={scoreColors.text}>
+                  {scoreInterpretation.icon}
+                </span>
                 <Badge
                   className={cn(
                     'text-xl font-bold px-6 py-3 rounded-2xl text-white border-0 shadow-lg',
@@ -236,17 +256,16 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
         </CardContent>
       </Card>
 
-      {/* Compatibility Points */}
+      {/* Compatibility Points: Teal/Emerald */}
       <Section
         title="נקודות חיבור חזקות"
         icon={Heart}
-        iconColorClass="text-emerald-600"
-        bgColorClass="bg-gradient-to-br from-emerald-50/80 to-green-50/60"
+        iconColorClass="text-teal-600"
+        bgColorClass="bg-gradient-to-br from-teal-50/80 to-emerald-50/60"
       >
         <ul className="space-y-4">
           {analysis.compatibilityPoints.length > 0 ? (
             analysis.compatibilityPoints.map((point, index) => (
-              // Each item is now a <li>
               <li key={index}>
                 <CompatibilityPoint point={point} index={index} />
               </li>
@@ -260,12 +279,12 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
         </ul>
       </Section>
 
-      {/* Points to Consider */}
+      {/* Points to Consider: Orange/Amber */}
       <Section
         title="נקודות למחשבה וצמיחה"
         icon={Lightbulb}
-        iconColorClass="text-cyan-600"
-        bgColorClass="bg-gradient-to-br from-cyan-50/80 to-blue-50/60"
+        iconColorClass="text-orange-600"
+        bgColorClass="bg-gradient-to-br from-orange-50/80 to-amber-50/60"
       >
         <div className="space-y-4">
           {analysis.pointsToConsider.length > 0 ? (
@@ -281,17 +300,16 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
         </div>
       </Section>
 
-      {/* Conversation Starters */}
+      {/* Conversation Starters: Rose */}
       <Section
         title="נושאים מומלצים לפתיחת שיחה"
         icon={MessageSquareQuote}
-        iconColorClass="text-blue-600"
-        bgColorClass="bg-gradient-to-br from-blue-50/80 to-cyan-50/60"
+        iconColorClass="text-rose-600"
+        bgColorClass="bg-gradient-to-br from-rose-50/80 to-pink-50/60"
       >
         <ul className="space-y-3">
           {analysis.suggestedConversationStarters.length > 0 ? (
             analysis.suggestedConversationStarters.map((starter, index) => (
-              // Each item is now a <li>
               <li key={index}>
                 <ConversationStarter starter={starter} index={index} />
               </li>
@@ -305,14 +323,14 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
         </ul>
       </Section>
 
-      {/* Bottom Note */}
-      <Card className="border-0 shadow-lg bg-gradient-to-r from-cyan-50 to-emerald-50">
+      {/* Bottom Note: Teal/Orange gradient */}
+      <Card className="border-0 shadow-lg bg-gradient-to-r from-teal-50 to-orange-50">
         <CardContent className="p-6 text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <Sparkles className="w-5 h-5 text-cyan-600" />
-            <span className="font-semibold text-cyan-800">הערה חשובה</span>
+            <Sparkles className="w-5 h-5 text-teal-600" />
+            <span className="font-semibold text-teal-800">הערה חשובה</span>
           </div>
-          <p className="text-sm text-cyan-700 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-sm text-teal-700 leading-relaxed max-w-2xl mx-auto">
             זכרו, ניתוח זה הוא כלי עזר והמלצה בלבד. הוא נועד להאיר נקודות למחשבה
             ולעורר שיחה. הכימיה האמיתית והחיבור העמוק נוצרים במפגש האנושי.
           </p>

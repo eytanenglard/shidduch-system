@@ -1,16 +1,19 @@
-<!DOCTYPE html>
-<html dir="{{getDir locale}}" lang="{{locale}}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{#if (eq locale 'he')}}ברוך הבא ל-NeshamaTech!{{else}}Welcome to NeshamaTech!{{/if}}</title>
-    <style>
+<html dir='{{getDir locale}}' lang='{{locale}}'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>{{#if (eq locale 'he')}}ברוך הבא ל-NeshamaTech!{{else}}Welcome to
+        NeshamaTech!{{/if}}</title>
+    <style
+    >
         body {
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            direction: {{getDir locale}};
+            direction: {{getDir
+        locale
+      }};
         }
         
         .email-wrapper {
@@ -110,7 +113,9 @@
         
         .next-step-box {
             background: #fef3c7;
-            border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #f59e0b;
+            border-{{#if
+        (eq locale 'he')
+      }}right{{else}}left{{/if}}: 4px solid #f59e0b;
             border-radius: 12px;
             padding: 20px;
             margin: 25px 0;
@@ -146,7 +151,9 @@
         
         .ai-insight-icon {
             font-size: 28px;
-            margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 10px;
+            margin-{{#if
+        (eq locale 'he')
+      }}left{{else}}right{{/if}}: 10px;
         }
         
         .ai-insight-box h3 {
@@ -326,179 +333,210 @@
             }
         }
     </style>
-</head>
-<body>
-    <table role="presentation" style="width: 100%; border-collapse: collapse;">
-        <tr>
-            <td class="email-wrapper">
-                <table role="presentation" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto; background: white; border-radius: 24px; overflow: hidden;">
-                    
-                    <!-- Header -->
-                    <tr>
-                        <td class="email-header">
-                            <h1>
-                                {{#if (eq locale 'he')}}
-                                    ברוך הבא ל-NeshamaTech, {{firstName}}!
-                                {{else}}
-                                    Welcome to NeshamaTech, {{firstName}}!
-                                {{/if}}
-                            </h1>
-                            <p>
-                                {{#if (eq locale 'he')}}
-                                    המסע שלך מתחיל כאן
-                                {{else}}
-                                    Your journey starts here
-                                {{/if}}
-                            </p>
-                        </td>
-                    </tr>
-                    
-                    <!-- Body -->
-                    <tr>
-                        <td class="email-body">
-                            <p class="greeting">
-                                {{#if (eq locale 'he')}}שלום{{else}}Hello{{/if}} {{firstName}},
-                            </p>
-                            
-                            <p>
-                                {{#if (eq locale 'he')}}
-                                    כמה מרגש! הצטרפת למשפחת NeshamaTech. המערכת שלנו כבר מתחילה ללמוד עליך, וכל פרט שתוסיף יעזור לנו למצוא לך את ההתאמה המושלמת.
-                                {{else}}
-                                    How exciting! You've joined the NeshamaTech family. Our system is already starting to learn about you, and every detail you add will help us find your perfect match.
-                                {{/if}}
-                            </p>
+  </head>
+  <body>
+    <table role='presentation' style='width: 100%; border-collapse: collapse;'>
+      <tr>
+        <td class='email-wrapper'>
+          <table
+            role='presentation'
+            class='email-container'
+            style='width: 100%; max-width: 600px; margin: 0 auto; background: white; border-radius: 24px; overflow: hidden;'
+          >
 
-                            <!-- Progress Section -->
-                            <div class="progress-section">
-                                <h3>
-                                    📊 {{#if (eq locale 'he')}}איפה אנחנו עכשיו?{{else}}Where are we now?{{/if}}
-                                </h3>
-                                
-                                <div class="progress-bar-container">
-                                    <div class="progress-bar" style="width: {{progressPercentage}}%;"></div>
-                                    <span class="progress-text">
-                                        {{progressPercentage}}% {{#if (eq locale 'he')}}הושלם{{else}}Complete{{/if}}
-                                    </span>
-                                </div>
-                            </div>
+            <!-- Header -->
+            <tr>
+              <td class='email-header'>
+                <h1>
+                  {{#if (eq locale 'he')}}
+                    ברוך הבא ל-NeshamaTech,
+                    {{firstName}}!
+                  {{else}}
+                    Welcome to NeshamaTech,
+                    {{firstName}}!
+                  {{/if}}
+                </h1>
+                <p>
+                  {{#if (eq locale 'he')}}
+                    המסע שלך מתחיל כאן
+                  {{else}}
+                    Your journey starts here
+                  {{/if}}
+                </p>
+              </td>
+            </tr>
 
-                            <!-- Next Step -->
-                            <div class="next-step-box">
-                                <h3>
-                                    🎯 {{#if (eq locale 'he')}}הצעד הראשון שלך{{else}}Your First Step{{/if}}
-                                </h3>
-                                <p>{{nextAction}}</p>
-                            </div>
+            <!-- Body -->
+            <tr>
+              <td class='email-body'>
+                <p class='greeting'>
+                  {{#if (eq locale 'he')}}שלום{{else}}Hello{{/if}}
+                  {{firstName}},
+                </p>
 
-                            {{#if aiInsight}}
-                            <!-- AI Insight -->
-                            <div class="ai-insight-box">
-                                <div class="ai-insight-header">
-                                    <span class="ai-insight-icon">🧠</span>
-                                    <h3>
-                                        {{#if (eq locale 'he')}}תובנת AI אישית{{else}}Personal AI Insight{{/if}}
-                                    </h3>
-                                </div>
-                                <p>{{aiInsight}}</p>
-                            </div>
-                            {{/if}}
+                <p>
+                  {{#if (eq locale 'he')}}
+                    כמה מרגש! הצטרפת למשפחת NeshamaTech. המערכת שלנו כבר מתחילה
+                    ללמוד עליך, וכל פרט שתוסיף יעזור לנו למצוא לך את ההתאמה
+                    המושלמת.
+                  {{else}}
+                    How exciting! You've joined the NeshamaTech family. Our
+                    system is already starting to learn about you, and every
+                    detail you add will help us find your perfect match.
+                  {{/if}}
+                </p>
 
-                            <!-- CTA Button -->
-                            <div class="cta-section">
-                                <a href="{{baseUrl}}/profile" class="cta-button">
-                                    {{#if (eq locale 'he')}}בואו נתחיל! 🚀{{else}}Let's Start! 🚀{{/if}}
-                                </a>
-                            </div>
+                <!-- Progress Section -->
+                <div class='progress-section'>
+                  <h3>
+                    📊
+                    {{#if (eq locale 'he')}}איפה אנחנו עכשיו?{{else}}Where are
+                      we now?{{/if}}
+                  </h3>
 
-                            <p class="help-text">
-                                {{#if (eq locale 'he')}}
-                                    שאלות? אנחנו כאן בשבילך 24/7. פשוט תשיב למייל הזה!
-                                {{else}}
-                                    Questions? We're here for you 24/7. Just reply to this email!
-                                {{/if}}
-                            </p>
-                        </td>
-                    </tr>
+                  <div class='progress-bar-container'>
+                    <div
+                      class='progress-bar'
+                      style='width: {{progressPercentage}}%;'
+                    ></div>
+                    <span class='progress-text'>
+                      {{progressPercentage}}%
+                      {{#if (eq locale 'he')}}הושלם{{else}}Complete{{/if}}
+                    </span>
+                  </div>
+                </div>
 
-                    <!-- Footer -->
-                    <tr>
-                        <td class="email-footer">
-                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                                <tr>
-                                    <td class="footer-content">
-                                        <!-- Logo -->
-                                        <div class="footer-logo">
-                                            <img 
-                                                src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png" 
-                                                alt="NeshamaTech Logo"
-                                            />
-                                        </div>
-                                        
-                                        <!-- Company Name with Gradient -->
-                                        <div class="footer-company-name">
-                                            <span>NeshamaTech</span>
-                                        </div>
-                                        
-                                        <!-- Tagline -->
-                                        <p class="footer-tagline">
-                                            {{#if (eq locale 'he')}}
-                                                מחברים לבבות, בונים עתיד משותף
-                                            {{else}}
-                                                Connecting Hearts, Building Shared Futures
-                                            {{/if}}
-                                        </p>
-                                        
-                                        <!-- Contact Info -->
-                                        <div class="footer-contact">
-                                            <p>
-                                                <strong>
-                                                    {{#if (eq locale 'he')}}צור קשר:{{else}}Contact:{{/if}}
-                                                </strong>
-                                            </p>
-                                            <p>
-                                                📧 <a href="mailto:{{supportEmail}}">{{supportEmail}}</a>
-                                            </p>
-                                            <p>
-                                                🌐 <a href="{{baseUrl}}">{{baseUrl}}</a>
-                                            </p>
-                                        </div>
-                                        
-                                        <!-- Social Links -->
-                                        <div class="footer-social">
-                                            <a href="#" title="Facebook">📘</a>
-                                            <a href="#" title="Instagram">📷</a>
-                                            <a href="#" title="Twitter">🐦</a>
-                                        </div>
-                                        
-                                        <!-- Copyright -->
-                                        <p class="footer-copyright">
-                                            © {{currentYear}} NeshamaTech. 
-                                            {{#if (eq locale 'he')}}
-                                                כל הזכויות שמורות
-                                            {{else}}
-                                                All rights reserved
-                                            {{/if}}
-                                        </p>
-                                        
-                                        <!-- Legal Links -->
-                                        <p class="footer-legal">
-                                            <a href="{{baseUrl}}/privacy">
-                                                {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy Policy{{/if}}
-                                            </a>
-                                            |
-                                            <a href="{{baseUrl}}/terms">
-                                                {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of Service{{/if}}
-                                            </a>
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    
+                <!-- Next Step -->
+                <div class='next-step-box'>
+                  <h3>
+                    🎯
+                    {{#if (eq locale 'he')}}הצעד הראשון שלך{{else}}Your First
+                      Step{{/if}}
+                  </h3>
+                  <p>{{nextAction}}</p>
+                </div>
+
+                {{#if aiInsight}}
+                  <!-- AI Insight -->
+                  <div class='ai-insight-box'>
+                    <div class='ai-insight-header'>
+                      <span class='ai-insight-icon'>🧠</span>
+                      <h3>
+                        {{#if (eq locale 'he')}}תובנת AI אישית{{else}}Personal
+                          AI Insight{{/if}}
+                      </h3>
+                    </div>
+                    <p>{{aiInsight}}</p>
+                  </div>
+                {{/if}}
+
+                <!-- CTA Button -->
+                <div class='cta-section'>
+                  <a href='{{baseUrl}}/profile' class='cta-button'>
+                    {{#if (eq locale 'he')}}בואו נתחיל! 🚀{{else}}Let's Start!
+                      🚀{{/if}}
+                  </a>
+                </div>
+
+                <p class='help-text'>
+                  {{#if (eq locale 'he')}}
+                    שאלות? אנחנו כאן בשבילך 24/7. פשוט תשיב למייל הזה!
+                  {{else}}
+                    Questions? We're here for you 24/7. Just reply to this
+                    email!
+                  {{/if}}
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td class='email-footer'>
+                <table
+                  role='presentation'
+                  style='width: 100%; border-collapse: collapse;'
+                >
+                  <tr>
+                    <td class='footer-content'>
+                      <!-- Logo -->
+                      <div class='footer-logo'>
+                        <img
+                          src='https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png'
+                          alt='NeshamaTech Logo'
+                        />
+                      </div>
+
+                      <!-- Company Name with Gradient -->
+                      <div class='footer-company-name'>
+                        <span>NeshamaTech</span>
+                      </div>
+
+                      <!-- Tagline -->
+                      <p class='footer-tagline'>
+                        {{#if (eq locale 'he')}}
+                          מחברים לבבות, בונים עתיד משותף
+                        {{else}}
+                          Connecting Hearts, Building Shared Futures
+                        {{/if}}
+                      </p>
+
+                      <!-- Contact Info -->
+                      <div class='footer-contact'>
+                        <p>
+                          <strong>
+                            {{#if (eq locale 'he')}}צור קשר:{{else}}Contact:{{/if}}
+                          </strong>
+                        </p>
+                        <p>
+                          📧
+                          <a href='mailto:{{supportEmail}}'>{{supportEmail}}</a>
+                        </p>
+                        <p>
+                          🌐
+                          <a href='{{baseUrl}}'>{{baseUrl}}</a>
+                        </p>
+                      </div>
+
+                      <!-- Social Links -->
+                      <div class='footer-social'>
+                        <a href='#' title='Facebook'>📘</a>
+                        <a href='#' title='Instagram'>📷</a>
+                        <a href='#' title='Twitter'>🐦</a>
+                      </div>
+
+                      <!-- Copyright -->
+                      <p class='footer-copyright'>
+                        ©
+                        {{currentYear}}
+                        NeshamaTech.
+                        {{#if (eq locale 'he')}}
+                          כל הזכויות שמורות
+                        {{else}}
+                          All rights reserved
+                        {{/if}}
+                      </p>
+
+                      <!-- Legal Links -->
+                      <p class='footer-legal'>
+                        <a href='{{baseUrl}}/privacy'>
+                          {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy
+                            Policy{{/if}}
+                        </a>
+                        |
+                        <a href='{{baseUrl}}/terms'>
+                          {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of
+                            Service{{/if}}
+                        </a>
+                      </p>
+                    </td>
+                  </tr>
                 </table>
-            </td>
-        </tr>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
     </table>
-</body>
+  </body>
 </html>

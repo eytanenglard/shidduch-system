@@ -40,7 +40,7 @@ const StickyLogo = ({ homepageAriaLabel }: { homepageAriaLabel: string }) => {
       <div className="relative h-10 w-10">
         <Image
           src={getRelativeCloudinaryPath(
-            'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
+            'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png'
           )}
           alt="NeshamaTech Icon"
           fill
