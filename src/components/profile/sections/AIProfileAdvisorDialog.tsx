@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,7 +14,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Sparkles, AlertTriangle, X, Brain, Zap } from 'lucide-react';
+import { Sparkles, AlertTriangle, X, Brain, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -109,24 +110,31 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
             onClick={handleTriggerClick}
             variant="outline"
             size="lg"
-            // Updated Colors: Teal/Orange Gradient
             className="relative group overflow-hidden w-full rounded-2xl border-2 border-teal-200/60 bg-gradient-to-br from-teal-50 via-orange-50 to-white hover:border-teal-300 transition-all duration-500 shadow-lg hover:shadow-2xl hover:shadow-teal-200/50 py-7"
           >
-            {/* Decorative background elements - Updated to Teal/Orange */}
+            {/* Decorative background elements (Gradient only, no icons) */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-transparent rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-200/30 to-transparent rounded-full blur-xl group-hover:scale-125 transition-transform duration-700" />
             
-            {/* Content */}
-            <div className="relative z-10 flex items-center justify-center gap-3">
-              <div className="relative">
-                <Sparkles className="w-6 h-6 text-teal-600 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110" />
-                <div className="absolute inset-0 bg-teal-400 rounded-full blur-md opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
-              </div>
-              {/* Text Gradient: Teal -> Orange */}
+            {/* Content Container */}
+            <div className="relative z-10 flex items-center justify-center gap-3 w-full">
+              
+              {/* 1. הטקסט מופיע ראשון בקוד */}
               <span className="font-semibold text-lg bg-gradient-to-r from-teal-700 via-orange-600 to-teal-700 bg-clip-text text-transparent group-hover:from-teal-800 group-hover:via-orange-700 group-hover:to-teal-800 transition-all duration-300">
                 {dict.triggerButton}
               </span>
-              <Brain className="w-5 h-5 text-orange-500 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:rotate-6" />
+              
+              {/* 2. הלוגו מופיע שני בקוד - מה שיגרום לו להיות "בסוף" המשפט (משמאל בעברית, מימין באנגלית) */}
+              <div className="relative w-8 h-8 group-hover:scale-110 transition-transform duration-500 shrink-0">
+                  <Image
+                    src="/logo.png"
+                    alt="NeshamaTech Logo"
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+              </div>
+
             </div>
 
             {/* Animated gradient overlay */}
@@ -136,11 +144,9 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
       </DialogTrigger>
 
       <DialogContent
-        // Updated Background: White -> Teal -> Orange
         className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0 border-2 border-teal-100/50 shadow-2xl overflow-hidden bg-gradient-to-br from-white via-teal-50/30 to-orange-50/30"
         dir={direction}
       >
-        {/* Decorative background elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-teal-200/20 to-transparent rounded-full blur-3xl animate-float-slow" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-orange-200/20 to-transparent rounded-full blur-2xl animate-float-slow" style={{ animationDelay: '2s' }} />
 
@@ -150,7 +156,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
               <motion.button 
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
-                // Updated Hover Colors
                 className="rounded-full p-2 text-gray-400 hover:text-gray-700 hover:bg-teal-50 shrink-0 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2"
               >
                 <X className="h-5 w-5" />
@@ -163,6 +168,7 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-teal-400 to-orange-400 rounded-xl blur-lg opacity-40" />
                   <div className="relative bg-gradient-to-br from-teal-500 via-orange-500 to-teal-600 p-2.5 rounded-xl shadow-lg">
+                    {/* כאן בפנים הדיאלוג השארתי את ה-Sparkles כי זה חלק מהעיצוב הפנימי */}
                     <Sparkles className="w-6 h-6 text-white" />
                   </div>
                 </div>
@@ -190,9 +196,7 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                 aria-live="polite"
                 className="flex flex-col items-center justify-center h-full text-center"
               >
-                {/* Loading animation container */}
                 <div className="relative mb-8">
-                  {/* Animated rings - Updated to Teal/Orange */}
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
@@ -204,7 +208,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                     className="absolute inset-2 w-28 h-28 rounded-full border-4 border-t-transparent border-r-orange-400 border-b-teal-400 border-l-transparent"
                   />
                   
-                  {/* Central icon */}
                   <div className="relative w-32 h-32 flex items-center justify-center">
                     <motion.div
                       animate={{ 
@@ -223,7 +226,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                   </div>
                 </div>
 
-                {/* Loading text */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -237,7 +239,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                     {dict.loadingDescription}
                   </p>
 
-                  {/* Animated dots - Updated colors */}
                   <div className="flex items-center justify-center gap-2 mt-6">
                     {[0, 0.2, 0.4].map((delay) => (
                       <motion.div
@@ -268,7 +269,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                 className="flex flex-col items-center justify-center h-full text-center px-4"
               >
                 <div className="relative mb-6">
-                  {/* Keep Red for Error, but style appropriately */}
                   <div className="absolute inset-0 bg-red-400 rounded-full blur-xl opacity-20" />
                   <div className="relative bg-gradient-to-br from-red-50 to-orange-50 p-6 rounded-full border-2 border-red-200">
                     <AlertTriangle className="h-16 w-16 text-red-500" />
@@ -326,7 +326,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
               >
                 <div className="text-center space-y-4">
                   <div className="relative inline-block">
-                    {/* Initial State - Teal/Orange Glow */}
                     <div className="absolute inset-0 bg-gradient-to-br from-teal-300 to-orange-300 rounded-full blur-2xl opacity-30" />
                     <div className="relative bg-gradient-to-br from-teal-100 to-orange-100 p-8 rounded-full border-2 border-teal-200">
                       <Sparkles className="w-16 h-16 text-teal-600" />
@@ -340,7 +339,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
         </div>
       </DialogContent>
 
-      {/* Custom animations */}
       <style>{`
         @keyframes float-slow {
           0%, 100% {

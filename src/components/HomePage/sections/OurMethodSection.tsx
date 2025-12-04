@@ -255,7 +255,6 @@ const MatchingConstellation: React.FC<{
   const activeWorld = hoveredWorld || selectedWorld;
   const displayedWorld = worlds.find((w) => w.id === activeWorld) || worlds[0];
 
-  // Helper to determine text color class based on world color (simplified)
   const getAccentTextColor = (id: number) => {
     if (id === 1) return 'text-teal-700';
     if (id === 2) return 'text-rose-700';
@@ -264,7 +263,6 @@ const MatchingConstellation: React.FC<{
     return 'text-sky-700';
   };
 
-  // Helper to determine border color class
   const getAccentBorderColor = (id: number) => {
     if (id === 1) return 'border-teal-200';
     if (id === 2) return 'border-rose-200';
@@ -444,17 +442,17 @@ const MatchingConstellation: React.FC<{
                       scale: { duration: 0.3, type: 'spring', stiffness: 300 },
                     }}
                   >
+                    {/* --- עודכן: לוגו במרכז הקונסטלציה --- */}
                     <div
-                      className={`relative ${isMobile ? 'w-7 h-7' : 'w-9 h-9'}`}
+                      className={`relative ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}
                     >
                       <Image
-                        src={getRelativeCloudinaryPath(
-                          'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png'
-                        )}
+                        src="/logo.png"
                         alt="NeshamaTech"
                         fill
                         className="object-contain transition-all duration-300"
-                        sizes={isMobile ? '28px' : '36px'}
+                        sizes={isMobile ? '32px' : '40px'}
+                        unoptimized
                       />
                     </div>
                     {(activeWorld || isDragging) && (

@@ -16,7 +16,6 @@ import {
   Handshake,
 } from 'lucide-react';
 import { Session } from 'next-auth';
-import { getRelativeCloudinaryPath } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { HeroSectionDict, PrincipleDict } from '@/types/dictionary';
 
@@ -351,9 +350,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   dict,
   locale,
 }) => {
-  const logoUrl =
-    'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png';
-
   return (
     <motion.section
       className="relative min-h-screen pt-12 pb-16 md:pt-16 md:pb-20 overflow-hidden flex flex-col items-center justify-center w-full px-4 sm:px-6 lg:px-8"
@@ -485,17 +481,19 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               </span>
             </div>
 
-            {/* לוגו במרכז */}
+            {/* --- עודכן: לוגו במרכז (מובייל) --- */}
             <div
               className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${isVisible ? 'animate-match-point-appear' : ''}`}
             >
               <div className="p-3 bg-gradient-to-br from-white to-orange-50 rounded-full shadow-2xl border-2 border-white">
-                <div className="relative w-9 h-9">
+                <div className="relative w-10 h-10">
                   <Image
-                    src={getRelativeCloudinaryPath(logoUrl)}
+                    src="/logo.png"
                     alt="NeshamaTech Logo"
                     fill
                     className="object-contain"
+                    unoptimized
+                    priority
                   />
                 </div>
               </div>
@@ -562,16 +560,20 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 filter="url(#glow)"
               />
             </svg>
+
+            {/* --- עודכן: לוגו במרכז (דסקטופ) --- */}
             <div
               className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${isVisible ? 'animate-match-point-appear' : ''}`}
             >
               <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-orange-50 rounded-full shadow-2xl border-2 border-white">
-                <div className="relative w-9 h-9">
+                <div className="relative w-10 h-10">
                   <Image
-                    src={getRelativeCloudinaryPath(logoUrl)}
+                    src="/logo.png"
                     alt="NeshamaTech Logo"
                     fill
                     className="object-contain"
+                    unoptimized
+                    priority
                   />
                 </div>
                 <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">

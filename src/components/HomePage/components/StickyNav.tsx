@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { UserPlus, Menu, X, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { getRelativeCloudinaryPath } from '@/lib/utils';
+// הוסר getRelativeCloudinaryPath עבור הלוגו, נשאר בשימוש עבור תמונות פרופיל אם צריך
 import { signOut } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
@@ -30,6 +30,7 @@ interface StickyNavProps {
   userDropdownDict: UserDropdownDict;
 }
 
+// --- עדכון רכיב הלוגו ---
 const StickyLogo = ({ homepageAriaLabel }: { homepageAriaLabel: string }) => {
   return (
     <Link
@@ -39,13 +40,12 @@ const StickyLogo = ({ homepageAriaLabel }: { homepageAriaLabel: string }) => {
     >
       <div className="relative h-10 w-10">
         <Image
-          src={getRelativeCloudinaryPath(
-            'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png'
-          )}
+          src="/logo.png" // שימוש בלוגו המקומי
           alt="NeshamaTech Icon"
           fill
           className="object-contain transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6"
           priority
+          unoptimized // חובה לאיכות חדה ומניעת אופטימיזציה מיותרת
         />
       </div>
       <span

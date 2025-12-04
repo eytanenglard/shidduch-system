@@ -92,7 +92,7 @@
     }
   },
 "aiAdvisor": {
-  "triggerButton": "🤖 ה-AI שלנו כאן לעזור - רוצה טיפים לפרופיל?",
+  "triggerButton": "ה-AI שלנו כאן לעזור - רוצה טיפים לפרופיל?",
   "dialogTitle": "המלצות אישיות מה-AI של NeshamaTech",
   "dialogDescription": "ה-AI שלנו מנתח את הפרופיל ומציע דרכים לשפר אותו - כדי שתמצא את ההתאמה הנכונה.",
   "closeButton": "סגור",

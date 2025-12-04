@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2025-12-02 14:35:13
+# Generated on: 2025-12-03 18:34:29
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -975,8 +975,8 @@ export interface StepProps {
   title: string;
   description: React.ReactNode;
   isLast?: boolean;
-  // עדכון: החלפתי את purple ב-orange כדי להתאים לקריאה מ-HowItWorksSection
-  color: "teal" | "amber" | "rose" | "orange";
+  // Added "emerald" to the type definition to match the parent component's array
+  color: "teal" | "amber" | "rose" | "orange" | "emerald";
 }
 
 // Modernized Step Component with enhanced visuals matching the Landing Page theme
@@ -1012,7 +1012,6 @@ const Step: React.FC<StepProps> = ({
       line: "from-rose-400 to-rose-200",
       bgBadge: "bg-rose-50",
     },
-    // כאן הוספתי את orange במקום purple
     orange: {
       gradient: "from-orange-400 to-red-500",
       hover: "group-hover:text-orange-700",
@@ -1020,6 +1019,15 @@ const Step: React.FC<StepProps> = ({
       shadow: "group-hover:shadow-orange-100",
       line: "from-orange-400 to-orange-200",
       bgBadge: "bg-orange-50",
+    },
+    // Added emerald styling configuration
+    emerald: {
+      gradient: "from-emerald-400 to-green-500",
+      hover: "group-hover:text-emerald-700",
+      border: "group-hover:border-emerald-200",
+      shadow: "group-hover:shadow-emerald-100",
+      line: "from-emerald-400 to-emerald-200",
+      bgBadge: "bg-emerald-50",
     },
   };
 
@@ -1030,8 +1038,7 @@ const Step: React.FC<StepProps> = ({
       {/* Connecting line between steps */}
       {!isLast && (
         <div
-          // הערה: אם האתר בעברית (RTL), הקו צריך להיות ממוקם בצד ימין.
-          // right-6 מותאם למרכז העיגול שרוחבו 12 (3rem -> אמצע 1.5rem/24px = right-6)
+          // RTL/LTR note: if direction is RTL, ensure 'right-6' is correct visually or use logical properties if available in tailwind config
           className={`absolute top-12 bottom-0 right-6 w-0.5 bg-gradient-to-b ${currentStyle.line} rounded-full opacity-40`}
         />
       )}
@@ -3296,7 +3303,7 @@ import {
   Handshake,
 } from 'lucide-react';
 import { Session } from 'next-auth';
-import { getRelativeCloudinaryPath } from '@/lib/utils';
+// הסרנו את getRelativeCloudinaryPath כי הלוגו כעת מקומי
 import { motion, AnimatePresence } from 'framer-motion';
 import type { HeroSectionDict, PrincipleDict } from '@/types/dictionary';
 
@@ -3550,10 +3557,16 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${activeTab === index ? `bg-gradient-to-br ${principle.gradient} shadow-lg` : 'bg-white/60 shadow-sm'}`}
                   >
-                    {React.cloneElement(principle.icon as React.ReactElement<{ className?: string; strokeWidth?: number }>, {
-                      className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
-                      strokeWidth: 2.5,
-                    })}
+                    {React.cloneElement(
+                      principle.icon as React.ReactElement<{
+                        className?: string;
+                        strokeWidth?: number;
+                      }>,
+                      {
+                        className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
+                        strokeWidth: 2.5,
+                      }
+                    )}
                   </div>
                 </div>
                 <div
@@ -3625,8 +3638,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   dict,
   locale,
 }) => {
-  const logoUrl =
-    'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png';
+  // השימוש ב-logoUrl הישן הוסר מכאן
 
   return (
     <motion.section
@@ -3641,14 +3653,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         style={{ backgroundSize: '400% 400%' }}
       />
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:20px_20px]"></div>
-      
+
       {/* Orbs צבעוניים - Teal, Orange, Rose */}
       <div className="absolute top-[15%] left-[5%] w-72 h-72 rounded-full bg-teal-300/20 blur-3xl animate-float-slow"></div>
       <div
         className="absolute bottom-[20%] right-[5%] w-64 h-64 rounded-full bg-orange-300/20 blur-3xl animate-float-slow"
         style={{ animationDelay: '2s' }}
       ></div>
-       <div
+      <div
         className="absolute top-[40%] right-[15%] w-48 h-48 rounded-full bg-rose-300/15 blur-3xl animate-float-slow"
         style={{ animationDelay: '4s' }}
       ></div>
@@ -3660,7 +3672,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           transition={{ duration: 0.7, ease: 'easeOut' }}
           className="text-center"
         >
-   <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 tracking-tight leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 tracking-tight leading-tight">
             {dict.titleLine1}
             <br className="sm:hidden" />
             {/* גרדיאנט כותרת מעודכן - תואם לכפתור (Teal -> Orange -> Amber) */}
@@ -3717,7 +3729,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               <path
                 className={`${isVisible ? 'path-draw' : ''}`}
                 d="M 30 128 C 90 60, 130 60, 160 110"
-                stroke="#0d9488" 
+                stroke="#0d9488"
                 strokeWidth="2.5"
                 fill="none"
                 strokeLinecap="round"
@@ -3727,7 +3739,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               <path
                 className={`${isVisible ? 'path-draw' : ''}`}
                 d="M 290 128 C 230 196, 190 196, 160 110"
-                stroke="#f97316" 
+                stroke="#f97316"
                 strokeWidth="2.5"
                 fill="none"
                 strokeLinecap="round"
@@ -3765,11 +3777,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             >
               <div className="p-3 bg-gradient-to-br from-white to-orange-50 rounded-full shadow-2xl border-2 border-white">
                 <div className="relative w-9 h-9">
+                  {/* --- תמונה מעודכנת: לוקאלית + unoptimized --- */}
                   <Image
-                    src={getRelativeCloudinaryPath(logoUrl)}
+                    src="/logo.png"
                     alt="NeshamaTech Logo"
                     fill
                     className="object-contain"
+                    unoptimized
+                    priority
                   />
                 </div>
               </div>
@@ -3841,11 +3856,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             >
               <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-orange-50 rounded-full shadow-2xl border-2 border-white">
                 <div className="relative w-9 h-9">
+                  {/* --- תמונה מעודכנת: לוקאלית + unoptimized --- */}
                   <Image
-                    src={getRelativeCloudinaryPath(logoUrl)}
+                    src="/logo.png"
                     alt="NeshamaTech Logo"
                     fill
                     className="object-contain"
+                    unoptimized
+                    priority
                   />
                 </div>
                 <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
@@ -4121,36 +4139,43 @@ const DynamicBackground: React.FC = () => (
 );
 
 // 2. כרטיס יתרון עם צבעים מעודכנים (תואם ל-DesktopPrincipleCard מה-Hero)
+// Updated: 4 distinct colors matching HeroSection principles exactly
 const KeyBenefit: React.FC<{
   icon: React.ReactNode;
   title: string;
   description: string;
-  color: 'teal' | 'rose' | 'amber' | 'orange';
+  color: 'teal' | 'orange' | 'rose' | 'emerald';
   delay?: number;
 }> = ({ icon, title, description, color, delay = 0 }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
 
+  // Updated color classes to match HeroSection principles exactly
+  // Each color is now distinctly different
   const colorClasses = {
-    // Teal / Knowledge style
+    // Teal / Knowledge style (matching HeroSection principle 1)
     teal: {
       bg: 'from-teal-400 via-teal-500 to-emerald-500',
       shadow: 'shadow-teal-500/25',
+      bgCard: 'from-teal-50 via-white to-emerald-50',
     },
-    // Rose / Personal style
-    rose: {
-      bg: 'from-rose-400 via-pink-500 to-red-500',
-      shadow: 'shadow-rose-500/25',
-    },
-    // Amber style
-    amber: {
-      bg: 'from-amber-400 via-yellow-500 to-orange-500',
-      shadow: 'shadow-amber-500/25',
-    },
-    // Orange / Privacy style (Updated to match Hero)
+    // Orange / Privacy style (matching HeroSection principle 2)
     orange: {
       bg: 'from-orange-400 via-amber-500 to-yellow-500',
       shadow: 'shadow-orange-500/25',
+      bgCard: 'from-orange-50 via-white to-amber-50',
+    },
+    // Rose / Personal style (matching HeroSection principle 3)
+    rose: {
+      bg: 'from-rose-400 via-pink-500 to-red-500',
+      shadow: 'shadow-rose-500/25',
+      bgCard: 'from-rose-50 via-white to-pink-50',
+    },
+    // Emerald / Success style (additional for 4th benefit)
+    emerald: {
+      bg: 'from-emerald-400 via-green-500 to-teal-500',
+      shadow: 'shadow-emerald-500/25',
+      bgCard: 'from-emerald-50 via-white to-teal-50',
     },
   };
 
@@ -4160,7 +4185,7 @@ const KeyBenefit: React.FC<{
       initial={{ opacity: 0, y: 30 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
       transition={{ duration: 0.6, delay }}
-      className="text-center group p-6 bg-gradient-to-br from-white via-white to-slate-50 backdrop-blur-md rounded-3xl border border-white/60 shadow-lg hover:shadow-xl transition-all duration-300 h-full"
+      className={`text-center group p-6 bg-gradient-to-br ${colorClasses[color].bgCard} backdrop-blur-md rounded-3xl border border-white/60 shadow-lg hover:shadow-xl transition-all duration-300 h-full`}
     >
       <div
         className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${colorClasses[color].bg} ${colorClasses[color].shadow} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300 text-white`}
@@ -4184,22 +4209,27 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
   const demoRef = useRef(null);
   const isDemoInView = useInView(demoRef, { once: true, amount: 0.1 });
 
-  // מערך צבעים תואם לפלטת ה-Hero (Teal, Amber, Rose, Orange)
-  const stepColors = ['teal', 'amber', 'rose', 'orange'] as const;
+  // מערך צבעים תואם לפלטת ה-Hero (Teal, Orange, Rose, Emerald)
+  const stepColors = ['teal', 'orange', 'rose', 'emerald'] as const;
 
+  // Updated: 4 distinctly different colors for benefits
+  // Matching HeroSection's 3 principles + 1 additional (emerald for success/growth)
   const benefitDetails = [
     {
       icon: <TrendingUp className="w-8 h-8" />,
-      color: 'teal' as const,
+      color: 'teal' as const,      // Knowledge/Growth - Teal
     },
-    { icon: <Award className="w-8 h-8" />, color: 'rose' as const },
+    {
+      icon: <Award className="w-8 h-8" />,
+      color: 'orange' as const,    // Achievement - Orange/Amber
+    },
     {
       icon: <Lightbulb className="w-8 h-8" />,
-      color: 'amber' as const,
+      color: 'rose' as const,      // Insight/Personal - Rose
     },
     {
       icon: <HeartHandshake className="w-8 h-8" />,
-      color: 'orange' as const,
+      color: 'emerald' as const,   // Connection/Success - Emerald
     },
   ];
 
@@ -4233,7 +4263,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
             {dict.promise.title_line1}
             <br />
             {dict.promise.title_line2_part1}{' '}
-            {/* Updated Gradient: Teal -> Orange -> Amber (Matching Hero) */}
+            {/* Gradient: Teal -> Orange -> Amber (Matching Hero CTA) */}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient">
               {dict.promise.title_line2_part2}
             </span>
@@ -4249,7 +4279,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
 
         {/* --- Chapter 2: The Process --- */}
         <div className="relative mb-24">
-          {/* Card Background Updated: White/Teal/Orange Mix */}
+          {/* Card Background: White/Teal/Orange Mix */}
           <div className="absolute inset-0 -m-8 bg-gradient-to-br from-white/80 via-teal-50/40 to-orange-50/40 rounded-[3rem] backdrop-blur-xl border border-white/60 shadow-2xl" />
           <div className="relative max-w-5xl mx-auto space-y-12 p-8">
             {dict.process.steps.map((step, index) => (
@@ -4299,8 +4329,8 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
             </div>
             <h3 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
               {dict.proof.title_part1}
-              {/* Gradient: Orange -> Amber -> Red */}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-red-600">
+              {/* Gradient: Orange -> Amber -> Rose */}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-amber-500 to-rose-500">
                 {' '}
                 {dict.proof.title_part2}
               </span>
@@ -4376,7 +4406,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                 {' '}
                 {dict.keyBenefits.title_part2}
               </span>
-              <div className="absolute -bottom-2 left-0 right-0 h-3 bg-amber-200/40 -z-10 skew-x-12" />
+              <div className="absolute -bottom-2 left-0 right-0 h-3 bg-gradient-to-r from-teal-200/40 via-orange-200/40 to-amber-200/40 -z-10 skew-x-12" />
             </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
@@ -4418,7 +4448,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
             transition={{ duration: 0.8, delay: 0.2 }}
             className="max-w-6xl mx-auto"
           >
-            {/* Updated Card Gradient to match Hero Cards exactly */}
+            {/* Card Gradient matching Hero Cards */}
             <div className="relative bg-gradient-to-br from-white via-teal-50/40 to-orange-50/40 backdrop-blur-xl rounded-[3rem] shadow-2xl border border-white/60 overflow-hidden">
               {/* Subtle mesh background inside */}
               <div className="absolute inset-0 opacity-40">
@@ -4436,7 +4466,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                   className="flex flex-col items-center md:items-start gap-6"
                 >
                   <div className="relative">
-                    {/* Decorative elements around image - Updated to Hero Palette */}
+                    {/* Decorative elements around image - Hero Palette */}
                     <div className="absolute -inset-4 bg-gradient-to-br from-teal-400/30 to-orange-400/30 rounded-full blur-xl" />
 
                     {/* Floating accents */}
@@ -4507,12 +4537,12 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
           transition={{ duration: 0.8 }}
           className="relative text-center pb-10"
         >
-          {/* Background updated to glass/gradient */}
+          {/* Background: glass/gradient */}
           <div className="relative max-w-4xl mx-auto p-12 bg-gradient-to-br from-white/90 via-teal-50/60 to-orange-50/60 backdrop-blur-xl rounded-[3rem] shadow-2xl border border-white/60">
             <h4 className="text-3xl md:text-5xl font-extrabold text-gray-800 mb-6 leading-tight">
               {dict.finalCta.title_line1}
               <br />
-              {/* Gradient Title: Teal -> Orange -> Amber */}
+              {/* Gradient Title: Teal -> Orange -> Amber (matching Hero CTA) */}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient">
                 {dict.finalCta.title_line2}
               </span>
@@ -4523,7 +4553,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Link href={`/${locale}/auth/register`}>
-                {/* Button Style copied EXACTLY from HeroSection for perfect match */}
+                {/* Button Style copied EXACTLY from HeroSection CTA */}
                 <Button
                   size="lg"
                   className="text-xl font-bold px-12 py-8 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
@@ -5538,7 +5568,7 @@ const MatchingConstellation: React.FC<{
         // Hero "Knowledge" Style (Teal)
         color: 'from-teal-400 via-teal-500 to-emerald-500',
         gradientFrom: '#2dd4bf', // teal-400
-        gradientTo: '#10b981',   // emerald-500
+        gradientTo: '#10b981', // emerald-500
         bgGradient: 'from-teal-50 via-white to-emerald-50',
         shadowColor: 'shadow-teal-500/25',
         angle: -72,
@@ -5550,7 +5580,7 @@ const MatchingConstellation: React.FC<{
         // Hero "Personal" Style (Rose)
         color: 'from-rose-400 via-pink-500 to-red-500',
         gradientFrom: '#fb7185', // rose-400
-        gradientTo: '#ef4444',   // red-500
+        gradientTo: '#ef4444', // red-500
         bgGradient: 'from-rose-50 via-white to-red-50',
         shadowColor: 'shadow-rose-500/25',
         angle: -144,
@@ -5562,7 +5592,7 @@ const MatchingConstellation: React.FC<{
         // Hero "Privacy/Guidance" Style (Orange/Amber)
         color: 'from-orange-400 via-amber-500 to-yellow-500',
         gradientFrom: '#fbbf24', // amber-400
-        gradientTo: '#f97316',   // orange-500
+        gradientTo: '#f97316', // orange-500
         bgGradient: 'from-orange-50 via-white to-amber-50',
         shadowColor: 'shadow-orange-500/25',
         angle: 144,
@@ -5574,7 +5604,7 @@ const MatchingConstellation: React.FC<{
         // Deep Orange/Red (Strong synergy color)
         color: 'from-orange-500 via-red-500 to-red-600',
         gradientFrom: '#f97316', // orange-500
-        gradientTo: '#dc2626',   // red-600
+        gradientTo: '#dc2626', // red-600
         bgGradient: 'from-orange-50 via-white to-red-50',
         shadowColor: 'shadow-orange-600/25',
         angle: 72,
@@ -5586,7 +5616,7 @@ const MatchingConstellation: React.FC<{
         // Cyan/Blue (Complementary to Orange, fits "Tech" vibe)
         color: 'from-cyan-400 via-sky-500 to-blue-500',
         gradientFrom: '#22d3ee', // cyan-400
-        gradientTo: '#3b82f6',   // blue-500
+        gradientTo: '#3b82f6', // blue-500
         bgGradient: 'from-cyan-50 via-white to-blue-50',
         shadowColor: 'shadow-sky-500/25',
         angle: 0,
@@ -5716,21 +5746,21 @@ const MatchingConstellation: React.FC<{
 
   // Helper to determine text color class based on world color (simplified)
   const getAccentTextColor = (id: number) => {
-     if (id === 1) return 'text-teal-700';
-     if (id === 2) return 'text-rose-700';
-     if (id === 3) return 'text-amber-700';
-     if (id === 4) return 'text-orange-700';
-     return 'text-sky-700';
-  }
+    if (id === 1) return 'text-teal-700';
+    if (id === 2) return 'text-rose-700';
+    if (id === 3) return 'text-amber-700';
+    if (id === 4) return 'text-orange-700';
+    return 'text-sky-700';
+  };
 
-    // Helper to determine border color class
+  // Helper to determine border color class
   const getAccentBorderColor = (id: number) => {
-     if (id === 1) return 'border-teal-200';
-     if (id === 2) return 'border-rose-200';
-     if (id === 3) return 'border-amber-200';
-     if (id === 4) return 'border-orange-200';
-     return 'border-sky-200';
-  }
+    if (id === 1) return 'border-teal-200';
+    if (id === 2) return 'border-rose-200';
+    if (id === 3) return 'border-amber-200';
+    if (id === 4) return 'border-orange-200';
+    return 'border-sky-200';
+  };
 
   return (
     <div
@@ -6132,7 +6162,9 @@ const MatchingConstellation: React.FC<{
                 </p>
                 <div className="bg-white/60 rounded-2xl p-4 md:p-6 mb-4 md:mb-6 border border-white/80 shadow-sm">
                   <div className="flex items-start gap-3">
-                    <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${displayedWorld.color} mt-3 flex-shrink-0`}></div>
+                    <div
+                      className={`w-2 h-2 rounded-full bg-gradient-to-r ${displayedWorld.color} mt-3 flex-shrink-0`}
+                    ></div>
                     <div>
                       <h5 className="font-semibold text-gray-800 mb-2">
                         {dict.example_header}
@@ -6145,15 +6177,23 @@ const MatchingConstellation: React.FC<{
                   </div>
                 </div>
                 {/* Updated Insight Box to dynamically match world color */}
-                <div className={`bg-white/40 rounded-2xl p-4 md:p-6 border ${getAccentBorderColor(displayedWorld.id)}`}>
+                <div
+                  className={`bg-white/40 rounded-2xl p-4 md:p-6 border ${getAccentBorderColor(displayedWorld.id)}`}
+                >
                   <div className="flex items-start gap-3">
-                    <CheckCircle className={`w-5 h-5 ${getAccentTextColor(displayedWorld.id)} mt-1 flex-shrink-0`} />
+                    <CheckCircle
+                      className={`w-5 h-5 ${getAccentTextColor(displayedWorld.id)} mt-1 flex-shrink-0`}
+                    />
                     <div>
-                      <h5 className={`font-semibold ${getAccentTextColor(displayedWorld.id)} mb-2`}>
+                      <h5
+                        className={`font-semibold ${getAccentTextColor(displayedWorld.id)} mb-2`}
+                      >
                         {dict.insight_header}
                       </h5>
 
-                      <p className={`${getAccentTextColor(displayedWorld.id)} opacity-90 text-sm md:text-base`}>
+                      <p
+                        className={`${getAccentTextColor(displayedWorld.id)} opacity-90 text-sm md:text-base`}
+                      >
                         {displayedWorld.insight}
                       </p>
                     </div>
@@ -6214,7 +6254,7 @@ const OurMethodSection: React.FC<OurMethodProps> = ({ dict }) => {
           style={{ animationDelay: '1s' }}
         />
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:20px_20px]"></div>
-        
+
         <svg
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 1200 800"

@@ -92,7 +92,7 @@
     }
   },
 "aiAdvisor": {
-  "triggerButton": "🤖 Our AI is Here to Help - Want Profile Tips?",
+  "triggerButton": "Our AI is Here to Help - Want Profile Tips?",
   "dialogTitle": "Personal Recommendations from NeshamaTech's AI",
   "dialogDescription": "Our AI analyzes your profile and suggests ways to improve it - so you can find the right match.",
   "closeButton": "Close",

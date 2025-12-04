@@ -4,7 +4,7 @@
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
-import { Heart } from 'lucide-react';
+import Image from 'next/image'; // הוספת ייבוא Image
 import { FooterLink, FooterItem } from '../components/FooterComponents';
 import type { FooterDict } from '@/types/dictionary';
 
@@ -104,12 +104,15 @@ const FooterSection: React.FC<FooterProps> = ({ dict }) => {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <Link href="/" className="flex items-center gap-2 group mb-6">
-                <div className="relative overflow-hidden rounded-full p-1 transition-all duration-300 group-hover:scale-110">
-                  {/* Heart Icon: Rose color for warmth */}
-                  <Heart
-                    className="h-7 w-7 text-rose-500 transition-all duration-300 group-hover:text-rose-400"
-                    fill="#1e293b"
+              <Link href="/" className="flex items-center gap-3 group mb-6">
+                {/* --- עודכן: לוגו תמונה במקום אייקון לב --- */}
+                <div className="relative h-10 w-10 overflow-hidden rounded-full p-1 transition-all duration-300 group-hover:scale-110 bg-white/5">
+                  <Image 
+                    src="/logo.png"
+                    alt="NeshamaTech Logo"
+                    fill
+                    className="object-contain"
+                    unoptimized
                   />
                 </div>
                 {/* Logo Text Hover: Orange */}
