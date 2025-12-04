@@ -338,10 +338,11 @@ const RegisterStepsContent: React.FC<{
   const renderStep = (): React.ReactNode => {
     if (sessionStatus === 'loading') {
       return (
-        <StandardizedLoadingSpinner
-          text={locale === 'he' ? 'טוען...' : 'Loading...'}
-          layout="inline"
-        />
+       <StandardizedLoadingSpinner
+      text={locale === 'he' ? 'טוען...' : 'Loading...'}
+      // אם ברצונך לשלוט בגובה כי הסרת את layout="inline", ניתן להשתמש ב-className:
+      className="min-h-[400px]" 
+    />
       );
     }
 

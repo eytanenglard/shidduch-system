@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react'; // הוספתי את הייבוא מהקובץ הישן
+import { Sparkles } from 'lucide-react';
 
 // ==================== INTERFACES ====================
 
@@ -27,6 +27,7 @@ const EASING = {
   settle: [0.23, 1, 0.32, 1],
   elastic: [0.68, -0.55, 0.265, 1.55],
   breath: [0.4, 0, 0.6, 1],
+  liquid: [0.45, 0, 0.55, 1], // New easing for liquid fill
 };
 
 // ==================== HELPER COMPONENTS ====================
@@ -360,6 +361,37 @@ function AnimatedNeshamaLogo({ size = 140 }) {
         style={{ position: 'relative', zIndex: 1 }}
       >
         <defs>
+          {/* GRADIENT FOR THE LOADING CORE - connects Orange to Green */}
+          <linearGradient id="loadingCoreGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#E38A29" />
+            <stop offset="100%" stopColor="#368368" />
+          </linearGradient>
+
+          {/* MASK FOR LIQUID FILL EFFECT */}
+          <mask id="liquidMask">
+            <motion.rect
+              x="380"
+              y="600"
+              width="100"
+              height="200"
+              fill="white"
+              initial={{ y: 200 }}
+              animate={
+                phase === 'assembled'
+                  ? {
+                      y: [200, -50, 200], // Moves the mask up (filling) and down (emptying)
+                    }
+                  : { y: 200 }
+              }
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: EASING.liquid,
+              }}
+            />
+          </mask>
+
+          {/* Existing Gradients */}
           <linearGradient
             id="animatedOrange"
             gradientUnits="userSpaceOnUse"
@@ -461,6 +493,53 @@ function AnimatedNeshamaLogo({ size = 140 }) {
             </feMerge>
           </filter>
         </defs>
+
+        {/* ===== LOADING CORE / NESHAMA PULSE (The new component) ===== */}
+        {/* ממוקם לפני האלמנטים הראשיים כדי להיות "בתוך" הלוגו */}
+        <motion.g
+          initial={{ opacity: 0, scale: 0 }}
+          animate={
+            phase === 'assembled'
+              ? { opacity: 1, scale: 1 }
+              : { opacity: 0, scale: 0 }
+          }
+          transition={{ duration: 1 }}
+        >
+          {/* The Container Ring (Ghost) */}
+          <circle
+            cx="430"
+            cy="690"
+            r="35"
+            stroke="url(#loadingCoreGradient)"
+            strokeWidth="1"
+            fill="none"
+            opacity="0.2"
+          />
+
+          {/* The Liquid Fill Circle */}
+          <motion.circle
+            cx="430"
+            cy="690"
+            r="32"
+            fill="url(#loadingCoreGradient)"
+            mask="url(#liquidMask)" // This mask does the filling/emptying magic
+            opacity="0.9"
+          />
+
+          {/* Subtle Pulse Glow */}
+          <motion.circle
+            cx="430"
+            cy="690"
+            r="35"
+            stroke="url(#loadingCoreGradient)"
+            strokeWidth="2"
+            fill="none"
+            opacity="0.4"
+            animate={{ r: [35, 42, 35], opacity: [0.4, 0, 0.4] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        </motion.g>
+        {/* ========================================================= */}
 
         <ParticleTrail
           startX={900}
@@ -590,7 +669,6 @@ function AnimatedNeshamaLogo({ size = 140 }) {
           animate={currentPhase}
         />
 
-        <ShimmerOverlay phase={phase} />
       </motion.svg>
     </div>
   );
@@ -624,7 +702,6 @@ export default function StandardizedLoadingSpinner({
             duration: 0.6,
             ease: EASING.settle,
           }}
-          // כאן שונו הסגנונות כדי להתאים לקובץ הישן
           className="mt-6 text-xl font-semibold text-gray-700 text-center"
         >
           {text}
@@ -637,7 +714,6 @@ export default function StandardizedLoadingSpinner({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: TIMING.assemblyStart + 0.6 }}
-          // כאן שונו הסגנונות כדי להתאים לקובץ הישן והוחלף האימוג'י באייקון Sparkles
           className="mt-4 flex items-center gap-2 text-sm text-gray-500"
         >
           <Sparkles className="w-4 h-4" />
