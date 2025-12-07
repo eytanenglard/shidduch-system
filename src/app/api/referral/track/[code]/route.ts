@@ -12,10 +12,12 @@ import { v4 as uuidv4 } from 'uuid';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { code: string } }
+  // Fix: Type params as a Promise
+  { params }: { params: Promise<{ code: string }> }
 ) {
   try {
-    const { code } = params;
+    // Fix: Await the params object
+    const { code } = await params;
     
     if (!code) {
       return NextResponse.json(
