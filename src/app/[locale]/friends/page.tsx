@@ -1,220 +1,241 @@
 // src/app/[locale]/friends/page.tsx
+// דף הרשמה למפנים - קמפיין חברים מביאים חברים
 
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import Image from 'next/image';
-import { 
-  Gift, 
-  Users, 
-  Link as LinkIcon, 
-  Trophy, 
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
+import {
+  Users,
+  Gift,
+  Trophy,
+  Share2,
+  Heart,
+  Sparkles,
   ArrowLeft,
   CheckCircle2,
-  Sparkles,
-  Share2,
+  Copy,
+  Check,
+  Coffee,
+  UtensilsCrossed,
+  Crown,
+  Zap,
+  MessageCircle,
+  Star,
+  TrendingUp,
   ChevronDown,
+  Loader2,
+  AlertCircle,
+  PartyPopper,
+  Send,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useParams } from 'next/navigation';
 
-// ================== Types ==================
-
-interface PrizeTier {
-  threshold: number;
-  prize: string;
-  icon: React.ReactNode;
-}
-
-interface FormData {
-  name: string;
-  email: string;
-  phone: string;
-  preferredCode: string;
-  agreeToTerms: boolean;
-}
-
-interface RegistrationResult {
-  code: string;
-  shareUrl: string;
-  dashboardUrl: string;
-}
-
-// ================== Constants ==================
-
-const PRIZE_TIERS: PrizeTier[] = [
-  { threshold: 3, prize: 'שובר קפה בשווי 50₪', icon: <Gift className="w-5 h-5" /> },
-  { threshold: 7, prize: 'שובר מסעדה בשווי 150₪', icon: <Gift className="w-5 h-5" /> },
-  { threshold: 15, prize: 'ארוחה זוגית עד 400₪', icon: <Trophy className="w-5 h-5" /> },
-];
-
-const GRAND_PRIZE = {
-  title: 'פרס ראשון בתחרות',
-  prize: 'ארוחה זוגית פרימיום + הכרת תודה מיוחדת',
-};
+// ================== Dynamic Background ==================
+const DynamicBackground = () => (
+  <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+    <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20" />
+    <div className="absolute top-10 left-10 w-72 h-72 bg-teal-300/20 rounded-full blur-3xl animate-float-slow" />
+    <div
+      className="absolute top-1/3 right-20 w-64 h-64 bg-orange-300/20 rounded-full blur-3xl animate-float-slow"
+      style={{ animationDelay: '2s' }}
+    />
+    <div
+      className="absolute bottom-20 left-1/3 w-80 h-80 bg-rose-300/15 rounded-full blur-3xl animate-float-slow"
+      style={{ animationDelay: '4s' }}
+    />
+    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:30px_30px]" />
+  </div>
+);
 
 // ================== Hero Section ==================
+const HeroSection: React.FC<{ locale: string; onScrollToForm: () => void }> = ({
+  locale,
+  onScrollToForm,
+}) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
 
-const HeroSection: React.FC<{ onScrollToForm: () => void }> = ({ onScrollToForm }) => {
   return (
-    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-teal-50 via-white to-orange-50" />
-      
-      {/* Decorative elements */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-teal-200/30 rounded-full blur-3xl animate-float-slow" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-200/30 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '-3s' }} />
-      
-      <div className="relative z-10 container mx-auto px-4 py-16 text-center">
+    <motion.section
+      ref={ref}
+      className="relative min-h-[85vh] flex items-center justify-center px-4 py-16"
+      initial={{ opacity: 0 }}
+      animate={isInView ? { opacity: 1 } : {}}
+      transition={{ duration: 1 }}
+    >
+      <div className="max-w-5xl mx-auto text-center">
+        {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.2 }}
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-100 via-orange-100 to-rose-100 rounded-full px-6 py-3 mb-8 shadow-lg border border-amber-200/50"
         >
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm border border-teal-100 mb-6">
-            <Sparkles className="w-4 h-4 text-orange-500" />
-            <span className="text-sm font-medium text-gray-700">קמפיין חברים מביאים חברים</span>
+          <PartyPopper className="w-5 h-5 text-amber-600" />
+          <span className="font-bold text-amber-700">
+            קמפיין מיוחד לזמן מוגבל
+          </span>
+          <Sparkles className="w-5 h-5 text-orange-500" />
+        </motion.div>
+
+        {/* Title */}
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.3 }}
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 mb-6 leading-tight"
+        >
+          חברים מביאים
+          <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient">
+            את הזיווג שלהם
+          </span>
+        </motion.h1>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.5 }}
+          className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-10"
+        >
+          הזמינו חברים ל-NeshamaTech וקבלו פרסים מדהימים.
+          <br />
+          <span className="font-semibold text-teal-700">
+            המפנה המוביל יזכה בארוחת זוגות מפנקת! 🎉
+          </span>
+        </motion.p>
+
+        {/* Visual */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : {}}
+          transition={{ delay: 0.6 }}
+          className="relative max-w-md mx-auto mb-12 h-28 flex items-center justify-center"
+        >
+          <div className="absolute left-8 w-20 h-20 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-xl border-4 border-white">
+            <Users className="w-10 h-10 text-white" />
           </div>
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center shadow-2xl border-4 border-white z-10">
+            <Gift className="w-8 h-8 text-white" />
+          </div>
+          <div className="absolute right-8 w-20 h-20 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-xl border-4 border-white">
+            <Heart className="w-10 h-10 text-white" />
+          </div>
+        </motion.div>
 
-          {/* Title */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            עזרו לחברים למצוא אהבה
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500">
-              ותזכו בפרסים
-            </span>
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8 leading-relaxed">
-            מכירים רווקים איכותיים שמחפשים קשר אמיתי?
-            <br />
-            שלחו להם את הקישור שלכם ועזרו להם להצטרף ל-NeshamaTech
-          </p>
-
-          {/* CTA Button */}
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.8 }}
+        >
           <Button
-            size="lg"
             onClick={onScrollToForm}
-            className="text-lg px-8 py-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
+            size="lg"
+            className="text-xl font-bold px-12 py-8 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-xl hover:shadow-2xl transition-all group"
           >
-            אני רוצה להשתתף
-            <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+            <Zap className="w-6 h-6 ml-2 group-hover:rotate-12 transition-transform" />
+            רוצה להצטרף? בואו נתחיל!
+            <ArrowLeft className="w-6 h-6 mr-2 group-hover:-translate-x-1 transition-transform" />
           </Button>
         </motion.div>
 
-        {/* Scroll indicator */}
+        {/* Stats */}
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 0.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ delay: 1 }}
+          className="flex flex-wrap justify-center gap-6 mt-12"
         >
-          <ChevronDown className="w-6 h-6 text-gray-400 animate-bounce" />
+          {[
+            { value: '3', label: 'פרסים', icon: Gift },
+            { value: '₪400', label: 'פרס ראשון', icon: Trophy },
+            { value: '∞', label: 'ללא הגבלה', icon: Users },
+          ].map((stat, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-2xl px-5 py-3 shadow-lg border border-white/60"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-100 to-orange-100 flex items-center justify-center">
+                <stat.icon className="w-5 h-5 text-teal-600" />
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold text-gray-900">
+                  {stat.value}
+                </div>
+                <div className="text-xs text-gray-600">{stat.label}</div>
+              </div>
+            </div>
+          ))}
         </motion.div>
       </div>
-
-      {/* Custom styles */}
-      <style>{`
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0) translateX(0); }
-          25% { transform: translateY(-15px) translateX(10px); }
-          50% { transform: translateY(-5px) translateX(20px); }
-          75% { transform: translateY(-10px) translateX(5px); }
-        }
-        .animate-float-slow {
-          animation: float-slow 12s ease-in-out infinite;
-        }
-      `}</style>
-    </section>
+    </motion.section>
   );
 };
 
-// ================== How It Works Section ==================
-
-const HowItWorksSection: React.FC = () => {
+// ================== How It Works ==================
+const HowItWorksSection = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
   const steps = [
     {
-      number: '1',
-      title: 'הירשמו וקבלו קישור',
-      description: 'מלאו את הטופס הקצר וקבלו קישור אישי ייחודי לכם',
-      icon: <LinkIcon className="w-6 h-6" />,
-      color: 'teal',
+      title: 'הירשמו',
+      desc: 'מלאו פרטים וקבלו קישור',
+      icon: <Users className="w-7 h-7" />,
+      gradient: 'from-teal-400 to-emerald-500',
     },
     {
-      number: '2',
-      title: 'שתפו עם חברים',
-      description: 'שלחו את הקישור לחברים רווקים שמחפשים קשר רציני',
-      icon: <Share2 className="w-6 h-6" />,
-      color: 'orange',
+      title: 'שתפו',
+      desc: 'שלחו לחברים רווקים',
+      icon: <Share2 className="w-7 h-7" />,
+      gradient: 'from-orange-400 to-amber-500',
     },
     {
-      number: '3',
-      title: 'צברו נקודות',
-      description: 'על כל חבר שנרשם ומאמת את הטלפון - אתם צוברים נקודות',
-      icon: <Users className="w-6 h-6" />,
-      color: 'rose',
+      title: 'צברו',
+      desc: 'כל חבר = נקודה',
+      icon: <Star className="w-7 h-7" />,
+      gradient: 'from-rose-400 to-pink-500',
     },
     {
-      number: '4',
-      title: 'קבלו פרסים',
-      description: 'ככל שתביאו יותר חברים - הפרסים משתדרגים!',
-      icon: <Gift className="w-6 h-6" />,
-      color: 'amber',
+      title: 'זכו!',
+      desc: 'הגיעו ליעדים וקבלו פרסים',
+      icon: <Gift className="w-7 h-7" />,
+      gradient: 'from-amber-400 to-orange-500',
     },
   ];
 
-  const getColorClasses = (color: string) => {
-    const colors: Record<string, { bg: string; text: string; border: string }> = {
-      teal: { bg: 'bg-teal-50', text: 'text-teal-600', border: 'border-teal-200' },
-      orange: { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200' },
-      rose: { bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-200' },
-      amber: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200' },
-    };
-    return colors[color] || colors.teal;
-  };
-
   return (
-    <section className="py-16 bg-white">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+    <section ref={ref} className="py-16 px-4">
+      <div className="max-w-5xl mx-auto">
+        <motion.h2
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">איך זה עובד?</h2>
-          <p className="text-gray-600 max-w-xl mx-auto">ארבעה צעדים פשוטים להשתתפות בקמפיין</p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {steps.map((step, index) => {
-            const colors = getColorClasses(step.color);
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`relative p-6 rounded-2xl ${colors.bg} border ${colors.border} hover:shadow-lg transition-shadow duration-300`}
+          איך זה עובד?
+        </motion.h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {steps.map((step, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: i * 0.1 }}
+              className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60 text-center hover:shadow-xl transition-all group"
+            >
+              <div
+                className={`w-14 h-14 mx-auto rounded-xl bg-gradient-to-br ${step.gradient} flex items-center justify-center text-white mb-4 shadow-lg group-hover:scale-110 transition-transform`}
               >
-                <div className={`absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white ${colors.text} border-2 ${colors.border} flex items-center justify-center font-bold text-sm shadow-sm`}>
-                  {step.number}
-                </div>
-                <div className={`w-12 h-12 rounded-xl ${colors.bg} ${colors.text} flex items-center justify-center mb-4 border ${colors.border}`}>
-                  {step.icon}
-                </div>
-                <h3 className="font-bold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{step.description}</p>
-              </motion.div>
-            );
-          })}
+                {step.icon}
+              </div>
+              <h3 className="font-bold text-gray-800 mb-1">{step.title}</h3>
+              <p className="text-sm text-gray-600">{step.desc}</p>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
@@ -222,45 +243,79 @@ const HowItWorksSection: React.FC = () => {
 };
 
 // ================== Prizes Section ==================
+const PrizesSection = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const prizes = [
+    {
+      threshold: 3,
+      prize: 'קפה ומאפה',
+      value: 50,
+      icon: <Coffee className="w-8 h-8" />,
+      gradient: 'from-teal-400 to-emerald-500',
+      bg: 'from-teal-50 to-emerald-50',
+    },
+    {
+      threshold: 7,
+      prize: 'ארוחה במסעדה',
+      value: 150,
+      icon: <UtensilsCrossed className="w-8 h-8" />,
+      gradient: 'from-orange-400 to-amber-500',
+      bg: 'from-orange-50 to-amber-50',
+    },
+    {
+      threshold: 15,
+      prize: 'ארוחת זוגות',
+      value: 400,
+      icon: <Heart className="w-8 h-8" />,
+      gradient: 'from-rose-400 to-pink-500',
+      bg: 'from-rose-50 to-pink-50',
+    },
+  ];
 
-const PrizesSection: React.FC = () => {
   return (
-    <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
-      <div className="container mx-auto px-4">
+    <section ref={ref} className="py-16 px-4">
+      <div className="max-w-5xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">הפרסים שמחכים לכם</h2>
-          <p className="text-gray-600 max-w-xl mx-auto">
-            ככל שתביאו יותר חברים שנרשמים ומאמתים טלפון - כך הפרסים משתדרגים
-          </p>
+          <div className="inline-flex items-center gap-2 bg-amber-100 rounded-full px-5 py-2 mb-4">
+            <Trophy className="w-5 h-5 text-amber-600" />
+            <span className="font-bold text-amber-700">הפרסים</span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900">
+            שלושה יעדים, שלושה פרסים
+          </h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {PRIZE_TIERS.map((tier, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {prizes.map((p, i) => (
             <motion.div
-              key={index}
+              key={i}
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300"
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: i * 0.15 }}
+              whileHover={{ y: -8, scale: 1.02 }}
+              className={`bg-gradient-to-br ${p.bg} rounded-3xl p-8 shadow-xl border border-white/60 text-center relative overflow-hidden group`}
             >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400" />
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-100 to-orange-100 flex items-center justify-center text-orange-600">
-                  {tier.icon}
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-gray-900">{tier.threshold}+</div>
-                  <div className="text-sm text-gray-500">חברים מאומתים</div>
-                </div>
+              <div
+                className={`absolute top-3 left-3 bg-gradient-to-br ${p.gradient} text-white text-xs font-bold px-3 py-1 rounded-full`}
+              >
+                {p.threshold}+ מאומתים
               </div>
-              <p className="font-medium text-gray-800">{tier.prize}</p>
+              <div
+                className={`w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br ${p.gradient} flex items-center justify-center text-white mb-4 shadow-xl group-hover:rotate-6 transition-transform`}
+              >
+                {p.icon}
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                {p.prize}
+              </h3>
+              <div className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
+                ₪{p.value}
+              </div>
             </motion.div>
           ))}
         </div>
@@ -268,16 +323,24 @@ const PrizesSection: React.FC = () => {
         {/* Grand Prize */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 p-1"
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.5 }}
+          className="mt-10 bg-gradient-to-br from-amber-50 via-white to-orange-50 rounded-3xl p-8 shadow-2xl border-2 border-amber-200/50 flex flex-col md:flex-row items-center gap-6 text-center md:text-right"
         >
-          <div className="bg-white rounded-[22px] p-8 text-center">
-            <Trophy className="w-12 h-12 text-amber-500 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">{GRAND_PRIZE.title}</h3>
-            <p className="text-lg text-gray-700">{GRAND_PRIZE.prize}</p>
-            <p className="text-sm text-gray-500 mt-2">למי שיביא הכי הרבה חברים עד סוף הקמפיין</p>
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-400 to-red-500 flex items-center justify-center shadow-2xl flex-shrink-0">
+            <Crown className="w-12 h-12 text-white" />
+          </div>
+          <div>
+            <div className="inline-flex items-center gap-2 bg-amber-100 rounded-full px-4 py-1 mb-2 text-sm">
+              <Trophy className="w-4 h-4 text-amber-600" />
+              <span className="font-bold text-amber-700">פרס מקום ראשון</span>
+            </div>
+            <h3 className="text-2xl font-extrabold text-gray-900">
+              המפנה המוביל יזכה ב:
+            </h3>
+            <p className="text-xl text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-red-600 font-bold">
+              ארוחה זוגית מפנקת + הכרה מיוחדת 🏆
+            </p>
           </div>
         </motion.div>
       </div>
@@ -285,294 +348,345 @@ const PrizesSection: React.FC = () => {
   );
 };
 
-// ================== Signup Form Section ==================
-
-const SignupFormSection: React.FC<{ formRef: React.RefObject<HTMLDivElement | null> }> = ({ formRef }) => {  const [formData, setFormData] = useState<FormData>({
+// ================== Signup Form ==================
+const SignupForm: React.FC<{
+  locale: string;
+  formRef: React.RefObject<HTMLDivElement | null>;
+}> = ({ locale, formRef }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const [form, setForm] = useState({
     name: '',
     email: '',
     phone: '',
-    preferredCode: '',
-    agreeToTerms: false,
+    code: '',
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [codeStatus, setCodeStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
-  const [result, setResult] = useState<RegistrationResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
+  const [generatedCode, setGeneratedCode] = useState('');
   const [copied, setCopied] = useState(false);
+  const [codeStatus, setCodeStatus] = useState<
+    'idle' | 'checking' | 'available' | 'taken'
+  >('idle');
 
   useEffect(() => {
-    if (!formData.preferredCode || formData.preferredCode.length < 3) {
+    if (!form.code || form.code.length < 3) {
       setCodeStatus('idle');
       return;
     }
-
-    const timer = setTimeout(async () => {
+    const t = setTimeout(async () => {
       setCodeStatus('checking');
       try {
-        const res = await fetch(`/api/referral/register?code=${formData.preferredCode}`);
-        const data = await res.json();
-        setCodeStatus(data.available ? 'available' : 'taken');
+        const r = await fetch(`/api/referral/register?code=${form.code}`);
+        const d = await r.json();
+        setCodeStatus(d.available ? 'available' : 'taken');
       } catch {
         setCodeStatus('idle');
       }
     }, 500);
+    return () => clearTimeout(t);
+  }, [form.code]);
 
-    return () => clearTimeout(timer);
-  }, [formData.preferredCode]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
-
+    setLoading(true);
+    setError('');
     try {
-      const res = await fetch('/api/referral/register', {
+      const r = await fetch('/api/referral/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name,
-          email: formData.email || undefined,
-          phone: formData.phone || undefined,
-          preferredCode: formData.preferredCode || undefined,
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          preferredCode: form.code,
         }),
       });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setResult(data.referrer);
-      } else {
-        setError(data.error === 'CODE_TAKEN' ? 'הקוד הזה כבר תפוס, נסו אחר' : 'אירעה שגיאה, נסו שוב');
-      }
-    } catch {
-      setError('אירעה שגיאה בתקשורת, נסו שוב');
-    } finally {
-      setIsSubmitting(false);
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'שגיאה');
+      setGeneratedCode(d.referrer.code);
+      setSuccess(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'שגיאה');
     }
+    setLoading(false);
   };
 
-  const copyToClipboard = async () => {
-    if (!result) return;
-    await navigator.clipboard.writeText(result.shareUrl);
+  const copy = async () => {
+    await navigator.clipboard.writeText(
+      `${window.location.origin}/r/${generatedCode}`
+    );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Success state
-  if (result) {
-    return (
-      <section ref={formRef} className="py-16 bg-gradient-to-br from-teal-50 via-white to-orange-50">
-        <div className="container mx-auto px-4 max-w-lg">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl shadow-xl p-8 text-center border border-teal-100"
-          >
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="w-8 h-8 text-white" />
-            </div>
-            
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">מעולה! נרשמתם בהצלחה</h2>
-            <p className="text-gray-600 mb-6">הקוד האישי שלכם הוא: <strong className="text-teal-600">{result.code}</strong></p>
-            
-            <div className="bg-gray-50 rounded-xl p-4 mb-6">
-              <Label className="text-sm text-gray-600 mb-2 block">הקישור שלכם לשיתוף:</Label>
-              <div className="flex gap-2">
-                <Input value={result.shareUrl} readOnly className="text-center font-mono text-sm" />
-                <Button
-                  onClick={copyToClipboard}
-                  variant="outline"
-                  className={copied ? 'bg-teal-50 text-teal-600 border-teal-200' : ''}
-                >
-                  {copied ? 'הועתק!' : 'העתק'}
-                </Button>
-              </div>
-            </div>
-
-            <Button
-              onClick={() => {
-                const text = encodeURIComponent(`היי! אני רוצה להמליץ לך על NeshamaTech - מערכת שידוכים מיוחדת שמתמקדת באנשים ולא בסווייפים. הנה הקישור להרשמה: ${result.shareUrl}`);
-                window.open(`https://wa.me/?text=${text}`, '_blank');
-              }}
-              className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white mb-4"
-            >
-              <Share2 className="ml-2 w-4 h-4" />
-              שתפו בוואטסאפ
-            </Button>
-
-            <a href={result.dashboardUrl} className="text-teal-600 hover:text-teal-700 text-sm font-medium">
-              לדשבורד האישי שלי →
-            </a>
-          </motion.div>
-        </div>
-      </section>
+  const whatsapp = () => {
+    const url = `${window.location.origin}/r/${generatedCode}`;
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(`היי! 👋\nהמלצה על NeshamaTech:\n${url}`)}`,
+      '_blank'
     );
-  }
+  };
 
   return (
-    <section ref={formRef} className="py-16 bg-gradient-to-br from-teal-50 via-white to-orange-50">
-      <div className="container mx-auto px-4 max-w-lg">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="bg-white rounded-3xl shadow-xl p-8 border border-teal-100"
-        >
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">הצטרפו לקמפיין</h2>
-            <p className="text-gray-600">מלאו את הפרטים וקבלו את הקישור האישי שלכם</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <Label htmlFor="name" className="text-gray-700">שם מלא *</Label>
-              <Input
-                id="name"
-                type="text"
-                required
-                placeholder="איך קוראים לכם?"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="email" className="text-gray-700">אימייל</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="לקבלת עדכונים על הפרסים"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="mt-1"
-                dir="ltr"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="phone" className="text-gray-700">טלפון</Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="ליצירת קשר לגבי הפרסים"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="mt-1"
-                dir="ltr"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="preferredCode" className="text-gray-700">קוד אישי (אופציונלי)</Label>
-              <Input
-                id="preferredCode"
-                type="text"
-                placeholder="למשל: DAVID או SARA"
-                value={formData.preferredCode}
-                onChange={(e) => setFormData({ ...formData, preferredCode: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '') })}
-                className="mt-1 font-mono"
-                dir="ltr"
-                maxLength={15}
-              />
-              <p className="text-xs text-gray-500 mt-1">אותיות באנגלית ומספרים בלבד, 3-15 תווים</p>
-              {codeStatus === 'checking' && <p className="text-xs text-gray-500 mt-1">בודק זמינות...</p>}
-              {codeStatus === 'available' && <p className="text-xs text-teal-600 mt-1">✓ הקוד פנוי!</p>}
-              {codeStatus === 'taken' && <p className="text-xs text-red-500 mt-1">✗ הקוד תפוס, נסו אחר</p>}
-            </div>
-
-            <div className="flex items-start gap-3">
-              <Checkbox
-                id="terms"
-                checked={formData.agreeToTerms}
-                onCheckedChange={(checked) => setFormData({ ...formData, agreeToTerms: !!checked })}
-                className="mt-1"
-              />
-              <Label htmlFor="terms" className="text-sm text-gray-600 leading-relaxed">
-                אני מאשר/ת שאשתף את הקישור רק עם אנשים שמחפשים קשר רציני ושהמידע שמסרתי נכון
-              </Label>
-            </div>
-
-            {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center">{error}</div>
-            )}
-
-            <Button
-              type="submit"
-              disabled={!formData.name || !formData.agreeToTerms || isSubmitting || codeStatus === 'taken'}
-              className="w-full py-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-xl shadow-lg disabled:opacity-50"
+    <section ref={formRef} className="py-16 px-4">
+      <div ref={ref} className="max-w-xl mx-auto">
+        <AnimatePresence mode="wait">
+          {!success ? (
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              exit={{ opacity: 0 }}
+              className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
             >
-              {isSubmitting ? 'נרשמים...' : 'קבלו את הקישור שלכם'}
-            </Button>
-          </form>
-        </motion.div>
+              <div className="text-center mb-8">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-teal-500 to-orange-500 flex items-center justify-center text-white mb-4 shadow-lg">
+                  <Send className="w-7 h-7" />
+                </div>
+                <h2 className="text-2xl font-extrabold text-gray-900">
+                  הצטרפו עכשיו!
+                </h2>
+                <p className="text-gray-600">מלאו פרטים וקבלו קישור אישי</p>
+              </div>
+
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <span className="text-red-700">{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={submit} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    שם מלא *
+                  </label>
+                  <Input
+                    required
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="ישראל ישראלי"
+                    className="h-12 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    אימייל *
+                  </label>
+                  <Input
+                    type="email"
+                    required
+                    value={form.email}
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
+                    placeholder="email@example.com"
+                    className="h-12 rounded-xl"
+                    dir="ltr"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    טלפון (אופציונלי)
+                  </label>
+                  <Input
+                    type="tel"
+                    value={form.phone}
+                    onChange={(e) =>
+                      setForm({ ...form, phone: e.target.value })
+                    }
+                    placeholder="050-1234567"
+                    className="h-12 rounded-xl"
+                    dir="ltr"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    קוד מועדף (אופציונלי)
+                  </label>
+                  <div className="relative">
+                    <Input
+                      value={form.code}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          code: e.target.value
+                            .toUpperCase()
+                            .replace(/[^A-Z0-9]/g, ''),
+                        })
+                      }
+                      placeholder="DAVID"
+                      maxLength={15}
+                      className="h-12 rounded-xl font-mono pl-10"
+                      dir="ltr"
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                      {codeStatus === 'checking' && (
+                        <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+                      )}
+                      {codeStatus === 'available' && (
+                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      )}
+                      {codeStatus === 'taken' && (
+                        <AlertCircle className="w-5 h-5 text-red-500" />
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    הקישור: neshamatech.com/r/{form.code || 'YOURCODE'}
+                  </p>
+                  {codeStatus === 'taken' && (
+                    <p className="text-xs text-red-500">הקוד תפוס</p>
+                  )}
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading || codeStatus === 'taken'}
+                  className="w-full h-12 text-lg font-bold bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white rounded-xl"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 ml-2 animate-spin" />
+                      נרשמים...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5 ml-2" />
+                      קבלו קישור
+                    </>
+                  )}
+                </Button>
+              </form>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-gradient-to-br from-teal-50 via-white to-orange-50 rounded-3xl p-8 shadow-2xl border border-teal-200/50 text-center"
+            >
+              <div className="text-4xl mb-2">🎉</div>
+              <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center mb-4 shadow-xl">
+                <CheckCircle2 className="w-10 h-10 text-white" />
+              </div>
+              <h2 className="text-2xl font-extrabold text-gray-900 mb-2">
+                נרשמתם בהצלחה!
+              </h2>
+              <p className="text-gray-600 mb-6">הנה הקישור האישי שלכם:</p>
+              <div className="bg-white rounded-xl p-4 shadow border border-gray-100 mb-6">
+                <div className="flex items-center justify-between gap-3 bg-gray-50 rounded-lg p-3">
+                  <code
+                    className="text-teal-600 font-mono truncate flex-1"
+                    dir="ltr"
+                  >
+                    {window.location.origin}/r/{generatedCode}
+                  </code>
+                  <Button onClick={copy} variant="outline" size="sm">
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4 ml-1" />
+                        הועתק
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 ml-1" />
+                        העתק
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  onClick={whatsapp}
+                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-5 rounded-xl"
+                >
+                  <MessageCircle className="w-5 h-5 ml-2" />
+                  שתפו בוואטסאפ
+                </Button>
+                <Button
+                  onClick={() =>
+                    window.open(
+                      `/${locale}/referral/dashboard?code=${generatedCode}`,
+                      '_blank'
+                    )
+                  }
+                  variant="outline"
+                  className="px-6 py-5 rounded-xl"
+                >
+                  <TrendingUp className="w-5 h-5 ml-2" />
+                  דשבורד
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
 };
 
-// ================== FAQ Section ==================
-
-const FAQSection: React.FC = () => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
+// ================== FAQ ==================
+const FAQSection = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const [open, setOpen] = useState<number | null>(null);
   const faqs = [
     {
-      question: 'מה נחשב "חבר מאומת"?',
-      answer: 'חבר מאומת הוא מישהו שנרשם דרך הקישור שלכם והשלים אימות טלפון. רק אז הוא נספר לטובת הפרסים שלכם.',
+      q: 'איך הפרסים עובדים?',
+      a: 'כל חבר שנרשם ומאמת טלפון = נקודה. 3 נקודות = קפה, 7 = ארוחה, 15 = ארוחת זוגות.',
     },
+    { q: 'מתי מקבלים את הפרסים?', a: 'הפרסים מחולקים בסוף כל חודש.' },
+    { q: 'האם יש הגבלה?', a: 'לא! אין הגבלה על מספר ההפניות.' },
     {
-      question: 'איך אני יודע כמה חברים הבאתי?',
-      answer: 'יש לכם דשבורד אישי שמראה בזמן אמת כמה לחצו על הקישור, כמה נרשמו וכמה אימתו טלפון. הקישור לדשבורד נשלח אליכם אחרי ההרשמה.',
-    },
-    {
-      question: 'מתי מקבלים את הפרסים?',
-      answer: 'פרסי הסף (קפה, מסעדה) נשלחים בסוף כל שבוע למי שעבר את הסף. פרס המקום הראשון יוענק בסיום הקמפיין.',
-    },
-    {
-      question: 'האם אפשר לשתף את הקישור גם בפייסבוק?',
-      answer: 'בהחלט! אתם יכולים לשתף את הקישור בכל פלטפורמה - וואטסאפ, פייסבוק, אינסטגרם, או לשלוח ישירות לחברים.',
-    },
-    {
-      question: 'מה קורה אם הקוד שרציתי תפוס?',
-      answer: 'המערכת תציע לכם קוד חלופי אוטומטית. אתם גם יכולים לנסות קודים אחרים עד שתמצאו אחד פנוי.',
+      q: 'איך עוקבים אחרי ההתקדמות?',
+      a: 'יש לכם דשבורד אישי שמראה את כל הסטטיסטיקות.',
     },
   ];
 
   return (
-    <section className="py-16 bg-white">
-      <div className="container mx-auto px-4 max-w-2xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+    <section ref={ref} className="py-16 px-4">
+      <div className="max-w-2xl mx-auto">
+        <motion.h2
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          className="text-3xl font-extrabold text-center text-gray-900 mb-10"
         >
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">שאלות נפוצות</h2>
-        </motion.div>
-
+          שאלות נפוצות
+        </motion.h2>
         <div className="space-y-3">
-          {faqs.map((faq, index) => (
+          {faqs.map((faq, i) => (
             <motion.div
-              key={index}
+              key={i}
               initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="border border-gray-200 rounded-xl overflow-hidden"
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: i * 0.1 }}
             >
               <button
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full px-6 py-4 text-right flex items-center justify-between bg-white hover:bg-gray-50 transition-colors"
+                onClick={() => setOpen(open === i ? null : i)}
+                className="w-full bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg border border-white/60 text-right hover:shadow-xl transition-all"
               >
-                <span className="font-medium text-gray-900">{faq.question}</span>
-                <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${openIndex === index ? 'rotate-180' : ''}`} />
+                <div className="flex items-center justify-between gap-4">
+                  <h3 className="font-bold text-gray-800">{faq.q}</h3>
+                  <ChevronDown
+                    className={`w-5 h-5 text-gray-500 transition-transform ${open === i ? 'rotate-180' : ''}`}
+                  />
+                </div>
+                <AnimatePresence>
+                  {open === i && (
+                    <motion.p
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="text-gray-600 mt-3 overflow-hidden"
+                    >
+                      {faq.a}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </button>
-              {openIndex === index && (
-                <div className="px-6 py-4 bg-gray-50 text-gray-600 text-sm leading-relaxed">{faq.answer}</div>
-              )}
             </motion.div>
           ))}
         </div>
@@ -581,34 +695,31 @@ const FAQSection: React.FC = () => {
   );
 };
 
-// ================== Main Page Component ==================
-
+// ================== Main Page ==================
 export default function FriendsPage() {
+  const params = useParams();
+  const locale = (params?.locale as string) || 'he';
   const formRef = useRef<HTMLDivElement>(null);
-
-  const scrollToForm = () => {
+  const scrollToForm = () =>
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
 
   return (
-    <main className="min-h-screen" dir="rtl">
-      <HeroSection onScrollToForm={scrollToForm} />
+    <main
+      className="min-h-screen relative"
+      dir={locale === 'he' ? 'rtl' : 'ltr'}
+    >
+      <DynamicBackground />
+      <HeroSection locale={locale} onScrollToForm={scrollToForm} />
       <HowItWorksSection />
       <PrizesSection />
-      <SignupFormSection formRef={formRef} />
+      <SignupForm locale={locale} formRef={formRef} />
       <FAQSection />
-      
-      <footer className="py-8 bg-gray-50 border-t border-gray-100">
-        <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Image src="/logo.png" alt="NeshamaTech" width={32} height={32} />
-            <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
-              NeshamaTech
-            </span>
-          </div>
-          <p className="text-sm text-gray-500">© {new Date().getFullYear()} NeshamaTech. כל הזכויות שמורות.</p>
-        </div>
-      </footer>
+      <style>{`
+        @keyframes float-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        .animate-float-slow { animation: float-slow 15s ease-in-out infinite; }
+        @keyframes gradient { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .animate-gradient { background-size: 200% 200%; animation: gradient 4s ease-in-out infinite; }
+      `}</style>
     </main>
   );
 }

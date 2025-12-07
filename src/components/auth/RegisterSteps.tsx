@@ -25,10 +25,7 @@ interface RegisterStepsProps {
 const RegisterStepsContent: React.FC<{
   dict: RegisterStepsDict;
   locale: 'he' | 'en';
-}> = ({
-  dict,
-  locale,
-}) => {
+}> = ({ dict, locale }) => {
   const {
     data: registrationContextData,
     initializeFromSession,
@@ -61,7 +58,7 @@ const RegisterStepsContent: React.FC<{
     }
     if (sessionStatus === 'authenticated' && session?.user) {
       const user = session.user as SessionUserType;
-      
+
       if (
         user.isProfileComplete &&
         user.isPhoneVerified &&
@@ -80,7 +77,7 @@ const RegisterStepsContent: React.FC<{
         !user.termsAndPrivacyAcceptedAt ||
         !user.isProfileComplete ||
         !user.isPhoneVerified;
-        
+
       if (
         needsSetup &&
         (!initializationAttempted ||
@@ -141,6 +138,7 @@ const RegisterStepsContent: React.FC<{
               personalDetailsDict={dict.steps.personalDetails}
               optionalInfoDict={dict.steps.optionalInfo}
               consentDict={dict.consentCheckbox}
+              validationDict={dict.validationErrors}
               locale={locale}
             />
           );
@@ -160,6 +158,7 @@ const RegisterStepsContent: React.FC<{
           <BasicInfoStep
             dict={dict.steps.basicInfo}
             consentDict={dict.consentCheckbox}
+            validationDict={dict.validationErrors}
             locale={locale}
           />
         );
@@ -186,10 +185,9 @@ const RegisterStepsContent: React.FC<{
     );
     showProgressBar = true;
     currentProgressBarStep = 1;
-
   } else if (registrationContextData.isCompletingProfile) {
     pageTitle = dict.headers.completeProfileTitle;
-    showProgressBar = false; 
+    showProgressBar = false;
 
     if (registrationContextData.step === 2) {
       stepDescription = session?.user?.termsAndPrivacyAcceptedAt
@@ -202,7 +200,6 @@ const RegisterStepsContent: React.FC<{
     } else {
       stepDescription = dict.headers.loadingProfileDescription;
     }
-
   } else {
     if (registrationContextData.step === 1) {
       pageTitle = dict.headers.registerTitle;
@@ -256,9 +253,11 @@ const RegisterStepsContent: React.FC<{
       </div>
 
       <div className="mt-8 text-center text-sm text-gray-500">
-        {dict.contactSupport}{' '}
-        {/* UPDATED: Link Color (Teal) */}
-        <Link href="/contact" className="text-teal-600 hover:underline hover:text-teal-700">
+        {dict.contactSupport} {/* UPDATED: Link Color (Teal) */}
+        <Link
+          href="/contact"
+          className="text-teal-600 hover:underline hover:text-teal-700"
+        >
           {dict.contactSupportLink}
         </Link>
       </div>
