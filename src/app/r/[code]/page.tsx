@@ -1,18 +1,20 @@
-// src/app/r/[code]/page.tsx
-
 import { redirect } from 'next/navigation';
 import { getReferrerByCode } from '@/lib/services/referralService';
 
 interface ReferralRedirectProps {
-  params: { code: string };
+  // תיקון: הגדרת params כ-Promise
+  params: Promise<{ code: string }>;
 }
 
 /**
  * דף זה מטפל בקישורים קצרים כמו neshamatech.com/r/DAVID
  * הוא מפנה ל-API route שמטפל במעקב ואז מפנה להרשמה
  */
-export default async function ReferralRedirect({ params }: ReferralRedirectProps) {
-  const { code } = params;
+export default async function ReferralRedirect({
+  params,
+}: ReferralRedirectProps) {
+  // תיקון: שימוש ב-await כדי לחלץ את ה-code
+  const { code } = await params;
 
   // בדוק אם הקוד קיים
   const referrer = await getReferrerByCode(code);
@@ -28,7 +30,10 @@ export default async function ReferralRedirect({ params }: ReferralRedirectProps
 
 // Metadata
 export async function generateMetadata({ params }: ReferralRedirectProps) {
-  const referrer = await getReferrerByCode(params.code);
+  // תיקון: גם כאן חובה לעשות await
+  const { code } = await params;
+
+  const referrer = await getReferrerByCode(code);
 
   if (!referrer) {
     return {
@@ -38,11 +43,14 @@ export async function generateMetadata({ params }: ReferralRedirectProps) {
 
   return {
     title: `הצטרפו ל-NeshamaTech | הזמנה מ-${referrer.name}`,
-    description: 'הצטרפו למסע למציאת הזוגיות האמיתית שלכם. NeshamaTech - שידוכים שמתחילים מהנשמה.',
+    description:
+      'הצטרפו למסע למציאת הזוגיות האמיתית שלכם. NeshamaTech - שידוכים שמתחילים מהנשמה.',
     openGraph: {
       title: `הצטרפו ל-NeshamaTech`,
       description: `${referrer.name} מזמין/ה אתכם להצטרף לקהילת NeshamaTech`,
-      images: ['https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png'],
+      images: [
+        'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png',
+      ],
     },
   };
 }
