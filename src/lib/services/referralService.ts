@@ -69,6 +69,45 @@ export function isValidCode(code: string): boolean {
 }
 
 /**
+ * פירסור בטוח של prizeTiers מה-database
+ * יכול להגיע כ-string, מערך, או null
+ */
+export function parsePrizeTiers(rawPrizeTiers: unknown): PrizeTier[] {
+  try {
+    if (!rawPrizeTiers) return [];
+    if (typeof rawPrizeTiers === 'string') {
+      return JSON.parse(rawPrizeTiers);
+    }
+    if (Array.isArray(rawPrizeTiers)) {
+      return rawPrizeTiers as PrizeTier[];
+    }
+    return [];
+  } catch (e) {
+    console.error('[parsePrizeTiers] Error:', e);
+    return [];
+  }
+}
+
+/**
+ * פירסור בטוח של campaign settings מה-database
+ */
+export function parseCampaignSettings(rawSettings: unknown): CampaignSettings {
+  try {
+    if (!rawSettings) return DEFAULT_CAMPAIGN_SETTINGS;
+    if (typeof rawSettings === 'string') {
+      return { ...DEFAULT_CAMPAIGN_SETTINGS, ...JSON.parse(rawSettings) };
+    }
+    if (typeof rawSettings === 'object' && !Array.isArray(rawSettings)) {
+      return { ...DEFAULT_CAMPAIGN_SETTINGS, ...(rawSettings as object) };
+    }
+    return DEFAULT_CAMPAIGN_SETTINGS;
+  } catch (e) {
+    console.error('[parseCampaignSettings] Error:', e);
+    return DEFAULT_CAMPAIGN_SETTINGS;
+  }
+}
+
+/**
  * מחשב איזה פרסים הושגו לפי מספר המאומתים
  */
 export function calculateEarnedPrizes(
@@ -259,7 +298,9 @@ export async function getReferrerStats(code: string): Promise<ReferrerPublicStat
   
   if (!referrer) return null;
   
-  const prizeTiers = (referrer.campaign.prizeTiers as unknown as PrizeTier[]) || [];
+  // פירסור prizeTiers בצורה בטוחה
+  const prizeTiers = parsePrizeTiers(referrer.campaign.prizeTiers);
+  
   const nextPrize = getNextPrize(referrer.verifiedCount, prizeTiers);
   const prizesEarned = calculateEarnedPrizes(referrer.verifiedCount, prizeTiers);
   
@@ -310,7 +351,7 @@ export async function trackClick(data: {
   }
   
   // בדוק מגבלת IP (אם מוגדרת)
-  const settings = (referrer.campaign.settings as unknown as  CampaignSettings) || DEFAULT_CAMPAIGN_SETTINGS;
+  const settings = parseCampaignSettings(referrer.campaign.settings);
   if (data.ipAddress && settings.maxReferralsPerIP > 0) {
     const ipCount = await prisma.referral.count({
       where: {
