@@ -10,13 +10,29 @@ import {
 } from '@/lib/services/referralService';
 import { v4 as uuidv4 } from 'uuid';
 
+/**
+ * פונקציה לקבלת ה-Base URL הנכון
+ * ב-Heroku, request.url יכול להחזיר URL פנימי לא נכון
+ */
+function getBaseUrl(request: NextRequest): string {
+  // נסה לקבל את ה-host מה-headers
+  const host = request.headers.get('x-forwarded-host') || 
+               request.headers.get('host') ||
+               'localhost:3000';
+  
+  // בדוק אם זה HTTPS (ב-production)
+  const protocol = request.headers.get('x-forwarded-proto') || 
+                   (process.env.NODE_ENV === 'production' ? 'https' : 'http');
+  
+  return `${protocol}://${host}`;
+}
+
 export async function GET(
   request: NextRequest,
-  // Fix: Type params as a Promise
   { params }: { params: Promise<{ code: string }> }
 ) {
   try {
-    // Fix: Await the params object
+    // תיקון ל-Next.js 15: חובה לעשות await ל-params
     const { code } = await params;
     
     if (!code) {
@@ -26,12 +42,16 @@ export async function GET(
       );
     }
 
+    // קבל את ה-Base URL הנכון
+    const baseUrl = getBaseUrl(request);
+    console.log('[Referral Track] Base URL:', baseUrl);
+
     // בדוק אם המפנה קיים ופעיל
     const referrer = await getReferrerByCode(code);
     
     if (!referrer) {
       // קוד לא קיים - הפנה לעמוד הבית
-      return NextResponse.redirect(new URL('/', request.url));
+      return NextResponse.redirect(new URL('/', baseUrl));
     }
 
     // חלץ מידע מהבקשה
@@ -52,8 +72,11 @@ export async function GET(
     });
 
     // הכן את ה-redirect URL
-    const locale = request.headers.get('accept-language')?.startsWith('he') ? 'he' : 'en';
-    const redirectUrl = new URL(`/${locale}/auth/register`, request.url);
+    const { searchParams } = new URL(request.url);
+    const localeParam = searchParams.get('locale');
+    const acceptLanguage = request.headers.get('accept-language') || '';
+    const locale = localeParam || (acceptLanguage.startsWith('he') ? 'he' : 'en');
+    const redirectUrl = new URL(`/${locale}/auth/register`, baseUrl);
     
     // הוסף פרמטר לזיהוי שזה רפרל
     redirectUrl.searchParams.set('ref', code.toUpperCase());
@@ -77,12 +100,14 @@ export async function GET(
       redirectUrl.searchParams.set('sid', sessionId);
     }
 
+    console.log('[Referral Track] Redirecting to:', redirectUrl.toString());
     return response;
 
   } catch (error) {
     console.error('[Referral Track] Error:', error);
     
     // במקרה של שגיאה - הפנה לעמוד הבית
-    return NextResponse.redirect(new URL('/', request.url));
+    const baseUrl = getBaseUrl(request);
+    return NextResponse.redirect(new URL('/', baseUrl));
   }
 }
