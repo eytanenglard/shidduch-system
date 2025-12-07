@@ -364,6 +364,24 @@
         "backToHomeLink": "Back to Homepage"
       }
     },
+        "validationErrors": {
+      "title": "Missing Information",
+      "pleaseFill": "To proceed, please complete the following fields:",
+      "fields": {
+        "email": "Valid Email Address",
+        "password": "Valid Password",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "phone": "Valid Phone Number",
+        "gender": "Gender",
+        "birthDate": "Date of Birth (18+)",
+        "maritalStatus": "Marital Status",
+        "religiousLevel": "Religious Level",
+        "terms": "Terms of Service Agreement",
+        "engagement": "Engagement Updates Consent"
+      }
+    },
+
     "consentCheckbox": {
       "text": "I have read and agree to the {termsLink} and the {privacyLink} of NeshamaTech, and I consent to the collection, processing, and storage of my personal information, including sensitive information, as detailed therein, and to the transfer of my information to servers that may be located outside of Israel.",
       "termsLink": "Terms of Use",

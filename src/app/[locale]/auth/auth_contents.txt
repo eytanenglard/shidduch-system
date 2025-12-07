@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth
-# Generated on: 2025-12-01 08:24:17
+# Generated on: 2025-12-07 11:01:57
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -685,15 +685,7 @@ import {
 } from '@/components/auth/RegistrationContext';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Info,
-  Loader2,
-  Sparkles,
-  Heart,
-  Shield,
-  ArrowRight,
-  ArrowLeft,
-} from 'lucide-react';
+import { Info, Sparkles, Heart, Shield } from 'lucide-react';
 
 // Import step components
 import WelcomeStep from '@/components/auth/steps/WelcomeStep';
@@ -748,7 +740,7 @@ const itemVariants = {
 };
 
 // ============================================================================
-// BACKGROUND COMPONENT (מעודכן לפלטת Teal/Orange)
+// BACKGROUND COMPONENT (Teal/Orange Theme)
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
@@ -1018,8 +1010,12 @@ const RegisterStepsContent: React.FC<{
   // Render appropriate step
   const renderStep = (): React.ReactNode => {
     if (sessionStatus === 'loading') {
-        return <StandardizedLoadingSpinner text={locale === 'he' ? 'טוען...' : 'Loading...'} layout="inline" />;
-
+      return (
+        <StandardizedLoadingSpinner
+          text={locale === 'he' ? 'טוען...' : 'Loading...'}
+          className="min-h-[400px]"
+        />
+      );
     }
 
     if (
@@ -1042,6 +1038,7 @@ const RegisterStepsContent: React.FC<{
               personalDetailsDict={dict.steps.personalDetails}
               optionalInfoDict={dict.steps.optionalInfo}
               consentDict={dict.consentCheckbox}
+              validationDict={dict.validationErrors} // הוספה כאן: העברת המילון החדש
               locale={locale}
             />
           );
@@ -1061,6 +1058,7 @@ const RegisterStepsContent: React.FC<{
           <BasicInfoStep
             dict={dict.steps.basicInfo}
             consentDict={dict.consentCheckbox}
+            validationDict={dict.validationErrors} // הוספה כאן: העברת המילון החדש
             locale={locale}
           />
         );
@@ -1081,23 +1079,29 @@ const RegisterStepsContent: React.FC<{
     registrationContextData.isVerifyingEmailCode &&
     !registrationContextData.isCompletingProfile
   ) {
+    // Flow A: Account Creation -> Email Verify
     pageTitle = dict.headers.verifyEmailTitle;
     stepDescription = dict.headers.verifyEmailDescription.replace(
       '{{email}}',
       registrationContextData.emailForVerification || ''
     );
     showProgressBar = true;
-    currentProgressBarStep = 1;
+    currentProgressBarStep = 2; // Step 2 of 2
+    totalProgressBarSteps = 2;
   } else if (registrationContextData.isCompletingProfile) {
+    // Flow B: Profile Completion (Google / Post-Email)
     pageTitle = dict.headers.completeProfileTitle;
-    totalProgressBarSteps = 1;
+    totalProgressBarSteps = 2; // Fixed: Now it's 2 steps (Details + Phone)
+
     if (registrationContextData.step === 2) {
+      // Step 1: Personal Details
       stepDescription = session?.user?.termsAndPrivacyAcceptedAt
         ? dict.headers.personalDetailsConsentedDescription
         : dict.headers.personalDetailsDescription;
-      currentProgressBarStep = 1;
+      currentProgressBarStep = 1; // Step 1 of 2
       showProgressBar = true;
     } else if (registrationContextData.step === 4) {
+      // Transition state
       stepDescription = session?.user?.isPhoneVerified
         ? dict.headers.completionReadyDescription
         : dict.headers.completionPhoneVerificationDescription;
@@ -1107,10 +1111,12 @@ const RegisterStepsContent: React.FC<{
       showProgressBar = false;
     }
   } else {
+    // Initial Register Flow
     if (registrationContextData.step === 1) {
       pageTitle = dict.headers.registerTitle;
       stepDescription = dict.headers.accountCreationDescription;
-      currentProgressBarStep = 1;
+      currentProgressBarStep = 1; // Step 1 of 2 (Account Creation)
+      totalProgressBarSteps = 2;
       showProgressBar = true;
     }
   }
@@ -3457,6 +3463,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+// Import ProgressBar
+import ProgressBar from '@/components/auth/ProgressBar';
 import type { VerifyPhoneDict } from '@/types/dictionaries/auth';
 
 // ============================================================================
@@ -3879,6 +3887,17 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
       >
         {/* Header Section */}
         <motion.div variants={itemVariants} className="text-center mb-8">
+          {/* --- Progress Bar Added Here --- */}
+          <div className="w-full max-w-xs mx-auto mb-6">
+            <ProgressBar
+              currentStep={2}
+              totalSteps={2}
+              stepLabel={locale === 'he' ? 'שלב {{step}}' : 'Step {{step}}'}
+              locale={locale}
+            />
+          </div>
+          {/* ------------------------------- */}
+
           <motion.div
             className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-6"
             whileHover={{ scale: 1.05 }}

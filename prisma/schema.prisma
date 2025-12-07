@@ -60,7 +60,7 @@ lastOnboardingEmailSent DateTime? // מתי שלחנו מייל onboarding אח�
   onboardingCompleted     Boolean   @default(false) // סיים את ה-onboarding?
 neshamaInsightLastGeneratedAt   DateTime?     
   neshamaInsightGeneratedCount    Int       @default(0)  // 👈 הוסף שדה זה
-
+referral    Referral?  @relation("ReferredUser")
   @@index([email])
   @@index([role])
   @@index([status])
@@ -729,3 +729,116 @@ enum Language {
   he
 }
 
+model ReferralCampaign {
+  id          String   @id @default(cuid())
+  name        String   // "קמפיין קיץ 2025"
+  slug        String   @unique // "summer-2025" - לזיהוי בקלות
+  description String?  @db.Text
+  
+  // תאריכים
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean  @default(true)
+  
+  // פרסים
+  prizeTiers  Json?    // [{ threshold: 3, prize: "קפה", prizeValue: 50 }, ...]
+  grandPrize  String?  // "ארוחה זוגית פרימיום"
+  
+  // הגדרות
+  settings    Json?    // { requireVerification: true, minAgeForReferral: 0 }
+  
+  referrers   Referrer[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([isActive])
+  @@index([slug])
+  @@index([startDate, endDate])
+}
+
+model Referrer {
+  id           String   @id @default(cuid())
+  campaignId   String
+  campaign     ReferralCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  // פרטי המפנה
+  name         String
+  email        String?
+  phone        String?
+  code         String   @unique  // "DAVID", "SARA123" - קוד קצר וייחודי
+  
+  // סוג המפנה
+  tier         ReferrerTier @default(COMMUNITY)
+  
+  // הערות פנימיות
+  notes        String?  @db.Text
+  
+  // סטטיסטיקות מטמון (לביצועים - מתעדכן בכל אירוע)
+  clickCount       Int @default(0)
+  registrationCount Int @default(0)
+  verifiedCount    Int @default(0)
+  completedCount   Int @default(0)
+  
+  // פרסים שהתקבלו
+  prizesAwarded    Json?  // [{ prize: "קפה", awardedAt: "2025-06-15" }]
+  
+  referrals    Referral[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@index([campaignId])
+  @@index([code])
+  @@index([tier])
+  @@index([verifiedCount])
+}
+
+model Referral {
+  id          String   @id @default(cuid())
+  referrerId  String
+  referrer    Referrer @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+  
+  // המשתמש שנרשם (null עד שמשלים רישום)
+  userId      String?  @unique
+  user        User?    @relation("ReferredUser", fields: [userId], references: [id], onDelete: SetNull)
+  
+  // מעקב התקדמות
+  status      ReferralStatus @default(CLICKED)
+  
+  // מידע טכני למניעת הונאות
+  ipAddress   String?
+  userAgent   String?
+  sessionId   String?  // לזיהוי סשן ייחודי
+  
+  // תאריכים לכל שלב
+  clickedAt    DateTime @default(now())
+  startedAt    DateTime?  // התחיל למלא טופס
+  registeredAt DateTime?  // סיים רישום בסיסי
+  verifiedAt   DateTime?  // אימת טלפון
+  completedAt  DateTime?  // השלים פרופיל
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@index([referrerId])
+  @@index([userId])
+  @@index([status])
+  @@index([ipAddress])
+  @@index([clickedAt])
+}
+
+// --- Enums חדשים ---
+
+enum ReferrerTier {
+  AMBASSADOR  // שגריר - חבר קרוב שקיבל ערכה מלאה
+  COMMUNITY   // קהילה - נרשם דרך הדף הציבורי
+}
+
+enum ReferralStatus {
+  CLICKED      // לחץ על הקישור
+  STARTED      // התחיל הרשמה (נכנס לטופס)
+  REGISTERED   // סיים הרשמה בסיסית
+  VERIFIED     // אימת טלפון
+  COMPLETED    // השלים פרופיל + תמונה
+}

@@ -206,6 +206,7 @@ export type RegisterStepsDict = {
     completionReadyDescription: string;
     loadingProfileDescription: string;
   };
+
   incompleteProfileAlert: {
     title: string;
     description: string;
@@ -377,6 +378,24 @@ export type RegisterStepsDict = {
     termsLink: string;
     privacyLink: string;
   };
+    validationErrors: {
+    title: string;
+    pleaseFill: string;
+    fields: {
+      email: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+      phone: string;
+      gender: string;
+      birthDate: string;
+      maritalStatus: string;
+      religiousLevel: string;
+      terms: string;
+      engagement: string;
+    };
+  };
+
 };
 
 // Main Auth Dictionary Type

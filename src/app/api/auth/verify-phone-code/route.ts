@@ -8,6 +8,9 @@ import { Prisma, VerificationType, UserStatus } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { emailService } from '@/lib/email/emailService';
+// ========== 🔴 הוספה חדשה: ייבוא פונקציית עדכון רפרל ==========
+import { updateReferralStatus } from '@/lib/services/referralService';
+// ==============================================================
 
 const MAX_VERIFICATION_ATTEMPTS = 5;
 
@@ -122,6 +125,43 @@ export async function POST(req: NextRequest) {
     ]);
     
     logger.info("אימות טלפון הושלם בהצלחה, משתמש הוגדר כפעיל", { action, userId });
+
+    // ========== 🔴 הוספה חדשה: עדכון סטטוס רפרל ל-VERIFIED ==========
+    try {
+      logger.info("מנסה לעדכן סטטוס רפרל ל-VERIFIED", { action, userId });
+      
+      const referralUpdateResult = await updateReferralStatus({
+        userId: userId,
+        newStatus: 'VERIFIED',
+      });
+      
+      if (referralUpdateResult.success) {
+        logger.info("סטטוס רפרל עודכן בהצלחה ל-VERIFIED", { 
+          action, 
+          userId,
+          referralId: referralUpdateResult.referralId,
+          referrerId: referralUpdateResult.referrerId,
+          newVerifiedCount: referralUpdateResult.newVerifiedCount
+        });
+      } else if (referralUpdateResult.error === 'NO_REFERRAL') {
+        // המשתמש לא הגיע מרפרל - זה תקין
+        logger.info("למשתמש אין רפרל מקושר, ממשיכים רגיל", { action, userId });
+      } else {
+        logger.warn("לא הצלחנו לעדכן סטטוס רפרל", { 
+          action, 
+          userId,
+          error: referralUpdateResult.error 
+        });
+      }
+    } catch (referralError) {
+      // לא עוצרים את התהליך בגלל שגיאת רפרל
+      logger.error("שגיאה בעדכון סטטוס רפרל", { 
+        action, 
+        userId, 
+        error: referralError instanceof Error ? referralError.message : String(referralError)
+      });
+    }
+    // =================================================================
 
     try {
         await emailService.sendWelcomeEmail({

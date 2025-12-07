@@ -1,0 +1,86 @@
+// src/app/api/referral/track/[code]/route.ts
+
+import { NextRequest, NextResponse } from 'next/server';
+import { 
+  trackClick, 
+  getReferrerByCode,
+  createReferralCookieValue,
+  REFERRAL_COOKIE_NAME,
+  REFERRAL_COOKIE_DAYS,
+} from '@/lib/services/referralService';
+import { v4 as uuidv4 } from 'uuid';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { code: string } }
+) {
+  try {
+    const { code } = params;
+    
+    if (!code) {
+      return NextResponse.json(
+        { success: false, error: 'Missing code' },
+        { status: 400 }
+      );
+    }
+
+    // בדוק אם המפנה קיים ופעיל
+    const referrer = await getReferrerByCode(code);
+    
+    if (!referrer) {
+      // קוד לא קיים - הפנה לעמוד הבית
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+
+    // חלץ מידע מהבקשה
+    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                      request.headers.get('x-real-ip') || 
+                      'unknown';
+    const userAgent = request.headers.get('user-agent') || undefined;
+    
+    // צור session ID ייחודי
+    const sessionId = uuidv4();
+
+    // רשום את הלחיצה
+    const result = await trackClick({
+      code: code.toUpperCase(),
+      ipAddress,
+      userAgent,
+      sessionId,
+    });
+
+    // הכן את ה-redirect URL
+    const locale = request.headers.get('accept-language')?.startsWith('he') ? 'he' : 'en';
+    const redirectUrl = new URL(`/${locale}/auth/register`, request.url);
+    
+    // הוסף פרמטר לזיהוי שזה רפרל
+    redirectUrl.searchParams.set('ref', code.toUpperCase());
+
+    // צור response עם redirect
+    const response = NextResponse.redirect(redirectUrl);
+
+    // הגדר cookie לשמירת הרפרל
+    if (result.success && result.referralId) {
+      const cookieValue = createReferralCookieValue(code.toUpperCase(), result.referralId);
+      
+      response.cookies.set(REFERRAL_COOKIE_NAME, cookieValue, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: REFERRAL_COOKIE_DAYS * 24 * 60 * 60, // 30 ימים בשניות
+        path: '/',
+      });
+
+      // גם session ID ל-localStorage (דרך query param)
+      redirectUrl.searchParams.set('sid', sessionId);
+    }
+
+    return response;
+
+  } catch (error) {
+    console.error('[Referral Track] Error:', error);
+    
+    // במקרה של שגיאה - הפנה לעמוד הבית
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+}

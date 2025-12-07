@@ -338,11 +338,10 @@ const RegisterStepsContent: React.FC<{
   const renderStep = (): React.ReactNode => {
     if (sessionStatus === 'loading') {
       return (
-       <StandardizedLoadingSpinner
-      text={locale === 'he' ? 'טוען...' : 'Loading...'}
-      // אם ברצונך לשלוט בגובה כי הסרת את layout="inline", ניתן להשתמש ב-className:
-      className="min-h-[400px]" 
-    />
+        <StandardizedLoadingSpinner
+          text={locale === 'he' ? 'טוען...' : 'Loading...'}
+          className="min-h-[400px]"
+        />
       );
     }
 
@@ -366,6 +365,7 @@ const RegisterStepsContent: React.FC<{
               personalDetailsDict={dict.steps.personalDetails}
               optionalInfoDict={dict.steps.optionalInfo}
               consentDict={dict.consentCheckbox}
+              validationDict={dict.validationErrors} // הוספה כאן: העברת המילון החדש
               locale={locale}
             />
           );
@@ -385,6 +385,7 @@ const RegisterStepsContent: React.FC<{
           <BasicInfoStep
             dict={dict.steps.basicInfo}
             consentDict={dict.consentCheckbox}
+            validationDict={dict.validationErrors} // הוספה כאן: העברת המילון החדש
             locale={locale}
           />
         );

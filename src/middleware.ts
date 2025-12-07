@@ -1,4 +1,4 @@
-// src/middleware.ts - VERSION WITH ADMIN SUPPORT AND STATIC FILE FIX
+// src/middleware.ts - VERSION WITH ADMIN SUPPORT AND REFERRAL SYSTEM
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -20,11 +20,19 @@ const PUBLIC_PATHS = [
   '/questionnaire',
   '/contact',
   '/feedback',
+  '/friends', // 🔴 חדש: דף הרשמה למפנים
+];
+
+// 🔴 חדש: נתיבים של מערכת הרפרל (ללא locale)
+const REFERRAL_PUBLIC_PATHS = [
+  '/friends',           // דף הרשמה למפנים
+  '/referral/dashboard', // דשבורד מפנה (ציבורי עם קוד)
 ];
 
 // 🎯 נתיבים ייעודיים לאדמין/שדכן
 const ADMIN_PATHS = [
   '/admin/engagement',
+  '/admin/referrals', // 🔴 חדש: פאנל ניהול רפרל
   '/matchmaker/suggestions',
   '/matchmaker/clients',
 ];
@@ -60,6 +68,13 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
+  // 🔴 חדש: בדיקה מיוחדת לנתיב /r/[code] - קישורי רפרל קצרים
+  if (pathname.startsWith('/r/')) {
+    console.log(`[Middleware] Referral short link detected: ${pathname}. Allowing through.`);
+    console.log(`=========================================================\n`);
+    return NextResponse.next();
+  }
+
   // בדיקה האם מדובר בקובץ סטטי לפי הסיומת שלו
   const isStaticFile = /\.(png|jpg|jpeg|gif|svg|webp|ico|css|js|woff|woff2|ttf|eot)$/i.test(pathname);
 
@@ -69,7 +84,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/assets/') ||
     pathname.startsWith('/images/') ||
     pathname.includes('/favicon.ico') ||
-    isStaticFile || // <-- התיקון החשוב: מאפשר גישה ישירה לקבצים ב-public
+    isStaticFile ||
     PUBLIC_API_PATHS.some(path => pathname.startsWith(path)) ||
     pathname.startsWith('/api/')
   ) {
@@ -122,8 +137,8 @@ export async function middleware(req: NextRequest) {
   console.log(`   Is User Logged In?: ${isUserLoggedIn}`);
   if (token) {
     console.log(`   User ID from token: ${token.id}`);
-    console.log(`   User Role: ${userRole}`); // 🎯 לוג חדש
-    console.log(`   Is Admin?: ${isAdmin}`); // 🎯 לוג חדש
+    console.log(`   User Role: ${userRole}`);
+    console.log(`   Is Admin?: ${isAdmin}`);
   }
   console.log(`   Is Profile Considered Complete?: ${isProfileConsideredComplete}`);
   // ======================= LOGGING END =======================
@@ -132,12 +147,23 @@ export async function middleware(req: NextRequest) {
   const isPublicPath = PUBLIC_PATHS.includes(pathWithoutLocale);
   const isSetupPath = SETUP_PATHS.includes(pathWithoutLocale);
   const isAdminPath = ADMIN_PATHS.some(path => pathWithoutLocale.startsWith(path));
+  
+  // 🔴 חדש: בדיקה לנתיבי רפרל ציבוריים
+  const isReferralPublicPath = REFERRAL_PUBLIC_PATHS.some(path => pathWithoutLocale.startsWith(path));
 
   // ====================== LOGGING START: Path Classification ======================
   console.log(`   Is Public Path?: ${isPublicPath}`);
   console.log(`   Is Setup Path?: ${isSetupPath}`);
-  console.log(`   Is Admin Path?: ${isAdminPath}`); // 🎯 לוג חדש
+  console.log(`   Is Admin Path?: ${isAdminPath}`);
+  console.log(`   Is Referral Public Path?: ${isReferralPublicPath}`); // 🔴 לוג חדש
   // ======================= LOGGING END =======================
+
+  // 🔴 חדש: נתיבי רפרל ציבוריים - תמיד לאפשר גישה
+  if (isReferralPublicPath) {
+    console.log(`[Middleware] Referral public path detected: "${pathname}". Allowing access.`);
+    console.log(`=========================================================\n`);
+    return NextResponse.next();
+  }
 
   // --- תרחיש 1: המשתמש מחובר ---
   if (isUserLoggedIn) {

@@ -27,6 +27,7 @@ import {
   BookOpen,
   Shield,
   Users,
+  ListChecks, // אייקון חדש לרשימת השגיאות
 } from 'lucide-react';
 
 // UI Components
@@ -41,7 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Custom Components
 import PhoneNumberInput from '../PhoneNumberInput';
@@ -95,7 +96,6 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
     <div
       className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 z-10 pointer-events-none ${
         hasValue
-          // UPDATED: Active Icon Color (Teal)
           ? 'text-teal-500 scale-110'
           : 'text-gray-400 group-hover:text-gray-500'
       }`}
@@ -141,6 +141,7 @@ interface PersonalDetailsStepProps {
   personalDetailsDict: RegisterStepsDict['steps']['personalDetails'];
   optionalInfoDict: RegisterStepsDict['steps']['optionalInfo'];
   consentDict: RegisterStepsDict['consentCheckbox'];
+  validationDict: RegisterStepsDict['validationErrors']; // מילון הודעות השגיאה החדש
   locale: 'he' | 'en';
 }
 
@@ -156,6 +157,7 @@ export default function PersonalDetailsStep({
   personalDetailsDict,
   optionalInfoDict,
   consentDict,
+  validationDict,
   locale,
 }: PersonalDetailsStepProps) {
   const { data: registrationState, updateField, prevStep } = useRegistration();
@@ -169,11 +171,13 @@ export default function PersonalDetailsStep({
   const [ageError, setAgeError] = useState('');
   const [religiousLevelError, setReligiousLevelError] = useState('');
 
-  const [isFormValid, setIsFormValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [submissionStatus, setSubmissionStatus] =
     useState<SubmissionStatus>('idle');
+
+  // New State for validation summary
+  const [missingFields, setMissingFields] = useState<string[]>([]);
 
   // Consent Logic
   const userHasAlreadyConsented = !!session?.user?.termsAndPrivacyAcceptedAt;
@@ -205,7 +209,7 @@ export default function PersonalDetailsStep({
     router.prefetch(`/${locale}/auth/verify-phone`);
   }, [router, locale]);
 
-  // Validation Functions (Same as before)
+  // Validation Functions
   const validateFirstName = (name: string) => {
     if (!name.trim()) {
       setFirstNameError(personalDetailsDict.errors.firstNameRequired);
@@ -261,51 +265,103 @@ export default function PersonalDetailsStep({
     return true;
   };
 
-  // Form Validity Effect
-  useEffect(() => {
-    const isFieldsValid =
-      registrationState.firstName.trim() &&
-      registrationState.lastName.trim() &&
-      registrationState.phone &&
-      validatePhoneNumber(registrationState.phone) &&
-      registrationState.birthDate &&
-      registrationState.gender &&
-      registrationState.maritalStatus &&
-      registrationState.religiousLevel;
-
-    setIsFormValid(!!isFieldsValid && consentChecked && engagementConsent);
-  }, [registrationState, consentChecked, engagementConsent]);
-
   const handleSubmit = async () => {
+    // 1. איפוס שגיאות קודמות
     setApiError(null);
     setConsentError(null);
     setEngagementConsentError(null);
     setReligiousLevelError('');
+    setMissingFields([]);
+    setFirstNameError('');
+    setLastNameError('');
+    setPhoneError('');
+    setAgeError('');
 
-    const isFirstNameValid = validateFirstName(registrationState.firstName);
-    const isLastNameValid = validateLastName(registrationState.lastName);
-    const isPhoneValid = validatePhone(registrationState.phone);
-    const isAgeValid = validateAge(registrationState.birthDate);
+    const currentMissing: string[] = [];
+    let hasError = false;
 
+    // 2. בדיקת שדות והוספה לרשימת החסרים
+
+    // שם פרטי
+    if (!registrationState.firstName.trim()) {
+      setFirstNameError(personalDetailsDict.errors.firstNameRequired);
+      currentMissing.push(validationDict.fields.firstName);
+      hasError = true;
+    }
+
+    // שם משפחה
+    if (!registrationState.lastName.trim()) {
+      setLastNameError(personalDetailsDict.errors.lastNameRequired);
+      currentMissing.push(validationDict.fields.lastName);
+      hasError = true;
+    }
+
+    // טלפון
+    if (
+      !registrationState.phone ||
+      !validatePhoneNumber(registrationState.phone)
+    ) {
+      setPhoneError(personalDetailsDict.errors.phoneInvalid);
+      currentMissing.push(validationDict.fields.phone);
+      hasError = true;
+    }
+
+    // מגדר
+    if (!registrationState.gender) {
+      currentMissing.push(validationDict.fields.gender);
+      hasError = true;
+    }
+
+    // תאריך לידה וגיל
+    if (!registrationState.birthDate) {
+      setAgeError(personalDetailsDict.errors.birthDateRequired);
+      currentMissing.push(validationDict.fields.birthDate);
+      hasError = true;
+    } else {
+      if (!validateAge(registrationState.birthDate)) {
+        currentMissing.push(validationDict.fields.birthDate);
+        hasError = true;
+      }
+    }
+
+    // מצב משפחתי
+    if (!registrationState.maritalStatus) {
+      currentMissing.push(validationDict.fields.maritalStatus);
+      hasError = true;
+    }
+
+    // רמה דתית
+    if (!registrationState.religiousLevel) {
+      setReligiousLevelError(personalDetailsDict.errors.religiousLevelRequired);
+      currentMissing.push(validationDict.fields.religiousLevel);
+      hasError = true;
+    }
+
+    // הסכמה לתנאי שימוש
     if (!consentChecked) {
       setConsentError(personalDetailsDict.errors.consentRequired);
-      return;
+      currentMissing.push(validationDict.fields.terms);
+      hasError = true;
     }
+
+    // הסכמה לדיוור (engagement)
     if (!engagementConsent) {
       setEngagementConsentError(
         personalDetailsDict.errors.engagementConsentRequired
       );
-      return;
+      currentMissing.push(validationDict.fields.engagement);
+      hasError = true;
     }
-    if (!registrationState.religiousLevel) {
-      setReligiousLevelError(personalDetailsDict.errors.religiousLevelRequired);
+
+    // 3. עצירה אם יש שגיאות
+    if (hasError) {
+      setMissingFields(currentMissing);
+      // גלילה לראש העמוד כדי לראות את ההתראות
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    if (!isFirstNameValid || !isLastNameValid || !isPhoneValid || !isAgeValid) {
-      return;
-    }
-
+    // 4. המשך תהליך שמירה (אם הכל תקין)
     setIsLoading(true);
     setSubmissionStatus('savingProfile');
 
@@ -403,7 +459,7 @@ export default function PersonalDetailsStep({
         animate="visible"
         className="space-y-8"
       >
-        {/* UPDATED: Welcome Message Box (Teal/Orange/Rose gradient background) */}
+        {/* הודעת פתיחה */}
         <motion.div
           variants={itemVariants}
           className="text-center p-4 bg-gradient-to-r from-teal-50 via-orange-50 to-rose-50 rounded-2xl border border-teal-100"
@@ -420,22 +476,51 @@ export default function PersonalDetailsStep({
           </p>
         </motion.div>
 
-        {/* Error Alert */}
+        {/* --- אזור התראות שגיאה וולידציה --- */}
         <AnimatePresence>
-          {apiError && (
+          {(apiError || missingFields.length > 0) && (
             <motion.div
               initial={{ opacity: 0, y: -10, height: 0 }}
               animate={{ opacity: 1, y: 0, height: 'auto' }}
               exit={{ opacity: 0, y: -10, height: 0 }}
+              className="mb-6"
             >
-              <Alert variant="destructive" className="border-2">
+              <Alert
+                variant="destructive"
+                className="border-2 bg-red-50/80 border-red-200"
+              >
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <AlertCircle className="h-5 w-5 text-red-600" />
+                  <div className="p-2 bg-red-100 rounded-lg shrink-0">
+                    {/* אייקון משתנה בהתאם לסוג השגיאה */}
+                    {apiError ? (
+                      <AlertCircle className="h-5 w-5 text-red-600" />
+                    ) : (
+                      <ListChecks className="h-5 w-5 text-red-600" />
+                    )}
                   </div>
-                  <AlertDescription className="text-sm">
-                    {apiError}
-                  </AlertDescription>
+                  <div className="w-full">
+                    {apiError ? (
+                      <AlertDescription className="text-sm font-medium pt-1">
+                        {apiError}
+                      </AlertDescription>
+                    ) : (
+                      <>
+                        <AlertTitle className="text-red-900 font-bold mb-2">
+                          {validationDict.title}
+                        </AlertTitle>
+                        <AlertDescription className="text-red-800 text-sm">
+                          <p className="mb-2 font-medium">
+                            {validationDict.pleaseFill}
+                          </p>
+                          <ul className="list-disc list-inside space-y-1 opacity-90 pr-2 rtl:pr-2 rtl:pl-0 ltr:pl-2">
+                            {missingFields.map((field, i) => (
+                              <li key={i}>{field}</li>
+                            ))}
+                          </ul>
+                        </AlertDescription>
+                      </>
+                    )}
+                  </div>
                 </div>
               </Alert>
             </motion.div>
@@ -446,7 +531,6 @@ export default function PersonalDetailsStep({
         <div className="space-y-8">
           {/* --- PERSONAL DETAILS SECTION --- */}
           <div className="space-y-5">
-            {/* UPDATED: Section Header Gradient (Teal -> Emerald) */}
             <SectionHeader
               icon={<User className="w-5 h-5" />}
               title={personalDetailsDict.title}
@@ -469,17 +553,20 @@ export default function PersonalDetailsStep({
                 <Input
                   id="firstNamePersonal"
                   value={registrationState.firstName}
-                  onChange={(e) => updateField('firstName', e.target.value)}
+                  onChange={(e) => {
+                    updateField('firstName', e.target.value);
+                    if (e.target.value.trim()) setFirstNameError('');
+                  }}
                   onBlur={(e) => validateFirstName(e.target.value)}
                   placeholder={personalDetailsDict.firstNamePlaceholder}
                   required
                   disabled={isLoading}
-                  // UPDATED: Focus Ring (Teal)
                   className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
-                    firstNameError
-                      ? 'border-red-300 focus:border-red-400'
-                      : 'border-gray-200 focus:border-teal-400'
-                  } focus:ring-2 focus:ring-teal-200`}
+                    firstNameError ||
+                    missingFields.includes(validationDict.fields.firstName)
+                      ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-teal-400 focus:ring-teal-200'
+                  } focus:ring-2`}
                   dir={isRTL ? 'rtl' : 'ltr'}
                 />
               </FieldWrapper>
@@ -506,17 +593,20 @@ export default function PersonalDetailsStep({
                 <Input
                   id="lastNamePersonal"
                   value={registrationState.lastName}
-                  onChange={(e) => updateField('lastName', e.target.value)}
+                  onChange={(e) => {
+                    updateField('lastName', e.target.value);
+                    if (e.target.value.trim()) setLastNameError('');
+                  }}
                   onBlur={(e) => validateLastName(e.target.value)}
                   placeholder={personalDetailsDict.lastNamePlaceholder}
                   required
                   disabled={isLoading}
-                  // UPDATED: Focus Ring (Teal)
                   className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
-                    lastNameError
-                      ? 'border-red-300 focus:border-red-400'
-                      : 'border-gray-200 focus:border-teal-400'
-                  } focus:ring-2 focus:ring-teal-200`}
+                    lastNameError ||
+                    missingFields.includes(validationDict.fields.lastName)
+                      ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-teal-400 focus:ring-teal-200'
+                  } focus:ring-2`}
                   dir={isRTL ? 'rtl' : 'ltr'}
                 />
               </FieldWrapper>
@@ -565,11 +655,14 @@ export default function PersonalDetailsStep({
                 <span className="text-red-500 mr-1">*</span>
               </Label>
               <div
-                className={`rounded-xl ${phoneError ? 'ring-2 ring-red-300' : ''}`}
+                className={`rounded-xl ${phoneError || missingFields.includes(validationDict.fields.phone) ? 'ring-2 ring-red-300 bg-red-50' : ''}`}
               >
                 <PhoneNumberInput
                   value={registrationState.phone}
-                  onChange={(value) => updateField('phone', value || '')}
+                  onChange={(value) => {
+                    updateField('phone', value || '');
+                    if (value) setPhoneError('');
+                  }}
                   disabled={isLoading}
                   locale={locale}
                   error={phoneError}
@@ -583,8 +676,10 @@ export default function PersonalDetailsStep({
                 {personalDetailsDict.genderLabel}{' '}
                 <span className="text-red-500 mr-1">*</span>
               </Label>
-              <div className="grid grid-cols-2 gap-4">
-                {/* Male Button - UPDATED: Teal Theme */}
+              <div
+                className={`grid grid-cols-2 gap-4 p-1 rounded-xl ${missingFields.includes(validationDict.fields.gender) ? 'ring-2 ring-red-300 bg-red-50' : ''}`}
+              >
+                {/* Male Button */}
                 <Button
                   type="button"
                   onClick={() => updateField('gender', Gender.MALE)}
@@ -599,8 +694,8 @@ export default function PersonalDetailsStep({
                   <span className="text-xl mr-2">👨</span>{' '}
                   {personalDetailsDict.male}
                 </Button>
-                
-                {/* Female Button - UPDATED: Rose Theme */}
+
+                {/* Female Button */}
                 <Button
                   type="button"
                   onClick={() => updateField('gender', Gender.FEMALE)}
@@ -637,16 +732,19 @@ export default function PersonalDetailsStep({
                     id="birthDatePersonal"
                     type="date"
                     value={registrationState.birthDate}
-                    onChange={(e) => updateField('birthDate', e.target.value)}
+                    onChange={(e) => {
+                      updateField('birthDate', e.target.value);
+                      if (e.target.value) setAgeError('');
+                    }}
                     onBlur={(e) => validateAge(e.target.value)}
                     required
                     disabled={isLoading}
-                    // UPDATED: Focus Ring (Teal)
                     className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
-                      ageError
-                        ? 'border-red-300 focus:border-red-400'
-                        : 'border-gray-200 focus:border-teal-400'
-                    } focus:ring-2 focus:ring-teal-200`}
+                      ageError ||
+                      missingFields.includes(validationDict.fields.birthDate)
+                        ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
+                        : 'border-gray-200 focus:border-teal-400 focus:ring-teal-200'
+                    } focus:ring-2`}
                   />
                 </FieldWrapper>
                 {ageError && (
@@ -677,8 +775,13 @@ export default function PersonalDetailsStep({
                     }
                     required
                     disabled={isLoading}
-                    // UPDATED: Focus Ring (Teal)
-                    className="w-full pr-11 pl-3 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200 appearance-none text-gray-900"
+                    className={`w-full pr-11 pl-3 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm appearance-none text-gray-900 ${
+                      missingFields.includes(
+                        validationDict.fields.maritalStatus
+                      )
+                        ? 'border-red-300 focus:ring-red-200'
+                        : 'border-gray-200 hover:border-gray-300 focus:border-teal-400 focus:ring-teal-200'
+                    } focus:ring-2`}
                   >
                     <option value="" disabled>
                       {personalDetailsDict.maritalStatusPlaceholder}
@@ -712,7 +815,6 @@ export default function PersonalDetailsStep({
 
           {/* --- OPTIONAL INFO SECTION --- */}
           <div className="space-y-5">
-            {/* UPDATED: Section Header Gradient (Orange -> Amber) */}
             <SectionHeader
               icon={<Sparkles className="w-5 h-5" />}
               title={optionalInfoDict.title}
@@ -749,7 +851,6 @@ export default function PersonalDetailsStep({
                     }
                     placeholder={optionalInfoDict.heightPlaceholder}
                     disabled={isLoading}
-                    // UPDATED: Focus Ring (Orange)
                     className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
                   />
                 </FieldWrapper>
@@ -774,7 +875,6 @@ export default function PersonalDetailsStep({
                     onChange={(e) => updateField('occupation', e.target.value)}
                     placeholder={optionalInfoDict.occupationPlaceholder}
                     disabled={isLoading}
-                    // UPDATED: Focus Ring (Orange)
                     className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
                   />
                 </FieldWrapper>
@@ -800,7 +900,6 @@ export default function PersonalDetailsStep({
                   onChange={(e) => updateField('education', e.target.value)}
                   placeholder={optionalInfoDict.educationPlaceholder}
                   disabled={isLoading}
-                  // UPDATED: Focus Ring (Orange)
                   className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
                 />
               </FieldWrapper>
@@ -826,9 +925,11 @@ export default function PersonalDetailsStep({
                   disabled={isLoading}
                 >
                   <SelectTrigger
-                    // UPDATED: Focus Ring (Orange)
                     className={`w-full pr-11 pl-3 py-3 h-auto border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
-                      religiousLevelError
+                      religiousLevelError ||
+                      missingFields.includes(
+                        validationDict.fields.religiousLevel
+                      )
                         ? 'border-red-300 focus:ring-red-200'
                         : 'border-gray-200 hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200'
                     }`}
@@ -858,10 +959,10 @@ export default function PersonalDetailsStep({
 
           {/* --- CONSENTS SECTION --- */}
           <motion.div variants={itemVariants} className="space-y-4">
-            {/* UPDATED: Container Style (Warm Amber/Orange background) */}
             <div
               className={`p-4 rounded-2xl border-2 transition-all ${
-                consentError
+                consentError ||
+                missingFields.includes(validationDict.fields.terms)
                   ? 'border-red-300 bg-red-50'
                   : 'border-gray-200 bg-gradient-to-r from-amber-50/50 to-orange-50/50'
               }`}
@@ -880,7 +981,9 @@ export default function PersonalDetailsStep({
             {/* Marketing Consents */}
             <div className="space-y-3 px-2">
               {/* Engagement Consent */}
-              <div className="flex items-start space-x-2 rtl:space-x-reverse">
+              <div
+                className={`flex items-start space-x-2 rtl:space-x-reverse rounded-lg p-2 transition-colors ${missingFields.includes(validationDict.fields.engagement) ? 'bg-red-50 ring-1 ring-red-200' : ''}`}
+              >
                 <Checkbox
                   id="engagementConsent"
                   checked={engagementConsent}
@@ -889,7 +992,6 @@ export default function PersonalDetailsStep({
                     setEngagementConsent(isChecked);
                     if (isChecked) setEngagementConsentError(null);
                   }}
-                  // UPDATED: Checkbox Color (Teal)
                   className="mt-1 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
                 />
                 <div className="grid gap-1.5 leading-none">
@@ -909,14 +1011,13 @@ export default function PersonalDetailsStep({
               </div>
 
               {/* Promotional Consent */}
-              <div className="flex items-start space-x-2 rtl:space-x-reverse">
+              <div className="flex items-start space-x-2 rtl:space-x-reverse p-2">
                 <Checkbox
                   id="promotionalConsent"
                   checked={promotionalConsent}
                   onCheckedChange={(checked) =>
                     setPromotionalConsent(checked as boolean)
                   }
-                  // UPDATED: Checkbox Color (Orange)
                   className="mt-1 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
                 />
                 <div className="grid gap-1.5 leading-none">
@@ -957,8 +1058,7 @@ export default function PersonalDetailsStep({
             <Button
               type="button"
               onClick={handleSubmit}
-              disabled={!isFormValid || isLoading}
-              // UPDATED: Main Gradient (Teal -> Orange -> Amber)
+              disabled={isLoading}
               className="flex-1 py-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {!isLoading && (

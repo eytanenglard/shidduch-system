@@ -19,6 +19,10 @@ const TIMING = {
   stagger: 0.15,
   assemblyStart: 1.6,
   particleDuration: 1.2,
+  convergenceStart: 2.0,
+  convergenceDuration: 1.8,
+  liquidFillStart: 2.2,
+  liquidFillDuration: 3.5,
 };
 
 // Custom easing curves
@@ -27,7 +31,7 @@ const EASING = {
   settle: [0.23, 1, 0.32, 1],
   elastic: [0.68, -0.55, 0.265, 1.55],
   breath: [0.4, 0, 0.6, 1],
-  liquid: [0.45, 0, 0.55, 1], // New easing for liquid fill
+  liquid: [0.45, 0, 0.55, 1],
 };
 
 // ==================== HELPER COMPONENTS ====================
@@ -130,6 +134,75 @@ function ParticleTrail({
   );
 }
 
+function ConvergingParticles({ phase }: { phase: string }) {
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 60 }, (_, i) => {
+        const angle = (i / 60) * Math.PI * 2;
+        const distance = 300 + Math.random() * 200;
+        const centerX = 512;
+        const centerY = 900;
+
+        const isBottomArea = i > 30;
+        const endX = centerX + (Math.random() - 0.5) * 180;
+        const endY = isBottomArea
+          ? 950 + Math.random() * 200
+          : 750 + Math.random() * 200;
+
+        return {
+          id: i,
+          startX: centerX + Math.cos(angle) * distance,
+          startY: centerY + Math.sin(angle) * distance,
+          endX: endX,
+          endY: endY,
+          size: Math.random() * 9 + 4,
+          delay: Math.random() * 0.6,
+          color:
+            i % 3 === 0
+              ? 'rgba(227, 138, 41, 0.85)'
+              : i % 3 === 1
+                ? 'rgba(54, 131, 104, 0.85)'
+                : 'rgba(109, 186, 140, 0.85)',
+        };
+      }),
+    []
+  );
+
+  if (phase !== 'assembled') return null;
+
+  return (
+    <>
+      {particles.map((p) => (
+        <motion.circle
+          key={p.id}
+          r={p.size}
+          fill={p.color}
+          initial={{
+            cx: p.startX,
+            cy: p.startY,
+            opacity: 0,
+            scale: 0,
+          }}
+          animate={{
+            cx: [p.startX, p.endX, p.endX],
+            cy: [p.startY, p.endY, p.endY],
+            opacity: [0, 0.85, 0.65],
+            scale: [0, 1.3, 1],
+          }}
+          transition={{
+            duration: TIMING.convergenceDuration,
+            delay: TIMING.convergenceStart + p.delay,
+            ease: EASING.dramatic,
+            repeat: Infinity,
+            repeatDelay: 0.3,
+          }}
+          filter="url(#particleGlow)"
+        />
+      ))}
+    </>
+  );
+}
+
 function ShimmerOverlay({ phase }: { phase: string }) {
   return (
     <motion.rect
@@ -157,6 +230,236 @@ function ShimmerOverlay({ phase }: { phase: string }) {
   );
 }
 
+// ==================== NEW: DUAL LIQUID FILL COMPONENT ====================
+
+function DualLiquidFillEffect({ phase }: { phase: string }) {
+  // Animation phase: 0 = bottom filling, 1 = top filling, 2 = top emptying, 3 = bottom emptying
+  const [animPhase, setAnimPhase] = useState(0);
+  const [bottomFill, setBottomFill] = useState(0);
+  const [topFill, setTopFill] = useState(0);
+
+  useEffect(() => {
+    const phaseDuration = 2500; // Duration for each phase in ms
+
+    let animationFrame: number;
+    let startTime = Date.now();
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / phaseDuration, 1);
+      // Smooth easing
+      const eased =
+        progress < 0.5
+          ? 2 * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+      switch (animPhase) {
+        case 0: // Bottom filling
+          setBottomFill(eased * 100);
+          setTopFill(0);
+          break;
+        case 1: // Top filling
+          setBottomFill(100);
+          setTopFill(eased * 100);
+          break;
+        case 2: // Top emptying
+          setBottomFill(100);
+          setTopFill(100 - eased * 100);
+          break;
+        case 3: // Bottom emptying
+          setBottomFill(100 - eased * 100);
+          setTopFill(0);
+          break;
+      }
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      } else {
+        // Move to next phase
+        startTime = Date.now();
+        setAnimPhase((prev) => (prev + 1) % 4);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [animPhase]);
+
+  // The white space paths
+  const topInnerPath =
+    'M529.065 626.084C577.139 619.835 552.774 567.948 540.471 541.073C538.219 536.154 527.51 501.438 526.785 500.754C514.707 528.562 464.621 626.326 529.065 626.084Z';
+
+  // Bottom area path (the green leaf inner area)
+  const bottomInnerPath =
+    'M330.116 738.601C330.7 742.335 330.652 745.025 333.854 747.337C338.899 750.978 351.661 749.998 357.829 749.459C362.928 749.328 370.963 748.92 371.669 742.671C372.55 734.885 374.633 713.696 369.718 707.774C361.787 704.909 340.95 705.77 331.367 705.795C329.048 715.971 330.863 728.827 330.116 738.601Z';
+
+  // Bounding boxes (approximate)
+  // Bottom: roughly x: 329-372, y: 705-750 (height ~45)
+  // Top: roughly x: 465-577, y: 500-626 (height ~126)
+
+  const bottomBounds = { x: 325, y: 702, width: 55, height: 52 };
+  const topBounds = { x: 462, y: 498, width: 120, height: 132 };
+
+  return (
+    <g>
+      <defs>
+        {/* Clip paths */}
+        <clipPath id="topFlameClip">
+          <path d={topInnerPath} />
+        </clipPath>
+        <clipPath id="bottomLeafClip">
+          <path d={bottomInnerPath} />
+        </clipPath>
+
+        {/* Orange gradient for bottom */}
+        <linearGradient
+          id="orangeLiquidGradient"
+          x1="0%"
+          y1="0%"
+          x2="0%"
+          y2="100%"
+        >
+          <stop offset="0%" stopColor="#F4A940" />
+          <stop offset="50%" stopColor="#E38A29" />
+          <stop offset="100%" stopColor="#D4782A" />
+        </linearGradient>
+
+        {/* Teal/Green gradient for top */}
+        <linearGradient
+          id="tealLiquidGradient"
+          x1="0%"
+          y1="0%"
+          x2="0%"
+          y2="100%"
+        >
+          <stop offset="0%" stopColor="#2DD4BF" />
+          <stop offset="50%" stopColor="#4AA174" />
+          <stop offset="100%" stopColor="#368368" />
+        </linearGradient>
+      </defs>
+
+      {/* ===== BOTTOM AREA (Orange) - Inside the green leaf ===== */}
+      <g clipPath="url(#bottomLeafClip)">
+        {/* Main liquid - grows from bottom */}
+        <rect
+          x={bottomBounds.x}
+          y={
+            bottomBounds.y +
+            bottomBounds.height -
+            (bottomFill / 100) * bottomBounds.height
+          }
+          width={bottomBounds.width}
+          height={(bottomFill / 100) * bottomBounds.height}
+          fill="url(#orangeLiquidGradient)"
+        />
+
+        {/* Wave on top */}
+        {bottomFill > 5 && (
+          <motion.ellipse
+            cx={bottomBounds.x + bottomBounds.width / 2}
+            cy={
+              bottomBounds.y +
+              bottomBounds.height -
+              (bottomFill / 100) * bottomBounds.height
+            }
+            rx={bottomBounds.width / 2 + 5}
+            ry={3}
+            fill="#F4A940"
+            animate={{
+              ry: [2, 4, 2],
+            }}
+            transition={{
+              duration: 1,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+        )}
+      </g>
+
+      {/* Glow around bottom filled area */}
+      {bottomFill > 30 && (
+        <motion.path
+          d={bottomInnerPath}
+          fill="none"
+          stroke="#E38A29"
+          strokeWidth="4"
+          style={{ filter: 'blur(6px)' }}
+          animate={{
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+          }}
+        />
+      )}
+
+      {/* ===== TOP AREA (Teal/Green) - Inside the flame ===== */}
+      <g clipPath="url(#topFlameClip)">
+        {/* Main liquid - grows from bottom */}
+        <rect
+          x={topBounds.x}
+          y={
+            topBounds.y + topBounds.height - (topFill / 100) * topBounds.height
+          }
+          width={topBounds.width}
+          height={(topFill / 100) * topBounds.height}
+          fill="url(#tealLiquidGradient)"
+        />
+
+        {/* Wave on top */}
+        {topFill > 5 && (
+          <motion.ellipse
+            cx={topBounds.x + topBounds.width / 2}
+            cy={
+              topBounds.y +
+              topBounds.height -
+              (topFill / 100) * topBounds.height
+            }
+            rx={topBounds.width / 2 + 10}
+            ry={4}
+            fill="#2DD4BF"
+            animate={{
+              ry: [3, 6, 3],
+            }}
+            transition={{
+              duration: 1.2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+        )}
+      </g>
+
+      {/* Glow around top filled area */}
+      {topFill > 30 && (
+        <motion.path
+          d={topInnerPath}
+          fill="none"
+          stroke="#4AA174"
+          strokeWidth="5"
+          style={{ filter: 'blur(8px)' }}
+          animate={{
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+          }}
+        />
+      )}
+    </g>
+  );
+}
+
+// ==================== ANIMATED LOGO COMPONENT ====================
+
 function AnimatedNeshamaLogo({ size = 140 }) {
   const [phase, setPhase] = useState('hidden');
   const height = size * 1.5;
@@ -177,7 +480,6 @@ function AnimatedNeshamaLogo({ size = 140 }) {
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Variant definitions
   const drawVariants = {
     hidden: { pathLength: 0, opacity: 0 },
     drawing: {
@@ -246,38 +548,6 @@ function AnimatedNeshamaLogo({ size = 140 }) {
       transition: { duration: 2, repeat: Infinity, ease: EASING.breath },
     },
   };
-
-  const createPixelVariants = (
-    fromX: number,
-    fromY: number,
-    delay: number
-  ) => ({
-    hidden: { x: fromX, y: fromY, opacity: 0, scale: 0, rotate: 180 },
-    entering: {
-      x: 0,
-      y: 0,
-      opacity: 1,
-      scale: 1,
-      rotate: 0,
-      transition: {
-        duration: 0.6,
-        ease: EASING.elastic,
-        delay: TIMING.stagger * 2.5 + delay,
-      },
-    },
-    assembled: {
-      x: 0,
-      y: 0,
-      opacity: 1,
-      scale: [1, 0.85, 1],
-      rotate: [0, 5, 0],
-      transition: {
-        duration: 2 + delay,
-        repeat: Infinity,
-        ease: EASING.breath,
-      },
-    },
-  });
 
   const glowVariants = {
     hidden: { opacity: 0, scale: 0.5 },
@@ -361,37 +631,6 @@ function AnimatedNeshamaLogo({ size = 140 }) {
         style={{ position: 'relative', zIndex: 1 }}
       >
         <defs>
-          {/* GRADIENT FOR THE LOADING CORE - connects Orange to Green */}
-          <linearGradient id="loadingCoreGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#E38A29" />
-            <stop offset="100%" stopColor="#368368" />
-          </linearGradient>
-
-          {/* MASK FOR LIQUID FILL EFFECT */}
-          <mask id="liquidMask">
-            <motion.rect
-              x="380"
-              y="600"
-              width="100"
-              height="200"
-              fill="white"
-              initial={{ y: 200 }}
-              animate={
-                phase === 'assembled'
-                  ? {
-                      y: [200, -50, 200], // Moves the mask up (filling) and down (emptying)
-                    }
-                  : { y: 200 }
-              }
-              transition={{
-                duration: 2.5,
-                repeat: Infinity,
-                ease: EASING.liquid,
-              }}
-            />
-          </mask>
-
-          {/* Existing Gradients */}
           <linearGradient
             id="animatedOrange"
             gradientUnits="userSpaceOnUse"
@@ -492,54 +731,21 @@ function AnimatedNeshamaLogo({ size = 140 }) {
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+
+          <filter
+            id="particleGlow"
+            x="-100%"
+            y="-100%"
+            width="300%"
+            height="300%"
+          >
+            <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
-
-        {/* ===== LOADING CORE / NESHAMA PULSE (The new component) ===== */}
-        {/* ממוקם לפני האלמנטים הראשיים כדי להיות "בתוך" הלוגו */}
-        <motion.g
-          initial={{ opacity: 0, scale: 0 }}
-          animate={
-            phase === 'assembled'
-              ? { opacity: 1, scale: 1 }
-              : { opacity: 0, scale: 0 }
-          }
-          transition={{ duration: 1 }}
-        >
-          {/* The Container Ring (Ghost) */}
-          <circle
-            cx="430"
-            cy="690"
-            r="35"
-            stroke="url(#loadingCoreGradient)"
-            strokeWidth="1"
-            fill="none"
-            opacity="0.2"
-          />
-
-          {/* The Liquid Fill Circle */}
-          <motion.circle
-            cx="430"
-            cy="690"
-            r="32"
-            fill="url(#loadingCoreGradient)"
-            mask="url(#liquidMask)" // This mask does the filling/emptying magic
-            opacity="0.9"
-          />
-
-          {/* Subtle Pulse Glow */}
-          <motion.circle
-            cx="430"
-            cy="690"
-            r="35"
-            stroke="url(#loadingCoreGradient)"
-            strokeWidth="2"
-            fill="none"
-            opacity="0.4"
-            animate={{ r: [35, 42, 35], opacity: [0.4, 0, 0.4] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        </motion.g>
-        {/* ========================================================= */}
 
         <ParticleTrail
           startX={900}
@@ -557,6 +763,13 @@ function AnimatedNeshamaLogo({ size = 140 }) {
           color="rgba(54, 131, 104, 0.6)"
           delay={TIMING.stagger}
         />
+
+        <ConvergingParticles phase={phase} />
+
+        {/* ===== DUAL LIQUID FILL EFFECT - Starts immediately ===== */}
+        <DualLiquidFillEffect phase={phase} />
+
+        <ShimmerOverlay phase={phase} />
 
         <motion.g
           variants={mainFlameVariants}
@@ -646,29 +859,6 @@ function AnimatedNeshamaLogo({ size = 140 }) {
           initial="hidden"
           animate={currentPhase}
         />
-
-        <motion.path
-          fill="#368368"
-          d="M219.223 642.22L251.966 641.881L252.058 672.884L219.334 672.799L219.223 642.22Z"
-          variants={createPixelVariants(-60, 50, 0)}
-          initial="hidden"
-          animate={currentPhase}
-        />
-        <motion.path
-          fill="#E38A29"
-          d="M311.184 502.054C320.058 502.526 330.907 502.239 339.926 502.232C339.852 511.762 339.976 521.502 340.003 531.05C330.41 530.976 320.817 530.983 311.224 531.071C311.276 521.399 311.262 511.726 311.184 502.054Z"
-          variants={createPixelVariants(0, -80, 0.15)}
-          initial="hidden"
-          animate={currentPhase}
-        />
-        <motion.path
-          fill="#E38A29"
-          d="M260.311 568.367L289.59 568.26C289.353 577.359 289.499 586.944 289.495 596.081C279.789 596.269 270.35 596.042 260.433 596.313L260.311 568.367Z"
-          variants={createPixelVariants(-50, 0, 0.3)}
-          initial="hidden"
-          animate={currentPhase}
-        />
-
       </motion.svg>
     </div>
   );
@@ -681,7 +871,6 @@ export default function StandardizedLoadingSpinner({
   subtext,
   className,
 }: StandardizedLoadingSpinnerProps) {
-  // We use a key to restart animation if needed, or just mount once
   const [key] = useState(0);
 
   return (

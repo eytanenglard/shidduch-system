@@ -6,6 +6,13 @@ import { hash } from 'bcryptjs';
 import { emailService } from '@/lib/email/emailService';
 import { VerificationService } from '@/lib/services/verificationService'; 
 import { applyRateLimit } from '@/lib/rate-limiter';
+// ========== 🔴 הוספה חדשה: ייבוא פונקציות רפרל ==========
+import { 
+  linkUserToReferral, 
+  parseReferralCookie, 
+  REFERRAL_COOKIE_NAME 
+} from '@/lib/services/referralService';
+// =========================================================
 
 const prisma = new PrismaClient();
 
@@ -28,7 +35,15 @@ type LogMetadata = {
   hasFirstName?: boolean;
   hasLastName?: boolean;
   verificationId?: string;
-   language?: 'he' | 'en';
+  language?: 'he' | 'en';
+  // ========== שדות רפרל ==========
+  referralCode?: string;
+  referralId?: string;
+  referrerId?: string;
+  referralLinked?: boolean;
+  expiresAt?: string; // 🔴 תיקון: הוספת שדה חסר
+  error?: string; // 🔴 תיקון: הוספת שדה חסר
+  // ================================
 };
 
 const logger = {
@@ -60,12 +75,9 @@ interface InitialRegistrationData {
   firstName: string;
   lastName: string;
   language?: Language;
-  // הוסר: engagementEmailsConsent
-  // הוסר: promotionalEmailsConsent
 }
 
 function handleError(error: unknown): { message: string; status: number } {
-    // ... (פונקציית ה-Error Handler נשארת ללא שינוי)
     const logMeta: LogMetadata = { 
         errorContext: "Inside handleError before processing",
         timestamp: new Date().toISOString(),
@@ -127,14 +139,45 @@ function handleError(error: unknown): { message: string; status: number } {
 
 
 export async function POST(req: NextRequest) {
-    const rateLimitResponse = await applyRateLimit(req, { requests: 10, window: '1 h' });
+  const rateLimitResponse = await applyRateLimit(req, { requests: 10, window: '1 h' });
   if (rateLimitResponse) {
     return rateLimitResponse;
   }
   logger.info('Initial registration process initiated');
 
- const url = new URL(req.url);
-    const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he'; // ברירת מחדל לעברית
+  const url = new URL(req.url);
+  const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
+
+  // ========== 🔴 הוספה חדשה: קריאת cookie רפרל ==========
+  let referralData: { referralId: string; code: string; expiresAt: string } | null = null;
+  try {
+    const refCookie = req.cookies.get(REFERRAL_COOKIE_NAME)?.value;
+    if (refCookie) {
+      referralData = parseReferralCookie(refCookie);
+      if (referralData) {
+        // בדוק שהרפרל לא פג תוקף
+        if (new Date(referralData.expiresAt) < new Date()) {
+          logger.info('Referral cookie expired, ignoring', { 
+            referralCode: referralData.code,
+            expiresAt: referralData.expiresAt 
+          });
+          referralData = null;
+        } else {
+          logger.info('Referral cookie found and valid', { 
+            referralCode: referralData.code,
+            referralId: referralData.referralId 
+          });
+        }
+      }
+    }
+  } catch (refError) {
+    logger.error('Error parsing referral cookie', { 
+      errorMessage: refError instanceof Error ? refError.message : String(refError) 
+    });
+    // ממשיכים בלי רפרל - לא עוצרים את ההרשמה
+  }
+  // ======================================================
+
   try {
     const body: InitialRegistrationData = await req.json();
     logger.info('Initial registration data received', {
@@ -143,6 +186,9 @@ export async function POST(req: NextRequest) {
       lastName: body.lastName,
       hasPassword: !!body.password,
       language: body.language,
+      // ========== 🔴 הוספה חדשה: לוג רפרל ==========
+      referralCode: referralData?.code,
+      // =============================================
     });
 
     if (!body.email || !body.password || !body.firstName || !body.lastName) {
@@ -197,11 +243,9 @@ export async function POST(req: NextRequest) {
             isProfileComplete: false, 
             isPhoneVerified: false, 
             source: UserSource.REGISTRATION,
-            // נשמור כאן את התאריך כי המשתמש מאשר "בלחיצה על כפתור"
-            // אבל ההסכמה השיווקית תעודכן בשלב הבא
             termsAndPrivacyAcceptedAt: new Date(),
-            engagementEmailsConsent: false, // ברירת מחדל, יעודכן בשלב הבא
-            promotionalEmailsConsent: false, // ברירת מחדל, יעודכן בשלב הבא
+            engagementEmailsConsent: false,
+            promotionalEmailsConsent: false,
           },
       });
       logger.info('User created successfully within transaction', { userId: user.id });
@@ -220,6 +264,46 @@ export async function POST(req: NextRequest) {
     });
 
     logger.info('Database transaction completed successfully', { userId: result.user.id });
+
+    // ========== 🔴 הוספה חדשה: קישור המשתמש לרפרל ==========
+    let referralLinked = false;
+    if (referralData) {
+      try {
+        logger.info('Attempting to link user to referral', { 
+          userId: result.user.id, 
+          referralId: referralData.referralId,
+          referralCode: referralData.code 
+        });
+        
+        const linkResult = await linkUserToReferral({
+          userId: result.user.id,
+          referralId: referralData.referralId,
+        });
+        
+        if (linkResult.success) {
+          referralLinked = true;
+          logger.info('User successfully linked to referral', { 
+            userId: result.user.id, 
+            referrerId: linkResult.referrerId,
+            referralCode: referralData.code 
+          });
+        } else {
+          logger.error('Failed to link user to referral', { 
+            userId: result.user.id, 
+            referralId: referralData.referralId,
+            error: linkResult.error 
+          });
+        }
+      } catch (refLinkError) {
+        // לא עוצרים את ההרשמה בגלל שגיאת רפרל
+        logger.error('Error linking user to referral', { 
+          userId: result.user.id,
+          referralId: referralData.referralId,
+          errorMessage: refLinkError instanceof Error ? refLinkError.message : String(refLinkError)
+        });
+      }
+    }
+    // ======================================================
     
     let emailSentSuccess = false;
     const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour"; 
@@ -249,24 +333,33 @@ export async function POST(req: NextRequest) {
     
     let responseMessage = 'החשבון נוצר בהצלחה. ';
     if (emailSentSuccess) {
-        responseMessage += `נשלח קוד אימות לכתובת הדוא"ל שלך (${result.user.email}). אנא הזן את הקוד כדי להמשיך.`;
+        responseMessage += `נשלח קוד אימות לכתובת הדואל שלך (${result.user.email}). אנא הזן את הקוד כדי להמשיך.`;
     } else {
         responseMessage += 'הייתה בעיה בשליחת קוד האימות. תוכל לבקש קוד חדש במסך הבא או לפנות לתמיכה.';
     }
 
-    logger.info('Initial registration API call completed, user needs to verify email with OTP', { userId: result.user.id });
+    logger.info('Initial registration API call completed, user needs to verify email with OTP', { 
+      userId: result.user.id,
+      // ========== 🔴 הוספה חדשה: לוג סיום עם רפרל ==========
+      referralLinked,
+      referralCode: referralData?.code,
+      // =====================================================
+    });
+
     return NextResponse.json(
       {
         success: true,
         message: responseMessage,
         email: result.user.email, 
-        userId: result.user.id, 
+        userId: result.user.id,
+        // ========== 🔴 הוספה חדשה: החזרת מידע רפרל ==========
+        referralLinked,
+        // ====================================================
       },
       { status: 201 }
     );
 
   } catch (error: unknown) { 
-    // ... (Error Handling Block נשאר ללא שינוי)
     const logMetaForCatch: LogMetadata = { 
         errorContext: "Main catch block in POST /api/auth/register",
         timestamp: new Date().toISOString(),
