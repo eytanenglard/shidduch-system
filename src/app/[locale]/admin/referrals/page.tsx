@@ -1,5 +1,3 @@
-// src/app/[locale]/admin/referrals/page.tsx
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -37,6 +35,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 // ================== Types ==================
 
@@ -449,6 +448,9 @@ export default function AdminReferralsPage() {
 
   // Fetch data
   const fetchData = async () => {
+    // 2.5 seconds minimum delay for the animation
+    const minDelayPromise = new Promise((resolve) => setTimeout(resolve, 2500));
+
     try {
       const res = await fetch('/api/referral/campaign?stats=true');
       const data = await res.json();
@@ -462,6 +464,7 @@ export default function AdminReferralsPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error loading data');
     } finally {
+      await minDelayPromise;
       setIsLoading(false);
       setIsRefreshing(false);
     }
@@ -575,14 +578,7 @@ export default function AdminReferralsPage() {
 
   // Loading
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 text-teal-600 animate-spin mx-auto mb-4" />
-          <div className="text-gray-600">טוען נתונים...</div>
-        </div>
-      </div>
-    );
+    return <StandardizedLoadingSpinner text="טוען נתונים..." />;
   }
 
   // Error

@@ -4,7 +4,7 @@
 
 import { useSession } from 'next-auth/react';
 import MatchSuggestionsContainer from '@/components/suggestions/MatchSuggestionsContainer';
-import { Skeleton } from '@/components/ui/skeleton';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 import type {
   SuggestionsDictionary,
   ProfileCardDict,
@@ -28,14 +28,14 @@ export default function MatchesClientPage({ suggestionsDict, profileCardDict }: 
   // קבלת נתוני המשתמש והסטטוס של החיבור
   const { data: session, status } = useSession();
 
-  // בזמן שהחיבור מתבצע, הצג שלד טעינה (skeleton)
+  // בזמן שהחיבור מתבצע, הצג את רכיב הטעינה האחיד
   if (status === 'loading') {
     return (
-      <div className="container mx-auto p-6 space-y-4">
-        <Skeleton className="h-48 w-full rounded-2xl" />
-        <Skeleton className="h-48 w-full rounded-2xl" />
-        <Skeleton className="h-48 w-full rounded-2xl" />
-      </div>
+      <StandardizedLoadingSpinner 
+        text="טוען התאמות..." 
+        subtext="מחפשים את השידוכים המתאימים ביותר עבורך"
+        className="min-h-[60vh]"
+      />
     );
   }
 

@@ -13,7 +13,8 @@ import PersonalDetailsStep from './steps/PersonalDetailsStep';
 import CompleteStep from './steps/CompleteStep';
 import ProgressBar from './ProgressBar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info, Loader2 } from 'lucide-react';
+import { Info } from 'lucide-react';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
@@ -112,8 +113,7 @@ const RegisterStepsContent: React.FC<{
     if (sessionStatus === 'loading') {
       return (
         <div className="flex justify-center p-10">
-          {/* UPDATED: Cyan -> Teal */}
-          <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+          <StandardizedLoadingSpinner className="text-teal-600 w-8 h-8" />
         </div>
       );
     }
@@ -210,10 +210,8 @@ const RegisterStepsContent: React.FC<{
   }
 
   return (
-    // UPDATED: Background Gradient (Teal/Orange/Slate)
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40 p-4 sm:p-8">
       <div className="mb-6 text-center">
-        {/* UPDATED: Text Gradient (Teal -> Orange -> Amber) */}
         <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 text-3xl font-bold mb-2">
           {pageTitle}
         </h1>
@@ -221,7 +219,6 @@ const RegisterStepsContent: React.FC<{
       </div>
 
       {showIncompleteProfileMessage && (
-        // UPDATED: Yellow/Amber alerts match the new palette well
         <Alert className="mb-6 w-full max-w-md bg-amber-50 border-amber-200 text-amber-800 shadow-md">
           <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-1" />
           <div className="ml-3 rtl:mr-3 rtl:ml-0">
@@ -253,7 +250,7 @@ const RegisterStepsContent: React.FC<{
       </div>
 
       <div className="mt-8 text-center text-sm text-gray-500">
-        {dict.contactSupport} {/* UPDATED: Link Color (Teal) */}
+        {dict.contactSupport}{' '}
         <Link
           href="/contact"
           className="text-teal-600 hover:underline hover:text-teal-700"

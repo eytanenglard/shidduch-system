@@ -16,7 +16,6 @@ import {
   Sparkles,
   Heart,
   Shield,
-  CheckCircle2,
   Eye,
   EyeOff,
 } from 'lucide-react';
@@ -24,6 +23,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import type { SignInDict } from '@/types/dictionaries/auth';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -59,7 +59,7 @@ const itemVariants = {
 };
 
 // ============================================================================
-// BACKGROUND COMPONENT (מעודכן לפלטת Teal/Orange)
+// BACKGROUND COMPONENT
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
@@ -120,10 +120,10 @@ const DynamicBackground: React.FC = () => (
       }}
     />
 
-    {/* Dot Pattern (Teal) */}
+    {/* Dot Pattern */}
     <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:24px_24px]" />
 
-    {/* SVG Decorative Waves (Teal -> Orange) */}
+    {/* SVG Decorative Waves */}
     <svg
       className="absolute inset-0 w-full h-full"
       viewBox="0 0 1000 1000"
@@ -145,76 +145,6 @@ const DynamicBackground: React.FC = () => (
       />
     </svg>
   </div>
-);
-
-// ============================================================================
-// LOADING STATE COMPONENT (Colors Updated)
-// ============================================================================
-
-interface LoadingStateProps {
-  status: 'loading' | 'authenticated';
-  dict: SignInDict;
-}
-
-const LoadingState: React.FC<LoadingStateProps> = ({ status, dict }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-    className="flex w-full max-w-md flex-col items-center justify-center rounded-3xl bg-white/80 backdrop-blur-xl p-12 text-center shadow-2xl border border-white/60"
-    style={{ minHeight: '420px' }}
-  >
-    <motion.div
-      animate={{ rotate: 360 }}
-      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-      className="mb-6"
-    >
-      {/* Loading Gradient: Teal -> Orange */}
-      <div className="p-4 bg-gradient-to-br from-teal-400 to-orange-400 rounded-full">
-        <Loader2 className="h-12 w-12 text-white" />
-      </div>
-    </motion.div>
-
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-    >
-      <h2 className="mb-3 text-2xl font-bold text-gray-800">
-        {status === 'authenticated' ? dict.loader.success : dict.loader.loading}
-      </h2>
-      <p className="text-gray-600 mb-4">
-        {status === 'authenticated'
-          ? dict.loader.redirecting
-          : dict.loader.checking}
-      </p>
-
-      {status === 'authenticated' && (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.3, type: 'spring' }}
-          className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium"
-        >
-          <CheckCircle2 className="w-4 h-4" />
-          <span>{dict.loader.success}</span>
-        </motion.div>
-      )}
-    </motion.div>
-
-    {/* Decorative circles (Teal/Orange) */}
-    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
-      <motion.div
-        className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-teal-400/20 to-transparent rounded-full pointer-events-none"
-        animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
-        transition={{ duration: 4, repeat: Infinity }}
-      />
-      <motion.div
-        className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-transparent rounded-full pointer-events-none"
-        animate={{ scale: [1, 1.2, 1], rotate: [0, -90, 0] }}
-        transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-      />
-    </div>
-  </motion.div>
 );
 
 // ============================================================================
@@ -299,12 +229,17 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
 
   // Show loading state
   if (status === 'loading' || status === 'authenticated') {
+    const loadingText =
+      status === 'authenticated' ? dict.loader.success : dict.loader.loading;
+    const subText =
+      status === 'authenticated'
+        ? dict.loader.redirecting
+        : dict.loader.checking;
+
     return (
       <>
         <DynamicBackground />
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <LoadingState status={status} dict={dict} />
-        </div>
+        <StandardizedLoadingSpinner text={loadingText} subtext={subText} />
       </>
     );
   }

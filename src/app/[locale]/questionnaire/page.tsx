@@ -5,9 +5,13 @@ import { Locale } from '../../../../i18n-config';
 import QuestionnairePageClient from '@/components/questionnaire/QuestionnairePageClient';
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
-// עדכון רכיב הטעינה
 function Loading() {
-  return <StandardizedLoadingSpinner text="טוען שאלון..." />;
+  return (
+    <StandardizedLoadingSpinner
+      text="טוען את השאלון..."
+      subtext="מכינים את השאלות עבורך"
+    />
+  );
 }
 
 type PageProps = {
@@ -20,8 +24,14 @@ export default async function Page({ params, searchParams }: PageProps) {
     params,
     searchParams,
   ]);
-  
+
   const dictionary = await getDictionary(locale);
+
+  console.log(
+    `\n✅ [LOG | /questionnaire/page.tsx SERVER SIDE] Received searchParams:`,
+    resolvedSearchParams,
+    `\n`
+  );
 
   return (
     <Suspense fallback={<Loading />}>

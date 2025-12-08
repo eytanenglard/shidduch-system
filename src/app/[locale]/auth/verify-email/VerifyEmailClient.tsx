@@ -22,6 +22,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { VerifyEmailDict } from '@/types/dictionaries/auth';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -72,7 +73,7 @@ const cardVariants = {
 };
 
 // ============================================================================
-// DYNAMIC BACKGROUND COMPONENT (Teal/Orange Theme)
+// DYNAMIC BACKGROUND COMPONENT
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
@@ -180,7 +181,7 @@ const DynamicBackground: React.FC = () => (
 );
 
 // ============================================================================
-// ANIMATED ICON COMPONENTS (Colors Updated)
+// ANIMATED ICON COMPONENTS
 // ============================================================================
 
 const AnimatedMailIcon: React.FC = () => (
@@ -263,33 +264,6 @@ const AnimatedErrorIcon: React.FC = () => (
     />
     <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center shadow-lg">
       <AlertCircle className="w-10 h-10 text-white" />
-    </div>
-  </motion.div>
-);
-
-const AnimatedLoadingIcon: React.FC = () => (
-  <motion.div
-    className="relative inline-flex items-center justify-center w-24 h-24 mb-6"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.3 }}
-  >
-    <motion.div
-      // Gradient: Teal -> Orange (Main Palette)
-      className="absolute inset-0 rounded-full bg-gradient-to-br from-teal-400/20 to-orange-500/20"
-      animate={{
-        scale: [1, 1.3, 1],
-        rotate: [0, 360],
-      }}
-      transition={{
-        duration: 3,
-        repeat: Infinity,
-        ease: 'linear',
-      }}
-    />
-    {/* Inner Gradient: Teal -> Orange */}
-    <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-400 to-orange-500 flex items-center justify-center shadow-lg">
-      <Loader2 className="w-10 h-10 text-white animate-spin" />
     </div>
   </motion.div>
 );
@@ -523,7 +497,7 @@ export default function VerifyEmailClient({
                 </motion.div>
               )}
 
-              {/* Verifying State */}
+              {/* Verifying State - Updated with StandardizedLoadingSpinner */}
               {verification.status === 'verifying' && (
                 <motion.div
                   key="verifying"
@@ -531,33 +505,17 @@ export default function VerifyEmailClient({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.4 }}
-                  className="text-center space-y-6"
+                  className="w-full"
                 >
-                  <AnimatedLoadingIcon />
-
-                  <div className="space-y-3">
-                    <h2 className="text-2xl font-bold text-gray-800">
-                      {dict.verifyingMessage}
-                    </h2>
-                    <div className="flex justify-center gap-2 py-4">
-                      {[0, 1, 2].map((i) => (
-                        <motion.div
-                          key={i}
-                          // Loading dots: Teal -> Orange
-                          className="w-3 h-3 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full"
-                          animate={{
-                            scale: [1, 1.5, 1],
-                            opacity: [0.5, 1, 0.5],
-                          }}
-                          transition={{
-                            duration: 1.5,
-                            repeat: Infinity,
-                            delay: i * 0.2,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
+                  <StandardizedLoadingSpinner
+                    text={dict.verifyingMessage}
+                    subtext={
+                      isRTL
+                        ? 'מאמתים את הפרטים שלך...'
+                        : 'Verifying your details...'
+                    }
+                    className="min-h-[250px]"
+                  />
                 </motion.div>
               )}
 

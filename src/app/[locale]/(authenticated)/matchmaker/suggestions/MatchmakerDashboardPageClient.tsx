@@ -4,7 +4,7 @@
 
 import { Suspense } from "react";
 import MatchmakerDashboard from "@/components/matchmaker/suggestions/container/MatchmakerDashboard";
-import { Card, CardContent } from "@/components/ui/card";
+import StandardizedLoadingSpinner from "@/components/questionnaire/common/StandardizedLoadingSpinner";
 import type {
   SuggestionsDictionary,
   MatchmakerPageDictionary,
@@ -28,13 +28,10 @@ export default function MatchmakerDashboardPageClient({
     <div className="min-h-screen bg-background">
       <Suspense
         fallback={
-          <Card className="m-4">
-            <CardContent className="p-6">
-              <div className="flex justify-center items-center">
-                <div className="text-xl">טוען...</div>
-              </div>
-            </CardContent>
-          </Card>
+          <StandardizedLoadingSpinner 
+            text="טוען לוח בקרה לשדכנים..." 
+            subtext="מכינים את המועמדים וההצעות"
+          />
         }
       >
         {/* ✅ 3. העבר את המילונים הנפרדים הלאה לרכיב MatchmakerDashboard */}

@@ -3,19 +3,14 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import {
-  CheckCircle,
-  Mail,
-  User,
-  Phone,
-  Loader2,
-} from 'lucide-react';
+import { CheckCircle, Mail, User, Phone } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { UserStatus } from '@prisma/client';
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 interface CompleteStepProps {
   dict: RegisterStepsDict['steps']['complete'];
@@ -51,14 +46,13 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ dict }) => {
   if (sessionStatus === 'loading') {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center space-y-4">
-        <Loader2 className="h-10 w-10 animate-spin text-cyan-600" />
+        <StandardizedLoadingSpinner className="text-cyan-600 w-10 h-10" />
         <p className="text-lg text-gray-600">{dict.loading}</p>
       </div>
     );
   }
 
   if (sessionStatus === 'unauthenticated' || !session?.user) {
-    // Should be handled by parent, but as a fallback:
     router.push('/auth/signin');
     return null;
   }

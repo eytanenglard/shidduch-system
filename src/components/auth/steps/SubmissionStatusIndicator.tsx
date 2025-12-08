@@ -1,17 +1,17 @@
 // src/components/auth/steps/SubmissionStatusIndicator.tsx
 'use client';
 
-import { CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
+import { CheckCircle, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
-// ▼▼▼ 1. הוספת 'redirecting' לטיפוס ▼▼▼
 export type SubmissionStatus =
   | 'idle'
   | 'creatingAccount'
   | 'sendingCode'
   | 'savingProfile'
   | 'updatingSession'
-  | 'redirecting' // <--- חדש
+  | 'redirecting'
   | 'error';
 
 interface Step {
@@ -54,7 +54,9 @@ const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
 
   const statusIcons = {
     completed: <CheckCircle className="h-6 w-6 text-green-500" />,
-    'in-progress': <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />,
+    'in-progress': (
+      <StandardizedLoadingSpinner className="h-6 w-6 text-cyan-500" />
+    ),
     pending: (
       <div className="h-6 w-6 rounded-full border-2 border-gray-300"></div>
     ),

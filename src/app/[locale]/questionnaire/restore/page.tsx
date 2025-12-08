@@ -6,7 +6,12 @@ import QuestionnaireRestore from '@/components/questionnaire/QuestionnaireRestor
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 function Loading() {
-  return <StandardizedLoadingSpinner />;
+  return (
+    <StandardizedLoadingSpinner
+      text="משחזר שאלון..."
+      subtext="אנא המתן בזמן שאנו טוענים את הנתונים שלך"
+    />
+  );
 }
 
 type RestorePageProps = {
