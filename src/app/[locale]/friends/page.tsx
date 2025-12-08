@@ -28,6 +28,8 @@ import {
   AlertCircle,
   PartyPopper,
   Send,
+  Search,
+  KeyRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -628,6 +630,166 @@ const SignupForm: React.FC<{
   );
 };
 
+// ================== Existing Referrer Login ==================
+const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const [searchValue, setSearchValue] = useState('');
+  const [searchType, setSearchType] = useState<'code' | 'email' | 'phone'>(
+    'code'
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchValue.trim()) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      // חיפוש לפי סוג
+      const params = new URLSearchParams();
+      if (searchType === 'code') {
+        params.set('code', searchValue.toUpperCase());
+      } else if (searchType === 'email') {
+        params.set('email', searchValue);
+      } else {
+        params.set('phone', searchValue);
+      }
+
+      const response = await fetch(`/api/referral/lookup?${params.toString()}`);
+      const data = await response.json();
+
+      if (data.success && data.code) {
+        // מצאנו - נעבור לדשבורד
+        window.location.href = `/${locale}/referral/dashboard?code=${data.code}`;
+      } else {
+        setError(
+          locale === 'he'
+            ? 'לא נמצא מפנה עם הפרטים האלה'
+            : 'No referrer found with these details'
+        );
+      }
+    } catch (err) {
+      setError(locale === 'he' ? 'שגיאה בחיפוש' : 'Search error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const placeholders = {
+    code:
+      locale === 'he' ? 'הקוד שלכם (למשל: DAVID)' : 'Your code (e.g. DAVID)',
+    email: locale === 'he' ? 'כתובת האימייל' : 'Email address',
+    phone: locale === 'he' ? 'מספר הטלפון' : 'Phone number',
+  };
+
+  return (
+    <section ref={ref} className="py-12 px-4">
+      <div className="max-w-lg mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/60"
+        >
+          <div className="text-center mb-6">
+            <div className="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-slate-100 to-gray-200 flex items-center justify-center mb-3">
+              <KeyRound className="w-6 h-6 text-gray-600" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800">
+              {locale === 'he' ? 'כבר נרשמתם?' : 'Already registered?'}
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {locale === 'he'
+                ? 'הכניסו את הפרטים שלכם לצפייה בדשבורד'
+                : 'Enter your details to view your dashboard'}
+            </p>
+          </div>
+
+          {/* Tabs for search type */}
+          <div className="flex gap-2 mb-4 p-1 bg-gray-100 rounded-xl">
+            {[
+              {
+                type: 'code' as const,
+                label: locale === 'he' ? 'קוד' : 'Code',
+              },
+              {
+                type: 'email' as const,
+                label: locale === 'he' ? 'אימייל' : 'Email',
+              },
+              {
+                type: 'phone' as const,
+                label: locale === 'he' ? 'טלפון' : 'Phone',
+              },
+            ].map((tab) => (
+              <button
+                key={tab.type}
+                onClick={() => {
+                  setSearchType(tab.type);
+                  setError('');
+                }}
+                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                  searchType === tab.type
+                    ? 'bg-white text-teal-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={handleSearch} className="space-y-4">
+            <div className="relative">
+              <Input
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder={placeholders[searchType]}
+                className="h-12 rounded-xl pr-4 pl-12"
+                dir={
+                  searchType === 'code'
+                    ? 'ltr'
+                    : searchType === 'email'
+                      ? 'ltr'
+                      : 'ltr'
+                }
+              />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={loading || !searchValue.trim()}
+              className="w-full h-11 bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white rounded-xl"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                  {locale === 'he' ? 'מחפש...' : 'Searching...'}
+                </>
+              ) : (
+                <>
+                  <TrendingUp className="w-4 h-4 ml-2" />
+                  {locale === 'he' ? 'לדשבורד שלי' : 'Go to my dashboard'}
+                </>
+              )}
+            </Button>
+          </form>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
 // ================== FAQ ==================
 const FAQSection = () => {
   const ref = useRef(null);
@@ -713,6 +875,7 @@ export default function FriendsPage() {
       <HowItWorksSection />
       <PrizesSection />
       <SignupForm locale={locale} formRef={formRef} />
+      <ExistingReferrerSection locale={locale} />
       <FAQSection />
       <style>{`
         @keyframes float-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }

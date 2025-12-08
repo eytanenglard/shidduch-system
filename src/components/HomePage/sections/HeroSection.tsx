@@ -625,6 +625,32 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </Link>
         </motion.div>
 
+        {/* 🎁 באנר קמפיין הפניות */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.5 }}
+          className="mt-6"
+        >
+          <Link href={`/${locale}/friends`}>
+            <div className="group inline-flex items-center gap-3 bg-gradient-to-r from-amber-50 via-orange-50 to-rose-50 hover:from-amber-100 hover:via-orange-100 hover:to-rose-100 border border-amber-200/60 hover:border-amber-300 rounded-full px-5 py-2.5 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-sm group-hover:rotate-12 transition-transform duration-300">
+                <Handshake className="w-4 h-4" />
+              </div>
+              <span className="text-sm font-semibold text-amber-800 group-hover:text-amber-900">
+                {locale === 'he'
+                  ? 'הזמינו חברים וזכו בפרסים!'
+                  : 'Invite friends & win prizes!'}
+              </span>
+              {locale === 'he' ? (
+                <ArrowLeft className="w-4 h-4 text-amber-600 group-hover:-translate-x-1 transition-transform" />
+              ) : (
+                <ArrowRight className="w-4 h-4 text-amber-600 group-hover:translate-x-1 transition-transform" />
+              )}
+            </div>
+          </Link>
+        </motion.div>
+
         <div className="mt-12 sm:mt-16 w-full max-w-6xl">
           <div className="md:hidden">
             <MobilePrinciplesTabs
