@@ -1081,9 +1081,9 @@ export default function FriendsPage() {
       <DynamicBackground />
       <HeroSection locale={locale} onScrollToForm={scrollToForm} />
       <HowItWorksSection locale={locale} />
+      <ExistingReferrerSection locale={locale} />
       <PrizeSection locale={locale} />
       <SignupForm locale={locale} formRef={formRef} />
-      <ExistingReferrerSection locale={locale} />
       <FAQSection locale={locale} />
 
       {/* CSS Animations */}
