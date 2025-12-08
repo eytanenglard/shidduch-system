@@ -76,8 +76,7 @@ export async function GET(
     const localeParam = searchParams.get('locale');
     const acceptLanguage = request.headers.get('accept-language') || '';
     const locale = localeParam || (acceptLanguage.startsWith('he') ? 'he' : 'en');
-    const redirectUrl = new URL(`/${locale}/auth/register`, baseUrl);
-    
+const redirectUrl = new URL(`/${locale}`, baseUrl);    
     // הוסף פרמטר לזיהוי שזה רפרל
     redirectUrl.searchParams.set('ref', code.toUpperCase());
 
