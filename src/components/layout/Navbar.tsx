@@ -28,6 +28,7 @@ import {
   Award,
   HelpCircle,
   Mail,
+  Gift, // 🆕 הוספת אייקון לרפרלים
 } from 'lucide-react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import UserDropdown from './UserDropdown';
@@ -36,7 +37,6 @@ import { useQuestionnaireState } from '@/app/[locale]/contexts/QuestionnaireStat
 
 // --- רכיב לוגו (מעודכן: Teal -> Orange -> Amber) ---
 // src/components/layout/Navbar.tsx
-
 
 const Logo = ({ locale }: { locale: string }) => (
   <Link
@@ -222,6 +222,7 @@ const Navbar = ({ dict }: NavbarProps) => {
 
   const isMatchmaker =
     session?.user?.role === 'MATCHMAKER' || session?.user?.role === 'ADMIN';
+  const isAdmin = session?.user?.role === 'ADMIN'; // 🆕 בדיקה אם המשתמש הוא אדמין
   const { notifications } = useNotifications();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -368,6 +369,13 @@ const Navbar = ({ dict }: NavbarProps) => {
                             'ניהול Engagement'
                           }
                         />
+                        {/* 🆕 קישור לניהול רפרלים - רק לאדמין */}
+                        {isAdmin && (
+                          <NavItem
+                            href="/admin/referrals"
+                            text={dict.navbar.referralsAdmin || 'ניהול רפרלים'}
+                          />
+                        )}
                       </>
                     ) : (
                       <NavItem
@@ -630,6 +638,16 @@ const Navbar = ({ dict }: NavbarProps) => {
                         onClick={toggleMobileMenu}
                         isRtl={isRtl}
                       />
+                      {/* 🆕 קישור לניהול רפרלים במובייל - רק לאדמין */}
+                      {isAdmin && (
+                        <MobileNavItem
+                          href="/admin/referrals"
+                          text={dict.navbar.referralsAdmin || 'ניהול רפרלים'}
+                          icon={<Gift className="h-5 w-5" />}
+                          onClick={toggleMobileMenu}
+                          isRtl={isRtl}
+                        />
+                      )}
                     </>
                   ) : (
                     <MobileNavItem

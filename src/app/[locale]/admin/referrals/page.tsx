@@ -52,8 +52,26 @@ interface CampaignStats {
   totalRegistrations: number;
   totalVerified: number;
   conversionRate: number;
-  prizeTiers: Array<{ threshold: number; prize: string }>;
+  prizeTiers: Array<{ threshold: number; prize: string }> | string | null;
   grandPrize?: string;
+}
+
+// Helper function to parse prizeTiers
+function parsePrizeTiers(
+  prizeTiers: CampaignStats['prizeTiers']
+): Array<{ threshold: number; prize: string }> {
+  if (!prizeTiers) return [];
+  if (typeof prizeTiers === 'string') {
+    try {
+      return JSON.parse(prizeTiers);
+    } catch {
+      return [];
+    }
+  }
+  if (Array.isArray(prizeTiers)) {
+    return prizeTiers;
+  }
+  return [];
 }
 
 interface ReferrerData {
@@ -86,7 +104,14 @@ interface StatCardProps {
   trend?: number;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, subtitle, trend }) => {
+const StatCard: React.FC<StatCardProps> = ({
+  title,
+  value,
+  icon,
+  color,
+  subtitle,
+  trend,
+}) => {
   const colorClasses = {
     teal: 'from-teal-500 to-emerald-600',
     orange: 'from-orange-500 to-amber-600',
@@ -105,7 +130,9 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, subtitle
       <div className="p-5">
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm text-gray-500">{title}</span>
-          <div className={`p-2 rounded-lg bg-gradient-to-br ${colorClasses[color]} text-white`}>
+          <div
+            className={`p-2 rounded-lg bg-gradient-to-br ${colorClasses[color]} text-white`}
+          >
             {icon}
           </div>
         </div>
@@ -114,11 +141,17 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, subtitle
             <div className="text-3xl font-bold text-gray-900">
               {typeof value === 'number' ? value.toLocaleString() : value}
             </div>
-            {subtitle && <div className="text-xs text-gray-500 mt-1">{subtitle}</div>}
+            {subtitle && (
+              <div className="text-xs text-gray-500 mt-1">{subtitle}</div>
+            )}
           </div>
           {trend !== undefined && (
-            <div className={`flex items-center text-sm ${trend >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-              <TrendingUp className={`w-4 h-4 mr-1 ${trend < 0 ? 'rotate-180' : ''}`} />
+            <div
+              className={`flex items-center text-sm ${trend >= 0 ? 'text-emerald-600' : 'text-red-500'}`}
+            >
+              <TrendingUp
+                className={`w-4 h-4 mr-1 ${trend < 0 ? 'rotate-180' : ''}`}
+              />
               {Math.abs(trend)}%
             </div>
           )}
@@ -138,9 +171,17 @@ const CampaignInfoCard: React.FC<CampaignInfoProps> = ({ campaign }) => {
   const now = new Date();
   const endDate = new Date(campaign.endDate);
   const startDate = new Date(campaign.startDate);
-  const daysRemaining = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-  const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  const progress = Math.min(100, ((totalDays - daysRemaining) / totalDays) * 100);
+  const daysRemaining = Math.max(
+    0,
+    Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+  );
+  const totalDays = Math.ceil(
+    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  const progress = Math.min(
+    100,
+    ((totalDays - daysRemaining) / totalDays) * 100
+  );
 
   return (
     <Card className="border-teal-200">
@@ -164,11 +205,15 @@ const CampaignInfoCard: React.FC<CampaignInfoProps> = ({ campaign }) => {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <div className="text-gray-500">תאריך התחלה</div>
-            <div className="font-medium">{new Date(campaign.startDate).toLocaleDateString('he-IL')}</div>
+            <div className="font-medium">
+              {new Date(campaign.startDate).toLocaleDateString('he-IL')}
+            </div>
           </div>
           <div>
             <div className="text-gray-500">תאריך סיום</div>
-            <div className="font-medium">{new Date(campaign.endDate).toLocaleDateString('he-IL')}</div>
+            <div className="font-medium">
+              {new Date(campaign.endDate).toLocaleDateString('he-IL')}
+            </div>
           </div>
         </div>
 
@@ -192,7 +237,7 @@ const CampaignInfoCard: React.FC<CampaignInfoProps> = ({ campaign }) => {
             פרסים
           </div>
           <div className="space-y-1">
-            {campaign.prizeTiers?.map((tier, index) => (
+            {parsePrizeTiers(campaign.prizeTiers).map((tier, index) => (
               <div key={index} className="flex justify-between text-sm">
                 <span className="text-gray-600">{tier.threshold}+ מאומתים</span>
                 <span className="font-medium">{tier.prize}</span>
@@ -204,7 +249,9 @@ const CampaignInfoCard: React.FC<CampaignInfoProps> = ({ campaign }) => {
                   <Crown className="w-3 h-3" />
                   מקום ראשון
                 </span>
-                <span className="font-medium text-amber-600">{campaign.grandPrize}</span>
+                <span className="font-medium text-amber-600">
+                  {campaign.grandPrize}
+                </span>
               </div>
             )}
           </div>
@@ -233,23 +280,33 @@ const ReferrersTable: React.FC<ReferrersTableProps> = ({
   onCopyCode,
   copiedCode,
 }) => {
-  const SortHeader: React.FC<{ field: SortField; children: React.ReactNode }> = ({ field, children }) => (
+  const SortHeader: React.FC<{
+    field: SortField;
+    children: React.ReactNode;
+  }> = ({ field, children }) => (
     <th
       className="px-4 py-3 text-right text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
       onClick={() => onSort(field)}
     >
       <div className="flex items-center gap-1">
         {children}
-        {sortField === field && (
-          sortOrder === 'desc' ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />
-        )}
+        {sortField === field &&
+          (sortOrder === 'desc' ? (
+            <ChevronDown className="w-4 h-4" />
+          ) : (
+            <ChevronUp className="w-4 h-4" />
+          ))}
       </div>
     </th>
   );
 
   const getTierBadge = (tier: string) => {
     if (tier === 'AMBASSADOR') {
-      return <Badge className="bg-amber-100 text-amber-700 border-amber-200">שגריר</Badge>;
+      return (
+        <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+          שגריר
+        </Badge>
+      );
     }
     return <Badge variant="secondary">קהילה</Badge>;
   };
@@ -259,32 +316,54 @@ const ReferrersTable: React.FC<ReferrersTableProps> = ({
       <table className="w-full">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 w-12">#</th>
+            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 w-12">
+              #
+            </th>
             <SortHeader field="name">שם</SortHeader>
-            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">קוד</th>
-            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">סוג</th>
+            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">
+              קוד
+            </th>
+            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">
+              סוג
+            </th>
             <SortHeader field="clickCount">לחיצות</SortHeader>
-            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">נרשמו</th>
+            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">
+              נרשמו
+            </th>
             <SortHeader field="verifiedCount">מאומתים</SortHeader>
-            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">המרה</th>
+            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">
+              המרה
+            </th>
             <SortHeader field="createdAt">הצטרף</SortHeader>
-            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">פעולות</th>
+            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">
+              פעולות
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
           {referrers.map((referrer, index) => {
-            const conversionRate = referrer.clickCount > 0
-              ? ((referrer.verifiedCount / referrer.clickCount) * 100).toFixed(1)
-              : '0';
+            const conversionRate =
+              referrer.clickCount > 0
+                ? (
+                    (referrer.verifiedCount / referrer.clickCount) *
+                    100
+                  ).toFixed(1)
+                : '0';
 
             return (
               <tr key={referrer.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-500">{index + 1}</td>
+                <td className="px-4 py-3 font-medium text-gray-500">
+                  {index + 1}
+                </td>
                 <td className="px-4 py-3">
                   <div>
-                    <div className="font-medium text-gray-900">{referrer.name}</div>
+                    <div className="font-medium text-gray-900">
+                      {referrer.name}
+                    </div>
                     {referrer.email && (
-                      <div className="text-xs text-gray-500">{referrer.email}</div>
+                      <div className="text-xs text-gray-500">
+                        {referrer.email}
+                      </div>
                     )}
                   </div>
                 </td>
@@ -307,14 +386,20 @@ const ReferrersTable: React.FC<ReferrersTableProps> = ({
                 </td>
                 <td className="px-4 py-3">{getTierBadge(referrer.tier)}</td>
                 <td className="px-4 py-3 text-center">{referrer.clickCount}</td>
-                <td className="px-4 py-3 text-center">{referrer.registrationCount}</td>
+                <td className="px-4 py-3 text-center">
+                  {referrer.registrationCount}
+                </td>
                 <td className="px-4 py-3">
-                  <span className={`font-bold ${referrer.verifiedCount >= 3 ? 'text-teal-600' : 'text-gray-900'}`}>
+                  <span
+                    className={`font-bold ${referrer.verifiedCount >= 3 ? 'text-teal-600' : 'text-gray-900'}`}
+                  >
                     {referrer.verifiedCount}
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`${parseFloat(conversionRate) >= 10 ? 'text-emerald-600' : 'text-gray-600'}`}>
+                  <span
+                    className={`${parseFloat(conversionRate) >= 10 ? 'text-emerald-600' : 'text-gray-600'}`}
+                  >
                     {conversionRate}%
                   </span>
                 </td>
@@ -347,11 +432,15 @@ export default function AdminReferralsPage() {
   const [error, setError] = useState<string | null>(null);
   const [campaign, setCampaign] = useState<CampaignStats | null>(null);
   const [referrers, setReferrers] = useState<ReferrerData[]>([]);
-  const [filteredReferrers, setFilteredReferrers] = useState<ReferrerData[]>([]);
+  const [filteredReferrers, setFilteredReferrers] = useState<ReferrerData[]>(
+    []
+  );
 
   // Filters & Sort
   const [searchTerm, setSearchTerm] = useState('');
-  const [tierFilter, setTierFilter] = useState<'all' | 'AMBASSADOR' | 'COMMUNITY'>('all');
+  const [tierFilter, setTierFilter] = useState<
+    'all' | 'AMBASSADOR' | 'COMMUNITY'
+  >('all');
   const [sortField, setSortField] = useState<SortField>('verifiedCount');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
@@ -390,15 +479,16 @@ export default function AdminReferralsPage() {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(
-        r => r.name.toLowerCase().includes(term) ||
-             r.code.toLowerCase().includes(term) ||
-             r.email?.toLowerCase().includes(term)
+        (r) =>
+          r.name.toLowerCase().includes(term) ||
+          r.code.toLowerCase().includes(term) ||
+          r.email?.toLowerCase().includes(term)
       );
     }
 
     // Tier filter
     if (tierFilter !== 'all') {
-      result = result.filter(r => r.tier === tierFilter);
+      result = result.filter((r) => r.tier === tierFilter);
     }
 
     // Sort
@@ -412,10 +502,14 @@ export default function AdminReferralsPage() {
       }
 
       if (typeof aVal === 'string' && typeof bVal === 'string') {
-        return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        return sortOrder === 'asc'
+          ? aVal.localeCompare(bVal)
+          : bVal.localeCompare(aVal);
       }
 
-      return sortOrder === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
+      return sortOrder === 'asc'
+        ? (aVal as number) - (bVal as number)
+        : (bVal as number) - (aVal as number);
     });
 
     setFilteredReferrers(result);
@@ -443,8 +537,18 @@ export default function AdminReferralsPage() {
   };
 
   const exportToCSV = () => {
-    const headers = ['שם', 'אימייל', 'טלפון', 'קוד', 'סוג', 'לחיצות', 'נרשמו', 'מאומתים', 'תאריך הצטרפות'];
-    const rows = filteredReferrers.map(r => [
+    const headers = [
+      'שם',
+      'אימייל',
+      'טלפון',
+      'קוד',
+      'סוג',
+      'לחיצות',
+      'נרשמו',
+      'מאומתים',
+      'תאריך הצטרפות',
+    ];
+    const rows = filteredReferrers.map((r) => [
       r.name,
       r.email || '',
       r.phone || '',
@@ -457,10 +561,12 @@ export default function AdminReferralsPage() {
     ]);
 
     const csvContent = [headers, ...rows]
-      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .map((row) => row.map((cell) => `"${cell}"`).join(','))
       .join('\n');
 
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(['\uFEFF' + csvContent], {
+      type: 'text/csv;charset=utf-8;',
+    });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `referrers_${new Date().toISOString().split('T')[0]}.csv`;
@@ -499,8 +605,12 @@ export default function AdminReferralsPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">ניהול קמפיין רפרל</h1>
-            <p className="text-gray-600 mt-1">מעקב אחר ביצועי המפנים והקמפיין</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              ניהול קמפיין רפרל
+            </h1>
+            <p className="text-gray-600 mt-1">
+              מעקב אחר ביצועי המפנים והקמפיין
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -509,14 +619,12 @@ export default function AdminReferralsPage() {
               onClick={handleRefresh}
               disabled={isRefreshing}
             >
-              <RefreshCw className={`w-4 h-4 ml-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`w-4 h-4 ml-1 ${isRefreshing ? 'animate-spin' : ''}`}
+              />
               רענן
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={exportToCSV}
-            >
+            <Button variant="outline" size="sm" onClick={exportToCSV}>
               <Download className="w-4 h-4 ml-1" />
               ייצא CSV
             </Button>
@@ -556,7 +664,7 @@ export default function AdminReferralsPage() {
             />
             <StatCard
               title="המרה"
-              value={`${campaign.conversionRate.toFixed(1)}%`}
+              value={`${(campaign.conversionRate ?? 0).toFixed(1)}%`}
               icon={<TrendingUp className="w-5 h-5" />}
               color="amber"
               subtitle="מלחיצה לאימות"
@@ -585,7 +693,10 @@ export default function AdminReferralsPage() {
                       className="pr-10"
                     />
                   </div>
-                  <Select value={tierFilter} onValueChange={(v) => setTierFilter(v as typeof tierFilter)}>
+                  <Select
+                    value={tierFilter}
+                    onValueChange={(v) => setTierFilter(v as typeof tierFilter)}
+                  >
                     <SelectTrigger className="w-full md:w-40">
                       <Filter className="w-4 h-4 ml-2" />
                       <SelectValue placeholder="סוג מפנה" />

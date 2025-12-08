@@ -13,16 +13,18 @@ interface StandardizedLoadingSpinnerProps {
 }
 
 // ==================== CINEMATIC TIMING ====================
+// ==================== CINEMATIC TIMING (UPDATED) ====================
+// שנה את הערכים הקיימים לערכים האלו:
 const TIMING = {
-  drawDuration: 0.8,
-  fillDelay: 0.6,
-  stagger: 0.15,
-  assemblyStart: 1.6,
-  particleDuration: 1.2,
-  convergenceStart: 2.0,
+  drawDuration: 0.1, // היה 0.8 - מצויר כמעט מיידית
+  fillDelay: 0.1, // היה 0.6 - מתחיל להתמלא מיד
+  stagger: 0.05, // היה 0.15 - הפער בין החלקים קצר
+  assemblyStart: 0.4, // היה 1.6 - הלוגו מתחבר תוך פחות מחצי שנייה
+  particleDuration: 1.2, // ללא שינוי
+  convergenceStart: 0.6, // היה 2.0 - האפקטים מגיעים מהר
   convergenceDuration: 1.8,
-  liquidFillStart: 2.2,
-  liquidFillDuration: 3.5,
+  liquidFillStart: 0.8, // היה 2.2 - הנוזל מתחיל להתמלא מהר
+  liquidFillDuration: 2.5, // היה 3.5 - המילוי מהיר יותר
 };
 
 // Custom easing curves

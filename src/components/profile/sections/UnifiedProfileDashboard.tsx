@@ -1,5 +1,3 @@
-// src/app/[locale]/(authenticated)/profile/components/dashboard/UnifiedProfileDashboard.tsx
-
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -13,7 +11,7 @@ import type { User as SessionUserType } from '@/types/next-auth';
 import { ProfileChecklist } from './ProfileChecklist';
 import { AIProfileAdvisorDialog } from './AIProfileAdvisorDialog';
 import { NeshmaInsightButton } from './NeshmaInsightButton';
-import { Lock, Eye, Loader2 } from 'lucide-react';
+import { Lock, Eye } from 'lucide-react';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -30,6 +28,9 @@ import {
   ProfileSection,
   QuestionnaireResponsesSection,
 } from '@/components/profile';
+
+// Loading Component
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 // Types
 import type {
@@ -114,6 +115,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const loadData = useCallback(async () => {
     setIsLoading(true);
     setError('');
+
+    // --- הוספת שורה 1: יצירת הבטחה (Promise) שמסתיימת אחרי 2 שניות ---
+    const minDelayPromise = new Promise((resolve) => setTimeout(resolve, 2000));
+
     try {
       // Fetch profile data
       const profileUrl = userId
@@ -165,6 +170,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       setError(translatedError);
       toast.error(translatedError);
     } finally {
+      // --- הוספת שורה 2: המתנה לסיום הטיימר לפני הסתרת מסך הטעינה ---
+      await minDelayPromise;
       setIsLoading(false);
     }
   }, [userId, dict, locale]);
@@ -460,19 +467,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 
   // Render States
   if (isLoading && !profileData) {
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        className="flex items-center justify-center min-h-screen bg-gradient-to-br from-teal-50 via-white to-orange-50"
-        dir={direction}
-      >
-        <div className="flex items-center gap-2 text-lg text-teal-600">
-          <Loader2 className="animate-spin h-6 w-6" />
-          <span>{dict.dashboard.loadingData}</span>
-        </div>
-      </div>
-    );
+    return <StandardizedLoadingSpinner text={dict.dashboard.loadingData} />;
   }
 
   if (error && !profileData) {

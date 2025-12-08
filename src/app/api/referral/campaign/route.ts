@@ -64,10 +64,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // אם זה עם סטטיסטיקות, הבא גם את המפנים
-    if (withStats && campaignId) {
+    // אם זה עם סטטיסטיקות, הבא גם את המפנים והסטטיסטיקות
+    if (withStats) {
+      const campaignIdToUse = campaignId || campaign.id;
+      
       const referrers = await prisma.referrer.findMany({
-        where: { campaignId },
+        where: { campaignId: campaignIdToUse },
         orderBy: { verifiedCount: 'desc' },
         include: {
           _count: {
@@ -76,9 +78,30 @@ export async function GET(request: NextRequest) {
         }
       });
 
+      // חישוב סטטיסטיקות כלליות
+      const totalClicks = referrers.reduce((sum, r) => sum + r.clickCount, 0);
+      const totalRegistrations = referrers.reduce((sum, r) => sum + r.registrationCount, 0);
+      const totalVerified = referrers.reduce((sum, r) => sum + r.verifiedCount, 0);
+      const conversionRate = totalClicks > 0 ? (totalVerified / totalClicks) * 100 : 0;
+
       return NextResponse.json({
         success: true,
-        campaign,
+        campaign: {
+          id: campaign.id,
+          name: campaign.name,
+          slug: campaign.slug,
+          description: campaign.description,
+          startDate: campaign.startDate,
+          endDate: campaign.endDate,
+          isActive: campaign.isActive,
+          prizeTiers: campaign.prizeTiers,
+          grandPrize: campaign.grandPrize,
+          totalReferrers: referrers.length,
+          totalClicks,
+          totalRegistrations,
+          totalVerified,
+          conversionRate,
+        },
         referrers: referrers.map(r => ({
           ...r,
           referralsCount: r._count.referrals,

@@ -13,6 +13,7 @@ export type NavbarDict = {
   matchmakingQuestionnaire: string;
   messages: string;
   login: string;
+  referralsAdmin: string;
   engagementDashboard: string;
   register: string;
   toQuestionnaire: string;

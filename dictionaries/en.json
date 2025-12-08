@@ -39,6 +39,7 @@
 
   "navbar": {
     "myMatches": "My Matches",
+     "referralsAdmin": "Referrals Admin",
     "matchmakingQuestionnaire": "Questionnaire",
       "engagementDashboard": "Engagement Managment",
     "messages": "Messages",

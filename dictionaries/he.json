@@ -39,6 +39,8 @@
 
   "navbar": {
     "myMatches": "ההצעות שלי",
+     "referralsAdmin": "ניהול רפרלים",
+     
     "matchmakingQuestionnaire": "שאלון התאמה",
         "engagementDashboard": "ניהול חווית לקוח",
     "messages": "הודעות",
