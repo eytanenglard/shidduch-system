@@ -466,7 +466,7 @@ export default function ReferralDashboard() {
           className="text-center mb-8"
         >
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Image src="/logo.png" alt="NeshamaTech" width={40} height={40} />
+            <Image src="/logo.png" alt="NeshamaTech" width={40} height={40}  unoptimized/>
             <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
               NeshamaTech
             </span>

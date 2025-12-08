@@ -13,6 +13,7 @@ import {
   Heart,
   Sparkles,
   ArrowLeft,
+  ArrowRight,
   CheckCircle2,
   Copy,
   Check,
@@ -59,6 +60,49 @@ const HeroSection: React.FC<{ locale: string; onScrollToForm: () => void }> = ({
 }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const isHebrew = locale === 'he';
+
+  const content = isHebrew
+    ? {
+        badge: 'קמפיין מיוחד לזמן מוגבל',
+        titleLine1: 'חברים מביאים',
+        titleHighlight: 'את הזיווג שלהם',
+        subtitle: (
+          <>
+            הזמינו חברים ל-NeshamaTech וקבלו פרסים מדהימים.
+            <br />
+            <span className="font-semibold text-teal-700">
+              המפנה המוביל יזכה בארוחת זוגות מפנקת! 🎉
+            </span>
+          </>
+        ),
+        cta: 'רוצה להצטרף? בואו נתחיל!',
+        stats: [
+          { value: '3', label: 'פרסים' },
+          { value: '₪400', label: 'פרס ראשון' },
+          { value: '∞', label: 'ללא הגבלה' },
+        ],
+      }
+    : {
+        badge: 'Special Limited Time Campaign',
+        titleLine1: 'Friends Bring',
+        titleHighlight: 'Their Match',
+        subtitle: (
+          <>
+            Invite friends to NeshamaTech and win amazing prizes.
+            <br />
+            <span className="font-semibold text-teal-700">
+              The top referrer wins a luxurious couple&lsquo;s dinner! 🎉
+            </span>
+          </>
+        ),
+        cta: "Want to join? Let's start!",
+        stats: [
+          { value: '3', label: 'Prizes' },
+          { value: '₪400', label: 'Grand Prize' },
+          { value: '∞', label: 'Unlimited' },
+        ],
+      };
 
   return (
     <motion.section
@@ -77,9 +121,7 @@ const HeroSection: React.FC<{ locale: string; onScrollToForm: () => void }> = ({
           className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-100 via-orange-100 to-rose-100 rounded-full px-6 py-3 mb-8 shadow-lg border border-amber-200/50"
         >
           <PartyPopper className="w-5 h-5 text-amber-600" />
-          <span className="font-bold text-amber-700">
-            קמפיין מיוחד לזמן מוגבל
-          </span>
+          <span className="font-bold text-amber-700">{content.badge}</span>
           <Sparkles className="w-5 h-5 text-orange-500" />
         </motion.div>
 
@@ -90,10 +132,10 @@ const HeroSection: React.FC<{ locale: string; onScrollToForm: () => void }> = ({
           transition={{ delay: 0.3 }}
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 mb-6 leading-tight"
         >
-          חברים מביאים
+          {content.titleLine1}
           <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient">
-            את הזיווג שלהם
+            {content.titleHighlight}
           </span>
         </motion.h1>
 
@@ -104,11 +146,7 @@ const HeroSection: React.FC<{ locale: string; onScrollToForm: () => void }> = ({
           transition={{ delay: 0.5 }}
           className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-10"
         >
-          הזמינו חברים ל-NeshamaTech וקבלו פרסים מדהימים.
-          <br />
-          <span className="font-semibold text-teal-700">
-            המפנה המוביל יזכה בארוחת זוגות מפנקת! 🎉
-          </span>
+          {content.subtitle}
         </motion.p>
 
         {/* Visual */}
@@ -141,8 +179,12 @@ const HeroSection: React.FC<{ locale: string; onScrollToForm: () => void }> = ({
             className="text-xl font-bold px-12 py-8 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-xl hover:shadow-2xl transition-all group"
           >
             <Zap className="w-6 h-6 ml-2 group-hover:rotate-12 transition-transform" />
-            רוצה להצטרף? בואו נתחיל!
-            <ArrowLeft className="w-6 h-6 mr-2 group-hover:-translate-x-1 transition-transform" />
+            {content.cta}
+            {isHebrew ? (
+              <ArrowLeft className="w-6 h-6 mr-2 group-hover:-translate-x-1 transition-transform" />
+            ) : (
+              <ArrowRight className="w-6 h-6 ml-2 group-hover:translate-x-1 transition-transform" />
+            )}
           </Button>
         </motion.div>
 
@@ -153,26 +195,26 @@ const HeroSection: React.FC<{ locale: string; onScrollToForm: () => void }> = ({
           transition={{ delay: 1 }}
           className="flex flex-wrap justify-center gap-6 mt-12"
         >
-          {[
-            { value: '3', label: 'פרסים', icon: Gift },
-            { value: '₪400', label: 'פרס ראשון', icon: Trophy },
-            { value: '∞', label: 'ללא הגבלה', icon: Users },
-          ].map((stat, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-2xl px-5 py-3 shadow-lg border border-white/60"
-            >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-100 to-orange-100 flex items-center justify-center">
-                <stat.icon className="w-5 h-5 text-teal-600" />
-              </div>
-              <div className="text-right">
-                <div className="text-xl font-bold text-gray-900">
-                  {stat.value}
+          {content.stats.map((stat, i) => {
+            const icons = [Gift, Trophy, Users];
+            const Icon = icons[i];
+            return (
+              <div
+                key={i}
+                className="flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-2xl px-5 py-3 shadow-lg border border-white/60"
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-100 to-orange-100 flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-teal-600" />
                 </div>
-                <div className="text-xs text-gray-600">{stat.label}</div>
+                <div className={isHebrew ? 'text-right' : 'text-left'}>
+                  <div className="text-xl font-bold text-gray-900">
+                    {stat.value}
+                  </div>
+                  <div className="text-xs text-gray-600">{stat.label}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </motion.div>
       </div>
     </motion.section>
@@ -180,35 +222,65 @@ const HeroSection: React.FC<{ locale: string; onScrollToForm: () => void }> = ({
 };
 
 // ================== How It Works ==================
-const HowItWorksSection = () => {
+const HowItWorksSection: React.FC<{ locale: string }> = ({ locale }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
-  const steps = [
-    {
-      title: 'הירשמו',
-      desc: 'מלאו פרטים וקבלו קישור',
-      icon: <Users className="w-7 h-7" />,
-      gradient: 'from-teal-400 to-emerald-500',
-    },
-    {
-      title: 'שתפו',
-      desc: 'שלחו לחברים רווקים',
-      icon: <Share2 className="w-7 h-7" />,
-      gradient: 'from-orange-400 to-amber-500',
-    },
-    {
-      title: 'צברו',
-      desc: 'כל חבר = נקודה',
-      icon: <Star className="w-7 h-7" />,
-      gradient: 'from-rose-400 to-pink-500',
-    },
-    {
-      title: 'זכו!',
-      desc: 'הגיעו ליעדים וקבלו פרסים',
-      icon: <Gift className="w-7 h-7" />,
-      gradient: 'from-amber-400 to-orange-500',
-    },
-  ];
+  const isHebrew = locale === 'he';
+
+  const title = isHebrew ? 'איך זה עובד?' : 'How It Works?';
+  const steps = isHebrew
+    ? [
+        {
+          title: 'הירשמו',
+          desc: 'מלאו פרטים וקבלו קישור',
+          icon: <Users className="w-7 h-7" />,
+          gradient: 'from-teal-400 to-emerald-500',
+        },
+        {
+          title: 'שתפו',
+          desc: 'שלחו לחברים רווקים',
+          icon: <Share2 className="w-7 h-7" />,
+          gradient: 'from-orange-400 to-amber-500',
+        },
+        {
+          title: 'צברו',
+          desc: 'כל חבר = נקודה',
+          icon: <Star className="w-7 h-7" />,
+          gradient: 'from-rose-400 to-pink-500',
+        },
+        {
+          title: 'זכו!',
+          desc: 'הגיעו ליעדים וקבלו פרסים',
+          icon: <Gift className="w-7 h-7" />,
+          gradient: 'from-amber-400 to-orange-500',
+        },
+      ]
+    : [
+        {
+          title: 'Register',
+          desc: 'Fill details & get link',
+          icon: <Users className="w-7 h-7" />,
+          gradient: 'from-teal-400 to-emerald-500',
+        },
+        {
+          title: 'Share',
+          desc: 'Send to single friends',
+          icon: <Share2 className="w-7 h-7" />,
+          gradient: 'from-orange-400 to-amber-500',
+        },
+        {
+          title: 'Earn',
+          desc: 'Every friend = 1 point',
+          icon: <Star className="w-7 h-7" />,
+          gradient: 'from-rose-400 to-pink-500',
+        },
+        {
+          title: 'Win!',
+          desc: 'Reach goals & get prizes',
+          icon: <Gift className="w-7 h-7" />,
+          gradient: 'from-amber-400 to-orange-500',
+        },
+      ];
 
   return (
     <section ref={ref} className="py-16 px-4">
@@ -218,7 +290,7 @@ const HowItWorksSection = () => {
           animate={isInView ? { opacity: 1 } : {}}
           className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-12"
         >
-          איך זה עובד?
+          {title}
         </motion.h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {steps.map((step, i) => (
@@ -245,30 +317,60 @@ const HowItWorksSection = () => {
 };
 
 // ================== Prizes Section ==================
-const PrizesSection = () => {
+const PrizesSection: React.FC<{ locale: string }> = ({ locale }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
-  const prizes = [
+  const isHebrew = locale === 'he';
+
+  const content = isHebrew
+    ? {
+        badge: 'הפרסים',
+        title: 'שלושה יעדים, שלושה פרסים',
+        verifiedLabel: 'מאומתים',
+        grandPrizeBadge: 'פרס מקום ראשון',
+        grandPrizeTitle: 'המפנה המוביל יזכה ב:',
+        grandPrizeDesc: 'ארוחה זוגית מפנקת + הכרה מיוחדת 🏆',
+        prizes: [
+          { name: 'קפה ומאפה', val: '50' },
+          { name: 'ארוחה במסעדה', val: '150' },
+          { name: 'ארוחת זוגות', val: '400' },
+        ],
+      }
+    : {
+        badge: 'The Prizes',
+        title: 'Three Goals, Three Prizes',
+        verifiedLabel: 'Verified',
+        grandPrizeBadge: '1st Place Prize',
+        grandPrizeTitle: 'Top referrer wins:',
+        grandPrizeDesc: "Luxurious Couple's Dinner + Recognition 🏆",
+        prizes: [
+          { name: 'Coffee & Pastry', val: '50' },
+          { name: 'Restaurant Meal', val: '150' },
+          { name: "Couple's Dinner", val: '400' },
+        ],
+      };
+
+  const prizesData = [
     {
       threshold: 3,
-      prize: 'קפה ומאפה',
-      value: 50,
+      prize: content.prizes[0].name,
+      value: content.prizes[0].val,
       icon: <Coffee className="w-8 h-8" />,
       gradient: 'from-teal-400 to-emerald-500',
       bg: 'from-teal-50 to-emerald-50',
     },
     {
       threshold: 7,
-      prize: 'ארוחה במסעדה',
-      value: 150,
+      prize: content.prizes[1].name,
+      value: content.prizes[1].val,
       icon: <UtensilsCrossed className="w-8 h-8" />,
       gradient: 'from-orange-400 to-amber-500',
       bg: 'from-orange-50 to-amber-50',
     },
     {
       threshold: 15,
-      prize: 'ארוחת זוגות',
-      value: 400,
+      prize: content.prizes[2].name,
+      value: content.prizes[2].val,
       icon: <Heart className="w-8 h-8" />,
       gradient: 'from-rose-400 to-pink-500',
       bg: 'from-rose-50 to-pink-50',
@@ -285,15 +387,15 @@ const PrizesSection = () => {
         >
           <div className="inline-flex items-center gap-2 bg-amber-100 rounded-full px-5 py-2 mb-4">
             <Trophy className="w-5 h-5 text-amber-600" />
-            <span className="font-bold text-amber-700">הפרסים</span>
+            <span className="font-bold text-amber-700">{content.badge}</span>
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900">
-            שלושה יעדים, שלושה פרסים
+            {content.title}
           </h2>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {prizes.map((p, i) => (
+          {prizesData.map((p, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
@@ -305,7 +407,7 @@ const PrizesSection = () => {
               <div
                 className={`absolute top-3 left-3 bg-gradient-to-br ${p.gradient} text-white text-xs font-bold px-3 py-1 rounded-full`}
               >
-                {p.threshold}+ מאומתים
+                {p.threshold}+ {content.verifiedLabel}
               </div>
               <div
                 className={`w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br ${p.gradient} flex items-center justify-center text-white mb-4 shadow-xl group-hover:rotate-6 transition-transform`}
@@ -327,7 +429,7 @@ const PrizesSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.5 }}
-          className="mt-10 bg-gradient-to-br from-amber-50 via-white to-orange-50 rounded-3xl p-8 shadow-2xl border-2 border-amber-200/50 flex flex-col md:flex-row items-center gap-6 text-center md:text-right"
+          className={`mt-10 bg-gradient-to-br from-amber-50 via-white to-orange-50 rounded-3xl p-8 shadow-2xl border-2 border-amber-200/50 flex flex-col md:flex-row items-center gap-6 text-center ${isHebrew ? 'md:text-right' : 'md:text-left'}`}
         >
           <div className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-400 to-red-500 flex items-center justify-center shadow-2xl flex-shrink-0">
             <Crown className="w-12 h-12 text-white" />
@@ -335,13 +437,15 @@ const PrizesSection = () => {
           <div>
             <div className="inline-flex items-center gap-2 bg-amber-100 rounded-full px-4 py-1 mb-2 text-sm">
               <Trophy className="w-4 h-4 text-amber-600" />
-              <span className="font-bold text-amber-700">פרס מקום ראשון</span>
+              <span className="font-bold text-amber-700">
+                {content.grandPrizeBadge}
+              </span>
             </div>
             <h3 className="text-2xl font-extrabold text-gray-900">
-              המפנה המוביל יזכה ב:
+              {content.grandPrizeTitle}
             </h3>
             <p className="text-xl text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-red-600 font-bold">
-              ארוחה זוגית מפנקת + הכרה מיוחדת 🏆
+              {content.grandPrizeDesc}
             </p>
           </div>
         </motion.div>
@@ -357,6 +461,8 @@ const SignupForm: React.FC<{
 }> = ({ locale, formRef }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const isHebrew = locale === 'he';
+
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -371,6 +477,72 @@ const SignupForm: React.FC<{
   const [codeStatus, setCodeStatus] = useState<
     'idle' | 'checking' | 'available' | 'taken'
   >('idle');
+
+  const content = isHebrew
+    ? {
+        title: 'הצטרפו עכשיו!',
+        subtitle: 'מלאו פרטים וקבלו קישור אישי',
+        labels: {
+          name: 'שם מלא *',
+          email: 'אימייל *',
+          phone: 'טלפון (אופציונלי)',
+          code: 'קוד מועדף (אופציונלי)',
+        },
+        placeholders: {
+          name: 'ישראל ישראלי',
+          email: 'email@example.com',
+          phone: '050-1234567',
+          code: 'DAVID',
+        },
+        buttons: {
+          submit: 'קבלו קישור',
+          submitting: 'נרשמים...',
+          copy: 'העתק',
+          copied: 'הועתק',
+          whatsapp: 'שתפו בוואטסאפ',
+          dashboard: 'דשבורד',
+        },
+        messages: {
+          linkText: 'הקישור:',
+          codeTaken: 'הקוד תפוס',
+          successTitle: 'נרשמתם בהצלחה!',
+          successDesc: 'הנה הקישור האישי שלכם:',
+          whatsappShare: 'היי! 👋\nהמלצה על NeshamaTech:\n',
+          genericError: 'שגיאה',
+        },
+      }
+    : {
+        title: 'Join Now!',
+        subtitle: 'Fill in details & get your personal link',
+        labels: {
+          name: 'Full Name *',
+          email: 'Email *',
+          phone: 'Phone (Optional)',
+          code: 'Preferred Code (Optional)',
+        },
+        placeholders: {
+          name: 'John Doe',
+          email: 'email@example.com',
+          phone: '050-1234567',
+          code: 'DAVID',
+        },
+        buttons: {
+          submit: 'Get Link',
+          submitting: 'Registering...',
+          copy: 'Copy',
+          copied: 'Copied',
+          whatsapp: 'Share on WhatsApp',
+          dashboard: 'Dashboard',
+        },
+        messages: {
+          linkText: 'Link:',
+          codeTaken: 'Code taken',
+          successTitle: 'Registered Successfully!',
+          successDesc: 'Here is your personal link:',
+          whatsappShare: 'Hey! 👋\nCheck out NeshamaTech:\n',
+          genericError: 'Error',
+        },
+      };
 
   useEffect(() => {
     if (!form.code || form.code.length < 3) {
@@ -406,11 +578,11 @@ const SignupForm: React.FC<{
         }),
       });
       const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'שגיאה');
+      if (!r.ok) throw new Error(d.error || content.messages.genericError);
       setGeneratedCode(d.referrer.code);
       setSuccess(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'שגיאה');
+      setError(e instanceof Error ? e.message : content.messages.genericError);
     }
     setLoading(false);
   };
@@ -426,7 +598,7 @@ const SignupForm: React.FC<{
   const whatsapp = () => {
     const url = `${window.location.origin}/r/${generatedCode}`;
     window.open(
-      `https://wa.me/?text=${encodeURIComponent(`היי! 👋\nהמלצה על NeshamaTech:\n${url}`)}`,
+      `https://wa.me/?text=${encodeURIComponent(`${content.messages.whatsappShare}${url}`)}`,
       '_blank'
     );
   };
@@ -448,9 +620,9 @@ const SignupForm: React.FC<{
                   <Send className="w-7 h-7" />
                 </div>
                 <h2 className="text-2xl font-extrabold text-gray-900">
-                  הצטרפו עכשיו!
+                  {content.title}
                 </h2>
-                <p className="text-gray-600">מלאו פרטים וקבלו קישור אישי</p>
+                <p className="text-gray-600">{content.subtitle}</p>
               </div>
 
               {error && (
@@ -463,19 +635,19 @@ const SignupForm: React.FC<{
               <form onSubmit={submit} className="space-y-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    שם מלא *
+                    {content.labels.name}
                   </label>
                   <Input
                     required
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="ישראל ישראלי"
+                    placeholder={content.placeholders.name}
                     className="h-12 rounded-xl"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    אימייל *
+                    {content.labels.email}
                   </label>
                   <Input
                     type="email"
@@ -484,14 +656,14 @@ const SignupForm: React.FC<{
                     onChange={(e) =>
                       setForm({ ...form, email: e.target.value })
                     }
-                    placeholder="email@example.com"
+                    placeholder={content.placeholders.email}
                     className="h-12 rounded-xl"
                     dir="ltr"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    טלפון (אופציונלי)
+                    {content.labels.phone}
                   </label>
                   <Input
                     type="tel"
@@ -499,14 +671,14 @@ const SignupForm: React.FC<{
                     onChange={(e) =>
                       setForm({ ...form, phone: e.target.value })
                     }
-                    placeholder="050-1234567"
+                    placeholder={content.placeholders.phone}
                     className="h-12 rounded-xl"
                     dir="ltr"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    קוד מועדף (אופציונלי)
+                    {content.labels.code}
                   </label>
                   <div className="relative">
                     <Input
@@ -519,12 +691,14 @@ const SignupForm: React.FC<{
                             .replace(/[^A-Z0-9]/g, ''),
                         })
                       }
-                      placeholder="DAVID"
+                      placeholder={content.placeholders.code}
                       maxLength={15}
-                      className="h-12 rounded-xl font-mono pl-10"
+                      className={`h-12 rounded-xl font-mono ${isHebrew ? 'pl-10' : 'pr-10'}`}
                       dir="ltr"
                     />
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                    <div
+                      className={`absolute ${isHebrew ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2`}
+                    >
                       {codeStatus === 'checking' && (
                         <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
                       )}
@@ -537,10 +711,13 @@ const SignupForm: React.FC<{
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    הקישור: neshamatech.com/r/{form.code || 'YOURCODE'}
+                    {content.messages.linkText} neshamatech.com/r/
+                    {form.code || 'YOURCODE'}
                   </p>
                   {codeStatus === 'taken' && (
-                    <p className="text-xs text-red-500">הקוד תפוס</p>
+                    <p className="text-xs text-red-500">
+                      {content.messages.codeTaken}
+                    </p>
                   )}
                 </div>
                 <Button
@@ -551,12 +728,12 @@ const SignupForm: React.FC<{
                   {loading ? (
                     <>
                       <Loader2 className="w-5 h-5 ml-2 animate-spin" />
-                      נרשמים...
+                      {content.buttons.submitting}
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-5 h-5 ml-2" />
-                      קבלו קישור
+                      {content.buttons.submit}
                     </>
                   )}
                 </Button>
@@ -574,9 +751,11 @@ const SignupForm: React.FC<{
                 <CheckCircle2 className="w-10 h-10 text-white" />
               </div>
               <h2 className="text-2xl font-extrabold text-gray-900 mb-2">
-                נרשמתם בהצלחה!
+                {content.messages.successTitle}
               </h2>
-              <p className="text-gray-600 mb-6">הנה הקישור האישי שלכם:</p>
+              <p className="text-gray-600 mb-6">
+                {content.messages.successDesc}
+              </p>
               <div className="bg-white rounded-xl p-4 shadow border border-gray-100 mb-6">
                 <div className="flex items-center justify-between gap-3 bg-gray-50 rounded-lg p-3">
                   <code
@@ -589,12 +768,12 @@ const SignupForm: React.FC<{
                     {copied ? (
                       <>
                         <Check className="w-4 h-4 ml-1" />
-                        הועתק
+                        {content.buttons.copied}
                       </>
                     ) : (
                       <>
                         <Copy className="w-4 h-4 ml-1" />
-                        העתק
+                        {content.buttons.copy}
                       </>
                     )}
                   </Button>
@@ -606,7 +785,7 @@ const SignupForm: React.FC<{
                   className="bg-green-500 hover:bg-green-600 text-white px-6 py-5 rounded-xl"
                 >
                   <MessageCircle className="w-5 h-5 ml-2" />
-                  שתפו בוואטסאפ
+                  {content.buttons.whatsapp}
                 </Button>
                 <Button
                   onClick={() =>
@@ -619,7 +798,7 @@ const SignupForm: React.FC<{
                   className="px-6 py-5 rounded-xl"
                 >
                   <TrendingUp className="w-5 h-5 ml-2" />
-                  דשבורד
+                  {content.buttons.dashboard}
                 </Button>
               </div>
             </motion.div>
@@ -640,6 +819,39 @@ const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const isHebrew = locale === 'he';
+
+  const content = isHebrew
+    ? {
+        title: 'כבר נרשמתם?',
+        subtitle: 'הכניסו את הפרטים שלכם לצפייה בדשבורד',
+        tabs: { code: 'קוד', email: 'אימייל', phone: 'טלפון' },
+        placeholders: {
+          code: 'הקוד שלכם (למשל: DAVID)',
+          email: 'כתובת האימייל',
+          phone: 'מספר הטלפון',
+        },
+        button: { search: 'לדשבורד שלי', searching: 'מחפש...' },
+        errors: {
+          notFound: 'לא נמצא מפנה עם הפרטים האלה',
+          generic: 'שגיאה בחיפוש',
+        },
+      }
+    : {
+        title: 'Already registered?',
+        subtitle: 'Enter your details to view your dashboard',
+        tabs: { code: 'Code', email: 'Email', phone: 'Phone' },
+        placeholders: {
+          code: 'Your code (e.g. DAVID)',
+          email: 'Email address',
+          phone: 'Phone number',
+        },
+        button: { search: 'Go to my dashboard', searching: 'Searching...' },
+        errors: {
+          notFound: 'No referrer found with these details',
+          generic: 'Search error',
+        },
+      };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -649,7 +861,6 @@ const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
     setError('');
 
     try {
-      // חיפוש לפי סוג
       const params = new URLSearchParams();
       if (searchType === 'code') {
         params.set('code', searchValue.toUpperCase());
@@ -663,27 +874,15 @@ const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
       const data = await response.json();
 
       if (data.success && data.code) {
-        // מצאנו - נעבור לדשבורד
         window.location.href = `/${locale}/referral/dashboard?code=${data.code}`;
       } else {
-        setError(
-          locale === 'he'
-            ? 'לא נמצא מפנה עם הפרטים האלה'
-            : 'No referrer found with these details'
-        );
+        setError(content.errors.notFound);
       }
     } catch (err) {
-      setError(locale === 'he' ? 'שגיאה בחיפוש' : 'Search error');
+      setError(content.errors.generic);
     } finally {
       setLoading(false);
     }
-  };
-
-  const placeholders = {
-    code:
-      locale === 'he' ? 'הקוד שלכם (למשל: DAVID)' : 'Your code (e.g. DAVID)',
-    email: locale === 'he' ? 'כתובת האימייל' : 'Email address',
-    phone: locale === 'he' ? 'מספר הטלפון' : 'Phone number',
   };
 
   return (
@@ -698,31 +897,16 @@ const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
             <div className="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-slate-100 to-gray-200 flex items-center justify-center mb-3">
               <KeyRound className="w-6 h-6 text-gray-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-800">
-              {locale === 'he' ? 'כבר נרשמתם?' : 'Already registered?'}
-            </h3>
-            <p className="text-sm text-gray-600 mt-1">
-              {locale === 'he'
-                ? 'הכניסו את הפרטים שלכם לצפייה בדשבורד'
-                : 'Enter your details to view your dashboard'}
-            </p>
+            <h3 className="text-xl font-bold text-gray-800">{content.title}</h3>
+            <p className="text-sm text-gray-600 mt-1">{content.subtitle}</p>
           </div>
 
           {/* Tabs for search type */}
           <div className="flex gap-2 mb-4 p-1 bg-gray-100 rounded-xl">
             {[
-              {
-                type: 'code' as const,
-                label: locale === 'he' ? 'קוד' : 'Code',
-              },
-              {
-                type: 'email' as const,
-                label: locale === 'he' ? 'אימייל' : 'Email',
-              },
-              {
-                type: 'phone' as const,
-                label: locale === 'he' ? 'טלפון' : 'Phone',
-              },
+              { type: 'code' as const, label: content.tabs.code },
+              { type: 'email' as const, label: content.tabs.email },
+              { type: 'phone' as const, label: content.tabs.phone },
             ].map((tab) => (
               <button
                 key={tab.type}
@@ -746,17 +930,13 @@ const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
               <Input
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                placeholder={placeholders[searchType]}
-                className="h-12 rounded-xl pr-4 pl-12"
-                dir={
-                  searchType === 'code'
-                    ? 'ltr'
-                    : searchType === 'email'
-                      ? 'ltr'
-                      : 'ltr'
-                }
+                placeholder={content.placeholders[searchType]}
+                className={`h-12 rounded-xl ${isHebrew ? 'pr-4 pl-12' : 'pl-4 pr-12'}`}
+                dir="ltr"
               />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search
+                className={`absolute ${isHebrew ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400`}
+              />
             </div>
 
             {error && (
@@ -774,12 +954,12 @@ const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                  {locale === 'he' ? 'מחפש...' : 'Searching...'}
+                  {content.button.searching}
                 </>
               ) : (
                 <>
                   <TrendingUp className="w-4 h-4 ml-2" />
-                  {locale === 'he' ? 'לדשבורד שלי' : 'Go to my dashboard'}
+                  {content.button.search}
                 </>
               )}
             </Button>
@@ -791,22 +971,44 @@ const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
 };
 
 // ================== FAQ ==================
-const FAQSection = () => {
+const FAQSection: React.FC<{ locale: string }> = ({ locale }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const [open, setOpen] = useState<number | null>(null);
-  const faqs = [
-    {
-      q: 'איך הפרסים עובדים?',
-      a: 'כל חבר שנרשם ומאמת טלפון = נקודה. 3 נקודות = קפה, 7 = ארוחה, 15 = ארוחת זוגות.',
-    },
-    { q: 'מתי מקבלים את הפרסים?', a: 'הפרסים מחולקים בסוף כל חודש.' },
-    { q: 'האם יש הגבלה?', a: 'לא! אין הגבלה על מספר ההפניות.' },
-    {
-      q: 'איך עוקבים אחרי ההתקדמות?',
-      a: 'יש לכם דשבורד אישי שמראה את כל הסטטיסטיקות.',
-    },
-  ];
+  const isHebrew = locale === 'he';
+
+  const title = isHebrew ? 'שאלות נפוצות' : 'Frequently Asked Questions';
+  const faqs = isHebrew
+    ? [
+        {
+          q: 'איך הפרסים עובדים?',
+          a: 'כל חבר שנרשם ומאמת טלפון = נקודה. 3 נקודות = קפה, 7 = ארוחה, 15 = ארוחת זוגות.',
+        },
+        { q: 'מתי מקבלים את הפרסים?', a: 'הפרסים מחולקים בסוף כל חודש.' },
+        { q: 'האם יש הגבלה?', a: 'לא! אין הגבלה על מספר ההפניות.' },
+        {
+          q: 'איך עוקבים אחרי ההתקדמות?',
+          a: 'יש לכם דשבורד אישי שמראה את כל הסטטיסטיקות.',
+        },
+      ]
+    : [
+        {
+          q: 'How do prizes work?',
+          a: "Every friend who registers & verifies phone = 1 point. 3 points = Coffee, 7 = Meal, 15 = Couple's Dinner.",
+        },
+        {
+          q: 'When are prizes distributed?',
+          a: 'Prizes are distributed at the end of each month.',
+        },
+        {
+          q: 'Is there a limit?',
+          a: 'No! There is no limit on the number of referrals.',
+        },
+        {
+          q: 'How do I track progress?',
+          a: 'You have a personal dashboard showing all statistics.',
+        },
+      ];
 
   return (
     <section ref={ref} className="py-16 px-4">
@@ -816,7 +1018,7 @@ const FAQSection = () => {
           animate={isInView ? { opacity: 1 } : {}}
           className="text-3xl font-extrabold text-center text-gray-900 mb-10"
         >
-          שאלות נפוצות
+          {title}
         </motion.h2>
         <div className="space-y-3">
           {faqs.map((faq, i) => (
@@ -828,7 +1030,7 @@ const FAQSection = () => {
             >
               <button
                 onClick={() => setOpen(open === i ? null : i)}
-                className="w-full bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg border border-white/60 text-right hover:shadow-xl transition-all"
+                className={`w-full bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg border border-white/60 hover:shadow-xl transition-all ${isHebrew ? 'text-right' : 'text-left'}`}
               >
                 <div className="flex items-center justify-between gap-4">
                   <h3 className="font-bold text-gray-800">{faq.q}</h3>
@@ -872,11 +1074,11 @@ export default function FriendsPage() {
     >
       <DynamicBackground />
       <HeroSection locale={locale} onScrollToForm={scrollToForm} />
-      <HowItWorksSection />
-      <PrizesSection />
+      <HowItWorksSection locale={locale} />
+      <PrizesSection locale={locale} />
       <SignupForm locale={locale} formRef={formRef} />
       <ExistingReferrerSection locale={locale} />
-      <FAQSection />
+      <FAQSection locale={locale} />
       <style>{`
         @keyframes float-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
         .animate-float-slow { animation: float-slow 15s ease-in-out infinite; }
