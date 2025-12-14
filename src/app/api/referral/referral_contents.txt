@@ -1,0 +1,840 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral
+# Generated on: 2025-12-14 17:49:37
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\referral_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\campaign
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\campaign\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/referral/campaign/route.ts
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma'; // 🔴 תיקון: default import
+import { getCampaignWithStats, getActiveCampaign } from '@/lib/services/referralService';
+import { z } from 'zod';
+
+// Validation schema for creating campaign
+const createCampaignSchema = z.object({
+  name: z.string().min(2).max(100),
+  slug: z.string().min(2).max(50).regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers and hyphens'),
+  description: z.string().optional(),
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime(),
+  prizeTiers: z.array(z.object({
+    threshold: z.number().min(1),
+    prize: z.string(),
+    prizeValue: z.number().optional(),
+  })).optional(),
+  grandPrize: z.string().optional(),
+  settings: z.object({
+    requireVerification: z.boolean().default(true),
+    requireProfileComplete: z.boolean().default(false),
+    maxReferralsPerIP: z.number().min(0).default(5),
+    allowSelfReferral: z.boolean().default(false),
+  }).optional(),
+});
+
+// GET - הבא קמפיין פעיל או ספציפי
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const campaignId = searchParams.get('id');
+    const slug = searchParams.get('slug');
+    const withStats = searchParams.get('stats') === 'true';
+
+    // אם מבקשים קמפיין ספציפי עם סטטיסטיקות - צריך להיות אדמין
+    if (withStats) {
+      const session = await getServerSession(authOptions);
+      if (!session?.user || !['ADMIN', 'MATCHMAKER'].includes(session.user.role)) {
+        return NextResponse.json(
+          { success: false, error: 'UNAUTHORIZED' },
+          { status: 401 }
+        );
+      }
+    }
+
+    let campaign;
+
+    if (campaignId && withStats) {
+      campaign = await getCampaignWithStats(campaignId);
+    } else if (slug) {
+      campaign = await getActiveCampaign(slug);
+    } else {
+      campaign = await getActiveCampaign();
+    }
+
+    if (!campaign) {
+      return NextResponse.json(
+        { success: false, error: 'CAMPAIGN_NOT_FOUND' },
+        { status: 404 }
+      );
+    }
+
+    // אם זה עם סטטיסטיקות, הבא גם את המפנים והסטטיסטיקות
+    if (withStats) {
+      const campaignIdToUse = campaignId || campaign.id;
+      
+      const referrers = await prisma.referrer.findMany({
+        where: { campaignId: campaignIdToUse },
+        orderBy: { verifiedCount: 'desc' },
+        include: {
+          _count: {
+            select: { referrals: true }
+          }
+        }
+      });
+
+      // חישוב סטטיסטיקות כלליות
+      const totalClicks = referrers.reduce((sum, r) => sum + r.clickCount, 0);
+      const totalRegistrations = referrers.reduce((sum, r) => sum + r.registrationCount, 0);
+      const totalVerified = referrers.reduce((sum, r) => sum + r.verifiedCount, 0);
+      const conversionRate = totalClicks > 0 ? (totalVerified / totalClicks) * 100 : 0;
+
+      return NextResponse.json({
+        success: true,
+        campaign: {
+          id: campaign.id,
+          name: campaign.name,
+          slug: campaign.slug,
+          description: campaign.description,
+          startDate: campaign.startDate,
+          endDate: campaign.endDate,
+          isActive: campaign.isActive,
+          prizeTiers: campaign.prizeTiers,
+          grandPrize: campaign.grandPrize,
+          totalReferrers: referrers.length,
+          totalClicks,
+          totalRegistrations,
+          totalVerified,
+          conversionRate,
+        },
+        referrers: referrers.map(r => ({
+          ...r,
+          referralsCount: r._count.referrals,
+        })),
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      campaign: {
+        id: campaign.id,
+        name: campaign.name,
+        slug: campaign.slug,
+        description: campaign.description,
+        startDate: campaign.startDate,
+        endDate: campaign.endDate,
+        isActive: campaign.isActive,
+        prizeTiers: campaign.prizeTiers,
+        grandPrize: campaign.grandPrize,
+      },
+    });
+
+  } catch (error) {
+    console.error('[Campaign GET] Error:', error);
+    return NextResponse.json(
+      { success: false, error: 'INTERNAL_ERROR' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST - צור קמפיין חדש (אדמין בלבד)
+export async function POST(request: NextRequest) {
+  try {
+    // בדוק הרשאות
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { success: false, error: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    
+    // Validate
+    const validationResult = createCampaignSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'VALIDATION_ERROR',
+          details: validationResult.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const data = validationResult.data;
+
+    // בדוק ש-slug ייחודי
+    const existingSlug = await prisma.referralCampaign.findUnique({
+      where: { slug: data.slug },
+    });
+
+    if (existingSlug) {
+      return NextResponse.json(
+        { success: false, error: 'SLUG_TAKEN' },
+        { status: 409 }
+      );
+    }
+
+    // צור את הקמפיין
+    const campaign = await prisma.referralCampaign.create({
+      data: {
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+        isActive: true,
+        prizeTiers: data.prizeTiers ?? undefined, // 🔴 תיקון: undefined במקום null
+        grandPrize: data.grandPrize,
+        settings: data.settings ?? undefined, // 🔴 תיקון: undefined במקום null
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      campaign,
+    });
+
+  } catch (error) {
+    console.error('[Campaign POST] Error:', error);
+    return NextResponse.json(
+      { success: false, error: 'INTERNAL_ERROR' },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH - עדכן קמפיין (אדמין בלבד)
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { success: false, error: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { id, ...updates } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: 'Missing campaign ID' },
+        { status: 400 }
+      );
+    }
+
+    // עדכן
+    const campaign = await prisma.referralCampaign.update({
+      where: { id },
+      data: {
+        ...updates,
+        startDate: updates.startDate ? new Date(updates.startDate) : undefined,
+        endDate: updates.endDate ? new Date(updates.endDate) : undefined,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      campaign,
+    });
+
+  } catch (error) {
+    console.error('[Campaign PATCH] Error:', error);
+    return NextResponse.json(
+      { success: false, error: 'INTERNAL_ERROR' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\leaderboard
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\leaderboard\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/referral/leaderboard/route.ts
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getLeaderboard, getActiveCampaign } from '@/lib/services/referralService';
+import prisma from '@/lib/prisma'; // 🔴 תיקון: import ישיר
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const campaignSlug = searchParams.get('campaign');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50);
+    const currentUserCode = searchParams.get('myCode');
+
+    // מצא קמפיין פעיל
+    const campaign = await getActiveCampaign(campaignSlug || undefined);
+    
+    if (!campaign) {
+      return NextResponse.json(
+        { success: false, error: 'NO_ACTIVE_CAMPAIGN' },
+        { status: 404 }
+      );
+    }
+
+    // הבא לידרבורד
+    const leaderboard = await getLeaderboard(
+      campaign.id, 
+      limit, 
+      currentUserCode || undefined
+    );
+
+    // ספור סה"כ משתתפים
+    const countResult = await prisma.referrer.aggregate({ // 🔴 תיקון: שימוש ישיר ב-prisma
+      where: { campaignId: campaign.id },
+      _count: { id: true },
+    });
+
+    return NextResponse.json({
+      success: true,
+      leaderboard,
+      totalParticipants: countResult._count.id,
+      campaign: {
+        name: campaign.name,
+        endsAt: campaign.endDate.toISOString(),
+      },
+      lastUpdated: new Date().toISOString(),
+    });
+
+  } catch (error) {
+    console.error('[Referral Leaderboard] Error:', error);
+    return NextResponse.json(
+      { success: false, error: 'INTERNAL_ERROR' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\lookup
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\lookup\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/referral/lookup/route.ts
+
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+
+// טיפוס התוצאה
+type ReferrerResult = {
+  code: string;
+  name: string;
+} | null;
+
+/**
+ * חיפוש מפנה לפי קוד, אימייל, או טלפון
+ * מאפשר למפנים קיימים למצוא את הדשבורד שלהם
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const code = searchParams.get('code');
+    const email = searchParams.get('email');
+    const phone = searchParams.get('phone');
+
+    // חייב לפחות פרמטר אחד
+    if (!code && !email && !phone) {
+      return NextResponse.json(
+        { success: false, error: 'MISSING_SEARCH_PARAM' },
+        { status: 400 }
+      );
+    }
+
+    // בניית שאילתת חיפוש
+    let referrer: ReferrerResult = null;
+
+    if (code) {
+      // חיפוש לפי קוד (הכי מדויק)
+      referrer = await prisma.referrer.findFirst({
+        where: { 
+          code: code.toUpperCase(),
+        },
+        select: {
+          code: true,
+          name: true,
+        },
+      });
+    } else if (email) {
+      // חיפוש לפי אימייל
+      referrer = await prisma.referrer.findFirst({
+        where: { 
+          email: email.toLowerCase(),
+        },
+        select: {
+          code: true,
+          name: true,
+        },
+      });
+    } else if (phone) {
+      // חיפוש לפי טלפון - נרמול מספר הטלפון
+      const normalizedPhone = phone.replace(/[^0-9]/g, '');
+      
+      referrer = await prisma.referrer.findFirst({
+        where: { 
+          OR: [
+            { phone: phone },
+            { phone: normalizedPhone },
+            { phone: { contains: normalizedPhone.slice(-9) } }, // 9 ספרות אחרונות
+          ],
+        },
+        select: {
+          code: true,
+          name: true,
+        },
+      });
+    }
+
+    if (!referrer) {
+      return NextResponse.json({
+        success: false,
+        error: 'NOT_FOUND',
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      code: referrer.code,
+      name: referrer.name,
+    });
+
+  } catch (error) {
+    console.error('[Referral Lookup] Error:', error);
+    return NextResponse.json(
+      { success: false, error: 'INTERNAL_ERROR' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\register
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\register\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/referral/register/route.ts
+
+import { NextRequest, NextResponse } from 'next/server';
+import { 
+  getActiveCampaign, 
+  createReferrer, 
+  isValidCode,
+  getReferrerByCode,
+} from '@/lib/services/referralService';
+import { z } from 'zod';
+
+// Validation schema
+const registerSchema = z.object({
+  campaignSlug: z.string().optional(),
+  name: z.string().min(2, 'שם חייב להכיל לפחות 2 תווים').max(50),
+  email: z.string().email('כתובת אימייל לא תקינה').optional().or(z.literal('')),
+  phone: z.string().optional().or(z.literal('')),
+  preferredCode: z.string()
+    .min(3, 'קוד חייב להכיל לפחות 3 תווים')
+    .max(15, 'קוד יכול להכיל עד 15 תווים')
+    .regex(/^[A-Za-z0-9]+$/, 'קוד יכול להכיל רק אותיות באנגלית ומספרים')
+    .optional()
+    .or(z.literal('')),
+});
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    
+    // Validate input
+    const validationResult = registerSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'VALIDATION_ERROR',
+          details: validationResult.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { campaignSlug, name, email, phone, preferredCode } = validationResult.data;
+
+    // מצא קמפיין פעיל
+    const campaign = await getActiveCampaign(campaignSlug);
+    
+    if (!campaign) {
+      return NextResponse.json(
+        { success: false, error: 'NO_ACTIVE_CAMPAIGN' },
+        { status: 404 }
+      );
+    }
+
+    // בדוק אם הקוד המועדף תפוס
+    if (preferredCode) {
+      const existing = await getReferrerByCode(preferredCode);
+      if (existing) {
+        return NextResponse.json(
+          { success: false, error: 'CODE_TAKEN' },
+          { status: 409 }
+        );
+      }
+      
+      if (!isValidCode(preferredCode)) {
+        return NextResponse.json(
+          { success: false, error: 'INVALID_CODE_FORMAT' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // צור את המפנה
+    const referrer = await createReferrer({
+      campaignId: campaign.id,
+      name,
+      email: email || undefined,
+      phone: phone || undefined,
+      preferredCode: preferredCode || undefined,
+      tier: 'COMMUNITY',
+    });
+
+    // בנה את ה-URLs
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.neshamatech.com';
+    const shareUrl = `${baseUrl}/r/${referrer.code}`;
+    const dashboardUrl = `${baseUrl}/he/referral/dashboard?code=${referrer.code}`;
+
+    return NextResponse.json({
+      success: true,
+      referrer: {
+        code: referrer.code,
+        shareUrl,
+        dashboardUrl,
+      },
+    });
+
+  } catch (error) {
+    console.error('[Referral Register] Error:', error);
+    
+    if (error instanceof Error) {
+      if (error.message === 'CODE_TAKEN') {
+        return NextResponse.json(
+          { success: false, error: 'CODE_TAKEN' },
+          { status: 409 }
+        );
+      }
+      if (error.message === 'INVALID_CODE_FORMAT') {
+        return NextResponse.json(
+          { success: false, error: 'INVALID_CODE_FORMAT' },
+          { status: 400 }
+        );
+      }
+    }
+
+    return NextResponse.json(
+      { success: false, error: 'INTERNAL_ERROR' },
+      { status: 500 }
+    );
+  }
+}
+
+// בדיקת זמינות קוד
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const code = searchParams.get('code');
+
+    if (!code) {
+      return NextResponse.json(
+        { success: false, error: 'Missing code parameter' },
+        { status: 400 }
+      );
+    }
+
+    if (!isValidCode(code)) {
+      return NextResponse.json({
+        success: true,
+        available: false,
+        reason: 'INVALID_FORMAT',
+      });
+    }
+
+    const existing = await getReferrerByCode(code);
+    
+    return NextResponse.json({
+      success: true,
+      available: !existing,
+      reason: existing ? 'TAKEN' : null,
+    });
+
+  } catch (error) {
+    console.error('[Referral Check Code] Error:', error);
+    return NextResponse.json(
+      { success: false, error: 'INTERNAL_ERROR' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\stats
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\stats\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/referral/stats/route.ts
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getReferrerStats, getReferrerByCode } from '@/lib/services/referralService';
+import prisma from '@/lib/prisma';
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const code = searchParams.get('code');
+
+    if (!code) {
+      return NextResponse.json(
+        { success: false, error: 'Missing code parameter' },
+        { status: 400 }
+      );
+    }
+
+    // בדוק שהמפנה קיים
+    const referrer = await getReferrerByCode(code);
+    if (!referrer) {
+      return NextResponse.json(
+        { success: false, error: 'REFERRER_NOT_FOUND' },
+        { status: 404 }
+      );
+    }
+
+    // הבא סטטיסטיקות
+    const stats = await getReferrerStats(code);
+    if (!stats) {
+      return NextResponse.json(
+        { success: false, error: 'STATS_NOT_FOUND' },
+        { status: 404 }
+      );
+    }
+
+    // הבא פירוט הפניות לפי סטטוס
+    const statusCounts = await prisma.referral.groupBy({
+      by: ['status'],
+      where: { referrerId: referrer.id },
+      _count: { id: true },
+    });
+
+    const byStatus = statusCounts.reduce((acc, curr) => {
+      acc[curr.status] = curr._count.id;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // הבא הפניות אחרונות
+    const recentReferrals = await prisma.referral.findMany({
+      where: { referrerId: referrer.id },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: {
+        status: true,
+        createdAt: true,
+      },
+    });
+
+    // חשב ימים שנותרו לקמפיין
+    const now = new Date();
+    const endDate = new Date(referrer.campaign.endDate);
+    const daysRemaining = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+
+    return NextResponse.json({
+      success: true,
+      stats,
+      referrals: {
+        total: Object.values(byStatus).reduce((a, b) => a + b, 0),
+        byStatus,
+        recent: recentReferrals.map(r => ({
+          status: r.status,
+          createdAt: r.createdAt.toISOString(),
+        })),
+      },
+      campaign: {
+        name: referrer.campaign.name,
+        endsAt: referrer.campaign.endDate.toISOString(),
+        daysRemaining,
+        isActive: referrer.campaign.isActive && endDate > now,
+      },
+    });
+
+  } catch (error) {
+    console.error('[Referral Stats] Error:', error);
+    return NextResponse.json(
+      { success: false, error: 'INTERNAL_ERROR' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\track
+================================================================================
+
+(This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\track\[code]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\track\[code]\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/referral/track/[code]/route.ts
+
+import { NextRequest, NextResponse } from 'next/server';
+import { 
+  trackClick, 
+  getReferrerByCode,
+  createReferralCookieValue,
+  REFERRAL_COOKIE_NAME,
+  REFERRAL_COOKIE_DAYS,
+} from '@/lib/services/referralService';
+import { v4 as uuidv4 } from 'uuid';
+
+/**
+ * פונקציה לקבלת ה-Base URL הנכון
+ * ב-Heroku, request.url יכול להחזיר URL פנימי לא נכון
+ */
+function getBaseUrl(request: NextRequest): string {
+  // נסה לקבל את ה-host מה-headers
+  const host = request.headers.get('x-forwarded-host') || 
+               request.headers.get('host') ||
+               'localhost:3000';
+  
+  // בדוק אם זה HTTPS (ב-production)
+  const protocol = request.headers.get('x-forwarded-proto') || 
+                   (process.env.NODE_ENV === 'production' ? 'https' : 'http');
+  
+  return `${protocol}://${host}`;
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ code: string }> }
+) {
+  try {
+    // תיקון ל-Next.js 15: חובה לעשות await ל-params
+    const { code } = await params;
+    
+    if (!code) {
+      return NextResponse.json(
+        { success: false, error: 'Missing code' },
+        { status: 400 }
+      );
+    }
+
+    // קבל את ה-Base URL הנכון
+    const baseUrl = getBaseUrl(request);
+    console.log('[Referral Track] Base URL:', baseUrl);
+
+    // בדוק אם המפנה קיים ופעיל
+    const referrer = await getReferrerByCode(code);
+    
+    if (!referrer) {
+      // קוד לא קיים - הפנה לעמוד הבית
+      return NextResponse.redirect(new URL('/', baseUrl));
+    }
+
+    // חלץ מידע מהבקשה
+    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                      request.headers.get('x-real-ip') || 
+                      'unknown';
+    const userAgent = request.headers.get('user-agent') || undefined;
+    
+    // צור session ID ייחודי
+    const sessionId = uuidv4();
+
+    // רשום את הלחיצה
+    const result = await trackClick({
+      code: code.toUpperCase(),
+      ipAddress,
+      userAgent,
+      sessionId,
+    });
+
+    // הכן את ה-redirect URL
+    const { searchParams } = new URL(request.url);
+    const localeParam = searchParams.get('locale');
+    const acceptLanguage = request.headers.get('accept-language') || '';
+    const locale = localeParam || (acceptLanguage.startsWith('he') ? 'he' : 'en');
+const redirectUrl = new URL(`/${locale}`, baseUrl);    
+    // הוסף פרמטר לזיהוי שזה רפרל
+    redirectUrl.searchParams.set('ref', code.toUpperCase());
+
+    // צור response עם redirect
+    const response = NextResponse.redirect(redirectUrl);
+
+    // הגדר cookie לשמירת הרפרל
+    if (result.success && result.referralId) {
+      const cookieValue = createReferralCookieValue(code.toUpperCase(), result.referralId);
+      
+      response.cookies.set(REFERRAL_COOKIE_NAME, cookieValue, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: REFERRAL_COOKIE_DAYS * 24 * 60 * 60, // 30 ימים בשניות
+        path: '/',
+      });
+
+      // גם session ID ל-localStorage (דרך query param)
+      redirectUrl.searchParams.set('sid', sessionId);
+    }
+
+    console.log('[Referral Track] Redirecting to:', redirectUrl.toString());
+    return response;
+
+  } catch (error) {
+    console.error('[Referral Track] Error:', error);
+    
+    // במקרה של שגיאה - הפנה לעמוד הבית
+    const baseUrl = getBaseUrl(request);
+    return NextResponse.redirect(new URL('/', baseUrl));
+  }
+}
+--- End of Content for route.ts ---
+

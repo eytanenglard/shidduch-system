@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-12-08 22:04:08
+# Generated on: 2025-12-09 15:08:44
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -1468,7 +1468,8 @@ import PersonalDetailsStep from './steps/PersonalDetailsStep';
 import CompleteStep from './steps/CompleteStep';
 import ProgressBar from './ProgressBar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info, Loader2 } from 'lucide-react';
+import { Info } from 'lucide-react';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
@@ -1567,8 +1568,7 @@ const RegisterStepsContent: React.FC<{
     if (sessionStatus === 'loading') {
       return (
         <div className="flex justify-center p-10">
-          {/* UPDATED: Cyan -> Teal */}
-          <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+          <StandardizedLoadingSpinner className="text-teal-600 w-8 h-8" />
         </div>
       );
     }
@@ -1665,10 +1665,8 @@ const RegisterStepsContent: React.FC<{
   }
 
   return (
-    // UPDATED: Background Gradient (Teal/Orange/Slate)
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40 p-4 sm:p-8">
       <div className="mb-6 text-center">
-        {/* UPDATED: Text Gradient (Teal -> Orange -> Amber) */}
         <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 text-3xl font-bold mb-2">
           {pageTitle}
         </h1>
@@ -1676,7 +1674,6 @@ const RegisterStepsContent: React.FC<{
       </div>
 
       {showIncompleteProfileMessage && (
-        // UPDATED: Yellow/Amber alerts match the new palette well
         <Alert className="mb-6 w-full max-w-md bg-amber-50 border-amber-200 text-amber-800 shadow-md">
           <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-1" />
           <div className="ml-3 rtl:mr-3 rtl:ml-0">
@@ -1708,7 +1705,7 @@ const RegisterStepsContent: React.FC<{
       </div>
 
       <div className="mt-8 text-center text-sm text-gray-500">
-        {dict.contactSupport} {/* UPDATED: Link Color (Teal) */}
+        {dict.contactSupport}{' '}
         <Link
           href="/contact"
           className="text-teal-600 hover:underline hover:text-teal-700"
@@ -3325,19 +3322,14 @@ Content:
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import {
-  CheckCircle,
-  Mail,
-  User,
-  Phone,
-  Loader2,
-} from 'lucide-react';
+import { CheckCircle, Mail, User, Phone } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { UserStatus } from '@prisma/client';
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 interface CompleteStepProps {
   dict: RegisterStepsDict['steps']['complete'];
@@ -3373,14 +3365,13 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ dict }) => {
   if (sessionStatus === 'loading') {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center space-y-4">
-        <Loader2 className="h-10 w-10 animate-spin text-cyan-600" />
+        <StandardizedLoadingSpinner className="text-cyan-600 w-10 h-10" />
         <p className="text-lg text-gray-600">{dict.loading}</p>
       </div>
     );
   }
 
   if (sessionStatus === 'unauthenticated' || !session?.user) {
-    // Should be handled by parent, but as a fallback:
     router.push('/auth/signin');
     return null;
   }
@@ -5161,17 +5152,17 @@ Content:
 // src/components/auth/steps/SubmissionStatusIndicator.tsx
 'use client';
 
-import { CheckCircle, Loader2, ShieldCheck } from 'lucide-react';
+import { CheckCircle, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
-// ▼▼▼ 1. הוספת 'redirecting' לטיפוס ▼▼▼
 export type SubmissionStatus =
   | 'idle'
   | 'creatingAccount'
   | 'sendingCode'
   | 'savingProfile'
   | 'updatingSession'
-  | 'redirecting' // <--- חדש
+  | 'redirecting'
   | 'error';
 
 interface Step {
@@ -5214,7 +5205,9 @@ const SubmissionStatusIndicator: React.FC<SubmissionStatusIndicatorProps> = ({
 
   const statusIcons = {
     completed: <CheckCircle className="h-6 w-6 text-green-500" />,
-    'in-progress': <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />,
+    'in-progress': (
+      <StandardizedLoadingSpinner className="h-6 w-6 text-cyan-500" />
+    ),
     pending: (
       <div className="h-6 w-6 rounded-full border-2 border-gray-300"></div>
     ),

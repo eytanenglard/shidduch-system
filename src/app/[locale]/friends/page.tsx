@@ -1,6 +1,6 @@
 // src/app/[locale]/friends/page.tsx
-// דף הפניית חברים - NeshamaTech
-// גרסה סופית מאושרת
+// דף הפניית חברים - קמפיין חנוכה "מוסיפים אור בחנוכה"
+// NeshamaTech - מתוקן: מיקום שמש + לוגיקת שעה 17:00
 
 'use client';
 
@@ -17,31 +17,310 @@ import {
   Copy,
   Check,
   Crown,
-  MessageCircle,
   TrendingUp,
   ChevronDown,
   Loader2,
   AlertCircle,
-  Send,
   Search,
   KeyRound,
   Gift,
-  Handshake,
+  Flame,
+  X,
+  Forward,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useParams } from 'next/navigation';
 
-// ================== תוכן דו-לשוני ==================
+// ================== Hanukkah Config ==================
+// ================== Hanukkah Config ==================
+const HANUKKAH_CONFIG = {
+  // עדכנתי לתאריך של היום (14.12.2025) כדי שיתחיל מנר ראשון
+  startDate: new Date('2025-12-14T00:00:00'), 
+};
+
+// חישוב איזה נר היום
+const getCurrentCandle = (): number => {
+  const now = new Date();
+  
+  // הגדרת זמן התחלה מדויק: התאריך מהקונפיג בשעה 17:00
+  const campaignStart = new Date(HANUKKAH_CONFIG.startDate);
+  campaignStart.setHours(17, 0, 0, 0);
+
+  // אם אנחנו לפני השעה 17:00 ביום ההתחלה - מציג נר 1 (ממתין להדלקה)
+  if (now < campaignStart) {
+    return 1;
+  }
+
+  const diffTime = now.getTime() - campaignStart.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  // יום 0 (היום בערב) = נר 1
+  // יום 1 (מחר בערב) = נר 2
+  return Math.min(Math.max(diffDays + 1, 1), 8);
+};
+
+
+
+// ================== Hanukkiah SVG Component ==================
+interface HanukkiahProps {
+  litCandles: number;
+  className?: string;
+}
+
+const Hanukkiah: React.FC<HanukkiahProps> = ({
+  litCandles,
+  className = '',
+}) => {
+  // תיקון מיקום השמש: ה-x שונה ל-160 כדי להיות ממורכז
+  const candlePositions = [
+    { x: 25, height: 35 },
+    { x: 55, height: 35 },
+    { x: 85, height: 35 },
+    { x: 115, height: 35 },
+    { x: 160, height: 50 }, // שמש - תוקן למרכז (היה 175)
+    { x: 205, height: 35 },
+    { x: 235, height: 35 },
+    { x: 265, height: 35 },
+    { x: 295, height: 35 },
+  ];
+
+ const getLitStatus = (index: number): boolean => {
+    // השמש (אינדקס 4) תמיד דולק
+    if (index === 4) return true; 
+
+    // צד ימין של החנוכייה (אינדקסים 5-8)
+    // אינדקס 8 הוא הנר הראשון (הכי ימני), אינדקס 5 הוא הנר הרביעי
+    if (index > 4) {
+      return litCandles >= (9 - index);
+    }
+    
+    // צד שמאל של החנוכייה (אינדקסים 0-3)
+    // אינדקס 3 הוא הנר החמישי, אינדקס 0 הוא הנר השמיני (הכי שמאלי)
+    return litCandles >= (8 - index);
+  };
+
+  return (
+    <svg
+      viewBox="0 0 320 120"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#F6E05E" />
+          <stop offset="50%" stopColor="#D69E2E" />
+          <stop offset="100%" stopColor="#B7791F" />
+        </linearGradient>
+        <linearGradient id="flameGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+          <stop offset="0%" stopColor="#14b8a6" />
+          <stop offset="50%" stopColor="#F6AD55" />
+          <stop offset="100%" stopColor="#ED8936" />
+        </linearGradient>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+          <feMerge>
+            <feMergeNode in="coloredBlur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      {/* בסיס החנוכייה */}
+      <rect
+        x="60"
+        y="100"
+        width="200"
+        height="8"
+        rx="2"
+        fill="url(#goldGradient)"
+      />
+      {/* בסיס הקנה המרכזי */}
+      <rect
+        x="150"
+        y="85"
+        width="20"
+        height="20"
+        rx="2"
+        fill="url(#goldGradient)"
+      />
+
+      {candlePositions.map((pos, index) => {
+        const isLit = getLitStatus(index);
+        const isShamash = index === 4;
+        const baseY = isShamash ? 35 : 50;
+
+        return (
+          <g key={index}>
+            <rect
+              x={pos.x - 4}
+              y={baseY}
+              width="8"
+              height={pos.height}
+              rx="2"
+              fill={isShamash ? '#FBD38D' : '#E2E8F0'}
+              stroke="url(#goldGradient)"
+              strokeWidth="1"
+            />
+            <line
+              x1={pos.x}
+              y1={baseY}
+              x2={pos.x}
+              y2={baseY - 5}
+              stroke="#4A5568"
+              strokeWidth="1"
+            />
+            {isLit && (
+              <g filter="url(#glow)">
+                <motion.ellipse
+                  cx={pos.x}
+                  cy={baseY - 12}
+                  rx="5"
+                  ry="10"
+                  fill="url(#flameGradient)"
+                  animate={{
+                    scaleY: [0.8, 1, 0.9, 1, 0.8],
+                    opacity: [0.8, 1, 0.9, 1, 0.8],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+                <motion.ellipse
+                  cx={pos.x}
+                  cy={baseY - 14}
+                  rx="2"
+                  ry="5"
+                  fill="#FEF3C7"
+                  animate={{ scaleY: [0.9, 1.1, 0.9] }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+              </g>
+            )}
+          </g>
+        );
+      })}
+
+      {/* קנה מרכזי (שמש) */}
+      <rect x="157" y="50" width="6" height="35" fill="url(#goldGradient)" />
+
+      {/* קנים צדדיים */}
+      {[25, 55, 85, 115, 205, 235, 265, 295].map((x, i) => (
+        <g key={`stand-${i}`}>
+          <line
+            x1={x}
+            y1="85"
+            x2={x}
+            y2="100"
+            stroke="url(#goldGradient)"
+            strokeWidth="3"
+          />
+          <line
+            x1={x}
+            y1="85"
+            x2="160"
+            y2="85"
+            stroke="url(#goldGradient)"
+            strokeWidth="2"
+          />
+        </g>
+      ))}
+    </svg>
+  );
+};
+
+// ================== Small Decorative Hanukkiah ==================
+const SmallHanukkiah: React.FC<{ className?: string }> = ({
+  className = '',
+}) => (
+  <svg
+    viewBox="0 0 60 40"
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <linearGradient id="miniFlame" x1="0%" y1="100%" x2="0%" y2="0%">
+        <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.6" />
+        <stop offset="100%" stopColor="#F6AD55" stopOpacity="0.6" />
+      </linearGradient>
+    </defs>
+    {/* Simple 9 flames representation */}
+    {[8, 16, 24, 32, 30, 38, 46, 54, 62].map((x, i) => (
+      <ellipse
+        key={i}
+        cx={x - 5}
+        cy={i === 4 ? 12 : 16}
+        rx="3"
+        ry="6"
+        fill="url(#miniFlame)"
+      />
+    ))}
+    <rect
+      x="5"
+      y="28"
+      width="50"
+      height="4"
+      rx="1"
+      fill="#D69E2E"
+      opacity="0.4"
+    />
+  </svg>
+);
+
+// ================== Dreidel SVG ==================
+const Dreidel: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <svg
+    viewBox="0 0 40 50"
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <polygon
+      points="20,5 35,20 20,45 5,20"
+      fill="none"
+      stroke="#14b8a6"
+      strokeWidth="2"
+      opacity="0.3"
+    />
+    <line
+      x1="20"
+      y1="0"
+      x2="20"
+      y2="8"
+      stroke="#14b8a6"
+      strokeWidth="2"
+      opacity="0.3"
+    />
+    <text
+      x="20"
+      y="28"
+      textAnchor="middle"
+      fill="#14b8a6"
+      opacity="0.4"
+      fontSize="12"
+      fontFamily="serif"
+    >
+      נ
+    </text>
+  </svg>
+);
+
+// ================== תוכן דו-לשוני - חנוכה ==================
 const content = {
   he: {
     hero: {
-      badge: 'חברים מביאים חברים',
-      title: 'יש לכם חברים שכדאי לנו להכיר?',
+      badge: '🕎 מוסיפים אור בחנוכה',
+      title: 'הדליקו אור לחברים',
       subtitle:
-        'יכול להיות שהקישור שתשלחו יהיה ההתחלה של הזוגיות שהם מחפשים. אצלנו הם יקבלו שאלון שבאמת מכיר אותם, ליווי אישי מצוות שדואג, והצעות שמגיעות עם סיפור שלם.',
-      highlight: 'מי שיביא הכי הרבה חברים יקבל ארוחה זוגית מפנקת עלינו.',
-      cta: 'רוצה להפנות חברים',
+        'כמו נס פך השמן - לפעמים דבר קטן יכול להוביל למשהו גדול. הקישור שתשלחו יכול להיות ההתחלה של הזוגיות שהם מחפשים.',
+      highlight:
+        '🏆 מי שיביא הכי הרבה חברים עד סוף החנוכה - יקבל ארוחה זוגית מפנקת עלינו!',
+      cta: 'רוצה להאיר לחברים',
       stats: [
         { value: 'אישי', label: 'ליווי' },
         { value: 'מעמיק', label: 'שאלון' },
@@ -49,7 +328,7 @@ const content = {
       ],
     },
     howItWorks: {
-      title: 'איך זה עובד?',
+      title: 'איך מוסיפים אור?',
       steps: [
         {
           title: 'הירשמו',
@@ -63,25 +342,25 @@ const content = {
         },
         {
           title: 'עקבו',
-          desc: 'ראו מי נרשם דרככם',
+          desc: 'ראו כמה נרות הדלקתם',
           gradient: 'from-rose-400 to-pink-500',
         },
         {
-          title: 'תרמו',
+          title: 'האירו',
           desc: 'עזרו להרחיב את הקהילה',
           gradient: 'from-teal-500 to-cyan-500',
         },
       ],
     },
     prize: {
-      badge: 'מגיע לכם',
-      title: 'פעולה קטנה, השפעה גדולה',
-      text: 'לעזור לחבר למצוא את מי שהוא מחפש - זה משמעותי. מי שיביא הכי הרבה חברים - נשמח לפנק בארוחה זוגית.',
-      prizeTitle: 'ארוחה זוגית מפנקת',
-      prizeSubtitle: 'למי שיביא הכי הרבה חברים',
+      badge: 'הפרס הגדול 🕎',
+      title: 'הארה קטנה, השפעה גדולה',
+      text: 'לעזור לחבר למצוא את מי שהוא מחפש - זה כמו להדליק נר. האור מתפשט הלאה. מי שיביא הכי הרבה חברים עד סוף החנוכה - נשמח לפנק בארוחה זוגית.',
+      prizeTitle: '🍽️ ארוחה זוגית מפנקת',
+      prizeSubtitle: 'למאיר/ת האור הגדול/ה של הקמפיין',
     },
     form: {
-      title: 'הצטרפו כמפנים',
+      title: 'הצטרפו למאירי האור',
       subtitle: 'מלאו את הפרטים וקבלו קישור אישי לשיתוף',
       labels: {
         name: 'שם מלא',
@@ -100,17 +379,15 @@ const content = {
         submitting: 'רושמים אתכם...',
         copy: 'העתקה',
         copied: 'הועתק!',
-        whatsapp: 'שליחה בוואטסאפ',
+        whatsapp: 'שתפו את האור 🕎',
         dashboard: 'לדף המעקב שלי',
       },
       messages: {
         linkPreview: 'הקישור שלכם:',
         codeTaken: 'הקוד הזה כבר תפוס, נסו אחר',
-        successTitle: 'נרשמתם בהצלחה!',
+        successTitle: '🕎 נרשמתם בהצלחה!',
         successDesc:
-          'הנה הקישור האישי שלכם. שתפו אותו עם חברים שמחפשים קשר אמיתי.',
-        whatsappText:
-          'היי, רציתי להמליץ לך על NeshamaTech - גישה אחרת לשידוכים, עם ליווי אישי ושאלון מעמיק שבאמת מכיר אותך. שווה לבדוק:',
+          'הנה הקישור האישי שלכם. שתפו אותו עם חברים והוסיפו אור בחנוכה הזה!',
         genericError: 'משהו השתבש, נסו שוב',
       },
     },
@@ -134,36 +411,46 @@ const content = {
       questions: [
         {
           q: 'למי כדאי לשלוח את הקישור?',
-          a: 'לחברים רווקים שמחפשים קשר רציני ומשמעותי, שיעריכו גישה אישית ומכבדת לשידוכים. אנשים שמעדיפים איכות על פני כמות.',
+          a: 'לחברים רווקים שמחפשים קשר רציני ומשמעותי, שיעריכו גישה אישית ומכבדת לשידוכים.',
         },
         {
           q: 'מה החבר/ה שלי יקבלו?',
-          a: 'הם יוכלו להירשם לשירות שלנו, למלא את השאלון המעמיק, ולקבל ליווי אישי מצוות השדכנים שלנו. הכל בדיסקרטיות מלאה.',
+          a: 'הם יוכלו להירשם לשירות שלנו, למלא את השאלון המעמיק, ולקבל ליווי אישי מצוות השדכנים שלנו.',
         },
         {
-          q: 'איך אדע שמישהו נרשם דרכי?',
-          a: 'יש לכם דף מעקב אישי שמראה כמה אנשים לחצו על הקישור וכמה מהם השלימו הרשמה.',
+          q: 'עד מתי נמשך הקמפיין?',
+          a: 'קמפיין "מוסיפים אור בחנוכה" נמשך לאורך כל ימי החנוכה. בסופו נכריז על המנצח/ת!',
         },
         {
           q: 'מה מקבלים על הפניות?',
-          a: 'מי שיביא הכי הרבה חברים יקבל שובר לארוחה זוגית מפנקת.',
+          a: 'מי שיביא הכי הרבה חברים מאומתים עד סוף החנוכה יקבל שובר לארוחה זוגית מפנקת.',
         },
         {
           q: 'האם יש הגבלה על מספר ההפניות?',
-          a: 'לא, אתם מוזמנים לשתף עם כל מי שאתם חושבים שיתאים.',
+          a: 'לא, אתם מוזמנים לשתף עם כל מי שאתם חושבים שיתאים. ככל שתוסיפו יותר אור - כך גדל הסיכוי לזכות!',
         },
       ],
+    },
+    whatsappModal: {
+      title: 'שתפו את האור',
+      subtitle: 'הזמינו חברים להצטרף בחנוכה',
+      messageLabel: 'ההודעה שתשלח:',
+      copyMessage: 'העתקת ההודעה',
+      copyLink: 'העתקת הקישור בלבד',
+      copied: 'הועתק!',
+      sendWhatsapp: 'פתיחת וואטסאפ ושליחה לחבר',
+      tip: 'כמו שמוסיפים נר כל יום - כל חבר שמצטרף מוסיף אור לקהילה!',
     },
   },
   en: {
     hero: {
-      badge: 'Friends bring friends',
-      title: 'Know someone we should meet?',
+      badge: '🕎 Adding Light this Hanukkah',
+      title: 'Light the way for friends',
       subtitle:
-        "The link you send could be the beginning of the relationship they're looking for. With us, they'll get a questionnaire that truly understands them, personal guidance from a caring team, and suggestions that come with a full story.",
+        "Like the miracle of the oil - sometimes something small can lead to something great. The link you send could be the beginning of the relationship they're looking for.",
       highlight:
-        "Whoever brings the most friends will receive a pampering couple's dinner on us.",
-      cta: 'I want to refer friends',
+        "🏆 Whoever brings the most friends by the end of Hanukkah wins a couple's dinner on us!",
+      cta: 'I want to light the way',
       stats: [
         { value: 'Personal', label: 'Guidance' },
         { value: 'Deep', label: 'Questionnaire' },
@@ -171,7 +458,7 @@ const content = {
       ],
     },
     howItWorks: {
-      title: 'How does it work?',
+      title: 'How to add light?',
       steps: [
         {
           title: 'Register',
@@ -185,25 +472,25 @@ const content = {
         },
         {
           title: 'Track',
-          desc: 'See who registered through you',
+          desc: 'See how many candles you lit',
           gradient: 'from-rose-400 to-pink-500',
         },
         {
-          title: 'Contribute',
+          title: 'Illuminate',
           desc: 'Help expand the community',
           gradient: 'from-teal-500 to-cyan-500',
         },
       ],
     },
     prize: {
-      badge: 'You deserve it',
-      title: 'Small action, big impact',
-      text: "Helping a friend find who they're looking for - that's meaningful. Whoever brings the most friends - we'd love to treat them to a couple's dinner.",
-      prizeTitle: "Pampering couple's dinner",
-      prizeSubtitle: 'For whoever brings the most friends',
+      badge: 'The Grand Prize 🕎',
+      title: 'Small light, big impact',
+      text: "Helping a friend find who they're looking for - it's like lighting a candle. The light spreads. Whoever brings the most friends by the end of Hanukkah - we'd love to treat to a couple's dinner.",
+      prizeTitle: "🍽️ Pampering couple's dinner",
+      prizeSubtitle: "For the campaign's biggest light-bringer",
     },
     form: {
-      title: 'Join as a referrer',
+      title: 'Join the light-bringers',
       subtitle: 'Fill in your details and get a personal link to share',
       labels: {
         name: 'Full Name',
@@ -222,17 +509,15 @@ const content = {
         submitting: 'Registering...',
         copy: 'Copy',
         copied: 'Copied!',
-        whatsapp: 'Share on WhatsApp',
+        whatsapp: 'Share the light 🕎',
         dashboard: 'Go to my dashboard',
       },
       messages: {
         linkPreview: 'Your link:',
         codeTaken: 'This code is taken, try another',
-        successTitle: 'Successfully registered!',
+        successTitle: '🕎 Successfully registered!',
         successDesc:
-          'Here is your personal link. Share it with friends looking for a real connection.',
-        whatsappText:
-          'Hey, I wanted to recommend NeshamaTech - a different approach to matchmaking, with personal guidance and a deep questionnaire that really gets to know you. Worth checking out:',
+          'Here is your personal link. Share it with friends and add light this Hanukkah!',
         genericError: 'Something went wrong, please try again',
       },
     },
@@ -256,33 +541,270 @@ const content = {
       questions: [
         {
           q: 'Who should I send the link to?',
-          a: 'Single friends looking for a serious, meaningful relationship who would appreciate a personal and respectful approach to matchmaking. People who prefer quality over quantity.',
+          a: 'Single friends looking for a serious, meaningful relationship who would appreciate a personal and respectful approach to matchmaking.',
         },
         {
           q: 'What will my friend receive?',
-          a: 'They can register for our service, complete the in-depth questionnaire, and receive personal guidance from our matchmaking team. All in complete discretion.',
+          a: 'They can register for our service, complete the in-depth questionnaire, and receive personal guidance from our matchmaking team.',
         },
         {
-          q: 'How will I know if someone registered through me?',
-          a: 'You have a personal tracking page showing how many people clicked your link and how many completed registration.',
+          q: 'When does the campaign end?',
+          a: 'The "Adding Light this Hanukkah" campaign runs throughout the holiday. We\'ll announce the winner at the end!',
         },
         {
           q: 'What do you get for referrals?',
-          a: "Whoever brings the most friends will receive a voucher for a pampering couple's dinner.",
+          a: "Whoever brings the most verified friends by the end of Hanukkah wins a voucher for a couple's dinner.",
         },
         {
           q: 'Is there a limit on referrals?',
-          a: "No, you're welcome to share with anyone you think would be a good fit.",
+          a: "No, you're welcome to share with anyone you think would be a good fit. The more light you add, the better your chances!",
         },
       ],
+    },
+    whatsappModal: {
+      title: 'Share the light',
+      subtitle: 'Invite friends to join this Hanukkah',
+      messageLabel: 'Message to send:',
+      copyMessage: 'Copy message',
+      copyLink: 'Copy link only',
+      copied: 'Copied!',
+      sendWhatsapp: 'Open WhatsApp and send',
+      tip: 'Like adding a candle each night - every friend who joins adds light to the community!',
     },
   },
 };
 
-// ================== Dynamic Background ==================
+// ================== WhatsApp Share Modal ==================
+interface WhatsAppShareModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  shareUrl: string;
+  locale: string;
+}
+
+const WhatsAppShareModal: React.FC<WhatsAppShareModalProps> = ({
+  isOpen,
+  onClose,
+  shareUrl,
+  locale,
+}) => {
+  const [copiedMessage, setCopiedMessage] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const isHebrew = locale === 'he';
+  const t = isHebrew ? content.he.whatsappModal : content.en.whatsappModal;
+
+  const shareMessage = isHebrew
+    ? `חג חנוכה שמח! 🕎✨
+
+בחנוכה הזה אני רוצה להמליץ לך על משהו מיוחד - NeshamaTech, מערכת שידוכים שפועלת אחרת לגמרי מאפליקציות ההיכרויות.
+
+🕯️ מה מיוחד פה?
+• שדכנים אמיתיים מחפשים בשבילך - בלי סווייפים אינסופיים
+• דיסקרטיות מלאה - הפרטים שלך לא חשופים
+• התאמות על בסיס ערכים והשקפת עולם
+
+💫 כמו נס פך השמן - לפעמים דבר קטן יכול להוביל לדבר גדול!
+
+הנה הקישור להרשמה:
+${shareUrl}
+
+חג אורים שמח! 🕎`
+    : `Happy Hanukkah! 🕎✨
+
+This Hanukkah I want to recommend something special - NeshamaTech, a matchmaking system that works completely different from dating apps.
+
+🕯️ What's special?
+• Real matchmakers search for you - no endless swiping
+• Complete discretion - your details aren't exposed
+• Matches based on values and worldview
+
+💫 Like the miracle of the oil - sometimes something small can lead to something great!
+
+Here's the registration link:
+${shareUrl}
+
+Happy Festival of Lights! 🕎`;
+
+  const copyMessage = async () => {
+    try {
+      await navigator.clipboard.writeText(shareMessage);
+      setCopiedMessage(true);
+      setTimeout(() => setCopiedMessage(false), 2500);
+    } catch (err) {
+      console.error('Failed to copy message:', err);
+    }
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
+  };
+
+  const openWhatsAppDirect = () => {
+    const text = encodeURIComponent(shareMessage);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = `whatsapp://send?text=${text}`;
+    } else {
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="fixed inset-x-4 top-[10%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-lg z-50 max-h-[80vh] overflow-y-auto"
+            dir={isHebrew ? 'rtl' : 'ltr'}
+          >
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+              {/* Header with Hanukkah colors */}
+              <div className="bg-gradient-to-r from-teal-500 via-teal-600 to-orange-500 px-6 py-4 relative">
+                <button
+                  onClick={onClose}
+                  className={`absolute ${isHebrew ? 'left-4' : 'right-4'} top-4 text-white/80 hover:text-white transition-colors`}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="text-center text-white">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <span className="text-2xl">🕎</span>
+                    <h3 className="text-xl font-bold">{t.title}</h3>
+                    <span className="text-2xl">🕎</span>
+                  </div>
+                  <p className="text-sm text-white/90">{t.subtitle}</p>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-5">
+                <div className="relative">
+                  <div className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    {t.messageLabel}
+                  </div>
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-4 text-sm text-gray-700 leading-relaxed max-h-48 overflow-y-auto border border-gray-200">
+                    <div className="whitespace-pre-wrap">{shareMessage}</div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    onClick={copyMessage}
+                    variant="outline"
+                    className={`w-full h-12 text-base transition-all duration-300 ${
+                      copiedMessage
+                        ? 'bg-teal-50 border-teal-300 text-teal-700'
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    {copiedMessage ? (
+                      <>
+                        <Check
+                          className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                        />
+                        {t.copied}
+                      </>
+                    ) : (
+                      <>
+                        <Copy
+                          className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                        />
+                        {t.copyMessage}
+                      </>
+                    )}
+                  </Button>
+
+                  <Button
+                    onClick={copyLink}
+                    variant="outline"
+                    className={`w-full h-12 text-base transition-all duration-300 ${
+                      copiedLink
+                        ? 'bg-orange-50 border-orange-300 text-orange-700'
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    {copiedLink ? (
+                      <>
+                        <Check
+                          className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                        />
+                        {t.copied}
+                      </>
+                    ) : (
+                      <>
+                        <Copy
+                          className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                        />
+                        {t.copyLink}
+                      </>
+                    )}
+                  </Button>
+
+                  <div className="relative py-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-white px-3 text-sm text-gray-500">
+                        {isHebrew ? 'או' : 'or'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={openWhatsAppDirect}
+                    className="w-full h-14 text-lg bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-lg shadow-green-200 hover:shadow-xl transition-all duration-300"
+                  >
+                    <Forward
+                      className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                    />
+                    {t.sendWhatsapp}
+                  </Button>
+                </div>
+
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-3 border border-amber-200">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">🕯️</span>
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                      <span className="font-bold">טיפ:</span> {t.tip}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// ================== Original Background + Hanukkah Elements ==================
 const DynamicBackground: React.FC = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+    {/* Original gradient background */}
     <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20" />
+
+    {/* Original floating orbs */}
     <div
       className="absolute top-10 left-10 w-72 h-72 bg-teal-300/20 rounded-full blur-3xl animate-float-slow"
       style={{ animationDelay: '0s' }}
@@ -295,11 +817,101 @@ const DynamicBackground: React.FC = () => (
       className="absolute bottom-20 left-1/3 w-80 h-80 bg-rose-300/15 rounded-full blur-3xl animate-float-slow"
       style={{ animationDelay: '4s' }}
     />
+
+    {/* Original dot pattern */}
     <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:30px_30px]" />
+
+    {/* === Hanukkah Elements === */}
+
+    {/* Floating small menorahs */}
+    <motion.div
+      className="absolute top-20 right-[15%] w-16 h-12 opacity-20"
+      animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+      transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      <SmallHanukkiah />
+    </motion.div>
+
+    <motion.div
+      className="absolute bottom-32 left-[10%] w-20 h-14 opacity-15"
+      animate={{ y: [0, -15, 0], rotate: [0, -3, 0] }}
+      transition={{
+        duration: 8,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 2,
+      }}
+    >
+      <SmallHanukkiah />
+    </motion.div>
+
+    <motion.div
+      className="absolute top-1/2 right-[8%] w-14 h-10 opacity-10"
+      animate={{ y: [0, -8, 0] }}
+      transition={{
+        duration: 5,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 1,
+      }}
+    >
+      <SmallHanukkiah />
+    </motion.div>
+
+    {/* Floating dreidels */}
+    <motion.div
+      className="absolute top-40 left-[20%] w-10 h-12"
+      animate={{ y: [0, -12, 0], rotate: [0, 15, 0] }}
+      transition={{
+        duration: 7,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 0.5,
+      }}
+    >
+      <Dreidel />
+    </motion.div>
+
+    <motion.div
+      className="absolute bottom-40 right-[25%] w-8 h-10"
+      animate={{ y: [0, -10, 0], rotate: [0, -10, 0] }}
+      transition={{
+        duration: 6,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 3,
+      }}
+    >
+      <Dreidel />
+    </motion.div>
+
+    {/* Sparkle/star elements */}
+    {[...Array(8)].map((_, i) => (
+      <motion.div
+        key={`sparkle-${i}`}
+        className="absolute text-amber-400/30"
+        style={{
+          top: `${15 + Math.random() * 70}%`,
+          left: `${5 + Math.random() * 90}%`,
+          fontSize: `${12 + Math.random() * 8}px`,
+        }}
+        animate={{
+          opacity: [0.1, 0.4, 0.1],
+          scale: [1, 1.3, 1],
+        }}
+        transition={{
+          duration: 3 + Math.random() * 2,
+          repeat: Infinity,
+          delay: Math.random() * 3,
+        }}
+      >
+        ✡
+      </motion.div>
+    ))}
   </div>
 );
 
-// ================== Hero Section ==================
+// ================== Hero Section (Hanukkah) ==================
 const HeroSection: React.FC<{
   locale: string;
   onScrollToForm: () => void;
@@ -308,11 +920,12 @@ const HeroSection: React.FC<{
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const isHebrew = locale === 'he';
   const t = isHebrew ? content.he.hero : content.en.hero;
+  const currentCandle = getCurrentCandle();
 
   return (
     <motion.section
       ref={ref}
-      className="relative min-h-[85vh] flex items-center justify-center px-4 py-16"
+      className="relative min-h-[90vh] flex items-center justify-center px-4 py-16"
       initial={{ opacity: 0 }}
       animate={isInView ? { opacity: 1 } : {}}
       transition={{ duration: 1 }}
@@ -323,17 +936,34 @@ const HeroSection: React.FC<{
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.2 }}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-teal-50 via-white to-orange-50 rounded-full px-6 py-3 mb-8 shadow-lg border border-teal-100"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-teal-50 via-white to-orange-50 rounded-full px-6 py-3 mb-6 shadow-lg border border-teal-100"
         >
-          <Handshake className="w-5 h-5 text-teal-600" />
           <span className="font-medium text-gray-700">{t.badge}</span>
+        </motion.div>
+
+        {/* Hanukkiah */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : {}}
+          transition={{ delay: 0.3 }}
+          className="max-w-md mx-auto mb-6"
+        >
+          <Hanukkiah
+            litCandles={currentCandle}
+            className="w-full h-auto drop-shadow-lg"
+          />
+          <div className="text-teal-600 text-sm mt-2 font-medium">
+            {isHebrew
+              ? `נר ${currentCandle} של חנוכה`
+              : `Candle ${currentCandle} of Hanukkah`}
+          </div>
         </motion.div>
 
         {/* Title */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.4 }}
           className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
         >
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-teal-500 to-orange-500">
@@ -361,35 +991,18 @@ const HeroSection: React.FC<{
           {t.highlight}
         </motion.p>
 
-        {/* Visual Element */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : {}}
-          transition={{ delay: 0.7 }}
-          className="relative max-w-sm mx-auto mb-10 h-24 flex items-center justify-center"
-        >
-          <div className="absolute left-8 w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-xl border-4 border-white">
-            <Users className="w-8 h-8 text-white" />
-          </div>
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center shadow-2xl border-4 border-white z-10">
-            <Heart className="w-7 h-7 text-white" />
-          </div>
-          <div className="absolute right-8 w-16 h-16 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-xl border-4 border-white">
-            <Sparkles className="w-8 h-8 text-white" />
-          </div>
-        </motion.div>
-
         {/* CTA Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.7 }}
         >
           <Button
             onClick={onScrollToForm}
             size="lg"
             className="text-lg font-semibold px-10 py-7 bg-gradient-to-r from-teal-500 via-teal-600 to-orange-500 hover:from-teal-600 hover:via-teal-700 hover:to-orange-600 text-white rounded-full shadow-xl hover:shadow-2xl transition-all group"
           >
+            <Flame className={`w-5 h-5 ${isHebrew ? 'ml-2' : 'mr-2'}`} />
             {t.cta}
             {isHebrew ? (
               <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
@@ -403,7 +1016,7 @@ const HeroSection: React.FC<{
         <motion.div
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 1 }}
+          transition={{ delay: 0.9 }}
           className="flex flex-wrap justify-center gap-4 mt-12"
         >
           {t.stats.map((stat, i) => {
@@ -568,8 +1181,8 @@ const SignupForm: React.FC<{
   const [codeStatus, setCodeStatus] = useState<
     'idle' | 'checking' | 'available' | 'taken'
   >('idle');
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
 
-  // Check code availability
   useEffect(() => {
     if (!form.code || form.code.length < 3) {
       setCodeStatus('idle');
@@ -631,11 +1244,10 @@ const SignupForm: React.FC<{
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const shareWhatsApp = () => {
-    const url = `${window.location.origin}/r/${generatedCode}`;
-    const text = `${t.messages.whatsappText}\n${url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-  };
+  const shareUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/r/${generatedCode}`
+      : '';
 
   return (
     <section ref={formRef} className="py-16 px-4">
@@ -652,7 +1264,7 @@ const SignupForm: React.FC<{
               {/* Header */}
               <div className="text-center mb-8">
                 <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-teal-500 to-orange-500 flex items-center justify-center text-white mb-4 shadow-lg">
-                  <Send className="w-7 h-7" />
+                  <Flame className="w-7 h-7" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
                 <p className="text-gray-600 mt-1">{t.subtitle}</p>
@@ -668,7 +1280,6 @@ const SignupForm: React.FC<{
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     {t.labels.name} *
@@ -682,7 +1293,6 @@ const SignupForm: React.FC<{
                   />
                 </div>
 
-                {/* Email */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     {t.labels.email} *
@@ -700,7 +1310,6 @@ const SignupForm: React.FC<{
                   />
                 </div>
 
-                {/* Phone */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     {t.labels.phone}
@@ -717,7 +1326,6 @@ const SignupForm: React.FC<{
                   />
                 </div>
 
-                {/* Preferred Code */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     {t.labels.code}
@@ -765,7 +1373,6 @@ const SignupForm: React.FC<{
                   )}
                 </div>
 
-                {/* Submit Button */}
                 <Button
                   type="submit"
                   disabled={loading || codeStatus === 'taken'}
@@ -773,12 +1380,16 @@ const SignupForm: React.FC<{
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-5 h-5 ml-2 animate-spin" />
+                      <Loader2
+                        className={`w-5 h-5 ${isHebrew ? 'ml-2' : 'mr-2'} animate-spin`}
+                      />
                       {t.buttons.submitting}
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-5 h-5 ml-2" />
+                      <Sparkles
+                        className={`w-5 h-5 ${isHebrew ? 'ml-2' : 'mr-2'}`}
+                      />
                       {t.buttons.submit}
                     </>
                   )}
@@ -810,8 +1421,7 @@ const SignupForm: React.FC<{
                     className="text-teal-600 font-mono text-sm truncate flex-1"
                     dir="ltr"
                   >
-                    {typeof window !== 'undefined' && window.location.origin}/r/
-                    {generatedCode}
+                    {shareUrl}
                   </code>
                   <Button
                     onClick={copyToClipboard}
@@ -823,12 +1433,16 @@ const SignupForm: React.FC<{
                   >
                     {copied ? (
                       <>
-                        <Check className="w-4 h-4 ml-1" />
+                        <Check
+                          className={`w-4 h-4 ${isHebrew ? 'ml-1' : 'mr-1'}`}
+                        />
                         {t.buttons.copied}
                       </>
                     ) : (
                       <>
-                        <Copy className="w-4 h-4 ml-1" />
+                        <Copy
+                          className={`w-4 h-4 ${isHebrew ? 'ml-1' : 'mr-1'}`}
+                        />
                         {t.buttons.copy}
                       </>
                     )}
@@ -839,10 +1453,10 @@ const SignupForm: React.FC<{
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
-                  onClick={shareWhatsApp}
-                  className="bg-[#25D366] hover:bg-[#20bd5a] text-white px-6 py-5 rounded-xl"
+                  onClick={() => setIsWhatsAppModalOpen(true)}
+                  className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white px-6 py-5 rounded-xl"
                 >
-                  <MessageCircle className="w-5 h-5 ml-2" />
+                  <Flame className={`w-5 h-5 ${isHebrew ? 'ml-2' : 'mr-2'}`} />
                   {t.buttons.whatsapp}
                 </Button>
                 <Button
@@ -855,7 +1469,9 @@ const SignupForm: React.FC<{
                   variant="outline"
                   className="px-6 py-5 rounded-xl border-gray-200"
                 >
-                  <TrendingUp className="w-5 h-5 ml-2" />
+                  <TrendingUp
+                    className={`w-5 h-5 ${isHebrew ? 'ml-2' : 'mr-2'}`}
+                  />
                   {t.buttons.dashboard}
                 </Button>
               </div>
@@ -863,6 +1479,14 @@ const SignupForm: React.FC<{
           )}
         </AnimatePresence>
       </div>
+
+      {/* WhatsApp Modal */}
+      <WhatsAppShareModal
+        isOpen={isWhatsAppModalOpen}
+        onClose={() => setIsWhatsAppModalOpen(false)}
+        shareUrl={shareUrl}
+        locale={locale}
+      />
     </section>
   );
 };
@@ -983,12 +1607,16 @@ const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                  <Loader2
+                    className={`w-4 h-4 ${isHebrew ? 'ml-2' : 'mr-2'} animate-spin`}
+                  />
                   {t.button.searching}
                 </>
               ) : (
                 <>
-                  <TrendingUp className="w-4 h-4 ml-2" />
+                  <TrendingUp
+                    className={`w-4 h-4 ${isHebrew ? 'ml-2' : 'mr-2'}`}
+                  />
                   {t.button.search}
                 </>
               )}
@@ -1068,16 +1696,14 @@ export default function FriendsPage() {
   const params = useParams();
   const locale = (params?.locale as string) || 'he';
   const formRef = useRef<HTMLDivElement>(null);
+  const isHebrew = locale === 'he';
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   return (
-    <main
-      className="min-h-screen relative"
-      dir={locale === 'he' ? 'rtl' : 'ltr'}
-    >
+    <main className="min-h-screen relative" dir={isHebrew ? 'rtl' : 'ltr'}>
       <DynamicBackground />
       <HeroSection locale={locale} onScrollToForm={scrollToForm} />
       <HowItWorksSection locale={locale} />
@@ -1085,6 +1711,11 @@ export default function FriendsPage() {
       <PrizeSection locale={locale} />
       <SignupForm locale={locale} formRef={formRef} />
       <FAQSection locale={locale} />
+
+      {/* Footer */}
+      <div className="text-center py-8 text-gray-500 text-sm">
+        חג אורים שמח! 🕎✨
+      </div>
 
       {/* CSS Animations */}
       <style>{`
