@@ -1,0 +1,24 @@
+# קבצי מקור - לא צריך אותם אחרי שהבנייה מסתיימת
+src
+components
+app
+pages
+lib
+styles
+
+# קבצי הגדרות טייפסקריפט
+tsconfig.json
+*.ts
+*.tsx
+
+# קבצי Cache כבדים של Next.js
+.next/cache
+
+# סכימה של פריזמה (הקוד כבר נוצר לתוך node_modules)
+prisma/*.prisma
+
+# קבצים מיותרים אחרים
+test
+tests
+README.md
+.eslintrc.json
