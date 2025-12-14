@@ -31,18 +31,19 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useParams } from 'next/navigation';
+import { HanukkahCountdown } from '@/components/referral/HanukkahCountdown';
 
 // ================== Hanukkah Config ==================
 // ================== Hanukkah Config ==================
 const HANUKKAH_CONFIG = {
   // עדכנתי לתאריך של היום (14.12.2025) כדי שיתחיל מנר ראשון
-  startDate: new Date('2025-12-14T00:00:00'), 
+  startDate: new Date('2025-12-14T00:00:00'),
 };
 
 // חישוב איזה נר היום
 const getCurrentCandle = (): number => {
   const now = new Date();
-  
+
   // הגדרת זמן התחלה מדויק: התאריך מהקונפיג בשעה 17:00
   const campaignStart = new Date(HANUKKAH_CONFIG.startDate);
   campaignStart.setHours(17, 0, 0, 0);
@@ -54,13 +55,11 @@ const getCurrentCandle = (): number => {
 
   const diffTime = now.getTime() - campaignStart.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
+
   // יום 0 (היום בערב) = נר 1
   // יום 1 (מחר בערב) = נר 2
   return Math.min(Math.max(diffDays + 1, 1), 8);
 };
-
-
 
 // ================== Hanukkiah SVG Component ==================
 interface HanukkiahProps {
@@ -85,19 +84,19 @@ const Hanukkiah: React.FC<HanukkiahProps> = ({
     { x: 295, height: 35 },
   ];
 
- const getLitStatus = (index: number): boolean => {
+  const getLitStatus = (index: number): boolean => {
     // השמש (אינדקס 4) תמיד דולק
-    if (index === 4) return true; 
+    if (index === 4) return true;
 
     // צד ימין של החנוכייה (אינדקסים 5-8)
     // אינדקס 8 הוא הנר הראשון (הכי ימני), אינדקס 5 הוא הנר הרביעי
     if (index > 4) {
-      return litCandles >= (9 - index);
+      return litCandles >= 9 - index;
     }
-    
+
     // צד שמאל של החנוכייה (אינדקסים 0-3)
     // אינדקס 3 הוא הנר החמישי, אינדקס 0 הוא הנר השמיני (הכי שמאלי)
-    return litCandles >= (8 - index);
+    return litCandles >= 8 - index;
   };
 
   return (
@@ -594,36 +593,28 @@ const WhatsAppShareModal: React.FC<WhatsAppShareModalProps> = ({
   const t = isHebrew ? content.he.whatsappModal : content.en.whatsappModal;
 
   const shareMessage = isHebrew
-    ? `חג חנוכה שמח! 🕎✨
+    ? `היי, חנוכה שמח! 🕎✨
 
-בחנוכה הזה אני רוצה להמליץ לך על משהו מיוחד - NeshamaTech, מערכת שידוכים שפועלת אחרת לגמרי מאפליקציות ההיכרויות.
+נתקלתי במיזם חדש וממש איכותי לשידוכים - NeshamaTech.
+זה משהו ברמה אחרת לגמרי - עם שדכנים אנושיים, טכנולוגיה חכמה ושמירה אמיתית על דיסקרטיות.
 
-🕯️ מה מיוחד פה?
-• שדכנים אמיתיים מחפשים בשבילך - בלי סווייפים אינסופיים
-• דיסקרטיות מלאה - הפרטים שלך לא חשופים
-• התאמות על בסיס ערכים והשקפת עולם
+חשבתי עליך כי אני יודע/ת שאת/ה מחפש/ת משהו רציני ומכבד, וזה נראה לי בול הסגנון. שווה בדיקה.
 
-💫 כמו נס פך השמן - לפעמים דבר קטן יכול להוביל לדבר גדול!
-
-הנה הקישור להרשמה:
+ההרשמה כרגע היא דרך חברים, הנה קישור אישי ממני:
 ${shareUrl}
 
-חג אורים שמח! 🕎`
-    : `Happy Hanukkah! 🕎✨
+בשורות טובות! ✨`
+    : `Hey, Happy Hanukkah! 🕎✨
 
-This Hanukkah I want to recommend something special - NeshamaTech, a matchmaking system that works completely different from dating apps.
+I came across a really high-quality matchmaking initiative called NeshamaTech.
+It's on a different level - combining real matchmakers, smart tech, and complete discretion.
 
-🕯️ What's special?
-• Real matchmakers search for you - no endless swiping
-• Complete discretion - your details aren't exposed
-• Matches based on values and worldview
+I thought of you because I know you're looking for something serious and respectful, and this seems like a perfect fit.
 
-💫 Like the miracle of the oil - sometimes something small can lead to something great!
-
-Here's the registration link:
+Here's a personal invite link from me:
 ${shareUrl}
 
-Happy Festival of Lights! 🕎`;
+Check it out! ✨`;
 
   const copyMessage = async () => {
     try {
@@ -941,6 +932,16 @@ const HeroSection: React.FC<{
           <span className="font-medium text-gray-700">{t.badge}</span>
         </motion.div>
 
+        {/* 🆕 Compact Countdown - אופציונלי */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ delay: 0.25 }}
+          className="flex justify-center mb-6"
+        >
+          <HanukkahCountdown locale={locale} variant="compact" />
+        </motion.div>
+
         {/* Hanukkiah */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -1039,6 +1040,16 @@ const HeroSection: React.FC<{
               </div>
             );
           })}
+        </motion.div>
+
+        {/* 🆕 Hero Countdown - הכי מומלץ! */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 1 }}
+          className="mt-10 max-w-md mx-auto"
+        >
+          <HanukkahCountdown locale={locale} variant="hero" />
         </motion.div>
       </div>
     </motion.section>
