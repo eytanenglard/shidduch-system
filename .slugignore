@@ -1,21 +1,15 @@
-# Source files
-src
-components
-app
-pages
-lib
-styles
-
-# TypeScript
-tsconfig.json
-*.ts
-*.tsx
-
-# Next.js Cache (This is the big one!)
+# Next.js Cache (חובה להשאיר את זה, זה הכבד ביותר)
 .next/cache
 
-# Misc
+# בדיקות
 test
 tests
+spec
+
+# קבצים כלליים
 README.md
+LICENSE
 .eslintrc.json
+.eslintignore
+.github
+.git
