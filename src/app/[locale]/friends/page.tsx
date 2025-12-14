@@ -1,6 +1,6 @@
 // src/app/[locale]/friends/page.tsx
 // דף הפניית חברים - קמפיין חנוכה "מוסיפים אור בחנוכה"
-// NeshamaTech - מתוקן: מיקום שמש + לוגיקת שעה 17:00
+// NeshamaTech - מעודכן: קאונטדאון ראשי בראש הדף
 
 'use client';
 
@@ -34,21 +34,16 @@ import { useParams } from 'next/navigation';
 import { HanukkahCountdown } from '@/components/referral/HanukkahCountdown';
 
 // ================== Hanukkah Config ==================
-// ================== Hanukkah Config ==================
 const HANUKKAH_CONFIG = {
-  // עדכנתי לתאריך של היום (14.12.2025) כדי שיתחיל מנר ראשון
   startDate: new Date('2025-12-14T00:00:00'),
 };
 
 // חישוב איזה נר היום
 const getCurrentCandle = (): number => {
   const now = new Date();
-
-  // הגדרת זמן התחלה מדויק: התאריך מהקונפיג בשעה 17:00
   const campaignStart = new Date(HANUKKAH_CONFIG.startDate);
   campaignStart.setHours(17, 0, 0, 0);
 
-  // אם אנחנו לפני השעה 17:00 ביום ההתחלה - מציג נר 1 (ממתין להדלקה)
   if (now < campaignStart) {
     return 1;
   }
@@ -56,8 +51,6 @@ const getCurrentCandle = (): number => {
   const diffTime = now.getTime() - campaignStart.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-  // יום 0 (היום בערב) = נר 1
-  // יום 1 (מחר בערב) = נר 2
   return Math.min(Math.max(diffDays + 1, 1), 8);
 };
 
@@ -71,13 +64,12 @@ const Hanukkiah: React.FC<HanukkiahProps> = ({
   litCandles,
   className = '',
 }) => {
-  // תיקון מיקום השמש: ה-x שונה ל-160 כדי להיות ממורכז
   const candlePositions = [
     { x: 25, height: 35 },
     { x: 55, height: 35 },
     { x: 85, height: 35 },
     { x: 115, height: 35 },
-    { x: 160, height: 50 }, // שמש - תוקן למרכז (היה 175)
+    { x: 160, height: 50 }, // שמש
     { x: 205, height: 35 },
     { x: 235, height: 35 },
     { x: 265, height: 35 },
@@ -85,17 +77,10 @@ const Hanukkiah: React.FC<HanukkiahProps> = ({
   ];
 
   const getLitStatus = (index: number): boolean => {
-    // השמש (אינדקס 4) תמיד דולק
     if (index === 4) return true;
-
-    // צד ימין של החנוכייה (אינדקסים 5-8)
-    // אינדקס 8 הוא הנר הראשון (הכי ימני), אינדקס 5 הוא הנר הרביעי
     if (index > 4) {
       return litCandles >= 9 - index;
     }
-
-    // צד שמאל של החנוכייה (אינדקסים 0-3)
-    // אינדקס 3 הוא הנר החמישי, אינדקס 0 הוא הנר השמיני (הכי שמאלי)
     return litCandles >= 8 - index;
   };
 
@@ -125,7 +110,6 @@ const Hanukkiah: React.FC<HanukkiahProps> = ({
         </filter>
       </defs>
 
-      {/* בסיס החנוכייה */}
       <rect
         x="60"
         y="100"
@@ -134,7 +118,6 @@ const Hanukkiah: React.FC<HanukkiahProps> = ({
         rx="2"
         fill="url(#goldGradient)"
       />
-      {/* בסיס הקנה המרכזי */}
       <rect
         x="150"
         y="85"
@@ -206,10 +189,8 @@ const Hanukkiah: React.FC<HanukkiahProps> = ({
         );
       })}
 
-      {/* קנה מרכזי (שמש) */}
       <rect x="157" y="50" width="6" height="35" fill="url(#goldGradient)" />
 
-      {/* קנים צדדיים */}
       {[25, 55, 85, 115, 205, 235, 265, 295].map((x, i) => (
         <g key={`stand-${i}`}>
           <line
@@ -249,7 +230,6 @@ const SmallHanukkiah: React.FC<{ className?: string }> = ({
         <stop offset="100%" stopColor="#F6AD55" stopOpacity="0.6" />
       </linearGradient>
     </defs>
-    {/* Simple 9 flames representation */}
     {[8, 16, 24, 32, 30, 38, 46, 54, 62].map((x, i) => (
       <ellipse
         key={i}
@@ -668,7 +648,6 @@ Check it out! ✨`;
             dir={isHebrew ? 'rtl' : 'ltr'}
           >
             <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
-              {/* Header with Hanukkah colors */}
               <div className="bg-gradient-to-r from-teal-500 via-teal-600 to-orange-500 px-6 py-4 relative">
                 <button
                   onClick={onClose}
@@ -789,13 +768,10 @@ Check it out! ✨`;
   );
 };
 
-// ================== Original Background + Hanukkah Elements ==================
+// ================== Background + Hanukkah Elements ==================
 const DynamicBackground: React.FC = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-    {/* Original gradient background */}
     <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20" />
-
-    {/* Original floating orbs */}
     <div
       className="absolute top-10 left-10 w-72 h-72 bg-teal-300/20 rounded-full blur-3xl animate-float-slow"
       style={{ animationDelay: '0s' }}
@@ -808,13 +784,9 @@ const DynamicBackground: React.FC = () => (
       className="absolute bottom-20 left-1/3 w-80 h-80 bg-rose-300/15 rounded-full blur-3xl animate-float-slow"
       style={{ animationDelay: '4s' }}
     />
-
-    {/* Original dot pattern */}
     <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:30px_30px]" />
 
-    {/* === Hanukkah Elements === */}
-
-    {/* Floating small menorahs */}
+    {/* Hanukkah Elements */}
     <motion.div
       className="absolute top-20 right-[15%] w-16 h-12 opacity-20"
       animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
@@ -849,7 +821,6 @@ const DynamicBackground: React.FC = () => (
       <SmallHanukkiah />
     </motion.div>
 
-    {/* Floating dreidels */}
     <motion.div
       className="absolute top-40 left-[20%] w-10 h-12"
       animate={{ y: [0, -12, 0], rotate: [0, 15, 0] }}
@@ -876,7 +847,6 @@ const DynamicBackground: React.FC = () => (
       <Dreidel />
     </motion.div>
 
-    {/* Sparkle/star elements */}
     {[...Array(8)].map((_, i) => (
       <motion.div
         key={`sparkle-${i}`}
@@ -932,14 +902,14 @@ const HeroSection: React.FC<{
           <span className="font-medium text-gray-700">{t.badge}</span>
         </motion.div>
 
-        {/* 🆕 Compact Countdown - אופציונלי */}
+        {/* 🏆 Hero Countdown - הועבר לראש הדף 🏆 */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.25 }}
-          className="flex justify-center mb-6"
+          className="mb-10 max-w-md mx-auto"
         >
-          <HanukkahCountdown locale={locale} variant="compact" />
+          <HanukkahCountdown locale={locale} variant="hero" />
         </motion.div>
 
         {/* Hanukkiah */}
@@ -1040,16 +1010,6 @@ const HeroSection: React.FC<{
               </div>
             );
           })}
-        </motion.div>
-
-        {/* 🆕 Hero Countdown - הכי מומלץ! */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 1 }}
-          className="mt-10 max-w-md mx-auto"
-        >
-          <HanukkahCountdown locale={locale} variant="hero" />
         </motion.div>
       </div>
     </motion.section>
