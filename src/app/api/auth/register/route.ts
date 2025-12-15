@@ -1,20 +1,19 @@
 // app/api/auth/register/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType, UserSource, Language } from '@prisma/client';
+import { UserRole, UserStatus, Prisma, VerificationType, UserSource, Language } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { emailService } from '@/lib/email/emailService';
 import { VerificationService } from '@/lib/services/verificationService'; 
 import { applyRateLimit } from '@/lib/rate-limiter';
-// ========== 🔴 הוספה חדשה: ייבוא פונקציות רפרל ==========
+// ========== 🔴 תיקון קריטי: שימוש ב-singleton של Prisma ==========
+import prisma from '@/lib/prisma';
+// ==================================================================
 import { 
   linkUserToReferral, 
   parseReferralCookie, 
   REFERRAL_COOKIE_NAME 
 } from '@/lib/services/referralService';
-// =========================================================
-
-const prisma = new PrismaClient();
 
 type LogMetadata = {
   userId?: string;
@@ -36,14 +35,12 @@ type LogMetadata = {
   hasLastName?: boolean;
   verificationId?: string;
   language?: 'he' | 'en';
-  // ========== שדות רפרל ==========
   referralCode?: string;
   referralId?: string;
   referrerId?: string;
   referralLinked?: boolean;
-  expiresAt?: string; // 🔴 תיקון: הוספת שדה חסר
-  error?: string; // 🔴 תיקון: הוספת שדה חסר
-  // ================================
+  expiresAt?: string;
+  error?: string;
 };
 
 const logger = {
@@ -77,7 +74,7 @@ interface InitialRegistrationData {
   language?: Language;
 }
 
-function handleError(error: unknown): { message: string; status: number } {
+function handleError(error: unknown): { message: string; status: number; errorCode?: string } {
     const logMeta: LogMetadata = { 
         errorContext: "Inside handleError before processing",
         timestamp: new Date().toISOString(),
@@ -108,33 +105,56 @@ function handleError(error: unknown): { message: string; status: number } {
         case 'P2002': {
           const target = error.meta?.target as string[] | undefined;
           if (target?.includes('email')) {
-            return { message: 'משתמש עם כתובת אימייל זו כבר קיים במערכת.', status: 409 };
+            return { message: 'משתמש עם כתובת אימייל זו כבר קיים במערכת.', status: 409, errorCode: 'EMAIL_EXISTS' };
           }
-          return { message: `משתמש עם פרטים אלה כבר קיים במערכת (קוד ${error.code}).`, status: 409 };
+          return { message: `משתמש עם פרטים אלה כבר קיים במערכת (קוד ${error.code}).`, status: 409, errorCode: error.code };
         }
         case 'P2003': {
             const fieldName = error.meta?.field_name as string | undefined;
-            return { message: `שגיאת תלות בנתונים (שדה: ${fieldName || 'לא ידוע'}). אנא נסה שנית.`, status: 500};
+            return { message: `שגיאת תלות בנתונים (שדה: ${fieldName || 'לא ידוע'}). אנא נסה שנית.`, status: 500, errorCode: error.code };
         }
-        case 'P2014': return { message: 'שגיאה בנתונים שהוזנו.', status: 400 };
+        case 'P2014': return { message: 'שגיאה בנתונים שהוזנו.', status: 400, errorCode: error.code };
+        // ========== 🔴 הוספה: טיפול בשגיאות חיבור ==========
+        case 'P1001': 
+        case 'P1002':
+        case 'P1003':
+        case 'P1008':
+        case 'P1017':
+            return { 
+              message: 'שגיאת חיבור לשרת. אנא נסה שנית בעוד מספר שניות או הירשם באמצעות חשבון Google.', 
+              status: 503, 
+              errorCode: 'DB_CONNECTION_ERROR' 
+            };
+        // =====================================================
         default: 
-            return { message: `שגיאה בשמירת הנתונים (קוד שגיאת DB: ${error.code}).`, status: 500 };
+            return { message: `שגיאה בשמירת הנתונים (קוד שגיאת DB: ${error.code}).`, status: 500, errorCode: error.code };
       }
     }
+    
+    // ========== 🔴 הוספה: טיפול בשגיאות חיבור כלליות ==========
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return { 
+        message: 'שגיאת חיבור לשרת. אנא נסה שנית בעוד מספר שניות או הירשם באמצעות חשבון Google.', 
+        status: 503, 
+        errorCode: 'DB_INIT_ERROR' 
+      };
+    }
+    // ==========================================================
+    
     if (error instanceof Error) {
        if (error.message === 'משתמש עם כתובת אימייל זו כבר קיים במערכת.') {
-           return { message: error.message, status: 409 };
+           return { message: error.message, status: 409, errorCode: 'EMAIL_EXISTS' };
        }
        if (['חסרים פרטים חובה', 'כתובת אימייל לא תקינה', 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר'].includes(error.message)) {
-           return { message: error.message, status: 400 };
+           return { message: error.message, status: 400, errorCode: 'VALIDATION_ERROR' };
        }
        if (error.message.includes('אירעה שגיאה ביצירת קוד אימות') || 
            (error.cause instanceof Prisma.PrismaClientKnownRequestError && error.cause.code === 'P2003')) {
-            return { message: 'אירעה שגיאה ביצירת רשומת האימות עקב בעיית תלות. אנא נסה שנית.', status: 500 };
+            return { message: 'אירעה שגיאה ביצירת רשומת האימות עקב בעיית תלות. אנא נסה שנית.', status: 500, errorCode: 'VERIFICATION_ERROR' };
        }
-      return { message: error.message, status: 400 }; 
+      return { message: error.message, status: 400, errorCode: 'GENERAL_ERROR' }; 
     }
-    return { message: 'אירעה שגיאה בלתי צפויה.', status: 500 };
+    return { message: 'אירעה שגיאה בלתי צפויה.', status: 500, errorCode: 'UNKNOWN_ERROR' };
 }
 
 
@@ -148,14 +168,13 @@ export async function POST(req: NextRequest) {
   const url = new URL(req.url);
   const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
 
-  // ========== 🔴 הוספה חדשה: קריאת cookie רפרל ==========
+  // קריאת cookie רפרל
   let referralData: { referralId: string; code: string; expiresAt: string } | null = null;
   try {
     const refCookie = req.cookies.get(REFERRAL_COOKIE_NAME)?.value;
     if (refCookie) {
       referralData = parseReferralCookie(refCookie);
       if (referralData) {
-        // בדוק שהרפרל לא פג תוקף
         if (new Date(referralData.expiresAt) < new Date()) {
           logger.info('Referral cookie expired, ignoring', { 
             referralCode: referralData.code,
@@ -174,9 +193,7 @@ export async function POST(req: NextRequest) {
     logger.error('Error parsing referral cookie', { 
       errorMessage: refError instanceof Error ? refError.message : String(refError) 
     });
-    // ממשיכים בלי רפרל - לא עוצרים את ההרשמה
   }
-  // ======================================================
 
   try {
     const body: InitialRegistrationData = await req.json();
@@ -186,9 +203,7 @@ export async function POST(req: NextRequest) {
       lastName: body.lastName,
       hasPassword: !!body.password,
       language: body.language,
-      // ========== 🔴 הוספה חדשה: לוג רפרל ==========
       referralCode: referralData?.code,
-      // =============================================
     });
 
     if (!body.email || !body.password || !body.firstName || !body.lastName) {
@@ -265,7 +280,7 @@ export async function POST(req: NextRequest) {
 
     logger.info('Database transaction completed successfully', { userId: result.user.id });
 
-    // ========== 🔴 הוספה חדשה: קישור המשתמש לרפרל ==========
+    // קישור המשתמש לרפרל
     let referralLinked = false;
     if (referralData) {
       try {
@@ -295,7 +310,6 @@ export async function POST(req: NextRequest) {
           });
         }
       } catch (refLinkError) {
-        // לא עוצרים את ההרשמה בגלל שגיאת רפרל
         logger.error('Error linking user to referral', { 
           userId: result.user.id,
           referralId: referralData.referralId,
@@ -303,7 +317,6 @@ export async function POST(req: NextRequest) {
         });
       }
     }
-    // ======================================================
     
     let emailSentSuccess = false;
     const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour"; 
@@ -340,10 +353,8 @@ export async function POST(req: NextRequest) {
 
     logger.info('Initial registration API call completed, user needs to verify email with OTP', { 
       userId: result.user.id,
-      // ========== 🔴 הוספה חדשה: לוג סיום עם רפרל ==========
       referralLinked,
       referralCode: referralData?.code,
-      // =====================================================
     });
 
     return NextResponse.json(
@@ -352,9 +363,7 @@ export async function POST(req: NextRequest) {
         message: responseMessage,
         email: result.user.email, 
         userId: result.user.id,
-        // ========== 🔴 הוספה חדשה: החזרת מידע רפרל ==========
         referralLinked,
-        // ====================================================
       },
       { status: 201 }
     );
@@ -384,7 +393,7 @@ export async function POST(req: NextRequest) {
     
     logger.error('Initial registration failed', logMetaForCatch);
 
-    const { message, status } = handleError(error);
+    const { message, status, errorCode } = handleError(error);
 
     const responseErrorDetails = process.env.NODE_ENV === 'development' ? {
         name: logMetaForCatch.errorName,
@@ -398,6 +407,7 @@ export async function POST(req: NextRequest) {
       {
         success: false,
         error: message, 
+        errorCode, // ========== 🔴 הוספה: קוד שגיאה לזיהוי בצד הלקוח ==========
         details: responseErrorDetails
       },
       { status }
