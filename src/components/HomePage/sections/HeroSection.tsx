@@ -2,6 +2,7 @@
 
 'use client';
 
+import { HanukkahCountdown } from '@/components/referral/HanukkahCountdown';
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -343,7 +344,63 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
     </div>
   );
 };
+// ================== Countdown Timer למובייל/קומפקטי ==================
+const CountdownTimer: React.FC<{ locale: 'he' | 'en' }> = ({ locale }) => {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
+  useEffect(() => {
+    const endDate = new Date('2025-12-22T17:00:00').getTime();
+
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const difference = endDate - now;
+
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((difference % (1000 * 60)) / 1000),
+        });
+      }
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const isHebrew = locale === 'he';
+
+  return (
+    <div className="flex items-center gap-1 font-mono" dir="ltr">
+      {timeLeft.days > 0 && (
+        <>
+          <span className="bg-teal-600 text-white text-sm font-bold px-2 py-1 rounded">
+            {timeLeft.days}
+          </span>
+          <span className="text-xs text-gray-500">{isHebrew ? 'י' : 'd'}</span>
+        </>
+      )}
+      <span className="bg-teal-600 text-white text-sm font-bold px-2 py-1 rounded">
+        {timeLeft.hours.toString().padStart(2, '0')}
+      </span>
+      <span className="text-gray-400 font-bold">:</span>
+      <span className="bg-teal-600 text-white text-sm font-bold px-2 py-1 rounded">
+        {timeLeft.minutes.toString().padStart(2, '0')}
+      </span>
+      <span className="text-gray-400 font-bold">:</span>
+      <span className="bg-orange-500 text-white text-sm font-bold px-2 py-1 rounded">
+        {timeLeft.seconds.toString().padStart(2, '0')}
+      </span>
+    </div>
+  );
+};
 // --- הרכיב הראשי - HeroSection ---
 const HeroSection: React.FC<HeroSectionProps> = ({
   isVisible,
@@ -625,32 +682,62 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </Link>
         </motion.div>
 
-        {/* 🎁 באנר קמפיין הפניות */}
+{/* 🕎 באנר קמפיין חנוכה עם Countdown */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.5 }}
-          className="mt-6"
+          className="mt-6 w-full max-w-lg mx-auto"
         >
           <Link href={`/${locale}/friends`}>
-            <div className="group inline-flex items-center gap-3 bg-gradient-to-r from-amber-50 via-orange-50 to-rose-50 hover:from-amber-100 hover:via-orange-100 hover:to-rose-100 border border-amber-200/60 hover:border-amber-300 rounded-full px-5 py-2.5 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer">
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-sm group-hover:rotate-12 transition-transform duration-300">
-                <Handshake className="w-4 h-4" />
+            <div className="group relative overflow-hidden bg-gradient-to-r from-teal-50 via-amber-50 to-orange-50 hover:from-teal-100 hover:via-amber-100 hover:to-orange-100 border border-amber-200/60 hover:border-amber-300 rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
+              {/* רקע דקורטיבי */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-200/30 to-transparent rounded-full blur-xl" />
+              <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-teal-200/30 to-transparent rounded-full blur-xl" />
+              
+              <div className="relative z-10">
+                {/* שורה עליונה - כותרת */}
+                <div className="flex items-center justify-center gap-3 mb-3">
+                  <span className="text-2xl">🕎</span>
+                  <div className="text-center">
+                    <div className="text-base font-bold text-gray-800">
+                      {locale === 'he'
+                        ? 'מוסיפים אור בחנוכה!'
+                        : 'Adding Light this Hanukkah!'}
+                    </div>
+                    <div className="text-xs text-amber-700">
+                      {locale === 'he'
+                        ? 'הזמינו חברים וזכו בארוחה זוגית 🎁'
+                        : 'Invite friends & win a dinner for two 🎁'}
+                    </div>
+                  </div>
+                  <span className="text-2xl">🕎</span>
+                </div>
+
+                {/* Countdown */}
+                <div className="flex items-center justify-center gap-3 bg-white/70 rounded-xl py-2 px-4">
+                  <span className="text-xs text-gray-500">
+                    {locale === 'he' ? 'נשארו:' : 'Time left:'}
+                  </span>
+                  <CountdownTimer locale={locale} />
+                  <div className="flex items-center gap-1 text-teal-600 group-hover:translate-x-[-2px] transition-transform">
+                    <span className="text-xs font-medium hidden sm:inline">
+                      {locale === 'he' ? 'לפרטים' : 'Details'}
+                    </span>
+                    {locale === 'he' ? (
+                      <ArrowLeft className="w-4 h-4" />
+                    ) : (
+                      <ArrowRight className="w-4 h-4" />
+                    )}
+                  </div>
+                </div>
               </div>
-              <span className="text-sm font-semibold text-amber-800 group-hover:text-amber-900">
-                {locale === 'he'
-                  ? 'הזמינו חברים וזכו בפרסים!'
-                  : 'Invite friends & win prizes!'}
-              </span>
-              {locale === 'he' ? (
-                <ArrowLeft className="w-4 h-4 text-amber-600 group-hover:-translate-x-1 transition-transform" />
-              ) : (
-                <ArrowRight className="w-4 h-4 text-amber-600 group-hover:translate-x-1 transition-transform" />
-              )}
             </div>
           </Link>
         </motion.div>
-
+        
+{/* ⏰ Countdown קומפקטי */}
+ 
         <div className="mt-12 sm:mt-16 w-full max-w-6xl">
           <div className="md:hidden">
             <MobilePrinciplesTabs

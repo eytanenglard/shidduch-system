@@ -491,96 +491,63 @@ const HeroCountdown: React.FC<
 };
 
 // ================== Compact Variant ==================
+// ================== Compact Variant ==================
 const CompactCountdown: React.FC<CountdownProps & { timeLeft: TimeLeft }> = ({
   locale = 'he',
   className = '',
   timeLeft,
 }) => {
   const isHebrew = locale === 'he';
-  const t = isHebrew ? content.he : content.en;
   const isUrgent = timeLeft.days === 0;
+
+  // פורמט הזמן
+  const formatTime = () => {
+const parts: string[] = [];    if (timeLeft.days > 0) {
+      parts.push(`${timeLeft.days}${isHebrew ? ' ימים' : 'd'}`);
+    }
+    parts.push(
+      `${timeLeft.hours.toString().padStart(2, '0')}:${timeLeft.minutes.toString().padStart(2, '0')}:${timeLeft.seconds.toString().padStart(2, '0')}`
+    );
+    return parts.join(' ');
+  };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       className={`
-        inline-flex items-center gap-3
-        bg-white/80 backdrop-blur-sm rounded-2xl
-        px-4 sm:px-5 py-2.5 sm:py-3 shadow-lg border border-white/60
-        ${isUrgent ? 'ring-2 ring-orange-300/50' : ''}
+        inline-flex items-center gap-2
+        bg-white/90 backdrop-blur-sm rounded-full
+        px-4 py-2 shadow-md border border-gray-100
         ${className}
       `}
-      dir={isHebrew ? 'rtl' : 'ltr'}
     >
       {/* אייקון */}
-      <div
-        className={`
-        w-8 h-8 rounded-xl flex items-center justify-center
-        ${
-          isUrgent
-            ? 'bg-gradient-to-br from-orange-100 to-amber-100'
-            : 'bg-gradient-to-br from-teal-100 to-emerald-100'
+      <div className={`
+        w-6 h-6 rounded-full flex items-center justify-center text-sm
+        ${isUrgent 
+          ? 'bg-orange-100' 
+          : 'bg-teal-100'
         }
-      `}
-      >
-        {isUrgent ? (
-          <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 0.5, repeat: Infinity }}
-          >
-            <Flame className="w-4 h-4 text-orange-500" />
-          </motion.div>
-        ) : (
-          <Clock className="w-4 h-4 text-teal-600" />
-        )}
+      `}>
+        {isUrgent ? '🔥' : '⏰'}
       </div>
 
       {/* טקסט */}
-      <div className={isHebrew ? 'text-right' : 'text-left'}>
-        <div className="text-xs text-gray-500 font-medium">
-          {isUrgent ? t.dontMiss : t.title}
-        </div>
-        <div
-          className="font-mono font-bold text-gray-800 tracking-wide"
-          dir="ltr"
-        >
-          {timeLeft.days > 0 && (
-            <span className="text-teal-600">
-              {timeLeft.days}
-              <span className="text-xs mr-1">{isHebrew ? 'י' : 'd'}</span>
-            </span>
-          )}
-          <span className={isUrgent ? 'text-orange-600' : ''}>
-            {timeLeft.hours.toString().padStart(2, '0')}
-          </span>
-          <span className="text-gray-400 mx-0.5">:</span>
-          <span className={isUrgent ? 'text-orange-600' : ''}>
-            {timeLeft.minutes.toString().padStart(2, '0')}
-          </span>
-          <span className="text-gray-400 mx-0.5">:</span>
-          <motion.span
-            className={isUrgent ? 'text-orange-600' : ''}
-            key={timeLeft.seconds}
-            initial={{ opacity: 0.5 }}
-            animate={{ opacity: 1 }}
-          >
-            {timeLeft.seconds.toString().padStart(2, '0')}
-          </motion.span>
-        </div>
-      </div>
+      <span className="text-xs text-gray-500">
+        {isHebrew ? 'נשארו' : 'Left:'}
+      </span>
 
-      {/* נר קטן */}
-      <motion.span
-        animate={{
-          scale: [1, 1.1, 1],
-          opacity: [0.8, 1, 0.8],
-        }}
-        transition={{ duration: 2, repeat: Infinity }}
-        className="text-lg"
+      {/* זמן */}
+      <span 
+        className={`
+          font-mono font-bold text-sm
+          ${isUrgent ? 'text-orange-600' : 'text-teal-700'}
+        `}
+        dir="ltr"
       >
-        🕯️
-      </motion.span>
+        {formatTime()}
+      </span>
     </motion.div>
   );
 };
