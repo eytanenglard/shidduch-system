@@ -907,8 +907,7 @@ const HeroSection: React.FC<{
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.25 }}
-          className="mb-10 max-w-md mx-auto"
-        >
+className="mb-10 max-w-xl mx-auto"        >
           <HanukkahCountdown locale={locale} variant="hero" />
         </motion.div>
 
