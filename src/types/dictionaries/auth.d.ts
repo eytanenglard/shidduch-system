@@ -186,6 +186,15 @@ export type AuthErrorDict = {
     };
 };
 
+// ========== 🔴 הוספה חדשה: טיפוס להצעת Google ==========
+export type GoogleSuggestionDict = {
+  title: string;
+  description: string;
+  buttonText: string;
+  buttonLoading: string;
+};
+// ======================================================
+
 export type RegisterStepsDict = {
   progressBar: {
     stepLabel: string; // "שלב {{step}}"
@@ -239,7 +248,10 @@ export type RegisterStepsDict = {
       backButton: string;
       nextButton: string;
       nextButtonLoading: string;
-      termsDisclaimer: string; // <--- שדה חדש: המשפט הקטן
+      termsDisclaimer: string;
+      // ========== 🔴 הוספה חדשה: הצעת Google ==========
+      googleSuggestion?: GoogleSuggestionDict;
+      // ================================================
       errors: {
         title: string;
         invalidEmail: string;
@@ -248,11 +260,8 @@ export type RegisterStepsDict = {
         requiredPassword: string;
         fillFields: string;
         fixErrors: string;
-        // consentRequired הוסר מכאן
         default: string;
-        // engagementConsentRequired הוסר מכאן
       };
-      // תוויות ההסכמה הוסרו מכאן ועברו ל-personalDetails
        status: {
         creatingAccount: string;
         sendingCode: string;

@@ -224,14 +224,10 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                   <Mail className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
                   <div>
                     <AlertTitle className="text-blue-900 font-bold mb-1">
-                      {locale === 'he'
-                        ? 'נתקלנו בבעיה טכנית זמנית'
-                        : 'We encountered a temporary technical issue'}
+                      {dict.googleSuggestion?.title}
                     </AlertTitle>
                     <AlertDescription className="text-sm text-blue-700">
-                      {locale === 'he'
-                        ? 'ניתן להמשיך להירשם בקלות באמצעות חשבון Google שלך, או לנסות שוב בעוד מספר דקות.'
-                        : 'You can easily continue registering with your Google account, or try again in a few minutes.'}
+                      {dict.googleSuggestion?.description}
                     </AlertDescription>
                   </div>
                 </div>
@@ -243,7 +239,10 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                   className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm"
                 >
                   {isGoogleLoading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>{dict.googleSuggestion?.buttonLoading}</span>
+                    </>
                   ) : (
                     <>
                       <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -264,11 +263,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                           d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                         />
                       </svg>
-                      <span>
-                        {locale === 'he'
-                          ? 'המשך הרשמה עם Google'
-                          : 'Continue with Google'}
-                      </span>
+                      <span>{dict.googleSuggestion?.buttonText}</span>
                     </>
                   )}
                 </Button>
