@@ -108,11 +108,12 @@ export default function NeshmaInsightSectionB({
     const playConversation = (index: number) => {
       if (index >= conversation.length) {
         setIsTyping(false);
-        setTimeout(() => setShowTransitionText(true), 800);
-        setTimeout(() => setShowInsights(true), 1800);
-        setTimeout(() => setShowTransitionCTA(true), 2500);
-        setTimeout(() => setShowCTA(true), 3500);
-        setTimeout(() => setShowPostConversationTransition(true), 4200);
+        // מיד אחרי סיום השיחה - הכותרת והמעבר מופיעים
+        setTimeout(() => setShowTransitionText(true), 300);
+        setTimeout(() => setShowPostConversationTransition(true), 300);
+        setTimeout(() => setShowInsights(true), 1000);
+        setTimeout(() => setShowTransitionCTA(true), 1700);
+        setTimeout(() => setShowCTA(true), 2500);
         setProgressStep(5);
         return;
       }
@@ -161,24 +162,26 @@ export default function NeshmaInsightSectionB({
     }
   }, [isInView, showPhone, conversation, locale]);
 
-  // Auto-scroll logic
+  // Auto-scroll logic - גלילה רק בתוך אזור ההודעות
   useEffect(() => {
     if (messagesContainerRef.current) {
       const container = messagesContainerRef.current;
       const isNearBottom =
         container.scrollHeight - container.scrollTop - container.clientHeight <
-        100;
+        150;
 
       if (isNearBottom) {
         requestAnimationFrame(() => {
           if (messagesContainerRef.current) {
-            messagesContainerRef.current.scrollTop =
-              messagesContainerRef.current.scrollHeight;
+            messagesContainerRef.current.scrollTo({
+              top: messagesContainerRef.current.scrollHeight,
+              behavior: 'smooth',
+            });
           }
         });
       }
     }
-  }, [messages]);
+  }, [messages, isTyping]);
 
   // --- Animation Variants ---
   const containerVariants = {
@@ -318,15 +321,11 @@ export default function NeshmaInsightSectionB({
                       </div>
                     </div>
 
-                    {/* Messages Area */}
+                    {/* Messages Area - גלילה משופרת */}
                     <div
                       ref={messagesContainerRef}
                       aria-live="polite"
-                      className="h-[450px] md:h-[500px] overflow-y-auto p-4 bg-gradient-to-br from-teal-50/20 to-orange-50/20 touch-pan-y"
-                      style={{
-                        scrollBehavior: 'smooth',
-                        WebkitOverflowScrolling: 'touch',
-                      }}
+                      className="messages-container h-[450px] md:h-[500px] overflow-y-auto p-4 bg-gradient-to-br from-teal-50/20 to-orange-50/20"
                     >
                       <AnimatePresence>
                         {messages.map((message) => (
@@ -403,7 +402,7 @@ export default function NeshmaInsightSectionB({
                           </motion.div>
                         )}
                       </AnimatePresence>
-                      <div ref={messagesEndRef} />
+                      <div ref={messagesEndRef} className="h-4" />
                     </div>
 
                     {/* Input Area */}
@@ -419,7 +418,7 @@ export default function NeshmaInsightSectionB({
           )}
         </AnimatePresence>
 
-        {/* Transition Text */}
+        {/* Transition Text - מופיע מיד אחרי סיום השיחה */}
         <AnimatePresence>
           {showTransitionText && !showInsights && (
             <motion.div
@@ -544,7 +543,7 @@ export default function NeshmaInsightSectionB({
           )}
         </AnimatePresence>
 
-        {/* Post-Conversation Transition */}
+        {/* Post-Conversation Transition - מופיע מיד אחרי סיום השיחה */}
         <AnimatePresence>
           {showPostConversationTransition && (
             <motion.div
@@ -566,27 +565,41 @@ export default function NeshmaInsightSectionB({
         </AnimatePresence>
       </div>
 
-      {/* Styles */}
+      {/* Styles - כולל גלילה משופרת */}
       <style>{`
         @keyframes float-slow { 0%, 100% { transform: translateY(0) translateX(0); } 25% { transform: translateY(-20px) translateX(10px); } 50% { transform: translateY(0) translateX(20px); } 75% { transform: translateY(20px) translateX(10px); } }
         .animate-float-slow { animation: float-slow 20s ease-in-out infinite; }
         @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(251, 191, 36, 0.3); } 50% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.6); } }
         .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
         
-        /* Custom scrollbar for messages area */
-        .overflow-y-auto::-webkit-scrollbar {
-          width: 6px;
+        /* גלילה משופרת לאזור ההודעות */
+        .messages-container {
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior: contain;
+          touch-action: pan-y;
+          scrollbar-width: thin;
+          scrollbar-color: #14b8a6 rgba(243, 244, 246, 0.5);
         }
-        .overflow-y-auto::-webkit-scrollbar-track {
+        
+        .messages-container::-webkit-scrollbar {
+          width: 8px;
+        }
+        .messages-container::-webkit-scrollbar-track {
           background: rgba(243, 244, 246, 0.5);
           border-radius: 10px;
+          margin: 4px 0;
         }
-        .overflow-y-auto::-webkit-scrollbar-thumb {
+        .messages-container::-webkit-scrollbar-thumb {
           background: linear-gradient(to bottom, #14b8a6, #f97316);
           border-radius: 10px;
+          border: 2px solid rgba(243, 244, 246, 0.5);
         }
-        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        .messages-container::-webkit-scrollbar-thumb:hover {
           background: linear-gradient(to bottom, #0d9488, #ea580c);
+        }
+        .messages-container::-webkit-scrollbar-thumb:active {
+          background: linear-gradient(to bottom, #0f766e, #c2410c);
         }
       `}</style>
     </motion.section>

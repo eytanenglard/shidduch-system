@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]
-# Generated on: 2025-12-08 21:58:24
+# Generated on: 2025-12-15 10:23:49
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -276,20 +276,20 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authe
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/(authenticated)/admin/engagement/page.tsx
+import { Suspense } from 'react';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import EngagementDashboard from '@/components/admin/EngagementDashboard';
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../../i18n-config';
 import { authOptions } from '@/lib/auth';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
-// הגדרת ה-props הנכונה
 type EngagementPageProps = {
   params: Promise<{ locale: Locale }>;
 };
 
 export default async function EngagementPage({ params }: EngagementPageProps) {
-  // שימוש ב-await כדי לחלץ את המידע מה-Promise
   const { locale } = await params;
   const session = await getServerSession(authOptions);
 
@@ -299,7 +299,18 @@ export default async function EngagementPage({ params }: EngagementPageProps) {
 
   const dict = await getDictionary(locale);
 
-  return <EngagementDashboard dict={dict} />;
+  return (
+    <Suspense
+      fallback={
+        <StandardizedLoadingSpinner
+          text="טוען נתוני מעורבות..."
+          subtext="מנתחים את הפעילות במערכת"
+        />
+      }
+    >
+      <EngagementDashboard dict={dict} />
+    </Suspense>
+  );
 }
 --- End of Content for page.tsx ---
 
@@ -317,7 +328,7 @@ Content:
 
 import { useSession } from 'next-auth/react';
 import MatchSuggestionsContainer from '@/components/suggestions/MatchSuggestionsContainer';
-import { Skeleton } from '@/components/ui/skeleton';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 import type {
   SuggestionsDictionary,
   ProfileCardDict,
@@ -341,14 +352,14 @@ export default function MatchesClientPage({ suggestionsDict, profileCardDict }: 
   // קבלת נתוני המשתמש והסטטוס של החיבור
   const { data: session, status } = useSession();
 
-  // בזמן שהחיבור מתבצע, הצג שלד טעינה (skeleton)
+  // בזמן שהחיבור מתבצע, הצג את רכיב הטעינה האחיד
   if (status === 'loading') {
     return (
-      <div className="container mx-auto p-6 space-y-4">
-        <Skeleton className="h-48 w-full rounded-2xl" />
-        <Skeleton className="h-48 w-full rounded-2xl" />
-        <Skeleton className="h-48 w-full rounded-2xl" />
-      </div>
+      <StandardizedLoadingSpinner 
+        text="טוען התאמות..." 
+        subtext="מחפשים את השידוכים המתאימים ביותר עבורך"
+        className="min-h-[60vh]"
+      />
     );
   }
 
@@ -450,26 +461,35 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authe
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/(authenticated)/matchmaker/clients/page.tsx
+import { Suspense } from 'react';
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../../../i18n-config';
 import CandidatesManagerClient from './CandidatesManagerClient';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
-// הגדרת ה-props הנכונה
 type ClientsPageProps = {
   params: Promise<{ locale: Locale }>;
 };
 
 export default async function ClientsPage({ params }: ClientsPageProps) {
-  // שימוש ב-await כדי לחלץ את המידע מה-Promise
   const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (
-    <CandidatesManagerClient
-      matchmakerDict={dictionary.matchmakerPage}
-      profileDict={dictionary.profilePage}
-      locale={locale}
-    />
+    <Suspense
+      fallback={
+        <StandardizedLoadingSpinner
+          text="טוען את מנהל המועמדים..."
+          subtext="מכינים את רשימת הלקוחות והפרופילים"
+        />
+      }
+    >
+      <CandidatesManagerClient
+        matchmakerDict={dictionary.matchmakerPage}
+        profileDict={dictionary.profilePage}
+        locale={locale}
+      />
+    </Suspense>
   );
 }
 --- End of Content for page.tsx ---
@@ -488,7 +508,7 @@ Content:
 
 import { Suspense } from "react";
 import MatchmakerDashboard from "@/components/matchmaker/suggestions/container/MatchmakerDashboard";
-import { Card, CardContent } from "@/components/ui/card";
+import StandardizedLoadingSpinner from "@/components/questionnaire/common/StandardizedLoadingSpinner";
 import type {
   SuggestionsDictionary,
   MatchmakerPageDictionary,
@@ -512,13 +532,10 @@ export default function MatchmakerDashboardPageClient({
     <div className="min-h-screen bg-background">
       <Suspense
         fallback={
-          <Card className="m-4">
-            <CardContent className="p-6">
-              <div className="flex justify-center items-center">
-                <div className="text-xl">טוען...</div>
-              </div>
-            </CardContent>
-          </Card>
+          <StandardizedLoadingSpinner 
+            text="טוען לוח בקרה לשדכנים..." 
+            subtext="מכינים את המועמדים וההצעות"
+          />
         }
       >
         {/* ✅ 3. העבר את המילונים הנפרדים הלאה לרכיב MatchmakerDashboard */}
@@ -920,39 +937,42 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authe
 Content:
 // src/app/[locale]/settings/SettingsClientPage.tsx
 
-"use client";
+'use client';
 
-import { useSession } from "next-auth/react";
-import AccountSettings from "@/components/profile/account-settings";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { AccountSettingsDict } from "@/types/dictionary";
-import type { Locale } from "../../../../../i18n-config"; // ✨ שינוי 1: ייבוא טיפוס השפה
+import { useSession } from 'next-auth/react';
+import AccountSettings from '@/components/profile/account-settings';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+import type { AccountSettingsDict } from '@/types/dictionary';
+import type { Locale } from '../../../../../i18n-config';
 
-// ✨ שינוי 2: עדכון הממשק לקבלת המילון וגם את השפה (locale)
 interface SettingsClientPageProps {
   dict: AccountSettingsDict;
   locale: Locale;
 }
 
-export default function SettingsClientPage({ dict, locale }: SettingsClientPageProps) {
+export default function SettingsClientPage({
+  dict,
+  locale,
+}: SettingsClientPageProps) {
   const { data: session, status } = useSession();
 
-  if (status === "loading") {
+  if (status === 'loading') {
     return (
-      <div className="container mx-auto p-6 max-w-2xl">
-        <Skeleton className="h-[600px] w-full rounded-2xl" />
-      </div>
+      <StandardizedLoadingSpinner
+        text="טוען הגדרות חשבון..."
+        className="min-h-[600px]"
+      />
     );
   }
 
-  if (status === "unauthenticated") {
+  if (status === 'unauthenticated') {
     return (
       <div className="container mx-auto p-6 text-center text-red-600">
         Access Denied. Please sign in to view your account settings.
       </div>
     );
   }
-  
+
   if (!session?.user) {
     return (
       <div className="container mx-auto p-6 text-center text-red-600">
@@ -972,10 +992,9 @@ export default function SettingsClientPage({ dict, locale }: SettingsClientPageP
     lastLogin: session.user.lastLogin ?? null,
     createdAt: session.user.createdAt,
     engagementEmailsConsent: session.user.engagementEmailsConsent,
-     promotionalEmailsConsent    : session.user.promotionalEmailsConsent    ,
+    promotionalEmailsConsent: session.user.promotionalEmailsConsent,
   };
 
-  // ✨ שינוי 3: העברת המילון וה-locale שהתקבלו ב-props לרכיב AccountSettings
   return <AccountSettings user={userData} dict={dict} locale={locale} />;
 }
 --- End of Content for SettingsClientPage.tsx ---
@@ -1787,7 +1806,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\a
 Content:
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth
-# Generated on: 2025-12-07 11:01:57
+# Generated on: 2025-12-09 15:09:11
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -3474,20 +3493,28 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\s
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/auth/setup-account/SetupAccountClient.tsx
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Loader2, KeyRound, CheckCircle } from "lucide-react";
+import { Loader2, KeyRound } from 'lucide-react';
 import type { SetupAccountDict } from '@/types/dictionaries/auth';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 interface SetupAccountClientProps {
-    dict: SetupAccountDict;
+  dict: SetupAccountDict;
 }
 
 export default function SetupAccountClient({ dict }: SetupAccountClientProps) {
@@ -3520,7 +3547,7 @@ export default function SetupAccountClient({ dict }: SetupAccountClientProps) {
       setError(dict.errors.passwordsMismatch);
       return;
     }
-    
+
     setIsLoading(true);
 
     try {
@@ -3531,31 +3558,28 @@ export default function SetupAccountClient({ dict }: SetupAccountClientProps) {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || dict.errors.default);
-      
+
       setSuccess(true);
       toast.success(dict.success.title);
 
-      setTimeout(() => { window.location.assign('/profile'); }, 1500);
+      setTimeout(() => {
+        window.location.assign('/profile');
+      }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.errors.unexpected);
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
-  
+
   if (success) {
     return (
-        <Card className="w-full max-w-md mx-auto text-center">
-            <CardHeader>
-                <div className="mx-auto bg-green-100 rounded-full p-3 w-fit">
-                    <CheckCircle className="h-10 w-10 text-green-600" />
-                </div>
-                <CardTitle className="mt-4">{dict.success.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p className="text-muted-foreground">{dict.success.description}</p>
-                <Loader2 className="mt-4 h-6 w-6 animate-spin mx-auto" />
-            </CardContent>
-        </Card>
+      <div className="w-full max-w-md mx-auto">
+        <StandardizedLoadingSpinner
+          text={dict.success.title}
+          subtext={dict.success.description}
+          className="bg-white rounded-xl shadow-lg p-8"
+        />
+      </div>
     );
   }
 
@@ -3567,26 +3591,50 @@ export default function SetupAccountClient({ dict }: SetupAccountClientProps) {
       </CardHeader>
       <CardContent>
         {!token ? (
-            <div className="text-red-500 text-center p-4 bg-red-50 rounded-md">{error}</div>
+          <div className="text-red-500 text-center p-4 bg-red-50 rounded-md">
+            {error}
+          </div>
         ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <Label htmlFor="password">{dict.newPasswordLabel}</Label>
-                    <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                    <p className="text-xs text-muted-foreground mt-1">{dict.passwordHint}</p>
-                </div>
-                <div>
-                    <Label htmlFor="confirmPassword">{dict.confirmPasswordLabel}</Label>
-                    <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-                </div>
-                {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-                <CardFooter className="p-0 pt-4">
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
-                        {isLoading ? dict.submitButtonLoading : dict.submitButton}
-                    </Button>
-                </CardFooter>
-            </form>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="password">{dict.newPasswordLabel}</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {dict.passwordHint}
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="confirmPassword">
+                {dict.confirmPasswordLabel}
+              </Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+            {error && (
+              <p className="text-sm font-medium text-destructive">{error}</p>
+            )}
+            <CardFooter className="p-0 pt-4">
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <KeyRound className="mr-2 h-4 w-4" />
+                )}
+                {isLoading ? dict.submitButtonLoading : dict.submitButton}
+              </Button>
+            </CardFooter>
+          </form>
         )}
       </CardContent>
     </Card>
@@ -3654,7 +3702,6 @@ import {
   Sparkles,
   Heart,
   Shield,
-  CheckCircle2,
   Eye,
   EyeOff,
 } from 'lucide-react';
@@ -3662,6 +3709,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import type { SignInDict } from '@/types/dictionaries/auth';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -3697,7 +3745,7 @@ const itemVariants = {
 };
 
 // ============================================================================
-// BACKGROUND COMPONENT (מעודכן לפלטת Teal/Orange)
+// BACKGROUND COMPONENT
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
@@ -3758,10 +3806,10 @@ const DynamicBackground: React.FC = () => (
       }}
     />
 
-    {/* Dot Pattern (Teal) */}
+    {/* Dot Pattern */}
     <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:24px_24px]" />
 
-    {/* SVG Decorative Waves (Teal -> Orange) */}
+    {/* SVG Decorative Waves */}
     <svg
       className="absolute inset-0 w-full h-full"
       viewBox="0 0 1000 1000"
@@ -3783,76 +3831,6 @@ const DynamicBackground: React.FC = () => (
       />
     </svg>
   </div>
-);
-
-// ============================================================================
-// LOADING STATE COMPONENT (Colors Updated)
-// ============================================================================
-
-interface LoadingStateProps {
-  status: 'loading' | 'authenticated';
-  dict: SignInDict;
-}
-
-const LoadingState: React.FC<LoadingStateProps> = ({ status, dict }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-    className="flex w-full max-w-md flex-col items-center justify-center rounded-3xl bg-white/80 backdrop-blur-xl p-12 text-center shadow-2xl border border-white/60"
-    style={{ minHeight: '420px' }}
-  >
-    <motion.div
-      animate={{ rotate: 360 }}
-      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-      className="mb-6"
-    >
-      {/* Loading Gradient: Teal -> Orange */}
-      <div className="p-4 bg-gradient-to-br from-teal-400 to-orange-400 rounded-full">
-        <Loader2 className="h-12 w-12 text-white" />
-      </div>
-    </motion.div>
-
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-    >
-      <h2 className="mb-3 text-2xl font-bold text-gray-800">
-        {status === 'authenticated' ? dict.loader.success : dict.loader.loading}
-      </h2>
-      <p className="text-gray-600 mb-4">
-        {status === 'authenticated'
-          ? dict.loader.redirecting
-          : dict.loader.checking}
-      </p>
-
-      {status === 'authenticated' && (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.3, type: 'spring' }}
-          className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium"
-        >
-          <CheckCircle2 className="w-4 h-4" />
-          <span>{dict.loader.success}</span>
-        </motion.div>
-      )}
-    </motion.div>
-
-    {/* Decorative circles (Teal/Orange) */}
-    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
-      <motion.div
-        className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-teal-400/20 to-transparent rounded-full pointer-events-none"
-        animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
-        transition={{ duration: 4, repeat: Infinity }}
-      />
-      <motion.div
-        className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-transparent rounded-full pointer-events-none"
-        animate={{ scale: [1, 1.2, 1], rotate: [0, -90, 0] }}
-        transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-      />
-    </div>
-  </motion.div>
 );
 
 // ============================================================================
@@ -3937,12 +3915,17 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
 
   // Show loading state
   if (status === 'loading' || status === 'authenticated') {
+    const loadingText =
+      status === 'authenticated' ? dict.loader.success : dict.loader.loading;
+    const subText =
+      status === 'authenticated'
+        ? dict.loader.redirecting
+        : dict.loader.checking;
+
     return (
       <>
         <DynamicBackground />
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <LoadingState status={status} dict={dict} />
-        </div>
+        <StandardizedLoadingSpinner text={loadingText} subtext={subText} />
       </>
     );
   }
@@ -4534,6 +4517,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { VerifyEmailDict } from '@/types/dictionaries/auth';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -4584,7 +4568,7 @@ const cardVariants = {
 };
 
 // ============================================================================
-// DYNAMIC BACKGROUND COMPONENT (Teal/Orange Theme)
+// DYNAMIC BACKGROUND COMPONENT
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
@@ -4692,7 +4676,7 @@ const DynamicBackground: React.FC = () => (
 );
 
 // ============================================================================
-// ANIMATED ICON COMPONENTS (Colors Updated)
+// ANIMATED ICON COMPONENTS
 // ============================================================================
 
 const AnimatedMailIcon: React.FC = () => (
@@ -4775,33 +4759,6 @@ const AnimatedErrorIcon: React.FC = () => (
     />
     <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center shadow-lg">
       <AlertCircle className="w-10 h-10 text-white" />
-    </div>
-  </motion.div>
-);
-
-const AnimatedLoadingIcon: React.FC = () => (
-  <motion.div
-    className="relative inline-flex items-center justify-center w-24 h-24 mb-6"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.3 }}
-  >
-    <motion.div
-      // Gradient: Teal -> Orange (Main Palette)
-      className="absolute inset-0 rounded-full bg-gradient-to-br from-teal-400/20 to-orange-500/20"
-      animate={{
-        scale: [1, 1.3, 1],
-        rotate: [0, 360],
-      }}
-      transition={{
-        duration: 3,
-        repeat: Infinity,
-        ease: 'linear',
-      }}
-    />
-    {/* Inner Gradient: Teal -> Orange */}
-    <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-400 to-orange-500 flex items-center justify-center shadow-lg">
-      <Loader2 className="w-10 h-10 text-white animate-spin" />
     </div>
   </motion.div>
 );
@@ -5035,7 +4992,7 @@ export default function VerifyEmailClient({
                 </motion.div>
               )}
 
-              {/* Verifying State */}
+              {/* Verifying State - Updated with StandardizedLoadingSpinner */}
               {verification.status === 'verifying' && (
                 <motion.div
                   key="verifying"
@@ -5043,33 +5000,17 @@ export default function VerifyEmailClient({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.4 }}
-                  className="text-center space-y-6"
+                  className="w-full"
                 >
-                  <AnimatedLoadingIcon />
-
-                  <div className="space-y-3">
-                    <h2 className="text-2xl font-bold text-gray-800">
-                      {dict.verifyingMessage}
-                    </h2>
-                    <div className="flex justify-center gap-2 py-4">
-                      {[0, 1, 2].map((i) => (
-                        <motion.div
-                          key={i}
-                          // Loading dots: Teal -> Orange
-                          className="w-3 h-3 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full"
-                          animate={{
-                            scale: [1, 1.5, 1],
-                            opacity: [0.5, 1, 0.5],
-                          }}
-                          transition={{
-                            duration: 1.5,
-                            repeat: Infinity,
-                            delay: i * 0.2,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
+                  <StandardizedLoadingSpinner
+                    text={dict.verifyingMessage}
+                    subtext={
+                      isRTL
+                        ? 'מאמתים את הפרטים שלך...'
+                        : 'Verifying your details...'
+                    }
+                    className="min-h-[250px]"
+                  />
                 </motion.div>
               )}
 
@@ -7726,20 +7667,28 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\s
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/auth/setup-account/SetupAccountClient.tsx
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Loader2, KeyRound, CheckCircle } from "lucide-react";
+import { Loader2, KeyRound } from 'lucide-react';
 import type { SetupAccountDict } from '@/types/dictionaries/auth';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 interface SetupAccountClientProps {
-    dict: SetupAccountDict;
+  dict: SetupAccountDict;
 }
 
 export default function SetupAccountClient({ dict }: SetupAccountClientProps) {
@@ -7772,7 +7721,7 @@ export default function SetupAccountClient({ dict }: SetupAccountClientProps) {
       setError(dict.errors.passwordsMismatch);
       return;
     }
-    
+
     setIsLoading(true);
 
     try {
@@ -7783,31 +7732,28 @@ export default function SetupAccountClient({ dict }: SetupAccountClientProps) {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || dict.errors.default);
-      
+
       setSuccess(true);
       toast.success(dict.success.title);
 
-      setTimeout(() => { window.location.assign('/profile'); }, 1500);
+      setTimeout(() => {
+        window.location.assign('/profile');
+      }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.errors.unexpected);
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
-  
+
   if (success) {
     return (
-        <Card className="w-full max-w-md mx-auto text-center">
-            <CardHeader>
-                <div className="mx-auto bg-green-100 rounded-full p-3 w-fit">
-                    <CheckCircle className="h-10 w-10 text-green-600" />
-                </div>
-                <CardTitle className="mt-4">{dict.success.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p className="text-muted-foreground">{dict.success.description}</p>
-                <Loader2 className="mt-4 h-6 w-6 animate-spin mx-auto" />
-            </CardContent>
-        </Card>
+      <div className="w-full max-w-md mx-auto">
+        <StandardizedLoadingSpinner
+          text={dict.success.title}
+          subtext={dict.success.description}
+          className="bg-white rounded-xl shadow-lg p-8"
+        />
+      </div>
     );
   }
 
@@ -7819,26 +7765,50 @@ export default function SetupAccountClient({ dict }: SetupAccountClientProps) {
       </CardHeader>
       <CardContent>
         {!token ? (
-            <div className="text-red-500 text-center p-4 bg-red-50 rounded-md">{error}</div>
+          <div className="text-red-500 text-center p-4 bg-red-50 rounded-md">
+            {error}
+          </div>
         ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <Label htmlFor="password">{dict.newPasswordLabel}</Label>
-                    <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                    <p className="text-xs text-muted-foreground mt-1">{dict.passwordHint}</p>
-                </div>
-                <div>
-                    <Label htmlFor="confirmPassword">{dict.confirmPasswordLabel}</Label>
-                    <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-                </div>
-                {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-                <CardFooter className="p-0 pt-4">
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
-                        {isLoading ? dict.submitButtonLoading : dict.submitButton}
-                    </Button>
-                </CardFooter>
-            </form>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="password">{dict.newPasswordLabel}</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {dict.passwordHint}
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="confirmPassword">
+                {dict.confirmPasswordLabel}
+              </Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+            {error && (
+              <p className="text-sm font-medium text-destructive">{error}</p>
+            )}
+            <CardFooter className="p-0 pt-4">
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <KeyRound className="mr-2 h-4 w-4" />
+                )}
+                {isLoading ? dict.submitButtonLoading : dict.submitButton}
+              </Button>
+            </CardFooter>
+          </form>
         )}
       </CardContent>
     </Card>
@@ -7888,6 +7858,7 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\a
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\signin\SignInClient.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/app/[locale]/auth/signin/SignInClient.tsx
 'use client';
 
 import { useState, useEffect, FormEvent } from 'react';
@@ -7948,7 +7919,7 @@ const itemVariants = {
 };
 
 // ============================================================================
-// BACKGROUND COMPONENT (מעודכן לפלטת Teal/Orange)
+// BACKGROUND COMPONENT
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
@@ -8009,10 +7980,10 @@ const DynamicBackground: React.FC = () => (
       }}
     />
 
-    {/* Dot Pattern (Teal) */}
+    {/* Dot Pattern */}
     <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:24px_24px]" />
 
-    {/* SVG Decorative Waves (Teal -> Orange) */}
+    {/* SVG Decorative Waves */}
     <svg
       className="absolute inset-0 w-full h-full"
       viewBox="0 0 1000 1000"
@@ -8116,7 +8087,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
     await signIn('google', undefined, { hl: locale });
   };
 
-  // Show loading state - Using new StandardizedLoadingSpinner
+  // Show loading state
   if (status === 'loading' || status === 'authenticated') {
     const loadingText =
       status === 'authenticated' ? dict.loader.success : dict.loader.loading;
@@ -8125,7 +8096,12 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
         ? dict.loader.redirecting
         : dict.loader.checking;
 
-    return <StandardizedLoadingSpinner text={loadingText} subtext={subText} />;
+    return (
+      <>
+        <DynamicBackground />
+        <StandardizedLoadingSpinner text={loadingText} subtext={subText} />
+      </>
+    );
   }
 
   // Main sign-in form
@@ -8715,6 +8691,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { VerifyEmailDict } from '@/types/dictionaries/auth';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -8765,7 +8742,7 @@ const cardVariants = {
 };
 
 // ============================================================================
-// DYNAMIC BACKGROUND COMPONENT (Teal/Orange Theme)
+// DYNAMIC BACKGROUND COMPONENT
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
@@ -8873,7 +8850,7 @@ const DynamicBackground: React.FC = () => (
 );
 
 // ============================================================================
-// ANIMATED ICON COMPONENTS (Colors Updated)
+// ANIMATED ICON COMPONENTS
 // ============================================================================
 
 const AnimatedMailIcon: React.FC = () => (
@@ -8956,33 +8933,6 @@ const AnimatedErrorIcon: React.FC = () => (
     />
     <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center shadow-lg">
       <AlertCircle className="w-10 h-10 text-white" />
-    </div>
-  </motion.div>
-);
-
-const AnimatedLoadingIcon: React.FC = () => (
-  <motion.div
-    className="relative inline-flex items-center justify-center w-24 h-24 mb-6"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.3 }}
-  >
-    <motion.div
-      // Gradient: Teal -> Orange (Main Palette)
-      className="absolute inset-0 rounded-full bg-gradient-to-br from-teal-400/20 to-orange-500/20"
-      animate={{
-        scale: [1, 1.3, 1],
-        rotate: [0, 360],
-      }}
-      transition={{
-        duration: 3,
-        repeat: Infinity,
-        ease: 'linear',
-      }}
-    />
-    {/* Inner Gradient: Teal -> Orange */}
-    <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-400 to-orange-500 flex items-center justify-center shadow-lg">
-      <Loader2 className="w-10 h-10 text-white animate-spin" />
     </div>
   </motion.div>
 );
@@ -9216,7 +9166,7 @@ export default function VerifyEmailClient({
                 </motion.div>
               )}
 
-              {/* Verifying State */}
+              {/* Verifying State - Updated with StandardizedLoadingSpinner */}
               {verification.status === 'verifying' && (
                 <motion.div
                   key="verifying"
@@ -9224,33 +9174,17 @@ export default function VerifyEmailClient({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.4 }}
-                  className="text-center space-y-6"
+                  className="w-full"
                 >
-                  <AnimatedLoadingIcon />
-
-                  <div className="space-y-3">
-                    <h2 className="text-2xl font-bold text-gray-800">
-                      {dict.verifyingMessage}
-                    </h2>
-                    <div className="flex justify-center gap-2 py-4">
-                      {[0, 1, 2].map((i) => (
-                        <motion.div
-                          key={i}
-                          // Loading dots: Teal -> Orange
-                          className="w-3 h-3 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full"
-                          animate={{
-                            scale: [1, 1.5, 1],
-                            opacity: [0.5, 1, 0.5],
-                          }}
-                          transition={{
-                            duration: 1.5,
-                            repeat: Infinity,
-                            delay: i * 0.2,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
+                  <StandardizedLoadingSpinner
+                    text={dict.verifyingMessage}
+                    subtext={
+                      isRTL
+                        ? 'מאמתים את הפרטים שלך...'
+                        : 'Verifying your details...'
+                    }
+                    className="min-h-[250px]"
+                  />
                 </motion.div>
               )}
 
@@ -11212,20 +11146,32 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contac
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/contact/page.tsx
+import { Suspense } from 'react';
 import { getDictionary } from '@/lib/dictionaries';
 import type { Locale } from '../../../../i18n-config';
 import ContactClient from './ContactClient';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
-// ▼▼▼ כאן השינוי ▼▼▼
 type ContactPageProps = {
   params: Promise<{ locale: Locale }>;
 };
 
 export default async function ContactPage({ params }: ContactPageProps) {
-  const { locale } = await params; // הוספת await
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
-  return <ContactClient dict={dictionary.contactPage} />;
+  return (
+    <Suspense
+      fallback={
+        <StandardizedLoadingSpinner
+          text="טוען..."
+          subtext="מכינים את הטופס ליצירת קשר"
+        />
+      }
+    >
+      <ContactClient dict={dictionary.contactPage} />
+    </Suspense>
+  );
 }
 --- End of Content for page.tsx ---
 
@@ -11536,7 +11482,8 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\friend
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/friends/page.tsx
-// דף הרשמה למפנים - קמפיין חברים מביאים חברים - פרס יחיד למנצח
+// דף הפניית חברים - קמפיין חנוכה "מוסיפים אור בחנוכה"
+// NeshamaTech - מעודכן: קאונטדאון ראשי בראש הדף
 
 'use client';
 
@@ -11544,10 +11491,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import {
   Users,
-  Gift,
-  Trophy,
-  Share2,
   Heart,
+  Share2,
   Sparkles,
   ArrowLeft,
   ArrowRight,
@@ -11555,27 +11500,765 @@ import {
   Copy,
   Check,
   Crown,
-  Zap,
-  MessageCircle,
-  Star,
   TrendingUp,
   ChevronDown,
   Loader2,
   AlertCircle,
-  PartyPopper,
-  Send,
   Search,
   KeyRound,
+  Gift,
+  Flame,
+  X,
+  Forward,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useParams } from 'next/navigation';
+import { HanukkahCountdown } from '@/components/referral/HanukkahCountdown';
 
-// ================== Dynamic Background ==================
-const DynamicBackground = () => (
+// ================== Hanukkah Config ==================
+const HANUKKAH_CONFIG = {
+  startDate: new Date('2025-12-14T00:00:00'),
+};
+
+// חישוב איזה נר היום
+const getCurrentCandle = (): number => {
+  const now = new Date();
+  const campaignStart = new Date(HANUKKAH_CONFIG.startDate);
+  campaignStart.setHours(17, 0, 0, 0);
+
+  if (now < campaignStart) {
+    return 1;
+  }
+
+  const diffTime = now.getTime() - campaignStart.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  return Math.min(Math.max(diffDays + 1, 1), 8);
+};
+
+// ================== Hanukkiah SVG Component ==================
+interface HanukkiahProps {
+  litCandles: number;
+  className?: string;
+}
+
+const Hanukkiah: React.FC<HanukkiahProps> = ({
+  litCandles,
+  className = '',
+}) => {
+  const candlePositions = [
+    { x: 25, height: 35 },
+    { x: 55, height: 35 },
+    { x: 85, height: 35 },
+    { x: 115, height: 35 },
+    { x: 160, height: 50 }, // שמש
+    { x: 205, height: 35 },
+    { x: 235, height: 35 },
+    { x: 265, height: 35 },
+    { x: 295, height: 35 },
+  ];
+
+  const getLitStatus = (index: number): boolean => {
+    if (index === 4) return true;
+    if (index > 4) {
+      return litCandles >= 9 - index;
+    }
+    return litCandles >= 8 - index;
+  };
+
+  return (
+    <svg
+      viewBox="0 0 320 120"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#F6E05E" />
+          <stop offset="50%" stopColor="#D69E2E" />
+          <stop offset="100%" stopColor="#B7791F" />
+        </linearGradient>
+        <linearGradient id="flameGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+          <stop offset="0%" stopColor="#14b8a6" />
+          <stop offset="50%" stopColor="#F6AD55" />
+          <stop offset="100%" stopColor="#ED8936" />
+        </linearGradient>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+          <feMerge>
+            <feMergeNode in="coloredBlur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      <rect
+        x="60"
+        y="100"
+        width="200"
+        height="8"
+        rx="2"
+        fill="url(#goldGradient)"
+      />
+      <rect
+        x="150"
+        y="85"
+        width="20"
+        height="20"
+        rx="2"
+        fill="url(#goldGradient)"
+      />
+
+      {candlePositions.map((pos, index) => {
+        const isLit = getLitStatus(index);
+        const isShamash = index === 4;
+        const baseY = isShamash ? 35 : 50;
+
+        return (
+          <g key={index}>
+            <rect
+              x={pos.x - 4}
+              y={baseY}
+              width="8"
+              height={pos.height}
+              rx="2"
+              fill={isShamash ? '#FBD38D' : '#E2E8F0'}
+              stroke="url(#goldGradient)"
+              strokeWidth="1"
+            />
+            <line
+              x1={pos.x}
+              y1={baseY}
+              x2={pos.x}
+              y2={baseY - 5}
+              stroke="#4A5568"
+              strokeWidth="1"
+            />
+            {isLit && (
+              <g filter="url(#glow)">
+                <motion.ellipse
+                  cx={pos.x}
+                  cy={baseY - 12}
+                  rx="5"
+                  ry="10"
+                  fill="url(#flameGradient)"
+                  animate={{
+                    scaleY: [0.8, 1, 0.9, 1, 0.8],
+                    opacity: [0.8, 1, 0.9, 1, 0.8],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+                <motion.ellipse
+                  cx={pos.x}
+                  cy={baseY - 14}
+                  rx="2"
+                  ry="5"
+                  fill="#FEF3C7"
+                  animate={{ scaleY: [0.9, 1.1, 0.9] }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+              </g>
+            )}
+          </g>
+        );
+      })}
+
+      <rect x="157" y="50" width="6" height="35" fill="url(#goldGradient)" />
+
+      {[25, 55, 85, 115, 205, 235, 265, 295].map((x, i) => (
+        <g key={`stand-${i}`}>
+          <line
+            x1={x}
+            y1="85"
+            x2={x}
+            y2="100"
+            stroke="url(#goldGradient)"
+            strokeWidth="3"
+          />
+          <line
+            x1={x}
+            y1="85"
+            x2="160"
+            y2="85"
+            stroke="url(#goldGradient)"
+            strokeWidth="2"
+          />
+        </g>
+      ))}
+    </svg>
+  );
+};
+
+// ================== Small Decorative Hanukkiah ==================
+const SmallHanukkiah: React.FC<{ className?: string }> = ({
+  className = '',
+}) => (
+  <svg
+    viewBox="0 0 60 40"
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <linearGradient id="miniFlame" x1="0%" y1="100%" x2="0%" y2="0%">
+        <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.6" />
+        <stop offset="100%" stopColor="#F6AD55" stopOpacity="0.6" />
+      </linearGradient>
+    </defs>
+    {[8, 16, 24, 32, 30, 38, 46, 54, 62].map((x, i) => (
+      <ellipse
+        key={i}
+        cx={x - 5}
+        cy={i === 4 ? 12 : 16}
+        rx="3"
+        ry="6"
+        fill="url(#miniFlame)"
+      />
+    ))}
+    <rect
+      x="5"
+      y="28"
+      width="50"
+      height="4"
+      rx="1"
+      fill="#D69E2E"
+      opacity="0.4"
+    />
+  </svg>
+);
+
+// ================== Dreidel SVG ==================
+const Dreidel: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <svg
+    viewBox="0 0 40 50"
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <polygon
+      points="20,5 35,20 20,45 5,20"
+      fill="none"
+      stroke="#14b8a6"
+      strokeWidth="2"
+      opacity="0.3"
+    />
+    <line
+      x1="20"
+      y1="0"
+      x2="20"
+      y2="8"
+      stroke="#14b8a6"
+      strokeWidth="2"
+      opacity="0.3"
+    />
+    <text
+      x="20"
+      y="28"
+      textAnchor="middle"
+      fill="#14b8a6"
+      opacity="0.4"
+      fontSize="12"
+      fontFamily="serif"
+    >
+      נ
+    </text>
+  </svg>
+);
+
+// ================== תוכן דו-לשוני - חנוכה ==================
+const content = {
+  he: {
+    hero: {
+      badge: '🕎 מוסיפים אור בחנוכה',
+      title: 'הדליקו אור לחברים',
+      subtitle:
+        'כמו נס פך השמן - לפעמים דבר קטן יכול להוביל למשהו גדול. הקישור שתשלחו יכול להיות ההתחלה של הזוגיות שהם מחפשים.',
+      highlight:
+        '🏆 מי שיביא הכי הרבה חברים עד סוף החנוכה - יקבל ארוחה זוגית מפנקת עלינו!',
+      cta: 'רוצה להאיר לחברים',
+      stats: [
+        { value: 'אישי', label: 'ליווי' },
+        { value: 'מעמיק', label: 'שאלון' },
+        { value: 'דיסקרטי', label: 'תהליך' },
+      ],
+    },
+    howItWorks: {
+      title: 'איך מוסיפים אור?',
+      steps: [
+        {
+          title: 'הירשמו',
+          desc: 'מלאו פרטים וקבלו קישור אישי',
+          gradient: 'from-teal-400 to-emerald-500',
+        },
+        {
+          title: 'שתפו',
+          desc: 'שלחו לחברים שמחפשים קשר רציני',
+          gradient: 'from-orange-400 to-amber-500',
+        },
+        {
+          title: 'עקבו',
+          desc: 'ראו כמה נרות הדלקתם',
+          gradient: 'from-rose-400 to-pink-500',
+        },
+        {
+          title: 'האירו',
+          desc: 'עזרו להרחיב את הקהילה',
+          gradient: 'from-teal-500 to-cyan-500',
+        },
+      ],
+    },
+    prize: {
+      badge: 'הפרס הגדול 🕎',
+      title: 'הארה קטנה, השפעה גדולה',
+      text: 'לעזור לחבר למצוא את מי שהוא מחפש - זה כמו להדליק נר. האור מתפשט הלאה. מי שיביא הכי הרבה חברים עד סוף החנוכה - נשמח לפנק בארוחה זוגית.',
+      prizeTitle: '🍽️ ארוחה זוגית מפנקת',
+      prizeSubtitle: 'למאיר/ת האור הגדול/ה של הקמפיין',
+    },
+    form: {
+      title: 'הצטרפו למאירי האור',
+      subtitle: 'מלאו את הפרטים וקבלו קישור אישי לשיתוף',
+      labels: {
+        name: 'שם מלא',
+        email: 'אימייל',
+        phone: 'טלפון (אופציונלי)',
+        code: 'קוד מועדף (אופציונלי)',
+      },
+      placeholders: {
+        name: 'השם שלכם',
+        email: 'email@example.com',
+        phone: '050-1234567',
+        code: 'למשל: DAVID',
+      },
+      buttons: {
+        submit: 'קבלו קישור אישי',
+        submitting: 'רושמים אתכם...',
+        copy: 'העתקה',
+        copied: 'הועתק!',
+        whatsapp: 'שתפו את האור 🕎',
+        dashboard: 'לדף המעקב שלי',
+      },
+      messages: {
+        linkPreview: 'הקישור שלכם:',
+        codeTaken: 'הקוד הזה כבר תפוס, נסו אחר',
+        successTitle: '🕎 נרשמתם בהצלחה!',
+        successDesc:
+          'הנה הקישור האישי שלכם. שתפו אותו עם חברים והוסיפו אור בחנוכה הזה!',
+        genericError: 'משהו השתבש, נסו שוב',
+      },
+    },
+    existing: {
+      title: 'כבר יש לכם קישור?',
+      subtitle: 'הכניסו את הפרטים שלכם למעבר לדף המעקב',
+      tabs: { code: 'קוד', email: 'אימייל', phone: 'טלפון' },
+      placeholders: {
+        code: 'הקוד שלכם',
+        email: 'האימייל שלכם',
+        phone: 'הטלפון שלכם',
+      },
+      button: { search: 'לדף המעקב', searching: 'מחפש...' },
+      errors: {
+        notFound: 'לא מצאנו מפנה עם הפרטים האלה',
+        generic: 'שגיאה בחיפוש',
+      },
+    },
+    faq: {
+      title: 'שאלות נפוצות',
+      questions: [
+        {
+          q: 'למי כדאי לשלוח את הקישור?',
+          a: 'לחברים רווקים שמחפשים קשר רציני ומשמעותי, שיעריכו גישה אישית ומכבדת לשידוכים.',
+        },
+        {
+          q: 'מה החבר/ה שלי יקבלו?',
+          a: 'הם יוכלו להירשם לשירות שלנו, למלא את השאלון המעמיק, ולקבל ליווי אישי מצוות השדכנים שלנו.',
+        },
+        {
+          q: 'עד מתי נמשך הקמפיין?',
+          a: 'קמפיין "מוסיפים אור בחנוכה" נמשך לאורך כל ימי החנוכה. בסופו נכריז על המנצח/ת!',
+        },
+        {
+          q: 'מה מקבלים על הפניות?',
+          a: 'מי שיביא הכי הרבה חברים מאומתים עד סוף החנוכה יקבל שובר לארוחה זוגית מפנקת.',
+        },
+        {
+          q: 'האם יש הגבלה על מספר ההפניות?',
+          a: 'לא, אתם מוזמנים לשתף עם כל מי שאתם חושבים שיתאים. ככל שתוסיפו יותר אור - כך גדל הסיכוי לזכות!',
+        },
+      ],
+    },
+    whatsappModal: {
+      title: 'שתפו את האור',
+      subtitle: 'הזמינו חברים להצטרף בחנוכה',
+      messageLabel: 'ההודעה שתשלח:',
+      copyMessage: 'העתקת ההודעה',
+      copyLink: 'העתקת הקישור בלבד',
+      copied: 'הועתק!',
+      sendWhatsapp: 'פתיחת וואטסאפ ושליחה לחבר',
+      tip: 'כמו שמוסיפים נר כל יום - כל חבר שמצטרף מוסיף אור לקהילה!',
+    },
+  },
+  en: {
+    hero: {
+      badge: '🕎 Adding Light this Hanukkah',
+      title: 'Light the way for friends',
+      subtitle:
+        "Like the miracle of the oil - sometimes something small can lead to something great. The link you send could be the beginning of the relationship they're looking for.",
+      highlight:
+        "🏆 Whoever brings the most friends by the end of Hanukkah wins a couple's dinner on us!",
+      cta: 'I want to light the way',
+      stats: [
+        { value: 'Personal', label: 'Guidance' },
+        { value: 'Deep', label: 'Questionnaire' },
+        { value: 'Discreet', label: 'Process' },
+      ],
+    },
+    howItWorks: {
+      title: 'How to add light?',
+      steps: [
+        {
+          title: 'Register',
+          desc: 'Fill in details and get your personal link',
+          gradient: 'from-teal-400 to-emerald-500',
+        },
+        {
+          title: 'Share',
+          desc: 'Send to friends looking for serious relationships',
+          gradient: 'from-orange-400 to-amber-500',
+        },
+        {
+          title: 'Track',
+          desc: 'See how many candles you lit',
+          gradient: 'from-rose-400 to-pink-500',
+        },
+        {
+          title: 'Illuminate',
+          desc: 'Help expand the community',
+          gradient: 'from-teal-500 to-cyan-500',
+        },
+      ],
+    },
+    prize: {
+      badge: 'The Grand Prize 🕎',
+      title: 'Small light, big impact',
+      text: "Helping a friend find who they're looking for - it's like lighting a candle. The light spreads. Whoever brings the most friends by the end of Hanukkah - we'd love to treat to a couple's dinner.",
+      prizeTitle: "🍽️ Pampering couple's dinner",
+      prizeSubtitle: "For the campaign's biggest light-bringer",
+    },
+    form: {
+      title: 'Join the light-bringers',
+      subtitle: 'Fill in your details and get a personal link to share',
+      labels: {
+        name: 'Full Name',
+        email: 'Email',
+        phone: 'Phone (Optional)',
+        code: 'Preferred Code (Optional)',
+      },
+      placeholders: {
+        name: 'Your name',
+        email: 'email@example.com',
+        phone: '050-1234567',
+        code: 'e.g., DAVID',
+      },
+      buttons: {
+        submit: 'Get my personal link',
+        submitting: 'Registering...',
+        copy: 'Copy',
+        copied: 'Copied!',
+        whatsapp: 'Share the light 🕎',
+        dashboard: 'Go to my dashboard',
+      },
+      messages: {
+        linkPreview: 'Your link:',
+        codeTaken: 'This code is taken, try another',
+        successTitle: '🕎 Successfully registered!',
+        successDesc:
+          'Here is your personal link. Share it with friends and add light this Hanukkah!',
+        genericError: 'Something went wrong, please try again',
+      },
+    },
+    existing: {
+      title: 'Already have a link?',
+      subtitle: 'Enter your details to go to your tracking page',
+      tabs: { code: 'Code', email: 'Email', phone: 'Phone' },
+      placeholders: {
+        code: 'Your code',
+        email: 'Your email',
+        phone: 'Your phone',
+      },
+      button: { search: 'Go to dashboard', searching: 'Searching...' },
+      errors: {
+        notFound: "We couldn't find a referrer with these details",
+        generic: 'Search error',
+      },
+    },
+    faq: {
+      title: 'Frequently Asked Questions',
+      questions: [
+        {
+          q: 'Who should I send the link to?',
+          a: 'Single friends looking for a serious, meaningful relationship who would appreciate a personal and respectful approach to matchmaking.',
+        },
+        {
+          q: 'What will my friend receive?',
+          a: 'They can register for our service, complete the in-depth questionnaire, and receive personal guidance from our matchmaking team.',
+        },
+        {
+          q: 'When does the campaign end?',
+          a: 'The "Adding Light this Hanukkah" campaign runs throughout the holiday. We\'ll announce the winner at the end!',
+        },
+        {
+          q: 'What do you get for referrals?',
+          a: "Whoever brings the most verified friends by the end of Hanukkah wins a voucher for a couple's dinner.",
+        },
+        {
+          q: 'Is there a limit on referrals?',
+          a: "No, you're welcome to share with anyone you think would be a good fit. The more light you add, the better your chances!",
+        },
+      ],
+    },
+    whatsappModal: {
+      title: 'Share the light',
+      subtitle: 'Invite friends to join this Hanukkah',
+      messageLabel: 'Message to send:',
+      copyMessage: 'Copy message',
+      copyLink: 'Copy link only',
+      copied: 'Copied!',
+      sendWhatsapp: 'Open WhatsApp and send',
+      tip: 'Like adding a candle each night - every friend who joins adds light to the community!',
+    },
+  },
+};
+
+// ================== WhatsApp Share Modal ==================
+interface WhatsAppShareModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  shareUrl: string;
+  locale: string;
+}
+
+const WhatsAppShareModal: React.FC<WhatsAppShareModalProps> = ({
+  isOpen,
+  onClose,
+  shareUrl,
+  locale,
+}) => {
+  const [copiedMessage, setCopiedMessage] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const isHebrew = locale === 'he';
+  const t = isHebrew ? content.he.whatsappModal : content.en.whatsappModal;
+
+  const shareMessage = isHebrew
+    ? `היי, חנוכה שמח! 🕎✨
+
+נתקלתי במיזם חדש וממש איכותי לשידוכים - NeshamaTech.
+זה משהו ברמה אחרת לגמרי - עם שדכנים אנושיים, טכנולוגיה חכמה ושמירה אמיתית על דיסקרטיות.
+
+חשבתי עליך כי אני יודע/ת שאת/ה מחפש/ת משהו רציני ומכבד, וזה נראה לי בול הסגנון. שווה בדיקה.
+
+ההרשמה כרגע היא דרך חברים, הנה קישור אישי ממני:
+${shareUrl}
+
+בשורות טובות! ✨`
+    : `Hey, Happy Hanukkah! 🕎✨
+
+I came across a really high-quality matchmaking initiative called NeshamaTech.
+It's on a different level - combining real matchmakers, smart tech, and complete discretion.
+
+I thought of you because I know you're looking for something serious and respectful, and this seems like a perfect fit.
+
+Here's a personal invite link from me:
+${shareUrl}
+
+Check it out! ✨`;
+
+  const copyMessage = async () => {
+    try {
+      await navigator.clipboard.writeText(shareMessage);
+      setCopiedMessage(true);
+      setTimeout(() => setCopiedMessage(false), 2500);
+    } catch (err) {
+      console.error('Failed to copy message:', err);
+    }
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
+  };
+
+  const openWhatsAppDirect = () => {
+    const text = encodeURIComponent(shareMessage);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = `whatsapp://send?text=${text}`;
+    } else {
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="fixed inset-x-4 top-[10%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-lg z-50 max-h-[80vh] overflow-y-auto"
+            dir={isHebrew ? 'rtl' : 'ltr'}
+          >
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+              <div className="bg-gradient-to-r from-teal-500 via-teal-600 to-orange-500 px-6 py-4 relative">
+                <button
+                  onClick={onClose}
+                  className={`absolute ${isHebrew ? 'left-4' : 'right-4'} top-4 text-white/80 hover:text-white transition-colors`}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="text-center text-white">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <span className="text-2xl">🕎</span>
+                    <h3 className="text-xl font-bold">{t.title}</h3>
+                    <span className="text-2xl">🕎</span>
+                  </div>
+                  <p className="text-sm text-white/90">{t.subtitle}</p>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-5">
+                <div className="relative">
+                  <div className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    {t.messageLabel}
+                  </div>
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-4 text-sm text-gray-700 leading-relaxed max-h-48 overflow-y-auto border border-gray-200">
+                    <div className="whitespace-pre-wrap">{shareMessage}</div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    onClick={copyMessage}
+                    variant="outline"
+                    className={`w-full h-12 text-base transition-all duration-300 ${
+                      copiedMessage
+                        ? 'bg-teal-50 border-teal-300 text-teal-700'
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    {copiedMessage ? (
+                      <>
+                        <Check
+                          className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                        />
+                        {t.copied}
+                      </>
+                    ) : (
+                      <>
+                        <Copy
+                          className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                        />
+                        {t.copyMessage}
+                      </>
+                    )}
+                  </Button>
+
+                  <Button
+                    onClick={copyLink}
+                    variant="outline"
+                    className={`w-full h-12 text-base transition-all duration-300 ${
+                      copiedLink
+                        ? 'bg-orange-50 border-orange-300 text-orange-700'
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    {copiedLink ? (
+                      <>
+                        <Check
+                          className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                        />
+                        {t.copied}
+                      </>
+                    ) : (
+                      <>
+                        <Copy
+                          className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                        />
+                        {t.copyLink}
+                      </>
+                    )}
+                  </Button>
+
+                  <div className="relative py-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-white px-3 text-sm text-gray-500">
+                        {isHebrew ? 'או' : 'or'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={openWhatsAppDirect}
+                    className="w-full h-14 text-lg bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-lg shadow-green-200 hover:shadow-xl transition-all duration-300"
+                  >
+                    <Forward
+                      className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                    />
+                    {t.sendWhatsapp}
+                  </Button>
+                </div>
+
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-3 border border-amber-200">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">🕯️</span>
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                      <span className="font-bold">טיפ:</span> {t.tip}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// ================== Background + Hanukkah Elements ==================
+const DynamicBackground: React.FC = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
     <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20" />
-    <div className="absolute top-10 left-10 w-72 h-72 bg-teal-300/20 rounded-full blur-3xl animate-float-slow" />
+    <div
+      className="absolute top-10 left-10 w-72 h-72 bg-teal-300/20 rounded-full blur-3xl animate-float-slow"
+      style={{ animationDelay: '0s' }}
+    />
     <div
       className="absolute top-1/3 right-20 w-64 h-64 bg-orange-300/20 rounded-full blur-3xl animate-float-slow"
       style={{ animationDelay: '2s' }}
@@ -11585,142 +12268,212 @@ const DynamicBackground = () => (
       style={{ animationDelay: '4s' }}
     />
     <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:30px_30px]" />
+
+    {/* Hanukkah Elements */}
+    <motion.div
+      className="absolute top-20 right-[15%] w-16 h-12 opacity-20"
+      animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+      transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      <SmallHanukkiah />
+    </motion.div>
+
+    <motion.div
+      className="absolute bottom-32 left-[10%] w-20 h-14 opacity-15"
+      animate={{ y: [0, -15, 0], rotate: [0, -3, 0] }}
+      transition={{
+        duration: 8,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 2,
+      }}
+    >
+      <SmallHanukkiah />
+    </motion.div>
+
+    <motion.div
+      className="absolute top-1/2 right-[8%] w-14 h-10 opacity-10"
+      animate={{ y: [0, -8, 0] }}
+      transition={{
+        duration: 5,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 1,
+      }}
+    >
+      <SmallHanukkiah />
+    </motion.div>
+
+    <motion.div
+      className="absolute top-40 left-[20%] w-10 h-12"
+      animate={{ y: [0, -12, 0], rotate: [0, 15, 0] }}
+      transition={{
+        duration: 7,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 0.5,
+      }}
+    >
+      <Dreidel />
+    </motion.div>
+
+    <motion.div
+      className="absolute bottom-40 right-[25%] w-8 h-10"
+      animate={{ y: [0, -10, 0], rotate: [0, -10, 0] }}
+      transition={{
+        duration: 6,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 3,
+      }}
+    >
+      <Dreidel />
+    </motion.div>
+
+    {[...Array(8)].map((_, i) => (
+      <motion.div
+        key={`sparkle-${i}`}
+        className="absolute text-amber-400/30"
+        style={{
+          top: `${15 + Math.random() * 70}%`,
+          left: `${5 + Math.random() * 90}%`,
+          fontSize: `${12 + Math.random() * 8}px`,
+        }}
+        animate={{
+          opacity: [0.1, 0.4, 0.1],
+          scale: [1, 1.3, 1],
+        }}
+        transition={{
+          duration: 3 + Math.random() * 2,
+          repeat: Infinity,
+          delay: Math.random() * 3,
+        }}
+      >
+        ✡
+      </motion.div>
+    ))}
   </div>
 );
 
-// ================== Hero Section ==================
-const HeroSection: React.FC<{ locale: string; onScrollToForm: () => void }> = ({
-  locale,
-  onScrollToForm,
-}) => {
+// ================== Hero Section (Hanukkah) ==================
+const HeroSection: React.FC<{
+  locale: string;
+  onScrollToForm: () => void;
+}> = ({ locale, onScrollToForm }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const isHebrew = locale === 'he';
-
-  const content = isHebrew
-    ? {
-        badge: 'קמפיין מיוחד לזמן מוגבל',
-        titleLine1: 'חברים מביאים',
-        titleHighlight: 'את הזיווג שלהם',
-        subtitle: (
-          <>
-            הזמינו חברים ל-NeshamaTech והתחרו על הפרס הגדול!
-            <br />
-            <span className="font-semibold text-teal-700">
-              המפנה המוביל יזכה בארוחה זוגית מפנקת! 🎉
-            </span>
-          </>
-        ),
-        cta: 'רוצה להצטרף? בואו נתחיל!',
-        stats: [
-          { value: '🏆', label: 'פרס אחד' },
-          { value: 'זוגית', label: 'ארוחה' },
-          { value: '∞', label: 'ללא הגבלה' },
-        ],
-      }
-    : {
-        badge: 'Special Limited Time Campaign',
-        titleLine1: 'Friends Bring',
-        titleHighlight: 'Their Match',
-        subtitle: (
-          <>
-            Invite friends to NeshamaTech and compete for the grand prize!
-            <br />
-            <span className="font-semibold text-teal-700">
-              The top referrer wins a luxurious couple&apos;s dinner! 🎉
-            </span>
-          </>
-        ),
-        cta: "Want to join? Let's start!",
-        stats: [
-          { value: '🏆', label: 'One Prize' },
-          { value: 'Dinner', label: "Couple's" },
-          { value: '∞', label: 'Unlimited' },
-        ],
-      };
+  const t = isHebrew ? content.he.hero : content.en.hero;
+  const currentCandle = getCurrentCandle();
 
   return (
     <motion.section
       ref={ref}
-      className="relative min-h-[85vh] flex items-center justify-center px-4 py-16"
+      className="relative min-h-[90vh] flex items-center justify-center px-4 py-16"
       initial={{ opacity: 0 }}
       animate={isInView ? { opacity: 1 } : {}}
       transition={{ duration: 1 }}
     >
-      <div className="max-w-5xl mx-auto text-center">
+      <div className="max-w-4xl mx-auto text-center">
+        {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.2 }}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-100 via-orange-100 to-rose-100 rounded-full px-6 py-3 mb-8 shadow-lg border border-amber-200/50"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-teal-50 via-white to-orange-50 rounded-full px-6 py-3 mb-6 shadow-lg border border-teal-100"
         >
-          <PartyPopper className="w-5 h-5 text-amber-600" />
-          <span className="font-bold text-amber-700">{content.badge}</span>
-          <Sparkles className="w-5 h-5 text-orange-500" />
+          <span className="font-medium text-gray-700">{t.badge}</span>
         </motion.div>
+
+        {/* 🏆 Hero Countdown - הועבר לראש הדף 🏆 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.25 }}
+className="mb-10 max-w-xl mx-auto"        >
+          <HanukkahCountdown locale={locale} variant="hero" />
+        </motion.div>
+
+        {/* Hanukkiah */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : {}}
+          transition={{ delay: 0.3 }}
+          className="max-w-md mx-auto mb-6"
+        >
+          <Hanukkiah
+            litCandles={currentCandle}
+            className="w-full h-auto drop-shadow-lg"
+          />
+          <div className="text-teal-600 text-sm mt-2 font-medium">
+            {isHebrew
+              ? `נר ${currentCandle} של חנוכה`
+              : `Candle ${currentCandle} of Hanukkah`}
+          </div>
+        </motion.div>
+
+        {/* Title */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.3 }}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 mb-6 leading-tight"
+          transition={{ delay: 0.4 }}
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
         >
-          {content.titleLine1}
-          <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient">
-            {content.titleHighlight}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-teal-500 to-orange-500">
+            {t.title}
           </span>
         </motion.h1>
+
+        {/* Subtitle */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.5 }}
-          className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-10"
+          className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-4 leading-relaxed"
         >
-          {content.subtitle}
+          {t.subtitle}
         </motion.p>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : {}}
+
+        {/* Highlight */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.6 }}
-          className="relative max-w-md mx-auto mb-12 h-28 flex items-center justify-center"
+          className="text-base md:text-lg text-teal-700 font-medium max-w-xl mx-auto mb-10"
         >
-          <div className="absolute left-8 w-20 h-20 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-xl border-4 border-white">
-            <Users className="w-10 h-10 text-white" />
-          </div>
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center shadow-2xl border-4 border-white z-10">
-            <Trophy className="w-8 h-8 text-white" />
-          </div>
-          <div className="absolute right-8 w-20 h-20 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-xl border-4 border-white">
-            <Heart className="w-10 h-10 text-white" />
-          </div>
-        </motion.div>
+          {t.highlight}
+        </motion.p>
+
+        {/* CTA Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.7 }}
         >
           <Button
             onClick={onScrollToForm}
             size="lg"
-            className="text-xl font-bold px-12 py-8 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-xl hover:shadow-2xl transition-all group"
+            className="text-lg font-semibold px-10 py-7 bg-gradient-to-r from-teal-500 via-teal-600 to-orange-500 hover:from-teal-600 hover:via-teal-700 hover:to-orange-600 text-white rounded-full shadow-xl hover:shadow-2xl transition-all group"
           >
-            <Zap className="w-6 h-6 ml-2 group-hover:rotate-12 transition-transform" />
-            {content.cta}
+            <Flame className={`w-5 h-5 ${isHebrew ? 'ml-2' : 'mr-2'}`} />
+            {t.cta}
             {isHebrew ? (
-              <ArrowLeft className="w-6 h-6 mr-2 group-hover:-translate-x-1 transition-transform" />
+              <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
             ) : (
-              <ArrowRight className="w-6 h-6 ml-2 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             )}
           </Button>
         </motion.div>
+
+        {/* Stats */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 1 }}
-          className="flex flex-wrap justify-center gap-6 mt-12"
+          transition={{ delay: 0.9 }}
+          className="flex flex-wrap justify-center gap-4 mt-12"
         >
-          {content.stats.map((stat, i) => {
-            const icons = [Trophy, Heart, Users];
+          {t.stats.map((stat, i) => {
+            const icons = [Users, Heart, CheckCircle2];
             const Icon = icons[i];
             return (
               <div
@@ -11731,7 +12484,7 @@ const HeroSection: React.FC<{ locale: string; onScrollToForm: () => void }> = ({
                   <Icon className="w-5 h-5 text-teal-600" />
                 </div>
                 <div className={isHebrew ? 'text-right' : 'text-left'}>
-                  <div className="text-xl font-bold text-gray-900">
+                  <div className="text-lg font-bold text-gray-900">
                     {stat.value}
                   </div>
                   <div className="text-xs text-gray-600">{stat.label}</div>
@@ -11745,65 +12498,19 @@ const HeroSection: React.FC<{ locale: string; onScrollToForm: () => void }> = ({
   );
 };
 
-// ================== How It Works ==================
+// ================== How It Works Section ==================
 const HowItWorksSection: React.FC<{ locale: string }> = ({ locale }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const isHebrew = locale === 'he';
-  const title = isHebrew ? 'איך זה עובד?' : 'How It Works?';
-  const steps = isHebrew
-    ? [
-        {
-          title: 'הירשמו',
-          desc: 'מלאו פרטים וקבלו קישור',
-          icon: <Users className="w-7 h-7" />,
-          gradient: 'from-teal-400 to-emerald-500',
-        },
-        {
-          title: 'שתפו',
-          desc: 'שלחו לחברים רווקים',
-          icon: <Share2 className="w-7 h-7" />,
-          gradient: 'from-orange-400 to-amber-500',
-        },
-        {
-          title: 'צברו',
-          desc: 'כל חבר מאומת = נקודה',
-          icon: <Star className="w-7 h-7" />,
-          gradient: 'from-rose-400 to-pink-500',
-        },
-        {
-          title: 'נצחו!',
-          desc: 'מי שמביא הכי הרבה - מנצח',
-          icon: <Trophy className="w-7 h-7" />,
-          gradient: 'from-amber-400 to-orange-500',
-        },
-      ]
-    : [
-        {
-          title: 'Register',
-          desc: 'Fill details & get link',
-          icon: <Users className="w-7 h-7" />,
-          gradient: 'from-teal-400 to-emerald-500',
-        },
-        {
-          title: 'Share',
-          desc: 'Send to single friends',
-          icon: <Share2 className="w-7 h-7" />,
-          gradient: 'from-orange-400 to-amber-500',
-        },
-        {
-          title: 'Earn',
-          desc: 'Every verified friend = 1 point',
-          icon: <Star className="w-7 h-7" />,
-          gradient: 'from-rose-400 to-pink-500',
-        },
-        {
-          title: 'Win!',
-          desc: 'Most referrals wins',
-          icon: <Trophy className="w-7 h-7" />,
-          gradient: 'from-amber-400 to-orange-500',
-        },
-      ];
+  const t = isHebrew ? content.he.howItWorks : content.en.howItWorks;
+
+  const icons = [
+    <Users key="icon-1" className="w-7 h-7" />,
+    <Share2 key="icon-2" className="w-7 h-7" />,
+    <TrendingUp key="icon-3" className="w-7 h-7" />,
+    <Heart key="icon-4" className="w-7 h-7" />,
+  ];
 
   return (
     <section ref={ref} className="py-16 px-4">
@@ -11811,12 +12518,13 @@ const HowItWorksSection: React.FC<{ locale: string }> = ({ locale }) => {
         <motion.h2
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
-          className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-12"
+          className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-12"
         >
-          {title}
+          {t.title}
         </motion.h2>
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {steps.map((step, i) => (
+          {t.steps.map((step, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
@@ -11827,7 +12535,7 @@ const HowItWorksSection: React.FC<{ locale: string }> = ({ locale }) => {
               <div
                 className={`w-14 h-14 mx-auto rounded-xl bg-gradient-to-br ${step.gradient} flex items-center justify-center text-white mb-4 shadow-lg group-hover:scale-110 transition-transform`}
               >
-                {step.icon}
+                {icons[i]}
               </div>
               <h3 className="font-bold text-gray-800 mb-1">{step.title}</h3>
               <p className="text-sm text-gray-600">{step.desc}</p>
@@ -11839,73 +12547,60 @@ const HowItWorksSection: React.FC<{ locale: string }> = ({ locale }) => {
   );
 };
 
-// ================== Prize Section - Winner Takes All ==================
-const PrizesSection: React.FC<{ locale: string }> = ({ locale }) => {
+// ================== Prize Section ==================
+const PrizeSection: React.FC<{ locale: string }> = ({ locale }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.3 });
   const isHebrew = locale === 'he';
-  const content = isHebrew
-    ? {
-        badge: 'הפרס הגדול',
-        title: 'מי שמביא הכי הרבה חברים - מנצח! 🏆',
-        subtitle: 'בסוף הקמפיין, המפנה עם הכי הרבה חברים מאומתים זוכה בפרס',
-        prize: '🍽️ שובר לארוחה זוגית',
-        prizeLabel: 'למקום הראשון',
-        tip: 'טיפ:',
-        tipText: 'שתפו בקבוצות WhatsApp, עם חברים קרובים, ובסושיאל!',
-      }
-    : {
-        badge: 'The Grand Prize',
-        title: 'Most Referrals Wins! 🏆',
-        subtitle:
-          'At the end of the campaign, the referrer with most verified friends wins',
-        prize: "🍽️ Couple's Dinner Voucher",
-        prizeLabel: 'For 1st Place',
-        tip: 'Tip:',
-        tipText: 'Share in WhatsApp groups, with close friends, and on social!',
-      };
+  const t = isHebrew ? content.he.prize : content.en.prize;
 
   return (
-    <section ref={ref} className="py-20 px-4">
+    <section ref={ref} className="py-16 px-4">
       <div className="max-w-2xl mx-auto text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
         >
-          <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-2 rounded-full text-sm font-bold mb-6">
-            <Trophy className="w-4 h-4" />
-            {content.badge}
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-2 rounded-full text-sm font-medium mb-6 border border-amber-200">
+            <Gift className="w-4 h-4" />
+            {t.badge}
           </div>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">
-            {content.title}
+
+          {/* Title */}
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+            {t.title}
           </h2>
-          <p className="text-gray-600 mb-10 text-lg">{content.subtitle}</p>
+
+          {/* Text */}
+          <p className="text-gray-600 mb-10 text-base leading-relaxed max-w-xl mx-auto">
+            {t.text}
+          </p>
+
+          {/* Prize Card */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 rounded-3xl p-8 md:p-12 shadow-2xl border border-amber-200/50 relative overflow-hidden"
+            className="bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 rounded-3xl p-8 md:p-10 shadow-xl border border-amber-100 relative overflow-hidden"
           >
-            <div className="absolute top-4 right-4 text-6xl opacity-20">🎉</div>
-            <div className="absolute bottom-4 left-4 text-6xl opacity-20">
-              ✨
-            </div>
+            {/* Decorative elements */}
+            <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-gradient-to-br from-amber-200/30 to-transparent blur-xl" />
+            <div className="absolute bottom-4 left-4 w-16 h-16 rounded-full bg-gradient-to-br from-orange-200/30 to-transparent blur-xl" />
+
             <div className="relative z-10">
-              <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-xl mb-6">
-                <Crown className="w-10 h-10 text-white" />
+              {/* Icon */}
+              <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg mb-5">
+                <Crown className="w-8 h-8 text-white" />
               </div>
-              <div className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-2">
-                {content.prize}
+
+              {/* Prize details */}
+              <div className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
+                {t.prizeTitle}
               </div>
-              <div className="text-amber-600 font-bold text-lg mb-6">
-                {content.prizeLabel}
-              </div>
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 inline-block">
-                <div className="text-sm text-gray-600">
-                  <span className="font-bold text-teal-600">{content.tip}</span>{' '}
-                  {content.tipText}
-                </div>
+              <div className="text-amber-600 font-medium">
+                {t.prizeSubtitle}
               </div>
             </div>
           </motion.div>
@@ -11923,6 +12618,8 @@ const SignupForm: React.FC<{
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const isHebrew = locale === 'he';
+  const t = isHebrew ? content.he.form : content.en.form;
+
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -11937,97 +12634,37 @@ const SignupForm: React.FC<{
   const [codeStatus, setCodeStatus] = useState<
     'idle' | 'checking' | 'available' | 'taken'
   >('idle');
-
-  const content = isHebrew
-    ? {
-        title: 'הצטרפו עכשיו!',
-        subtitle: 'מלאו פרטים וקבלו קישור אישי',
-        labels: {
-          name: 'שם מלא *',
-          email: 'אימייל *',
-          phone: 'טלפון (אופציונלי)',
-          code: 'קוד מועדף (אופציונלי)',
-        },
-        placeholders: {
-          name: 'ישראל ישראלי',
-          email: 'email@example.com',
-          phone: '050-1234567',
-          code: 'DAVID',
-        },
-        buttons: {
-          submit: 'קבלו קישור',
-          submitting: 'נרשמים...',
-          copy: 'העתק',
-          copied: 'הועתק',
-          whatsapp: 'שתפו בוואטסאפ',
-          dashboard: 'דשבורד',
-        },
-        messages: {
-          linkText: 'הקישור:',
-          codeTaken: 'הקוד תפוס',
-          successTitle: 'נרשמתם בהצלחה!',
-          successDesc: 'הנה הקישור האישי שלכם:',
-          whatsappShare: 'היי! 👋\nהמלצה על NeshamaTech:\n',
-          genericError: 'שגיאה',
-        },
-      }
-    : {
-        title: 'Join Now!',
-        subtitle: 'Fill in details & get your personal link',
-        labels: {
-          name: 'Full Name *',
-          email: 'Email *',
-          phone: 'Phone (Optional)',
-          code: 'Preferred Code (Optional)',
-        },
-        placeholders: {
-          name: 'John Doe',
-          email: 'email@example.com',
-          phone: '050-1234567',
-          code: 'DAVID',
-        },
-        buttons: {
-          submit: 'Get Link',
-          submitting: 'Registering...',
-          copy: 'Copy',
-          copied: 'Copied',
-          whatsapp: 'Share on WhatsApp',
-          dashboard: 'Dashboard',
-        },
-        messages: {
-          linkText: 'Link:',
-          codeTaken: 'Code taken',
-          successTitle: 'Registered Successfully!',
-          successDesc: 'Here is your personal link:',
-          whatsappShare: 'Hey! 👋\nCheck out NeshamaTech:\n',
-          genericError: 'Error',
-        },
-      };
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
 
   useEffect(() => {
     if (!form.code || form.code.length < 3) {
       setCodeStatus('idle');
       return;
     }
-    const t = setTimeout(async () => {
+
+    const timer = setTimeout(async () => {
       setCodeStatus('checking');
       try {
-        const r = await fetch(`/api/referral/register?code=${form.code}`);
-        const d = await r.json();
-        setCodeStatus(d.available ? 'available' : 'taken');
+        const response = await fetch(
+          `/api/referral/register?code=${form.code}`
+        );
+        const data = await response.json();
+        setCodeStatus(data.available ? 'available' : 'taken');
       } catch {
         setCodeStatus('idle');
       }
     }, 500);
-    return () => clearTimeout(t);
+
+    return () => clearTimeout(timer);
   }, [form.code]);
 
-  const submit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
     try {
-      const r = await fetch('/api/referral/register', {
+      const response = await fetch('/api/referral/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -12037,30 +12674,33 @@ const SignupForm: React.FC<{
           preferredCode: form.code,
         }),
       });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || content.messages.genericError);
-      setGeneratedCode(d.referrer.code);
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || t.messages.genericError);
+      }
+
+      setGeneratedCode(data.referrer.code);
       setSuccess(true);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : content.messages.genericError);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.messages.genericError);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const copy = async () => {
-    await navigator.clipboard.writeText(
-      `${window.location.origin}/r/${generatedCode}`
-    );
+  const copyToClipboard = async () => {
+    const url = `${window.location.origin}/r/${generatedCode}`;
+    await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-  const whatsapp = () => {
-    const url = `${window.location.origin}/r/${generatedCode}`;
-    window.open(
-      `https://wa.me/?text=${encodeURIComponent(`${content.messages.whatsappShare}${url}`)}`,
-      '_blank'
-    );
-  };
+
+  const shareUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/r/${generatedCode}`
+      : '';
 
   return (
     <section ref={formRef} className="py-16 px-4">
@@ -12074,37 +12714,41 @@ const SignupForm: React.FC<{
               exit={{ opacity: 0 }}
               className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60"
             >
+              {/* Header */}
               <div className="text-center mb-8">
                 <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-teal-500 to-orange-500 flex items-center justify-center text-white mb-4 shadow-lg">
-                  <Send className="w-7 h-7" />
+                  <Flame className="w-7 h-7" />
                 </div>
-                <h2 className="text-2xl font-extrabold text-gray-900">
-                  {content.title}
-                </h2>
-                <p className="text-gray-600">{content.subtitle}</p>
+                <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+                <p className="text-gray-600 mt-1">{t.subtitle}</p>
               </div>
+
+              {/* Error message */}
               {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-500" />
-                  <span className="text-red-700">{error}</span>
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                  <span className="text-red-700 text-sm">{error}</span>
                 </div>
               )}
-              <form onSubmit={submit} className="space-y-5">
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    {content.labels.name}
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    {t.labels.name} *
                   </label>
                   <Input
                     required
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder={content.placeholders.name}
-                    className="h-12 rounded-xl"
+                    placeholder={t.placeholders.name}
+                    className="h-12 rounded-xl border-gray-200 focus:border-teal-500 focus:ring-teal-500"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    {content.labels.email}
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    {t.labels.email} *
                   </label>
                   <Input
                     type="email"
@@ -12113,14 +12757,15 @@ const SignupForm: React.FC<{
                     onChange={(e) =>
                       setForm({ ...form, email: e.target.value })
                     }
-                    placeholder={content.placeholders.email}
-                    className="h-12 rounded-xl"
+                    placeholder={t.placeholders.email}
+                    className="h-12 rounded-xl border-gray-200 focus:border-teal-500 focus:ring-teal-500"
                     dir="ltr"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    {content.labels.phone}
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    {t.labels.phone}
                   </label>
                   <Input
                     type="tel"
@@ -12128,14 +12773,15 @@ const SignupForm: React.FC<{
                     onChange={(e) =>
                       setForm({ ...form, phone: e.target.value })
                     }
-                    placeholder={content.placeholders.phone}
-                    className="h-12 rounded-xl"
+                    placeholder={t.placeholders.phone}
+                    className="h-12 rounded-xl border-gray-200 focus:border-teal-500 focus:ring-teal-500"
                     dir="ltr"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    {content.labels.code}
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    {t.labels.code}
                   </label>
                   <div className="relative">
                     <Input
@@ -12148,9 +12794,11 @@ const SignupForm: React.FC<{
                             .replace(/[^A-Z0-9]/g, ''),
                         })
                       }
-                      placeholder={content.placeholders.code}
+                      placeholder={t.placeholders.code}
                       maxLength={15}
-                      className={`h-12 rounded-xl font-mono ${isHebrew ? 'pl-10' : 'pr-10'}`}
+                      className={`h-12 rounded-xl border-gray-200 focus:border-teal-500 focus:ring-teal-500 font-mono ${
+                        isHebrew ? 'pl-10' : 'pr-10'
+                      }`}
                       dir="ltr"
                     />
                     <div
@@ -12167,30 +12815,35 @@ const SignupForm: React.FC<{
                       )}
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {content.messages.linkText} neshamatech.com/r/
+                  <p className="text-xs text-gray-500 mt-1.5">
+                    {t.messages.linkPreview} neshamatech.com/r/
                     {form.code || 'YOURCODE'}
                   </p>
                   {codeStatus === 'taken' && (
-                    <p className="text-xs text-red-500">
-                      {content.messages.codeTaken}
+                    <p className="text-xs text-red-500 mt-1">
+                      {t.messages.codeTaken}
                     </p>
                   )}
                 </div>
+
                 <Button
                   type="submit"
                   disabled={loading || codeStatus === 'taken'}
-                  className="w-full h-12 text-lg font-bold bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white rounded-xl"
+                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-5 h-5 ml-2 animate-spin" />
-                      {content.buttons.submitting}
+                      <Loader2
+                        className={`w-5 h-5 ${isHebrew ? 'ml-2' : 'mr-2'} animate-spin`}
+                      />
+                      {t.buttons.submitting}
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-5 h-5 ml-2" />
-                      {content.buttons.submit}
+                      <Sparkles
+                        className={`w-5 h-5 ${isHebrew ? 'ml-2' : 'mr-2'}`}
+                      />
+                      {t.buttons.submit}
                     </>
                   )}
                 </Button>
@@ -12201,49 +12854,63 @@ const SignupForm: React.FC<{
               key="success"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-gradient-to-br from-teal-50 via-white to-orange-50 rounded-3xl p-8 shadow-2xl border border-teal-200/50 text-center"
+              className="bg-gradient-to-br from-teal-50 via-white to-orange-50 rounded-3xl p-8 shadow-2xl border border-teal-100 text-center"
             >
-              <div className="text-4xl mb-2">🎉</div>
-              <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center mb-4 shadow-xl">
+              {/* Success Icon */}
+              <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center mb-5 shadow-xl">
                 <CheckCircle2 className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-extrabold text-gray-900 mb-2">
-                {content.messages.successTitle}
+
+              {/* Success Message */}
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {t.messages.successTitle}
               </h2>
-              <p className="text-gray-600 mb-6">
-                {content.messages.successDesc}
-              </p>
-              <div className="bg-white rounded-xl p-4 shadow border border-gray-100 mb-6">
+              <p className="text-gray-600 mb-6">{t.messages.successDesc}</p>
+
+              {/* Link Display */}
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
                 <div className="flex items-center justify-between gap-3 bg-gray-50 rounded-lg p-3">
                   <code
-                    className="text-teal-600 font-mono truncate flex-1"
+                    className="text-teal-600 font-mono text-sm truncate flex-1"
                     dir="ltr"
                   >
-                    {typeof window !== 'undefined' && window.location.origin}/r/
-                    {generatedCode}
+                    {shareUrl}
                   </code>
-                  <Button onClick={copy} variant="outline" size="sm">
+                  <Button
+                    onClick={copyToClipboard}
+                    variant="outline"
+                    size="sm"
+                    className={
+                      copied ? 'bg-teal-50 text-teal-600 border-teal-200' : ''
+                    }
+                  >
                     {copied ? (
                       <>
-                        <Check className="w-4 h-4 ml-1" />
-                        {content.buttons.copied}
+                        <Check
+                          className={`w-4 h-4 ${isHebrew ? 'ml-1' : 'mr-1'}`}
+                        />
+                        {t.buttons.copied}
                       </>
                     ) : (
                       <>
-                        <Copy className="w-4 h-4 ml-1" />
-                        {content.buttons.copy}
+                        <Copy
+                          className={`w-4 h-4 ${isHebrew ? 'ml-1' : 'mr-1'}`}
+                        />
+                        {t.buttons.copy}
                       </>
                     )}
                   </Button>
                 </div>
               </div>
+
+              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
-                  onClick={whatsapp}
-                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-5 rounded-xl"
+                  onClick={() => setIsWhatsAppModalOpen(true)}
+                  className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white px-6 py-5 rounded-xl"
                 >
-                  <MessageCircle className="w-5 h-5 ml-2" />
-                  {content.buttons.whatsapp}
+                  <Flame className={`w-5 h-5 ${isHebrew ? 'ml-2' : 'mr-2'}`} />
+                  {t.buttons.whatsapp}
                 </Button>
                 <Button
                   onClick={() =>
@@ -12253,81 +12920,71 @@ const SignupForm: React.FC<{
                     )
                   }
                   variant="outline"
-                  className="px-6 py-5 rounded-xl"
+                  className="px-6 py-5 rounded-xl border-gray-200"
                 >
-                  <TrendingUp className="w-5 h-5 ml-2" />
-                  {content.buttons.dashboard}
+                  <TrendingUp
+                    className={`w-5 h-5 ${isHebrew ? 'ml-2' : 'mr-2'}`}
+                  />
+                  {t.buttons.dashboard}
                 </Button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+
+      {/* WhatsApp Modal */}
+      <WhatsAppShareModal
+        isOpen={isWhatsAppModalOpen}
+        onClose={() => setIsWhatsAppModalOpen(false)}
+        shareUrl={shareUrl}
+        locale={locale}
+      />
     </section>
   );
 };
 
-// ================== Existing Referrer Login ==================
+// ================== Existing Referrer Section ==================
 const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const isHebrew = locale === 'he';
+  const t = isHebrew ? content.he.existing : content.en.existing;
+
   const [searchValue, setSearchValue] = useState('');
   const [searchType, setSearchType] = useState<'code' | 'email' | 'phone'>(
     'code'
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const isHebrew = locale === 'he';
-
-  const content = isHebrew
-    ? {
-        title: 'כבר נרשמתם?',
-        subtitle: 'הכניסו את הפרטים שלכם לצפייה בדשבורד',
-        tabs: { code: 'קוד', email: 'אימייל', phone: 'טלפון' },
-        placeholders: {
-          code: 'הקוד שלכם (למשל: DAVID)',
-          email: 'כתובת האימייל',
-          phone: 'מספר הטלפון',
-        },
-        button: { search: 'לדשבורד שלי', searching: 'מחפש...' },
-        errors: {
-          notFound: 'לא נמצא מפנה עם הפרטים האלה',
-          generic: 'שגיאה בחיפוש',
-        },
-      }
-    : {
-        title: 'Already registered?',
-        subtitle: 'Enter your details to view your dashboard',
-        tabs: { code: 'Code', email: 'Email', phone: 'Phone' },
-        placeholders: {
-          code: 'Your code (e.g. DAVID)',
-          email: 'Email address',
-          phone: 'Phone number',
-        },
-        button: { search: 'Go to my dashboard', searching: 'Searching...' },
-        errors: {
-          notFound: 'No referrer found with these details',
-          generic: 'Search error',
-        },
-      };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchValue.trim()) return;
+
     setLoading(true);
     setError('');
+
     try {
       const params = new URLSearchParams();
-      if (searchType === 'code') params.set('code', searchValue.toUpperCase());
-      else if (searchType === 'email') params.set('email', searchValue);
-      else params.set('phone', searchValue);
+      if (searchType === 'code') {
+        params.set('code', searchValue.toUpperCase());
+      } else if (searchType === 'email') {
+        params.set('email', searchValue);
+      } else {
+        params.set('phone', searchValue);
+      }
+
       const response = await fetch(`/api/referral/lookup?${params.toString()}`);
       const data = await response.json();
-      if (data.success && data.code)
+
+      if (data.success && data.code) {
         window.location.href = `/${locale}/referral/dashboard?code=${data.code}`;
-      else setError(content.errors.notFound);
+      } else {
+        setError(t.errors.notFound);
+      }
     } catch {
-      setError(content.errors.generic);
+      setError(t.errors.generic);
     } finally {
       setLoading(false);
     }
@@ -12341,18 +12998,21 @@ const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/60"
         >
+          {/* Header */}
           <div className="text-center mb-6">
             <div className="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-slate-100 to-gray-200 flex items-center justify-center mb-3">
               <KeyRound className="w-6 h-6 text-gray-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-800">{content.title}</h3>
-            <p className="text-sm text-gray-600 mt-1">{content.subtitle}</p>
+            <h3 className="text-xl font-bold text-gray-800">{t.title}</h3>
+            <p className="text-sm text-gray-600 mt-1">{t.subtitle}</p>
           </div>
+
+          {/* Tabs */}
           <div className="flex gap-2 mb-4 p-1 bg-gray-100 rounded-xl">
             {[
-              { type: 'code' as const, label: content.tabs.code },
-              { type: 'email' as const, label: content.tabs.email },
-              { type: 'phone' as const, label: content.tabs.phone },
+              { type: 'code' as const, label: t.tabs.code },
+              { type: 'email' as const, label: t.tabs.email },
+              { type: 'phone' as const, label: t.tabs.phone },
             ].map((tab) => (
               <button
                 key={tab.type}
@@ -12360,18 +13020,24 @@ const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
                   setSearchType(tab.type);
                   setError('');
                 }}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${searchType === tab.type ? 'bg-white text-teal-700 shadow-sm' : 'text-gray-600 hover:text-gray-800'}`}
+                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                  searchType === tab.type
+                    ? 'bg-white text-teal-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
               >
                 {tab.label}
               </button>
             ))}
           </div>
+
+          {/* Search Form */}
           <form onSubmit={handleSearch} className="space-y-4">
             <div className="relative">
               <Input
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                placeholder={content.placeholders[searchType]}
+                placeholder={t.placeholders[searchType]}
                 className={`h-12 rounded-xl ${isHebrew ? 'pr-4 pl-12' : 'pl-4 pr-12'}`}
                 dir="ltr"
               />
@@ -12379,12 +13045,14 @@ const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
                 className={`absolute ${isHebrew ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400`}
               />
             </div>
+
             {error && (
               <div className="flex items-center gap-2 text-red-600 text-sm">
                 <AlertCircle className="w-4 h-4" />
                 <span>{error}</span>
               </div>
             )}
+
             <Button
               type="submit"
               disabled={loading || !searchValue.trim()}
@@ -12392,13 +13060,17 @@ const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                  {content.button.searching}
+                  <Loader2
+                    className={`w-4 h-4 ${isHebrew ? 'ml-2' : 'mr-2'} animate-spin`}
+                  />
+                  {t.button.searching}
                 </>
               ) : (
                 <>
-                  <TrendingUp className="w-4 h-4 ml-2" />
-                  {content.button.search}
+                  <TrendingUp
+                    className={`w-4 h-4 ${isHebrew ? 'ml-2' : 'mr-2'}`}
+                  />
+                  {t.button.search}
                 </>
               )}
             </Button>
@@ -12409,55 +13081,14 @@ const ExistingReferrerSection: React.FC<{ locale: string }> = ({ locale }) => {
   );
 };
 
-// ================== FAQ ==================
+// ================== FAQ Section ==================
 const FAQSection: React.FC<{ locale: string }> = ({ locale }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
-  const [open, setOpen] = useState<number | null>(null);
   const isHebrew = locale === 'he';
-  const title = isHebrew ? 'שאלות נפוצות' : 'Frequently Asked Questions';
-  const faqs = isHebrew
-    ? [
-        {
-          q: 'איך הקמפיין עובד?',
-          a: 'פשוט מאוד - כל חבר שנרשם ומאמת טלפון נספר כנקודה. מי שמביא הכי הרבה חברים מאומתים עד סוף הקמפיין - מנצח!',
-        },
-        { q: 'מה הפרס?', a: 'המנצח מקבל שובר לארוחה זוגית מפנקת!' },
-        {
-          q: 'מתי נודע מי המנצח?',
-          a: 'בסיום הקמפיין נפרסם את התוצאות ונודיע למנצח.',
-        },
-        {
-          q: 'האם יש הגבלה?',
-          a: 'לא! אין הגבלה על מספר ההפניות. ככל שתביאו יותר - סיכוי גדול יותר לנצח.',
-        },
-        {
-          q: 'איך עוקבים אחרי ההתקדמות?',
-          a: 'יש לכם דשבורד אישי שמראה את כל הסטטיסטיקות ואת המיקום שלכם בטבלה.',
-        },
-      ]
-    : [
-        {
-          q: 'How does the campaign work?',
-          a: 'Simple - every friend who registers and verifies their phone counts as a point. Whoever brings the most verified friends by end of campaign wins!',
-        },
-        {
-          q: 'What is the prize?',
-          a: "The winner gets a couple's dinner voucher!",
-        },
-        {
-          q: 'When is the winner announced?',
-          a: "At the end of the campaign, we'll announce the results and notify the winner.",
-        },
-        {
-          q: 'Is there a limit?',
-          a: 'No! There is no limit on referrals. The more you bring, the better your chances.',
-        },
-        {
-          q: 'How do I track progress?',
-          a: 'You have a personal dashboard showing all statistics and your ranking.',
-        },
-      ];
+  const t = isHebrew ? content.he.faq : content.en.faq;
+
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
     <section ref={ref} className="py-16 px-4">
@@ -12465,12 +13096,13 @@ const FAQSection: React.FC<{ locale: string }> = ({ locale }) => {
         <motion.h2
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
-          className="text-3xl font-extrabold text-center text-gray-900 mb-10"
+          className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-10"
         >
-          {title}
+          {t.title}
         </motion.h2>
+
         <div className="space-y-3">
-          {faqs.map((faq, i) => (
+          {t.questions.map((faq, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 10 }}
@@ -12478,22 +13110,26 @@ const FAQSection: React.FC<{ locale: string }> = ({ locale }) => {
               transition={{ delay: i * 0.1 }}
             >
               <button
-                onClick={() => setOpen(open === i ? null : i)}
-                className={`w-full bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg border border-white/60 hover:shadow-xl transition-all ${isHebrew ? 'text-right' : 'text-left'}`}
+                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                className={`w-full bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg border border-white/60 hover:shadow-xl transition-all ${
+                  isHebrew ? 'text-right' : 'text-left'
+                }`}
               >
                 <div className="flex items-center justify-between gap-4">
                   <h3 className="font-bold text-gray-800">{faq.q}</h3>
                   <ChevronDown
-                    className={`w-5 h-5 text-gray-500 transition-transform ${open === i ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 text-gray-500 transition-transform flex-shrink-0 ${
+                      openIndex === i ? 'rotate-180' : ''
+                    }`}
                   />
                 </div>
                 <AnimatePresence>
-                  {open === i && (
+                  {openIndex === i && (
                     <motion.p
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      className="text-gray-600 mt-3 overflow-hidden"
+                      className="text-gray-600 mt-3 overflow-hidden leading-relaxed"
                     >
                       {faq.a}
                     </motion.p>
@@ -12508,31 +13144,41 @@ const FAQSection: React.FC<{ locale: string }> = ({ locale }) => {
   );
 };
 
-// ================== Main Page ==================
+// ================== Main Page Component ==================
 export default function FriendsPage() {
   const params = useParams();
   const locale = (params?.locale as string) || 'he';
   const formRef = useRef<HTMLDivElement>(null);
-  const scrollToForm = () =>
+  const isHebrew = locale === 'he';
+
+  const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
 
   return (
-    <main
-      className="min-h-screen relative"
-      dir={locale === 'he' ? 'rtl' : 'ltr'}
-    >
+    <main className="min-h-screen relative" dir={isHebrew ? 'rtl' : 'ltr'}>
       <DynamicBackground />
       <HeroSection locale={locale} onScrollToForm={scrollToForm} />
       <HowItWorksSection locale={locale} />
-      <PrizesSection locale={locale} />
-      <SignupForm locale={locale} formRef={formRef} />
       <ExistingReferrerSection locale={locale} />
+      <PrizeSection locale={locale} />
+      <SignupForm locale={locale} formRef={formRef} />
       <FAQSection locale={locale} />
+
+      {/* Footer */}
+      <div className="text-center py-8 text-gray-500 text-sm">
+        חג אורים שמח! 🕎✨
+      </div>
+
+      {/* CSS Animations */}
       <style>{`
-        @keyframes float-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-        .animate-float-slow { animation: float-slow 15s ease-in-out infinite; }
-        @keyframes gradient { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        .animate-gradient { background-size: 200% 200%; animation: gradient 4s ease-in-out infinite; }
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-20px); }
+        }
+        .animate-float-slow {
+          animation: float-slow 15s ease-in-out infinite;
+        }
       `}</style>
     </main>
   );
@@ -13413,25 +14059,31 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/legal/privacy-policy/page.tsx
-import React from 'react';
+import React, { Suspense } from 'react';
 import { getDictionary } from '@/lib/dictionaries';
 import { Locale } from '@/../i18n-config';
 import PrivacyPolicyClient from './PrivacyPolicyClient';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
-// ▼▼▼ כאן השינוי ▼▼▼
 type PrivacyPolicyPageProps = {
   params: Promise<{ locale: Locale }>;
 };
 
-export default async function PrivacyPolicyPage({ params }: PrivacyPolicyPageProps) {
-  const { locale } = await params; // הוספת await
+export default async function PrivacyPolicyPage({
+  params,
+}: PrivacyPolicyPageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (
-    <PrivacyPolicyClient
-      dict={dictionary.auth.legal.privacyPolicy}
-      locale={locale}
-    />
+    <Suspense
+      fallback={<StandardizedLoadingSpinner text="טוען מדיניות פרטיות..." />}
+    >
+      <PrivacyPolicyClient
+        dict={dictionary.auth.legal.privacyPolicy}
+        locale={locale}
+      />
+    </Suspense>
   );
 }
 --- End of Content for page.tsx ---
@@ -13573,25 +14225,31 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/legal/terms-of-service/page.tsx
-import React from 'react';
+import React, { Suspense } from 'react';
 import { getDictionary } from '@/lib/dictionaries';
 import { Locale } from '@/../i18n-config';
 import TermsOfServiceClient from './TermsOfServiceClient';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
-// ▼▼▼ כאן השינוי ▼▼▼
 type TermsOfServicePageProps = {
   params: Promise<{ locale: Locale }>;
 };
 
-export default async function TermsOfServicePage({ params }: TermsOfServicePageProps) {
-  const { locale } = await params; // הוספת await
+export default async function TermsOfServicePage({
+  params,
+}: TermsOfServicePageProps) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
   return (
-    <TermsOfServiceClient
-      dict={dictionary.auth.legal.termsOfService}
-      locale={locale}
-    />
+    <Suspense
+      fallback={<StandardizedLoadingSpinner text="טוען תנאי שימוש..." />}
+    >
+      <TermsOfServiceClient
+        dict={dictionary.auth.legal.termsOfService}
+        locale={locale}
+      />
+    </Suspense>
   );
 }
 --- End of Content for page.tsx ---
@@ -13611,9 +14269,13 @@ import { Locale } from '../../../../i18n-config';
 import QuestionnairePageClient from '@/components/questionnaire/QuestionnairePageClient';
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
-// עדכון רכיב הטעינה
 function Loading() {
-  return <StandardizedLoadingSpinner text="טוען שאלון..." />;
+  return (
+    <StandardizedLoadingSpinner
+      text="טוען את השאלון..."
+      subtext="מכינים את השאלות עבורך"
+    />
+  );
 }
 
 type PageProps = {
@@ -13626,8 +14288,14 @@ export default async function Page({ params, searchParams }: PageProps) {
     params,
     searchParams,
   ]);
-  
+
   const dictionary = await getDictionary(locale);
+
+  console.log(
+    `\n✅ [LOG | /questionnaire/page.tsx SERVER SIDE] Received searchParams:`,
+    resolvedSearchParams,
+    `\n`
+  );
 
   return (
     <Suspense fallback={<Loading />}>
@@ -13831,7 +14499,12 @@ import QuestionnaireRestore from '@/components/questionnaire/QuestionnaireRestor
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 function Loading() {
-  return <StandardizedLoadingSpinner />;
+  return (
+    <StandardizedLoadingSpinner
+      text="משחזר שאלון..."
+      subtext="אנא המתן בזמן שאנו טוענים את הנתונים שלך"
+    />
+  );
 }
 
 type RestorePageProps = {
@@ -13867,14 +14540,14 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\referr
 --------------------------------------------------------------------------------
 Content:
 // src/app/[locale]/referral/dashboard/page.tsx
-// דשבורד מפנה - פרס יחיד למנצח
+// דשבורד מפנה - קמפיין חנוכה "מוסיפים אור בחנוכה"
 
 'use client';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import {
   Copy,
@@ -13884,16 +14557,215 @@ import {
   Users,
   MousePointer,
   UserCheck,
-  Gift,
   Clock,
   ChevronRight,
   Loader2,
   AlertCircle,
   Crown,
+  X,
+  MessageCircle,
+  Forward,
+  Sparkles,
+  Flame,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+// ================== Hanukkah Config ==================
+const HANUKKAH_CONFIG = {
+  startDate: new Date('2024-12-25'), // כ"ה כסלו - נר ראשון
+  endDate: new Date('2025-01-02'), // סוף חנוכה
+  currentCandle: 1, // נר ראשון
+};
+
+// חישוב איזה נר היום
+const getCurrentCandle = (): number => {
+  const today = new Date();
+  const start = HANUKKAH_CONFIG.startDate;
+  const diffTime = today.getTime() - start.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  return Math.min(Math.max(diffDays + 1, 1), 8);
+};
+
+// ================== Hanukkiah SVG Component ==================
+interface HanukkiahProps {
+  litCandles: number;
+  className?: string;
+}
+
+const Hanukkiah: React.FC<HanukkiahProps> = ({
+  litCandles,
+  className = '',
+}) => {
+  const candlePositions = [
+    { x: 25, height: 35 }, // נר 1 (שמאל קיצוני)
+    { x: 55, height: 35 }, // נר 2
+    { x: 85, height: 35 }, // נר 3
+    { x: 115, height: 35 }, // נר 4
+    { x: 175, height: 50 }, // שמש (מוגבה) - אמצע
+    { x: 205, height: 35 }, // נר 5
+    { x: 235, height: 35 }, // נר 6
+    { x: 265, height: 35 }, // נר 7
+    { x: 295, height: 35 }, // נר 8 (ימין קיצוני)
+  ];
+
+  // סדר ההדלקה: שמש (4) תמיד דולק, ואז מימין לשמאל
+  const getLitStatus = (index: number): boolean => {
+    if (index === 4) return true; // שמש תמיד דולק
+    if (index > 4) {
+      // נרות מימין לשמש (5,6,7,8 -> נר 1,2,3,4)
+      const candleNumber = index - 4;
+      return candleNumber <= litCandles;
+    } else {
+      // נרות משמאל לשמש (0,1,2,3 -> נר 8,7,6,5)
+      const candleNumber = 8 - index;
+      return candleNumber <= litCandles;
+    }
+  };
+
+  return (
+    <svg
+      viewBox="0 0 320 120"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* בסיס החנוכייה */}
+      <defs>
+        <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#F6E05E" />
+          <stop offset="50%" stopColor="#D69E2E" />
+          <stop offset="100%" stopColor="#B7791F" />
+        </linearGradient>
+        <linearGradient id="flameGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+          <stop offset="0%" stopColor="#F6AD55" />
+          <stop offset="50%" stopColor="#ED8936" />
+          <stop offset="100%" stopColor="#FBBF24" />
+        </linearGradient>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+          <feMerge>
+            <feMergeNode in="coloredBlur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      {/* בסיס */}
+      <rect
+        x="60"
+        y="100"
+        width="200"
+        height="8"
+        rx="2"
+        fill="url(#goldGradient)"
+      />
+      <rect
+        x="150"
+        y="85"
+        width="20"
+        height="20"
+        rx="2"
+        fill="url(#goldGradient)"
+      />
+
+      {/* נרות */}
+      {candlePositions.map((pos, index) => {
+        const isLit = getLitStatus(index);
+        const isShamash = index === 4;
+        const baseY = isShamash ? 35 : 50;
+
+        return (
+          <g key={index}>
+            {/* גוף הנר */}
+            <rect
+              x={pos.x - 4}
+              y={baseY}
+              width="8"
+              height={pos.height}
+              rx="2"
+              fill={isShamash ? '#FBD38D' : '#E2E8F0'}
+              stroke="url(#goldGradient)"
+              strokeWidth="1"
+            />
+
+            {/* פתילה */}
+            <line
+              x1={pos.x}
+              y1={baseY}
+              x2={pos.x}
+              y2={baseY - 5}
+              stroke="#4A5568"
+              strokeWidth="1"
+            />
+
+            {/* להבה */}
+            {isLit && (
+              <g filter="url(#glow)">
+                <motion.ellipse
+                  cx={pos.x}
+                  cy={baseY - 12}
+                  rx="5"
+                  ry="10"
+                  fill="url(#flameGradient)"
+                  initial={{ scaleY: 0.8, opacity: 0.8 }}
+                  animate={{
+                    scaleY: [0.8, 1, 0.9, 1, 0.8],
+                    opacity: [0.8, 1, 0.9, 1, 0.8],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+                <motion.ellipse
+                  cx={pos.x}
+                  cy={baseY - 14}
+                  rx="2"
+                  ry="5"
+                  fill="#FEF3C7"
+                  initial={{ scaleY: 0.9 }}
+                  animate={{
+                    scaleY: [0.9, 1.1, 0.9],
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+              </g>
+            )}
+          </g>
+        );
+      })}
+
+      {/* עמודי החנוכייה */}
+      <rect x="157" y="50" width="6" height="35" fill="url(#goldGradient)" />
+      {[25, 55, 85, 115, 205, 235, 265, 295].map((x, i) => (
+        <g key={`stand-${i}`}>
+          <line
+            x1={x}
+            y1="85"
+            x2={x}
+            y2="100"
+            stroke="url(#goldGradient)"
+            strokeWidth="3"
+          />
+          <line
+            x1={x}
+            y1="85"
+            x2="160"
+            y2="85"
+            stroke="url(#goldGradient)"
+            strokeWidth="2"
+          />
+        </g>
+      ))}
+    </svg>
+  );
+};
 
 // ================== Types ==================
 interface ReferrerStats {
@@ -13933,12 +14805,12 @@ interface LeaderboardEntry {
   isCurrentUser: boolean;
 }
 
-// ================== Stats Card Component ==================
+// ================== Stats Card Component (Hanukkah Theme) ==================
 interface StatCardProps {
   title: string;
   value: number;
   icon: React.ReactNode;
-  color: 'teal' | 'orange' | 'rose' | 'amber';
+  color: 'blue' | 'gold' | 'amber' | 'indigo';
   subtitle?: string;
 }
 
@@ -13950,38 +14822,262 @@ const StatCard: React.FC<StatCardProps> = ({
   subtitle,
 }) => {
   const colorClasses = {
-    teal: 'from-teal-50 to-emerald-50 border-teal-200 text-teal-600',
-    orange: 'from-orange-50 to-amber-50 border-orange-200 text-orange-600',
-    rose: 'from-rose-50 to-pink-50 border-rose-200 text-rose-600',
-    amber: 'from-amber-50 to-yellow-50 border-amber-200 text-amber-600',
+    blue: 'from-blue-900/20 to-blue-800/10 border-blue-400/30 text-blue-300',
+    gold: 'from-amber-500/20 to-yellow-500/10 border-amber-400/30 text-amber-300',
+    amber:
+      'from-orange-500/20 to-amber-500/10 border-orange-400/30 text-orange-300',
+    indigo:
+      'from-indigo-500/20 to-purple-500/10 border-indigo-400/30 text-indigo-300',
   };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-gradient-to-br ${colorClasses[color]} border rounded-2xl p-5`}
+      className={`bg-gradient-to-br ${colorClasses[color]} border rounded-2xl p-5 backdrop-blur-sm`}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm text-gray-600">{title}</span>
-        <div className={`${colorClasses[color].split(' ').pop()}`}>{icon}</div>
+        <span className="text-sm text-blue-100/80">{title}</span>
+        <div className={colorClasses[color].split(' ').pop()}>{icon}</div>
       </div>
-      <div className="text-3xl font-bold text-gray-900">
+      <div className="text-3xl font-bold text-white">
         {value.toLocaleString()}
       </div>
-      {subtitle && <div className="text-xs text-gray-500 mt-1">{subtitle}</div>}
+      {subtitle && (
+        <div className="text-xs text-blue-200/60 mt-1">{subtitle}</div>
+      )}
     </motion.div>
   );
 };
 
-// ================== Share Card Component ==================
+// ================== WhatsApp Share Modal Component (Hanukkah Theme) ==================
+interface WhatsAppShareModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  shareUrl: string;
+  referrerName: string;
+}
+
+const WhatsAppShareModal: React.FC<WhatsAppShareModalProps> = ({
+  isOpen,
+  onClose,
+  shareUrl,
+  referrerName,
+}) => {
+  const [copiedMessage, setCopiedMessage] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  // הודעת השיתוף המותאמת לחנוכה
+  const shareMessage = `חג חנוכה שמח! 🕎✨
+
+בחנוכה הזה אני רוצה להמליץ לך על משהו מיוחד - NeshamaTech, מערכת שידוכים שפועלת אחרת לגמרי מאפליקציות ההיכרויות.
+
+🕯️ מה מיוחד פה?
+• שדכנים אמיתיים מחפשים בשבילך - בלי סווייפים אינסופיים
+• דיסקרטיות מלאה - הפרטים שלך לא חשופים
+• התאמות על בסיס ערכים והשקפת עולם
+
+💫 כמו נס פך השמן - לפעמים דבר קטן יכול להוביל לדבר גדול!
+
+הנה הקישור להרשמה:
+${shareUrl}
+
+חג אורים שמח! 🕎`;
+
+  const copyMessage = async () => {
+    try {
+      await navigator.clipboard.writeText(shareMessage);
+      setCopiedMessage(true);
+      setTimeout(() => setCopiedMessage(false), 2500);
+    } catch (err) {
+      console.error('Failed to copy message:', err);
+    }
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
+  };
+
+  const openWhatsAppDirect = () => {
+    const text = encodeURIComponent(shareMessage);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      window.location.href = `whatsapp://send?text=${text}`;
+    } else {
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-blue-950/70 backdrop-blur-sm z-50"
+          />
+
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="fixed inset-x-4 top-[10%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-lg z-50 max-h-[80vh] overflow-y-auto"
+          >
+            <div className="bg-gradient-to-b from-blue-900 to-blue-950 rounded-3xl shadow-2xl overflow-hidden border border-amber-400/30">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 px-6 py-4 relative">
+                <button
+                  onClick={onClose}
+                  className="absolute left-4 top-4 text-amber-900/80 hover:text-amber-900 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="text-center text-amber-900">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <span className="text-2xl">🕎</span>
+                    <h3 className="text-xl font-bold">שתפו את האור</h3>
+                    <span className="text-2xl">🕎</span>
+                  </div>
+                  <p className="text-sm text-amber-800">
+                    הזמינו חברים להצטרף בחנוכה
+                  </p>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-5">
+                {/* Message Preview */}
+                <div className="relative">
+                  <div className="text-sm font-medium text-amber-300 mb-2 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    ההודעה שתשלח:
+                  </div>
+                  <div
+                    className="bg-blue-950/50 rounded-2xl p-4 text-sm text-blue-100 leading-relaxed max-h-48 overflow-y-auto border border-blue-800/50"
+                    dir="rtl"
+                  >
+                    <div className="whitespace-pre-wrap">{shareMessage}</div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="space-y-3">
+                  {/* Copy Message Button */}
+                  <Button
+                    onClick={copyMessage}
+                    variant="outline"
+                    className={`w-full h-12 text-base transition-all duration-300 border-blue-700 ${
+                      copiedMessage
+                        ? 'bg-amber-500/20 border-amber-400 text-amber-300'
+                        : 'bg-blue-900/50 text-blue-100 hover:bg-blue-800/50'
+                    }`}
+                  >
+                    {copiedMessage ? (
+                      <>
+                        <Check className="ml-2 w-5 h-5" />
+                        ההודעה הועתקה!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="ml-2 w-5 h-5" />
+                        העתקת ההודעה
+                      </>
+                    )}
+                  </Button>
+
+                  {/* Copy Link Only Button */}
+                  <Button
+                    onClick={copyLink}
+                    variant="outline"
+                    className={`w-full h-12 text-base transition-all duration-300 border-blue-700 ${
+                      copiedLink
+                        ? 'bg-amber-500/20 border-amber-400 text-amber-300'
+                        : 'bg-blue-900/50 text-blue-100 hover:bg-blue-800/50'
+                    }`}
+                  >
+                    {copiedLink ? (
+                      <>
+                        <Check className="ml-2 w-5 h-5" />
+                        הקישור הועתק!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="ml-2 w-5 h-5" />
+                        העתקת הקישור בלבד
+                      </>
+                    )}
+                  </Button>
+
+                  {/* Divider */}
+                  <div className="relative py-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-blue-800"></div>
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-blue-900 px-3 text-sm text-blue-400">
+                        או
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Open WhatsApp Button */}
+                  <Button
+                    onClick={openWhatsAppDirect}
+                    className="w-full h-14 text-lg bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-lg shadow-green-900/30 hover:shadow-xl transition-all duration-300"
+                  >
+                    <Forward className="ml-2 w-5 h-5" />
+                    פתיחת וואטסאפ ושליחה לחבר
+                  </Button>
+                </div>
+
+                {/* Tip */}
+                <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl p-3 border border-amber-500/20">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">🕯️</span>
+                    <p className="text-xs text-amber-200 leading-relaxed">
+                      <span className="font-bold">טיפ:</span> כמו שמוסיפים נר כל
+                      יום - כל חבר שמצטרף מוסיף אור לקהילה!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// ================== Share Card Component (Hanukkah Theme) ==================
 interface ShareCardProps {
   code: string;
   shareUrl: string;
+  referrerName: string;
 }
 
-const ShareCard: React.FC<ShareCardProps> = ({ code, shareUrl }) => {
+const ShareCard: React.FC<ShareCardProps> = ({
+  code,
+  shareUrl,
+  referrerName,
+}) => {
   const [copied, setCopied] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(shareUrl);
@@ -13989,61 +15085,66 @@ const ShareCard: React.FC<ShareCardProps> = ({ code, shareUrl }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const shareWhatsApp = () => {
-    const text = encodeURIComponent(
-      `היי! אני רוצה להמליץ לך על NeshamaTech - מערכת שידוכים מיוחדת שמתמקדת באנשים ולא בסווייפים.\n\nהנה הקישור להרשמה: ${shareUrl}`
-    );
-    window.open(`https://wa.me/?text=${text}`, '_blank');
-  };
-
   return (
-    <Card className="border-teal-200 bg-gradient-to-br from-teal-50 via-white to-orange-50">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Share2 className="w-5 h-5 text-teal-600" />
-          הקישור שלכם
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="text-center">
-          <div className="text-sm text-gray-500 mb-1">הקוד האישי שלכם:</div>
-          <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
-            {code}
+    <>
+      <Card className="border-amber-400/30 bg-gradient-to-br from-blue-900/80 to-blue-950/80 backdrop-blur-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2 text-amber-300">
+            <Share2 className="w-5 h-5 text-amber-400" />
+            הקישור שלכם
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-center">
+            <div className="text-sm text-blue-200/70 mb-1">
+              הקוד האישי שלכם:
+            </div>
+            <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500">
+              {code}
+            </div>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Input
-            value={shareUrl}
-            readOnly
-            className="font-mono text-sm bg-white"
-            dir="ltr"
-          />
+          <div className="flex gap-2">
+            <Input
+              value={shareUrl}
+              readOnly
+              className="font-mono text-sm bg-blue-950/50 border-blue-700 text-blue-100"
+              dir="ltr"
+            />
+            <Button
+              onClick={copyToClipboard}
+              variant="outline"
+              size="icon"
+              className={`transition-all duration-300 border-blue-700 ${copied ? 'bg-amber-500/20 text-amber-300 border-amber-400' : 'bg-blue-900/50 text-blue-200'}`}
+            >
+              {copied ? (
+                <Check className="w-4 h-4" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
           <Button
-            onClick={copyToClipboard}
-            variant="outline"
-            size="icon"
-            className={copied ? 'bg-teal-50 text-teal-600 border-teal-200' : ''}
+            onClick={() => setIsModalOpen(true)}
+            className="w-full h-12 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-amber-900 font-semibold text-base shadow-lg shadow-amber-500/20 hover:shadow-xl transition-all duration-300"
           >
-            {copied ? (
-              <Check className="w-4 h-4" />
-            ) : (
-              <Copy className="w-4 h-4" />
-            )}
+            <Flame className="ml-2 w-5 h-5" />
+            שתפו את האור 🕎
           </Button>
-        </div>
-        <Button
-          onClick={shareWhatsApp}
-          className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white"
-        >
-          <Share2 className="ml-2 w-4 h-4" />
-          שתפו בוואטסאפ
-        </Button>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* WhatsApp Share Modal */}
+      <WhatsAppShareModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        shareUrl={shareUrl}
+        referrerName={referrerName}
+      />
+    </>
   );
 };
 
-// ================== Winner Prize Card - NEW ==================
+// ================== Winner Prize Card (Hanukkah Theme) ==================
 interface WinnerPrizeCardProps {
   rank: number;
   totalReferrers: number;
@@ -14054,47 +15155,62 @@ const WinnerPrizeCard: React.FC<WinnerPrizeCardProps> = ({
   totalReferrers,
 }) => {
   const isLeading = rank === 1;
+  const currentCandle = getCurrentCandle();
 
   return (
-    <Card className="border-amber-200 bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50">
+    <Card className="border-amber-400/30 bg-gradient-to-br from-blue-900/80 to-blue-950/80 backdrop-blur-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Crown className="w-5 h-5 text-amber-500" />
+        <CardTitle className="text-lg flex items-center gap-2 text-amber-300">
+          <Crown className="w-5 h-5 text-amber-400" />
           הפרס הגדול
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Hanukkiah Display */}
+        <div className="bg-blue-950/50 rounded-2xl p-4 border border-blue-800/30">
+          <Hanukkiah litCandles={currentCandle} className="w-full h-auto" />
+          <div className="text-center mt-2">
+            <span className="text-amber-300 text-sm">
+              נר {currentCandle} של חנוכה
+            </span>
+          </div>
+        </div>
+
         <div className="text-center">
-          <div className="text-sm text-gray-600 mb-2">שובר לארוחה זוגית</div>
-          <div className="text-2xl">🍽️</div>
+          <div className="text-sm text-blue-200/70 mb-2">
+            🍽️ שובר לארוחה זוגית
+          </div>
+          <div className="text-xs text-blue-300/60">למנצח/ת הקמפיין</div>
         </div>
 
         <div
-          className={`rounded-xl p-4 text-center ${isLeading ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-white/60'}`}
+          className={`rounded-xl p-4 text-center ${isLeading ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-900' : 'bg-blue-950/50 border border-blue-800/30'}`}
         >
           {isLeading ? (
             <>
               <div className="text-2xl mb-1">🏆</div>
               <div className="font-bold">את/ה מובילים!</div>
-              <div className="text-sm opacity-90">המשיכו כך כדי לזכות בפרס</div>
+              <div className="text-sm opacity-90">
+                המשיכו להאיר כדי לזכות בפרס
+              </div>
             </>
           ) : (
             <>
-              <div className="text-3xl font-bold text-gray-800">#{rank}</div>
-              <div className="text-sm text-gray-600">
+              <div className="text-3xl font-bold text-amber-300">#{rank}</div>
+              <div className="text-sm text-blue-200/70">
                 מתוך {totalReferrers} משתתפים
               </div>
-              <div className="text-xs text-amber-600 font-medium mt-1">
-                הזמינו עוד חברים כדי לעלות בדירוג!
+              <div className="text-xs text-amber-400 font-medium mt-1">
+                הוסיפו עוד אור כדי לעלות בדירוג! 🕯️
               </div>
             </>
           )}
         </div>
 
-        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-3 text-center">
-          <div className="text-xs text-gray-600">
-            <span className="font-bold text-teal-600">טיפ:</span> מי שמביא הכי
-            הרבה חברים מאומתים עד סוף הקמפיין - מנצח!
+        <div className="bg-blue-950/50 backdrop-blur-sm rounded-xl p-3 text-center border border-blue-800/30">
+          <div className="text-xs text-blue-200/70">
+            <span className="font-bold text-amber-400">💡 טיפ:</span> מי שמביא
+            הכי הרבה חברים מאומתים עד סוף חנוכה - מנצח!
           </div>
         </div>
       </CardContent>
@@ -14102,7 +15218,7 @@ const WinnerPrizeCard: React.FC<WinnerPrizeCardProps> = ({
   );
 };
 
-// ================== Leaderboard Component ==================
+// ================== Leaderboard Component (Hanukkah Theme) ==================
 interface LeaderboardProps {
   entries: LeaderboardEntry[];
   currentUserCode: string;
@@ -14115,50 +15231,62 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
   currentUserRank,
 }) => {
   return (
-    <Card>
+    <Card className="border-amber-400/30 bg-gradient-to-br from-blue-900/80 to-blue-950/80 backdrop-blur-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-amber-500" />
-          טבלת המובילים
+        <CardTitle className="text-lg flex items-center gap-2 text-amber-300">
+          <Trophy className="w-5 h-5 text-amber-400" />
+          טבלת מאירי האור 🕎
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {entries.map((entry) => (
+          {entries.slice(0, 10).map((entry) => (
             <div
               key={entry.code}
-              className={`flex items-center justify-between p-3 rounded-xl transition-colors ${entry.isCurrentUser ? 'bg-gradient-to-r from-teal-50 to-orange-50 border border-teal-200' : 'bg-gray-50 hover:bg-gray-100'}`}
+              className={`flex items-center justify-between p-3 rounded-xl transition-colors ${
+                entry.isCurrentUser
+                  ? 'bg-amber-500/20 border border-amber-400/30'
+                  : 'bg-blue-950/50 hover:bg-blue-900/50 border border-blue-800/30'
+              }`}
             >
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${entry.rank === 1 ? 'bg-amber-100 text-amber-700' : entry.rank === 2 ? 'bg-gray-200 text-gray-700' : entry.rank === 3 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'}`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                    entry.rank === 1
+                      ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-900'
+                      : entry.rank === 2
+                        ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-700'
+                        : entry.rank === 3
+                          ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white'
+                          : 'bg-blue-800 text-blue-200'
+                  }`}
                 >
                   {entry.rank}
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">
+                  <div className="font-medium text-blue-100">
                     {entry.name}
                     {entry.isCurrentUser && (
-                      <span className="text-xs text-teal-600 mr-1">(אתם)</span>
+                      <span className="text-xs text-amber-400 mr-1">(אתם)</span>
                     )}
                   </div>
-                  <div className="text-xs text-gray-500">{entry.code}</div>
+                  <div className="text-xs text-blue-400/60">{entry.code}</div>
                 </div>
               </div>
               <div className="text-left">
-                <div className="font-bold text-gray-900">
+                <div className="font-bold text-amber-300">
                   {entry.verifiedCount}
                 </div>
-                <div className="text-xs text-gray-500">מאומתים</div>
+                <div className="text-xs text-blue-300/60">נרות 🕯️</div>
               </div>
             </div>
           ))}
         </div>
         {currentUserRank && currentUserRank > 10 && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="text-center text-sm text-gray-600">
+          <div className="mt-4 pt-4 border-t border-blue-800/30">
+            <div className="text-center text-sm text-blue-200/70">
               המיקום שלכם:{' '}
-              <span className="font-bold text-teal-600">
+              <span className="font-bold text-amber-400">
                 #{currentUserRank}
               </span>
             </div>
@@ -14169,35 +15297,63 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
   );
 };
 
-// ================== Campaign Timer Component ==================
+// ================== Campaign Timer Component (Hanukkah Theme) ==================
 interface CampaignTimerProps {
   campaign: CampaignData;
 }
 
 const CampaignTimer: React.FC<CampaignTimerProps> = ({ campaign }) => {
+  const currentCandle = getCurrentCandle();
+
   if (!campaign.isActive) {
     return (
-      <div className="bg-gray-100 rounded-xl p-4 text-center">
-        <div className="text-gray-600">הקמפיין הסתיים</div>
+      <div className="bg-blue-900/50 rounded-xl p-4 text-center border border-blue-800/30">
+        <div className="text-blue-200">הקמפיין הסתיים</div>
       </div>
     );
   }
 
   return (
-    <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
+    <Card className="border-amber-400/30 bg-gradient-to-br from-blue-900/80 to-blue-950/80 backdrop-blur-sm">
       <CardContent className="pt-6">
-        <div className="flex items-center justify-center gap-2 text-orange-700 mb-2">
+        <div className="flex items-center justify-center gap-2 text-amber-300 mb-2">
           <Clock className="w-5 h-5" />
-          <span className="font-medium">זמן שנותר לקמפיין</span>
+          <span className="font-medium">נרות שנותרו להדליק</span>
         </div>
         <div className="text-center">
-          <div className="text-4xl font-bold text-gray-900">
-            {campaign.daysRemaining}
+          <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500">
+            {8 - currentCandle}
           </div>
-          <div className="text-sm text-gray-600">ימים</div>
+          <div className="text-sm text-blue-200/70 mt-1">מתוך 8 נרות</div>
         </div>
-        <div className="text-xs text-center text-gray-500 mt-3">
-          מסתיים ב-{new Date(campaign.endsAt).toLocaleDateString('he-IL')}
+        <div className="flex justify-center gap-1 mt-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((candle) => (
+            <motion.div
+              key={candle}
+              className={`w-3 h-8 rounded-full ${
+                candle <= currentCandle
+                  ? 'bg-gradient-to-t from-amber-500 to-yellow-400'
+                  : 'bg-blue-800/50'
+              }`}
+              initial={candle <= currentCandle ? { scale: 0.8 } : {}}
+              animate={
+                candle <= currentCandle
+                  ? {
+                      scale: [0.8, 1.1, 1],
+                      boxShadow: [
+                        '0 0 0px rgba(251, 191, 36, 0)',
+                        '0 0 10px rgba(251, 191, 36, 0.5)',
+                        '0 0 5px rgba(251, 191, 36, 0.3)',
+                      ],
+                    }
+                  : {}
+              }
+              transition={{ duration: 0.5, delay: candle * 0.1 }}
+            />
+          ))}
+        </div>
+        <div className="text-xs text-center text-blue-300/60 mt-4">
+          הקמפיין מסתיים בסוף החנוכה 🕎
         </div>
       </CardContent>
     </Card>
@@ -14206,7 +15362,7 @@ const CampaignTimer: React.FC<CampaignTimerProps> = ({ campaign }) => {
 
 // ================== Main Dashboard Component ==================
 export default function ReferralDashboard() {
-    const router = useRouter(); // <--- הוסף את השורה הזו כאן
+  const router = useRouter();
   const searchParams = useSearchParams();
   const code = searchParams.get('code');
 
@@ -14219,6 +15375,7 @@ export default function ReferralDashboard() {
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const shareUrl = code ? `${baseUrl}/r/${code}` : '';
+  const currentCandle = getCurrentCandle();
 
   useEffect(() => {
     if (!code) {
@@ -14260,10 +15417,15 @@ export default function ReferralDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 via-white to-orange-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 text-teal-600 animate-spin mx-auto mb-4" />
-          <div className="text-gray-600">טוען נתונים...</div>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          >
+            <Loader2 className="w-10 h-10 text-amber-400 mx-auto mb-4" />
+          </motion.div>
+          <div className="text-blue-200">טוען נתונים...</div>
         </div>
       </div>
     );
@@ -14271,14 +15433,15 @@ export default function ReferralDashboard() {
 
   if (error || !stats) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 via-white to-orange-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950">
         <div className="text-center max-w-md mx-auto px-4">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">שגיאה</h1>
-          <p className="text-gray-600 mb-4">{error || 'לא נמצאו נתונים'}</p>
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-white mb-2">שגיאה</h1>
+          <p className="text-blue-200 mb-4">{error || 'לא נמצאו נתונים'}</p>
           <Button
-            onClick={() => router.push('/he/friends')} // שינוי כאן
+            onClick={() => router.push('/he/friends')}
             variant="outline"
+            className="border-blue-700 text-blue-200 hover:bg-blue-800"
           >
             חזרה לעמוד ההרשמה
           </Button>
@@ -14289,10 +15452,33 @@ export default function ReferralDashboard() {
 
   return (
     <main
-      className="min-h-screen bg-gradient-to-br from-gray-50 to-white py-8"
+      className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950 py-8 relative overflow-hidden"
       dir="rtl"
     >
-      <div className="container mx-auto px-4 max-w-5xl">
+      {/* Background Stars/Sparkles Effect */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-amber-300/30 rounded-full"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              opacity: [0.2, 0.8, 0.2],
+              scale: [1, 1.5, 1],
+            }}
+            transition={{
+              duration: 2 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="container mx-auto px-4 max-w-5xl relative z-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -14301,14 +15487,29 @@ export default function ReferralDashboard() {
         >
           <div className="flex items-center justify-center gap-2 mb-4">
             <Image src="/logo.png" alt="NeshamaTech" width={40} height={40} />
-            <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
+            <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500">
               NeshamaTech
             </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+
+          {/* Hanukkah Banner */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 rounded-2xl p-4 mb-6 border border-amber-400/30"
+          >
+            <div className="text-2xl mb-1">🕎 מוסיפים אור בחנוכה 🕎</div>
+            <div className="text-sm text-amber-200/80">
+              נר {currentCandle} של חנוכה
+            </div>
+          </motion.div>
+
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
             היי {stats.name}! 👋
           </h1>
-          <p className="text-gray-600">הנה הסטטיסטיקות שלכם בקמפיין</p>
+          <p className="text-blue-200/80">
+            הנה הסטטיסטיקות שלכם בקמפיין החנוכה
+          </p>
         </motion.div>
 
         {/* Stats Grid */}
@@ -14317,28 +15518,28 @@ export default function ReferralDashboard() {
             title="לחיצות"
             value={stats.clickCount}
             icon={<MousePointer className="w-5 h-5" />}
-            color="teal"
+            color="blue"
             subtitle="לחצו על הקישור"
           />
           <StatCard
             title="נרשמו"
             value={referrals?.byStatus?.REGISTERED || 0}
             icon={<Users className="w-5 h-5" />}
-            color="orange"
+            color="gold"
             subtitle="השלימו הרשמה"
           />
           <StatCard
             title="מאומתים"
             value={stats.verifiedCount}
             icon={<UserCheck className="w-5 h-5" />}
-            color="rose"
-            subtitle="אימתו טלפון"
+            color="amber"
+            subtitle="נרות שהדלקתם 🕯️"
           />
           <StatCard
             title="דירוג"
             value={stats.rank || 0}
             icon={<Trophy className="w-5 h-5" />}
-            color="amber"
+            color="indigo"
             subtitle="מתוך כל המשתתפים"
           />
         </div>
@@ -14347,7 +15548,11 @@ export default function ReferralDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Column */}
           <div className="space-y-6">
-            <ShareCard code={stats.code} shareUrl={shareUrl} />
+            <ShareCard
+              code={stats.code}
+              shareUrl={shareUrl}
+              referrerName={stats.name}
+            />
             {campaign && <CampaignTimer campaign={campaign} />}
           </div>
 
@@ -14375,15 +15580,24 @@ export default function ReferralDashboard() {
 
         {/* Back Link */}
         <div className="mt-8 text-center">
-          {/* הקוד החדש והתקין */}
           <Link
             href="/he/friends"
-            className="inline-flex items-center gap-1 text-teal-600 hover:text-teal-700 text-sm"
+            className="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 text-sm transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
             חזרה לעמוד הקמפיין
           </Link>
         </div>
+
+        {/* Footer Message */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-8 text-center text-blue-300/60 text-sm"
+        >
+          חג אורים שמח! ✨
+        </motion.div>
       </div>
     </main>
   );
@@ -14971,84 +16185,96 @@ Content:
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Loader2, CheckCircle, AlertTriangle, Home } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import type { UnsubscribePageDict } from '@/types/dictionaries/auth'; // Adjust path as needed
+import type { UnsubscribePageDict } from '@/types/dictionaries/auth';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 type Status = 'verifying' | 'success' | 'error';
 
 interface UnsubscribeClientProps {
-    dict: UnsubscribePageDict;
+  dict: UnsubscribePageDict;
 }
 
 export default function UnsubscribeClient({ dict }: UnsubscribeClientProps) {
-    const searchParams = useSearchParams();
-    const [status, setStatus] = useState<Status>('verifying');
-    const [message, setMessage] = useState(dict.verifying);
+  const searchParams = useSearchParams();
+  const [status, setStatus] = useState<Status>('verifying');
+  const [message, setMessage] = useState(dict.verifying);
 
-    useEffect(() => {
-        const token = searchParams.get('token');
+  useEffect(() => {
+    const token = searchParams.get('token');
 
-        if (!token) {
-            setStatus('error');
-            setMessage(dict.errorInvalidLink);
-            return;
+    if (!token) {
+      setStatus('error');
+      setMessage(dict.errorInvalidLink);
+      return;
+    }
+
+    const unsubscribeUser = async () => {
+      try {
+        const response = await fetch('/api/user/unsubscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || dict.errorMessageDefault);
         }
 
-        const unsubscribeUser = async () => {
-            try {
-                const response = await fetch('/api/user/unsubscribe', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token }),
-                });
-
-                const result = await response.json();
-
-                if (!response.ok || !result.success) {
-                    throw new Error(result.error || dict.errorMessageDefault);
-                }
-
-                setStatus('success');
-                setMessage(dict.successMessage);
-            } catch (err) {
-                setStatus('error');
-                setMessage(err instanceof Error ? err.message : dict.errorMessageDefault);
-            }
-        };
-
-        unsubscribeUser();
-    }, [searchParams, dict]);
-
-    const renderIcon = () => {
-        switch (status) {
-            case 'verifying': return <Loader2 className="h-12 w-12 animate-spin text-cyan-600" />;
-            case 'success': return <CheckCircle className="h-12 w-12 text-green-600" />;
-            case 'error': return <AlertTriangle className="h-12 w-12 text-red-600" />;
-        }
+        setStatus('success');
+        setMessage(dict.successMessage);
+      } catch (err) {
+        setStatus('error');
+        setMessage(
+          err instanceof Error ? err.message : dict.errorMessageDefault
+        );
+      }
     };
 
+    unsubscribeUser();
+  }, [searchParams, dict]);
+
+  if (status === 'verifying') {
     return (
-        <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 text-center space-y-6">
-            <div>{renderIcon()}</div>
-            <h1 className="text-2xl font-bold text-gray-800">
-                {status === 'verifying' && dict.verifying}
-                {status === 'success' && dict.successTitle}
-                {status === 'error' && dict.errorTitle}
-            </h1>
-            <p className="text-gray-600">{message}</p>
-            {(status === 'success' || status === 'error') && (
-                <Button asChild>
-                    <Link href="/">
-                        <Home className="mr-2 h-4 w-4" />
-                        {dict.backToHomeButton}
-                    </Link>
-                </Button>
-            )}
-        </div>
+      <StandardizedLoadingSpinner
+        text={dict.verifying}
+        className="w-full max-w-md bg-white rounded-xl shadow-xl p-8"
+      />
     );
-};
+  }
+
+  const renderIcon = () => {
+    switch (status) {
+      case 'success':
+        return <CheckCircle className="h-12 w-12 text-green-600" />;
+      case 'error':
+        return <AlertTriangle className="h-12 w-12 text-red-600" />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 text-center space-y-6">
+      <div className="flex justify-center">{renderIcon()}</div>
+      <h1 className="text-2xl font-bold text-gray-800">
+        {status === 'success' && dict.successTitle}
+        {status === 'error' && dict.errorTitle}
+      </h1>
+      <p className="text-gray-600">{message}</p>
+      <Button asChild>
+        <Link href="/">
+          <Home className="mr-2 h-4 w-4" />
+          {dict.backToHomeButton}
+        </Link>
+      </Button>
+    </div>
+  );
+}
 --- End of Content for UnsubscribeClient.tsx ---
 
 --------------------------------------------------------------------------------
@@ -15063,25 +16289,26 @@ import UnsubscribeClient from './UnsubscribeClient';
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 function Loading() {
-    return <StandardizedLoadingSpinner />;
+  return <StandardizedLoadingSpinner text="טוען..." />;
 }
 
 type UnsubscribePageProps = {
-    params: Promise<{ locale: Locale }>;
+  params: Promise<{ locale: Locale }>;
 };
 
-export default async function UnsubscribePage({ params }: UnsubscribePageProps) {
-    const { locale } = await params;
-    const dictionary = await getDictionary(locale);
-    
-    return (
-        // הסרתי bg-gray-50
-        <div className="min-h-screen flex items-center justify-center p-4">
-            <Suspense fallback={<Loading />}>
-                <UnsubscribeClient dict={dictionary.auth.unsubscribePage} />
-            </Suspense>
-        </div>
-    );
+export default async function UnsubscribePage({
+  params,
+}: UnsubscribePageProps) {
+  const { locale } = await params;
+  const dictionary = await getDictionary(locale);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Suspense fallback={<Loading />}>
+        <UnsubscribeClient dict={dictionary.auth.unsubscribePage} />
+      </Suspense>
+    </div>
+  );
 }
 --- End of Content for page.tsx ---
 
