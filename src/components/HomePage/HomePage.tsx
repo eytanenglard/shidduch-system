@@ -21,6 +21,7 @@ import FooterSection from './sections/FooterSection';
 import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
 import CookieBanner from '../ui/CookieBanner';
+import FloatingCTAButton from './components/FloatingCTAButton'; // 🆕 כפתור צף
 import type { Dictionary } from '@/types/dictionary';
 import { generateDemoData } from './components/demo-data';
 import NeshmaInsightSectionB from './sections/NeshmaInsightSectionB';
@@ -82,9 +83,9 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         locale={locale}
       />
       <ValuePropositionSection dict={dict.valueProposition} />
-      
+
       <NeshmaInsightSectionB locale={locale} dict={dict.neshmaInsight} />
-    
+
       <OurMethodSection dict={dict.ourMethod} />
 
       <HowItWorksSection
@@ -104,6 +105,15 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
 
       <ChatWidget dict={dict.chatWidget} />
       <CookieBanner dict={dict.cookieBanner} />
+
+      {/* 🆕 כפתור הרשמה צף - מופיע רק למשתמשים לא מחוברים ורק במובייל */}
+      {!session && (
+        <FloatingCTAButton
+          locale={locale}
+          showAfterScroll={600} // מופיע אחרי 600px גלילה (מעבר ל-Hero)
+          showOnDesktop={false} // מובייל בלבד
+        />
+      )}
     </div>
   );
 }

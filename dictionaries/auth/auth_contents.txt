@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\auth
-# Generated on: 2025-12-01 08:23:58
+# Generated on: 2025-12-15 09:41:33
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -200,16 +200,16 @@ Content:
     "progressBar": {
       "stepLabel": "Step {{step}}"
     },
-    "headers": {
+  "headers": {
       "registerTitle": "System Registration",
       "verifyEmailTitle": "Email Address Verification",
       "completeProfileTitle": "Complete Details",
       "welcomeDescription": "Welcome! Let's get started.",
-      "accountCreationDescription": "Step 1 of 3: Consent and Login Details.",
+      "accountCreationDescription": "Account creation and login details.",
       "verifyEmailDescription": "Enter the code sent to: {{email}}.",
-      "personalDetailsDescription": "Step 1: Consent and Personal Details.",
-      "personalDetailsConsentedDescription": "Step 1 of 2: Personal Details.",
-      "optionalInfoDescription": "Step 2 of 2: Additional Information (Recommended).",
+      "personalDetailsDescription": "Personal details for profile creation.",
+      "personalDetailsConsentedDescription": "Personal details for profile creation.",
+      "optionalInfoDescription": "Additional Information (Recommended).",
       "completionPhoneVerificationDescription": "Details complete! Next step: Phone verification.",
       "completionReadyDescription": "Your profile is ready!",
       "loadingProfileDescription": "Loading profile completion step..."
@@ -383,6 +383,24 @@ Content:
         "backToHomeLink": "Back to Homepage"
       }
     },
+        "validationErrors": {
+      "title": "Missing Information",
+      "pleaseFill": "To proceed, please complete the following fields:",
+      "fields": {
+        "email": "Valid Email Address",
+        "password": "Valid Password",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "phone": "Valid Phone Number",
+        "gender": "Gender",
+        "birthDate": "Date of Birth (18+)",
+        "maritalStatus": "Marital Status",
+        "religiousLevel": "Religious Level",
+        "terms": "Terms of Service Agreement",
+        "engagement": "Engagement Updates Consent"
+      }
+    },
+
     "consentCheckbox": {
       "text": "I have read and agree to the {termsLink} and the {privacyLink} of NeshamaTech, and I consent to the collection, processing, and storage of my personal information, including sensitive information, as detailed therein, and to the transfer of my information to servers that may be located outside of Israel.",
       "termsLink": "Terms of Use",
@@ -845,16 +863,16 @@ Content:
     "progressBar": {
       "stepLabel": "שלב {{step}}"
     },
-    "headers": {
+   "headers": {
       "registerTitle": "הרשמה למערכת",
       "verifyEmailTitle": "אימות כתובת מייל",
       "completeProfileTitle": "השלמת פרטים",
       "welcomeDescription": "ברוכים הבאים! בואו נתחיל.",
-      "accountCreationDescription": "שלב 1 מתוך 3: אישור תנאים ופרטי התחברות.",
+      "accountCreationDescription": "יצירת חשבון ופרטי התחברות.",
       "verifyEmailDescription": "הזן את הקוד שנשלח ל: {{email}}.",
-      "personalDetailsDescription": "שלב 1: אישור תנאים ופרטים אישיים.",
-      "personalDetailsConsentedDescription": "שלב 1 מתוך 2: פרטים אישיים.",
-      "optionalInfoDescription": "שלב 2 מתוך 2: מידע נוסף (מומלץ).",
+      "personalDetailsDescription": "פרטים אישיים ליצירת הפרופיל.",
+      "personalDetailsConsentedDescription": "פרטים אישיים ליצירת הפרופיל.",
+      "optionalInfoDescription": "מידע נוסף (מומלץ).",
       "completionPhoneVerificationDescription": "הפרטים הושלמו! השלב הבא: אימות טלפון.",
       "completionReadyDescription": "הפרופיל שלך מוכן!",
       "loadingProfileDescription": "טוען שלב השלמת פרופיל..."
@@ -1027,6 +1045,23 @@ Content:
         "myProfileButton": "לפרופיל שלי",
         "questionnaireButton": "למילוי שאלון התאמה",
         "backToHomeLink": "חזרה לדף הבית"
+      }
+    },
+    "validationErrors": {
+      "title": "שים לב, חסרים פרטים",
+      "pleaseFill": "כדי להמשיך, אנא השלם את השדות הבאים:",
+      "fields": {
+        "email": "כתובת אימייל תקינה",
+        "password": "סיסמה חוקית",
+        "firstName": "שם פרטי",
+        "lastName": "שם משפחה",
+        "phone": "מספר טלפון תקין",
+        "gender": "מגדר",
+        "birthDate": "תאריך לידה (גיל 18+)",
+        "maritalStatus": "מצב משפחתי",
+        "religiousLevel": "סגנון דתי",
+        "terms": "אישור תנאי השימוש",
+        "engagement": "אישור קבלת עדכונים מהמערכת"
       }
     },
     "consentCheckbox": {
